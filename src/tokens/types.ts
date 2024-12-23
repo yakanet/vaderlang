@@ -5,10 +5,19 @@ type CreateToken<T extends string> = {
 }
 
 export type Token =
+    | CreateToken<'EOF'>
     | CreateToken<'PlusToken'>
+    | CreateToken<'PlusEqualToken'>
+    | CreateToken<'PlusPlusToken'>
     | CreateToken<'StarToken'>
-    | CreateToken<'MinusToken'>
-    | CreateToken<'DivideToken'>
+    | CreateToken<'StarEqualToken'>
+    | CreateToken<'DashToken'>
+    | CreateToken<'DashDashToken'>
+    | CreateToken<'DashEqualToken'>
+    | CreateToken<'SlashToken'>
+    | CreateToken<'SlashEqualToken'>
+    | CreateToken<'PercentToken'>
+    | CreateToken<'PercentEqualToken'>
     | CreateToken<'EqualToken'>
     | CreateToken<'DoubleEqualToken'>
     | CreateToken<'NumberToken'>
@@ -23,4 +32,3 @@ export type Token =
     | CreateToken<'Identifier'>
     | CreateToken<'Keyword'>
     | CreateToken<'StringLiteral'>
-    | CreateToken<'EOF'>

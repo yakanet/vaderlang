@@ -13,7 +13,7 @@ fun add(a: u8, b: u8): u8 {
 
 // Single line comment
 fun main(): int {
-    var a = add(2, 3) * 4 / 4
+    var a = 2 + 3 * 4
     if(a == 0) {
         println(0)
     } elif (demo) {

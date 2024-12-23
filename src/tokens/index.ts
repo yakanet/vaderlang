@@ -63,20 +63,36 @@ export function* tokenize(content: string): Generator<Token> {
         if (is_whitespace(c)) {
             continue;
         }
+
         const createToken = (tokenType: Token['type'], value = c) => ({
             type: tokenType,
             value,
             offset: tokenizer.current
-        })
+        }) as Token;
+
+        const parseOperator = (singleChar: Token['type'], withEquals?: Token['type'], withDuplicate?: Token['type']) => {
+            if (withEquals && tokenizer.next() === '=') {
+                tokenizer.eat();
+                return createToken(withEquals, `${c}=`)
+            }
+            if (withDuplicate && tokenizer.next() === c) {
+                tokenizer.eat();
+                return createToken(withDuplicate, `${c}${c}`)
+            }
+            return createToken(singleChar);
+        }
         switch (true) {
+            case (c === '=') :
+                yield parseOperator('EqualToken', 'DoubleEqualToken');
+                break
             case (c === '+'):
-                yield createToken('PlusToken');
-                break;
-            case (c === '*'):
-                yield createToken('StarToken');
+                yield parseOperator('PlusToken', 'PlusEqualToken', 'PlusPlusToken');
                 break;
             case (c === '-'):
-                yield createToken('MinusToken')
+                yield parseOperator('DashToken', 'DashEqualToken', 'DashDashToken')
+                break;
+            case (c === '*'):
+                yield parseOperator('StarToken', 'StarEqualToken');
                 break;
             case (c === '/'):
                 if (tokenizer.next() === '/') {
@@ -84,8 +100,11 @@ export function* tokenize(content: string): Generator<Token> {
                     }
                     break;
                 }
-                yield createToken('DivideToken')
+                yield createToken('SlashToken', 'SlashEqualToken')
                 break;
+            case (c === '%'):
+                yield parseOperator('PercentToken', 'PercentEqualToken')
+                break
             case (c === '('):
                 yield createToken('OpenParenthesis')
                 break;
@@ -110,15 +129,6 @@ export function* tokenize(content: string): Generator<Token> {
             case (c === ','):
                 yield createToken('CommaToken')
                 break;
-            case (c === '=') : {
-                if (tokenizer.next() === '=') {
-                    tokenizer.eat();
-                    yield createToken('DoubleEqualToken', '==')
-                } else {
-                    yield createToken('EqualToken')
-                }
-                break
-            }
             case (c === '"'): {
                 let buffer = '';
                 while (tokenizer.hasNext() && tokenizer.next() !== '"') {

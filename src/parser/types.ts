@@ -46,8 +46,6 @@ export type VariableDeclarationStatement = {
 
 export type ConditionalExpression = {
     type: 'ConditionalExpression'
-    ifCondition: Expression
-    ifBody: Statement[]
     branches: {
         condition: Expression,
         body: Statement[]

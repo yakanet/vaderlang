@@ -24,12 +24,24 @@ export class Parser {
         return this.tokens[++this.index];
     }
 
-    expectKeyword(keyword: typeof keywords[number]) {
+    expectKeyword(keyword: typeof keywords[number], message?: string) {
         const token = this.current();
         if (this.isCurrentKeyword(keyword)) {
             return this.eat();
         }
-        throw new Error(`Expected keyword ${keyword} but get ${token.type}`)
+        throw new Error(message ?? `Expected keyword ${keyword} but get ${token.type}`)
+    }
+
+
+    expectKeywords(keywordz: typeof keywords[number][], message?: string) {
+        const token = this.current();
+        for (const keyword of keywordz) {
+
+            if (this.isCurrentKeyword(keyword)) {
+                return this.eat();
+            }
+        }
+        throw new Error(message ?? `Expected one of the following keywords ${keywordz} but get ${token.value}`)
     }
 
     isCurrentKeyword(keyword: typeof keywords[number]) {
@@ -57,18 +69,17 @@ export class Parser {
 
     reportError(message: string, token: Token = this.current()): never {
         const {line, column} = this.findLocation(token.offset);
-        console.log(`ERROR:${line}:${column}: ${message}`);
+        console.log(`ERROR:${line + 1}:${column}: ${message}`);
         process.exit(1);
     }
 
-    expect(type: Token['type']): Token {
+    expect(type: Token['type'], message?: string): Token {
         if (this.current()?.type === type) {
             const c = this.current()
             this.eat();
             return c;
         }
-
-        this.reportError(`Expected tokens ${type} but got ${this.current().type}`);
+        this.reportError(message ?? `Expected tokens ${type} but got ${this.current().type}`);
     }
 
     private current(): Token {
@@ -142,6 +153,16 @@ function parseExpression(parser: Parser): Expression {
         lhs = parseIfExpression(parser)
     }
 
+    if (parser.isCurrentType('OpenParenthesis')) {
+        parser.expect('OpenParenthesis');
+        lhs = parseExpression(parser);
+        parser.expect('CloseParenthesis');
+    }
+
+    if (parser.isCurrentType('Identifier') && parser.next()?.type === 'OpenParenthesis') {
+        lhs = parseCallExpression(parser);
+    }
+
     if (parser.isCurrentType('NumberToken')) {
         const token = parser.expect('NumberToken')
         lhs = {
@@ -149,6 +170,7 @@ function parseExpression(parser: Parser): Expression {
             value: Number(token.value),
         }
     }
+
     if (parser.isCurrentType('StringLiteral')) {
         const token = parser.expect('StringLiteral')
         lhs = {
@@ -156,57 +178,58 @@ function parseExpression(parser: Parser): Expression {
             value: token.value,
         }
     }
+
     if (parser.isCurrentType('Identifier')) {
-        if (parser.next()?.type === 'OpenParenthesis') {
-            lhs = parseCallExpression(parser);
-        } else {
-            const token = parser.expect('Identifier')
-            lhs = {
-                type: "VariableExpression",
-                value: token.value,
-            }
+        const token = parser.expect('Identifier')
+        lhs = {
+            type: "VariableExpression",
+            value: token.value,
         }
     }
 
     if (!lhs) {
         parser.reportError(`Unknown expression`)
     }
+
     if (parser.isCurrentType('PlusToken')) {
-        parser.expect('PlusToken');
+        const token = parser.expect('PlusToken');
         const rhs = parseExpression(parser);
         lhs = {
             type: 'BinaryExpression',
-            operator: '+',
+            operator: token.value,
             lhs,
             rhs
         }
     }
+
     if (parser.isCurrentType('StarToken')) {
-        parser.expect('StarToken');
+        const token = parser.expect('StarToken');
         const rhs = parseExpression(parser);
         lhs = {
             type: 'BinaryExpression',
-            operator: '*',
+            operator: token.value,
             lhs,
             rhs
         }
     }
-    if (parser.isCurrentType('DivideToken')) {
-        parser.expect('DivideToken');
+
+    if (parser.isCurrentType('SlashToken')) {
+        const token = parser.expect('SlashToken');
         const rhs = parseExpression(parser);
         lhs = {
             type: 'BinaryExpression',
-            operator: '/',
+            operator: token.value,
             lhs,
             rhs
         }
     }
+
     if (parser.isCurrentType('DoubleEqualToken')) {
-        parser.expect('DoubleEqualToken');
+        const token = parser.expect('DoubleEqualToken');
         const rhs = parseExpression(parser);
         lhs = {
             type: 'BinaryExpression',
-            operator: '==',
+            operator: token.value,
             lhs,
             rhs
         }
@@ -232,9 +255,10 @@ function parseIfExpression(parser: Parser) {
     const ifStatements = parseBlockStatement(parser);
     const ifBlock: ConditionalExpression = {
         type: 'ConditionalExpression',
-        branches: [],
-        ifCondition,
-        ifBody: ifStatements
+        branches: [{
+            body: ifStatements,
+            condition: ifCondition
+        }],
     }
     while (parser.isCurrentKeyword('elif')) {
         parser.expectKeyword('elif')
@@ -277,7 +301,7 @@ function parseCallExpression(parser: Parser): CallExpression {
 }
 
 function parseVariableDeclaration(parser: Parser) {
-    const current = parser.expect('Keyword');
+    const current = parser.expectKeywords(['val', 'var']);
     const isConstant = current.value === 'val';
     const identifier = parser.expect('Identifier');
     let variableType = ''
