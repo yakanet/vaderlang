@@ -54,6 +54,7 @@ export type ConditionalExpression = {
 }
 
 export type FunctionDeclaration = {
+    type: 'FunctionDeclaration',
     name: string,
     parameters: ({ name: string; type: string })[],
     returnType: string,

@@ -25,7 +25,7 @@ export class Parser {
     }
 
     expectKeyword(keyword: typeof keywords[number], message?: string) {
-        const token = this.current();
+        const token = this.current;
         if (this.isCurrentKeyword(keyword)) {
             return this.eat();
         }
@@ -34,7 +34,7 @@ export class Parser {
 
 
     expectKeywords(keywordz: typeof keywords[number][], message?: string) {
-        const token = this.current();
+        const token = this.current;
         for (const keyword of keywordz) {
 
             if (this.isCurrentKeyword(keyword)) {
@@ -45,11 +45,11 @@ export class Parser {
     }
 
     isCurrentKeyword(keyword: typeof keywords[number]) {
-        return this.current().type === 'Keyword' && this.current().value === keyword;
+        return this.current.type === 'Keyword' && this.current.value === keyword;
     }
 
     isCurrentType(type: Token['type']) {
-        return this.current().type === type;
+        return this.current.type === type;
     }
 
     private findLocation(offset: number) {
@@ -67,26 +67,26 @@ export class Parser {
         throw new Error(`Could not determine location of ${offset}`)
     }
 
-    reportError(message: string, token: Token = this.current()): never {
+    reportError(message: string, token: Token = this.current): never {
         const {line, column} = this.findLocation(token.offset);
         console.log(`ERROR:${line + 1}:${column}: ${message}`);
         process.exit(1);
     }
 
     expect(type: Token['type'], message?: string): Token {
-        if (this.current()?.type === type) {
-            const c = this.current()
+        if (this.current?.type === type) {
+            const c = this.current
             this.eat();
             return c;
         }
-        this.reportError(message ?? `Expected tokens ${type} but got ${this.current().type}`);
+        this.reportError(message ?? `Expected tokens ${type} but got ${this.current.type}`);
     }
 
-    private current(): Token {
+    get current(): Token {
         return this.tokens[this.index];
     }
 
-    next() {
+    get next(): Token {
         return this.tokens[this.index + 1];
     }
 }
@@ -159,7 +159,7 @@ function parseExpression(parser: Parser): Expression {
         parser.expect('CloseParenthesis');
     }
 
-    if (parser.isCurrentType('Identifier') && parser.next()?.type === 'OpenParenthesis') {
+    if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenParenthesis') {
         lhs = parseCallExpression(parser);
     }
 
@@ -171,6 +171,7 @@ function parseExpression(parser: Parser): Expression {
         }
     }
 
+
     if (parser.isCurrentType('StringLiteral')) {
         const token = parser.expect('StringLiteral')
         lhs = {
@@ -178,6 +179,8 @@ function parseExpression(parser: Parser): Expression {
             value: token.value,
         }
     }
+
+
 
     if (parser.isCurrentType('Identifier')) {
         const token = parser.expect('Identifier')
@@ -188,7 +191,7 @@ function parseExpression(parser: Parser): Expression {
     }
 
     if (!lhs) {
-        parser.reportError(`Unknown expression`)
+        parser.reportError(`Unknown expression: ${parser.current.type}`)
     }
 
     if (parser.isCurrentType('PlusToken')) {
@@ -345,6 +348,7 @@ function parseFunction(parser: Parser) {
     const functionName = parser.expect('Identifier');
     parser.expect('OpenParenthesis');
     const functionDeclaration: FunctionDeclaration = {
+        type: 'FunctionDeclaration',
         name: functionName.value,
         body: [],
         parameters: [],
