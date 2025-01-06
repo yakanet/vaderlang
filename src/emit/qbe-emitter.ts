@@ -65,30 +65,26 @@ export class QbeEmitter {
     }
 
     private debugln(message: string, scope: Scope) {
-        this.write('\n');
-        this.writeln(`# ${message}`, scope);
+        this.writeln(`\n# ${message}`, scope);
     }
 
     private emitStatement(statement: Statement, scope: Scope) {
         switch (statement.type) {
             case 'FunctionDeclaration': {
                 this.functions.set(statement.name, statement);
-                const isMain = statement.name === 'main';
-
                 const functionScope = new Scope(scope);
 
                 this.debugln('FunctionDeclaration -- ' + statement.name, scope)
-                let code = isMain ? 'export ' : ''
-                code += 'function '
-                if (statement.returnType) {
-                    code += statement.returnType + ' '
-                }
-                code += '$' + statement.name + ' '
-                code += '(';
+                const exportableFn = statement.name === 'main';
                 const params = statement.parameters.map(p => functionScope.newVariable(p.type, p.name));
-                code += params.map(p => `${p.type} ${p}`).join(', ')
-                code += ') {';
-                this.writeln(code, scope)
+
+                const header = [
+                    exportableFn ? 'export' : '',
+                    'function',
+                    statement.returnType ?? '',
+                    `$${statement.name}(${params.map(p => `${p.type} ${p}`).join(', ')}) {`,
+                ];
+                this.writeln(header.filter(x => x).join(' '), scope)
                 this.writeln(`@start`, scope)
                 for (const child of statement.body) {
                     this.emitStatement(child, functionScope);
@@ -112,12 +108,13 @@ export class QbeEmitter {
                 this.writeln(`ret ${ref}`, scope);
                 return;
             }
-        }
-        if (statement.type === 'CallExpression') {
-            const params = statement.parameters.map(p => this.emitExpression(p, scope));
-            this.debugln(`CallExpression -- ${statement.functionName}`, scope);
-            this.writeln(`call $${statement.functionName}(${params.map(p => `${p?.type} ${p}`)})`, scope)
-            return;
+
+            case 'CallExpression': {
+                const params = statement.parameters.map(p => this.emitExpression(p, scope));
+                this.debugln(`CallExpression -- ${statement.functionName}`, scope);
+                this.writeln(`call $${statement.functionName}(${params.map(p => `${p?.type} ${p}`)})`, scope)
+                return;
+            }
         }
 
         throw new Error(`Undeclared statement ${statement.type}`);
@@ -125,54 +122,54 @@ export class QbeEmitter {
 
 
     private emitExpression(expression: Expression, scope: Scope): Ref | undefined {
-        if (expression.type === 'NumberExpression') {
-            const ref = scope.newVariable('w');
-            this.debugln(`NumberExpression ${expression.value}`, scope)
-            this.writeln(`${ref} =w copy ${expression.value}`, scope);
-            return ref;
-        }
-        if (expression.type === 'BinaryExpression') {
-            switch (expression.operator) {
-                case '+': {
-                    const lhs = this.emitExpression(expression.lhs, scope)
-                    const rhs = this.emitExpression(expression.rhs, scope);
-                    if (!lhs || lhs.type !== rhs?.type) {
-                        throw new Error(`Incompatible binary expression between ${lhs?.named} and ${rhs?.named}`);
+        switch (expression.type) {
+            case 'NumberExpression': {
+                const ref = scope.newVariable('w');
+                this.debugln(`NumberExpression ${expression.value}`, scope)
+                this.writeln(`${ref} =w copy ${expression.value}`, scope);
+                return ref;
+            }
+            case 'BinaryExpression':
+                switch (expression.operator) {
+                    case '+': {
+                        const lhs = this.emitExpression(expression.lhs, scope);
+                        const rhs = this.emitExpression(expression.rhs, scope);
+                        if (!lhs || lhs.type !== rhs?.type) {
+                            throw new Error(`Incompatible binary expression between ${lhs?.named} and ${rhs?.named}`);
+                        }
+                        const res = scope.newVariable(lhs.type);
+                        this.debugln('BinaryExpression +', scope);
+                        this.writeln(`${res} =w add ${lhs}, ${rhs}`, scope);
+                        return res;
                     }
-                    const res = scope.newVariable(lhs.type);
-                    this.debugln('BinaryExpression +', scope)
-                    this.writeln(`${res} =w add ${lhs}, ${rhs}`, scope);
-                    return res;
+
+                    default: {
+                        throw new Error(`unimplemented binary operation ${expression.operator}`);
+                    }
                 }
-
-                default:
-                    throw new Error(`unimplemented binary operation ${expression.operator}`)
+            case 'VariableExpression': {
+                return scope.lookupVariable(expression.value);
             }
-        }
-        if (expression.type === 'VariableExpression') {
-            return scope.lookupVariable(expression.value);
-        }
-
-        if (expression.type === 'CallExpression') {
-            const params = expression.parameters.map(p => this.emitExpression(p, scope));
-            const resolvedFunction = this.functions.get(expression.functionName);
-            if (!resolvedFunction) {
-                throw new Error(`Unresolved function ${expression.functionName}`)
+            case 'CallExpression': {
+                const params = expression.parameters.map(p => this.emitExpression(p, scope));
+                const resolvedFunction = this.functions.get(expression.functionName);
+                if (!resolvedFunction) {
+                    throw new Error(`Unresolved function ${expression.functionName}`)
+                }
+                const res = scope.newVariable(resolvedFunction?.returnType);
+                this.debugln(`CallExpression -- ${expression.functionName}`, scope);
+                this.writeln(`${res} =w call $${expression.functionName}(${params.map(p => `${p!.type} ${p}`)})`, scope)
+                return res;
             }
-            const res = scope.newVariable(resolvedFunction?.returnType);
-            this.debugln(`CallExpression -- ${expression.functionName}`, scope);
-            this.writeln(`${res} =w call $${expression.functionName}(${params.map(p => `${p!.type} ${p}`)})`, scope)
-            return res;
-        }
-
-        if (expression.type === 'StringExpression') {
-            let ref = this.strings.get(expression.value);
-            if (!ref) {
-                ref = new Ref(String('_str_' + this.strings.size), 'l', '$');
-                this.strings.set(expression.value, ref);
+            case 'StringExpression': {
+                let ref = this.strings.get(expression.value);
+                if (!ref) {
+                    ref = new Ref(String('_str_' + this.strings.size), 'l', '$');
+                    this.strings.set(expression.value, ref);
+                }
+                this.debugln(`StringExpression -- ${expression.value}`, scope);
+                return ref;
             }
-            this.debugln(`StringExpression -- ${expression.value}`, scope);
-            return ref;
         }
         throw new Error(`Undeclared expression ${expression.type}`)
     }
