@@ -1,6 +1,7 @@
 export type Program = {
     type: 'Program',
-    body: Statement[]
+    body: Statement[],
+    mainMethod: string | undefined;
 }
 
 export type ReturnStatement = {

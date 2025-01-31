@@ -1,56 +1,19 @@
 import type {Expression, FunctionDeclaration, Program, Statement} from "../parser/types.ts";
-
-class Ref {
-    constructor(public readonly named: string, public readonly type: string, private varType = '%') {
-    }
-
-    toString() {
-        return `${this.varType}${this.named}`
-    }
-}
-
-class Scope {
-    private variableRef = 0;
-    private namedVariables = new Map<string, Ref>();
-    public readonly depth: number;
-
-    constructor(private parent?: Scope) {
-        this.depth = parent ? parent.depth + 1 : 0;
-    }
-
-    newVariable(type: string, name?: string) {
-        if (name) {
-            if (this.namedVariables.has(name)) {
-                throw new Error(`Already declared variable ${name}`);
-            }
-            const ref = new Ref(name, type);
-            this.namedVariables.set(name, ref)
-            return ref;
-        } else {
-            return new Ref(`_${this.variableRef++}`, type);
-        }
-    }
-
-    lookupVariable(value: string): Ref {
-        const ref = this.namedVariables.get(value);
-        if (ref) {
-            return ref;
-        }
-        if (this.parent) {
-            return this.parent.lookupVariable(value)
-        }
-        throw new Error(`Unknown variable name ${value}`);
-    }
-}
+import child_process from "node:child_process";
+import fs from 'node:fs';
+import { Scope, Ref } from "./scope.ts";
 
 export class QbeEmitter {
     private strings = new Map<string, Ref>();
     private functions = new Map<string, FunctionDeclaration>();
+    private write: (message: string) => void;
+    private buffer = '';
 
-    constructor(private write: (message: string) => void) {
+    constructor() {
+        this.write = (message) => this.buffer += message;
     }
 
-    emit(program: Program) {
+    emit(program: Program, outputPath: string) {
         const scope = new Scope();
         for (const statement of program.body) {
             this.emitStatement(statement, scope);
@@ -58,6 +21,13 @@ export class QbeEmitter {
         for (const [value, ref] of this.strings) {
             this.writeln(`data ${ref} = {b "${value}" }`, scope)
         }
+
+        // Write
+        fs.mkdirSync(`${outputPath}/qbe`, {recursive: true, });
+        fs.writeFileSync(`${outputPath}/qbe/build.ssa`, this.buffer, {encoding: "utf-8"})
+        execCommand(['qbe', '-o', `${outputPath}/qbe/build-arm64-darwin.s`, '-t', 'arm64_apple', `${outputPath}/qbe/build.ssa`])
+        execCommand(['qbe', '-o', `${outputPath}/qbe/build-amd64-darwin.s`, '-t', 'amd64_apple', `${outputPath}/qbe/build.ssa`])
+        execCommand(['cc', '-o', `${outputPath}/app`, `${outputPath}/qbe/build-arm64-darwin.s`])
     }
 
     private writeln(message: string, scope: Scope) {
@@ -172,5 +142,18 @@ export class QbeEmitter {
             }
         }
         throw new Error(`Undeclared expression ${expression.type}`)
+    }
+}
+
+
+function execCommand(commands: string[]) {
+    console.time(commands.join(' '))
+    const res = child_process.spawnSync(commands[0], commands.slice(1), {
+        shell: true,
+    })
+    console.timeEnd(commands.join(' '))
+    if (res.error || res.status) {
+        console.log(res.stderr.toString())
+        throw res.error;
     }
 }

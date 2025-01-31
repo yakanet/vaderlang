@@ -19,12 +19,12 @@
 - f64
 
 ### Variables
-- val = immutable variable (value will never change)
-- var = variable value can change
+- declared via `::` = immutable variable (value will never change)
+- declared via `:=` = variable value can change
 
 ### Strutures
 ```
-val MyStruct = struct {
+MyStruct :: struct {
     a: u32
     b: f16
 }
@@ -32,20 +32,24 @@ val MyStruct = struct {
 
 ### Function
 ```
-fn maFunc (a: u32, b: f16): u32 {
+maFunc :: proc (a: u32, b: f16): u32 {
 
 }
 
-fn main (): int {
+main :: proc (): i32 {
     
 }
 
-fn MyStruct.myFunc(a: u32, b: f16) {
+MyStruct.myFunc :: proc(a: u32, b: f16): void {
     // this refer to MyStruct
 }
 ```
 
 ## Duck-typing
+
+## Backend
+- binaryen (for wasm)
+- qbe (for arm64 & amd64)
 
 ## Contribution
 

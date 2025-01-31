@@ -11,6 +11,8 @@ export type Token =
     | CreateToken<'PlusPlusToken'>
     | CreateToken<'StarToken'>
     | CreateToken<'StarEqualToken'>
+    | CreateToken<'DotToken'>
+    | CreateToken<'DotDotToken'>
     | CreateToken<'DashToken'>
     | CreateToken<'DashDashToken'>
     | CreateToken<'DashEqualToken'>
@@ -18,6 +20,10 @@ export type Token =
     | CreateToken<'SlashEqualToken'>
     | CreateToken<'PercentToken'>
     | CreateToken<'PercentEqualToken'>
+    | CreateToken<'LowerThanToken'>
+    | CreateToken<'HigherThanToken'>
+    | CreateToken<'LowerThanEqualToken'>
+    | CreateToken<'HigherThanEqualToken'>
     | CreateToken<'EqualToken'>
     | CreateToken<'DoubleEqualToken'>
     | CreateToken<'NumberToken'>
@@ -27,7 +33,11 @@ export type Token =
     | CreateToken<'CloseCurlyBracket'>
     | CreateToken<'OpenSquareBracket'>
     | CreateToken<'CloseSquareBracket'>
+    | CreateToken<'BangToken'>
+    | CreateToken<'SemicolonToken'>
     | CreateToken<'ColonToken'>
+    | CreateToken<'ColonColonToken'>
+    | CreateToken<'ColonEqualToken'>
     | CreateToken<'CommaToken'>
     | CreateToken<'Identifier'>
     | CreateToken<'Keyword'>

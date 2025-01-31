@@ -1,0 +1,11 @@
+
+ciovec :: struct {
+    buf:     u32
+    buf_len: u32
+}
+
+wasi_snapshot_preview1 :: foreign {
+    proc_exit :: fn(code: u32) -> void
+    environ_sizes_get :: (environ: u8[][], environ_buf: u8[]) ->
+    fd_write  :: fn(fd: u32, iovs: ciovec[], iovs_len: written: u32) -> u32
+} 

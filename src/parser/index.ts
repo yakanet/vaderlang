@@ -15,8 +15,9 @@ import type {
 export class Parser {
     private readonly tokens: Token[];
     private index = 0;
+    public mainMethod: string | undefined = undefined;
 
-    constructor(private content: string) {
+    constructor(private content: string, private source_path?: string) {
         this.tokens = [...tokenize(content)];
     }
 
@@ -69,7 +70,11 @@ export class Parser {
 
     reportError(message: string, token: Token = this.current): never {
         const {line, column} = this.findLocation(token.offset);
-        console.log(`ERROR:${line + 1}:${column}: ${message}`);
+        if(this.source_path) {
+            console.log(`ERROR: ${this.source_path}(${line + 1},${column}) ${message}`);
+        } else {
+            console.log(`ERROR:${line + 1}:${column}: ${message}`);
+        }
         process.exit(1);
     }
 
@@ -91,16 +96,18 @@ export class Parser {
     }
 }
 
-export function parseProgram(content: string): Program {
-    const parser = new Parser(content);
+export function parseProgram(content: string, source_path: string): Program {
+    const parser = new Parser(content, source_path);
     const program: Program = {
         type: 'Program',
         body: [],
+        mainMethod: undefined,
     }
     while (!parser.isCurrentType('EOF')) {
         program.body.push(parseStatement(parser))
     }
     parser.expect('EOF');
+    program.mainMethod = parser.mainMethod;
     return program;
 }
 
@@ -346,6 +353,9 @@ function parseBlockStatement(parser: Parser): Statement[] {
 function parseFunction(parser: Parser) {
     parser.expectKeyword('fun');
     const functionName = parser.expect('Identifier');
+    if(functionName.value === 'main') {
+        parser.mainMethod = functionName.value;
+    }
     parser.expect('OpenParenthesis');
     const functionDeclaration: FunctionDeclaration = {
         type: 'FunctionDeclaration',

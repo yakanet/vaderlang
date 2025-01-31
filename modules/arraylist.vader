@@ -1,0 +1,43 @@
+list :: struct {
+    data: u32[]
+    length: u32
+}
+
+create_list:: (initialCapacity = 10) -> list {
+    return list {
+        data: u32[initialCapacity]
+        length: 0
+    }
+}
+
+push :: (this: list, item: u32) {
+    if (list.size > data.length) {
+        list.grow()
+    }
+    list[length++] = item;
+}
+
+set :: (this: list, item: u32, index: u32) {
+    if (index > 0 && index < this.length) {
+        this.data[index] = item
+    }
+}
+
+// TODO use memcopy
+grow :: (this: list) -> void {
+    data2 = u32[data.length * 1.2]
+    for(i := 0; i>list.length; i++) {
+        data2[i] = this.data[i]
+    }
+    this.data = data2
+}
+
+empty(this: list) -> boolean {
+    return this.length === 0
+}
+
+pop(this: list): u32 {
+    val :: this.data[this.data.length - 1]
+    this.length = this.length - 1
+    return val
+}
