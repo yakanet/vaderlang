@@ -34,13 +34,13 @@ export type CallExpression = {
 
 export type VariableExpression = {
     type: 'VariableExpression',
-    value: string
+    value: string[]
 }
 
 export type VariableDeclarationStatement = {
     type: 'VariableDeclarationStatement',
     name: string,
-    variableType: string,
+    variableType?: VaderType,
     isConstant: boolean,
     value?: Expression
 }
@@ -57,8 +57,8 @@ export type ConditionalExpression = {
 export type FunctionDeclaration = {
     type: 'FunctionDeclaration',
     name: string,
-    parameters: ({ name: string; type: string })[],
-    returnType: string,
+    parameters: ({ name: string; type: VaderType })[],
+    returnType: VaderType,
     body: Statement[]
 }
 export type StructStatement = {
@@ -66,8 +66,28 @@ export type StructStatement = {
     name: string;
     definition: ({
         attributeName: string;
-        typeName: string;
+        typeName: VaderType;
     })[]
+}
+
+export type ForStatement = {
+    type: 'ForStatement',
+    initialization: Statement,
+    condition: Expression,
+    iteration: Statement,
+    body: Statement[],
+}
+
+
+export type VariableAssignmentStatement = {
+    type: 'VariableAssignment',
+    identifier: string,
+    value: Expression
+}
+
+export interface VaderType {
+    name: string,
+    array?: {arrayLenght?: number}
 }
 
 
@@ -85,4 +105,6 @@ export type Statement =
     | FunctionDeclaration
     | Expression
     | StructStatement
-    | VariableDeclarationStatement;
+    | VariableDeclarationStatement
+    | VariableAssignmentStatement
+    | ForStatement;

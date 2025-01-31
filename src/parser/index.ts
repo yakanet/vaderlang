@@ -1,15 +1,19 @@
 import {keywords, tokenize} from "../tokens";
 import type {Token} from "../tokens/types.ts";
 import type {
+    BinaryExpression,
     CallExpression,
     ConditionalExpression,
     Expression,
     FunctionDeclaration,
+    NumberExpression,
     Program,
     ReturnStatement,
     Statement,
     StructStatement,
-    VariableDeclarationStatement
+    VaderType,
+    VariableDeclarationStatement,
+    VariableExpression
 } from "./types.ts";
 
 export class Parser {
@@ -37,7 +41,6 @@ export class Parser {
     expectKeywords(keywordz: typeof keywords[number][], message?: string) {
         const token = this.current;
         for (const keyword of keywordz) {
-
             if (this.isCurrentKeyword(keyword)) {
                 return this.eat();
             }
@@ -51,6 +54,12 @@ export class Parser {
 
     isCurrentType(type: Token['type']) {
         return this.current.type === type;
+    }
+
+    expectTrue(value: boolean, message: string) {
+        if(!value) {
+            this.reportError(message)
+        }
     }
 
     private findLocation(offset: number) {
@@ -69,12 +78,15 @@ export class Parser {
     }
 
     reportError(message: string, token: Token = this.current): never {
-        const {line, column} = this.findLocation(token.offset);
+        let {line, column} = this.findLocation(token.offset);
+        line += 1; // There is a +1 offset in IDE or Code editor
+        column += 1; // There is a +1 offset in IDE or Code editor
         if(this.source_path) {
-            console.log(`ERROR: ${this.source_path}(${line + 1},${column}) ${message}`);
+            console.log(`ERROR: ${this.source_path}(${line},${column - token.value.length}) ${message}`);
         } else {
-            console.log(`ERROR:${line + 1}:${column}: ${message}`);
+            console.log(`ERROR:${line}:${column - token.value.length}: ${message}`);
         }
+        throw new Error('debug')
         process.exit(1);
     }
 
@@ -112,38 +124,150 @@ export function parseProgram(content: string, source_path: string): Program {
 }
 
 function parseStatement(parser: Parser): Statement {
-    if (parser.isCurrentKeyword('struct')) {
-        return parseStruct(parser)
-    }
-    if (parser.isCurrentKeyword('fun')) {
-        return parseFunction(parser)
+    if(parser.isCurrentType('Identifier')) {
+        return parseIdentifierStatement(parser);
     }
     if (parser.isCurrentKeyword('return')) {
         return parseReturnStatement(parser)
     }
-    if (parser.isCurrentKeyword('var')) {
-        return parseVariableDeclaration(parser)
-    }
-    if (parser.isCurrentKeyword('val')) {
-        return parseVariableDeclaration(parser)
+    if (parser.isCurrentKeyword('for')) {
+        return parseForStatement(parser)
     }
     return parseExpression(parser)
 }
 
-function parseType(parser: Parser): string {
-    return parser.expect('Identifier').value;
+function parseType(parser: Parser): VaderType {
+    const identifier = parser.expect('Identifier').value;
+    let arrayData: VaderType['array'] = undefined;
+    if(parser.isCurrentType('OpenSquareBracket')) {
+        parser.expect('OpenSquareBracket');
+        if(parser.isCurrentType('CloseSquareBracket')) {
+            parser.expect('CloseSquareBracket');
+            arrayData = {
+                arrayLenght: 0
+            }
+        } else {
+            const arraySize = parseExpression(parser);
+            parser.expectTrue(arraySize.type != "NumberExpression", 'Const array could be only initialized with a constant number');
+            arrayData = {
+                arrayLenght: (arraySize as NumberExpression).value
+            }
+        }
+    }
+
+    return {
+        name: identifier,
+        array: arrayData
+    }
 }
 
-function parseStruct(parser: Parser) {
+function parseIdentifierStatement(parser: Parser): Statement {
+    const identifier = parser.expect('Identifier');
+    // id ::
+    if(parser.isCurrentType('ColonColonToken')) {
+        parser.expect('ColonColonToken');
+        return parseVariableDeclaration(parser, true, identifier, undefined)
+    }
+
+    // id :=
+    if(parser.isCurrentType('ColonEqualToken')) {
+        parser.expect('ColonEqualToken');
+        return parseVariableDeclaration(parser, false, identifier, undefined)
+    }
+
+    if(parser.isCurrentType('ColonToken')) {
+        parser.expect('ColonToken');
+        const type = parseType(parser);
+        // id :type :
+        if(parser.isCurrentType('ColonToken')) {
+            parser.expect('ColonToken');
+            return parseVariableDeclaration(parser, true, identifier, type);
+        }
+        // id :type =
+        if(parser.isCurrentType('EqualToken')) {
+            parser.expect('ColonToken');
+            return parseVariableDeclaration(parser, false, identifier, type);
+        }
+    }
+    if(parser.isCurrentType('EqualToken')) {
+        parser.expect('EqualToken');
+        const value = parseExpression(parser);
+        return {
+            type: 'VariableAssignment',
+            identifier: identifier.value,
+            value
+        }
+    }
+    parser.reportError(`Unexpected identifier ${identifier.value}`);
+}
+
+function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifier: Token, type?: VaderType): Statement {
+    if(parser.isCurrentKeyword('fn')) {
+        parser.expectTrue(isConstant, `Function declaration could only be used with :: operator`)
+        return parseFunctionDeclaration(parser, identifier)
+    }
+    if(parser.isCurrentKeyword('struct')) {
+        parser.expectTrue(isConstant, `Struct declaration could only be used with :: operator`)
+        return parseStruct(parser, identifier)
+    }
+    return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type);
+}
+
+function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDeclaration {
+    parser.expectKeyword('fn')
+    const parameters = parseFunctionArguments(parser);
+    parser.expect('LambdaArrowToken')
+    const returnType = parseType(parser);
+    const body = parseBlockStatement(parser);
+    return {
+        type: 'FunctionDeclaration',
+        name: identifier.value,
+        parameters,
+        returnType,
+        body
+    }
+}
+
+function parseFunctionArguments(parser: Parser) : {name: string, type: VaderType}[]{
+    debugger
+    parser.expect('OpenParenthesis')
+    const parameters: {name: string, type: VaderType}[] = [];
+    while(!parser.isCurrentType('CloseParenthesis')) {
+        const identifier = parser.expect('Identifier')
+        parser.expect('ColonToken');
+        const type = parseType(parser);
+        parameters.push({ name: identifier.value, type})
+        if(!parser.isCurrentType('CommaToken')) {
+            break
+        }
+        parser.expect('CommaToken');
+    }
+    parser.expect('CloseParenthesis')
+    return parameters;
+}
+
+function parseVariableDeclarationAndAssignment(parser: Parser, isConstant: boolean, identifier: Token, type?: VaderType): VariableDeclarationStatement {
+    const value = parseExpression(parser);
+    return {
+        type: 'VariableDeclarationStatement',
+        name: identifier.value,
+        isConstant,
+        variableType: type,
+        value
+    }
+}
+
+function parseStruct(parser: Parser, identifier: Token) {
     parser.expectKeyword('struct');
-    const structName = parser.expect('Identifier');
-    parser.expect('OpenCurlyBracket');
     const structStatement: StructStatement = {
         type: 'StructStatement',
-        name: structName.value,
+        name: identifier.value,
         definition: []
     };
+
+    parser.expect('OpenCurlyBracket');
     while (!parser.isCurrentType('CloseCurlyBracket')) {
+        console.log(parser.current)
         const attributeName = parser.expect('Identifier').value
         parser.expect('ColonToken');
         const typeName = parseType(parser)
@@ -151,6 +275,31 @@ function parseStruct(parser: Parser) {
     }
     parser.expect('CloseCurlyBracket');
     return structStatement;
+}
+
+function parseForStatement(parser: Parser): Statement {
+    parser.expectKeyword('for');
+    let hasOpeningParenthesis = parser.isCurrentType('OpenParenthesis');
+    if(hasOpeningParenthesis) {
+        parser.expect('OpenParenthesis');
+    }
+    const initialization = parseIdentifierStatement(parser)
+    parser.expect('SemicolonToken')
+    const condition = parseExpression(parser);
+    parser.expect('SemicolonToken')
+    const iteration = parseIdentifierStatement(parser)
+    if(hasOpeningParenthesis) {
+        parser.expect('CloseParenthesis')
+    }
+    const body = parseBlockStatement(parser);
+    return {
+        type: 'ForStatement',
+        initialization,
+        condition,
+        iteration,
+        body,
+    }
+
 }
 
 function parseExpression(parser: Parser): Expression {
@@ -168,6 +317,19 @@ function parseExpression(parser: Parser): Expression {
 
     if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenParenthesis') {
         lhs = parseCallExpression(parser);
+    }
+
+    if(parser.isCurrentType('Identifier') && parser.next?.type === 'DotToken') {
+        debugger
+        const variable = [parser.expect('Identifier')];
+        while(parser.isCurrentType('DotToken')) {
+            parser.expect('DotToken')
+            variable.push(parser.expect('Identifier'))
+        }
+        lhs = {
+            type: 'VariableExpression',
+            value: variable.map(v => v.value)
+        }
     }
 
     if (parser.isCurrentType('NumberToken')) {
@@ -188,12 +350,11 @@ function parseExpression(parser: Parser): Expression {
     }
 
 
-
     if (parser.isCurrentType('Identifier')) {
         const token = parser.expect('Identifier')
         lhs = {
             type: "VariableExpression",
-            value: token.value,
+            value: [token.value],
         }
     }
 
@@ -201,50 +362,40 @@ function parseExpression(parser: Parser): Expression {
         parser.reportError(`Unknown expression: ${parser.current.type}`)
     }
 
-    if (parser.isCurrentType('PlusToken')) {
-        const token = parser.expect('PlusToken');
-        const rhs = parseExpression(parser);
-        lhs = {
-            type: 'BinaryExpression',
-            operator: token.value,
-            lhs,
-            rhs
-        }
-    }
+    lhs = parseBinaryExpression(parser, lhs)
 
-    if (parser.isCurrentType('StarToken')) {
-        const token = parser.expect('StarToken');
-        const rhs = parseExpression(parser);
-        lhs = {
-            type: 'BinaryExpression',
-            operator: token.value,
-            lhs,
-            rhs
-        }
-    }
-
-    if (parser.isCurrentType('SlashToken')) {
-        const token = parser.expect('SlashToken');
-        const rhs = parseExpression(parser);
-        lhs = {
-            type: 'BinaryExpression',
-            operator: token.value,
-            lhs,
-            rhs
-        }
-    }
-
-    if (parser.isCurrentType('DoubleEqualToken')) {
-        const token = parser.expect('DoubleEqualToken');
-        const rhs = parseExpression(parser);
-        lhs = {
-            type: 'BinaryExpression',
-            operator: token.value,
-            lhs,
-            rhs
-        }
-    }
     return lhs
+}
+
+function parseBinaryExpression(parser:Parser, lhs: Expression): Expression {
+    const binaryToken = new Set<Token['type']>([
+        'StarToken',
+        'SlashToken',
+        'PlusToken',
+        'BitwiseAndToken',
+        'BitwiseOrToken',
+        'BooleanAndToken',
+        'BooleanOrToken',
+        'DoubleEqualToken',
+        'BangEqualToken',
+        'LowerThanToken',
+        'LowerThanEqualToken',
+        'HigherThanToken',
+        'HigherThanEqualToken'
+    ]);
+    for(const operator of binaryToken) {
+        if (parser.isCurrentType(operator)) {
+            const token = parser.expect(operator);
+            const rhs = parseExpression(parser);
+            return {
+                type: 'BinaryExpression',
+                operator: token.value,
+                lhs,
+                rhs
+            }
+        }
+    }
+    return lhs;
 }
 
 function parseReturnStatement(parser: Parser): ReturnStatement {
@@ -310,36 +461,6 @@ function parseCallExpression(parser: Parser): CallExpression {
     }
 }
 
-function parseVariableDeclaration(parser: Parser) {
-    const current = parser.expectKeywords(['val', 'var']);
-    const isConstant = current.value === 'val';
-    const identifier = parser.expect('Identifier');
-    let variableType = ''
-
-    if (parser.isCurrentType('ColonToken')) {
-        parser.expect('ColonToken')
-        variableType = parseType(parser)
-    }
-
-    const variableDeclaration: VariableDeclarationStatement = {
-        type: 'VariableDeclarationStatement',
-        name: identifier.value,
-        variableType,
-        isConstant
-    }
-    if (parser.isCurrentType('EqualToken')) {
-        parser.expect('EqualToken');
-        variableDeclaration.value = parseExpression(parser);
-    }
-    if (variableDeclaration.isConstant && !variableDeclaration.value) {
-        parser.reportError(`Constant variable declaration must have a value`, identifier)
-    }
-    if (!variableDeclaration.variableType && !variableDeclaration.value) {
-        parser.reportError(`Unable to define a type for ${identifier.value}`, identifier)
-    }
-    return variableDeclaration;
-}
-
 function parseBlockStatement(parser: Parser): Statement[] {
     parser.expect('OpenCurlyBracket');
     const statements: Statement[] = []
@@ -348,40 +469,4 @@ function parseBlockStatement(parser: Parser): Statement[] {
     }
     parser.expect('CloseCurlyBracket');
     return statements;
-}
-
-function parseFunction(parser: Parser) {
-    parser.expectKeyword('fun');
-    const functionName = parser.expect('Identifier');
-    if(functionName.value === 'main') {
-        parser.mainMethod = functionName.value;
-    }
-    parser.expect('OpenParenthesis');
-    const functionDeclaration: FunctionDeclaration = {
-        type: 'FunctionDeclaration',
-        name: functionName.value,
-        body: [],
-        parameters: [],
-        returnType: ''
-    }
-    let hasNext = !parser.isCurrentType('CloseParenthesis');
-    while (hasNext) {
-        const paramName = parser.expect('Identifier')
-        parser.expect('ColonToken');
-        const paramType = parseType(parser);
-        functionDeclaration.parameters.push({
-            type: paramType,
-            name: paramName.value,
-        });
-        hasNext = false;
-        if (parser.isCurrentType('CommaToken')) {
-            parser.expect('CommaToken');
-            hasNext = true;
-        }
-    }
-    parser.expect('CloseParenthesis');
-    parser.expect('ColonToken');
-    functionDeclaration.returnType = parseType(parser);
-    functionDeclaration.body = parseBlockStatement(parser)
-    return functionDeclaration;
 }

@@ -14,6 +14,11 @@ export type Token =
     | CreateToken<'DotToken'>
     | CreateToken<'DotDotToken'>
     | CreateToken<'DashToken'>
+    | CreateToken<'BitwiseAndToken'>
+    | CreateToken<'BooleanAndToken'>
+    | CreateToken<'BitwiseOrToken'>
+    | CreateToken<'BooleanOrToken'>
+    | CreateToken<'LambdaArrowToken'>
     | CreateToken<'DashDashToken'>
     | CreateToken<'DashEqualToken'>
     | CreateToken<'SlashToken'>
@@ -34,6 +39,7 @@ export type Token =
     | CreateToken<'OpenSquareBracket'>
     | CreateToken<'CloseSquareBracket'>
     | CreateToken<'BangToken'>
+    | CreateToken<'BangEqualToken'>
     | CreateToken<'SemicolonToken'>
     | CreateToken<'ColonToken'>
     | CreateToken<'ColonColonToken'>
@@ -41,4 +47,5 @@ export type Token =
     | CreateToken<'CommaToken'>
     | CreateToken<'Identifier'>
     | CreateToken<'Keyword'>
+    | CreateToken<'Decorator'>
     | CreateToken<'StringLiteral'>

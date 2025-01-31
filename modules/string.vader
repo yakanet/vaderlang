@@ -3,13 +3,13 @@ String :: struct {
     value: u8[]
 }
 
-equals :: fn(this: String, other: String) : boolean {
+equals :: fn(this: String, other: String) -> boolean {
     if(this.length != other.length) {
         return false
     }
 
     // TODO use a memory comparaison instead of for loop
-    for (i := 0; i<this.length; i++ ) {
+    for (i := 0; i<this.length; i=i+1 ) {
         if(this.value[i] != other.value[i]) {
             return false
         }
