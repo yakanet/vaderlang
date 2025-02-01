@@ -21,6 +21,7 @@ export class Parser {
 
     constructor(private content: string, private source_path?: string) {
         this.tokens = [...tokenize(content)];
+        //console.log(this.tokens)
     }
 
     private eat() {
@@ -33,17 +34,6 @@ export class Parser {
             return this.eat();
         }
         throw new Error(message ?? `Expected keyword ${keyword} but get ${token.type}`)
-    }
-
-
-    expectKeywords(keywordz: typeof keywords[number][], message?: string) {
-        const token = this.current;
-        for (const keyword of keywordz) {
-            if (this.isCurrentKeyword(keyword)) {
-                return this.eat();
-            }
-        }
-        throw new Error(message ?? `Expected one of the following keywords ${keywordz} but get ${token.value}`)
     }
 
     isCurrentKeyword(keyword: typeof keywords[number]) {
@@ -84,7 +74,7 @@ export class Parser {
         } else {
             console.log(`ERROR:${line}:${column - token.value.length}: ${message}`);
         }
-        throw new Error('debug')
+        //throw new Error('debug')
         process.exit(1);
     }
 
@@ -177,12 +167,12 @@ function parseIdentifierStatement(parser: Parser): Statement {
         // id :type :
         if(parser.isCurrentType('ColonToken')) {
             parser.expect('ColonToken');
-            return parseVariableDeclaration(parser, true, identifier, undefined)
+            return parseVariableDeclaration(parser, true, identifier, type)
         }
         // id :type =
         if(parser.isCurrentType('EqualToken')) {
             parser.expect('EqualToken');
-            return parseVariableDeclaration(parser, false, identifier, undefined);
+            return parseVariableDeclaration(parser, false, identifier, type);
         }
     }
 
@@ -190,7 +180,7 @@ function parseIdentifierStatement(parser: Parser): Statement {
         parser.expect('EqualToken');
         const value = parseExpression(parser);
         return {
-            type: 'VariableAssignment',
+            type: 'VariableAssignmentStatement',
             identifier: identifier.value,
             value
         }
@@ -330,10 +320,19 @@ function parseExpression(parser: Parser): Expression {
         }
     }
 
+    if (parser.isCurrentType('Identifier')) {
+        const token = parser.expect('Identifier')
+        lhs = {
+            type: "VariableExpression",
+            value: [token.value],
+        }
+    }
+
     if (parser.isCurrentType('NumberToken')) {
         const token = parser.expect('NumberToken')
         lhs = {
             type: "NumberExpression",
+            variableType: token.value.indexOf('.') ? {name: 'f32'}: {name: 'u32'},
             value: Number(token.value),
         }
     }
@@ -344,15 +343,6 @@ function parseExpression(parser: Parser): Expression {
         lhs = {
             type: "StringExpression",
             value: token.value,
-        }
-    }
-
-
-    if (parser.isCurrentType('Identifier')) {
-        const token = parser.expect('Identifier')
-        lhs = {
-            type: "VariableExpression",
-            value: [token.value],
         }
     }
 
@@ -381,13 +371,13 @@ function parseBinaryExpression(parser:Parser, lhs: Expression): Expression {
         'HigherThanToken',
         'HigherThanEqualToken'
     ]);
-    for(const operator of binaryToken) {
-        if (parser.isCurrentType(operator)) {
-            const token = parser.expect(operator);
+    for(const token of binaryToken) {
+        if (parser.isCurrentType(token)) {
+            const {value: operator} = parser.expect(token);
             const rhs = parseExpression(parser);
             return {
                 type: 'BinaryExpression',
-                operator: token.value,
+                operator,
                 lhs,
                 rhs
             }

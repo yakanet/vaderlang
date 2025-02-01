@@ -112,10 +112,14 @@ export function* tokenize(content: string): Generator<Token> {
         break;
       case c === "/":
         if (tokenizer.next() === "/") {
-          while (tokenizer.eat() !== "\n") {}
+          while (tokenizer.eat() !== "\n") {
+            if(!tokenizer.hasNext()) {
+              break
+            }
+          }
           break;
         }
-        yield createToken("SlashToken", "SlashEqualToken");
+        yield parseOperator("SlashToken", "SlashEqualToken");
         break;
       case c === "%":
         yield parseOperator("PercentToken", "PercentEqualToken");
@@ -173,12 +177,10 @@ export function* tokenize(content: string): Generator<Token> {
           if (is_digit(c2)) {
             buffer += tokenizer.eat()!;
           } else if (c2 === "_") {
-            tokenizer.eat()!;
-            continue;
+            tokenizer.eat();
           } else if (c2 === "." && !seen_dot) {
             seen_dot = true;
             buffer += tokenizer.eat()!;
-            continue;
           } else {
             break;
           }

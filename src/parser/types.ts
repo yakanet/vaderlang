@@ -18,6 +18,7 @@ export type BinaryExpression = {
 
 export type NumberExpression = {
     type: 'NumberExpression',
+    variableType: VaderType,
     value: number
 }
 
@@ -80,7 +81,7 @@ export type ForStatement = {
 
 
 export type VariableAssignmentStatement = {
-    type: 'VariableAssignment',
+    type: 'VariableAssignmentStatement',
     identifier: string,
     value: Expression
 }

@@ -1,9 +1,9 @@
-//PI :f32 : 3.141_592_653_589_793
+PI :f32: 3.141_592_653_589_793
 
 rad2deg :: fn(rad: f32) -> f32 {
-    return rad * 180.0 / PI
+    return (rad * 180.0) / PI
 }
 
 deg2rad :: fn(deg: f32) -> f32 {
-    return deg * PI / 180.0
+    return (deg * PI) / 180.0
 }
