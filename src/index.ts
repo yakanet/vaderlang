@@ -11,7 +11,7 @@ for (const source_path of cli.positionalArgument) {
   console.log(program)
 
   const emitter = new WasmEmitter();
-
+  emitter.emit(program, 'build')
 }
 process.exit(0);
 

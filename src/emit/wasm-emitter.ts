@@ -4,6 +4,7 @@ import type {
   Program,
   Statement,
   StringExpression,
+  VaderType,
 } from "../parser/types";
 import binaryen from "binaryen";
 import { Scope, Ref } from "./scope.ts";
@@ -24,7 +25,7 @@ export class WasmEmitter {
     addWasiFunction(this.module);
   }
 
-  emit(program: Program, outputPath: string) {
+  emit(program: Program, outputDirectory: string) {
     const scope = new Scope();
     for (const statement of program.body) {
       this.emitTopLevelStatement(statement, scope);
@@ -45,9 +46,9 @@ export class WasmEmitter {
     assert.ok(this.module.validate());
     this.module.optimize();
     console.log(this.module.emitText());
-    fs.mkdirSync(`${outputPath}/wasm`, { recursive: true });
+    fs.mkdirSync(`${outputDirectory}/wasm`, { recursive: true });
 
-    fs.writeFileSync(`${outputPath}/wasm/app.wasm`, this.module.emitBinary());
+    fs.writeFileSync(`${outputDirectory}/wasm/app.wasm`, this.module.emitBinary());
   }
 
   emitMainMethod(program: Program) {
@@ -90,7 +91,7 @@ export class WasmEmitter {
   emitStatement(stmt: Statement, scope: Scope): binaryen.ExpressionRef {
     switch (stmt.type) {
       case "ReturnStatement":
-        return this.module.return(this.emitStatement(stmt.expression, scope));
+        return this.module.return(this.emitExpression(stmt.expression, scope));
       case "BinaryExpression": {
         if (stmt.operator === "+") {
           return this.module.i32.add(
@@ -99,7 +100,7 @@ export class WasmEmitter {
           );
         }
         throw new Error(
-          "BinaryExpression " + stmt.type + " is not implemented."
+          "BinaryExpression " + stmt.operator + " is not implemented."
         );
       }
 
@@ -152,21 +153,35 @@ export class WasmEmitter {
   ): binaryen.ExpressionRef {
     switch (expression.type) {
       case "VariableExpression": {
+        console.log('Variable ' + expression.value)
         return this.module.local.get(0, binaryen.i32);
       }
       case "NumberExpression": {
+        console.log('Number ' + expression.value)
         return this.module.i32.const(expression.value);
       }
     }
-
     throw new Error("Expression " + expression.type + " is not implemented.");
   }
 }
 
-function mapBinaryenType(t: string): binaryen.Type {
-  switch (t) {
-    case "w":
+function mapBinaryenType(t: VaderType): binaryen.Type {
+  switch (t.name) {
+    case "boolean":
+    case "int":
+    case "u8":
+    case "u32":
       return binaryen.i32;
+    case "long":
+    case "u64":
+        return binaryen.i64;
+    case "float":
+    case "f32":
+        return binaryen.f32;
+    case "f64":
+        return binaryen.f64;
+    case "void":
+        return binaryen.none;
   }
-  throw new Error("Type mapping " + t + " is not implemented.");
+  throw new Error("Type mapping " + t.name + " is not implemented.");
 }

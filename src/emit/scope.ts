@@ -1,10 +1,7 @@
+import type { VaderType } from "../parser/types";
 
 export class Ref {
-    constructor(public readonly named: string, public readonly type: string, private varType = '%') {
-    }
-
-    toString() {
-        return `${this.varType}${this.named}`
+    constructor(public readonly named: string, public readonly type: VaderType) {
     }
 }
 
@@ -17,7 +14,7 @@ export class Scope {
         this.depth = parent ? parent.depth + 1 : 0;
     }
 
-    newVariable(type: string, name?: string) {
+    newVariable(type: VaderType, name?: string) {
         if (name) {
             if (this.namedVariables.has(name)) {
                 throw new Error(`Already declared variable ${name}`);

@@ -1,7 +1,6 @@
 import {keywords, tokenize} from "../tokens";
 import type {Token} from "../tokens/types.ts";
 import type {
-    BinaryExpression,
     CallExpression,
     ConditionalExpression,
     Expression,
@@ -13,7 +12,6 @@ import type {
     StructStatement,
     VaderType,
     VariableDeclarationStatement,
-    VariableExpression
 } from "./types.ts";
 
 export class Parser {
@@ -163,32 +161,31 @@ function parseType(parser: Parser): VaderType {
 
 function parseIdentifierStatement(parser: Parser): Statement {
     const identifier = parser.expect('Identifier');
-    // id ::
-    if(parser.isCurrentType('ColonColonToken')) {
-        parser.expect('ColonColonToken');
-        return parseVariableDeclaration(parser, true, identifier, undefined)
-    }
-
-    // id :=
-    if(parser.isCurrentType('ColonEqualToken')) {
-        parser.expect('ColonEqualToken');
-        return parseVariableDeclaration(parser, false, identifier, undefined)
-    }
-
     if(parser.isCurrentType('ColonToken')) {
         parser.expect('ColonToken');
+        // id ::
+        if(parser.isCurrentType('ColonToken')) {
+            parser.expect('ColonToken');
+            return parseVariableDeclaration(parser, true, identifier, undefined)
+        }
+        // id :=
+        if(parser.isCurrentType('EqualToken')) {
+            parser.expect('EqualToken');
+            return parseVariableDeclaration(parser, false, identifier, undefined);
+        }
         const type = parseType(parser);
         // id :type :
         if(parser.isCurrentType('ColonToken')) {
             parser.expect('ColonToken');
-            return parseVariableDeclaration(parser, true, identifier, type);
+            return parseVariableDeclaration(parser, true, identifier, undefined)
         }
         // id :type =
         if(parser.isCurrentType('EqualToken')) {
-            parser.expect('ColonToken');
-            return parseVariableDeclaration(parser, false, identifier, type);
+            parser.expect('EqualToken');
+            return parseVariableDeclaration(parser, false, identifier, undefined);
         }
     }
+
     if(parser.isCurrentType('EqualToken')) {
         parser.expect('EqualToken');
         const value = parseExpression(parser);
@@ -198,7 +195,7 @@ function parseIdentifierStatement(parser: Parser): Statement {
             value
         }
     }
-    parser.reportError(`Unexpected identifier ${identifier.value}`);
+    return parseExpression(parser)
 }
 
 function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifier: Token, type?: VaderType): Statement {
@@ -214,6 +211,9 @@ function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifie
 }
 
 function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDeclaration {
+    if(identifier.value === 'main') {
+        parser.mainMethod = identifier.value;
+    }
     parser.expectKeyword('fn')
     const parameters = parseFunctionArguments(parser);
     parser.expect('LambdaArrowToken')
@@ -229,7 +229,6 @@ function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDe
 }
 
 function parseFunctionArguments(parser: Parser) : {name: string, type: VaderType}[]{
-    debugger
     parser.expect('OpenParenthesis')
     const parameters: {name: string, type: VaderType}[] = [];
     while(!parser.isCurrentType('CloseParenthesis')) {
@@ -320,7 +319,6 @@ function parseExpression(parser: Parser): Expression {
     }
 
     if(parser.isCurrentType('Identifier') && parser.next?.type === 'DotToken') {
-        debugger
         const variable = [parser.expect('Identifier')];
         while(parser.isCurrentType('DotToken')) {
             parser.expect('DotToken')

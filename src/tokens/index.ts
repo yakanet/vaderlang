@@ -145,7 +145,7 @@ export function* tokenize(content: string): Generator<Token> {
         yield createToken("CloseSquareBracket");
         break;
       case c === ":":
-        yield parseOperator("ColonToken", "ColonEqualToken", "ColonColonToken");
+        yield createToken("ColonToken");
         break;
       case c === ",":
         yield createToken("CommaToken");

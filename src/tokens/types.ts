@@ -42,8 +42,6 @@ export type Token =
     | CreateToken<'BangEqualToken'>
     | CreateToken<'SemicolonToken'>
     | CreateToken<'ColonToken'>
-    | CreateToken<'ColonColonToken'>
-    | CreateToken<'ColonEqualToken'>
     | CreateToken<'CommaToken'>
     | CreateToken<'Identifier'>
     | CreateToken<'Keyword'>
