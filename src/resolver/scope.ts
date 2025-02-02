@@ -29,8 +29,10 @@ type Source =
 export class Scope {
   private namedVariables = new Map<string, Ref>();
   public readonly depth: number;
+  #parent?: Scope
 
-  constructor(private parent?: Scope) {
+  constructor(parent?: Scope) {
+    this.#parent = parent;
     this.depth = parent ? parent.depth + 1 : 0;
   }
 
@@ -53,8 +55,8 @@ export class Scope {
     if (ref) {
       return ref;
     }
-    if (this.parent) {
-      return this.parent.lookupVariable(value);
+    if (this.#parent) {
+      return this.#parent.lookupVariable(value);
     }
     throw new Error(`Unknown variable name ${value}`);
   }

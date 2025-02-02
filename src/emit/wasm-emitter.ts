@@ -14,31 +14,23 @@ import type { Resolved } from "../resolver/types.ts";
 const encoder = new TextEncoder();
 
 export class WasmEmitter {
-  private strings = new Set<string>();
+  private strings: binaryen.MemorySegment[] = [];
   private module = new binaryen.Module();
 
   constructor() {
-    this.module.setMemory(1, -1);
     addWasiFunction(this.module);
   }
 
   emit(program: Resolved<Program>, outputDirectory: string) {
+    this.module.setMemory(1, -1);
+
     for (const statement of program.body) {
       this.emitTopLevelStatement(statement);
     }
 
-    let offset = 0;
-    this.module.setMemory(1, -1, "memory", [
-      ...this.strings.values().map((v) => {
-        const data = encoder.encode(v + "\0");
-        offset += data.length;
-        return {
-          data,
-          offset,
-        };
-      }),
-    ]);
     this.emitMainMethod(program);
+    
+    this.module.setMemory(1, -1, "memory", this.strings);
     assert.ok(this.module.validate());
     this.module.optimize();
     console.log(this.module.emitText());
@@ -235,30 +227,42 @@ export class WasmEmitter {
   ]);
 
   emitPrintf(stmt: CallExpression) {
-    this.strings.add((stmt.parameters[0] as StringExpression).value);
+    assert(stmt.parameters[0]?.kind === "StringExpression");
+    const string = stmt.parameters[0] as StringExpression;
+    const stringValue = string.value.endsWith('\0') ? string.value : (string.value + "\0");
+    this.strings.push({
+      data: encoder.encode(stringValue),
+      offset: this.module.i32.const(0),
+    });
+    const string_memory_address = 40; // TODO Need to be dynamic
+    const result_memory_addess = 80; // TODO Need to be dynamic
     return this.module.block(null, [
       // Store iovs
+      // Start of data  (= *buf)
       this.module.i32.store(
         0,
         0,
-        this.module.i32.const(40),
+        this.module.i32.const(string_memory_address),
         this.module.i32.const(0)
-      ), // Start of data (= *buf)
+      ),
+      // Length of data (= buf_len)
       this.module.i32.store(
         0,
         0,
-        this.module.i32.const(44),
-        this.module.i32.const(12)
-      ), // Length of data (= buf_len)
-      this.module.call(
-        "wasi_snapshot_preview1:fd_write",
-        [
-          this.module.i32.const(1), // stdout = 1
-          this.module.i32.const(40), // ptr of iovs
-          this.module.i32.const(1), // number of iovs (could iovs is an array)
-          this.module.i32.const(80), // where to store the returned error code
-        ],
-        binaryen.i32
+        this.module.i32.const(string_memory_address + 4),
+        this.module.i32.const(stringValue.length)
+      ),
+      this.module.drop(
+        this.module.call(
+          "wasi_snapshot_preview1:fd_write",
+          [
+            this.module.i32.const(1), // stdout = 1
+            this.module.i32.const(string_memory_address), // ptr of iovs
+            this.module.i32.const(1), // number of iovs (iovs is an array)
+            this.module.i32.const(result_memory_addess), // where to store the returned error code
+          ],
+          binaryen.i32
+        )
       ),
     ]);
   }

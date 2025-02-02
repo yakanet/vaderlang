@@ -1,5 +1,7 @@
-x := 32
+return_code := 32
 
 main :: fn() -> u32 {
-    return x
+    printf("Hello world\n")
+    return_code = 0
+    return return_code
 }

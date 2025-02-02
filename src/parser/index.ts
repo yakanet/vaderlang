@@ -75,7 +75,7 @@ export class Parser {
         } else {
             console.log(`ERROR:${line}:${column - token.value.length}: ${message}`);
         }
-        //throw new Error('debug')
+        throw new Error('debug')
         process.exit(1);
     }
 
@@ -151,6 +151,9 @@ function parseType(parser: Parser): VaderType {
 }
 
 function parseIdentifierStatement(parser: Parser): Statement {
+    if(parser.next.type === 'OpenParenthesis') {
+        return parseCallExpression(parser);
+    }
     const identifier = parser.expect('Identifier');
     if(parser.isCurrentType('ColonToken')) {
         parser.expect('ColonToken');
@@ -304,6 +307,7 @@ function parseExpression(parser: Parser): Expression {
         parser.expect('CloseParenthesis');
     }
 
+    debugger
     if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenParenthesis') {
         lhs = parseCallExpression(parser);
     }
@@ -351,7 +355,7 @@ function parseExpression(parser: Parser): Expression {
         lhs = {
             kind: "StringExpression",
             type: {name: 'u8', array: {arrayLenght: token.value.length}},
-            value: token.value,
+            value: token.value.replaceAll('\\n', '\n'),
         }
     }
 
