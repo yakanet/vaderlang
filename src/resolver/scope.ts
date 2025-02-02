@@ -17,7 +17,14 @@ interface LocalParameterSource {
   kind: "LocalParameterSource";
 }
 
-type Source = FunctionParameterSource | LocalParameterSource;
+interface GlobalParameterSource {
+  kind: "GlobalParameterSource";
+}
+
+type Source =
+  | FunctionParameterSource
+  | LocalParameterSource
+  | GlobalParameterSource;
 
 export class Scope {
   private namedVariables = new Map<string, Ref>();
@@ -30,6 +37,11 @@ export class Scope {
   newVariable(type: VaderType, name: string, source: Source) {
     if (this.namedVariables.has(name)) {
       throw new Error(`Already declared variable ${name}`);
+    }
+    if(this.depth === 0) {
+        source = {
+            kind: 'GlobalParameterSource'
+        }
     }
     const ref = new Ref(name, type, source);
     this.namedVariables.set(name, ref);

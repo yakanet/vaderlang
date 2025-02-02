@@ -1,11 +1,12 @@
 import { Scope } from "./scope";
-import type {
-  Expression,
-  ForStatement,
-  FunctionDeclaration,
-  Program,
-  ReturnStatement,
-  Statement,
+import {
+  UnknownType,
+  type Expression,
+  type ForStatement,
+  type FunctionDeclaration,
+  type Program,
+  type ReturnStatement,
+  type Statement,
 } from "../parser/types";
 import type { Resolved } from "./types";
 
@@ -25,7 +26,7 @@ function resolveStatement(
   statement: Statement,
   scope: Scope
 ): Resolved<Statement> {
-  switch (statement.type) {
+  switch (statement.kind) {
     case "FunctionDeclaration":
       return resolveFunctionDeclaration(statement, scope);
     case "ReturnStatement":
@@ -35,31 +36,26 @@ function resolveStatement(
         scope,
       } satisfies Resolved<ReturnStatement>;
     case "VariableDeclarationStatement": {
-        const value = statement.value ? resolveExpression(statement.value, scope) : undefined
-      // FIXME default type should be the resolved value type
-      scope.newVariable(
-        statement.variableType ?? { name: "u32" },
-        statement.name,
-        {
-          kind: "LocalParameterSource",
-        }
-      );
-
+      const value = statement.value
+        ? resolveExpression(statement.value, scope)
+        : undefined;
+      const type =
+        statement.type !== UnknownType
+          ? statement.type
+          : value?.type ?? UnknownType;
+      scope.newVariable(type, statement.name, {
+        kind: "LocalParameterSource",
+      });
+      //console.log("declare var " + statement.name, statement.type, value?.type, type);
       return {
         ...statement,
+        type,
         value,
         scope,
       };
     }
     case "VariableAssignmentStatement": {
       const res = resolveExpression(statement.value, scope);
-      scope.newVariable(
-        { name: "f32" },
-        statement.identifier,
-        {
-          kind: "LocalParameterSource",
-        }
-      );
       return {
         ...statement,
         value: res,
@@ -90,6 +86,9 @@ function resolveFunctionDeclaration(
   const body = statement.body.map((stmt) =>
     resolveStatement(stmt, functionScope)
   );
+  scope.newVariable(statement.returnType, statement.name, {
+    kind: 'LocalParameterSource'
+  });
   return {
     ...statement,
     body,
@@ -101,12 +100,15 @@ function resolveExpression(
   expression: Expression,
   scope: Scope
 ): Resolved<Expression> {
-  switch (expression.type) {
+  switch (expression.kind) {
     case "BinaryExpression": {
+      const lhs = resolveExpression(expression.lhs, scope)
+      const rhs = resolveExpression(expression.rhs, scope)
       return {
         ...expression,
-        lhs: resolveExpression(expression.lhs, scope),
-        rhs: resolveExpression(expression.rhs, scope),
+        type: lhs.type === UnknownType ? lhs.type : rhs.type, // TODO typechecker need to check left and right type
+        lhs,
+        rhs,
         scope,
       };
     }
@@ -119,6 +121,14 @@ function resolveExpression(
         parameters,
         scope,
       };
+    }
+    case 'VariableExpression': {
+        const variable = scope.lookupVariable(expression.value)
+        return {
+            ...expression,
+            type: variable.type,
+            scope
+        }
     }
     default:
       return { ...expression, scope };

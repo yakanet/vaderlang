@@ -1,53 +1,58 @@
 export type Program = {
-    type: 'Program',
+    kind: 'Program',
     body: Statement[],
     mainMethod: string | undefined;
 }
 
 export type ReturnStatement = {
-    type: 'ReturnStatement',
+    kind: 'ReturnStatement',
     expression: Expression
 }
 
 export type BinaryExpression = {
-    type: 'BinaryExpression',
+    kind: 'BinaryExpression',
+    type: VaderType
     lhs: Expression,
     operator: string,
     rhs: Expression
 }
 
 export type NumberExpression = {
-    type: 'NumberExpression',
-    variableType: VaderType,
+    kind: 'NumberExpression',
+    type: VaderType,
     value: number
 }
 
 export type StringExpression = {
-    type: 'StringExpression',
+    kind: 'StringExpression',
+    type: VaderType
     value: string
 }
 
 export type CallExpression = {
-    type: 'CallExpression',
+    kind: 'CallExpression',
+    type: VaderType
     functionName: string,
     parameters: Expression[],
 }
 
 export type VariableExpression = {
-    type: 'VariableExpression',
-    value: string[]
+    kind: 'VariableExpression',
+    type: VaderType
+    value: string
 }
 
 export type VariableDeclarationStatement = {
-    type: 'VariableDeclarationStatement',
+    kind: 'VariableDeclarationStatement',
     name: string,
-    variableType?: VaderType,
+    type: VaderType
     isConstant: boolean,
     value?: Expression
 }
 
 export type ConditionalExpression = {
-    type: 'ConditionalExpression'
+    kind: 'ConditionalExpression'
+    type: VaderType,
     branches: {
         condition: Expression,
         body: Statement[]
@@ -56,14 +61,14 @@ export type ConditionalExpression = {
 }
 
 export type FunctionDeclaration = {
-    type: 'FunctionDeclaration',
+    kind: 'FunctionDeclaration',
     name: string,
     parameters: ({ name: string; type: VaderType })[],
     returnType: VaderType,
     body: Statement[]
 }
 export type StructStatement = {
-    type: 'StructStatement',
+    kind: 'StructStatement',
     name: string;
     definition: ({
         attributeName: string;
@@ -72,7 +77,7 @@ export type StructStatement = {
 }
 
 export type ForStatement = {
-    type: 'ForStatement',
+    kind: 'ForStatement',
     initialization: Statement,
     condition: Expression,
     iteration: Statement,
@@ -81,7 +86,7 @@ export type ForStatement = {
 
 
 export type VariableAssignmentStatement = {
-    type: 'VariableAssignmentStatement',
+    kind: 'VariableAssignmentStatement',
     identifier: string,
     value: Expression
 }
@@ -89,6 +94,10 @@ export type VariableAssignmentStatement = {
 export interface VaderType {
     name: string,
     array?: {arrayLenght?: number}
+}
+
+export const UnknownType: VaderType = {
+    name: 'UNKNOWN'
 }
 
 

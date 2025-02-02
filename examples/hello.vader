@@ -1,3 +1,5 @@
+x := 32
+
 main :: fn() -> u32 {
-    return 0
+    return x
 }

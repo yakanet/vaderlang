@@ -10,8 +10,8 @@ const cli = parseCommandLine(process.argv);
 for (const source_path of cli.positionalArgument) {
   const source = fs.readFileSync(source_path, { encoding: "utf-8" });
   const program = parseProgram(source, source_path);
-  console.log(util.inspect(program, {depth: 99, colors: true}))
   const resolvedProgram = resolve(program);
+  console.log(util.inspect(resolvedProgram, {depth: null, colors: true}))
 
   const emitter = new WasmEmitter();
   emitter.emit(resolvedProgram, 'build')
