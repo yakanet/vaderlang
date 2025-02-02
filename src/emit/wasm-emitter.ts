@@ -28,21 +28,19 @@ export class WasmEmitter {
     }
 
     let offset = 0;
-    if (this.strings.size > 0) {
-      this.module.setMemory(1, -1, "memory", [
-        ...this.strings.values().map((v) => {
-          const data = encoder.encode(v + "\0");
-          offset += data.length;
-          return {
-            data,
-            offset,
-          };
-        }),
-      ]);
-    }
+    this.module.setMemory(1, -1, "memory", [
+      ...this.strings.values().map((v) => {
+        const data = encoder.encode(v + "\0");
+        offset += data.length;
+        return {
+          data,
+          offset,
+        };
+      }),
+    ]);
     this.emitMainMethod(program);
     assert.ok(this.module.validate());
-    //this.module.optimize();
+    this.module.optimize();
     console.log(this.module.emitText());
     fs.mkdirSync(`${outputDirectory}/wasm`, { recursive: true });
 
@@ -56,7 +54,6 @@ export class WasmEmitter {
     if (!program.mainMethod) {
       return;
     }
-    console.log(JSON.stringify(program.scope, null, 2))
     const resolved = program.scope.lookupVariable(program.mainMethod);
     if (resolved.type.name !== "u32") {
       return;
