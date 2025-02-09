@@ -18,7 +18,7 @@ export class WasmEmitter {
     private memoryLayout: { offset: number, data: Uint8Array }[] = [];
     private module = new binaryen.Module();
 
-    constructor() {
+    constructor(private options: { emitStdio: boolean }) {
         addWasiFunction(this.module);
     }
 
@@ -37,7 +37,9 @@ export class WasmEmitter {
         })));
         assert.ok(this.module.validate());
         this.module.optimize();
-        console.log(this.module.emitText());
+        if (this.options.emitStdio) {
+            console.log(this.module.emitText());
+        }
         fs.mkdirSync(`${outputDirectory}/wasm`, {recursive: true});
 
         fs.writeFileSync(

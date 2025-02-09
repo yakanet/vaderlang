@@ -8,7 +8,7 @@ equals :: fn(this: String, other: String) -> boolean {
         return false
     }
 
-    // TODO use a memory comparaison instead of for loop
+    // TODO use a memory comparison instead of for loop
     for (i := 0; i<this.length; i=i+1 ) {
         if(this.value[i] != other.value[i]) {
             return false

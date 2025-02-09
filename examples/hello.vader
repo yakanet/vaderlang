@@ -1,3 +1,5 @@
+#!../vader --run
+
 return_code := 32
 add :: fn(a: u32) -> u32 {
     x := 2
@@ -6,10 +8,10 @@ add :: fn(a: u32) -> u32 {
 }
 
 // @intrinsic
-// file :: fn(path: string) -> string
+// file :: fn(path: String) -> string
 
 @intrinsic
-print :: fn(message: string) -> void
+print :: fn(message: String) -> void
 
 main :: fn() -> u32 {
     //data :: file("./example/hello.vader")
