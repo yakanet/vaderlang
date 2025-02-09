@@ -8,9 +8,8 @@ import {
     type ReturnStatement,
     type Statement,
 } from "../parser/types";
-import type {Resolved} from "./types";
 
-export function resolve(program: Program): Resolved<Program> {
+export function resolve(program: Program): Program {
     const scope = new Scope();
     const body = program.body.map((statement) => {
         return resolveStatement(statement, scope);
@@ -25,7 +24,7 @@ export function resolve(program: Program): Resolved<Program> {
 function resolveStatement(
     statement: Statement,
     scope: Scope
-): Resolved<Statement> {
+): Statement {
     switch (statement.kind) {
         case "FunctionDeclaration":
             return resolveFunctionDeclaration(statement, scope);
@@ -34,7 +33,7 @@ function resolveStatement(
                 ...statement,
                 expression: resolveExpression(statement.expression, scope),
                 scope,
-            } satisfies Resolved<ReturnStatement>;
+            } satisfies ReturnStatement;
         case "VariableDeclarationStatement": {
             const value = statement.value
                 ? resolveExpression(statement.value, scope)
@@ -60,6 +59,17 @@ function resolveStatement(
                 scope,
             };
         }
+        case "ConditionalExpression": {
+            return {
+                ...statement,
+                kind: "ConditionalExpression",
+                branches: statement.branches.map(b => ({
+                   body: b.body.map(bb => resolveStatement(bb, scope)),
+                   condition: resolveExpression(b.condition, scope)
+                })),
+                elseBody: statement.elseBody ? statement.elseBody.map(b => resolveStatement(b, scope)) : undefined,
+            }
+        }
         case "VariableAssignmentStatement": {
             const res = resolveExpression(statement.value, scope);
             // TODO: Should check if the variable is constant or not
@@ -81,7 +91,7 @@ function resolveStatement(
 function resolveFunctionDeclaration(
     statement: FunctionDeclaration,
     scope: Scope
-): Resolved<FunctionDeclaration> {
+): FunctionDeclaration {
     const functionScope = new Scope(scope);
     let i = 0;
     for (const param of statement.parameters) {
@@ -109,14 +119,14 @@ function resolveFunctionDeclaration(
 function resolveExpression(
     expression: Expression,
     scope: Scope
-): Resolved<Expression> {
+): Expression {
     switch (expression.kind) {
         case "BinaryExpression": {
             const lhs = resolveExpression(expression.lhs, scope)
             const rhs = resolveExpression(expression.rhs, scope)
             return {
                 ...expression,
-                type: lhs.type === BasicVaderType.unknown ? lhs.type : rhs.type, // TODO typechecker need to check left and right type
+                type: lhs.type !== BasicVaderType.unknown ? lhs.type : rhs.type, // TODO typechecker need to check left and right type
                 lhs,
                 rhs,
                 scope,
@@ -135,7 +145,7 @@ function resolveExpression(
                 ...expression,
                 kind: 'CallExpression',
                 parameters,
-                type: resolved.type,
+                type: resolved.source.returnType,
                 scope,
             };
 

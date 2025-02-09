@@ -15,6 +15,7 @@ import {
     type VaderType,
     type VariableDeclarationStatement,
 } from "./types.ts";
+import {UnresolvedScope} from "../resolver/scope.ts";
 
 export class Parser {
     private readonly tokens: Token[];
@@ -59,7 +60,7 @@ export class Parser {
         for (let line of lines) {
             const end = currentOffset + line.length
             if (offset >= currentOffset && offset <= end) {
-                return {line: row, column: offset - currentOffset}
+                return { line: row, column: offset - currentOffset }
             }
             row++
             currentOffset += line.length + 1;
@@ -68,7 +69,7 @@ export class Parser {
     }
 
     reportError(message: string, token: Token = this.current): never {
-        let {line, column} = this.findLocation(token.offset);
+        let { line, column } = this.findLocation(token.offset);
         line += 1; // There is a +1 offset in IDE or Code editor
         column += 1; // There is a +1 offset in IDE or Code editor
         if (this.source_path) {
@@ -104,6 +105,7 @@ export function parseProgram(content: string, source_path: string): Program {
         kind: 'Program',
         body: [],
         mainMethod: undefined,
+        scope: UnresolvedScope
     }
     while (!parser.isCurrentType('EOF')) {
         program.body.push(parseStatement(parser))
@@ -198,7 +200,8 @@ function parseIdentifierStatement(parser: Parser): Statement {
         return {
             kind: 'VariableAssignmentStatement',
             identifier: identifier.value,
-            value
+            value,
+            scope: UnresolvedScope
         }
     }
     return parseExpression(parser)
@@ -233,7 +236,8 @@ function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDe
         parameters,
         returnType,
         decorators: functionDecorators,
-        body
+        body,
+        scope: UnresolvedScope
     }
 }
 
@@ -244,7 +248,7 @@ function parseFunctionArguments(parser: Parser): { name: string, type: VaderType
         const identifier = parser.expect('Identifier')
         parser.expect('ColonToken');
         const type = parseType(parser);
-        parameters.push({name: identifier.value, type})
+        parameters.push({ name: identifier.value, type })
         if (!parser.isCurrentType('CommaToken')) {
             break
         }
@@ -261,7 +265,8 @@ function parseVariableDeclarationAndAssignment(parser: Parser, isConstant: boole
         name: identifier.value,
         isConstant,
         type: type,
-        value
+        value,
+        scope: UnresolvedScope
     }
 }
 
@@ -270,7 +275,8 @@ function parseStruct(parser: Parser, identifier: Token) {
     const structStatement: StructStatement = {
         kind: 'StructStatement',
         name: identifier.value,
-        definition: []
+        definition: [],
+        scope: UnresolvedScope
     };
 
     parser.expect('OpenCurlyBracket');
@@ -278,7 +284,7 @@ function parseStruct(parser: Parser, identifier: Token) {
         const attributeName = parser.expect('Identifier').value
         parser.expect('ColonToken');
         const typeName = parseType(parser)
-        structStatement.definition.push({attributeName, typeName})
+        structStatement.definition.push({ attributeName, typeName })
     }
     parser.expect('CloseCurlyBracket');
     return structStatement;
@@ -305,6 +311,7 @@ function parseForStatement(parser: Parser): Statement {
         condition,
         iteration,
         body,
+        scope: UnresolvedScope
     }
 
 }
@@ -334,6 +341,7 @@ function parseExpression(parser: Parser): Expression {
             kind: 'VariableExpression',
             type: BasicVaderType.unknown,
             value: token.value,
+            scope: UnresolvedScope
         }
     }
 
@@ -343,6 +351,7 @@ function parseExpression(parser: Parser): Expression {
             kind: "VariableExpression",
             type: BasicVaderType.unknown,
             value: token.value,
+            scope: UnresolvedScope
         }
     }
 
@@ -359,6 +368,7 @@ function parseExpression(parser: Parser): Expression {
             kind: "NumberExpression",
             type,
             value: Number(token.value),
+            scope: UnresolvedScope
         }
     }
 
@@ -366,8 +376,9 @@ function parseExpression(parser: Parser): Expression {
         const token = parser.expect('StringLiteral')
         lhs = {
             kind: "StringExpression",
-            type: {name: 'u8', array: {arrayLength: token.value.length}},
+            type: { name: 'u8', array: { arrayLength: token.value.length } },
             value: token.value.replaceAll('\\n', '\n'),
+            scope: UnresolvedScope
         }
     }
 
@@ -394,18 +405,19 @@ function parseBinaryExpression(parser: Parser, lhs: Expression): Expression {
         'LowerThanToken',
         'LowerThanEqualToken',
         'HigherThanToken',
-        'HigherThanEqualToken'
+        'HigherThanEqualToken',
     ]);
     for (const token of binaryToken) {
         if (parser.isCurrentType(token)) {
-            const {value: operator} = parser.expect(token);
+            const { value: operator } = parser.expect(token);
             const rhs = parseExpression(parser);
             return {
                 kind: 'BinaryExpression',
                 operator,
                 type: BasicVaderType.unknown,
                 lhs,
-                rhs
+                rhs,
+                scope: UnresolvedScope
             }
         }
     }
@@ -418,15 +430,21 @@ function parseReturnStatement(parser: Parser): ReturnStatement {
     return {
         kind: 'ReturnStatement',
         expression: parseExpression(parser),
+        scope: UnresolvedScope
     };
 }
 
 
 function parseIfExpression(parser: Parser) {
     parser.expectKeyword('if');
-    parser.expect('OpenRoundBracket');
+    let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
+    if (hasOpeningParenthesis) {
+        parser.expect('OpenRoundBracket');
+    }
     const ifCondition = parseExpression(parser);
-    parser.expect('CloseRoundBracket');
+    if (hasOpeningParenthesis) {
+        parser.expect('CloseRoundBracket');
+    }
     const ifStatements = parseBlockStatement(parser);
     const ifBlock: ConditionalExpression = {
         kind: 'ConditionalExpression',
@@ -435,12 +453,18 @@ function parseIfExpression(parser: Parser) {
             body: ifStatements,
             condition: ifCondition
         }],
+        scope: UnresolvedScope
     }
     while (parser.isCurrentKeyword('elif')) {
         parser.expectKeyword('elif')
-        parser.expect('OpenRoundBracket')
+        hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
+        if (hasOpeningParenthesis) {
+            parser.expect('OpenRoundBracket');
+        }
         const condition = parseExpression(parser)
-        parser.expect('CloseRoundBracket')
+        if (hasOpeningParenthesis) {
+            parser.expect('CloseRoundBracket');
+        }
         const body = parseBlockStatement(parser);
         ifBlock.branches.push({
             condition,
@@ -473,7 +497,8 @@ function parseCallExpression(parser: Parser): CallExpression {
         kind: 'CallExpression',
         type: BasicVaderType.unknown, // Need to be resolved later
         functionName: identifier.value,
-        parameters
+        parameters,
+        scope: UnresolvedScope
     }
 }
 

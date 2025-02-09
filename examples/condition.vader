@@ -1,0 +1,12 @@
+@intrinsic
+print :: fn(message: String) -> void
+
+main :: fn() -> u32 {
+    x :: 32
+    if x == 32 {
+        print("equals")
+    } else {
+        print("not equals")
+    }
+    return 0
+}

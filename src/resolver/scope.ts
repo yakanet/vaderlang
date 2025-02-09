@@ -100,3 +100,9 @@ export class Scope {
         return [...this.namedVariables.values()]
     }
 }
+
+export const UnresolvedScope = new class extends Scope {
+    lookupVariable(value: string): Ref {
+        throw new Error(`Attempt to lookup for a variable with an unresolved scope`)
+    }
+}

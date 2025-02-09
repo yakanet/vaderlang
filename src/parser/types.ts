@@ -1,12 +1,16 @@
+import type {Scope} from "../resolver/scope.ts";
+
 export type Program = {
     kind: 'Program',
     body: Statement[],
     mainMethod: string | undefined;
+    scope: Scope
 }
 
 export type ReturnStatement = {
     kind: 'ReturnStatement',
     expression: Expression
+    scope: Scope
 }
 
 export type BinaryExpression = {
@@ -14,19 +18,22 @@ export type BinaryExpression = {
     type: VaderType
     lhs: Expression,
     operator: string,
-    rhs: Expression
+    rhs: Expression,
+    scope: Scope
 }
 
 export type NumberExpression = {
     kind: 'NumberExpression',
     type: VaderType,
-    value: number
+    value: number,
+    scope: Scope
 }
 
 export type StringExpression = {
     kind: 'StringExpression',
     type: VaderType
     value: string
+    scope: Scope
 }
 
 export type CallExpression = {
@@ -34,12 +41,14 @@ export type CallExpression = {
     type: VaderType
     functionName: string,
     parameters: Expression[],
+    scope: Scope
 }
 
 export type VariableExpression = {
     kind: 'VariableExpression',
     type: VaderType
     value: string
+    scope: Scope
 }
 
 export type VariableDeclarationStatement = {
@@ -48,6 +57,7 @@ export type VariableDeclarationStatement = {
     type: VaderType
     isConstant: boolean,
     value?: Expression
+    scope: Scope
 }
 
 export type ConditionalExpression = {
@@ -58,6 +68,7 @@ export type ConditionalExpression = {
         body: Statement[]
     }[];
     elseBody?: Statement[];
+    scope: Scope
 }
 
 export type FunctionDeclaration = {
@@ -67,6 +78,7 @@ export type FunctionDeclaration = {
     parameters: ({ name: string; type: VaderType })[],
     returnType: VaderType,
     body: Statement[]
+    scope: Scope
 }
 export type StructStatement = {
     kind: 'StructStatement',
@@ -75,6 +87,7 @@ export type StructStatement = {
         attributeName: string;
         typeName: VaderType;
     })[]
+    scope: Scope
 }
 
 export type ForStatement = {
@@ -83,6 +96,7 @@ export type ForStatement = {
     condition: Expression,
     iteration: Statement,
     body: Statement[],
+    scope: Scope
 }
 
 
@@ -90,6 +104,7 @@ export type VariableAssignmentStatement = {
     kind: 'VariableAssignmentStatement',
     identifier: string,
     value: Expression
+    scope: Scope
 }
 
 export type Decorator = 'intrinsic'
@@ -129,4 +144,5 @@ export type Statement =
     | StructStatement
     | VariableDeclarationStatement
     | VariableAssignmentStatement
-    | ForStatement;
+    | ForStatement
+    ;

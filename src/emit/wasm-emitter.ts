@@ -10,7 +10,6 @@ import binaryen from "binaryen";
 import {addWasiFunction} from "./wasi.ts";
 import fs from "node:fs";
 import assert from "node:assert";
-import type {Resolved} from "../resolver/types.ts";
 
 const encoder = new TextEncoder();
 
@@ -22,7 +21,7 @@ export class WasmEmitter {
         addWasiFunction(this.module);
     }
 
-    emit(program: Resolved<Program>, outputDirectory: string) {
+    emit(program: Program, outputDirectory: string) {
         this.module.setMemory(1, -1);
 
         for (const statement of program.body) {
@@ -48,7 +47,7 @@ export class WasmEmitter {
         );
     }
 
-    emitMainMethod(program: Resolved<Program>) {
+    emitMainMethod(program: Program) {
         if (!program.mainMethod) {
             return;
         }
@@ -75,7 +74,7 @@ export class WasmEmitter {
         this.module.setStart(funct);
     }
 
-    emitTopLevelStatement(statement: Resolved<Statement>) {
+    emitTopLevelStatement(statement: Statement) {
         switch (statement.kind) {
             case "FunctionDeclaration": {
                 if (statement.decorators.includes('intrinsic')) {
@@ -118,7 +117,7 @@ export class WasmEmitter {
         throw new Error(statement.kind + " is not implemented yet");
     }
 
-    emitStatement(stmt: Resolved<Statement>): binaryen.ExpressionRef {
+    emitStatement(stmt: Statement): binaryen.ExpressionRef {
         switch (stmt.kind) {
             case "ReturnStatement":
                 return this.module.return(this.emitExpression(stmt.expression));
@@ -175,7 +174,7 @@ export class WasmEmitter {
     }
 
     private emitExpression(
-        expression: Resolved<Statement>
+        expression: Statement
     ): binaryen.ExpressionRef {
         switch (expression.kind) {
             case 'CallExpression': {
@@ -243,6 +242,14 @@ export class WasmEmitter {
                     this.emitExpression(expression.rhs)
                 );
             }
+
+            case "ConditionalExpression": {
+                return this.module.if(
+                    this.emitExpression(expression.branches[0].condition),
+                    this.module.block(null, expression.branches[0].body.map(b => this.emitStatement(b))),
+                    expression.elseBody ? this.module.block(null, expression.elseBody.map(b => this.emitStatement(b as any))) : undefined
+                )
+            }
         }
         throw new Error("Expression " + expression.kind + " is not implemented.");
     }
@@ -256,6 +263,8 @@ export class WasmEmitter {
         [["/", binaryen.f32, binaryen.f32].join(), this.module.f32.div],
         [["-", binaryen.i32, binaryen.i32].join(), this.module.i32.sub],
         [["-", binaryen.f32, binaryen.f32].join(), this.module.f32.sub],
+        [['==', binaryen.i32, binaryen.i32].join(), this.module.i32.eq],
+        [['!=', binaryen.i32, binaryen.i32].join(), this.module.i32.ne],
     ]);
 
     private memoryOffset = 0;
