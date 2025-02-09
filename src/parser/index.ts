@@ -163,7 +163,7 @@ function parseType(parser: Parser): VaderType {
 }
 
 function parseIdentifierStatement(parser: Parser): Statement {
-    if (parser.next.type === 'OpenParenthesis') {
+    if (parser.next.type === 'OpenRoundBracket') {
         return parseCallExpression(parser);
     }
     const identifier = parser.expect('Identifier');
@@ -238,9 +238,9 @@ function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDe
 }
 
 function parseFunctionArguments(parser: Parser): { name: string, type: VaderType }[] {
-    parser.expect('OpenParenthesis')
+    parser.expect('OpenRoundBracket')
     const parameters: { name: string, type: VaderType }[] = [];
-    while (!parser.isCurrentType('CloseParenthesis')) {
+    while (!parser.isCurrentType('CloseRoundBracket')) {
         const identifier = parser.expect('Identifier')
         parser.expect('ColonToken');
         const type = parseType(parser);
@@ -250,7 +250,7 @@ function parseFunctionArguments(parser: Parser): { name: string, type: VaderType
         }
         parser.expect('CommaToken');
     }
-    parser.expect('CloseParenthesis')
+    parser.expect('CloseRoundBracket')
     return parameters;
 }
 
@@ -286,9 +286,9 @@ function parseStruct(parser: Parser, identifier: Token) {
 
 function parseForStatement(parser: Parser): Statement {
     parser.expectKeyword('for');
-    let hasOpeningParenthesis = parser.isCurrentType('OpenParenthesis');
+    let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
     if (hasOpeningParenthesis) {
-        parser.expect('OpenParenthesis');
+        parser.expect('OpenRoundBracket');
     }
     const initialization = parseIdentifierStatement(parser)
     parser.expect('SemicolonToken')
@@ -296,7 +296,7 @@ function parseForStatement(parser: Parser): Statement {
     parser.expect('SemicolonToken')
     const iteration = parseIdentifierStatement(parser)
     if (hasOpeningParenthesis) {
-        parser.expect('CloseParenthesis')
+        parser.expect('CloseRoundBracket')
     }
     const body = parseBlockStatement(parser);
     return {
@@ -316,13 +316,13 @@ function parseExpression(parser: Parser): Expression {
         lhs = parseIfExpression(parser)
     }
 
-    if (parser.isCurrentType('OpenParenthesis')) {
-        parser.expect('OpenParenthesis');
+    if (parser.isCurrentType('OpenRoundBracket')) {
+        parser.expect('OpenRoundBracket');
         lhs = parseExpression(parser);
-        parser.expect('CloseParenthesis');
+        parser.expect('CloseRoundBracket');
     }
 
-    if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenParenthesis') {
+    if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenRoundBracket') {
         lhs = parseCallExpression(parser);
     }
 
@@ -424,9 +424,9 @@ function parseReturnStatement(parser: Parser): ReturnStatement {
 
 function parseIfExpression(parser: Parser) {
     parser.expectKeyword('if');
-    parser.expect('OpenParenthesis');
+    parser.expect('OpenRoundBracket');
     const ifCondition = parseExpression(parser);
-    parser.expect('CloseParenthesis');
+    parser.expect('CloseRoundBracket');
     const ifStatements = parseBlockStatement(parser);
     const ifBlock: ConditionalExpression = {
         kind: 'ConditionalExpression',
@@ -438,9 +438,9 @@ function parseIfExpression(parser: Parser) {
     }
     while (parser.isCurrentKeyword('elif')) {
         parser.expectKeyword('elif')
-        parser.expect('OpenParenthesis')
+        parser.expect('OpenRoundBracket')
         const condition = parseExpression(parser)
-        parser.expect('CloseParenthesis')
+        parser.expect('CloseRoundBracket')
         const body = parseBlockStatement(parser);
         ifBlock.branches.push({
             condition,
@@ -457,9 +457,9 @@ function parseIfExpression(parser: Parser) {
 
 function parseCallExpression(parser: Parser): CallExpression {
     const identifier = parser.expect('Identifier')
-    parser.expect('OpenParenthesis');
+    parser.expect('OpenRoundBracket');
     const parameters: Expression[] = [];
-    let hasNext = !parser.isCurrentType('CloseParenthesis');
+    let hasNext = !parser.isCurrentType('CloseRoundBracket');
     while (hasNext) {
         parameters.push(parseExpression(parser));
         hasNext = false
@@ -468,7 +468,7 @@ function parseCallExpression(parser: Parser): CallExpression {
             hasNext = true;
         }
     }
-    parser.expect('CloseParenthesis');
+    parser.expect('CloseRoundBracket');
     return {
         kind: 'CallExpression',
         type: BasicVaderType.unknown, // Need to be resolved later

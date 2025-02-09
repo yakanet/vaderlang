@@ -32,8 +32,8 @@ export type Token =
     | CreateToken<'EqualToken'>
     | CreateToken<'DoubleEqualToken'>
     | CreateToken<'NumberToken'>
-    | CreateToken<'OpenParenthesis'>
-    | CreateToken<'CloseParenthesis'>
+    | CreateToken<'OpenRoundBracket'>
+    | CreateToken<'CloseRoundBracket'>
     | CreateToken<'OpenCurlyBracket'>
     | CreateToken<'CloseCurlyBracket'>
     | CreateToken<'OpenSquareBracket'>

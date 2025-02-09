@@ -141,10 +141,10 @@ export function* tokenize(content: string): Generator<Token> {
                 yield createToken("SemicolonToken");
                 break;
             case c === "(":
-                yield createToken("OpenParenthesis");
+                yield createToken("OpenRoundBracket");
                 break;
             case c === ")":
-                yield createToken("CloseParenthesis");
+                yield createToken("CloseRoundBracket");
                 break;
             case c === "{":
                 yield createToken("OpenCurlyBracket");
