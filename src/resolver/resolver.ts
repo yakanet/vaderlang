@@ -43,6 +43,10 @@ function resolveStatement(
                 statement.type !== BasicVaderType.unknown
                     ? statement.type
                     : value?.type ?? BasicVaderType.unknown;
+            // TODO need to check if we can cast the number with the range (ex: u32 should be between 0..2^32−1)
+            if (value && value.type.name !== type.name) {
+                value.type = type;
+            }
             scope.newVariable(type, statement.name, {
                 kind: "LocalParameterSource",
             });

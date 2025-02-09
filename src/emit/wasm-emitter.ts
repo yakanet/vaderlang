@@ -187,11 +187,7 @@ export class WasmEmitter {
                 throw new Error(`Unimplemented get variable from somewhere else`);
             }
             case "NumberExpression": {
-                // FIXME: Wrong type should be more explicit
-                if (expression.type.name === "f32") {
-                    return this.module.f32.const(expression.value);
-                }
-                return this.module.i32.const(expression.value);
+                return createBinaryenConst(this.module, expression.type, expression.value!);
             }
 
             case "BinaryExpression": {
@@ -312,11 +308,33 @@ function size_of(t: VaderType): number {
     throw new Error("Size of type " + t.name + " is not implemented.");
 }
 
+function createBinaryenConst(module: binaryen.Module, t: VaderType, value: number) {
+    switch (t.name) {
+        case "boolean":
+        case "int":
+        case "u8":
+        case "u32":
+            return module.i32.const(value);
+        case "long":
+        case "u64":
+            return module.i64.const(value, 0);
+        case "float":
+        case "f32":
+            return module.f32.const(value);
+        case "f64":
+            return module.f64.const(value);
+        case "void":
+            return binaryen.none;
+    }
+    throw new Error("Const of type " + t.name + " is not implemented.");
+}
+
 function mapBinaryenType(t: VaderType): binaryen.Type {
     switch (t.name) {
         case "boolean":
         case "int":
         case "u8":
+        case "u16":
         case "u32":
             return binaryen.i32;
         case "long":
