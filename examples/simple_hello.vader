@@ -1,0 +1,6 @@
+@intrinsic
+print :: fn(message: String) -> void
+
+main :: fn() {
+    print("Hello world\n")
+}

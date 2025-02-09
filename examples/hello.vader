@@ -7,8 +7,8 @@ add :: fn(a: u32) -> u32 {
     return a + x
 }
 
-// @intrinsic
-// file :: fn(path: String) -> string
+@intrinsic
+file :: fn(path: String) -> string
 
 @intrinsic
 print :: fn(message: String) -> void

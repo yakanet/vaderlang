@@ -60,7 +60,7 @@ export class Parser {
         for (let line of lines) {
             const end = currentOffset + line.length
             if (offset >= currentOffset && offset <= end) {
-                return { line: row, column: offset - currentOffset }
+                return {line: row, column: offset - currentOffset}
             }
             row++
             currentOffset += line.length + 1;
@@ -69,7 +69,7 @@ export class Parser {
     }
 
     reportError(message: string, token: Token = this.current): never {
-        let { line, column } = this.findLocation(token.offset);
+        let {line, column} = this.findLocation(token.offset);
         line += 1; // There is a +1 offset in IDE or Code editor
         column += 1; // There is a +1 offset in IDE or Code editor
         if (this.source_path) {
@@ -225,8 +225,11 @@ function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDe
     }
     parser.expectKeyword('fn')
     const parameters = parseFunctionArguments(parser);
-    parser.expect('LambdaArrowToken')
-    const returnType = parseType(parser);
+    let returnType: VaderType = BasicVaderType.void;
+    if (parser.isCurrentType('LambdaArrowToken')) {
+        parser.expect('LambdaArrowToken')
+        returnType = parseType(parser);
+    }
     const functionDecorators = [...decorators];
     decorators.length = 0;
     const body = functionDecorators.includes('intrinsic') ? [] : parseBlockStatement(parser);
@@ -248,7 +251,7 @@ function parseFunctionArguments(parser: Parser): { name: string, type: VaderType
         const identifier = parser.expect('Identifier')
         parser.expect('ColonToken');
         const type = parseType(parser);
-        parameters.push({ name: identifier.value, type })
+        parameters.push({name: identifier.value, type})
         if (!parser.isCurrentType('CommaToken')) {
             break
         }
@@ -284,7 +287,7 @@ function parseStruct(parser: Parser, identifier: Token) {
         const attributeName = parser.expect('Identifier').value
         parser.expect('ColonToken');
         const typeName = parseType(parser)
-        structStatement.definition.push({ attributeName, typeName })
+        structStatement.definition.push({attributeName, typeName})
     }
     parser.expect('CloseCurlyBracket');
     return structStatement;
@@ -376,7 +379,7 @@ function parseExpression(parser: Parser): Expression {
         const token = parser.expect('StringLiteral')
         lhs = {
             kind: "StringExpression",
-            type: { name: 'u8', array: { arrayLength: token.value.length } },
+            type: {name: 'u8', array: {arrayLength: token.value.length}},
             value: token.value.replaceAll('\\n', '\n'),
             scope: UnresolvedScope
         }
@@ -409,7 +412,7 @@ function parseBinaryExpression(parser: Parser, lhs: Expression): Expression {
     ]);
     for (const token of binaryToken) {
         if (parser.isCurrentType(token)) {
-            const { value: operator } = parser.expect(token);
+            const {value: operator} = parser.expect(token);
             const rhs = parseExpression(parser);
             return {
                 kind: 'BinaryExpression',

@@ -55,23 +55,35 @@ export class WasmEmitter {
         if (resolved.source.kind !== 'GlobalFunctionSource') {
             throw new Error(`Main method must be a function`);
         }
-        if (resolved.source.returnType.name !== BasicVaderType.u32.name) {
-            return;
+        // TODO pass program param
+        if (resolved.source.returnType.name === BasicVaderType.u32.name) {
+            const funct = this.module.addFunction(
+                "_start",
+                binaryen.createType([]),
+                binaryen.none,
+                [],
+                this.module.block(null, [
+                    this.module.call(
+                        "wasi_snapshot_preview1:proc_exit",
+                        [this.module.call(program.mainMethod, [], binaryen.i32)],
+                        binaryen.none
+                    ),
+                ])
+            );
+            this.module.setStart(funct);
         }
-        const funct = this.module.addFunction(
-            "__start__",
-            binaryen.createType([]),
-            binaryen.none,
-            [],
-            this.module.block(null, [
-                this.module.call(
-                    "wasi_snapshot_preview1:proc_exit",
-                    [this.module.call(program.mainMethod, [], binaryen.i32)],
-                    binaryen.none
-                ),
-            ])
-        );
-        this.module.setStart(funct);
+        else if(resolved.source.returnType.name === BasicVaderType.void.name) {
+            const funct = this.module.addFunction(
+                "_start",
+                binaryen.createType([]),
+                binaryen.none,
+                [],
+                this.module.call(program.mainMethod, [], binaryen.none)
+            );
+            this.module.setStart(funct);
+        } else {
+            throw new Error(`Main method should return a void type or u32 type`)
+        }
     }
 
     emitTopLevelStatement(statement: Statement) {
@@ -96,7 +108,7 @@ export class WasmEmitter {
                     )
                 );
 
-                //this.module.addFunctionExport(statement.name, statement.name);
+                this.module.addFunctionExport(statement.name, statement.name);
                 return;
             }
 
