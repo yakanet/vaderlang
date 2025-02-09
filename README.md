@@ -27,6 +27,33 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 > If wasmtime is in your path, you can directly compile and run with the following command : 
 `bun src/index.ts --run [file location].vader`
 
+## Todo
+- [x] simple parser
+- [x] emit wasm
+- [x] variable declaration & usage
+- [x] conditions
+- [x] function call
+- [x] print function
+- [x] shebang support
+- [ ] fix operator precedence
+- [ ] dot expression `a.b.c`
+- [ ] better VaderType (should be recursive to support array `:String[4]`)
+- [ ] better number checking (for a given type should be in a range MIN..MAX)
+- [ ] for loop
+- [ ] structure declaration & usage
+- [ ] import lib with namespace
+- [ ] read file (to simplify make it load file during compilation time)
+- [ ] type checking
+- [ ] operator overloading
+- [ ] runtime memory allocation
+- [ ] stdlib: arraylist, hashmap, number to string(2, 8, 10, 16), split
+- [ ] iterators
+- [ ] better error reporting (should not exit when parsing error occur)
+- [ ] LSP for vader
+- [ ] if expression `x :: if (b > 2) 2 else 3`
+- [ ] (Optional) allow to compile pure WASM without WASI
+- [ ] (Optional) @export decorator on function to export a function with no mangling
+
 ## Syntax
 
 ### Primitive Types

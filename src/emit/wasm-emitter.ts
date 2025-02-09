@@ -265,6 +265,8 @@ export class WasmEmitter {
         [["-", binaryen.f32, binaryen.f32].join(), this.module.f32.sub],
         [['==', binaryen.i32, binaryen.i32].join(), this.module.i32.eq],
         [['!=', binaryen.i32, binaryen.i32].join(), this.module.i32.ne],
+        [['&&', binaryen.i32, binaryen.i32].join(), this.module.i32.and],
+        [['||', binaryen.i32, binaryen.i32].join(), this.module.i32.or],
     ]);
 
     private memoryOffset = 0;

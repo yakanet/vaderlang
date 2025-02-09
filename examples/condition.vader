@@ -3,10 +3,21 @@ print :: fn(message: String) -> void
 
 main :: fn() -> u32 {
     x :: 32
+    // Simple if statement
     if x == 32 {
-        print("equals")
+        print("equals\n")
+    }
+
+    // Simple if statement with parentheses
+    if (x == 32) {
+        print("second equals\n")
+    }
+
+    // If with else block
+    if x != 32 {
+        print("equals\n")
     } else {
-        print("not equals")
+        print("not equals\n")
     }
     return 0
 }

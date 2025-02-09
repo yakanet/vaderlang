@@ -1,0 +1,9 @@
+@intrinsic
+print :: fn(message: String) -> void
+
+main :: fn() -> u32 {
+    for (i := 0; i<10; i = i +1) {
+        print("Hello")
+    }
+    return 0
+}
