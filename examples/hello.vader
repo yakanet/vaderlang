@@ -1,9 +1,14 @@
 return_code := 32
+add :: fn(a: u32) -> u32 {
+    x := 2
+    x = x + 1
+    return a + x
+}
 
 main :: fn() -> u32 {
     print("Hello world\n")
     print("Hello world2\n")
     print("Hello 3\n")
     return_code = 0
-    return return_code
+    return add(return_code)
 }

@@ -36,7 +36,7 @@ export class WasmEmitter {
             offset: this.module.i32.const(layout.offset),
         })));
         assert.ok(this.module.validate());
-        this.module.optimize();
+        //this.module.optimize();
         console.log(this.module.emitText());
         fs.mkdirSync(`${outputDirectory}/wasm`, {recursive: true});
 
@@ -73,14 +73,15 @@ export class WasmEmitter {
     emitTopLevelStatement(statement: Resolved<Statement>) {
         switch (statement.kind) {
             case "FunctionDeclaration": {
+                const localVariables = statement.body[0].scope.allVariables().filter(v => v.source.kind === 'LocalVariableSource');
+                console.log(localVariables);
                 this.module.addFunction(
                     statement.name,
                     binaryen.createType(
                         statement.parameters.map((t) => mapBinaryenType(t.type))
                     ),
                     mapBinaryenType(statement.returnType),
-                    // TODO must declare here every local variable of the function
-                    [], //statement.parameters.map((t) => mapBinaryenType(t.type)),
+                    localVariables.map(variable => mapBinaryenType(variable.type)),
                     this.module.block(
                         null,
                         statement.body.map((stmt) => this.emitStatement(stmt))
@@ -127,11 +128,23 @@ export class WasmEmitter {
 
             case "VariableDeclarationStatement": {
                 const scope = stmt.scope;
-                if (scope.depth === 0) {
-                    return this.module.global.set(
-                        stmt.name,
-                        this.emitExpression(stmt.value!)
-                    );
+                const resolved = scope.lookupVariable(stmt.name);
+                switch (resolved.source.kind) {
+                    case "GlobalParameterSource": {
+                        return this.module.global.set(
+                            stmt.name,
+                            this.emitExpression(stmt.value!)
+                        );
+                    }
+                    case "FunctionParameterSource": {
+                        throw new Error(`Could not re-affect parameter value`);
+                    }
+                    case "LocalVariableSource": {
+                        return this.module.local.set(
+                            resolved.source.index,
+                            this.emitExpression(stmt.value!)
+                        )
+                    }
                 }
                 throw new Error(
                     "VariableDeclarationStatement is not implemented for " +
@@ -154,8 +167,8 @@ export class WasmEmitter {
                         this.emitExpression(stmt.value)
                     );
                 }
-                if (resolved.source.kind === "LocalParameterSource") {
-                    return this.module.local.set(0, this.emitExpression(stmt.value));
+                if (resolved.source.kind === "LocalVariableSource") {
+                    return this.module.local.set(resolved.source.index, this.emitExpression(stmt.value));
                     //throw new Error(`Local param for local parameter is not implemented`);
                 }
             }
@@ -167,6 +180,14 @@ export class WasmEmitter {
         expression: Resolved<Statement>
     ): binaryen.ExpressionRef {
         switch (expression.kind) {
+            case 'CallExpression': {
+                const ref = expression.scope.lookupVariable(expression.functionName);
+                return this.module.call(
+                    expression.functionName,
+                    expression.parameters.map(p => this.emitExpression(p)),
+                    mapBinaryenType(ref.type)
+                );
+            }
             case "VariableExpression": {
                 const ref = expression.scope.lookupVariable(expression.value);
                 const source = ref.source;
@@ -180,8 +201,11 @@ export class WasmEmitter {
                             mapBinaryenType(ref.type)
                         );
                     }
-                    case "LocalParameterSource": {
-                        throw new Error(`Unimplemented local variable`);
+                    case "LocalVariableSource": {
+                        return this.module.local.get(
+                            source.index,
+                            mapBinaryenType(ref.type)
+                        );
                     }
                 }
                 throw new Error(`Unimplemented get variable from somewhere else`);

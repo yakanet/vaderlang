@@ -47,9 +47,11 @@ function resolveStatement(
             if (value && value.type.name !== type.name) {
                 value.type = type;
             }
-            scope.newVariable(type, statement.name, {
-                kind: "LocalParameterSource",
-            });
+            if (scope.depth === 0) {
+                scope.newGlobalVariable(type, statement.name);
+            } else {
+                scope.newLocalVariable(type, scope.allVariables().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name);
+            }
             //console.log("declare var " + statement.name, statement.type, value?.type, type);
             return {
                 ...statement,
@@ -82,17 +84,12 @@ function resolveFunctionDeclaration(
     const functionScope = new Scope(scope);
     let i = 0;
     for (const param of statement.parameters) {
-        functionScope.newVariable(param.type, param.name, {
-            kind: "FunctionParameterSource",
-            index: i++,
-        });
+        functionScope.newFunctionParameter(param.type, i++, param.name);
     }
     const body = statement.body.map((stmt) =>
         resolveStatement(stmt, functionScope)
     );
-    scope.newVariable(statement.returnType, statement.name, {
-        kind: 'LocalParameterSource'
-    });
+    scope.newGlobalVariable(statement.returnType, statement.name);
     return {
         ...statement,
         body,
