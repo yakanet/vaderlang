@@ -135,7 +135,7 @@ export class WasmEmitter {
                         );
                     }
                     case "FunctionParameterSource": {
-                        throw new Error(`Could not re-affect parameter value`);
+                        throw new Error(`Could not reassign parameter value`);
                     }
                     case "LocalVariableSource": {
                         return this.module.local.set(
