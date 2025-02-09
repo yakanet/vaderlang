@@ -36,7 +36,7 @@ export class WasmEmitter {
             offset: this.module.i32.const(layout.offset),
         })));
         assert.ok(this.module.validate());
-        //this.module.optimize();
+        this.module.optimize();
         console.log(this.module.emitText());
         fs.mkdirSync(`${outputDirectory}/wasm`, {recursive: true});
 
@@ -51,7 +51,10 @@ export class WasmEmitter {
             return;
         }
         const resolved = program.scope.lookupVariable(program.mainMethod);
-        if (resolved.type.name !== BasicVaderType.u32.name) {
+        if (resolved.source.kind !== 'GlobalFunctionSource') {
+            throw new Error(`Main method must be a function`);
+        }
+        if (resolved.source.returnType.name !== BasicVaderType.u32.name) {
             return;
         }
         const funct = this.module.addFunction(
@@ -73,8 +76,12 @@ export class WasmEmitter {
     emitTopLevelStatement(statement: Resolved<Statement>) {
         switch (statement.kind) {
             case "FunctionDeclaration": {
-                const localVariables = statement.body[0].scope.allVariables().filter(v => v.source.kind === 'LocalVariableSource');
-                console.log(localVariables);
+                if (statement.decorators.includes('intrinsic')) {
+                    return;
+                }
+                const localVariables = statement.body.length > 0
+                    ? statement.body[0].scope.allVariables().filter(v => v.source.kind === 'LocalVariableSource')
+                    : [];
                 this.module.addFunction(
                     statement.name,
                     binaryen.createType(
@@ -114,17 +121,6 @@ export class WasmEmitter {
             case "ReturnStatement":
                 return this.module.return(this.emitExpression(stmt.expression));
 
-            case "CallExpression": {
-                if (stmt.functionName === "print") {
-                    return this.emitPrint(stmt);
-                }
-                const resolved = stmt.scope.lookupVariable(stmt.functionName);
-                return this.module.call(
-                    stmt.functionName,
-                    stmt.parameters.map((p) => this.emitStatement(p)),
-                    mapBinaryenType(resolved.type)
-                );
-            }
 
             case "VariableDeclarationStatement": {
                 const scope = stmt.scope;
@@ -182,10 +178,21 @@ export class WasmEmitter {
         switch (expression.kind) {
             case 'CallExpression': {
                 const ref = expression.scope.lookupVariable(expression.functionName);
+                if (ref.source.kind !== 'GlobalFunctionSource') {
+                    throw new Error(`Could only call function, trying to call ${ref.source.kind}.`);
+                }
+                if (ref.source.decorators.includes('intrinsic')) {
+                    switch (expression.functionName) {
+                        case 'print':
+                            return this.emitPrint(expression)
+                        default:
+                            throw new Error(`Unknown intrinsic function ${expression.functionName}`)
+                    }
+                }
                 return this.module.call(
                     expression.functionName,
                     expression.parameters.map(p => this.emitExpression(p)),
-                    mapBinaryenType(ref.type)
+                    mapBinaryenType(ref.source.returnType)
                 );
             }
             case "VariableExpression": {

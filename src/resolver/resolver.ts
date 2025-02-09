@@ -62,6 +62,7 @@ function resolveStatement(
         }
         case "VariableAssignmentStatement": {
             const res = resolveExpression(statement.value, scope);
+            // TODO: Should check if the variable is constant or not
             return {
                 ...statement,
                 value: res,
@@ -89,7 +90,15 @@ function resolveFunctionDeclaration(
     const body = statement.body.map((stmt) =>
         resolveStatement(stmt, functionScope)
     );
-    scope.newGlobalVariable(statement.returnType, statement.name);
+    scope.newGlobalFunction(
+        BasicVaderType.function,
+        statement.name,
+        {
+            decorators: statement.decorators,
+            parameters: statement.parameters.map(p => p.type),
+            returnType: statement.returnType,
+        }
+    );
     return {
         ...statement,
         body,
@@ -114,14 +123,22 @@ function resolveExpression(
             };
         }
         case "CallExpression": {
+            const resolved = scope.lookupVariable(expression.functionName);
             const parameters = expression.parameters.map((param) =>
                 resolveExpression(param, scope)
             );
+            if (resolved.source.kind !== 'GlobalFunctionSource') {
+                throw new Error(`Only function can be call, here try to call a ${resolved.source.kind}`);
+            }
+
             return {
                 ...expression,
+                kind: 'CallExpression',
                 parameters,
+                type: resolved.type,
                 scope,
             };
+
         }
         case 'VariableExpression': {
             const variable = scope.lookupVariable(expression.value)

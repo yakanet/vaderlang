@@ -4,6 +4,7 @@ import {
     BasicVaderType,
     type CallExpression,
     type ConditionalExpression,
+    type Decorator,
     type Expression,
     type FunctionDeclaration,
     type NumberExpression,
@@ -112,6 +113,8 @@ export function parseProgram(content: string, source_path: string): Program {
     return program;
 }
 
+const decorators: Decorator[] = [];
+
 function parseStatement(parser: Parser): Statement {
     if (parser.isCurrentType('Identifier')) {
         return parseIdentifierStatement(parser);
@@ -121,6 +124,15 @@ function parseStatement(parser: Parser): Statement {
     }
     if (parser.isCurrentKeyword('for')) {
         return parseForStatement(parser)
+    }
+    if (parser.isCurrentType('Decorator')) {
+        const token = parser.expect('Decorator');
+        if (token.value === 'intrinsic') {
+            decorators.push(token.value)
+        } else {
+            throw new Error(`Unknown decorator: ${token.value}`);
+        }
+        return parseStatement(parser)
     }
     return parseExpression(parser)
 }
@@ -212,12 +224,15 @@ function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDe
     const parameters = parseFunctionArguments(parser);
     parser.expect('LambdaArrowToken')
     const returnType = parseType(parser);
-    const body = parseBlockStatement(parser);
+    const functionDecorators = [...decorators];
+    decorators.length = 0;
+    const body = functionDecorators.includes('intrinsic') ? [] : parseBlockStatement(parser);
     return {
         kind: 'FunctionDeclaration',
         name: identifier.value,
         parameters,
         returnType,
+        decorators: functionDecorators,
         body
     }
 }
@@ -346,7 +361,6 @@ function parseExpression(parser: Parser): Expression {
             value: Number(token.value),
         }
     }
-
 
     if (parser.isCurrentType('StringLiteral')) {
         const token = parser.expect('StringLiteral')

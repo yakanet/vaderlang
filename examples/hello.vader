@@ -5,7 +5,14 @@ add :: fn(a: u32) -> u32 {
     return a + x
 }
 
+// @intrinsic
+// file :: fn(path: string) -> string
+
+@intrinsic
+print :: fn(message: string) -> void
+
 main :: fn() -> u32 {
+    //data :: file("./example/hello.vader")
     print("Hello world\n")
     print("Hello world2\n")
     print("Hello 3\n")

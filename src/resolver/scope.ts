@@ -1,4 +1,4 @@
-import type {VaderType} from "../parser/types";
+import type {Decorator, VaderType} from "../parser/types";
 import assert from "node:assert";
 
 export class Ref {
@@ -15,19 +15,27 @@ interface FunctionParameterSource {
     index: number;
 }
 
+interface GlobalFunctionSource {
+    kind: "GlobalFunctionSource";
+    parameters: VaderType[];
+    returnType: VaderType;
+    decorators: Decorator[]
+}
+
 interface LocalVariableSource {
     kind: "LocalVariableSource";
     index: number;
 }
 
-interface GlobalParameterSource {
+export interface GlobalParameterSource {
     kind: "GlobalParameterSource";
 }
 
 type Source =
     | FunctionParameterSource
     | LocalVariableSource
-    | GlobalParameterSource;
+    | GlobalParameterSource
+    | GlobalFunctionSource;
 
 export class Scope {
     private namedVariables = new Map<string, Ref>();
@@ -43,6 +51,14 @@ export class Scope {
         assert.ok(this.depth === 0, "Global variable must be declared in global scope");
         return this.newVariable(type, name, {
             kind: "GlobalParameterSource",
+        })
+    }
+
+    newGlobalFunction(type: VaderType, name: string, options: Omit<GlobalFunctionSource, 'kind'>) {
+        assert.ok(this.depth === 0, "Global variable must be declared in global scope");
+        return this.newVariable(type, name, {
+            kind: "GlobalFunctionSource",
+            ...options,
         })
     }
 
@@ -63,11 +79,6 @@ export class Scope {
     private newVariable(type: VaderType, name: string, source: Source) {
         if (this.namedVariables.has(name)) {
             throw new Error(`Already declared variable ${name}`);
-        }
-        if (this.depth === 0) {
-            source = {
-                kind: 'GlobalParameterSource'
-            }
         }
         const ref = new Ref(name, type, source);
         this.namedVariables.set(name, ref);

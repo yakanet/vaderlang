@@ -63,6 +63,7 @@ export type ConditionalExpression = {
 export type FunctionDeclaration = {
     kind: 'FunctionDeclaration',
     name: string,
+    decorators: Decorator[],
     parameters: ({ name: string; type: VaderType })[],
     returnType: VaderType,
     body: Statement[]
@@ -91,6 +92,8 @@ export type VariableAssignmentStatement = {
     value: Expression
 }
 
+export type Decorator = 'intrinsic'
+
 export interface VaderType {
     name: string,
     array?: { arrayLength?: number }
@@ -98,6 +101,7 @@ export interface VaderType {
 
 export const BasicVaderType = {
     unknown: {name: 'UNKNOWN'},
+    function: {name: 'Function'},
     ptr: {name: 'u32'},
     u8: {name: 'u8'},
     u32: {name: 'u32'},
