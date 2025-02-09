@@ -2,6 +2,8 @@ return_code := 32
 
 main :: fn() -> u32 {
     printf("Hello world\n")
+    printf("Hello world2\n")
+    printf("Hello 3\n")
     return_code = 0
     return return_code
 }

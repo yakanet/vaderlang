@@ -93,11 +93,21 @@ export type VariableAssignmentStatement = {
 
 export interface VaderType {
     name: string,
-    array?: {arrayLenght?: number}
+    array?: { arrayLength?: number }
 }
 
 export const UnknownType: VaderType = {
     name: 'UNKNOWN'
+}
+
+export const BasicVaderType: Record<string, VaderType> = {
+    u8: {name: 'u8'},
+    u32: {name: 'u32'},
+    u64: {name: 'u64'},
+    u16: {name: 'u16'},
+    f32: {name: 'f32'},
+    f64: {name: 'f64'},
+    void: {name: 'void'},
 }
 
 
