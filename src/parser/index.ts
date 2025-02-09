@@ -11,7 +11,6 @@ import {
     type ReturnStatement,
     type Statement,
     type StructStatement,
-    UnknownType,
     type VaderType,
     type VariableDeclarationStatement,
 } from "./types.ts";
@@ -161,12 +160,12 @@ function parseIdentifierStatement(parser: Parser): Statement {
         // id ::
         if (parser.isCurrentType('ColonToken')) {
             parser.expect('ColonToken');
-            return parseVariableDeclaration(parser, true, identifier, UnknownType)
+            return parseVariableDeclaration(parser, true, identifier, BasicVaderType.unknown)
         }
         // id :=
         if (parser.isCurrentType('EqualToken')) {
             parser.expect('EqualToken');
-            return parseVariableDeclaration(parser, false, identifier, UnknownType);
+            return parseVariableDeclaration(parser, false, identifier, BasicVaderType.unknown);
         }
         const type = parseType(parser);
         // id :type :
@@ -318,7 +317,7 @@ function parseExpression(parser: Parser): Expression {
         // TODO need to handle array value x[2]
         lhs = {
             kind: 'VariableExpression',
-            type: UnknownType,
+            type: BasicVaderType.unknown,
             value: token.value,
         }
     }
@@ -327,7 +326,7 @@ function parseExpression(parser: Parser): Expression {
         const token = parser.expect('Identifier')
         lhs = {
             kind: "VariableExpression",
-            type: UnknownType,
+            type: BasicVaderType.unknown,
             value: token.value,
         }
     }
@@ -390,7 +389,7 @@ function parseBinaryExpression(parser: Parser, lhs: Expression): Expression {
             return {
                 kind: 'BinaryExpression',
                 operator,
-                type: UnknownType,
+                type: BasicVaderType.unknown,
                 lhs,
                 rhs
             }
@@ -417,7 +416,7 @@ function parseIfExpression(parser: Parser) {
     const ifStatements = parseBlockStatement(parser);
     const ifBlock: ConditionalExpression = {
         kind: 'ConditionalExpression',
-        type: UnknownType, // need to be resolved
+        type: BasicVaderType.unknown, // need to be resolved
         branches: [{
             body: ifStatements,
             condition: ifCondition
@@ -458,7 +457,7 @@ function parseCallExpression(parser: Parser): CallExpression {
     parser.expect('CloseParenthesis');
     return {
         kind: 'CallExpression',
-        type: UnknownType, // Need to be resolved later
+        type: BasicVaderType.unknown, // Need to be resolved later
         functionName: identifier.value,
         parameters
     }

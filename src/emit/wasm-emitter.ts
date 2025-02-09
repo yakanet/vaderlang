@@ -114,8 +114,8 @@ export class WasmEmitter {
                 return this.module.return(this.emitExpression(stmt.expression));
 
             case "CallExpression": {
-                if (stmt.functionName === "printf") {
-                    return this.emitPrintf(stmt);
+                if (stmt.functionName === "print") {
+                    return this.emitPrint(stmt);
                 }
                 const resolved = stmt.scope.lookupVariable(stmt.functionName);
                 return this.module.call(
@@ -243,14 +243,13 @@ export class WasmEmitter {
         return segment;
     }
 
-    emitPrintf(stmt: CallExpression) {
+    emitPrint(stmt: CallExpression) {
         assert(stmt.parameters[0]?.kind === "StringExpression");
         const string = stmt.parameters[0] as StringExpression;
         const stringValue = string.value.endsWith('\0') ? string.value : (string.value + "\0");
 
-        // TODO Addresses need to be dynamic
         const string_memory_address = this.malloc(encoder.encode(stringValue));
-        const iov_memory_address = this.malloc(size_of(BasicVaderType.u32) + size_of(BasicVaderType.u32));
+        const iov_memory_address = this.malloc(size_of(BasicVaderType.ptr) + size_of(BasicVaderType.u32));
         const result_memory_address = this.malloc(size_of(BasicVaderType.u32));
 
         return this.module.block(null, [

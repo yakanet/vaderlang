@@ -96,11 +96,9 @@ export interface VaderType {
     array?: { arrayLength?: number }
 }
 
-export const UnknownType: VaderType = {
-    name: 'UNKNOWN'
-}
-
-export const BasicVaderType: Record<string, VaderType> = {
+export const BasicVaderType = {
+    unknown: {name: 'UNKNOWN'},
+    ptr: {name: 'u32'},
     u8: {name: 'u8'},
     u32: {name: 'u32'},
     u64: {name: 'u64'},
@@ -108,7 +106,7 @@ export const BasicVaderType: Record<string, VaderType> = {
     f32: {name: 'f32'},
     f64: {name: 'f64'},
     void: {name: 'void'},
-}
+} as const satisfies Record<string, VaderType>;
 
 
 export type Expression =
