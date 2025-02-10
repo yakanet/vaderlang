@@ -132,27 +132,32 @@ function parseStatement(parser: Parser): Statement {
 
 function parseType(parser: Parser): VaderType {
     const identifier = parser.expect('Identifier').value;
-    let arrayData: VaderType['array'] = undefined;
-    if (parser.isCurrentType('OpenSquareBracket')) {
+    let type: VaderType = {
+        name: identifier,
+        kind: 'raw'
+    }
+    while (parser.isCurrentType('OpenSquareBracket')) {
         parser.expect('OpenSquareBracket');
         if (parser.isCurrentType('CloseSquareBracket')) {
             parser.expect('CloseSquareBracket');
-            arrayData = {
-                arrayLength: 0
+            type = {
+                type,
+                size: 0,
+                kind: "array"
             }
         } else {
             const arraySize = parseExpression(parser);
             parser.expectTrue(arraySize.kind != "NumberExpression", 'Const array could be only initialized with a constant number');
-            arrayData = {
-                arrayLength: (arraySize as NumberExpression).value
+            type = {
+                type,
+                size: (arraySize as NumberExpression).value,
+                kind: "array"
             }
+            parser.expect('CloseSquareBracket');
         }
     }
 
-    return {
-        name: identifier,
-        array: arrayData
-    }
+    return type
 }
 
 function parseIdentifierStatement(parser: Parser): Statement {
@@ -406,7 +411,7 @@ function parseExpression(parser: Parser): Expression {
         const token = parser.expect('StringLiteral')
         lhs = {
             kind: "StringExpression",
-            type: {name: 'u8', array: {arrayLength: token.value.length}},
+            type: BasicVaderType.string,
             value: token.value.replaceAll('\\n', '\n'),
             scope: UnresolvedScope,
             location: {

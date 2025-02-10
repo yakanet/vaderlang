@@ -8,10 +8,10 @@ add :: fn(a: u32) -> u32 {
 }
 
 @intrinsic
-file :: fn(path: String) -> string
+file :: fn(path: string) -> string
 
 @intrinsic
-print :: fn(message: String) -> void
+print :: fn(message: string) -> void
 
 main :: fn() -> u32 {
     //data :: file("./example/hello.vader")

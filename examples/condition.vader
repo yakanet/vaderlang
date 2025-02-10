@@ -1,5 +1,5 @@
 @intrinsic
-print :: fn(message: String) -> void
+print :: fn(message: string) -> void
 
 main :: fn() -> u32 {
     x :: 32

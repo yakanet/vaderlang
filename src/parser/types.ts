@@ -105,22 +105,31 @@ export type VariableAssignmentStatement = BasicStatement & {
 
 export type Decorator = 'intrinsic'
 
-export interface VaderType {
+export type VaderType = RawVaderType | ArrayVaderType
+
+interface RawVaderType {
+    kind: 'raw'
     name: string,
-    array?: { arrayLength?: number }
+}
+
+interface ArrayVaderType {
+    kind: 'array'
+    size: number,
+    type: VaderType,
 }
 
 export const BasicVaderType = {
-    unknown: {name: 'UNKNOWN'},
-    function: {name: 'Function'},
-    ptr: {name: 'u32'},
-    u8: {name: 'u8'},
-    u32: {name: 'u32'},
-    u64: {name: 'u64'},
-    u16: {name: 'u16'},
-    f32: {name: 'f32'},
-    f64: {name: 'f64'},
-    void: {name: 'void'},
+    unknown: {name: 'UNKNOWN', kind: 'raw'},
+    function: {name: 'Function', kind: 'raw'},
+    ptr: {name: 'u32', kind: 'raw'},
+    u8: {name: 'u8', kind: 'raw'},
+    u32: {name: 'u32', kind: 'raw'},
+    u64: {name: 'u64', kind: 'raw'},
+    u16: {name: 'u16', kind: 'raw'},
+    f32: {name: 'f32', kind: 'raw'},
+    f64: {name: 'f64', kind: 'raw'},
+    void: {name: 'void', kind: 'raw'},
+    string: {name: 'string', kind: 'raw'},
 } as const satisfies Record<string, VaderType>;
 
 

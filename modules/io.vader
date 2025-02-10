@@ -1,2 +1,2 @@
 @intrinsic
-print :: fn(message: String) -> void
+print :: fn(message: string) -> void

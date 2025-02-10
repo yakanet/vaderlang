@@ -3,7 +3,7 @@ String :: struct {
     value: u8[]
 }
 
-equals :: fn(this: String, other: String) -> boolean {
+equals :: fn(this: string, other: string) -> boolean {
     if(this.length != other.length) {
         return false
     }

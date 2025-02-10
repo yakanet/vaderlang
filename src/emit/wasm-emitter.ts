@@ -34,7 +34,7 @@ export class WasmEmitter {
             data: layout.data,
             offset: this.module.i32.const(layout.offset),
         })));
-        assert.ok(this.module.validate());
+        assert(this.module.validate());
         this.module.optimize();
         if (this.options.emitStdio) {
             console.log(this.module.emitText());
@@ -56,6 +56,9 @@ export class WasmEmitter {
             throw new Error(`Main method must be a function`);
         }
         // TODO pass program param
+        if (resolved.source.returnType.kind !== 'raw') {
+            throw new Error(`Main method should return a void type or u32 type`)
+        }
         if (resolved.source.returnType.name === BasicVaderType.u32.name) {
             const funct = this.module.addFunction(
                 "_start",
@@ -71,16 +74,8 @@ export class WasmEmitter {
                 ])
             );
             this.module.setStart(funct);
-        }
-        else if(resolved.source.returnType.name === BasicVaderType.void.name) {
-            const funct = this.module.addFunction(
-                "_start",
-                binaryen.createType([]),
-                binaryen.none,
-                [],
-                this.module.call(program.mainMethod, [], binaryen.none)
-            );
-            this.module.setStart(funct);
+        } else if (resolved.source.returnType.name === BasicVaderType.void.name) {
+            this.module.setStart(this.module.getFunction(program.mainMethod));
         } else {
             throw new Error(`Main method should return a void type or u32 type`)
         }
@@ -198,6 +193,8 @@ export class WasmEmitter {
                     switch (expression.functionName) {
                         case 'print':
                             return this.emitPrint(expression)
+                        case 'exit':
+                            return this.emitExit(expression);
                         default:
                             throw new Error(`Unknown intrinsic function ${expression.functionName}`)
                     }
@@ -334,6 +331,13 @@ export class WasmEmitter {
             ),
         ]);
     }
+
+    emitExit(stmt: CallExpression) {
+        assert(stmt.parameters.length === 1);
+        return this.module.call("wasi_snapshot_preview1:proc_exit", [
+            this.emitExpression(stmt.parameters[0])
+        ], binaryen.none)
+    }
 }
 
 function align_ptr(address: number) {
@@ -344,6 +348,9 @@ function align_ptr(address: number) {
 }
 
 function size_of(t: VaderType): number {
+    if (t.kind === 'array') {
+        return 4;
+    }
     switch (t.name) {
         case "boolean":
         case "int":
@@ -365,6 +372,9 @@ function size_of(t: VaderType): number {
 }
 
 function createBinaryenConst(module: binaryen.Module, t: VaderType, value: number) {
+    if (t.kind === 'array') {
+        throw new Error(`Unimplemented array type`)
+    }
     switch (t.name) {
         case "boolean":
         case "int":
@@ -386,6 +396,9 @@ function createBinaryenConst(module: binaryen.Module, t: VaderType, value: numbe
 }
 
 function mapBinaryenType(t: VaderType): binaryen.Type {
+    if (t.kind === 'array') {
+        throw new Error(`Unimplemented array type`)
+    }
     switch (t.name) {
         case "boolean":
         case "int":

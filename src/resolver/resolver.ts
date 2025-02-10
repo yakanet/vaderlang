@@ -2,7 +2,6 @@ import {Scope} from "./scope";
 import {
     BasicVaderType,
     type Expression,
-    type ForStatement,
     type FunctionDeclaration,
     type Program,
     type ReturnStatement,
@@ -43,7 +42,7 @@ function resolveStatement(
                     ? statement.type
                     : value?.type ?? BasicVaderType.unknown;
             // TODO need to check if we can cast the number with the range (ex: u32 should be between 0..2^32−1)
-            if (value && value.type.name !== type.name) {
+            if (value && value.type !== type) {
                 value.type = type;
             }
             if (scope.depth === 0) {
@@ -64,8 +63,8 @@ function resolveStatement(
                 ...statement,
                 kind: "ConditionalExpression",
                 branches: statement.branches.map(b => ({
-                   body: b.body.map(bb => resolveStatement(bb, scope)),
-                   condition: resolveExpression(b.condition, scope)
+                    body: b.body.map(bb => resolveStatement(bb, scope)),
+                    condition: resolveExpression(b.condition, scope)
                 })),
                 elseBody: statement.elseBody ? statement.elseBody.map(b => resolveStatement(b, scope)) : undefined,
             }

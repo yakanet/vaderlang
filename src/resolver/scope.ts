@@ -48,14 +48,14 @@ export class Scope {
     }
 
     newGlobalVariable(type: VaderType, name: string) {
-        assert.ok(this.depth === 0, "Global variable must be declared in global scope");
+        assert(this.depth === 0, "Global variable must be declared in global scope");
         return this.newVariable(type, name, {
             kind: "GlobalParameterSource",
         })
     }
 
     newGlobalFunction(type: VaderType, name: string, options: Omit<GlobalFunctionSource, 'kind'>) {
-        assert.ok(this.depth === 0, "Global variable must be declared in global scope");
+        assert(this.depth === 0, "Global variable must be declared in global scope");
         return this.newVariable(type, name, {
             kind: "GlobalFunctionSource",
             ...options,

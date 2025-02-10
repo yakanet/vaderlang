@@ -11,7 +11,7 @@ This bytecode should be able to run using any WASI compliant runtime ([wasmtime]
 ```
 // Simple hello world app
 @intrinsic
-print :: fn(message: String) -> void
+print :: fn(message: string) -> void
 
 main :: fn () -> u32 {
     print("Hello world\n")
