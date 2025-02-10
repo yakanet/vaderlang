@@ -1,7 +1,11 @@
 type CreateToken<T extends string> = {
     type: T,
     value: string,
-    offset: number
+    location: {
+        start: number,
+        end: number
+        file: string
+    }
 }
 
 export type Token =

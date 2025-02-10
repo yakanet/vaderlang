@@ -1,66 +1,67 @@
 import type {Scope} from "../resolver/scope.ts";
 
-export type Program = {
+type BasicStatement = {
+    scope: Scope;
+    location: {
+        start: number
+        end: number
+        file: string
+    }
+}
+
+export type Program = BasicStatement & {
     kind: 'Program',
     body: Statement[],
     mainMethod: string | undefined;
-    scope: Scope
 }
 
-export type ReturnStatement = {
+export type ReturnStatement = BasicStatement & {
     kind: 'ReturnStatement',
     expression: Expression
-    scope: Scope
 }
 
-export type BinaryExpression = {
+export type BinaryExpression = BasicStatement & {
     kind: 'BinaryExpression',
     type: VaderType
     lhs: Expression,
     operator: string,
     rhs: Expression,
-    scope: Scope
 }
 
-export type NumberExpression = {
+export type NumberExpression = BasicStatement & {
     kind: 'NumberExpression',
     type: VaderType,
     value: number,
-    scope: Scope
 }
 
-export type StringExpression = {
+export type StringExpression = BasicStatement & {
     kind: 'StringExpression',
     type: VaderType
     value: string
-    scope: Scope
 }
 
-export type CallExpression = {
+export type CallExpression = BasicStatement & {
     kind: 'CallExpression',
     type: VaderType
     functionName: string,
     parameters: Expression[],
-    scope: Scope
 }
 
-export type VariableExpression = {
+export type VariableExpression = BasicStatement & {
     kind: 'VariableExpression',
     type: VaderType
     value: string
-    scope: Scope
 }
 
-export type VariableDeclarationStatement = {
+export type VariableDeclarationStatement = BasicStatement & {
     kind: 'VariableDeclarationStatement',
     name: string,
     type: VaderType
     isConstant: boolean,
     value?: Expression
-    scope: Scope
 }
 
-export type ConditionalExpression = {
+export type ConditionalExpression = BasicStatement & {
     kind: 'ConditionalExpression'
     type: VaderType,
     branches: {
@@ -68,43 +69,38 @@ export type ConditionalExpression = {
         body: Statement[]
     }[];
     elseBody?: Statement[];
-    scope: Scope
 }
 
-export type FunctionDeclaration = {
+export type FunctionDeclaration = BasicStatement & {
     kind: 'FunctionDeclaration',
     name: string,
     decorators: Decorator[],
     parameters: ({ name: string; type: VaderType })[],
     returnType: VaderType,
     body: Statement[]
-    scope: Scope
 }
-export type StructStatement = {
+export type StructStatement = BasicStatement & {
     kind: 'StructStatement',
     name: string;
     definition: ({
         attributeName: string;
         typeName: VaderType;
     })[]
-    scope: Scope
 }
 
-export type ForStatement = {
+export type ForStatement = BasicStatement & {
     kind: 'ForStatement',
     initialization: Statement,
     condition: Expression,
     iteration: Statement,
     body: Statement[],
-    scope: Scope
 }
 
 
-export type VariableAssignmentStatement = {
+export type VariableAssignmentStatement = BasicStatement & {
     kind: 'VariableAssignmentStatement',
     identifier: string,
     value: Expression
-    scope: Scope
 }
 
 export type Decorator = 'intrinsic'

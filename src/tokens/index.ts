@@ -53,7 +53,7 @@ function is_whitespace(c: string) {
     return c === " " || c === "\n" || c === "\t" || c === "\r" || c === "\f";
 }
 
-export function* tokenize(content: string): Generator<Token> {
+export function* tokenize(content: string, file: string): Generator<Token> {
     const tokenizer = new Tokenizer(content);
 
     //Shebang
@@ -75,7 +75,11 @@ export function* tokenize(content: string): Generator<Token> {
             ({
                 type: tokenType,
                 value,
-                offset: tokenizer.current,
+                location: {
+                    start: tokenizer.current - value.length,
+                    end: tokenizer.current,
+                    file
+                },
             } as Token);
 
         const parseOperator = (
@@ -229,7 +233,11 @@ export function* tokenize(content: string): Generator<Token> {
     }
     yield {
         type: "EOF",
-        offset: tokenizer.current,
+        location: {
+            start: tokenizer.current,
+            end: tokenizer.current,
+            file
+        },
         value: "\0",
     };
 }
