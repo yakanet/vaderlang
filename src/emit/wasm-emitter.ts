@@ -295,9 +295,8 @@ export class WasmEmitter {
     emitPrint(stmt: CallExpression) {
         assert(stmt.parameters[0]?.kind === "StringExpression");
         const string = stmt.parameters[0] as StringExpression;
-        const stringValue = string.value.endsWith('\0') ? string.value : (string.value + "\0");
 
-        const string_memory_address = this.malloc(encoder.encode(stringValue));
+        const string_memory_address = this.malloc(encoder.encode(string.value));
         const iov_memory_address = this.malloc(size_of(BasicVaderType.ptr) + size_of(BasicVaderType.u32));
         const result_memory_address = this.malloc(size_of(BasicVaderType.u32));
 
@@ -308,14 +307,14 @@ export class WasmEmitter {
                 0,
                 0,
                 this.module.i32.const(iov_memory_address.offset),
-                this.module.i32.const(string_memory_address.offset)
+                this.module.i32.const(string_memory_address.offset),
             ),
             // Length of data (= buf_len)
             this.module.i32.store(
                 0,
                 0,
                 this.module.i32.const(iov_memory_address.offset + 4),
-                this.module.i32.const(stringValue.length)
+                this.module.i32.const(string_memory_address.data.length),
             ),
             this.module.drop(
                 this.module.call(

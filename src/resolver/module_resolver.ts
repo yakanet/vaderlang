@@ -11,9 +11,6 @@ export class FileResolver implements ModuleResolver {
     }
 
     resolve(identifier: string): { key: string; content: string; location: string; } {
-        if (!identifier.endsWith('.vader')) {
-            identifier += '.vader'
-        }
         for (const directory of this.lookupDirectories) {
             const full_path = path.resolve(directory, identifier)
             if (fs.existsSync(full_path)) {

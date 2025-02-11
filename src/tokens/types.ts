@@ -1,12 +1,14 @@
-type CreateToken<T extends string> = {
+type CreateToken<T extends string, V = string> = {
     type: T,
-    value: string,
+    value: V,
     location: {
         start: number,
         end: number
         file: string
     }
 }
+
+export type Decorator = 'intrinsic' | 'file' | 'load'
 
 export type Token =
     | CreateToken<'EOF'>
@@ -49,5 +51,5 @@ export type Token =
     | CreateToken<'CommaToken'>
     | CreateToken<'Identifier'>
     | CreateToken<'Keyword'>
-    | CreateToken<'Decorator'>
+    | CreateToken<'Decorator', Decorator>
     | CreateToken<'StringLiteral'>

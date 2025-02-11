@@ -1,10 +1,9 @@
 import {keywords, tokenize} from "../tokens";
-import type {Token} from "../tokens/types.ts";
+import type {Decorator, Token} from "../tokens/types.ts";
 import {
     BasicVaderType,
     type CallExpression,
     type ConditionalExpression,
-    type Decorator,
     type Expression,
     type FunctionDeclaration,
     type NumberExpression,
@@ -36,9 +35,13 @@ export class Parser {
         return this.tokens[++this.index];
     }
 
-    loadFile(filename: string) {
+    loadVaderFile(filename: string) {
         try {
-            const {key, content, location} = this.resolver.resolve(filename);
+            let path = filename;
+            if (!path.endsWith('.vader')) {
+                path += '.vader'
+            }
+            const {key, content, location} = this.resolver.resolve(path);
             if (this.loadedFiles.has(key)) {
                 return
             }
@@ -103,7 +106,7 @@ export class Parser {
 
 export function parseProgram(entryFile: string, resolver: ModuleResolver): Program {
     const parser = new Parser(resolver);
-    parser.loadFile(entryFile)
+    parser.loadVaderFile(entryFile)
     const program: Program = {
         kind: 'Program',
         body: [],
@@ -122,7 +125,6 @@ export function parseProgram(entryFile: string, resolver: ModuleResolver): Progr
 
 const decorators: Decorator[] = [];
 
-
 function parseStatement(parser: Parser): Statement {
     if (parser.isCurrentType('Identifier')) {
         return parseIdentifierStatement(parser);
@@ -139,8 +141,9 @@ function parseStatement(parser: Parser): Statement {
             decorators.push(token.value)
         } else if (token.value === 'load') {
             const pathToken = parser.expect("StringLiteral");
-            parser.loadFile(pathToken.value)
-            return parseStatement(parser);
+            parser.loadVaderFile(pathToken.value)
+        } else if (token.value === 'file') {
+            parser.reportError(`@file decorator is not applicable as a statement`, token.location);
         } else {
             parser.reportError(`Unknown decorator: ${token.value}`, token.location);
         }

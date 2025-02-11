@@ -1,8 +1,10 @@
-# vaderlang
+# Vaderlang
 
-Objective: Create a simple language to be able to implement [AOC](https://adventofcode.com/) exercises
+Vader is an experimental language, allowing me to learn compiler development.
 
 This language compile into WASM bytecode.
+
+Objective: Create a simple language to be able to implement [AOC](https://adventofcode.com/) exercises
 
 This bytecode should be able to run using any WASI compliant runtime ([wasmtime](https://wasmtime.dev/) for instance)
 
@@ -23,10 +25,11 @@ Compile the source to wasm using `bun src/index.ts [file location].vader`
 
 Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 
-> If wasmtime is in your path, you can directly compile and run with the following command : 
+> If wasmtime is in your path, you can directly compile and run with the following command :
 `bun src/index.ts --run [file location].vader`
 
 ## Todo
+
 - [x] simple parser
 - [x] emit wasm
 - [x] variable declaration & usage
@@ -77,6 +80,7 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 ### Strutures
 
 #### Declaring a structure
+
 ```
 MyStruct :: struct {
     a: u32
@@ -84,7 +88,8 @@ MyStruct :: struct {
 }
 ```
 
-#### Creating a structure 
+#### Creating a structure
+
 ```
 x :: MyStruct {
     a = 12
@@ -106,7 +111,8 @@ main :: fn () -> u32 {
 ```
 
 #### Syntactic sugar
-When calling a function with the dot expression, the first parameter can be omited : 
+
+When calling a function with the dot expression, the first parameter can be omited :
 
 ```
 plus :: fn(this: u32, other: u32) -> u32{
@@ -118,6 +124,22 @@ plus :: fn(this: u32, other: u32) -> u32{
 plus(2, 3)
 
 ```
+
+### Decorators
+
+Decorator are compiler instruction.
+
+#### @intrinsic
+
+Applicable on a function. This decorator permit to define a function provided by the WASM runtime.
+
+#### @file
+
+Applicable on a string literal. Allow to embed during compilation time a file and convert it to a string literal.
+
+#### @load
+
+Applicable on a string literal. Allow to parse another vader file and concatenate it with the current parsed file.
 
 ## Duck-typing
 

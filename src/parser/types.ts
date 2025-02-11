@@ -1,4 +1,5 @@
 import type {Scope} from "../resolver/scope.ts";
+import type {Decorator} from "../tokens/types.ts";
 
 type BasicStatement = {
     scope: Scope;
@@ -103,7 +104,6 @@ export type VariableAssignmentStatement = BasicStatement & {
     value: Expression
 }
 
-export type Decorator = 'intrinsic'
 
 export type VaderType = RawVaderType | ArrayVaderType
 
