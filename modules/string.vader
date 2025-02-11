@@ -3,8 +3,8 @@ String :: struct {
     value: u8[]
 }
 
-equals :: fn(this: string, other: string) -> boolean {
-    if(this.length != other.length) {
+equals :: fn(this: String, other: String) -> boolean {
+    if this.length != other.length {
         return false
     }
 
@@ -17,3 +17,32 @@ equals :: fn(this: string, other: string) -> boolean {
     return true
 }
 
+startWith :: fn(this: String, String prefix) -> boolean {
+    if prefix.length > this.length {
+        return false
+    }
+    // TODO use a memory comparison instead of for loop
+    for (i := 0; i<prefix.length; i=i+1 ) {
+        if this.value[i] != prefix.value[i] {
+            return false
+        }
+    }
+    return true
+}
+
+toCString :: fn (this: String) -> u8 {
+    array :: u8[this.length + 1]
+    array[this.length] = "\0"
+    return array;
+}
+
+fromCString :: fn(this: u8[]) -> String {
+    length := 0;
+    while(this[length] != "\0") {
+        length++;
+    }
+    value :: .String {
+        .value = this[0..length]
+        .length = length
+    }
+}

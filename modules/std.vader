@@ -1,0 +1,7 @@
+
+
+@intrinsic
+file :: fn(path: string) -> string
+
+@intrinsic
+print :: fn(message: string) -> void

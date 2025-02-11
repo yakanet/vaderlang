@@ -10,8 +10,7 @@ This bytecode should be able to run using any WASI compliant runtime ([wasmtime]
 
 ```
 // Simple hello world app
-@intrinsic
-print :: fn(message: string) -> void
+load "modules/std"
 
 main :: fn () -> u32 {
     print("Hello world\n")
@@ -35,6 +34,8 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [x] function call
 - [x] print function
 - [x] shebang support
+- [x] load instruction (simple instruction that concatenate tokens)
+- [ ] module resolver
 - [ ] fix operator precedence
 - [ ] dot expression `a.b.c`
 - [ ] better VaderType (should be recursive to support array `:String[4]`)

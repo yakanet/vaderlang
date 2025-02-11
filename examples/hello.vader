@@ -1,4 +1,5 @@
 #!../vader --run
+load "modules/std"
 
 return_code := 32
 add :: fn(a: u32) -> u32 {
@@ -6,12 +7,6 @@ add :: fn(a: u32) -> u32 {
     x = x + 1
     return a + x
 }
-
-@intrinsic
-file :: fn(path: string) -> string
-
-@intrinsic
-print :: fn(message: string) -> void
 
 main :: fn() -> u32 {
     //data :: file("./example/hello.vader")

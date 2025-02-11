@@ -1,5 +1,4 @@
-@intrinsic
-print :: fn(message: string) -> void
+load "modules/std"
 
 main :: fn() {
     print("Hello world\n")

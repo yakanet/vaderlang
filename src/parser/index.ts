@@ -17,15 +17,18 @@ import {
 } from "./types.ts";
 import {UnresolvedScope} from "../resolver/scope.ts";
 import {ErrorReporter} from "../utils/errors.ts";
+import fs from "node:fs";
+import path from "node:path";
 
 export class Parser {
-    private readonly tokens: Token[];
+    private tokens: Token[];
     private index = 0;
     public mainMethod: string | undefined = undefined;
     private reporter: ErrorReporter;
     private debug = true;
+    private loadedFiles = new Set<string>();
 
-    constructor(private content: string, private source_path?: string) {
+    constructor(private content: string, source_path?: string) {
         this.reporter = new ErrorReporter(this.content);
         this.tokens = [...tokenize(content, source_path ?? 'memory://scratch')];
         //console.log(this.tokens)
@@ -33,6 +36,17 @@ export class Parser {
 
     private eat() {
         return this.tokens[++this.index];
+    }
+
+    loadFile(filename: string) {
+        const normalized = path.normalize(filename + '.vader');
+        if (this.loadedFiles.has(normalized)) {
+            return
+        }
+        this.loadedFiles.add(normalized);
+        const content = fs.readFileSync(normalized, {encoding: 'utf-8'})
+        const tokens = [...tokenize(content, normalized)]
+        this.tokens = [...this.tokens.slice(0, this.index), ...tokens.slice(0, -1), ...this.tokens.slice(this.index)]
     }
 
     expectKeyword(keyword: typeof keywords[number], message?: string) {
@@ -112,6 +126,9 @@ function parseStatement(parser: Parser): Statement {
     if (parser.isCurrentType('Identifier')) {
         return parseIdentifierStatement(parser);
     }
+    if (parser.isCurrentKeyword('load')) {
+        return parseLoadStatement(parser);
+    }
     if (parser.isCurrentKeyword('return')) {
         return parseReturnStatement(parser)
     }
@@ -159,6 +176,15 @@ function parseType(parser: Parser): VaderType {
 
     return type
 }
+
+
+function parseLoadStatement(parser: Parser) {
+    parser.expectKeyword('load');
+    const pathToken = parser.expect("StringLiteral");
+    parser.loadFile(pathToken.value)
+    return parseStatement(parser);
+}
+
 
 function parseIdentifierStatement(parser: Parser): Statement {
     if (parser.next.type === 'OpenRoundBracket') {
