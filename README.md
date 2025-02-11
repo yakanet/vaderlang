@@ -35,7 +35,7 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [x] print function
 - [x] shebang support
 - [x] load instruction (simple instruction that concatenate tokens)
-- [ ] module resolver
+- [x] module resolver
 - [ ] fix operator precedence
 - [ ] dot expression `a.b.c`
 - [ ] better VaderType (should be recursive to support array `:String[4]`)
@@ -43,7 +43,7 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [ ] for loop
 - [ ] structure declaration & usage
 - [ ] import lib with namespace
-- [ ] read file (to simplify make it load file during compilation time)
+- [x] read file (to simplify make it load file during compilation time)
 - [ ] type checking
 - [ ] operator overloading
 - [ ] runtime memory allocation

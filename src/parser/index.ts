@@ -11,6 +11,7 @@ import {
     type Program,
     type ReturnStatement,
     type Statement,
+    type StringExpression,
     type StructStatement,
     type VaderType,
     type VariableDeclarationStatement,
@@ -27,7 +28,7 @@ export class Parser {
     private debug = true;
     private loadedFiles = new Set<string>();
 
-    constructor(private resolver: ModuleResolver) {
+    constructor(public readonly resolver: ModuleResolver) {
         this.reporter = new ErrorReporter(resolver);
     }
 
@@ -121,6 +122,7 @@ export function parseProgram(entryFile: string, resolver: ModuleResolver): Progr
 
 const decorators: Decorator[] = [];
 
+
 function parseStatement(parser: Parser): Statement {
     if (parser.isCurrentType('Identifier')) {
         return parseIdentifierStatement(parser);
@@ -146,6 +148,25 @@ function parseStatement(parser: Parser): Statement {
     }
     return parseExpression(parser)
 }
+
+function parseFileDecorator(parser: Parser, decorator: Token): StringExpression {
+    parser.expect('OpenRoundBracket');
+    const file_token = parser.expect('StringLiteral');
+    parser.expect('CloseRoundBracket');
+    try {
+        const resolved = parser.resolver.resolve(file_token.value);
+        return {
+            kind: 'StringExpression',
+            type: BasicVaderType.string,
+            value: resolved.content,
+            location: decorator.location,
+            scope: UnresolvedScope
+        }
+    } catch (e) {
+        parser.reportError(`Unresolved file ${file_token.value}`, file_token.location)
+    }
+}
+
 
 function parseType(parser: Parser): VaderType {
     const identifier = parser.expect('Identifier').value;
@@ -355,6 +376,15 @@ function parseForStatement(parser: Parser): Statement {
 
 function parseExpression(parser: Parser): Expression {
     let lhs: Expression | null = null;
+
+    if (parser.isCurrentType('Decorator')) {
+        const token = parser.expect('Decorator');
+        if (token.value === 'file') {
+            return parseFileDecorator(parser, token);
+        } else {
+            parser.reportError(`Unknown decorator: ${token.value}`, token.location);
+        }
+    }
 
     if (parser.isCurrentKeyword('if')) {
         lhs = parseIfExpression(parser)
