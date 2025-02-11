@@ -31,7 +31,6 @@ export const keywords = [
     "elif",
     'for',
     "struct",
-    "load",
     "return",
     "fn",
 ] as const;

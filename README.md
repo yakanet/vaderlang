@@ -10,7 +10,7 @@ This bytecode should be able to run using any WASI compliant runtime ([wasmtime]
 
 ```
 // Simple hello world app
-load "modules/std"
+@load "modules/std"
 
 main :: fn () -> u32 {
     print("Hello world\n")

@@ -1,5 +1,5 @@
 #!../vader --run
-load "modules/std"
+@load "modules/std"
 
 return_code := 32
 add :: fn(a: u32) -> u32 {

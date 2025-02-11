@@ -1,2 +1,0 @@
-@intrinsic
-print :: fn(message: string) -> void

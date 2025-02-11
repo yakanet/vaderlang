@@ -17,21 +17,18 @@ import {
 } from "./types.ts";
 import {UnresolvedScope} from "../resolver/scope.ts";
 import {ErrorReporter} from "../utils/errors.ts";
-import fs from "node:fs";
-import path from "node:path";
+import type {ModuleResolver} from "../resolver/module_resolver.ts";
 
 export class Parser {
-    private tokens: Token[];
+    private tokens: Token[] = [];
     private index = 0;
     public mainMethod: string | undefined = undefined;
     private reporter: ErrorReporter;
     private debug = true;
     private loadedFiles = new Set<string>();
 
-    constructor(private content: string, source_path?: string) {
-        this.reporter = new ErrorReporter(this.content);
-        this.tokens = [...tokenize(content, source_path ?? 'memory://scratch')];
-        //console.log(this.tokens)
+    constructor(private resolver: ModuleResolver) {
+        this.reporter = new ErrorReporter(resolver);
     }
 
     private eat() {
@@ -39,14 +36,19 @@ export class Parser {
     }
 
     loadFile(filename: string) {
-        const normalized = path.normalize(filename + '.vader');
-        if (this.loadedFiles.has(normalized)) {
-            return
+        try {
+            const {key, content, location} = this.resolver.resolve(filename);
+            if (this.loadedFiles.has(key)) {
+                return
+            }
+            const tokens = [...tokenize(content, location)]
+            if (this.tokens.length) {
+                tokens.pop(); // Removing EOF
+            }
+            this.tokens = [...this.tokens.slice(0, this.index), ...tokens, ...this.tokens.slice(this.index)]
+        } catch (e: any) {
+            this.reporter.reportError(e.message, this.current.location);
         }
-        this.loadedFiles.add(normalized);
-        const content = fs.readFileSync(normalized, {encoding: 'utf-8'})
-        const tokens = [...tokenize(content, normalized)]
-        this.tokens = [...this.tokens.slice(0, this.index), ...tokens.slice(0, -1), ...this.tokens.slice(this.index)]
     }
 
     expectKeyword(keyword: typeof keywords[number], message?: string) {
@@ -98,18 +100,15 @@ export class Parser {
     }
 }
 
-export function parseProgram(content: string, source_path: string): Program {
-    const parser = new Parser(content, source_path);
+export function parseProgram(entryFile: string, resolver: ModuleResolver): Program {
+    const parser = new Parser(resolver);
+    parser.loadFile(entryFile)
     const program: Program = {
         kind: 'Program',
         body: [],
         mainMethod: undefined,
         scope: UnresolvedScope,
-        location: {
-            start: 0,
-            end: 0, // need to be the last token location
-            file: source_path,
-        }
+        location: parser.current.location
     }
     while (!parser.isCurrentType('EOF')) {
         program.body.push(parseStatement(parser))
@@ -126,9 +125,6 @@ function parseStatement(parser: Parser): Statement {
     if (parser.isCurrentType('Identifier')) {
         return parseIdentifierStatement(parser);
     }
-    if (parser.isCurrentKeyword('load')) {
-        return parseLoadStatement(parser);
-    }
     if (parser.isCurrentKeyword('return')) {
         return parseReturnStatement(parser)
     }
@@ -139,8 +135,12 @@ function parseStatement(parser: Parser): Statement {
         const token = parser.expect('Decorator');
         if (token.value === 'intrinsic') {
             decorators.push(token.value)
+        } else if (token.value === 'load') {
+            const pathToken = parser.expect("StringLiteral");
+            parser.loadFile(pathToken.value)
+            return parseStatement(parser);
         } else {
-            throw new Error(`Unknown decorator: ${token.value}`);
+            parser.reportError(`Unknown decorator: ${token.value}`, token.location);
         }
         return parseStatement(parser)
     }
@@ -176,15 +176,6 @@ function parseType(parser: Parser): VaderType {
 
     return type
 }
-
-
-function parseLoadStatement(parser: Parser) {
-    parser.expectKeyword('load');
-    const pathToken = parser.expect("StringLiteral");
-    parser.loadFile(pathToken.value)
-    return parseStatement(parser);
-}
-
 
 function parseIdentifierStatement(parser: Parser): Statement {
     if (parser.next.type === 'OpenRoundBracket') {
