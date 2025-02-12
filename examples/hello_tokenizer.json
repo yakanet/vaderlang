@@ -1,0 +1,569 @@
+[
+  {
+    "type": "Decorator",
+    "value": "load",
+    "location": {
+      "start": 18,
+      "end": 22,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "std",
+    "location": {
+      "start": 25,
+      "end": 28,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "return_code",
+    "location": {
+      "start": 30,
+      "end": 41,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 42,
+      "end": 43,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 43,
+      "end": 44,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "32",
+    "location": {
+      "start": 45,
+      "end": 47,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "add",
+    "location": {
+      "start": 48,
+      "end": 51,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 52,
+      "end": 53,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 53,
+      "end": 54,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": 55,
+      "end": 57,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 57,
+      "end": 58,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "a",
+    "location": {
+      "start": 58,
+      "end": 59,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 59,
+      "end": 60,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": 61,
+      "end": 64,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 64,
+      "end": 65,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "LambdaArrowToken",
+    "value": "->",
+    "location": {
+      "start": 66,
+      "end": 68,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": 69,
+      "end": 72,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 73,
+      "end": 74,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 79,
+      "end": 80,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 81,
+      "end": 82,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 82,
+      "end": 83,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "start": 84,
+      "end": 85,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 90,
+      "end": 91,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 92,
+      "end": 93,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 94,
+      "end": 95,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": 96,
+      "end": 97,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "1",
+    "location": {
+      "start": 98,
+      "end": 99,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 104,
+      "end": 110,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "a",
+    "location": {
+      "start": 111,
+      "end": 112,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": 113,
+      "end": 114,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 115,
+      "end": 116,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 117,
+      "end": 118,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "main",
+    "location": {
+      "start": 120,
+      "end": 124,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 125,
+      "end": 126,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 126,
+      "end": 127,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": 128,
+      "end": 130,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 130,
+      "end": 131,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 131,
+      "end": 132,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "LambdaArrowToken",
+    "value": "->",
+    "location": {
+      "start": 133,
+      "end": 135,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": 136,
+      "end": 139,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 140,
+      "end": 141,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 190,
+      "end": 195,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 195,
+      "end": 196,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "Hello world\\n",
+    "location": {
+      "start": 198,
+      "end": 211,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 211,
+      "end": 212,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 217,
+      "end": 222,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 222,
+      "end": 223,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "Hello world2\\n",
+    "location": {
+      "start": 225,
+      "end": 239,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 239,
+      "end": 240,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 245,
+      "end": 250,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 250,
+      "end": 251,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "Hello 3\\n",
+    "location": {
+      "start": 253,
+      "end": 262,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 262,
+      "end": 263,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "return_code",
+    "location": {
+      "start": 268,
+      "end": 279,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 280,
+      "end": 281,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "0",
+    "location": {
+      "start": 282,
+      "end": 283,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 288,
+      "end": 294,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "add",
+    "location": {
+      "start": 295,
+      "end": 298,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 298,
+      "end": 299,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "return_code",
+    "location": {
+      "start": 299,
+      "end": 310,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 310,
+      "end": 311,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 312,
+      "end": 313,
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "EOF",
+    "location": {
+      "start": 313,
+      "end": 313,
+      "file": "examples/hello.vader"
+    },
+    "value": "\u0000"
+  }
+]

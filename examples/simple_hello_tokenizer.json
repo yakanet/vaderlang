@@ -1,0 +1,137 @@
+[
+  {
+    "type": "Decorator",
+    "value": "load",
+    "location": {
+      "start": 1,
+      "end": 5,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "std",
+    "location": {
+      "start": 8,
+      "end": 11,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "main",
+    "location": {
+      "start": 13,
+      "end": 17,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 18,
+      "end": 19,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 19,
+      "end": 20,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": 21,
+      "end": 23,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 23,
+      "end": 24,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 24,
+      "end": 25,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 26,
+      "end": 27,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 32,
+      "end": 37,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 37,
+      "end": 38,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "Hello world\\n",
+    "location": {
+      "start": 40,
+      "end": 53,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 53,
+      "end": 54,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 55,
+      "end": 56,
+      "file": "examples/simple_hello.vader"
+    }
+  },
+  {
+    "type": "EOF",
+    "location": {
+      "start": 56,
+      "end": 56,
+      "file": "examples/simple_hello.vader"
+    },
+    "value": "\u0000"
+  }
+]

@@ -1,0 +1,108 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "FunctionDeclaration",
+      "name": "file",
+      "parameters": [
+        {
+          "name": "path",
+          "type": {
+            "name": "string",
+            "kind": "raw"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "string",
+        "kind": "raw"
+      },
+      "decorators": [
+        "intrinsic"
+      ],
+      "body": [],
+      "location": {
+        "start": 11,
+        "end": 48,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "print",
+      "parameters": [
+        {
+          "name": "message",
+          "type": {
+            "name": "string",
+            "kind": "raw"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "void",
+        "kind": "raw"
+      },
+      "decorators": [
+        "intrinsic"
+      ],
+      "body": [],
+      "location": {
+        "start": 58,
+        "end": 21,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "main",
+      "parameters": [],
+      "returnType": {
+        "name": "void",
+        "kind": "raw"
+      },
+      "decorators": [],
+      "body": [
+        {
+          "kind": "CallExpression",
+          "type": {
+            "name": "UNKNOWN",
+            "kind": "raw"
+          },
+          "functionName": "print",
+          "parameters": [
+            {
+              "kind": "StringExpression",
+              "type": {
+                "name": "string",
+                "kind": "raw"
+              },
+              "value": "@load \"modules/std\"\n\nmain :: fn() {\n    print(@file(\"examples/embedded_file.vader\"))\n}",
+              "location": {
+                "start": 47,
+                "end": 51,
+                "file": "examples/embedded_file.vader"
+              }
+            }
+          ],
+          "location": {
+            "start": 40,
+            "end": 85,
+            "file": "examples/embedded_file.vader"
+          }
+        }
+      ],
+      "location": {
+        "start": 21,
+        "end": 86,
+        "file": "examples/embedded_file.vader"
+      }
+    }
+  ],
+  "mainMethod": "main",
+  "location": {
+    "start": 1,
+    "end": 86,
+    "file": "examples/embedded_file.vader"
+  }
+}

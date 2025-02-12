@@ -1,0 +1,396 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "FunctionDeclaration",
+      "name": "file",
+      "parameters": [
+        {
+          "name": "path",
+          "type": {
+            "name": "string",
+            "kind": "raw"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "string",
+        "kind": "raw"
+      },
+      "decorators": [
+        "intrinsic"
+      ],
+      "body": [],
+      "location": {
+        "start": 11,
+        "end": 48,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "print",
+      "parameters": [
+        {
+          "name": "message",
+          "type": {
+            "name": "string",
+            "kind": "raw"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "void",
+        "kind": "raw"
+      },
+      "decorators": [
+        "intrinsic"
+      ],
+      "body": [],
+      "location": {
+        "start": 58,
+        "end": 30,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "return_code",
+      "isConstant": false,
+      "type": {
+        "name": "UNKNOWN",
+        "kind": "raw"
+      },
+      "value": {
+        "kind": "NumberExpression",
+        "type": {
+          "name": "u32",
+          "kind": "raw"
+        },
+        "value": 32,
+        "location": {
+          "start": 45,
+          "end": 47,
+          "file": "examples/hello.vader"
+        }
+      },
+      "location": {
+        "start": 30,
+        "end": 48,
+        "file": "examples/hello.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "add",
+      "parameters": [
+        {
+          "name": "a",
+          "type": {
+            "name": "u32",
+            "kind": "raw"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "u32",
+        "kind": "raw"
+      },
+      "decorators": [],
+      "body": [
+        {
+          "kind": "VariableDeclarationStatement",
+          "name": "x",
+          "isConstant": false,
+          "type": {
+            "name": "UNKNOWN",
+            "kind": "raw"
+          },
+          "value": {
+            "kind": "NumberExpression",
+            "type": {
+              "name": "u32",
+              "kind": "raw"
+            },
+            "value": 2,
+            "location": {
+              "start": 84,
+              "end": 85,
+              "file": "examples/hello.vader"
+            }
+          },
+          "location": {
+            "start": 79,
+            "end": 90,
+            "file": "examples/hello.vader"
+          }
+        },
+        {
+          "kind": "VariableAssignmentStatement",
+          "identifier": "x",
+          "value": {
+            "kind": "BinaryExpression",
+            "operator": "+",
+            "type": {
+              "name": "UNKNOWN",
+              "kind": "raw"
+            },
+            "lhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "value": "x",
+              "location": {
+                "start": 94,
+                "end": 95,
+                "file": "examples/hello.vader"
+              }
+            },
+            "rhs": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "raw"
+              },
+              "value": 1,
+              "location": {
+                "start": 98,
+                "end": 99,
+                "file": "examples/hello.vader"
+              }
+            },
+            "location": {
+              "start": 96,
+              "end": 97,
+              "file": "examples/hello.vader"
+            }
+          },
+          "location": {
+            "start": 92,
+            "end": 93,
+            "file": "examples/hello.vader"
+          }
+        },
+        {
+          "kind": "ReturnStatement",
+          "expression": {
+            "kind": "BinaryExpression",
+            "operator": "+",
+            "type": {
+              "name": "UNKNOWN",
+              "kind": "raw"
+            },
+            "lhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "value": "a",
+              "location": {
+                "start": 111,
+                "end": 112,
+                "file": "examples/hello.vader"
+              }
+            },
+            "rhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "value": "x",
+              "location": {
+                "start": 115,
+                "end": 116,
+                "file": "examples/hello.vader"
+              }
+            },
+            "location": {
+              "start": 113,
+              "end": 114,
+              "file": "examples/hello.vader"
+            }
+          },
+          "location": {
+            "start": 111,
+            "end": 112,
+            "file": "examples/hello.vader"
+          }
+        }
+      ],
+      "location": {
+        "start": 48,
+        "end": 120,
+        "file": "examples/hello.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "main",
+      "parameters": [],
+      "returnType": {
+        "name": "u32",
+        "kind": "raw"
+      },
+      "decorators": [],
+      "body": [
+        {
+          "kind": "CallExpression",
+          "type": {
+            "name": "UNKNOWN",
+            "kind": "raw"
+          },
+          "functionName": "print",
+          "parameters": [
+            {
+              "kind": "StringExpression",
+              "type": {
+                "name": "string",
+                "kind": "raw"
+              },
+              "value": "Hello world\n",
+              "location": {
+                "start": 198,
+                "end": 211,
+                "file": "examples/hello.vader"
+              }
+            }
+          ],
+          "location": {
+            "start": 190,
+            "end": 217,
+            "file": "examples/hello.vader"
+          }
+        },
+        {
+          "kind": "CallExpression",
+          "type": {
+            "name": "UNKNOWN",
+            "kind": "raw"
+          },
+          "functionName": "print",
+          "parameters": [
+            {
+              "kind": "StringExpression",
+              "type": {
+                "name": "string",
+                "kind": "raw"
+              },
+              "value": "Hello world2\n",
+              "location": {
+                "start": 225,
+                "end": 239,
+                "file": "examples/hello.vader"
+              }
+            }
+          ],
+          "location": {
+            "start": 217,
+            "end": 245,
+            "file": "examples/hello.vader"
+          }
+        },
+        {
+          "kind": "CallExpression",
+          "type": {
+            "name": "UNKNOWN",
+            "kind": "raw"
+          },
+          "functionName": "print",
+          "parameters": [
+            {
+              "kind": "StringExpression",
+              "type": {
+                "name": "string",
+                "kind": "raw"
+              },
+              "value": "Hello 3\n",
+              "location": {
+                "start": 253,
+                "end": 262,
+                "file": "examples/hello.vader"
+              }
+            }
+          ],
+          "location": {
+            "start": 245,
+            "end": 268,
+            "file": "examples/hello.vader"
+          }
+        },
+        {
+          "kind": "VariableAssignmentStatement",
+          "identifier": "return_code",
+          "value": {
+            "kind": "NumberExpression",
+            "type": {
+              "name": "u32",
+              "kind": "raw"
+            },
+            "value": 0,
+            "location": {
+              "start": 282,
+              "end": 283,
+              "file": "examples/hello.vader"
+            }
+          },
+          "location": {
+            "start": 280,
+            "end": 281,
+            "file": "examples/hello.vader"
+          }
+        },
+        {
+          "kind": "ReturnStatement",
+          "expression": {
+            "kind": "CallExpression",
+            "type": {
+              "name": "UNKNOWN",
+              "kind": "raw"
+            },
+            "functionName": "add",
+            "parameters": [
+              {
+                "kind": "VariableExpression",
+                "type": {
+                  "name": "UNKNOWN",
+                  "kind": "raw"
+                },
+                "value": "return_code",
+                "location": {
+                  "start": 299,
+                  "end": 310,
+                  "file": "examples/hello.vader"
+                }
+              }
+            ],
+            "location": {
+              "start": 295,
+              "end": 312,
+              "file": "examples/hello.vader"
+            }
+          },
+          "location": {
+            "start": 295,
+            "end": 298,
+            "file": "examples/hello.vader"
+          }
+        }
+      ],
+      "location": {
+        "start": 120,
+        "end": 313,
+        "file": "examples/hello.vader"
+      }
+    }
+  ],
+  "mainMethod": "main",
+  "location": {
+    "start": 18,
+    "end": 313,
+    "file": "examples/hello.vader"
+  }
+}

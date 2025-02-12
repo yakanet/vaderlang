@@ -1,0 +1,614 @@
+[
+  {
+    "type": "Decorator",
+    "value": "intrinsic",
+    "location": {
+      "start": 1,
+      "end": 10,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 11,
+      "end": 16,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 17,
+      "end": 18,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 18,
+      "end": 19,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": 20,
+      "end": 22,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 22,
+      "end": 23,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "message",
+    "location": {
+      "start": 23,
+      "end": 30,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 30,
+      "end": 31,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "string",
+    "location": {
+      "start": 32,
+      "end": 38,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 38,
+      "end": 39,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "LambdaArrowToken",
+    "value": "->",
+    "location": {
+      "start": 40,
+      "end": 42,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "void",
+    "location": {
+      "start": 43,
+      "end": 47,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "main",
+    "location": {
+      "start": 49,
+      "end": 53,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 54,
+      "end": 55,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 55,
+      "end": 56,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": 57,
+      "end": 59,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 59,
+      "end": 60,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 60,
+      "end": 61,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "LambdaArrowToken",
+    "value": "->",
+    "location": {
+      "start": 62,
+      "end": 64,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": 65,
+      "end": 68,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 69,
+      "end": 70,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 75,
+      "end": 76,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 77,
+      "end": 78,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 78,
+      "end": 79,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "32",
+    "location": {
+      "start": 80,
+      "end": 82,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "if",
+    "location": {
+      "start": 114,
+      "end": 116,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 117,
+      "end": 118,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "DoubleEqualToken",
+    "value": "==",
+    "location": {
+      "start": 119,
+      "end": 121,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "32",
+    "location": {
+      "start": 122,
+      "end": 124,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 125,
+      "end": 126,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 135,
+      "end": 140,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 140,
+      "end": 141,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "equals\\n",
+    "location": {
+      "start": 143,
+      "end": 151,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 151,
+      "end": 152,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 157,
+      "end": 158,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "if",
+    "location": {
+      "start": 208,
+      "end": 210,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 211,
+      "end": 212,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 212,
+      "end": 213,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "DoubleEqualToken",
+    "value": "==",
+    "location": {
+      "start": 214,
+      "end": 216,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "32",
+    "location": {
+      "start": 217,
+      "end": 219,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 219,
+      "end": 220,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 221,
+      "end": 222,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 231,
+      "end": 236,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 236,
+      "end": 237,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "second equals\\n",
+    "location": {
+      "start": 239,
+      "end": 254,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 254,
+      "end": 255,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 260,
+      "end": 261,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "if",
+    "location": {
+      "start": 293,
+      "end": 295,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 296,
+      "end": 297,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "BangEqualToken",
+    "value": "!=",
+    "location": {
+      "start": 298,
+      "end": 300,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "32",
+    "location": {
+      "start": 301,
+      "end": 303,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 304,
+      "end": 305,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 314,
+      "end": 319,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 319,
+      "end": 320,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "equals\\n",
+    "location": {
+      "start": 322,
+      "end": 330,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 330,
+      "end": 331,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 336,
+      "end": 337,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "else",
+    "location": {
+      "start": 338,
+      "end": 342,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 343,
+      "end": 344,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 353,
+      "end": 358,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 358,
+      "end": 359,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "not equals\\n",
+    "location": {
+      "start": 361,
+      "end": 373,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 373,
+      "end": 374,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 379,
+      "end": 380,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 385,
+      "end": 391,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "0",
+    "location": {
+      "start": 392,
+      "end": 393,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 394,
+      "end": 395,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "EOF",
+    "location": {
+      "start": 395,
+      "end": 395,
+      "file": "examples/condition.vader"
+    },
+    "value": "\u0000"
+  }
+]

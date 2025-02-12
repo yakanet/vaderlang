@@ -1,4 +1,4 @@
-@load "modules/std"
+@load "std"
 
 main :: fn() {
     print("Hello world\n")

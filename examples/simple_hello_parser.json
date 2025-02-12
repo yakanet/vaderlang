@@ -1,0 +1,108 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "FunctionDeclaration",
+      "name": "file",
+      "parameters": [
+        {
+          "name": "path",
+          "type": {
+            "name": "string",
+            "kind": "raw"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "string",
+        "kind": "raw"
+      },
+      "decorators": [
+        "intrinsic"
+      ],
+      "body": [],
+      "location": {
+        "start": 11,
+        "end": 48,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "print",
+      "parameters": [
+        {
+          "name": "message",
+          "type": {
+            "name": "string",
+            "kind": "raw"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "void",
+        "kind": "raw"
+      },
+      "decorators": [
+        "intrinsic"
+      ],
+      "body": [],
+      "location": {
+        "start": 58,
+        "end": 13,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "main",
+      "parameters": [],
+      "returnType": {
+        "name": "void",
+        "kind": "raw"
+      },
+      "decorators": [],
+      "body": [
+        {
+          "kind": "CallExpression",
+          "type": {
+            "name": "UNKNOWN",
+            "kind": "raw"
+          },
+          "functionName": "print",
+          "parameters": [
+            {
+              "kind": "StringExpression",
+              "type": {
+                "name": "string",
+                "kind": "raw"
+              },
+              "value": "Hello world\n",
+              "location": {
+                "start": 40,
+                "end": 53,
+                "file": "examples/simple_hello.vader"
+              }
+            }
+          ],
+          "location": {
+            "start": 32,
+            "end": 55,
+            "file": "examples/simple_hello.vader"
+          }
+        }
+      ],
+      "location": {
+        "start": 13,
+        "end": 56,
+        "file": "examples/simple_hello.vader"
+      }
+    }
+  ],
+  "mainMethod": "main",
+  "location": {
+    "start": 1,
+    "end": 56,
+    "file": "examples/simple_hello.vader"
+  }
+}

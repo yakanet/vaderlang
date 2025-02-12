@@ -15,13 +15,13 @@ const encoder = new TextEncoder();
 
 export class WasmEmitter {
     private memoryLayout: { offset: number, data: Uint8Array }[] = [];
-    private module = new binaryen.Module();
+    public readonly module = new binaryen.Module();
 
-    constructor(private options: { emitStdio: boolean }) {
+    constructor() {
         addWasiFunction(this.module);
     }
 
-    emit(program: Program, outputDirectory: string) {
+    emit(program: Program) {
         this.module.setMemory(1, -1);
 
         for (const statement of program.body) {
@@ -36,15 +36,6 @@ export class WasmEmitter {
         })));
         assert(this.module.validate());
         this.module.optimize();
-        if (this.options.emitStdio) {
-            console.log(this.module.emitText());
-        }
-        fs.mkdirSync(`${outputDirectory}/wasm`, {recursive: true});
-
-        fs.writeFileSync(
-            `${outputDirectory}/wasm/app.wasm`,
-            this.module.emitBinary()
-        );
     }
 
     emitMainMethod(program: Program) {

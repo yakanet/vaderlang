@@ -1,0 +1,164 @@
+[
+  {
+    "type": "Decorator",
+    "value": "load",
+    "location": {
+      "start": 1,
+      "end": 5,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "modules/std",
+    "location": {
+      "start": 8,
+      "end": 19,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "main",
+    "location": {
+      "start": 21,
+      "end": 25,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 26,
+      "end": 27,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 27,
+      "end": 28,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": 29,
+      "end": 31,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 31,
+      "end": 32,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 32,
+      "end": 33,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 34,
+      "end": 35,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 40,
+      "end": 45,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 45,
+      "end": 46,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "Decorator",
+    "value": "file",
+    "location": {
+      "start": 47,
+      "end": 51,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 51,
+      "end": 52,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "examples/embedded_file.vader",
+    "location": {
+      "start": 54,
+      "end": 82,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 82,
+      "end": 83,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 83,
+      "end": 84,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 85,
+      "end": 86,
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "EOF",
+    "location": {
+      "start": 86,
+      "end": 86,
+      "file": "examples/embedded_file.vader"
+    },
+    "value": "\u0000"
+  }
+]

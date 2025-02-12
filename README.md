@@ -39,7 +39,7 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [x] shebang support
 - [x] load instruction (simple instruction that concatenate tokens)
 - [x] module resolver
-- [ ] implement snapshot testing (for tokenizer, parser, and emitter)
+- [x] implement snapshot testing (for tokenizer, parser, and emitter)
 - [ ] fix operator precedence
 - [ ] dot expression `a.b.c`
 - [ ] better VaderType (should be recursive to support array `:String[4]`)
