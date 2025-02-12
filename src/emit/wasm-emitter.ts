@@ -35,8 +35,8 @@ export class WasmEmitter {
             data: layout.data,
             offset: this.module.i32.const(layout.offset),
         })));
-        assert(this.module.validate());
         this.module.optimize();
+        assert(this.module.validate());
     }
 
     emitMainMethod(program: Program) {
@@ -294,6 +294,8 @@ export class WasmEmitter {
             exprs = this.module.global.get(resolved.named, binaryen.i32);
         } else if (resolved.source.kind === 'LocalVariableSource') {
             exprs = this.module.local.get(resolved.source.index, binaryen.i32);
+        } else if (resolved.source.kind === 'FunctionParameterSource') {
+            exprs = this.module.local.get(resolved.source.index, binaryen.i32);
         } else {
             throw new Error(`Unimplemented get variable from ${resolved.source.kind}`);
         }
@@ -479,5 +481,5 @@ function mapBinaryenType(t: VaderType): binaryen.Type {
         case "void":
             return binaryen.none;
     }
-    throw new Error("Type mapping " + t.name + " is not implemented.");
+    throw new Error(`Type mapping ${t.name} (${t.kind}) is not implemented.`);
 }

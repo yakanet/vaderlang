@@ -94,10 +94,11 @@ function testRun(file: string, update: boolean) {
         const pid = child_process.spawnSync('wasmtime', [wasmfile], {
             shell: true,
         })
+        const actual = [pid.stdout.toString(), `EXIT: ${pid.status}`].join('\n');
         if (update || !fs.existsSync(snapshotFile)) {
-            updateSnapshot(snapshotFile, pid.stdout.toString());
+            updateSnapshot(snapshotFile, actual);
         } else {
-            expectSnapshot(snapshotFile, pid.stdout.toString());
+            expectSnapshot(snapshotFile, actual);
         }
     });
 }

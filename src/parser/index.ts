@@ -5,7 +5,6 @@ import {
     type CallExpression,
     type ConditionalExpression,
     type ConditionalStatement,
-    type DotExpression,
     type Expression,
     type FunctionDeclaration,
     type NumberExpression,
@@ -431,28 +430,19 @@ function parseForStatement(parser: Parser): Statement {
 
 }
 
-function parseDotExpression(parser: Parser, token: Token): DotExpression {
-    const properties: {
+function parseDotExpression(parser: Parser): Expression {
+    const token = parser.expect('Identifier');
+    let properties: {
         name: string,
         type: VaderType,
         location: Token['location'],
-    }[] = [
-        {
-            name: token.value,
-            type: BasicVaderType.unknown,
-            location: token.location,
-        }
-    ];
-    do {
-        parser.expect('DotToken');
-        const propertyName = parser.expect('Identifier');
-        properties.push({
-            name: propertyName.value,
-            type: BasicVaderType.unknown,
-            location: propertyName.location
-        })
-    } while (parser.isCurrentType('DotToken'))
-    return {
+    }[] = [{
+        name: token.value,
+        type: BasicVaderType.unknown,
+        location: token.location,
+    }];
+
+    let left: Expression = {
         kind: 'DotExpression',
         properties,
         type: BasicVaderType.unknown,
@@ -463,6 +453,37 @@ function parseDotExpression(parser: Parser, token: Token): DotExpression {
             end: properties[properties.length - 1].location.end,
         }
     }
+
+    while (parser.isCurrentType('DotToken')) {
+        parser.expect('DotToken');
+        const propertyName = parser.expect('Identifier');
+        if (parser.isCurrentType('OpenRoundBracket')) {
+            const result = parseCallArguments(parser);
+            left = {
+                kind: 'CallExpression',
+                functionName: propertyName.value,
+                scope: UnresolvedScope,
+                location: {
+                    start: propertyName.location.start,
+                    end: parser.previous.location.end,
+                    file: propertyName.location.file
+                },
+                parameters: [
+                    left,
+                    ...result
+                ]
+            } as CallExpression
+            properties = []
+        } else {
+            properties.push({
+                name: propertyName.value,
+                type: BasicVaderType.unknown,
+                location: propertyName.location
+            })
+        }
+    }
+    left.location.end = parser.previous.location.end;
+    return left;
 }
 
 function parseExpression(parser: Parser): Expression {
@@ -488,8 +509,7 @@ function parseExpression(parser: Parser): Expression {
     }
 
     if (parser.isCurrentType('Identifier') && parser.next?.type === 'DotToken') {
-        const token = parser.expect('Identifier');
-        lhs = parseDotExpression(parser, token);
+        lhs = parseDotExpression(parser);
         // TODO need to handle array value x[2]
     }
 
@@ -665,8 +685,7 @@ function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'Condit
 }
 
 
-function parseCallExpression(parser: Parser): CallExpression {
-    const identifier = parser.expect('Identifier')
+function parseCallArguments(parser: Parser) {
     parser.expect('OpenRoundBracket');
     const parameters: Expression[] = [];
     let hasNext = !parser.isCurrentType('CloseRoundBracket');
@@ -679,6 +698,12 @@ function parseCallExpression(parser: Parser): CallExpression {
         }
     }
     parser.expect('CloseRoundBracket');
+    return parameters;
+}
+
+function parseCallExpression(parser: Parser): CallExpression {
+    const identifier = parser.expect('Identifier')
+    const parameters = parseCallArguments(parser);
     return {
         kind: 'CallExpression',
         type: BasicVaderType.unknown, // Need to be resolved later

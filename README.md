@@ -41,13 +41,14 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [x] module resolver
 - [x] implement snapshot testing (for tokenizer, parser, and emitter)
 - [ ] fix operator precedence
-- [ ] dot expression `a.b.c`
+- [x] dot expression `a.b.c`
 - [ ] better VaderType (should be recursive to support array `:String[4]`)
 - [ ] better number checking (for a given type should be in a range MIN..MAX)
 - [ ] for loop
 - [ ] structure declaration & usage
 - [ ] import lib with namespace
 - [x] read file (to simplify make it load file during compilation time)
+- [x] function call equivalence (`print(a, b) <=> a.print(b)`)
 - [ ] type checking
 - [ ] operator overloading
 - [ ] runtime memory allocation

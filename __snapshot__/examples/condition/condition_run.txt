@@ -2,3 +2,5 @@ equals
 second equals
 not equals
 x == 32
+
+EXIT: 35

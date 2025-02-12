@@ -1,3 +1,5 @@
 Hello world
 Hello world2
 Hello 3
+
+EXIT: 3

@@ -1,7 +1,6 @@
 import {Scope} from "./scope";
 import {
     BasicVaderType,
-    type ConditionalStatement,
     type Expression,
     type FunctionDeclaration,
     isTypeEquals,
@@ -92,6 +91,9 @@ function resolveFunctionDeclaration(
     const functionScope = new Scope(scope);
     let i = 0;
     for (const param of statement.parameters) {
+        while (param.type.kind === 'unknown') {
+            param.type = scope.lookupVariable(param.type.name).type;
+        }
         functionScope.newFunctionParameter(param.type, i++, param.name);
     }
     const body = statement.body.map((stmt) =>
@@ -234,7 +236,10 @@ function resolveExpression(
             }
         }
         case 'DotExpression': {
-            const resolved = scope.lookupVariable(expression.properties[0].name);
+            let resolved = scope.lookupVariable(expression.properties[0].name);
+            while (resolved.type.kind === 'unknown') {
+                resolved = scope.lookupVariable(resolved.type.name);
+            }
             expression.properties[0].type = resolved.type;
             for (let i = 1; i < expression.properties.length; i++) {
                 const previousType = expression.properties[i - 1].type;

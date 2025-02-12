@@ -1,0 +1,871 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "StructStatement",
+      "name": "Point",
+      "definition": [
+        {
+          "attributeName": "x",
+          "typeName": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        {
+          "attributeName": "y",
+          "typeName": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        }
+      ],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 0,
+        "end": 15,
+        "file": "examples/dot_function.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "dot",
+      "parameters": [
+        {
+          "name": "this",
+          "type": {
+            "kind": "struct",
+            "name": "Point",
+            "parameters": [
+              {
+                "name": "x",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              },
+              {
+                "name": "y",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "other",
+          "type": {
+            "kind": "struct",
+            "name": "Point",
+            "parameters": [
+              {
+                "name": "x",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              },
+              {
+                "name": "y",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "returnType": {
+        "name": "u32",
+        "kind": "primitive"
+      },
+      "decorators": [],
+      "body": [
+        {
+          "kind": "ReturnStatement",
+          "expression": {
+            "kind": "BinaryExpression",
+            "operator": "+",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            },
+            "lhs": {
+              "kind": "BinaryExpression",
+              "operator": "*",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "this",
+                    "type": {
+                      "kind": "struct",
+                      "name": "Point",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 100,
+                      "end": 104,
+                      "file": "examples/dot_function.vader"
+                    }
+                  },
+                  {
+                    "name": "x",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 105,
+                      "end": 106,
+                      "file": "examples/dot_function.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 100,
+                  "file": "examples/dot_function.vader",
+                  "end": 106
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "other",
+                    "type": {
+                      "kind": "struct",
+                      "name": "Point",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 109,
+                      "end": 114,
+                      "file": "examples/dot_function.vader"
+                    }
+                  },
+                  {
+                    "name": "x",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 115,
+                      "end": 116,
+                      "file": "examples/dot_function.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 109,
+                  "file": "examples/dot_function.vader",
+                  "end": 116
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 107,
+                "end": 108,
+                "file": "examples/dot_function.vader"
+              }
+            },
+            "rhs": {
+              "kind": "BinaryExpression",
+              "operator": "*",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "this",
+                    "type": {
+                      "kind": "struct",
+                      "name": "Point",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 121,
+                      "end": 125,
+                      "file": "examples/dot_function.vader"
+                    }
+                  },
+                  {
+                    "name": "y",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 126,
+                      "end": 127,
+                      "file": "examples/dot_function.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 121,
+                  "file": "examples/dot_function.vader",
+                  "end": 127
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "other",
+                    "type": {
+                      "kind": "struct",
+                      "name": "Point",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 130,
+                      "end": 135,
+                      "file": "examples/dot_function.vader"
+                    }
+                  },
+                  {
+                    "name": "y",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 136,
+                      "end": 137,
+                      "file": "examples/dot_function.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 130,
+                  "file": "examples/dot_function.vader",
+                  "end": 137
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 128,
+                "end": 129,
+                "file": "examples/dot_function.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 118,
+              "end": 119,
+              "file": "examples/dot_function.vader"
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 99,
+            "end": 100,
+            "file": "examples/dot_function.vader"
+          }
+        }
+      ],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 43,
+        "end": 140,
+        "file": "examples/dot_function.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "plus1",
+      "parameters": [
+        {
+          "name": "this",
+          "type": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "u32",
+        "kind": "primitive"
+      },
+      "decorators": [],
+      "body": [
+        {
+          "kind": "ReturnStatement",
+          "expression": {
+            "kind": "BinaryExpression",
+            "operator": "+",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            },
+            "lhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": "this",
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 185,
+                "end": 189,
+                "file": "examples/dot_function.vader"
+              }
+            },
+            "rhs": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": 1,
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 192,
+                "end": 193,
+                "file": "examples/dot_function.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 190,
+              "end": 191,
+              "file": "examples/dot_function.vader"
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 185,
+            "end": 189,
+            "file": "examples/dot_function.vader"
+          }
+        }
+      ],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 142,
+        "end": 195,
+        "file": "examples/dot_function.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "main",
+      "parameters": [],
+      "returnType": {
+        "name": "u32",
+        "kind": "primitive"
+      },
+      "decorators": [],
+      "body": [
+        {
+          "kind": "VariableDeclarationStatement",
+          "name": "p1",
+          "isConstant": true,
+          "type": {
+            "kind": "struct",
+            "name": "Point",
+            "parameters": [
+              {
+                "name": "x",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              },
+              {
+                "name": "y",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              }
+            ]
+          },
+          "value": {
+            "kind": "StructInstantiationExpression",
+            "parameters": [
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 2,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 237,
+                  "end": 238,
+                  "file": "examples/dot_function.vader"
+                }
+              },
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 3,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 240,
+                  "end": 241,
+                  "file": "examples/dot_function.vader"
+                }
+              }
+            ],
+            "structName": "Point",
+            "type": {
+              "kind": "struct",
+              "name": "Point",
+              "parameters": [
+                {
+                  "name": "x",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                {
+                  "name": "y",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                }
+              ]
+            },
+            "location": {
+              "start": 229,
+              "end": 243,
+              "file": "examples/dot_function.vader"
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 223,
+            "end": 243,
+            "file": "examples/dot_function.vader"
+          }
+        },
+        {
+          "kind": "VariableDeclarationStatement",
+          "name": "p2",
+          "isConstant": true,
+          "type": {
+            "kind": "struct",
+            "name": "Point",
+            "parameters": [
+              {
+                "name": "x",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              },
+              {
+                "name": "y",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              }
+            ]
+          },
+          "value": {
+            "kind": "StructInstantiationExpression",
+            "parameters": [
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 4,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 262,
+                  "end": 263,
+                  "file": "examples/dot_function.vader"
+                }
+              },
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 5,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 265,
+                  "end": 266,
+                  "file": "examples/dot_function.vader"
+                }
+              }
+            ],
+            "structName": "Point",
+            "type": {
+              "kind": "struct",
+              "name": "Point",
+              "parameters": [
+                {
+                  "name": "x",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                {
+                  "name": "y",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                }
+              ]
+            },
+            "location": {
+              "start": 254,
+              "end": 268,
+              "file": "examples/dot_function.vader"
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 248,
+            "end": 268,
+            "file": "examples/dot_function.vader"
+          }
+        },
+        {
+          "kind": "ReturnStatement",
+          "expression": {
+            "kind": "CallExpression",
+            "functionName": "plus1",
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 291,
+              "end": 298,
+              "file": "examples/dot_function.vader"
+            },
+            "parameters": [
+              {
+                "kind": "CallExpression",
+                "functionName": "dot",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 283,
+                  "end": 290,
+                  "file": "examples/dot_function.vader"
+                },
+                "parameters": [
+                  {
+                    "kind": "DotExpression",
+                    "properties": [
+                      {
+                        "name": "p1",
+                        "type": {
+                          "kind": "struct",
+                          "name": "Point",
+                          "parameters": [
+                            {
+                              "name": "x",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              }
+                            },
+                            {
+                              "name": "y",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              }
+                            }
+                          ]
+                        },
+                        "location": {
+                          "start": 280,
+                          "end": 282,
+                          "file": "examples/dot_function.vader"
+                        }
+                      }
+                    ],
+                    "type": {
+                      "kind": "struct",
+                      "name": "Point",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 280,
+                      "file": "examples/dot_function.vader",
+                      "end": 282
+                    }
+                  },
+                  {
+                    "kind": "VariableExpression",
+                    "type": {
+                      "kind": "struct",
+                      "name": "Point",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "value": "p2",
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 287,
+                      "end": 289,
+                      "file": "examples/dot_function.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              }
+            ],
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 280,
+            "end": 282,
+            "file": "examples/dot_function.vader"
+          }
+        }
+      ],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 197,
+        "end": 300,
+        "file": "examples/dot_function.vader"
+      }
+    }
+  ],
+  "mainMethod": "main",
+  "scope": {
+    "namedVariables": {},
+    "depth": 0
+  },
+  "location": {
+    "start": 0,
+    "end": 300,
+    "file": "examples/dot_function.vader"
+  }
+}
