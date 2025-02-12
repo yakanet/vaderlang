@@ -119,6 +119,13 @@ export class WasmEmitter {
             case "ReturnStatement":
                 return this.module.return(this.emitExpression(stmt.expression));
 
+            case "ConditionalStatement": {
+                return this.module.if(
+                    this.emitExpression(stmt.condition),
+                    this.module.block(null, stmt.ifBody.map(b => this.emitStatement(b))),
+                    stmt.elseBody ? this.module.block(null, stmt.elseBody.map(b => this.emitStatement(b as any))) : undefined
+                )
+            }
 
             case "VariableDeclarationStatement": {
                 const scope = stmt.scope;
@@ -221,6 +228,10 @@ export class WasmEmitter {
                 return createBinaryenConst(this.module, expression.type, expression.value!);
             }
 
+            //case 'ConditionalExpression': {
+//
+//            }
+
             case "BinaryExpression": {
                 const fn = this.binaryOperations.get(
                     [
@@ -240,14 +251,6 @@ export class WasmEmitter {
                     this.emitExpression(expression.lhs),
                     this.emitExpression(expression.rhs)
                 );
-            }
-
-            case "ConditionalExpression": {
-                return this.module.if(
-                    this.emitExpression(expression.condition),
-                    this.module.block(null, expression.ifBody.map(b => this.emitStatement(b))),
-                    expression.elseBody ? this.module.block(null, expression.elseBody.map(b => this.emitStatement(b as any))) : undefined
-                )
             }
         }
         throw new Error("Expression " + expression.kind + " is not implemented.");

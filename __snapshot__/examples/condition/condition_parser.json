@@ -77,9 +77,9 @@
           }
         },
         {
-          "kind": "ConditionalExpression",
+          "kind": "ConditionalStatement",
           "type": {
-            "name": "UNKNOWN",
+            "name": "void",
             "kind": "raw"
           },
           "ifBody": [
@@ -173,7 +173,7 @@
           },
           "scope": {
             "namedVariables": {},
-            "depth": 0
+            "depth": 1
           },
           "location": {
             "start": 117,
@@ -182,9 +182,9 @@
           }
         },
         {
-          "kind": "ConditionalExpression",
+          "kind": "ConditionalStatement",
           "type": {
-            "name": "UNKNOWN",
+            "name": "void",
             "kind": "raw"
           },
           "ifBody": [
@@ -278,7 +278,7 @@
           },
           "scope": {
             "namedVariables": {},
-            "depth": 0
+            "depth": 1
           },
           "location": {
             "start": 211,
@@ -287,9 +287,9 @@
           }
         },
         {
-          "kind": "ConditionalExpression",
+          "kind": "ConditionalStatement",
           "type": {
-            "name": "UNKNOWN",
+            "name": "void",
             "kind": "raw"
           },
           "ifBody": [
@@ -383,7 +383,7 @@
           },
           "scope": {
             "namedVariables": {},
-            "depth": 0
+            "depth": 1
           },
           "location": {
             "start": 296,
@@ -430,9 +430,9 @@
           ]
         },
         {
-          "kind": "ConditionalExpression",
+          "kind": "ConditionalStatement",
           "type": {
-            "name": "UNKNOWN",
+            "name": "void",
             "kind": "raw"
           },
           "ifBody": [
@@ -526,7 +526,7 @@
           },
           "scope": {
             "namedVariables": {},
-            "depth": 0
+            "depth": 1
           },
           "location": {
             "start": 425,
@@ -535,9 +535,9 @@
           },
           "elseBody": [
             {
-              "kind": "ConditionalExpression",
+              "kind": "ConditionalStatement",
               "type": {
-                "name": "UNKNOWN",
+                "name": "void",
                 "kind": "raw"
               },
               "ifBody": [
@@ -631,7 +631,7 @@
               },
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 471,
@@ -640,9 +640,9 @@
               },
               "elseBody": [
                 {
-                  "kind": "ConditionalExpression",
+                  "kind": "ConditionalStatement",
                   "type": {
-                    "name": "UNKNOWN",
+                    "name": "void",
                     "kind": "raw"
                   },
                   "ifBody": [
@@ -736,7 +736,7 @@
                   },
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 519,
@@ -800,8 +800,8 @@
               "depth": 1
             },
             "location": {
-              "start": 616,
-              "end": 617,
+              "start": 671,
+              "end": 672,
               "file": "examples/condition.vader"
             }
           },
@@ -810,8 +810,8 @@
             "depth": 1
           },
           "location": {
-            "start": 616,
-            "end": 617,
+            "start": 671,
+            "end": 672,
             "file": "examples/condition.vader"
           }
         }
@@ -822,7 +822,7 @@
       },
       "location": {
         "start": 49,
-        "end": 619,
+        "end": 674,
         "file": "examples/condition.vader"
       }
     }
@@ -834,7 +834,7 @@
   },
   "location": {
     "start": 1,
-    "end": 619,
+    "end": 674,
     "file": "examples/condition.vader"
   }
 }

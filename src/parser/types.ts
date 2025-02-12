@@ -70,6 +70,20 @@ export type ConditionalExpression = BasicStatement & {
     elseBody?: Statement[];
 }
 
+export type ConditionalReturnExpression = BasicStatement & {
+    kind: 'ConditionalReturnExpression',
+    expression: Expression,
+    type: VaderType
+}
+
+export type ConditionalStatement = BasicStatement & {
+    kind: 'ConditionalStatement'
+    type: VaderType,
+    condition: Expression,
+    ifBody: Statement[]
+    elseBody?: Statement[];
+}
+
 export type FunctionDeclaration = BasicStatement & {
     kind: 'FunctionDeclaration',
     name: string,
@@ -136,6 +150,7 @@ export type Expression =
     | StringExpression
     | VariableExpression
     | BinaryExpression
+    | ConditionalReturnExpression
     | ConditionalExpression
     | CallExpression
 
@@ -143,6 +158,7 @@ export type Statement =
     | Program
     | ReturnStatement
     | FunctionDeclaration
+    | ConditionalStatement
     | Expression
     | StructStatement
     | VariableDeclarationStatement

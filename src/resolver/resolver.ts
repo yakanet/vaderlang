@@ -6,13 +6,14 @@ import {
     type Program,
     type ReturnStatement,
     type Statement,
+    type VaderType,
 } from "../parser/types";
 
 export function resolve(program: Program): Program {
     const scope = new Scope();
-    const body = program.body.map((statement) => {
-        return resolveStatement(statement, scope);
-    });
+    const body = program.body.map((statement) =>
+        resolveStatement(statement, scope)
+    );
     return {
         ...program,
         body,
@@ -58,13 +59,14 @@ function resolveStatement(
                 scope,
             };
         }
-        case "ConditionalExpression": {
+        case 'ConditionalStatement': {
             return {
                 ...statement,
-                kind: "ConditionalExpression",
                 condition: resolveExpression(statement.condition, scope),
+                type: BasicVaderType.void,
                 ifBody: statement.ifBody.map(b => resolveStatement(b, scope)),
-                elseBody: statement.elseBody ? statement.elseBody.map(b => resolveStatement(b, scope)) : undefined,
+                elseBody: statement.elseBody?.map(b => resolveStatement(b, scope)),
+                scope
             }
         }
         case "VariableAssignmentStatement": {
@@ -147,11 +149,46 @@ function resolveExpression(
             };
 
         }
+        case 'ConditionalReturnExpression': {
+            const value = resolveExpression(expression.expression, scope);
+            return {
+                ...expression,
+                type: value.type,
+                scope
+            }
+        }
         case 'VariableExpression': {
             const variable = scope.lookupVariable(expression.value)
             return {
                 ...expression,
                 type: variable.type,
+                scope
+            }
+        }
+        case 'ConditionalExpression': {
+            const ifBody = expression.ifBody.map(b => resolveStatement(b, scope));
+            const elseBody = expression.elseBody?.map(b => resolveStatement(b, scope))
+            const returnIf = ifBody.filter(b => b.kind === 'ConditionalReturnExpression');
+            const returnElse = elseBody?.filter(b => b.kind === 'ConditionalReturnExpression');
+            if (!returnIf.length) {
+                throw new Error(`Missing return expression in if block at ${expression.location}`);
+            }
+            if (returnElse && !returnElse.length) {
+                throw new Error(`Missing return expression in else block at ${expression.location}`);
+            }
+            const returnsTypes = [...returnIf, ...(returnElse ?? [])].map(c => c.type)
+                .reduce((acc, type) => {
+                    return acc.add(type);
+                }, new Set<VaderType>());
+            if (returnsTypes.size !== 1) {
+                throw new Error(`Return type mismatch in conditional expression ${[...returnsTypes]} at ${expression.location}`);
+            }
+            return {
+                ...expression,
+                condition: resolveExpression(expression.condition, scope),
+                type: [...returnsTypes][0],
+                ifBody,
+                elseBody,
                 scope
             }
         }

@@ -4,6 +4,7 @@ import {
     BasicVaderType,
     type CallExpression,
     type ConditionalExpression,
+    type ConditionalStatement,
     type Expression,
     type FunctionDeclaration,
     type NumberExpression,
@@ -139,6 +140,9 @@ function parseStatement(parser: Parser): Statement {
     if (parser.isCurrentKeyword('for')) {
         return parseForStatement(parser)
     }
+    if (parser.isCurrentKeyword('if')) {
+        return parseIfStatement(parser)
+    }
     if (parser.isCurrentType('Decorator')) {
         const token = parser.expect('Decorator');
         if (token.value === 'intrinsic') {
@@ -257,6 +261,23 @@ function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifie
     if (parser.isCurrentKeyword('struct')) {
         parser.expectTrue(isConstant, `Struct declaration could only be used with :: operator`)
         return parseStruct(parser, identifier)
+    }
+    if (parser.isCurrentKeyword('if')) {
+        parser.expectTrue(isConstant, `If expression could only be used with :: operator`)
+        const expression = parseIfExpression(parser);
+        return {
+            kind: 'VariableDeclarationStatement',
+            name: identifier.value,
+            isConstant,
+            type: type,
+            value: expression,
+            scope: UnresolvedScope,
+            location: {
+                start: identifier.location.start,
+                end: parser.previous.location.end,
+                file: identifier.location.file,
+            }
+        }
     }
     return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type);
 }
@@ -391,10 +412,6 @@ function parseExpression(parser: Parser): Expression {
         } else {
             parser.reportError(`Unknown decorator: ${token.value}`, token.location);
         }
-    }
-
-    if (parser.isCurrentKeyword('if')) {
-        lhs = parseIfExpression(parser)
     }
 
     if (parser.isCurrentType('OpenRoundBracket')) {
@@ -534,8 +551,7 @@ function parseReturnStatement(parser: Parser): ReturnStatement {
     };
 }
 
-
-function parseIfExpression(parser: Parser) {
+function parseIfExpression(parser: Parser): Expression {
     const ifToken = parser.expectKeyword('if');
     let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
     if (hasOpeningParenthesis) {
@@ -545,7 +561,7 @@ function parseIfExpression(parser: Parser) {
     if (hasOpeningParenthesis) {
         parser.expect('CloseRoundBracket');
     }
-    const ifStatements = parseBlockStatement(parser);
+    const ifStatements = parseConditionalExpressionBlockStatement(parser);
     const ifBlock: ConditionalExpression = {
         kind: 'ConditionalExpression',
         type: BasicVaderType.unknown, // need to be resolved
@@ -569,9 +585,9 @@ function parseIfExpression(parser: Parser) {
         if (hasOpeningParenthesis) {
             parser.expect('CloseRoundBracket');
         }
-        const body = parseBlockStatement(parser);
+        const body = parseConditionalExpressionBlockStatement(parser);
         currentBlock.elseBody = [{
-            kind: 'ConditionalExpression',
+            kind: 'ConditionalStatement',
             type: BasicVaderType.unknown, // need to be resolved
             ifBody: body,
             condition: condition,
@@ -583,6 +599,63 @@ function parseIfExpression(parser: Parser) {
             }
         }]
         currentBlock = currentBlock.elseBody[0] as ConditionalExpression;
+    }
+    if (parser.isCurrentKeyword('else')) {
+        parser.expectKeyword('else')
+        currentBlock.elseBody = parseConditionalExpressionBlockStatement(parser)
+    }
+    ifBlock.location.end = parser.previous.location.end;
+    return ifBlock
+}
+
+function parseIfStatement(parser: Parser) {
+    const ifToken = parser.expectKeyword('if');
+    let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
+    if (hasOpeningParenthesis) {
+        parser.expect('OpenRoundBracket');
+    }
+    const ifCondition = parseExpression(parser);
+    if (hasOpeningParenthesis) {
+        parser.expect('CloseRoundBracket');
+    }
+    const ifStatements = parseBlockStatement(parser);
+    const ifBlock: ConditionalStatement = {
+        kind: 'ConditionalStatement',
+        type: BasicVaderType.unknown, // need to be resolved
+        ifBody: ifStatements,
+        condition: ifCondition,
+        scope: UnresolvedScope,
+        location: {
+            start: ifToken.location.start,
+            end: 0,
+            file: ifToken.location.file,
+        }
+    }
+    let currentBlock = ifBlock;
+    while (parser.isCurrentKeyword('elif')) {
+        const elifToken = parser.expectKeyword('elif')
+        hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
+        if (hasOpeningParenthesis) {
+            parser.expect('OpenRoundBracket');
+        }
+        const condition = parseExpression(parser)
+        if (hasOpeningParenthesis) {
+            parser.expect('CloseRoundBracket');
+        }
+        const body = parseBlockStatement(parser);
+        currentBlock.elseBody = [{
+            kind: 'ConditionalStatement',
+            type: BasicVaderType.unknown, // need to be resolved
+            ifBody: body,
+            condition: condition,
+            scope: UnresolvedScope,
+            location: {
+                start: elifToken.location.start,
+                end: 0,
+                file: elifToken.location.file,
+            }
+        }]
+        currentBlock = currentBlock.elseBody[0] as ConditionalStatement;
     }
     if (parser.isCurrentKeyword('else')) {
         parser.expectKeyword('else')
@@ -626,6 +699,28 @@ function parseBlockStatement(parser: Parser): Statement[] {
     const statements: Statement[] = []
     while (!parser.isCurrentType('CloseCurlyBracket')) {
         statements.push(parseStatement(parser))
+    }
+    parser.expect('CloseCurlyBracket');
+    return statements;
+}
+
+
+function parseConditionalExpressionBlockStatement(parser: Parser): Statement[] {
+    parser.expect('OpenCurlyBracket');
+    const statements: Statement[] = []
+    while (!parser.isCurrentType('CloseCurlyBracket')) {
+        if (parser.isCurrentKeyword('return')) {
+            const token = parser.expectKeyword('return');
+            statements.push({
+                kind: 'ConditionalReturnExpression',
+                scope: UnresolvedScope,
+                location: token.location,
+                expression: parseExpression(parser),
+                type: BasicVaderType.unknown,
+            });
+        } else {
+            statements.push(parseStatement(parser));
+        }
     }
     parser.expect('CloseCurlyBracket');
     return statements;

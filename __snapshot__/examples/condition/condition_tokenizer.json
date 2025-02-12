@@ -912,8 +912,8 @@
     "type": "Keyword",
     "value": "return",
     "location": {
-      "start": 609,
-      "end": 615,
+      "start": 664,
+      "end": 670,
       "file": "examples/condition.vader"
     }
   },
@@ -921,8 +921,8 @@
     "type": "NumberToken",
     "value": "0",
     "location": {
-      "start": 616,
-      "end": 617,
+      "start": 671,
+      "end": 672,
       "file": "examples/condition.vader"
     }
   },
@@ -930,16 +930,16 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 618,
-      "end": 619,
+      "start": 673,
+      "end": 674,
       "file": "examples/condition.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 619,
-      "end": 619,
+      "start": 674,
+      "end": 674,
       "file": "examples/condition.vader"
     },
     "value": "\u0000"
