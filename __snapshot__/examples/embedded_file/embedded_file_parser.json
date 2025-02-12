@@ -21,6 +21,10 @@
         "intrinsic"
       ],
       "body": [],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
       "location": {
         "start": 11,
         "end": 48,
@@ -47,9 +51,13 @@
         "intrinsic"
       ],
       "body": [],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
       "location": {
         "start": 58,
-        "end": 13,
+        "end": 21,
         "file": "modules/std.vader"
       }
     },
@@ -77,32 +85,48 @@
                 "name": "string",
                 "kind": "raw"
               },
-              "value": "Hello world\n",
+              "value": "@load \"modules/std\"\n\nmain :: fn() {\n    print(@file(\"examples/embedded_file.vader\"))\n}",
               "location": {
-                "start": 40,
-                "end": 53,
-                "file": "examples/simple_hello.vader"
+                "start": 47,
+                "end": 51,
+                "file": "examples/embedded_file.vader"
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
               }
             }
           ],
+          "scope": {
+            "namedVariables": {},
+            "depth": 0
+          },
           "location": {
-            "start": 32,
-            "end": 55,
-            "file": "examples/simple_hello.vader"
+            "start": 40,
+            "end": 85,
+            "file": "examples/embedded_file.vader"
           }
         }
       ],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
       "location": {
-        "start": 13,
-        "end": 56,
-        "file": "examples/simple_hello.vader"
+        "start": 21,
+        "end": 86,
+        "file": "examples/embedded_file.vader"
       }
     }
   ],
   "mainMethod": "main",
+  "scope": {
+    "namedVariables": {},
+    "depth": 0
+  },
   "location": {
     "start": 1,
-    "end": 56,
-    "file": "examples/simple_hello.vader"
+    "end": 86,
+    "file": "examples/embedded_file.vader"
   }
 }

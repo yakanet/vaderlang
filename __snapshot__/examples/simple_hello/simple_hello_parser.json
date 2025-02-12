@@ -21,6 +21,10 @@
         "intrinsic"
       ],
       "body": [],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
       "location": {
         "start": 11,
         "end": 48,
@@ -47,9 +51,13 @@
         "intrinsic"
       ],
       "body": [],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
       "location": {
         "start": 58,
-        "end": 21,
+        "end": 13,
         "file": "modules/std.vader"
       }
     },
@@ -77,32 +85,48 @@
                 "name": "string",
                 "kind": "raw"
               },
-              "value": "@load \"modules/std\"\n\nmain :: fn() {\n    print(@file(\"examples/embedded_file.vader\"))\n}",
+              "value": "Hello world\n",
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
               "location": {
-                "start": 47,
-                "end": 51,
-                "file": "examples/embedded_file.vader"
+                "start": 40,
+                "end": 53,
+                "file": "examples/simple_hello.vader"
               }
             }
           ],
+          "scope": {
+            "namedVariables": {},
+            "depth": 0
+          },
           "location": {
-            "start": 40,
-            "end": 85,
-            "file": "examples/embedded_file.vader"
+            "start": 32,
+            "end": 55,
+            "file": "examples/simple_hello.vader"
           }
         }
       ],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
       "location": {
-        "start": 21,
-        "end": 86,
-        "file": "examples/embedded_file.vader"
+        "start": 13,
+        "end": 56,
+        "file": "examples/simple_hello.vader"
       }
     }
   ],
   "mainMethod": "main",
+  "scope": {
+    "namedVariables": {},
+    "depth": 0
+  },
   "location": {
     "start": 1,
-    "end": 86,
-    "file": "examples/embedded_file.vader"
+    "end": 56,
+    "file": "examples/simple_hello.vader"
   }
 }

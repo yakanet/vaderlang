@@ -8,6 +8,7 @@ import {FileResolver} from "./resolver/module_resolver.ts";
 import {resolve} from "./resolver/resolver.ts";
 import {WasmEmitter} from "./emit/wasm-emitter.ts";
 import process from "node:process";
+import child_process from "node:child_process";
 
 const shouldUpdate = !!process.env['UPDATE_SNAPSHOT'];
 const testFolders = [
@@ -24,12 +25,15 @@ for (const folder of testFolders) {
         testTokenizer(file, shouldUpdate);
         testParser(file, shouldUpdate);
         testWasmEmitter(file, shouldUpdate);
+        testRun(file, shouldUpdate);
     }
 }
 
 function createSnapshotFile(file: string, suffix: string) {
-    const oldExt = path.extname(file);
-    return `${file.substring(0, file.length - oldExt.length)}${suffix}`;
+    const {dir, name} = path.parse(file);
+    const output_dir = `__snapshot__/${dir}/${name}`
+    fs.mkdirSync(output_dir, { recursive: true });
+    return `${output_dir}/${name}${suffix}`;
 }
 
 function testTokenizer(file: string, update = false) {
@@ -74,14 +78,31 @@ function testWasmEmitter(file: string, update: boolean) {
     });
 }
 
+
+function testRun(file: string, update: boolean) {
+    const snapshotFile = createSnapshotFile(file, '_run.txt')
+    it("Testing WasmEmitter on " + file, () => {
+        const resolver = new FileResolver(process.cwd(), ['./modules']);
+        let program = parseProgram(file, resolver)
+        program = resolve(program)
+        const emitter = new WasmEmitter();
+        emitter.emit(program)
+        const wasmfile = createSnapshotFile(file, '.wasm');
+        fs.writeFileSync(wasmfile, emitter.module.emitBinary());
+        const pid = child_process.spawnSync('wasmtime', [wasmfile], {
+            shell: true,
+        })
+        if (update || !fs.existsSync(snapshotFile)) {
+            updateSnapshot(snapshotFile, pid.stdout.toString());
+        } else {
+            expectSnapshot(snapshotFile, pid.stdout.toString());
+        }
+    });
+}
+
 function updateSnapshot(snapshotFile: string, value: unknown) {
     if (typeof value !== 'string') {
-        value = JSON.stringify(value, (key, value) => {
-            if (key === 'scope') {
-                return undefined;
-            }
-            return value;
-        }, 2);
+        value = JSON.stringify(value, null, 2);
     }
     fs.writeFileSync(snapshotFile, value as string, {encoding: 'utf-8'});
 }
@@ -91,6 +112,6 @@ function expectSnapshot(snapshotFile: string, value: unknown) {
     if (typeof value === 'string') {
         expect(value).toEqual(content);
     } else {
-        expect(value).toEqual(JSON.parse(content));
+        expect(JSON.parse(JSON.stringify(value))).toEqual(JSON.parse(content));
     }
 }

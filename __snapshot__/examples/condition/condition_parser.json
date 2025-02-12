@@ -21,6 +21,10 @@
         "intrinsic"
       ],
       "body": [],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
       "location": {
         "start": 11,
         "end": 49,
@@ -52,11 +56,19 @@
               "kind": "raw"
             },
             "value": 32,
+            "scope": {
+              "namedVariables": {},
+              "depth": 0
+            },
             "location": {
               "start": 80,
               "end": 82,
               "file": "examples/condition.vader"
             }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 0
           },
           "location": {
             "start": 75,
@@ -88,6 +100,10 @@
                         "kind": "raw"
                       },
                       "value": "equals\n",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 0
+                      },
                       "location": {
                         "start": 143,
                         "end": 151,
@@ -95,6 +111,10 @@
                       }
                     }
                   ],
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 135,
                     "end": 157,
@@ -116,6 +136,10 @@
                     "kind": "raw"
                   },
                   "value": "x",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 117,
                     "end": 118,
@@ -129,11 +153,19 @@
                     "kind": "raw"
                   },
                   "value": 32,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 122,
                     "end": 124,
                     "file": "examples/condition.vader"
                   }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 0
                 },
                 "location": {
                   "start": 119,
@@ -143,6 +175,10 @@
               }
             }
           ],
+          "scope": {
+            "namedVariables": {},
+            "depth": 0
+          },
           "location": {
             "start": 117,
             "end": 208,
@@ -173,6 +209,10 @@
                         "kind": "raw"
                       },
                       "value": "second equals\n",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 0
+                      },
                       "location": {
                         "start": 239,
                         "end": 254,
@@ -180,6 +220,10 @@
                       }
                     }
                   ],
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 231,
                     "end": 260,
@@ -201,6 +245,10 @@
                     "kind": "raw"
                   },
                   "value": "x",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 212,
                     "end": 213,
@@ -214,11 +262,19 @@
                     "kind": "raw"
                   },
                   "value": 32,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 217,
                     "end": 219,
                     "file": "examples/condition.vader"
                   }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 0
                 },
                 "location": {
                   "start": 214,
@@ -228,6 +284,10 @@
               }
             }
           ],
+          "scope": {
+            "namedVariables": {},
+            "depth": 0
+          },
           "location": {
             "start": 211,
             "end": 293,
@@ -258,6 +318,10 @@
                         "kind": "raw"
                       },
                       "value": "equals\n",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 0
+                      },
                       "location": {
                         "start": 322,
                         "end": 330,
@@ -265,6 +329,10 @@
                       }
                     }
                   ],
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 314,
                     "end": 336,
@@ -286,6 +354,10 @@
                     "kind": "raw"
                   },
                   "value": "x",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 296,
                     "end": 297,
@@ -299,11 +371,19 @@
                     "kind": "raw"
                   },
                   "value": 32,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 301,
                     "end": 303,
                     "file": "examples/condition.vader"
                   }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 0
                 },
                 "location": {
                   "start": 298,
@@ -313,6 +393,10 @@
               }
             }
           ],
+          "scope": {
+            "namedVariables": {},
+            "depth": 0
+          },
           "location": {
             "start": 296,
             "end": 385,
@@ -334,6 +418,10 @@
                     "kind": "raw"
                   },
                   "value": "not equals\n",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
                   "location": {
                     "start": 361,
                     "end": 373,
@@ -341,6 +429,10 @@
                   }
                 }
               ],
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
               "location": {
                 "start": 353,
                 "end": 379,
@@ -358,11 +450,19 @@
               "kind": "raw"
             },
             "value": 0,
+            "scope": {
+              "namedVariables": {},
+              "depth": 0
+            },
             "location": {
               "start": 392,
               "end": 393,
               "file": "examples/condition.vader"
             }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 0
           },
           "location": {
             "start": 392,
@@ -371,6 +471,10 @@
           }
         }
       ],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
       "location": {
         "start": 49,
         "end": 395,
@@ -379,6 +483,10 @@
     }
   ],
   "mainMethod": "main",
+  "scope": {
+    "namedVariables": {},
+    "depth": 0
+  },
   "location": {
     "start": 1,
     "end": 395,
