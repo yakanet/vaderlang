@@ -29,7 +29,7 @@ for (const source_path of cli.positionalArgument) {
         emitter.module.emitBinary()
     );
 }
-if (debug) {
+if (cli.options.has('run')) {
     child_process.spawnSync('wasmtime', ['build/wasm/app.wasm'], {
         shell: true,
         stdio: 'inherit'

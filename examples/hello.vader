@@ -1,4 +1,3 @@
-#!../vader --run
 @load "std"
 
 return_code := 32
