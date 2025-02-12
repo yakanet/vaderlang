@@ -27,7 +27,7 @@
       },
       "location": {
         "start": 11,
-        "end": 48,
+        "end": 45,
         "file": "modules/std.vader"
       }
     },
@@ -57,7 +57,7 @@
       },
       "location": {
         "start": 58,
-        "end": 13,
+        "end": 94,
         "file": "modules/std.vader"
       }
     },
@@ -103,7 +103,7 @@
           },
           "location": {
             "start": 32,
-            "end": 55,
+            "end": 54,
             "file": "examples/simple_hello.vader"
           }
         }

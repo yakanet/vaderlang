@@ -65,10 +65,8 @@ export type VariableDeclarationStatement = BasicStatement & {
 export type ConditionalExpression = BasicStatement & {
     kind: 'ConditionalExpression'
     type: VaderType,
-    branches: {
-        condition: Expression,
-        body: Statement[]
-    }[];
+    condition: Expression,
+    ifBody: Statement[]
     elseBody?: Statement[];
 }
 

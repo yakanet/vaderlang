@@ -45,7 +45,8 @@ function is_alphanum(c: string) {
 }
 
 function is_digit(c: string) {
-    return /^\d/.test(c);
+    const code = c.charCodeAt(0)
+    return code >= '0'.charCodeAt(0) && code <= '9'.charCodeAt(0);
 }
 
 function is_whitespace(c: string) {

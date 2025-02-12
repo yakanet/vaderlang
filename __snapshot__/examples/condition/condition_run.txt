@@ -1,3 +1,4 @@
 equals
 second equals
 not equals
+x == 32

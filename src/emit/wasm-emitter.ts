@@ -8,7 +8,6 @@ import {
 } from "../parser/types";
 import binaryen from "binaryen";
 import {addWasiFunction} from "./wasi.ts";
-import fs from "node:fs";
 import assert from "node:assert";
 
 const encoder = new TextEncoder();
@@ -245,8 +244,8 @@ export class WasmEmitter {
 
             case "ConditionalExpression": {
                 return this.module.if(
-                    this.emitExpression(expression.branches[0].condition),
-                    this.module.block(null, expression.branches[0].body.map(b => this.emitStatement(b))),
+                    this.emitExpression(expression.condition),
+                    this.module.block(null, expression.ifBody.map(b => this.emitStatement(b))),
                     expression.elseBody ? this.module.block(null, expression.elseBody.map(b => this.emitStatement(b as any))) : undefined
                 )
             }

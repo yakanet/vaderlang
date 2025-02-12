@@ -577,10 +577,28 @@
   },
   {
     "type": "Keyword",
-    "value": "return",
+    "value": "if",
     "location": {
-      "start": 385,
-      "end": 391,
+      "start": 422,
+      "end": 424,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 425,
+      "end": 426,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "DoubleEqualToken",
+    "value": "==",
+    "location": {
+      "start": 427,
+      "end": 429,
       "file": "examples/condition.vader"
     }
   },
@@ -588,8 +606,53 @@
     "type": "NumberToken",
     "value": "0",
     "location": {
-      "start": 392,
-      "end": 393,
+      "start": 430,
+      "end": 431,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 432,
+      "end": 433,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 442,
+      "end": 447,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 447,
+      "end": 448,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "x == 0\\n",
+    "location": {
+      "start": 450,
+      "end": 458,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 458,
+      "end": 459,
       "file": "examples/condition.vader"
     }
   },
@@ -597,16 +660,286 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 394,
-      "end": 395,
+      "start": 464,
+      "end": 465,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "elif",
+    "location": {
+      "start": 466,
+      "end": 470,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 471,
+      "end": 472,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "DoubleEqualToken",
+    "value": "==",
+    "location": {
+      "start": 473,
+      "end": 475,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "32",
+    "location": {
+      "start": 476,
+      "end": 478,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 479,
+      "end": 480,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 489,
+      "end": 494,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 494,
+      "end": 495,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "x == 32\\n",
+    "location": {
+      "start": 497,
+      "end": 506,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 506,
+      "end": 507,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 512,
+      "end": 513,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "elif",
+    "location": {
+      "start": 514,
+      "end": 518,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 519,
+      "end": 520,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "DoubleEqualToken",
+    "value": "==",
+    "location": {
+      "start": 521,
+      "end": 523,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "30",
+    "location": {
+      "start": 524,
+      "end": 526,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 527,
+      "end": 528,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 537,
+      "end": 542,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 542,
+      "end": 543,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "x == 30\\n",
+    "location": {
+      "start": 545,
+      "end": 554,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 554,
+      "end": 555,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 560,
+      "end": 561,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "else",
+    "location": {
+      "start": 562,
+      "end": 566,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 567,
+      "end": 568,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "print",
+    "location": {
+      "start": 577,
+      "end": 582,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 582,
+      "end": 583,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "not equals\\n",
+    "location": {
+      "start": 585,
+      "end": 597,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 597,
+      "end": 598,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 603,
+      "end": 604,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 609,
+      "end": 615,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "0",
+    "location": {
+      "start": 616,
+      "end": 617,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 618,
+      "end": 619,
       "file": "examples/condition.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 395,
-      "end": 395,
+      "start": 619,
+      "end": 619,
       "file": "examples/condition.vader"
     },
     "value": "\u0000"

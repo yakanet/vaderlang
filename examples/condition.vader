@@ -19,5 +19,16 @@ main :: fn() -> u32 {
     } else {
         print("not equals\n")
     }
+
+    // if with multiple elif blocks
+    if x == 0 {
+        print("x == 0\n")
+    } elif x == 32 {
+        print("x == 32\n")
+    } elif x == 30 {
+        print("x == 30\n")
+    } else {
+        print("not equals\n")
+    }
     return 0
 }

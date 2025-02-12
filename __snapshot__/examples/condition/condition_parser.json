@@ -27,7 +27,7 @@
       },
       "location": {
         "start": 11,
-        "end": 49,
+        "end": 47,
         "file": "examples/condition.vader"
       }
     },
@@ -72,7 +72,7 @@
           },
           "location": {
             "start": 75,
-            "end": 114,
+            "end": 82,
             "file": "examples/condition.vader"
           }
         },
@@ -82,106 +82,102 @@
             "name": "UNKNOWN",
             "kind": "raw"
           },
-          "branches": [
+          "ifBody": [
             {
-              "body": [
+              "kind": "CallExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "functionName": "print",
+              "parameters": [
                 {
-                  "kind": "CallExpression",
+                  "kind": "StringExpression",
                   "type": {
-                    "name": "UNKNOWN",
+                    "name": "string",
                     "kind": "raw"
                   },
-                  "functionName": "print",
-                  "parameters": [
-                    {
-                      "kind": "StringExpression",
-                      "type": {
-                        "name": "string",
-                        "kind": "raw"
-                      },
-                      "value": "equals\n",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 0
-                      },
-                      "location": {
-                        "start": 143,
-                        "end": 151,
-                        "file": "examples/condition.vader"
-                      }
-                    }
-                  ],
+                  "value": "equals\n",
                   "scope": {
                     "namedVariables": {},
                     "depth": 0
                   },
                   "location": {
-                    "start": 135,
-                    "end": 157,
+                    "start": 143,
+                    "end": 151,
                     "file": "examples/condition.vader"
                   }
                 }
               ],
-              "condition": {
-                "kind": "BinaryExpression",
-                "operator": "==",
-                "type": {
-                  "name": "UNKNOWN",
-                  "kind": "raw"
-                },
-                "lhs": {
-                  "kind": "VariableExpression",
-                  "type": {
-                    "name": "UNKNOWN",
-                    "kind": "raw"
-                  },
-                  "value": "x",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 0
-                  },
-                  "location": {
-                    "start": 117,
-                    "end": 118,
-                    "file": "examples/condition.vader"
-                  }
-                },
-                "rhs": {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "raw"
-                  },
-                  "value": 32,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 0
-                  },
-                  "location": {
-                    "start": 122,
-                    "end": 124,
-                    "file": "examples/condition.vader"
-                  }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 0
-                },
-                "location": {
-                  "start": 119,
-                  "end": 121,
-                  "file": "examples/condition.vader"
-                }
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 135,
+                "end": 152,
+                "file": "examples/condition.vader"
               }
             }
           ],
+          "condition": {
+            "kind": "BinaryExpression",
+            "operator": "==",
+            "type": {
+              "name": "UNKNOWN",
+              "kind": "raw"
+            },
+            "lhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "value": "x",
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 117,
+                "end": 118,
+                "file": "examples/condition.vader"
+              }
+            },
+            "rhs": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "raw"
+              },
+              "value": 32,
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 122,
+                "end": 124,
+                "file": "examples/condition.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 0
+            },
+            "location": {
+              "start": 119,
+              "end": 121,
+              "file": "examples/condition.vader"
+            }
+          },
           "scope": {
             "namedVariables": {},
             "depth": 0
           },
           "location": {
             "start": 117,
-            "end": 208,
+            "end": 158,
             "file": "examples/condition.vader"
           }
         },
@@ -191,106 +187,102 @@
             "name": "UNKNOWN",
             "kind": "raw"
           },
-          "branches": [
+          "ifBody": [
             {
-              "body": [
+              "kind": "CallExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "functionName": "print",
+              "parameters": [
                 {
-                  "kind": "CallExpression",
+                  "kind": "StringExpression",
                   "type": {
-                    "name": "UNKNOWN",
+                    "name": "string",
                     "kind": "raw"
                   },
-                  "functionName": "print",
-                  "parameters": [
-                    {
-                      "kind": "StringExpression",
-                      "type": {
-                        "name": "string",
-                        "kind": "raw"
-                      },
-                      "value": "second equals\n",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 0
-                      },
-                      "location": {
-                        "start": 239,
-                        "end": 254,
-                        "file": "examples/condition.vader"
-                      }
-                    }
-                  ],
+                  "value": "second equals\n",
                   "scope": {
                     "namedVariables": {},
                     "depth": 0
                   },
                   "location": {
-                    "start": 231,
-                    "end": 260,
+                    "start": 239,
+                    "end": 254,
                     "file": "examples/condition.vader"
                   }
                 }
               ],
-              "condition": {
-                "kind": "BinaryExpression",
-                "operator": "==",
-                "type": {
-                  "name": "UNKNOWN",
-                  "kind": "raw"
-                },
-                "lhs": {
-                  "kind": "VariableExpression",
-                  "type": {
-                    "name": "UNKNOWN",
-                    "kind": "raw"
-                  },
-                  "value": "x",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 0
-                  },
-                  "location": {
-                    "start": 212,
-                    "end": 213,
-                    "file": "examples/condition.vader"
-                  }
-                },
-                "rhs": {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "raw"
-                  },
-                  "value": 32,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 0
-                  },
-                  "location": {
-                    "start": 217,
-                    "end": 219,
-                    "file": "examples/condition.vader"
-                  }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 0
-                },
-                "location": {
-                  "start": 214,
-                  "end": 216,
-                  "file": "examples/condition.vader"
-                }
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 231,
+                "end": 255,
+                "file": "examples/condition.vader"
               }
             }
           ],
+          "condition": {
+            "kind": "BinaryExpression",
+            "operator": "==",
+            "type": {
+              "name": "UNKNOWN",
+              "kind": "raw"
+            },
+            "lhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "value": "x",
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 212,
+                "end": 213,
+                "file": "examples/condition.vader"
+              }
+            },
+            "rhs": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "raw"
+              },
+              "value": 32,
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 217,
+                "end": 219,
+                "file": "examples/condition.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 0
+            },
+            "location": {
+              "start": 214,
+              "end": 216,
+              "file": "examples/condition.vader"
+            }
+          },
           "scope": {
             "namedVariables": {},
             "depth": 0
           },
           "location": {
             "start": 211,
-            "end": 293,
+            "end": 261,
             "file": "examples/condition.vader"
           }
         },
@@ -300,106 +292,102 @@
             "name": "UNKNOWN",
             "kind": "raw"
           },
-          "branches": [
+          "ifBody": [
             {
-              "body": [
+              "kind": "CallExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "functionName": "print",
+              "parameters": [
                 {
-                  "kind": "CallExpression",
+                  "kind": "StringExpression",
                   "type": {
-                    "name": "UNKNOWN",
+                    "name": "string",
                     "kind": "raw"
                   },
-                  "functionName": "print",
-                  "parameters": [
-                    {
-                      "kind": "StringExpression",
-                      "type": {
-                        "name": "string",
-                        "kind": "raw"
-                      },
-                      "value": "equals\n",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 0
-                      },
-                      "location": {
-                        "start": 322,
-                        "end": 330,
-                        "file": "examples/condition.vader"
-                      }
-                    }
-                  ],
+                  "value": "equals\n",
                   "scope": {
                     "namedVariables": {},
                     "depth": 0
                   },
                   "location": {
-                    "start": 314,
-                    "end": 336,
+                    "start": 322,
+                    "end": 330,
                     "file": "examples/condition.vader"
                   }
                 }
               ],
-              "condition": {
-                "kind": "BinaryExpression",
-                "operator": "!=",
-                "type": {
-                  "name": "UNKNOWN",
-                  "kind": "raw"
-                },
-                "lhs": {
-                  "kind": "VariableExpression",
-                  "type": {
-                    "name": "UNKNOWN",
-                    "kind": "raw"
-                  },
-                  "value": "x",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 0
-                  },
-                  "location": {
-                    "start": 296,
-                    "end": 297,
-                    "file": "examples/condition.vader"
-                  }
-                },
-                "rhs": {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "raw"
-                  },
-                  "value": 32,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 0
-                  },
-                  "location": {
-                    "start": 301,
-                    "end": 303,
-                    "file": "examples/condition.vader"
-                  }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 0
-                },
-                "location": {
-                  "start": 298,
-                  "end": 300,
-                  "file": "examples/condition.vader"
-                }
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 314,
+                "end": 331,
+                "file": "examples/condition.vader"
               }
             }
           ],
+          "condition": {
+            "kind": "BinaryExpression",
+            "operator": "!=",
+            "type": {
+              "name": "UNKNOWN",
+              "kind": "raw"
+            },
+            "lhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "value": "x",
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 296,
+                "end": 297,
+                "file": "examples/condition.vader"
+              }
+            },
+            "rhs": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "raw"
+              },
+              "value": 32,
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 301,
+                "end": 303,
+                "file": "examples/condition.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 0
+            },
+            "location": {
+              "start": 298,
+              "end": 300,
+              "file": "examples/condition.vader"
+            }
+          },
           "scope": {
             "namedVariables": {},
             "depth": 0
           },
           "location": {
             "start": 296,
-            "end": 385,
+            "end": 380,
             "file": "examples/condition.vader"
           },
           "elseBody": [
@@ -435,9 +423,366 @@
               },
               "location": {
                 "start": 353,
-                "end": 379,
+                "end": 374,
                 "file": "examples/condition.vader"
               }
+            }
+          ]
+        },
+        {
+          "kind": "ConditionalExpression",
+          "type": {
+            "name": "UNKNOWN",
+            "kind": "raw"
+          },
+          "ifBody": [
+            {
+              "kind": "CallExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "functionName": "print",
+              "parameters": [
+                {
+                  "kind": "StringExpression",
+                  "type": {
+                    "name": "string",
+                    "kind": "raw"
+                  },
+                  "value": "x == 0\n",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
+                  "location": {
+                    "start": 450,
+                    "end": 458,
+                    "file": "examples/condition.vader"
+                  }
+                }
+              ],
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 442,
+                "end": 459,
+                "file": "examples/condition.vader"
+              }
+            }
+          ],
+          "condition": {
+            "kind": "BinaryExpression",
+            "operator": "==",
+            "type": {
+              "name": "UNKNOWN",
+              "kind": "raw"
+            },
+            "lhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "value": "x",
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 425,
+                "end": 426,
+                "file": "examples/condition.vader"
+              }
+            },
+            "rhs": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "raw"
+              },
+              "value": 0,
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 430,
+                "end": 431,
+                "file": "examples/condition.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 0
+            },
+            "location": {
+              "start": 427,
+              "end": 429,
+              "file": "examples/condition.vader"
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 0
+          },
+          "location": {
+            "start": 425,
+            "end": 604,
+            "file": "examples/condition.vader"
+          },
+          "elseBody": [
+            {
+              "kind": "ConditionalExpression",
+              "type": {
+                "name": "UNKNOWN",
+                "kind": "raw"
+              },
+              "ifBody": [
+                {
+                  "kind": "CallExpression",
+                  "type": {
+                    "name": "UNKNOWN",
+                    "kind": "raw"
+                  },
+                  "functionName": "print",
+                  "parameters": [
+                    {
+                      "kind": "StringExpression",
+                      "type": {
+                        "name": "string",
+                        "kind": "raw"
+                      },
+                      "value": "x == 32\n",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 0
+                      },
+                      "location": {
+                        "start": 497,
+                        "end": 506,
+                        "file": "examples/condition.vader"
+                      }
+                    }
+                  ],
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
+                  "location": {
+                    "start": 489,
+                    "end": 507,
+                    "file": "examples/condition.vader"
+                  }
+                }
+              ],
+              "condition": {
+                "kind": "BinaryExpression",
+                "operator": "==",
+                "type": {
+                  "name": "UNKNOWN",
+                  "kind": "raw"
+                },
+                "lhs": {
+                  "kind": "VariableExpression",
+                  "type": {
+                    "name": "UNKNOWN",
+                    "kind": "raw"
+                  },
+                  "value": "x",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
+                  "location": {
+                    "start": 471,
+                    "end": 472,
+                    "file": "examples/condition.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "raw"
+                  },
+                  "value": 32,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
+                  "location": {
+                    "start": 476,
+                    "end": 478,
+                    "file": "examples/condition.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 0
+                },
+                "location": {
+                  "start": 473,
+                  "end": 475,
+                  "file": "examples/condition.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 0
+              },
+              "location": {
+                "start": 471,
+                "end": 0,
+                "file": "examples/condition.vader"
+              },
+              "elseBody": [
+                {
+                  "kind": "ConditionalExpression",
+                  "type": {
+                    "name": "UNKNOWN",
+                    "kind": "raw"
+                  },
+                  "ifBody": [
+                    {
+                      "kind": "CallExpression",
+                      "type": {
+                        "name": "UNKNOWN",
+                        "kind": "raw"
+                      },
+                      "functionName": "print",
+                      "parameters": [
+                        {
+                          "kind": "StringExpression",
+                          "type": {
+                            "name": "string",
+                            "kind": "raw"
+                          },
+                          "value": "x == 30\n",
+                          "scope": {
+                            "namedVariables": {},
+                            "depth": 0
+                          },
+                          "location": {
+                            "start": 545,
+                            "end": 554,
+                            "file": "examples/condition.vader"
+                          }
+                        }
+                      ],
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 0
+                      },
+                      "location": {
+                        "start": 537,
+                        "end": 555,
+                        "file": "examples/condition.vader"
+                      }
+                    }
+                  ],
+                  "condition": {
+                    "kind": "BinaryExpression",
+                    "operator": "==",
+                    "type": {
+                      "name": "UNKNOWN",
+                      "kind": "raw"
+                    },
+                    "lhs": {
+                      "kind": "VariableExpression",
+                      "type": {
+                        "name": "UNKNOWN",
+                        "kind": "raw"
+                      },
+                      "value": "x",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 0
+                      },
+                      "location": {
+                        "start": 519,
+                        "end": 520,
+                        "file": "examples/condition.vader"
+                      }
+                    },
+                    "rhs": {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "raw"
+                      },
+                      "value": 30,
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 0
+                      },
+                      "location": {
+                        "start": 524,
+                        "end": 526,
+                        "file": "examples/condition.vader"
+                      }
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 0
+                    },
+                    "location": {
+                      "start": 521,
+                      "end": 523,
+                      "file": "examples/condition.vader"
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 0
+                  },
+                  "location": {
+                    "start": 519,
+                    "end": 0,
+                    "file": "examples/condition.vader"
+                  },
+                  "elseBody": [
+                    {
+                      "kind": "CallExpression",
+                      "type": {
+                        "name": "UNKNOWN",
+                        "kind": "raw"
+                      },
+                      "functionName": "print",
+                      "parameters": [
+                        {
+                          "kind": "StringExpression",
+                          "type": {
+                            "name": "string",
+                            "kind": "raw"
+                          },
+                          "value": "not equals\n",
+                          "scope": {
+                            "namedVariables": {},
+                            "depth": 0
+                          },
+                          "location": {
+                            "start": 585,
+                            "end": 597,
+                            "file": "examples/condition.vader"
+                          }
+                        }
+                      ],
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 0
+                      },
+                      "location": {
+                        "start": 577,
+                        "end": 598,
+                        "file": "examples/condition.vader"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -455,8 +800,8 @@
               "depth": 0
             },
             "location": {
-              "start": 392,
-              "end": 393,
+              "start": 616,
+              "end": 617,
               "file": "examples/condition.vader"
             }
           },
@@ -465,8 +810,8 @@
             "depth": 0
           },
           "location": {
-            "start": 392,
-            "end": 393,
+            "start": 616,
+            "end": 617,
             "file": "examples/condition.vader"
           }
         }
@@ -477,7 +822,7 @@
       },
       "location": {
         "start": 49,
-        "end": 395,
+        "end": 619,
         "file": "examples/condition.vader"
       }
     }
@@ -489,7 +834,7 @@
   },
   "location": {
     "start": 1,
-    "end": 395,
+    "end": 619,
     "file": "examples/condition.vader"
   }
 }

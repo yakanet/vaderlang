@@ -99,6 +99,10 @@ export class Parser {
         return this.tokens[this.index];
     }
 
+    get previous(): Token {
+        return this.tokens[this.index - 1];
+    }
+
     get next(): Token {
         return this.tokens[this.index + 1];
     }
@@ -281,7 +285,7 @@ function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDe
         scope: UnresolvedScope,
         location: {
             start: identifier.location.start,
-            end: parser.current.location.start,
+            end: parser.previous.location.end,
             file: identifier.location.file,
         }
     }
@@ -315,7 +319,7 @@ function parseVariableDeclarationAndAssignment(parser: Parser, isConstant: boole
         scope: UnresolvedScope,
         location: {
             start: identifier.location.start,
-            end: parser.current.location.start,
+            end: parser.previous.location.end,
             file: identifier.location.file,
         }
     }
@@ -330,7 +334,7 @@ function parseStruct(parser: Parser, identifier: Token) {
         scope: UnresolvedScope,
         location: {
             start: identifier.location.start,
-            end: parser.current.location.start,
+            end: parser.previous.location.end,
             file: identifier.location.file,
         }
     };
@@ -370,7 +374,7 @@ function parseForStatement(parser: Parser): Statement {
         scope: UnresolvedScope,
         location: {
             start: forToken.location.start,
-            end: parser.current.location.start,
+            end: parser.previous.location.end,
             file: forToken.location.file,
         }
     }
@@ -414,7 +418,7 @@ function parseExpression(parser: Parser): Expression {
             scope: UnresolvedScope,
             location: {
                 start: token.location.start,
-                end: parser.current.location.start, // FIXME: Wrong need to be the full dotted expression
+                end: parser.previous.location.end, // FIXME: Wrong need to be the full dotted expression
                 file: token.location.file,
             }
         }
@@ -545,10 +549,8 @@ function parseIfExpression(parser: Parser) {
     const ifBlock: ConditionalExpression = {
         kind: 'ConditionalExpression',
         type: BasicVaderType.unknown, // need to be resolved
-        branches: [{
-            body: ifStatements,
-            condition: ifCondition
-        }],
+        ifBody: ifStatements,
+        condition: ifCondition,
         scope: UnresolvedScope,
         location: {
             start: ifToken.location.start,
@@ -556,8 +558,9 @@ function parseIfExpression(parser: Parser) {
             file: ifToken.location.file,
         }
     }
+    let currentBlock = ifBlock;
     while (parser.isCurrentKeyword('elif')) {
-        parser.expectKeyword('elif')
+        const elifToken = parser.expectKeyword('elif')
         hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
         if (hasOpeningParenthesis) {
             parser.expect('OpenRoundBracket');
@@ -567,16 +570,25 @@ function parseIfExpression(parser: Parser) {
             parser.expect('CloseRoundBracket');
         }
         const body = parseBlockStatement(parser);
-        ifBlock.branches.push({
-            condition,
-            body
-        })
+        currentBlock.elseBody = [{
+            kind: 'ConditionalExpression',
+            type: BasicVaderType.unknown, // need to be resolved
+            ifBody: body,
+            condition: condition,
+            scope: UnresolvedScope,
+            location: {
+                start: elifToken.location.start,
+                end: 0,
+                file: elifToken.location.file,
+            }
+        }]
+        currentBlock = currentBlock.elseBody[0] as ConditionalExpression;
     }
     if (parser.isCurrentKeyword('else')) {
         parser.expectKeyword('else')
-        ifBlock.elseBody = parseBlockStatement(parser)
+        currentBlock.elseBody = parseBlockStatement(parser)
     }
-    ifBlock.location.end = parser.current.location.start;
+    ifBlock.location.end = parser.previous.location.end;
     return ifBlock;
 }
 
@@ -603,7 +615,7 @@ function parseCallExpression(parser: Parser): CallExpression {
         scope: UnresolvedScope,
         location: {
             start: identifier.location.start,
-            end: parser.current.location.start,
+            end: parser.previous.location.end,
             file: identifier.location.file,
         }
     }

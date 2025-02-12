@@ -62,10 +62,8 @@ function resolveStatement(
             return {
                 ...statement,
                 kind: "ConditionalExpression",
-                branches: statement.branches.map(b => ({
-                    body: b.body.map(bb => resolveStatement(bb, scope)),
-                    condition: resolveExpression(b.condition, scope)
-                })),
+                condition: resolveExpression(statement.condition, scope),
+                ifBody: statement.ifBody.map(b => resolveStatement(b, scope)),
                 elseBody: statement.elseBody ? statement.elseBody.map(b => resolveStatement(b, scope)) : undefined,
             }
         }
