@@ -195,11 +195,8 @@ function resolveExpression(
             if (!returnIf?.kind.endsWith('Expression')) {
                 throw new Error(`Missing return expression in if block at ${expression.location}`);
             }
-            if (returnElse && !returnElse?.kind.endsWith('Expression')) {
-                throw new Error(`Missing return expression in else block at ${expression.location}`);
-            }
             if (returnElse && returnIf.type !== returnElse.type) {
-                throw new Error(`Return type mismatch in conditional expression ${[returnIf.type, returnElse.type]} at ${expression.location}`);
+                throw new Error(`Return type mismatch in conditional expression ${JSON.stringify([returnIf.type, returnElse.type])} at ${expression.location.start}`);
             }
             return {
                 ...expression,

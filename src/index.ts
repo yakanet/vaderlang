@@ -30,9 +30,9 @@ for (const source_path of cli.positionalArgument) {
     );
 }
 if (cli.options.has('run')) {
-    child_process.spawnSync('wasmtime', ['build/wasm/app.wasm'], {
+    const pid = child_process.spawnSync('wasmtime', ['build/wasm/app.wasm'], {
         shell: true,
-        stdio: 'inherit'
-    });
+        stdio: 'inherit',
+    })
+    process.exit(pid.status)
 }
-process.exit(0);

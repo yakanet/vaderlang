@@ -30,7 +30,12 @@ main :: fn() -> u32 {
     } else {
         print("not equals\n")
     }
-
-    y := if x == 32 { 0 } else { 1 }
-    return y
+    z := 3
+    y := if x == 32 {
+        z = 2
+        1
+    }
+    elif x == 33 { 3 }
+    else { 2 }
+    return x + y + z
 }

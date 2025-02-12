@@ -910,10 +910,10 @@
   },
   {
     "type": "Identifier",
-    "value": "y",
+    "value": "z",
     "location": {
-      "start": 610,
-      "end": 611,
+      "start": 609,
+      "end": 610,
       "file": "examples/condition.vader"
     }
   },
@@ -921,8 +921,8 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 612,
-      "end": 613,
+      "start": 611,
+      "end": 612,
       "file": "examples/condition.vader"
     }
   },
@@ -930,116 +930,17 @@
     "type": "EqualToken",
     "value": "=",
     "location": {
-      "start": 613,
-      "end": 614,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "Keyword",
-    "value": "if",
-    "location": {
-      "start": 615,
-      "end": 617,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "x",
-    "location": {
-      "start": 618,
-      "end": 619,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "DoubleEqualToken",
-    "value": "==",
-    "location": {
-      "start": 620,
-      "end": 622,
+      "start": 612,
+      "end": 613,
       "file": "examples/condition.vader"
     }
   },
   {
     "type": "NumberToken",
-    "value": "32",
+    "value": "3",
     "location": {
-      "start": 623,
-      "end": 625,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "OpenCurlyBracket",
-    "value": "{",
-    "location": {
-      "start": 626,
-      "end": 627,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "NumberToken",
-    "value": "0",
-    "location": {
-      "start": 628,
-      "end": 629,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "CloseCurlyBracket",
-    "value": "}",
-    "location": {
-      "start": 630,
-      "end": 631,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "Keyword",
-    "value": "else",
-    "location": {
-      "start": 632,
-      "end": 636,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "OpenCurlyBracket",
-    "value": "{",
-    "location": {
-      "start": 637,
-      "end": 638,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "NumberToken",
-    "value": "2",
-    "location": {
-      "start": 639,
-      "end": 640,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "CloseCurlyBracket",
-    "value": "}",
-    "location": {
-      "start": 641,
-      "end": 642,
-      "file": "examples/condition.vader"
-    }
-  },
-  {
-    "type": "Keyword",
-    "value": "return",
-    "location": {
-      "start": 647,
-      "end": 653,
+      "start": 614,
+      "end": 615,
       "file": "examples/condition.vader"
     }
   },
@@ -1047,8 +948,107 @@
     "type": "Identifier",
     "value": "y",
     "location": {
-      "start": 654,
-      "end": 655,
+      "start": 620,
+      "end": 621,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 622,
+      "end": 623,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 623,
+      "end": 624,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "if",
+    "location": {
+      "start": 625,
+      "end": 627,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 628,
+      "end": 629,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "DoubleEqualToken",
+    "value": "==",
+    "location": {
+      "start": 630,
+      "end": 632,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "32",
+    "location": {
+      "start": 633,
+      "end": 635,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 636,
+      "end": 637,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "z",
+    "location": {
+      "start": 646,
+      "end": 647,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 648,
+      "end": 649,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "start": 650,
+      "end": 651,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "1",
+    "location": {
+      "start": 660,
+      "end": 661,
       "file": "examples/condition.vader"
     }
   },
@@ -1056,16 +1056,178 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 656,
-      "end": 657,
+      "start": 666,
+      "end": 667,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "elif",
+    "location": {
+      "start": 672,
+      "end": 676,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 677,
+      "end": 678,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "DoubleEqualToken",
+    "value": "==",
+    "location": {
+      "start": 679,
+      "end": 681,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "33",
+    "location": {
+      "start": 682,
+      "end": 684,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 685,
+      "end": 686,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "3",
+    "location": {
+      "start": 687,
+      "end": 688,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 689,
+      "end": 690,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "else",
+    "location": {
+      "start": 695,
+      "end": 699,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 700,
+      "end": 701,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "start": 702,
+      "end": 703,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 704,
+      "end": 705,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 710,
+      "end": 716,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 717,
+      "end": 718,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": 719,
+      "end": 720,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "y",
+    "location": {
+      "start": 721,
+      "end": 722,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": 723,
+      "end": 724,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "z",
+    "location": {
+      "start": 725,
+      "end": 726,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 727,
+      "end": 728,
       "file": "examples/condition.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 657,
-      "end": 657,
+      "start": 728,
+      "end": 728,
       "file": "examples/condition.vader"
     },
     "value": "\u0000"

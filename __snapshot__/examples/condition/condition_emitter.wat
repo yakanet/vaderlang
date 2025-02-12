@@ -19,6 +19,8 @@
  (start $_start)
  (func $main (result i32)
   (local $0 i32)
+  (local $1 i32)
+  (local $2 i32)
   (if
    (i32.eq
     (local.tee $0
@@ -202,12 +204,38 @@
     )
    )
   )
-  (select
-   (i32.const 2)
-   (i32.const 0)
-   (i32.ne
-    (local.get $0)
-    (i32.const 32)
+  (local.set $1
+   (i32.const 3)
+  )
+  (local.set $2
+   (if (result i32)
+    (i32.eq
+     (local.get $0)
+     (i32.const 32)
+    )
+    (then
+     (local.set $1
+      (i32.const 2)
+     )
+     (i32.const 1)
+    )
+    (else
+     (select
+      (i32.const 3)
+      (i32.const 2)
+      (i32.eq
+       (local.get $0)
+       (i32.const 33)
+      )
+     )
+    )
+   )
+  )
+  (i32.add
+   (local.get $0)
+   (i32.add
+    (local.get $1)
+    (local.get $2)
    )
   )
  )

@@ -3,6 +3,7 @@ import type {Decorator, Token} from "../tokens/types.ts";
 import {
     BasicVaderType,
     type CallExpression,
+    type ConditionalExpression,
     type ConditionalStatement,
     type Expression,
     type FunctionDeclaration,
@@ -262,7 +263,7 @@ function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifie
         return parseStruct(parser, identifier)
     }
     if (parser.isCurrentKeyword('if')) {
-        const value = parseIfStatement(parser);
+        const value = parseIfStatement(parser, 'ConditionalExpression');
         return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, {
             ...value,
             kind: 'ConditionalExpression'
@@ -542,7 +543,7 @@ function parseReturnStatement(parser: Parser): ReturnStatement {
     };
 }
 
-function parseIfStatement(parser: Parser) {
+function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'ConditionalExpression' = 'ConditionalStatement') {
     const ifToken = parser.expectKeyword('if');
     let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
     if (hasOpeningParenthesis) {
@@ -553,8 +554,8 @@ function parseIfStatement(parser: Parser) {
         parser.expect('CloseRoundBracket');
     }
     const ifStatements = parseBlockStatement(parser);
-    const ifBlock: ConditionalStatement = {
-        kind: 'ConditionalStatement',
+    const ifBlock = {
+        kind,
         type: BasicVaderType.unknown, // need to be resolved
         ifBody: ifStatements,
         condition: ifCondition,
@@ -564,8 +565,8 @@ function parseIfStatement(parser: Parser) {
             end: 0,
             file: ifToken.location.file,
         }
-    }
-    let currentBlock = ifBlock;
+    } satisfies ConditionalStatement | ConditionalExpression;
+    let currentBlock: ConditionalStatement | ConditionalExpression = ifBlock;
     while (parser.isCurrentKeyword('elif')) {
         const elifToken = parser.expectKeyword('elif')
         hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
@@ -578,7 +579,7 @@ function parseIfStatement(parser: Parser) {
         }
         const body = parseBlockStatement(parser);
         currentBlock.elseBody = [{
-            kind: 'ConditionalStatement',
+            kind,
             type: BasicVaderType.unknown, // need to be resolved
             ifBody: body,
             condition: condition,
@@ -589,7 +590,7 @@ function parseIfStatement(parser: Parser) {
                 file: elifToken.location.file,
             }
         }]
-        currentBlock = currentBlock.elseBody[0] as ConditionalStatement;
+        currentBlock = currentBlock.elseBody[0] as ConditionalStatement | ConditionalExpression;
     }
     if (parser.isCurrentKeyword('else')) {
         parser.expectKeyword('else')
