@@ -4,9 +4,12 @@ import {
     type ConditionalStatement,
     type Expression,
     type FunctionDeclaration,
+    isTypeEquals,
     type Program,
     type ReturnStatement,
     type Statement,
+    type VaderType,
+    type VariableDeclarationStatement,
 } from "../parser/types";
 
 export function resolve(program: Program): Program {
@@ -26,69 +29,16 @@ function resolveStatement(
     scope: Scope
 ): Statement {
     switch (statement.kind) {
-        case "FunctionDeclaration":
-            return resolveFunctionDeclaration(statement, scope);
+        case "Program":
+            throw new Error("unreachable");
         case "ReturnStatement":
             return {
                 ...statement,
                 expression: resolveExpression(statement.expression, scope),
                 scope,
             } satisfies ReturnStatement;
-        case "VariableDeclarationStatement": {
-            const value = statement.value
-                ? resolveExpression(statement.value, scope)
-                : undefined;
-            const type =
-                statement.type !== BasicVaderType.unknown
-                    ? statement.type
-                    : value?.type ?? BasicVaderType.unknown;
-            // TODO need to check if we can cast the number with the range (ex: u32 should be between 0..2^32−1)
-            if (value && value.type !== type) {
-                value.type = type;
-            }
-            if (scope.depth === 0) {
-                scope.newGlobalVariable(type, statement.name);
-            } else {
-                scope.newLocalVariable(type, scope.allVariables().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name);
-            }
-            if (value && value.kind === 'ConditionalExpression') {
-                value.kind = 'ConditionalStatement' as any;
-                let queue = [value.ifBody, value.elseBody].filter(b => b);
-                while (true) {
-                    const oldValue = queue.pop();
-                    if (!oldValue) {
-                        break
-                    }
-                    const oldStatement = oldValue.at(-1) as Statement;
-                    if (!oldStatement) {
-                        continue;
-                    }
-                    if (oldStatement.kind === 'ConditionalStatement' || oldStatement.kind === 'ConditionalExpression') {
-                        oldStatement.kind = 'ConditionalStatement';
-                        queue.push(oldStatement.ifBody)
-                        if (oldStatement.elseBody) {
-                            queue.push(oldStatement.elseBody)
-                        }
-                    } else {
-                        oldValue[oldValue.length - 1] = {
-                            kind: 'VariableAssignmentStatement',
-                            value: oldStatement as Expression,
-                            identifier: statement.name,
-                            location: statement.location,
-                            scope,
-                        }
-                    }
-                }
-                return value
-            }
-            //console.log("declare var " + statement.name, statement.type, value?.type, type);
-            return {
-                ...statement,
-                type,
-                value,
-                scope,
-            };
-        }
+        case "FunctionDeclaration":
+            return resolveFunctionDeclaration(statement, scope);
         case 'ConditionalStatement': {
             return {
                 ...statement,
@@ -99,6 +49,8 @@ function resolveStatement(
                 scope
             }
         }
+        case "VariableDeclarationStatement":
+            return resolveVariableDeclaration(statement, scope);
         case "VariableAssignmentStatement": {
             const res = resolveExpression(statement.value, scope);
             // TODO: Should check if the variable is constant or not
@@ -108,11 +60,27 @@ function resolveStatement(
                 scope,
             };
         }
-        case "StructStatement":
+        case "StructStatement": {
+            const type: VaderType = {
+                kind: 'struct',
+                name: statement.name,
+                parameters: []
+            }
+            for (const parameter of statement.definition) {
+                if (isTypeEquals(parameter.typeName, BasicVaderType.unknown)) {
+                    throw new Error("Unimplemented, type declaration could only use primitive types");
+                }
+                type.parameters.push({name: parameter.attributeName, type: parameter.typeName});
+            }
+            scope.newGlobalStruct(type, statement.name);
+            return {
+                ...statement,
+                scope
+            }
+        }
         case "ForStatement":
-            throw new Error("unimplemented");
-        case "Program":
-            throw new Error("unreachable");
+            throw new Error("unimplemented " + statement.kind);
+
     }
     return resolveExpression(statement, scope);
 }
@@ -141,6 +109,64 @@ function resolveFunctionDeclaration(
     return {
         ...statement,
         body,
+        scope,
+    };
+}
+
+function resolveVariableDeclaration(
+    statement: VariableDeclarationStatement,
+    scope: Scope
+): Statement {
+    const value = statement.value
+        ? resolveExpression(statement.value, scope)
+        : undefined;
+    const type =
+        statement.type !== BasicVaderType.unknown
+            ? statement.type
+            : value?.type ?? BasicVaderType.unknown;
+    // TODO need to check if we can cast the number with the range (ex: u32 should be between 0..2^32−1)
+    if (value && value.type !== type) {
+        value.type = type;
+    }
+    if (scope.depth === 0) {
+        scope.newGlobalVariable(type, statement.name);
+    } else {
+        scope.newLocalVariable(type, scope.allVariables().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name);
+    }
+    if (value && value.kind === 'ConditionalExpression') {
+        value.kind = 'ConditionalStatement' as any;
+        let queue = [value.ifBody, value.elseBody].filter(b => b);
+        while (true) {
+            const oldValue = queue.pop();
+            if (!oldValue) {
+                break
+            }
+            const oldStatement = oldValue.at(-1) as Statement;
+            if (!oldStatement) {
+                continue;
+            }
+            if (oldStatement.kind === 'ConditionalStatement' || oldStatement.kind === 'ConditionalExpression') {
+                oldStatement.kind = 'ConditionalStatement';
+                queue.push(oldStatement.ifBody)
+                if (oldStatement.elseBody) {
+                    queue.push(oldStatement.elseBody)
+                }
+            } else {
+                oldValue[oldValue.length - 1] = {
+                    kind: 'VariableAssignmentStatement',
+                    value: oldStatement as Expression,
+                    identifier: statement.name,
+                    location: statement.location,
+                    scope,
+                }
+            }
+        }
+        return value
+    }
+    return {
+        ...statement,
+        type,
+        value,
         scope,
     };
 }
@@ -185,6 +211,26 @@ function resolveExpression(
                 ...expression,
                 type: variable.type,
                 scope
+            }
+        }
+        case 'StructInstantiationExpression': {
+            const resolved = scope.lookupVariable(expression.structName)
+            if (resolved.type.kind !== 'struct') {
+                throw new Error(`Trying to instantiate a struct, but ${resolved.named} is not a struct`);
+            }
+            if (resolved.type.parameters.length !== expression.parameters.length) {
+                throw new Error(`Wrong number of arguments (expected ${resolved.type.parameters.length}, got ${expression.parameters.length})`);
+            }
+            for (let i = 0; i < resolved.type.parameters.length; i += 1) {
+                expression.parameters[i] = resolveExpression(expression.parameters[i], scope);
+                if (!isTypeEquals(expression.parameters[i].type, resolved.type.parameters[i].type)) {
+                    throw new Error(`Wrong type for parameter ${resolved.type.parameters[i].name} (expected ${resolved.type.parameters[i].type}, got ${expression.parameters[i].type})`);
+                }
+            }
+            return {
+                ...expression,
+                type: resolved.type,
+                scope,
             }
         }
         case 'ConditionalExpression': {

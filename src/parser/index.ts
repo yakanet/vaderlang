@@ -12,6 +12,7 @@ import {
     type ReturnStatement,
     type Statement,
     type StringExpression,
+    type StructInstantiationExpression,
     type StructStatement,
     type VaderType,
     type VariableDeclarationStatement,
@@ -183,7 +184,7 @@ function parseType(parser: Parser): VaderType {
     const identifier = parser.expect('Identifier').value;
     let type: VaderType = {
         name: identifier,
-        kind: 'raw'
+        kind: 'primitive'
     }
     while (parser.isCurrentType('OpenSquareBracket')) {
         parser.expect('OpenSquareBracket');
@@ -269,8 +270,38 @@ function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifie
             kind: 'ConditionalExpression'
         });
     }
+    if (parser.isCurrentType('Identifier') && parser.next.type === 'OpenCurlyBracket') {
+        const value = parseStructInstantiation(parser);
+        return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, value);
+    }
     return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type);
 }
+
+function parseStructInstantiation(parser: Parser) {
+    const structType = parser.expect('Identifier');
+    const instance: StructInstantiationExpression = {
+        kind: 'StructInstantiationExpression',
+        parameters: [],
+        structName: structType.value,
+        type: BasicVaderType.unknown,
+        location: {
+            ...structType.location
+        },
+        scope: UnresolvedScope,
+    }
+    parser.expect('OpenCurlyBracket');
+    while (!parser.isCurrentType('CloseCurlyBracket')) {
+        instance.parameters.push(parseExpression(parser));
+        if (!parser.isCurrentType('CommaToken')) {
+            break
+        }
+        parser.expect('CommaToken');
+    }
+    parser.expect('CloseCurlyBracket')
+    instance.location.end = parser.previous.location.end;
+    return instance;
+}
+
 
 function parseFunctionDeclaration(parser: Parser, identifier: Token): FunctionDeclaration {
     if (identifier.value === 'main') {

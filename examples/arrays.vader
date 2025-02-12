@@ -1,0 +1,4 @@
+main :: fn() -> u32 {
+    x :: u32[3]
+    return x[0]
+}

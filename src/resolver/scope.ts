@@ -26,6 +26,11 @@ interface GlobalFunctionSource {
 interface LocalVariableSource {
     kind: "LocalVariableSource";
     index: number;
+    address?: number;
+}
+
+interface StructSource {
+    kind: "StructSource";
 }
 
 export interface GlobalParameterSource {
@@ -36,7 +41,8 @@ type Source =
     | FunctionParameterSource
     | LocalVariableSource
     | GlobalParameterSource
-    | GlobalFunctionSource;
+    | GlobalFunctionSource
+    | StructSource;
 
 export class Scope {
     private namedVariables = new Map<string, Ref>();
@@ -74,6 +80,15 @@ export class Scope {
         return this.newVariable(type, name, {
             kind: "LocalVariableSource",
             index
+        })
+    }
+
+    newGlobalStruct(
+        type: VaderType,
+        name: string) {
+        assert(this.depth === 0, "Struct declaration must be declared in global scope");
+        return this.newVariable(type, name, {
+            kind: 'StructSource'
         })
     }
 

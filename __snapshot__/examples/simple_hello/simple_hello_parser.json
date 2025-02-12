@@ -9,13 +9,13 @@
           "name": "path",
           "type": {
             "name": "string",
-            "kind": "raw"
+            "kind": "primitive"
           }
         }
       ],
       "returnType": {
         "name": "string",
-        "kind": "raw"
+        "kind": "primitive"
       },
       "decorators": [
         "intrinsic"
@@ -39,13 +39,13 @@
           "name": "message",
           "type": {
             "name": "string",
-            "kind": "raw"
+            "kind": "primitive"
           }
         }
       ],
       "returnType": {
         "name": "void",
-        "kind": "raw"
+        "kind": "primitive"
       },
       "decorators": [
         "intrinsic"
@@ -67,7 +67,7 @@
       "parameters": [],
       "returnType": {
         "name": "void",
-        "kind": "raw"
+        "kind": "primitive"
       },
       "decorators": [],
       "body": [
@@ -75,7 +75,7 @@
           "kind": "CallExpression",
           "type": {
             "name": "void",
-            "kind": "raw"
+            "kind": "primitive"
           },
           "functionName": "print",
           "parameters": [
@@ -83,7 +83,7 @@
               "kind": "StringExpression",
               "type": {
                 "name": "string",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": "Hello world\n",
               "scope": {

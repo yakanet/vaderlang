@@ -106,12 +106,28 @@ export type VariableAssignmentStatement = BasicStatement & {
     value: Expression
 }
 
+export type StructInstantiationExpression = BasicStatement & {
+    kind: 'StructInstantiationExpression',
+    parameters: Expression[],
+    type: VaderType,
+    structName: string,
+}
 
-export type VaderType = RawVaderType | ArrayVaderType
+
+export type VaderType = RawVaderType | ArrayVaderType | StructVaderType
 
 interface RawVaderType {
-    kind: 'raw'
+    kind: 'primitive'
     name: string,
+}
+
+interface StructVaderType {
+    kind: 'struct'
+    name: string,
+    parameters: {
+        name: string,
+        type: VaderType
+    }[]
 }
 
 interface ArrayVaderType {
@@ -120,18 +136,52 @@ interface ArrayVaderType {
     type: VaderType,
 }
 
+export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
+    if (a.kind !== b.kind) {
+        return false
+    }
+    switch (a.kind) {
+        case 'struct': {
+            const c = b as StructVaderType
+            if (a.name !== c.name) {
+                return false
+            }
+            if (a.parameters.length !== c.parameters.length) {
+                return false
+            }
+            for (let i = 0; i < c.parameters.length; i++) {
+                if (!isTypeEquals(a.parameters[i].type, c.parameters[i].type)) {
+                    return false
+                }
+            }
+            return true;
+        }
+        case 'array': {
+            const c = b as ArrayVaderType;
+            if (!isTypeEquals(a.type, c.type)) {
+                return false
+            }
+            return a.size === c.size;
+        }
+        case 'primitive': {
+            const c = b as RawVaderType;
+            return c.name === a.name;
+        }
+    }
+}
+
 export const BasicVaderType = {
-    unknown: {name: 'UNKNOWN', kind: 'raw'},
-    function: {name: 'Function', kind: 'raw'},
-    ptr: {name: 'u32', kind: 'raw'},
-    u8: {name: 'u8', kind: 'raw'},
-    u32: {name: 'u32', kind: 'raw'},
-    u64: {name: 'u64', kind: 'raw'},
-    u16: {name: 'u16', kind: 'raw'},
-    f32: {name: 'f32', kind: 'raw'},
-    f64: {name: 'f64', kind: 'raw'},
-    void: {name: 'void', kind: 'raw'},
-    string: {name: 'string', kind: 'raw'},
+    unknown: {name: 'UNKNOWN', kind: 'primitive'},
+    function: {name: 'Function', kind: 'primitive'},
+    ptr: {name: 'u32', kind: 'primitive'},
+    u8: {name: 'u8', kind: 'primitive'},
+    u32: {name: 'u32', kind: 'primitive'},
+    u64: {name: 'u64', kind: 'primitive'},
+    u16: {name: 'u16', kind: 'primitive'},
+    f32: {name: 'f32', kind: 'primitive'},
+    f64: {name: 'f64', kind: 'primitive'},
+    void: {name: 'void', kind: 'primitive'},
+    string: {name: 'string', kind: 'primitive'},
 } as const satisfies Record<string, VaderType>;
 
 
@@ -142,6 +192,7 @@ export type Expression =
     | BinaryExpression
     | ConditionalExpression
     | CallExpression
+    | StructInstantiationExpression
 
 export type Statement =
     | Program

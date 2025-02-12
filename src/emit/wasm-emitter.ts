@@ -4,6 +4,7 @@ import {
     type Program,
     type Statement,
     type StringExpression,
+    type StructInstantiationExpression,
     type VaderType,
 } from "../parser/types";
 import binaryen from "binaryen";
@@ -46,7 +47,7 @@ export class WasmEmitter {
             throw new Error(`Main method must be a function`);
         }
         // TODO pass program param
-        if (resolved.source.returnType.kind !== 'raw') {
+        if (resolved.source.returnType.kind !== 'primitive') {
             throw new Error(`Main method should return a void type or u32 type`)
         }
         if (resolved.source.returnType.name === BasicVaderType.u32.name) {
@@ -96,6 +97,8 @@ export class WasmEmitter {
                 this.module.addFunctionExport(statement.name, statement.name);
                 return;
             }
+            case 'StructStatement':
+                return;
 
             case "VariableDeclarationStatement": {
                 const variableRef = statement.scope.lookupVariable(statement.name);
@@ -141,6 +144,13 @@ export class WasmEmitter {
                         throw new Error(`Could not reassign parameter value`);
                     }
                     case "LocalVariableSource": {
+                        //if (resolved.type.kind === 'struct') {
+                        //    const [address, expression] = this.instantiateStruct(stmt.value as StructInstantiationExpression);
+                        //    return this.module.block(null, [
+                        //        ...expression,
+                        //        this.module.local.set(resolved.source.index, this.module.i32.const(address))
+                        //    ])
+                        //}
                         return this.module.local.set(
                             resolved.source.index,
                             this.emitExpression(stmt.value!)
@@ -163,14 +173,10 @@ export class WasmEmitter {
                     );
                 }
                 if (resolved.source.kind === "FunctionParameterSource") {
-                    return this.module.local.set(
-                        resolved.source.index,
-                        this.emitExpression(stmt.value)
-                    );
+                    return this.module.local.set(resolved.source.index, this.emitExpression(stmt.value));
                 }
                 if (resolved.source.kind === "LocalVariableSource") {
                     return this.module.local.set(resolved.source.index, this.emitExpression(stmt.value));
-                    //throw new Error(`Local param for local parameter is not implemented`);
                 }
             }
         }
@@ -228,6 +234,9 @@ export class WasmEmitter {
                 return createBinaryenConst(this.module, expression.type, expression.value!);
             }
 
+            case 'StructInstantiationExpression':
+                return this.instantiateStruct(expression);
+
             case "BinaryExpression": {
                 const fn = this.binaryOperations.get(
                     [
@@ -236,6 +245,7 @@ export class WasmEmitter {
                         mapBinaryenType(expression.type),
                     ].join()
                 );
+
                 if (!fn) {
                     throw new Error(
                         `No binary expression defined for ${JSON.stringify(
@@ -250,6 +260,27 @@ export class WasmEmitter {
             }
         }
         throw new Error("Expression " + expression.kind + " is not implemented.");
+    }
+
+    private instantiateStruct(expression: StructInstantiationExpression): binaryen.ExpressionRef {
+        assert(expression.type.kind === "struct");
+        const size = size_of(expression.type);
+        const segment = this.malloc(size);
+        let offset = 0;
+        const exp: binaryen.ExpressionRef[] = [];
+        for (const p of expression.parameters) {
+            exp.push(this.module.i32.store(
+                offset,
+                0,
+                this.module.i32.const(segment.offset),
+                this.emitExpression(p)
+            ));
+            offset += size_of(p.type);
+        }
+        return this.module.block(null, [
+            ...exp,
+            this.module.i32.const(segment.offset)
+        ], binaryen.i32);
     }
 
     binaryOperations = new Map<string, (a: number, b: number) => number>([
@@ -337,7 +368,14 @@ function align_ptr(address: number) {
 
 function size_of(t: VaderType): number {
     if (t.kind === 'array') {
-        return 4;
+        return 4 * size_of(t.type);
+    }
+    if (t.kind === 'struct') {
+        let size = 0;
+        for (const p of t.parameters) {
+            size += size_of(p.type)
+        }
+        return size;
     }
     switch (t.name) {
         case "boolean":
@@ -386,6 +424,9 @@ function createBinaryenConst(module: binaryen.Module, t: VaderType, value: numbe
 function mapBinaryenType(t: VaderType): binaryen.Type {
     if (t.kind === 'array') {
         throw new Error(`Unimplemented array type`)
+    }
+    if (t.kind === 'struct') {
+        return binaryen.i32;
     }
     switch (t.name) {
         case "boolean":

@@ -9,13 +9,13 @@
           "name": "message",
           "type": {
             "name": "string",
-            "kind": "raw"
+            "kind": "primitive"
           }
         }
       ],
       "returnType": {
         "name": "void",
-        "kind": "raw"
+        "kind": "primitive"
       },
       "decorators": [
         "intrinsic"
@@ -37,7 +37,7 @@
       "parameters": [],
       "returnType": {
         "name": "u32",
-        "kind": "raw"
+        "kind": "primitive"
       },
       "decorators": [],
       "body": [
@@ -47,13 +47,13 @@
           "isConstant": true,
           "type": {
             "name": "u32",
-            "kind": "raw"
+            "kind": "primitive"
           },
           "value": {
             "kind": "NumberExpression",
             "type": {
               "name": "u32",
-              "kind": "raw"
+              "kind": "primitive"
             },
             "value": 32,
             "scope": {
@@ -80,14 +80,14 @@
           "kind": "ConditionalStatement",
           "type": {
             "name": "void",
-            "kind": "raw"
+            "kind": "primitive"
           },
           "ifBody": [
             {
               "kind": "CallExpression",
               "type": {
                 "name": "void",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "functionName": "print",
               "parameters": [
@@ -95,7 +95,7 @@
                   "kind": "StringExpression",
                   "type": {
                     "name": "string",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": "equals\n",
                   "scope": {
@@ -125,13 +125,13 @@
             "operator": "==",
             "type": {
               "name": "u32",
-              "kind": "raw"
+              "kind": "primitive"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": "x",
               "scope": {
@@ -148,7 +148,7 @@
               "kind": "NumberExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": 32,
               "scope": {
@@ -185,14 +185,14 @@
           "kind": "ConditionalStatement",
           "type": {
             "name": "void",
-            "kind": "raw"
+            "kind": "primitive"
           },
           "ifBody": [
             {
               "kind": "CallExpression",
               "type": {
                 "name": "void",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "functionName": "print",
               "parameters": [
@@ -200,7 +200,7 @@
                   "kind": "StringExpression",
                   "type": {
                     "name": "string",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": "second equals\n",
                   "scope": {
@@ -230,13 +230,13 @@
             "operator": "==",
             "type": {
               "name": "u32",
-              "kind": "raw"
+              "kind": "primitive"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": "x",
               "scope": {
@@ -253,7 +253,7 @@
               "kind": "NumberExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": 32,
               "scope": {
@@ -290,14 +290,14 @@
           "kind": "ConditionalStatement",
           "type": {
             "name": "void",
-            "kind": "raw"
+            "kind": "primitive"
           },
           "ifBody": [
             {
               "kind": "CallExpression",
               "type": {
                 "name": "void",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "functionName": "print",
               "parameters": [
@@ -305,7 +305,7 @@
                   "kind": "StringExpression",
                   "type": {
                     "name": "string",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": "equals\n",
                   "scope": {
@@ -335,13 +335,13 @@
             "operator": "!=",
             "type": {
               "name": "u32",
-              "kind": "raw"
+              "kind": "primitive"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": "x",
               "scope": {
@@ -358,7 +358,7 @@
               "kind": "NumberExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": 32,
               "scope": {
@@ -395,7 +395,7 @@
               "kind": "CallExpression",
               "type": {
                 "name": "void",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "functionName": "print",
               "parameters": [
@@ -403,7 +403,7 @@
                   "kind": "StringExpression",
                   "type": {
                     "name": "string",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": "not equals\n",
                   "scope": {
@@ -433,14 +433,14 @@
           "kind": "ConditionalStatement",
           "type": {
             "name": "void",
-            "kind": "raw"
+            "kind": "primitive"
           },
           "ifBody": [
             {
               "kind": "CallExpression",
               "type": {
                 "name": "void",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "functionName": "print",
               "parameters": [
@@ -448,7 +448,7 @@
                   "kind": "StringExpression",
                   "type": {
                     "name": "string",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": "x == 0\n",
                   "scope": {
@@ -478,13 +478,13 @@
             "operator": "==",
             "type": {
               "name": "u32",
-              "kind": "raw"
+              "kind": "primitive"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": "x",
               "scope": {
@@ -501,7 +501,7 @@
               "kind": "NumberExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": 0,
               "scope": {
@@ -538,14 +538,14 @@
               "kind": "ConditionalStatement",
               "type": {
                 "name": "void",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "ifBody": [
                 {
                   "kind": "CallExpression",
                   "type": {
                     "name": "void",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "functionName": "print",
                   "parameters": [
@@ -553,7 +553,7 @@
                       "kind": "StringExpression",
                       "type": {
                         "name": "string",
-                        "kind": "raw"
+                        "kind": "primitive"
                       },
                       "value": "x == 32\n",
                       "scope": {
@@ -583,13 +583,13 @@
                 "operator": "==",
                 "type": {
                   "name": "u32",
-                  "kind": "raw"
+                  "kind": "primitive"
                 },
                 "lhs": {
                   "kind": "VariableExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": "x",
                   "scope": {
@@ -606,7 +606,7 @@
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": 32,
                   "scope": {
@@ -643,14 +643,14 @@
                   "kind": "ConditionalStatement",
                   "type": {
                     "name": "void",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "ifBody": [
                     {
                       "kind": "CallExpression",
                       "type": {
                         "name": "void",
-                        "kind": "raw"
+                        "kind": "primitive"
                       },
                       "functionName": "print",
                       "parameters": [
@@ -658,7 +658,7 @@
                           "kind": "StringExpression",
                           "type": {
                             "name": "string",
-                            "kind": "raw"
+                            "kind": "primitive"
                           },
                           "value": "x == 30\n",
                           "scope": {
@@ -688,13 +688,13 @@
                     "operator": "==",
                     "type": {
                       "name": "u32",
-                      "kind": "raw"
+                      "kind": "primitive"
                     },
                     "lhs": {
                       "kind": "VariableExpression",
                       "type": {
                         "name": "u32",
-                        "kind": "raw"
+                        "kind": "primitive"
                       },
                       "value": "x",
                       "scope": {
@@ -711,7 +711,7 @@
                       "kind": "NumberExpression",
                       "type": {
                         "name": "u32",
-                        "kind": "raw"
+                        "kind": "primitive"
                       },
                       "value": 30,
                       "scope": {
@@ -748,7 +748,7 @@
                       "kind": "CallExpression",
                       "type": {
                         "name": "void",
-                        "kind": "raw"
+                        "kind": "primitive"
                       },
                       "functionName": "print",
                       "parameters": [
@@ -756,7 +756,7 @@
                           "kind": "StringExpression",
                           "type": {
                             "name": "string",
-                            "kind": "raw"
+                            "kind": "primitive"
                           },
                           "value": "not equals\n",
                           "scope": {
@@ -792,13 +792,13 @@
           "isConstant": false,
           "type": {
             "name": "u32",
-            "kind": "raw"
+            "kind": "primitive"
           },
           "value": {
             "kind": "NumberExpression",
             "type": {
               "name": "u32",
-              "kind": "raw"
+              "kind": "primitive"
             },
             "value": 3,
             "scope": {
@@ -825,7 +825,7 @@
           "kind": "ConditionalStatement",
           "type": {
             "name": "u32",
-            "kind": "raw"
+            "kind": "primitive"
           },
           "ifBody": [
             {
@@ -835,7 +835,7 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "raw"
+                  "kind": "primitive"
                 },
                 "value": 2,
                 "scope": {
@@ -864,7 +864,7 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "raw"
+                  "kind": "primitive"
                 },
                 "value": 1,
                 "scope": {
@@ -894,13 +894,13 @@
             "operator": "==",
             "type": {
               "name": "u32",
-              "kind": "raw"
+              "kind": "primitive"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": "x",
               "scope": {
@@ -917,7 +917,7 @@
               "kind": "NumberExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": 32,
               "scope": {
@@ -954,7 +954,7 @@
               "kind": "ConditionalStatement",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "ifBody": [
                 {
@@ -963,7 +963,7 @@
                     "kind": "NumberExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "raw"
+                      "kind": "primitive"
                     },
                     "value": 3,
                     "scope": {
@@ -993,13 +993,13 @@
                 "operator": "==",
                 "type": {
                   "name": "u32",
-                  "kind": "raw"
+                  "kind": "primitive"
                 },
                 "lhs": {
                   "kind": "VariableExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": "x",
                   "scope": {
@@ -1016,7 +1016,7 @@
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "raw"
+                    "kind": "primitive"
                   },
                   "value": 33,
                   "scope": {
@@ -1055,7 +1055,7 @@
                     "kind": "NumberExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "raw"
+                      "kind": "primitive"
                     },
                     "value": 2,
                     "scope": {
@@ -1090,13 +1090,13 @@
             "operator": "+",
             "type": {
               "name": "u32",
-              "kind": "raw"
+              "kind": "primitive"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "value": "x",
               "scope": {
@@ -1114,13 +1114,13 @@
               "operator": "+",
               "type": {
                 "name": "u32",
-                "kind": "raw"
+                "kind": "primitive"
               },
               "lhs": {
                 "kind": "VariableExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "raw"
+                  "kind": "primitive"
                 },
                 "value": "y",
                 "scope": {
@@ -1137,7 +1137,7 @@
                 "kind": "VariableExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "raw"
+                  "kind": "primitive"
                 },
                 "value": "z",
                 "scope": {
