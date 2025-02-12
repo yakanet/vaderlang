@@ -3,7 +3,6 @@ import type {Decorator, Token} from "../tokens/types.ts";
 import {
     BasicVaderType,
     type CallExpression,
-    type ConditionalExpression,
     type ConditionalStatement,
     type Expression,
     type FunctionDeclaration,
@@ -263,21 +262,11 @@ function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifie
         return parseStruct(parser, identifier)
     }
     if (parser.isCurrentKeyword('if')) {
-        parser.expectTrue(isConstant, `If expression could only be used with :: operator`)
-        const expression = parseIfExpression(parser);
-        return {
-            kind: 'VariableDeclarationStatement',
-            name: identifier.value,
-            isConstant,
-            type: type,
-            value: expression,
-            scope: UnresolvedScope,
-            location: {
-                start: identifier.location.start,
-                end: parser.previous.location.end,
-                file: identifier.location.file,
-            }
-        }
+        const value = parseIfStatement(parser);
+        return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, {
+            ...value,
+            kind: 'ConditionalExpression'
+        });
     }
     return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type);
 }
@@ -329,8 +318,10 @@ function parseFunctionArguments(parser: Parser): { name: string, type: VaderType
     return parameters;
 }
 
-function parseVariableDeclarationAndAssignment(parser: Parser, isConstant: boolean, identifier: Token, type: VaderType): VariableDeclarationStatement {
-    const value = parseExpression(parser);
+function parseVariableDeclarationAndAssignment(parser: Parser, isConstant: boolean, identifier: Token, type: VaderType, value?: Expression): VariableDeclarationStatement {
+    if (!value) {
+        value = parseExpression(parser);
+    }
     return {
         kind: 'VariableDeclarationStatement',
         name: identifier.value,
@@ -551,63 +542,6 @@ function parseReturnStatement(parser: Parser): ReturnStatement {
     };
 }
 
-function parseIfExpression(parser: Parser): Expression {
-    const ifToken = parser.expectKeyword('if');
-    let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
-    if (hasOpeningParenthesis) {
-        parser.expect('OpenRoundBracket');
-    }
-    const ifCondition = parseExpression(parser);
-    if (hasOpeningParenthesis) {
-        parser.expect('CloseRoundBracket');
-    }
-    const ifStatements = parseConditionalExpressionBlockStatement(parser);
-    const ifBlock: ConditionalExpression = {
-        kind: 'ConditionalExpression',
-        type: BasicVaderType.unknown, // need to be resolved
-        ifBody: ifStatements,
-        condition: ifCondition,
-        scope: UnresolvedScope,
-        location: {
-            start: ifToken.location.start,
-            end: 0,
-            file: ifToken.location.file,
-        }
-    }
-    let currentBlock = ifBlock;
-    while (parser.isCurrentKeyword('elif')) {
-        const elifToken = parser.expectKeyword('elif')
-        hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
-        if (hasOpeningParenthesis) {
-            parser.expect('OpenRoundBracket');
-        }
-        const condition = parseExpression(parser)
-        if (hasOpeningParenthesis) {
-            parser.expect('CloseRoundBracket');
-        }
-        const body = parseConditionalExpressionBlockStatement(parser);
-        currentBlock.elseBody = [{
-            kind: 'ConditionalStatement',
-            type: BasicVaderType.unknown, // need to be resolved
-            ifBody: body,
-            condition: condition,
-            scope: UnresolvedScope,
-            location: {
-                start: elifToken.location.start,
-                end: 0,
-                file: elifToken.location.file,
-            }
-        }]
-        currentBlock = currentBlock.elseBody[0] as ConditionalExpression;
-    }
-    if (parser.isCurrentKeyword('else')) {
-        parser.expectKeyword('else')
-        currentBlock.elseBody = parseConditionalExpressionBlockStatement(parser)
-    }
-    ifBlock.location.end = parser.previous.location.end;
-    return ifBlock
-}
-
 function parseIfStatement(parser: Parser) {
     const ifToken = parser.expectKeyword('if');
     let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
@@ -699,28 +633,6 @@ function parseBlockStatement(parser: Parser): Statement[] {
     const statements: Statement[] = []
     while (!parser.isCurrentType('CloseCurlyBracket')) {
         statements.push(parseStatement(parser))
-    }
-    parser.expect('CloseCurlyBracket');
-    return statements;
-}
-
-
-function parseConditionalExpressionBlockStatement(parser: Parser): Statement[] {
-    parser.expect('OpenCurlyBracket');
-    const statements: Statement[] = []
-    while (!parser.isCurrentType('CloseCurlyBracket')) {
-        if (parser.isCurrentKeyword('return')) {
-            const token = parser.expectKeyword('return');
-            statements.push({
-                kind: 'ConditionalReturnExpression',
-                scope: UnresolvedScope,
-                location: token.location,
-                expression: parseExpression(parser),
-                type: BasicVaderType.unknown,
-            });
-        } else {
-            statements.push(parseStatement(parser));
-        }
     }
     parser.expect('CloseCurlyBracket');
     return statements;

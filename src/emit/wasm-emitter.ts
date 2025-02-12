@@ -228,10 +228,6 @@ export class WasmEmitter {
                 return createBinaryenConst(this.module, expression.type, expression.value!);
             }
 
-            //case 'ConditionalExpression': {
-//
-//            }
-
             case "BinaryExpression": {
                 const fn = this.binaryOperations.get(
                     [

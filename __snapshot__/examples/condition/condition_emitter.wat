@@ -202,7 +202,14 @@
     )
    )
   )
-  (i32.const 0)
+  (select
+   (i32.const 2)
+   (i32.const 0)
+   (i32.ne
+    (local.get $0)
+    (i32.const 32)
+   )
+  )
  )
  (func $_start
   (call $wasi_snapshot_preview1:proc_exit

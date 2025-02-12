@@ -31,6 +31,6 @@ main :: fn() -> u32 {
         print("not equals\n")
     }
 
-    // y :: if x == 32 { return 0 } else { return 1 }
-    return 0
+    y := if x == 32 { 0 } else { 1 }
+    return y
 }

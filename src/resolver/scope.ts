@@ -1,5 +1,6 @@
-import type {Decorator, VaderType} from "../parser/types";
+import type {VaderType} from "../parser/types";
 import assert from "node:assert";
+import type {Decorator} from "../tokens/types.ts";
 
 export class Ref {
     constructor(
@@ -102,7 +103,7 @@ export class Scope {
 }
 
 export const UnresolvedScope = new class extends Scope {
-    lookupVariable(value: string): Ref {
+    override lookupVariable(_value: string): Ref {
         throw new Error(`Attempt to lookup for a variable with an unresolved scope`)
     }
 }

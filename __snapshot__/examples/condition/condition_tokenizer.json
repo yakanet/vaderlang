@@ -909,11 +909,74 @@
     }
   },
   {
-    "type": "Keyword",
-    "value": "return",
+    "type": "Identifier",
+    "value": "y",
     "location": {
-      "start": 664,
-      "end": 670,
+      "start": 610,
+      "end": 611,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 612,
+      "end": 613,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 613,
+      "end": 614,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "if",
+    "location": {
+      "start": 615,
+      "end": 617,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 618,
+      "end": 619,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "DoubleEqualToken",
+    "value": "==",
+    "location": {
+      "start": 620,
+      "end": 622,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "32",
+    "location": {
+      "start": 623,
+      "end": 625,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 626,
+      "end": 627,
       "file": "examples/condition.vader"
     }
   },
@@ -921,8 +984,8 @@
     "type": "NumberToken",
     "value": "0",
     "location": {
-      "start": 671,
-      "end": 672,
+      "start": 628,
+      "end": 629,
       "file": "examples/condition.vader"
     }
   },
@@ -930,16 +993,79 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 673,
-      "end": 674,
+      "start": 630,
+      "end": 631,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "else",
+    "location": {
+      "start": 632,
+      "end": 636,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 637,
+      "end": 638,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "start": 639,
+      "end": 640,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 641,
+      "end": 642,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 647,
+      "end": 653,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "y",
+    "location": {
+      "start": 654,
+      "end": 655,
+      "file": "examples/condition.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 656,
+      "end": 657,
       "file": "examples/condition.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 674,
-      "end": 674,
+      "start": 657,
+      "end": 657,
       "file": "examples/condition.vader"
     },
     "value": "\u0000"

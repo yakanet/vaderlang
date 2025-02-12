@@ -1,12 +1,12 @@
 import {Scope} from "./scope";
 import {
     BasicVaderType,
+    type ConditionalStatement,
     type Expression,
     type FunctionDeclaration,
     type Program,
     type ReturnStatement,
     type Statement,
-    type VaderType,
 } from "../parser/types";
 
 export function resolve(program: Program): Program {
@@ -50,6 +50,36 @@ function resolveStatement(
                 scope.newGlobalVariable(type, statement.name);
             } else {
                 scope.newLocalVariable(type, scope.allVariables().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name);
+            }
+            if (value && value.kind === 'ConditionalExpression') {
+                value.kind = 'ConditionalStatement' as any;
+                let queue = [value.ifBody, value.elseBody].filter(b => b);
+                while (true) {
+                    const oldValue = queue.pop();
+                    if (!oldValue) {
+                        break
+                    }
+                    const oldStatement = oldValue.at(-1) as Statement;
+                    if (!oldStatement) {
+                        continue;
+                    }
+                    if (oldStatement.kind === 'ConditionalStatement' || oldStatement.kind === 'ConditionalExpression') {
+                        oldStatement.kind = 'ConditionalStatement';
+                        queue.push(oldStatement.ifBody)
+                        if (oldStatement.elseBody) {
+                            queue.push(oldStatement.elseBody)
+                        }
+                    } else {
+                        oldValue[oldValue.length - 1] = {
+                            kind: 'VariableAssignmentStatement',
+                            value: oldStatement as Expression,
+                            identifier: statement.name,
+                            location: statement.location,
+                            scope,
+                        }
+                    }
+                }
+                return value
             }
             //console.log("declare var " + statement.name, statement.type, value?.type, type);
             return {
@@ -149,14 +179,6 @@ function resolveExpression(
             };
 
         }
-        case 'ConditionalReturnExpression': {
-            const value = resolveExpression(expression.expression, scope);
-            return {
-                ...expression,
-                type: value.type,
-                scope
-            }
-        }
         case 'VariableExpression': {
             const variable = scope.lookupVariable(expression.value)
             return {
@@ -168,25 +190,21 @@ function resolveExpression(
         case 'ConditionalExpression': {
             const ifBody = expression.ifBody.map(b => resolveStatement(b, scope));
             const elseBody = expression.elseBody?.map(b => resolveStatement(b, scope))
-            const returnIf = ifBody.filter(b => b.kind === 'ConditionalReturnExpression');
-            const returnElse = elseBody?.filter(b => b.kind === 'ConditionalReturnExpression');
-            if (!returnIf.length) {
+            const returnIf = ifBody.at(-1) as Expression;
+            const returnElse = elseBody?.at(-1) as Expression | undefined;
+            if (!returnIf?.kind.endsWith('Expression')) {
                 throw new Error(`Missing return expression in if block at ${expression.location}`);
             }
-            if (returnElse && !returnElse.length) {
+            if (returnElse && !returnElse?.kind.endsWith('Expression')) {
                 throw new Error(`Missing return expression in else block at ${expression.location}`);
             }
-            const returnsTypes = [...returnIf, ...(returnElse ?? [])].map(c => c.type)
-                .reduce((acc, type) => {
-                    return acc.add(type);
-                }, new Set<VaderType>());
-            if (returnsTypes.size !== 1) {
-                throw new Error(`Return type mismatch in conditional expression ${[...returnsTypes]} at ${expression.location}`);
+            if (returnElse && returnIf.type !== returnElse.type) {
+                throw new Error(`Return type mismatch in conditional expression ${[returnIf.type, returnElse.type]} at ${expression.location}`);
             }
             return {
                 ...expression,
                 condition: resolveExpression(expression.condition, scope),
-                type: [...returnsTypes][0],
+                type: returnIf.type,
                 ifBody,
                 elseBody,
                 scope

@@ -55,7 +55,7 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [ ] iterators
 - [ ] better error reporting (should not exit when parsing error occur)
 - [ ] LSP for vader
-- [ ] if expression `x :: if (b > 2) 2 else 3`
+- [x] if expression `x :: if (b > 2) 2 else 3`
 - [ ] (Optional) allow to compile pure WASM without WASI
 - [ ] (Optional) @export decorator on function to export a function with no mangling
 

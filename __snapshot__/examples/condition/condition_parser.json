@@ -787,21 +787,91 @@
           ]
         },
         {
-          "kind": "ReturnStatement",
-          "expression": {
-            "kind": "NumberExpression",
+          "kind": "ConditionalStatement",
+          "type": {
+            "name": "u32",
+            "kind": "raw"
+          },
+          "ifBody": [
+            {
+              "kind": "VariableAssignmentStatement",
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "raw"
+                },
+                "value": 0,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 628,
+                  "end": 629,
+                  "file": "examples/condition.vader"
+                }
+              },
+              "identifier": "y",
+              "location": {
+                "start": 610,
+                "end": 642,
+                "file": "examples/condition.vader"
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              }
+            }
+          ],
+          "condition": {
+            "kind": "BinaryExpression",
+            "operator": "==",
             "type": {
               "name": "u32",
               "kind": "raw"
             },
-            "value": 0,
+            "lhs": {
+              "kind": "VariableExpression",
+              "type": {
+                "name": "u32",
+                "kind": "raw"
+              },
+              "value": "x",
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 618,
+                "end": 619,
+                "file": "examples/condition.vader"
+              }
+            },
+            "rhs": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "raw"
+              },
+              "value": 32,
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 623,
+                "end": 625,
+                "file": "examples/condition.vader"
+              }
+            },
             "scope": {
               "namedVariables": {},
               "depth": 1
             },
             "location": {
-              "start": 671,
-              "end": 672,
+              "start": 620,
+              "end": 622,
               "file": "examples/condition.vader"
             }
           },
@@ -810,8 +880,69 @@
             "depth": 1
           },
           "location": {
-            "start": 671,
-            "end": 672,
+            "start": 618,
+            "end": 642,
+            "file": "examples/condition.vader"
+          },
+          "elseBody": [
+            {
+              "kind": "VariableAssignmentStatement",
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "raw"
+                },
+                "value": 2,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 639,
+                  "end": 640,
+                  "file": "examples/condition.vader"
+                }
+              },
+              "identifier": "y",
+              "location": {
+                "start": 610,
+                "end": 642,
+                "file": "examples/condition.vader"
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              }
+            }
+          ]
+        },
+        {
+          "kind": "ReturnStatement",
+          "expression": {
+            "kind": "VariableExpression",
+            "type": {
+              "name": "u32",
+              "kind": "raw"
+            },
+            "value": "y",
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 654,
+              "end": 655,
+              "file": "examples/condition.vader"
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 654,
+            "end": 655,
             "file": "examples/condition.vader"
           }
         }
@@ -822,7 +953,7 @@
       },
       "location": {
         "start": 49,
-        "end": 674,
+        "end": 657,
         "file": "examples/condition.vader"
       }
     }
@@ -834,7 +965,7 @@
   },
   "location": {
     "start": 1,
-    "end": 674,
+    "end": 657,
     "file": "examples/condition.vader"
   }
 }
