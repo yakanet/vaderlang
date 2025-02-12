@@ -1,6 +1,7 @@
 import {
     BasicVaderType,
     type CallExpression,
+    type DotExpression,
     type Program,
     type Statement,
     type StringExpression,
@@ -237,6 +238,9 @@ export class WasmEmitter {
             case 'StructInstantiationExpression':
                 return this.instantiateStruct(expression);
 
+            case 'DotExpression':
+                return this.emitDotExpression(expression);
+
             case "BinaryExpression": {
                 const fn = this.binaryOperations.get(
                     [
@@ -281,6 +285,35 @@ export class WasmEmitter {
             ...exp,
             this.module.i32.const(segment.offset)
         ], binaryen.i32);
+    }
+
+    private emitDotExpression(expression: DotExpression) {
+        const resolved = expression.scope.lookupVariable(expression.properties[0].name);
+        let exprs: binaryen.ExpressionRef
+        if (resolved.source.kind === 'GlobalFunctionSource') {
+            exprs = this.module.global.get(resolved.named, binaryen.i32);
+        } else if (resolved.source.kind === 'LocalVariableSource') {
+            exprs = this.module.local.get(resolved.source.index, binaryen.i32);
+        } else {
+            throw new Error(`Unimplemented get variable from ${resolved.source.kind}`);
+        }
+        let previousType = expression.properties[0].type
+        for (let i = 1; i < expression.properties.length; i ++) {
+            if (previousType.kind === 'struct') {
+                let offset = 0;
+                const index = previousType.parameters.findIndex(p => p.name === expression.properties[i].name)
+                for (let j = 0; j < index; j++) {
+                    offset += size_of(previousType.parameters[j].type);
+                }
+                exprs = this.module.i32.load(
+                    offset,
+                    0,
+                    exprs,
+                )
+                previousType = previousType.parameters[index].type
+            }
+        }
+        return exprs;
     }
 
     binaryOperations = new Map<string, (a: number, b: number) => number>([

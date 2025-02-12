@@ -5,6 +5,7 @@ import {
     type CallExpression,
     type ConditionalExpression,
     type ConditionalStatement,
+    type DotExpression,
     type Expression,
     type FunctionDeclaration,
     type NumberExpression,
@@ -183,8 +184,13 @@ function parseFileDecorator(parser: Parser, decorator: Token): StringExpression 
 function parseType(parser: Parser): VaderType {
     const identifier = parser.expect('Identifier').value;
     let type: VaderType = {
+        kind: 'unknown',
         name: identifier,
-        kind: 'primitive'
+    }
+    if (identifier in BasicVaderType) {
+        type = (BasicVaderType as any)[identifier];
+    } else {
+
     }
     while (parser.isCurrentType('OpenSquareBracket')) {
         parser.expect('OpenSquareBracket');
@@ -425,6 +431,40 @@ function parseForStatement(parser: Parser): Statement {
 
 }
 
+function parseDotExpression(parser: Parser, token: Token): DotExpression {
+    const properties: {
+        name: string,
+        type: VaderType,
+        location: Token['location'],
+    }[] = [
+        {
+            name: token.value,
+            type: BasicVaderType.unknown,
+            location: token.location,
+        }
+    ];
+    do {
+        parser.expect('DotToken');
+        const propertyName = parser.expect('Identifier');
+        properties.push({
+            name: propertyName.value,
+            type: BasicVaderType.unknown,
+            location: propertyName.location
+        })
+    } while (parser.isCurrentType('DotToken'))
+    return {
+        kind: 'DotExpression',
+        properties,
+        type: BasicVaderType.unknown,
+        scope: UnresolvedScope,
+        location: {
+            start: properties[0].location.start,
+            file: token.location.file,
+            end: properties[properties.length - 1].location.end,
+        }
+    }
+}
+
 function parseExpression(parser: Parser): Expression {
     let lhs: Expression | null = null;
 
@@ -449,19 +489,12 @@ function parseExpression(parser: Parser): Expression {
 
     if (parser.isCurrentType('Identifier') && parser.next?.type === 'DotToken') {
         const token = parser.expect('Identifier');
-        // TODO need to handle dot expression this.x.y.z
+        lhs = parseDotExpression(parser, token);
         // TODO need to handle array value x[2]
-        lhs = {
-            kind: 'VariableExpression',
-            type: BasicVaderType.unknown,
-            value: token.value,
-            scope: UnresolvedScope,
-            location: {
-                start: token.location.start,
-                end: parser.previous.location.end, // FIXME: Wrong need to be the full dotted expression
-                file: token.location.file,
-            }
-        }
+    }
+
+    if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenCurlyBracket') {
+        lhs = parseStructInstantiation(parser);
     }
 
     if (parser.isCurrentType('Identifier')) {

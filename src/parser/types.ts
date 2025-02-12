@@ -1,5 +1,5 @@
 import type {Scope} from "../resolver/scope.ts";
-import type {Decorator} from "../tokens/types.ts";
+import type {Decorator, Token} from "../tokens/types.ts";
 
 type BasicStatement = {
     scope: Scope;
@@ -113,8 +113,18 @@ export type StructInstantiationExpression = BasicStatement & {
     structName: string,
 }
 
+export type DotExpression = BasicStatement & {
+    kind: 'DotExpression',
+    type: VaderType,
+    properties: {
+        name: string,
+        type: VaderType,
+        location: Token['location']
+    }[],
+}
 
-export type VaderType = RawVaderType | ArrayVaderType | StructVaderType
+
+export type VaderType = RawVaderType | ArrayVaderType | StructVaderType | UnknownType
 
 interface RawVaderType {
     kind: 'primitive'
@@ -136,11 +146,19 @@ interface ArrayVaderType {
     type: VaderType,
 }
 
+interface UnknownType {
+    kind: 'unknown'
+    name: string,
+}
+
 export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
     if (a.kind !== b.kind) {
         return false
     }
     switch (a.kind) {
+        case 'unknown': {
+            return a.kind === b.kind;
+        }
         case 'struct': {
             const c = b as StructVaderType
             if (a.name !== c.name) {
@@ -171,7 +189,7 @@ export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
 }
 
 export const BasicVaderType = {
-    unknown: {name: 'UNKNOWN', kind: 'primitive'},
+    unknown: {name: 'UNKNOWN', kind: 'unknown'},
     function: {name: 'Function', kind: 'primitive'},
     ptr: {name: 'u32', kind: 'primitive'},
     u8: {name: 'u8', kind: 'primitive'},
@@ -193,6 +211,7 @@ export type Expression =
     | ConditionalExpression
     | CallExpression
     | StructInstantiationExpression
+    | DotExpression
 
 export type Statement =
     | Program

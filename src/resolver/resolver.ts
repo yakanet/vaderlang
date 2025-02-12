@@ -67,8 +67,8 @@ function resolveStatement(
                 parameters: []
             }
             for (const parameter of statement.definition) {
-                if (isTypeEquals(parameter.typeName, BasicVaderType.unknown)) {
-                    throw new Error("Unimplemented, type declaration could only use primitive types");
+                if (parameter.typeName.kind === 'unknown') {
+                    parameter.typeName = scope.lookupVariable(parameter.typeName.name).type
                 }
                 type.parameters.push({name: parameter.attributeName, type: parameter.typeName});
             }
@@ -231,6 +231,27 @@ function resolveExpression(
                 ...expression,
                 type: resolved.type,
                 scope,
+            }
+        }
+        case 'DotExpression': {
+            const resolved = scope.lookupVariable(expression.properties[0].name);
+            expression.properties[0].type = resolved.type;
+            for (let i = 1; i < expression.properties.length; i++) {
+                const previousType = expression.properties[i - 1].type;
+                if (previousType.kind === 'struct') {
+                    const resolvedType = previousType.parameters.find(p => p.name === expression.properties[i].name)
+                    if (!resolvedType) {
+                        throw new Error(`Unresolved property ${expression.properties[i].name} on the struct ${previousType.name}`);
+                    }
+                    expression.properties[i].type = resolvedType.type;
+                } else {
+                    throw new Error(`Unimplemented other case of DotExpression: ${resolved.type.kind}`);
+                }
+            }
+            return {
+                ...expression,
+                type: expression.properties[expression.properties.length - 1].type,
+                scope
             }
         }
         case 'ConditionalExpression': {
