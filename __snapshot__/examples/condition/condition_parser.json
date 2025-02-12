@@ -46,7 +46,7 @@
           "name": "x",
           "isConstant": true,
           "type": {
-            "name": "UNKNOWN",
+            "name": "u32",
             "kind": "raw"
           },
           "value": {
@@ -58,7 +58,7 @@
             "value": 32,
             "scope": {
               "namedVariables": {},
-              "depth": 0
+              "depth": 1
             },
             "location": {
               "start": 80,
@@ -68,7 +68,7 @@
           },
           "scope": {
             "namedVariables": {},
-            "depth": 0
+            "depth": 1
           },
           "location": {
             "start": 75,
@@ -86,7 +86,7 @@
             {
               "kind": "CallExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "void",
                 "kind": "raw"
               },
               "functionName": "print",
@@ -100,7 +100,7 @@
                   "value": "equals\n",
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 143,
@@ -111,7 +111,7 @@
               ],
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 135,
@@ -124,19 +124,19 @@
             "kind": "BinaryExpression",
             "operator": "==",
             "type": {
-              "name": "UNKNOWN",
+              "name": "u32",
               "kind": "raw"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "u32",
                 "kind": "raw"
               },
               "value": "x",
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 117,
@@ -153,7 +153,7 @@
               "value": 32,
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 122,
@@ -163,7 +163,7 @@
             },
             "scope": {
               "namedVariables": {},
-              "depth": 0
+              "depth": 1
             },
             "location": {
               "start": 119,
@@ -191,7 +191,7 @@
             {
               "kind": "CallExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "void",
                 "kind": "raw"
               },
               "functionName": "print",
@@ -205,7 +205,7 @@
                   "value": "second equals\n",
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 239,
@@ -216,7 +216,7 @@
               ],
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 231,
@@ -229,19 +229,19 @@
             "kind": "BinaryExpression",
             "operator": "==",
             "type": {
-              "name": "UNKNOWN",
+              "name": "u32",
               "kind": "raw"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "u32",
                 "kind": "raw"
               },
               "value": "x",
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 212,
@@ -258,7 +258,7 @@
               "value": 32,
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 217,
@@ -268,7 +268,7 @@
             },
             "scope": {
               "namedVariables": {},
-              "depth": 0
+              "depth": 1
             },
             "location": {
               "start": 214,
@@ -296,7 +296,7 @@
             {
               "kind": "CallExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "void",
                 "kind": "raw"
               },
               "functionName": "print",
@@ -310,7 +310,7 @@
                   "value": "equals\n",
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 322,
@@ -321,7 +321,7 @@
               ],
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 314,
@@ -334,19 +334,19 @@
             "kind": "BinaryExpression",
             "operator": "!=",
             "type": {
-              "name": "UNKNOWN",
+              "name": "u32",
               "kind": "raw"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "u32",
                 "kind": "raw"
               },
               "value": "x",
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 296,
@@ -363,7 +363,7 @@
               "value": 32,
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 301,
@@ -373,7 +373,7 @@
             },
             "scope": {
               "namedVariables": {},
-              "depth": 0
+              "depth": 1
             },
             "location": {
               "start": 298,
@@ -394,7 +394,7 @@
             {
               "kind": "CallExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "void",
                 "kind": "raw"
               },
               "functionName": "print",
@@ -408,7 +408,7 @@
                   "value": "not equals\n",
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 361,
@@ -419,7 +419,7 @@
               ],
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 353,
@@ -439,7 +439,7 @@
             {
               "kind": "CallExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "void",
                 "kind": "raw"
               },
               "functionName": "print",
@@ -453,7 +453,7 @@
                   "value": "x == 0\n",
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 450,
@@ -464,7 +464,7 @@
               ],
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 442,
@@ -477,19 +477,19 @@
             "kind": "BinaryExpression",
             "operator": "==",
             "type": {
-              "name": "UNKNOWN",
+              "name": "u32",
               "kind": "raw"
             },
             "lhs": {
               "kind": "VariableExpression",
               "type": {
-                "name": "UNKNOWN",
+                "name": "u32",
                 "kind": "raw"
               },
               "value": "x",
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 425,
@@ -506,7 +506,7 @@
               "value": 0,
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 430,
@@ -516,7 +516,7 @@
             },
             "scope": {
               "namedVariables": {},
-              "depth": 0
+              "depth": 1
             },
             "location": {
               "start": 427,
@@ -544,7 +544,7 @@
                 {
                   "kind": "CallExpression",
                   "type": {
-                    "name": "UNKNOWN",
+                    "name": "void",
                     "kind": "raw"
                   },
                   "functionName": "print",
@@ -558,7 +558,7 @@
                       "value": "x == 32\n",
                       "scope": {
                         "namedVariables": {},
-                        "depth": 0
+                        "depth": 1
                       },
                       "location": {
                         "start": 497,
@@ -569,7 +569,7 @@
                   ],
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 489,
@@ -582,19 +582,19 @@
                 "kind": "BinaryExpression",
                 "operator": "==",
                 "type": {
-                  "name": "UNKNOWN",
+                  "name": "u32",
                   "kind": "raw"
                 },
                 "lhs": {
                   "kind": "VariableExpression",
                   "type": {
-                    "name": "UNKNOWN",
+                    "name": "u32",
                     "kind": "raw"
                   },
                   "value": "x",
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 471,
@@ -611,7 +611,7 @@
                   "value": 32,
                   "scope": {
                     "namedVariables": {},
-                    "depth": 0
+                    "depth": 1
                   },
                   "location": {
                     "start": 476,
@@ -621,7 +621,7 @@
                 },
                 "scope": {
                   "namedVariables": {},
-                  "depth": 0
+                  "depth": 1
                 },
                 "location": {
                   "start": 473,
@@ -649,7 +649,7 @@
                     {
                       "kind": "CallExpression",
                       "type": {
-                        "name": "UNKNOWN",
+                        "name": "void",
                         "kind": "raw"
                       },
                       "functionName": "print",
@@ -663,7 +663,7 @@
                           "value": "x == 30\n",
                           "scope": {
                             "namedVariables": {},
-                            "depth": 0
+                            "depth": 1
                           },
                           "location": {
                             "start": 545,
@@ -674,7 +674,7 @@
                       ],
                       "scope": {
                         "namedVariables": {},
-                        "depth": 0
+                        "depth": 1
                       },
                       "location": {
                         "start": 537,
@@ -687,19 +687,19 @@
                     "kind": "BinaryExpression",
                     "operator": "==",
                     "type": {
-                      "name": "UNKNOWN",
+                      "name": "u32",
                       "kind": "raw"
                     },
                     "lhs": {
                       "kind": "VariableExpression",
                       "type": {
-                        "name": "UNKNOWN",
+                        "name": "u32",
                         "kind": "raw"
                       },
                       "value": "x",
                       "scope": {
                         "namedVariables": {},
-                        "depth": 0
+                        "depth": 1
                       },
                       "location": {
                         "start": 519,
@@ -716,7 +716,7 @@
                       "value": 30,
                       "scope": {
                         "namedVariables": {},
-                        "depth": 0
+                        "depth": 1
                       },
                       "location": {
                         "start": 524,
@@ -726,7 +726,7 @@
                     },
                     "scope": {
                       "namedVariables": {},
-                      "depth": 0
+                      "depth": 1
                     },
                     "location": {
                       "start": 521,
@@ -747,7 +747,7 @@
                     {
                       "kind": "CallExpression",
                       "type": {
-                        "name": "UNKNOWN",
+                        "name": "void",
                         "kind": "raw"
                       },
                       "functionName": "print",
@@ -761,7 +761,7 @@
                           "value": "not equals\n",
                           "scope": {
                             "namedVariables": {},
-                            "depth": 0
+                            "depth": 1
                           },
                           "location": {
                             "start": 585,
@@ -772,7 +772,7 @@
                       ],
                       "scope": {
                         "namedVariables": {},
-                        "depth": 0
+                        "depth": 1
                       },
                       "location": {
                         "start": 577,
@@ -797,7 +797,7 @@
             "value": 0,
             "scope": {
               "namedVariables": {},
-              "depth": 0
+              "depth": 1
             },
             "location": {
               "start": 616,
@@ -807,7 +807,7 @@
           },
           "scope": {
             "namedVariables": {},
-            "depth": 0
+            "depth": 1
           },
           "location": {
             "start": 616,

@@ -52,7 +52,8 @@ function testParser(file: string, update = false) {
     const snapshotFile = createSnapshotFile(file, '_parser.json')
     it("Testing parser on " + file, () => {
         const resolver = new FileResolver(process.cwd(), ['./modules']);
-        const program = parseProgram(file, resolver)
+        let program = parseProgram(file, resolver)
+        program = resolve(program)
         if (update || !fs.existsSync(snapshotFile)) {
             updateSnapshot(snapshotFile, program);
         } else {

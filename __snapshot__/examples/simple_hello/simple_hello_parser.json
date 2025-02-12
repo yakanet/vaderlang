@@ -74,7 +74,7 @@
         {
           "kind": "CallExpression",
           "type": {
-            "name": "UNKNOWN",
+            "name": "void",
             "kind": "raw"
           },
           "functionName": "print",
@@ -88,7 +88,7 @@
               "value": "Hello world\n",
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               },
               "location": {
                 "start": 40,
@@ -99,7 +99,7 @@
           ],
           "scope": {
             "namedVariables": {},
-            "depth": 0
+            "depth": 1
           },
           "location": {
             "start": 32,

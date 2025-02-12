@@ -74,7 +74,7 @@
         {
           "kind": "CallExpression",
           "type": {
-            "name": "UNKNOWN",
+            "name": "void",
             "kind": "raw"
           },
           "functionName": "print",
@@ -93,13 +93,13 @@
               },
               "scope": {
                 "namedVariables": {},
-                "depth": 0
+                "depth": 1
               }
             }
           ],
           "scope": {
             "namedVariables": {},
-            "depth": 0
+            "depth": 1
           },
           "location": {
             "start": 40,
