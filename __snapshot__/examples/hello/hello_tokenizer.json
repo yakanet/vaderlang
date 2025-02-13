@@ -48,8 +48,8 @@
     "type": "NumberToken",
     "value": "32",
     "location": {
-      "start": 28,
       "end": 30,
+      "start": 28,
       "file": "examples/hello.vader"
     }
   },
@@ -192,8 +192,8 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "start": 67,
       "end": 68,
+      "start": 67,
       "file": "examples/hello.vader"
     }
   },
@@ -237,8 +237,8 @@
     "type": "NumberToken",
     "value": "1",
     "location": {
-      "start": 81,
       "end": 82,
+      "start": 81,
       "file": "examples/hello.vader"
     }
   },
@@ -498,8 +498,8 @@
     "type": "NumberToken",
     "value": "0",
     "location": {
-      "start": 265,
       "end": 266,
+      "start": 265,
       "file": "examples/hello.vader"
     }
   },

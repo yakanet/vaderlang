@@ -48,8 +48,8 @@
     "type": "NumberToken",
     "value": "23",
     "location": {
-      "start": 18,
       "end": 20,
+      "start": 18,
       "file": "examples/arrays.vader"
     }
   },
@@ -165,8 +165,8 @@
     "type": "NumberToken",
     "value": "10",
     "location": {
-      "start": 49,
       "end": 51,
+      "start": 49,
       "file": "examples/arrays.vader"
     }
   },
@@ -237,8 +237,8 @@
     "type": "NumberToken",
     "value": "10",
     "location": {
-      "start": 72,
       "end": 74,
+      "start": 72,
       "file": "examples/arrays.vader"
     }
   },
@@ -435,8 +435,8 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "start": 136,
       "end": 137,
+      "start": 136,
       "file": "examples/arrays.vader"
     }
   },
@@ -453,8 +453,8 @@
     "type": "NumberToken",
     "value": "3",
     "location": {
-      "start": 139,
       "end": 140,
+      "start": 139,
       "file": "examples/arrays.vader"
     }
   },
@@ -471,8 +471,8 @@
     "type": "NumberToken",
     "value": "4",
     "location": {
-      "start": 142,
       "end": 143,
+      "start": 142,
       "file": "examples/arrays.vader"
     }
   },
@@ -534,8 +534,8 @@
     "type": "NumberToken",
     "value": "4",
     "location": {
-      "start": 158,
       "end": 159,
+      "start": 158,
       "file": "examples/arrays.vader"
     }
   },
@@ -579,8 +579,8 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "start": 170,
       "end": 171,
+      "start": 170,
       "file": "examples/arrays.vader"
     }
   },
@@ -651,8 +651,8 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "start": 192,
       "end": 193,
+      "start": 192,
       "file": "examples/arrays.vader"
     }
   },

@@ -363,8 +363,8 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "start": 143,
       "end": 144,
+      "start": 143,
       "file": "examples/structs.vader"
     }
   },
@@ -381,8 +381,8 @@
     "type": "NumberToken",
     "value": "4",
     "location": {
-      "start": 146,
       "end": 147,
+      "start": 146,
       "file": "examples/structs.vader"
     }
   },
@@ -408,8 +408,8 @@
     "type": "NumberToken",
     "value": "10",
     "location": {
-      "start": 151,
       "end": 153,
+      "start": 151,
       "file": "examples/structs.vader"
     }
   },
@@ -471,8 +471,8 @@
     "type": "NumberToken",
     "value": "6",
     "location": {
-      "start": 173,
       "end": 174,
+      "start": 173,
       "file": "examples/structs.vader"
     }
   },
@@ -489,8 +489,8 @@
     "type": "NumberToken",
     "value": "8",
     "location": {
-      "start": 176,
       "end": 177,
+      "start": 176,
       "file": "examples/structs.vader"
     }
   },

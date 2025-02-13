@@ -108,6 +108,7 @@ export class WasmEmitter {
                         this.module.addFunctionExport(statement.name, statement.name);
                         return;
                     }
+                    case 'array':
                     case 'primitive':
                         return this.module.addGlobal(
                             statement.name,
@@ -115,6 +116,7 @@ export class WasmEmitter {
                             !statement.isConstant,
                             this.emitExpression(statement.value!)
                         );
+
                     default:
                         throw new Error(`Unrecognized top level declaration of variable type ${variableRef.type.kind}`);
                 }
@@ -354,6 +356,8 @@ export class WasmEmitter {
         const resolved = expression.scope.lookupVariable(expression.identifier);
         let exprs: binaryen.ExpressionRef
         if (resolved.source.kind === 'GlobalFunctionSource') {
+            exprs = this.module.global.get(resolved.named, binaryen.i32);
+        } else if (resolved.source.kind === "GlobalParameterSource") {
             exprs = this.module.global.get(resolved.named, binaryen.i32);
         } else if (resolved.source.kind === 'LocalVariableSource') {
             exprs = this.module.local.get(resolved.source.index, binaryen.i32);

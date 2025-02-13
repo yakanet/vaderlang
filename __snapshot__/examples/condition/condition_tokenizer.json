@@ -219,8 +219,8 @@
     "type": "NumberToken",
     "value": "32",
     "location": {
-      "start": 80,
       "end": 82,
+      "start": 80,
       "file": "examples/condition.vader"
     }
   },
@@ -255,8 +255,8 @@
     "type": "NumberToken",
     "value": "32",
     "location": {
-      "start": 122,
       "end": 124,
+      "start": 122,
       "file": "examples/condition.vader"
     }
   },
@@ -354,8 +354,8 @@
     "type": "NumberToken",
     "value": "32",
     "location": {
-      "start": 217,
       "end": 219,
+      "start": 217,
       "file": "examples/condition.vader"
     }
   },
@@ -453,8 +453,8 @@
     "type": "NumberToken",
     "value": "32",
     "location": {
-      "start": 301,
       "end": 303,
+      "start": 301,
       "file": "examples/condition.vader"
     }
   },
@@ -606,8 +606,8 @@
     "type": "NumberToken",
     "value": "0",
     "location": {
-      "start": 430,
       "end": 431,
+      "start": 430,
       "file": "examples/condition.vader"
     }
   },
@@ -696,8 +696,8 @@
     "type": "NumberToken",
     "value": "32",
     "location": {
-      "start": 476,
       "end": 478,
+      "start": 476,
       "file": "examples/condition.vader"
     }
   },
@@ -786,8 +786,8 @@
     "type": "NumberToken",
     "value": "30",
     "location": {
-      "start": 524,
       "end": 526,
+      "start": 524,
       "file": "examples/condition.vader"
     }
   },
@@ -939,8 +939,8 @@
     "type": "NumberToken",
     "value": "3",
     "location": {
-      "start": 614,
       "end": 615,
+      "start": 614,
       "file": "examples/condition.vader"
     }
   },
@@ -1002,8 +1002,8 @@
     "type": "NumberToken",
     "value": "32",
     "location": {
-      "start": 633,
       "end": 635,
+      "start": 633,
       "file": "examples/condition.vader"
     }
   },
@@ -1038,8 +1038,8 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "start": 650,
       "end": 651,
+      "start": 650,
       "file": "examples/condition.vader"
     }
   },
@@ -1047,8 +1047,8 @@
     "type": "NumberToken",
     "value": "1",
     "location": {
-      "start": 660,
       "end": 661,
+      "start": 660,
       "file": "examples/condition.vader"
     }
   },
@@ -1092,8 +1092,8 @@
     "type": "NumberToken",
     "value": "33",
     "location": {
-      "start": 682,
       "end": 684,
+      "start": 682,
       "file": "examples/condition.vader"
     }
   },
@@ -1110,8 +1110,8 @@
     "type": "NumberToken",
     "value": "3",
     "location": {
-      "start": 687,
       "end": 688,
+      "start": 687,
       "file": "examples/condition.vader"
     }
   },
@@ -1146,8 +1146,8 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "start": 702,
       "end": 703,
+      "start": 702,
       "file": "examples/condition.vader"
     }
   },

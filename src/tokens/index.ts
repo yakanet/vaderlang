@@ -10,9 +10,9 @@ export class Tokenizer {
         return this.current < this.content.length;
     }
 
-    next(): string | null {
-        if (this.hasNext()) {
-            return this.content[this.current];
+    next(offset = 0): string | null {
+        if (this.current + offset <= this.content.length) {
+            return this.content[this.current + offset];
         }
         return null;
     }
@@ -22,6 +22,10 @@ export class Tokenizer {
             return this.content[this.current++];
         }
         return null;
+    }
+
+    pick() {
+        return this.content[this.current];
     }
 }
 
@@ -45,6 +49,9 @@ function is_alphanum(c: string) {
 }
 
 function is_digit(c: string) {
+    if (!c) {
+        return false;
+    }
     const code = c.charCodeAt(0)
     return code >= '0'.charCodeAt(0) && code <= '9'.charCodeAt(0);
 }
@@ -187,25 +194,18 @@ export function* tokenize(content: string, file: string): Generator<Token> {
                 break;
             }
             case is_digit(c): {
-                let buffer = c;
-                while (tokenizer.hasNext()) {
-                    const c2 = tokenizer.next()!;
-                    let seen_dot = false;
-                    if (is_digit(c2)) {
-                        buffer += tokenizer.eat()!;
-                    } else if (c2 === "_") {
-                        tokenizer.eat();
-                    } else if (c2 === "." && !seen_dot) {
-                        seen_dot = true;
-                        if (tokenizer.hasNext() && !is_digit(tokenizer.next()!)) {
-                            break;
-                        }
-                        buffer += tokenizer.eat()!;
-                    } else {
-                        break;
+                tokenizer.current--; // put back the digit char
+                const start = tokenizer.current;
+                const buffer = nextNumber(tokenizer);
+                yield {
+                    type: 'NumberToken',
+                    value: buffer,
+                    location: {
+                        end: tokenizer.current,
+                        start,
+                        file
                     }
-                }
-                yield createToken("NumberToken", buffer);
+                };
                 break;
             }
             case c === "@":
@@ -246,4 +246,67 @@ export function* tokenize(content: string, file: string): Generator<Token> {
         },
         value: "\0",
     };
+}
+
+function nextNumber(tokenizer: Tokenizer) {
+    let buffer = '';
+    if (tokenizer.eat() === '0') {
+        if (tokenizer.next())
+            switch (tokenizer.pick()) {
+                case 'b': {
+                    tokenizer.eat()
+                    buffer += scanMantissa(tokenizer, 2).toString(10);
+                    break
+                }
+                case 'o': {
+                    tokenizer.eat()
+                    buffer += scanMantissa(tokenizer, 8).toString(10);
+                    break
+                }
+                case 'x': {
+                    tokenizer.eat()
+                    buffer += scanMantissa(tokenizer, 16).toString(10);
+                    break
+                }
+                default: {
+                    return "0"
+                }
+            }
+    } else {
+        tokenizer.current--; // put back the digit char
+        buffer += scanMantissa(tokenizer, 10).toString(10);
+        if (tokenizer.pick() === '.' && is_digit(tokenizer.next(1)!)) {
+            buffer += tokenizer.eat();
+            buffer += scanMantissa(tokenizer, 10)
+        }
+    }
+    return buffer;
+}
+
+const charToNumber = {
+    2: ['0', '1'],
+    8: ['0', '1', '2', '3', '4', '5', '6', '7'],
+    10: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+    16: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'],
+} as const;
+
+function scanMantissa(tokenizer: Tokenizer, radix: keyof typeof charToNumber): number {
+    const letters = charToNumber[radix];
+    let n: number[] = [];
+    while (tokenizer.hasNext()) {
+        const c = tokenizer.pick();
+        if (c === '_') {
+            tokenizer.eat();
+            continue;
+        }
+        const index = letters.findIndex(l => l === c);
+        if (index < 0) {
+            break;
+        }
+        tokenizer.eat();
+        n.push(index)
+    }
+    return n.toReversed().reduce((a, b, i) => {
+        return Math.pow(radix, i) * b + a
+    }, 0);
 }
