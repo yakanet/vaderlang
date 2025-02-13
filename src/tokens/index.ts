@@ -176,10 +176,10 @@ export function* tokenize(content: string, file: string): Generator<Token> {
                 yield createToken("CommaToken");
                 break;
             case c === "<":
-                yield createToken("LowerThanToken", "LowerThanEqualToken");
+                yield parseOperator("LowerThanToken", "LowerThanEqualToken");
                 break;
             case c === ">":
-                yield createToken("HigherThanToken", "HigherThanEqualToken");
+                yield parseOperator("HigherThanToken", "HigherThanEqualToken");
                 break;
             case c === "_":
                 yield createToken("UnderscoreToken");

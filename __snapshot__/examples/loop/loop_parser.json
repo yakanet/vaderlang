@@ -1,0 +1,591 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "file",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "path",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "string",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "path",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "string",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 21,
+          "end": 45,
+          "file": "modules/std.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 11,
+        "end": 45,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "print",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "message",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "void",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 69,
+          "end": 94,
+          "file": "modules/std.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 58,
+        "end": 94,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "main",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
+            "name": "void",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "ForStatement",
+            "initialization": {
+              "kind": "VariableDeclarationStatement",
+              "name": "i",
+              "isConstant": false,
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 0,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 41,
+                  "end": 42,
+                  "file": "examples/loop.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 36,
+                "end": 42,
+                "file": "examples/loop.vader"
+              }
+            },
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "<",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "VariableExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": "i",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 44,
+                  "end": 45,
+                  "file": "examples/loop.vader"
+                }
+              },
+              "rhs": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 10,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 48,
+                  "end": 50,
+                  "file": "examples/loop.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 2
+              },
+              "location": {
+                "start": 46,
+                "end": 47,
+                "file": "examples/loop.vader"
+              }
+            },
+            "iteration": {
+              "kind": "VariableAssignmentStatement",
+              "identifier": "i",
+              "value": {
+                "kind": "BinaryExpression",
+                "operator": "+",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "lhs": {
+                  "kind": "VariableExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": "i",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 56,
+                    "end": 57,
+                    "file": "examples/loop.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 1,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 60,
+                    "end": 61,
+                    "file": "examples/loop.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 58,
+                  "end": 59,
+                  "file": "examples/loop.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 2
+              },
+              "location": {
+                "start": 54,
+                "end": 55,
+                "file": "examples/loop.vader"
+              }
+            },
+            "body": [
+              {
+                "kind": "ForStatement",
+                "initialization": {
+                  "kind": "VariableDeclarationStatement",
+                  "name": "j",
+                  "isConstant": false,
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 0,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 2
+                    },
+                    "location": {
+                      "start": 81,
+                      "end": 82,
+                      "file": "examples/loop.vader"
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 76,
+                    "end": 82,
+                    "file": "examples/loop.vader"
+                  }
+                },
+                "condition": {
+                  "kind": "BinaryExpression",
+                  "operator": "<",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "lhs": {
+                    "kind": "VariableExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": "j",
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 3
+                    },
+                    "location": {
+                      "start": 84,
+                      "end": 85,
+                      "file": "examples/loop.vader"
+                    }
+                  },
+                  "rhs": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 10,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 3
+                    },
+                    "location": {
+                      "start": 88,
+                      "end": 90,
+                      "file": "examples/loop.vader"
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 3
+                  },
+                  "location": {
+                    "start": 86,
+                    "end": 87,
+                    "file": "examples/loop.vader"
+                  }
+                },
+                "iteration": {
+                  "kind": "VariableAssignmentStatement",
+                  "identifier": "j",
+                  "value": {
+                    "kind": "BinaryExpression",
+                    "operator": "+",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "lhs": {
+                      "kind": "VariableExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "value": "j",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 3
+                      },
+                      "location": {
+                        "start": 96,
+                        "end": 97,
+                        "file": "examples/loop.vader"
+                      }
+                    },
+                    "rhs": {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "value": 1,
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 3
+                      },
+                      "location": {
+                        "start": 100,
+                        "end": 101,
+                        "file": "examples/loop.vader"
+                      }
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 3
+                    },
+                    "location": {
+                      "start": 98,
+                      "end": 99,
+                      "file": "examples/loop.vader"
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 3
+                  },
+                  "location": {
+                    "start": 94,
+                    "end": 95,
+                    "file": "examples/loop.vader"
+                  }
+                },
+                "body": [
+                  {
+                    "kind": "CallExpression",
+                    "type": {
+                      "name": "void",
+                      "kind": "primitive"
+                    },
+                    "functionName": "print",
+                    "parameters": [
+                      {
+                        "kind": "StringExpression",
+                        "type": {
+                          "name": "string",
+                          "kind": "primitive"
+                        },
+                        "value": "Hello",
+                        "scope": {
+                          "namedVariables": {},
+                          "depth": 3
+                        },
+                        "location": {
+                          "start": 125,
+                          "end": 130,
+                          "file": "examples/loop.vader"
+                        }
+                      }
+                    ],
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 3
+                    },
+                    "location": {
+                      "start": 117,
+                      "end": 131,
+                      "file": "examples/loop.vader"
+                    }
+                  }
+                ],
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 3
+                },
+                "location": {
+                  "start": 75,
+                  "end": 141,
+                  "file": "examples/loop.vader"
+                }
+              },
+              {
+                "kind": "CallExpression",
+                "type": {
+                  "name": "void",
+                  "kind": "primitive"
+                },
+                "functionName": "print",
+                "parameters": [
+                  {
+                    "kind": "StringExpression",
+                    "type": {
+                      "name": "string",
+                      "kind": "primitive"
+                    },
+                    "value": "\n",
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 2
+                    },
+                    "location": {
+                      "start": 158,
+                      "end": 160,
+                      "file": "examples/loop.vader"
+                    }
+                  }
+                ],
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 150,
+                  "end": 161,
+                  "file": "examples/loop.vader"
+                }
+              }
+            ],
+            "scope": {
+              "namedVariables": {},
+              "depth": 2
+            },
+            "location": {
+              "start": 36,
+              "end": 167,
+              "file": "examples/loop.vader"
+            }
+          }
+        ],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 23,
+          "end": 169,
+          "file": "examples/loop.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 13,
+        "end": 169,
+        "file": "examples/loop.vader"
+      }
+    }
+  ],
+  "mainMethod": "main",
+  "scope": {
+    "namedVariables": {},
+    "depth": 0
+  },
+  "location": {
+    "start": 1,
+    "end": 169,
+    "file": "examples/loop.vader"
+  }
+}

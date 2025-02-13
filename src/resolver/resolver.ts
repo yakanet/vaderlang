@@ -2,6 +2,7 @@ import {Scope} from "./scope";
 import {
     BasicVaderType,
     type Expression,
+    type ForStatement,
     type FunctionDeclarationExpression,
     isTypeEquals,
     type Program,
@@ -59,8 +60,17 @@ function resolveStatement(
             };
         }
         case "ForStatement":
-            throw new Error("unimplemented " + statement.kind);
-
+            const initialization = resolveStatement(statement.initialization, scope)
+            const cloneScope = new Scope(scope)
+            return {
+                ...statement,
+                kind: "ForStatement",
+                initialization,
+                condition: resolveExpression(statement.condition, cloneScope),
+                iteration: resolveStatement(statement.iteration, cloneScope),
+                body: statement.body.map(b => resolveStatement(b, cloneScope)),
+                scope: cloneScope
+            } satisfies ForStatement
     }
     return resolveExpression(statement, scope);
 }
@@ -105,7 +115,7 @@ function resolveVariableDeclaration(
     if (scope.depth === 0) {
         scope.newGlobalVariable(type, statement.name);
     } else {
-        scope.newLocalVariable(type, scope.allVariables().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name);
+        scope.newLocalVariable(type, scope.allFunctionLevelVariable().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name);
     }
     if (value && value.kind === 'ConditionalExpression') {
         value.kind = 'ConditionalStatement' as any;

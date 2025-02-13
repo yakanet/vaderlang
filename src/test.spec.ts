@@ -15,7 +15,6 @@ const testFolders = [
     'examples'
 ]
 const skip = new Set<string>([
-    'examples/loop.vader',
 ])
 
 for (const folder of testFolders) {

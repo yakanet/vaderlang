@@ -62,14 +62,32 @@ export class Scope {
     }
 
     newFunctionParameter(type: VaderType, index: number, name: string) {
-        return this.newVariable(type, name, {
+        if (this.depth === 0) {
+            throw new Error("Function parameter must be declared in a function scope");
+        }
+        if (this.depth === 1) {
+            return this.newVariable(type, name, {
+                kind: "FunctionParameterSource",
+                index
+            })
+        }
+        return this.#parent!.newVariable(type, name, {
             kind: "FunctionParameterSource",
             index
         })
     }
 
     newLocalVariable(type: VaderType, index: number, name: string) {
-        return this.newVariable(type, name, {
+        if (this.depth === 0) {
+            throw new Error("Function parameter must be declared in a function scope");
+        }
+        if (this.depth === 1) {
+            return this.newVariable(type, name, {
+                kind: "LocalVariableSource",
+                index
+            })
+        }
+        return this.#parent!.newVariable(type, name, {
             kind: "LocalVariableSource",
             index
         })
@@ -95,8 +113,11 @@ export class Scope {
         throw new Error(`Unknown variable name ${value}`);
     }
 
-    allVariables() {
-        return [...this.namedVariables.values()]
+    allFunctionLevelVariable(): Ref[] {
+        if (this.depth === 0 || this.depth === 1) {
+            return [...this.namedVariables.values()]
+        }
+        return this.#parent!.allFunctionLevelVariable();
     }
 }
 

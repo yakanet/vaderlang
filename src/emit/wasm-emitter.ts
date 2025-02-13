@@ -21,6 +21,7 @@ const encoder = new TextEncoder();
 export class WasmEmitter {
     private memoryLayout: { offset: number, data: Uint8Array }[] = [];
     public readonly module = new binaryen.Module();
+    private forCount = 0;
 
     constructor() {
         addWasiFunction(this.module);
@@ -91,7 +92,7 @@ export class WasmEmitter {
                             return;
                         }
                         const localVariables = funct.body.length > 0
-                            ? funct.body[0].scope.allVariables().filter(v => v.source.kind === 'LocalVariableSource')
+                            ? funct.body[0].scope.allFunctionLevelVariable().filter(v => v.source.kind === 'LocalVariableSource')
                             : [];
                         this.module.addFunction(
                             statement.name,
@@ -179,6 +180,22 @@ export class WasmEmitter {
                 if (resolved.source.kind === "LocalVariableSource") {
                     return this.module.local.set(resolved.source.index, this.emitExpression(stmt.value));
                 }
+                break
+            }
+
+            case 'ForStatement': {
+                const forCount = this.forCount++;
+                return this.module.block(null, [
+                    this.emitStatement(stmt.initialization),
+                    this.module.loop('outer_' + forCount,
+                        this.module.block('inner_' + forCount, [
+                            this.module.br_if('inner_' + forCount, this.module.i32.eqz(this.emitStatement(stmt.condition))),
+                            ...stmt.body.map(b => this.emitStatement(b)),
+                            this.emitStatement(stmt.iteration),
+                            this.module.br('outer_' + forCount)
+                        ])
+                    )
+                ])
             }
         }
         return this.emitExpression(stmt);
@@ -393,6 +410,10 @@ export class WasmEmitter {
         [['!=', binaryen.i32, binaryen.i32].join(), this.module.i32.ne],
         [['&&', binaryen.i32, binaryen.i32].join(), this.module.i32.and],
         [['||', binaryen.i32, binaryen.i32].join(), this.module.i32.or],
+        [['<', binaryen.i32, binaryen.i32].join(), this.module.i32.lt_u],
+        [['<=', binaryen.i32, binaryen.i32].join(), this.module.i32.le_u],
+        [['>', binaryen.i32, binaryen.i32].join(), this.module.i32.gt_u],
+        [['>=', binaryen.i32, binaryen.i32].join(), this.module.i32.ge_u],
     ]);
 
     private memoryOffset = 0;

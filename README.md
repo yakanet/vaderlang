@@ -43,9 +43,9 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [ ] fix operator precedence
 - [x] dot expression `a.b.c`
 - [x] better VaderType (should be recursive to support array `:String[4]`)
-- [ ] rework on variable assignment identifier should be an expression to support dot expression & array assignment
+- [x] rework on variable assignment identifier should be an expression to support dot expression & array assignment
 - [ ] better number checking (for a given type should be in a range MIN..MAX)
-- [ ] for loop
+- [x] for loop
 - [x] structure declaration & usage
 - [ ] import lib with namespace
 - [x] read file (to simplify make it load file during compilation time)
