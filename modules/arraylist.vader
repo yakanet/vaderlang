@@ -14,7 +14,8 @@ push :: fn(this: list, item: u32) {
     if (list.size > data.length) {
         list.grow()
     }
-    list[length++] = item;
+    list[length] = item
+    length = length + 1
 }
 
 set :: fn(this: list, item: u32, index: u32) {
@@ -26,7 +27,7 @@ set :: fn(this: list, item: u32, index: u32) {
 // TODO use memcopy
 grow :: fn(this: list) -> void {
     data2 = u32[data.length * 1.2]
-    for(i := 0; i>list.length; i++) {
+    for(i := 0; i>list.length; i = i + 1) {
         data2[i] = this.data[i]
     }
     this.data = data2

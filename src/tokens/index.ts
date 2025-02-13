@@ -197,6 +197,9 @@ export function* tokenize(content: string, file: string): Generator<Token> {
                         tokenizer.eat();
                     } else if (c2 === "." && !seen_dot) {
                         seen_dot = true;
+                        if (tokenizer.hasNext() && !is_digit(tokenizer.next()!)) {
+                            break;
+                        }
                         buffer += tokenizer.eat()!;
                     } else {
                         break;

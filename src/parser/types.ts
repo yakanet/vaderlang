@@ -74,21 +74,14 @@ export type ConditionalExpression = Omit<ConditionalStatement, 'kind'> & {
     kind: 'ConditionalExpression'
 }
 
-export type FunctionDeclaration = BasicStatement & {
-    kind: 'FunctionDeclaration',
-    name: string,
-    decorators: Decorator[],
-    parameters: ({ name: string; type: VaderType })[],
-    returnType: VaderType,
+export type FunctionDeclarationExpression = BasicStatement & {
+    kind: 'FunctionDeclarationExpression',
+    type: FunctionVaderType,
     body: Statement[]
 }
-export type StructStatement = BasicStatement & {
-    kind: 'StructStatement',
-    name: string;
-    definition: ({
-        attributeName: string;
-        typeName: VaderType;
-    })[]
+export type StructDeclarationExpression = BasicStatement & {
+    kind: 'StructDeclarationExpression',
+    type: StructVaderType;
 }
 
 export type ForStatement = BasicStatement & {
@@ -98,7 +91,6 @@ export type ForStatement = BasicStatement & {
     iteration: Statement,
     body: Statement[],
 }
-
 
 export type VariableAssignmentStatement = BasicStatement & {
     kind: 'VariableAssignmentStatement',
@@ -130,14 +122,19 @@ export type ArrayDeclarationExpression = BasicStatement & {
 }
 
 
-export type ArrayIndexExpression  = BasicStatement & {
+export type ArrayIndexExpression = BasicStatement & {
     kind: 'ArrayIndexExpression',
     type: VaderType,
     identifier: string,
     indexes: Expression[]
 }
 
-export type VaderType = RawVaderType | ArrayVaderType | StructVaderType | UnknownType
+export type VaderType =
+    | RawVaderType
+    | ArrayVaderType
+    | StructVaderType
+    | FunctionVaderType
+    | UnknownType;
 
 interface RawVaderType {
     kind: 'primitive'
@@ -146,7 +143,6 @@ interface RawVaderType {
 
 interface StructVaderType {
     kind: 'struct'
-    name: string,
     parameters: {
         name: string,
         type: VaderType
@@ -157,6 +153,16 @@ export interface ArrayVaderType {
     kind: 'array'
     size: number,
     type: VaderType,
+}
+
+export interface FunctionVaderType {
+    kind: 'function'
+    parameters: {
+        name: string,
+        type: VaderType
+    }[],
+    decorators: Decorator[]
+    returnType: VaderType,
 }
 
 interface UnknownType {
@@ -172,11 +178,20 @@ export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
         case 'unknown': {
             return a.kind === b.kind;
         }
-        case 'struct': {
-            const c = b as StructVaderType
-            if (a.name !== c.name) {
+        case 'function': {
+            const c = b as FunctionVaderType;
+            if (a.parameters.length !== c.parameters.length) {
                 return false
             }
+            for (let i = 0; i < c.parameters.length; i++) {
+                if (!isTypeEquals(a.parameters[i].type, c.parameters[i].type)) {
+                    return false
+                }
+            }
+            return isTypeEquals(a.returnType, c.returnType);
+        }
+        case 'struct': {
+            const c = b as StructVaderType
             if (a.parameters.length !== c.parameters.length) {
                 return false
             }
@@ -223,6 +238,8 @@ export type Expression =
     | BinaryExpression
     | ConditionalExpression
     | CallExpression
+    | FunctionDeclarationExpression
+    | StructDeclarationExpression
     | StructInstantiationExpression
     | DotExpression
     | ArrayDeclarationExpression
@@ -231,10 +248,8 @@ export type Expression =
 export type Statement =
     | Program
     | ReturnStatement
-    | FunctionDeclaration
     | ConditionalStatement
     | Expression
-    | StructStatement
     | VariableDeclarationStatement
     | VariableAssignmentStatement
     | ForStatement

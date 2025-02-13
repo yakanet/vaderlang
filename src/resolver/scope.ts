@@ -61,14 +61,6 @@ export class Scope {
         })
     }
 
-    newGlobalFunction(type: VaderType, name: string, options: Omit<GlobalFunctionSource, 'kind'>) {
-        assert(this.depth === 0, "Global variable must be declared in global scope");
-        return this.newVariable(type, name, {
-            kind: "GlobalFunctionSource",
-            ...options,
-        })
-    }
-
     newFunctionParameter(type: VaderType, index: number, name: string) {
         return this.newVariable(type, name, {
             kind: "FunctionParameterSource",
@@ -80,15 +72,6 @@ export class Scope {
         return this.newVariable(type, name, {
             kind: "LocalVariableSource",
             index
-        })
-    }
-
-    newGlobalStruct(
-        type: VaderType,
-        name: string) {
-        assert(this.depth === 0, "Struct declaration must be declared in global scope");
-        return this.newVariable(type, name, {
-            kind: 'StructSource'
         })
     }
 

@@ -4,6 +4,8 @@ import {
     BasicVaderType,
     type CallExpression,
     type DotExpression,
+    type FunctionDeclarationExpression,
+    isTypeEquals,
     type Program,
     type Statement,
     type StringExpression,
@@ -46,14 +48,14 @@ export class WasmEmitter {
             return;
         }
         const resolved = program.scope.lookupVariable(program.mainMethod);
-        if (resolved.source.kind !== 'GlobalFunctionSource') {
+        if (resolved.type.kind !== "function") {
             throw new Error(`Main method must be a function`);
         }
         // TODO pass program param
-        if (resolved.source.returnType.kind !== 'primitive') {
+        if (resolved.type.returnType.kind !== 'primitive') {
             throw new Error(`Main method should return a void type or u32 type`)
         }
-        if (resolved.source.returnType.name === BasicVaderType.u32.name) {
+        if (isTypeEquals(resolved.type.returnType, BasicVaderType.u32)) {
             const funct = this.module.addFunction(
                 "_start",
                 binaryen.createType([]),
@@ -68,7 +70,7 @@ export class WasmEmitter {
                 ])
             );
             this.module.setStart(funct);
-        } else if (resolved.source.returnType.name === BasicVaderType.void.name) {
+        } else if (isTypeEquals(resolved.type.returnType, BasicVaderType.void)) {
             this.module.setStart(this.module.getFunction(program.mainMethod));
         } else {
             throw new Error(`Main method should return a void type or u32 type`)
@@ -77,43 +79,44 @@ export class WasmEmitter {
 
     emitTopLevelStatement(statement: Statement) {
         switch (statement.kind) {
-            case "FunctionDeclaration": {
-                if (statement.decorators.includes('intrinsic')) {
-                    return;
-                }
-                const localVariables = statement.body.length > 0
-                    ? statement.body[0].scope.allVariables().filter(v => v.source.kind === 'LocalVariableSource')
-                    : [];
-                this.module.addFunction(
-                    statement.name,
-                    binaryen.createType(
-                        statement.parameters.map((t) => mapBinaryenType(t.type))
-                    ),
-                    mapBinaryenType(statement.returnType),
-                    localVariables.map(variable => mapBinaryenType(variable.type)),
-                    this.module.block(
-                        null,
-                        statement.body.map((stmt) => this.emitStatement(stmt))
-                    )
-                );
-
-                this.module.addFunctionExport(statement.name, statement.name);
-                return;
-            }
-            case 'StructStatement':
-                return;
-
             case "VariableDeclarationStatement": {
                 const variableRef = statement.scope.lookupVariable(statement.name);
-                if (statement.scope.depth === 0) {
-                    return this.module.addGlobal(
-                        statement.name,
-                        mapBinaryenType(variableRef.type),
-                        !statement.isConstant,
-                        this.emitExpression(statement.value!)
-                    );
-                } else {
-                    throw new Error(`Unimplemented VariableDeclarationStatement case`);
+                switch (variableRef.type.kind) {
+                    case 'struct':
+                        return; // no need to declare anything
+                    case 'function': {
+                        assert(statement.value?.kind === 'FunctionDeclarationExpression');
+                        const funct = statement.value as FunctionDeclarationExpression;
+                        if (variableRef.type.decorators.includes('intrinsic')) {
+                            return;
+                        }
+                        const localVariables = funct.body.length > 0
+                            ? funct.body[0].scope.allVariables().filter(v => v.source.kind === 'LocalVariableSource')
+                            : [];
+                        this.module.addFunction(
+                            statement.name,
+                            binaryen.createType(
+                                statement.value.type.parameters.map((t) => mapBinaryenType(t.type))
+                            ),
+                            mapBinaryenType(funct.type.returnType),
+                            localVariables.map(variable => mapBinaryenType(variable.type)),
+                            this.module.block(
+                                null,
+                                funct.body.map((stmt) => this.emitStatement(stmt))
+                            )
+                        );
+                        this.module.addFunctionExport(statement.name, statement.name);
+                        return;
+                    }
+                    case 'primitive':
+                        return this.module.addGlobal(
+                            statement.name,
+                            mapBinaryenType(variableRef.type),
+                            !statement.isConstant,
+                            this.emitExpression(statement.value!)
+                        );
+                    default:
+                        throw new Error(`Unrecognized top level declaration of variable type ${variableRef.type.kind}`);
                 }
             }
         }
@@ -143,17 +146,10 @@ export class WasmEmitter {
                             this.emitExpression(stmt.value!)
                         );
                     }
-                    case "FunctionParameterSource": {
+                    case "FunctionParameterSource":
                         throw new Error(`Could not reassign parameter value`);
-                    }
+
                     case "LocalVariableSource": {
-                        //if (resolved.type.kind === 'struct') {
-                        //    const [address, expression] = this.instantiateStruct(stmt.value as StructInstantiationExpression);
-                        //    return this.module.block(null, [
-                        //        ...expression,
-                        //        this.module.local.set(resolved.source.index, this.module.i32.const(address))
-                        //    ])
-                        //}
                         return this.module.local.set(
                             resolved.source.index,
                             this.emitExpression(stmt.value!)
@@ -192,10 +188,10 @@ export class WasmEmitter {
         switch (expression.kind) {
             case 'CallExpression': {
                 const ref = expression.scope.lookupVariable(expression.functionName);
-                if (ref.source.kind !== 'GlobalFunctionSource') {
+                if (ref.type.kind !== 'function') {
                     throw new Error(`Could only call function, trying to call ${ref.source.kind}.`);
                 }
-                if (ref.source.decorators.includes('intrinsic')) {
+                if (ref.type.decorators.includes('intrinsic')) {
                     switch (expression.functionName) {
                         case 'print':
                             return this.emitPrint(expression)
@@ -208,7 +204,7 @@ export class WasmEmitter {
                 return this.module.call(
                     expression.functionName,
                     expression.parameters.map(p => this.emitExpression(p)),
-                    mapBinaryenType(ref.source.returnType)
+                    mapBinaryenType(ref.type.returnType)
                 );
             }
             case "VariableExpression": {
@@ -474,6 +470,10 @@ function size_of(t: VaderType): number {
         }
         return size;
     }
+
+    if (t.kind === 'function') {
+        throw new Error(`Unreachable`)
+    }
     switch (t.name) {
         case "boolean":
         case "int":
@@ -497,6 +497,12 @@ function size_of(t: VaderType): number {
 function createBinaryenConst(module: binaryen.Module, t: VaderType, value: number) {
     if (t.kind === 'array') {
         throw new Error(`Unimplemented array type`)
+    }
+    if (t.kind === 'function') {
+        throw new Error(`Unreachable`)
+    }
+    if (t.kind === 'struct') {
+        throw new Error(`Unreachable`)
     }
     switch (t.name) {
         case "boolean":
@@ -524,6 +530,9 @@ function mapBinaryenType(t: VaderType): binaryen.Type {
     }
     if (t.kind === 'struct') {
         return binaryen.i32;
+    }
+    if (t.kind === 'function') {
+        throw new Error(`Unreachable`)
     }
     switch (t.name) {
         case "boolean":

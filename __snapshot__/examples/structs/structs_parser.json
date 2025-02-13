@@ -2,229 +2,199 @@
   "kind": "Program",
   "body": [
     {
-      "kind": "StructStatement",
+      "kind": "VariableDeclarationStatement",
       "name": "Point",
-      "definition": [
-        {
-          "attributeName": "x",
-          "typeName": {
-            "name": "u32",
-            "kind": "primitive"
+      "isConstant": true,
+      "type": {
+        "kind": "struct",
+        "parameters": [
+          {
+            "name": "x",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
+          },
+          {
+            "name": "y",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
           }
+        ]
+      },
+      "value": {
+        "kind": "StructDeclarationExpression",
+        "type": {
+          "kind": "struct",
+          "parameters": [
+            {
+              "name": "x",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            },
+            {
+              "name": "y",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            }
+          ]
         },
-        {
-          "attributeName": "y",
-          "typeName": {
-            "name": "u32",
-            "kind": "primitive"
-          }
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 16,
+          "end": 15,
+          "file": "examples/structs.vader"
         }
-      ],
+      },
       "scope": {
         "namedVariables": {},
         "depth": 0
       },
       "location": {
         "start": 0,
-        "end": 15,
+        "end": 41,
         "file": "examples/structs.vader"
       }
     },
     {
-      "kind": "StructStatement",
+      "kind": "VariableDeclarationStatement",
       "name": "Point3D",
-      "definition": [
-        {
-          "attributeName": "origin",
-          "typeName": {
-            "kind": "struct",
-            "name": "Point",
-            "parameters": [
-              {
-                "name": "x",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
+      "isConstant": true,
+      "type": {
+        "kind": "struct",
+        "parameters": [
+          {
+            "name": "origin",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "x",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                {
+                  "name": "y",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
                 }
-              },
-              {
-                "name": "y",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                }
+              ]
+            }
+          },
+          {
+            "name": "z",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
+          }
+        ]
+      },
+      "value": {
+        "kind": "StructDeclarationExpression",
+        "type": {
+          "kind": "struct",
+          "parameters": [
+            {
+              "name": "origin",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "x",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  {
+                    "name": "y",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
               }
-            ]
-          }
+            },
+            {
+              "name": "z",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            }
+          ]
         },
-        {
-          "attributeName": "z",
-          "typeName": {
-            "name": "u32",
-            "kind": "primitive"
-          }
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 61,
+          "end": 60,
+          "file": "examples/structs.vader"
         }
-      ],
+      },
       "scope": {
         "namedVariables": {},
         "depth": 0
       },
       "location": {
         "start": 43,
-        "end": 60,
+        "end": 93,
         "file": "examples/structs.vader"
       }
     },
     {
-      "kind": "FunctionDeclaration",
+      "kind": "VariableDeclarationStatement",
       "name": "main",
-      "parameters": [],
-      "returnType": {
-        "name": "u32",
-        "kind": "primitive"
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
       },
-      "decorators": [],
-      "body": [
-        {
-          "kind": "VariableDeclarationStatement",
-          "name": "p1",
-          "isConstant": true,
-          "type": {
-            "kind": "struct",
-            "name": "Point3D",
-            "parameters": [
-              {
-                "name": "origin",
-                "type": {
-                  "kind": "struct",
-                  "name": "Point",
-                  "parameters": [
-                    {
-                      "name": "x",
-                      "type": {
-                        "name": "u32",
-                        "kind": "primitive"
-                      }
-                    },
-                    {
-                      "name": "y",
-                      "type": {
-                        "name": "u32",
-                        "kind": "primitive"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "name": "z",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                }
-              }
-            ]
-          },
-          "value": {
-            "kind": "StructInstantiationExpression",
-            "parameters": [
-              {
-                "kind": "StructInstantiationExpression",
-                "parameters": [
-                  {
-                    "kind": "NumberExpression",
-                    "type": {
-                      "name": "u32",
-                      "kind": "primitive"
-                    },
-                    "value": 2,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
-                    "location": {
-                      "start": 143,
-                      "end": 144,
-                      "file": "examples/structs.vader"
-                    }
-                  },
-                  {
-                    "kind": "NumberExpression",
-                    "type": {
-                      "name": "u32",
-                      "kind": "primitive"
-                    },
-                    "value": 4,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
-                    "location": {
-                      "start": 146,
-                      "end": 147,
-                      "file": "examples/structs.vader"
-                    }
-                  }
-                ],
-                "structName": "Point",
-                "type": {
-                  "kind": "struct",
-                  "name": "Point",
-                  "parameters": [
-                    {
-                      "name": "x",
-                      "type": {
-                        "name": "u32",
-                        "kind": "primitive"
-                      }
-                    },
-                    {
-                      "name": "y",
-                      "type": {
-                        "name": "u32",
-                        "kind": "primitive"
-                      }
-                    }
-                  ]
-                },
-                "location": {
-                  "start": 135,
-                  "end": 149,
-                  "file": "examples/structs.vader"
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                }
-              },
-              {
-                "kind": "NumberExpression",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "value": 10,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
-                "location": {
-                  "start": 151,
-                  "end": 153,
-                  "file": "examples/structs.vader"
-                }
-              }
-            ],
-            "structName": "Point3D",
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "p1",
+            "isConstant": true,
             "type": {
               "kind": "struct",
-              "name": "Point3D",
               "parameters": [
                 {
                   "name": "origin",
                   "type": {
                     "kind": "struct",
-                    "name": "Point",
                     "parameters": [
                       {
                         "name": "x",
@@ -252,92 +222,156 @@
                 }
               ]
             },
-            "location": {
-              "start": 125,
-              "end": 155,
-              "file": "examples/structs.vader"
+            "value": {
+              "kind": "StructInstantiationExpression",
+              "parameters": [
+                {
+                  "kind": "StructInstantiationExpression",
+                  "parameters": [
+                    {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "value": 2,
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 1
+                      },
+                      "location": {
+                        "start": 143,
+                        "end": 144,
+                        "file": "examples/structs.vader"
+                      }
+                    },
+                    {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "value": 4,
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 1
+                      },
+                      "location": {
+                        "start": 146,
+                        "end": 147,
+                        "file": "examples/structs.vader"
+                      }
+                    }
+                  ],
+                  "structName": "Point",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "x",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      },
+                      {
+                        "name": "y",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "location": {
+                    "start": 135,
+                    "end": 149,
+                    "file": "examples/structs.vader"
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  }
+                },
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 10,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 151,
+                    "end": 153,
+                    "file": "examples/structs.vader"
+                  }
+                }
+              ],
+              "structName": "Point3D",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "origin",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "z",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": 125,
+                "end": 155,
+                "file": "examples/structs.vader"
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              }
             },
             "scope": {
               "namedVariables": {},
               "depth": 1
+            },
+            "location": {
+              "start": 119,
+              "end": 155,
+              "file": "examples/structs.vader"
             }
           },
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 119,
-            "end": 155,
-            "file": "examples/structs.vader"
-          }
-        },
-        {
-          "kind": "VariableDeclarationStatement",
-          "name": "p2",
-          "isConstant": true,
-          "type": {
-            "kind": "struct",
-            "name": "Point",
-            "parameters": [
-              {
-                "name": "x",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                }
-              },
-              {
-                "name": "y",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                }
-              }
-            ]
-          },
-          "value": {
-            "kind": "StructInstantiationExpression",
-            "parameters": [
-              {
-                "kind": "NumberExpression",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "value": 6,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
-                "location": {
-                  "start": 173,
-                  "end": 174,
-                  "file": "examples/structs.vader"
-                }
-              },
-              {
-                "kind": "NumberExpression",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "value": 8,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
-                "location": {
-                  "start": 176,
-                  "end": 177,
-                  "file": "examples/structs.vader"
-                }
-              }
-            ],
-            "structName": "Point",
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "p2",
+            "isConstant": true,
             "type": {
               "kind": "struct",
-              "name": "Point",
               "parameters": [
                 {
                   "name": "x",
@@ -355,193 +389,257 @@
                 }
               ]
             },
+            "value": {
+              "kind": "StructInstantiationExpression",
+              "parameters": [
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 6,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 173,
+                    "end": 174,
+                    "file": "examples/structs.vader"
+                  }
+                },
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 8,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 176,
+                    "end": 177,
+                    "file": "examples/structs.vader"
+                  }
+                }
+              ],
+              "structName": "Point",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "x",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  {
+                    "name": "y",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": 165,
+                "end": 179,
+                "file": "examples/structs.vader"
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
             "location": {
-              "start": 165,
+              "start": 159,
               "end": 179,
               "file": "examples/structs.vader"
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             }
           },
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 159,
-            "end": 179,
-            "file": "examples/structs.vader"
-          }
-        },
-        {
-          "kind": "ReturnStatement",
-          "expression": {
-            "kind": "BinaryExpression",
-            "operator": "+",
-            "type": {
-              "name": "u32",
-              "kind": "primitive"
-            },
-            "lhs": {
-              "kind": "DotExpression",
-              "properties": [
-                {
-                  "name": "p1",
-                  "type": {
-                    "kind": "struct",
-                    "name": "Point3D",
-                    "parameters": [
-                      {
-                        "name": "origin",
-                        "type": {
-                          "kind": "struct",
-                          "name": "Point",
-                          "parameters": [
-                            {
-                              "name": "x",
-                              "type": {
-                                "name": "u32",
-                                "kind": "primitive"
-                              }
-                            },
-                            {
-                              "name": "y",
-                              "type": {
-                                "name": "u32",
-                                "kind": "primitive"
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "name": "z",
-                        "type": {
-                          "name": "u32",
-                          "kind": "primitive"
-                        }
-                      }
-                    ]
-                  },
-                  "location": {
-                    "start": 190,
-                    "end": 192,
-                    "file": "examples/structs.vader"
-                  }
-                },
-                {
-                  "name": "origin",
-                  "type": {
-                    "kind": "struct",
-                    "name": "Point",
-                    "parameters": [
-                      {
-                        "name": "x",
-                        "type": {
-                          "name": "u32",
-                          "kind": "primitive"
-                        }
-                      },
-                      {
-                        "name": "y",
-                        "type": {
-                          "name": "u32",
-                          "kind": "primitive"
-                        }
-                      }
-                    ]
-                  },
-                  "location": {
-                    "start": 193,
-                    "end": 199,
-                    "file": "examples/structs.vader"
-                  }
-                },
-                {
-                  "name": "y",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "location": {
-                    "start": 200,
-                    "end": 201,
-                    "file": "examples/structs.vader"
-                  }
-                }
-              ],
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "BinaryExpression",
+              "operator": "+",
               "type": {
                 "name": "u32",
                 "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "p1",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "origin",
+                          "type": {
+                            "kind": "struct",
+                            "parameters": [
+                              {
+                                "name": "x",
+                                "type": {
+                                  "name": "u32",
+                                  "kind": "primitive"
+                                }
+                              },
+                              {
+                                "name": "y",
+                                "type": {
+                                  "name": "u32",
+                                  "kind": "primitive"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": "z",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 190,
+                      "end": 192,
+                      "file": "examples/structs.vader"
+                    }
+                  },
+                  {
+                    "name": "origin",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 193,
+                      "end": 199,
+                      "file": "examples/structs.vader"
+                    }
+                  },
+                  {
+                    "name": "y",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 200,
+                      "end": 201,
+                      "file": "examples/structs.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 190,
+                  "end": 201,
+                  "file": "examples/structs.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "p2",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 204,
+                      "end": 206,
+                      "file": "examples/structs.vader"
+                    }
+                  },
+                  {
+                    "name": "y",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 207,
+                      "end": 208,
+                      "file": "examples/structs.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 204,
+                  "end": 208,
+                  "file": "examples/structs.vader"
+                }
               },
               "scope": {
                 "namedVariables": {},
                 "depth": 1
               },
               "location": {
-                "start": 190,
-                "file": "examples/structs.vader",
-                "end": 201
-              }
-            },
-            "rhs": {
-              "kind": "DotExpression",
-              "properties": [
-                {
-                  "name": "p2",
-                  "type": {
-                    "kind": "struct",
-                    "name": "Point",
-                    "parameters": [
-                      {
-                        "name": "x",
-                        "type": {
-                          "name": "u32",
-                          "kind": "primitive"
-                        }
-                      },
-                      {
-                        "name": "y",
-                        "type": {
-                          "name": "u32",
-                          "kind": "primitive"
-                        }
-                      }
-                    ]
-                  },
-                  "location": {
-                    "start": 204,
-                    "end": 206,
-                    "file": "examples/structs.vader"
-                  }
-                },
-                {
-                  "name": "y",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "location": {
-                    "start": 207,
-                    "end": 208,
-                    "file": "examples/structs.vader"
-                  }
-                }
-              ],
-              "type": {
-                "name": "u32",
-                "kind": "primitive"
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
-              "location": {
-                "start": 204,
-                "file": "examples/structs.vader",
-                "end": 208
+                "start": 202,
+                "end": 203,
+                "file": "examples/structs.vader"
               }
             },
             "scope": {
@@ -549,22 +647,22 @@
               "depth": 1
             },
             "location": {
-              "start": 202,
-              "end": 203,
+              "start": 190,
+              "end": 192,
               "file": "examples/structs.vader"
             }
-          },
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 190,
-            "end": 192,
-            "file": "examples/structs.vader"
           }
+        ],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 105,
+          "end": 210,
+          "file": "examples/structs.vader"
         }
-      ],
+      },
       "scope": {
         "namedVariables": {},
         "depth": 0

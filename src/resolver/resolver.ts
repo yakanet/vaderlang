@@ -2,14 +2,14 @@ import {Scope} from "./scope";
 import {
     BasicVaderType,
     type Expression,
-    type FunctionDeclaration,
+    type FunctionDeclarationExpression,
     isTypeEquals,
     type Program,
     type ReturnStatement,
     type Statement,
-    type VaderType,
     type VariableDeclarationStatement,
 } from "../parser/types";
+import assert from "node:assert";
 
 export function resolve(program: Program): Program {
     const scope = new Scope();
@@ -36,8 +36,7 @@ function resolveStatement(
                 expression: resolveExpression(statement.expression, scope),
                 scope,
             } satisfies ReturnStatement;
-        case "FunctionDeclaration":
-            return resolveFunctionDeclaration(statement, scope);
+
         case 'ConditionalStatement': {
             return {
                 ...statement,
@@ -59,24 +58,6 @@ function resolveStatement(
                 scope,
             };
         }
-        case "StructStatement": {
-            const type: VaderType = {
-                kind: 'struct',
-                name: statement.name,
-                parameters: []
-            }
-            for (const parameter of statement.definition) {
-                if (parameter.typeName.kind === 'unknown') {
-                    parameter.typeName = scope.lookupVariable(parameter.typeName.name).type
-                }
-                type.parameters.push({name: parameter.attributeName, type: parameter.typeName});
-            }
-            scope.newGlobalStruct(type, statement.name);
-            return {
-                ...statement,
-                scope
-            }
-        }
         case "ForStatement":
             throw new Error("unimplemented " + statement.kind);
 
@@ -85,28 +66,19 @@ function resolveStatement(
 }
 
 function resolveFunctionDeclaration(
-    statement: FunctionDeclaration,
+    statement: FunctionDeclarationExpression,
     scope: Scope
-): FunctionDeclaration {
+): FunctionDeclarationExpression {
     const functionScope = new Scope(scope);
     let i = 0;
-    for (const param of statement.parameters) {
-        while (param.type.kind === 'unknown') {
-            param.type = scope.lookupVariable(param.type.name).type;
+    for (const parameter of statement.type.parameters) {
+        while (parameter.type.kind === 'unknown') {
+            parameter.type = scope.lookupVariable(parameter.type.name).type;
         }
-        functionScope.newFunctionParameter(param.type, i++, param.name);
+        functionScope.newFunctionParameter(parameter.type, i++, parameter.name);
     }
     const body = statement.body.map((stmt) =>
         resolveStatement(stmt, functionScope)
-    );
-    scope.newGlobalFunction(
-        BasicVaderType.function,
-        statement.name,
-        {
-            decorators: statement.decorators,
-            parameters: statement.parameters.map(p => p.type),
-            returnType: statement.returnType,
-        }
     );
     return {
         ...statement,
@@ -189,12 +161,14 @@ function resolveExpression(
                 scope,
             };
         }
+        case "FunctionDeclarationExpression":
+            return resolveFunctionDeclaration(expression, scope);
         case "CallExpression": {
             const resolved = scope.lookupVariable(expression.functionName);
             const parameters = expression.parameters.map((param) =>
                 resolveExpression(param, scope)
             );
-            if (resolved.source.kind !== 'GlobalFunctionSource') {
+            if (resolved.type.kind !== 'function') {
                 throw new Error(`Only function can be call, here try to call a ${resolved.source.kind}`);
             }
 
@@ -202,10 +176,23 @@ function resolveExpression(
                 ...expression,
                 kind: 'CallExpression',
                 parameters,
-                type: resolved.source.returnType,
+                type: resolved.type.returnType,
                 scope,
             };
 
+        }
+        case "StructDeclarationExpression": {
+            assert(expression.type.kind === 'struct');
+            for (const parameter of expression.type.parameters) {
+                if (parameter.type.kind === 'unknown') {
+                    parameter.type = scope.lookupVariable(parameter.type.name).type
+                }
+                //type.parameters.push({name: parameter.name, type: parameter.type});
+            }
+            return {
+                ...expression,
+                scope
+            }
         }
         case 'VariableExpression': {
             const variable = scope.lookupVariable(expression.value)
@@ -263,7 +250,7 @@ function resolveExpression(
                 if (previousType.kind === 'struct') {
                     const resolvedType = previousType.parameters.find(p => p.name === expression.properties[i].name)
                     if (!resolvedType) {
-                        throw new Error(`Unresolved property ${expression.properties[i].name} on the struct ${previousType.name}`);
+                        throw new Error(`Unresolved property ${expression.properties[i].name}`);
                     }
                     expression.properties[i].type = resolvedType.type;
                 } else {

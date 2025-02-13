@@ -2,25 +2,60 @@
   "kind": "Program",
   "body": [
     {
-      "kind": "FunctionDeclaration",
+      "kind": "VariableDeclarationStatement",
       "name": "file",
-      "parameters": [
-        {
-          "name": "path",
-          "type": {
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "path",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "string",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "path",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
             "name": "string",
             "kind": "primitive"
           }
+        },
+        "body": [],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 21,
+          "end": 45,
+          "file": "modules/std.vader"
         }
-      ],
-      "returnType": {
-        "name": "string",
-        "kind": "primitive"
       },
-      "decorators": [
-        "intrinsic"
-      ],
-      "body": [],
       "scope": {
         "namedVariables": {},
         "depth": 0
@@ -32,25 +67,60 @@
       }
     },
     {
-      "kind": "FunctionDeclaration",
+      "kind": "VariableDeclarationStatement",
       "name": "print",
-      "parameters": [
-        {
-          "name": "message",
-          "type": {
-            "name": "string",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "message",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "void",
             "kind": "primitive"
           }
+        },
+        "body": [],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 69,
+          "end": 94,
+          "file": "modules/std.vader"
         }
-      ],
-      "returnType": {
-        "name": "void",
-        "kind": "primitive"
       },
-      "decorators": [
-        "intrinsic"
-      ],
-      "body": [],
       "scope": {
         "namedVariables": {},
         "depth": 0
@@ -97,99 +167,68 @@
       }
     },
     {
-      "kind": "FunctionDeclaration",
+      "kind": "VariableDeclarationStatement",
       "name": "add",
-      "parameters": [
-        {
-          "name": "a",
-          "type": {
-            "name": "u32",
-            "kind": "primitive"
-          }
-        }
-      ],
-      "returnType": {
-        "name": "u32",
-        "kind": "primitive"
-      },
-      "decorators": [],
-      "body": [
-        {
-          "kind": "VariableDeclarationStatement",
-          "name": "x",
-          "isConstant": false,
-          "type": {
-            "name": "u32",
-            "kind": "primitive"
-          },
-          "value": {
-            "kind": "NumberExpression",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "a",
             "type": {
               "name": "u32",
               "kind": "primitive"
-            },
-            "value": 2,
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
-            "location": {
-              "start": 67,
-              "end": 68,
-              "file": "examples/hello.vader"
             }
-          },
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 62,
-            "end": 68,
-            "file": "examples/hello.vader"
           }
-        },
-        {
-          "kind": "VariableAssignmentStatement",
-          "identifier": "x",
-          "value": {
-            "kind": "BinaryExpression",
-            "operator": "+",
-            "type": {
-              "name": "u32",
-              "kind": "primitive"
-            },
-            "lhs": {
-              "kind": "VariableExpression",
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "a",
               "type": {
                 "name": "u32",
                 "kind": "primitive"
-              },
-              "value": "x",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
-              "location": {
-                "start": 77,
-                "end": 78,
-                "file": "examples/hello.vader"
               }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "x",
+            "isConstant": false,
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
             },
-            "rhs": {
+            "value": {
               "kind": "NumberExpression",
               "type": {
                 "name": "u32",
                 "kind": "primitive"
               },
-              "value": 1,
+              "value": 2,
               "scope": {
                 "namedVariables": {},
                 "depth": 1
               },
               "location": {
-                "start": 81,
-                "end": 82,
+                "start": 67,
+                "end": 68,
                 "file": "examples/hello.vader"
               }
             },
@@ -198,85 +237,149 @@
               "depth": 1
             },
             "location": {
-              "start": 79,
-              "end": 80,
+              "start": 62,
+              "end": 68,
               "file": "examples/hello.vader"
             }
           },
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
+          {
+            "kind": "VariableAssignmentStatement",
+            "identifier": "x",
+            "value": {
+              "kind": "BinaryExpression",
+              "operator": "+",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "VariableExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": "x",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 77,
+                  "end": 78,
+                  "file": "examples/hello.vader"
+                }
+              },
+              "rhs": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 1,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 81,
+                  "end": 82,
+                  "file": "examples/hello.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 79,
+                "end": 80,
+                "file": "examples/hello.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 75,
+              "end": 76,
+              "file": "examples/hello.vader"
+            }
           },
-          "location": {
-            "start": 75,
-            "end": 76,
-            "file": "examples/hello.vader"
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "BinaryExpression",
+              "operator": "+",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "VariableExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": "a",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 94,
+                  "end": 95,
+                  "file": "examples/hello.vader"
+                }
+              },
+              "rhs": {
+                "kind": "VariableExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": "x",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 98,
+                  "end": 99,
+                  "file": "examples/hello.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 96,
+                "end": 97,
+                "file": "examples/hello.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 94,
+              "end": 95,
+              "file": "examples/hello.vader"
+            }
           }
+        ],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
         },
-        {
-          "kind": "ReturnStatement",
-          "expression": {
-            "kind": "BinaryExpression",
-            "operator": "+",
-            "type": {
-              "name": "u32",
-              "kind": "primitive"
-            },
-            "lhs": {
-              "kind": "VariableExpression",
-              "type": {
-                "name": "u32",
-                "kind": "primitive"
-              },
-              "value": "a",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
-              "location": {
-                "start": 94,
-                "end": 95,
-                "file": "examples/hello.vader"
-              }
-            },
-            "rhs": {
-              "kind": "VariableExpression",
-              "type": {
-                "name": "u32",
-                "kind": "primitive"
-              },
-              "value": "x",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
-              "location": {
-                "start": 98,
-                "end": 99,
-                "file": "examples/hello.vader"
-              }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
-            "location": {
-              "start": 96,
-              "end": 97,
-              "file": "examples/hello.vader"
-            }
-          },
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 94,
-            "end": 95,
-            "file": "examples/hello.vader"
-          }
+        "location": {
+          "start": 40,
+          "end": 101,
+          "file": "examples/hello.vader"
         }
-      ],
+      },
       "scope": {
         "namedVariables": {},
         "depth": 0
@@ -288,177 +391,52 @@
       }
     },
     {
-      "kind": "FunctionDeclaration",
+      "kind": "VariableDeclarationStatement",
       "name": "main",
-      "parameters": [],
-      "returnType": {
-        "name": "u32",
-        "kind": "primitive"
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
       },
-      "decorators": [],
-      "body": [
-        {
-          "kind": "CallExpression",
-          "type": {
-            "name": "void",
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
+            "name": "u32",
             "kind": "primitive"
-          },
-          "functionName": "print",
-          "parameters": [
-            {
-              "kind": "StringExpression",
-              "type": {
-                "name": "string",
-                "kind": "primitive"
-              },
-              "value": "Hello world\n",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
-              "location": {
-                "start": 181,
-                "end": 194,
-                "file": "examples/hello.vader"
-              }
-            }
-          ],
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 173,
-            "end": 195,
-            "file": "examples/hello.vader"
           }
         },
-        {
-          "kind": "CallExpression",
-          "type": {
-            "name": "void",
-            "kind": "primitive"
-          },
-          "functionName": "print",
-          "parameters": [
-            {
-              "kind": "StringExpression",
-              "type": {
-                "name": "string",
-                "kind": "primitive"
-              },
-              "value": "Hello world2\n",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
-              "location": {
-                "start": 208,
-                "end": 222,
-                "file": "examples/hello.vader"
-              }
-            }
-          ],
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 200,
-            "end": 223,
-            "file": "examples/hello.vader"
-          }
-        },
-        {
-          "kind": "CallExpression",
-          "type": {
-            "name": "void",
-            "kind": "primitive"
-          },
-          "functionName": "print",
-          "parameters": [
-            {
-              "kind": "StringExpression",
-              "type": {
-                "name": "string",
-                "kind": "primitive"
-              },
-              "value": "Hello 3\n",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
-              "location": {
-                "start": 236,
-                "end": 245,
-                "file": "examples/hello.vader"
-              }
-            }
-          ],
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 228,
-            "end": 246,
-            "file": "examples/hello.vader"
-          }
-        },
-        {
-          "kind": "VariableAssignmentStatement",
-          "identifier": "return_code",
-          "value": {
-            "kind": "NumberExpression",
-            "type": {
-              "name": "u32",
-              "kind": "primitive"
-            },
-            "value": 0,
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
-            "location": {
-              "start": 265,
-              "end": 266,
-              "file": "examples/hello.vader"
-            }
-          },
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 263,
-            "end": 264,
-            "file": "examples/hello.vader"
-          }
-        },
-        {
-          "kind": "ReturnStatement",
-          "expression": {
+        "body": [
+          {
             "kind": "CallExpression",
             "type": {
-              "name": "u32",
+              "name": "void",
               "kind": "primitive"
             },
-            "functionName": "add",
+            "functionName": "print",
             "parameters": [
               {
-                "kind": "VariableExpression",
+                "kind": "StringExpression",
                 "type": {
-                  "name": "u32",
+                  "name": "string",
                   "kind": "primitive"
                 },
-                "value": "return_code",
+                "value": "Hello world\n",
                 "scope": {
                   "namedVariables": {},
                   "depth": 1
                 },
                 "location": {
-                  "start": 282,
-                  "end": 293,
+                  "start": 181,
+                  "end": 194,
                   "file": "examples/hello.vader"
                 }
               }
@@ -468,22 +446,172 @@
               "depth": 1
             },
             "location": {
-              "start": 278,
-              "end": 294,
+              "start": 173,
+              "end": 195,
               "file": "examples/hello.vader"
             }
           },
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
+          {
+            "kind": "CallExpression",
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            },
+            "functionName": "print",
+            "parameters": [
+              {
+                "kind": "StringExpression",
+                "type": {
+                  "name": "string",
+                  "kind": "primitive"
+                },
+                "value": "Hello world2\n",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 208,
+                  "end": 222,
+                  "file": "examples/hello.vader"
+                }
+              }
+            ],
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 200,
+              "end": 223,
+              "file": "examples/hello.vader"
+            }
           },
-          "location": {
-            "start": 278,
-            "end": 281,
-            "file": "examples/hello.vader"
+          {
+            "kind": "CallExpression",
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            },
+            "functionName": "print",
+            "parameters": [
+              {
+                "kind": "StringExpression",
+                "type": {
+                  "name": "string",
+                  "kind": "primitive"
+                },
+                "value": "Hello 3\n",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 236,
+                  "end": 245,
+                  "file": "examples/hello.vader"
+                }
+              }
+            ],
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 228,
+              "end": 246,
+              "file": "examples/hello.vader"
+            }
+          },
+          {
+            "kind": "VariableAssignmentStatement",
+            "identifier": "return_code",
+            "value": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": 0,
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 265,
+                "end": 266,
+                "file": "examples/hello.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 263,
+              "end": 264,
+              "file": "examples/hello.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "CallExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "functionName": "add",
+              "parameters": [
+                {
+                  "kind": "VariableExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": "return_code",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 282,
+                    "end": 293,
+                    "file": "examples/hello.vader"
+                  }
+                }
+              ],
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 278,
+                "end": 294,
+                "file": "examples/hello.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 278,
+              "end": 281,
+              "file": "examples/hello.vader"
+            }
           }
+        ],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 113,
+          "end": 296,
+          "file": "examples/hello.vader"
         }
-      ],
+      },
       "scope": {
         "namedVariables": {},
         "depth": 0

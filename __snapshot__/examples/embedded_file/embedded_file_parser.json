@@ -2,25 +2,60 @@
   "kind": "Program",
   "body": [
     {
-      "kind": "FunctionDeclaration",
+      "kind": "VariableDeclarationStatement",
       "name": "file",
-      "parameters": [
-        {
-          "name": "path",
-          "type": {
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "path",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "string",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "path",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
             "name": "string",
             "kind": "primitive"
           }
+        },
+        "body": [],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 21,
+          "end": 45,
+          "file": "modules/std.vader"
         }
-      ],
-      "returnType": {
-        "name": "string",
-        "kind": "primitive"
       },
-      "decorators": [
-        "intrinsic"
-      ],
-      "body": [],
       "scope": {
         "namedVariables": {},
         "depth": 0
@@ -32,25 +67,60 @@
       }
     },
     {
-      "kind": "FunctionDeclaration",
+      "kind": "VariableDeclarationStatement",
       "name": "print",
-      "parameters": [
-        {
-          "name": "message",
-          "type": {
-            "name": "string",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "message",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "void",
             "kind": "primitive"
           }
+        },
+        "body": [],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 69,
+          "end": 94,
+          "file": "modules/std.vader"
         }
-      ],
-      "returnType": {
-        "name": "void",
-        "kind": "primitive"
       },
-      "decorators": [
-        "intrinsic"
-      ],
-      "body": [],
       "scope": {
         "namedVariables": {},
         "depth": 0
@@ -62,52 +132,77 @@
       }
     },
     {
-      "kind": "FunctionDeclaration",
+      "kind": "VariableDeclarationStatement",
       "name": "main",
-      "parameters": [],
-      "returnType": {
-        "name": "void",
-        "kind": "primitive"
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
       },
-      "decorators": [],
-      "body": [
-        {
-          "kind": "CallExpression",
-          "type": {
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
             "name": "void",
             "kind": "primitive"
-          },
-          "functionName": "print",
-          "parameters": [
-            {
-              "kind": "StringExpression",
-              "type": {
-                "name": "string",
-                "kind": "primitive"
-              },
-              "value": "@load \"modules/std\"\n\nmain :: fn() {\n    print(@file(\"examples/embedded_file.vader\"))\n}",
-              "location": {
-                "start": 47,
-                "end": 51,
-                "file": "examples/embedded_file.vader"
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              }
-            }
-          ],
-          "scope": {
-            "namedVariables": {},
-            "depth": 1
-          },
-          "location": {
-            "start": 40,
-            "end": 84,
-            "file": "examples/embedded_file.vader"
           }
+        },
+        "body": [
+          {
+            "kind": "CallExpression",
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            },
+            "functionName": "print",
+            "parameters": [
+              {
+                "kind": "StringExpression",
+                "type": {
+                  "name": "string",
+                  "kind": "primitive"
+                },
+                "value": "@load \"modules/std\"\n\nmain :: fn() {\n    print(@file(\"examples/embedded_file.vader\"))\n}",
+                "location": {
+                  "start": 47,
+                  "end": 51,
+                  "file": "examples/embedded_file.vader"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                }
+              }
+            ],
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 40,
+              "end": 84,
+              "file": "examples/embedded_file.vader"
+            }
+          }
+        ],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 31,
+          "end": 86,
+          "file": "examples/embedded_file.vader"
         }
-      ],
+      },
       "scope": {
         "namedVariables": {},
         "depth": 0
