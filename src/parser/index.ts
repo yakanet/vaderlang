@@ -1,13 +1,15 @@
 import {keywords, tokenize} from "../tokens";
 import type {Decorator, Token} from "../tokens/types.ts";
 import {
+    type ArrayDeclarationExpression,
+    type ArrayIndexExpression,
+    type ArrayVaderType,
     BasicVaderType,
     type CallExpression,
     type ConditionalExpression,
     type ConditionalStatement,
     type Expression,
     type FunctionDeclaration,
-    type NumberExpression,
     type Program,
     type ReturnStatement,
     type Statement,
@@ -188,30 +190,7 @@ function parseType(parser: Parser): VaderType {
     }
     if (identifier in BasicVaderType) {
         type = (BasicVaderType as any)[identifier];
-    } else {
-
     }
-    while (parser.isCurrentType('OpenSquareBracket')) {
-        parser.expect('OpenSquareBracket');
-        if (parser.isCurrentType('CloseSquareBracket')) {
-            parser.expect('CloseSquareBracket');
-            type = {
-                type,
-                size: 0,
-                kind: "array"
-            }
-        } else {
-            const arraySize = parseExpression(parser);
-            parser.expectTrue(arraySize.kind != "NumberExpression", 'Const array could be only initialized with a constant number');
-            type = {
-                type,
-                size: (arraySize as NumberExpression).value,
-                kind: "array"
-            }
-            parser.expect('CloseSquareBracket');
-        }
-    }
-
     return type
 }
 
@@ -279,7 +258,91 @@ function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifie
         const value = parseStructInstantiation(parser);
         return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, value);
     }
+    if (parser.isCurrentType('Identifier') && parser.next.type === 'OpenSquareBracket') {
+        const value = parseArrayInitializationExpression(parser);
+        return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, value);
+    }
     return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type);
+}
+
+function parseArrayInitializationExpression(parser: Parser): Expression {
+    const token = parser.current;
+    const arrayType = parseType(parser)
+    let type: ArrayVaderType = {
+        kind: 'array',
+        type: arrayType,
+        size: -1,
+    }
+
+    while (parser.isCurrentType('OpenSquareBracket')) {
+        parser.expect('OpenSquareBracket')
+        if (parser.isCurrentType('UnderscoreToken')) {
+            parser.expect('UnderscoreToken');
+            type.size = -1;
+        } else if (parser.isCurrentType('NumberToken')) {
+            type.size = Number(parser.expect('NumberToken').value);
+            if (type.size % 1 || type.size < 0) {
+                parser.reportError(`Wrong size for the array. Should be a positive integer`, parser.previous.location);
+            }
+        } else {
+            parser.reportError(`Array declaration need to set a fixed size`, parser.current.location);
+        }
+        parser.expect('CloseSquareBracket');
+    }
+
+    const initialValue: Expression[] = []
+    let hasInitialValue = false;
+    if (parser.isCurrentType('OpenCurlyBracket')) {
+        parser.expect('OpenCurlyBracket')
+        hasInitialValue = true;
+        while (!parser.isCurrentType('CloseCurlyBracket')) {
+            initialValue.push(parseExpression(parser));
+            if (!parser.isCurrentType('CommaToken')) {
+                break
+            }
+            parser.expect('CommaToken');
+        }
+        parser.expect('CloseCurlyBracket')
+    }
+
+    if (type.size < 0) {
+        if (!hasInitialValue) {
+            parser.reportError(`Array initial value is mandatory when creating an array with no specified size`, parser.previous.location);
+        } else {
+            type.size = initialValue.length;
+        }
+    } else if (hasInitialValue && type.size !== initialValue.length) {
+        parser.reportError(`Type mismatch between array size and initial value size`, parser.previous.location);
+    }
+
+    return {
+        kind: 'ArrayDeclarationExpression',
+        type: type,
+        value: hasInitialValue ? initialValue : undefined,
+        scope: UnresolvedScope,
+        location: {
+            ...token.location,
+            end: parser.previous.location.end
+        }
+    } satisfies ArrayDeclarationExpression
+}
+
+function parseArrayIndexExpression(parser: Parser) {
+    const token = parser.expect('Identifier');
+    const left: ArrayIndexExpression = {
+        kind: 'ArrayIndexExpression',
+        indexes: [],
+        identifier: token.value,
+        location: {...token.location},
+        scope: UnresolvedScope,
+        type: BasicVaderType.unknown
+    }
+    do {
+        parser.expect('OpenSquareBracket')
+        left.indexes.push(parseExpression(parser));
+        parser.expect('CloseSquareBracket')
+    } while (parser.isCurrentType('OpenSquareBracket'))
+    return left;
 }
 
 function parseStructInstantiation(parser: Parser) {
@@ -515,6 +578,10 @@ function parseExpression(parser: Parser): Expression {
 
     if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenCurlyBracket') {
         lhs = parseStructInstantiation(parser);
+    }
+
+    if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenSquareBracket') {
+        lhs = parseArrayIndexExpression(parser);
     }
 
     if (parser.isCurrentType('Identifier')) {

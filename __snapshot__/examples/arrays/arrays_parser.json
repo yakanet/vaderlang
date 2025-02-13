@@ -1,0 +1,290 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "FunctionDeclaration",
+      "name": "putu",
+      "parameters": [
+        {
+          "name": "value",
+          "type": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        }
+      ],
+      "returnType": {
+        "name": "void",
+        "kind": "primitive"
+      },
+      "decorators": [
+        "intrinsic"
+      ],
+      "body": [],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 11,
+        "end": 41,
+        "file": "examples/arrays.vader"
+      }
+    },
+    {
+      "kind": "FunctionDeclaration",
+      "name": "main",
+      "parameters": [],
+      "returnType": {
+        "name": "u32",
+        "kind": "primitive"
+      },
+      "decorators": [],
+      "body": [
+        {
+          "kind": "VariableDeclarationStatement",
+          "name": "x",
+          "isConstant": true,
+          "type": {
+            "kind": "array",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            },
+            "size": 3
+          },
+          "value": {
+            "kind": "ArrayDeclarationExpression",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "size": 3
+            },
+            "value": [
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 2,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 82,
+                  "end": 83,
+                  "file": "examples/arrays.vader"
+                }
+              },
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 3,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 85,
+                  "end": 86,
+                  "file": "examples/arrays.vader"
+                }
+              },
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 4,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 88,
+                  "end": 89,
+                  "file": "examples/arrays.vader"
+                }
+              }
+            ],
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 74,
+              "end": 90,
+              "file": "examples/arrays.vader"
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 69,
+            "end": 90,
+            "file": "examples/arrays.vader"
+          }
+        },
+        {
+          "kind": "VariableDeclarationStatement",
+          "name": "y",
+          "isConstant": true,
+          "type": {
+            "kind": "array",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            },
+            "size": 4
+          },
+          "value": {
+            "kind": "ArrayDeclarationExpression",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "size": 4
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 100,
+              "end": 106,
+              "file": "examples/arrays.vader"
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 95,
+            "end": 106,
+            "file": "examples/arrays.vader"
+          }
+        },
+        {
+          "kind": "VariableDeclarationStatement",
+          "name": "z",
+          "isConstant": true,
+          "type": {
+            "name": "u32",
+            "kind": "primitive"
+          },
+          "value": {
+            "kind": "NumberExpression",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            },
+            "value": 2,
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 116,
+              "end": 117,
+              "file": "examples/arrays.vader"
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 111,
+            "end": 117,
+            "file": "examples/arrays.vader"
+          }
+        },
+        {
+          "kind": "ReturnStatement",
+          "expression": {
+            "kind": "ArrayIndexExpression",
+            "indexes": [
+              {
+                "kind": "VariableExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": "z",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 131,
+                  "end": 132,
+                  "file": "examples/arrays.vader"
+                }
+              }
+            ],
+            "identifier": "x",
+            "location": {
+              "start": 129,
+              "end": 130,
+              "file": "examples/arrays.vader"
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "size": 3
+            }
+          },
+          "scope": {
+            "namedVariables": {},
+            "depth": 1
+          },
+          "location": {
+            "start": 129,
+            "end": 130,
+            "file": "examples/arrays.vader"
+          }
+        }
+      ],
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 43,
+        "end": 135,
+        "file": "examples/arrays.vader"
+      }
+    }
+  ],
+  "mainMethod": "main",
+  "scope": {
+    "namedVariables": {},
+    "depth": 0
+  },
+  "location": {
+    "start": 1,
+    "end": 135,
+    "file": "examples/arrays.vader"
+  }
+}

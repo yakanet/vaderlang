@@ -123,6 +123,19 @@ export type DotExpression = BasicStatement & {
     }[],
 }
 
+export type ArrayDeclarationExpression = BasicStatement & {
+    kind: 'ArrayDeclarationExpression',
+    type: ArrayVaderType,
+    value?: Expression[],
+}
+
+
+export type ArrayIndexExpression  = BasicStatement & {
+    kind: 'ArrayIndexExpression',
+    type: VaderType,
+    identifier: string,
+    indexes: Expression[]
+}
 
 export type VaderType = RawVaderType | ArrayVaderType | StructVaderType | UnknownType
 
@@ -140,7 +153,7 @@ interface StructVaderType {
     }[]
 }
 
-interface ArrayVaderType {
+export interface ArrayVaderType {
     kind: 'array'
     size: number,
     type: VaderType,
@@ -212,6 +225,8 @@ export type Expression =
     | CallExpression
     | StructInstantiationExpression
     | DotExpression
+    | ArrayDeclarationExpression
+    | ArrayIndexExpression
 
 export type Statement =
     | Program

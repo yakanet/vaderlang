@@ -1,4 +1,9 @@
+@intrinsic
+putu :: fn(value: u32) -> void
+
 main :: fn() -> u32 {
-    x :: u32[3]
-    return x[0]
+    x :: u32[_] {2, 3, 4}
+    y :: u32[4]
+    z :: 2
+    return x[z]
 }

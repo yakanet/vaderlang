@@ -1,4 +1,6 @@
 import {
+    type ArrayDeclarationExpression,
+    type ArrayIndexExpression,
     BasicVaderType,
     type CallExpression,
     type DotExpression,
@@ -241,6 +243,12 @@ export class WasmEmitter {
             case 'DotExpression':
                 return this.emitDotExpression(expression);
 
+            case 'ArrayDeclarationExpression':
+                return this.instantiateArray(expression)
+
+            case 'ArrayIndexExpression':
+                return this.emitArrayIndexExpression(expression)
+
             case "BinaryExpression": {
                 const fn = this.binaryOperations.get(
                     [
@@ -287,6 +295,34 @@ export class WasmEmitter {
         ], binaryen.i32);
     }
 
+    private instantiateArray(expression: ArrayDeclarationExpression): binaryen.ExpressionRef {
+        assert(expression.type.kind === "array");
+        const size = size_of(expression.type);
+        const segment = this.malloc(size);
+        let offset = 0;
+        let primitive_type: VaderType = expression.type;
+        while (primitive_type.kind === "array") {
+            primitive_type = primitive_type.type
+        }
+        const offset_padding = size_of(primitive_type);
+        const exp: binaryen.ExpressionRef[] = [];
+        if (expression.value) {
+            for (const v of expression.value) {
+                exp.push(this.module.i32.store(
+                    offset,
+                    0,
+                    this.module.i32.const(segment.offset),
+                    this.emitExpression(v)
+                ))
+                offset += offset_padding;
+            }
+        }
+        return this.module.block(null, [
+            ...exp,
+            this.module.i32.const(segment.offset)
+        ], binaryen.i32);
+    }
+
     private emitDotExpression(expression: DotExpression) {
         const resolved = expression.scope.lookupVariable(expression.properties[0].name);
         let exprs: binaryen.ExpressionRef
@@ -300,7 +336,7 @@ export class WasmEmitter {
             throw new Error(`Unimplemented get variable from ${resolved.source.kind}`);
         }
         let previousType = expression.properties[0].type
-        for (let i = 1; i < expression.properties.length; i ++) {
+        for (let i = 1; i < expression.properties.length; i++) {
             if (previousType.kind === 'struct') {
                 let offset = 0;
                 const index = previousType.parameters.findIndex(p => p.name === expression.properties[i].name)
@@ -316,6 +352,32 @@ export class WasmEmitter {
             }
         }
         return exprs;
+    }
+
+    private emitArrayIndexExpression(expression: ArrayIndexExpression) {
+        const resolved = expression.scope.lookupVariable(expression.identifier);
+        let exprs: binaryen.ExpressionRef
+        if (resolved.source.kind === 'GlobalFunctionSource') {
+            exprs = this.module.global.get(resolved.named, binaryen.i32);
+        } else if (resolved.source.kind === 'LocalVariableSource') {
+            exprs = this.module.local.get(resolved.source.index, binaryen.i32);
+        } else if (resolved.source.kind === 'FunctionParameterSource') {
+            exprs = this.module.local.get(resolved.source.index, binaryen.i32);
+        } else {
+            throw new Error(`Unimplemented get variable from ${resolved.source.kind}`);
+        }
+        let index = this.module.i32.const(1);
+        let lastType = expression.type;
+        for (let i = 0; i < expression.indexes.length; i++) {
+            index = this.module.i32.mul(index, this.emitExpression(expression.indexes[i]));
+            lastType = (lastType as any).type
+        }
+        index = this.module.i32.mul(index, this.module.i32.const(size_of(lastType)));
+        return this.module.i32.load(
+            0,
+            0,
+            this.module.i32.add(exprs, index),
+        )
     }
 
     binaryOperations = new Map<string, (a: number, b: number) => number>([
@@ -403,7 +465,7 @@ function align_ptr(address: number) {
 
 function size_of(t: VaderType): number {
     if (t.kind === 'array') {
-        return 4 * size_of(t.type);
+        return t.size * size_of(t.type);
     }
     if (t.kind === 'struct') {
         let size = 0;
@@ -458,7 +520,7 @@ function createBinaryenConst(module: binaryen.Module, t: VaderType, value: numbe
 
 function mapBinaryenType(t: VaderType): binaryen.Type {
     if (t.kind === 'array') {
-        throw new Error(`Unimplemented array type`)
+        return binaryen.i32;
     }
     if (t.kind === 'struct') {
         return binaryen.i32;

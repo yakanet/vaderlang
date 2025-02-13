@@ -174,6 +174,9 @@ export function* tokenize(content: string, file: string): Generator<Token> {
             case c === ">":
                 yield createToken("HigherThanToken", "HigherThanEqualToken");
                 break;
+            case c === "_":
+                yield createToken("UnderscoreToken");
+                break
             case c === '"': {
                 let buffer = "";
                 while (tokenizer.hasNext() && tokenizer.next() !== '"') {

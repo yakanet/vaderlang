@@ -49,6 +49,7 @@ export type Token =
     | CreateToken<'SemicolonToken'>
     | CreateToken<'ColonToken'>
     | CreateToken<'CommaToken'>
+    | CreateToken<'UnderscoreToken'>
     | CreateToken<'Identifier'>
     | CreateToken<'Keyword'>
     | CreateToken<'Decorator', Decorator>

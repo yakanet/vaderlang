@@ -215,6 +215,23 @@ function resolveExpression(
                 scope
             }
         }
+
+        case 'ArrayIndexExpression': {
+            const resolved = scope.lookupVariable(expression.identifier)
+            return {
+                ...expression,
+                type: resolved.type,
+                indexes: expression.indexes.map(i => resolveExpression(i, scope)),
+                scope
+            }
+        }
+        case 'ArrayDeclarationExpression': {
+            return {
+                ...expression,
+                value: expression.value?.map(i => resolveExpression(i, scope)),
+                scope
+            }
+        }
         case 'StructInstantiationExpression': {
             const resolved = scope.lookupVariable(expression.structName)
             if (resolved.type.kind !== 'struct') {
