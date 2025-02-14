@@ -1,8 +1,6 @@
-import type {Scope} from "../resolver/scope.ts";
 import type {Decorator, Token} from "../tokens/types.ts";
 
 type BasicStatement = {
-    scope: Scope;
     location: {
         start: number
         end: number
@@ -13,7 +11,6 @@ type BasicStatement = {
 export type Program = BasicStatement & {
     kind: 'Program',
     body: Statement[],
-    mainMethod: string | undefined;
 }
 
 export type ReturnStatement = BasicStatement & {
@@ -49,16 +46,16 @@ export type CallExpression = BasicStatement & {
 }
 
 export type VariableExpression = BasicStatement & {
-    kind: 'VariableExpression',
+    kind: 'VariableExpression'
     type: VaderType
-    value: string
+    identifier: string
 }
 
 export type VariableDeclarationStatement = BasicStatement & {
     kind: 'VariableDeclarationStatement',
-    name: string,
+    name: string
     type: VaderType
-    isConstant: boolean,
+    isConstant: boolean
     value?: Expression
 }
 
@@ -93,8 +90,8 @@ export type ForStatement = BasicStatement & {
 }
 
 export type VariableAssignmentStatement = BasicStatement & {
-    kind: 'VariableAssignmentStatement',
-    identifier: string,
+    kind: 'VariableAssignmentStatement'
+    identifier: string
     value: Expression
 }
 

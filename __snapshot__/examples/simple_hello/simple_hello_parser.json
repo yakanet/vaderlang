@@ -46,19 +46,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 21,
           "end": 45,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 11,
@@ -111,19 +103,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 69,
           "end": 94,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 58,
@@ -171,10 +155,6 @@
                   "kind": "primitive"
                 },
                 "value": "Hello world\n",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 40,
                   "end": 53,
@@ -182,10 +162,6 @@
                 }
               }
             ],
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
             "location": {
               "start": 32,
               "end": 54,
@@ -193,19 +169,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 23,
           "end": 56,
           "file": "examples/simple_hello.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 13,
@@ -214,11 +182,6 @@
       }
     }
   ],
-  "mainMethod": "main",
-  "scope": {
-    "namedVariables": {},
-    "depth": 0
-  },
   "location": {
     "start": 1,
     "end": 56,

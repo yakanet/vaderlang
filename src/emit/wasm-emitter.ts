@@ -12,6 +12,7 @@ import {
     type StructInstantiationExpression,
     typeToString,
     type VaderType,
+    type VariableDeclarationStatement,
 } from "../parser/types";
 import binaryen from "binaryen";
 import {addWasiFunction} from "./wasi.ts";
@@ -19,13 +20,22 @@ import assert from "node:assert";
 
 const encoder = new TextEncoder();
 
+const GLOBAL_SCOPE = '$$GLOBAL_SCOPE$$'
+
 export class WasmEmitter {
     private memoryLayout: { offset: number, data: Uint8Array }[] = [];
     public readonly module = new binaryen.Module();
     private forCount = 0;
+    private currentScope: string = GLOBAL_SCOPE;
+    private symbols: Record<string, Map<string, {
+        type: VaderType,
+        index: number,
+        scope: 'parameter' | 'local' | 'global'
+    }>> = {};
 
     constructor() {
         addWasiFunction(this.module);
+        this.symbols[GLOBAL_SCOPE] = new Map();
     }
 
     emit(program: Program) {
@@ -46,18 +56,19 @@ export class WasmEmitter {
     }
 
     emitMainMethod(program: Program) {
-        if (!program.mainMethod) {
+        const mainVariable = program.body.find(b => b.kind === 'VariableDeclarationStatement' && b.name === 'main') as VariableDeclarationStatement
+        if (!mainVariable) {
             return;
         }
-        const resolved = program.scope.lookupVariable(program.mainMethod);
-        if (resolved.type.kind !== "function") {
+        const mainFunction = mainVariable.value;
+        if (mainFunction?.kind !== 'FunctionDeclarationExpression') {
             throw new Error(`main method must be a function`);
         }
         // TODO pass program param
-        if (resolved.type.returnType.kind !== 'primitive') {
+        if (mainFunction.type.returnType.kind !== 'primitive') {
             throw new Error(`main method should return a void type or u32 type`)
         }
-        if (isTypeEquals(resolved.type.returnType, BasicVaderType.u32)) {
+        if (isTypeEquals(mainFunction.type.returnType, BasicVaderType.u32)) {
             const funct = this.module.addFunction(
                 "_start",
                 binaryen.createType([]),
@@ -66,14 +77,14 @@ export class WasmEmitter {
                 this.module.block(null, [
                     this.module.call(
                         "wasi_snapshot_preview1:proc_exit",
-                        [this.module.call(program.mainMethod, [], binaryen.i32)],
+                        [this.module.call(mainVariable.name, [], binaryen.i32)],
                         binaryen.none
                     ),
                 ])
             );
             this.module.setStart(funct);
-        } else if (isTypeEquals(resolved.type.returnType, BasicVaderType.void)) {
-            this.module.setStart(this.module.getFunction(program.mainMethod));
+        } else if (isTypeEquals(mainFunction.type.returnType, BasicVaderType.void)) {
+            this.module.setStart(this.module.getFunction(mainVariable.name));
         } else {
             throw new Error(`main method should return a void type or u32 type`)
         }
@@ -82,31 +93,48 @@ export class WasmEmitter {
     emitTopLevelStatement(statement: Statement) {
         switch (statement.kind) {
             case "VariableDeclarationStatement": {
-                const variableRef = statement.scope.lookupVariable(statement.name);
-                switch (variableRef.type.kind) {
+                assert(this.currentScope === GLOBAL_SCOPE);
+                this.symbols[this.currentScope].set(
+                    statement.name,
+                    {
+                        type: statement.type,
+                        scope: 'global',
+                        index: -1
+                    }
+                )
+                switch (statement.type.kind) {
                     case 'struct':
-                        return; // no need to declare anything
+                        return;
                     case 'function': {
                         assert(statement.value?.kind === 'FunctionDeclarationExpression');
                         const funct = statement.value as FunctionDeclarationExpression;
-                        if (variableRef.type.decorators.includes('intrinsic')) {
+                        if (statement.type.decorators.includes('intrinsic')) {
                             return;
                         }
-                        const localVariables = funct.body.length > 0
-                            ? funct.body[0].scope.allFunctionLevelVariable().filter(v => v.source.kind === 'LocalVariableSource')
-                            : [];
+                        this.currentScope = statement.name;
+                        this.symbols[this.currentScope] = new Map()
+                        for (const parameter of funct.type.parameters) {
+                            this.symbols[this.currentScope].set(parameter.name, {
+                                type: parameter.type,
+                                scope: 'parameter',
+                                index: this.symbols[this.currentScope].size
+                            })
+                        }
+                        const body = funct.body.map((stmt) => this.emitStatement(stmt))
                         this.module.addFunction(
                             statement.name,
                             binaryen.createType(
-                                statement.value.type.parameters.map((t) => mapBinaryenType(t.type))
+                                [...this.symbols[this.currentScope].values()]
+                                    .filter(({scope}) => scope === 'parameter')
+                                    .map(({type}) => mapBinaryenType(type))
                             ),
                             mapBinaryenType(funct.type.returnType),
-                            localVariables.map(variable => mapBinaryenType(variable.type)),
-                            this.module.block(
-                                null,
-                                funct.body.map((stmt) => this.emitStatement(stmt))
-                            )
+                            [...this.symbols[this.currentScope].values()]
+                                .filter(({scope}) => scope === 'local')
+                                .map(({type}) => mapBinaryenType(type)),
+                            this.module.block(null, body)
                         );
+                        this.currentScope = GLOBAL_SCOPE;
                         this.module.addFunctionExport(statement.name, statement.name);
                         return;
                     }
@@ -114,13 +142,13 @@ export class WasmEmitter {
                     case 'primitive':
                         return this.module.addGlobal(
                             statement.name,
-                            mapBinaryenType(variableRef.type),
+                            mapBinaryenType(statement.type),
                             !statement.isConstant,
                             this.emitExpression(statement.value!)
                         );
 
                     default:
-                        throw new Error(`unrecognized top level declaration of variable type ${typeToString(variableRef.type)}`);
+                        throw new Error(`unrecognized top level declaration of variable type ${typeToString(statement.type)}`);
                 }
             }
         }
@@ -141,47 +169,44 @@ export class WasmEmitter {
             }
 
             case "VariableDeclarationStatement": {
-                const scope = stmt.scope;
-                const resolved = scope.lookupVariable(stmt.name);
-                switch (resolved.source.kind) {
-                    case "GlobalParameterSource": {
-                        return this.module.global.set(
-                            stmt.name,
-                            this.emitExpression(stmt.value!)
-                        );
-                    }
-                    case "FunctionParameterSource":
-                        throw new Error(`could not reassign parameter value`);
-
-                    case "LocalVariableSource": {
-                        return this.module.local.set(
-                            resolved.source.index,
-                            this.emitExpression(stmt.value!)
-                        )
-                    }
+                if (this.currentScope === GLOBAL_SCOPE) {
+                    this.symbols[this.currentScope].set(stmt.name, {
+                        type: stmt.type,
+                        scope: 'global',
+                        index: -1
+                    })
+                    return this.module.global.set(
+                        stmt.name,
+                        this.emitExpression(stmt.value!)
+                    );
                 }
-                throw new Error(
-                    "VariableDeclarationStatement is not implemented for " +
-                    JSON.stringify(stmt.type)
-                );
+                const variable = this.symbols[this.currentScope].get(stmt.name)
+                if (variable) {
+                    throw new Error(`redefinition of variable ${stmt.name}`)
+                }
+                const index = this.symbols[this.currentScope].size
+                this.symbols[this.currentScope].set(stmt.name, {
+                    type: stmt.type,
+                    scope: 'local',
+                    index
+                })
+                return this.module.local.set(index, this.emitExpression(stmt.value!))
             }
 
             case "VariableAssignmentStatement": {
-                const scope = stmt.scope;
-                const resolved = scope.lookupVariable(stmt.identifier);
-                if (resolved.source.kind === "GlobalParameterSource") {
+                let variable =
+                    this.symbols[this.currentScope].get(stmt.identifier)
+                    ?? this.symbols[GLOBAL_SCOPE].get(stmt.identifier)
+                if (!variable) {
+                    throw new Error(`Undeclared variable ${stmt.identifier}`);
+                }
+                if (variable.scope === 'global') {
                     return this.module.global.set(
-                        resolved.named,
+                        stmt.identifier,
                         this.emitExpression(stmt.value)
                     );
                 }
-                if (resolved.source.kind === "FunctionParameterSource") {
-                    return this.module.local.set(resolved.source.index, this.emitExpression(stmt.value));
-                }
-                if (resolved.source.kind === "LocalVariableSource") {
-                    return this.module.local.set(resolved.source.index, this.emitExpression(stmt.value));
-                }
-                break
+                return this.module.local.set(variable.index, this.emitExpression(stmt.value));
             }
 
             case 'ForStatement': {
@@ -207,11 +232,14 @@ export class WasmEmitter {
     ): binaryen.ExpressionRef {
         switch (expression.kind) {
             case 'CallExpression': {
-                const ref = expression.scope.lookupVariable(expression.functionName);
-                if (ref.type.kind !== 'function') {
-                    throw new Error(`could only call function, trying to call ${typeToString(ref.type)}.`);
+                const functionType = this.symbols[GLOBAL_SCOPE].get(expression.functionName)?.type;
+                if (!functionType) {
+                    throw new Error(`unresolved call to function ${expression.functionName}`);
                 }
-                if (ref.type.decorators.includes('intrinsic')) {
+                if (functionType.kind !== 'function') {
+                    throw new Error(`could only call function, trying to call ${typeToString(functionType)}.`);
+                }
+                if (functionType.decorators.includes('intrinsic')) {
                     switch (expression.functionName) {
                         case 'print':
                             return this.emitPrint(expression)
@@ -221,36 +249,47 @@ export class WasmEmitter {
                             throw new Error(`unknown intrinsic function '${expression.functionName}'`)
                     }
                 }
-                return this.module.call(
+                const parameters = expression.parameters.map(p => this.emitExpression(p));
+
+                const previousScope = this.currentScope;
+                this.currentScope = expression.functionName;
+                const result = this.module.call(
                     expression.functionName,
-                    expression.parameters.map(p => this.emitExpression(p)),
-                    mapBinaryenType(ref.type.returnType)
+                    parameters,
+                    mapBinaryenType(functionType.returnType)
                 );
+                this.currentScope = previousScope;
+                return result
             }
             case "VariableExpression": {
-                const ref = expression.scope.lookupVariable(expression.value);
-                const source = ref.source;
-                switch (source.kind) {
-                    case "GlobalParameterSource": {
-                        return this.module.global.get(ref.named, mapBinaryenType(ref.type));
-                    }
-                    case "FunctionParameterSource": {
-                        return this.module.local.get(
-                            source.index,
-                            mapBinaryenType(ref.type)
-                        );
-                    }
-                    case "LocalVariableSource": {
-                        return this.module.local.get(
-                            source.index,
-                            mapBinaryenType(ref.type)
-                        );
-                    }
+                let variable =
+                    this.symbols[this.currentScope].get(expression.identifier)
+                    ?? this.symbols[GLOBAL_SCOPE].get(expression.identifier)
+                if (!variable) {
+                    throw new Error(`Undeclared variable ${expression.identifier}`);
                 }
-                throw new Error(`unimplemented get variable from ${source.kind}`);
+                if(variable.scope === 'global') {
+                    return this.module.global.get(expression.identifier, mapBinaryenType(variable.type));
+                }
+                const functionVariable = this.symbols[this.currentScope].get(expression.identifier);
+                if (!functionVariable) {
+                    throw new Error(`Could not find ${expression.identifier} in ${this.currentScope}`)
+                }
+                return this.module.local.get(
+                    functionVariable.index,
+                    mapBinaryenType(functionVariable.type)
+                );
             }
             case "NumberExpression": {
                 return createBinaryenConst(this.module, expression.type, expression.value!);
+            }
+
+            case "ConditionalExpression": {
+                return this.module.if(
+                    this.emitExpression(expression.condition),
+                    this.module.block(null, expression.ifBody.map(b => this.emitStatement(b)), mapBinaryenType(expression.type)),
+                    expression.elseBody ? this.module.block(null, expression.elseBody.map(b => this.emitStatement(b as any)), mapBinaryenType(expression.type)) : undefined
+                )
             }
 
             case 'StructInstantiationExpression':
@@ -341,16 +380,15 @@ export class WasmEmitter {
     }
 
     private emitDotExpression(expression: DotExpression) {
-        const resolved = expression.scope.lookupVariable(expression.properties[0].name);
         let exprs: binaryen.ExpressionRef
-        if (resolved.source.kind === 'GlobalFunctionSource') {
-            exprs = this.module.global.get(resolved.named, binaryen.i32);
-        } else if (resolved.source.kind === 'LocalVariableSource') {
-            exprs = this.module.local.get(resolved.source.index, binaryen.i32);
-        } else if (resolved.source.kind === 'FunctionParameterSource') {
-            exprs = this.module.local.get(resolved.source.index, binaryen.i32);
+        if (this.currentScope === GLOBAL_SCOPE) {
+            exprs = this.module.global.get(expression.properties[0].name, binaryen.i32);
         } else {
-            throw new Error(`unimplemented get variable from ${resolved.source.kind}`);
+            const functionVariable = this.symbols[this.currentScope].get(expression.properties[0].name);
+            if (!functionVariable) {
+                throw new Error(`could not resolve ${expression.properties[0].name} in ${this.currentScope}`);
+            }
+            exprs = this.module.local.get(functionVariable.index, binaryen.i32);
         }
         let previousType = expression.properties[0].type
         for (let i = 1; i < expression.properties.length; i++) {

@@ -46,19 +46,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 21,
           "end": 45,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 11,
@@ -111,19 +103,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 69,
           "end": 94,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 58,
@@ -175,17 +159,9 @@
                   "start": 47,
                   "end": 51,
                   "file": "examples/embedded_file.vader"
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
                 }
               }
             ],
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
             "location": {
               "start": 40,
               "end": 84,
@@ -193,19 +169,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 31,
           "end": 86,
           "file": "examples/embedded_file.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 21,
@@ -214,11 +182,6 @@
       }
     }
   ],
-  "mainMethod": "main",
-  "scope": {
-    "namedVariables": {},
-    "depth": 0
-  },
   "location": {
     "start": 1,
     "end": 86,

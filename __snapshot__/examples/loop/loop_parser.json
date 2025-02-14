@@ -46,19 +46,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 21,
           "end": 45,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 11,
@@ -111,19 +103,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 69,
           "end": 94,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 58,
@@ -173,19 +157,11 @@
                   "kind": "primitive"
                 },
                 "value": 0,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 41,
                   "end": 42,
                   "file": "examples/loop.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
               },
               "location": {
                 "start": 36,
@@ -206,11 +182,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "i",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
+                "identifier": "i",
                 "location": {
                   "start": 44,
                   "end": 45,
@@ -224,19 +196,11 @@
                   "kind": "primitive"
                 },
                 "value": 10,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
                 "location": {
                   "start": 48,
                   "end": 50,
                   "file": "examples/loop.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 2
               },
               "location": {
                 "start": 46,
@@ -260,11 +224,7 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": "i",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
+                  "identifier": "i",
                   "location": {
                     "start": 56,
                     "end": 57,
@@ -278,29 +238,17 @@
                     "kind": "primitive"
                   },
                   "value": 1,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 60,
                     "end": 61,
                     "file": "examples/loop.vader"
                   }
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
                 "location": {
                   "start": 58,
                   "end": 59,
                   "file": "examples/loop.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 2
               },
               "location": {
                 "start": 54,
@@ -326,19 +274,11 @@
                       "kind": "primitive"
                     },
                     "value": 0,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 2
-                    },
                     "location": {
                       "start": 81,
                       "end": 82,
                       "file": "examples/loop.vader"
                     }
-                  },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
                   },
                   "location": {
                     "start": 76,
@@ -359,11 +299,7 @@
                       "name": "u32",
                       "kind": "primitive"
                     },
-                    "value": "j",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 3
-                    },
+                    "identifier": "j",
                     "location": {
                       "start": 84,
                       "end": 85,
@@ -377,19 +313,11 @@
                       "kind": "primitive"
                     },
                     "value": 10,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 3
-                    },
                     "location": {
                       "start": 88,
                       "end": 90,
                       "file": "examples/loop.vader"
                     }
-                  },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 3
                   },
                   "location": {
                     "start": 86,
@@ -413,11 +341,7 @@
                         "name": "u32",
                         "kind": "primitive"
                       },
-                      "value": "j",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 3
-                      },
+                      "identifier": "j",
                       "location": {
                         "start": 96,
                         "end": 97,
@@ -431,29 +355,17 @@
                         "kind": "primitive"
                       },
                       "value": 1,
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 3
-                      },
                       "location": {
                         "start": 100,
                         "end": 101,
                         "file": "examples/loop.vader"
                       }
                     },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 3
-                    },
                     "location": {
                       "start": 98,
                       "end": 99,
                       "file": "examples/loop.vader"
                     }
-                  },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 3
                   },
                   "location": {
                     "start": 94,
@@ -477,10 +389,6 @@
                           "kind": "primitive"
                         },
                         "value": "Hello",
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 3
-                        },
                         "location": {
                           "start": 125,
                           "end": 130,
@@ -488,10 +396,6 @@
                         }
                       }
                     ],
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 3
-                    },
                     "location": {
                       "start": 117,
                       "end": 131,
@@ -499,10 +403,6 @@
                     }
                   }
                 ],
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 3
-                },
                 "location": {
                   "start": 75,
                   "end": 141,
@@ -524,10 +424,6 @@
                       "kind": "primitive"
                     },
                     "value": "\n",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 2
-                    },
                     "location": {
                       "start": 158,
                       "end": 160,
@@ -535,10 +431,6 @@
                     }
                   }
                 ],
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
                 "location": {
                   "start": 150,
                   "end": 161,
@@ -546,10 +438,6 @@
                 }
               }
             ],
-            "scope": {
-              "namedVariables": {},
-              "depth": 2
-            },
             "location": {
               "start": 36,
               "end": 167,
@@ -557,19 +445,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 23,
           "end": 169,
           "file": "examples/loop.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 13,
@@ -578,11 +458,6 @@
       }
     }
   ],
-  "mainMethod": "main",
-  "scope": {
-    "namedVariables": {},
-    "depth": 0
-  },
   "location": {
     "start": 1,
     "end": 169,

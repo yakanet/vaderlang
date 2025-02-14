@@ -46,19 +46,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 21,
           "end": 45,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 11,
@@ -111,19 +103,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 69,
           "end": 94,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 58,
@@ -146,19 +130,11 @@
           "kind": "primitive"
         },
         "value": 23,
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 18,
           "end": 20,
           "file": "examples/arrays.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 13,
@@ -237,19 +213,11 @@
                 },
                 "length": 10
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 69,
                 "end": 75,
                 "file": "examples/arrays.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 59,
@@ -269,20 +237,12 @@
                 },
                 "length": 10
               },
-              "value": "buffer",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
+              "identifier": "buffer",
               "location": {
                 "start": 87,
                 "end": 93,
                 "file": "examples/arrays.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 87,
@@ -291,19 +251,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 31,
           "end": 95,
           "file": "examples/arrays.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 21,
@@ -366,10 +318,6 @@
                     "kind": "primitive"
                   },
                   "value": 2,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 136,
                     "end": 137,
@@ -383,10 +331,6 @@
                     "kind": "primitive"
                   },
                   "value": 3,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 139,
                     "end": 140,
@@ -400,10 +344,6 @@
                     "kind": "primitive"
                   },
                   "value": 4,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 142,
                     "end": 143,
@@ -411,19 +351,11 @@
                   }
                 }
               ],
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 128,
                 "end": 144,
                 "file": "examples/arrays.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 123,
@@ -453,19 +385,11 @@
                 },
                 "length": 4
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 154,
                 "end": 160,
                 "file": "examples/arrays.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 149,
@@ -488,10 +412,6 @@
             "value": {
               "kind": "CallExpression",
               "functionName": "itoa",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 172,
                 "end": 178,
@@ -505,10 +425,6 @@
                     "kind": "primitive"
                   },
                   "value": 2,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 170,
                     "end": 171,
@@ -524,10 +440,6 @@
                 },
                 "length": 10
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 165,
@@ -547,10 +459,6 @@
                     "kind": "primitive"
                   },
                   "value": 2,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 192,
                     "end": 193,
@@ -568,11 +476,7 @@
                   },
                   "length": 3
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "x",
                 "location": {
                   "start": 190,
                   "end": 191,
@@ -584,10 +488,6 @@
                 "end": 191,
                 "file": "examples/arrays.vader"
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "type": {
                 "kind": "array",
                 "type": {
@@ -597,10 +497,6 @@
                 "length": 3
               }
             },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
             "location": {
               "start": 190,
               "end": 191,
@@ -608,19 +504,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 107,
           "end": 196,
           "file": "examples/arrays.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 97,
@@ -629,11 +517,6 @@
       }
     }
   ],
-  "mainMethod": "main",
-  "scope": {
-    "namedVariables": {},
-    "depth": 0
-  },
   "location": {
     "start": 1,
     "end": 196,

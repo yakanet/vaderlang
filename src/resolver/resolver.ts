@@ -22,7 +22,6 @@ export function resolve(program: Program): Program {
     return {
         ...program,
         body,
-        scope,
     };
 }
 
@@ -37,7 +36,6 @@ function resolveStatement(
             return {
                 ...statement,
                 expression: resolveExpression(statement.expression, scope),
-                scope,
             } satisfies ReturnStatement;
 
         case 'ConditionalStatement': {
@@ -47,7 +45,6 @@ function resolveStatement(
                 type: BasicVaderType.void,
                 ifBody: statement.ifBody.map(b => resolveStatement(b, scope)),
                 elseBody: statement.elseBody?.map(b => resolveStatement(b, scope)),
-                scope
             }
         }
         case "VariableDeclarationStatement":
@@ -58,7 +55,6 @@ function resolveStatement(
             return {
                 ...statement,
                 value: res,
-                scope,
             };
         }
         case "ForStatement":
@@ -66,12 +62,10 @@ function resolveStatement(
             const cloneScope = new Scope(scope)
             return {
                 ...statement,
-                kind: "ForStatement",
                 initialization,
                 condition: resolveExpression(statement.condition, cloneScope),
                 iteration: resolveStatement(statement.iteration, cloneScope),
                 body: statement.body.map(b => resolveStatement(b, cloneScope)),
-                scope: cloneScope
             } satisfies ForStatement
     }
     return resolveExpression(statement, scope);
@@ -95,7 +89,6 @@ function resolveFunctionDeclaration(
     return {
         ...statement,
         body,
-        scope,
     };
 }
 
@@ -106,6 +99,7 @@ function resolveVariableDeclaration(
     const value = statement.value
         ? resolveExpression(statement.value, scope)
         : undefined;
+
     const type =
         statement.type !== BasicVaderType.unknown
             ? statement.type
@@ -119,41 +113,10 @@ function resolveVariableDeclaration(
     } else {
         scope.newLocalVariable(type, scope.allFunctionLevelVariable().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name);
     }
-    if (value && value.kind === 'ConditionalExpression') {
-        value.kind = 'ConditionalStatement' as any;
-        let queue = [value.ifBody, value.elseBody].filter(b => b);
-        while (true) {
-            const oldValue = queue.pop();
-            if (!oldValue) {
-                break
-            }
-            const oldStatement = oldValue.at(-1) as Statement;
-            if (!oldStatement) {
-                continue;
-            }
-            if (oldStatement.kind === 'ConditionalStatement' || oldStatement.kind === 'ConditionalExpression') {
-                oldStatement.kind = 'ConditionalStatement';
-                queue.push(oldStatement.ifBody)
-                if (oldStatement.elseBody) {
-                    queue.push(oldStatement.elseBody)
-                }
-            } else {
-                oldValue[oldValue.length - 1] = {
-                    kind: 'VariableAssignmentStatement',
-                    value: oldStatement as Expression,
-                    identifier: statement.name,
-                    location: statement.location,
-                    scope,
-                }
-            }
-        }
-        return value
-    }
     return {
         ...statement,
         type,
         value,
-        scope,
     };
 }
 
@@ -170,7 +133,6 @@ function resolveExpression(
                 type: lhs.type !== BasicVaderType.unknown ? lhs.type : rhs.type, // TODO typechecker need to check left and right type
                 lhs,
                 rhs,
-                scope,
             };
         }
         case "FunctionDeclarationExpression":
@@ -189,7 +151,6 @@ function resolveExpression(
                 kind: 'CallExpression',
                 parameters,
                 type: resolved.type.returnType,
-                scope,
             };
 
         }
@@ -203,15 +164,13 @@ function resolveExpression(
             }
             return {
                 ...expression,
-                scope
             }
         }
         case 'VariableExpression': {
-            const variable = scope.lookupVariable(expression.value)
+            const variable = scope.lookupVariable(expression.identifier)
             return {
                 ...expression,
                 type: variable.type,
-                scope
             }
         }
 
@@ -222,14 +181,12 @@ function resolveExpression(
                 type: identifier.type,
                 identifier,
                 indexes: expression.indexes.map(i => resolveExpression(i, scope)),
-                scope
             }
         }
         case 'ArrayDeclarationExpression': {
             return {
                 ...expression,
                 value: expression.value?.map(i => resolveExpression(i, scope)),
-                scope
             }
         }
         case 'StructInstantiationExpression': {
@@ -264,7 +221,6 @@ function resolveExpression(
             return {
                 ...expression,
                 type: resolved.type,
-                scope,
             }
         }
         case 'DotExpression': {
@@ -288,7 +244,6 @@ function resolveExpression(
             return {
                 ...expression,
                 type: expression.properties[expression.properties.length - 1].type,
-                scope
             }
         }
         case 'ConditionalExpression': {
@@ -296,11 +251,8 @@ function resolveExpression(
             const elseBody = expression.elseBody?.map(b => resolveStatement(b, scope))
             const returnIf = ifBody.at(-1) as Expression;
             const returnElse = elseBody?.at(-1) as Expression | undefined;
-            if (!returnIf?.kind.endsWith('Expression')) {
-                throw new Error(`Missing return expression in if block at ${expression.location}`);
-            }
-            if (returnElse && returnIf.type !== returnElse.type) {
-                throw new Error(`Return type mismatch in conditional expression ${JSON.stringify([returnIf.type, returnElse.type])} at ${expression.location.start}`);
+            if (returnElse && !isTypeEquals(returnIf.type, returnElse.type)) {
+                throw new Error(`return type mismatch in conditional expression ${JSON.stringify([returnIf.type, returnElse.type])} at ${expression.location.start}`);
             }
             return {
                 ...expression,
@@ -308,10 +260,9 @@ function resolveExpression(
                 type: returnIf.type,
                 ifBody,
                 elseBody,
-                scope
             }
         }
         default:
-            return {...expression, scope};
+            return {...expression};
     }
 }

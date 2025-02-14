@@ -20,14 +20,12 @@ import {
     type VaderType,
     type VariableDeclarationStatement,
 } from "./types.ts";
-import {UnresolvedScope} from "../resolver/scope.ts";
 import {ErrorReporter} from "../utils/errors.ts";
 import type {ModuleResolver} from "../resolver/module_resolver.ts";
 
 export class Parser {
     private tokens: Token[] = [];
     private index = 0;
-    public mainMethod: string | undefined = undefined;
     private reporter: ErrorReporter;
     private debug = true;
     private loadedFiles = new Set<string>();
@@ -119,8 +117,6 @@ export function parseProgram(entryFile: string, resolver: ModuleResolver): Progr
     const program: Program = {
         kind: 'Program',
         body: [],
-        mainMethod: undefined,
-        scope: UnresolvedScope,
         location: parser.current.location
     }
     while (!parser.isCurrentType('EOF')) {
@@ -128,7 +124,6 @@ export function parseProgram(entryFile: string, resolver: ModuleResolver): Progr
     }
     const lastToken = parser.expect('EOF');
     program.location.end = lastToken.location.end;
-    program.mainMethod = parser.mainMethod;
     return program;
 }
 
@@ -175,7 +170,6 @@ function parseFileDecorator(parser: Parser, decorator: Token): StringExpression 
             type: BasicVaderType.string,
             value: resolved.content,
             location: decorator.location,
-            scope: UnresolvedScope
         }
     } catch (e) {
         parser.reportError(`Unresolved file ${file_token.value}`, file_token.location)
@@ -251,7 +245,6 @@ function parseIdentifierStatement(parser: Parser): Statement {
             kind: 'VariableAssignmentStatement',
             identifier: identifier.value,
             value,
-            scope: UnresolvedScope,
             location: token.location
         }
     }
@@ -271,10 +264,7 @@ function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifie
     }
     if (parser.isCurrentKeyword('if')) {
         const value = parseIfStatement(parser, 'ConditionalExpression');
-        return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, {
-            ...value,
-            kind: 'ConditionalExpression'
-        });
+        return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, value);
     }
     if (parser.isCurrentType('Identifier') && parser.next.type === 'OpenCurlyBracket') {
         const value = parseStructInstantiation(parser);
@@ -323,7 +313,6 @@ function parseArrayInitializationExpression(parser: Parser): Expression {
         kind: 'ArrayDeclarationExpression',
         type: type,
         value: hasInitialValue ? initialValue : undefined,
-        scope: UnresolvedScope,
         location: {
             ...token.location,
             end: parser.previous.location.end
@@ -337,7 +326,6 @@ function parseArrayIndexExpression(parser: Parser, from: Expression) {
         indexes: [],
         identifier: from,
         location: {...from.location},
-        scope: UnresolvedScope,
         type: BasicVaderType.unknown
     }
     do {
@@ -358,7 +346,6 @@ function parseStructInstantiation(parser: Parser) {
         location: {
             ...structType.location
         },
-        scope: UnresolvedScope,
     }
     parser.expect('OpenCurlyBracket');
     while (!parser.isCurrentType('CloseCurlyBracket')) {
@@ -401,7 +388,6 @@ function parseFunctionDeclarationExpression(parser: Parser): FunctionDeclaration
         kind: 'FunctionDeclarationExpression',
         type,
         body,
-        scope: UnresolvedScope,
         location: {
             start: token.location.start,
             end: parser.previous.location.end,
@@ -431,22 +417,18 @@ function parseVariableDeclarationAndAssignment(parser: Parser, isConstant: boole
     if (!value) {
         value = parseExpression(parser);
     }
-    if (identifier.value === 'main' && value?.type.kind === 'function') {
-        parser.mainMethod = identifier.value;
-    }
     return {
         kind: 'VariableDeclarationStatement',
         name: identifier.value,
         isConstant,
         type: type,
         value,
-        scope: UnresolvedScope,
         location: {
             start: identifier.location.start,
             end: parser.previous.location.end,
             file: identifier.location.file,
         }
-    }
+    } satisfies VariableDeclarationStatement
 }
 
 function parseStructDeclaration(parser: Parser) {
@@ -457,7 +439,6 @@ function parseStructDeclaration(parser: Parser) {
             kind: 'struct',
             parameters: []
         },
-        scope: UnresolvedScope,
         location: {
             start: token.location.start,
             end: parser.previous.location.end,
@@ -497,7 +478,6 @@ function parseForStatement(parser: Parser): Statement {
         condition,
         iteration,
         body,
-        scope: UnresolvedScope,
         location: {
             start: forToken.location.start,
             end: parser.previous.location.end,
@@ -517,12 +497,11 @@ function parseDotExpression(parser: Parser, from: Expression): Expression {
         left = {
             kind: 'DotExpression',
             properties: [{
-                name: from.value,
+                name: from.identifier,
                 type: BasicVaderType.unknown,
                 location: {...from.location},
             }],
             type: BasicVaderType.unknown,
-            scope: UnresolvedScope,
             location: {...from.location},
         }
     } else {
@@ -538,7 +517,6 @@ function parseDotExpression(parser: Parser, from: Expression): Expression {
                 left = {
                     kind: 'CallExpression',
                     functionName: propertyName.value,
-                    scope: UnresolvedScope,
                     location: {
                         start: propertyName.location.start,
                         end: parser.previous.location.end,
@@ -597,8 +575,7 @@ function parseExpression(parser: Parser): Expression {
         lhs = {
             kind: "VariableExpression",
             type: BasicVaderType.unknown,
-            value: token.value,
-            scope: UnresolvedScope,
+            identifier: token.value,
             location: {
                 start: token.location.start,
                 end: token.location.end,
@@ -620,7 +597,6 @@ function parseExpression(parser: Parser): Expression {
             kind: "NumberExpression",
             type,
             value: Number(token.value),
-            scope: UnresolvedScope,
             location: {
                 start: token.location.start,
                 end: token.location.end,
@@ -635,7 +611,6 @@ function parseExpression(parser: Parser): Expression {
             kind: "StringExpression",
             type: BasicVaderType.string,
             value: token.value.replaceAll('\\n', '\n'),
-            scope: UnresolvedScope,
             location: {
                 start: token.location.start,
                 end: token.location.end,
@@ -687,7 +662,6 @@ function parseBinaryExpression(parser: Parser, lhs: Expression): Expression {
                 type: BasicVaderType.unknown,
                 lhs,
                 rhs,
-                scope: UnresolvedScope,
                 location
             }
         }
@@ -700,7 +674,6 @@ function parseReturnStatement(parser: Parser): ReturnStatement {
     return {
         kind: 'ReturnStatement',
         expression: parseExpression(parser),
-        scope: UnresolvedScope,
         location: token.location
     };
 }
@@ -721,7 +694,6 @@ function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'Condit
         type: BasicVaderType.unknown, // need to be resolved
         ifBody: ifStatements,
         condition: ifCondition,
-        scope: UnresolvedScope,
         location: {
             start: ifToken.location.start,
             end: 0,
@@ -745,7 +717,6 @@ function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'Condit
             type: BasicVaderType.unknown, // need to be resolved
             ifBody: body,
             condition: condition,
-            scope: UnresolvedScope,
             location: {
                 start: elifToken.location.start,
                 end: 0,
@@ -771,7 +742,6 @@ function parseCallExpression(parser: Parser): CallExpression {
         type: BasicVaderType.unknown, // Need to be resolved later
         functionName: identifier.value,
         parameters,
-        scope: UnresolvedScope,
         location: {
             start: identifier.location.start,
             end: parser.previous.location.end,

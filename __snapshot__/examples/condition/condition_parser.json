@@ -46,19 +46,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 22,
           "end": 47,
           "file": "examples/condition.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 11,
@@ -106,19 +98,11 @@
                 "kind": "primitive"
               },
               "value": 32,
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 80,
                 "end": 82,
                 "file": "examples/condition.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 75,
@@ -148,10 +132,6 @@
                       "kind": "primitive"
                     },
                     "value": "equals\n",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 143,
                       "end": 151,
@@ -159,10 +139,6 @@
                     }
                   }
                 ],
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 135,
                   "end": 152,
@@ -183,11 +159,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "x",
                 "location": {
                   "start": 117,
                   "end": 118,
@@ -201,29 +173,17 @@
                   "kind": "primitive"
                 },
                 "value": 32,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 122,
                   "end": 124,
                   "file": "examples/condition.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 119,
                 "end": 121,
                 "file": "examples/condition.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 117,
@@ -253,10 +213,6 @@
                       "kind": "primitive"
                     },
                     "value": "second equals\n",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 239,
                       "end": 254,
@@ -264,10 +220,6 @@
                     }
                   }
                 ],
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 231,
                   "end": 255,
@@ -288,11 +240,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "x",
                 "location": {
                   "start": 212,
                   "end": 213,
@@ -306,29 +254,17 @@
                   "kind": "primitive"
                 },
                 "value": 32,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 217,
                   "end": 219,
                   "file": "examples/condition.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 214,
                 "end": 216,
                 "file": "examples/condition.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 211,
@@ -358,10 +294,6 @@
                       "kind": "primitive"
                     },
                     "value": "equals\n",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 322,
                       "end": 330,
@@ -369,10 +301,6 @@
                     }
                   }
                 ],
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 314,
                   "end": 331,
@@ -393,11 +321,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "x",
                 "location": {
                   "start": 296,
                   "end": 297,
@@ -411,29 +335,17 @@
                   "kind": "primitive"
                 },
                 "value": 32,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 301,
                   "end": 303,
                   "file": "examples/condition.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 298,
                 "end": 300,
                 "file": "examples/condition.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 296,
@@ -456,10 +368,6 @@
                       "kind": "primitive"
                     },
                     "value": "not equals\n",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 361,
                       "end": 373,
@@ -467,10 +375,6 @@
                     }
                   }
                 ],
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 353,
                   "end": 374,
@@ -501,10 +405,6 @@
                       "kind": "primitive"
                     },
                     "value": "x == 0\n",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 450,
                       "end": 458,
@@ -512,10 +412,6 @@
                     }
                   }
                 ],
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 442,
                   "end": 459,
@@ -536,11 +432,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "x",
                 "location": {
                   "start": 425,
                   "end": 426,
@@ -554,29 +446,17 @@
                   "kind": "primitive"
                 },
                 "value": 0,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 430,
                   "end": 431,
                   "file": "examples/condition.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 427,
                 "end": 429,
                 "file": "examples/condition.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 425,
@@ -606,10 +486,6 @@
                           "kind": "primitive"
                         },
                         "value": "x == 32\n",
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 1
-                        },
                         "location": {
                           "start": 497,
                           "end": 506,
@@ -617,10 +493,6 @@
                         }
                       }
                     ],
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 489,
                       "end": 507,
@@ -641,11 +513,7 @@
                       "name": "u32",
                       "kind": "primitive"
                     },
-                    "value": "x",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
+                    "identifier": "x",
                     "location": {
                       "start": 471,
                       "end": 472,
@@ -659,29 +527,17 @@
                       "kind": "primitive"
                     },
                     "value": 32,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 476,
                       "end": 478,
                       "file": "examples/condition.vader"
                     }
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 473,
                     "end": 475,
                     "file": "examples/condition.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
                 },
                 "location": {
                   "start": 471,
@@ -711,10 +567,6 @@
                               "kind": "primitive"
                             },
                             "value": "x == 30\n",
-                            "scope": {
-                              "namedVariables": {},
-                              "depth": 1
-                            },
                             "location": {
                               "start": 545,
                               "end": 554,
@@ -722,10 +574,6 @@
                             }
                           }
                         ],
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 1
-                        },
                         "location": {
                           "start": 537,
                           "end": 555,
@@ -746,11 +594,7 @@
                           "name": "u32",
                           "kind": "primitive"
                         },
-                        "value": "x",
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 1
-                        },
+                        "identifier": "x",
                         "location": {
                           "start": 519,
                           "end": 520,
@@ -764,29 +608,17 @@
                           "kind": "primitive"
                         },
                         "value": 30,
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 1
-                        },
                         "location": {
                           "start": 524,
                           "end": 526,
                           "file": "examples/condition.vader"
                         }
                       },
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 1
-                      },
                       "location": {
                         "start": 521,
                         "end": 523,
                         "file": "examples/condition.vader"
                       }
-                    },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
                     },
                     "location": {
                       "start": 519,
@@ -809,10 +641,6 @@
                               "kind": "primitive"
                             },
                             "value": "not equals\n",
-                            "scope": {
-                              "namedVariables": {},
-                              "depth": 1
-                            },
                             "location": {
                               "start": 585,
                               "end": 597,
@@ -820,10 +648,6 @@
                             }
                           }
                         ],
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 1
-                        },
                         "location": {
                           "start": 577,
                           "end": 598,
@@ -851,19 +675,11 @@
                 "kind": "primitive"
               },
               "value": 3,
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 614,
                 "end": 615,
                 "file": "examples/condition.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 609,
@@ -872,266 +688,189 @@
             }
           },
           {
-            "kind": "ConditionalStatement",
+            "kind": "VariableDeclarationStatement",
+            "name": "y",
+            "isConstant": false,
             "type": {
               "name": "u32",
               "kind": "primitive"
             },
-            "ifBody": [
-              {
-                "kind": "VariableAssignmentStatement",
-                "identifier": "z",
-                "value": {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 2,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
+            "value": {
+              "kind": "ConditionalExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "ifBody": [
+                {
+                  "kind": "VariableAssignmentStatement",
+                  "identifier": "z",
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 2,
+                    "location": {
+                      "start": 650,
+                      "end": 651,
+                      "file": "examples/condition.vader"
+                    }
                   },
                   "location": {
-                    "start": 650,
-                    "end": 651,
+                    "start": 648,
+                    "end": 649,
                     "file": "examples/condition.vader"
                   }
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
-                "location": {
-                  "start": 648,
-                  "end": 649,
-                  "file": "examples/condition.vader"
-                }
-              },
-              {
-                "kind": "VariableAssignmentStatement",
-                "value": {
+                {
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
                     "kind": "primitive"
                   },
                   "value": 1,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 660,
                     "end": 661,
                     "file": "examples/condition.vader"
                   }
-                },
-                "identifier": "y",
-                "location": {
-                  "start": 620,
-                  "end": 705,
-                  "file": "examples/condition.vader"
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
                 }
-              }
-            ],
-            "condition": {
-              "kind": "BinaryExpression",
-              "operator": "==",
-              "type": {
-                "name": "u32",
-                "kind": "primitive"
-              },
-              "lhs": {
-                "kind": "VariableExpression",
+              ],
+              "condition": {
+                "kind": "BinaryExpression",
+                "operator": "==",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
+                "lhs": {
+                  "kind": "VariableExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "identifier": "x",
+                  "location": {
+                    "start": 628,
+                    "end": 629,
+                    "file": "examples/condition.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 32,
+                  "location": {
+                    "start": 633,
+                    "end": 635,
+                    "file": "examples/condition.vader"
+                  }
                 },
                 "location": {
-                  "start": 628,
-                  "end": 629,
+                  "start": 630,
+                  "end": 632,
                   "file": "examples/condition.vader"
                 }
-              },
-              "rhs": {
-                "kind": "NumberExpression",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "value": 32,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
-                "location": {
-                  "start": 633,
-                  "end": 635,
-                  "file": "examples/condition.vader"
-                }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
               },
               "location": {
-                "start": 630,
-                "end": 632,
+                "start": 628,
+                "end": 705,
                 "file": "examples/condition.vader"
-              }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
-            "location": {
-              "start": 628,
-              "end": 705,
-              "file": "examples/condition.vader"
-            },
-            "elseBody": [
-              {
-                "kind": "ConditionalStatement",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "ifBody": [
-                  {
-                    "kind": "VariableAssignmentStatement",
-                    "value": {
+              },
+              "elseBody": [
+                {
+                  "kind": "ConditionalExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "ifBody": [
+                    {
                       "kind": "NumberExpression",
                       "type": {
                         "name": "u32",
                         "kind": "primitive"
                       },
                       "value": 3,
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 1
-                      },
                       "location": {
                         "start": 687,
                         "end": 688,
                         "file": "examples/condition.vader"
                       }
-                    },
-                    "identifier": "y",
-                    "location": {
-                      "start": 620,
-                      "end": 705,
-                      "file": "examples/condition.vader"
-                    },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
                     }
-                  }
-                ],
-                "condition": {
-                  "kind": "BinaryExpression",
-                  "operator": "==",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "lhs": {
-                    "kind": "VariableExpression",
+                  ],
+                  "condition": {
+                    "kind": "BinaryExpression",
+                    "operator": "==",
                     "type": {
                       "name": "u32",
                       "kind": "primitive"
                     },
-                    "value": "x",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
+                    "lhs": {
+                      "kind": "VariableExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "identifier": "x",
+                      "location": {
+                        "start": 677,
+                        "end": 678,
+                        "file": "examples/condition.vader"
+                      }
+                    },
+                    "rhs": {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "value": 33,
+                      "location": {
+                        "start": 682,
+                        "end": 684,
+                        "file": "examples/condition.vader"
+                      }
                     },
                     "location": {
-                      "start": 677,
-                      "end": 678,
+                      "start": 679,
+                      "end": 681,
                       "file": "examples/condition.vader"
                     }
-                  },
-                  "rhs": {
-                    "kind": "NumberExpression",
-                    "type": {
-                      "name": "u32",
-                      "kind": "primitive"
-                    },
-                    "value": 33,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
-                    "location": {
-                      "start": 682,
-                      "end": 684,
-                      "file": "examples/condition.vader"
-                    }
-                  },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
                   },
                   "location": {
-                    "start": 679,
-                    "end": 681,
+                    "start": 677,
+                    "end": 0,
                     "file": "examples/condition.vader"
-                  }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
-                "location": {
-                  "start": 677,
-                  "end": 0,
-                  "file": "examples/condition.vader"
-                },
-                "elseBody": [
-                  {
-                    "kind": "VariableAssignmentStatement",
-                    "value": {
+                  },
+                  "elseBody": [
+                    {
                       "kind": "NumberExpression",
                       "type": {
                         "name": "u32",
                         "kind": "primitive"
                       },
                       "value": 2,
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 1
-                      },
                       "location": {
                         "start": 702,
                         "end": 703,
                         "file": "examples/condition.vader"
                       }
-                    },
-                    "identifier": "y",
-                    "location": {
-                      "start": 620,
-                      "end": 705,
-                      "file": "examples/condition.vader"
-                    },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
                     }
-                  }
-                ]
-              }
-            ]
+                  ]
+                }
+              ]
+            },
+            "location": {
+              "start": 620,
+              "end": 705,
+              "file": "examples/condition.vader"
+            }
           },
           {
             "kind": "ReturnStatement",
@@ -1148,11 +887,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "x",
                 "location": {
                   "start": 717,
                   "end": 718,
@@ -1172,11 +907,7 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": "y",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
+                  "identifier": "y",
                   "location": {
                     "start": 721,
                     "end": 722,
@@ -1189,20 +920,12 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": "z",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
+                  "identifier": "z",
                   "location": {
                     "start": 725,
                     "end": 726,
                     "file": "examples/condition.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
                 },
                 "location": {
                   "start": 723,
@@ -1210,19 +933,11 @@
                   "file": "examples/condition.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 719,
                 "end": 720,
                 "file": "examples/condition.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 717,
@@ -1231,19 +946,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 59,
           "end": 728,
           "file": "examples/condition.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 49,
@@ -1252,11 +959,6 @@
       }
     }
   ],
-  "mainMethod": "main",
-  "scope": {
-    "namedVariables": {},
-    "depth": 0
-  },
   "location": {
     "start": 1,
     "end": 728,

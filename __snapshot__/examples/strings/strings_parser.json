@@ -46,19 +46,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 21,
           "end": 45,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 11,
@@ -111,19 +103,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 69,
           "end": 94,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 58,
@@ -181,19 +165,11 @@
             }
           ]
         },
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 17,
           "end": 16,
           "file": "modules/string.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 0,
@@ -344,19 +320,11 @@
                     "kind": "primitive"
                   },
                   "value": 0,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 157,
                     "end": 158,
                     "file": "modules/string.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
                 },
                 "location": {
                   "end": 158,
@@ -422,10 +390,6 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 112,
                   "end": 123,
@@ -482,29 +446,17 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 127,
                   "end": 139,
                   "file": "modules/string.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 124,
                 "end": 126,
                 "file": "modules/string.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 112,
@@ -529,19 +481,11 @@
                   "kind": "primitive"
                 },
                 "value": 0,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 236,
                   "end": 237,
                   "file": "modules/string.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
               },
               "location": {
                 "start": 231,
@@ -562,11 +506,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "i",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
+                "identifier": "i",
                 "location": {
                   "start": 239,
                   "end": 240,
@@ -623,19 +563,11 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
                 "location": {
                   "start": 241,
                   "end": 252,
                   "file": "modules/string.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 2
               },
               "location": {
                 "start": 240,
@@ -659,11 +591,7 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": "i",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
+                  "identifier": "i",
                   "location": {
                     "start": 256,
                     "end": 257,
@@ -677,29 +605,17 @@
                     "kind": "primitive"
                   },
                   "value": 1,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 258,
                     "end": 259,
                     "file": "modules/string.vader"
                   }
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
                 "location": {
                   "start": 257,
                   "end": 258,
                   "file": "modules/string.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 2
               },
               "location": {
                 "start": 255,
@@ -775,19 +691,11 @@
                       "kind": "primitive"
                     }
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 277,
                     "end": 287,
                     "file": "modules/string.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
                 },
                 "location": {
                   "start": 272,
@@ -862,19 +770,11 @@
                       "kind": "primitive"
                     }
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 301,
                     "end": 312,
                     "file": "modules/string.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
                 },
                 "location": {
                   "start": 296,
@@ -898,19 +798,11 @@
                         "kind": "primitive"
                       },
                       "value": 0,
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 2
-                      },
                       "location": {
                         "start": 358,
                         "end": 359,
                         "file": "modules/string.vader"
                       }
-                    },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 2
                     },
                     "location": {
                       "end": 359,
@@ -938,11 +830,7 @@
                           "name": "u32",
                           "kind": "primitive"
                         },
-                        "value": "i",
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 2
-                        },
+                        "identifier": "i",
                         "location": {
                           "start": 326,
                           "end": 327,
@@ -959,11 +847,7 @@
                           "kind": "primitive"
                         }
                       },
-                      "value": "a",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 2
-                      },
+                      "identifier": "a",
                       "location": {
                         "start": 324,
                         "end": 325,
@@ -974,10 +858,6 @@
                       "start": 324,
                       "end": 325,
                       "file": "modules/string.vader"
-                    },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 2
                     },
                     "type": {
                       "kind": "array",
@@ -996,11 +876,7 @@
                           "name": "u32",
                           "kind": "primitive"
                         },
-                        "value": "i",
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 2
-                        },
+                        "identifier": "i",
                         "location": {
                           "start": 334,
                           "end": 335,
@@ -1017,11 +893,7 @@
                           "kind": "primitive"
                         }
                       },
-                      "value": "b",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 2
-                      },
+                      "identifier": "b",
                       "location": {
                         "start": 332,
                         "end": 333,
@@ -1033,10 +905,6 @@
                       "end": 333,
                       "file": "modules/string.vader"
                     },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 2
-                    },
                     "type": {
                       "kind": "array",
                       "type": {
@@ -1045,19 +913,11 @@
                       }
                     }
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 329,
                     "end": 331,
                     "file": "modules/string.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
                 },
                 "location": {
                   "start": 324,
@@ -1066,10 +926,6 @@
                 }
               }
             ],
-            "scope": {
-              "namedVariables": {},
-              "depth": 2
-            },
             "location": {
               "start": 230,
               "end": 375,
@@ -1085,19 +941,11 @@
                 "kind": "primitive"
               },
               "value": 1,
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 387,
                 "end": 388,
                 "file": "modules/string.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "end": 388,
@@ -1106,19 +954,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 66,
           "end": 390,
           "file": "modules/string.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 54,
@@ -1269,19 +1109,11 @@
                     "kind": "primitive"
                   },
                   "value": 0,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 500,
                     "end": 501,
                     "file": "modules/string.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
                 },
                 "location": {
                   "end": 501,
@@ -1347,10 +1179,6 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 455,
                   "end": 468,
@@ -1407,29 +1235,17 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 471,
                   "end": 482,
                   "file": "modules/string.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 469,
                 "end": 470,
                 "file": "modules/string.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 455,
@@ -1454,19 +1270,11 @@
                   "kind": "primitive"
                 },
                 "value": 0,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 578,
                   "end": 579,
                   "file": "modules/string.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
               },
               "location": {
                 "start": 573,
@@ -1487,11 +1295,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "i",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
+                "identifier": "i",
                 "location": {
                   "start": 581,
                   "end": 582,
@@ -1548,19 +1352,11 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
                 "location": {
                   "start": 583,
                   "end": 596,
                   "file": "modules/string.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 2
               },
               "location": {
                 "start": 582,
@@ -1584,11 +1380,7 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": "i",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
+                  "identifier": "i",
                   "location": {
                     "start": 600,
                     "end": 601,
@@ -1602,29 +1394,17 @@
                     "kind": "primitive"
                   },
                   "value": 1,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 602,
                     "end": 603,
                     "file": "modules/string.vader"
                   }
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
-                },
                 "location": {
                   "start": 601,
                   "end": 602,
                   "file": "modules/string.vader"
                 }
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 2
               },
               "location": {
                 "start": 599,
@@ -1700,19 +1480,11 @@
                       "kind": "primitive"
                     }
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 621,
                     "end": 631,
                     "file": "modules/string.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
                 },
                 "location": {
                   "start": 616,
@@ -1787,19 +1559,11 @@
                       "kind": "primitive"
                     }
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 645,
                     "end": 657,
                     "file": "modules/string.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
                 },
                 "location": {
                   "start": 640,
@@ -1823,19 +1587,11 @@
                         "kind": "primitive"
                       },
                       "value": 0,
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 2
-                      },
                       "location": {
                         "start": 703,
                         "end": 704,
                         "file": "modules/string.vader"
                       }
-                    },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 2
                     },
                     "location": {
                       "end": 704,
@@ -1863,11 +1619,7 @@
                           "name": "u32",
                           "kind": "primitive"
                         },
-                        "value": "i",
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 2
-                        },
+                        "identifier": "i",
                         "location": {
                           "start": 671,
                           "end": 672,
@@ -1884,11 +1636,7 @@
                           "kind": "primitive"
                         }
                       },
-                      "value": "a",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 2
-                      },
+                      "identifier": "a",
                       "location": {
                         "start": 669,
                         "end": 670,
@@ -1899,10 +1647,6 @@
                       "start": 669,
                       "end": 670,
                       "file": "modules/string.vader"
-                    },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 2
                     },
                     "type": {
                       "kind": "array",
@@ -1921,11 +1665,7 @@
                           "name": "u32",
                           "kind": "primitive"
                         },
-                        "value": "i",
-                        "scope": {
-                          "namedVariables": {},
-                          "depth": 2
-                        },
+                        "identifier": "i",
                         "location": {
                           "start": 679,
                           "end": 680,
@@ -1942,11 +1682,7 @@
                           "kind": "primitive"
                         }
                       },
-                      "value": "b",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 2
-                      },
+                      "identifier": "b",
                       "location": {
                         "start": 677,
                         "end": 678,
@@ -1958,10 +1694,6 @@
                       "end": 678,
                       "file": "modules/string.vader"
                     },
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 2
-                    },
                     "type": {
                       "kind": "array",
                       "type": {
@@ -1970,19 +1702,11 @@
                       }
                     }
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 2
-                  },
                   "location": {
                     "start": 674,
                     "end": 676,
                     "file": "modules/string.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 2
                 },
                 "location": {
                   "start": 669,
@@ -1991,10 +1715,6 @@
                 }
               }
             ],
-            "scope": {
-              "namedVariables": {},
-              "depth": 2
-            },
             "location": {
               "start": 572,
               "end": 720,
@@ -2010,19 +1730,11 @@
                 "kind": "primitive"
               },
               "value": 1,
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 732,
                 "end": 733,
                 "file": "modules/string.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "end": 733,
@@ -2031,19 +1743,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 407,
           "end": 735,
           "file": "modules/string.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 392,
@@ -2106,10 +1810,6 @@
                     "kind": "primitive"
                   },
                   "value": 85,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 66,
                     "end": 68,
@@ -2123,10 +1823,6 @@
                     "kind": "primitive"
                   },
                   "value": 90,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 70,
                     "end": 72,
@@ -2140,10 +1836,6 @@
                     "kind": "primitive"
                   },
                   "value": 23,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 74,
                     "end": 76,
@@ -2151,19 +1843,11 @@
                   }
                 }
               ],
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 59,
                 "end": 77,
                 "file": "examples/strings.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 54,
@@ -2212,11 +1896,7 @@
                       },
                       "length": 3
                     },
-                    "value": "y",
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
+                    "identifier": "y",
                     "location": {
                       "start": 113,
                       "end": 114,
@@ -2233,10 +1913,6 @@
                       "kind": "primitive"
                     },
                     "value": 3,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 134,
                       "end": 135,
@@ -2272,15 +1948,7 @@
                 "start": 87,
                 "end": 142,
                 "file": "examples/strings.vader"
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 82,
@@ -2300,10 +1968,6 @@
                     "kind": "primitive"
                   },
                   "value": 3,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 162,
                     "end": 163,
@@ -2367,10 +2031,6 @@
                     "kind": "primitive"
                   }
                 },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 154,
                   "end": 155,
@@ -2382,10 +2042,6 @@
                 "end": 164,
                 "file": "examples/strings.vader"
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "type": {
                 "kind": "array",
                 "type": {
@@ -2394,10 +2050,6 @@
                 }
               }
             },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
             "location": {
               "start": 154,
               "end": 155,
@@ -2405,19 +2057,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 38,
           "end": 166,
           "file": "examples/strings.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 28,
@@ -2426,11 +2070,6 @@
       }
     }
   ],
-  "mainMethod": "main",
-  "scope": {
-    "namedVariables": {},
-    "depth": 0
-  },
   "location": {
     "start": 1,
     "end": 166,

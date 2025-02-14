@@ -45,19 +45,11 @@
             }
           ]
         },
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 16,
           "end": 15,
           "file": "examples/dot_function.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 0,
@@ -243,10 +235,6 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 100,
                     "end": 106,
@@ -300,19 +288,11 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 109,
                     "end": 116,
                     "file": "examples/dot_function.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
                 },
                 "location": {
                   "start": 107,
@@ -374,10 +354,6 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 121,
                     "end": 127,
@@ -431,19 +407,11 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 130,
                     "end": 137,
                     "file": "examples/dot_function.vader"
                   }
-                },
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
                 },
                 "location": {
                   "start": 128,
@@ -451,19 +419,11 @@
                   "file": "examples/dot_function.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 118,
                 "end": 119,
                 "file": "examples/dot_function.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 99,
@@ -472,19 +432,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 51,
           "end": 140,
           "file": "examples/dot_function.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 43,
@@ -548,11 +500,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "this",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "this",
                 "location": {
                   "start": 185,
                   "end": 189,
@@ -566,29 +514,17 @@
                   "kind": "primitive"
                 },
                 "value": 1,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 192,
                   "end": 193,
                   "file": "examples/dot_function.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 190,
                 "end": 191,
                 "file": "examples/dot_function.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 185,
@@ -597,19 +533,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 153,
           "end": 195,
           "file": "examples/dot_function.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 142,
@@ -676,10 +604,6 @@
                       "kind": "primitive"
                     },
                     "value": 2,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 237,
                       "end": 238,
@@ -695,10 +619,6 @@
                       "kind": "primitive"
                     },
                     "value": 3,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 240,
                       "end": 241,
@@ -731,15 +651,7 @@
                 "start": 229,
                 "end": 243,
                 "file": "examples/dot_function.vader"
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 223,
@@ -781,10 +693,6 @@
                       "kind": "primitive"
                     },
                     "value": 4,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 262,
                       "end": 263,
@@ -800,10 +708,6 @@
                       "kind": "primitive"
                     },
                     "value": 5,
-                    "scope": {
-                      "namedVariables": {},
-                      "depth": 1
-                    },
                     "location": {
                       "start": 265,
                       "end": 266,
@@ -836,15 +740,7 @@
                 "start": 254,
                 "end": 268,
                 "file": "examples/dot_function.vader"
-              },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 248,
@@ -857,10 +753,6 @@
             "expression": {
               "kind": "CallExpression",
               "functionName": "plus1",
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 291,
                 "end": 298,
@@ -870,10 +762,6 @@
                 {
                   "kind": "CallExpression",
                   "functionName": "dot",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
                   "location": {
                     "start": 283,
                     "end": 290,
@@ -930,10 +818,6 @@
                           }
                         ]
                       },
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 1
-                      },
                       "location": {
                         "start": 280,
                         "end": 282,
@@ -961,11 +845,7 @@
                           }
                         ]
                       },
-                      "value": "p2",
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 1
-                      },
+                      "identifier": "p2",
                       "location": {
                         "start": 287,
                         "end": 289,
@@ -984,10 +864,6 @@
                 "kind": "primitive"
               }
             },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
             "location": {
               "start": 280,
               "end": 282,
@@ -995,19 +871,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 207,
           "end": 300,
           "file": "examples/dot_function.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 197,
@@ -1016,11 +884,6 @@
       }
     }
   ],
-  "mainMethod": "main",
-  "scope": {
-    "namedVariables": {},
-    "depth": 0
-  },
   "location": {
     "start": 0,
     "end": 300,

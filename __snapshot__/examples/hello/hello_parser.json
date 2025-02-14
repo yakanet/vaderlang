@@ -46,19 +46,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 21,
           "end": 45,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 11,
@@ -111,19 +103,11 @@
           }
         },
         "body": [],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 69,
           "end": 94,
           "file": "modules/std.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 58,
@@ -146,19 +130,11 @@
           "kind": "primitive"
         },
         "value": 32,
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 28,
           "end": 30,
           "file": "examples/hello.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 13,
@@ -222,19 +198,11 @@
                 "kind": "primitive"
               },
               "value": 2,
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 67,
                 "end": 68,
                 "file": "examples/hello.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 62,
@@ -258,11 +226,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "x",
                 "location": {
                   "start": 77,
                   "end": 78,
@@ -276,29 +240,17 @@
                   "kind": "primitive"
                 },
                 "value": 1,
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 81,
                   "end": 82,
                   "file": "examples/hello.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 79,
                 "end": 80,
                 "file": "examples/hello.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 75,
@@ -321,11 +273,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "a",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "a",
                 "location": {
                   "start": 94,
                   "end": 95,
@@ -338,30 +286,18 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": "x",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
+                "identifier": "x",
                 "location": {
                   "start": 98,
                   "end": 99,
                   "file": "examples/hello.vader"
                 }
               },
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 96,
                 "end": 97,
                 "file": "examples/hello.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 94,
@@ -370,19 +306,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 40,
           "end": 101,
           "file": "examples/hello.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 31,
@@ -430,10 +358,6 @@
                   "kind": "primitive"
                 },
                 "value": "Hello world\n",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 181,
                   "end": 194,
@@ -441,10 +365,6 @@
                 }
               }
             ],
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
             "location": {
               "start": 173,
               "end": 195,
@@ -466,10 +386,6 @@
                   "kind": "primitive"
                 },
                 "value": "Hello world2\n",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 208,
                   "end": 222,
@@ -477,10 +393,6 @@
                 }
               }
             ],
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
             "location": {
               "start": 200,
               "end": 223,
@@ -502,10 +414,6 @@
                   "kind": "primitive"
                 },
                 "value": "Hello 3\n",
-                "scope": {
-                  "namedVariables": {},
-                  "depth": 1
-                },
                 "location": {
                   "start": 236,
                   "end": 245,
@@ -513,10 +421,6 @@
                 }
               }
             ],
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
-            },
             "location": {
               "start": 228,
               "end": 246,
@@ -533,19 +437,11 @@
                 "kind": "primitive"
               },
               "value": 0,
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 265,
                 "end": 266,
                 "file": "examples/hello.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 263,
@@ -569,11 +465,7 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": "return_code",
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
+                  "identifier": "return_code",
                   "location": {
                     "start": 282,
                     "end": 293,
@@ -581,19 +473,11 @@
                   }
                 }
               ],
-              "scope": {
-                "namedVariables": {},
-                "depth": 1
-              },
               "location": {
                 "start": 278,
                 "end": 294,
                 "file": "examples/hello.vader"
               }
-            },
-            "scope": {
-              "namedVariables": {},
-              "depth": 1
             },
             "location": {
               "start": 278,
@@ -602,19 +486,11 @@
             }
           }
         ],
-        "scope": {
-          "namedVariables": {},
-          "depth": 0
-        },
         "location": {
           "start": 113,
           "end": 296,
           "file": "examples/hello.vader"
         }
-      },
-      "scope": {
-        "namedVariables": {},
-        "depth": 0
       },
       "location": {
         "start": 103,
@@ -623,11 +499,6 @@
       }
     }
   ],
-  "mainMethod": "main",
-  "scope": {
-    "namedVariables": {},
-    "depth": 0
-  },
   "location": {
     "start": 1,
     "end": 296,
