@@ -156,7 +156,7 @@
                 },
                 "value": "Hello world\n",
                 "location": {
-                  "start": 40,
+                  "start": 38,
                   "end": 53,
                   "file": "examples/simple_hello.vader"
                 }

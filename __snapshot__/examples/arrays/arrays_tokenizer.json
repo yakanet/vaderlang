@@ -12,7 +12,7 @@
     "type": "StringLiteral",
     "value": "std",
     "location": {
-      "start": 8,
+      "start": 6,
       "end": 11,
       "file": "examples/arrays.vader"
     }

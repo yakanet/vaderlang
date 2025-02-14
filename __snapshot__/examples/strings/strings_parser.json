@@ -453,8 +453,8 @@
                 }
               },
               "location": {
-                "start": 124,
-                "end": 126,
+                "start": 112,
+                "end": 139,
                 "file": "modules/string.vader"
               }
             },
@@ -570,8 +570,8 @@
                 }
               },
               "location": {
-                "start": 240,
-                "end": 241,
+                "start": 239,
+                "end": 252,
                 "file": "modules/string.vader"
               }
             },
@@ -612,15 +612,15 @@
                   }
                 },
                 "location": {
-                  "start": 257,
-                  "end": 258,
+                  "start": 256,
+                  "end": 259,
                   "file": "modules/string.vader"
                 }
               },
               "location": {
-                "start": 255,
-                "end": 256,
-                "file": "modules/string.vader"
+                "start": 254,
+                "file": "modules/string.vader",
+                "end": 259
               }
             },
             "body": [
@@ -848,8 +848,8 @@
                     }
                   },
                   "location": {
-                    "start": 289,
-                    "end": 291,
+                    "start": 275,
+                    "end": 306,
                     "file": "modules/string.vader"
                   }
                 },
@@ -1176,8 +1176,8 @@
                 }
               },
               "location": {
-                "start": 439,
-                "end": 440,
+                "start": 425,
+                "end": 452,
                 "file": "modules/string.vader"
               }
             },
@@ -1293,8 +1293,8 @@
                 }
               },
               "location": {
-                "start": 552,
-                "end": 553,
+                "start": 551,
+                "end": 566,
                 "file": "modules/string.vader"
               }
             },
@@ -1335,15 +1335,15 @@
                   }
                 },
                 "location": {
-                  "start": 571,
-                  "end": 572,
+                  "start": 570,
+                  "end": 573,
                   "file": "modules/string.vader"
                 }
               },
               "location": {
-                "start": 569,
-                "end": 570,
-                "file": "modules/string.vader"
+                "start": 568,
+                "file": "modules/string.vader",
+                "end": 573
               }
             },
             "body": [
@@ -1571,8 +1571,8 @@
                     }
                   },
                   "location": {
-                    "start": 603,
-                    "end": 605,
+                    "start": 589,
+                    "end": 621,
                     "file": "modules/string.vader"
                   }
                 },

@@ -203,8 +203,8 @@
                 }
               },
               "location": {
-                "start": 46,
-                "end": 47,
+                "start": 44,
+                "end": 50,
                 "file": "examples/loop.vader"
               }
             },
@@ -245,15 +245,15 @@
                   }
                 },
                 "location": {
-                  "start": 58,
-                  "end": 59,
+                  "start": 56,
+                  "end": 61,
                   "file": "examples/loop.vader"
                 }
               },
               "location": {
-                "start": 54,
-                "end": 55,
-                "file": "examples/loop.vader"
+                "start": 52,
+                "file": "examples/loop.vader",
+                "end": 61
               }
             },
             "body": [
@@ -320,8 +320,8 @@
                     }
                   },
                   "location": {
-                    "start": 86,
-                    "end": 87,
+                    "start": 84,
+                    "end": 90,
                     "file": "examples/loop.vader"
                   }
                 },
@@ -362,15 +362,15 @@
                       }
                     },
                     "location": {
-                      "start": 98,
-                      "end": 99,
+                      "start": 96,
+                      "end": 101,
                       "file": "examples/loop.vader"
                     }
                   },
                   "location": {
-                    "start": 94,
-                    "end": 95,
-                    "file": "examples/loop.vader"
+                    "start": 92,
+                    "file": "examples/loop.vader",
+                    "end": 101
                   }
                 },
                 "body": [
@@ -390,7 +390,7 @@
                         },
                         "value": "Hello",
                         "location": {
-                          "start": 125,
+                          "start": 123,
                           "end": 130,
                           "file": "examples/loop.vader"
                         }
@@ -425,7 +425,7 @@
                     },
                     "value": "\n",
                     "location": {
-                      "start": 158,
+                      "start": 156,
                       "end": 160,
                       "file": "examples/loop.vader"
                     }

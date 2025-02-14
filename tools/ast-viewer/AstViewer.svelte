@@ -1,6 +1,7 @@
 <script lang="ts">
     import {basicSetup} from "codemirror"
     import {Decoration, type DecorationSet, EditorView} from "@codemirror/view"
+    import {json} from "@codemirror/lang-json"
     import {StateEffect, StateField} from '@codemirror/state';
 
     let {
@@ -11,7 +12,7 @@
     const views = new Map<string, EditorView>();
     const input = Object.fromEntries(Object.keys(files).map(file => [file, {start: 0, end: 0}]))
 
-    function codeMirror(node: HTMLElement, {name, content}: { name: string, content: string }) {
+    function vaderEditor(node: HTMLElement, {name, content}: { name: string, content: string }) {
         const view = new EditorView({
             doc: content,
             parent: node,
@@ -22,6 +23,22 @@
             ]
         });
         views.set(name, view);
+        return {
+            destroy: () => view.destroy(),
+        }
+    }
+
+    function jsonEditor(node: HTMLElement, content: string) {
+        const view = new EditorView({
+            doc: JSON.stringify(content, null, 2),
+            parent: node,
+            extensions: [
+                basicSetup,
+                highlight_field,
+                json(),
+                EditorView.editable.of(false)
+            ]
+        });
         return {
             destroy: () => view.destroy(),
         }
@@ -44,7 +61,6 @@
                     }
                 }
             }
-            // Map decorations for document changes
             return highlights.map(tr.changes);
         },
         provide: (field) => EditorView.decorations.from(field)
@@ -63,7 +79,7 @@
     <div class="files">
         {#each Object.entries(files) as [name, content]}
             <h3>{name}</h3>
-            <div use:codeMirror={{name, content}}></div>
+            <div use:vaderEditor="{{name, content}}"></div>
             <form onsubmit={($event) => handleClick($event,name)}>
                 <input type="number" bind:value={input[name].start}/>
                 <input type="number" bind:value={input[name].end}/>
@@ -72,7 +88,7 @@
         {/each}
     </div>
     <div class="ast">
-        <pre>{JSON.stringify(parsed, null, 2)}</pre>
+        <div use:jsonEditor={parsed}></div>
     </div>
 </div>
 
@@ -90,6 +106,9 @@
     .viewport > * {
         max-height: 100vh;
         overflow: auto;
+    }
+
+    .files {
         padding: 0 1rem;
     }
 

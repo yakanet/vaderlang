@@ -295,8 +295,8 @@
                   }
                 },
                 "location": {
-                  "start": 107,
-                  "end": 108,
+                  "start": 100,
+                  "end": 116,
                   "file": "examples/dot_function.vader"
                 }
               },
@@ -414,14 +414,14 @@
                   }
                 },
                 "location": {
-                  "start": 128,
-                  "end": 129,
+                  "start": 121,
+                  "end": 137,
                   "file": "examples/dot_function.vader"
                 }
               },
               "location": {
-                "start": 118,
-                "end": 119,
+                "start": 100,
+                "end": 137,
                 "file": "examples/dot_function.vader"
               }
             },
@@ -521,8 +521,8 @@
                 }
               },
               "location": {
-                "start": 190,
-                "end": 191,
+                "start": 185,
+                "end": 193,
                 "file": "examples/dot_function.vader"
               }
             },

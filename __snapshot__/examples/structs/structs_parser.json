@@ -581,8 +581,8 @@
                 }
               },
               "location": {
-                "start": 202,
-                "end": 203,
+                "start": 190,
+                "end": 208,
                 "file": "examples/structs.vader"
               }
             },

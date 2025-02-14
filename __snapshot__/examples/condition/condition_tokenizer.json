@@ -291,7 +291,7 @@
     "type": "StringLiteral",
     "value": "equals\\n",
     "location": {
-      "start": 143,
+      "start": 141,
       "end": 151,
       "file": "examples/condition.vader"
     }
@@ -399,7 +399,7 @@
     "type": "StringLiteral",
     "value": "second equals\\n",
     "location": {
-      "start": 239,
+      "start": 237,
       "end": 254,
       "file": "examples/condition.vader"
     }
@@ -489,7 +489,7 @@
     "type": "StringLiteral",
     "value": "equals\\n",
     "location": {
-      "start": 322,
+      "start": 320,
       "end": 330,
       "file": "examples/condition.vader"
     }
@@ -552,7 +552,7 @@
     "type": "StringLiteral",
     "value": "not equals\\n",
     "location": {
-      "start": 361,
+      "start": 359,
       "end": 373,
       "file": "examples/condition.vader"
     }
@@ -642,7 +642,7 @@
     "type": "StringLiteral",
     "value": "x == 0\\n",
     "location": {
-      "start": 450,
+      "start": 448,
       "end": 458,
       "file": "examples/condition.vader"
     }
@@ -732,7 +732,7 @@
     "type": "StringLiteral",
     "value": "x == 32\\n",
     "location": {
-      "start": 497,
+      "start": 495,
       "end": 506,
       "file": "examples/condition.vader"
     }
@@ -822,7 +822,7 @@
     "type": "StringLiteral",
     "value": "x == 30\\n",
     "location": {
-      "start": 545,
+      "start": 543,
       "end": 554,
       "file": "examples/condition.vader"
     }
@@ -885,7 +885,7 @@
     "type": "StringLiteral",
     "value": "not equals\\n",
     "location": {
-      "start": 585,
+      "start": 583,
       "end": 597,
       "file": "examples/condition.vader"
     }

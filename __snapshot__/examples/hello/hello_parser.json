@@ -247,15 +247,15 @@
                 }
               },
               "location": {
-                "start": 79,
-                "end": 80,
+                "start": 77,
+                "end": 82,
                 "file": "examples/hello.vader"
               }
             },
             "location": {
-              "start": 75,
-              "end": 76,
-              "file": "examples/hello.vader"
+              "start": 73,
+              "file": "examples/hello.vader",
+              "end": 82
             }
           },
           {
@@ -294,8 +294,8 @@
                 }
               },
               "location": {
-                "start": 96,
-                "end": 97,
+                "start": 94,
+                "end": 99,
                 "file": "examples/hello.vader"
               }
             },
@@ -359,7 +359,7 @@
                 },
                 "value": "Hello world\n",
                 "location": {
-                  "start": 181,
+                  "start": 179,
                   "end": 194,
                   "file": "examples/hello.vader"
                 }
@@ -387,7 +387,7 @@
                 },
                 "value": "Hello world2\n",
                 "location": {
-                  "start": 208,
+                  "start": 206,
                   "end": 222,
                   "file": "examples/hello.vader"
                 }
@@ -415,7 +415,7 @@
                 },
                 "value": "Hello 3\n",
                 "location": {
-                  "start": 236,
+                  "start": 234,
                   "end": 245,
                   "file": "examples/hello.vader"
                 }
@@ -444,9 +444,9 @@
               }
             },
             "location": {
-              "start": 263,
-              "end": 264,
-              "file": "examples/hello.vader"
+              "start": 251,
+              "file": "examples/hello.vader",
+              "end": 266
             }
           },
           {

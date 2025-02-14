@@ -12,7 +12,7 @@
     "type": "StringLiteral",
     "value": "std",
     "location": {
-      "start": 8,
+      "start": 6,
       "end": 11,
       "file": "examples/loop.vader"
     }
@@ -408,7 +408,7 @@
     "type": "StringLiteral",
     "value": "Hello",
     "location": {
-      "start": 125,
+      "start": 123,
       "end": 130,
       "file": "examples/loop.vader"
     }
@@ -453,7 +453,7 @@
     "type": "StringLiteral",
     "value": "\\n",
     "location": {
-      "start": 158,
+      "start": 156,
       "end": 160,
       "file": "examples/loop.vader"
     }

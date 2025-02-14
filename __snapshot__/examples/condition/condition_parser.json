@@ -133,7 +133,7 @@
                     },
                     "value": "equals\n",
                     "location": {
-                      "start": 143,
+                      "start": 141,
                       "end": 151,
                       "file": "examples/condition.vader"
                     }
@@ -180,8 +180,8 @@
                 }
               },
               "location": {
-                "start": 119,
-                "end": 121,
+                "start": 117,
+                "end": 124,
                 "file": "examples/condition.vader"
               }
             },
@@ -214,7 +214,7 @@
                     },
                     "value": "second equals\n",
                     "location": {
-                      "start": 239,
+                      "start": 237,
                       "end": 254,
                       "file": "examples/condition.vader"
                     }
@@ -261,8 +261,8 @@
                 }
               },
               "location": {
-                "start": 214,
-                "end": 216,
+                "start": 212,
+                "end": 219,
                 "file": "examples/condition.vader"
               }
             },
@@ -295,7 +295,7 @@
                     },
                     "value": "equals\n",
                     "location": {
-                      "start": 322,
+                      "start": 320,
                       "end": 330,
                       "file": "examples/condition.vader"
                     }
@@ -342,8 +342,8 @@
                 }
               },
               "location": {
-                "start": 298,
-                "end": 300,
+                "start": 296,
+                "end": 303,
                 "file": "examples/condition.vader"
               }
             },
@@ -369,7 +369,7 @@
                     },
                     "value": "not equals\n",
                     "location": {
-                      "start": 361,
+                      "start": 359,
                       "end": 373,
                       "file": "examples/condition.vader"
                     }
@@ -406,7 +406,7 @@
                     },
                     "value": "x == 0\n",
                     "location": {
-                      "start": 450,
+                      "start": 448,
                       "end": 458,
                       "file": "examples/condition.vader"
                     }
@@ -453,8 +453,8 @@
                 }
               },
               "location": {
-                "start": 427,
-                "end": 429,
+                "start": 425,
+                "end": 431,
                 "file": "examples/condition.vader"
               }
             },
@@ -487,7 +487,7 @@
                         },
                         "value": "x == 32\n",
                         "location": {
-                          "start": 497,
+                          "start": 495,
                           "end": 506,
                           "file": "examples/condition.vader"
                         }
@@ -534,8 +534,8 @@
                     }
                   },
                   "location": {
-                    "start": 473,
-                    "end": 475,
+                    "start": 471,
+                    "end": 478,
                     "file": "examples/condition.vader"
                   }
                 },
@@ -568,7 +568,7 @@
                             },
                             "value": "x == 30\n",
                             "location": {
-                              "start": 545,
+                              "start": 543,
                               "end": 554,
                               "file": "examples/condition.vader"
                             }
@@ -615,8 +615,8 @@
                         }
                       },
                       "location": {
-                        "start": 521,
-                        "end": 523,
+                        "start": 519,
+                        "end": 526,
                         "file": "examples/condition.vader"
                       }
                     },
@@ -642,7 +642,7 @@
                             },
                             "value": "not equals\n",
                             "location": {
-                              "start": 585,
+                              "start": 583,
                               "end": 597,
                               "file": "examples/condition.vader"
                             }
@@ -719,9 +719,9 @@
                     }
                   },
                   "location": {
-                    "start": 648,
-                    "end": 649,
-                    "file": "examples/condition.vader"
+                    "start": 646,
+                    "file": "examples/condition.vader",
+                    "end": 651
                   }
                 },
                 {
@@ -772,8 +772,8 @@
                   }
                 },
                 "location": {
-                  "start": 630,
-                  "end": 632,
+                  "start": 628,
+                  "end": 635,
                   "file": "examples/condition.vader"
                 }
               },
@@ -838,8 +838,8 @@
                       }
                     },
                     "location": {
-                      "start": 679,
-                      "end": 681,
+                      "start": 677,
+                      "end": 684,
                       "file": "examples/condition.vader"
                     }
                   },
@@ -928,14 +928,14 @@
                   }
                 },
                 "location": {
-                  "start": 723,
-                  "end": 724,
+                  "start": 721,
+                  "end": 726,
                   "file": "examples/condition.vader"
                 }
               },
               "location": {
-                "start": 719,
-                "end": 720,
+                "start": 717,
+                "end": 726,
                 "file": "examples/condition.vader"
               }
             },
