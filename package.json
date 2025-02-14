@@ -6,12 +6,14 @@
     "build": "bun build src/index.ts --compile --outfile=vader"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "svelte": "^5.20.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "binaryen": "^122.0.0"
+    "binaryen": "^122.0.0",
+    "codemirror": "^6.0.1"
   }
 }
