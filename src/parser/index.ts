@@ -263,7 +263,7 @@ function parseVariableDeclaration(parser: Parser, isConstant: boolean, identifie
         return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, value)
     }
     if (parser.isCurrentKeyword('if')) {
-        const value = parseIfStatement(parser, 'ConditionalExpression');
+        const value = parseIfExpression(parser);
         return parseVariableDeclarationAndAssignment(parser, isConstant, identifier, type, value);
     }
     if (parser.isCurrentType('Identifier') && parser.next.type === 'OpenCurlyBracket') {
@@ -676,6 +676,10 @@ function parseReturnStatement(parser: Parser): ReturnStatement {
         expression: parseExpression(parser),
         location: token.location
     };
+}
+
+function parseIfExpression(parser: Parser) {
+    return parseIfStatement(parser, 'ConditionalExpression') as ConditionalExpression;
 }
 
 function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'ConditionalExpression' = 'ConditionalStatement') {
