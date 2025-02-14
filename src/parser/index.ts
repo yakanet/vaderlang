@@ -258,13 +258,17 @@ function parseIdentifierStatement(parser: Parser): Statement {
     }
 
     if (parser.isCurrentType('EqualToken')) {
-        const token = parser.expect('EqualToken');
+        parser.expect('EqualToken');
         const value = parseExpression(parser);
         return {
             kind: 'VariableAssignmentStatement',
             identifier: identifier.value,
             value,
-            location: token.location
+            location: {
+                start: identifier.location.start,
+                file: identifier.location.file,
+                end: value.location.end
+            }
         }
     }
     return parseExpression(parser)
@@ -684,7 +688,7 @@ function parseBinaryExpression(parser: Parser, lhs: Expression): Expression {
     ]);
     for (const token of binaryToken) {
         if (parser.isCurrentType(token)) {
-            const {value: operator, location} = parser.expect(token);
+            const {value: operator} = parser.expect(token);
             const rhs = parseExpression(parser);
             return {
                 kind: 'BinaryExpression',
@@ -692,7 +696,11 @@ function parseBinaryExpression(parser: Parser, lhs: Expression): Expression {
                 type: BasicVaderType.unknown,
                 lhs,
                 rhs,
-                location
+                location: {
+                    start: lhs.location.start,
+                    end: rhs.location.end,
+                    file: lhs.location.file
+                }
             }
         }
     }

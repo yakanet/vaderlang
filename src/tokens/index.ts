@@ -78,12 +78,12 @@ export function* tokenize(content: string, file: string): Generator<Token> {
             continue;
         }
 
-        const createToken = (tokenType: Token["type"], value = c) =>
+        const createToken = (tokenType: Token["type"], value = c, realSize = value.length) =>
             ({
                 type: tokenType,
                 value,
                 location: {
-                    start: tokenizer.current - value.length,
+                    start: tokenizer.current - realSize,
                     end: tokenizer.current,
                     file
                 },
@@ -190,7 +190,7 @@ export function* tokenize(content: string, file: string): Generator<Token> {
                     buffer += tokenizer.eat();
                 }
                 tokenizer.eat(); // closing " char
-                yield createToken("StringLiteral", buffer);
+                yield createToken("StringLiteral", buffer, buffer.length + 2);
                 break;
             }
             case is_digit(c): {

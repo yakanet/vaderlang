@@ -5,7 +5,11 @@ import {parseProgram} from "../../src/parser";
 import {resolve} from "../../src/resolver/resolver.ts";
 import fs from "node:fs";
 
-const source_path = 'examples/arrays.vader'; // TODO Must be an input from cli
+const [_runtime, _script, source_path] = process.argv;
+if (!source_path) {
+    console.error(`missing location of a vader file`);
+    process.exit(1);
+}
 
 const resolver = new FileResolver(process.cwd(), ['./modules']);
 const program = parseProgram(source_path, resolver);

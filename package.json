@@ -3,7 +3,8 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "build": "bun build src/index.ts --compile --outfile=vader"
+    "build": "bun build src/index.ts --compile --outfile=vader",
+    "ast": "bun run tools/ast-viewer/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
