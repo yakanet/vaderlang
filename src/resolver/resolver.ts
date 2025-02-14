@@ -8,6 +8,8 @@ import {
     type Program,
     type ReturnStatement,
     type Statement,
+    type StructVaderType,
+    typeToString,
     type VariableDeclarationStatement,
 } from "../parser/types";
 import assert from "node:assert";
@@ -235,12 +237,27 @@ function resolveExpression(
                 throw new Error(`Trying to instantiate a struct, but ${resolved.named} is not a struct`);
             }
             if (resolved.type.parameters.length !== expression.parameters.length) {
-                throw new Error(`Wrong number of arguments (expected ${resolved.type.parameters.length}, got ${expression.parameters.length})`);
+                throw new Error(`wrong number of arguments (expected ${resolved.type.parameters.length}, got ${expression.parameters.length})`);
             }
-            for (let i = 0; i < resolved.type.parameters.length; i += 1) {
-                expression.parameters[i] = resolveExpression(expression.parameters[i], scope);
-                if (!isTypeEquals(expression.parameters[i].type, resolved.type.parameters[i].type)) {
-                    throw new Error(`Wrong type for parameter ${resolved.type.parameters[i].name} (expected ${resolved.type.parameters[i].type}, got ${expression.parameters[i].type})`);
+            if (expression.parameters.length > 0) {
+                const isNamedParameter = !!expression.parameters[0].name;
+                for (let i = 0; i < expression.parameters.length; i++) {
+                    let target: StructVaderType['parameters'][number]
+                    if (isNamedParameter) {
+                        assert(expression.parameters[i].name !== undefined)
+                        const t = resolved.type.parameters.find(t => t.name === expression.parameters[i].name);
+                        if (!t) {
+                            throw new Error(`undeclared ${expression.parameters[i].name} on struct: ${typeToString(resolved.type)}`);
+                        }
+                        target = t;
+                    } else {
+                        assert(expression.parameters[i].name === undefined)
+                        target = resolved.type.parameters[i];
+                    }
+                    expression.parameters[i].value = resolveExpression(expression.parameters[i].value, scope);
+                    if (!isTypeEquals(expression.parameters[i].value.type, target.type)) {
+                        throw new Error(`wrong type for parameter ${resolved.type.parameters[i].name} (expected ${typeToString(target.type)}, got ${typeToString(expression.parameters[i].value.type)}))`);
+                    }
                 }
             }
             return {

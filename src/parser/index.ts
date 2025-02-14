@@ -196,20 +196,17 @@ function parseType(parser: Parser): VaderType {
         type = {
             kind: 'array',
             type,
-            size: 0
         } satisfies ArrayVaderType
         while (parser.isCurrentType('OpenSquareBracket')) {
             parser.expect('OpenSquareBracket')
             if (parser.isCurrentType('UnderscoreToken')) {
                 parser.expect('UnderscoreToken');
-                type.size = -1;
+                type.length = -1;
             } else if (parser.isCurrentType('NumberToken')) {
-                type.size = Number(parser.expect('NumberToken').value);
-                if (type.size % 1 || type.size < 0) {
+                type.length = Number(parser.expect('NumberToken').value);
+                if (type.length % 1 || type.length < 0) {
                     parser.reportError(`Wrong size for the array. Should be a positive integer`, parser.previous.location);
                 }
-            } else {
-                parser.reportError(`Array declaration need to set a fixed size`, parser.current.location);
             }
             parser.expect('CloseSquareBracket');
         }
@@ -312,13 +309,13 @@ function parseArrayInitializationExpression(parser: Parser): Expression {
         parser.expect('CloseCurlyBracket')
     }
 
-    if (type.size < 0) {
+    if (type.length && type.length < 0) {
         if (!hasInitialValue) {
             parser.reportError(`Array initial value is mandatory when creating an array with no specified size`, parser.previous.location);
         } else {
-            type.size = initialValue.length;
+            type.length = initialValue.length;
         }
-    } else if (hasInitialValue && type.size !== initialValue.length) {
+    } else if (hasInitialValue && type.length !== initialValue.length) {
         parser.reportError(`Type mismatch between array size and initial value size`, parser.previous.location);
     }
 
@@ -366,7 +363,13 @@ function parseStructInstantiation(parser: Parser) {
     }
     parser.expect('OpenCurlyBracket');
     while (!parser.isCurrentType('CloseCurlyBracket')) {
-        instance.parameters.push(parseExpression(parser));
+        let name: string | undefined = undefined;
+        if (parser.isCurrentType('DotToken')) {
+            parser.expect('DotToken')
+            name = parser.expect('Identifier').value;
+            parser.expect('EqualToken')
+        }
+        instance.parameters.push({name, value: parseExpression(parser)});
         if (!parser.isCurrentType('CommaToken')) {
             break
         }

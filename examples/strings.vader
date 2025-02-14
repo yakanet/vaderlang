@@ -1,0 +1,10 @@
+@load "std"
+@load "string"
+
+main :: fn() {
+    y :: u8[_] {85, 90, 23}
+    x :: String {
+        .value = y,
+        .length = 3,
+    }
+}

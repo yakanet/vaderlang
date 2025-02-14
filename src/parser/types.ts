@@ -100,7 +100,10 @@ export type VariableAssignmentStatement = BasicStatement & {
 
 export type StructInstantiationExpression = BasicStatement & {
     kind: 'StructInstantiationExpression',
-    parameters: Expression[],
+    parameters: {
+        name?: string,
+        value: Expression
+    }[],
     type: VaderType,
     structName: string,
 }
@@ -141,7 +144,7 @@ interface RawVaderType {
     name: string,
 }
 
-interface StructVaderType {
+export interface StructVaderType {
     kind: 'struct'
     parameters: {
         name: string,
@@ -151,7 +154,7 @@ interface StructVaderType {
 
 export interface ArrayVaderType {
     kind: 'array'
-    size: number,
+    length?: number,
     type: VaderType,
 }
 
@@ -168,6 +171,26 @@ export interface FunctionVaderType {
 interface UnknownType {
     kind: 'unknown'
     name: string,
+}
+
+export function typeToString(vaderType: VaderType): string {
+    switch (vaderType.kind) {
+        case 'struct': {
+            return `struct {${vaderType.parameters.map(t => typeToString(t.type))}`
+        }
+        case 'function': {
+            return `function (${vaderType.parameters.map(t => typeToString(t.type))}) -> ${typeToString(vaderType.returnType)}`
+        }
+        case 'array': {
+            return `${typeToString(vaderType.type)}[${vaderType.length === undefined ? '' : vaderType.length}]`
+        }
+        case 'primitive': {
+            return vaderType.name
+        }
+        case 'unknown': {
+            return 'UNKNOWN'
+        }
+    }
 }
 
 export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
@@ -207,7 +230,10 @@ export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
             if (!isTypeEquals(a.type, c.type)) {
                 return false
             }
-            return a.size === c.size;
+            if (a.length === undefined || c.length === undefined) {
+                return true;
+            }
+            return a.length === c.length;
         }
         case 'primitive': {
             const c = b as RawVaderType;
@@ -218,7 +244,6 @@ export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
 
 export const BasicVaderType = {
     unknown: {name: 'UNKNOWN', kind: 'unknown'},
-    function: {name: 'Function', kind: 'primitive'},
     ptr: {name: 'u32', kind: 'primitive'},
     u8: {name: 'u8', kind: 'primitive'},
     u32: {name: 'u32', kind: 'primitive'},
@@ -226,6 +251,7 @@ export const BasicVaderType = {
     u16: {name: 'u16', kind: 'primitive'},
     f32: {name: 'f32', kind: 'primitive'},
     f64: {name: 'f64', kind: 'primitive'},
+    boolean: {name: 'boolean', kind: 'primitive'},
     void: {name: 'void', kind: 'primitive'},
     string: {name: 'string', kind: 'primitive'},
 } as const satisfies Record<string, VaderType>;
