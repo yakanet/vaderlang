@@ -46,14 +46,14 @@
           ]
         },
         "location": {
-          "start": 16,
+          "start": 9,
           "end": 15,
           "file": "examples/dot_function.vader"
         }
       },
       "location": {
         "start": 0,
-        "end": 41,
+        "end": 15,
         "file": "examples/dot_function.vader"
       }
     },
@@ -426,14 +426,14 @@
               }
             },
             "location": {
-              "start": 99,
-              "end": 100,
+              "start": 92,
+              "end": 138,
               "file": "examples/dot_function.vader"
             }
           }
         ],
         "location": {
-          "start": 51,
+          "start": 49,
           "end": 140,
           "file": "examples/dot_function.vader"
         }
@@ -527,14 +527,14 @@
               }
             },
             "location": {
-              "start": 185,
-              "end": 189,
+              "start": 178,
+              "end": 193,
               "file": "examples/dot_function.vader"
             }
           }
         ],
         "location": {
-          "start": 153,
+          "start": 151,
           "end": 195,
           "file": "examples/dot_function.vader"
         }
@@ -754,7 +754,7 @@
               "kind": "CallExpression",
               "functionName": "plus1",
               "location": {
-                "start": 291,
+                "start": 280,
                 "end": 298,
                 "file": "examples/dot_function.vader"
               },
@@ -763,7 +763,7 @@
                   "kind": "CallExpression",
                   "functionName": "dot",
                   "location": {
-                    "start": 283,
+                    "start": 280,
                     "end": 290,
                     "file": "examples/dot_function.vader"
                   },
@@ -865,14 +865,14 @@
               }
             },
             "location": {
-              "start": 280,
-              "end": 282,
+              "start": 273,
+              "end": 298,
               "file": "examples/dot_function.vader"
             }
           }
         ],
         "location": {
-          "start": 207,
+          "start": 205,
           "end": 300,
           "file": "examples/dot_function.vader"
         }

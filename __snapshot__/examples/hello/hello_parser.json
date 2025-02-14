@@ -47,7 +47,7 @@
         },
         "body": [],
         "location": {
-          "start": 21,
+          "start": 19,
           "end": 45,
           "file": "modules/std.vader"
         }
@@ -104,7 +104,7 @@
         },
         "body": [],
         "location": {
-          "start": 69,
+          "start": 67,
           "end": 94,
           "file": "modules/std.vader"
         }
@@ -300,14 +300,14 @@
               }
             },
             "location": {
-              "start": 94,
-              "end": 95,
+              "start": 87,
+              "end": 99,
               "file": "examples/hello.vader"
             }
           }
         ],
         "location": {
-          "start": 40,
+          "start": 38,
           "end": 101,
           "file": "examples/hello.vader"
         }
@@ -480,14 +480,14 @@
               }
             },
             "location": {
-              "start": 278,
-              "end": 281,
+              "start": 271,
+              "end": 294,
               "file": "examples/hello.vader"
             }
           }
         ],
         "location": {
-          "start": 113,
+          "start": 111,
           "end": 296,
           "file": "examples/hello.vader"
         }
@@ -500,7 +500,7 @@
     }
   ],
   "location": {
-    "start": 1,
+    "start": 0,
     "end": 296,
     "file": "examples/hello.vader"
   }

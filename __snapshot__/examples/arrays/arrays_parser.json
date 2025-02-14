@@ -47,7 +47,7 @@
         },
         "body": [],
         "location": {
-          "start": 21,
+          "start": 19,
           "end": 45,
           "file": "modules/std.vader"
         }
@@ -104,7 +104,7 @@
         },
         "body": [],
         "location": {
-          "start": 69,
+          "start": 67,
           "end": 94,
           "file": "modules/std.vader"
         }
@@ -245,14 +245,14 @@
               }
             },
             "location": {
-              "start": 87,
+              "start": 80,
               "end": 93,
               "file": "examples/arrays.vader"
             }
           }
         ],
         "location": {
-          "start": 31,
+          "start": 29,
           "end": 95,
           "file": "examples/arrays.vader"
         }
@@ -413,7 +413,7 @@
               "kind": "CallExpression",
               "functionName": "itoa",
               "location": {
-                "start": 172,
+                "start": 170,
                 "end": 178,
                 "file": "examples/arrays.vader"
               },
@@ -498,14 +498,14 @@
               }
             },
             "location": {
-              "start": 190,
-              "end": 191,
+              "start": 183,
+              "end": 194,
               "file": "examples/arrays.vader"
             }
           }
         ],
         "location": {
-          "start": 107,
+          "start": 105,
           "end": 196,
           "file": "examples/arrays.vader"
         }
@@ -518,7 +518,7 @@
     }
   ],
   "location": {
-    "start": 1,
+    "start": 0,
     "end": 196,
     "file": "examples/arrays.vader"
   }

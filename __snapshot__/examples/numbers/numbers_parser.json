@@ -177,14 +177,14 @@
               }
             },
             "location": {
-              "start": 95,
+              "start": 88,
               "end": 96,
               "file": "examples/numbers.vader"
             }
           }
         ],
         "location": {
-          "start": 72,
+          "start": 70,
           "end": 98,
           "file": "examples/numbers.vader"
         }

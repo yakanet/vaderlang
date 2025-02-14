@@ -47,7 +47,7 @@
         },
         "body": [],
         "location": {
-          "start": 21,
+          "start": 19,
           "end": 45,
           "file": "modules/std.vader"
         }
@@ -104,7 +104,7 @@
         },
         "body": [],
         "location": {
-          "start": 69,
+          "start": 67,
           "end": 94,
           "file": "modules/std.vader"
         }
@@ -170,7 +170,7 @@
           }
         ],
         "location": {
-          "start": 23,
+          "start": 21,
           "end": 56,
           "file": "examples/simple_hello.vader"
         }
@@ -183,7 +183,7 @@
     }
   ],
   "location": {
-    "start": 1,
+    "start": 0,
     "end": 56,
     "file": "examples/simple_hello.vader"
   }

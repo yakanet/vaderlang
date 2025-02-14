@@ -47,7 +47,7 @@
         },
         "body": [],
         "location": {
-          "start": 22,
+          "start": 20,
           "end": 47,
           "file": "examples/condition.vader"
         }
@@ -186,7 +186,7 @@
               }
             },
             "location": {
-              "start": 117,
+              "start": 114,
               "end": 158,
               "file": "examples/condition.vader"
             }
@@ -267,7 +267,7 @@
               }
             },
             "location": {
-              "start": 211,
+              "start": 208,
               "end": 261,
               "file": "examples/condition.vader"
             }
@@ -348,7 +348,7 @@
               }
             },
             "location": {
-              "start": 296,
+              "start": 293,
               "end": 380,
               "file": "examples/condition.vader"
             },
@@ -459,7 +459,7 @@
               }
             },
             "location": {
-              "start": 425,
+              "start": 422,
               "end": 604,
               "file": "examples/condition.vader"
             },
@@ -540,7 +540,7 @@
                   }
                 },
                 "location": {
-                  "start": 471,
+                  "start": 466,
                   "end": 0,
                   "file": "examples/condition.vader"
                 },
@@ -621,7 +621,7 @@
                       }
                     },
                     "location": {
-                      "start": 519,
+                      "start": 514,
                       "end": 0,
                       "file": "examples/condition.vader"
                     },
@@ -778,7 +778,7 @@
                 }
               },
               "location": {
-                "start": 628,
+                "start": 625,
                 "end": 705,
                 "file": "examples/condition.vader"
               },
@@ -844,7 +844,7 @@
                     }
                   },
                   "location": {
-                    "start": 677,
+                    "start": 672,
                     "end": 0,
                     "file": "examples/condition.vader"
                   },
@@ -940,14 +940,14 @@
               }
             },
             "location": {
-              "start": 717,
-              "end": 718,
+              "start": 710,
+              "end": 726,
               "file": "examples/condition.vader"
             }
           }
         ],
         "location": {
-          "start": 59,
+          "start": 57,
           "end": 728,
           "file": "examples/condition.vader"
         }
@@ -960,7 +960,7 @@
     }
   ],
   "location": {
-    "start": 1,
+    "start": 0,
     "end": 728,
     "file": "examples/condition.vader"
   }

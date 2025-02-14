@@ -35,7 +35,7 @@ export class Parser {
     }
 
     private eat() {
-        return this.tokens[++this.index];
+        return this.tokens[this.index++];
     }
 
     loadVaderFile(filename: string) {
@@ -117,7 +117,10 @@ export function parseProgram(entryFile: string, resolver: ModuleResolver): Progr
     const program: Program = {
         kind: 'Program',
         body: [],
-        location: parser.current.location
+        location: {
+            ...parser.current.location,
+            start: 0
+        }
     }
     while (!parser.isCurrentType('EOF')) {
         program.body.push(parseStatement(parser))
@@ -127,7 +130,6 @@ export function parseProgram(entryFile: string, resolver: ModuleResolver): Progr
     return program;
 }
 
-const decorators: Decorator[] = [];
 
 function parseStatement(parser: Parser): Statement {
     if (parser.isCurrentType('Identifier')) {
@@ -143,20 +145,27 @@ function parseStatement(parser: Parser): Statement {
         return parseIfStatement(parser)
     }
     if (parser.isCurrentType('Decorator')) {
-        const token = parser.expect('Decorator');
-        if (token.value === 'intrinsic') {
-            decorators.push(token.value)
-        } else if (token.value === 'load') {
-            const pathToken = parser.expect("StringLiteral");
-            parser.loadVaderFile(pathToken.value)
-        } else if (token.value === 'file') {
-            parser.reportError(`@file decorator is not applicable as a statement`, token.location);
-        } else {
-            parser.reportError(`Unknown decorator: ${token.value}`, token.location);
-        }
-        return parseStatement(parser)
+        return parseDecorator(parser);
     }
     return parseExpression(parser)
+}
+
+const decorators: Decorator[] = [];
+
+function parseDecorator(parser: Parser) {
+    const token = parser.expect('Decorator');
+    switch (token.value) {
+        case 'intrinsic':
+            decorators.push(token.value)
+            return parseStatement(parser)
+        case 'load':
+            const pathToken = parser.expect("StringLiteral");
+            parser.loadVaderFile(pathToken.value)
+            return parseStatement(parser);
+        case 'file':
+            return parser.reportError(`@file decorator is not applicable as a statement`, token.location);
+    }
+    parser.reportError(`Unknown decorator: ${token.value}`, token.location);
 }
 
 function parseFileDecorator(parser: Parser, decorator: Token): StringExpression {
@@ -176,7 +185,10 @@ function parseFileDecorator(parser: Parser, decorator: Token): StringExpression 
     }
 }
 
-
+/**
+ * identifier | identifier[]+ | identifier[_]+ | identifier[number]+
+ * @param parser
+ */
 function parseType(parser: Parser): VaderType {
     const identifier = parser.expect('Identifier').value;
     let type: VaderType = {
@@ -208,6 +220,13 @@ function parseType(parser: Parser): VaderType {
     return type
 }
 
+/**
+ * identifier()
+ * identifier ::
+ * identifier :=
+ * identifier =
+ * @param parser
+ */
 function parseIdentifierStatement(parser: Parser): Statement {
     if (parser.next.type === 'OpenRoundBracket') {
         return parseCallExpression(parser);
@@ -366,9 +385,8 @@ function parseStructInstantiation(parser: Parser) {
     return instance;
 }
 
-
 function parseFunctionDeclarationExpression(parser: Parser): FunctionDeclarationExpression {
-    const token = parser.expectKeyword('fn')
+    const token = parser.expectKeyword('fn');
     const parameters = parseFunctionArguments(parser);
     let returnType: VaderType = BasicVaderType.void;
     if (parser.isCurrentType('LambdaArrowToken')) {
@@ -396,6 +414,10 @@ function parseFunctionDeclarationExpression(parser: Parser): FunctionDeclaration
     }
 }
 
+/**
+ * ([identifier: type,?]*)
+ * @param parser
+ */
 function parseFunctionArguments(parser: Parser): { name: string, type: VaderType }[] {
     parser.expect('OpenRoundBracket')
     const parameters: { name: string, type: VaderType }[] = [];
@@ -425,12 +447,16 @@ function parseVariableDeclarationAndAssignment(parser: Parser, isConstant: boole
         value,
         location: {
             start: identifier.location.start,
-            end: parser.previous.location.end,
+            end: value.location.end,
             file: identifier.location.file,
         }
     } satisfies VariableDeclarationStatement
 }
 
+/**
+ * struct {[identifier: type]*}
+ * @param parser
+ */
 function parseStructDeclaration(parser: Parser) {
     const token = parser.expectKeyword('struct');
     const structStatement: StructDeclarationExpression = {
@@ -457,6 +483,10 @@ function parseStructDeclaration(parser: Parser) {
     return structStatement;
 }
 
+/**
+ * for (?statement; statement; statement)? { statement* }
+ * @param parser
+ */
 function parseForStatement(parser: Parser): Statement {
     const forToken = parser.expectKeyword('for');
     const [initialization, condition, iteration] = optionalRoundBracket(parser, () => {
@@ -480,7 +510,6 @@ function parseForStatement(parser: Parser): Statement {
             file: forToken.location.file,
         }
     }
-
 }
 
 function parseDotExpression(parser: Parser, from: Expression): Expression {
@@ -514,7 +543,7 @@ function parseDotExpression(parser: Parser, from: Expression): Expression {
                     kind: 'CallExpression',
                     functionName: propertyName.value,
                     location: {
-                        start: propertyName.location.start,
+                        start: left.location.start,
                         end: parser.previous.location.end,
                         file: propertyName.location.file
                     },
@@ -632,6 +661,11 @@ function parseExpression(parser: Parser): Expression {
     return lhs
 }
 
+/**
+ * lhs operator expression
+ * @param parser
+ * @param lhs
+ */
 function parseBinaryExpression(parser: Parser, lhs: Expression): Expression {
     const binaryToken = new Set<Token['type']>([
         'StarToken',
@@ -665,12 +699,19 @@ function parseBinaryExpression(parser: Parser, lhs: Expression): Expression {
     return lhs;
 }
 
+/**
+ * return expression
+ * @param parser
+ */
 function parseReturnStatement(parser: Parser): ReturnStatement {
     const token = parser.expectKeyword('return');
     return {
         kind: 'ReturnStatement',
         expression: parseExpression(parser),
-        location: token.location
+        location: {
+            ...token.location,
+            end: parser.previous.location.end
+        }
     };
 }
 
@@ -678,13 +719,21 @@ function parseIfExpression(parser: Parser) {
     return parseIfStatement(parser, 'ConditionalExpression') as ConditionalExpression;
 }
 
+/**
+ * if(?expression)? { statement[] }
+ *  [elif (?expression)? { statement[] }]*
+ *  [else { statement[]}]?
+ *
+ * @param parser
+ * @param kind
+ */
 function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'ConditionalExpression' = 'ConditionalStatement') {
     const ifToken = parser.expectKeyword('if');
     const ifCondition = optionalRoundBracket(parser, () => parseExpression(parser));
     const ifStatements = parseBlockStatement(parser);
     const ifBlock = {
         kind,
-        type: BasicVaderType.unknown, // need to be resolved
+        type: BasicVaderType.unknown,
         ifBody: ifStatements,
         condition: ifCondition,
         location: {
@@ -700,7 +749,7 @@ function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'Condit
         const body = parseBlockStatement(parser);
         currentBlock.elseBody = [{
             kind,
-            type: BasicVaderType.unknown, // need to be resolved
+            type: BasicVaderType.unknown,
             ifBody: body,
             condition: condition,
             location: {
@@ -719,13 +768,16 @@ function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'Condit
     return ifBlock;
 }
 
-
+/**
+ * identifier callArguments
+ * @param parser
+ */
 function parseCallExpression(parser: Parser): CallExpression {
     const identifier = parser.expect('Identifier')
     const parameters = parseCallArguments(parser);
     return {
         kind: 'CallExpression',
-        type: BasicVaderType.unknown, // Need to be resolved later
+        type: BasicVaderType.unknown,
         functionName: identifier.value,
         parameters,
         location: {
@@ -736,6 +788,10 @@ function parseCallExpression(parser: Parser): CallExpression {
     }
 }
 
+/**
+ * ([identifier: Type,?]+)
+ * @param parser
+ */
 function parseCallArguments(parser: Parser) {
     parser.expect('OpenRoundBracket');
     const parameters: Expression[] = [];

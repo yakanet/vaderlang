@@ -47,7 +47,7 @@
         },
         "body": [],
         "location": {
-          "start": 21,
+          "start": 19,
           "end": 45,
           "file": "modules/std.vader"
         }
@@ -104,7 +104,7 @@
         },
         "body": [],
         "location": {
-          "start": 69,
+          "start": 67,
           "end": 94,
           "file": "modules/std.vader"
         }
@@ -166,14 +166,14 @@
           ]
         },
         "location": {
-          "start": 17,
+          "start": 10,
           "end": 16,
           "file": "modules/string.vader"
         }
       },
       "location": {
         "start": 0,
-        "end": 52,
+        "end": 16,
         "file": "modules/string.vader"
       }
     },
@@ -327,8 +327,8 @@
                   }
                 },
                 "location": {
+                  "start": 150,
                   "end": 158,
-                  "start": 157,
                   "file": "modules/string.vader"
                 }
               }
@@ -459,7 +459,7 @@
               }
             },
             "location": {
-              "start": 112,
+              "start": 109,
               "end": 164,
               "file": "modules/string.vader"
             }
@@ -647,8 +647,8 @@
                       }
                     },
                     "location": {
+                      "start": 321,
                       "end": 329,
-                      "start": 328,
                       "file": "modules/string.vader"
                     }
                   }
@@ -854,14 +854,14 @@
                   }
                 },
                 "location": {
-                  "start": 275,
+                  "start": 272,
                   "end": 339,
                   "file": "modules/string.vader"
                 }
               }
             ],
             "location": {
-              "start": 230,
+              "start": 226,
               "end": 345,
               "file": "modules/string.vader"
             }
@@ -882,14 +882,14 @@
               }
             },
             "location": {
+              "start": 350,
               "end": 358,
-              "start": 357,
               "file": "modules/string.vader"
             }
           }
         ],
         "location": {
-          "start": 66,
+          "start": 64,
           "end": 360,
           "file": "modules/string.vader"
         }
@@ -1050,8 +1050,8 @@
                   }
                 },
                 "location": {
+                  "start": 463,
                   "end": 471,
-                  "start": 470,
                   "file": "modules/string.vader"
                 }
               }
@@ -1182,7 +1182,7 @@
               }
             },
             "location": {
-              "start": 425,
+              "start": 422,
               "end": 477,
               "file": "modules/string.vader"
             }
@@ -1370,8 +1370,8 @@
                       }
                     },
                     "location": {
+                      "start": 636,
                       "end": 644,
-                      "start": 643,
                       "file": "modules/string.vader"
                     }
                   }
@@ -1577,14 +1577,14 @@
                   }
                 },
                 "location": {
-                  "start": 589,
+                  "start": 586,
                   "end": 654,
                   "file": "modules/string.vader"
                 }
               }
             ],
             "location": {
-              "start": 542,
+              "start": 538,
               "end": 660,
               "file": "modules/string.vader"
             }
@@ -1605,14 +1605,14 @@
               }
             },
             "location": {
+              "start": 665,
               "end": 673,
-              "start": 672,
               "file": "modules/string.vader"
             }
           }
         ],
         "location": {
-          "start": 377,
+          "start": 375,
           "end": 675,
           "file": "modules/string.vader"
         }
@@ -1919,14 +1919,14 @@
               }
             },
             "location": {
-              "start": 154,
-              "end": 155,
+              "start": 147,
+              "end": 164,
               "file": "examples/strings.vader"
             }
           }
         ],
         "location": {
-          "start": 38,
+          "start": 36,
           "end": 166,
           "file": "examples/strings.vader"
         }
@@ -1939,7 +1939,7 @@
     }
   ],
   "location": {
-    "start": 1,
+    "start": 0,
     "end": 166,
     "file": "examples/strings.vader"
   }

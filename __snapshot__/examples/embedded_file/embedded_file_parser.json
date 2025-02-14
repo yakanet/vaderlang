@@ -47,7 +47,7 @@
         },
         "body": [],
         "location": {
-          "start": 21,
+          "start": 19,
           "end": 45,
           "file": "modules/std.vader"
         }
@@ -104,7 +104,7 @@
         },
         "body": [],
         "location": {
-          "start": 69,
+          "start": 67,
           "end": 94,
           "file": "modules/std.vader"
         }
@@ -170,7 +170,7 @@
           }
         ],
         "location": {
-          "start": 31,
+          "start": 29,
           "end": 86,
           "file": "examples/embedded_file.vader"
         }
@@ -183,7 +183,7 @@
     }
   ],
   "location": {
-    "start": 1,
+    "start": 0,
     "end": 86,
     "file": "examples/embedded_file.vader"
   }

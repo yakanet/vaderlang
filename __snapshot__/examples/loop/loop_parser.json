@@ -47,7 +47,7 @@
         },
         "body": [],
         "location": {
-          "start": 21,
+          "start": 19,
           "end": 45,
           "file": "modules/std.vader"
         }
@@ -104,7 +104,7 @@
         },
         "body": [],
         "location": {
-          "start": 69,
+          "start": 67,
           "end": 94,
           "file": "modules/std.vader"
         }
@@ -404,7 +404,7 @@
                   }
                 ],
                 "location": {
-                  "start": 75,
+                  "start": 72,
                   "end": 141,
                   "file": "examples/loop.vader"
                 }
@@ -439,14 +439,14 @@
               }
             ],
             "location": {
-              "start": 36,
+              "start": 32,
               "end": 167,
               "file": "examples/loop.vader"
             }
           }
         ],
         "location": {
-          "start": 23,
+          "start": 21,
           "end": 169,
           "file": "examples/loop.vader"
         }
@@ -459,7 +459,7 @@
     }
   ],
   "location": {
-    "start": 1,
+    "start": 0,
     "end": 169,
     "file": "examples/loop.vader"
   }
