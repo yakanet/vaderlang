@@ -63,7 +63,7 @@ function testParser(file: string, update = false) {
 
 function testWasmEmitter(file: string, update: boolean) {
     const snapshotFile = createSnapshotFile(file, '_emitter.wat')
-    it("Testing WasmEmitter on " + file, () => {
+    it("Testing emiter (wasm) on " + file, () => {
         const resolver = new FileResolver(process.cwd(), ['./modules']);
         let program = parseProgram(file, resolver)
         program = resolve(program)
@@ -81,7 +81,7 @@ function testWasmEmitter(file: string, update: boolean) {
 
 function testRun(file: string, update: boolean) {
     const snapshotFile = createSnapshotFile(file, '_run.txt')
-    it("Testing WasmEmitter on " + file, () => {
+    it("Testing execution (wasm) on " + file, () => {
         const resolver = new FileResolver(process.cwd(), ['./modules']);
         let program = parseProgram(file, resolver)
         program = resolve(program)
