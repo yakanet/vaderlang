@@ -459,18 +459,14 @@ function parseStructDeclaration(parser: Parser) {
 
 function parseForStatement(parser: Parser): Statement {
     const forToken = parser.expectKeyword('for');
-    let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
-    if (hasOpeningParenthesis) {
-        parser.expect('OpenRoundBracket');
-    }
-    const initialization = parseIdentifierStatement(parser)
-    parser.expect('SemicolonToken')
-    const condition = parseExpression(parser);
-    parser.expect('SemicolonToken')
-    const iteration = parseIdentifierStatement(parser)
-    if (hasOpeningParenthesis) {
-        parser.expect('CloseRoundBracket')
-    }
+    const [initialization, condition, iteration] = optionalRoundBracket(parser, () => {
+        const initialization = parseIdentifierStatement(parser)
+        parser.expect('SemicolonToken')
+        const condition = parseExpression(parser);
+        parser.expect('SemicolonToken')
+        const iteration = parseIdentifierStatement(parser)
+        return [initialization, condition, iteration]
+    })
     const body = parseBlockStatement(parser);
     return {
         kind: 'ForStatement',
@@ -684,14 +680,7 @@ function parseIfExpression(parser: Parser) {
 
 function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'ConditionalExpression' = 'ConditionalStatement') {
     const ifToken = parser.expectKeyword('if');
-    let hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
-    if (hasOpeningParenthesis) {
-        parser.expect('OpenRoundBracket');
-    }
-    const ifCondition = parseExpression(parser);
-    if (hasOpeningParenthesis) {
-        parser.expect('CloseRoundBracket');
-    }
+    const ifCondition = optionalRoundBracket(parser, () => parseExpression(parser));
     const ifStatements = parseBlockStatement(parser);
     const ifBlock = {
         kind,
@@ -707,14 +696,7 @@ function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 'Condit
     let currentBlock: ConditionalStatement | ConditionalExpression = ifBlock;
     while (parser.isCurrentKeyword('elif')) {
         const elifToken = parser.expectKeyword('elif')
-        hasOpeningParenthesis = parser.isCurrentType('OpenRoundBracket');
-        if (hasOpeningParenthesis) {
-            parser.expect('OpenRoundBracket');
-        }
-        const condition = parseExpression(parser)
-        if (hasOpeningParenthesis) {
-            parser.expect('CloseRoundBracket');
-        }
+        const condition = optionalRoundBracket(parser, () => parseExpression(parser));
         const body = parseBlockStatement(parser);
         currentBlock.elseBody = [{
             kind,
@@ -778,4 +760,16 @@ function parseBlockStatement(parser: Parser): Statement[] {
     }
     parser.expect('CloseCurlyBracket');
     return statements;
+}
+
+function optionalRoundBracket<T>(parser: Parser, cb: () => T): T {
+    const hasBracket = parser.isCurrentType('OpenRoundBracket');
+    if (hasBracket) {
+        parser.expect('OpenRoundBracket');
+    }
+    const result = cb();
+    if (hasBracket) {
+        parser.expect('CloseRoundBracket');
+    }
+    return result;
 }

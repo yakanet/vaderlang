@@ -54,10 +54,10 @@
        )
        (i32.load
         (i32.add
+         (local.get $3)
          (i32.load offset=4
           (local.get $1)
          )
-         (local.get $3)
         )
        )
       )

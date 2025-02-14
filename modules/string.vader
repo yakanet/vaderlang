@@ -10,9 +10,7 @@ equals :: fn(this: String, other: String) -> u32 {
 
     // TODO use a memory comparison instead of for loop
     for (i := 0; i<this.length; i=i+1 ) {
-        a :: this.value
-        b :: other.value
-        if a[i] != b[i] {
+        if this.value[i] != other.value[i] {
             return 0
         }
     }
@@ -25,9 +23,7 @@ startWith :: fn(this: String, prefix: String ) -> u32 {
     }
     // TODO use a memory comparison instead of for loop
     for (i := 0; i<prefix.length; i=i+1 ) {
-        a :: this.value
-        b :: prefix.value
-        if a[i] != b[i] {
+        if this.value[i] != prefix.value[i] {
             return 0
         }
     }
