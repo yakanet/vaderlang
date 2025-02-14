@@ -1348,164 +1348,6 @@
             },
             "body": [
               {
-                "kind": "VariableDeclarationStatement",
-                "name": "a",
-                "isConstant": true,
-                "type": {
-                  "kind": "array",
-                  "type": {
-                    "name": "u8",
-                    "kind": "primitive"
-                  }
-                },
-                "value": {
-                  "kind": "DotExpression",
-                  "properties": [
-                    {
-                      "name": "this",
-                      "type": {
-                        "kind": "struct",
-                        "parameters": [
-                          {
-                            "name": "length",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
-                          },
-                          {
-                            "name": "value",
-                            "type": {
-                              "kind": "array",
-                              "type": {
-                                "name": "u8",
-                                "kind": "primitive"
-                              }
-                            }
-                          }
-                        ]
-                      },
-                      "location": {
-                        "start": 591,
-                        "end": 595,
-                        "file": "modules/string.vader"
-                      }
-                    },
-                    {
-                      "name": "value",
-                      "type": {
-                        "kind": "array",
-                        "type": {
-                          "name": "u8",
-                          "kind": "primitive"
-                        }
-                      },
-                      "location": {
-                        "start": 596,
-                        "end": 601,
-                        "file": "modules/string.vader"
-                      }
-                    }
-                  ],
-                  "type": {
-                    "kind": "array",
-                    "type": {
-                      "name": "u8",
-                      "kind": "primitive"
-                    }
-                  },
-                  "location": {
-                    "start": 591,
-                    "end": 601,
-                    "file": "modules/string.vader"
-                  }
-                },
-                "location": {
-                  "start": 586,
-                  "end": 601,
-                  "file": "modules/string.vader"
-                }
-              },
-              {
-                "kind": "VariableDeclarationStatement",
-                "name": "b",
-                "isConstant": true,
-                "type": {
-                  "kind": "array",
-                  "type": {
-                    "name": "u8",
-                    "kind": "primitive"
-                  }
-                },
-                "value": {
-                  "kind": "DotExpression",
-                  "properties": [
-                    {
-                      "name": "prefix",
-                      "type": {
-                        "kind": "struct",
-                        "parameters": [
-                          {
-                            "name": "length",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
-                          },
-                          {
-                            "name": "value",
-                            "type": {
-                              "kind": "array",
-                              "type": {
-                                "name": "u8",
-                                "kind": "primitive"
-                              }
-                            }
-                          }
-                        ]
-                      },
-                      "location": {
-                        "start": 615,
-                        "end": 621,
-                        "file": "modules/string.vader"
-                      }
-                    },
-                    {
-                      "name": "value",
-                      "type": {
-                        "kind": "array",
-                        "type": {
-                          "name": "u8",
-                          "kind": "primitive"
-                        }
-                      },
-                      "location": {
-                        "start": 622,
-                        "end": 627,
-                        "file": "modules/string.vader"
-                      }
-                    }
-                  ],
-                  "type": {
-                    "kind": "array",
-                    "type": {
-                      "name": "u8",
-                      "kind": "primitive"
-                    }
-                  },
-                  "location": {
-                    "start": 615,
-                    "end": 627,
-                    "file": "modules/string.vader"
-                  }
-                },
-                "location": {
-                  "start": 610,
-                  "end": 627,
-                  "file": "modules/string.vader"
-                }
-              },
-              {
                 "kind": "ConditionalStatement",
                 "type": {
                   "name": "void",
@@ -1522,14 +1364,14 @@
                       },
                       "value": 0,
                       "location": {
-                        "start": 673,
-                        "end": 674,
+                        "start": 643,
+                        "end": 644,
                         "file": "modules/string.vader"
                       }
                     },
                     "location": {
-                      "end": 674,
-                      "start": 673,
+                      "end": 644,
+                      "start": 643,
                       "file": "modules/string.vader"
                     }
                   }
@@ -1555,14 +1397,61 @@
                         },
                         "identifier": "i",
                         "location": {
-                          "start": 641,
-                          "end": 642,
+                          "start": 600,
+                          "end": 601,
                           "file": "modules/string.vader"
                         }
                       }
                     ],
                     "identifier": {
-                      "kind": "VariableExpression",
+                      "kind": "DotExpression",
+                      "properties": [
+                        {
+                          "name": "this",
+                          "type": {
+                            "kind": "struct",
+                            "parameters": [
+                              {
+                                "name": "length",
+                                "type": {
+                                  "name": "u32",
+                                  "kind": "primitive"
+                                }
+                              },
+                              {
+                                "name": "value",
+                                "type": {
+                                  "kind": "array",
+                                  "type": {
+                                    "name": "u8",
+                                    "kind": "primitive"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "location": {
+                            "start": 589,
+                            "end": 593,
+                            "file": "modules/string.vader"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          },
+                          "location": {
+                            "start": 594,
+                            "end": 599,
+                            "file": "modules/string.vader"
+                          }
+                        }
+                      ],
                       "type": {
                         "kind": "array",
                         "type": {
@@ -1570,16 +1459,15 @@
                           "kind": "primitive"
                         }
                       },
-                      "identifier": "a",
                       "location": {
-                        "start": 639,
-                        "end": 640,
+                        "start": 589,
+                        "end": 593,
                         "file": "modules/string.vader"
                       }
                     },
                     "location": {
-                      "start": 639,
-                      "end": 640,
+                      "start": 589,
+                      "end": 602,
                       "file": "modules/string.vader"
                     },
                     "type": {
@@ -1601,14 +1489,61 @@
                         },
                         "identifier": "i",
                         "location": {
-                          "start": 649,
-                          "end": 650,
+                          "start": 619,
+                          "end": 620,
                           "file": "modules/string.vader"
                         }
                       }
                     ],
                     "identifier": {
-                      "kind": "VariableExpression",
+                      "kind": "DotExpression",
+                      "properties": [
+                        {
+                          "name": "prefix",
+                          "type": {
+                            "kind": "struct",
+                            "parameters": [
+                              {
+                                "name": "length",
+                                "type": {
+                                  "name": "u32",
+                                  "kind": "primitive"
+                                }
+                              },
+                              {
+                                "name": "value",
+                                "type": {
+                                  "kind": "array",
+                                  "type": {
+                                    "name": "u8",
+                                    "kind": "primitive"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "location": {
+                            "start": 606,
+                            "end": 612,
+                            "file": "modules/string.vader"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          },
+                          "location": {
+                            "start": 613,
+                            "end": 618,
+                            "file": "modules/string.vader"
+                          }
+                        }
+                      ],
                       "type": {
                         "kind": "array",
                         "type": {
@@ -1616,16 +1551,15 @@
                           "kind": "primitive"
                         }
                       },
-                      "identifier": "b",
                       "location": {
-                        "start": 647,
-                        "end": 648,
+                        "start": 606,
+                        "end": 612,
                         "file": "modules/string.vader"
                       }
                     },
                     "location": {
-                      "start": 647,
-                      "end": 648,
+                      "start": 606,
+                      "end": 621,
                       "file": "modules/string.vader"
                     },
                     "type": {
@@ -1637,21 +1571,21 @@
                     }
                   },
                   "location": {
-                    "start": 644,
-                    "end": 646,
+                    "start": 603,
+                    "end": 605,
                     "file": "modules/string.vader"
                   }
                 },
                 "location": {
-                  "start": 639,
-                  "end": 684,
+                  "start": 589,
+                  "end": 654,
                   "file": "modules/string.vader"
                 }
               }
             ],
             "location": {
               "start": 542,
-              "end": 690,
+              "end": 660,
               "file": "modules/string.vader"
             }
           },
@@ -1665,27 +1599,27 @@
               },
               "value": 1,
               "location": {
-                "start": 702,
-                "end": 703,
+                "start": 672,
+                "end": 673,
                 "file": "modules/string.vader"
               }
             },
             "location": {
-              "end": 703,
-              "start": 702,
+              "end": 673,
+              "start": 672,
               "file": "modules/string.vader"
             }
           }
         ],
         "location": {
           "start": 377,
-          "end": 705,
+          "end": 675,
           "file": "modules/string.vader"
         }
       },
       "location": {
         "start": 362,
-        "end": 705,
+        "end": 675,
         "file": "modules/string.vader"
       }
     },
