@@ -669,37 +669,41 @@
               "kind": "StructInstantiationExpression",
               "parameters": [
                 {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 2,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
-                  "location": {
-                    "start": 237,
-                    "end": 238,
-                    "file": "examples/dot_function.vader"
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 2,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 237,
+                      "end": 238,
+                      "file": "examples/dot_function.vader"
+                    }
                   }
                 },
                 {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 3,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
-                  "location": {
-                    "start": 240,
-                    "end": 241,
-                    "file": "examples/dot_function.vader"
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 3,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 240,
+                      "end": 241,
+                      "file": "examples/dot_function.vader"
+                    }
                   }
                 }
               ],
@@ -770,37 +774,41 @@
               "kind": "StructInstantiationExpression",
               "parameters": [
                 {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 4,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
-                  "location": {
-                    "start": 262,
-                    "end": 263,
-                    "file": "examples/dot_function.vader"
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 4,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 262,
+                      "end": 263,
+                      "file": "examples/dot_function.vader"
+                    }
                   }
                 },
                 {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 5,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
-                  "location": {
-                    "start": 265,
-                    "end": 266,
-                    "file": "examples/dot_function.vader"
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 5,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 265,
+                      "end": 266,
+                      "file": "examples/dot_function.vader"
+                    }
                   }
                 }
               ],

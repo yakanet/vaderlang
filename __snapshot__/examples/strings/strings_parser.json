@@ -1,0 +1,2439 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "file",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "path",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "string",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "path",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "string",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 21,
+          "end": 45,
+          "file": "modules/std.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 11,
+        "end": 45,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "print",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "message",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "void",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 69,
+          "end": 94,
+          "file": "modules/std.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 58,
+        "end": 94,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "String",
+      "isConstant": true,
+      "type": {
+        "kind": "struct",
+        "parameters": [
+          {
+            "name": "length",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
+          },
+          {
+            "name": "value",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u8",
+                "kind": "primitive"
+              }
+            }
+          }
+        ]
+      },
+      "value": {
+        "kind": "StructDeclarationExpression",
+        "type": {
+          "kind": "struct",
+          "parameters": [
+            {
+              "name": "length",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            },
+            {
+              "name": "value",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u8",
+                  "kind": "primitive"
+                }
+              }
+            }
+          ]
+        },
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 17,
+          "end": 16,
+          "file": "modules/string.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 0,
+        "end": 52,
+        "file": "modules/string.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "equals",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "other",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": "other",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "ConditionalStatement",
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            },
+            "ifBody": [
+              {
+                "kind": "ReturnStatement",
+                "expression": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 0,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 157,
+                    "end": 158,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "end": 158,
+                  "start": 157,
+                  "file": "modules/string.vader"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "!=",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "this",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 112,
+                      "end": 116,
+                      "file": "modules/string.vader"
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 117,
+                      "end": 123,
+                      "file": "modules/string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 112,
+                  "end": 123,
+                  "file": "modules/string.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "other",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 127,
+                      "end": 132,
+                      "file": "modules/string.vader"
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 133,
+                      "end": 139,
+                      "file": "modules/string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 127,
+                  "end": 139,
+                  "file": "modules/string.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 124,
+                "end": 126,
+                "file": "modules/string.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 112,
+              "end": 164,
+              "file": "modules/string.vader"
+            }
+          },
+          {
+            "kind": "ForStatement",
+            "initialization": {
+              "kind": "VariableDeclarationStatement",
+              "name": "i",
+              "isConstant": false,
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 0,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 236,
+                  "end": 237,
+                  "file": "modules/string.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 231,
+                "end": 237,
+                "file": "modules/string.vader"
+              }
+            },
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "<",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "VariableExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": "i",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 239,
+                  "end": 240,
+                  "file": "modules/string.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "this",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 241,
+                      "end": 245,
+                      "file": "modules/string.vader"
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 246,
+                      "end": 252,
+                      "file": "modules/string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 241,
+                  "end": 252,
+                  "file": "modules/string.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 2
+              },
+              "location": {
+                "start": 240,
+                "end": 241,
+                "file": "modules/string.vader"
+              }
+            },
+            "iteration": {
+              "kind": "VariableAssignmentStatement",
+              "identifier": "i",
+              "value": {
+                "kind": "BinaryExpression",
+                "operator": "+",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "lhs": {
+                  "kind": "VariableExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": "i",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 256,
+                    "end": 257,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 1,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 258,
+                    "end": 259,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 257,
+                  "end": 258,
+                  "file": "modules/string.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 2
+              },
+              "location": {
+                "start": 255,
+                "end": 256,
+                "file": "modules/string.vader"
+              }
+            },
+            "body": [
+              {
+                "kind": "VariableDeclarationStatement",
+                "name": "a",
+                "isConstant": true,
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "name": "u8",
+                    "kind": "primitive"
+                  }
+                },
+                "value": {
+                  "kind": "DotExpression",
+                  "properties": [
+                    {
+                      "name": "this",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          },
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u8",
+                                "kind": "primitive"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "location": {
+                        "start": 277,
+                        "end": 281,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    {
+                      "name": "value",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        }
+                      },
+                      "location": {
+                        "start": 282,
+                        "end": 287,
+                        "file": "modules/string.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 277,
+                    "end": 287,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 272,
+                  "end": 287,
+                  "file": "modules/string.vader"
+                }
+              },
+              {
+                "kind": "VariableDeclarationStatement",
+                "name": "b",
+                "isConstant": true,
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "name": "u8",
+                    "kind": "primitive"
+                  }
+                },
+                "value": {
+                  "kind": "DotExpression",
+                  "properties": [
+                    {
+                      "name": "other",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          },
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u8",
+                                "kind": "primitive"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "location": {
+                        "start": 301,
+                        "end": 306,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    {
+                      "name": "value",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        }
+                      },
+                      "location": {
+                        "start": 307,
+                        "end": 312,
+                        "file": "modules/string.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 301,
+                    "end": 312,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 296,
+                  "end": 312,
+                  "file": "modules/string.vader"
+                }
+              },
+              {
+                "kind": "ConditionalStatement",
+                "type": {
+                  "name": "void",
+                  "kind": "primitive"
+                },
+                "ifBody": [
+                  {
+                    "kind": "ReturnStatement",
+                    "expression": {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "value": 0,
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 2
+                      },
+                      "location": {
+                        "start": 358,
+                        "end": 359,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 2
+                    },
+                    "location": {
+                      "end": 359,
+                      "start": 358,
+                      "file": "modules/string.vader"
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "BinaryExpression",
+                  "operator": "!=",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  },
+                  "lhs": {
+                    "kind": "ArrayIndexExpression",
+                    "indexes": [
+                      {
+                        "kind": "VariableExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "value": "i",
+                        "scope": {
+                          "namedVariables": {},
+                          "depth": 2
+                        },
+                        "location": {
+                          "start": 326,
+                          "end": 327,
+                          "file": "modules/string.vader"
+                        }
+                      }
+                    ],
+                    "identifier": {
+                      "kind": "VariableExpression",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        }
+                      },
+                      "value": "a",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 2
+                      },
+                      "location": {
+                        "start": 324,
+                        "end": 325,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    "location": {
+                      "start": 324,
+                      "end": 325,
+                      "file": "modules/string.vader"
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 2
+                    },
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "kind": "ArrayIndexExpression",
+                    "indexes": [
+                      {
+                        "kind": "VariableExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "value": "i",
+                        "scope": {
+                          "namedVariables": {},
+                          "depth": 2
+                        },
+                        "location": {
+                          "start": 334,
+                          "end": 335,
+                          "file": "modules/string.vader"
+                        }
+                      }
+                    ],
+                    "identifier": {
+                      "kind": "VariableExpression",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        }
+                      },
+                      "value": "b",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 2
+                      },
+                      "location": {
+                        "start": 332,
+                        "end": 333,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    "location": {
+                      "start": 332,
+                      "end": 333,
+                      "file": "modules/string.vader"
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 2
+                    },
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 329,
+                    "end": 331,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 324,
+                  "end": 369,
+                  "file": "modules/string.vader"
+                }
+              }
+            ],
+            "scope": {
+              "namedVariables": {},
+              "depth": 2
+            },
+            "location": {
+              "start": 230,
+              "end": 375,
+              "file": "modules/string.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": 1,
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 387,
+                "end": 388,
+                "file": "modules/string.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "end": 388,
+              "start": 387,
+              "file": "modules/string.vader"
+            }
+          }
+        ],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 66,
+          "end": 390,
+          "file": "modules/string.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 54,
+        "end": 390,
+        "file": "modules/string.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "startWith",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "prefix",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": "prefix",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "ConditionalStatement",
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            },
+            "ifBody": [
+              {
+                "kind": "ReturnStatement",
+                "expression": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 0,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 500,
+                    "end": 501,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "end": 501,
+                  "start": 500,
+                  "file": "modules/string.vader"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": ">",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "prefix",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 455,
+                      "end": 461,
+                      "file": "modules/string.vader"
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 462,
+                      "end": 468,
+                      "file": "modules/string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 455,
+                  "end": 468,
+                  "file": "modules/string.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "this",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 471,
+                      "end": 475,
+                      "file": "modules/string.vader"
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 476,
+                      "end": 482,
+                      "file": "modules/string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 471,
+                  "end": 482,
+                  "file": "modules/string.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 469,
+                "end": 470,
+                "file": "modules/string.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 455,
+              "end": 507,
+              "file": "modules/string.vader"
+            }
+          },
+          {
+            "kind": "ForStatement",
+            "initialization": {
+              "kind": "VariableDeclarationStatement",
+              "name": "i",
+              "isConstant": false,
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 0,
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 578,
+                  "end": 579,
+                  "file": "modules/string.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 573,
+                "end": 579,
+                "file": "modules/string.vader"
+              }
+            },
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "<",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "VariableExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": "i",
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 581,
+                  "end": 582,
+                  "file": "modules/string.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "prefix",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 583,
+                      "end": 589,
+                      "file": "modules/string.vader"
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 590,
+                      "end": 596,
+                      "file": "modules/string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 583,
+                  "end": 596,
+                  "file": "modules/string.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 2
+              },
+              "location": {
+                "start": 582,
+                "end": 583,
+                "file": "modules/string.vader"
+              }
+            },
+            "iteration": {
+              "kind": "VariableAssignmentStatement",
+              "identifier": "i",
+              "value": {
+                "kind": "BinaryExpression",
+                "operator": "+",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "lhs": {
+                  "kind": "VariableExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": "i",
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 600,
+                    "end": 601,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 1,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 602,
+                    "end": 603,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 601,
+                  "end": 602,
+                  "file": "modules/string.vader"
+                }
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 2
+              },
+              "location": {
+                "start": 599,
+                "end": 600,
+                "file": "modules/string.vader"
+              }
+            },
+            "body": [
+              {
+                "kind": "VariableDeclarationStatement",
+                "name": "a",
+                "isConstant": true,
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "name": "u8",
+                    "kind": "primitive"
+                  }
+                },
+                "value": {
+                  "kind": "DotExpression",
+                  "properties": [
+                    {
+                      "name": "this",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          },
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u8",
+                                "kind": "primitive"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "location": {
+                        "start": 621,
+                        "end": 625,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    {
+                      "name": "value",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        }
+                      },
+                      "location": {
+                        "start": 626,
+                        "end": 631,
+                        "file": "modules/string.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 621,
+                    "end": 631,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 616,
+                  "end": 631,
+                  "file": "modules/string.vader"
+                }
+              },
+              {
+                "kind": "VariableDeclarationStatement",
+                "name": "b",
+                "isConstant": true,
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "name": "u8",
+                    "kind": "primitive"
+                  }
+                },
+                "value": {
+                  "kind": "DotExpression",
+                  "properties": [
+                    {
+                      "name": "prefix",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          },
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u8",
+                                "kind": "primitive"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "location": {
+                        "start": 645,
+                        "end": 651,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    {
+                      "name": "value",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        }
+                      },
+                      "location": {
+                        "start": 652,
+                        "end": 657,
+                        "file": "modules/string.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 645,
+                    "end": 657,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 640,
+                  "end": 657,
+                  "file": "modules/string.vader"
+                }
+              },
+              {
+                "kind": "ConditionalStatement",
+                "type": {
+                  "name": "void",
+                  "kind": "primitive"
+                },
+                "ifBody": [
+                  {
+                    "kind": "ReturnStatement",
+                    "expression": {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "value": 0,
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 2
+                      },
+                      "location": {
+                        "start": 703,
+                        "end": 704,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 2
+                    },
+                    "location": {
+                      "end": 704,
+                      "start": 703,
+                      "file": "modules/string.vader"
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "BinaryExpression",
+                  "operator": "!=",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  },
+                  "lhs": {
+                    "kind": "ArrayIndexExpression",
+                    "indexes": [
+                      {
+                        "kind": "VariableExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "value": "i",
+                        "scope": {
+                          "namedVariables": {},
+                          "depth": 2
+                        },
+                        "location": {
+                          "start": 671,
+                          "end": 672,
+                          "file": "modules/string.vader"
+                        }
+                      }
+                    ],
+                    "identifier": {
+                      "kind": "VariableExpression",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        }
+                      },
+                      "value": "a",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 2
+                      },
+                      "location": {
+                        "start": 669,
+                        "end": 670,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    "location": {
+                      "start": 669,
+                      "end": 670,
+                      "file": "modules/string.vader"
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 2
+                    },
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "kind": "ArrayIndexExpression",
+                    "indexes": [
+                      {
+                        "kind": "VariableExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "value": "i",
+                        "scope": {
+                          "namedVariables": {},
+                          "depth": 2
+                        },
+                        "location": {
+                          "start": 679,
+                          "end": 680,
+                          "file": "modules/string.vader"
+                        }
+                      }
+                    ],
+                    "identifier": {
+                      "kind": "VariableExpression",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        }
+                      },
+                      "value": "b",
+                      "scope": {
+                        "namedVariables": {},
+                        "depth": 2
+                      },
+                      "location": {
+                        "start": 677,
+                        "end": 678,
+                        "file": "modules/string.vader"
+                      }
+                    },
+                    "location": {
+                      "start": 677,
+                      "end": 678,
+                      "file": "modules/string.vader"
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 2
+                    },
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  },
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 2
+                  },
+                  "location": {
+                    "start": 674,
+                    "end": 676,
+                    "file": "modules/string.vader"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 2
+                },
+                "location": {
+                  "start": 669,
+                  "end": 714,
+                  "file": "modules/string.vader"
+                }
+              }
+            ],
+            "scope": {
+              "namedVariables": {},
+              "depth": 2
+            },
+            "location": {
+              "start": 572,
+              "end": 720,
+              "file": "modules/string.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": 1,
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 732,
+                "end": 733,
+                "file": "modules/string.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "end": 733,
+              "start": 732,
+              "file": "modules/string.vader"
+            }
+          }
+        ],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 407,
+          "end": 735,
+          "file": "modules/string.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 392,
+        "end": 735,
+        "file": "modules/string.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "main",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "y",
+            "isConstant": true,
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u8",
+                "kind": "primitive"
+              },
+              "length": 3
+            },
+            "value": {
+              "kind": "ArrayDeclarationExpression",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u8",
+                  "kind": "primitive"
+                },
+                "length": 3
+              },
+              "value": [
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 85,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 66,
+                    "end": 68,
+                    "file": "examples/strings.vader"
+                  }
+                },
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 90,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 70,
+                    "end": 72,
+                    "file": "examples/strings.vader"
+                  }
+                },
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 23,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 74,
+                    "end": 76,
+                    "file": "examples/strings.vader"
+                  }
+                }
+              ],
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "location": {
+                "start": 59,
+                "end": 77,
+                "file": "examples/strings.vader"
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 54,
+              "end": 77,
+              "file": "examples/strings.vader"
+            }
+          },
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "x",
+            "isConstant": true,
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive"
+                    }
+                  }
+                }
+              ]
+            },
+            "value": {
+              "kind": "StructInstantiationExpression",
+              "parameters": [
+                {
+                  "name": "value",
+                  "value": {
+                    "kind": "VariableExpression",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      },
+                      "length": 3
+                    },
+                    "value": "y",
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 113,
+                      "end": 114,
+                      "file": "examples/strings.vader"
+                    }
+                  }
+                },
+                {
+                  "name": "length",
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 3,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 134,
+                      "end": 135,
+                      "file": "examples/strings.vader"
+                    }
+                  }
+                }
+              ],
+              "structName": "String",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": 87,
+                "end": 142,
+                "file": "examples/strings.vader"
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 82,
+              "end": 142,
+              "file": "examples/strings.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "ArrayIndexExpression",
+              "indexes": [
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 3,
+                  "scope": {
+                    "namedVariables": {},
+                    "depth": 1
+                  },
+                  "location": {
+                    "start": 162,
+                    "end": 163,
+                    "file": "examples/strings.vader"
+                  }
+                }
+              ],
+              "identifier": {
+                "kind": "DotExpression",
+                "properties": [
+                  {
+                    "name": "x",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u8",
+                              "kind": "primitive"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 154,
+                      "end": 155,
+                      "file": "examples/strings.vader"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      }
+                    },
+                    "location": {
+                      "start": 156,
+                      "end": 161,
+                      "file": "examples/strings.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "name": "u8",
+                    "kind": "primitive"
+                  }
+                },
+                "scope": {
+                  "namedVariables": {},
+                  "depth": 1
+                },
+                "location": {
+                  "start": 154,
+                  "end": 155,
+                  "file": "examples/strings.vader"
+                }
+              },
+              "location": {
+                "start": 154,
+                "end": 164,
+                "file": "examples/strings.vader"
+              },
+              "scope": {
+                "namedVariables": {},
+                "depth": 1
+              },
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u8",
+                  "kind": "primitive"
+                }
+              }
+            },
+            "scope": {
+              "namedVariables": {},
+              "depth": 1
+            },
+            "location": {
+              "start": 154,
+              "end": 155,
+              "file": "examples/strings.vader"
+            }
+          }
+        ],
+        "scope": {
+          "namedVariables": {},
+          "depth": 0
+        },
+        "location": {
+          "start": 38,
+          "end": 166,
+          "file": "examples/strings.vader"
+        }
+      },
+      "scope": {
+        "namedVariables": {},
+        "depth": 0
+      },
+      "location": {
+        "start": 28,
+        "end": 166,
+        "file": "examples/strings.vader"
+      }
+    }
+  ],
+  "mainMethod": "main",
+  "scope": {
+    "namedVariables": {},
+    "depth": 0
+  },
+  "location": {
+    "start": 1,
+    "end": 166,
+    "file": "examples/strings.vader"
+  }
+}

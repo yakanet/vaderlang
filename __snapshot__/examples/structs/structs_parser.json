@@ -226,88 +226,96 @@
               "kind": "StructInstantiationExpression",
               "parameters": [
                 {
-                  "kind": "StructInstantiationExpression",
-                  "parameters": [
-                    {
-                      "kind": "NumberExpression",
-                      "type": {
-                        "name": "u32",
-                        "kind": "primitive"
-                      },
-                      "value": 2,
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 1
-                      },
-                      "location": {
-                        "start": 143,
-                        "end": 144,
-                        "file": "examples/structs.vader"
-                      }
-                    },
-                    {
-                      "kind": "NumberExpression",
-                      "type": {
-                        "name": "u32",
-                        "kind": "primitive"
-                      },
-                      "value": 4,
-                      "scope": {
-                        "namedVariables": {},
-                        "depth": 1
-                      },
-                      "location": {
-                        "start": 146,
-                        "end": 147,
-                        "file": "examples/structs.vader"
-                      }
-                    }
-                  ],
-                  "structName": "Point",
-                  "type": {
-                    "kind": "struct",
+                  "value": {
+                    "kind": "StructInstantiationExpression",
                     "parameters": [
                       {
-                        "name": "x",
-                        "type": {
-                          "name": "u32",
-                          "kind": "primitive"
+                        "value": {
+                          "kind": "NumberExpression",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "value": 2,
+                          "scope": {
+                            "namedVariables": {},
+                            "depth": 1
+                          },
+                          "location": {
+                            "start": 143,
+                            "end": 144,
+                            "file": "examples/structs.vader"
+                          }
                         }
                       },
                       {
-                        "name": "y",
-                        "type": {
-                          "name": "u32",
-                          "kind": "primitive"
+                        "value": {
+                          "kind": "NumberExpression",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "value": 4,
+                          "scope": {
+                            "namedVariables": {},
+                            "depth": 1
+                          },
+                          "location": {
+                            "start": 146,
+                            "end": 147,
+                            "file": "examples/structs.vader"
+                          }
                         }
                       }
-                    ]
-                  },
-                  "location": {
-                    "start": 135,
-                    "end": 149,
-                    "file": "examples/structs.vader"
-                  },
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
+                    ],
+                    "structName": "Point",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "location": {
+                      "start": 135,
+                      "end": 149,
+                      "file": "examples/structs.vader"
+                    },
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    }
                   }
                 },
                 {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 10,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
-                  "location": {
-                    "start": 151,
-                    "end": 153,
-                    "file": "examples/structs.vader"
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 10,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 151,
+                      "end": 153,
+                      "file": "examples/structs.vader"
+                    }
                   }
                 }
               ],
@@ -393,37 +401,41 @@
               "kind": "StructInstantiationExpression",
               "parameters": [
                 {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 6,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
-                  "location": {
-                    "start": 173,
-                    "end": 174,
-                    "file": "examples/structs.vader"
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 6,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 173,
+                      "end": 174,
+                      "file": "examples/structs.vader"
+                    }
                   }
                 },
                 {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 8,
-                  "scope": {
-                    "namedVariables": {},
-                    "depth": 1
-                  },
-                  "location": {
-                    "start": 176,
-                    "end": 177,
-                    "file": "examples/structs.vader"
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 8,
+                    "scope": {
+                      "namedVariables": {},
+                      "depth": 1
+                    },
+                    "location": {
+                      "start": 176,
+                      "end": 177,
+                      "file": "examples/structs.vader"
+                    }
                   }
                 }
               ],

@@ -372,19 +372,7 @@ export class WasmEmitter {
     }
 
     private emitArrayIndexExpression(expression: ArrayIndexExpression) {
-        const resolved = expression.scope.lookupVariable(expression.identifier);
-        let exprs: binaryen.ExpressionRef
-        if (resolved.source.kind === 'GlobalFunctionSource') {
-            exprs = this.module.global.get(resolved.named, binaryen.i32);
-        } else if (resolved.source.kind === "GlobalParameterSource") {
-            exprs = this.module.global.get(resolved.named, binaryen.i32);
-        } else if (resolved.source.kind === 'LocalVariableSource') {
-            exprs = this.module.local.get(resolved.source.index, binaryen.i32);
-        } else if (resolved.source.kind === 'FunctionParameterSource') {
-            exprs = this.module.local.get(resolved.source.index, binaryen.i32);
-        } else {
-            throw new Error(`unimplemented get variable from ${resolved.source.kind}`);
-        }
+        const identifier = this.emitExpression(expression.identifier);
         let index = this.module.i32.const(1);
         let lastType = expression.type;
         for (let i = 0; i < expression.indexes.length; i++) {
@@ -395,7 +383,7 @@ export class WasmEmitter {
         return this.module.i32.load(
             0,
             0,
-            this.module.i32.add(exprs, index),
+            this.module.i32.add(identifier, index),
         )
     }
 

@@ -331,13 +331,12 @@ function parseArrayInitializationExpression(parser: Parser): Expression {
     } satisfies ArrayDeclarationExpression
 }
 
-function parseArrayIndexExpression(parser: Parser) {
-    const token = parser.expect('Identifier');
+function parseArrayIndexExpression(parser: Parser, from: Expression) {
     const left: ArrayIndexExpression = {
         kind: 'ArrayIndexExpression',
         indexes: [],
-        identifier: token.value,
-        location: {...token.location},
+        identifier: from,
+        location: {...from.location},
         scope: UnresolvedScope,
         type: BasicVaderType.unknown
     }
@@ -530,33 +529,37 @@ function parseDotExpression(parser: Parser, from: Expression): Expression {
         left = from;
     }
 
-    while (parser.isCurrentType('DotToken')) {
-        parser.expect('DotToken');
-        const propertyName = parser.expect('Identifier');
-        if (parser.isCurrentType('OpenRoundBracket')) {
-            const result = parseCallArguments(parser);
-            left = {
-                kind: 'CallExpression',
-                functionName: propertyName.value,
-                scope: UnresolvedScope,
-                location: {
-                    start: propertyName.location.start,
-                    end: parser.previous.location.end,
-                    file: propertyName.location.file
-                },
-                parameters: [
-                    left,
-                    ...result
-                ]
-            } as CallExpression
-        } else if (left.kind === 'DotExpression') {
-            left.properties.push({
-                name: propertyName.value,
-                type: BasicVaderType.unknown,
-                location: propertyName.location
-            })
-        } else {
-            parser.reportError(`Could not handle dot expression with kind ${left.kind}`, left.location);
+    while (parser.isCurrentType('DotToken') || parser.isCurrentType('OpenSquareBracket')) {
+        if (parser.isCurrentType('DotToken')) {
+            parser.expect('DotToken');
+            const propertyName = parser.expect('Identifier');
+            if (parser.isCurrentType('OpenRoundBracket')) {
+                const result = parseCallArguments(parser);
+                left = {
+                    kind: 'CallExpression',
+                    functionName: propertyName.value,
+                    scope: UnresolvedScope,
+                    location: {
+                        start: propertyName.location.start,
+                        end: parser.previous.location.end,
+                        file: propertyName.location.file
+                    },
+                    parameters: [
+                        left,
+                        ...result
+                    ]
+                } as CallExpression
+            } else if (left.kind === 'DotExpression') {
+                left.properties.push({
+                    name: propertyName.value,
+                    type: BasicVaderType.unknown,
+                    location: propertyName.location
+                })
+            } else {
+                parser.reportError(`Could not handle dot expression with kind ${left.kind}`, left.location);
+            }
+        } else if (parser.isCurrentType('OpenSquareBracket')) {
+            left = parseArrayIndexExpression(parser, left)
         }
     }
     left.location.end = parser.previous.location.end;
@@ -587,10 +590,6 @@ function parseExpression(parser: Parser): Expression {
 
     if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenCurlyBracket') {
         lhs = parseStructInstantiation(parser);
-    }
-
-    if (parser.isCurrentType('Identifier') && parser.next?.type === 'OpenSquareBracket') {
-        lhs = parseArrayIndexExpression(parser);
     }
 
     if (parser.isCurrentType('Identifier')) {
@@ -647,6 +646,10 @@ function parseExpression(parser: Parser): Expression {
 
     if (!lhs) {
         parser.reportError(`Unknown expression: ${parser.current.type}`, parser.current.location)
+    }
+
+    if (parser.isCurrentType('OpenSquareBracket')) {
+        lhs = parseArrayIndexExpression(parser, lhs);
     }
 
     if (parser.isCurrentType('DotToken')) {

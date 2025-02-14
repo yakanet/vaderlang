@@ -216,10 +216,11 @@ function resolveExpression(
         }
 
         case 'ArrayIndexExpression': {
-            const resolved = scope.lookupVariable(expression.identifier)
+            const identifier = resolveExpression(expression.identifier, scope)
             return {
                 ...expression,
-                type: resolved.type,
+                type: identifier.type,
+                identifier,
                 indexes: expression.indexes.map(i => resolveExpression(i, scope)),
                 scope
             }

@@ -112,7 +112,7 @@ export type DotExpression = BasicStatement & {
     kind: 'DotExpression',
     type: VaderType,
     properties: {
-        name: string,
+        name: string, // FIXME Must be an expression not a string
         type: VaderType,
         location: Token['location']
     }[],
@@ -128,7 +128,7 @@ export type ArrayDeclarationExpression = BasicStatement & {
 export type ArrayIndexExpression = BasicStatement & {
     kind: 'ArrayIndexExpression',
     type: VaderType,
-    identifier: string,
+    identifier: Expression,
     indexes: Expression[]
 }
 

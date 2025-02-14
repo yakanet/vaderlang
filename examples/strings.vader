@@ -1,10 +1,11 @@
 @load "std"
 @load "string"
 
-main :: fn() {
+main :: fn() -> u32 {
     y :: u8[_] {85, 90, 23}
     x :: String {
         .value = y,
         .length = 3,
     }
+    return x.value[3]
 }
