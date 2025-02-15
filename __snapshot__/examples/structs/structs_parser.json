@@ -222,8 +222,8 @@
                           },
                           "value": 2,
                           "location": {
-                            "start": 143,
-                            "end": 144,
+                            "start": 144,
+                            "end": 145,
                             "file": "examples/structs.vader"
                           }
                         }
@@ -237,8 +237,8 @@
                           },
                           "value": 4,
                           "location": {
-                            "start": 146,
-                            "end": 147,
+                            "start": 147,
+                            "end": 148,
                             "file": "examples/structs.vader"
                           }
                         }
@@ -265,8 +265,8 @@
                       ]
                     },
                     "location": {
-                      "start": 135,
-                      "end": 149,
+                      "start": 136,
+                      "end": 150,
                       "file": "examples/structs.vader"
                     }
                   }
@@ -280,8 +280,8 @@
                     },
                     "value": 10,
                     "location": {
-                      "start": 151,
-                      "end": 153,
+                      "start": 152,
+                      "end": 154,
                       "file": "examples/structs.vader"
                     }
                   }
@@ -323,14 +323,14 @@
                 ]
               },
               "location": {
-                "start": 125,
-                "end": 155,
+                "start": 126,
+                "end": 156,
                 "file": "examples/structs.vader"
               }
             },
             "location": {
-              "start": 119,
-              "end": 155,
+              "start": 120,
+              "end": 156,
               "file": "examples/structs.vader"
             }
           },
@@ -369,8 +369,8 @@
                     },
                     "value": 6,
                     "location": {
-                      "start": 173,
-                      "end": 174,
+                      "start": 174,
+                      "end": 175,
                       "file": "examples/structs.vader"
                     }
                   }
@@ -384,8 +384,8 @@
                     },
                     "value": 8,
                     "location": {
-                      "start": 176,
-                      "end": 177,
+                      "start": 177,
+                      "end": 178,
                       "file": "examples/structs.vader"
                     }
                   }
@@ -412,14 +412,14 @@
                 ]
               },
               "location": {
-                "start": 165,
-                "end": 179,
+                "start": 166,
+                "end": 180,
                 "file": "examples/structs.vader"
               }
             },
             "location": {
-              "start": 159,
-              "end": 179,
+              "start": 160,
+              "end": 180,
               "file": "examples/structs.vader"
             }
           },
@@ -472,8 +472,8 @@
                       ]
                     },
                     "location": {
-                      "start": 190,
-                      "end": 192,
+                      "start": 191,
+                      "end": 193,
                       "file": "examples/structs.vader"
                     }
                   },
@@ -499,8 +499,8 @@
                       ]
                     },
                     "location": {
-                      "start": 193,
-                      "end": 199,
+                      "start": 194,
+                      "end": 200,
                       "file": "examples/structs.vader"
                     }
                   },
@@ -511,8 +511,8 @@
                       "kind": "primitive"
                     },
                     "location": {
-                      "start": 200,
-                      "end": 201,
+                      "start": 201,
+                      "end": 202,
                       "file": "examples/structs.vader"
                     }
                   }
@@ -522,8 +522,8 @@
                   "kind": "primitive"
                 },
                 "location": {
-                  "start": 190,
-                  "end": 201,
+                  "start": 191,
+                  "end": 202,
                   "file": "examples/structs.vader"
                 }
               },
@@ -552,8 +552,8 @@
                       ]
                     },
                     "location": {
-                      "start": 204,
-                      "end": 206,
+                      "start": 205,
+                      "end": 207,
                       "file": "examples/structs.vader"
                     }
                   },
@@ -564,8 +564,8 @@
                       "kind": "primitive"
                     },
                     "location": {
-                      "start": 207,
-                      "end": 208,
+                      "start": 208,
+                      "end": 209,
                       "file": "examples/structs.vader"
                     }
                   }
@@ -575,40 +575,40 @@
                   "kind": "primitive"
                 },
                 "location": {
-                  "start": 204,
-                  "end": 208,
+                  "start": 205,
+                  "end": 209,
                   "file": "examples/structs.vader"
                 }
               },
               "location": {
-                "start": 190,
-                "end": 208,
+                "start": 191,
+                "end": 209,
                 "file": "examples/structs.vader"
               }
             },
             "location": {
-              "start": 183,
-              "end": 208,
+              "start": 184,
+              "end": 209,
               "file": "examples/structs.vader"
             }
           }
         ],
         "location": {
           "start": 103,
-          "end": 210,
+          "end": 211,
           "file": "examples/structs.vader"
         }
       },
       "location": {
         "start": 95,
-        "end": 210,
+        "end": 211,
         "file": "examples/structs.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 210,
+    "end": 211,
     "file": "examples/structs.vader"
   }
 }

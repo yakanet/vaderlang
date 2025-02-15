@@ -221,7 +221,7 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
@@ -268,7 +268,7 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
@@ -281,7 +281,7 @@
                 }
               },
               "rhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
@@ -460,7 +460,7 @@
               "functionName": "add",
               "parameters": [
                 {
-                  "kind": "VariableExpression",
+                  "kind": "IdentifierExpression",
                   "type": {
                     "name": "u32",
                     "kind": "primitive"

@@ -5,5 +5,5 @@ y :: 4
 z :: 1_234_234
 
 main :: fn() -> u32 {
-    return z
+    return 1 + 2 * 3
 }

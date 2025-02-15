@@ -164,41 +164,93 @@
           {
             "kind": "ReturnStatement",
             "expression": {
-              "kind": "VariableExpression",
+              "kind": "BinaryExpression",
+              "operator": "+",
               "type": {
                 "name": "u32",
                 "kind": "primitive"
               },
-              "identifier": "z",
+              "lhs": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 1,
+                "location": {
+                  "start": 95,
+                  "end": 96,
+                  "file": "examples/numbers.vader"
+                }
+              },
+              "rhs": {
+                "kind": "BinaryExpression",
+                "operator": "*",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "lhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 2,
+                  "location": {
+                    "start": 99,
+                    "end": 100,
+                    "file": "examples/numbers.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 3,
+                  "location": {
+                    "start": 103,
+                    "end": 104,
+                    "file": "examples/numbers.vader"
+                  }
+                },
+                "location": {
+                  "start": 99,
+                  "end": 104,
+                  "file": "examples/numbers.vader"
+                }
+              },
               "location": {
                 "start": 95,
-                "end": 96,
+                "end": 104,
                 "file": "examples/numbers.vader"
               }
             },
             "location": {
               "start": 88,
-              "end": 96,
+              "end": 104,
               "file": "examples/numbers.vader"
             }
           }
         ],
         "location": {
           "start": 70,
-          "end": 98,
+          "end": 106,
           "file": "examples/numbers.vader"
         }
       },
       "location": {
         "start": 62,
-        "end": 98,
+        "end": 106,
         "file": "examples/numbers.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 98,
+    "end": 106,
     "file": "examples/numbers.vader"
   }
 }

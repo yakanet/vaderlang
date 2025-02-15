@@ -1,11 +1,11 @@
 list :: struct {
-    data: u32[]
+    data: []u32
     length: u32
 }
 
 create_list:: fn(initialCapacity : u32) -> list {
     return list {
-        data: u32[initialCapacity]
+        data: [initialCapacity]u32
         length: 0
     }
 }

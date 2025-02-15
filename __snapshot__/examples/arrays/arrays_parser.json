@@ -164,6 +164,7 @@
             "name": "u8",
             "kind": "primitive"
           },
+          "dimension": 1,
           "length": 10
         }
       },
@@ -187,6 +188,7 @@
               "name": "u8",
               "kind": "primitive"
             },
+            "dimension": 1,
             "length": 10
           }
         },
@@ -201,6 +203,7 @@
                 "name": "u8",
                 "kind": "primitive"
               },
+              "dimension": 1,
               "length": 10
             },
             "value": {
@@ -211,6 +214,7 @@
                   "name": "u8",
                   "kind": "primitive"
                 },
+                "dimension": 1,
                 "length": 10
               },
               "location": {
@@ -228,13 +232,14 @@
           {
             "kind": "ReturnStatement",
             "expression": {
-              "kind": "VariableExpression",
+              "kind": "IdentifierExpression",
               "type": {
                 "kind": "array",
                 "type": {
                   "name": "u8",
                   "kind": "primitive"
                 },
+                "dimension": 1,
                 "length": 10
               },
               "identifier": "buffer",
@@ -298,6 +303,7 @@
                 "name": "u32",
                 "kind": "primitive"
               },
+              "dimension": 1,
               "length": 3
             },
             "value": {
@@ -308,6 +314,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
+                "dimension": 1,
                 "length": 3
               },
               "value": [
@@ -373,6 +380,7 @@
                 "name": "u32",
                 "kind": "primitive"
               },
+              "dimension": 1,
               "length": 4
             },
             "value": {
@@ -383,6 +391,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
+                "dimension": 1,
                 "length": 4
               },
               "location": {
@@ -407,6 +416,7 @@
                 "name": "u8",
                 "kind": "primitive"
               },
+              "dimension": 1,
               "length": 10
             },
             "value": {
@@ -438,6 +448,7 @@
                   "name": "u8",
                   "kind": "primitive"
                 },
+                "dimension": 1,
                 "length": 10
               }
             },
@@ -467,13 +478,14 @@
                 }
               ],
               "identifier": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "kind": "array",
                   "type": {
                     "name": "u32",
                     "kind": "primitive"
                   },
+                  "dimension": 1,
                   "length": 3
                 },
                 "identifier": "x",
@@ -494,6 +506,7 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
+                "dimension": 1,
                 "length": 3
               }
             },

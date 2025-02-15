@@ -270,17 +270,17 @@
     }
   },
   {
-    "type": "Identifier",
-    "value": "z",
+    "type": "NumberToken",
+    "value": "1",
     "location": {
-      "start": 95,
       "end": 96,
+      "start": 95,
       "file": "examples/numbers.vader"
     }
   },
   {
-    "type": "CloseCurlyBracket",
-    "value": "}",
+    "type": "PlusToken",
+    "value": "+",
     "location": {
       "start": 97,
       "end": 98,
@@ -288,10 +288,46 @@
     }
   },
   {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "end": 100,
+      "start": 99,
+      "file": "examples/numbers.vader"
+    }
+  },
+  {
+    "type": "StarToken",
+    "value": "*",
+    "location": {
+      "start": 101,
+      "end": 102,
+      "file": "examples/numbers.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "3",
+    "location": {
+      "end": 104,
+      "start": 103,
+      "file": "examples/numbers.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 105,
+      "end": 106,
+      "file": "examples/numbers.vader"
+    }
+  },
+  {
     "type": "EOF",
     "location": {
-      "start": 98,
-      "end": 98,
+      "start": 106,
+      "end": 106,
       "file": "examples/numbers.vader"
     },
     "value": "\u0000"

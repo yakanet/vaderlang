@@ -18,6 +18,37 @@ export type ReturnStatement = BasicStatement & {
     expression: Expression
 }
 
+export type VariableDeclarationStatement = BasicStatement & {
+    kind: 'VariableDeclarationStatement',
+    name: string
+    type: VaderType
+    isConstant: boolean
+    value?: Expression
+}
+
+export type ConditionalStatement = BasicStatement & {
+    kind: 'ConditionalStatement'
+    type: VaderType,
+    condition: Expression,
+    ifBody: Statement[]
+    elseBody?: Statement[];
+}
+
+export type VariableAssignmentStatement = BasicStatement & {
+    kind: 'VariableAssignmentStatement'
+    identifier: string
+    value: Expression
+}
+
+export type ForStatement = BasicStatement & {
+    kind: 'ForStatement',
+    initialization: Statement,
+    condition: Expression,
+    iteration: Statement,
+    body: Statement[],
+}
+
+
 export type BinaryExpression = BasicStatement & {
     kind: 'BinaryExpression',
     type: VaderType
@@ -45,27 +76,12 @@ export type CallExpression = BasicStatement & {
     parameters: Expression[],
 }
 
-export type VariableExpression = BasicStatement & {
-    kind: 'VariableExpression'
+export type IdentifierExpression = BasicStatement & {
+    kind: 'IdentifierExpression'
     type: VaderType
     identifier: string
 }
 
-export type VariableDeclarationStatement = BasicStatement & {
-    kind: 'VariableDeclarationStatement',
-    name: string
-    type: VaderType
-    isConstant: boolean
-    value?: Expression
-}
-
-export type ConditionalStatement = BasicStatement & {
-    kind: 'ConditionalStatement'
-    type: VaderType,
-    condition: Expression,
-    ifBody: Statement[]
-    elseBody?: Statement[];
-}
 
 export type ConditionalExpression = Omit<ConditionalStatement, 'kind'> & {
     kind: 'ConditionalExpression'
@@ -79,20 +95,6 @@ export type FunctionDeclarationExpression = BasicStatement & {
 export type StructDeclarationExpression = BasicStatement & {
     kind: 'StructDeclarationExpression',
     type: StructVaderType;
-}
-
-export type ForStatement = BasicStatement & {
-    kind: 'ForStatement',
-    initialization: Statement,
-    condition: Expression,
-    iteration: Statement,
-    body: Statement[],
-}
-
-export type VariableAssignmentStatement = BasicStatement & {
-    kind: 'VariableAssignmentStatement'
-    identifier: string
-    value: Expression
 }
 
 export type StructInstantiationExpression = BasicStatement & {
@@ -120,7 +122,6 @@ export type ArrayDeclarationExpression = BasicStatement & {
     type: ArrayVaderType,
     value?: Expression[],
 }
-
 
 export type ArrayIndexExpression = BasicStatement & {
     kind: 'ArrayIndexExpression',
@@ -153,6 +154,7 @@ export interface ArrayVaderType {
     kind: 'array'
     length?: number,
     type: VaderType,
+    dimension: number
 }
 
 export interface FunctionVaderType {
@@ -257,7 +259,7 @@ export const BasicVaderType = {
 export type Expression =
     | NumberExpression
     | StringExpression
-    | VariableExpression
+    | IdentifierExpression
     | BinaryExpression
     | ConditionalExpression
     | CallExpression

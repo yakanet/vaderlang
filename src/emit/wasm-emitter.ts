@@ -261,7 +261,7 @@ export class WasmEmitter {
                 this.currentScope = previousScope;
                 return result
             }
-            case "VariableExpression": {
+            case "IdentifierExpression": {
                 let variable =
                     this.symbols[this.currentScope].get(expression.identifier)
                     ?? this.symbols[GLOBAL_SCOPE].get(expression.identifier)

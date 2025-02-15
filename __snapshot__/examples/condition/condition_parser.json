@@ -154,7 +154,7 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
@@ -235,7 +235,7 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
@@ -316,7 +316,7 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
@@ -427,7 +427,7 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
@@ -508,7 +508,7 @@
                     "kind": "primitive"
                   },
                   "lhs": {
-                    "kind": "VariableExpression",
+                    "kind": "IdentifierExpression",
                     "type": {
                       "name": "u32",
                       "kind": "primitive"
@@ -589,7 +589,7 @@
                         "kind": "primitive"
                       },
                       "lhs": {
-                        "kind": "VariableExpression",
+                        "kind": "IdentifierExpression",
                         "type": {
                           "name": "u32",
                           "kind": "primitive"
@@ -746,7 +746,7 @@
                   "kind": "primitive"
                 },
                 "lhs": {
-                  "kind": "VariableExpression",
+                  "kind": "IdentifierExpression",
                   "type": {
                     "name": "u32",
                     "kind": "primitive"
@@ -812,7 +812,7 @@
                       "kind": "primitive"
                     },
                     "lhs": {
-                      "kind": "VariableExpression",
+                      "kind": "IdentifierExpression",
                       "type": {
                         "name": "u32",
                         "kind": "primitive"
@@ -882,19 +882,6 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "identifier": "x",
-                "location": {
-                  "start": 717,
-                  "end": 718,
-                  "file": "examples/condition.vader"
-                }
-              },
-              "rhs": {
                 "kind": "BinaryExpression",
                 "operator": "+",
                 "type": {
@@ -902,7 +889,20 @@
                   "kind": "primitive"
                 },
                 "lhs": {
-                  "kind": "VariableExpression",
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "identifier": "x",
+                  "location": {
+                    "start": 717,
+                    "end": 718,
+                    "file": "examples/condition.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "IdentifierExpression",
                   "type": {
                     "name": "u32",
                     "kind": "primitive"
@@ -914,21 +914,21 @@
                     "file": "examples/condition.vader"
                   }
                 },
-                "rhs": {
-                  "kind": "VariableExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "identifier": "z",
-                  "location": {
-                    "start": 725,
-                    "end": 726,
-                    "file": "examples/condition.vader"
-                  }
-                },
                 "location": {
-                  "start": 721,
+                  "start": 717,
+                  "end": 722,
+                  "file": "examples/condition.vader"
+                }
+              },
+              "rhs": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "identifier": "z",
+                "location": {
+                  "start": 725,
                   "end": 726,
                   "file": "examples/condition.vader"
                 }

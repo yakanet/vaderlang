@@ -144,20 +144,11 @@
     }
   },
   {
-    "type": "Identifier",
-    "value": "u8",
-    "location": {
-      "start": 59,
-      "end": 61,
-      "file": "examples/strings.vader"
-    }
-  },
-  {
     "type": "OpenSquareBracket",
     "value": "[",
     "location": {
-      "start": 61,
-      "end": 62,
+      "start": 59,
+      "end": 60,
       "file": "examples/strings.vader"
     }
   },
@@ -165,8 +156,8 @@
     "type": "UnderscoreToken",
     "value": "_",
     "location": {
-      "start": 62,
-      "end": 63,
+      "start": 60,
+      "end": 61,
       "file": "examples/strings.vader"
     }
   },
@@ -174,7 +165,16 @@
     "type": "CloseSquareBracket",
     "value": "]",
     "location": {
-      "start": 63,
+      "start": 61,
+      "end": 62,
+      "file": "examples/strings.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u8",
+    "location": {
+      "start": 62,
       "end": 64,
       "file": "examples/strings.vader"
     }

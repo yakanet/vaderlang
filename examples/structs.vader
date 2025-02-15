@@ -8,7 +8,7 @@ Point3D :: struct {
     z: u32
 }
 
-main :: fn() -> u32{
+main :: fn() -> u32 {
    p1 :: Point3D { Point { 2, 4 }, 10 }
    p2 :: Point { 6, 8 }
    return p1.origin.y + p2.y

@@ -213,8 +213,8 @@
                         ]
                       },
                       "location": {
-                        "start": 100,
-                        "end": 104,
+                        "start": 99,
+                        "end": 103,
                         "file": "examples/dot_function.vader"
                       }
                     },
@@ -225,8 +225,8 @@
                         "kind": "primitive"
                       },
                       "location": {
-                        "start": 105,
-                        "end": 106,
+                        "start": 104,
+                        "end": 105,
                         "file": "examples/dot_function.vader"
                       }
                     }
@@ -236,8 +236,8 @@
                     "kind": "primitive"
                   },
                   "location": {
-                    "start": 100,
-                    "end": 106,
+                    "start": 99,
+                    "end": 105,
                     "file": "examples/dot_function.vader"
                   }
                 },
@@ -266,8 +266,8 @@
                         ]
                       },
                       "location": {
-                        "start": 109,
-                        "end": 114,
+                        "start": 108,
+                        "end": 113,
                         "file": "examples/dot_function.vader"
                       }
                     },
@@ -278,8 +278,8 @@
                         "kind": "primitive"
                       },
                       "location": {
-                        "start": 115,
-                        "end": 116,
+                        "start": 114,
+                        "end": 115,
                         "file": "examples/dot_function.vader"
                       }
                     }
@@ -289,14 +289,14 @@
                     "kind": "primitive"
                   },
                   "location": {
-                    "start": 109,
-                    "end": 116,
+                    "start": 108,
+                    "end": 115,
                     "file": "examples/dot_function.vader"
                   }
                 },
                 "location": {
-                  "start": 100,
-                  "end": 116,
+                  "start": 99,
+                  "end": 115,
                   "file": "examples/dot_function.vader"
                 }
               },
@@ -332,8 +332,8 @@
                         ]
                       },
                       "location": {
-                        "start": 121,
-                        "end": 125,
+                        "start": 118,
+                        "end": 122,
                         "file": "examples/dot_function.vader"
                       }
                     },
@@ -344,8 +344,8 @@
                         "kind": "primitive"
                       },
                       "location": {
-                        "start": 126,
-                        "end": 127,
+                        "start": 123,
+                        "end": 124,
                         "file": "examples/dot_function.vader"
                       }
                     }
@@ -355,8 +355,8 @@
                     "kind": "primitive"
                   },
                   "location": {
-                    "start": 121,
-                    "end": 127,
+                    "start": 118,
+                    "end": 124,
                     "file": "examples/dot_function.vader"
                   }
                 },
@@ -385,8 +385,8 @@
                         ]
                       },
                       "location": {
-                        "start": 130,
-                        "end": 135,
+                        "start": 127,
+                        "end": 132,
                         "file": "examples/dot_function.vader"
                       }
                     },
@@ -397,8 +397,8 @@
                         "kind": "primitive"
                       },
                       "location": {
-                        "start": 136,
-                        "end": 137,
+                        "start": 133,
+                        "end": 134,
                         "file": "examples/dot_function.vader"
                       }
                     }
@@ -408,39 +408,39 @@
                     "kind": "primitive"
                   },
                   "location": {
-                    "start": 130,
-                    "end": 137,
+                    "start": 127,
+                    "end": 134,
                     "file": "examples/dot_function.vader"
                   }
                 },
                 "location": {
-                  "start": 121,
-                  "end": 137,
+                  "start": 118,
+                  "end": 134,
                   "file": "examples/dot_function.vader"
                 }
               },
               "location": {
-                "start": 100,
-                "end": 137,
+                "start": 99,
+                "end": 134,
                 "file": "examples/dot_function.vader"
               }
             },
             "location": {
               "start": 92,
-              "end": 138,
+              "end": 134,
               "file": "examples/dot_function.vader"
             }
           }
         ],
         "location": {
           "start": 49,
-          "end": 140,
+          "end": 136,
           "file": "examples/dot_function.vader"
         }
       },
       "location": {
         "start": 43,
-        "end": 140,
+        "end": 136,
         "file": "examples/dot_function.vader"
       }
     },
@@ -495,15 +495,15 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
                 },
                 "identifier": "this",
                 "location": {
-                  "start": 185,
-                  "end": 189,
+                  "start": 181,
+                  "end": 185,
                   "file": "examples/dot_function.vader"
                 }
               },
@@ -515,33 +515,33 @@
                 },
                 "value": 1,
                 "location": {
-                  "start": 192,
-                  "end": 193,
+                  "start": 188,
+                  "end": 189,
                   "file": "examples/dot_function.vader"
                 }
               },
               "location": {
-                "start": 185,
-                "end": 193,
+                "start": 181,
+                "end": 189,
                 "file": "examples/dot_function.vader"
               }
             },
             "location": {
-              "start": 178,
-              "end": 193,
+              "start": 174,
+              "end": 189,
               "file": "examples/dot_function.vader"
             }
           }
         ],
         "location": {
-          "start": 151,
-          "end": 195,
+          "start": 147,
+          "end": 191,
           "file": "examples/dot_function.vader"
         }
       },
       "location": {
-        "start": 142,
-        "end": 195,
+        "start": 138,
+        "end": 191,
         "file": "examples/dot_function.vader"
       }
     },
@@ -605,8 +605,8 @@
                     },
                     "value": 2,
                     "location": {
-                      "start": 237,
-                      "end": 238,
+                      "start": 233,
+                      "end": 234,
                       "file": "examples/dot_function.vader"
                     }
                   }
@@ -620,8 +620,8 @@
                     },
                     "value": 3,
                     "location": {
-                      "start": 240,
-                      "end": 241,
+                      "start": 236,
+                      "end": 237,
                       "file": "examples/dot_function.vader"
                     }
                   }
@@ -648,14 +648,14 @@
                 ]
               },
               "location": {
-                "start": 229,
-                "end": 243,
+                "start": 225,
+                "end": 239,
                 "file": "examples/dot_function.vader"
               }
             },
             "location": {
-              "start": 223,
-              "end": 243,
+              "start": 219,
+              "end": 239,
               "file": "examples/dot_function.vader"
             }
           },
@@ -694,8 +694,8 @@
                     },
                     "value": 4,
                     "location": {
-                      "start": 262,
-                      "end": 263,
+                      "start": 258,
+                      "end": 259,
                       "file": "examples/dot_function.vader"
                     }
                   }
@@ -709,8 +709,8 @@
                     },
                     "value": 5,
                     "location": {
-                      "start": 265,
-                      "end": 266,
+                      "start": 261,
+                      "end": 262,
                       "file": "examples/dot_function.vader"
                     }
                   }
@@ -737,14 +737,14 @@
                 ]
               },
               "location": {
-                "start": 254,
-                "end": 268,
+                "start": 250,
+                "end": 264,
                 "file": "examples/dot_function.vader"
               }
             },
             "location": {
-              "start": 248,
-              "end": 268,
+              "start": 244,
+              "end": 264,
               "file": "examples/dot_function.vader"
             }
           },
@@ -754,8 +754,8 @@
               "kind": "CallExpression",
               "functionName": "plus1",
               "location": {
-                "start": 280,
-                "end": 298,
+                "start": 276,
+                "end": 294,
                 "file": "examples/dot_function.vader"
               },
               "parameters": [
@@ -763,8 +763,8 @@
                   "kind": "CallExpression",
                   "functionName": "dot",
                   "location": {
-                    "start": 280,
-                    "end": 290,
+                    "start": 276,
+                    "end": 286,
                     "file": "examples/dot_function.vader"
                   },
                   "parameters": [
@@ -793,8 +793,8 @@
                             ]
                           },
                           "location": {
-                            "start": 280,
-                            "end": 282,
+                            "start": 276,
+                            "end": 278,
                             "file": "examples/dot_function.vader"
                           }
                         }
@@ -819,13 +819,13 @@
                         ]
                       },
                       "location": {
-                        "start": 280,
-                        "end": 282,
+                        "start": 276,
+                        "end": 278,
                         "file": "examples/dot_function.vader"
                       }
                     },
                     {
-                      "kind": "VariableExpression",
+                      "kind": "IdentifierExpression",
                       "type": {
                         "kind": "struct",
                         "parameters": [
@@ -847,8 +847,8 @@
                       },
                       "identifier": "p2",
                       "location": {
-                        "start": 287,
-                        "end": 289,
+                        "start": 283,
+                        "end": 285,
                         "file": "examples/dot_function.vader"
                       }
                     }
@@ -865,28 +865,28 @@
               }
             },
             "location": {
-              "start": 273,
-              "end": 298,
+              "start": 269,
+              "end": 294,
               "file": "examples/dot_function.vader"
             }
           }
         ],
         "location": {
-          "start": 205,
-          "end": 300,
+          "start": 201,
+          "end": 296,
           "file": "examples/dot_function.vader"
         }
       },
       "location": {
-        "start": 197,
-        "end": 300,
+        "start": 193,
+        "end": 296,
         "file": "examples/dot_function.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 300,
+    "end": 296,
     "file": "examples/dot_function.vader"
   }
 }

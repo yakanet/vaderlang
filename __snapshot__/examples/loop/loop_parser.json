@@ -177,7 +177,7 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "VariableExpression",
+                "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
@@ -219,7 +219,7 @@
                   "kind": "primitive"
                 },
                 "lhs": {
-                  "kind": "VariableExpression",
+                  "kind": "IdentifierExpression",
                   "type": {
                     "name": "u32",
                     "kind": "primitive"
@@ -294,7 +294,7 @@
                     "kind": "primitive"
                   },
                   "lhs": {
-                    "kind": "VariableExpression",
+                    "kind": "IdentifierExpression",
                     "type": {
                       "name": "u32",
                       "kind": "primitive"
@@ -336,7 +336,7 @@
                       "kind": "primitive"
                     },
                     "lhs": {
-                      "kind": "VariableExpression",
+                      "kind": "IdentifierExpression",
                       "type": {
                         "name": "u32",
                         "kind": "primitive"

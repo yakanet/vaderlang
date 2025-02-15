@@ -4,7 +4,7 @@ Point :: struct {
 }
 
 dot:: fn(this: Point, other: Point) -> u32 {
-    return (this.x * other.x) + (this.y * other.y)
+    return this.x * other.x + this.y * other.y
 }
 
 plus1 :: fn(this: u32) -> u32 {

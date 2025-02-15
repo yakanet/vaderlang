@@ -40,7 +40,7 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [x] load instruction (simple instruction that concatenate tokens)
 - [x] module resolver
 - [x] implement snapshot testing (for tokenizer, parser, and emitter)
-- [ ] fix operator precedence
+- [x] fix operator precedence
 - [x] dot expression `a.b.c`
 - [x] better VaderType (should be recursive to support array `:String[4]`)
 - [x] rework on variable assignment identifier should be an expression to support dot expression & array assignment

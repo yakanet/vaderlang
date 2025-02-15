@@ -2,7 +2,7 @@
 @load "string"
 
 main :: fn() -> u32 {
-    y :: u8[_] {85, 90, 23}
+    y :: [_]u8 {85, 90, 23}
     x :: String {
         .value = y,
         .length = 3,

@@ -166,7 +166,7 @@ function resolveExpression(
                 ...expression,
             }
         }
-        case 'VariableExpression': {
+        case 'IdentifierExpression': {
             const variable = scope.lookupVariable(expression.identifier)
             return {
                 ...expression,

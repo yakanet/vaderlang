@@ -261,26 +261,26 @@
     }
   },
   {
-    "type": "OpenRoundBracket",
-    "value": "(",
-    "location": {
-      "start": 99,
-      "end": 100,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
     "type": "Identifier",
     "value": "this",
     "location": {
-      "start": 100,
-      "end": 104,
+      "start": 99,
+      "end": 103,
       "file": "examples/dot_function.vader"
     }
   },
   {
     "type": "DotToken",
     "value": ".",
+    "location": {
+      "start": 103,
+      "end": 104,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
     "location": {
       "start": 104,
       "end": 105,
@@ -288,20 +288,11 @@
     }
   },
   {
-    "type": "Identifier",
-    "value": "x",
-    "location": {
-      "start": 105,
-      "end": 106,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
     "type": "StarToken",
     "value": "*",
     "location": {
-      "start": 107,
-      "end": 108,
+      "start": 106,
+      "end": 107,
       "file": "examples/dot_function.vader"
     }
   },
@@ -309,8 +300,8 @@
     "type": "Identifier",
     "value": "other",
     "location": {
-      "start": 109,
-      "end": 114,
+      "start": 108,
+      "end": 113,
       "file": "examples/dot_function.vader"
     }
   },
@@ -318,8 +309,8 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 114,
-      "end": 115,
+      "start": 113,
+      "end": 114,
       "file": "examples/dot_function.vader"
     }
   },
@@ -327,17 +318,8 @@
     "type": "Identifier",
     "value": "x",
     "location": {
-      "start": 115,
-      "end": 116,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "CloseRoundBracket",
-    "value": ")",
-    "location": {
-      "start": 116,
-      "end": 117,
+      "start": 114,
+      "end": 115,
       "file": "examples/dot_function.vader"
     }
   },
@@ -345,17 +327,8 @@
     "type": "PlusToken",
     "value": "+",
     "location": {
-      "start": 118,
-      "end": 119,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "OpenRoundBracket",
-    "value": "(",
-    "location": {
-      "start": 120,
-      "end": 121,
+      "start": 116,
+      "end": 117,
       "file": "examples/dot_function.vader"
     }
   },
@@ -363,14 +336,32 @@
     "type": "Identifier",
     "value": "this",
     "location": {
-      "start": 121,
-      "end": 125,
+      "start": 118,
+      "end": 122,
       "file": "examples/dot_function.vader"
     }
   },
   {
     "type": "DotToken",
     "value": ".",
+    "location": {
+      "start": 122,
+      "end": 123,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "y",
+    "location": {
+      "start": 123,
+      "end": 124,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "StarToken",
+    "value": "*",
     "location": {
       "start": 125,
       "end": 126,
@@ -379,34 +370,34 @@
   },
   {
     "type": "Identifier",
-    "value": "y",
-    "location": {
-      "start": 126,
-      "end": 127,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "StarToken",
-    "value": "*",
-    "location": {
-      "start": 128,
-      "end": 129,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "Identifier",
     "value": "other",
     "location": {
-      "start": 130,
-      "end": 135,
+      "start": 127,
+      "end": 132,
       "file": "examples/dot_function.vader"
     }
   },
   {
     "type": "DotToken",
     "value": ".",
+    "location": {
+      "start": 132,
+      "end": 133,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "y",
+    "location": {
+      "start": 133,
+      "end": 134,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
     "location": {
       "start": 135,
       "end": 136,
@@ -415,37 +406,10 @@
   },
   {
     "type": "Identifier",
-    "value": "y",
-    "location": {
-      "start": 136,
-      "end": 137,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "CloseRoundBracket",
-    "value": ")",
-    "location": {
-      "start": 137,
-      "end": 138,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "CloseCurlyBracket",
-    "value": "}",
-    "location": {
-      "start": 139,
-      "end": 140,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "Identifier",
     "value": "plus1",
     "location": {
-      "start": 142,
-      "end": 147,
+      "start": 138,
+      "end": 143,
       "file": "examples/dot_function.vader"
     }
   },
@@ -453,14 +417,32 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 148,
+      "start": 144,
+      "end": 145,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 145,
+      "end": 146,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": 147,
       "end": 149,
       "file": "examples/dot_function.vader"
     }
   },
   {
-    "type": "ColonToken",
-    "value": ":",
+    "type": "OpenRoundBracket",
+    "value": "(",
     "location": {
       "start": 149,
       "end": 150,
@@ -468,29 +450,11 @@
     }
   },
   {
-    "type": "Keyword",
-    "value": "fn",
-    "location": {
-      "start": 151,
-      "end": 153,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "OpenRoundBracket",
-    "value": "(",
-    "location": {
-      "start": 153,
-      "end": 154,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
     "type": "Identifier",
     "value": "this",
     "location": {
-      "start": 154,
-      "end": 158,
+      "start": 150,
+      "end": 154,
       "file": "examples/dot_function.vader"
     }
   },
@@ -498,8 +462,8 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 158,
-      "end": 159,
+      "start": 154,
+      "end": 155,
       "file": "examples/dot_function.vader"
     }
   },
@@ -507,8 +471,8 @@
     "type": "Identifier",
     "value": "u32",
     "location": {
-      "start": 160,
-      "end": 163,
+      "start": 156,
+      "end": 159,
       "file": "examples/dot_function.vader"
     }
   },
@@ -516,8 +480,8 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 163,
-      "end": 164,
+      "start": 159,
+      "end": 160,
       "file": "examples/dot_function.vader"
     }
   },
@@ -525,8 +489,8 @@
     "type": "LambdaArrowToken",
     "value": "->",
     "location": {
-      "start": 165,
-      "end": 167,
+      "start": 161,
+      "end": 163,
       "file": "examples/dot_function.vader"
     }
   },
@@ -534,8 +498,8 @@
     "type": "Identifier",
     "value": "u32",
     "location": {
-      "start": 168,
-      "end": 171,
+      "start": 164,
+      "end": 167,
       "file": "examples/dot_function.vader"
     }
   },
@@ -543,8 +507,8 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 172,
-      "end": 173,
+      "start": 168,
+      "end": 169,
       "file": "examples/dot_function.vader"
     }
   },
@@ -552,8 +516,8 @@
     "type": "Keyword",
     "value": "return",
     "location": {
-      "start": 178,
-      "end": 184,
+      "start": 174,
+      "end": 180,
       "file": "examples/dot_function.vader"
     }
   },
@@ -561,8 +525,8 @@
     "type": "Identifier",
     "value": "this",
     "location": {
-      "start": 185,
-      "end": 189,
+      "start": 181,
+      "end": 185,
       "file": "examples/dot_function.vader"
     }
   },
@@ -570,8 +534,8 @@
     "type": "PlusToken",
     "value": "+",
     "location": {
-      "start": 190,
-      "end": 191,
+      "start": 186,
+      "end": 187,
       "file": "examples/dot_function.vader"
     }
   },
@@ -579,8 +543,8 @@
     "type": "NumberToken",
     "value": "1",
     "location": {
-      "end": 193,
-      "start": 192,
+      "end": 189,
+      "start": 188,
       "file": "examples/dot_function.vader"
     }
   },
@@ -588,8 +552,8 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 194,
-      "end": 195,
+      "start": 190,
+      "end": 191,
       "file": "examples/dot_function.vader"
     }
   },
@@ -597,8 +561,8 @@
     "type": "Identifier",
     "value": "main",
     "location": {
-      "start": 197,
-      "end": 201,
+      "start": 193,
+      "end": 197,
       "file": "examples/dot_function.vader"
     }
   },
@@ -606,8 +570,8 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 202,
-      "end": 203,
+      "start": 198,
+      "end": 199,
       "file": "examples/dot_function.vader"
     }
   },
@@ -615,8 +579,8 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 203,
-      "end": 204,
+      "start": 199,
+      "end": 200,
       "file": "examples/dot_function.vader"
     }
   },
@@ -624,8 +588,8 @@
     "type": "Keyword",
     "value": "fn",
     "location": {
-      "start": 205,
-      "end": 207,
+      "start": 201,
+      "end": 203,
       "file": "examples/dot_function.vader"
     }
   },
@@ -633,8 +597,8 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 207,
-      "end": 208,
+      "start": 203,
+      "end": 204,
       "file": "examples/dot_function.vader"
     }
   },
@@ -642,8 +606,8 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 208,
-      "end": 209,
+      "start": 204,
+      "end": 205,
       "file": "examples/dot_function.vader"
     }
   },
@@ -651,8 +615,8 @@
     "type": "LambdaArrowToken",
     "value": "->",
     "location": {
-      "start": 210,
-      "end": 212,
+      "start": 206,
+      "end": 208,
       "file": "examples/dot_function.vader"
     }
   },
@@ -660,8 +624,8 @@
     "type": "Identifier",
     "value": "u32",
     "location": {
-      "start": 213,
-      "end": 216,
+      "start": 209,
+      "end": 212,
       "file": "examples/dot_function.vader"
     }
   },
@@ -669,8 +633,8 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 217,
-      "end": 218,
+      "start": 213,
+      "end": 214,
       "file": "examples/dot_function.vader"
     }
   },
@@ -678,26 +642,26 @@
     "type": "Identifier",
     "value": "p1",
     "location": {
+      "start": 219,
+      "end": 221,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 222,
+      "end": 223,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
       "start": 223,
-      "end": 225,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": 226,
-      "end": 227,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": 227,
-      "end": 228,
+      "end": 224,
       "file": "examples/dot_function.vader"
     }
   },
@@ -705,8 +669,8 @@
     "type": "Identifier",
     "value": "Point",
     "location": {
-      "start": 229,
-      "end": 234,
+      "start": 225,
+      "end": 230,
       "file": "examples/dot_function.vader"
     }
   },
@@ -714,8 +678,8 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 235,
-      "end": 236,
+      "start": 231,
+      "end": 232,
       "file": "examples/dot_function.vader"
     }
   },
@@ -723,8 +687,8 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "end": 238,
-      "start": 237,
+      "end": 234,
+      "start": 233,
       "file": "examples/dot_function.vader"
     }
   },
@@ -732,8 +696,8 @@
     "type": "CommaToken",
     "value": ",",
     "location": {
-      "start": 238,
-      "end": 239,
+      "start": 234,
+      "end": 235,
       "file": "examples/dot_function.vader"
     }
   },
@@ -741,8 +705,8 @@
     "type": "NumberToken",
     "value": "3",
     "location": {
-      "end": 241,
-      "start": 240,
+      "end": 237,
+      "start": 236,
       "file": "examples/dot_function.vader"
     }
   },
@@ -750,8 +714,8 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 242,
-      "end": 243,
+      "start": 238,
+      "end": 239,
       "file": "examples/dot_function.vader"
     }
   },
@@ -759,26 +723,26 @@
     "type": "Identifier",
     "value": "p2",
     "location": {
+      "start": 244,
+      "end": 246,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 247,
+      "end": 248,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
       "start": 248,
-      "end": 250,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": 251,
-      "end": 252,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": 252,
-      "end": 253,
+      "end": 249,
       "file": "examples/dot_function.vader"
     }
   },
@@ -786,8 +750,8 @@
     "type": "Identifier",
     "value": "Point",
     "location": {
-      "start": 254,
-      "end": 259,
+      "start": 250,
+      "end": 255,
       "file": "examples/dot_function.vader"
     }
   },
@@ -795,8 +759,8 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 260,
-      "end": 261,
+      "start": 256,
+      "end": 257,
       "file": "examples/dot_function.vader"
     }
   },
@@ -804,8 +768,8 @@
     "type": "NumberToken",
     "value": "4",
     "location": {
-      "end": 263,
-      "start": 262,
+      "end": 259,
+      "start": 258,
       "file": "examples/dot_function.vader"
     }
   },
@@ -813,8 +777,8 @@
     "type": "CommaToken",
     "value": ",",
     "location": {
-      "start": 263,
-      "end": 264,
+      "start": 259,
+      "end": 260,
       "file": "examples/dot_function.vader"
     }
   },
@@ -822,8 +786,8 @@
     "type": "NumberToken",
     "value": "5",
     "location": {
-      "end": 266,
-      "start": 265,
+      "end": 262,
+      "start": 261,
       "file": "examples/dot_function.vader"
     }
   },
@@ -831,8 +795,8 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 267,
-      "end": 268,
+      "start": 263,
+      "end": 264,
       "file": "examples/dot_function.vader"
     }
   },
@@ -840,8 +804,8 @@
     "type": "Keyword",
     "value": "return",
     "location": {
-      "start": 273,
-      "end": 279,
+      "start": 269,
+      "end": 275,
       "file": "examples/dot_function.vader"
     }
   },
@@ -849,14 +813,32 @@
     "type": "Identifier",
     "value": "p1",
     "location": {
-      "start": 280,
-      "end": 282,
+      "start": 276,
+      "end": 278,
       "file": "examples/dot_function.vader"
     }
   },
   {
     "type": "DotToken",
     "value": ".",
+    "location": {
+      "start": 278,
+      "end": 279,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "dot",
+    "location": {
+      "start": 279,
+      "end": 282,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
     "location": {
       "start": 282,
       "end": 283,
@@ -865,16 +847,25 @@
   },
   {
     "type": "Identifier",
-    "value": "dot",
+    "value": "p2",
     "location": {
       "start": 283,
+      "end": 285,
+      "file": "examples/dot_function.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 285,
       "end": 286,
       "file": "examples/dot_function.vader"
     }
   },
   {
-    "type": "OpenRoundBracket",
-    "value": "(",
+    "type": "DotToken",
+    "value": ".",
     "location": {
       "start": 286,
       "end": 287,
@@ -883,37 +874,10 @@
   },
   {
     "type": "Identifier",
-    "value": "p2",
-    "location": {
-      "start": 287,
-      "end": 289,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "CloseRoundBracket",
-    "value": ")",
-    "location": {
-      "start": 289,
-      "end": 290,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "DotToken",
-    "value": ".",
-    "location": {
-      "start": 290,
-      "end": 291,
-      "file": "examples/dot_function.vader"
-    }
-  },
-  {
-    "type": "Identifier",
     "value": "plus1",
     "location": {
-      "start": 291,
-      "end": 296,
+      "start": 287,
+      "end": 292,
       "file": "examples/dot_function.vader"
     }
   },
@@ -921,8 +885,8 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 296,
-      "end": 297,
+      "start": 292,
+      "end": 293,
       "file": "examples/dot_function.vader"
     }
   },
@@ -930,8 +894,8 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 297,
-      "end": 298,
+      "start": 293,
+      "end": 294,
       "file": "examples/dot_function.vader"
     }
   },
@@ -939,16 +903,16 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 299,
-      "end": 300,
+      "start": 295,
+      "end": 296,
       "file": "examples/dot_function.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 300,
-      "end": 300,
+      "start": 296,
+      "end": 296,
       "file": "examples/dot_function.vader"
     },
     "value": "\u0000"

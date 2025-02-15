@@ -8,11 +8,11 @@
  (export "memory" (memory $0))
  (start $_start)
  (func $main (result i32)
-  (i32.const 1234234)
+  (i32.const 7)
  )
  (func $_start
   (call $wasi_snapshot_preview1:proc_exit
-   (i32.const 1234234)
+   (i32.const 7)
   )
  )
 )
