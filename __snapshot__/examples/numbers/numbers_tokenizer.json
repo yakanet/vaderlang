@@ -315,8 +315,8 @@
     }
   },
   {
-    "type": "CloseCurlyBracket",
-    "value": "}",
+    "type": "DashToken",
+    "value": "-",
     "location": {
       "start": 105,
       "end": 106,
@@ -324,10 +324,46 @@
     }
   },
   {
+    "type": "NumberToken",
+    "value": "1",
+    "location": {
+      "end": 108,
+      "start": 107,
+      "file": "examples/numbers.vader"
+    }
+  },
+  {
+    "type": "StarToken",
+    "value": "*",
+    "location": {
+      "start": 109,
+      "end": 110,
+      "file": "examples/numbers.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "end": 112,
+      "start": 111,
+      "file": "examples/numbers.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 113,
+      "end": 114,
+      "file": "examples/numbers.vader"
+    }
+  },
+  {
     "type": "EOF",
     "location": {
-      "start": 106,
-      "end": 106,
+      "start": 114,
+      "end": 114,
       "file": "examples/numbers.vader"
     },
     "value": "\u0000"

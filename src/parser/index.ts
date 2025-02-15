@@ -10,15 +10,15 @@ export function parseProgram(entryFile: string, resolver: ModuleResolver): Progr
         kind: 'Program',
         body: [],
         location: {
-            ...parser.current.location,
-            start: 0
+            start: 0,
+            end: -1,
+            file: parser.current.location.file,
         }
     }
     while (!parser.isCurrentType('EOF')) {
         program.body.push(parseStatement(parser))
     }
-    const lastToken = parser.expect('EOF');
-    program.location.end = lastToken.location.end;
+    program.location.end = parser.expect('EOF').location.end;
     return program;
 }
 

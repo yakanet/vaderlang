@@ -4,7 +4,6 @@
  (import "wasi_snapshot_preview1" "fd_write" (func $wasi_snapshot_preview1:fd_write (param i32 i32 i32 i32) (result i32)))
  (memory $0 1)
  (data $0 (i32.const 0) "@load \"modules/std\"\n\nmain :: fn() {\n    print(@file(\"examples/embedded_file.vader\"))\n}")
- (export "main" (func $main))
  (export "memory" (memory $0))
  (start $main)
  (func $main

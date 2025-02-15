@@ -5,7 +5,6 @@
  (memory $0 1)
  (data $0 (i32.const 0) "Hello")
  (data $3 (i32.const 28) "\n")
- (export "main" (func $main))
  (export "memory" (memory $0))
  (start $main)
  (func $main

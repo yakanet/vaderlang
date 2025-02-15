@@ -135,7 +135,7 @@ export class WasmEmitter {
                             this.module.block(null, body)
                         );
                         this.currentScope = GLOBAL_SCOPE;
-                        this.module.addFunctionExport(statement.name, statement.name);
+                        //this.module.addFunctionExport(statement.name, statement.name);
                         return;
                     }
                     case 'array':

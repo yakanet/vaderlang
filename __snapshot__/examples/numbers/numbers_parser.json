@@ -165,21 +165,73 @@
             "kind": "ReturnStatement",
             "expression": {
               "kind": "BinaryExpression",
-              "operator": "+",
+              "operator": "-",
               "type": {
                 "name": "u32",
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "NumberExpression",
+                "kind": "BinaryExpression",
+                "operator": "+",
                 "type": {
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": 1,
+                "lhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 1,
+                  "location": {
+                    "start": 95,
+                    "end": 96,
+                    "file": "examples/numbers.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "BinaryExpression",
+                  "operator": "*",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "lhs": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 2,
+                    "location": {
+                      "start": 99,
+                      "end": 100,
+                      "file": "examples/numbers.vader"
+                    }
+                  },
+                  "rhs": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 3,
+                    "location": {
+                      "start": 103,
+                      "end": 104,
+                      "file": "examples/numbers.vader"
+                    }
+                  },
+                  "location": {
+                    "start": 99,
+                    "end": 104,
+                    "file": "examples/numbers.vader"
+                  }
+                },
                 "location": {
                   "start": 95,
-                  "end": 96,
+                  "end": 104,
                   "file": "examples/numbers.vader"
                 }
               },
@@ -196,10 +248,10 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": 2,
+                  "value": 1,
                   "location": {
-                    "start": 99,
-                    "end": 100,
+                    "start": 107,
+                    "end": 108,
                     "file": "examples/numbers.vader"
                   }
                 },
@@ -209,48 +261,48 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": 3,
+                  "value": 2,
                   "location": {
-                    "start": 103,
-                    "end": 104,
+                    "start": 111,
+                    "end": 112,
                     "file": "examples/numbers.vader"
                   }
                 },
                 "location": {
-                  "start": 99,
-                  "end": 104,
+                  "start": 107,
+                  "end": 112,
                   "file": "examples/numbers.vader"
                 }
               },
               "location": {
                 "start": 95,
-                "end": 104,
+                "end": 112,
                 "file": "examples/numbers.vader"
               }
             },
             "location": {
               "start": 88,
-              "end": 104,
+              "end": 112,
               "file": "examples/numbers.vader"
             }
           }
         ],
         "location": {
           "start": 70,
-          "end": 106,
+          "end": 114,
           "file": "examples/numbers.vader"
         }
       },
       "location": {
         "start": 62,
-        "end": 106,
+        "end": 114,
         "file": "examples/numbers.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 106,
+    "end": 114,
     "file": "examples/numbers.vader"
   }
 }
