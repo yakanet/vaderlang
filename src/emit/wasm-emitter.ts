@@ -21,9 +21,12 @@ import assert from "node:assert";
 const encoder = new TextEncoder();
 
 const GLOBAL_SCOPE = '$$GLOBAL_SCOPE$$'
+const MEMORY_PTR = '__memory_pointer'
 
 export class WasmEmitter {
     private memoryLayout: { offset: number, data: Uint8Array }[] = [];
+    private memoryOffset = 0;
+
     public readonly module = new binaryen.Module();
     private forCount = 0;
     private currentScope: string = GLOBAL_SCOPE;
@@ -51,7 +54,7 @@ export class WasmEmitter {
             data: layout.data,
             offset: this.module.i32.const(layout.offset),
         })));
-        this.module.optimize();
+        this.module.addGlobal(MEMORY_PTR, binaryen.i32, true, this.module.i32.const(this.memoryOffset))
         assert(this.module.validate());
     }
 
@@ -444,8 +447,6 @@ export class WasmEmitter {
         [['>=', binaryen.i32, binaryen.i32].join(), this.module.i32.ge_u],
     ]);
 
-    private memoryOffset = 0;
-
     malloc(sizeOrData: number | Uint8Array): binaryen.MemorySegment {
         const size = typeof sizeOrData === "number" ? sizeOrData : sizeOrData.length;
         const data = typeof sizeOrData === "number" ? new Uint8Array(sizeOrData) : sizeOrData;
@@ -453,7 +454,7 @@ export class WasmEmitter {
             data,
             offset: this.memoryOffset,
         };
-        this.memoryOffset += align_ptr(size + 1)
+        this.memoryOffset += align_ptr(size)
         this.memoryLayout.push(segment);
         return segment;
     }
@@ -502,6 +503,73 @@ export class WasmEmitter {
         return this.module.call("wasi_snapshot_preview1:proc_exit", [
             this.emitExpression(stmt.parameters[0])
         ], binaryen.none)
+    }
+
+    runtime_malloc(type: VaderType): { init: binaryen.ExpressionRef, ptr: binaryen.ExpressionRef } {
+        switch (type.kind) {
+            case "primitive":
+                throw new Error(`Could not allocate primitive in heap`)
+            case "function":
+                throw new Error(`Could not allocate function in heap`)
+            case "struct": {
+                assert(this.currentScope !== GLOBAL_SCOPE)
+                // Create a local
+                const local_id = this.symbols[this.currentScope].size;
+                this.symbols[this.currentScope].set(crypto.randomUUID(), {
+                    type: BasicVaderType.u32,
+                    scope: "local",
+                    index: local_id
+                })
+                let structSize = 0;
+                for (const parameter of type.parameters) {
+                    structSize += size_of(parameter.type)
+                }
+                return {
+                    init: this.module.block(null, [
+                        this.module.local.set(local_id, this.module.global.get(MEMORY_PTR, binaryen.i32)),
+                        this.module.global.set(MEMORY_PTR,
+                            this.module.i32.add(
+                                this.module.global.get(MEMORY_PTR, binaryen.i32),
+                                this.module.i32.const(structSize)
+                            )
+                        ),
+                    ]),
+                    ptr: this.module.local.get(local_id, binaryen.i32),
+                }
+            }
+            case "array": {
+                if (!type.length) {
+                    throw new Error(`Could not create array of unknown size`);
+                }
+                assert(this.currentScope !== GLOBAL_SCOPE)
+                // Create a local
+                const local_id = this.symbols[this.currentScope].size;
+                this.symbols[this.currentScope].set(crypto.randomUUID(), {
+                    type: BasicVaderType.u32,
+                    scope: "local",
+                    index: local_id
+                })
+                const array_size = this.emitExpression(type.length);
+                return {
+                    init: this.module.block(null, [
+                        this.module.local.set(local_id, this.module.global.get(MEMORY_PTR, binaryen.i32)),
+                        this.module.global.set(MEMORY_PTR,
+                            this.module.i32.add(
+                                this.module.global.get(MEMORY_PTR, binaryen.i32),
+                                this.module.i32.mul(
+                                    array_size,
+                                    this.module.i32.const(size_of(type.type))
+                                )
+                            )
+                        ),
+                    ]),
+                    ptr: this.module.local.get(local_id, binaryen.i32),
+                }
+            }
+            default:
+                throw new Error(`unhandled runtime memory allocation for type ${typeToString(type)}`)
+
+        }
     }
 }
 
@@ -560,6 +628,7 @@ function createBinaryenConst(module: binaryen.Module, t: VaderType, value: numbe
         case "boolean":
         case "int":
         case "u8":
+        case "u16":
         case "u32":
             return module.i32.const(value);
         case "long":
