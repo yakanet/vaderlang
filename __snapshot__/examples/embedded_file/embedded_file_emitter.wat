@@ -20,7 +20,7 @@
     (i32.const 1)
     (i32.const 88)
     (i32.const 1)
-    (i32.const 100)
+    (i32.const 96)
    )
   )
  )

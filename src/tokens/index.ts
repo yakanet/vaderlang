@@ -37,6 +37,8 @@ export const keywords = [
     "struct",
     "return",
     "fn",
+    "true",
+    "false"
 ] as const;
 const keywordIndex = new Set(keywords);
 

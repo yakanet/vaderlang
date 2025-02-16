@@ -15,11 +15,11 @@
    (i32.const 3)
   )
   (i32.store
-   (i32.const 12)
+   (i32.const 8)
    (i32.const 4)
   )
   (i32.store
-   (i32.const 16)
+   (i32.const 12)
    (i32.const 5)
   )
   (call $wasi_snapshot_preview1:proc_exit
@@ -30,7 +30,7 @@
        (i32.const 0)
       )
       (i32.load
-       (i32.const 12)
+       (i32.const 8)
       )
      )
      (i32.mul
@@ -38,7 +38,7 @@
        (i32.const 4)
       )
       (i32.load
-       (i32.const 16)
+       (i32.const 12)
       )
      )
     )

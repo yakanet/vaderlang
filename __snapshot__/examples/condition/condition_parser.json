@@ -704,7 +704,19 @@
               "ifBody": [
                 {
                   "kind": "VariableAssignmentStatement",
-                  "identifier": "z",
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "identifier": "z",
+                    "location": {
+                      "start": 646,
+                      "end": 647,
+                      "file": "examples/condition.vader"
+                    }
+                  },
                   "value": {
                     "kind": "NumberExpression",
                     "type": {

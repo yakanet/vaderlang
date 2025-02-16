@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Debugger</title>
+</head>
+<body>
+
+<script type="module">
+    await WebAssembly.instantiateStreaming(fetch('module.wasm'), {
+        wasi_snapshot_preview1: {
+            proc_exit: (code) => {
+                console.log('exit ' + code)
+            },
+            fd_write: () => {
+                console.log('write_fd')
+            }
+        }
+    })
+</script>
+</body>
+</html>

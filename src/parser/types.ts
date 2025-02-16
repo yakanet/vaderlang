@@ -36,7 +36,7 @@ export type ConditionalStatement = BasicStatement & {
 
 export type VariableAssignmentStatement = BasicStatement & {
     kind: 'VariableAssignmentStatement'
-    identifier: string
+    identifier: Expression
     value: Expression
 }
 
@@ -152,7 +152,7 @@ export interface StructVaderType {
 
 export interface ArrayVaderType {
     kind: 'array'
-    length?: number,
+    length?: Expression,
     type: VaderType,
     dimension: number
 }

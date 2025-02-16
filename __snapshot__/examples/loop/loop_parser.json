@@ -210,7 +210,19 @@
             },
             "iteration": {
               "kind": "VariableAssignmentStatement",
-              "identifier": "i",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "identifier": "i",
+                "location": {
+                  "start": 52,
+                  "end": 53,
+                  "file": "examples/loop.vader"
+                }
+              },
               "value": {
                 "kind": "BinaryExpression",
                 "operator": "+",
@@ -327,7 +339,19 @@
                 },
                 "iteration": {
                   "kind": "VariableAssignmentStatement",
-                  "identifier": "j",
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "identifier": "j",
+                    "location": {
+                      "start": 92,
+                      "end": 93,
+                      "file": "examples/loop.vader"
+                    }
+                  },
                   "value": {
                     "kind": "BinaryExpression",
                     "operator": "+",

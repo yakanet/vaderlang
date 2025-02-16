@@ -3,7 +3,7 @@ String :: struct {
     value: []u8
 }
 
-equals :: fn(this: String, other: String) -> u32 {
+equals :: fn(this: String, other: String) -> boolean {
     if this.length != other.length {
         return 0
     }
@@ -11,10 +11,10 @@ equals :: fn(this: String, other: String) -> u32 {
     // TODO use a memory comparison instead of for loop
     for (i := 0; i<this.length; i=i+1 ) {
         if this.value[i] != other.value[i] {
-            return 0
+            return false
         }
     }
-    return 1
+    return true
 }
 
 startWith :: fn(this: String, prefix: String ) -> u32 {

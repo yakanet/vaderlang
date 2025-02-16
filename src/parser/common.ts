@@ -21,12 +21,8 @@ export function parseType(parser: Parser): VaderType {
             parser.expect('OpenSquareBracket')
             if (parser.isCurrentType('UnderscoreToken')) {
                 parser.expect('UnderscoreToken');
-                arrayType.length = -1;
-            } else if (parser.isCurrentType('NumberToken')) {
-                arrayType.length = Number(parser.expect('NumberToken').value);
-                if (arrayType.length % 1 || arrayType.length < 0) {
-                    parser.reportError(`Wrong size for the array. Should be a positive integer`, parser.previous.location);
-                }
+            } else if (!parser.isCurrentType('CloseSquareBracket')) {
+                arrayType.length = parseExpression(parser);
             }
             parser.expect('CloseSquareBracket');
         }

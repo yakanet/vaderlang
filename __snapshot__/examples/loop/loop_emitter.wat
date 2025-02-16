@@ -4,7 +4,7 @@
  (import "wasi_snapshot_preview1" "fd_write" (func $wasi_snapshot_preview1:fd_write (param i32 i32 i32 i32) (result i32)))
  (memory $0 1)
  (data $0 (i32.const 0) "Hello")
- (data $3 (i32.const 28) "\n")
+ (data $3 (i32.const 20) "\n")
  (export "memory" (memory $0))
  (start $main)
  (func $main
@@ -40,7 +40,7 @@
           (i32.const 1)
           (i32.const 8)
           (i32.const 1)
-          (i32.const 20)
+          (i32.const 16)
          )
         )
         (local.set $1
@@ -54,19 +54,19 @@
       )
      )
      (i32.store
-      (i32.const 32)
-      (i32.const 28)
+      (i32.const 24)
+      (i32.const 20)
      )
      (i32.store
-      (i32.const 36)
+      (i32.const 28)
       (i32.const 1)
      )
      (drop
       (call $wasi_snapshot_preview1:fd_write
        (i32.const 1)
-       (i32.const 32)
+       (i32.const 24)
        (i32.const 1)
-       (i32.const 44)
+       (i32.const 32)
       )
      )
      (local.set $0

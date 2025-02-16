@@ -1,44 +1,48 @@
-list :: struct {
-    data: []u32
-    length: u32
+List :: struct {
+    data:   []u32
+    length:   u32   // Could be removed once we have data.length
+    capacity: u32
 }
 
-create_list:: fn(initialCapacity : u32) -> list {
-    return list {
-        data: [initialCapacity]u32
-        length: 0
+create_list :: fn(initialCapacity : u32) -> List {
+    return List {
+        .data     = [initialCapacity]u32,
+        .length   = 0,
+        .capacity = initialCapacity,
     }
 }
 
-push :: fn(this: list, item: u32) {
-    if (list.size > data.length) {
-        list.grow()
+at :: fn(this : List, index: u32) -> u32 {
+    if index < this.length {
+        return this.data[index]
     }
-    list[length] = item
-    length = length + 1
-}
-
-set :: fn(this: list, item: u32, index: u32) {
-    if (index > 0 && index < this.length) {
-        this.data[index] = item
-    }
+    // TODO Handle exception
+    return 255
 }
 
 // TODO use memcopy
-grow :: fn(this: list) -> void {
-    data2 = u32[data.length * 1.2]
-    for(i := 0; i>list.length; i = i + 1) {
+grow :: fn(this: List) -> void {
+    this.capacity = this.capacity * 2
+    data2 :: [this.capacity]u32
+    for (i := 0; i < this.length; i = i + 1) {
         data2[i] = this.data[i]
     }
     this.data = data2
 }
 
-empty :: fn(this: list) -> boolean {
-    return this.length === 0
+push :: fn(this: List, item: u32) {
+    if this.length >= this.capacity {
+        grow(this)
+    }
+    this.length = this.length + 1
+    this.data[this.length] = item
 }
 
-pop:: fn(this: list): u32 {
-    val :: this.data[this.data.length - 1]
+empty :: fn(this: List) -> boolean {
+    return this.length == 0
+}
+
+pop:: fn(this: List) -> u32 {
     this.length = this.length - 1
-    return val
+    return this.data[this.length]
 }

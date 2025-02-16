@@ -56,6 +56,7 @@ export class WasmEmitter {
         })));
         this.module.addGlobal(MEMORY_PTR, binaryen.i32, true, this.module.i32.const(this.memoryOffset))
         assert(this.module.validate());
+        this.module.optimize()
     }
 
     emitMainMethod(program: Program) {
@@ -197,19 +198,25 @@ export class WasmEmitter {
             }
 
             case "VariableAssignmentStatement": {
-                let variable =
-                    this.symbols[this.currentScope].get(stmt.identifier)
-                    ?? this.symbols[GLOBAL_SCOPE].get(stmt.identifier)
-                if (!variable) {
-                    throw new Error(`Undeclared variable ${stmt.identifier}`);
+                const identifier = stmt.identifier;
+
+                if (identifier.kind === 'IdentifierExpression') {
+                    let variable =
+                        this.symbols[this.currentScope].get(identifier.identifier)
+                        ?? this.symbols[GLOBAL_SCOPE].get(identifier.identifier)
+                    if (!variable) {
+                        throw new Error(`Undeclared variable ${identifier.identifier}`);
+                    }
+                    if (variable.scope === 'global') {
+                        return this.module.global.set(
+                            identifier.identifier,
+                            this.emitExpression(stmt.value)
+                        );
+                    }
+                    return this.module.local.set(variable.index, this.emitExpression(stmt.value));
+                } else {
+                    throw new Error(`assignment with left-side dynamic is not supported yet`)
                 }
-                if (variable.scope === 'global') {
-                    return this.module.global.set(
-                        stmt.identifier,
-                        this.emitExpression(stmt.value)
-                    );
-                }
-                return this.module.local.set(variable.index, this.emitExpression(stmt.value));
             }
 
             case 'ForStatement': {
@@ -271,7 +278,7 @@ export class WasmEmitter {
                 if (!variable) {
                     throw new Error(`Undeclared variable ${expression.identifier}`);
                 }
-                if(variable.scope === 'global') {
+                if (variable.scope === 'global') {
                     return this.module.global.get(expression.identifier, mapBinaryenType(variable.type));
                 }
                 const functionVariable = this.symbols[this.currentScope].get(expression.identifier);
@@ -582,7 +589,10 @@ function align_ptr(address: number) {
 
 function size_of(t: VaderType): number {
     if (t.kind === 'array') {
-        return (t.length ?? 1) * size_of(t.type);
+        if (t.length?.kind !== 'NumberExpression') {
+            throw new Error(`Array with runtime size is not supported yet`)
+        }
+        return (t.length?.value ?? 1) * size_of(t.type);
     }
     if (t.kind === 'struct') {
         let size = 0;

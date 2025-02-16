@@ -1,0 +1,20 @@
+@load "string"
+
+StringBuilder :: struct {
+    parts: []string
+    size: u32
+    index: u32
+}
+
+newStringBuilder :: fn(size: u32) {
+
+}
+
+appendString:: fn(this: StringBuilder, string: string) -> void {
+    this.index++
+    this.parts[this.index]
+}
+
+toString :: (this: StringBuilder) -> String {
+
+}

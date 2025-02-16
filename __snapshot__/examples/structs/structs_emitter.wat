@@ -7,27 +7,27 @@
  (start $_start)
  (func $_start
   (i32.store
-   (i32.const 16)
+   (i32.const 12)
    (i32.const 2)
   )
   (i32.store
-   (i32.const 20)
+   (i32.const 16)
    (i32.const 4)
   )
   (i32.store
    (i32.const 0)
-   (i32.const 16)
+   (i32.const 12)
   )
   (i32.store
    (i32.const 8)
    (i32.const 10)
   )
   (i32.store
-   (i32.const 28)
+   (i32.const 20)
    (i32.const 6)
   )
   (i32.store
-   (i32.const 32)
+   (i32.const 24)
    (i32.const 8)
   )
   (call $wasi_snapshot_preview1:proc_exit
@@ -38,7 +38,7 @@
      )
     )
     (i32.load
-     (i32.const 32)
+     (i32.const 24)
     )
    )
   )

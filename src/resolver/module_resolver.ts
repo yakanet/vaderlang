@@ -22,7 +22,7 @@ export class FileResolver implements ModuleResolver {
                 }
             }
         }
-        throw new Error(`Could not resolve "${identifier}". Tried to resolve in the following locations : "${this.lookupDirectories}"`);
+        throw new Error(`Could not resolve path "${identifier}". Tried to resolve in the following locations : "${this.lookupDirectories}"`);
     }
 
 }

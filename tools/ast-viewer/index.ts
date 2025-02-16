@@ -5,17 +5,23 @@ import {parseProgram} from "../../src/parser";
 import {resolve} from "../../src/resolver/resolver.ts";
 import fs from "node:fs";
 
-const [_runtime, _script, source_path] = process.argv;
+const [_runtime, _script, source_path, ...options] = process.argv;
 if (!source_path) {
     console.error(`missing location of a vader file`);
     process.exit(1);
 }
+let no_resolve = false;
+if (options.find(o => o === "--no-resolve")) {
+    no_resolve = true;
+}
 
 const resolver = new FileResolver(process.cwd(), ['./modules']);
-const program = parseProgram(source_path, resolver);
-const resolvedProgram = resolve(program);
-const files = Object.fromEntries([...resolvedProgram.body.reduce((acc, node) => acc.add(node.location.file), new Set<string>()).values()].map(file => [file, fs.readFileSync(file, {encoding: 'utf-8'})]));
-const compiledFiles = await buildSvelteFile(files, resolvedProgram)
+let program = parseProgram(source_path, resolver);
+if (!no_resolve) {
+    program = resolve(program);
+}
+const files = Object.fromEntries([...program.body.reduce((acc, node) => acc.add(node.location.file), new Set<string>()).values()].map(file => [file, fs.readFileSync(file, {encoding: 'utf-8'})]));
+const compiledFiles = await buildSvelteFile(files, program)
 
 function serveContent(content: string, contentType: string) {
     return new Response(content, {

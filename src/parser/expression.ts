@@ -9,6 +9,7 @@ import {
     type Expression,
     type FunctionVaderType,
     type IdentifierExpression,
+    type NumberExpression,
     type StringExpression,
     type StructDeclarationExpression,
     type StructInstantiationExpression,
@@ -260,6 +261,26 @@ function parsePrimaryExpression(parser: Parser): Expression {
         return left;
     }
 
+    if (parser.isCurrentKeyword('true')) {
+        const token = parser.expectKeyword('true')
+        return {
+            kind: "NumberExpression",
+            type: BasicVaderType.boolean,
+            value: 1,
+            location: {...token.location}
+        }
+    }
+
+    if (parser.isCurrentKeyword('false')) {
+        const token = parser.expectKeyword('false')
+        return {
+            kind: "NumberExpression",
+            type: BasicVaderType.boolean,
+            value: 0,
+            location: {...token.location}
+        }
+    }
+
     if (parser.isCurrentKeyword('if')) {
         return parseIfExpression(parser);
     }
@@ -368,6 +389,7 @@ function parseArrayInitializationExpression(parser: Parser): Expression {
     }
 
     const initialValue: Expression[] = []
+    const initialValueToken = parser.current;
     let hasInitialValue = false;
     if (parser.isCurrentType('OpenCurlyBracket')) {
         parser.expect('OpenCurlyBracket')
@@ -382,14 +404,24 @@ function parseArrayInitializationExpression(parser: Parser): Expression {
         parser.expect('CloseCurlyBracket')
     }
 
-    if (type.length && type.length < 0) {
+    if (!type.length) {
         if (!hasInitialValue) {
             parser.reportError(`Array initial value is mandatory when creating an array with no specified size`, parser.previous.location);
         } else {
-            type.length = initialValue.length;
+            type.length = {
+                kind: 'NumberExpression',
+                type: BasicVaderType.u32,
+                value: initialValue.length,
+                location: {
+                    ...initialValueToken.location,
+                    end: parser.current.location.end
+                }
+            } satisfies NumberExpression;
         }
-    } else if (hasInitialValue && type.length !== initialValue.length) {
-        parser.reportError(`Type mismatch between array size and initial value size`, parser.previous.location);
+    } else if (hasInitialValue) {
+        if(type.length.kind === 'NumberExpression' && type.length.value !== initialValue.length) {
+            parser.reportError(`Type mismatch between array size and initial value size`, parser.previous.location);
+        }
     }
 
     return {

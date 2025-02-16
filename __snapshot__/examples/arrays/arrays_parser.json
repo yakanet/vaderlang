@@ -165,7 +165,19 @@
             "kind": "primitive"
           },
           "dimension": 1,
-          "length": 10
+          "length": {
+            "kind": "NumberExpression",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            },
+            "value": 10,
+            "location": {
+              "start": 47,
+              "end": 49,
+              "file": "examples/arrays.vader"
+            }
+          }
         }
       },
       "value": {
@@ -189,7 +201,19 @@
               "kind": "primitive"
             },
             "dimension": 1,
-            "length": 10
+            "length": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": 10,
+              "location": {
+                "start": 47,
+                "end": 49,
+                "file": "examples/arrays.vader"
+              }
+            }
           }
         },
         "body": [
@@ -204,7 +228,19 @@
                 "kind": "primitive"
               },
               "dimension": 1,
-              "length": 10
+              "length": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 10,
+                "location": {
+                  "start": 70,
+                  "end": 72,
+                  "file": "examples/arrays.vader"
+                }
+              }
             },
             "value": {
               "kind": "ArrayDeclarationExpression",
@@ -215,7 +251,19 @@
                   "kind": "primitive"
                 },
                 "dimension": 1,
-                "length": 10
+                "length": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 10,
+                  "location": {
+                    "start": 70,
+                    "end": 72,
+                    "file": "examples/arrays.vader"
+                  }
+                }
               },
               "location": {
                 "start": 69,
@@ -240,7 +288,19 @@
                   "kind": "primitive"
                 },
                 "dimension": 1,
-                "length": 10
+                "length": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 10,
+                  "location": {
+                    "start": 70,
+                    "end": 72,
+                    "file": "examples/arrays.vader"
+                  }
+                }
               },
               "identifier": "buffer",
               "location": {
@@ -304,7 +364,19 @@
                 "kind": "primitive"
               },
               "dimension": 1,
-              "length": 3
+              "length": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 3,
+                "location": {
+                  "start": 135,
+                  "end": 150,
+                  "file": "examples/arrays.vader"
+                }
+              }
             },
             "value": {
               "kind": "ArrayDeclarationExpression",
@@ -315,7 +387,19 @@
                   "kind": "primitive"
                 },
                 "dimension": 1,
-                "length": 3
+                "length": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 3,
+                  "location": {
+                    "start": 135,
+                    "end": 150,
+                    "file": "examples/arrays.vader"
+                  }
+                }
               },
               "value": [
                 {
@@ -381,7 +465,19 @@
                 "kind": "primitive"
               },
               "dimension": 1,
-              "length": 4
+              "length": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 4,
+                "location": {
+                  "start": 155,
+                  "end": 156,
+                  "file": "examples/arrays.vader"
+                }
+              }
             },
             "value": {
               "kind": "ArrayDeclarationExpression",
@@ -392,7 +488,19 @@
                   "kind": "primitive"
                 },
                 "dimension": 1,
-                "length": 4
+                "length": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 4,
+                  "location": {
+                    "start": 155,
+                    "end": 156,
+                    "file": "examples/arrays.vader"
+                  }
+                }
               },
               "location": {
                 "start": 154,
@@ -417,7 +525,19 @@
                 "kind": "primitive"
               },
               "dimension": 1,
-              "length": 10
+              "length": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 10,
+                "location": {
+                  "start": 47,
+                  "end": 49,
+                  "file": "examples/arrays.vader"
+                }
+              }
             },
             "value": {
               "kind": "CallExpression",
@@ -449,7 +569,19 @@
                   "kind": "primitive"
                 },
                 "dimension": 1,
-                "length": 10
+                "length": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 10,
+                  "location": {
+                    "start": 47,
+                    "end": 49,
+                    "file": "examples/arrays.vader"
+                  }
+                }
               }
             },
             "location": {
@@ -486,7 +618,19 @@
                     "kind": "primitive"
                   },
                   "dimension": 1,
-                  "length": 3
+                  "length": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 3,
+                    "location": {
+                      "start": 135,
+                      "end": 150,
+                      "file": "examples/arrays.vader"
+                    }
+                  }
                 },
                 "identifier": "x",
                 "location": {
@@ -507,7 +651,19 @@
                   "kind": "primitive"
                 },
                 "dimension": 1,
-                "length": 3
+                "length": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 3,
+                  "location": {
+                    "start": 135,
+                    "end": 150,
+                    "file": "examples/arrays.vader"
+                  }
+                }
               }
             },
             "location": {

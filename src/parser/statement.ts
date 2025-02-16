@@ -85,22 +85,22 @@ function parseIdentifierStatement(parser: Parser): Statement {
         }
     }
 
-    if (parser.next.type === 'EqualToken') {
-        const identifier = parser.expect('Identifier')
+    const left = parseExpression(parser);
+    if (parser.isCurrentType('EqualToken')) {
         parser.expect('EqualToken');
         const value = parseExpression(parser);
         return {
             kind: 'VariableAssignmentStatement',
-            identifier: identifier.value,
+            identifier: left,
             value,
             location: {
-                start: identifier.location.start,
-                file: identifier.location.file,
+                start: left.location.start,
+                file: left.location.file,
                 end: value.location.end
             }
         }
     }
-    return parseExpression(parser);
+    return left;
 }
 
 

@@ -53,6 +53,7 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [ ] type checking
 - [ ] operator overloading
 - [ ] runtime memory allocation
+- [ ] runtime memory de-allocation
 - [ ] stdlib: arraylist, hashmap, number to string(2, 8, 10, 16), split
 - [ ] iterators
 - [ ] better error reporting (should not exit when parsing error occur)

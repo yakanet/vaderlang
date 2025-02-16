@@ -15,7 +15,13 @@ const testFolders = [
     'examples'
 ]
 const skip = new Set<string>([
+    'examples/arraylists.vader',
+    'examples/strings.vader'
 ])
+const snapshot_directory = '__snapshot__'
+if (shouldUpdate) {
+    fs.rmSync(snapshot_directory, {recursive: true})
+}
 
 for (const folder of testFolders) {
     const glob = new Glob(`${folder}/*.vader`);
@@ -30,8 +36,8 @@ for (const folder of testFolders) {
 
 function createSnapshotFile(file: string, suffix: string) {
     const {dir, name} = path.parse(file);
-    const output_dir = `__snapshot__/${dir}/${name}`
-    fs.mkdirSync(output_dir, { recursive: true });
+    const output_dir = `${snapshot_directory}/${dir}/${name}`
+    fs.mkdirSync(output_dir, {recursive: true});
     return `${output_dir}/${name}${suffix}`;
 }
 

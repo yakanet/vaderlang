@@ -1,5 +1,6 @@
 import {Scope} from "./scope";
 import {
+    type ArrayDeclarationExpression,
     BasicVaderType,
     type Expression,
     type ForStatement,
@@ -54,6 +55,7 @@ function resolveStatement(
             // TODO: Should check if the variable is constant or not
             return {
                 ...statement,
+                identifier: resolveExpression(statement.identifier, scope),
                 value: res,
             };
         }
@@ -86,6 +88,9 @@ function resolveFunctionDeclaration(
     const body = statement.body.map((stmt) =>
         resolveStatement(stmt, functionScope)
     );
+    if (statement.type.returnType.kind === 'unknown') {
+        statement.type.returnType = scope.lookupVariable(statement.type.returnType.name).type;
+    }
     return {
         ...statement,
         body,
@@ -186,8 +191,12 @@ function resolveExpression(
         case 'ArrayDeclarationExpression': {
             return {
                 ...expression,
+                type: {
+                    ...expression.type,
+                    length: expression.type.length ? resolveExpression(expression.type.length, scope) : undefined
+                },
                 value: expression.value?.map(i => resolveExpression(i, scope)),
-            }
+            } satisfies ArrayDeclarationExpression;
         }
         case 'StructInstantiationExpression': {
             const resolved = scope.lookupVariable(expression.structName)

@@ -212,7 +212,19 @@
           },
           {
             "kind": "VariableAssignmentStatement",
-            "identifier": "x",
+            "identifier": {
+              "kind": "IdentifierExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "identifier": "x",
+              "location": {
+                "start": 73,
+                "end": 74,
+                "file": "examples/hello.vader"
+              }
+            },
             "value": {
               "kind": "BinaryExpression",
               "operator": "+",
@@ -429,7 +441,19 @@
           },
           {
             "kind": "VariableAssignmentStatement",
-            "identifier": "return_code",
+            "identifier": {
+              "kind": "IdentifierExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "identifier": "return_code",
+              "location": {
+                "start": 251,
+                "end": 262,
+                "file": "examples/hello.vader"
+              }
+            },
             "value": {
               "kind": "NumberExpression",
               "type": {
