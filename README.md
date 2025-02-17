@@ -161,6 +161,25 @@ Applicable on a string literal. Allow to parse another vader file and concatenat
 - binaryen (for wasm)
 - qbe (for arm64 & amd64)
 
+## Tools
+
+### Ast-viewer
+
+Look at the generated AST from the parsing of a vader file
+
+```shell
+bun ast [location vader file]
+```
+
+### debug-wasm
+
+Serve a blank page loading the wasm file.
+Use the chrome inspector to debug WASM
+
+```shell
+bun debug-wasm [location wasm file]
+```
+
 ## Contribution
 
 You need bun install on your computer
