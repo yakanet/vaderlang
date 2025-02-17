@@ -117,6 +117,71 @@
     },
     {
       "kind": "VariableDeclarationStatement",
+      "name": "length",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "array",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "dimension": 1
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "array",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "dimension": 1
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "location": {
+          "start": 117,
+          "end": 140,
+          "file": "modules/std.vader"
+        }
+      },
+      "location": {
+        "start": 107,
+        "end": 140,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
       "name": "return_code",
       "isConstant": false,
       "type": {

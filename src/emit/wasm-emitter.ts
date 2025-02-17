@@ -22,7 +22,6 @@ import {gc, TypeBuilder} from "binaryen-gc";
 const encoder = new TextEncoder();
 
 const GLOBAL_SCOPE = '$$GLOBAL_SCOPE$$'
-const MEMORY_PTR = '__memory_pointer'
 
 export class WasmEmitter {
     private memoryLayout: { offset: number, data: Uint8Array }[] = [];
@@ -57,7 +56,6 @@ export class WasmEmitter {
             data: layout.data,
             offset: this.module.i32.const(layout.offset),
         })));
-        this.module.addGlobal(MEMORY_PTR, binaryen.i32, true, this.module.i32.const(this.memoryOffset))
         assert(this.module.validate());
         this.module.optimize()
     }
@@ -280,6 +278,8 @@ export class WasmEmitter {
                             return this.emitPrint(expression)
                         case 'exit':
                             return this.emitExit(expression);
+                        case 'length':
+                            return this.emitArrayLength(expression)
                         default:
                             throw new Error(`unknown intrinsic function '${expression.functionName}'`)
                     }
@@ -375,33 +375,13 @@ export class WasmEmitter {
 
     private instantiateArray(expression: ArrayDeclarationExpression): binaryen.ExpressionRef {
         assert(expression.type.kind === "array");
+        if (expression.value) {
+            return gc.arrays.newFromItems(this.module, this.mapBinaryenType(expression.type), expression.value.map(p => this.emitExpression(p)))
+        }
         if (expression.type.length === undefined) {
             throw new Error(`unknown array type for ${typeToString(expression.type)}`);
         }
-        const size = size_of(expression.type);
-        const segment = this.malloc(size);
-        let offset = 0;
-        let primitive_type: VaderType = expression.type;
-        while (primitive_type.kind === "array") {
-            primitive_type = primitive_type.type
-        }
-        const offset_padding = size_of(primitive_type);
-        const exp: binaryen.ExpressionRef[] = [];
-        if (expression.value) {
-            for (const v of expression.value) {
-                exp.push(this.module.i32.store(
-                    offset,
-                    0,
-                    this.module.i32.const(segment.offset),
-                    this.emitExpression(v)
-                ))
-                offset += offset_padding;
-            }
-        }
-        return this.module.block(null, [
-            ...exp,
-            this.module.i32.const(segment.offset)
-        ], binaryen.i32);
+        return gc.arrays.newFromInit(this.module, this.mapBinaryenType(expression.type), this.emitExpression(expression.type.length), null);
     }
 
     private emitDotExpression(expression: DotExpression) {
@@ -423,19 +403,13 @@ export class WasmEmitter {
     }
 
     private emitArrayIndexExpression(expression: ArrayIndexExpression) {
-        const identifier = this.emitExpression(expression.identifier);
-        let index = this.module.i32.const(1);
-        let lastType = expression.type;
-        for (let i = 0; i < expression.indexes.length; i++) {
-            index = this.module.i32.mul(index, this.emitExpression(expression.indexes[i]));
-            lastType = (lastType as any).type
-        }
-        index = this.module.i32.mul(index, this.module.i32.const(size_of(lastType)));
-        return this.module.i32.load(
-            0,
-            0,
-            this.module.i32.add(identifier, index),
-        )
+        return gc.arrays.getItem(
+            this.module,
+            this.emitExpression(expression.identifier),
+            this.emitExpression(expression.indexes[0]),
+            this.mapBinaryenType(expression.indexes[0].type),
+            false
+        );
     }
 
     binaryOperations = new Map<string, (a: number, b: number) => number>([
@@ -515,76 +489,22 @@ export class WasmEmitter {
         ], binaryen.none)
     }
 
-    runtime_malloc(type: VaderType): { init: binaryen.ExpressionRef, ptr: binaryen.ExpressionRef } {
-        switch (type.kind) {
-            case "primitive":
-                throw new Error(`Could not allocate primitive in heap`)
-            case "function":
-                throw new Error(`Could not allocate function in heap`)
-            case "struct": {
-                assert(this.currentScope !== GLOBAL_SCOPE)
-                // Create a local
-                const local_id = this.symbols[this.currentScope].size;
-                this.symbols[this.currentScope].set(crypto.randomUUID(), {
-                    type: BasicVaderType.u32,
-                    scope: "local",
-                    index: local_id
-                })
-                let structSize = 0;
-                for (const parameter of type.parameters) {
-                    structSize += size_of(parameter.type)
-                }
-                return {
-                    init: this.module.block(null, [
-                        this.module.local.set(local_id, this.module.global.get(MEMORY_PTR, binaryen.i32)),
-                        this.module.global.set(MEMORY_PTR,
-                            this.module.i32.add(
-                                this.module.global.get(MEMORY_PTR, binaryen.i32),
-                                this.module.i32.const(structSize)
-                            )
-                        ),
-                    ]),
-                    ptr: this.module.local.get(local_id, binaryen.i32),
-                }
-            }
-            case "array": {
-                if (!type.length) {
-                    throw new Error(`Could not create array of unknown size`);
-                }
-                assert(this.currentScope !== GLOBAL_SCOPE)
-                // Create a local
-                const local_id = this.symbols[this.currentScope].size;
-                this.symbols[this.currentScope].set(crypto.randomUUID(), {
-                    type: BasicVaderType.u32,
-                    scope: "local",
-                    index: local_id
-                })
-                const array_size = this.emitExpression(type.length);
-                return {
-                    init: this.module.block(null, [
-                        this.module.local.set(local_id, this.module.global.get(MEMORY_PTR, binaryen.i32)),
-                        this.module.global.set(MEMORY_PTR,
-                            this.module.i32.add(
-                                this.module.global.get(MEMORY_PTR, binaryen.i32),
-                                this.module.i32.mul(
-                                    array_size,
-                                    this.module.i32.const(size_of(type.type))
-                                )
-                            )
-                        ),
-                    ]),
-                    ptr: this.module.local.get(local_id, binaryen.i32),
-                }
-            }
-            default:
-                throw new Error(`unhandled runtime memory allocation for type ${typeToString(type)}`)
-
-        }
+    private emitArrayLength(expression: CallExpression) {
+        assert(expression.parameters.length === 1)
+        assert(expression.parameters[0].type.kind === 'array');
+        return gc.arrays.length(this.module, this.emitExpression(expression.parameters[0]))
     }
 
     mapBinaryenType(t: VaderType): binaryen.Type {
         if (t.kind === 'array') {
-            return binaryen.i32;
+            if (!this.customTypes.has(t)) {
+                const builder = new TypeBuilder(1);
+                builder.setArrayType(0, {
+                    type: this.mapBinaryenType(t.type), packedType: 0, mutable: true
+                })
+                this.customTypes.set(t, builder.buildAndDispose().heapTypes[0])
+            }
+            return this.customTypes.get(t)!;
         }
         if (t.kind === 'struct') {
             const type = this.customTypes.get(t)
@@ -616,7 +536,6 @@ export class WasmEmitter {
         }
         throw new Error(`Type mapping for ${typeToString(t)} is not implemented.`);
     }
-
 }
 
 function align_ptr(address: number) {
@@ -628,10 +547,7 @@ function align_ptr(address: number) {
 
 function size_of(t: VaderType): number {
     if (t.kind === 'array') {
-        if (t.length?.kind !== 'NumberExpression') {
-            throw new Error(`Array with runtime size is not supported yet`)
-        }
-        return (t.length?.value ?? 1) * size_of(t.type);
+        return 4;
     }
     if (t.kind === 'struct') {
         return 4;

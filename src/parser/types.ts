@@ -182,7 +182,14 @@ export function typeToString(vaderType: VaderType): string {
             return `function (${vaderType.parameters.map(t => typeToString(t.type))}) -> ${typeToString(vaderType.returnType)}`
         }
         case 'array': {
-            return `${typeToString(vaderType.type)}[${vaderType.length === undefined ? '' : vaderType.length}]`
+            const length = vaderType.length;
+            if (!length) {
+                return `${typeToString(vaderType.type)}[?]`;
+            }
+            if (length.kind === 'NumberExpression') {
+                return `${typeToString(vaderType.type)}[${length.value}]`;
+            }
+            return `${typeToString(vaderType.type)}[_]`
         }
         case 'primitive': {
             return vaderType.name

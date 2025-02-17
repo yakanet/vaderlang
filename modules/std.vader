@@ -3,3 +3,6 @@ file :: fn(path: string) -> string
 
 @intrinsic
 print :: fn(message: string) -> void
+
+@intrinsic
+length :: fn(array: []u32) -> u32

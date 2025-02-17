@@ -1,14 +1,14 @@
 @load "std"
 
 x :: 23
-itoa :: fn(this: u32) -> [10]u8 {
+itoa :: fn(this: u32) -> []u8 {
     buffer :: [10]u8
     return buffer
 }
 
 main :: fn() -> u32 {
-    x :: [_]u32 {2, 3, 4}
+    x :: [_]u32 {2, 3, 4, 5}
     y :: [4]u32
     z :: 2.itoa()
-    return x[2]
+    return x.length()
 }

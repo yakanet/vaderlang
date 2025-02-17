@@ -117,6 +117,71 @@
     },
     {
       "kind": "VariableDeclarationStatement",
+      "name": "length",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "array",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "dimension": 1
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "array",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "dimension": 1
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "location": {
+          "start": 117,
+          "end": 140,
+          "file": "modules/std.vader"
+        }
+      },
+      "location": {
+        "start": 107,
+        "end": 140,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
       "name": "x",
       "isConstant": true,
       "type": {
@@ -164,20 +229,7 @@
             "name": "u8",
             "kind": "primitive"
           },
-          "dimension": 1,
-          "length": {
-            "kind": "NumberExpression",
-            "type": {
-              "name": "u32",
-              "kind": "primitive"
-            },
-            "value": 10,
-            "location": {
-              "start": 47,
-              "end": 49,
-              "file": "examples/arrays.vader"
-            }
-          }
+          "dimension": 1
         }
       },
       "value": {
@@ -200,20 +252,7 @@
               "name": "u8",
               "kind": "primitive"
             },
-            "dimension": 1,
-            "length": {
-              "kind": "NumberExpression",
-              "type": {
-                "name": "u32",
-                "kind": "primitive"
-              },
-              "value": 10,
-              "location": {
-                "start": 47,
-                "end": 49,
-                "file": "examples/arrays.vader"
-              }
-            }
+            "dimension": 1
           }
         },
         "body": [
@@ -236,8 +275,8 @@
                 },
                 "value": 10,
                 "location": {
-                  "start": 70,
-                  "end": 72,
+                  "start": 68,
+                  "end": 70,
                   "file": "examples/arrays.vader"
                 }
               }
@@ -259,21 +298,21 @@
                   },
                   "value": 10,
                   "location": {
-                    "start": 70,
-                    "end": 72,
+                    "start": 68,
+                    "end": 70,
                     "file": "examples/arrays.vader"
                   }
                 }
               },
               "location": {
-                "start": 69,
-                "end": 75,
+                "start": 67,
+                "end": 73,
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 59,
-              "end": 75,
+              "start": 57,
+              "end": 73,
               "file": "examples/arrays.vader"
             }
           },
@@ -296,35 +335,35 @@
                   },
                   "value": 10,
                   "location": {
-                    "start": 70,
-                    "end": 72,
+                    "start": 68,
+                    "end": 70,
                     "file": "examples/arrays.vader"
                   }
                 }
               },
               "identifier": "buffer",
               "location": {
-                "start": 87,
-                "end": 93,
+                "start": 85,
+                "end": 91,
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 80,
-              "end": 93,
+              "start": 78,
+              "end": 91,
               "file": "examples/arrays.vader"
             }
           }
         ],
         "location": {
           "start": 29,
-          "end": 95,
+          "end": 93,
           "file": "examples/arrays.vader"
         }
       },
       "location": {
         "start": 21,
-        "end": 95,
+        "end": 93,
         "file": "examples/arrays.vader"
       }
     },
@@ -370,10 +409,10 @@
                   "name": "u32",
                   "kind": "primitive"
                 },
-                "value": 3,
+                "value": 4,
                 "location": {
-                  "start": 135,
-                  "end": 150,
+                  "start": 133,
+                  "end": 151,
                   "file": "examples/arrays.vader"
                 }
               }
@@ -393,10 +432,10 @@
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": 3,
+                  "value": 4,
                   "location": {
-                    "start": 135,
-                    "end": 150,
+                    "start": 133,
+                    "end": 151,
                     "file": "examples/arrays.vader"
                   }
                 }
@@ -410,8 +449,8 @@
                   },
                   "value": 2,
                   "location": {
-                    "start": 136,
-                    "end": 137,
+                    "start": 134,
+                    "end": 135,
                     "file": "examples/arrays.vader"
                   }
                 },
@@ -423,8 +462,8 @@
                   },
                   "value": 3,
                   "location": {
-                    "start": 139,
-                    "end": 140,
+                    "start": 137,
+                    "end": 138,
                     "file": "examples/arrays.vader"
                   }
                 },
@@ -436,21 +475,34 @@
                   },
                   "value": 4,
                   "location": {
-                    "start": 142,
-                    "end": 143,
+                    "start": 140,
+                    "end": 141,
+                    "file": "examples/arrays.vader"
+                  }
+                },
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 5,
+                  "location": {
+                    "start": 143,
+                    "end": 144,
                     "file": "examples/arrays.vader"
                   }
                 }
               ],
               "location": {
-                "start": 128,
-                "end": 144,
+                "start": 126,
+                "end": 145,
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 123,
-              "end": 144,
+              "start": 121,
+              "end": 145,
               "file": "examples/arrays.vader"
             }
           },
@@ -473,8 +525,8 @@
                 },
                 "value": 4,
                 "location": {
-                  "start": 155,
-                  "end": 156,
+                  "start": 156,
+                  "end": 157,
                   "file": "examples/arrays.vader"
                 }
               }
@@ -496,21 +548,21 @@
                   },
                   "value": 4,
                   "location": {
-                    "start": 155,
-                    "end": 156,
+                    "start": 156,
+                    "end": 157,
                     "file": "examples/arrays.vader"
                   }
                 }
               },
               "location": {
-                "start": 154,
-                "end": 160,
+                "start": 155,
+                "end": 161,
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 149,
-              "end": 160,
+              "start": 150,
+              "end": 161,
               "file": "examples/arrays.vader"
             }
           },
@@ -524,27 +576,14 @@
                 "name": "u8",
                 "kind": "primitive"
               },
-              "dimension": 1,
-              "length": {
-                "kind": "NumberExpression",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "value": 10,
-                "location": {
-                  "start": 47,
-                  "end": 49,
-                  "file": "examples/arrays.vader"
-                }
-              }
+              "dimension": 1
             },
             "value": {
               "kind": "CallExpression",
               "functionName": "itoa",
               "location": {
-                "start": 170,
-                "end": 178,
+                "start": 171,
+                "end": 179,
                 "file": "examples/arrays.vader"
               },
               "parameters": [
@@ -558,8 +597,8 @@
                     },
                     "value": 2,
                     "location": {
-                      "start": 170,
-                      "end": 171,
+                      "start": 171,
+                      "end": 172,
                       "file": "examples/arrays.vader"
                     }
                   },
@@ -569,8 +608,8 @@
                     "kind": "primitive"
                   },
                   "location": {
-                    "start": 170,
-                    "end": 171,
+                    "start": 171,
+                    "end": 172,
                     "file": "examples/arrays.vader"
                   }
                 }
@@ -581,127 +620,115 @@
                   "name": "u8",
                   "kind": "primitive"
                 },
-                "dimension": 1,
-                "length": {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "value": 10,
-                  "location": {
-                    "start": 47,
-                    "end": 49,
-                    "file": "examples/arrays.vader"
-                  }
-                }
+                "dimension": 1
               }
             },
             "location": {
-              "start": 165,
-              "end": 178,
+              "start": 166,
+              "end": 179,
               "file": "examples/arrays.vader"
             }
           },
           {
             "kind": "ReturnStatement",
             "expression": {
-              "kind": "ArrayIndexExpression",
-              "indexes": [
+              "kind": "CallExpression",
+              "functionName": "length",
+              "location": {
+                "start": 191,
+                "end": 201,
+                "file": "examples/arrays.vader"
+              },
+              "parameters": [
                 {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
+                  "kind": "DotExpression",
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1,
+                      "length": {
+                        "kind": "NumberExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "value": 4,
+                        "location": {
+                          "start": 133,
+                          "end": 151,
+                          "file": "examples/arrays.vader"
+                        }
+                      }
+                    },
+                    "identifier": "x",
+                    "location": {
+                      "start": 191,
+                      "end": 192,
+                      "file": "examples/arrays.vader"
+                    }
                   },
-                  "value": 2,
-                  "location": {
-                    "start": 192,
-                    "end": 193,
-                    "file": "examples/arrays.vader"
-                  }
-                }
-              ],
-              "identifier": {
-                "kind": "IdentifierExpression",
-                "type": {
-                  "kind": "array",
+                  "properties": [],
                   "type": {
-                    "name": "u32",
-                    "kind": "primitive"
-                  },
-                  "dimension": 1,
-                  "length": {
-                    "kind": "NumberExpression",
+                    "kind": "array",
                     "type": {
                       "name": "u32",
                       "kind": "primitive"
                     },
-                    "value": 3,
-                    "location": {
-                      "start": 135,
-                      "end": 150,
-                      "file": "examples/arrays.vader"
+                    "dimension": 1,
+                    "length": {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "value": 4,
+                      "location": {
+                        "start": 133,
+                        "end": 151,
+                        "file": "examples/arrays.vader"
+                      }
                     }
-                  }
-                },
-                "identifier": "x",
-                "location": {
-                  "start": 190,
-                  "end": 191,
-                  "file": "examples/arrays.vader"
-                }
-              },
-              "location": {
-                "start": 190,
-                "end": 191,
-                "file": "examples/arrays.vader"
-              },
-              "type": {
-                "kind": "array",
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "dimension": 1,
-                "length": {
-                  "kind": "NumberExpression",
-                  "type": {
-                    "name": "u32",
-                    "kind": "primitive"
                   },
-                  "value": 3,
                   "location": {
-                    "start": 135,
-                    "end": 150,
+                    "start": 191,
+                    "end": 192,
                     "file": "examples/arrays.vader"
                   }
                 }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
               }
             },
             "location": {
-              "start": 183,
-              "end": 194,
+              "start": 184,
+              "end": 201,
               "file": "examples/arrays.vader"
             }
           }
         ],
         "location": {
-          "start": 105,
-          "end": 196,
+          "start": 103,
+          "end": 203,
           "file": "examples/arrays.vader"
         }
       },
       "location": {
-        "start": 97,
-        "end": 196,
+        "start": 95,
+        "end": 203,
         "file": "examples/arrays.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 196,
+    "end": 203,
     "file": "examples/arrays.vader"
   }
 }
