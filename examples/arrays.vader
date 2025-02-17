@@ -10,5 +10,6 @@ main :: fn() -> u32 {
     x :: [_]u32 {2, 3, 4, 5}
     y :: [4]u32
     z :: 2.itoa()
-    return x.length()
+    a :: x[2]
+    return z.length() + a
 }

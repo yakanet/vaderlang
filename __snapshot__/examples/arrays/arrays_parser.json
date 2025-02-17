@@ -630,69 +630,64 @@
             }
           },
           {
-            "kind": "ReturnStatement",
-            "expression": {
-              "kind": "CallExpression",
-              "functionName": "length",
-              "location": {
-                "start": 191,
-                "end": 201,
-                "file": "examples/arrays.vader"
-              },
-              "parameters": [
-                {
-                  "kind": "DotExpression",
-                  "identifier": {
-                    "kind": "IdentifierExpression",
+            "kind": "VariableDeclarationStatement",
+            "name": "a",
+            "isConstant": true,
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            },
+            "value": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "dimension": 1,
+                  "length": {
+                    "kind": "NumberExpression",
                     "type": {
-                      "kind": "array",
-                      "type": {
-                        "name": "u32",
-                        "kind": "primitive"
-                      },
-                      "dimension": 1,
-                      "length": {
-                        "kind": "NumberExpression",
-                        "type": {
-                          "name": "u32",
-                          "kind": "primitive"
-                        },
-                        "value": 4,
-                        "location": {
-                          "start": 133,
-                          "end": 151,
-                          "file": "examples/arrays.vader"
-                        }
-                      }
+                      "name": "u32",
+                      "kind": "primitive"
                     },
-                    "identifier": "x",
+                    "value": 4,
+                    "location": {
+                      "start": 133,
+                      "end": 151,
+                      "file": "examples/arrays.vader"
+                    }
+                  }
+                },
+                "identifier": "x",
+                "location": {
+                  "start": 189,
+                  "end": 190,
+                  "file": "examples/arrays.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "ArrayIndexExpression",
+                  "index": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 2,
                     "location": {
                       "start": 191,
                       "end": 192,
                       "file": "examples/arrays.vader"
                     }
                   },
-                  "properties": [],
                   "type": {
-                    "kind": "array",
-                    "type": {
-                      "name": "u32",
-                      "kind": "primitive"
-                    },
-                    "dimension": 1,
-                    "length": {
-                      "kind": "NumberExpression",
-                      "type": {
-                        "name": "u32",
-                        "kind": "primitive"
-                      },
-                      "value": 4,
-                      "location": {
-                        "start": 133,
-                        "end": 151,
-                        "file": "examples/arrays.vader"
-                      }
-                    }
+                    "name": "u32",
+                    "kind": "primitive"
                   },
                   "location": {
                     "start": 191,
@@ -704,31 +699,119 @@
               "type": {
                 "name": "u32",
                 "kind": "primitive"
+              },
+              "location": {
+                "start": 189,
+                "end": 193,
+                "file": "examples/arrays.vader"
               }
             },
             "location": {
               "start": 184,
-              "end": 201,
+              "end": 193,
+              "file": "examples/arrays.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "BinaryExpression",
+              "operator": "+",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "CallExpression",
+                "functionName": "length",
+                "location": {
+                  "start": 205,
+                  "end": 215,
+                  "file": "examples/arrays.vader"
+                },
+                "parameters": [
+                  {
+                    "kind": "DotExpression",
+                    "identifier": {
+                      "kind": "IdentifierExpression",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      },
+                      "identifier": "z",
+                      "location": {
+                        "start": 205,
+                        "end": 206,
+                        "file": "examples/arrays.vader"
+                      }
+                    },
+                    "properties": [],
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    },
+                    "location": {
+                      "start": 205,
+                      "end": 206,
+                      "file": "examples/arrays.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              },
+              "rhs": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "identifier": "a",
+                "location": {
+                  "start": 218,
+                  "end": 219,
+                  "file": "examples/arrays.vader"
+                }
+              },
+              "location": {
+                "start": 205,
+                "end": 219,
+                "file": "examples/arrays.vader"
+              }
+            },
+            "location": {
+              "start": 198,
+              "end": 219,
               "file": "examples/arrays.vader"
             }
           }
         ],
         "location": {
           "start": 103,
-          "end": 203,
+          "end": 221,
           "file": "examples/arrays.vader"
         }
       },
       "location": {
         "start": 95,
-        "end": 203,
+        "end": 221,
         "file": "examples/arrays.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 203,
+    "end": 221,
     "file": "examples/arrays.vader"
   }
 }

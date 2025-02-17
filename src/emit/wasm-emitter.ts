@@ -1,6 +1,5 @@
 import {
     type ArrayDeclarationExpression,
-    type ArrayIndexExpression,
     BasicVaderType,
     type CallExpression,
     type DotExpression,
@@ -336,9 +335,6 @@ export class WasmEmitter {
             case 'ArrayDeclarationExpression':
                 return this.instantiateArray(expression)
 
-            case 'ArrayIndexExpression':
-                return this.emitArrayIndexExpression(expression)
-
             case "BinaryExpression": {
                 const fn = this.binaryOperations.get(
                     [
@@ -389,27 +385,30 @@ export class WasmEmitter {
         let previousType = expression.identifier.type
         const results = [{type: previousType, expression: exprs, index: -1}];
         for (let i = 0; i < expression.properties.length; i++) {
+            const property = expression.properties[i];
             if (previousType.kind === 'struct') {
-                const index = previousType.parameters.findIndex(p => p.name === expression.properties[i].name)
+                assert(property.kind === 'IdentifierExpression');
+                const index = previousType.parameters.findIndex(p => p.name === property.identifier)
                 exprs = gc.structs.getMember(this.module, exprs, index, this.mapBinaryenType(previousType.parameters[index].type), false)
-                previousType = previousType.parameters[index].type
+                previousType = property.type
                 results.push({type: previousType, expression: exprs, index})
-                continue;
+            } else if (previousType.kind === 'array') {
+                assert(property.kind === 'ArrayIndexExpression');
+                const index = this.emitExpression(property.index);
+                exprs = gc.arrays.getItem(
+                    this.module,
+                    exprs,
+                    index,
+                    this.mapBinaryenType(property.type),
+                    false
+                )
+                previousType = property.index.type
+                results.push({type: previousType, expression: exprs, index})
+            } else {
+                throw new Error(`unimplemented dot expression with left side ${typeToString(previousType)}`)
             }
-            throw new Error(`unimplemented dot expression with left side ${typeToString(previousType)}`)
-            // array ...
         }
         return results;
-    }
-
-    private emitArrayIndexExpression(expression: ArrayIndexExpression) {
-        return gc.arrays.getItem(
-            this.module,
-            this.emitExpression(expression.identifier),
-            this.emitExpression(expression.indexes[0]),
-            this.mapBinaryenType(expression.indexes[0].type),
-            false
-        );
     }
 
     binaryOperations = new Map<string, (a: number, b: number) => number>([

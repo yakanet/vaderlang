@@ -7,7 +7,7 @@
  (start $_start)
  (func $_start (type $1)
   (call $wasi_snapshot_preview1:proc_exit
-   (i32.const 4)
+   (i32.const 14)
   )
  )
 )

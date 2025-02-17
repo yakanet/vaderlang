@@ -1,4 +1,4 @@
-import type {Decorator, Token} from "../tokens/types.ts";
+import type {Decorator} from "../tokens/types.ts";
 
 type BasicStatement = {
     location: {
@@ -111,11 +111,7 @@ export type DotExpression = BasicStatement & {
     kind: 'DotExpression',
     type: VaderType,
     identifier: Expression,
-    properties: {
-        name: string, // FIXME Must be an expression not a string
-        type: VaderType,
-        location: Token['location']
-    }[]
+    properties: (ArrayIndexExpression | IdentifierExpression)[]
 }
 
 export type ArrayDeclarationExpression = BasicStatement & {
@@ -127,8 +123,7 @@ export type ArrayDeclarationExpression = BasicStatement & {
 export type ArrayIndexExpression = BasicStatement & {
     kind: 'ArrayIndexExpression',
     type: VaderType,
-    identifier: Expression,
-    indexes: Expression[]
+    index: Expression
 }
 
 export type VaderType =

@@ -1,7 +1,6 @@
 import {Parser} from "./parser.ts";
 import {
     type ArrayDeclarationExpression,
-    type ArrayIndexExpression,
     BasicVaderType,
     type BinaryExpression,
     type CallExpression,
@@ -89,7 +88,7 @@ function parseUnaryExpression(parser: Parser): Expression {
 }
 
 function parseStructInstantiation(parser: Parser): Expression {
-    let left = parseArrayIndexExpression(parser)
+    let left = parseMemberExpression(parser)
     if (left.kind === 'IdentifierExpression' && parser.isCurrentType('OpenCurlyBracket')) {
         const instance: StructInstantiationExpression = {
             kind: 'StructInstantiationExpression',
@@ -121,59 +120,9 @@ function parseStructInstantiation(parser: Parser): Expression {
     return left;
 }
 
-function parseArrayIndexExpression(parser: Parser): Expression {
-    let left = parseMemberExpression(parser)
-    if (parser.isCurrentType('OpenSquareBracket')) {
-        return parseArrayIndexBracketExpression(parser, left)
-    }
-    return left;
-}
-
 function parseMemberExpression(parser: Parser): Expression {
     let left = parseCallExpression(parser);
-    if (!parser.isCurrentType('DotToken') || left.kind !== 'IdentifierExpression' && left.kind !== 'NumberExpression') {
-        return left;
-    }
-    left = {
-        kind: 'DotExpression',
-        identifier: left,
-        properties: [],
-        type: BasicVaderType.unknown,
-        location: {...left.location},
-    }
-    while (parser.isCurrentType('DotToken') || parser.isCurrentType('OpenSquareBracket')) {
-        if (parser.isCurrentType('DotToken')) {
-            parser.expect('DotToken');
-            const propertyName = parser.expect('Identifier');
-            if (parser.isCurrentType('OpenRoundBracket')) {
-                const result = parseCallArguments(parser);
-                left = {
-                    kind: 'CallExpression',
-                    functionName: propertyName.value,
-                    location: {
-                        start: left.location.start,
-                        end: parser.previous.location.end,
-                        file: propertyName.location.file
-                    },
-                    parameters: [
-                        left,
-                        ...result
-                    ]
-                } as CallExpression
-            } else if (left.kind === 'DotExpression') {
-                (left as DotExpression).properties.push({
-                    name: propertyName.value,
-                    type: BasicVaderType.unknown,
-                    location: propertyName.location
-                })
-            } else {
-                parser.reportError(`Could not handle dot expression with kind ${left.kind}`, left.location);
-            }
-        } else if (parser.isCurrentType('OpenSquareBracket')) {
-            left = parseArrayIndexBracketExpression(parser, left)
-        }
-    }
-    left.location.end = parser.previous.location.end;
+    left = parseDotExpression(parser, left);
     return left;
 }
 
@@ -324,22 +273,84 @@ function parseIfExpression(parser: Parser): Expression {
     return parseIfStatement(parser, 'ConditionalExpression') as Expression;
 }
 
-
-function parseArrayIndexBracketExpression(parser: Parser, left: Expression) {
-    const array: ArrayIndexExpression = {
-        kind: 'ArrayIndexExpression',
-        indexes: [],
-        identifier: left,
-        location: {...left.location},
-        type: BasicVaderType.unknown
+function parseDotExpression(parser: Parser, left: Expression): Expression {
+    if (left.kind !== 'IdentifierExpression' && left.kind !== 'NumberExpression') {
+        return left;
     }
-    do {
-        parser.expect('OpenSquareBracket')
-        array.indexes.push(parseExpression(parser));
-        parser.expect('CloseSquareBracket')
-    } while (parser.isCurrentType('OpenSquareBracket'))
-    return array;
+    if (!parser.isCurrentType('DotToken') && !parser.isCurrentType('OpenSquareBracket')) {
+        return left;
+    }
+
+    left = {
+        kind: 'DotExpression',
+        identifier: left,
+        properties: [],
+        type: BasicVaderType.unknown,
+        location: {...left.location},
+    }
+
+    // 3 kind of expression
+    // - struct : identifier.something_else
+    // - array  : identifier[something_else]
+    // - function : identifier.something_else()
+    while (parser.isCurrentType('DotToken') || parser.isCurrentType('OpenSquareBracket')) {
+        if (parser.isCurrentType('DotToken')) {
+            parser.expect('DotToken');
+            const propertyName = parser.expect('Identifier');
+            if (parser.isCurrentType('OpenRoundBracket')) { // function call
+                const result = parseCallArguments(parser);
+                left = {
+                    kind: 'CallExpression',
+                    functionName: propertyName.value,
+                    location: {
+                        start: left.location.start,
+                        end: parser.previous.location.end,
+                        file: propertyName.location.file
+                    },
+                    parameters: [
+                        left,
+                        ...result
+                    ]
+                } as CallExpression
+            } else if (left.kind === 'DotExpression') {
+                (left as DotExpression).properties.push({
+                    kind: 'IdentifierExpression',
+                    identifier: propertyName.value,
+                    type: BasicVaderType.unknown,
+                    location: propertyName.location
+                })
+            }
+        } else if (parser.isCurrentType('OpenSquareBracket')) {
+            parser.expect('OpenSquareBracket');
+            const index = parseExpression(parser);
+            (left as DotExpression).properties.push({
+                kind: 'ArrayIndexExpression',
+                index,
+                type: BasicVaderType.unknown,
+                location: index.location
+            })
+            parser.expect('CloseSquareBracket');
+        }
+    }
+    left.location.end = parser.previous.location.end;
+    return left;
 }
+
+//function parseArrayIndexBracketExpression(parser: Parser, left: Expression) {
+//    const array: ArrayIndexExpression = {
+//        kind: 'ArrayIndexExpression',
+//        indexes: [],
+//        identifier: left,
+//        location: {...left.location},
+//        type: BasicVaderType.unknown
+//    }
+//    do {
+//        parser.expect('OpenSquareBracket')
+//        array.indexes.push(parseExpression(parser));
+//        parser.expect('CloseSquareBracket')
+//    } while (parser.isCurrentType('OpenSquareBracket'))
+//    return array;
+//}
 
 
 /**
@@ -425,7 +436,6 @@ function parseArrayInitializationExpression(parser: Parser): Expression {
             end: parser.previous.location.end
         }
     } satisfies ArrayDeclarationExpression
-
 }
 
 function parseFunctionDeclaration(parser: Parser): Expression {

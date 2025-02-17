@@ -220,7 +220,8 @@
                   },
                   "properties": [
                     {
-                      "name": "x",
+                      "kind": "IdentifierExpression",
+                      "identifier": "x",
                       "type": {
                         "name": "u32",
                         "kind": "primitive"
@@ -274,7 +275,8 @@
                   },
                   "properties": [
                     {
-                      "name": "x",
+                      "kind": "IdentifierExpression",
+                      "identifier": "x",
                       "type": {
                         "name": "u32",
                         "kind": "primitive"
@@ -341,7 +343,8 @@
                   },
                   "properties": [
                     {
-                      "name": "y",
+                      "kind": "IdentifierExpression",
+                      "identifier": "y",
                       "type": {
                         "name": "u32",
                         "kind": "primitive"
@@ -395,7 +398,8 @@
                   },
                   "properties": [
                     {
-                      "name": "y",
+                      "kind": "IdentifierExpression",
+                      "identifier": "y",
                       "type": {
                         "name": "u32",
                         "kind": "primitive"

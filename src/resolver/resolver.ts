@@ -179,15 +179,6 @@ function resolveExpression(
             }
         }
 
-        case 'ArrayIndexExpression': {
-            const identifier = resolveExpression(expression.identifier, scope)
-            return {
-                ...expression,
-                type: identifier.type,
-                identifier,
-                indexes: expression.indexes.map(i => resolveExpression(i, scope)),
-            }
-        }
         case 'ArrayDeclarationExpression': {
             return {
                 ...expression,
@@ -237,15 +228,26 @@ function resolveExpression(
             assert(!isTypeEquals(expression.identifier.type, BasicVaderType.unknown))
             let previousType = expression.identifier.type;
             for (let i = 0; i < expression.properties.length; i++) {
-                if (previousType.kind === 'struct') {
-                    const resolvedType = previousType.parameters.find(p => p.name === expression.properties[i].name)
+                const property = expression.properties[i];
+                if (previousType.kind === 'array') {
+                    if (property.kind !== 'ArrayIndexExpression') {
+                        throw new Error(`unrecognized expression ${typeToString(previousType)}.${property.identifier}`);
+                    }
+                    property.index = resolveExpression(property.index, scope) as any;
+                    property.type = property.index.type;
+                    previousType = property.type;
+                } else if (previousType.kind === 'struct') {
+                    if (property.kind !== 'IdentifierExpression') {
+                        throw new Error(`unrecognized expression ${typeToString(previousType)}.${typeToString(property.type)}`);
+                    }
+                    const resolvedType = previousType.parameters.find(p => p.name === property.identifier)
                     if (!resolvedType) {
-                        throw new Error(`Unresolved property ${expression.properties[i].name}`);
+                        throw new Error(`Unresolved property ${property.identifier}`);
                     }
                     expression.properties[i].type = resolvedType.type;
-                    previousType = expression.properties[i].type;
+                    previousType = property.type;
                 } else {
-                    throw new Error(`Unimplemented other case of DotExpression: ${previousType.kind}`);
+                    throw new Error(`Not allowed to use dot expression on ${typeToString(previousType)}`)
                 }
             }
             return {

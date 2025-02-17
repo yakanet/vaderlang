@@ -630,11 +630,29 @@
     }
   },
   {
-    "type": "Keyword",
-    "value": "return",
+    "type": "Identifier",
+    "value": "a",
     "location": {
       "start": 184,
-      "end": 190,
+      "end": 185,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 186,
+      "end": 187,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 187,
+      "end": 188,
       "file": "examples/arrays.vader"
     }
   },
@@ -642,14 +660,32 @@
     "type": "Identifier",
     "value": "x",
     "location": {
-      "start": 191,
-      "end": 192,
+      "start": 189,
+      "end": 190,
       "file": "examples/arrays.vader"
     }
   },
   {
-    "type": "DotToken",
-    "value": ".",
+    "type": "OpenSquareBracket",
+    "value": "[",
+    "location": {
+      "start": 190,
+      "end": 191,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "end": 192,
+      "start": 191,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
+    "type": "CloseSquareBracket",
+    "value": "]",
     "location": {
       "start": 192,
       "end": 193,
@@ -657,11 +693,38 @@
     }
   },
   {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 198,
+      "end": 204,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "z",
+    "location": {
+      "start": 205,
+      "end": 206,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 206,
+      "end": 207,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
     "type": "Identifier",
     "value": "length",
     "location": {
-      "start": 193,
-      "end": 199,
+      "start": 207,
+      "end": 213,
       "file": "examples/arrays.vader"
     }
   },
@@ -669,8 +732,8 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 199,
-      "end": 200,
+      "start": 213,
+      "end": 214,
       "file": "examples/arrays.vader"
     }
   },
@@ -678,8 +741,26 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 200,
-      "end": 201,
+      "start": 214,
+      "end": 215,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": 216,
+      "end": 217,
+      "file": "examples/arrays.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "a",
+    "location": {
+      "start": 218,
+      "end": 219,
       "file": "examples/arrays.vader"
     }
   },
@@ -687,16 +768,16 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 202,
-      "end": 203,
+      "start": 220,
+      "end": 221,
       "file": "examples/arrays.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 203,
-      "end": 203,
+      "start": 221,
+      "end": 221,
       "file": "examples/arrays.vader"
     },
     "value": "\u0000"
