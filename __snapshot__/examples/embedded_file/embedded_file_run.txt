@@ -1,6 +1,7 @@
+EXIT: 0
+STDOUT:
 @load "modules/std"
 
 main :: fn() {
     print(@file("examples/embedded_file.vader"))
 }
-EXIT: 0

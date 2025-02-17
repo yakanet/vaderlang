@@ -588,25 +588,12 @@
               },
               "parameters": [
                 {
-                  "kind": "DotExpression",
-                  "identifier": {
-                    "kind": "NumberExpression",
-                    "type": {
-                      "name": "u32",
-                      "kind": "primitive"
-                    },
-                    "value": 2,
-                    "location": {
-                      "start": 171,
-                      "end": 172,
-                      "file": "examples/arrays.vader"
-                    }
-                  },
-                  "properties": [],
+                  "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
                     "kind": "primitive"
                   },
+                  "value": 2,
                   "location": {
                     "start": 171,
                     "end": 172,
@@ -731,25 +718,7 @@
                 },
                 "parameters": [
                   {
-                    "kind": "DotExpression",
-                    "identifier": {
-                      "kind": "IdentifierExpression",
-                      "type": {
-                        "kind": "array",
-                        "type": {
-                          "name": "u8",
-                          "kind": "primitive"
-                        },
-                        "dimension": 1
-                      },
-                      "identifier": "z",
-                      "location": {
-                        "start": 205,
-                        "end": 206,
-                        "file": "examples/arrays.vader"
-                      }
-                    },
-                    "properties": [],
+                    "kind": "IdentifierExpression",
                     "type": {
                       "kind": "array",
                       "type": {
@@ -758,6 +727,7 @@
                       },
                       "dimension": 1
                     },
+                    "identifier": "z",
                     "location": {
                       "start": 205,
                       "end": 206,

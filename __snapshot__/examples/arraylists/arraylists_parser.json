@@ -1,0 +1,3186 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "file",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "path",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "string",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "path",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "string",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "location": {
+          "start": 19,
+          "end": 45,
+          "file": "modules/std.vader"
+        }
+      },
+      "location": {
+        "start": 11,
+        "end": 45,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "print",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "message",
+            "type": {
+              "name": "string",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "type": {
+                "name": "string",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "void",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "location": {
+          "start": 67,
+          "end": 94,
+          "file": "modules/std.vader"
+        }
+      },
+      "location": {
+        "start": 58,
+        "end": 94,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "length",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "array",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "dimension": 1
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "array",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "dimension": 1
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [],
+        "location": {
+          "start": 117,
+          "end": 140,
+          "file": "modules/std.vader"
+        }
+      },
+      "location": {
+        "start": 107,
+        "end": 140,
+        "file": "modules/std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "List",
+      "isConstant": true,
+      "type": {
+        "kind": "struct",
+        "parameters": [
+          {
+            "name": "data",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "dimension": 1
+            }
+          },
+          {
+            "name": "length",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
+          }
+        ]
+      },
+      "value": {
+        "kind": "StructDeclarationExpression",
+        "type": {
+          "kind": "struct",
+          "parameters": [
+            {
+              "name": "data",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "dimension": 1
+              }
+            },
+            {
+              "name": "length",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            }
+          ]
+        },
+        "location": {
+          "start": 21,
+          "end": 27,
+          "file": "modules/arraylist.vader"
+        }
+      },
+      "location": {
+        "start": 13,
+        "end": 27,
+        "file": "modules/arraylist.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "create_list",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "initialCapacity",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "kind": "struct",
+          "parameters": [
+            {
+              "name": "data",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "dimension": 1
+              }
+            },
+            {
+              "name": "length",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            }
+          ]
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "initialCapacity",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "kind": "struct",
+            "parameters": [
+              {
+                "name": "data",
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "dimension": 1
+                }
+              },
+              {
+                "name": "length",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              }
+            ]
+          }
+        },
+        "body": [
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "StructInstantiationExpression",
+              "parameters": [
+                {
+                  "name": "data",
+                  "value": {
+                    "kind": "ArrayDeclarationExpression",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1,
+                      "length": {
+                        "kind": "IdentifierExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "identifier": "initialCapacity",
+                        "location": {
+                          "start": 155,
+                          "end": 170,
+                          "file": "modules/arraylist.vader"
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": 154,
+                      "end": 174,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                },
+                {
+                  "name": "length",
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 0,
+                    "location": {
+                      "start": 194,
+                      "end": 195,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                }
+              ],
+              "structName": "List",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": 129,
+                "end": 202,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 122,
+              "end": 202,
+              "file": "modules/arraylist.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": 82,
+          "end": 204,
+          "file": "modules/arraylist.vader"
+        }
+      },
+      "location": {
+        "start": 67,
+        "end": 204,
+        "file": "modules/arraylist.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "at",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  }
+                },
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "index",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": "index",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "this",
+                "location": {
+                  "start": 289,
+                  "end": 293,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "IdentifierExpression",
+                  "identifier": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": 294,
+                    "end": 298,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                {
+                  "kind": "ArrayIndexExpression",
+                  "index": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "identifier": "index",
+                    "location": {
+                      "start": 299,
+                      "end": 304,
+                      "file": "modules/arraylist.vader"
+                    }
+                  },
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 299,
+                    "end": 304,
+                    "file": "modules/arraylist.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "location": {
+                "start": 289,
+                "end": 305,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 282,
+              "end": 305,
+              "file": "modules/arraylist.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": 212,
+          "end": 307,
+          "file": "modules/arraylist.vader"
+        }
+      },
+      "location": {
+        "start": 206,
+        "end": 307,
+        "file": "modules/arraylist.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "grow",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  }
+                },
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "returnType": {
+            "name": "void",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "data2",
+            "isConstant": true,
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "dimension": 1,
+              "length": {
+                "kind": "BinaryExpression",
+                "operator": "*",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "lhs": {
+                  "kind": "CallExpression",
+                  "functionName": "length",
+                  "location": {
+                    "start": 376,
+                    "end": 394,
+                    "file": "modules/arraylist.vader"
+                  },
+                  "parameters": [
+                    {
+                      "kind": "DotExpression",
+                      "identifier": {
+                        "kind": "IdentifierExpression",
+                        "type": {
+                          "kind": "struct",
+                          "parameters": [
+                            {
+                              "name": "data",
+                              "type": {
+                                "kind": "array",
+                                "type": {
+                                  "name": "u32",
+                                  "kind": "primitive"
+                                },
+                                "dimension": 1
+                              }
+                            },
+                            {
+                              "name": "length",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              }
+                            }
+                          ]
+                        },
+                        "identifier": "this",
+                        "location": {
+                          "start": 376,
+                          "end": 380,
+                          "file": "modules/arraylist.vader"
+                        }
+                      },
+                      "properties": [
+                        {
+                          "kind": "IdentifierExpression",
+                          "identifier": "data",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            },
+                            "dimension": 1
+                          },
+                          "location": {
+                            "start": 381,
+                            "end": 385,
+                            "file": "modules/arraylist.vader"
+                          }
+                        }
+                      ],
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      },
+                      "location": {
+                        "start": 376,
+                        "end": 380,
+                        "file": "modules/arraylist.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 2,
+                  "location": {
+                    "start": 397,
+                    "end": 398,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "location": {
+                  "start": 376,
+                  "end": 398,
+                  "file": "modules/arraylist.vader"
+                }
+              }
+            },
+            "value": {
+              "kind": "ArrayDeclarationExpression",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "dimension": 1,
+                "length": {
+                  "kind": "BinaryExpression",
+                  "operator": "*",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "lhs": {
+                    "kind": "CallExpression",
+                    "functionName": "length",
+                    "location": {
+                      "start": 376,
+                      "end": 394,
+                      "file": "modules/arraylist.vader"
+                    },
+                    "parameters": [
+                      {
+                        "kind": "DotExpression",
+                        "identifier": {
+                          "kind": "IdentifierExpression",
+                          "type": {
+                            "kind": "struct",
+                            "parameters": [
+                              {
+                                "name": "data",
+                                "type": {
+                                  "kind": "array",
+                                  "type": {
+                                    "name": "u32",
+                                    "kind": "primitive"
+                                  },
+                                  "dimension": 1
+                                }
+                              },
+                              {
+                                "name": "length",
+                                "type": {
+                                  "name": "u32",
+                                  "kind": "primitive"
+                                }
+                              }
+                            ]
+                          },
+                          "identifier": "this",
+                          "location": {
+                            "start": 376,
+                            "end": 380,
+                            "file": "modules/arraylist.vader"
+                          }
+                        },
+                        "properties": [
+                          {
+                            "kind": "IdentifierExpression",
+                            "identifier": "data",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              },
+                              "dimension": 1
+                            },
+                            "location": {
+                              "start": 381,
+                              "end": 385,
+                              "file": "modules/arraylist.vader"
+                            }
+                          }
+                        ],
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": 376,
+                          "end": 380,
+                          "file": "modules/arraylist.vader"
+                        }
+                      }
+                    ],
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  "rhs": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 2,
+                    "location": {
+                      "start": 397,
+                      "end": 398,
+                      "file": "modules/arraylist.vader"
+                    }
+                  },
+                  "location": {
+                    "start": 376,
+                    "end": 398,
+                    "file": "modules/arraylist.vader"
+                  }
+                }
+              },
+              "location": {
+                "start": 375,
+                "end": 402,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 366,
+              "end": 402,
+              "file": "modules/arraylist.vader"
+            }
+          },
+          {
+            "kind": "ForStatement",
+            "initialization": {
+              "kind": "VariableDeclarationStatement",
+              "name": "i",
+              "isConstant": false,
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 0,
+                "location": {
+                  "start": 417,
+                  "end": 418,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "location": {
+                "start": 412,
+                "end": 418,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "<",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "identifier": "i",
+                "location": {
+                  "start": 420,
+                  "end": 421,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "this",
+                  "location": {
+                    "start": 424,
+                    "end": 428,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 429,
+                      "end": 435,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "location": {
+                  "start": 424,
+                  "end": 435,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "location": {
+                "start": 420,
+                "end": 435,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "iteration": {
+              "kind": "VariableAssignmentStatement",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "identifier": "i",
+                "location": {
+                  "start": 437,
+                  "end": 438,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "value": {
+                "kind": "BinaryExpression",
+                "operator": "+",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "lhs": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "identifier": "i",
+                  "location": {
+                    "start": 441,
+                    "end": 442,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 1,
+                  "location": {
+                    "start": 445,
+                    "end": 446,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "location": {
+                  "start": 441,
+                  "end": 446,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "location": {
+                "start": 437,
+                "file": "modules/arraylist.vader",
+                "end": 446
+              }
+            },
+            "body": [
+              {
+                "kind": "VariableAssignmentStatement",
+                "identifier": {
+                  "kind": "DotExpression",
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1,
+                      "length": {
+                        "kind": "BinaryExpression",
+                        "operator": "*",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "lhs": {
+                          "kind": "CallExpression",
+                          "functionName": "length",
+                          "location": {
+                            "start": 376,
+                            "end": 394,
+                            "file": "modules/arraylist.vader"
+                          },
+                          "parameters": [
+                            {
+                              "kind": "DotExpression",
+                              "identifier": {
+                                "kind": "IdentifierExpression",
+                                "type": {
+                                  "kind": "struct",
+                                  "parameters": [
+                                    {
+                                      "name": "data",
+                                      "type": {
+                                        "kind": "array",
+                                        "type": {
+                                          "name": "u32",
+                                          "kind": "primitive"
+                                        },
+                                        "dimension": 1
+                                      }
+                                    },
+                                    {
+                                      "name": "length",
+                                      "type": {
+                                        "name": "u32",
+                                        "kind": "primitive"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "identifier": "this",
+                                "location": {
+                                  "start": 376,
+                                  "end": 380,
+                                  "file": "modules/arraylist.vader"
+                                }
+                              },
+                              "properties": [
+                                {
+                                  "kind": "IdentifierExpression",
+                                  "identifier": "data",
+                                  "type": {
+                                    "kind": "array",
+                                    "type": {
+                                      "name": "u32",
+                                      "kind": "primitive"
+                                    },
+                                    "dimension": 1
+                                  },
+                                  "location": {
+                                    "start": 381,
+                                    "end": 385,
+                                    "file": "modules/arraylist.vader"
+                                  }
+                                }
+                              ],
+                              "type": {
+                                "kind": "array",
+                                "type": {
+                                  "name": "u32",
+                                  "kind": "primitive"
+                                },
+                                "dimension": 1
+                              },
+                              "location": {
+                                "start": 376,
+                                "end": 380,
+                                "file": "modules/arraylist.vader"
+                              }
+                            }
+                          ],
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        "rhs": {
+                          "kind": "NumberExpression",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "value": 2,
+                          "location": {
+                            "start": 397,
+                            "end": 398,
+                            "file": "modules/arraylist.vader"
+                          }
+                        },
+                        "location": {
+                          "start": 376,
+                          "end": 398,
+                          "file": "modules/arraylist.vader"
+                        }
+                      }
+                    },
+                    "identifier": "data2",
+                    "location": {
+                      "start": 458,
+                      "end": 463,
+                      "file": "modules/arraylist.vader"
+                    }
+                  },
+                  "properties": [
+                    {
+                      "kind": "ArrayIndexExpression",
+                      "index": {
+                        "kind": "IdentifierExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "identifier": "i",
+                        "location": {
+                          "start": 464,
+                          "end": 465,
+                          "file": "modules/arraylist.vader"
+                        }
+                      },
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "location": {
+                        "start": 464,
+                        "end": 465,
+                        "file": "modules/arraylist.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 458,
+                    "end": 466,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "value": {
+                  "kind": "DotExpression",
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "data",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            },
+                            "dimension": 1
+                          }
+                        },
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "identifier": "this",
+                    "location": {
+                      "start": 469,
+                      "end": 473,
+                      "file": "modules/arraylist.vader"
+                    }
+                  },
+                  "properties": [
+                    {
+                      "kind": "IdentifierExpression",
+                      "identifier": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      },
+                      "location": {
+                        "start": 474,
+                        "end": 478,
+                        "file": "modules/arraylist.vader"
+                      }
+                    },
+                    {
+                      "kind": "ArrayIndexExpression",
+                      "index": {
+                        "kind": "IdentifierExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "identifier": "i",
+                        "location": {
+                          "start": 479,
+                          "end": 480,
+                          "file": "modules/arraylist.vader"
+                        }
+                      },
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "location": {
+                        "start": 479,
+                        "end": 480,
+                        "file": "modules/arraylist.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 469,
+                    "end": 481,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "location": {
+                  "start": 458,
+                  "file": "modules/arraylist.vader",
+                  "end": 481
+                }
+              }
+            ],
+            "location": {
+              "start": 407,
+              "end": 487,
+              "file": "modules/arraylist.vader"
+            }
+          },
+          {
+            "kind": "VariableAssignmentStatement",
+            "identifier": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "this",
+                "location": {
+                  "start": 492,
+                  "end": 496,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "IdentifierExpression",
+                  "identifier": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": 497,
+                    "end": 501,
+                    "file": "modules/arraylist.vader"
+                  }
+                }
+              ],
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "dimension": 1
+              },
+              "location": {
+                "start": 492,
+                "end": 501,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "value": {
+              "kind": "IdentifierExpression",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "dimension": 1,
+                "length": {
+                  "kind": "BinaryExpression",
+                  "operator": "*",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "lhs": {
+                    "kind": "CallExpression",
+                    "functionName": "length",
+                    "location": {
+                      "start": 376,
+                      "end": 394,
+                      "file": "modules/arraylist.vader"
+                    },
+                    "parameters": [
+                      {
+                        "kind": "DotExpression",
+                        "identifier": {
+                          "kind": "IdentifierExpression",
+                          "type": {
+                            "kind": "struct",
+                            "parameters": [
+                              {
+                                "name": "data",
+                                "type": {
+                                  "kind": "array",
+                                  "type": {
+                                    "name": "u32",
+                                    "kind": "primitive"
+                                  },
+                                  "dimension": 1
+                                }
+                              },
+                              {
+                                "name": "length",
+                                "type": {
+                                  "name": "u32",
+                                  "kind": "primitive"
+                                }
+                              }
+                            ]
+                          },
+                          "identifier": "this",
+                          "location": {
+                            "start": 376,
+                            "end": 380,
+                            "file": "modules/arraylist.vader"
+                          }
+                        },
+                        "properties": [
+                          {
+                            "kind": "IdentifierExpression",
+                            "identifier": "data",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              },
+                              "dimension": 1
+                            },
+                            "location": {
+                              "start": 381,
+                              "end": 385,
+                              "file": "modules/arraylist.vader"
+                            }
+                          }
+                        ],
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": 376,
+                          "end": 380,
+                          "file": "modules/arraylist.vader"
+                        }
+                      }
+                    ],
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  },
+                  "rhs": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 2,
+                    "location": {
+                      "start": 397,
+                      "end": 398,
+                      "file": "modules/arraylist.vader"
+                    }
+                  },
+                  "location": {
+                    "start": 376,
+                    "end": 398,
+                    "file": "modules/arraylist.vader"
+                  }
+                }
+              },
+              "identifier": "data2",
+              "location": {
+                "start": 504,
+                "end": 509,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 492,
+              "file": "modules/arraylist.vader",
+              "end": 509
+            }
+          }
+        ],
+        "location": {
+          "start": 337,
+          "end": 511,
+          "file": "modules/arraylist.vader"
+        }
+      },
+      "location": {
+        "start": 329,
+        "end": 511,
+        "file": "modules/arraylist.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "push",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  }
+                },
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "item",
+            "type": {
+              "name": "u32",
+              "kind": "primitive"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": "item",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "void",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "ConditionalStatement",
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            },
+            "ifBody": [
+              {
+                "kind": "CallExpression",
+                "type": {
+                  "name": "void",
+                  "kind": "primitive"
+                },
+                "functionName": "grow",
+                "parameters": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "data",
+                          "type": {
+                            "kind": "array",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            },
+                            "dimension": 1
+                          }
+                        },
+                        {
+                          "name": "length",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "identifier": "this",
+                    "location": {
+                      "start": 605,
+                      "end": 609,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                ],
+                "location": {
+                  "start": 600,
+                  "end": 610,
+                  "file": "modules/arraylist.vader"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": ">=",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "this",
+                  "location": {
+                    "start": 556,
+                    "end": 560,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 561,
+                      "end": 567,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "location": {
+                  "start": 556,
+                  "end": 567,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "rhs": {
+                "kind": "CallExpression",
+                "functionName": "length",
+                "location": {
+                  "start": 571,
+                  "end": 589,
+                  "file": "modules/arraylist.vader"
+                },
+                "parameters": [
+                  {
+                    "kind": "DotExpression",
+                    "identifier": {
+                      "kind": "IdentifierExpression",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "data",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              },
+                              "dimension": 1
+                            }
+                          },
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          }
+                        ]
+                      },
+                      "identifier": "this",
+                      "location": {
+                        "start": 571,
+                        "end": 575,
+                        "file": "modules/arraylist.vader"
+                      }
+                    },
+                    "properties": [
+                      {
+                        "kind": "IdentifierExpression",
+                        "identifier": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": 576,
+                          "end": 580,
+                          "file": "modules/arraylist.vader"
+                        }
+                      }
+                    ],
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    },
+                    "location": {
+                      "start": 571,
+                      "end": 575,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                }
+              },
+              "location": {
+                "start": 556,
+                "end": 589,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 553,
+              "end": 616,
+              "file": "modules/arraylist.vader"
+            }
+          },
+          {
+            "kind": "VariableAssignmentStatement",
+            "identifier": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "this",
+                "location": {
+                  "start": 621,
+                  "end": 625,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "IdentifierExpression",
+                  "identifier": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": 626,
+                    "end": 630,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                {
+                  "kind": "ArrayIndexExpression",
+                  "index": {
+                    "kind": "DotExpression",
+                    "identifier": {
+                      "kind": "IdentifierExpression",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "data",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              },
+                              "dimension": 1
+                            }
+                          },
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          }
+                        ]
+                      },
+                      "identifier": "this",
+                      "location": {
+                        "start": 631,
+                        "end": 635,
+                        "file": "modules/arraylist.vader"
+                      }
+                    },
+                    "properties": [
+                      {
+                        "kind": "IdentifierExpression",
+                        "identifier": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "location": {
+                          "start": 636,
+                          "end": 642,
+                          "file": "modules/arraylist.vader"
+                        }
+                      }
+                    ],
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 631,
+                      "end": 642,
+                      "file": "modules/arraylist.vader"
+                    }
+                  },
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 631,
+                    "end": 642,
+                    "file": "modules/arraylist.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "location": {
+                "start": 621,
+                "end": 643,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "value": {
+              "kind": "IdentifierExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "identifier": "item",
+              "location": {
+                "start": 646,
+                "end": 650,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 621,
+              "file": "modules/arraylist.vader",
+              "end": 650
+            }
+          },
+          {
+            "kind": "VariableAssignmentStatement",
+            "identifier": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "this",
+                "location": {
+                  "start": 655,
+                  "end": 659,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "IdentifierExpression",
+                  "identifier": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 660,
+                    "end": 666,
+                    "file": "modules/arraylist.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "location": {
+                "start": 655,
+                "end": 666,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "value": {
+              "kind": "BinaryExpression",
+              "operator": "+",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "this",
+                  "location": {
+                    "start": 669,
+                    "end": 673,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 674,
+                      "end": 680,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "location": {
+                  "start": 669,
+                  "end": 680,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "rhs": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 1,
+                "location": {
+                  "start": 683,
+                  "end": 684,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "location": {
+                "start": 669,
+                "end": 684,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 655,
+              "file": "modules/arraylist.vader",
+              "end": 684
+            }
+          }
+        ],
+        "location": {
+          "start": 521,
+          "end": 686,
+          "file": "modules/arraylist.vader"
+        }
+      },
+      "location": {
+        "start": 513,
+        "end": 686,
+        "file": "modules/arraylist.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "empty",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  }
+                },
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "returnType": {
+          "name": "boolean",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "returnType": {
+            "name": "boolean",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "BinaryExpression",
+              "operator": "==",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "this",
+                  "location": {
+                    "start": 736,
+                    "end": 740,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 741,
+                      "end": 747,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "location": {
+                  "start": 736,
+                  "end": 747,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "rhs": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 0,
+                "location": {
+                  "start": 751,
+                  "end": 752,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "location": {
+                "start": 736,
+                "end": 752,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 729,
+              "end": 752,
+              "file": "modules/arraylist.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": 697,
+          "end": 754,
+          "file": "modules/arraylist.vader"
+        }
+      },
+      "location": {
+        "start": 688,
+        "end": 754,
+        "file": "modules/arraylist.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "pop",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  }
+                },
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableAssignmentStatement",
+            "identifier": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "this",
+                "location": {
+                  "start": 790,
+                  "end": 794,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "IdentifierExpression",
+                  "identifier": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 795,
+                    "end": 801,
+                    "file": "modules/arraylist.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "location": {
+                "start": 790,
+                "end": 801,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "value": {
+              "kind": "BinaryExpression",
+              "operator": "-",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "this",
+                  "location": {
+                    "start": 804,
+                    "end": 808,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 809,
+                      "end": 815,
+                      "file": "modules/arraylist.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "location": {
+                  "start": 804,
+                  "end": 815,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "rhs": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 1,
+                "location": {
+                  "start": 818,
+                  "end": 819,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "location": {
+                "start": 804,
+                "end": 819,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 790,
+              "file": "modules/arraylist.vader",
+              "end": 819
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "this",
+                "location": {
+                  "start": 831,
+                  "end": 835,
+                  "file": "modules/arraylist.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "IdentifierExpression",
+                  "identifier": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": 836,
+                    "end": 840,
+                    "file": "modules/arraylist.vader"
+                  }
+                },
+                {
+                  "kind": "ArrayIndexExpression",
+                  "index": {
+                    "kind": "DotExpression",
+                    "identifier": {
+                      "kind": "IdentifierExpression",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "data",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              },
+                              "dimension": 1
+                            }
+                          },
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          }
+                        ]
+                      },
+                      "identifier": "this",
+                      "location": {
+                        "start": 841,
+                        "end": 845,
+                        "file": "modules/arraylist.vader"
+                      }
+                    },
+                    "properties": [
+                      {
+                        "kind": "IdentifierExpression",
+                        "identifier": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "location": {
+                          "start": 846,
+                          "end": 852,
+                          "file": "modules/arraylist.vader"
+                        }
+                      }
+                    ],
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "location": {
+                      "start": 841,
+                      "end": 852,
+                      "file": "modules/arraylist.vader"
+                    }
+                  },
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 841,
+                    "end": 852,
+                    "file": "modules/arraylist.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "location": {
+                "start": 831,
+                "end": 853,
+                "file": "modules/arraylist.vader"
+              }
+            },
+            "location": {
+              "start": 824,
+              "end": 853,
+              "file": "modules/arraylist.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": 762,
+          "end": 855,
+          "file": "modules/arraylist.vader"
+        }
+      },
+      "location": {
+        "start": 756,
+        "end": 855,
+        "file": "modules/arraylist.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "main",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive"
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive"
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "list",
+            "isConstant": true,
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "data",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "dimension": 1
+                  }
+                },
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  }
+                }
+              ]
+            },
+            "value": {
+              "kind": "CallExpression",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    }
+                  }
+                ]
+              },
+              "functionName": "create_list",
+              "parameters": [
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 3,
+                  "location": {
+                    "start": 65,
+                    "end": 66,
+                    "file": "examples/arraylists.vader"
+                  }
+                }
+              ],
+              "location": {
+                "start": 53,
+                "end": 67,
+                "file": "examples/arraylists.vader"
+              }
+            },
+            "location": {
+              "start": 45,
+              "end": 67,
+              "file": "examples/arraylists.vader"
+            }
+          },
+          {
+            "kind": "CallExpression",
+            "functionName": "push",
+            "location": {
+              "start": 72,
+              "end": 84,
+              "file": "examples/arraylists.vader"
+            },
+            "parameters": [
+              {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "list",
+                "location": {
+                  "start": 72,
+                  "end": 76,
+                  "file": "examples/arraylists.vader"
+                }
+              },
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 3,
+                "location": {
+                  "start": 82,
+                  "end": 83,
+                  "file": "examples/arraylists.vader"
+                }
+              }
+            ],
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            }
+          },
+          {
+            "kind": "CallExpression",
+            "functionName": "push",
+            "location": {
+              "start": 89,
+              "end": 101,
+              "file": "examples/arraylists.vader"
+            },
+            "parameters": [
+              {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "list",
+                "location": {
+                  "start": 89,
+                  "end": 93,
+                  "file": "examples/arraylists.vader"
+                }
+              },
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 4,
+                "location": {
+                  "start": 99,
+                  "end": 100,
+                  "file": "examples/arraylists.vader"
+                }
+              }
+            ],
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            }
+          },
+          {
+            "kind": "CallExpression",
+            "functionName": "push",
+            "location": {
+              "start": 106,
+              "end": 118,
+              "file": "examples/arraylists.vader"
+            },
+            "parameters": [
+              {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "list",
+                "location": {
+                  "start": 106,
+                  "end": 110,
+                  "file": "examples/arraylists.vader"
+                }
+              },
+              {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "value": 5,
+                "location": {
+                  "start": 116,
+                  "end": 117,
+                  "file": "examples/arraylists.vader"
+                }
+              }
+            ],
+            "type": {
+              "name": "void",
+              "kind": "primitive"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "CallExpression",
+              "functionName": "at",
+              "location": {
+                "start": 130,
+                "end": 140,
+                "file": "examples/arraylists.vader"
+              },
+              "parameters": [
+                {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "list",
+                  "location": {
+                    "start": 130,
+                    "end": 134,
+                    "file": "examples/arraylists.vader"
+                  }
+                },
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "value": 2,
+                  "location": {
+                    "start": 138,
+                    "end": 139,
+                    "file": "examples/arraylists.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              }
+            },
+            "location": {
+              "start": 123,
+              "end": 140,
+              "file": "examples/arraylists.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": 27,
+          "end": 142,
+          "file": "examples/arraylists.vader"
+        }
+      },
+      "location": {
+        "start": 19,
+        "end": 142,
+        "file": "examples/arraylists.vader"
+      }
+    }
+  ],
+  "location": {
+    "start": 0,
+    "end": 143,
+    "file": "examples/arraylists.vader"
+  }
+}

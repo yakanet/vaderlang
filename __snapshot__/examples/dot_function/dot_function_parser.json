@@ -777,36 +777,7 @@
                   },
                   "parameters": [
                     {
-                      "kind": "DotExpression",
-                      "identifier": {
-                        "kind": "IdentifierExpression",
-                        "type": {
-                          "kind": "struct",
-                          "parameters": [
-                            {
-                              "name": "x",
-                              "type": {
-                                "name": "u32",
-                                "kind": "primitive"
-                              }
-                            },
-                            {
-                              "name": "y",
-                              "type": {
-                                "name": "u32",
-                                "kind": "primitive"
-                              }
-                            }
-                          ]
-                        },
-                        "identifier": "p1",
-                        "location": {
-                          "start": 276,
-                          "end": 278,
-                          "file": "examples/dot_function.vader"
-                        }
-                      },
-                      "properties": [],
+                      "kind": "IdentifierExpression",
                       "type": {
                         "kind": "struct",
                         "parameters": [
@@ -826,6 +797,7 @@
                           }
                         ]
                       },
+                      "identifier": "p1",
                       "location": {
                         "start": 276,
                         "end": 278,

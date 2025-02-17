@@ -54,13 +54,17 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [x] for loop
 - [x] structure declaration & usage
 - [ ] import lib with namespace
-- [x] read file (to simplify make it load file during compilation time)
+- [x] stdlib: read file (to simplify make it load file during compilation time)
 - [x] function call equivalence (`print(a, b) <=> a.print(b)`)
 - [ ] type checking
 - [ ] operator overloading
+- [x] implementing WASM GC for struct & arrays
 - [ ] runtime memory allocation
 - [ ] runtime memory de-allocation
-- [ ] stdlib: arraylist, hashmap, number to string(2, 8, 10, 16), split
+- [x] stdlib: arraylist
+- [ ] stdlib: hashmap
+- [ ] stdlib: number to string(2, 8, 10, 16)
+- [ ] stdlib: split
 - [ ] iterators
 - [ ] better error reporting (should not exit when parsing error occur)
 - [ ] LSP for vader

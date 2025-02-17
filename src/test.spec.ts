@@ -15,7 +15,7 @@ const testFolders = [
     'examples'
 ]
 const skip = new Set<string>([
-    'examples/arraylists.vader',
+  //  'examples/arraylists.vader',
     'examples/strings.vader'
 ])
 const snapshot_directory = '__snapshot__'
@@ -98,7 +98,11 @@ function testRun(file: string, update: boolean) {
         const pid = child_process.spawnSync('wasmtime', ['--wasm=gc', wasmfile], {
             shell: true,
         })
-        const actual = [pid.stdout.toString(), `EXIT: ${pid.status}`].join('\n');
+        const actual = [
+            `EXIT: ${pid.status}`,
+            pid.stdout.length > 0 ? `STDOUT:\n${pid.stdout.toString()}` : undefined,
+            pid.stderr.length > 0 ? `STDERR:\n${pid.stderr.toString()}` : undefined,
+        ].filter(x => x).join('\n');
         if (update || !fs.existsSync(snapshotFile)) {
             updateSnapshot(snapshotFile, actual);
         } else {

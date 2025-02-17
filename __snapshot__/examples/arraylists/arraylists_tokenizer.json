@@ -1,0 +1,407 @@
+[
+  {
+    "type": "Decorator",
+    "value": "load",
+    "location": {
+      "start": 1,
+      "end": 5,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "StringLiteral",
+    "value": "arraylist",
+    "location": {
+      "start": 6,
+      "end": 17,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "main",
+    "location": {
+      "start": 19,
+      "end": 23,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 24,
+      "end": 25,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 25,
+      "end": 26,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": 27,
+      "end": 29,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 29,
+      "end": 30,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 30,
+      "end": 31,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "LambdaArrowToken",
+    "value": "->",
+    "location": {
+      "start": 32,
+      "end": 34,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": 35,
+      "end": 38,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": 39,
+      "end": 40,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "list",
+    "location": {
+      "start": 45,
+      "end": 49,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 50,
+      "end": 51,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": 51,
+      "end": 52,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "create_list",
+    "location": {
+      "start": 53,
+      "end": 64,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 64,
+      "end": 65,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "3",
+    "location": {
+      "end": 66,
+      "start": 65,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 66,
+      "end": 67,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "list",
+    "location": {
+      "start": 72,
+      "end": 76,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 76,
+      "end": 77,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "push",
+    "location": {
+      "start": 77,
+      "end": 81,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 81,
+      "end": 82,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "3",
+    "location": {
+      "end": 83,
+      "start": 82,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 83,
+      "end": 84,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "list",
+    "location": {
+      "start": 89,
+      "end": 93,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 93,
+      "end": 94,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "push",
+    "location": {
+      "start": 94,
+      "end": 98,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 98,
+      "end": 99,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "4",
+    "location": {
+      "end": 100,
+      "start": 99,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 100,
+      "end": 101,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "list",
+    "location": {
+      "start": 106,
+      "end": 110,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 110,
+      "end": 111,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "push",
+    "location": {
+      "start": 111,
+      "end": 115,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 115,
+      "end": 116,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "5",
+    "location": {
+      "end": 117,
+      "start": 116,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 117,
+      "end": 118,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 123,
+      "end": 129,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "list",
+    "location": {
+      "start": 130,
+      "end": 134,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 134,
+      "end": 135,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "at",
+    "location": {
+      "start": 135,
+      "end": 137,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": 137,
+      "end": 138,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "end": 139,
+      "start": 138,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": 139,
+      "end": 140,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": 141,
+      "end": 142,
+      "file": "examples/arraylists.vader"
+    }
+  },
+  {
+    "type": "EOF",
+    "location": {
+      "start": 143,
+      "end": 143,
+      "file": "examples/arraylists.vader"
+    },
+    "value": "\u0000"
+  }
+]

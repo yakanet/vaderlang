@@ -218,6 +218,11 @@ export class WasmEmitter {
                         const param = keys.at(-1)!;
                         assert(param);
                         return gc.structs.setMember(this.module, base.expression, param.index, this.emitExpression(stmt.value))
+                    }  if (keys.at(-2)!.type.kind === 'array') {
+                        const base = keys.at(-2)!
+                        const param = keys.at(-1)!;
+                        assert(param);
+                        return gc.arrays.setItem(this.module, base.expression, param.index, this.emitExpression(stmt.value))
                     } else {
                         throw new Error(`Unimplemented assignment on ${typeToString(identifier.type)}`)
                     }
@@ -395,6 +400,7 @@ export class WasmEmitter {
             } else if (previousType.kind === 'array') {
                 assert(property.kind === 'ArrayIndexExpression');
                 const index = this.emitExpression(property.index);
+                // getItem could return null ref
                 exprs = gc.arrays.getItem(
                     this.module,
                     exprs,
@@ -428,6 +434,7 @@ export class WasmEmitter {
         [['<=', binaryen.i32, binaryen.i32].join(), this.module.i32.le_u],
         [['>', binaryen.i32, binaryen.i32].join(), this.module.i32.gt_u],
         [['>=', binaryen.i32, binaryen.i32].join(), this.module.i32.ge_u],
+        [['%', binaryen.i32, binaryen.i32].join(), this.module.i32.rem_u],
     ]);
 
     malloc(sizeOrData: number | Uint8Array): binaryen.MemorySegment {

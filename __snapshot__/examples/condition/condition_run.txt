@@ -1,6 +1,6 @@
+EXIT: 35
+STDOUT:
 equals
 second equals
 not equals
 x == 32
-
-EXIT: 35

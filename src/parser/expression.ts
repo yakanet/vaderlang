@@ -4,7 +4,6 @@ import {
     BasicVaderType,
     type BinaryExpression,
     type CallExpression,
-    type DotExpression,
     type Expression,
     type FunctionVaderType,
     type NumberExpression,
@@ -58,7 +57,8 @@ function parseComparisonExpression(parser: Parser): Expression {
 function parseAdditiveExpression(parser: Parser): Expression {
     const operations = new Set<Token['type']>([
         'PlusToken',
-        'DashToken'
+        'DashToken',
+        'PercentToken'
     ]);
     let left = parseMultiplicativeExpression(parser)
     while (operations.has(parser.current.type)) {
@@ -281,13 +281,19 @@ function parseDotExpression(parser: Parser, left: Expression): Expression {
         return left;
     }
 
-    left = {
-        kind: 'DotExpression',
-        identifier: left,
-        properties: [],
-        type: BasicVaderType.unknown,
-        location: {...left.location},
+    const createDotExpressionIfNotExists = () => {
+        if (left.kind !== 'DotExpression') {
+            left = {
+                kind: 'DotExpression',
+                identifier: left,
+                properties: [],
+                type: BasicVaderType.unknown,
+                location: {...left.location},
+            }
+        }
+        return left;
     }
+
 
     // 3 kind of expression
     // - struct : identifier.something_else
@@ -312,8 +318,8 @@ function parseDotExpression(parser: Parser, left: Expression): Expression {
                         ...result
                     ]
                 } as CallExpression
-            } else if (left.kind === 'DotExpression') {
-                (left as DotExpression).properties.push({
+            } else {
+                createDotExpressionIfNotExists().properties.push({
                     kind: 'IdentifierExpression',
                     identifier: propertyName.value,
                     type: BasicVaderType.unknown,
@@ -323,7 +329,7 @@ function parseDotExpression(parser: Parser, left: Expression): Expression {
         } else if (parser.isCurrentType('OpenSquareBracket')) {
             parser.expect('OpenSquareBracket');
             const index = parseExpression(parser);
-            (left as DotExpression).properties.push({
+            createDotExpressionIfNotExists().properties.push({
                 kind: 'ArrayIndexExpression',
                 index,
                 type: BasicVaderType.unknown,
