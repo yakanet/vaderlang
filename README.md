@@ -16,6 +16,9 @@ wasmtime --wasm=gc [wasm file location]
 
 ## Getting started
 
+Build the compiler using `bun run build`
+
+Write a simple program :
 ```
 // Simple hello world app
 @load "modules/std"
@@ -27,12 +30,14 @@ main :: fn () -> u32 {
 
 ```
 
-Compile the source to wasm using `bun src/index.ts [file location].vader`
+Compile the source to wasm using `./vader [file location].vader`
 
 Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 
 > If wasmtime is in your path, you can directly compile and run with the following command :
-`bun src/index.ts --run [file location].vader`
+`./vader --run [file location].vader`
+
+> In dev mod, instead of building the compiler, you can directly use the command `bun src/index.ts [file location].vader` 
 
 ## Todo
 
@@ -65,6 +70,8 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - [ ] stdlib: hashmap
 - [ ] stdlib: number to string(2, 8, 10, 16)
 - [ ] stdlib: split
+- [ ] add generics
+- [ ] allow function overloading (?) / check if 2 functions are equal checking the full signature
 - [ ] iterators
 - [ ] better error reporting (should not exit when parsing error occur)
 - [ ] LSP for vader
