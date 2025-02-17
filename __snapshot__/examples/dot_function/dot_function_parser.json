@@ -190,34 +190,35 @@
                 },
                 "lhs": {
                   "kind": "DotExpression",
-                  "properties": [
-                    {
-                      "name": "this",
-                      "type": {
-                        "kind": "struct",
-                        "parameters": [
-                          {
-                            "name": "x",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
-                          },
-                          {
-                            "name": "y",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
                           }
-                        ]
-                      },
-                      "location": {
-                        "start": 99,
-                        "end": 103,
-                        "file": "examples/dot_function.vader"
-                      }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
                     },
+                    "identifier": "this",
+                    "location": {
+                      "start": 99,
+                      "end": 103,
+                      "file": "examples/dot_function.vader"
+                    }
+                  },
+                  "properties": [
                     {
                       "name": "x",
                       "type": {
@@ -243,34 +244,35 @@
                 },
                 "rhs": {
                   "kind": "DotExpression",
-                  "properties": [
-                    {
-                      "name": "other",
-                      "type": {
-                        "kind": "struct",
-                        "parameters": [
-                          {
-                            "name": "x",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
-                          },
-                          {
-                            "name": "y",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
                           }
-                        ]
-                      },
-                      "location": {
-                        "start": 108,
-                        "end": 113,
-                        "file": "examples/dot_function.vader"
-                      }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
                     },
+                    "identifier": "other",
+                    "location": {
+                      "start": 108,
+                      "end": 113,
+                      "file": "examples/dot_function.vader"
+                    }
+                  },
+                  "properties": [
                     {
                       "name": "x",
                       "type": {
@@ -309,34 +311,35 @@
                 },
                 "lhs": {
                   "kind": "DotExpression",
-                  "properties": [
-                    {
-                      "name": "this",
-                      "type": {
-                        "kind": "struct",
-                        "parameters": [
-                          {
-                            "name": "x",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
-                          },
-                          {
-                            "name": "y",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
                           }
-                        ]
-                      },
-                      "location": {
-                        "start": 118,
-                        "end": 122,
-                        "file": "examples/dot_function.vader"
-                      }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
                     },
+                    "identifier": "this",
+                    "location": {
+                      "start": 118,
+                      "end": 122,
+                      "file": "examples/dot_function.vader"
+                    }
+                  },
+                  "properties": [
                     {
                       "name": "y",
                       "type": {
@@ -362,34 +365,35 @@
                 },
                 "rhs": {
                   "kind": "DotExpression",
-                  "properties": [
-                    {
-                      "name": "other",
-                      "type": {
-                        "kind": "struct",
-                        "parameters": [
-                          {
-                            "name": "x",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
-                          },
-                          {
-                            "name": "y",
-                            "type": {
-                              "name": "u32",
-                              "kind": "primitive"
-                            }
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
                           }
-                        ]
-                      },
-                      "location": {
-                        "start": 127,
-                        "end": 132,
-                        "file": "examples/dot_function.vader"
-                      }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
                     },
+                    "identifier": "other",
+                    "location": {
+                      "start": 127,
+                      "end": 132,
+                      "file": "examples/dot_function.vader"
+                    }
+                  },
+                  "properties": [
                     {
                       "name": "y",
                       "type": {
@@ -770,35 +774,35 @@
                   "parameters": [
                     {
                       "kind": "DotExpression",
-                      "properties": [
-                        {
-                          "name": "p1",
-                          "type": {
-                            "kind": "struct",
-                            "parameters": [
-                              {
-                                "name": "x",
-                                "type": {
-                                  "name": "u32",
-                                  "kind": "primitive"
-                                }
-                              },
-                              {
-                                "name": "y",
-                                "type": {
-                                  "name": "u32",
-                                  "kind": "primitive"
-                                }
+                      "identifier": {
+                        "kind": "IdentifierExpression",
+                        "type": {
+                          "kind": "struct",
+                          "parameters": [
+                            {
+                              "name": "x",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
                               }
-                            ]
-                          },
-                          "location": {
-                            "start": 276,
-                            "end": 278,
-                            "file": "examples/dot_function.vader"
-                          }
+                            },
+                            {
+                              "name": "y",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              }
+                            }
+                          ]
+                        },
+                        "identifier": "p1",
+                        "location": {
+                          "start": 276,
+                          "end": 278,
+                          "file": "examples/dot_function.vader"
                         }
-                      ],
+                      },
+                      "properties": [],
                       "type": {
                         "kind": "struct",
                         "parameters": [

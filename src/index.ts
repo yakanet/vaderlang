@@ -30,7 +30,7 @@ for (const source_path of cli.positionalArgument) {
     );
 }
 if (cli.options.has('run')) {
-    const pid = child_process.spawnSync('wasmtime', ['build/wasm/app.wasm'], {
+    const pid = child_process.spawnSync('wasmtime', ['--wasm=gc', 'build/wasm/app.wasm'], {
         shell: true,
         stdio: 'inherit',
     })

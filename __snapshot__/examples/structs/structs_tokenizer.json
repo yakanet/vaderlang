@@ -504,11 +504,47 @@
     }
   },
   {
-    "type": "Keyword",
-    "value": "return",
+    "type": "Identifier",
+    "value": "p2",
     "location": {
       "start": 184,
+      "end": 186,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 186,
+      "end": 187,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "y",
+    "location": {
+      "start": 187,
+      "end": 188,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 189,
       "end": 190,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "12",
+    "location": {
+      "end": 193,
+      "start": 191,
       "file": "examples/structs.vader"
     }
   },
@@ -516,8 +552,8 @@
     "type": "Identifier",
     "value": "p1",
     "location": {
-      "start": 191,
-      "end": 193,
+      "start": 197,
+      "end": 199,
       "file": "examples/structs.vader"
     }
   },
@@ -525,8 +561,8 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 193,
-      "end": 194,
+      "start": 199,
+      "end": 200,
       "file": "examples/structs.vader"
     }
   },
@@ -534,8 +570,8 @@
     "type": "Identifier",
     "value": "origin",
     "location": {
-      "start": 194,
-      "end": 200,
+      "start": 200,
+      "end": 206,
       "file": "examples/structs.vader"
     }
   },
@@ -543,41 +579,14 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 200,
-      "end": 201,
+      "start": 206,
+      "end": 207,
       "file": "examples/structs.vader"
     }
   },
   {
     "type": "Identifier",
     "value": "y",
-    "location": {
-      "start": 201,
-      "end": 202,
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "PlusToken",
-    "value": "+",
-    "location": {
-      "start": 203,
-      "end": 204,
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "p2",
-    "location": {
-      "start": 205,
-      "end": 207,
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "DotToken",
-    "value": ".",
     "location": {
       "start": 207,
       "end": 208,
@@ -585,11 +594,164 @@
     }
   },
   {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": 209,
+      "end": 210,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "10",
+    "location": {
+      "end": 213,
+      "start": 211,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": 217,
+      "end": 223,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "p2",
+    "location": {
+      "start": 224,
+      "end": 226,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 226,
+      "end": 227,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
     "type": "Identifier",
     "value": "y",
     "location": {
-      "start": 208,
-      "end": 209,
+      "start": 227,
+      "end": 228,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": 229,
+      "end": 230,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "p1",
+    "location": {
+      "start": 231,
+      "end": 233,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 233,
+      "end": 234,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "origin",
+    "location": {
+      "start": 234,
+      "end": 240,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 240,
+      "end": 241,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "y",
+    "location": {
+      "start": 241,
+      "end": 242,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": 243,
+      "end": 244,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "p1",
+    "location": {
+      "start": 245,
+      "end": 247,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 247,
+      "end": 248,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "origin",
+    "location": {
+      "start": 248,
+      "end": 254,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": 254,
+      "end": 255,
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": 255,
+      "end": 256,
       "file": "examples/structs.vader"
     }
   },
@@ -597,16 +759,16 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 210,
-      "end": 211,
+      "start": 257,
+      "end": 258,
       "file": "examples/structs.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 211,
-      "end": 211,
+      "start": 258,
+      "end": 258,
       "file": "examples/structs.vader"
     },
     "value": "\u0000"

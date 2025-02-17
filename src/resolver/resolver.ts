@@ -233,26 +233,24 @@ function resolveExpression(
             }
         }
         case 'DotExpression': {
-            let resolved = scope.lookupVariable(expression.properties[0].name);
-            while (resolved.type.kind === 'unknown') {
-                resolved = scope.lookupVariable(resolved.type.name);
-            }
-            expression.properties[0].type = resolved.type;
-            for (let i = 1; i < expression.properties.length; i++) {
-                const previousType = expression.properties[i - 1].type;
+            expression.identifier = resolveExpression(expression.identifier, scope);
+            assert(!isTypeEquals(expression.identifier.type, BasicVaderType.unknown))
+            let previousType = expression.identifier.type;
+            for (let i = 0; i < expression.properties.length; i++) {
                 if (previousType.kind === 'struct') {
                     const resolvedType = previousType.parameters.find(p => p.name === expression.properties[i].name)
                     if (!resolvedType) {
                         throw new Error(`Unresolved property ${expression.properties[i].name}`);
                     }
                     expression.properties[i].type = resolvedType.type;
+                    previousType = expression.properties[i].type;
                 } else {
-                    throw new Error(`Unimplemented other case of DotExpression: ${resolved.type.kind}`);
+                    throw new Error(`Unimplemented other case of DotExpression: ${previousType.kind}`);
                 }
             }
             return {
                 ...expression,
-                type: expression.properties[expression.properties.length - 1].type,
+                type: expression.properties.length > 0 ? expression.properties[expression.properties.length - 1].type : expression.identifier.type,
             }
         }
         case 'ConditionalExpression': {

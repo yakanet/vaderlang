@@ -95,7 +95,7 @@ function testRun(file: string, update: boolean) {
         emitter.emit(program)
         const wasmfile = createSnapshotFile(file, '.wasm');
         fs.writeFileSync(wasmfile, emitter.module.emitBinary());
-        const pid = child_process.spawnSync('wasmtime', [wasmfile], {
+        const pid = child_process.spawnSync('wasmtime', ['--wasm=gc', wasmfile], {
             shell: true,
         })
         const actual = [pid.stdout.toString(), `EXIT: ${pid.status}`].join('\n');

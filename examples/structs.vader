@@ -11,5 +11,7 @@ Point3D :: struct {
 main :: fn() -> u32 {
    p1 :: Point3D { Point { 2, 4 }, 10 }
    p2 :: Point { 6, 8 }
-   return p1.origin.y + p2.y
+   p2.y = 12
+   p1.origin.y = 10
+   return p2.y + p1.origin.y + p1.origin.x
 }

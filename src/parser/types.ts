@@ -110,11 +110,12 @@ export type StructInstantiationExpression = BasicStatement & {
 export type DotExpression = BasicStatement & {
     kind: 'DotExpression',
     type: VaderType,
+    identifier: Expression,
     properties: {
         name: string, // FIXME Must be an expression not a string
         type: VaderType,
         location: Token['location']
-    }[],
+    }[]
 }
 
 export type ArrayDeclarationExpression = BasicStatement & {

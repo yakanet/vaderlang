@@ -2,11 +2,17 @@
 
 Vader is an experimental language, allowing me to learn compiler development.
 
-This language compile into WASM bytecode.
+This language compile into WASM bytecode. For structs & array, Vader use the specification WASM GC.
 
 Objective: Create a simple language to be able to implement [AOC](https://adventofcode.com/) exercises
 
 This bytecode should be able to run using any WASI compliant runtime ([wasmtime](https://wasmtime.dev/) for instance)
+
+For example to run a compiled program :
+
+```shell
+wasmtime --wasm=gc [wasm file location]
+```
 
 ## Getting started
 
@@ -80,7 +86,7 @@ Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
 - declared via `:=` = variable value can change
 - affectation via `=`. Only variable declared with `:=` can be reassigned
 
-### Strutures
+### Structures
 
 #### Declaring a structure
 
@@ -95,8 +101,8 @@ MyStruct :: struct {
 
 ```
 x :: MyStruct {
-    a = 12
-    b = 12.43
+    .a = 12
+    .b = 12.43
 }
 ```
 

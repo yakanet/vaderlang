@@ -424,6 +424,198 @@
             }
           },
           {
+            "kind": "VariableAssignmentStatement",
+            "identifier": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "x",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    },
+                    {
+                      "name": "y",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "p2",
+                "location": {
+                  "start": 184,
+                  "end": 186,
+                  "file": "examples/structs.vader"
+                }
+              },
+              "properties": [
+                {
+                  "name": "y",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 187,
+                    "end": 188,
+                    "file": "examples/structs.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "location": {
+                "start": 184,
+                "end": 188,
+                "file": "examples/structs.vader"
+              }
+            },
+            "value": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": 12,
+              "location": {
+                "start": 191,
+                "end": 193,
+                "file": "examples/structs.vader"
+              }
+            },
+            "location": {
+              "start": 184,
+              "file": "examples/structs.vader",
+              "end": 193
+            }
+          },
+          {
+            "kind": "VariableAssignmentStatement",
+            "identifier": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "origin",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "x",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          },
+                          {
+                            "name": "y",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "z",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "p1",
+                "location": {
+                  "start": 197,
+                  "end": 199,
+                  "file": "examples/structs.vader"
+                }
+              },
+              "properties": [
+                {
+                  "name": "origin",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "x",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      },
+                      {
+                        "name": "y",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "location": {
+                    "start": 200,
+                    "end": 206,
+                    "file": "examples/structs.vader"
+                  }
+                },
+                {
+                  "name": "y",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 207,
+                    "end": 208,
+                    "file": "examples/structs.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "location": {
+                "start": 197,
+                "end": 208,
+                "file": "examples/structs.vader"
+              }
+            },
+            "value": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive"
+              },
+              "value": 10,
+              "location": {
+                "start": 211,
+                "end": 213,
+                "file": "examples/structs.vader"
+              }
+            },
+            "location": {
+              "start": 197,
+              "file": "examples/structs.vader",
+              "end": 213
+            }
+          },
+          {
             "kind": "ReturnStatement",
             "expression": {
               "kind": "BinaryExpression",
@@ -433,10 +625,70 @@
                 "kind": "primitive"
               },
               "lhs": {
-                "kind": "DotExpression",
-                "properties": [
-                  {
-                    "name": "p1",
+                "kind": "BinaryExpression",
+                "operator": "+",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive"
+                },
+                "lhs": {
+                  "kind": "DotExpression",
+                  "identifier": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "struct",
+                      "parameters": [
+                        {
+                          "name": "x",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive"
+                          }
+                        }
+                      ]
+                    },
+                    "identifier": "p2",
+                    "location": {
+                      "start": 224,
+                      "end": 226,
+                      "file": "examples/structs.vader"
+                    }
+                  },
+                  "properties": [
+                    {
+                      "name": "y",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "location": {
+                        "start": 227,
+                        "end": 228,
+                        "file": "examples/structs.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 224,
+                    "end": 228,
+                    "file": "examples/structs.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "DotExpression",
+                  "identifier": {
+                    "kind": "IdentifierExpression",
                     "type": {
                       "kind": "struct",
                       "parameters": [
@@ -471,12 +723,116 @@
                         }
                       ]
                     },
+                    "identifier": "p1",
                     "location": {
-                      "start": 191,
-                      "end": 193,
+                      "start": 231,
+                      "end": 233,
                       "file": "examples/structs.vader"
                     }
                   },
+                  "properties": [
+                    {
+                      "name": "origin",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "x",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          },
+                          {
+                            "name": "y",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive"
+                            }
+                          }
+                        ]
+                      },
+                      "location": {
+                        "start": 234,
+                        "end": 240,
+                        "file": "examples/structs.vader"
+                      }
+                    },
+                    {
+                      "name": "y",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive"
+                      },
+                      "location": {
+                        "start": 241,
+                        "end": 242,
+                        "file": "examples/structs.vader"
+                      }
+                    }
+                  ],
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive"
+                  },
+                  "location": {
+                    "start": 231,
+                    "end": 242,
+                    "file": "examples/structs.vader"
+                  }
+                },
+                "location": {
+                  "start": 224,
+                  "end": 242,
+                  "file": "examples/structs.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "origin",
+                        "type": {
+                          "kind": "struct",
+                          "parameters": [
+                            {
+                              "name": "x",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              }
+                            },
+                            {
+                              "name": "y",
+                              "type": {
+                                "name": "u32",
+                                "kind": "primitive"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "z",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "p1",
+                  "location": {
+                    "start": 245,
+                    "end": 247,
+                    "file": "examples/structs.vader"
+                  }
+                },
+                "properties": [
                   {
                     "name": "origin",
                     "type": {
@@ -499,20 +855,20 @@
                       ]
                     },
                     "location": {
-                      "start": 194,
-                      "end": 200,
+                      "start": 248,
+                      "end": 254,
                       "file": "examples/structs.vader"
                     }
                   },
                   {
-                    "name": "y",
+                    "name": "x",
                     "type": {
                       "name": "u32",
                       "kind": "primitive"
                     },
                     "location": {
-                      "start": 201,
-                      "end": 202,
+                      "start": 255,
+                      "end": 256,
                       "file": "examples/structs.vader"
                     }
                   }
@@ -522,93 +878,40 @@
                   "kind": "primitive"
                 },
                 "location": {
-                  "start": 191,
-                  "end": 202,
-                  "file": "examples/structs.vader"
-                }
-              },
-              "rhs": {
-                "kind": "DotExpression",
-                "properties": [
-                  {
-                    "name": "p2",
-                    "type": {
-                      "kind": "struct",
-                      "parameters": [
-                        {
-                          "name": "x",
-                          "type": {
-                            "name": "u32",
-                            "kind": "primitive"
-                          }
-                        },
-                        {
-                          "name": "y",
-                          "type": {
-                            "name": "u32",
-                            "kind": "primitive"
-                          }
-                        }
-                      ]
-                    },
-                    "location": {
-                      "start": 205,
-                      "end": 207,
-                      "file": "examples/structs.vader"
-                    }
-                  },
-                  {
-                    "name": "y",
-                    "type": {
-                      "name": "u32",
-                      "kind": "primitive"
-                    },
-                    "location": {
-                      "start": 208,
-                      "end": 209,
-                      "file": "examples/structs.vader"
-                    }
-                  }
-                ],
-                "type": {
-                  "name": "u32",
-                  "kind": "primitive"
-                },
-                "location": {
-                  "start": 205,
-                  "end": 209,
+                  "start": 245,
+                  "end": 256,
                   "file": "examples/structs.vader"
                 }
               },
               "location": {
-                "start": 191,
-                "end": 209,
+                "start": 224,
+                "end": 256,
                 "file": "examples/structs.vader"
               }
             },
             "location": {
-              "start": 184,
-              "end": 209,
+              "start": 217,
+              "end": 256,
               "file": "examples/structs.vader"
             }
           }
         ],
         "location": {
           "start": 103,
-          "end": 211,
+          "end": 258,
           "file": "examples/structs.vader"
         }
       },
       "location": {
         "start": 95,
-        "end": 211,
+        "end": 258,
         "file": "examples/structs.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 211,
+    "end": 258,
     "file": "examples/structs.vader"
   }
 }

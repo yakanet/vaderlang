@@ -17,6 +17,7 @@ import {
 import binaryen from "binaryen";
 import {addWasiFunction} from "./wasi.ts";
 import assert from "node:assert";
+import {gc, TypeBuilder} from "binaryen-gc";
 
 const encoder = new TextEncoder();
 
@@ -35,6 +36,7 @@ export class WasmEmitter {
         index: number,
         scope: 'parameter' | 'local' | 'global'
     }>> = {};
+    private customTypes = new Map<VaderType, binaryen.Type>();
 
     constructor() {
         addWasiFunction(this.module);
@@ -42,6 +44,7 @@ export class WasmEmitter {
     }
 
     emit(program: Program) {
+        this.module.setFeatures(binaryen.Features.All)
         this.module.setMemory(1, -1);
 
         for (const statement of program.body) {
@@ -107,8 +110,20 @@ export class WasmEmitter {
                     }
                 )
                 switch (statement.type.kind) {
-                    case 'struct':
+                    case 'struct': {
+                        const builder = new TypeBuilder(1);
+                        builder.setStructType(0, statement.type.parameters.map(parameter => {
+                            return {
+                                type: this.mapBinaryenType(parameter.type),
+                                packedType: 0,
+                                mutable: true,
+                            }
+                        }))
+                        this.customTypes.set(statement.type, builder.buildAndDispose().heapTypes[0])
                         return;
+                    }
+                    case 'array':
+                        throw new Error(`unreachable array creation on a top level statement`)
                     case 'function': {
                         assert(statement.value?.kind === 'FunctionDeclarationExpression');
                         const funct = statement.value as FunctionDeclarationExpression;
@@ -130,23 +145,22 @@ export class WasmEmitter {
                             binaryen.createType(
                                 [...this.symbols[this.currentScope].values()]
                                     .filter(({scope}) => scope === 'parameter')
-                                    .map(({type}) => mapBinaryenType(type))
+                                    .map(({type}) => this.mapBinaryenType(type))
                             ),
-                            mapBinaryenType(funct.type.returnType),
+                            this.mapBinaryenType(funct.type.returnType),
                             [...this.symbols[this.currentScope].values()]
                                 .filter(({scope}) => scope === 'local')
-                                .map(({type}) => mapBinaryenType(type)),
+                                .map(({type}) => this.mapBinaryenType(type)),
                             this.module.block(null, body)
                         );
                         this.currentScope = GLOBAL_SCOPE;
                         //this.module.addFunctionExport(statement.name, statement.name);
                         return;
                     }
-                    case 'array':
                     case 'primitive':
                         return this.module.addGlobal(
                             statement.name,
-                            mapBinaryenType(statement.type),
+                            this.mapBinaryenType(statement.type),
                             !statement.isConstant,
                             this.emitExpression(statement.value!)
                         );
@@ -199,7 +213,18 @@ export class WasmEmitter {
 
             case "VariableAssignmentStatement": {
                 const identifier = stmt.identifier;
-
+                if (identifier.kind === 'DotExpression') {
+                    const keys = this.emitDotExpression(identifier);
+                    assert(keys.length >= 2);
+                    if (keys.at(-2)!.type.kind === 'struct') {
+                        const base = keys.at(-2)!
+                        const param = keys.at(-1)!;
+                        assert(param);
+                        return gc.structs.setMember(this.module, base.expression, param.index, this.emitExpression(stmt.value))
+                    } else {
+                        throw new Error(`Unimplemented assignment on ${typeToString(identifier.type)}`)
+                    }
+                }
                 if (identifier.kind === 'IdentifierExpression') {
                     let variable =
                         this.symbols[this.currentScope].get(identifier.identifier)
@@ -238,7 +263,7 @@ export class WasmEmitter {
     }
 
     private emitExpression(
-        expression: Statement
+        expression: Statement,
     ): binaryen.ExpressionRef {
         switch (expression.kind) {
             case 'CallExpression': {
@@ -266,7 +291,7 @@ export class WasmEmitter {
                 const result = this.module.call(
                     expression.functionName,
                     parameters,
-                    mapBinaryenType(functionType.returnType)
+                    this.mapBinaryenType(functionType.returnType)
                 );
                 this.currentScope = previousScope;
                 return result
@@ -279,7 +304,7 @@ export class WasmEmitter {
                     throw new Error(`Undeclared variable ${expression.identifier}`);
                 }
                 if (variable.scope === 'global') {
-                    return this.module.global.get(expression.identifier, mapBinaryenType(variable.type));
+                    return this.module.global.get(expression.identifier, this.mapBinaryenType(variable.type));
                 }
                 const functionVariable = this.symbols[this.currentScope].get(expression.identifier);
                 if (!functionVariable) {
@@ -287,7 +312,7 @@ export class WasmEmitter {
                 }
                 return this.module.local.get(
                     functionVariable.index,
-                    mapBinaryenType(functionVariable.type)
+                    this.mapBinaryenType(functionVariable.type)
                 );
             }
             case "NumberExpression": {
@@ -297,8 +322,8 @@ export class WasmEmitter {
             case "ConditionalExpression": {
                 return this.module.if(
                     this.emitExpression(expression.condition),
-                    this.module.block(null, expression.ifBody.map(b => this.emitStatement(b)), mapBinaryenType(expression.type)),
-                    expression.elseBody ? this.module.block(null, expression.elseBody.map(b => this.emitStatement(b as any)), mapBinaryenType(expression.type)) : undefined
+                    this.module.block(null, expression.ifBody.map(b => this.emitStatement(b)), this.mapBinaryenType(expression.type)),
+                    expression.elseBody ? this.module.block(null, expression.elseBody.map(b => this.emitStatement(b as any)), this.mapBinaryenType(expression.type)) : undefined
                 )
             }
 
@@ -306,7 +331,7 @@ export class WasmEmitter {
                 return this.instantiateStruct(expression);
 
             case 'DotExpression':
-                return this.emitDotExpression(expression);
+                return this.emitDotExpression(expression).at(-1)!.expression;
 
             case 'ArrayDeclarationExpression':
                 return this.instantiateArray(expression)
@@ -318,8 +343,8 @@ export class WasmEmitter {
                 const fn = this.binaryOperations.get(
                     [
                         expression.operator,
-                        mapBinaryenType(expression.type),
-                        mapBinaryenType(expression.type),
+                        this.mapBinaryenType(expression.type),
+                        this.mapBinaryenType(expression.type),
                     ].join()
                 );
 
@@ -339,23 +364,13 @@ export class WasmEmitter {
 
     private instantiateStruct(expression: StructInstantiationExpression): binaryen.ExpressionRef {
         assert(expression.type.kind === "struct");
-        const size = size_of(expression.type);
-        const segment = this.malloc(size);
-        let offset = 0;
-        const exp: binaryen.ExpressionRef[] = [];
-        for (const p of expression.parameters) {
-            exp.push(this.module.i32.store(
-                offset,
-                0,
-                this.module.i32.const(segment.offset),
-                this.emitExpression(p.value)
-            ));
-            offset += size_of(p.value.type);
+        const structType = this.customTypes.get(expression.type)
+        if (!structType) {
+            throw new Error(`Undeclared struct ${typeToString(expression.type)}`)
         }
-        return this.module.block(null, [
-            ...exp,
-            this.module.i32.const(segment.offset)
-        ], binaryen.i32);
+        // TODO Map named properties
+        const parameters = expression.parameters.map(p => this.emitExpression(p.value))
+        return gc.structs.newFromFields(this.module, structType, parameters)
     }
 
     private instantiateArray(expression: ArrayDeclarationExpression): binaryen.ExpressionRef {
@@ -390,33 +405,21 @@ export class WasmEmitter {
     }
 
     private emitDotExpression(expression: DotExpression) {
-        let exprs: binaryen.ExpressionRef
-        if (this.currentScope === GLOBAL_SCOPE) {
-            exprs = this.module.global.get(expression.properties[0].name, binaryen.i32);
-        } else {
-            const functionVariable = this.symbols[this.currentScope].get(expression.properties[0].name);
-            if (!functionVariable) {
-                throw new Error(`could not resolve ${expression.properties[0].name} in ${this.currentScope}`);
-            }
-            exprs = this.module.local.get(functionVariable.index, binaryen.i32);
-        }
-        let previousType = expression.properties[0].type
-        for (let i = 1; i < expression.properties.length; i++) {
+        let exprs = this.emitExpression(expression.identifier);
+        let previousType = expression.identifier.type
+        const results = [{type: previousType, expression: exprs, index: -1}];
+        for (let i = 0; i < expression.properties.length; i++) {
             if (previousType.kind === 'struct') {
-                let offset = 0;
                 const index = previousType.parameters.findIndex(p => p.name === expression.properties[i].name)
-                for (let j = 0; j < index; j++) {
-                    offset += size_of(previousType.parameters[j].type);
-                }
-                exprs = this.module.i32.load(
-                    offset,
-                    0,
-                    exprs,
-                )
+                exprs = gc.structs.getMember(this.module, exprs, index, this.mapBinaryenType(previousType.parameters[index].type), false)
                 previousType = previousType.parameters[index].type
+                results.push({type: previousType, expression: exprs, index})
+                continue;
             }
+            throw new Error(`unimplemented dot expression with left side ${typeToString(previousType)}`)
+            // array ...
         }
-        return exprs;
+        return results;
     }
 
     private emitArrayIndexExpression(expression: ArrayIndexExpression) {
@@ -578,6 +581,42 @@ export class WasmEmitter {
 
         }
     }
+
+    mapBinaryenType(t: VaderType): binaryen.Type {
+        if (t.kind === 'array') {
+            return binaryen.i32;
+        }
+        if (t.kind === 'struct') {
+            const type = this.customTypes.get(t)
+            if (!type) {
+                throw new Error(`Undeclared type ${typeToString(t)}`)
+            }
+            return type;
+        }
+        if (t.kind === 'function') {
+            throw new Error(`Unreachable`)
+        }
+        switch (t.name) {
+            case "boolean":
+            case "int":
+            case "u8":
+            case "u16":
+            case "u32":
+                return binaryen.i32;
+            case "long":
+            case "u64":
+                return binaryen.i64;
+            case "float":
+            case "f32":
+                return binaryen.f32;
+            case "f64":
+                return binaryen.f64;
+            case "void":
+                return binaryen.none;
+        }
+        throw new Error(`Type mapping for ${typeToString(t)} is not implemented.`);
+    }
+
 }
 
 function align_ptr(address: number) {
@@ -595,11 +634,7 @@ function size_of(t: VaderType): number {
         return (t.length?.value ?? 1) * size_of(t.type);
     }
     if (t.kind === 'struct') {
-        let size = 0;
-        for (const p of t.parameters) {
-            size += size_of(p.type)
-        }
-        return size;
+        return 4;
     }
 
     if (t.kind === 'function') {
@@ -655,33 +690,3 @@ function createBinaryenConst(module: binaryen.Module, t: VaderType, value: numbe
     throw new Error("const of type " + typeToString(t) + " is not implemented.");
 }
 
-function mapBinaryenType(t: VaderType): binaryen.Type {
-    if (t.kind === 'array') {
-        return binaryen.i32;
-    }
-    if (t.kind === 'struct') {
-        return binaryen.i32;
-    }
-    if (t.kind === 'function') {
-        throw new Error(`Unreachable`)
-    }
-    switch (t.name) {
-        case "boolean":
-        case "int":
-        case "u8":
-        case "u16":
-        case "u32":
-            return binaryen.i32;
-        case "long":
-        case "u64":
-            return binaryen.i64;
-        case "float":
-        case "f32":
-            return binaryen.f32;
-        case "f64":
-            return binaryen.f64;
-        case "void":
-            return binaryen.none;
-    }
-    throw new Error(`Type mapping for ${typeToString(t)} is not implemented.`);
-}

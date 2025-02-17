@@ -549,12 +549,25 @@
               },
               "parameters": [
                 {
-                  "kind": "NumberExpression",
+                  "kind": "DotExpression",
+                  "identifier": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive"
+                    },
+                    "value": 2,
+                    "location": {
+                      "start": 170,
+                      "end": 171,
+                      "file": "examples/arrays.vader"
+                    }
+                  },
+                  "properties": [],
                   "type": {
                     "name": "u32",
                     "kind": "primitive"
                   },
-                  "value": 2,
                   "location": {
                     "start": 170,
                     "end": 171,

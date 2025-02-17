@@ -8,7 +8,6 @@ import {
     type DotExpression,
     type Expression,
     type FunctionVaderType,
-    type IdentifierExpression,
     type NumberExpression,
     type StringExpression,
     type StructDeclarationExpression,
@@ -135,20 +134,13 @@ function parseMemberExpression(parser: Parser): Expression {
     if (!parser.isCurrentType('DotToken') || left.kind !== 'IdentifierExpression' && left.kind !== 'NumberExpression') {
         return left;
     }
-
-    if (left.kind === 'IdentifierExpression') {
-        left = {
-            kind: 'DotExpression',
-            properties: [{
-                name: (left as IdentifierExpression).identifier,
-                type: BasicVaderType.unknown,
-                location: {...left.location},
-            }],
-            type: BasicVaderType.unknown,
-            location: {...left.location},
-        }
+    left = {
+        kind: 'DotExpression',
+        identifier: left,
+        properties: [],
+        type: BasicVaderType.unknown,
+        location: {...left.location},
     }
-
     while (parser.isCurrentType('DotToken') || parser.isCurrentType('OpenSquareBracket')) {
         if (parser.isCurrentType('DotToken')) {
             parser.expect('DotToken');
@@ -419,7 +411,7 @@ function parseArrayInitializationExpression(parser: Parser): Expression {
             } satisfies NumberExpression;
         }
     } else if (hasInitialValue) {
-        if(type.length.kind === 'NumberExpression' && type.length.value !== initialValue.length) {
+        if (type.length.kind === 'NumberExpression' && type.length.value !== initialValue.length) {
             parser.reportError(`Type mismatch between array size and initial value size`, parser.previous.location);
         }
     }

@@ -1,13 +1,13 @@
 (module
  (type $0 (func (param i32 i32 i32 i32) (result i32)))
  (type $1 (func))
- (import "wasi_snapshot_preview1" "fd_write" (func $wasi_snapshot_preview1:fd_write (param i32 i32 i32 i32) (result i32)))
+ (import "wasi_snapshot_preview1" "fd_write" (func $wasi_snapshot_preview1:fd_write (type $0) (param i32 i32 i32 i32) (result i32)))
  (memory $0 1)
  (data $0 (i32.const 0) "Hello")
  (data $3 (i32.const 20) "\n")
  (export "memory" (memory $0))
  (start $main)
- (func $main
+ (func $main (type $1)
   (local $0 i32)
   (local $1 i32)
   (loop $outer_0
