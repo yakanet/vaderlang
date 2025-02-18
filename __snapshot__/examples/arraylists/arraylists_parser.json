@@ -366,7 +366,8 @@
                     "kind": "NumberExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": 0,
                     "location": {
@@ -811,7 +812,8 @@
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "value": 2,
                   "location": {
@@ -929,7 +931,8 @@
                     "kind": "NumberExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": 2,
                     "location": {
@@ -965,13 +968,15 @@
               "isConstant": false,
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "value": {
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 0,
                 "location": {
@@ -991,13 +996,15 @@
               "operator": "<",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "identifier": "i",
                 "location": {
@@ -1077,7 +1084,8 @@
                 "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "identifier": "i",
                 "location": {
@@ -1091,13 +1099,15 @@
                 "operator": "+",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "lhs": {
                   "kind": "IdentifierExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "identifier": "i",
                   "location": {
@@ -1110,7 +1120,8 @@
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "value": 1,
                   "location": {
@@ -1238,7 +1249,8 @@
                           "kind": "NumberExpression",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           },
                           "value": 2,
                           "location": {
@@ -1268,7 +1280,8 @@
                         "kind": "IdentifierExpression",
                         "type": {
                           "name": "u32",
-                          "kind": "primitive"
+                          "kind": "primitive",
+                          "signed": false
                         },
                         "identifier": "i",
                         "location": {
@@ -1279,7 +1292,8 @@
                       },
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "location": {
                         "start": 464,
@@ -1290,7 +1304,8 @@
                   ],
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "location": {
                     "start": 458,
@@ -1356,7 +1371,8 @@
                         "kind": "IdentifierExpression",
                         "type": {
                           "name": "u32",
-                          "kind": "primitive"
+                          "kind": "primitive",
+                          "signed": false
                         },
                         "identifier": "i",
                         "location": {
@@ -1367,7 +1383,8 @@
                       },
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "location": {
                         "start": 479,
@@ -1378,7 +1395,8 @@
                   ],
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "location": {
                     "start": 469,
@@ -1570,7 +1588,8 @@
                     "kind": "NumberExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": 2,
                     "location": {
@@ -1656,7 +1675,8 @@
         ],
         "returnType": {
           "name": "void",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -1701,7 +1721,8 @@
           ],
           "returnType": {
             "name": "void",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [
@@ -1709,7 +1730,8 @@
             "kind": "ConditionalStatement",
             "type": {
               "name": "void",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "ifBody": [
               {
@@ -2206,7 +2228,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 1,
                 "location": {
@@ -2391,7 +2414,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 0,
                 "location": {
@@ -2635,7 +2659,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 1,
                 "location": {
@@ -2894,9 +2919,10 @@
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
-                  "value": 3,
+                  "value": 2,
                   "location": {
                     "start": 65,
                     "end": 66,
@@ -2961,7 +2987,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 3,
                 "location": {
@@ -2973,7 +3000,8 @@
             ],
             "type": {
               "name": "void",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           },
           {
@@ -3021,7 +3049,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 4,
                 "location": {
@@ -3033,7 +3062,8 @@
             ],
             "type": {
               "name": "void",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           },
           {
@@ -3081,7 +3111,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 5,
                 "location": {
@@ -3093,7 +3124,8 @@
             ],
             "type": {
               "name": "void",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           },
           {
@@ -3143,7 +3175,8 @@
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "value": 2,
                   "location": {

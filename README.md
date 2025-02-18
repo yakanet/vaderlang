@@ -32,7 +32,13 @@ main :: fn () -> u32 {
 
 Compile the source to wasm using `./vader [file location].vader`
 
-Execute the wasm file with wasmtime using `wasmtime [file location].wasm`
+Execute the wasm file with a WASM runtime 
+```shell
+# With wasmtime
+wasmtime --wasm=gc [file location].wasm
+
+# With wasmer (not available yet, will be with wasmer 5.1)
+```
 
 > If wasmtime is in your path, you can directly compile and run with the following command :
 `./vader --run [file location].vader`

@@ -190,7 +190,8 @@
         "parameters": [],
         "returnType": {
           "name": "void",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -201,7 +202,8 @@
           "parameters": [],
           "returnType": {
             "name": "void",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [
@@ -217,7 +219,8 @@
                 "kind": "StringExpression",
                 "type": {
                   "name": "string",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": "@load \"modules/std\"\n\nmain :: fn() {\n    print(@file(\"examples/embedded_file.vader\"))\n}",
                 "location": {

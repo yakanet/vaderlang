@@ -94,7 +94,7 @@
    (local.tee $0
     (struct.new $1
      (array.new_default $0
-      (i32.const 3)
+      (i32.const 2)
      )
      (i32.const 0)
     )

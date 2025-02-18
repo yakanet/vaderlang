@@ -1,8 +1,8 @@
 import {compile} from 'svelte/compiler'
-import {FileResolver} from "../../src/resolver/module_resolver.ts";
+import {FileResolver} from "@vader/compiler/resolver/module_resolver.ts";
 import process from "node:process";
-import {parseProgram} from "../../src/parser";
-import {resolve} from "../../src/resolver/resolver.ts";
+import {parseProgram} from "@vader/compiler/parser";
+import {resolve} from "@vader/compiler/resolver/resolver.ts";
 import fs from "node:fs";
 
 const [_runtime, _script, source_path, ...options] = process.argv;

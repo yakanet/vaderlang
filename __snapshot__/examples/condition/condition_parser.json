@@ -89,13 +89,15 @@
             "isConstant": true,
             "type": {
               "name": "u32",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "value": {
               "kind": "NumberExpression",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "value": 32,
               "location": {
@@ -114,7 +116,8 @@
             "kind": "ConditionalStatement",
             "type": {
               "name": "void",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "ifBody": [
               {
@@ -129,7 +132,8 @@
                     "kind": "StringExpression",
                     "type": {
                       "name": "string",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": "equals\n",
                     "location": {
@@ -151,13 +155,15 @@
               "operator": "==",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "identifier": "x",
                 "location": {
@@ -170,7 +176,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 32,
                 "location": {
@@ -195,7 +202,8 @@
             "kind": "ConditionalStatement",
             "type": {
               "name": "void",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "ifBody": [
               {
@@ -210,7 +218,8 @@
                     "kind": "StringExpression",
                     "type": {
                       "name": "string",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": "second equals\n",
                     "location": {
@@ -232,13 +241,15 @@
               "operator": "==",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "identifier": "x",
                 "location": {
@@ -251,7 +262,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 32,
                 "location": {
@@ -276,7 +288,8 @@
             "kind": "ConditionalStatement",
             "type": {
               "name": "void",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "ifBody": [
               {
@@ -291,7 +304,8 @@
                     "kind": "StringExpression",
                     "type": {
                       "name": "string",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": "equals\n",
                     "location": {
@@ -313,13 +327,15 @@
               "operator": "!=",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "identifier": "x",
                 "location": {
@@ -332,7 +348,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 32,
                 "location": {
@@ -365,7 +382,8 @@
                     "kind": "StringExpression",
                     "type": {
                       "name": "string",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": "not equals\n",
                     "location": {
@@ -387,7 +405,8 @@
             "kind": "ConditionalStatement",
             "type": {
               "name": "void",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "ifBody": [
               {
@@ -402,7 +421,8 @@
                     "kind": "StringExpression",
                     "type": {
                       "name": "string",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": "x == 0\n",
                     "location": {
@@ -424,13 +444,15 @@
               "operator": "==",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "identifier": "x",
                 "location": {
@@ -443,7 +465,8 @@
                 "kind": "NumberExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "value": 0,
                 "location": {
@@ -468,7 +491,8 @@
                 "kind": "ConditionalStatement",
                 "type": {
                   "name": "void",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "ifBody": [
                   {
@@ -483,7 +507,8 @@
                         "kind": "StringExpression",
                         "type": {
                           "name": "string",
-                          "kind": "primitive"
+                          "kind": "primitive",
+                          "signed": false
                         },
                         "value": "x == 32\n",
                         "location": {
@@ -505,13 +530,15 @@
                   "operator": "==",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "lhs": {
                     "kind": "IdentifierExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "identifier": "x",
                     "location": {
@@ -524,7 +551,8 @@
                     "kind": "NumberExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": 32,
                     "location": {
@@ -549,7 +577,8 @@
                     "kind": "ConditionalStatement",
                     "type": {
                       "name": "void",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "ifBody": [
                       {
@@ -564,7 +593,8 @@
                             "kind": "StringExpression",
                             "type": {
                               "name": "string",
-                              "kind": "primitive"
+                              "kind": "primitive",
+                              "signed": false
                             },
                             "value": "x == 30\n",
                             "location": {
@@ -586,13 +616,15 @@
                       "operator": "==",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "lhs": {
                         "kind": "IdentifierExpression",
                         "type": {
                           "name": "u32",
-                          "kind": "primitive"
+                          "kind": "primitive",
+                          "signed": false
                         },
                         "identifier": "x",
                         "location": {
@@ -605,7 +637,8 @@
                         "kind": "NumberExpression",
                         "type": {
                           "name": "u32",
-                          "kind": "primitive"
+                          "kind": "primitive",
+                          "signed": false
                         },
                         "value": 30,
                         "location": {
@@ -638,7 +671,8 @@
                             "kind": "StringExpression",
                             "type": {
                               "name": "string",
-                              "kind": "primitive"
+                              "kind": "primitive",
+                              "signed": false
                             },
                             "value": "not equals\n",
                             "location": {
@@ -666,13 +700,15 @@
             "isConstant": false,
             "type": {
               "name": "u32",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "value": {
               "kind": "NumberExpression",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "value": 3,
               "location": {
@@ -693,13 +729,15 @@
             "isConstant": false,
             "type": {
               "name": "u32",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "value": {
               "kind": "ConditionalExpression",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "ifBody": [
                 {
@@ -708,7 +746,8 @@
                     "kind": "IdentifierExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "identifier": "z",
                     "location": {
@@ -721,7 +760,8 @@
                     "kind": "NumberExpression",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "value": 2,
                     "location": {
@@ -740,7 +780,8 @@
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "value": 1,
                   "location": {
@@ -755,13 +796,15 @@
                 "operator": "==",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "lhs": {
                   "kind": "IdentifierExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "identifier": "x",
                   "location": {
@@ -774,7 +817,8 @@
                   "kind": "NumberExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "value": 32,
                   "location": {
@@ -799,14 +843,16 @@
                   "kind": "ConditionalExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "ifBody": [
                     {
                       "kind": "NumberExpression",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "value": 3,
                       "location": {
@@ -821,13 +867,15 @@
                     "operator": "==",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     },
                     "lhs": {
                       "kind": "IdentifierExpression",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "identifier": "x",
                       "location": {
@@ -840,7 +888,8 @@
                       "kind": "NumberExpression",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "value": 33,
                       "location": {
@@ -865,7 +914,8 @@
                       "kind": "NumberExpression",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "value": 2,
                       "location": {
@@ -891,20 +941,23 @@
               "operator": "+",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "BinaryExpression",
                 "operator": "+",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "lhs": {
                   "kind": "IdentifierExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "identifier": "x",
                   "location": {
@@ -917,7 +970,8 @@
                   "kind": "IdentifierExpression",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "identifier": "y",
                   "location": {
@@ -936,7 +990,8 @@
                 "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "identifier": "z",
                 "location": {

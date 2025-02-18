@@ -48,7 +48,6 @@ export class WasmEmitter {
         for (const statement of program.body) {
             this.emitTopLevelStatement(statement);
         }
-
         this.emitMainMethod(program);
 
         this.module.setMemory(1, -1, "memory", this.memoryLayout.map(layout => ({
@@ -218,7 +217,8 @@ export class WasmEmitter {
                         const param = keys.at(-1)!;
                         assert(param);
                         return gc.structs.setMember(this.module, base.expression, param.index, this.emitExpression(stmt.value))
-                    }  if (keys.at(-2)!.type.kind === 'array') {
+                    }
+                    if (keys.at(-2)!.type.kind === 'array') {
                         const base = keys.at(-2)!
                         const param = keys.at(-1)!;
                         assert(param);
@@ -394,7 +394,7 @@ export class WasmEmitter {
             if (previousType.kind === 'struct') {
                 assert(property.kind === 'IdentifierExpression');
                 const index = previousType.parameters.findIndex(p => p.name === property.identifier)
-                exprs = gc.structs.getMember(this.module, exprs, index, this.mapBinaryenType(previousType.parameters[index].type), false)
+                exprs = gc.structs.getMember(this.module, exprs, index, this.mapBinaryenType(previousType.parameters[index].type), is_signed(property.type))
                 previousType = property.type
                 results.push({type: previousType, expression: exprs, index})
             } else if (previousType.kind === 'array') {
@@ -406,7 +406,7 @@ export class WasmEmitter {
                     exprs,
                     index,
                     this.mapBinaryenType(property.type),
-                    false
+                    is_signed(property.type)
                 )
                 previousType = property.index.type
                 results.push({type: previousType, expression: exprs, index})
@@ -579,6 +579,13 @@ function size_of(t: VaderType): number {
             return 0;
     }
     throw new Error("size of type " + typeToString(t) + " is not implemented.");
+}
+
+function is_signed(type: VaderType) {
+    if (type.kind === 'primitive') {
+        return type.signed;
+    }
+    return false;
 }
 
 function createBinaryenConst(module: binaryen.Module, t: VaderType, value: number) {

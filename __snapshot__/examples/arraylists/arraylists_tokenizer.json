@@ -145,7 +145,7 @@
   },
   {
     "type": "NumberToken",
-    "value": "3",
+    "value": "2",
     "location": {
       "end": 66,
       "start": 65,

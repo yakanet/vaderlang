@@ -1,7 +1,7 @@
 @load "arraylist"
 
 main :: fn() -> u32 {
-    list :: create_list(3)
+    list :: create_list(2)
     list.push(3)
     list.push(4)
     list.push(5)

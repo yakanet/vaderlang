@@ -127,15 +127,16 @@ export type ArrayIndexExpression = BasicStatement & {
 }
 
 export type VaderType =
-    | RawVaderType
+    | PrimitiveVaderType
     | ArrayVaderType
     | StructVaderType
     | FunctionVaderType
     | UnknownType;
 
-interface RawVaderType {
+interface PrimitiveVaderType {
     kind: 'primitive'
     name: string,
+    signed: boolean
 }
 
 export interface StructVaderType {
@@ -238,7 +239,7 @@ export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
             return a.length === c.length;
         }
         case 'primitive': {
-            const c = b as RawVaderType;
+            const c = b as PrimitiveVaderType;
             return c.name === a.name;
         }
     }
@@ -246,16 +247,16 @@ export function isTypeEquals<T extends VaderType>(a: T, b: T): boolean {
 
 export const BasicVaderType = {
     unknown: {name: 'UNKNOWN', kind: 'unknown'},
-    ptr: {name: 'u32', kind: 'primitive'},
-    u8: {name: 'u8', kind: 'primitive'},
-    u32: {name: 'u32', kind: 'primitive'},
-    u64: {name: 'u64', kind: 'primitive'},
-    u16: {name: 'u16', kind: 'primitive'},
-    f32: {name: 'f32', kind: 'primitive'},
-    f64: {name: 'f64', kind: 'primitive'},
-    boolean: {name: 'boolean', kind: 'primitive'},
-    void: {name: 'void', kind: 'primitive'},
-    string: {name: 'string', kind: 'primitive'},
+    ptr: {name: 'u32', kind: 'primitive', signed: false},
+    u8: {name: 'u8', kind: 'primitive', signed: false},
+    u32: {name: 'u32', kind: 'primitive', signed: false},
+    u64: {name: 'u64', kind: 'primitive', signed: false},
+    u16: {name: 'u16', kind: 'primitive', signed: false},
+    f32: {name: 'f32', kind: 'primitive', signed: false},
+    f64: {name: 'f64', kind: 'primitive', signed: false},
+    boolean: {name: 'boolean', kind: 'primitive', signed: false},
+    void: {name: 'void', kind: 'primitive', signed: false},
+    string: {name: 'string', kind: 'primitive', signed: false},
 } as const satisfies Record<string, VaderType>;
 
 
