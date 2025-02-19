@@ -738,17 +738,17 @@
                     "kind": "primitive"
                   },
                   "location": {
+                    "file": "modules/arraylist.vader",
                     "start": {
-                      "offset": 299,
+                      "offset": 298,
                       "line": 17,
-                      "column": 22
+                      "column": 21
                     },
                     "end": {
-                      "offset": 304,
+                      "offset": 305,
                       "line": 17,
-                      "column": 27
-                    },
-                    "file": "modules/arraylist.vader"
+                      "column": 28
+                    }
                   }
                 }
               ],
@@ -1011,9 +1011,9 @@
                           "column": 14
                         },
                         "end": {
-                          "offset": 379,
+                          "offset": 384,
                           "line": 22,
-                          "column": 18
+                          "column": 23
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -1178,9 +1178,9 @@
                             "column": 14
                           },
                           "end": {
-                            "offset": 379,
+                            "offset": 384,
                             "line": 22,
-                            "column": 18
+                            "column": 23
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -1656,9 +1656,9 @@
                                   "column": 14
                                 },
                                 "end": {
-                                  "offset": 379,
+                                  "offset": 384,
                                   "line": 22,
-                                  "column": 18
+                                  "column": 23
                                 },
                                 "file": "modules/arraylist.vader"
                               }
@@ -1752,17 +1752,17 @@
                         "signed": false
                       },
                       "location": {
+                        "file": "modules/arraylist.vader",
                         "start": {
-                          "offset": 462,
+                          "offset": 461,
                           "line": 24,
-                          "column": 14
+                          "column": 13
                         },
                         "end": {
-                          "offset": 463,
+                          "offset": 464,
                           "line": 24,
-                          "column": 15
-                        },
-                        "file": "modules/arraylist.vader"
+                          "column": 16
+                        }
                       }
                     }
                   ],
@@ -1883,17 +1883,17 @@
                         "signed": false
                       },
                       "location": {
+                        "file": "modules/arraylist.vader",
                         "start": {
-                          "offset": 477,
+                          "offset": 476,
                           "line": 24,
-                          "column": 29
+                          "column": 28
                         },
                         "end": {
-                          "offset": 478,
+                          "offset": 479,
                           "line": 24,
-                          "column": 30
-                        },
-                        "file": "modules/arraylist.vader"
+                          "column": 31
+                        }
                       }
                     }
                   ],
@@ -2155,9 +2155,9 @@
                             "column": 14
                           },
                           "end": {
-                            "offset": 379,
+                            "offset": 384,
                             "line": 22,
-                            "column": 18
+                            "column": 23
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -2621,9 +2621,9 @@
                         "column": 23
                       },
                       "end": {
-                        "offset": 572,
+                        "offset": 577,
                         "line": 30,
-                        "column": 27
+                        "column": 32
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -2822,17 +2822,17 @@
                     "kind": "primitive"
                   },
                   "location": {
+                    "file": "modules/arraylist.vader",
                     "start": {
-                      "offset": 628,
+                      "offset": 627,
                       "line": 33,
-                      "column": 15
+                      "column": 14
                     },
                     "end": {
-                      "offset": 639,
+                      "offset": 640,
                       "line": 33,
-                      "column": 26
-                    },
-                    "file": "modules/arraylist.vader"
+                      "column": 27
+                    }
                   }
                 }
               ],
@@ -3857,17 +3857,17 @@
                     "kind": "primitive"
                   },
                   "location": {
+                    "file": "modules/arraylist.vader",
                     "start": {
-                      "offset": 838,
+                      "offset": 837,
                       "line": 43,
-                      "column": 22
+                      "column": 21
                     },
                     "end": {
-                      "offset": 849,
+                      "offset": 850,
                       "line": 43,
-                      "column": 33
-                    },
-                    "file": "modules/arraylist.vader"
+                      "column": 34
+                    }
                   }
                 }
               ],

@@ -975,17 +975,17 @@
                     "signed": false
                   },
                   "location": {
+                    "file": "examples/arrays.vader",
                     "start": {
-                      "offset": 191,
+                      "offset": 190,
                       "line": 13,
-                      "column": 12
+                      "column": 11
                     },
                     "end": {
-                      "offset": 192,
+                      "offset": 193,
                       "line": 13,
-                      "column": 13
-                    },
-                    "file": "examples/arrays.vader"
+                      "column": 14
+                    }
                   }
                 }
               ],

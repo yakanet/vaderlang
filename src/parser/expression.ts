@@ -288,7 +288,10 @@ function parseDotExpression(parser: Parser, left: Expression): Expression {
                 identifier: left,
                 properties: [],
                 type: BasicVaderType.unknown,
-                location: {...left.location},
+                location: {
+                    ...left.location,
+                    end: parser.previous.location.end
+                },
             }
         }
         return left;
@@ -327,15 +330,19 @@ function parseDotExpression(parser: Parser, left: Expression): Expression {
                 })
             }
         } else if (parser.isCurrentType('OpenSquareBracket')) {
-            parser.expect('OpenSquareBracket');
+            const start = parser.expect('OpenSquareBracket');
             const index = parseExpression(parser);
+            const end = parser.expect('CloseSquareBracket');
             createDotExpressionIfNotExists().properties.push({
                 kind: 'ArrayIndexExpression',
                 index,
                 type: BasicVaderType.unknown,
-                location: index.location
+                location: {
+                    file: start.location.file,
+                    start: start.location.start,
+                    end: end.location.end
+                }
             })
-            parser.expect('CloseSquareBracket');
         }
     }
     left.location.end = parser.previous.location.end;

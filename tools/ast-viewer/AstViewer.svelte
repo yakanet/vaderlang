@@ -10,7 +10,7 @@
     }: { parsed: any, files: Record<string, string> } = $props();
 
     const views = new Map<string, EditorView>();
-    const input = Object.fromEntries(Object.keys(files).map(file => [file, {start: 0, end: 0}]))
+    const input = $state(Object.fromEntries(Object.keys(files).map(file => [file, {start: 0, end: 0}])))
 
     function vaderEditor(node: HTMLElement, {name, content}: { name: string, content: string }) {
         const view = new EditorView({
@@ -28,9 +28,11 @@
         }
     }
 
-    function jsonEditor(node: HTMLElement, content: string) {
+    function jsonEditor(node: HTMLElement, content: unknown) {
+        const jsonContent = JSON.stringify(content, null, 2);
+        const lines = jsonContent.split('\n');
         const view = new EditorView({
-            doc: JSON.stringify(content, null, 2),
+            doc: jsonContent,
             parent: node,
             extensions: [
                 basicSetup,
@@ -39,6 +41,30 @@
                 EditorView.editable.of(false)
             ]
         });
+        view.dom.addEventListener('click', (event) => {
+            const pos = view.posAtCoords({x: event.clientX, y: event.clientY});
+            const line = view.state.doc.lineAt(pos ?? -1);
+            if (!line) {
+                return;
+            }
+            if (line.text.trim().startsWith('"location":')) {
+                const locationLines = lines.slice(line.number, line.number + 12)
+                let locationJson = `{${locationLines.join('').trim()}`;
+                if (locationJson.endsWith(',')) {
+                    locationJson = locationJson.slice(0, locationJson.length - 1)
+                }
+                const location = JSON.parse(locationJson)
+                if (location.file) {
+                    input[location.file].start = location.start.offset;
+                    input[location.file].end = location.end.offset;
+
+                    const view = views.get(location.file)!;
+                    const effects: StateEffect<any>[] = [set_highlight.of(input[location.file])];
+                    view.dispatch({effects})
+                }
+            }
+            // Ajoutez ici le code que vous souhaitez exécuter lors du clic sur la ligne
+        })
         return {
             destroy: () => view.destroy(),
         }
