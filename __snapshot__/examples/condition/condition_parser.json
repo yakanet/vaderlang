@@ -853,7 +853,11 @@
                     "line": 26,
                     "column": 7
                   },
-                  "end": 0,
+                  "end": {
+                    "offset": 466,
+                    "line": 26,
+                    "column": 7
+                  },
                   "file": "examples/condition.vader"
                 },
                 "elseBody": [
@@ -983,7 +987,11 @@
                         "line": 28,
                         "column": 7
                       },
-                      "end": 0,
+                      "end": {
+                        "offset": 514,
+                        "line": 28,
+                        "column": 7
+                      },
                       "file": "examples/condition.vader"
                     },
                     "elseBody": [
@@ -1366,7 +1374,11 @@
                       "line": 38,
                       "column": 5
                     },
-                    "end": 0,
+                    "end": {
+                      "offset": 672,
+                      "line": 38,
+                      "column": 5
+                    },
                     "file": "examples/condition.vader"
                   },
                   "elseBody": [
@@ -1567,7 +1579,11 @@
     }
   ],
   "location": {
-    "start": 0,
+    "start": {
+      "offset": 0,
+      "line": 1,
+      "column": 1
+    },
     "end": {
       "offset": 728,
       "line": 41,

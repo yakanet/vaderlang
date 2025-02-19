@@ -842,7 +842,11 @@
     }
   ],
   "location": {
-    "start": 0,
+    "start": {
+      "offset": 0,
+      "line": 1,
+      "column": 1
+    },
     "end": {
       "offset": 169,
       "line": 10,

@@ -31,12 +31,12 @@
    (then
     ;;@ modules/arraylist.vader:22:5
     (local.set $3
-     ;;@ modules/arraylist.vader:22:14
+     ;;@ modules/arraylist.vader:22:13
      (array.new_default $0
-      ;;@ modules/arraylist.vader:22:15
+      ;;@ modules/arraylist.vader:22:14
       (i32.shl
        (local.get $4)
-       ;;@ modules/arraylist.vader:22:36
+       ;;@ modules/arraylist.vader:22:35
        (i32.const 1)
       )
      )
@@ -56,16 +56,16 @@
        ;;@ modules/arraylist.vader:24:9
        (array.set $0
         (local.get $3)
-        ;;@ modules/arraylist.vader:24:15
+        ;;@ modules/arraylist.vader:24:14
         (local.get $2)
-        ;;@ modules/arraylist.vader:24:20
+        ;;@ modules/arraylist.vader:24:19
         (array.get $0
          ;;@
          (struct.get $1 0
-          ;;@ modules/arraylist.vader:24:20
+          ;;@ modules/arraylist.vader:24:19
           (local.get $0)
          )
-         ;;@ modules/arraylist.vader:24:30
+         ;;@ modules/arraylist.vader:24:29
          (local.get $2)
         )
        )

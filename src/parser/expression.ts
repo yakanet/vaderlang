@@ -378,7 +378,7 @@ function parseArrayInitializationExpression(parser: Parser): Expression {
     const token = parser.current;
     const type = parseType(parser)
     if (type.kind !== 'array') {
-        throw new Error(`unreachable ${type.kind} should be an array.`);
+        parser.reportError(`unreachable ${type.kind} should be an array.`, token.location);
     }
 
     const initialValue: Expression[] = []

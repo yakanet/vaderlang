@@ -19,11 +19,11 @@ at :: fn(this : List, index: u32) -> u32 {
 
 // TODO use memcopy
 grow :: fn(this: List) -> void {
-    data2 :: [this.data.length() * 2]u32
+    data :: [this.data.length() * 2]u32
     for (i := 0; i < this.length; i = i + 1) {
-        data2[i] = this.data[i]
+        data[i] = this.data[i]
     }
-    this.data = data2
+    this.data = data
 }
 
 push :: fn(this: List, item: u32) {
