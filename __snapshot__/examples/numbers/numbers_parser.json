@@ -19,14 +19,30 @@
         },
         "value": 4095,
         "location": {
-          "start": 5,
-          "end": 10,
+          "start": {
+            "offset": 5,
+            "line": 1,
+            "column": 6
+          },
+          "end": {
+            "offset": 10,
+            "line": 1,
+            "column": 11
+          },
           "file": "examples/numbers.vader"
         }
       },
       "location": {
-        "start": 0,
-        "end": 10,
+        "start": {
+          "offset": 0,
+          "line": 1,
+          "column": 1
+        },
+        "end": {
+          "offset": 10,
+          "line": 1,
+          "column": 11
+        },
         "file": "examples/numbers.vader"
       }
     },
@@ -48,14 +64,30 @@
         },
         "value": 170,
         "location": {
-          "start": 16,
-          "end": 27,
+          "start": {
+            "offset": 16,
+            "line": 2,
+            "column": 6
+          },
+          "end": {
+            "offset": 27,
+            "line": 2,
+            "column": 17
+          },
           "file": "examples/numbers.vader"
         }
       },
       "location": {
-        "start": 11,
-        "end": 27,
+        "start": {
+          "offset": 11,
+          "line": 2,
+          "column": 1
+        },
+        "end": {
+          "offset": 27,
+          "line": 2,
+          "column": 17
+        },
         "file": "examples/numbers.vader"
       }
     },
@@ -77,14 +109,30 @@
         },
         "value": 3.123,
         "location": {
-          "start": 33,
-          "end": 38,
+          "start": {
+            "offset": 33,
+            "line": 3,
+            "column": 6
+          },
+          "end": {
+            "offset": 38,
+            "line": 3,
+            "column": 11
+          },
           "file": "examples/numbers.vader"
         }
       },
       "location": {
-        "start": 28,
-        "end": 38,
+        "start": {
+          "offset": 28,
+          "line": 3,
+          "column": 1
+        },
+        "end": {
+          "offset": 38,
+          "line": 3,
+          "column": 11
+        },
         "file": "examples/numbers.vader"
       }
     },
@@ -106,14 +154,30 @@
         },
         "value": 4,
         "location": {
-          "start": 44,
-          "end": 45,
+          "start": {
+            "offset": 44,
+            "line": 4,
+            "column": 6
+          },
+          "end": {
+            "offset": 45,
+            "line": 4,
+            "column": 7
+          },
           "file": "examples/numbers.vader"
         }
       },
       "location": {
-        "start": 39,
-        "end": 45,
+        "start": {
+          "offset": 39,
+          "line": 4,
+          "column": 1
+        },
+        "end": {
+          "offset": 45,
+          "line": 4,
+          "column": 7
+        },
         "file": "examples/numbers.vader"
       }
     },
@@ -135,14 +199,30 @@
         },
         "value": 1234234,
         "location": {
-          "start": 51,
-          "end": 60,
+          "start": {
+            "offset": 51,
+            "line": 5,
+            "column": 6
+          },
+          "end": {
+            "offset": 60,
+            "line": 5,
+            "column": 15
+          },
           "file": "examples/numbers.vader"
         }
       },
       "location": {
-        "start": 46,
-        "end": 60,
+        "start": {
+          "offset": 46,
+          "line": 5,
+          "column": 1
+        },
+        "end": {
+          "offset": 60,
+          "line": 5,
+          "column": 15
+        },
         "file": "examples/numbers.vader"
       }
     },
@@ -198,8 +278,16 @@
                   },
                   "value": 1,
                   "location": {
-                    "start": 95,
-                    "end": 96,
+                    "start": {
+                      "offset": 95,
+                      "line": 8,
+                      "column": 12
+                    },
+                    "end": {
+                      "offset": 96,
+                      "line": 8,
+                      "column": 13
+                    },
                     "file": "examples/numbers.vader"
                   }
                 },
@@ -220,8 +308,16 @@
                     },
                     "value": 2,
                     "location": {
-                      "start": 99,
-                      "end": 100,
+                      "start": {
+                        "offset": 99,
+                        "line": 8,
+                        "column": 16
+                      },
+                      "end": {
+                        "offset": 100,
+                        "line": 8,
+                        "column": 17
+                      },
                       "file": "examples/numbers.vader"
                     }
                   },
@@ -234,20 +330,44 @@
                     },
                     "value": 3,
                     "location": {
-                      "start": 103,
-                      "end": 104,
+                      "start": {
+                        "offset": 103,
+                        "line": 8,
+                        "column": 20
+                      },
+                      "end": {
+                        "offset": 104,
+                        "line": 8,
+                        "column": 21
+                      },
                       "file": "examples/numbers.vader"
                     }
                   },
                   "location": {
-                    "start": 99,
-                    "end": 104,
+                    "start": {
+                      "offset": 99,
+                      "line": 8,
+                      "column": 16
+                    },
+                    "end": {
+                      "offset": 104,
+                      "line": 8,
+                      "column": 21
+                    },
                     "file": "examples/numbers.vader"
                   }
                 },
                 "location": {
-                  "start": 95,
-                  "end": 104,
+                  "start": {
+                    "offset": 95,
+                    "line": 8,
+                    "column": 12
+                  },
+                  "end": {
+                    "offset": 104,
+                    "line": 8,
+                    "column": 21
+                  },
                   "file": "examples/numbers.vader"
                 }
               },
@@ -268,8 +388,16 @@
                   },
                   "value": 1,
                   "location": {
-                    "start": 107,
-                    "end": 108,
+                    "start": {
+                      "offset": 107,
+                      "line": 8,
+                      "column": 24
+                    },
+                    "end": {
+                      "offset": 108,
+                      "line": 8,
+                      "column": 25
+                    },
                     "file": "examples/numbers.vader"
                   }
                 },
@@ -282,46 +410,98 @@
                   },
                   "value": 2,
                   "location": {
-                    "start": 111,
-                    "end": 112,
+                    "start": {
+                      "offset": 111,
+                      "line": 8,
+                      "column": 28
+                    },
+                    "end": {
+                      "offset": 112,
+                      "line": 8,
+                      "column": 29
+                    },
                     "file": "examples/numbers.vader"
                   }
                 },
                 "location": {
-                  "start": 107,
-                  "end": 112,
+                  "start": {
+                    "offset": 107,
+                    "line": 8,
+                    "column": 24
+                  },
+                  "end": {
+                    "offset": 112,
+                    "line": 8,
+                    "column": 29
+                  },
                   "file": "examples/numbers.vader"
                 }
               },
               "location": {
-                "start": 95,
-                "end": 112,
+                "start": {
+                  "offset": 95,
+                  "line": 8,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 112,
+                  "line": 8,
+                  "column": 29
+                },
                 "file": "examples/numbers.vader"
               }
             },
             "location": {
-              "start": 88,
-              "end": 112,
+              "start": {
+                "offset": 88,
+                "line": 8,
+                "column": 5
+              },
+              "end": {
+                "offset": 112,
+                "line": 8,
+                "column": 29
+              },
               "file": "examples/numbers.vader"
             }
           }
         ],
         "location": {
-          "start": 70,
-          "end": 114,
+          "start": {
+            "offset": 70,
+            "line": 7,
+            "column": 9
+          },
+          "end": {
+            "offset": 114,
+            "line": 9,
+            "column": 2
+          },
           "file": "examples/numbers.vader"
         }
       },
       "location": {
-        "start": 62,
-        "end": 114,
+        "start": {
+          "offset": 62,
+          "line": 7,
+          "column": 1
+        },
+        "end": {
+          "offset": 114,
+          "line": 9,
+          "column": 2
+        },
         "file": "examples/numbers.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 114,
+    "end": {
+      "offset": 114,
+      "line": 9,
+      "column": 2
+    },
     "file": "examples/numbers.vader"
   }
 }

@@ -188,7 +188,7 @@ export function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 
         condition: ifCondition,
         location: {
             start: ifToken.location.start,
-            end: 0,
+            end: ifToken.location.start,
             file: ifToken.location.file,
         }
     } satisfies ConditionalStatement | ConditionalExpression;
@@ -204,7 +204,7 @@ export function parseIfStatement(parser: Parser, kind: 'ConditionalStatement' | 
             condition: condition,
             location: {
                 start: elifToken.location.start,
-                end: 0,
+                end: elifToken.location.start,
                 file: elifToken.location.file,
             }
         }]

@@ -47,14 +47,30 @@
         },
         "body": [],
         "location": {
-          "start": 19,
-          "end": 45,
+          "start": {
+            "offset": 19,
+            "line": 2,
+            "column": 9
+          },
+          "end": {
+            "offset": 45,
+            "line": 2,
+            "column": 35
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 11,
-        "end": 45,
+        "start": {
+          "offset": 11,
+          "line": 2,
+          "column": 1
+        },
+        "end": {
+          "offset": 45,
+          "line": 2,
+          "column": 35
+        },
         "file": "modules/std.vader"
       }
     },
@@ -104,14 +120,30 @@
         },
         "body": [],
         "location": {
-          "start": 67,
-          "end": 94,
+          "start": {
+            "offset": 67,
+            "line": 5,
+            "column": 10
+          },
+          "end": {
+            "offset": 94,
+            "line": 5,
+            "column": 37
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 58,
-        "end": 94,
+        "start": {
+          "offset": 58,
+          "line": 5,
+          "column": 1
+        },
+        "end": {
+          "offset": 94,
+          "line": 5,
+          "column": 37
+        },
         "file": "modules/std.vader"
       }
     },
@@ -169,14 +201,30 @@
         },
         "body": [],
         "location": {
-          "start": 117,
-          "end": 140,
+          "start": {
+            "offset": 117,
+            "line": 8,
+            "column": 11
+          },
+          "end": {
+            "offset": 140,
+            "line": 8,
+            "column": 34
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 107,
-        "end": 140,
+        "start": {
+          "offset": 107,
+          "line": 8,
+          "column": 1
+        },
+        "end": {
+          "offset": 140,
+          "line": 8,
+          "column": 34
+        },
         "file": "modules/std.vader"
       }
     },
@@ -198,14 +246,30 @@
         },
         "value": 23,
         "location": {
-          "start": 18,
-          "end": 20,
+          "start": {
+            "offset": 18,
+            "line": 3,
+            "column": 6
+          },
+          "end": {
+            "offset": 20,
+            "line": 3,
+            "column": 8
+          },
           "file": "examples/arrays.vader"
         }
       },
       "location": {
-        "start": 13,
-        "end": 20,
+        "start": {
+          "offset": 13,
+          "line": 3,
+          "column": 1
+        },
+        "end": {
+          "offset": 20,
+          "line": 3,
+          "column": 8
+        },
         "file": "examples/arrays.vader"
       }
     },
@@ -278,8 +342,16 @@
                 },
                 "value": 10,
                 "location": {
-                  "start": 68,
-                  "end": 70,
+                  "start": {
+                    "offset": 68,
+                    "line": 5,
+                    "column": 16
+                  },
+                  "end": {
+                    "offset": 70,
+                    "line": 5,
+                    "column": 18
+                  },
                   "file": "examples/arrays.vader"
                 }
               }
@@ -302,21 +374,45 @@
                   },
                   "value": 10,
                   "location": {
-                    "start": 68,
-                    "end": 70,
+                    "start": {
+                      "offset": 68,
+                      "line": 5,
+                      "column": 16
+                    },
+                    "end": {
+                      "offset": 70,
+                      "line": 5,
+                      "column": 18
+                    },
                     "file": "examples/arrays.vader"
                   }
                 }
               },
               "location": {
-                "start": 67,
-                "end": 73,
+                "start": {
+                  "offset": 67,
+                  "line": 5,
+                  "column": 15
+                },
+                "end": {
+                  "offset": 73,
+                  "line": 5,
+                  "column": 21
+                },
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 57,
-              "end": 73,
+              "start": {
+                "offset": 57,
+                "line": 5,
+                "column": 5
+              },
+              "end": {
+                "offset": 73,
+                "line": 5,
+                "column": 21
+              },
               "file": "examples/arrays.vader"
             }
           },
@@ -340,35 +436,75 @@
                   },
                   "value": 10,
                   "location": {
-                    "start": 68,
-                    "end": 70,
+                    "start": {
+                      "offset": 68,
+                      "line": 5,
+                      "column": 16
+                    },
+                    "end": {
+                      "offset": 70,
+                      "line": 5,
+                      "column": 18
+                    },
                     "file": "examples/arrays.vader"
                   }
                 }
               },
               "identifier": "buffer",
               "location": {
-                "start": 85,
-                "end": 91,
+                "start": {
+                  "offset": 85,
+                  "line": 6,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 91,
+                  "line": 6,
+                  "column": 18
+                },
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 78,
-              "end": 91,
+              "start": {
+                "offset": 78,
+                "line": 6,
+                "column": 5
+              },
+              "end": {
+                "offset": 91,
+                "line": 6,
+                "column": 18
+              },
               "file": "examples/arrays.vader"
             }
           }
         ],
         "location": {
-          "start": 29,
-          "end": 93,
+          "start": {
+            "offset": 29,
+            "line": 4,
+            "column": 9
+          },
+          "end": {
+            "offset": 93,
+            "line": 7,
+            "column": 2
+          },
           "file": "examples/arrays.vader"
         }
       },
       "location": {
-        "start": 21,
-        "end": 93,
+        "start": {
+          "offset": 21,
+          "line": 4,
+          "column": 1
+        },
+        "end": {
+          "offset": 93,
+          "line": 7,
+          "column": 2
+        },
         "file": "examples/arrays.vader"
       }
     },
@@ -417,8 +553,16 @@
                 },
                 "value": 4,
                 "location": {
-                  "start": 133,
-                  "end": 151,
+                  "start": {
+                    "offset": 133,
+                    "line": 10,
+                    "column": 17
+                  },
+                  "end": {
+                    "offset": 151,
+                    "line": 11,
+                    "column": 6
+                  },
                   "file": "examples/arrays.vader"
                 }
               }
@@ -441,8 +585,16 @@
                   },
                   "value": 4,
                   "location": {
-                    "start": 133,
-                    "end": 151,
+                    "start": {
+                      "offset": 133,
+                      "line": 10,
+                      "column": 17
+                    },
+                    "end": {
+                      "offset": 151,
+                      "line": 11,
+                      "column": 6
+                    },
                     "file": "examples/arrays.vader"
                   }
                 }
@@ -457,8 +609,16 @@
                   },
                   "value": 2,
                   "location": {
-                    "start": 134,
-                    "end": 135,
+                    "start": {
+                      "offset": 134,
+                      "line": 10,
+                      "column": 18
+                    },
+                    "end": {
+                      "offset": 135,
+                      "line": 10,
+                      "column": 19
+                    },
                     "file": "examples/arrays.vader"
                   }
                 },
@@ -471,8 +631,16 @@
                   },
                   "value": 3,
                   "location": {
-                    "start": 137,
-                    "end": 138,
+                    "start": {
+                      "offset": 137,
+                      "line": 10,
+                      "column": 21
+                    },
+                    "end": {
+                      "offset": 138,
+                      "line": 10,
+                      "column": 22
+                    },
                     "file": "examples/arrays.vader"
                   }
                 },
@@ -485,8 +653,16 @@
                   },
                   "value": 4,
                   "location": {
-                    "start": 140,
-                    "end": 141,
+                    "start": {
+                      "offset": 140,
+                      "line": 10,
+                      "column": 24
+                    },
+                    "end": {
+                      "offset": 141,
+                      "line": 10,
+                      "column": 25
+                    },
                     "file": "examples/arrays.vader"
                   }
                 },
@@ -499,21 +675,45 @@
                   },
                   "value": 5,
                   "location": {
-                    "start": 143,
-                    "end": 144,
+                    "start": {
+                      "offset": 143,
+                      "line": 10,
+                      "column": 27
+                    },
+                    "end": {
+                      "offset": 144,
+                      "line": 10,
+                      "column": 28
+                    },
                     "file": "examples/arrays.vader"
                   }
                 }
               ],
               "location": {
-                "start": 126,
-                "end": 145,
+                "start": {
+                  "offset": 126,
+                  "line": 10,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 145,
+                  "line": 10,
+                  "column": 29
+                },
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 121,
-              "end": 145,
+              "start": {
+                "offset": 121,
+                "line": 10,
+                "column": 5
+              },
+              "end": {
+                "offset": 145,
+                "line": 10,
+                "column": 29
+              },
               "file": "examples/arrays.vader"
             }
           },
@@ -537,8 +737,16 @@
                 },
                 "value": 4,
                 "location": {
-                  "start": 156,
-                  "end": 157,
+                  "start": {
+                    "offset": 156,
+                    "line": 11,
+                    "column": 11
+                  },
+                  "end": {
+                    "offset": 157,
+                    "line": 11,
+                    "column": 12
+                  },
                   "file": "examples/arrays.vader"
                 }
               }
@@ -561,21 +769,45 @@
                   },
                   "value": 4,
                   "location": {
-                    "start": 156,
-                    "end": 157,
+                    "start": {
+                      "offset": 156,
+                      "line": 11,
+                      "column": 11
+                    },
+                    "end": {
+                      "offset": 157,
+                      "line": 11,
+                      "column": 12
+                    },
                     "file": "examples/arrays.vader"
                   }
                 }
               },
               "location": {
-                "start": 155,
-                "end": 161,
+                "start": {
+                  "offset": 155,
+                  "line": 11,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 161,
+                  "line": 11,
+                  "column": 16
+                },
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 150,
-              "end": 161,
+              "start": {
+                "offset": 150,
+                "line": 11,
+                "column": 5
+              },
+              "end": {
+                "offset": 161,
+                "line": 11,
+                "column": 16
+              },
               "file": "examples/arrays.vader"
             }
           },
@@ -595,8 +827,16 @@
               "kind": "CallExpression",
               "functionName": "itoa",
               "location": {
-                "start": 171,
-                "end": 179,
+                "start": {
+                  "offset": 171,
+                  "line": 12,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 179,
+                  "line": 12,
+                  "column": 18
+                },
                 "file": "examples/arrays.vader"
               },
               "parameters": [
@@ -609,8 +849,16 @@
                   },
                   "value": 2,
                   "location": {
-                    "start": 171,
-                    "end": 172,
+                    "start": {
+                      "offset": 171,
+                      "line": 12,
+                      "column": 10
+                    },
+                    "end": {
+                      "offset": 172,
+                      "line": 12,
+                      "column": 11
+                    },
                     "file": "examples/arrays.vader"
                   }
                 }
@@ -625,8 +873,16 @@
               }
             },
             "location": {
-              "start": 166,
-              "end": 179,
+              "start": {
+                "offset": 166,
+                "line": 12,
+                "column": 5
+              },
+              "end": {
+                "offset": 179,
+                "line": 12,
+                "column": 18
+              },
               "file": "examples/arrays.vader"
             }
           },
@@ -659,16 +915,32 @@
                     },
                     "value": 4,
                     "location": {
-                      "start": 133,
-                      "end": 151,
+                      "start": {
+                        "offset": 133,
+                        "line": 10,
+                        "column": 17
+                      },
+                      "end": {
+                        "offset": 151,
+                        "line": 11,
+                        "column": 6
+                      },
                       "file": "examples/arrays.vader"
                     }
                   }
                 },
                 "identifier": "x",
                 "location": {
-                  "start": 189,
-                  "end": 190,
+                  "start": {
+                    "offset": 189,
+                    "line": 13,
+                    "column": 10
+                  },
+                  "end": {
+                    "offset": 190,
+                    "line": 13,
+                    "column": 11
+                  },
                   "file": "examples/arrays.vader"
                 }
               },
@@ -684,8 +956,16 @@
                     },
                     "value": 2,
                     "location": {
-                      "start": 191,
-                      "end": 192,
+                      "start": {
+                        "offset": 191,
+                        "line": 13,
+                        "column": 12
+                      },
+                      "end": {
+                        "offset": 192,
+                        "line": 13,
+                        "column": 13
+                      },
                       "file": "examples/arrays.vader"
                     }
                   },
@@ -695,8 +975,16 @@
                     "signed": false
                   },
                   "location": {
-                    "start": 191,
-                    "end": 192,
+                    "start": {
+                      "offset": 191,
+                      "line": 13,
+                      "column": 12
+                    },
+                    "end": {
+                      "offset": 192,
+                      "line": 13,
+                      "column": 13
+                    },
                     "file": "examples/arrays.vader"
                   }
                 }
@@ -707,14 +995,30 @@
                 "signed": false
               },
               "location": {
-                "start": 189,
-                "end": 193,
+                "start": {
+                  "offset": 189,
+                  "line": 13,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 193,
+                  "line": 13,
+                  "column": 14
+                },
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 184,
-              "end": 193,
+              "start": {
+                "offset": 184,
+                "line": 13,
+                "column": 5
+              },
+              "end": {
+                "offset": 193,
+                "line": 13,
+                "column": 14
+              },
               "file": "examples/arrays.vader"
             }
           },
@@ -731,8 +1035,16 @@
                 "kind": "CallExpression",
                 "functionName": "length",
                 "location": {
-                  "start": 205,
-                  "end": 215,
+                  "start": {
+                    "offset": 205,
+                    "line": 14,
+                    "column": 12
+                  },
+                  "end": {
+                    "offset": 215,
+                    "line": 14,
+                    "column": 22
+                  },
                   "file": "examples/arrays.vader"
                 },
                 "parameters": [
@@ -748,8 +1060,16 @@
                     },
                     "identifier": "z",
                     "location": {
-                      "start": 205,
-                      "end": 206,
+                      "start": {
+                        "offset": 205,
+                        "line": 14,
+                        "column": 12
+                      },
+                      "end": {
+                        "offset": 206,
+                        "line": 14,
+                        "column": 13
+                      },
                       "file": "examples/arrays.vader"
                     }
                   }
@@ -768,40 +1088,84 @@
                 },
                 "identifier": "a",
                 "location": {
-                  "start": 218,
-                  "end": 219,
+                  "start": {
+                    "offset": 218,
+                    "line": 14,
+                    "column": 25
+                  },
+                  "end": {
+                    "offset": 219,
+                    "line": 14,
+                    "column": 26
+                  },
                   "file": "examples/arrays.vader"
                 }
               },
               "location": {
-                "start": 205,
-                "end": 219,
+                "start": {
+                  "offset": 205,
+                  "line": 14,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 219,
+                  "line": 14,
+                  "column": 26
+                },
                 "file": "examples/arrays.vader"
               }
             },
             "location": {
-              "start": 198,
-              "end": 219,
+              "start": {
+                "offset": 198,
+                "line": 14,
+                "column": 5
+              },
+              "end": {
+                "offset": 219,
+                "line": 14,
+                "column": 26
+              },
               "file": "examples/arrays.vader"
             }
           }
         ],
         "location": {
-          "start": 103,
-          "end": 221,
+          "start": {
+            "offset": 103,
+            "line": 9,
+            "column": 9
+          },
+          "end": {
+            "offset": 221,
+            "line": 15,
+            "column": 2
+          },
           "file": "examples/arrays.vader"
         }
       },
       "location": {
-        "start": 95,
-        "end": 221,
+        "start": {
+          "offset": 95,
+          "line": 9,
+          "column": 1
+        },
+        "end": {
+          "offset": 221,
+          "line": 15,
+          "column": 2
+        },
         "file": "examples/arrays.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 221,
+    "end": {
+      "offset": 221,
+      "line": 15,
+      "column": 2
+    },
     "file": "examples/arrays.vader"
   }
 }

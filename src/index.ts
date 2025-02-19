@@ -19,14 +19,14 @@ for (const source_path of cli.positionalArgument) {
     }
 
     const emitter = new WasmEmitter();
-    emitter.emit(resolvedProgram)
+    const module = emitter.emit(resolvedProgram)
     if (debug) {
-        console.log(emitter.module.emitText());
+        console.log(module.emitText());
     }
     fs.mkdirSync(`build/wasm`, {recursive: true});
     fs.writeFileSync(
         `build/wasm/app.wasm`,
-        emitter.module.emitBinary()
+        module.emitBinary()
     );
 }
 if (cli.options.has('run')) {

@@ -1,9 +1,15 @@
 import type {Decorator} from "../tokens/types.ts";
 
+export interface Position {
+    offset: number
+    column: number
+    line: number
+}
+
 type BasicStatement = {
     location: {
-        start: number
-        end: number
+        start: Position
+        end: Position
         file: string
     }
 }

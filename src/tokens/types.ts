@@ -1,9 +1,11 @@
+import type {Position} from "@vader/compiler/parser/types.ts";
+
 type CreateToken<T extends string, V = string> = {
     type: T,
     value: V,
     location: {
-        start: number,
-        end: number
+        start: Position,
+        end: Position
         file: string
     }
 }

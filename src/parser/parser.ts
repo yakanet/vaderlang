@@ -6,12 +6,11 @@ import {keywords, tokenize} from "../tokens";
 export class Parser {
     private tokens: Token[] = [];
     private index = 0;
-    private reporter: ErrorReporter;
+    private reporter = new ErrorReporter()
     private debug = true;
     private loadedFiles = new Set<string>();
 
     constructor(public readonly resolver: ModuleResolver) {
-        this.reporter = new ErrorReporter(resolver);
     }
 
     private eat() {

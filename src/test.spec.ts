@@ -15,7 +15,7 @@ const testFolders = [
     'examples'
 ]
 const skip = new Set<string>([
-  //  'examples/arraylists.vader',
+    //  'examples/arraylists.vader',
     'examples/strings.vader'
 ])
 const snapshot_directory = '__snapshot__'
@@ -74,8 +74,8 @@ function testWasmEmitter(file: string, update: boolean) {
         let program = parseProgram(file, resolver)
         program = resolve(program)
         const emitter = new WasmEmitter();
-        emitter.emit(program)
-        const value = emitter.module.emitText();
+        const module = emitter.emit(program)
+        const value = module.emitText();
         if (update || !fs.existsSync(snapshotFile)) {
             updateSnapshot(snapshotFile, value);
         } else {
@@ -94,7 +94,7 @@ function testRun(file: string, update: boolean) {
         const emitter = new WasmEmitter();
         emitter.emit(program)
         const wasmfile = createSnapshotFile(file, '.wasm');
-        fs.writeFileSync(wasmfile, emitter.module.emitBinary());
+        fs.writeFileSync(wasmfile, emitter.mod.module.emitBinary());
         const pid = child_process.spawnSync('wasmtime', ['--wasm=gc', wasmfile], {
             shell: true,
         })

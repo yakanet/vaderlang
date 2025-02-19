@@ -3,8 +3,16 @@
     "type": "Decorator",
     "value": "load",
     "location": {
-      "start": 1,
-      "end": 5,
+      "start": {
+        "offset": 0,
+        "line": 1,
+        "column": 1
+      },
+      "end": {
+        "offset": 5,
+        "line": 1,
+        "column": 6
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -12,8 +20,16 @@
     "type": "StringLiteral",
     "value": "std",
     "location": {
-      "start": 6,
-      "end": 11,
+      "start": {
+        "offset": 6,
+        "line": 1,
+        "column": 7
+      },
+      "end": {
+        "offset": 11,
+        "line": 1,
+        "column": 12
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -21,8 +37,16 @@
     "type": "Identifier",
     "value": "x",
     "location": {
-      "start": 13,
-      "end": 14,
+      "start": {
+        "offset": 13,
+        "line": 3,
+        "column": 1
+      },
+      "end": {
+        "offset": 14,
+        "line": 3,
+        "column": 2
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -30,8 +54,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 15,
-      "end": 16,
+      "start": {
+        "offset": 15,
+        "line": 3,
+        "column": 3
+      },
+      "end": {
+        "offset": 16,
+        "line": 3,
+        "column": 4
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -39,8 +71,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 16,
-      "end": 17,
+      "start": {
+        "offset": 16,
+        "line": 3,
+        "column": 4
+      },
+      "end": {
+        "offset": 17,
+        "line": 3,
+        "column": 5
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -48,8 +88,16 @@
     "type": "NumberToken",
     "value": "23",
     "location": {
-      "end": 20,
-      "start": 18,
+      "start": {
+        "offset": 18,
+        "line": 3,
+        "column": 6
+      },
+      "end": {
+        "offset": 20,
+        "line": 3,
+        "column": 8
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -57,8 +105,16 @@
     "type": "Identifier",
     "value": "itoa",
     "location": {
-      "start": 21,
-      "end": 25,
+      "start": {
+        "offset": 21,
+        "line": 4,
+        "column": 1
+      },
+      "end": {
+        "offset": 25,
+        "line": 4,
+        "column": 5
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -66,8 +122,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 26,
-      "end": 27,
+      "start": {
+        "offset": 26,
+        "line": 4,
+        "column": 6
+      },
+      "end": {
+        "offset": 27,
+        "line": 4,
+        "column": 7
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -75,8 +139,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 27,
-      "end": 28,
+      "start": {
+        "offset": 27,
+        "line": 4,
+        "column": 7
+      },
+      "end": {
+        "offset": 28,
+        "line": 4,
+        "column": 8
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -84,8 +156,16 @@
     "type": "Keyword",
     "value": "fn",
     "location": {
-      "start": 29,
-      "end": 31,
+      "start": {
+        "offset": 29,
+        "line": 4,
+        "column": 9
+      },
+      "end": {
+        "offset": 31,
+        "line": 4,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -93,8 +173,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 31,
-      "end": 32,
+      "start": {
+        "offset": 31,
+        "line": 4,
+        "column": 11
+      },
+      "end": {
+        "offset": 32,
+        "line": 4,
+        "column": 12
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -102,8 +190,16 @@
     "type": "Identifier",
     "value": "this",
     "location": {
-      "start": 32,
-      "end": 36,
+      "start": {
+        "offset": 32,
+        "line": 4,
+        "column": 12
+      },
+      "end": {
+        "offset": 36,
+        "line": 4,
+        "column": 16
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -111,8 +207,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 36,
-      "end": 37,
+      "start": {
+        "offset": 36,
+        "line": 4,
+        "column": 16
+      },
+      "end": {
+        "offset": 37,
+        "line": 4,
+        "column": 17
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -120,8 +224,16 @@
     "type": "Identifier",
     "value": "u32",
     "location": {
-      "start": 38,
-      "end": 41,
+      "start": {
+        "offset": 38,
+        "line": 4,
+        "column": 18
+      },
+      "end": {
+        "offset": 41,
+        "line": 4,
+        "column": 21
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -129,8 +241,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 41,
-      "end": 42,
+      "start": {
+        "offset": 41,
+        "line": 4,
+        "column": 21
+      },
+      "end": {
+        "offset": 42,
+        "line": 4,
+        "column": 22
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -138,8 +258,16 @@
     "type": "LambdaArrowToken",
     "value": "->",
     "location": {
-      "start": 43,
-      "end": 45,
+      "start": {
+        "offset": 43,
+        "line": 4,
+        "column": 23
+      },
+      "end": {
+        "offset": 45,
+        "line": 4,
+        "column": 25
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -147,8 +275,16 @@
     "type": "OpenSquareBracket",
     "value": "[",
     "location": {
-      "start": 46,
-      "end": 47,
+      "start": {
+        "offset": 46,
+        "line": 4,
+        "column": 26
+      },
+      "end": {
+        "offset": 47,
+        "line": 4,
+        "column": 27
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -156,8 +292,16 @@
     "type": "CloseSquareBracket",
     "value": "]",
     "location": {
-      "start": 47,
-      "end": 48,
+      "start": {
+        "offset": 47,
+        "line": 4,
+        "column": 27
+      },
+      "end": {
+        "offset": 48,
+        "line": 4,
+        "column": 28
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -165,8 +309,16 @@
     "type": "Identifier",
     "value": "u8",
     "location": {
-      "start": 48,
-      "end": 50,
+      "start": {
+        "offset": 48,
+        "line": 4,
+        "column": 28
+      },
+      "end": {
+        "offset": 50,
+        "line": 4,
+        "column": 30
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -174,8 +326,16 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 51,
-      "end": 52,
+      "start": {
+        "offset": 51,
+        "line": 4,
+        "column": 31
+      },
+      "end": {
+        "offset": 52,
+        "line": 4,
+        "column": 32
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -183,8 +343,16 @@
     "type": "Identifier",
     "value": "buffer",
     "location": {
-      "start": 57,
-      "end": 63,
+      "start": {
+        "offset": 57,
+        "line": 5,
+        "column": 5
+      },
+      "end": {
+        "offset": 63,
+        "line": 5,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -192,8 +360,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 64,
-      "end": 65,
+      "start": {
+        "offset": 64,
+        "line": 5,
+        "column": 12
+      },
+      "end": {
+        "offset": 65,
+        "line": 5,
+        "column": 13
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -201,8 +377,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 65,
-      "end": 66,
+      "start": {
+        "offset": 65,
+        "line": 5,
+        "column": 13
+      },
+      "end": {
+        "offset": 66,
+        "line": 5,
+        "column": 14
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -210,8 +394,16 @@
     "type": "OpenSquareBracket",
     "value": "[",
     "location": {
-      "start": 67,
-      "end": 68,
+      "start": {
+        "offset": 67,
+        "line": 5,
+        "column": 15
+      },
+      "end": {
+        "offset": 68,
+        "line": 5,
+        "column": 16
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -219,8 +411,16 @@
     "type": "NumberToken",
     "value": "10",
     "location": {
-      "end": 70,
-      "start": 68,
+      "start": {
+        "offset": 68,
+        "line": 5,
+        "column": 16
+      },
+      "end": {
+        "offset": 70,
+        "line": 5,
+        "column": 18
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -228,8 +428,16 @@
     "type": "CloseSquareBracket",
     "value": "]",
     "location": {
-      "start": 70,
-      "end": 71,
+      "start": {
+        "offset": 70,
+        "line": 5,
+        "column": 18
+      },
+      "end": {
+        "offset": 71,
+        "line": 5,
+        "column": 19
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -237,8 +445,16 @@
     "type": "Identifier",
     "value": "u8",
     "location": {
-      "start": 71,
-      "end": 73,
+      "start": {
+        "offset": 71,
+        "line": 5,
+        "column": 19
+      },
+      "end": {
+        "offset": 73,
+        "line": 5,
+        "column": 21
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -246,8 +462,16 @@
     "type": "Keyword",
     "value": "return",
     "location": {
-      "start": 78,
-      "end": 84,
+      "start": {
+        "offset": 78,
+        "line": 6,
+        "column": 5
+      },
+      "end": {
+        "offset": 84,
+        "line": 6,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -255,8 +479,16 @@
     "type": "Identifier",
     "value": "buffer",
     "location": {
-      "start": 85,
-      "end": 91,
+      "start": {
+        "offset": 85,
+        "line": 6,
+        "column": 12
+      },
+      "end": {
+        "offset": 91,
+        "line": 6,
+        "column": 18
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -264,8 +496,16 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 92,
-      "end": 93,
+      "start": {
+        "offset": 92,
+        "line": 7,
+        "column": 1
+      },
+      "end": {
+        "offset": 93,
+        "line": 7,
+        "column": 2
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -273,8 +513,16 @@
     "type": "Identifier",
     "value": "main",
     "location": {
-      "start": 95,
-      "end": 99,
+      "start": {
+        "offset": 95,
+        "line": 9,
+        "column": 1
+      },
+      "end": {
+        "offset": 99,
+        "line": 9,
+        "column": 5
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -282,8 +530,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 100,
-      "end": 101,
+      "start": {
+        "offset": 100,
+        "line": 9,
+        "column": 6
+      },
+      "end": {
+        "offset": 101,
+        "line": 9,
+        "column": 7
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -291,8 +547,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 101,
-      "end": 102,
+      "start": {
+        "offset": 101,
+        "line": 9,
+        "column": 7
+      },
+      "end": {
+        "offset": 102,
+        "line": 9,
+        "column": 8
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -300,8 +564,16 @@
     "type": "Keyword",
     "value": "fn",
     "location": {
-      "start": 103,
-      "end": 105,
+      "start": {
+        "offset": 103,
+        "line": 9,
+        "column": 9
+      },
+      "end": {
+        "offset": 105,
+        "line": 9,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -309,8 +581,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 105,
-      "end": 106,
+      "start": {
+        "offset": 105,
+        "line": 9,
+        "column": 11
+      },
+      "end": {
+        "offset": 106,
+        "line": 9,
+        "column": 12
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -318,8 +598,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 106,
-      "end": 107,
+      "start": {
+        "offset": 106,
+        "line": 9,
+        "column": 12
+      },
+      "end": {
+        "offset": 107,
+        "line": 9,
+        "column": 13
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -327,8 +615,16 @@
     "type": "LambdaArrowToken",
     "value": "->",
     "location": {
-      "start": 108,
-      "end": 110,
+      "start": {
+        "offset": 108,
+        "line": 9,
+        "column": 14
+      },
+      "end": {
+        "offset": 110,
+        "line": 9,
+        "column": 16
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -336,8 +632,16 @@
     "type": "Identifier",
     "value": "u32",
     "location": {
-      "start": 111,
-      "end": 114,
+      "start": {
+        "offset": 111,
+        "line": 9,
+        "column": 17
+      },
+      "end": {
+        "offset": 114,
+        "line": 9,
+        "column": 20
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -345,8 +649,16 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 115,
-      "end": 116,
+      "start": {
+        "offset": 115,
+        "line": 9,
+        "column": 21
+      },
+      "end": {
+        "offset": 116,
+        "line": 9,
+        "column": 22
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -354,8 +666,16 @@
     "type": "Identifier",
     "value": "x",
     "location": {
-      "start": 121,
-      "end": 122,
+      "start": {
+        "offset": 121,
+        "line": 10,
+        "column": 5
+      },
+      "end": {
+        "offset": 122,
+        "line": 10,
+        "column": 6
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -363,8 +683,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 123,
-      "end": 124,
+      "start": {
+        "offset": 123,
+        "line": 10,
+        "column": 7
+      },
+      "end": {
+        "offset": 124,
+        "line": 10,
+        "column": 8
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -372,8 +700,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 124,
-      "end": 125,
+      "start": {
+        "offset": 124,
+        "line": 10,
+        "column": 8
+      },
+      "end": {
+        "offset": 125,
+        "line": 10,
+        "column": 9
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -381,8 +717,16 @@
     "type": "OpenSquareBracket",
     "value": "[",
     "location": {
-      "start": 126,
-      "end": 127,
+      "start": {
+        "offset": 126,
+        "line": 10,
+        "column": 10
+      },
+      "end": {
+        "offset": 127,
+        "line": 10,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -390,8 +734,16 @@
     "type": "UnderscoreToken",
     "value": "_",
     "location": {
-      "start": 127,
-      "end": 128,
+      "start": {
+        "offset": 127,
+        "line": 10,
+        "column": 11
+      },
+      "end": {
+        "offset": 128,
+        "line": 10,
+        "column": 12
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -399,8 +751,16 @@
     "type": "CloseSquareBracket",
     "value": "]",
     "location": {
-      "start": 128,
-      "end": 129,
+      "start": {
+        "offset": 128,
+        "line": 10,
+        "column": 12
+      },
+      "end": {
+        "offset": 129,
+        "line": 10,
+        "column": 13
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -408,8 +768,16 @@
     "type": "Identifier",
     "value": "u32",
     "location": {
-      "start": 129,
-      "end": 132,
+      "start": {
+        "offset": 129,
+        "line": 10,
+        "column": 13
+      },
+      "end": {
+        "offset": 132,
+        "line": 10,
+        "column": 16
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -417,8 +785,16 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 133,
-      "end": 134,
+      "start": {
+        "offset": 133,
+        "line": 10,
+        "column": 17
+      },
+      "end": {
+        "offset": 134,
+        "line": 10,
+        "column": 18
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -426,8 +802,16 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "end": 135,
-      "start": 134,
+      "start": {
+        "offset": 134,
+        "line": 10,
+        "column": 18
+      },
+      "end": {
+        "offset": 135,
+        "line": 10,
+        "column": 19
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -435,8 +819,16 @@
     "type": "CommaToken",
     "value": ",",
     "location": {
-      "start": 135,
-      "end": 136,
+      "start": {
+        "offset": 135,
+        "line": 10,
+        "column": 19
+      },
+      "end": {
+        "offset": 136,
+        "line": 10,
+        "column": 20
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -444,8 +836,16 @@
     "type": "NumberToken",
     "value": "3",
     "location": {
-      "end": 138,
-      "start": 137,
+      "start": {
+        "offset": 137,
+        "line": 10,
+        "column": 21
+      },
+      "end": {
+        "offset": 138,
+        "line": 10,
+        "column": 22
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -453,8 +853,16 @@
     "type": "CommaToken",
     "value": ",",
     "location": {
-      "start": 138,
-      "end": 139,
+      "start": {
+        "offset": 138,
+        "line": 10,
+        "column": 22
+      },
+      "end": {
+        "offset": 139,
+        "line": 10,
+        "column": 23
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -462,8 +870,16 @@
     "type": "NumberToken",
     "value": "4",
     "location": {
-      "end": 141,
-      "start": 140,
+      "start": {
+        "offset": 140,
+        "line": 10,
+        "column": 24
+      },
+      "end": {
+        "offset": 141,
+        "line": 10,
+        "column": 25
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -471,8 +887,16 @@
     "type": "CommaToken",
     "value": ",",
     "location": {
-      "start": 141,
-      "end": 142,
+      "start": {
+        "offset": 141,
+        "line": 10,
+        "column": 25
+      },
+      "end": {
+        "offset": 142,
+        "line": 10,
+        "column": 26
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -480,8 +904,16 @@
     "type": "NumberToken",
     "value": "5",
     "location": {
-      "end": 144,
-      "start": 143,
+      "start": {
+        "offset": 143,
+        "line": 10,
+        "column": 27
+      },
+      "end": {
+        "offset": 144,
+        "line": 10,
+        "column": 28
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -489,8 +921,16 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 144,
-      "end": 145,
+      "start": {
+        "offset": 144,
+        "line": 10,
+        "column": 28
+      },
+      "end": {
+        "offset": 145,
+        "line": 10,
+        "column": 29
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -498,8 +938,16 @@
     "type": "Identifier",
     "value": "y",
     "location": {
-      "start": 150,
-      "end": 151,
+      "start": {
+        "offset": 150,
+        "line": 11,
+        "column": 5
+      },
+      "end": {
+        "offset": 151,
+        "line": 11,
+        "column": 6
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -507,8 +955,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 152,
-      "end": 153,
+      "start": {
+        "offset": 152,
+        "line": 11,
+        "column": 7
+      },
+      "end": {
+        "offset": 153,
+        "line": 11,
+        "column": 8
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -516,8 +972,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 153,
-      "end": 154,
+      "start": {
+        "offset": 153,
+        "line": 11,
+        "column": 8
+      },
+      "end": {
+        "offset": 154,
+        "line": 11,
+        "column": 9
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -525,8 +989,16 @@
     "type": "OpenSquareBracket",
     "value": "[",
     "location": {
-      "start": 155,
-      "end": 156,
+      "start": {
+        "offset": 155,
+        "line": 11,
+        "column": 10
+      },
+      "end": {
+        "offset": 156,
+        "line": 11,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -534,8 +1006,16 @@
     "type": "NumberToken",
     "value": "4",
     "location": {
-      "end": 157,
-      "start": 156,
+      "start": {
+        "offset": 156,
+        "line": 11,
+        "column": 11
+      },
+      "end": {
+        "offset": 157,
+        "line": 11,
+        "column": 12
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -543,8 +1023,16 @@
     "type": "CloseSquareBracket",
     "value": "]",
     "location": {
-      "start": 157,
-      "end": 158,
+      "start": {
+        "offset": 157,
+        "line": 11,
+        "column": 12
+      },
+      "end": {
+        "offset": 158,
+        "line": 11,
+        "column": 13
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -552,8 +1040,16 @@
     "type": "Identifier",
     "value": "u32",
     "location": {
-      "start": 158,
-      "end": 161,
+      "start": {
+        "offset": 158,
+        "line": 11,
+        "column": 13
+      },
+      "end": {
+        "offset": 161,
+        "line": 11,
+        "column": 16
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -561,8 +1057,16 @@
     "type": "Identifier",
     "value": "z",
     "location": {
-      "start": 166,
-      "end": 167,
+      "start": {
+        "offset": 166,
+        "line": 12,
+        "column": 5
+      },
+      "end": {
+        "offset": 167,
+        "line": 12,
+        "column": 6
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -570,8 +1074,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 168,
-      "end": 169,
+      "start": {
+        "offset": 168,
+        "line": 12,
+        "column": 7
+      },
+      "end": {
+        "offset": 169,
+        "line": 12,
+        "column": 8
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -579,8 +1091,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 169,
-      "end": 170,
+      "start": {
+        "offset": 169,
+        "line": 12,
+        "column": 8
+      },
+      "end": {
+        "offset": 170,
+        "line": 12,
+        "column": 9
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -588,8 +1108,16 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "end": 172,
-      "start": 171,
+      "start": {
+        "offset": 171,
+        "line": 12,
+        "column": 10
+      },
+      "end": {
+        "offset": 172,
+        "line": 12,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -597,8 +1125,16 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 172,
-      "end": 173,
+      "start": {
+        "offset": 172,
+        "line": 12,
+        "column": 11
+      },
+      "end": {
+        "offset": 173,
+        "line": 12,
+        "column": 12
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -606,8 +1142,16 @@
     "type": "Identifier",
     "value": "itoa",
     "location": {
-      "start": 173,
-      "end": 177,
+      "start": {
+        "offset": 173,
+        "line": 12,
+        "column": 12
+      },
+      "end": {
+        "offset": 177,
+        "line": 12,
+        "column": 16
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -615,8 +1159,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 177,
-      "end": 178,
+      "start": {
+        "offset": 177,
+        "line": 12,
+        "column": 16
+      },
+      "end": {
+        "offset": 178,
+        "line": 12,
+        "column": 17
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -624,8 +1176,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 178,
-      "end": 179,
+      "start": {
+        "offset": 178,
+        "line": 12,
+        "column": 17
+      },
+      "end": {
+        "offset": 179,
+        "line": 12,
+        "column": 18
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -633,8 +1193,16 @@
     "type": "Identifier",
     "value": "a",
     "location": {
-      "start": 184,
-      "end": 185,
+      "start": {
+        "offset": 184,
+        "line": 13,
+        "column": 5
+      },
+      "end": {
+        "offset": 185,
+        "line": 13,
+        "column": 6
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -642,8 +1210,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 186,
-      "end": 187,
+      "start": {
+        "offset": 186,
+        "line": 13,
+        "column": 7
+      },
+      "end": {
+        "offset": 187,
+        "line": 13,
+        "column": 8
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -651,8 +1227,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 187,
-      "end": 188,
+      "start": {
+        "offset": 187,
+        "line": 13,
+        "column": 8
+      },
+      "end": {
+        "offset": 188,
+        "line": 13,
+        "column": 9
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -660,8 +1244,16 @@
     "type": "Identifier",
     "value": "x",
     "location": {
-      "start": 189,
-      "end": 190,
+      "start": {
+        "offset": 189,
+        "line": 13,
+        "column": 10
+      },
+      "end": {
+        "offset": 190,
+        "line": 13,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -669,8 +1261,16 @@
     "type": "OpenSquareBracket",
     "value": "[",
     "location": {
-      "start": 190,
-      "end": 191,
+      "start": {
+        "offset": 190,
+        "line": 13,
+        "column": 11
+      },
+      "end": {
+        "offset": 191,
+        "line": 13,
+        "column": 12
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -678,8 +1278,16 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "end": 192,
-      "start": 191,
+      "start": {
+        "offset": 191,
+        "line": 13,
+        "column": 12
+      },
+      "end": {
+        "offset": 192,
+        "line": 13,
+        "column": 13
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -687,8 +1295,16 @@
     "type": "CloseSquareBracket",
     "value": "]",
     "location": {
-      "start": 192,
-      "end": 193,
+      "start": {
+        "offset": 192,
+        "line": 13,
+        "column": 13
+      },
+      "end": {
+        "offset": 193,
+        "line": 13,
+        "column": 14
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -696,8 +1312,16 @@
     "type": "Keyword",
     "value": "return",
     "location": {
-      "start": 198,
-      "end": 204,
+      "start": {
+        "offset": 198,
+        "line": 14,
+        "column": 5
+      },
+      "end": {
+        "offset": 204,
+        "line": 14,
+        "column": 11
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -705,8 +1329,16 @@
     "type": "Identifier",
     "value": "z",
     "location": {
-      "start": 205,
-      "end": 206,
+      "start": {
+        "offset": 205,
+        "line": 14,
+        "column": 12
+      },
+      "end": {
+        "offset": 206,
+        "line": 14,
+        "column": 13
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -714,8 +1346,16 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 206,
-      "end": 207,
+      "start": {
+        "offset": 206,
+        "line": 14,
+        "column": 13
+      },
+      "end": {
+        "offset": 207,
+        "line": 14,
+        "column": 14
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -723,8 +1363,16 @@
     "type": "Identifier",
     "value": "length",
     "location": {
-      "start": 207,
-      "end": 213,
+      "start": {
+        "offset": 207,
+        "line": 14,
+        "column": 14
+      },
+      "end": {
+        "offset": 213,
+        "line": 14,
+        "column": 20
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -732,8 +1380,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 213,
-      "end": 214,
+      "start": {
+        "offset": 213,
+        "line": 14,
+        "column": 20
+      },
+      "end": {
+        "offset": 214,
+        "line": 14,
+        "column": 21
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -741,8 +1397,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 214,
-      "end": 215,
+      "start": {
+        "offset": 214,
+        "line": 14,
+        "column": 21
+      },
+      "end": {
+        "offset": 215,
+        "line": 14,
+        "column": 22
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -750,8 +1414,16 @@
     "type": "PlusToken",
     "value": "+",
     "location": {
-      "start": 216,
-      "end": 217,
+      "start": {
+        "offset": 216,
+        "line": 14,
+        "column": 23
+      },
+      "end": {
+        "offset": 217,
+        "line": 14,
+        "column": 24
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -759,8 +1431,16 @@
     "type": "Identifier",
     "value": "a",
     "location": {
-      "start": 218,
-      "end": 219,
+      "start": {
+        "offset": 218,
+        "line": 14,
+        "column": 25
+      },
+      "end": {
+        "offset": 219,
+        "line": 14,
+        "column": 26
+      },
       "file": "examples/arrays.vader"
     }
   },
@@ -768,16 +1448,32 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 220,
-      "end": 221,
+      "start": {
+        "offset": 220,
+        "line": 15,
+        "column": 1
+      },
+      "end": {
+        "offset": 221,
+        "line": 15,
+        "column": 2
+      },
       "file": "examples/arrays.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 221,
-      "end": 221,
+      "start": {
+        "offset": 221,
+        "line": 15,
+        "column": 2
+      },
+      "end": {
+        "offset": 221,
+        "line": 15,
+        "column": 2
+      },
       "file": "examples/arrays.vader"
     },
     "value": "\u0000"

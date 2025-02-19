@@ -342,22 +342,6 @@ function parseDotExpression(parser: Parser, left: Expression): Expression {
     return left;
 }
 
-//function parseArrayIndexBracketExpression(parser: Parser, left: Expression) {
-//    const array: ArrayIndexExpression = {
-//        kind: 'ArrayIndexExpression',
-//        indexes: [],
-//        identifier: left,
-//        location: {...left.location},
-//        type: BasicVaderType.unknown
-//    }
-//    do {
-//        parser.expect('OpenSquareBracket')
-//        array.indexes.push(parseExpression(parser));
-//        parser.expect('CloseSquareBracket')
-//    } while (parser.isCurrentType('OpenSquareBracket'))
-//    return array;
-//}
-
 
 /**
  * struct {[identifier: type]*}

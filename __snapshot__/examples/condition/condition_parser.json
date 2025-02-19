@@ -47,14 +47,30 @@
         },
         "body": [],
         "location": {
-          "start": 20,
-          "end": 47,
+          "start": {
+            "offset": 20,
+            "line": 2,
+            "column": 10
+          },
+          "end": {
+            "offset": 47,
+            "line": 2,
+            "column": 37
+          },
           "file": "examples/condition.vader"
         }
       },
       "location": {
-        "start": 11,
-        "end": 47,
+        "start": {
+          "offset": 11,
+          "line": 2,
+          "column": 1
+        },
+        "end": {
+          "offset": 47,
+          "line": 2,
+          "column": 37
+        },
         "file": "examples/condition.vader"
       }
     },
@@ -101,14 +117,30 @@
               },
               "value": 32,
               "location": {
-                "start": 80,
-                "end": 82,
+                "start": {
+                  "offset": 80,
+                  "line": 5,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 82,
+                  "line": 5,
+                  "column": 12
+                },
                 "file": "examples/condition.vader"
               }
             },
             "location": {
-              "start": 75,
-              "end": 82,
+              "start": {
+                "offset": 75,
+                "line": 5,
+                "column": 5
+              },
+              "end": {
+                "offset": 82,
+                "line": 5,
+                "column": 12
+              },
               "file": "examples/condition.vader"
             }
           },
@@ -137,15 +169,31 @@
                     },
                     "value": "equals\n",
                     "location": {
-                      "start": 141,
-                      "end": 151,
+                      "start": {
+                        "offset": 141,
+                        "line": 8,
+                        "column": 15
+                      },
+                      "end": {
+                        "offset": 151,
+                        "line": 8,
+                        "column": 25
+                      },
                       "file": "examples/condition.vader"
                     }
                   }
                 ],
                 "location": {
-                  "start": 135,
-                  "end": 152,
+                  "start": {
+                    "offset": 135,
+                    "line": 8,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 152,
+                    "line": 8,
+                    "column": 26
+                  },
                   "file": "examples/condition.vader"
                 }
               }
@@ -167,8 +215,16 @@
                 },
                 "identifier": "x",
                 "location": {
-                  "start": 117,
-                  "end": 118,
+                  "start": {
+                    "offset": 117,
+                    "line": 7,
+                    "column": 8
+                  },
+                  "end": {
+                    "offset": 118,
+                    "line": 7,
+                    "column": 9
+                  },
                   "file": "examples/condition.vader"
                 }
               },
@@ -181,20 +237,44 @@
                 },
                 "value": 32,
                 "location": {
-                  "start": 122,
-                  "end": 124,
+                  "start": {
+                    "offset": 122,
+                    "line": 7,
+                    "column": 13
+                  },
+                  "end": {
+                    "offset": 124,
+                    "line": 7,
+                    "column": 15
+                  },
                   "file": "examples/condition.vader"
                 }
               },
               "location": {
-                "start": 117,
-                "end": 124,
+                "start": {
+                  "offset": 117,
+                  "line": 7,
+                  "column": 8
+                },
+                "end": {
+                  "offset": 124,
+                  "line": 7,
+                  "column": 15
+                },
                 "file": "examples/condition.vader"
               }
             },
             "location": {
-              "start": 114,
-              "end": 158,
+              "start": {
+                "offset": 114,
+                "line": 7,
+                "column": 5
+              },
+              "end": {
+                "offset": 158,
+                "line": 9,
+                "column": 6
+              },
               "file": "examples/condition.vader"
             }
           },
@@ -223,15 +303,31 @@
                     },
                     "value": "second equals\n",
                     "location": {
-                      "start": 237,
-                      "end": 254,
+                      "start": {
+                        "offset": 237,
+                        "line": 13,
+                        "column": 15
+                      },
+                      "end": {
+                        "offset": 254,
+                        "line": 13,
+                        "column": 32
+                      },
                       "file": "examples/condition.vader"
                     }
                   }
                 ],
                 "location": {
-                  "start": 231,
-                  "end": 255,
+                  "start": {
+                    "offset": 231,
+                    "line": 13,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 255,
+                    "line": 13,
+                    "column": 33
+                  },
                   "file": "examples/condition.vader"
                 }
               }
@@ -253,8 +349,16 @@
                 },
                 "identifier": "x",
                 "location": {
-                  "start": 212,
-                  "end": 213,
+                  "start": {
+                    "offset": 212,
+                    "line": 12,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 213,
+                    "line": 12,
+                    "column": 10
+                  },
                   "file": "examples/condition.vader"
                 }
               },
@@ -267,20 +371,44 @@
                 },
                 "value": 32,
                 "location": {
-                  "start": 217,
-                  "end": 219,
+                  "start": {
+                    "offset": 217,
+                    "line": 12,
+                    "column": 14
+                  },
+                  "end": {
+                    "offset": 219,
+                    "line": 12,
+                    "column": 16
+                  },
                   "file": "examples/condition.vader"
                 }
               },
               "location": {
-                "start": 212,
-                "end": 219,
+                "start": {
+                  "offset": 212,
+                  "line": 12,
+                  "column": 9
+                },
+                "end": {
+                  "offset": 219,
+                  "line": 12,
+                  "column": 16
+                },
                 "file": "examples/condition.vader"
               }
             },
             "location": {
-              "start": 208,
-              "end": 261,
+              "start": {
+                "offset": 208,
+                "line": 12,
+                "column": 5
+              },
+              "end": {
+                "offset": 261,
+                "line": 14,
+                "column": 6
+              },
               "file": "examples/condition.vader"
             }
           },
@@ -309,15 +437,31 @@
                     },
                     "value": "equals\n",
                     "location": {
-                      "start": 320,
-                      "end": 330,
+                      "start": {
+                        "offset": 320,
+                        "line": 18,
+                        "column": 15
+                      },
+                      "end": {
+                        "offset": 330,
+                        "line": 18,
+                        "column": 25
+                      },
                       "file": "examples/condition.vader"
                     }
                   }
                 ],
                 "location": {
-                  "start": 314,
-                  "end": 331,
+                  "start": {
+                    "offset": 314,
+                    "line": 18,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 331,
+                    "line": 18,
+                    "column": 26
+                  },
                   "file": "examples/condition.vader"
                 }
               }
@@ -339,8 +483,16 @@
                 },
                 "identifier": "x",
                 "location": {
-                  "start": 296,
-                  "end": 297,
+                  "start": {
+                    "offset": 296,
+                    "line": 17,
+                    "column": 8
+                  },
+                  "end": {
+                    "offset": 297,
+                    "line": 17,
+                    "column": 9
+                  },
                   "file": "examples/condition.vader"
                 }
               },
@@ -353,20 +505,44 @@
                 },
                 "value": 32,
                 "location": {
-                  "start": 301,
-                  "end": 303,
+                  "start": {
+                    "offset": 301,
+                    "line": 17,
+                    "column": 13
+                  },
+                  "end": {
+                    "offset": 303,
+                    "line": 17,
+                    "column": 15
+                  },
                   "file": "examples/condition.vader"
                 }
               },
               "location": {
-                "start": 296,
-                "end": 303,
+                "start": {
+                  "offset": 296,
+                  "line": 17,
+                  "column": 8
+                },
+                "end": {
+                  "offset": 303,
+                  "line": 17,
+                  "column": 15
+                },
                 "file": "examples/condition.vader"
               }
             },
             "location": {
-              "start": 293,
-              "end": 380,
+              "start": {
+                "offset": 293,
+                "line": 17,
+                "column": 5
+              },
+              "end": {
+                "offset": 380,
+                "line": 21,
+                "column": 6
+              },
               "file": "examples/condition.vader"
             },
             "elseBody": [
@@ -387,15 +563,31 @@
                     },
                     "value": "not equals\n",
                     "location": {
-                      "start": 359,
-                      "end": 373,
+                      "start": {
+                        "offset": 359,
+                        "line": 20,
+                        "column": 15
+                      },
+                      "end": {
+                        "offset": 373,
+                        "line": 20,
+                        "column": 29
+                      },
                       "file": "examples/condition.vader"
                     }
                   }
                 ],
                 "location": {
-                  "start": 353,
-                  "end": 374,
+                  "start": {
+                    "offset": 353,
+                    "line": 20,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 374,
+                    "line": 20,
+                    "column": 30
+                  },
                   "file": "examples/condition.vader"
                 }
               }
@@ -426,15 +618,31 @@
                     },
                     "value": "x == 0\n",
                     "location": {
-                      "start": 448,
-                      "end": 458,
+                      "start": {
+                        "offset": 448,
+                        "line": 25,
+                        "column": 15
+                      },
+                      "end": {
+                        "offset": 458,
+                        "line": 25,
+                        "column": 25
+                      },
                       "file": "examples/condition.vader"
                     }
                   }
                 ],
                 "location": {
-                  "start": 442,
-                  "end": 459,
+                  "start": {
+                    "offset": 442,
+                    "line": 25,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 459,
+                    "line": 25,
+                    "column": 26
+                  },
                   "file": "examples/condition.vader"
                 }
               }
@@ -456,8 +664,16 @@
                 },
                 "identifier": "x",
                 "location": {
-                  "start": 425,
-                  "end": 426,
+                  "start": {
+                    "offset": 425,
+                    "line": 24,
+                    "column": 8
+                  },
+                  "end": {
+                    "offset": 426,
+                    "line": 24,
+                    "column": 9
+                  },
                   "file": "examples/condition.vader"
                 }
               },
@@ -470,20 +686,44 @@
                 },
                 "value": 0,
                 "location": {
-                  "start": 430,
-                  "end": 431,
+                  "start": {
+                    "offset": 430,
+                    "line": 24,
+                    "column": 13
+                  },
+                  "end": {
+                    "offset": 431,
+                    "line": 24,
+                    "column": 14
+                  },
                   "file": "examples/condition.vader"
                 }
               },
               "location": {
-                "start": 425,
-                "end": 431,
+                "start": {
+                  "offset": 425,
+                  "line": 24,
+                  "column": 8
+                },
+                "end": {
+                  "offset": 431,
+                  "line": 24,
+                  "column": 14
+                },
                 "file": "examples/condition.vader"
               }
             },
             "location": {
-              "start": 422,
-              "end": 604,
+              "start": {
+                "offset": 422,
+                "line": 24,
+                "column": 5
+              },
+              "end": {
+                "offset": 604,
+                "line": 32,
+                "column": 6
+              },
               "file": "examples/condition.vader"
             },
             "elseBody": [
@@ -512,15 +752,31 @@
                         },
                         "value": "x == 32\n",
                         "location": {
-                          "start": 495,
-                          "end": 506,
+                          "start": {
+                            "offset": 495,
+                            "line": 27,
+                            "column": 15
+                          },
+                          "end": {
+                            "offset": 506,
+                            "line": 27,
+                            "column": 26
+                          },
                           "file": "examples/condition.vader"
                         }
                       }
                     ],
                     "location": {
-                      "start": 489,
-                      "end": 507,
+                      "start": {
+                        "offset": 489,
+                        "line": 27,
+                        "column": 9
+                      },
+                      "end": {
+                        "offset": 507,
+                        "line": 27,
+                        "column": 27
+                      },
                       "file": "examples/condition.vader"
                     }
                   }
@@ -542,8 +798,16 @@
                     },
                     "identifier": "x",
                     "location": {
-                      "start": 471,
-                      "end": 472,
+                      "start": {
+                        "offset": 471,
+                        "line": 26,
+                        "column": 12
+                      },
+                      "end": {
+                        "offset": 472,
+                        "line": 26,
+                        "column": 13
+                      },
                       "file": "examples/condition.vader"
                     }
                   },
@@ -556,19 +820,39 @@
                     },
                     "value": 32,
                     "location": {
-                      "start": 476,
-                      "end": 478,
+                      "start": {
+                        "offset": 476,
+                        "line": 26,
+                        "column": 17
+                      },
+                      "end": {
+                        "offset": 478,
+                        "line": 26,
+                        "column": 19
+                      },
                       "file": "examples/condition.vader"
                     }
                   },
                   "location": {
-                    "start": 471,
-                    "end": 478,
+                    "start": {
+                      "offset": 471,
+                      "line": 26,
+                      "column": 12
+                    },
+                    "end": {
+                      "offset": 478,
+                      "line": 26,
+                      "column": 19
+                    },
                     "file": "examples/condition.vader"
                   }
                 },
                 "location": {
-                  "start": 466,
+                  "start": {
+                    "offset": 466,
+                    "line": 26,
+                    "column": 7
+                  },
                   "end": 0,
                   "file": "examples/condition.vader"
                 },
@@ -598,15 +882,31 @@
                             },
                             "value": "x == 30\n",
                             "location": {
-                              "start": 543,
-                              "end": 554,
+                              "start": {
+                                "offset": 543,
+                                "line": 29,
+                                "column": 15
+                              },
+                              "end": {
+                                "offset": 554,
+                                "line": 29,
+                                "column": 26
+                              },
                               "file": "examples/condition.vader"
                             }
                           }
                         ],
                         "location": {
-                          "start": 537,
-                          "end": 555,
+                          "start": {
+                            "offset": 537,
+                            "line": 29,
+                            "column": 9
+                          },
+                          "end": {
+                            "offset": 555,
+                            "line": 29,
+                            "column": 27
+                          },
                           "file": "examples/condition.vader"
                         }
                       }
@@ -628,8 +928,16 @@
                         },
                         "identifier": "x",
                         "location": {
-                          "start": 519,
-                          "end": 520,
+                          "start": {
+                            "offset": 519,
+                            "line": 28,
+                            "column": 12
+                          },
+                          "end": {
+                            "offset": 520,
+                            "line": 28,
+                            "column": 13
+                          },
                           "file": "examples/condition.vader"
                         }
                       },
@@ -642,19 +950,39 @@
                         },
                         "value": 30,
                         "location": {
-                          "start": 524,
-                          "end": 526,
+                          "start": {
+                            "offset": 524,
+                            "line": 28,
+                            "column": 17
+                          },
+                          "end": {
+                            "offset": 526,
+                            "line": 28,
+                            "column": 19
+                          },
                           "file": "examples/condition.vader"
                         }
                       },
                       "location": {
-                        "start": 519,
-                        "end": 526,
+                        "start": {
+                          "offset": 519,
+                          "line": 28,
+                          "column": 12
+                        },
+                        "end": {
+                          "offset": 526,
+                          "line": 28,
+                          "column": 19
+                        },
                         "file": "examples/condition.vader"
                       }
                     },
                     "location": {
-                      "start": 514,
+                      "start": {
+                        "offset": 514,
+                        "line": 28,
+                        "column": 7
+                      },
                       "end": 0,
                       "file": "examples/condition.vader"
                     },
@@ -676,15 +1004,31 @@
                             },
                             "value": "not equals\n",
                             "location": {
-                              "start": 583,
-                              "end": 597,
+                              "start": {
+                                "offset": 583,
+                                "line": 31,
+                                "column": 15
+                              },
+                              "end": {
+                                "offset": 597,
+                                "line": 31,
+                                "column": 29
+                              },
                               "file": "examples/condition.vader"
                             }
                           }
                         ],
                         "location": {
-                          "start": 577,
-                          "end": 598,
+                          "start": {
+                            "offset": 577,
+                            "line": 31,
+                            "column": 9
+                          },
+                          "end": {
+                            "offset": 598,
+                            "line": 31,
+                            "column": 30
+                          },
                           "file": "examples/condition.vader"
                         }
                       }
@@ -712,14 +1056,30 @@
               },
               "value": 3,
               "location": {
-                "start": 614,
-                "end": 615,
+                "start": {
+                  "offset": 614,
+                  "line": 33,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 615,
+                  "line": 33,
+                  "column": 11
+                },
                 "file": "examples/condition.vader"
               }
             },
             "location": {
-              "start": 609,
-              "end": 615,
+              "start": {
+                "offset": 609,
+                "line": 33,
+                "column": 5
+              },
+              "end": {
+                "offset": 615,
+                "line": 33,
+                "column": 11
+              },
               "file": "examples/condition.vader"
             }
           },
@@ -751,8 +1111,16 @@
                     },
                     "identifier": "z",
                     "location": {
-                      "start": 646,
-                      "end": 647,
+                      "start": {
+                        "offset": 646,
+                        "line": 35,
+                        "column": 9
+                      },
+                      "end": {
+                        "offset": 647,
+                        "line": 35,
+                        "column": 10
+                      },
                       "file": "examples/condition.vader"
                     }
                   },
@@ -765,15 +1133,31 @@
                     },
                     "value": 2,
                     "location": {
-                      "start": 650,
-                      "end": 651,
+                      "start": {
+                        "offset": 650,
+                        "line": 35,
+                        "column": 13
+                      },
+                      "end": {
+                        "offset": 651,
+                        "line": 35,
+                        "column": 14
+                      },
                       "file": "examples/condition.vader"
                     }
                   },
                   "location": {
-                    "start": 646,
+                    "start": {
+                      "offset": 646,
+                      "line": 35,
+                      "column": 9
+                    },
                     "file": "examples/condition.vader",
-                    "end": 651
+                    "end": {
+                      "offset": 651,
+                      "line": 35,
+                      "column": 14
+                    }
                   }
                 },
                 {
@@ -785,8 +1169,16 @@
                   },
                   "value": 1,
                   "location": {
-                    "start": 660,
-                    "end": 661,
+                    "start": {
+                      "offset": 660,
+                      "line": 36,
+                      "column": 9
+                    },
+                    "end": {
+                      "offset": 661,
+                      "line": 36,
+                      "column": 10
+                    },
                     "file": "examples/condition.vader"
                   }
                 }
@@ -808,8 +1200,16 @@
                   },
                   "identifier": "x",
                   "location": {
-                    "start": 628,
-                    "end": 629,
+                    "start": {
+                      "offset": 628,
+                      "line": 34,
+                      "column": 13
+                    },
+                    "end": {
+                      "offset": 629,
+                      "line": 34,
+                      "column": 14
+                    },
                     "file": "examples/condition.vader"
                   }
                 },
@@ -822,20 +1222,44 @@
                   },
                   "value": 32,
                   "location": {
-                    "start": 633,
-                    "end": 635,
+                    "start": {
+                      "offset": 633,
+                      "line": 34,
+                      "column": 18
+                    },
+                    "end": {
+                      "offset": 635,
+                      "line": 34,
+                      "column": 20
+                    },
                     "file": "examples/condition.vader"
                   }
                 },
                 "location": {
-                  "start": 628,
-                  "end": 635,
+                  "start": {
+                    "offset": 628,
+                    "line": 34,
+                    "column": 13
+                  },
+                  "end": {
+                    "offset": 635,
+                    "line": 34,
+                    "column": 20
+                  },
                   "file": "examples/condition.vader"
                 }
               },
               "location": {
-                "start": 625,
-                "end": 705,
+                "start": {
+                  "offset": 625,
+                  "line": 34,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 705,
+                  "line": 39,
+                  "column": 15
+                },
                 "file": "examples/condition.vader"
               },
               "elseBody": [
@@ -856,8 +1280,16 @@
                       },
                       "value": 3,
                       "location": {
-                        "start": 687,
-                        "end": 688,
+                        "start": {
+                          "offset": 687,
+                          "line": 38,
+                          "column": 20
+                        },
+                        "end": {
+                          "offset": 688,
+                          "line": 38,
+                          "column": 21
+                        },
                         "file": "examples/condition.vader"
                       }
                     }
@@ -879,8 +1311,16 @@
                       },
                       "identifier": "x",
                       "location": {
-                        "start": 677,
-                        "end": 678,
+                        "start": {
+                          "offset": 677,
+                          "line": 38,
+                          "column": 10
+                        },
+                        "end": {
+                          "offset": 678,
+                          "line": 38,
+                          "column": 11
+                        },
                         "file": "examples/condition.vader"
                       }
                     },
@@ -893,19 +1333,39 @@
                       },
                       "value": 33,
                       "location": {
-                        "start": 682,
-                        "end": 684,
+                        "start": {
+                          "offset": 682,
+                          "line": 38,
+                          "column": 15
+                        },
+                        "end": {
+                          "offset": 684,
+                          "line": 38,
+                          "column": 17
+                        },
                         "file": "examples/condition.vader"
                       }
                     },
                     "location": {
-                      "start": 677,
-                      "end": 684,
+                      "start": {
+                        "offset": 677,
+                        "line": 38,
+                        "column": 10
+                      },
+                      "end": {
+                        "offset": 684,
+                        "line": 38,
+                        "column": 17
+                      },
                       "file": "examples/condition.vader"
                     }
                   },
                   "location": {
-                    "start": 672,
+                    "start": {
+                      "offset": 672,
+                      "line": 38,
+                      "column": 5
+                    },
                     "end": 0,
                     "file": "examples/condition.vader"
                   },
@@ -919,8 +1379,16 @@
                       },
                       "value": 2,
                       "location": {
-                        "start": 702,
-                        "end": 703,
+                        "start": {
+                          "offset": 702,
+                          "line": 39,
+                          "column": 12
+                        },
+                        "end": {
+                          "offset": 703,
+                          "line": 39,
+                          "column": 13
+                        },
                         "file": "examples/condition.vader"
                       }
                     }
@@ -929,8 +1397,16 @@
               ]
             },
             "location": {
-              "start": 620,
-              "end": 705,
+              "start": {
+                "offset": 620,
+                "line": 34,
+                "column": 5
+              },
+              "end": {
+                "offset": 705,
+                "line": 39,
+                "column": 15
+              },
               "file": "examples/condition.vader"
             }
           },
@@ -961,8 +1437,16 @@
                   },
                   "identifier": "x",
                   "location": {
-                    "start": 717,
-                    "end": 718,
+                    "start": {
+                      "offset": 717,
+                      "line": 40,
+                      "column": 12
+                    },
+                    "end": {
+                      "offset": 718,
+                      "line": 40,
+                      "column": 13
+                    },
                     "file": "examples/condition.vader"
                   }
                 },
@@ -975,14 +1459,30 @@
                   },
                   "identifier": "y",
                   "location": {
-                    "start": 721,
-                    "end": 722,
+                    "start": {
+                      "offset": 721,
+                      "line": 40,
+                      "column": 16
+                    },
+                    "end": {
+                      "offset": 722,
+                      "line": 40,
+                      "column": 17
+                    },
                     "file": "examples/condition.vader"
                   }
                 },
                 "location": {
-                  "start": 717,
-                  "end": 722,
+                  "start": {
+                    "offset": 717,
+                    "line": 40,
+                    "column": 12
+                  },
+                  "end": {
+                    "offset": 722,
+                    "line": 40,
+                    "column": 17
+                  },
                   "file": "examples/condition.vader"
                 }
               },
@@ -995,40 +1495,84 @@
                 },
                 "identifier": "z",
                 "location": {
-                  "start": 725,
-                  "end": 726,
+                  "start": {
+                    "offset": 725,
+                    "line": 40,
+                    "column": 20
+                  },
+                  "end": {
+                    "offset": 726,
+                    "line": 40,
+                    "column": 21
+                  },
                   "file": "examples/condition.vader"
                 }
               },
               "location": {
-                "start": 717,
-                "end": 726,
+                "start": {
+                  "offset": 717,
+                  "line": 40,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 726,
+                  "line": 40,
+                  "column": 21
+                },
                 "file": "examples/condition.vader"
               }
             },
             "location": {
-              "start": 710,
-              "end": 726,
+              "start": {
+                "offset": 710,
+                "line": 40,
+                "column": 5
+              },
+              "end": {
+                "offset": 726,
+                "line": 40,
+                "column": 21
+              },
               "file": "examples/condition.vader"
             }
           }
         ],
         "location": {
-          "start": 57,
-          "end": 728,
+          "start": {
+            "offset": 57,
+            "line": 4,
+            "column": 9
+          },
+          "end": {
+            "offset": 728,
+            "line": 41,
+            "column": 2
+          },
           "file": "examples/condition.vader"
         }
       },
       "location": {
-        "start": 49,
-        "end": 728,
+        "start": {
+          "offset": 49,
+          "line": 4,
+          "column": 1
+        },
+        "end": {
+          "offset": 728,
+          "line": 41,
+          "column": 2
+        },
         "file": "examples/condition.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 728,
+    "end": {
+      "offset": 728,
+      "line": 41,
+      "column": 2
+    },
     "file": "examples/condition.vader"
   }
 }

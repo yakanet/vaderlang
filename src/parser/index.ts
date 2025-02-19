@@ -10,8 +10,8 @@ export function parseProgram(entryFile: string, resolver: ModuleResolver): Progr
         kind: 'Program',
         body: [],
         location: {
-            start: 0,
-            end: -1,
+            start: parser.current.location.start,
+            end: parser.current.location.start,
             file: parser.current.location.file,
         }
     }

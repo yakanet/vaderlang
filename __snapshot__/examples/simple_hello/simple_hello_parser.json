@@ -47,14 +47,30 @@
         },
         "body": [],
         "location": {
-          "start": 19,
-          "end": 45,
+          "start": {
+            "offset": 19,
+            "line": 2,
+            "column": 9
+          },
+          "end": {
+            "offset": 45,
+            "line": 2,
+            "column": 35
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 11,
-        "end": 45,
+        "start": {
+          "offset": 11,
+          "line": 2,
+          "column": 1
+        },
+        "end": {
+          "offset": 45,
+          "line": 2,
+          "column": 35
+        },
         "file": "modules/std.vader"
       }
     },
@@ -104,14 +120,30 @@
         },
         "body": [],
         "location": {
-          "start": 67,
-          "end": 94,
+          "start": {
+            "offset": 67,
+            "line": 5,
+            "column": 10
+          },
+          "end": {
+            "offset": 94,
+            "line": 5,
+            "column": 37
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 58,
-        "end": 94,
+        "start": {
+          "offset": 58,
+          "line": 5,
+          "column": 1
+        },
+        "end": {
+          "offset": 94,
+          "line": 5,
+          "column": 37
+        },
         "file": "modules/std.vader"
       }
     },
@@ -169,14 +201,30 @@
         },
         "body": [],
         "location": {
-          "start": 117,
-          "end": 140,
+          "start": {
+            "offset": 117,
+            "line": 8,
+            "column": 11
+          },
+          "end": {
+            "offset": 140,
+            "line": 8,
+            "column": 34
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 107,
-        "end": 140,
+        "start": {
+          "offset": 107,
+          "line": 8,
+          "column": 1
+        },
+        "end": {
+          "offset": 140,
+          "line": 8,
+          "column": 34
+        },
         "file": "modules/std.vader"
       }
     },
@@ -224,35 +272,71 @@
                 },
                 "value": "Hello world\n",
                 "location": {
-                  "start": 38,
-                  "end": 53,
+                  "start": {
+                    "offset": 38,
+                    "line": 4,
+                    "column": 11
+                  },
+                  "end": {
+                    "offset": 53,
+                    "line": 4,
+                    "column": 26
+                  },
                   "file": "examples/simple_hello.vader"
                 }
               }
             ],
             "location": {
-              "start": 32,
-              "end": 54,
+              "start": {
+                "offset": 32,
+                "line": 4,
+                "column": 5
+              },
+              "end": {
+                "offset": 54,
+                "line": 4,
+                "column": 27
+              },
               "file": "examples/simple_hello.vader"
             }
           }
         ],
         "location": {
-          "start": 21,
-          "end": 56,
+          "start": {
+            "offset": 21,
+            "line": 3,
+            "column": 9
+          },
+          "end": {
+            "offset": 56,
+            "line": 5,
+            "column": 2
+          },
           "file": "examples/simple_hello.vader"
         }
       },
       "location": {
-        "start": 13,
-        "end": 56,
+        "start": {
+          "offset": 13,
+          "line": 3,
+          "column": 1
+        },
+        "end": {
+          "offset": 56,
+          "line": 5,
+          "column": 2
+        },
         "file": "examples/simple_hello.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 56,
+    "end": {
+      "offset": 56,
+      "line": 5,
+      "column": 2
+    },
     "file": "examples/simple_hello.vader"
   }
 }

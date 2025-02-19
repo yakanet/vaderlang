@@ -3,8 +3,16 @@
     "type": "Decorator",
     "value": "load",
     "location": {
-      "start": 1,
-      "end": 5,
+      "start": {
+        "offset": 0,
+        "line": 1,
+        "column": 1
+      },
+      "end": {
+        "offset": 5,
+        "line": 1,
+        "column": 6
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -12,8 +20,16 @@
     "type": "StringLiteral",
     "value": "modules/std",
     "location": {
-      "start": 6,
-      "end": 19,
+      "start": {
+        "offset": 6,
+        "line": 1,
+        "column": 7
+      },
+      "end": {
+        "offset": 19,
+        "line": 1,
+        "column": 20
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -21,8 +37,16 @@
     "type": "Identifier",
     "value": "main",
     "location": {
-      "start": 21,
-      "end": 25,
+      "start": {
+        "offset": 21,
+        "line": 3,
+        "column": 1
+      },
+      "end": {
+        "offset": 25,
+        "line": 3,
+        "column": 5
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -30,8 +54,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 26,
-      "end": 27,
+      "start": {
+        "offset": 26,
+        "line": 3,
+        "column": 6
+      },
+      "end": {
+        "offset": 27,
+        "line": 3,
+        "column": 7
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -39,8 +71,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 27,
-      "end": 28,
+      "start": {
+        "offset": 27,
+        "line": 3,
+        "column": 7
+      },
+      "end": {
+        "offset": 28,
+        "line": 3,
+        "column": 8
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -48,8 +88,16 @@
     "type": "Keyword",
     "value": "fn",
     "location": {
-      "start": 29,
-      "end": 31,
+      "start": {
+        "offset": 29,
+        "line": 3,
+        "column": 9
+      },
+      "end": {
+        "offset": 31,
+        "line": 3,
+        "column": 11
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -57,8 +105,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 31,
-      "end": 32,
+      "start": {
+        "offset": 31,
+        "line": 3,
+        "column": 11
+      },
+      "end": {
+        "offset": 32,
+        "line": 3,
+        "column": 12
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -66,8 +122,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 32,
-      "end": 33,
+      "start": {
+        "offset": 32,
+        "line": 3,
+        "column": 12
+      },
+      "end": {
+        "offset": 33,
+        "line": 3,
+        "column": 13
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -75,8 +139,16 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 34,
-      "end": 35,
+      "start": {
+        "offset": 34,
+        "line": 3,
+        "column": 14
+      },
+      "end": {
+        "offset": 35,
+        "line": 3,
+        "column": 15
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -84,8 +156,16 @@
     "type": "Identifier",
     "value": "print",
     "location": {
-      "start": 40,
-      "end": 45,
+      "start": {
+        "offset": 40,
+        "line": 4,
+        "column": 5
+      },
+      "end": {
+        "offset": 45,
+        "line": 4,
+        "column": 10
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -93,8 +173,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 45,
-      "end": 46,
+      "start": {
+        "offset": 45,
+        "line": 4,
+        "column": 10
+      },
+      "end": {
+        "offset": 46,
+        "line": 4,
+        "column": 11
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -102,8 +190,16 @@
     "type": "Decorator",
     "value": "file",
     "location": {
-      "start": 47,
-      "end": 51,
+      "start": {
+        "offset": 46,
+        "line": 4,
+        "column": 11
+      },
+      "end": {
+        "offset": 51,
+        "line": 4,
+        "column": 16
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -111,8 +207,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 51,
-      "end": 52,
+      "start": {
+        "offset": 51,
+        "line": 4,
+        "column": 16
+      },
+      "end": {
+        "offset": 52,
+        "line": 4,
+        "column": 17
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -120,8 +224,16 @@
     "type": "StringLiteral",
     "value": "examples/embedded_file.vader",
     "location": {
-      "start": 52,
-      "end": 82,
+      "start": {
+        "offset": 52,
+        "line": 4,
+        "column": 17
+      },
+      "end": {
+        "offset": 82,
+        "line": 4,
+        "column": 47
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -129,8 +241,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 82,
-      "end": 83,
+      "start": {
+        "offset": 82,
+        "line": 4,
+        "column": 47
+      },
+      "end": {
+        "offset": 83,
+        "line": 4,
+        "column": 48
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -138,8 +258,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 83,
-      "end": 84,
+      "start": {
+        "offset": 83,
+        "line": 4,
+        "column": 48
+      },
+      "end": {
+        "offset": 84,
+        "line": 4,
+        "column": 49
+      },
       "file": "examples/embedded_file.vader"
     }
   },
@@ -147,16 +275,32 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 85,
-      "end": 86,
+      "start": {
+        "offset": 85,
+        "line": 5,
+        "column": 1
+      },
+      "end": {
+        "offset": 86,
+        "line": 5,
+        "column": 2
+      },
       "file": "examples/embedded_file.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 86,
-      "end": 86,
+      "start": {
+        "offset": 86,
+        "line": 5,
+        "column": 2
+      },
+      "end": {
+        "offset": 86,
+        "line": 5,
+        "column": 2
+      },
       "file": "examples/embedded_file.vader"
     },
     "value": "\u0000"

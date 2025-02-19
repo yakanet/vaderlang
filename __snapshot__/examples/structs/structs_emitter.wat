@@ -7,6 +7,7 @@
  (start $_start)
  (func $_start (type $1)
   (call $wasi_snapshot_preview1:proc_exit
+   ;;@ examples/structs.vader:16:11
    (i32.const 24)
   )
  )

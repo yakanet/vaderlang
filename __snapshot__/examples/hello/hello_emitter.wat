@@ -61,9 +61,12 @@
    )
   )
   (global.set $return_code
+   ;;@ examples/hello.vader:15:19
    (i32.const 0)
   )
+  ;;@
   (call $wasi_snapshot_preview1:proc_exit
+   ;;@ examples/hello.vader:7:12
    (i32.const 3)
   )
  )

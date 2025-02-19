@@ -1,7 +1,11 @@
 import type {Token} from "./types.ts";
+import type {Position} from "@vader/compiler/parser/types.ts";
 
 export class Tokenizer {
-    public current: number = 0;
+    private current: number = 0;
+    public line = 1;
+    public column = 1;
+    private previousPosition: Position | null = null;
 
     constructor(private content: string) {
     }
@@ -17,11 +21,36 @@ export class Tokenizer {
         return null;
     }
 
+    getCurrentPosition(): Position {
+        return {
+            offset: this.current,
+            line: this.line,
+            column: this.column,
+        }
+    }
+
     eat(): string | null {
+        this.previousPosition = this.getCurrentPosition();
+        if (this.content[this.current] === '\n') {
+            this.line++;
+            this.column = 1;
+        } else {
+            this.column++
+        }
         if (this.hasNext()) {
             return this.content[this.current++];
         }
         return null;
+    }
+
+    rollback() {
+        if (!this.previousPosition) {
+            throw new Error(`Could not rollback position`)
+        }
+        this.column = this.previousPosition.column;
+        this.current = this.previousPosition.offset;
+        this.line = this.previousPosition.line;
+        this.previousPosition = null;
     }
 
     pick() {
@@ -74,19 +103,21 @@ export function* tokenize(content: string, file: string): Generator<Token> {
         }
     }
     while (tokenizer.hasNext()) {
+        let start = tokenizer.getCurrentPosition()
         let c = tokenizer.eat()!;
 
         if (is_whitespace(c)) {
             continue;
         }
 
-        const createToken = (tokenType: Token["type"], value = c, realSize = value.length) =>
+
+        const createToken = (tokenType: Token["type"], value = c) =>
             ({
                 type: tokenType,
                 value,
                 location: {
-                    start: tokenizer.current - realSize,
-                    end: tokenizer.current,
+                    start,
+                    end: tokenizer.getCurrentPosition(),
                     file
                 },
             } as Token);
@@ -192,22 +223,13 @@ export function* tokenize(content: string, file: string): Generator<Token> {
                     buffer += tokenizer.eat();
                 }
                 tokenizer.eat(); // closing " char
-                yield createToken("StringLiteral", buffer, buffer.length + 2);
+                yield createToken("StringLiteral", buffer);
                 break;
             }
             case is_digit(c): {
-                tokenizer.current--; // put back the digit char
-                const start = tokenizer.current;
+                tokenizer.rollback(); // put back the digit char
                 const buffer = nextNumber(tokenizer);
-                yield {
-                    type: 'NumberToken',
-                    value: buffer,
-                    location: {
-                        end: tokenizer.current,
-                        start,
-                        file
-                    }
-                };
+                yield createToken('NumberToken', buffer);
                 break;
             }
             case c === "@":
@@ -242,8 +264,8 @@ export function* tokenize(content: string, file: string): Generator<Token> {
     yield {
         type: "EOF",
         location: {
-            start: tokenizer.current,
-            end: tokenizer.current,
+            start: tokenizer.getCurrentPosition(),
+            end: tokenizer.getCurrentPosition(),
             file
         },
         value: "\0",
@@ -275,7 +297,7 @@ function nextNumber(tokenizer: Tokenizer) {
                 }
             }
     } else {
-        tokenizer.current--; // put back the digit char
+        tokenizer.rollback(); // put back the digit char
         buffer += scanMantissa(tokenizer, 10).toString(10);
         if (tokenizer.pick() === '.' && is_digit(tokenizer.next(1)!)) {
             buffer += tokenizer.eat();

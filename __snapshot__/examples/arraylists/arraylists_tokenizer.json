@@ -3,8 +3,16 @@
     "type": "Decorator",
     "value": "load",
     "location": {
-      "start": 1,
-      "end": 5,
+      "start": {
+        "offset": 0,
+        "line": 1,
+        "column": 1
+      },
+      "end": {
+        "offset": 5,
+        "line": 1,
+        "column": 6
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -12,8 +20,16 @@
     "type": "StringLiteral",
     "value": "arraylist",
     "location": {
-      "start": 6,
-      "end": 17,
+      "start": {
+        "offset": 6,
+        "line": 1,
+        "column": 7
+      },
+      "end": {
+        "offset": 17,
+        "line": 1,
+        "column": 18
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -21,8 +37,16 @@
     "type": "Identifier",
     "value": "main",
     "location": {
-      "start": 19,
-      "end": 23,
+      "start": {
+        "offset": 19,
+        "line": 3,
+        "column": 1
+      },
+      "end": {
+        "offset": 23,
+        "line": 3,
+        "column": 5
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -30,8 +54,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 24,
-      "end": 25,
+      "start": {
+        "offset": 24,
+        "line": 3,
+        "column": 6
+      },
+      "end": {
+        "offset": 25,
+        "line": 3,
+        "column": 7
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -39,8 +71,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 25,
-      "end": 26,
+      "start": {
+        "offset": 25,
+        "line": 3,
+        "column": 7
+      },
+      "end": {
+        "offset": 26,
+        "line": 3,
+        "column": 8
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -48,8 +88,16 @@
     "type": "Keyword",
     "value": "fn",
     "location": {
-      "start": 27,
-      "end": 29,
+      "start": {
+        "offset": 27,
+        "line": 3,
+        "column": 9
+      },
+      "end": {
+        "offset": 29,
+        "line": 3,
+        "column": 11
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -57,8 +105,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 29,
-      "end": 30,
+      "start": {
+        "offset": 29,
+        "line": 3,
+        "column": 11
+      },
+      "end": {
+        "offset": 30,
+        "line": 3,
+        "column": 12
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -66,8 +122,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 30,
-      "end": 31,
+      "start": {
+        "offset": 30,
+        "line": 3,
+        "column": 12
+      },
+      "end": {
+        "offset": 31,
+        "line": 3,
+        "column": 13
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -75,8 +139,16 @@
     "type": "LambdaArrowToken",
     "value": "->",
     "location": {
-      "start": 32,
-      "end": 34,
+      "start": {
+        "offset": 32,
+        "line": 3,
+        "column": 14
+      },
+      "end": {
+        "offset": 34,
+        "line": 3,
+        "column": 16
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -84,8 +156,16 @@
     "type": "Identifier",
     "value": "u32",
     "location": {
-      "start": 35,
-      "end": 38,
+      "start": {
+        "offset": 35,
+        "line": 3,
+        "column": 17
+      },
+      "end": {
+        "offset": 38,
+        "line": 3,
+        "column": 20
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -93,8 +173,16 @@
     "type": "OpenCurlyBracket",
     "value": "{",
     "location": {
-      "start": 39,
-      "end": 40,
+      "start": {
+        "offset": 39,
+        "line": 3,
+        "column": 21
+      },
+      "end": {
+        "offset": 40,
+        "line": 3,
+        "column": 22
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -102,8 +190,16 @@
     "type": "Identifier",
     "value": "list",
     "location": {
-      "start": 45,
-      "end": 49,
+      "start": {
+        "offset": 45,
+        "line": 4,
+        "column": 5
+      },
+      "end": {
+        "offset": 49,
+        "line": 4,
+        "column": 9
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -111,8 +207,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 50,
-      "end": 51,
+      "start": {
+        "offset": 50,
+        "line": 4,
+        "column": 10
+      },
+      "end": {
+        "offset": 51,
+        "line": 4,
+        "column": 11
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -120,8 +224,16 @@
     "type": "ColonToken",
     "value": ":",
     "location": {
-      "start": 51,
-      "end": 52,
+      "start": {
+        "offset": 51,
+        "line": 4,
+        "column": 11
+      },
+      "end": {
+        "offset": 52,
+        "line": 4,
+        "column": 12
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -129,8 +241,16 @@
     "type": "Identifier",
     "value": "create_list",
     "location": {
-      "start": 53,
-      "end": 64,
+      "start": {
+        "offset": 53,
+        "line": 4,
+        "column": 13
+      },
+      "end": {
+        "offset": 64,
+        "line": 4,
+        "column": 24
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -138,8 +258,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 64,
-      "end": 65,
+      "start": {
+        "offset": 64,
+        "line": 4,
+        "column": 24
+      },
+      "end": {
+        "offset": 65,
+        "line": 4,
+        "column": 25
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -147,8 +275,16 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "end": 66,
-      "start": 65,
+      "start": {
+        "offset": 65,
+        "line": 4,
+        "column": 25
+      },
+      "end": {
+        "offset": 66,
+        "line": 4,
+        "column": 26
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -156,8 +292,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 66,
-      "end": 67,
+      "start": {
+        "offset": 66,
+        "line": 4,
+        "column": 26
+      },
+      "end": {
+        "offset": 67,
+        "line": 4,
+        "column": 27
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -165,8 +309,16 @@
     "type": "Identifier",
     "value": "list",
     "location": {
-      "start": 72,
-      "end": 76,
+      "start": {
+        "offset": 72,
+        "line": 5,
+        "column": 5
+      },
+      "end": {
+        "offset": 76,
+        "line": 5,
+        "column": 9
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -174,8 +326,16 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 76,
-      "end": 77,
+      "start": {
+        "offset": 76,
+        "line": 5,
+        "column": 9
+      },
+      "end": {
+        "offset": 77,
+        "line": 5,
+        "column": 10
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -183,8 +343,16 @@
     "type": "Identifier",
     "value": "push",
     "location": {
-      "start": 77,
-      "end": 81,
+      "start": {
+        "offset": 77,
+        "line": 5,
+        "column": 10
+      },
+      "end": {
+        "offset": 81,
+        "line": 5,
+        "column": 14
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -192,8 +360,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 81,
-      "end": 82,
+      "start": {
+        "offset": 81,
+        "line": 5,
+        "column": 14
+      },
+      "end": {
+        "offset": 82,
+        "line": 5,
+        "column": 15
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -201,8 +377,16 @@
     "type": "NumberToken",
     "value": "3",
     "location": {
-      "end": 83,
-      "start": 82,
+      "start": {
+        "offset": 82,
+        "line": 5,
+        "column": 15
+      },
+      "end": {
+        "offset": 83,
+        "line": 5,
+        "column": 16
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -210,8 +394,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 83,
-      "end": 84,
+      "start": {
+        "offset": 83,
+        "line": 5,
+        "column": 16
+      },
+      "end": {
+        "offset": 84,
+        "line": 5,
+        "column": 17
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -219,8 +411,16 @@
     "type": "Identifier",
     "value": "list",
     "location": {
-      "start": 89,
-      "end": 93,
+      "start": {
+        "offset": 89,
+        "line": 6,
+        "column": 5
+      },
+      "end": {
+        "offset": 93,
+        "line": 6,
+        "column": 9
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -228,8 +428,16 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 93,
-      "end": 94,
+      "start": {
+        "offset": 93,
+        "line": 6,
+        "column": 9
+      },
+      "end": {
+        "offset": 94,
+        "line": 6,
+        "column": 10
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -237,8 +445,16 @@
     "type": "Identifier",
     "value": "push",
     "location": {
-      "start": 94,
-      "end": 98,
+      "start": {
+        "offset": 94,
+        "line": 6,
+        "column": 10
+      },
+      "end": {
+        "offset": 98,
+        "line": 6,
+        "column": 14
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -246,8 +462,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 98,
-      "end": 99,
+      "start": {
+        "offset": 98,
+        "line": 6,
+        "column": 14
+      },
+      "end": {
+        "offset": 99,
+        "line": 6,
+        "column": 15
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -255,8 +479,16 @@
     "type": "NumberToken",
     "value": "4",
     "location": {
-      "end": 100,
-      "start": 99,
+      "start": {
+        "offset": 99,
+        "line": 6,
+        "column": 15
+      },
+      "end": {
+        "offset": 100,
+        "line": 6,
+        "column": 16
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -264,8 +496,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 100,
-      "end": 101,
+      "start": {
+        "offset": 100,
+        "line": 6,
+        "column": 16
+      },
+      "end": {
+        "offset": 101,
+        "line": 6,
+        "column": 17
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -273,8 +513,16 @@
     "type": "Identifier",
     "value": "list",
     "location": {
-      "start": 106,
-      "end": 110,
+      "start": {
+        "offset": 106,
+        "line": 7,
+        "column": 5
+      },
+      "end": {
+        "offset": 110,
+        "line": 7,
+        "column": 9
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -282,8 +530,16 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 110,
-      "end": 111,
+      "start": {
+        "offset": 110,
+        "line": 7,
+        "column": 9
+      },
+      "end": {
+        "offset": 111,
+        "line": 7,
+        "column": 10
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -291,8 +547,16 @@
     "type": "Identifier",
     "value": "push",
     "location": {
-      "start": 111,
-      "end": 115,
+      "start": {
+        "offset": 111,
+        "line": 7,
+        "column": 10
+      },
+      "end": {
+        "offset": 115,
+        "line": 7,
+        "column": 14
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -300,8 +564,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 115,
-      "end": 116,
+      "start": {
+        "offset": 115,
+        "line": 7,
+        "column": 14
+      },
+      "end": {
+        "offset": 116,
+        "line": 7,
+        "column": 15
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -309,8 +581,16 @@
     "type": "NumberToken",
     "value": "5",
     "location": {
-      "end": 117,
-      "start": 116,
+      "start": {
+        "offset": 116,
+        "line": 7,
+        "column": 15
+      },
+      "end": {
+        "offset": 117,
+        "line": 7,
+        "column": 16
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -318,8 +598,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 117,
-      "end": 118,
+      "start": {
+        "offset": 117,
+        "line": 7,
+        "column": 16
+      },
+      "end": {
+        "offset": 118,
+        "line": 7,
+        "column": 17
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -327,8 +615,16 @@
     "type": "Keyword",
     "value": "return",
     "location": {
-      "start": 123,
-      "end": 129,
+      "start": {
+        "offset": 123,
+        "line": 8,
+        "column": 5
+      },
+      "end": {
+        "offset": 129,
+        "line": 8,
+        "column": 11
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -336,8 +632,16 @@
     "type": "Identifier",
     "value": "list",
     "location": {
-      "start": 130,
-      "end": 134,
+      "start": {
+        "offset": 130,
+        "line": 8,
+        "column": 12
+      },
+      "end": {
+        "offset": 134,
+        "line": 8,
+        "column": 16
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -345,8 +649,16 @@
     "type": "DotToken",
     "value": ".",
     "location": {
-      "start": 134,
-      "end": 135,
+      "start": {
+        "offset": 134,
+        "line": 8,
+        "column": 16
+      },
+      "end": {
+        "offset": 135,
+        "line": 8,
+        "column": 17
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -354,8 +666,16 @@
     "type": "Identifier",
     "value": "at",
     "location": {
-      "start": 135,
-      "end": 137,
+      "start": {
+        "offset": 135,
+        "line": 8,
+        "column": 17
+      },
+      "end": {
+        "offset": 137,
+        "line": 8,
+        "column": 19
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -363,8 +683,16 @@
     "type": "OpenRoundBracket",
     "value": "(",
     "location": {
-      "start": 137,
-      "end": 138,
+      "start": {
+        "offset": 137,
+        "line": 8,
+        "column": 19
+      },
+      "end": {
+        "offset": 138,
+        "line": 8,
+        "column": 20
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -372,8 +700,16 @@
     "type": "NumberToken",
     "value": "2",
     "location": {
-      "end": 139,
-      "start": 138,
+      "start": {
+        "offset": 138,
+        "line": 8,
+        "column": 20
+      },
+      "end": {
+        "offset": 139,
+        "line": 8,
+        "column": 21
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -381,8 +717,16 @@
     "type": "CloseRoundBracket",
     "value": ")",
     "location": {
-      "start": 139,
-      "end": 140,
+      "start": {
+        "offset": 139,
+        "line": 8,
+        "column": 21
+      },
+      "end": {
+        "offset": 140,
+        "line": 8,
+        "column": 22
+      },
       "file": "examples/arraylists.vader"
     }
   },
@@ -390,16 +734,32 @@
     "type": "CloseCurlyBracket",
     "value": "}",
     "location": {
-      "start": 141,
-      "end": 142,
+      "start": {
+        "offset": 141,
+        "line": 9,
+        "column": 1
+      },
+      "end": {
+        "offset": 142,
+        "line": 9,
+        "column": 2
+      },
       "file": "examples/arraylists.vader"
     }
   },
   {
     "type": "EOF",
     "location": {
-      "start": 143,
-      "end": 143,
+      "start": {
+        "offset": 143,
+        "line": 10,
+        "column": 1
+      },
+      "end": {
+        "offset": 143,
+        "line": 10,
+        "column": 1
+      },
       "file": "examples/arraylists.vader"
     },
     "value": "\u0000"

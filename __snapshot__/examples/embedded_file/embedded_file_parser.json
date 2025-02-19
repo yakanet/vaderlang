@@ -47,14 +47,30 @@
         },
         "body": [],
         "location": {
-          "start": 19,
-          "end": 45,
+          "start": {
+            "offset": 19,
+            "line": 2,
+            "column": 9
+          },
+          "end": {
+            "offset": 45,
+            "line": 2,
+            "column": 35
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 11,
-        "end": 45,
+        "start": {
+          "offset": 11,
+          "line": 2,
+          "column": 1
+        },
+        "end": {
+          "offset": 45,
+          "line": 2,
+          "column": 35
+        },
         "file": "modules/std.vader"
       }
     },
@@ -104,14 +120,30 @@
         },
         "body": [],
         "location": {
-          "start": 67,
-          "end": 94,
+          "start": {
+            "offset": 67,
+            "line": 5,
+            "column": 10
+          },
+          "end": {
+            "offset": 94,
+            "line": 5,
+            "column": 37
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 58,
-        "end": 94,
+        "start": {
+          "offset": 58,
+          "line": 5,
+          "column": 1
+        },
+        "end": {
+          "offset": 94,
+          "line": 5,
+          "column": 37
+        },
         "file": "modules/std.vader"
       }
     },
@@ -169,14 +201,30 @@
         },
         "body": [],
         "location": {
-          "start": 117,
-          "end": 140,
+          "start": {
+            "offset": 117,
+            "line": 8,
+            "column": 11
+          },
+          "end": {
+            "offset": 140,
+            "line": 8,
+            "column": 34
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 107,
-        "end": 140,
+        "start": {
+          "offset": 107,
+          "line": 8,
+          "column": 1
+        },
+        "end": {
+          "offset": 140,
+          "line": 8,
+          "column": 34
+        },
         "file": "modules/std.vader"
       }
     },
@@ -224,35 +272,71 @@
                 },
                 "value": "@load \"modules/std\"\n\nmain :: fn() {\n    print(@file(\"examples/embedded_file.vader\"))\n}",
                 "location": {
-                  "start": 47,
-                  "end": 51,
+                  "start": {
+                    "offset": 46,
+                    "line": 4,
+                    "column": 11
+                  },
+                  "end": {
+                    "offset": 51,
+                    "line": 4,
+                    "column": 16
+                  },
                   "file": "examples/embedded_file.vader"
                 }
               }
             ],
             "location": {
-              "start": 40,
-              "end": 84,
+              "start": {
+                "offset": 40,
+                "line": 4,
+                "column": 5
+              },
+              "end": {
+                "offset": 84,
+                "line": 4,
+                "column": 49
+              },
               "file": "examples/embedded_file.vader"
             }
           }
         ],
         "location": {
-          "start": 29,
-          "end": 86,
+          "start": {
+            "offset": 29,
+            "line": 3,
+            "column": 9
+          },
+          "end": {
+            "offset": 86,
+            "line": 5,
+            "column": 2
+          },
           "file": "examples/embedded_file.vader"
         }
       },
       "location": {
-        "start": 21,
-        "end": 86,
+        "start": {
+          "offset": 21,
+          "line": 3,
+          "column": 1
+        },
+        "end": {
+          "offset": 86,
+          "line": 5,
+          "column": 2
+        },
         "file": "examples/embedded_file.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 86,
+    "end": {
+      "offset": 86,
+      "line": 5,
+      "column": 2
+    },
     "file": "examples/embedded_file.vader"
   }
 }

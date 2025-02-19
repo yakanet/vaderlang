@@ -47,14 +47,30 @@
         },
         "body": [],
         "location": {
-          "start": 19,
-          "end": 45,
+          "start": {
+            "offset": 19,
+            "line": 2,
+            "column": 9
+          },
+          "end": {
+            "offset": 45,
+            "line": 2,
+            "column": 35
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 11,
-        "end": 45,
+        "start": {
+          "offset": 11,
+          "line": 2,
+          "column": 1
+        },
+        "end": {
+          "offset": 45,
+          "line": 2,
+          "column": 35
+        },
         "file": "modules/std.vader"
       }
     },
@@ -104,14 +120,30 @@
         },
         "body": [],
         "location": {
-          "start": 67,
-          "end": 94,
+          "start": {
+            "offset": 67,
+            "line": 5,
+            "column": 10
+          },
+          "end": {
+            "offset": 94,
+            "line": 5,
+            "column": 37
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 58,
-        "end": 94,
+        "start": {
+          "offset": 58,
+          "line": 5,
+          "column": 1
+        },
+        "end": {
+          "offset": 94,
+          "line": 5,
+          "column": 37
+        },
         "file": "modules/std.vader"
       }
     },
@@ -169,14 +201,30 @@
         },
         "body": [],
         "location": {
-          "start": 117,
-          "end": 140,
+          "start": {
+            "offset": 117,
+            "line": 8,
+            "column": 11
+          },
+          "end": {
+            "offset": 140,
+            "line": 8,
+            "column": 34
+          },
           "file": "modules/std.vader"
         }
       },
       "location": {
-        "start": 107,
-        "end": 140,
+        "start": {
+          "offset": 107,
+          "line": 8,
+          "column": 1
+        },
+        "end": {
+          "offset": 140,
+          "line": 8,
+          "column": 34
+        },
         "file": "modules/std.vader"
       }
     },
@@ -227,14 +275,30 @@
                 },
                 "value": 0,
                 "location": {
-                  "start": 41,
-                  "end": 42,
+                  "start": {
+                    "offset": 41,
+                    "line": 4,
+                    "column": 14
+                  },
+                  "end": {
+                    "offset": 42,
+                    "line": 4,
+                    "column": 15
+                  },
                   "file": "examples/loop.vader"
                 }
               },
               "location": {
-                "start": 36,
-                "end": 42,
+                "start": {
+                  "offset": 36,
+                  "line": 4,
+                  "column": 9
+                },
+                "end": {
+                  "offset": 42,
+                  "line": 4,
+                  "column": 15
+                },
                 "file": "examples/loop.vader"
               }
             },
@@ -255,8 +319,16 @@
                 },
                 "identifier": "i",
                 "location": {
-                  "start": 44,
-                  "end": 45,
+                  "start": {
+                    "offset": 44,
+                    "line": 4,
+                    "column": 17
+                  },
+                  "end": {
+                    "offset": 45,
+                    "line": 4,
+                    "column": 18
+                  },
                   "file": "examples/loop.vader"
                 }
               },
@@ -269,14 +341,30 @@
                 },
                 "value": 10,
                 "location": {
-                  "start": 48,
-                  "end": 50,
+                  "start": {
+                    "offset": 48,
+                    "line": 4,
+                    "column": 21
+                  },
+                  "end": {
+                    "offset": 50,
+                    "line": 4,
+                    "column": 23
+                  },
                   "file": "examples/loop.vader"
                 }
               },
               "location": {
-                "start": 44,
-                "end": 50,
+                "start": {
+                  "offset": 44,
+                  "line": 4,
+                  "column": 17
+                },
+                "end": {
+                  "offset": 50,
+                  "line": 4,
+                  "column": 23
+                },
                 "file": "examples/loop.vader"
               }
             },
@@ -291,8 +379,16 @@
                 },
                 "identifier": "i",
                 "location": {
-                  "start": 52,
-                  "end": 53,
+                  "start": {
+                    "offset": 52,
+                    "line": 4,
+                    "column": 25
+                  },
+                  "end": {
+                    "offset": 53,
+                    "line": 4,
+                    "column": 26
+                  },
                   "file": "examples/loop.vader"
                 }
               },
@@ -313,8 +409,16 @@
                   },
                   "identifier": "i",
                   "location": {
-                    "start": 56,
-                    "end": 57,
+                    "start": {
+                      "offset": 56,
+                      "line": 4,
+                      "column": 29
+                    },
+                    "end": {
+                      "offset": 57,
+                      "line": 4,
+                      "column": 30
+                    },
                     "file": "examples/loop.vader"
                   }
                 },
@@ -327,21 +431,45 @@
                   },
                   "value": 1,
                   "location": {
-                    "start": 60,
-                    "end": 61,
+                    "start": {
+                      "offset": 60,
+                      "line": 4,
+                      "column": 33
+                    },
+                    "end": {
+                      "offset": 61,
+                      "line": 4,
+                      "column": 34
+                    },
                     "file": "examples/loop.vader"
                   }
                 },
                 "location": {
-                  "start": 56,
-                  "end": 61,
+                  "start": {
+                    "offset": 56,
+                    "line": 4,
+                    "column": 29
+                  },
+                  "end": {
+                    "offset": 61,
+                    "line": 4,
+                    "column": 34
+                  },
                   "file": "examples/loop.vader"
                 }
               },
               "location": {
-                "start": 52,
+                "start": {
+                  "offset": 52,
+                  "line": 4,
+                  "column": 25
+                },
                 "file": "examples/loop.vader",
-                "end": 61
+                "end": {
+                  "offset": 61,
+                  "line": 4,
+                  "column": 34
+                }
               }
             },
             "body": [
@@ -365,14 +493,30 @@
                     },
                     "value": 0,
                     "location": {
-                      "start": 81,
-                      "end": 82,
+                      "start": {
+                        "offset": 81,
+                        "line": 5,
+                        "column": 18
+                      },
+                      "end": {
+                        "offset": 82,
+                        "line": 5,
+                        "column": 19
+                      },
                       "file": "examples/loop.vader"
                     }
                   },
                   "location": {
-                    "start": 76,
-                    "end": 82,
+                    "start": {
+                      "offset": 76,
+                      "line": 5,
+                      "column": 13
+                    },
+                    "end": {
+                      "offset": 82,
+                      "line": 5,
+                      "column": 19
+                    },
                     "file": "examples/loop.vader"
                   }
                 },
@@ -393,8 +537,16 @@
                     },
                     "identifier": "j",
                     "location": {
-                      "start": 84,
-                      "end": 85,
+                      "start": {
+                        "offset": 84,
+                        "line": 5,
+                        "column": 21
+                      },
+                      "end": {
+                        "offset": 85,
+                        "line": 5,
+                        "column": 22
+                      },
                       "file": "examples/loop.vader"
                     }
                   },
@@ -407,14 +559,30 @@
                     },
                     "value": 10,
                     "location": {
-                      "start": 88,
-                      "end": 90,
+                      "start": {
+                        "offset": 88,
+                        "line": 5,
+                        "column": 25
+                      },
+                      "end": {
+                        "offset": 90,
+                        "line": 5,
+                        "column": 27
+                      },
                       "file": "examples/loop.vader"
                     }
                   },
                   "location": {
-                    "start": 84,
-                    "end": 90,
+                    "start": {
+                      "offset": 84,
+                      "line": 5,
+                      "column": 21
+                    },
+                    "end": {
+                      "offset": 90,
+                      "line": 5,
+                      "column": 27
+                    },
                     "file": "examples/loop.vader"
                   }
                 },
@@ -429,8 +597,16 @@
                     },
                     "identifier": "j",
                     "location": {
-                      "start": 92,
-                      "end": 93,
+                      "start": {
+                        "offset": 92,
+                        "line": 5,
+                        "column": 29
+                      },
+                      "end": {
+                        "offset": 93,
+                        "line": 5,
+                        "column": 30
+                      },
                       "file": "examples/loop.vader"
                     }
                   },
@@ -451,8 +627,16 @@
                       },
                       "identifier": "j",
                       "location": {
-                        "start": 96,
-                        "end": 97,
+                        "start": {
+                          "offset": 96,
+                          "line": 5,
+                          "column": 33
+                        },
+                        "end": {
+                          "offset": 97,
+                          "line": 5,
+                          "column": 34
+                        },
                         "file": "examples/loop.vader"
                       }
                     },
@@ -465,21 +649,45 @@
                       },
                       "value": 1,
                       "location": {
-                        "start": 100,
-                        "end": 101,
+                        "start": {
+                          "offset": 100,
+                          "line": 5,
+                          "column": 37
+                        },
+                        "end": {
+                          "offset": 101,
+                          "line": 5,
+                          "column": 38
+                        },
                         "file": "examples/loop.vader"
                       }
                     },
                     "location": {
-                      "start": 96,
-                      "end": 101,
+                      "start": {
+                        "offset": 96,
+                        "line": 5,
+                        "column": 33
+                      },
+                      "end": {
+                        "offset": 101,
+                        "line": 5,
+                        "column": 38
+                      },
                       "file": "examples/loop.vader"
                     }
                   },
                   "location": {
-                    "start": 92,
+                    "start": {
+                      "offset": 92,
+                      "line": 5,
+                      "column": 29
+                    },
                     "file": "examples/loop.vader",
-                    "end": 101
+                    "end": {
+                      "offset": 101,
+                      "line": 5,
+                      "column": 38
+                    }
                   }
                 },
                 "body": [
@@ -500,22 +708,46 @@
                         },
                         "value": "Hello",
                         "location": {
-                          "start": 123,
-                          "end": 130,
+                          "start": {
+                            "offset": 123,
+                            "line": 6,
+                            "column": 19
+                          },
+                          "end": {
+                            "offset": 130,
+                            "line": 6,
+                            "column": 26
+                          },
                           "file": "examples/loop.vader"
                         }
                       }
                     ],
                     "location": {
-                      "start": 117,
-                      "end": 131,
+                      "start": {
+                        "offset": 117,
+                        "line": 6,
+                        "column": 13
+                      },
+                      "end": {
+                        "offset": 131,
+                        "line": 6,
+                        "column": 27
+                      },
                       "file": "examples/loop.vader"
                     }
                   }
                 ],
                 "location": {
-                  "start": 72,
-                  "end": 141,
+                  "start": {
+                    "offset": 72,
+                    "line": 5,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 141,
+                    "line": 7,
+                    "column": 10
+                  },
                   "file": "examples/loop.vader"
                 }
               },
@@ -536,42 +768,86 @@
                     },
                     "value": "\n",
                     "location": {
-                      "start": 156,
-                      "end": 160,
+                      "start": {
+                        "offset": 156,
+                        "line": 8,
+                        "column": 15
+                      },
+                      "end": {
+                        "offset": 160,
+                        "line": 8,
+                        "column": 19
+                      },
                       "file": "examples/loop.vader"
                     }
                   }
                 ],
                 "location": {
-                  "start": 150,
-                  "end": 161,
+                  "start": {
+                    "offset": 150,
+                    "line": 8,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 161,
+                    "line": 8,
+                    "column": 20
+                  },
                   "file": "examples/loop.vader"
                 }
               }
             ],
             "location": {
-              "start": 32,
-              "end": 167,
+              "start": {
+                "offset": 32,
+                "line": 4,
+                "column": 5
+              },
+              "end": {
+                "offset": 167,
+                "line": 9,
+                "column": 6
+              },
               "file": "examples/loop.vader"
             }
           }
         ],
         "location": {
-          "start": 21,
-          "end": 169,
+          "start": {
+            "offset": 21,
+            "line": 3,
+            "column": 9
+          },
+          "end": {
+            "offset": 169,
+            "line": 10,
+            "column": 2
+          },
           "file": "examples/loop.vader"
         }
       },
       "location": {
-        "start": 13,
-        "end": 169,
+        "start": {
+          "offset": 13,
+          "line": 3,
+          "column": 1
+        },
+        "end": {
+          "offset": 169,
+          "line": 10,
+          "column": 2
+        },
         "file": "examples/loop.vader"
       }
     }
   ],
   "location": {
     "start": 0,
-    "end": 169,
+    "end": {
+      "offset": 169,
+      "line": 10,
+      "column": 2
+    },
     "file": "examples/loop.vader"
   }
 }
