@@ -3,6 +3,9 @@
   "displayName": "vaderlang",
   "description": "Support for vader language",
   "version": "0.0.1",
+  "scripts": {
+    "bundle": "npx @vscode/vsce package"
+  },
   "engines": {
     "vscode": "^1.97.0"
   },
