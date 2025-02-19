@@ -3,6 +3,7 @@
 # app
 **.wasm
 /vader
+/vader.exe
 # Logs
 
 logs

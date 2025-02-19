@@ -1,0 +1,723 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "vader",
+  "patterns": [
+    { "include": "#file-tags" },
+    { "include": "#package-name-declaration" },
+    { "include": "#import-declaration" },
+    { "include": "#statements" }
+  ],
+  "repository": {
+    "file-tags": {
+      "name": "comment.line.double-slash.vader",
+      "begin": "#\\+[A-Za-z_][A-Za-z0-9_\\-]*",
+      "beginCaptures": { "0": { "name": "entity.name.tag.vader" } },
+      "patterns": [
+        {
+          "name": "punctuation.vader",
+          "match": ","
+        },
+        {
+          "name": "keyword.operator.logical.vader",
+          "match": "!"
+        },
+        {
+          "name": "entity.other.attribute-name.vader",
+          "match": "[A-Za-z_][A-Za-z0-9_\\-]*"
+        }
+      ],
+      "end": "\n"
+    },
+    "package-name-declaration": {
+      "match": "^\\s*(package)\\s+([A-Za-z_]\\w*)",
+      "captures": {
+        "1": { "name": "keyword.control.vader" },
+        "2": { "name": "entity.name.type.module.vader" }
+      }
+    },
+    "import-declaration": {
+      "name": "meta.import.vader",
+      "begin": "\\b(import|foreign\\s+import)\\b",
+      "beginCaptures": { "0": { "name": "keyword.control.import.vader" } },
+      "end": "(?=^|;)",
+      "patterns": [
+        {
+          "name": "entity.name.alias.vader",
+          "begin": "\\b[A-Za-z_]\\w*",
+          "beginCaptures": { "0": { "name": "entity.name.namespace.vader" } },
+          "end": "(?=^|;)",
+          "patterns": [{ "include": "#strings" }, { "include": "#comments" }]
+        },
+        { "include": "#strings" },
+        { "include": "#comments" }
+      ]
+    },
+    "statements": {
+      "patterns": [
+        { "include": "#attribute" },
+        { "include": "#procedure-assignment" },
+        { "include": "#type-assignment" },
+        { "include": "#distinct-type-assignment" },
+        { "include": "#constant-assignment" },
+        { "include": "#variable-assignment" },
+        { "include": "#case-clause" },
+        { "include": "#block-label" },
+        { "include": "#type-annotation" },
+        { "include": "#block-definition" },
+        { "include": "#expressions" }
+      ]
+    },
+    "assignments": {
+      "patterns": [
+        { "include": "#procedure-assignment" },
+        { "include": "#type-assignment" },
+        { "include": "#distinct-type-assignment" },
+        { "include": "#constant-assignment" },
+        { "include": "#variable-assignment" },
+        { "include": "#type-annotation" }
+      ]
+    },
+    "expressions": {
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#ternary" },
+        { "include": "#map-bitset" },
+        { "include": "#slice" },
+        { "include": "#keywords" },
+        { "include": "#type-parameter" },
+        { "include": "#basic-types" },
+        { "include": "#procedure-calls" },
+        { "include": "#property-access" },
+        { "include": "#union-member-access" },
+        { "include": "#union-non-nil-access" },
+        { "include": "#strings" },
+        { "include": "#punctuation" },
+        { "include": "#variable-name" }
+      ]
+    },
+    "attribute": {
+      "patterns": [
+        {
+          "name": "meta.attribute.vader",
+          "match": "(@)\\s*([A-Za-z_]\\w*)\\b",
+          "captures": {
+            "0": { "name": "storage.type.annotation.vader" }
+          }
+        },
+        {
+          "name": "meta.attribute.vader",
+          "begin": "(@)\\s*(\\()",
+          "beginCaptures": {
+            "1": { "name": "keyword.control.attribute.vader" },
+            "2": { "name": "meta.brace.round.vader" }
+          },
+          "end": "\\)",
+          "endCaptures": { "0": { "name": "meta.brace.round.vader" } },
+          "patterns": [
+            {
+              "match": "\\b([A-Za-z_]\\w*)\\b",
+              "name": "entity.other.attribute-name.vader"
+            },
+            {
+              "match": ",",
+              "name": "punctuation.vader"
+            },
+            {
+              "begin": "=",
+              "beginCaptures": {
+                "0": { "name": "keyword.operator.assignment.vader" }
+              },
+              "end": "(?=,|\\))",
+              "patterns": [{ "include": "#expressions" }]
+            }
+          ]
+        }
+      ]
+    },
+    "procedure-assignment": {
+      "name": "meta.definition.variable.vader",
+      "begin": "\\b([A-Za-z_]\\w*)\\s*(:\\s*:|=)\\s*(#\\w+)?\\s*(?=fn\\b)",
+      "beginCaptures": {
+        "1": {
+          "name": "meta.definition.function.vader entity.name.function.vader"
+        },
+        "2": { "name": "keyword.operator.assignment.vader" },
+        "3": { "name": "keyword.other.vader" }
+      },
+      "end": "(?=^)|(?<=\\})",
+      "patterns": [{ "include": "#type-declaration" }]
+    },
+    "type-assignment": {
+      "name": "meta.definition.variable.vader",
+      "begin": "\\b([A-Za-z_]\\w*)\\s*(:\\s*:)\\s*(?=(struct|union|enum|bit_set|bit_field)\\b)",
+      "beginCaptures": {
+        "1": { "name": "entity.name.type.vader" },
+        "2": { "name": "keyword.operator.assignment.vader" },
+        "3": { "name": "storage.type.vader" }
+      },
+      "end": "(?=^)|(?<=\\})",
+      "patterns": [{ "include": "#type-declaration" }]
+    },
+    "distinct-type-assignment": {
+      "name": "meta.definition.variable.vader",
+      "begin": "\\b([A-Za-z_]\\w*)\\s*(:\\s*:)\\s*(?=(distinct)\\b)",
+      "beginCaptures": {
+        "1": { "name": "entity.name.type.vader" },
+        "2": { "name": "keyword.operator.assignment.vader" },
+        "3": { "name": "storage.type.vader" }
+      },
+      "end": "(?=^)|(?<=\\})",
+      "patterns": [{ "include": "#type-declaration" }]
+    },
+    "constant-assignment": {
+      "name": "meta.definition.variable.vader",
+      "match": "([A-Za-z_]\\w*)\\s*(:\\s*:)",
+      "captures": {
+        "1": { "name": "variable.other.constant.vader" },
+        "2": { "name": "keyword.operator.assignment.vader" }
+      }
+    },
+    "variable-assignment": {
+      "name": "meta.definition.variable.vader",
+      "match": "(?:([A-Za-z_]\\w*)\\s*(,)\\s*)?(?:([A-Za-z_]\\w*)\\s*(,)\\s*)?([A-Za-z_]\\w*)\\s*(:\\s*=)",
+      "captures": {
+        "1": { "name": "variable.name.vader" },
+        "2": { "name": "punctuation.vader" },
+        "3": { "name": "variable.name.vader" },
+        "4": { "name": "punctuation.vader" },
+        "5": { "name": "variable.name.vader" },
+        "6": { "name": "keyword.operator.assignment.vader" }
+      }
+    },
+    "type-annotation": {
+      "name": "meta.type.annotation.vader",
+      "begin": "(?:([A-Za-z_]\\w*)\\s*(,)\\s*)?(?:([A-Za-z_]\\w*)\\s*(,)\\s*)?([A-Za-z_]\\w*)\\s*(:)",
+      "beginCaptures": {
+        "1": { "name": "variable.name.vader" },
+        "2": { "name": "punctuation.vader" },
+        "3": { "name": "variable.name.vader" },
+        "4": { "name": "punctuation.vader" },
+        "5": { "name": "variable.name.vader" },
+        "6": { "name": "keyword.operator.type.annotation.vader" }
+      },
+      "end": "(?=^|,|;|\\)|=|:|for|switch|if|elif{)",
+      "patterns": [{ "include": "#type-declaration" }]
+    },
+    "object-definition": {
+      "name": "meta.object.type.vader",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.block.vader" }
+      },
+      "end": "\\}",
+      "endCaptures": { "0": { "name": "punctuation.definition.block.vader" } },
+      "patterns": [{ "include": "#statements" }]
+    },
+    "block-definition": {
+      "name": "meta.block.vader",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.block.vader" }
+      },
+      "end": "\\}",
+      "endCaptures": { "0": { "name": "punctuation.definition.block.vader" } },
+      "patterns": [{ "include": "#statements" }]
+    },
+    "block-label": {
+      "name": "meta.block.label.vader",
+      "match": "(\\w+)(:)\\s*(?=for|switch|if|elif{)",
+      "captures": {
+        "1": { "name": "entity.name.label.vader" },
+        "2": { "name": "punctuation.definition.label.vader" }
+      }
+    },
+    "type-declaration": {
+      "name": "meta.type.declaration.vader",
+      "patterns": [
+        { "include": "#map-bitset" },
+        {
+          "begin": "\\b(fn|struct|union|enum|bit_field)\\b",
+          "beginCaptures": { "1": { "name": "storage.type.vader" } },
+          "end": "(?=^|\\)|,|;)|(?<=})",
+          "patterns": [
+            { "include": "#parameters" },
+            { "include": "#return-type-declaration" },
+            { "include": "#object-definition" },
+            { "include": "#expressions" }
+          ]
+        },
+        { "include": "#comments" },
+        { "include": "#strings" },
+        { "include": "#block-definition" },
+        { "include": "#keywords" },
+        { "include": "#basic-types" },
+        { "include": "#slice" },
+        {
+          "begin": "\\(",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.typeparameters.begin.vader" }
+          },
+          "end": "\\)",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.typeparameters.end.vader" }
+          },
+          "patterns": [{ "include": "#type-declaration" }]
+        },
+        { "include": "#property-access" },
+        { "include": "#punctuation" },
+        { "include": "#type-name" }
+      ]
+    },
+    "parameters": {
+      "name": "meta.parameters.vader",
+      "begin": "\\(",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.parameters.begin.vader" }
+      },
+      "end": "\\)",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.parameters.end.vader" }
+      },
+      "patterns": [{ "include": "#assignments" }, { "include": "#expressions" }]
+    },
+    "return-type-declaration": {
+      "name": "meta.return.type.vader",
+      "begin": "->",
+      "beginCaptures": { "0": { "name": "storage.type.function.arrow.vader" } },
+      "end": "(?=^|\\)|,|;|{|where)",
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#keywords" },
+        { "include": "#basic-types" },
+        { "include": "#property-access" },
+        {
+          "name": "meta.parameters.vader",
+          "begin": "\\(",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.parameters.begin.vader" }
+          },
+          "end": "\\)",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.parameters.end.vader" }
+          },
+          "patterns": [
+            { "include": "#comments" },
+            { "include": "#assignments" },
+            { "include": "#keywords" },
+            { "include": "#basic-types" },
+            { "include": "#property-access" },
+            { "include": "#type-name" },
+            { "include": "#punctuation" }
+          ]
+        },
+        { "include": "#type-name" }
+      ]
+    },
+    "map-bitset": {
+      "begin": "\\b(bit_set|map)\\b",
+      "beginCaptures": { "0": { "name": "storage.type.vader" } },
+      "end": "]",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.bracket.square.vader" }
+      },
+      "patterns": [
+        {
+          "match": "\\[",
+          "name": "punctuation.definition.bracket.square.vader"
+        },
+        { "include": "#type-declaration" }
+      ]
+    },
+    "case-clause": {
+      "name": "meta.case-clause.expr.vader",
+      "begin": "\\b(case)\\b",
+      "beginCaptures": { "1": { "name": "keyword.control.case.vader" } },
+      "end": ":",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.section.case-statement.vader" }
+      },
+      "patterns": [{ "include": "#expressions" }]
+    },
+    "procedure-calls": {
+      "patterns": [
+        {
+          "name": "meta.function-call.vader",
+          "begin": "\\b(cast|transmute)\\b\\s*(\\()",
+          "beginCaptures": {
+            "1": { "name": "keyword.function.vader" },
+            "2": { "name": "meta.brace.round.vader" }
+          },
+          "end": "\\)",
+          "endCaptures": { "0": { "name": "meta.brace.round.vader" } },
+          "patterns": [{ "include": "#type-declaration" }]
+        },
+        {
+          "name": "meta.function-call.vader",
+          "begin": "\\b(size_of|align_of)\\b\\s*(\\()",
+          "beginCaptures": {
+            "1": { "name": "support.function.builtin.vader" },
+            "2": { "name": "meta.brace.round.vader" }
+          },
+          "end": "\\)",
+          "endCaptures": { "0": { "name": "meta.brace.round.vader" } },
+          "patterns": [{ "include": "#type-declaration" }]
+        },
+        {
+          "name": "meta.function-call.vader",
+          "begin": "\\b(len|cap|offset_of_selector|offset_of_member|offset_of|offset_of_by_string|type_of|type_info_of|typeid_of|swizzle|complex|quaternion|real|imag|jmag|kmag|conj|expand_values|min|max|abs|clamp|soa_zip|soa_unzip|make|new|new_clone|resize|reserve|append|delete|free|free_all|assert|panic)\\b\\s*(\\()",
+          "beginCaptures": {
+            "1": { "name": "support.function.builtin.vader" },
+            "2": { "name": "meta.brace.round.vader" }
+          },
+          "end": "\\)",
+          "endCaptures": { "0": { "name": "meta.brace.round.vader" } },
+          "patterns": [{ "include": "#expressions" }]
+        },
+        {
+          "name": "meta.function-call.vader",
+          "begin": "([A-Za-z_]\\w*)\\s*(\\()",
+          "beginCaptures": {
+            "1": { "name": "entity.name.function.vader" },
+            "2": { "name": "meta.brace.round.vader" }
+          },
+          "end": "\\)",
+          "endCaptures": { "0": { "name": "meta.brace.round.vader" } },
+          "patterns": [{ "include": "#expressions" }]
+        }
+      ]
+    },
+    "ternary": {
+      "name": "meta.ternary.vader",
+      "begin": "\\?",
+      "beginCaptures": { "0": { "name": "keyword.operator.ternary.vader" } },
+      "end": ":",
+      "endCaptures": { "0": { "name": "keyword.operator.ternary.vader" } },
+      "patterns": [{ "include": "#expressions" }]
+    },
+    "slice": {
+      "name": "meta.slice.vader",
+      "begin": "\\[",
+      "beginCaptures": { "0": { "name": "meta.brace.square.vader" } },
+      "end": "\\]",
+      "endCaptures": { "0": { "name": "meta.brace.square.vader" } },
+      "patterns": [
+        { "match": "\\?", "name": "keyword.operator.array.vader" },
+        { "match": ":", "name": "keyword.operator.slice.vader" },
+        { "include": "#expressions" }
+      ]
+    },
+    "property-access": {
+      "match": "([A-Za-z_]\\w*)\\s*(\\.)\\s*(?=[A-Za-z_]\\w*)",
+      "captures": {
+        "1": { "name": "variable.other.object.vader" },
+        "2": { "name": "punctuation.accessor.vader" }
+      }
+    },
+    "union-member-access": {
+      "begin": "([A-Za-z_]\\w*)\\s*(\\.)\\s*(\\()",
+      "beginCaptures": {
+        "1": { "name": "variable.other.object.vader" },
+        "2": { "name": "punctuation.accessor.vader" },
+        "3": { "name": "meta.brace.round.vader" }
+      },
+      "end": "\\)",
+      "endCaptures": { "0": { "name": "meta.brace.round.vader" } },
+      "patterns": [{ "include": "#type-declaration" }]
+    },
+    "union-non-nil-access": {
+      "match": "([A-Za-z_]\\w*)\\s*(\\.)\\s*(\\?)",
+      "captures": {
+        "1": { "name": "variable.other.object.vader" },
+        "2": { "name": "punctuation.accessor.vader" },
+        "3": { "name": "punctuation.accessor.optional.vader" }
+      }
+    },
+    "comments": {
+      "patterns": [
+        { "include": "#block-comment" },
+        {
+          "name": "comment.line.double-slash.vader",
+          "begin": "//",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.comment.vader" }
+          },
+          "end": "\n"
+        },
+        {
+          "name": "comment.line.shebang.vader",
+          "begin": "#!",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.comment.vader" }
+          },
+          "end": "\n"
+        }
+      ]
+    },
+    "block-comment": {
+      "name": "comment.block.vader",
+      "begin": "/\\*",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.comment.begin.vader" }
+      },
+      "end": "\\*/",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.comment.end.vader" }
+      },
+      "patterns": [{ "include": "#block-comment" }]
+    },
+    "type-name": {
+      "name": "entity.name.type.vader",
+      "match": "\\b[A-Za-z_]\\w*\\b"
+    },
+    "type-parameter": {
+      "captures": {
+        "1": { "name": "keyword.operator.vader" },
+        "2": { "name": "entity.name.type.parameter.vader" }
+      },
+      "match": "(\\$)\\s*(\\b[A-Za-z_]\\w*\\b)"
+    },
+    "variable-name": {
+      "name": "variable.name.vader",
+      "match": "\\b[A-Za-z_]\\w*\\b"
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.vader",
+          "match": "\\b(import|foreign|package)\\b"
+        },
+        {
+          "name": "keyword.control.vader",
+          "match": "\\b(if|else|elif|when|where|for|in|not_in|defer|switch|return|or_return)\\b"
+        },
+        {
+          "match": "\\b(break|or_break|continue|or_continue)\\b\\s*(\\w+)?",
+          "captures": {
+            "1": { "name": "keyword.control.vader" },
+            "2": { "name": "entity.name.label.vader" }
+          }
+        },
+        {
+          "name": "keyword.control.vader",
+          "match": "\\b(fallthrough|case|dynamic)\\b"
+        },
+        {
+          "name": "keyword.control.vader",
+          "match": "\\b(do|force_inline|no_inline)\\b"
+        },
+        {
+          "name": "keyword.control.vader",
+          "match": "\\b(asm)\\b"
+        },
+        {
+          "name": "storage.modifier.vader",
+          "match": "\\b(auto_cast|distinct|using)\\b"
+        },
+        {
+          "name": "keyword.context.vader",
+          "match": "\\b(context)\\b"
+        },
+        {
+          "name": "variable.other.constant.vader",
+          "match": "\\b(vader_ARCH|vader_OS)\\b"
+        },
+        {
+          "name": "constant.language.vader",
+          "match": "\\b(nil|true|false)\\b"
+        },
+        {
+          "name": "constant.language.vader",
+          "match": "---"
+        },
+        {
+          "name": "constant.numeric.vader",
+          "match": "\\b(\\d(\\d|_)*(\\.\\d(\\d|_)*)?)((e|E)(\\+|-)?\\d+)?[ijk]?\\b"
+        },
+        {
+          "name": "constant.numeric.vader",
+          "match": "\\b((0b(0|1|_)+)|(0o(\\d|_)+)|(0d(\\d|_)+)|(0[xXh](\\h|_)+))[i]?\\b"
+        },
+        {
+          "name": "storage.type.vader",
+          "match": "\\b(struct|enum|union|map|bit_set|bit_field|matrix)\\b"
+        },
+        {
+          "name": "keyword.operator.assignment.compound.vader",
+          "match": "[+\\-*/%]=|%%="
+        },
+        {
+          "name": "keyword.operator.assignment.compound.bitwise.vader",
+          "match": "\\|=|~=|&~?=|<<=|>>="
+        },
+        {
+          "name": "keyword.operator.comparison.vader",
+          "match": "==|!="
+        },
+        {
+          "name": "keyword.operator.relational.vader",
+          "match": "[<>]=?"
+        },
+        {
+          "name": "keyword.operator.range.vader",
+          "match": "\\.\\.[<=]"
+        },
+        {
+          "name": "keyword.operator.spread.vader",
+          "match": "\\.\\."
+        },
+        {
+          "name": "keyword.operator.assignment.vader",
+          "match": ":[:=]|="
+        },
+        {
+          "name": "keyword.operator.address.vader",
+          "match": "&"
+        },
+        {
+          "name": "keyword.operator.address.vader",
+          "match": "\\^"
+        },
+        {
+          "match": "->",
+          "name": "storage.type.function.arrow.vader"
+        },
+        {
+          "name": "keyword.operator.vader",
+          "match": "@|(\\||\\!|:|\\+|-|\\*|/|%|\\<\\<?|\\>\\>?|\\~)=?|=|: : ?|\\$"
+        },
+        {
+          "name": "entity.name.tag.vader",
+          "match": "#[A-Za-z_]\\w*"
+        }
+      ]
+    },
+    "basic-types": {
+      "patterns": [
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(i8|i16|i32|i64|i128|int)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(u8|u16|u32|u64|u128|uint|uintptr)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(u16le|u32le|u64le|u128le|i16le|i32le|i64le|i128le)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(i16be|i32be|i64be|i128be|u16be|u32be|u64be|u128be)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(f16|f32|f64)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(f16le|f32le|f64le)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(f16be|f32be|f64be)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(complex32|complex64|complex128)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(quaternion64|quaternion128|quaternion256)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(bool|b8|b16|b32|b64)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(string|cstring|rune)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(rawptr)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(any|typeid)\\b"
+        },
+        {
+          "name": "support.type.primitive.vader",
+          "match": "\\b(byte)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.vader",
+          "begin": "\"",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.string.begin.vader" }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.string.end.vader" }
+          },
+          "patterns": [{ "include": "#string-escaped-char" }]
+        },
+        {
+          "name": "string.quoted.single.vader",
+          "begin": "'",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.string.begin.vader" }
+          },
+          "end": "'",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.string.end.vader" }
+          },
+          "patterns": [{ "include": "#string-escaped-char" }]
+        },
+        {
+          "name": "string.quoted.raw.vader",
+          "begin": "`",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.string.begin.vader" }
+          },
+          "end": "`",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.string.end.vader" }
+          }
+        }
+      ]
+    },
+    "string-escaped-char": {
+      "patterns": [
+        {
+          "name": "constant.character.escape.ansi-color-sequence.vader",
+          "match": "\\\\(x1b|e|033)\\[[0-9;]*m"
+        },
+        {
+          "name": "constant.character.escape.vader",
+          "match": "\\\\(\\\\|[abefnrutv''\"]|x\\h{2}|u\\h{4}|U\\h{8}|[0-7]{3})"
+        },
+        {
+          "name": "constant.character.escape.placeholders.vader",
+          "match": "%(v|w|T|%|t|b|c|r|o|d|i|z|x|X|U|e|E|f|F|g|G|h|H|m|M|s|q|x|X|p|p|s)"
+        },
+        {
+          "name": "constant.character.escape.placeholders-floats.vader",
+          "match": "%(\\d*\\.?\\d*f)"
+        },
+        {
+          "name": "invalid.illegal.unknown-escape.vader",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "punctuation": {
+      "name": "punctuation.vader",
+      "match": "\\(|\\)|\\{|\\}|;|\\[|\\]|\\.|,|\\\\"
+    }
+  },
+  "scopeName": "source.vader"
+}

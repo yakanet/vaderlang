@@ -1,0 +1,39 @@
+{
+  "name": "vaderlang",
+  "displayName": "vaderlang",
+  "description": "Support for vader language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.97.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "vader",
+        "aliases": [
+          "Vader",
+          "vader"
+        ],
+        "icon": {
+          "light": "./icons/letter-v.png",
+          "dark": "./icons/letter-v.png"
+        },
+        "showLanguageModeIcons": true,
+        "extensions": [
+          ".vader"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vader",
+        "scopeName": "source.vader",
+        "path": "./syntaxes/vader.tmLanguage.json"
+      }
+    ]
+  }
+}
