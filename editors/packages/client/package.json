@@ -1,0 +1,22 @@
+{
+  "name": "@vaderlang/lsp-client",
+  "scripts": {
+    "compile": "bun build --format=cjs --targer=node --sourcemap=linked --packages=external --outdir=out --external=vscode src/index.ts",
+    "watch": "bun build --format=cjs --targer=node --sourcemap=linked --packages=external --watch --outdir=out --external=vscode src/index.ts"
+  },
+  "engines": {
+    "vscode": "^1.97.0"
+	},
+  "dependencies": {
+    "glob": "^11.0.0",
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/vscode": "^1.86.0",
+		"@vscode/test-electron": "^2.4.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

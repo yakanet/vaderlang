@@ -1,9 +1,12 @@
 {
   "name": "vaderlang",
-  "displayName": "vaderlang",
+  "displayName": "Vader",
   "description": "Support for vader language",
   "version": "0.0.1",
+  "publisher": "yakanet",
   "scripts": {
+    "compile": "bun run --filter '*' compile",
+		"watch": "bun run --filter '*' watch",
     "bundle": "npx @vscode/vsce package"
   },
   "engines": {
@@ -12,6 +15,11 @@
   "categories": [
     "Programming Languages"
   ],
+  "main": "./packages/client/out/index.js",
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "workspaces": ["packages/*"],
   "contributes": {
     "languages": [
       {
