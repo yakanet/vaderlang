@@ -4,8 +4,6 @@
     "": {
       "name": "vaderlang",
       "devDependencies": {
-        "@vaderlang/lsp-client": "workspace:*",
-        "@vaderlang/lsp-server": "workspace:*",
         "typescript": "^5.7.2",
       },
     },

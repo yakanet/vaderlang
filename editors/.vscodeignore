@@ -1,4 +1,6 @@
 .vscode/**
 .vscode-test/**
 .gitignore
-vsc-extension-quickstart.md
+packages/**
+!packages/**/out/*.js
+node_modules/@vaderlang/**
