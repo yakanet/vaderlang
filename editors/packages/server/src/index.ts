@@ -13,7 +13,6 @@ import {
   type InitializeResult,
   DocumentDiagnosticReportKind,
   type DocumentDiagnosticReport,
-  Logger
 } from "vscode-languageserver/node";
 
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -46,10 +45,10 @@ connection.onInitialize((params: InitializeParams) => {
   );
 
   const result: InitializeResult = {
-	serverInfo: {
-		name: 'Vader Language Server',
-		version: '0.0.1'
-	},
+    serverInfo: {
+      name: 'Vader Language Server',
+      version: '0.0.1'
+    },
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       // Tell the client that this server supports code completion.
@@ -89,25 +88,25 @@ connection.onInitialized(() => {
 });
 
 // The example settings
-interface ExampleSettings {
+interface VaderLSPSettings {
   maxNumberOfProblems: number;
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
 // Please note that this is not the case when using this server with the client provided in this example
 // but could happen with other clients.
-const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
-let globalSettings: ExampleSettings = defaultSettings;
+const defaultSettings: VaderLSPSettings = { maxNumberOfProblems: 100 };
+let globalSettings: VaderLSPSettings = defaultSettings;
 
 // Cache the settings of all open documents
-const documentSettings = new Map<string, Thenable<ExampleSettings>>();
+const documentSettings = new Map<string, Thenable<VaderLSPSettings>>();
 
 connection.onDidChangeConfiguration((change) => {
   if (hasConfigurationCapability) {
     // Reset all cached document settings
     documentSettings.clear();
   } else {
-    globalSettings = change.settings.languageServerExample || defaultSettings;
+    globalSettings = change.settings?.vls ?? defaultSettings;
   }
   // Refresh the diagnostics since the `maxNumberOfProblems` could have changed.
   // We could optimize things here and re-fetch the setting first can compare it
@@ -115,18 +114,19 @@ connection.onDidChangeConfiguration((change) => {
   connection.languages.diagnostics.refresh();
 });
 
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+async function getDocumentSettings(resource: string): Promise<VaderLSPSettings> {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
-  let result = documentSettings.get(resource);
-  if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: "vls",
-    });
-    documentSettings.set(resource, result);
+  const existing = await documentSettings.get(resource);
+  if (existing) {
+    return existing;
   }
+  const result = (await connection.workspace.getConfiguration({
+    scopeUri: resource,
+    section: "vls",
+  })) ?? globalSettings;
+  documentSettings.set(resource, result);
   return result;
 }
 
@@ -162,9 +162,7 @@ async function validateTextDocument(
   textDocument: TextDocument
 ): Promise<Diagnostic[]> {
   // In this simple example we get the settings for every validate run.
-  let settings: ExampleSettings;
-  //settings = await getDocumentSettings(textDocument.uri);
-  settings = defaultSettings;
+  const settings: VaderLSPSettings = await getDocumentSettings(textDocument.uri);
 
   // The validator creates diagnostics for all uppercase words length 2 and more
   const text = textDocument.getText();
