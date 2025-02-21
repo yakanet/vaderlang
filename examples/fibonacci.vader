@@ -1,0 +1,14 @@
+fibonacci :: fn(max: u32) -> u32 {
+    a := 0
+    b := 1
+    for(i := 1 ; i<= max; i = i + 1) {
+        c :: a
+        a = b
+        b = c + b
+    }
+    return a
+}
+
+main :: fn() -> u32 {
+    return fibonacci(10)    
+}

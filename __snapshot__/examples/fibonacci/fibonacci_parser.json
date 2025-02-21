@@ -1,0 +1,780 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "fibonacci",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "max",
+            "type": {
+              "name": "u32",
+              "kind": "primitive",
+              "signed": false
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "max",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "a",
+            "isConstant": false,
+            "type": {
+              "name": "u32",
+              "kind": "primitive",
+              "signed": false
+            },
+            "value": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "value": 0,
+              "location": {
+                "start": {
+                  "offset": 44,
+                  "line": 2,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 45,
+                  "line": 2,
+                  "column": 11
+                },
+                "file": "examples/fibonacci.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 39,
+                "line": 2,
+                "column": 5
+              },
+              "end": {
+                "offset": 45,
+                "line": 2,
+                "column": 11
+              },
+              "file": "examples/fibonacci.vader"
+            }
+          },
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "b",
+            "isConstant": false,
+            "type": {
+              "name": "u32",
+              "kind": "primitive",
+              "signed": false
+            },
+            "value": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "value": 1,
+              "location": {
+                "start": {
+                  "offset": 55,
+                  "line": 3,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 56,
+                  "line": 3,
+                  "column": 11
+                },
+                "file": "examples/fibonacci.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 50,
+                "line": 3,
+                "column": 5
+              },
+              "end": {
+                "offset": 56,
+                "line": 3,
+                "column": 11
+              },
+              "file": "examples/fibonacci.vader"
+            }
+          },
+          {
+            "kind": "ForStatement",
+            "initialization": {
+              "kind": "VariableDeclarationStatement",
+              "name": "i",
+              "isConstant": false,
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "value": 1,
+                "location": {
+                  "start": {
+                    "offset": 70,
+                    "line": 4,
+                    "column": 14
+                  },
+                  "end": {
+                    "offset": 71,
+                    "line": 4,
+                    "column": 15
+                  },
+                  "file": "examples/fibonacci.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 65,
+                  "line": 4,
+                  "column": 9
+                },
+                "end": {
+                  "offset": 71,
+                  "line": 4,
+                  "column": 15
+                },
+                "file": "examples/fibonacci.vader"
+              }
+            },
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "<=",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "lhs": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "identifier": "i",
+                "location": {
+                  "start": {
+                    "offset": 74,
+                    "line": 4,
+                    "column": 18
+                  },
+                  "end": {
+                    "offset": 75,
+                    "line": 4,
+                    "column": 19
+                  },
+                  "file": "examples/fibonacci.vader"
+                }
+              },
+              "rhs": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "identifier": "max",
+                "location": {
+                  "start": {
+                    "offset": 78,
+                    "line": 4,
+                    "column": 22
+                  },
+                  "end": {
+                    "offset": 81,
+                    "line": 4,
+                    "column": 25
+                  },
+                  "file": "examples/fibonacci.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 74,
+                  "line": 4,
+                  "column": 18
+                },
+                "end": {
+                  "offset": 81,
+                  "line": 4,
+                  "column": 25
+                },
+                "file": "examples/fibonacci.vader"
+              }
+            },
+            "iteration": {
+              "kind": "VariableAssignmentStatement",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "identifier": "i",
+                "location": {
+                  "start": {
+                    "offset": 83,
+                    "line": 4,
+                    "column": 27
+                  },
+                  "end": {
+                    "offset": 84,
+                    "line": 4,
+                    "column": 28
+                  },
+                  "file": "examples/fibonacci.vader"
+                }
+              },
+              "value": {
+                "kind": "BinaryExpression",
+                "operator": "+",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "lhs": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "identifier": "i",
+                  "location": {
+                    "start": {
+                      "offset": 87,
+                      "line": 4,
+                      "column": 31
+                    },
+                    "end": {
+                      "offset": 88,
+                      "line": 4,
+                      "column": 32
+                    },
+                    "file": "examples/fibonacci.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 1,
+                  "location": {
+                    "start": {
+                      "offset": 91,
+                      "line": 4,
+                      "column": 35
+                    },
+                    "end": {
+                      "offset": 92,
+                      "line": 4,
+                      "column": 36
+                    },
+                    "file": "examples/fibonacci.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 87,
+                    "line": 4,
+                    "column": 31
+                  },
+                  "end": {
+                    "offset": 92,
+                    "line": 4,
+                    "column": 36
+                  },
+                  "file": "examples/fibonacci.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 83,
+                  "line": 4,
+                  "column": 27
+                },
+                "file": "examples/fibonacci.vader",
+                "end": {
+                  "offset": 92,
+                  "line": 4,
+                  "column": 36
+                }
+              }
+            },
+            "body": [
+              {
+                "kind": "VariableDeclarationStatement",
+                "name": "c",
+                "isConstant": true,
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "value": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "identifier": "a",
+                  "location": {
+                    "start": {
+                      "offset": 109,
+                      "line": 5,
+                      "column": 14
+                    },
+                    "end": {
+                      "offset": 110,
+                      "line": 5,
+                      "column": 15
+                    },
+                    "file": "examples/fibonacci.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 104,
+                    "line": 5,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 110,
+                    "line": 5,
+                    "column": 15
+                  },
+                  "file": "examples/fibonacci.vader"
+                }
+              },
+              {
+                "kind": "VariableAssignmentStatement",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "identifier": "a",
+                  "location": {
+                    "start": {
+                      "offset": 119,
+                      "line": 6,
+                      "column": 9
+                    },
+                    "end": {
+                      "offset": 120,
+                      "line": 6,
+                      "column": 10
+                    },
+                    "file": "examples/fibonacci.vader"
+                  }
+                },
+                "value": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "identifier": "b",
+                  "location": {
+                    "start": {
+                      "offset": 123,
+                      "line": 6,
+                      "column": 13
+                    },
+                    "end": {
+                      "offset": 124,
+                      "line": 6,
+                      "column": 14
+                    },
+                    "file": "examples/fibonacci.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 119,
+                    "line": 6,
+                    "column": 9
+                  },
+                  "file": "examples/fibonacci.vader",
+                  "end": {
+                    "offset": 124,
+                    "line": 6,
+                    "column": 14
+                  }
+                }
+              },
+              {
+                "kind": "VariableAssignmentStatement",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "identifier": "b",
+                  "location": {
+                    "start": {
+                      "offset": 133,
+                      "line": 7,
+                      "column": 9
+                    },
+                    "end": {
+                      "offset": 134,
+                      "line": 7,
+                      "column": 10
+                    },
+                    "file": "examples/fibonacci.vader"
+                  }
+                },
+                "value": {
+                  "kind": "BinaryExpression",
+                  "operator": "+",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "lhs": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "identifier": "c",
+                    "location": {
+                      "start": {
+                        "offset": 137,
+                        "line": 7,
+                        "column": 13
+                      },
+                      "end": {
+                        "offset": 138,
+                        "line": 7,
+                        "column": 14
+                      },
+                      "file": "examples/fibonacci.vader"
+                    }
+                  },
+                  "rhs": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "identifier": "b",
+                    "location": {
+                      "start": {
+                        "offset": 141,
+                        "line": 7,
+                        "column": 17
+                      },
+                      "end": {
+                        "offset": 142,
+                        "line": 7,
+                        "column": 18
+                      },
+                      "file": "examples/fibonacci.vader"
+                    }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 137,
+                      "line": 7,
+                      "column": 13
+                    },
+                    "end": {
+                      "offset": 142,
+                      "line": 7,
+                      "column": 18
+                    },
+                    "file": "examples/fibonacci.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 133,
+                    "line": 7,
+                    "column": 9
+                  },
+                  "file": "examples/fibonacci.vader",
+                  "end": {
+                    "offset": 142,
+                    "line": 7,
+                    "column": 18
+                  }
+                }
+              }
+            ],
+            "location": {
+              "start": {
+                "offset": 61,
+                "line": 4,
+                "column": 5
+              },
+              "end": {
+                "offset": 148,
+                "line": 8,
+                "column": 6
+              },
+              "file": "examples/fibonacci.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "IdentifierExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "identifier": "a",
+              "location": {
+                "start": {
+                  "offset": 160,
+                  "line": 9,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 161,
+                  "line": 9,
+                  "column": 13
+                },
+                "file": "examples/fibonacci.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 153,
+                "line": 9,
+                "column": 5
+              },
+              "end": {
+                "offset": 161,
+                "line": 9,
+                "column": 13
+              },
+              "file": "examples/fibonacci.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": {
+            "offset": 13,
+            "line": 1,
+            "column": 14
+          },
+          "end": {
+            "offset": 163,
+            "line": 10,
+            "column": 2
+          },
+          "file": "examples/fibonacci.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 0,
+          "line": 1,
+          "column": 1
+        },
+        "end": {
+          "offset": 163,
+          "line": 10,
+          "column": 2
+        },
+        "file": "examples/fibonacci.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "main",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "CallExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "functionName": "fibonacci",
+              "parameters": [
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 10,
+                  "location": {
+                    "start": {
+                      "offset": 208,
+                      "line": 13,
+                      "column": 22
+                    },
+                    "end": {
+                      "offset": 210,
+                      "line": 13,
+                      "column": 24
+                    },
+                    "file": "examples/fibonacci.vader"
+                  }
+                }
+              ],
+              "location": {
+                "start": {
+                  "offset": 198,
+                  "line": 13,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 211,
+                  "line": 13,
+                  "column": 25
+                },
+                "file": "examples/fibonacci.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 191,
+                "line": 13,
+                "column": 5
+              },
+              "end": {
+                "offset": 211,
+                "line": 13,
+                "column": 25
+              },
+              "file": "examples/fibonacci.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": {
+            "offset": 173,
+            "line": 12,
+            "column": 9
+          },
+          "end": {
+            "offset": 217,
+            "line": 14,
+            "column": 2
+          },
+          "file": "examples/fibonacci.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 165,
+          "line": 12,
+          "column": 1
+        },
+        "end": {
+          "offset": 217,
+          "line": 14,
+          "column": 2
+        },
+        "file": "examples/fibonacci.vader"
+      }
+    }
+  ],
+  "location": {
+    "start": {
+      "offset": 0,
+      "line": 1,
+      "column": 1
+    },
+    "end": {
+      "offset": 217,
+      "line": 14,
+      "column": 2
+    },
+    "file": "examples/fibonacci.vader"
+  }
+}

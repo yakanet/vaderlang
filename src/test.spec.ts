@@ -15,7 +15,6 @@ const testFolders = [
     'examples'
 ]
 const skip = new Set<string>([
-    //  'examples/arraylists.vader',
     'examples/strings.vader'
 ])
 const snapshot_directory = '__snapshot__'
