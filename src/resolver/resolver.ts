@@ -248,8 +248,7 @@ function resolveExpression(
                         throw new Error(`unrecognized expression ${typeToString(previousType)}.${property.identifier}`);
                     }
                     property.index = resolveExpression(property.index, scope) as any;
-                    property.type = property.index.type;
-                    previousType = property.type;
+                    property.type = previousType.type
                 } else if (previousType.kind === 'struct') {
                     if (property.kind !== 'IdentifierExpression') {
                         throw new Error(`unrecognized expression ${typeToString(previousType)}.${typeToString(property.type)}`);
@@ -259,10 +258,11 @@ function resolveExpression(
                         throw new Error(`Unresolved property ${property.identifier}`);
                     }
                     expression.properties[i].type = resolvedType.type;
-                    previousType = property.type;
                 } else {
                     throw new Error(`Not allowed to use dot expression on ${typeToString(previousType)}`)
                 }
+                previousType = property.type;
+
             }
             return {
                 ...expression,

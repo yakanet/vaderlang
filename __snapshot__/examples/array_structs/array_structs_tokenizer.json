@@ -1,0 +1,1090 @@
+[
+  {
+    "type": "Identifier",
+    "value": "List",
+    "location": {
+      "start": {
+        "offset": 0,
+        "line": 1,
+        "column": 1
+      },
+      "end": {
+        "offset": 4,
+        "line": 1,
+        "column": 5
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 5,
+        "line": 1,
+        "column": 6
+      },
+      "end": {
+        "offset": 6,
+        "line": 1,
+        "column": 7
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 6,
+        "line": 1,
+        "column": 7
+      },
+      "end": {
+        "offset": 7,
+        "line": 1,
+        "column": 8
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "struct",
+    "location": {
+      "start": {
+        "offset": 8,
+        "line": 1,
+        "column": 9
+      },
+      "end": {
+        "offset": 14,
+        "line": 1,
+        "column": 15
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": {
+        "offset": 15,
+        "line": 1,
+        "column": 16
+      },
+      "end": {
+        "offset": 16,
+        "line": 1,
+        "column": 17
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "data",
+    "location": {
+      "start": {
+        "offset": 21,
+        "line": 2,
+        "column": 5
+      },
+      "end": {
+        "offset": 25,
+        "line": 2,
+        "column": 9
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 25,
+        "line": 2,
+        "column": 9
+      },
+      "end": {
+        "offset": 26,
+        "line": 2,
+        "column": 10
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenSquareBracket",
+    "value": "[",
+    "location": {
+      "start": {
+        "offset": 27,
+        "line": 2,
+        "column": 11
+      },
+      "end": {
+        "offset": 28,
+        "line": 2,
+        "column": 12
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseSquareBracket",
+    "value": "]",
+    "location": {
+      "start": {
+        "offset": 28,
+        "line": 2,
+        "column": 12
+      },
+      "end": {
+        "offset": 29,
+        "line": 2,
+        "column": 13
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": {
+        "offset": 29,
+        "line": 2,
+        "column": 13
+      },
+      "end": {
+        "offset": 32,
+        "line": 2,
+        "column": 16
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "length",
+    "location": {
+      "start": {
+        "offset": 37,
+        "line": 3,
+        "column": 5
+      },
+      "end": {
+        "offset": 43,
+        "line": 3,
+        "column": 11
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 43,
+        "line": 3,
+        "column": 11
+      },
+      "end": {
+        "offset": 44,
+        "line": 3,
+        "column": 12
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": {
+        "offset": 45,
+        "line": 3,
+        "column": 13
+      },
+      "end": {
+        "offset": 48,
+        "line": 3,
+        "column": 16
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": {
+        "offset": 49,
+        "line": 4,
+        "column": 1
+      },
+      "end": {
+        "offset": 50,
+        "line": 4,
+        "column": 2
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "main",
+    "location": {
+      "start": {
+        "offset": 51,
+        "line": 5,
+        "column": 1
+      },
+      "end": {
+        "offset": 55,
+        "line": 5,
+        "column": 5
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 56,
+        "line": 5,
+        "column": 6
+      },
+      "end": {
+        "offset": 57,
+        "line": 5,
+        "column": 7
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 57,
+        "line": 5,
+        "column": 7
+      },
+      "end": {
+        "offset": 58,
+        "line": 5,
+        "column": 8
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": {
+        "offset": 59,
+        "line": 5,
+        "column": 9
+      },
+      "end": {
+        "offset": 61,
+        "line": 5,
+        "column": 11
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": {
+        "offset": 61,
+        "line": 5,
+        "column": 11
+      },
+      "end": {
+        "offset": 62,
+        "line": 5,
+        "column": 12
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": {
+        "offset": 62,
+        "line": 5,
+        "column": 12
+      },
+      "end": {
+        "offset": 63,
+        "line": 5,
+        "column": 13
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "LambdaArrowToken",
+    "value": "->",
+    "location": {
+      "start": {
+        "offset": 64,
+        "line": 5,
+        "column": 14
+      },
+      "end": {
+        "offset": 66,
+        "line": 5,
+        "column": 16
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": {
+        "offset": 67,
+        "line": 5,
+        "column": 17
+      },
+      "end": {
+        "offset": 70,
+        "line": 5,
+        "column": 20
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": {
+        "offset": 71,
+        "line": 5,
+        "column": 21
+      },
+      "end": {
+        "offset": 72,
+        "line": 5,
+        "column": 22
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "capacity",
+    "location": {
+      "start": {
+        "offset": 77,
+        "line": 6,
+        "column": 5
+      },
+      "end": {
+        "offset": 85,
+        "line": 6,
+        "column": 13
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 86,
+        "line": 6,
+        "column": 14
+      },
+      "end": {
+        "offset": 87,
+        "line": 6,
+        "column": 15
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 87,
+        "line": 6,
+        "column": 15
+      },
+      "end": {
+        "offset": 88,
+        "line": 6,
+        "column": 16
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "10",
+    "location": {
+      "start": {
+        "offset": 89,
+        "line": 6,
+        "column": 17
+      },
+      "end": {
+        "offset": 91,
+        "line": 6,
+        "column": 19
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": {
+        "offset": 96,
+        "line": 7,
+        "column": 5
+      },
+      "end": {
+        "offset": 97,
+        "line": 7,
+        "column": 6
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 98,
+        "line": 7,
+        "column": 7
+      },
+      "end": {
+        "offset": 99,
+        "line": 7,
+        "column": 8
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 99,
+        "line": 7,
+        "column": 8
+      },
+      "end": {
+        "offset": 100,
+        "line": 7,
+        "column": 9
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenSquareBracket",
+    "value": "[",
+    "location": {
+      "start": {
+        "offset": 101,
+        "line": 7,
+        "column": 10
+      },
+      "end": {
+        "offset": 102,
+        "line": 7,
+        "column": 11
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "3",
+    "location": {
+      "start": {
+        "offset": 102,
+        "line": 7,
+        "column": 11
+      },
+      "end": {
+        "offset": 103,
+        "line": 7,
+        "column": 12
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseSquareBracket",
+    "value": "]",
+    "location": {
+      "start": {
+        "offset": 103,
+        "line": 7,
+        "column": 12
+      },
+      "end": {
+        "offset": 104,
+        "line": 7,
+        "column": 13
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "List",
+    "location": {
+      "start": {
+        "offset": 104,
+        "line": 7,
+        "column": 13
+      },
+      "end": {
+        "offset": 108,
+        "line": 7,
+        "column": 17
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": {
+        "offset": 113,
+        "line": 8,
+        "column": 5
+      },
+      "end": {
+        "offset": 114,
+        "line": 8,
+        "column": 6
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenSquareBracket",
+    "value": "[",
+    "location": {
+      "start": {
+        "offset": 114,
+        "line": 8,
+        "column": 6
+      },
+      "end": {
+        "offset": 115,
+        "line": 8,
+        "column": 7
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "0",
+    "location": {
+      "start": {
+        "offset": 115,
+        "line": 8,
+        "column": 7
+      },
+      "end": {
+        "offset": 116,
+        "line": 8,
+        "column": 8
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseSquareBracket",
+    "value": "]",
+    "location": {
+      "start": {
+        "offset": 116,
+        "line": 8,
+        "column": 8
+      },
+      "end": {
+        "offset": 117,
+        "line": 8,
+        "column": 9
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": {
+        "offset": 118,
+        "line": 8,
+        "column": 10
+      },
+      "end": {
+        "offset": 119,
+        "line": 8,
+        "column": 11
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "List",
+    "location": {
+      "start": {
+        "offset": 120,
+        "line": 8,
+        "column": 12
+      },
+      "end": {
+        "offset": 124,
+        "line": 8,
+        "column": 16
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": {
+        "offset": 125,
+        "line": 8,
+        "column": 17
+      },
+      "end": {
+        "offset": 126,
+        "line": 8,
+        "column": 18
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": {
+        "offset": 135,
+        "line": 9,
+        "column": 9
+      },
+      "end": {
+        "offset": 136,
+        "line": 9,
+        "column": 10
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "data",
+    "location": {
+      "start": {
+        "offset": 136,
+        "line": 9,
+        "column": 10
+      },
+      "end": {
+        "offset": 140,
+        "line": 9,
+        "column": 14
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": {
+        "offset": 141,
+        "line": 9,
+        "column": 15
+      },
+      "end": {
+        "offset": 142,
+        "line": 9,
+        "column": 16
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenSquareBracket",
+    "value": "[",
+    "location": {
+      "start": {
+        "offset": 143,
+        "line": 9,
+        "column": 17
+      },
+      "end": {
+        "offset": 144,
+        "line": 9,
+        "column": 18
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "capacity",
+    "location": {
+      "start": {
+        "offset": 144,
+        "line": 9,
+        "column": 18
+      },
+      "end": {
+        "offset": 152,
+        "line": 9,
+        "column": 26
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseSquareBracket",
+    "value": "]",
+    "location": {
+      "start": {
+        "offset": 152,
+        "line": 9,
+        "column": 26
+      },
+      "end": {
+        "offset": 153,
+        "line": 9,
+        "column": 27
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": {
+        "offset": 153,
+        "line": 9,
+        "column": 27
+      },
+      "end": {
+        "offset": 156,
+        "line": 9,
+        "column": 30
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CommaToken",
+    "value": ",",
+    "location": {
+      "start": {
+        "offset": 156,
+        "line": 9,
+        "column": 30
+      },
+      "end": {
+        "offset": 157,
+        "line": 9,
+        "column": 31
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": {
+        "offset": 166,
+        "line": 10,
+        "column": 9
+      },
+      "end": {
+        "offset": 167,
+        "line": 10,
+        "column": 10
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "length",
+    "location": {
+      "start": {
+        "offset": 167,
+        "line": 10,
+        "column": 10
+      },
+      "end": {
+        "offset": 173,
+        "line": 10,
+        "column": 16
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": {
+        "offset": 174,
+        "line": 10,
+        "column": 17
+      },
+      "end": {
+        "offset": 175,
+        "line": 10,
+        "column": 18
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "10",
+    "location": {
+      "start": {
+        "offset": 176,
+        "line": 10,
+        "column": 19
+      },
+      "end": {
+        "offset": 178,
+        "line": 10,
+        "column": 21
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CommaToken",
+    "value": ",",
+    "location": {
+      "start": {
+        "offset": 178,
+        "line": 10,
+        "column": 21
+      },
+      "end": {
+        "offset": 179,
+        "line": 10,
+        "column": 22
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": {
+        "offset": 184,
+        "line": 11,
+        "column": 5
+      },
+      "end": {
+        "offset": 185,
+        "line": 11,
+        "column": 6
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": {
+        "offset": 190,
+        "line": 12,
+        "column": 5
+      },
+      "end": {
+        "offset": 196,
+        "line": 12,
+        "column": 11
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": {
+        "offset": 197,
+        "line": 12,
+        "column": 12
+      },
+      "end": {
+        "offset": 198,
+        "line": 12,
+        "column": 13
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "OpenSquareBracket",
+    "value": "[",
+    "location": {
+      "start": {
+        "offset": 198,
+        "line": 12,
+        "column": 13
+      },
+      "end": {
+        "offset": 199,
+        "line": 12,
+        "column": 14
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "0",
+    "location": {
+      "start": {
+        "offset": 199,
+        "line": 12,
+        "column": 14
+      },
+      "end": {
+        "offset": 200,
+        "line": 12,
+        "column": 15
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseSquareBracket",
+    "value": "]",
+    "location": {
+      "start": {
+        "offset": 200,
+        "line": 12,
+        "column": 15
+      },
+      "end": {
+        "offset": 201,
+        "line": 12,
+        "column": 16
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "DotToken",
+    "value": ".",
+    "location": {
+      "start": {
+        "offset": 201,
+        "line": 12,
+        "column": 16
+      },
+      "end": {
+        "offset": 202,
+        "line": 12,
+        "column": 17
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "length",
+    "location": {
+      "start": {
+        "offset": 202,
+        "line": 12,
+        "column": 17
+      },
+      "end": {
+        "offset": 208,
+        "line": 12,
+        "column": 23
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": {
+        "offset": 209,
+        "line": 13,
+        "column": 1
+      },
+      "end": {
+        "offset": 210,
+        "line": 13,
+        "column": 2
+      },
+      "file": "examples/array_structs.vader"
+    }
+  },
+  {
+    "type": "EOF",
+    "location": {
+      "start": {
+        "offset": 210,
+        "line": 13,
+        "column": 2
+      },
+      "end": {
+        "offset": 210,
+        "line": 13,
+        "column": 2
+      },
+      "file": "examples/array_structs.vader"
+    },
+    "value": "\u0000"
+  }
+]

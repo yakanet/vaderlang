@@ -342,15 +342,28 @@ export class WasmEmitter {
         assert(expression.type.kind === "array");
         if (expression.value) {
             return this.mod.addDebugStatement(
-                gc.arrays.newFromItems(this.mod.module, this.mapBinaryenType(expression.type), expression.value.map(p => this.emitExpression(p))),
+                gc.arrays.newFromItems(
+                    this.mod.module,
+                    this.mapBinaryenType(expression.type),
+                    expression.value.map(p => this.emitExpression(p))
+                ),
                 expression
             );
         }
         if (expression.type.length === undefined) {
             throw new Error(`unknown array type for ${typeToString(expression.type)}`);
         }
+        let init: binaryen.ExpressionRef | null = null;
+        if (expression.type.type.kind === 'struct') {
+            init = this.emitDefaultType(expression.type.type)
+        }
         return this.mod.addDebugStatement(
-            gc.arrays.newFromInit(this.mod.module, this.mapBinaryenType(expression.type), this.emitExpression(expression.type.length), null),
+            gc.arrays.newFromInit(
+                this.mod.module,
+                this.mapBinaryenType(expression.type),
+                this.emitExpression(expression.type.length),
+                init
+            ),
             expression
         );
     }
@@ -378,7 +391,7 @@ export class WasmEmitter {
                     this.mapBinaryenType(property.type),
                     is_signed(property.type)
                 )
-                previousType = property.index.type
+                previousType = property.type
                 results.push({type: previousType, expression: exprs, index})
             } else {
                 throw new Error(`unimplemented dot expression with left side ${typeToString(previousType)}`)
@@ -522,6 +535,24 @@ export class WasmEmitter {
         }
         throw new Error(`Type mapping for ${typeToString(t)} is not implemented.`);
     }
+
+    private emitDefaultType(type: VaderType): binaryen.ExpressionRef {
+        switch (type.kind) {
+            case "primitive":
+                return createBinaryenConst(this.mod.module, type, 0)
+            case "struct": {
+                const structType = this.mapBinaryenType(type)
+                const parameters = type.parameters.map(p => this.emitDefaultType(p.type))
+                return gc.structs.newFromFields(this.mod.module, structType, parameters)
+            }
+            case 'array': {
+                const arrayType = this.mapBinaryenType(type);
+                return gc.arrays.newFromItems(this.mod.module, arrayType, []);
+            }
+        }
+        throw new Error(`could not emit default value for ${typeToString(type)}`)
+
+    }
 }
 
 
@@ -562,7 +593,7 @@ function is_signed(type: VaderType) {
     return false;
 }
 
-function createBinaryenConst(module: binaryen.Module, t: VaderType, value: number) {
+function createBinaryenConst(module: binaryen.Module, t: VaderType, value: number = 0) {
     if (t.kind === 'array') {
         throw new Error(`Unimplemented array type`)
     }

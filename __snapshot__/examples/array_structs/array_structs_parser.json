@@ -1,0 +1,840 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "List",
+      "isConstant": true,
+      "type": {
+        "kind": "struct",
+        "parameters": [
+          {
+            "name": "data",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "dimension": 1
+            }
+          },
+          {
+            "name": "length",
+            "type": {
+              "name": "u32",
+              "kind": "primitive",
+              "signed": false
+            }
+          }
+        ]
+      },
+      "value": {
+        "kind": "StructDeclarationExpression",
+        "type": {
+          "kind": "struct",
+          "parameters": [
+            {
+              "name": "data",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "dimension": 1
+              }
+            },
+            {
+              "name": "length",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              }
+            }
+          ]
+        },
+        "location": {
+          "start": {
+            "offset": 8,
+            "line": 1,
+            "column": 9
+          },
+          "end": {
+            "offset": 14,
+            "line": 1,
+            "column": 15
+          },
+          "file": "examples/array_structs.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 0,
+          "line": 1,
+          "column": 1
+        },
+        "end": {
+          "offset": 14,
+          "line": 1,
+          "column": 15
+        },
+        "file": "examples/array_structs.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "main",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "capacity",
+            "isConstant": true,
+            "type": {
+              "name": "u32",
+              "kind": "primitive",
+              "signed": false
+            },
+            "value": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "value": 10,
+              "location": {
+                "start": {
+                  "offset": 89,
+                  "line": 6,
+                  "column": 17
+                },
+                "end": {
+                  "offset": 91,
+                  "line": 6,
+                  "column": 19
+                },
+                "file": "examples/array_structs.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 77,
+                "line": 6,
+                "column": 5
+              },
+              "end": {
+                "offset": 91,
+                "line": 6,
+                "column": 19
+              },
+              "file": "examples/array_structs.vader"
+            }
+          },
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "x",
+            "isConstant": true,
+            "type": {
+              "kind": "array",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    }
+                  }
+                ]
+              },
+              "dimension": 1,
+              "length": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "value": 3,
+                "location": {
+                  "start": {
+                    "offset": 102,
+                    "line": 7,
+                    "column": 11
+                  },
+                  "end": {
+                    "offset": 103,
+                    "line": 7,
+                    "column": 12
+                  },
+                  "file": "examples/array_structs.vader"
+                }
+              }
+            },
+            "value": {
+              "kind": "ArrayDeclarationExpression",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "data",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "dimension": 1
+                      }
+                    },
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive",
+                        "signed": false
+                      }
+                    }
+                  ]
+                },
+                "dimension": 1,
+                "length": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 3,
+                  "location": {
+                    "start": {
+                      "offset": 102,
+                      "line": 7,
+                      "column": 11
+                    },
+                    "end": {
+                      "offset": 103,
+                      "line": 7,
+                      "column": 12
+                    },
+                    "file": "examples/array_structs.vader"
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 101,
+                  "line": 7,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 108,
+                  "line": 7,
+                  "column": 17
+                },
+                "file": "examples/array_structs.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 96,
+                "line": 7,
+                "column": 5
+              },
+              "end": {
+                "offset": 108,
+                "line": 7,
+                "column": 17
+              },
+              "file": "examples/array_structs.vader"
+            }
+          },
+          {
+            "kind": "VariableAssignmentStatement",
+            "identifier": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        }
+                      }
+                    ]
+                  },
+                  "dimension": 1,
+                  "length": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "value": 3,
+                    "location": {
+                      "start": {
+                        "offset": 102,
+                        "line": 7,
+                        "column": 11
+                      },
+                      "end": {
+                        "offset": 103,
+                        "line": 7,
+                        "column": 12
+                      },
+                      "file": "examples/array_structs.vader"
+                    }
+                  }
+                },
+                "identifier": "x",
+                "location": {
+                  "start": {
+                    "offset": 113,
+                    "line": 8,
+                    "column": 5
+                  },
+                  "end": {
+                    "offset": 114,
+                    "line": 8,
+                    "column": 6
+                  },
+                  "file": "examples/array_structs.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "ArrayIndexExpression",
+                  "index": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "value": 0,
+                    "location": {
+                      "start": {
+                        "offset": 115,
+                        "line": 8,
+                        "column": 7
+                      },
+                      "end": {
+                        "offset": 116,
+                        "line": 8,
+                        "column": 8
+                      },
+                      "file": "examples/array_structs.vader"
+                    }
+                  },
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        }
+                      }
+                    ]
+                  },
+                  "location": {
+                    "file": "examples/array_structs.vader",
+                    "start": {
+                      "offset": 114,
+                      "line": 8,
+                      "column": 6
+                    },
+                    "end": {
+                      "offset": 117,
+                      "line": 8,
+                      "column": 9
+                    }
+                  }
+                }
+              ],
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": {
+                  "offset": 113,
+                  "line": 8,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 117,
+                  "line": 8,
+                  "column": 9
+                },
+                "file": "examples/array_structs.vader"
+              }
+            },
+            "value": {
+              "kind": "StructInstantiationExpression",
+              "parameters": [
+                {
+                  "name": "data",
+                  "value": {
+                    "kind": "ArrayDeclarationExpression",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1,
+                      "length": {
+                        "kind": "IdentifierExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "identifier": "capacity",
+                        "location": {
+                          "start": {
+                            "offset": 144,
+                            "line": 9,
+                            "column": 18
+                          },
+                          "end": {
+                            "offset": 152,
+                            "line": 9,
+                            "column": 26
+                          },
+                          "file": "examples/array_structs.vader"
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 143,
+                        "line": 9,
+                        "column": 17
+                      },
+                      "end": {
+                        "offset": 156,
+                        "line": 9,
+                        "column": 30
+                      },
+                      "file": "examples/array_structs.vader"
+                    }
+                  }
+                },
+                {
+                  "name": "length",
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "value": 10,
+                    "location": {
+                      "start": {
+                        "offset": 176,
+                        "line": 10,
+                        "column": 19
+                      },
+                      "end": {
+                        "offset": 178,
+                        "line": 10,
+                        "column": 21
+                      },
+                      "file": "examples/array_structs.vader"
+                    }
+                  }
+                }
+              ],
+              "structName": "List",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "data",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1
+                    }
+                  },
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": {
+                  "offset": 120,
+                  "line": 8,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 185,
+                  "line": 11,
+                  "column": 6
+                },
+                "file": "examples/array_structs.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 113,
+                "line": 8,
+                "column": 5
+              },
+              "file": "examples/array_structs.vader",
+              "end": {
+                "offset": 185,
+                "line": 11,
+                "column": 6
+              }
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "array",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        }
+                      }
+                    ]
+                  },
+                  "dimension": 1,
+                  "length": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "value": 3,
+                    "location": {
+                      "start": {
+                        "offset": 102,
+                        "line": 7,
+                        "column": 11
+                      },
+                      "end": {
+                        "offset": 103,
+                        "line": 7,
+                        "column": 12
+                      },
+                      "file": "examples/array_structs.vader"
+                    }
+                  }
+                },
+                "identifier": "x",
+                "location": {
+                  "start": {
+                    "offset": 197,
+                    "line": 12,
+                    "column": 12
+                  },
+                  "end": {
+                    "offset": 198,
+                    "line": 12,
+                    "column": 13
+                  },
+                  "file": "examples/array_structs.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "ArrayIndexExpression",
+                  "index": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "value": 0,
+                    "location": {
+                      "start": {
+                        "offset": 199,
+                        "line": 12,
+                        "column": 14
+                      },
+                      "end": {
+                        "offset": 200,
+                        "line": 12,
+                        "column": 15
+                      },
+                      "file": "examples/array_structs.vader"
+                    }
+                  },
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "data",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        }
+                      },
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        }
+                      }
+                    ]
+                  },
+                  "location": {
+                    "file": "examples/array_structs.vader",
+                    "start": {
+                      "offset": 198,
+                      "line": 12,
+                      "column": 13
+                    },
+                    "end": {
+                      "offset": 201,
+                      "line": 12,
+                      "column": 16
+                    }
+                  }
+                },
+                {
+                  "kind": "IdentifierExpression",
+                  "identifier": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 202,
+                      "line": 12,
+                      "column": 17
+                    },
+                    "end": {
+                      "offset": 208,
+                      "line": 12,
+                      "column": 23
+                    },
+                    "file": "examples/array_structs.vader"
+                  }
+                }
+              ],
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 197,
+                  "line": 12,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 208,
+                  "line": 12,
+                  "column": 23
+                },
+                "file": "examples/array_structs.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 190,
+                "line": 12,
+                "column": 5
+              },
+              "end": {
+                "offset": 208,
+                "line": 12,
+                "column": 23
+              },
+              "file": "examples/array_structs.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": {
+            "offset": 59,
+            "line": 5,
+            "column": 9
+          },
+          "end": {
+            "offset": 210,
+            "line": 13,
+            "column": 2
+          },
+          "file": "examples/array_structs.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 51,
+          "line": 5,
+          "column": 1
+        },
+        "end": {
+          "offset": 210,
+          "line": 13,
+          "column": 2
+        },
+        "file": "examples/array_structs.vader"
+      }
+    }
+  ],
+  "location": {
+    "start": {
+      "offset": 0,
+      "line": 1,
+      "column": 1
+    },
+    "end": {
+      "offset": 210,
+      "line": 13,
+      "column": 2
+    },
+    "file": "examples/array_structs.vader"
+  }
+}

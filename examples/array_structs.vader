@@ -1,0 +1,13 @@
+List :: struct {
+    data: []u32
+    length: u32
+}
+main :: fn() -> u32 {
+    capacity :: 10
+    x :: [3]List
+    x[0] = List {
+        .data = [capacity]u32,
+        .length = 10,
+    }
+    return x[0].length
+}
