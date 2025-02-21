@@ -12,14 +12,16 @@
             "name": "x",
             "type": {
               "name": "u32",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           },
           {
             "name": "y",
             "type": {
               "name": "u32",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           }
         ]
@@ -33,14 +35,16 @@
               "name": "x",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               }
             },
             {
               "name": "y",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               }
             }
           ]
@@ -90,14 +94,16 @@
                   "name": "x",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 },
                 {
                   "name": "y",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 }
               ]
@@ -112,14 +118,16 @@
                   "name": "x",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 },
                 {
                   "name": "y",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 }
               ]
@@ -128,7 +136,8 @@
         ],
         "returnType": {
           "name": "u32",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -146,14 +155,16 @@
                     "name": "x",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     }
                   },
                   {
                     "name": "y",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     }
                   }
                 ]
@@ -168,14 +179,16 @@
                     "name": "x",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     }
                   },
                   {
                     "name": "y",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     }
                   }
                 ]
@@ -184,7 +197,8 @@
           ],
           "returnType": {
             "name": "u32",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [
@@ -195,14 +209,16 @@
               "operator": "+",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "BinaryExpression",
                 "operator": "*",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "lhs": {
                   "kind": "DotExpression",
@@ -215,14 +231,16 @@
                           "name": "x",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           }
                         },
                         {
                           "name": "y",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           }
                         }
                       ]
@@ -248,7 +266,8 @@
                       "identifier": "x",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "location": {
                         "start": {
@@ -267,7 +286,8 @@
                   ],
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "location": {
                     "start": {
@@ -294,14 +314,16 @@
                           "name": "x",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           }
                         },
                         {
                           "name": "y",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           }
                         }
                       ]
@@ -327,7 +349,8 @@
                       "identifier": "x",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "location": {
                         "start": {
@@ -346,7 +369,8 @@
                   ],
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "location": {
                     "start": {
@@ -381,7 +405,8 @@
                 "operator": "*",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "lhs": {
                   "kind": "DotExpression",
@@ -394,14 +419,16 @@
                           "name": "x",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           }
                         },
                         {
                           "name": "y",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           }
                         }
                       ]
@@ -427,7 +454,8 @@
                       "identifier": "y",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "location": {
                         "start": {
@@ -446,7 +474,8 @@
                   ],
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "location": {
                     "start": {
@@ -473,14 +502,16 @@
                           "name": "x",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           }
                         },
                         {
                           "name": "y",
                           "type": {
                             "name": "u32",
-                            "kind": "primitive"
+                            "kind": "primitive",
+                            "signed": false
                           }
                         }
                       ]
@@ -506,7 +537,8 @@
                       "identifier": "y",
                       "type": {
                         "name": "u32",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "location": {
                         "start": {
@@ -525,7 +557,8 @@
                   ],
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "location": {
                     "start": {
@@ -624,13 +657,15 @@
             "name": "this",
             "type": {
               "name": "u32",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           }
         ],
         "returnType": {
           "name": "u32",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -643,13 +678,15 @@
               "name": "this",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               }
             }
           ],
           "returnType": {
             "name": "u32",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [
@@ -660,13 +697,15 @@
               "operator": "+",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "IdentifierExpression",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "identifier": "this",
                 "location": {
@@ -772,7 +811,8 @@
         "parameters": [],
         "returnType": {
           "name": "u32",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -783,7 +823,8 @@
           "parameters": [],
           "returnType": {
             "name": "u32",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [
@@ -798,14 +839,16 @@
                   "name": "x",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 },
                 {
                   "name": "y",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 }
               ]
@@ -870,14 +913,16 @@
                     "name": "x",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     }
                   },
                   {
                     "name": "y",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     }
                   }
                 ]
@@ -921,14 +966,16 @@
                   "name": "x",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 },
                 {
                   "name": "y",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 }
               ]
@@ -993,14 +1040,16 @@
                     "name": "x",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     }
                   },
                   {
                     "name": "y",
                     "type": {
                       "name": "u32",
-                      "kind": "primitive"
+                      "kind": "primitive",
+                      "signed": false
                     }
                   }
                 ]
@@ -1078,14 +1127,16 @@
                             "name": "x",
                             "type": {
                               "name": "u32",
-                              "kind": "primitive"
+                              "kind": "primitive",
+                              "signed": false
                             }
                           },
                           {
                             "name": "y",
                             "type": {
                               "name": "u32",
-                              "kind": "primitive"
+                              "kind": "primitive",
+                              "signed": false
                             }
                           }
                         ]
@@ -1114,14 +1165,16 @@
                             "name": "x",
                             "type": {
                               "name": "u32",
-                              "kind": "primitive"
+                              "kind": "primitive",
+                              "signed": false
                             }
                           },
                           {
                             "name": "y",
                             "type": {
                               "name": "u32",
-                              "kind": "primitive"
+                              "kind": "primitive",
+                              "signed": false
                             }
                           }
                         ]
@@ -1144,13 +1197,15 @@
                   ],
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   }
                 }
               ],
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               }
             },
             "location": {

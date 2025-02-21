@@ -236,7 +236,8 @@
         "parameters": [],
         "returnType": {
           "name": "u32",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -247,7 +248,8 @@
           "parameters": [],
           "returnType": {
             "name": "u32",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [

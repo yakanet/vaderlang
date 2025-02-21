@@ -15,13 +15,15 @@
             "name": "path",
             "type": {
               "name": "string",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           }
         ],
         "returnType": {
           "name": "string",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -36,13 +38,15 @@
               "name": "path",
               "type": {
                 "name": "string",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               }
             }
           ],
           "returnType": {
             "name": "string",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [],
@@ -88,13 +92,15 @@
             "name": "message",
             "type": {
               "name": "string",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           }
         ],
         "returnType": {
           "name": "void",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -109,13 +115,15 @@
               "name": "message",
               "type": {
                 "name": "string",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               }
             }
           ],
           "returnType": {
             "name": "void",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [],
@@ -163,7 +171,8 @@
               "kind": "array",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "dimension": 1
             }
@@ -171,7 +180,8 @@
         ],
         "returnType": {
           "name": "u32",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -188,7 +198,8 @@
                 "kind": "array",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "dimension": 1
               }
@@ -196,7 +207,8 @@
           ],
           "returnType": {
             "name": "u32",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [],
@@ -285,7 +297,8 @@
             "name": "this",
             "type": {
               "name": "u32",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             }
           }
         ],
@@ -293,7 +306,8 @@
           "kind": "array",
           "type": {
             "name": "u8",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           },
           "dimension": 1
         }
@@ -308,7 +322,8 @@
               "name": "this",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               }
             }
           ],
@@ -316,7 +331,8 @@
             "kind": "array",
             "type": {
               "name": "u8",
-              "kind": "primitive"
+              "kind": "primitive",
+              "signed": false
             },
             "dimension": 1
           }
@@ -330,7 +346,8 @@
               "kind": "array",
               "type": {
                 "name": "u8",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "dimension": 1,
               "length": {
@@ -362,7 +379,8 @@
                 "kind": "array",
                 "type": {
                   "name": "u8",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "dimension": 1,
                 "length": {
@@ -424,7 +442,8 @@
                 "kind": "array",
                 "type": {
                   "name": "u8",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "dimension": 1,
                 "length": {
@@ -518,7 +537,8 @@
         "parameters": [],
         "returnType": {
           "name": "u32",
-          "kind": "primitive"
+          "kind": "primitive",
+          "signed": false
         }
       },
       "value": {
@@ -529,7 +549,8 @@
           "parameters": [],
           "returnType": {
             "name": "u32",
-            "kind": "primitive"
+            "kind": "primitive",
+            "signed": false
           }
         },
         "body": [
@@ -541,7 +562,8 @@
               "kind": "array",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "dimension": 1,
               "length": {
@@ -573,7 +595,8 @@
                 "kind": "array",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "dimension": 1,
                 "length": {
@@ -725,7 +748,8 @@
               "kind": "array",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "dimension": 1,
               "length": {
@@ -757,7 +781,8 @@
                 "kind": "array",
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "dimension": 1,
                 "length": {
@@ -819,7 +844,8 @@
               "kind": "array",
               "type": {
                 "name": "u8",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "dimension": 1
             },
@@ -867,7 +893,8 @@
                 "kind": "array",
                 "type": {
                   "name": "u8",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 },
                 "dimension": 1
               }
@@ -903,7 +930,8 @@
                   "kind": "array",
                   "type": {
                     "name": "u32",
-                    "kind": "primitive"
+                    "kind": "primitive",
+                    "signed": false
                   },
                   "dimension": 1,
                   "length": {
@@ -1029,7 +1057,8 @@
               "operator": "+",
               "type": {
                 "name": "u32",
-                "kind": "primitive"
+                "kind": "primitive",
+                "signed": false
               },
               "lhs": {
                 "kind": "CallExpression",
@@ -1054,7 +1083,8 @@
                       "kind": "array",
                       "type": {
                         "name": "u8",
-                        "kind": "primitive"
+                        "kind": "primitive",
+                        "signed": false
                       },
                       "dimension": 1
                     },
@@ -1076,7 +1106,8 @@
                 ],
                 "type": {
                   "name": "u32",
-                  "kind": "primitive"
+                  "kind": "primitive",
+                  "signed": false
                 }
               },
               "rhs": {

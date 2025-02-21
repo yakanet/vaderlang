@@ -1,6 +1,7 @@
 import {Scope} from "./scope";
 import {
     type ArrayDeclarationExpression,
+    type ArrayVaderType,
     BasicVaderType,
     type Expression,
     type ForStatement,
@@ -11,6 +12,7 @@ import {
     type Statement,
     type StructVaderType,
     typeToString,
+    type VaderType,
     type VariableDeclarationStatement,
 } from "../parser/types";
 import assert from "node:assert";
@@ -80,17 +82,13 @@ function resolveFunctionDeclaration(
     const functionScope = new Scope(scope);
     let i = 0;
     for (const parameter of statement.type.parameters) {
-        while (parameter.type.kind === 'unknown') {
-            parameter.type = scope.lookupVariable(parameter.type.name).type;
-        }
+        parameter.type = resolveType(parameter.type, scope);
         functionScope.newFunctionParameter(parameter.type, i++, parameter.name);
     }
     const body = statement.body.map((stmt) =>
         resolveStatement(stmt, functionScope)
     );
-    if (statement.type.returnType.kind === 'unknown') {
-        statement.type.returnType = scope.lookupVariable(statement.type.returnType.name).type;
-    }
+    statement.type.returnType = resolveType(statement.type.returnType, scope);
     return {
         ...statement,
         body,
@@ -123,6 +121,24 @@ function resolveVariableDeclaration(
         type,
         value,
     };
+}
+
+function resolveType(type: VaderType, scope: Scope): VaderType {
+    if (type.kind === 'array') {
+        return {
+            ...type,
+            type: resolveType(type.type, scope),
+            length: type.length ? resolveExpression(type.length, scope) : undefined
+        }
+    }
+    if (type.kind === 'unknown') {
+        if (type.name in BasicVaderType) {
+            return (BasicVaderType as any)[type.name];
+        }
+        const resolved = scope.lookupVariable(type.name);
+        return resolved.type;
+    }
+    return type;
 }
 
 function resolveExpression(
@@ -163,7 +179,7 @@ function resolveExpression(
             assert(expression.type.kind === 'struct');
             for (const parameter of expression.type.parameters) {
                 if (parameter.type.kind === 'unknown') {
-                    parameter.type = scope.lookupVariable(parameter.type.name).type
+                    parameter.type = resolveType(parameter.type, scope)
                 }
                 //type.parameters.push({name: parameter.name, type: parameter.type});
             }
@@ -175,17 +191,14 @@ function resolveExpression(
             const variable = scope.lookupVariable(expression.identifier)
             return {
                 ...expression,
-                type: variable.type,
+                type: resolveType(variable.type, scope),
             }
         }
 
         case 'ArrayDeclarationExpression': {
             return {
                 ...expression,
-                type: {
-                    ...expression.type,
-                    length: expression.type.length ? resolveExpression(expression.type.length, scope) : undefined
-                },
+                type: resolveType(expression.type, scope) as ArrayVaderType,
                 value: expression.value?.map(i => resolveExpression(i, scope)),
             } satisfies ArrayDeclarationExpression;
         }
@@ -207,6 +220,7 @@ function resolveExpression(
                         if (!t) {
                             throw new Error(`undeclared ${expression.parameters[i].name} on struct: ${typeToString(resolved.type)}`);
                         }
+                        t.type = resolveType(t.type, scope);
                         target = t;
                     } else {
                         assert(expression.parameters[i].name === undefined)

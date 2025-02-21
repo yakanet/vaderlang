@@ -13,9 +13,9 @@
   (local $3 (ref $0))
   (local $4 i32)
   (if
-   ;;@ modules/arraylist.vader:30:8
+   ;;@ modules/arraylist.vader:31:8
    (i32.le_u
-    ;;@ modules/arraylist.vader:30:23
+    ;;@ modules/arraylist.vader:31:23
     (local.tee $4
      (array.len
       (struct.get $1 0
@@ -23,20 +23,20 @@
       )
      )
     )
-    ;;@ modules/arraylist.vader:30:8
+    ;;@ modules/arraylist.vader:31:8
     (struct.get $1 1
      (local.get $0)
     )
    )
    (then
-    ;;@ modules/arraylist.vader:22:5
+    ;;@ modules/arraylist.vader:23:5
     (local.set $3
-     ;;@ modules/arraylist.vader:22:13
+     ;;@ modules/arraylist.vader:23:13
      (array.new_default $0
-      ;;@ modules/arraylist.vader:22:14
+      ;;@ modules/arraylist.vader:23:14
       (i32.shl
        (local.get $4)
-       ;;@ modules/arraylist.vader:22:35
+       ;;@ modules/arraylist.vader:23:35
        (i32.const 1)
       )
      )
@@ -44,37 +44,37 @@
     ;;@
     (loop $outer_0
      (if
-      ;;@ modules/arraylist.vader:23:18
+      ;;@ modules/arraylist.vader:24:18
       (i32.lt_u
        (local.get $2)
-       ;;@ modules/arraylist.vader:23:22
+       ;;@ modules/arraylist.vader:24:22
        (struct.get $1 1
         (local.get $0)
        )
       )
       (then
-       ;;@ modules/arraylist.vader:24:9
+       ;;@ modules/arraylist.vader:25:9
        (array.set $0
         (local.get $3)
-        ;;@ modules/arraylist.vader:24:14
+        ;;@ modules/arraylist.vader:25:14
         (local.get $2)
-        ;;@ modules/arraylist.vader:24:19
+        ;;@ modules/arraylist.vader:25:19
         (array.get $0
          ;;@
          (struct.get $1 0
-          ;;@ modules/arraylist.vader:24:19
+          ;;@ modules/arraylist.vader:25:19
           (local.get $0)
          )
-         ;;@ modules/arraylist.vader:24:29
+         ;;@ modules/arraylist.vader:25:29
          (local.get $2)
         )
        )
-       ;;@ modules/arraylist.vader:23:35
+       ;;@ modules/arraylist.vader:24:35
        (local.set $2
-        ;;@ modules/arraylist.vader:23:39
+        ;;@ modules/arraylist.vader:24:39
         (i32.add
          (local.get $2)
-         ;;@ modules/arraylist.vader:23:43
+         ;;@ modules/arraylist.vader:24:43
          (i32.const 1)
         )
        )
@@ -83,37 +83,37 @@
       )
      )
     )
-    ;;@ modules/arraylist.vader:26:5
+    ;;@ modules/arraylist.vader:27:5
     (struct.set $1 0
      (local.get $0)
-     ;;@ modules/arraylist.vader:26:17
+     ;;@ modules/arraylist.vader:27:17
      (local.get $3)
     )
    )
   )
-  ;;@ modules/arraylist.vader:33:5
+  ;;@ modules/arraylist.vader:34:5
   (array.set $0
    ;;@
    (struct.get $1 0
-    ;;@ modules/arraylist.vader:33:5
+    ;;@ modules/arraylist.vader:34:5
     (local.get $0)
    )
-   ;;@ modules/arraylist.vader:33:15
+   ;;@ modules/arraylist.vader:34:15
    (struct.get $1 1
     (local.get $0)
    )
-   ;;@ modules/arraylist.vader:33:30
+   ;;@ modules/arraylist.vader:34:30
    (local.get $1)
   )
-  ;;@ modules/arraylist.vader:34:5
+  ;;@ modules/arraylist.vader:35:5
   (struct.set $1 1
    (local.get $0)
-   ;;@ modules/arraylist.vader:34:19
+   ;;@ modules/arraylist.vader:35:19
    (i32.add
     (struct.get $1 1
      (local.get $0)
     )
-    ;;@ modules/arraylist.vader:34:33
+    ;;@ modules/arraylist.vader:35:33
     (i32.const 1)
    )
   )
@@ -124,14 +124,14 @@
   (call $push
    ;;@ examples/arraylists.vader:4:5
    (local.tee $0
-    ;;@ modules/arraylist.vader:9:12
+    ;;@ modules/arraylist.vader:10:12
     (struct.new $1
-     ;;@ modules/arraylist.vader:10:19
+     ;;@ modules/arraylist.vader:11:19
      (array.new_default $0
-      ;;@ modules/arraylist.vader:10:20
+      ;;@ modules/arraylist.vader:11:20
       (i32.const 2)
      )
-     ;;@ modules/arraylist.vader:11:19
+     ;;@ modules/arraylist.vader:12:19
      (i32.const 0)
     )
    )
@@ -152,14 +152,14 @@
   )
   ;;@
   (call $wasi_snapshot_preview1:proc_exit
-   ;;@ modules/arraylist.vader:17:12
+   ;;@ modules/arraylist.vader:18:12
    (array.get $0
     ;;@
     (struct.get $1 0
      ;;@ examples/arraylists.vader:8:12
      (local.get $0)
     )
-    ;;@ modules/arraylist.vader:17:22
+    ;;@ modules/arraylist.vader:18:22
     (i32.const 2)
    )
   )

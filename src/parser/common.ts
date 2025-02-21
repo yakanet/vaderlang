@@ -4,20 +4,17 @@ import {parseStatement} from "./statement.ts";
 import {parseExpression} from "./expression.ts";
 
 /**
- * identifier | identifier[]+ | identifier[_]+ | identifier[number]+
+ * identifier | []+identifier | [_]+identifier | [number]+identifier
  * @param parser
  */
 export function parseType(parser: Parser): VaderType {
-    let type: VaderType = {...BasicVaderType.unknown};
-    let originalType: VaderType = type;
     if (parser.isCurrentType('OpenSquareBracket')) {
         const arrayType: ArrayVaderType = {
             kind: 'array',
-            type,
-            dimension: 0
+            type: BasicVaderType.unknown,
+            dimension: 1
         }
-        while (parser.isCurrentType('OpenSquareBracket')) {
-            arrayType.dimension++;
+        if (parser.isCurrentType('OpenSquareBracket')) {
             parser.expect('OpenSquareBracket')
             if (parser.isCurrentType('UnderscoreToken')) {
                 parser.expect('UnderscoreToken');
@@ -26,15 +23,20 @@ export function parseType(parser: Parser): VaderType {
             }
             parser.expect('CloseSquareBracket');
         }
-        type = arrayType;
+        const childType = parseType(parser);
+        if (childType.kind === 'array') {
+            arrayType.type = childType;
+            arrayType.dimension = childType.dimension + 1;
+        } else {
+            arrayType.type = childType;
+        }
+        return arrayType;
     }
     const identifier = parser.expect('Identifier').value;
-    originalType.name = identifier
-    if (identifier in BasicVaderType) {
-        originalType.name = (BasicVaderType as any)[identifier].name;
-        originalType.kind = (BasicVaderType as any)[identifier].kind;
+    return {
+        kind: 'unknown',
+        name: identifier
     }
-    return type
 }
 
 /**

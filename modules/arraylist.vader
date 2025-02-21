@@ -6,6 +6,7 @@ List :: struct {
 }
 
 create_list :: fn(initialCapacity : u32) -> List {
+    //x :: [3]List
     return List {
         .data   = [initialCapacity]u32,
         .length = 0,
