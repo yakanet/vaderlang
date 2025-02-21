@@ -86,15 +86,7 @@ export class WasmEmitter {
                 this.mod.addSymbol(statement.name, statement.type, 'global', -1);
                 switch (statement.type.kind) {
                     case 'struct': {
-                        const builder = new TypeBuilder(1);
-                        builder.setStructType(0, statement.type.parameters.map(parameter => {
-                            return {
-                                type: this.mapBinaryenType(parameter.type),
-                                packedType: 0,
-                                mutable: true,
-                            }
-                        }))
-                        this.customTypes.set(statement.type, builder.buildAndDispose().heapTypes[0])
+                        // Emitted in lazy mode
                         return;
                     }
                     case 'array':
@@ -339,10 +331,7 @@ export class WasmEmitter {
 
     private instantiateStruct(expression: StructInstantiationExpression): binaryen.ExpressionRef {
         assert(expression.type.kind === "struct");
-        const structType = this.customTypes.get(expression.type)
-        if (!structType) {
-            throw new Error(`Undeclared struct ${typeToString(expression.type)}`)
-        }
+        let structType = this.mapBinaryenType(expression.type)
         // TODO Map named properties
         const parameters = expression.parameters.map(p => this.emitExpression(p.value))
         const {addDebugStatement} = this.mod.createDebugStatement(expression);
@@ -481,21 +470,34 @@ export class WasmEmitter {
 
     mapBinaryenType(t: VaderType): binaryen.Type {
         if (t.kind === 'array') {
-            if (!this.customTypes.has(t)) {
-                const builder = new TypeBuilder(1);
-                builder.setArrayType(0, {
-                    type: this.mapBinaryenType(t.type), packedType: 0, mutable: true
-                })
-                this.customTypes.set(t, builder.buildAndDispose().heapTypes[0])
+            const type = this.customTypes.get(t);
+            if (type) {
+                return type
             }
-            return this.customTypes.get(t)!;
+            const builder = new TypeBuilder(1);
+            builder.setArrayType(0, {
+                type: this.mapBinaryenType(t.type), packedType: 0, mutable: true
+            })
+            const expr = builder.buildAndDispose().heapTypes[0]
+            this.customTypes.set(t, expr);
+            return expr;
         }
         if (t.kind === 'struct') {
             const type = this.customTypes.get(t)
-            if (!type) {
-                throw new Error(`Undeclared type ${typeToString(t)}`)
+            if (type) {
+                return type;
             }
-            return type;
+            const builder = new TypeBuilder(1);
+            builder.setStructType(0, t.parameters.map(parameter => {
+                return {
+                    type: this.mapBinaryenType(parameter.type),
+                    packedType: 0,
+                    mutable: true,
+                }
+            }))
+            const expr = builder.buildAndDispose().heapTypes[0];
+            this.customTypes.set(t, expr)
+            return expr;
         }
         if (t.kind === 'function') {
             throw new Error(`Unreachable`)
