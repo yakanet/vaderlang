@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.1",
+    "cm6-theme-basic-dark": "^0.2.0",
     "@vaderlang/compiler": "workspace:*",
     "codemirror": "^6.0.1",
     "svelte": "^5.20.0"

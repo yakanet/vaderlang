@@ -3,6 +3,7 @@
     import {Decoration, type DecorationSet, EditorView} from "@codemirror/view"
     import {json} from "@codemirror/lang-json"
     import {StateEffect, StateField} from '@codemirror/state';
+    import { basicDark } from 'cm6-theme-basic-dark'
 
     let {
         parsed,
@@ -18,6 +19,7 @@
             parent: node,
             extensions: [
                 basicSetup,
+                basicDark,
                 highlight_field,
                 EditorView.editable.of(false)
             ]
@@ -36,6 +38,7 @@
             parent: node,
             extensions: [
                 basicSetup,
+                basicDark,
                 highlight_field,
                 json(),
                 EditorView.editable.of(false)
@@ -121,6 +124,8 @@
 <style>
     :global(body) {
         margin: 0;
+        color: white;
+        background: #181818;
     }
 
     .viewport {
@@ -139,7 +144,7 @@
     }
 
     :global(.highlight) {
-        background: #FF000033;
+        background: rgba(255, 238, 0, 0.2);
     }
 
     .ast {
