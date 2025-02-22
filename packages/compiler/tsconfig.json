@@ -12,8 +12,11 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true,
     "declaration": true,
+    "sourceMap": true,
+    "declarationDir": "build/types",
+    "emitDeclarationOnly": true,
+    "skipDefaultLibCheck": true,
     // Best practices
     "strict": true,
     "skipLibCheck": true,
@@ -21,6 +24,11 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
-  }
+    "noPropertyAccessFromIndexSignature": false,
+    "types": [
+      "binaryen-gc/src/binaryen.d.ts",
+      "@types/node"
+    ]
+  },
+  "include": ["./src/index.ts"]
 }

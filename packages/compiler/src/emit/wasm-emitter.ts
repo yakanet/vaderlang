@@ -362,7 +362,7 @@ export class WasmEmitter {
                 this.mod.module,
                 this.mapBinaryenType(expression.type),
                 this.emitExpression(expression.type.length),
-                init
+                init!
             ),
             expression
         );

@@ -1,0 +1,217 @@
+diff --git a/src/index.ts b/src/index.ts
+index 5df90088e95d83f6e1777882a6a315a91fef45d8..18822efc5e8bf54027369574c5cde75d48f25a8d 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -3,49 +3,42 @@
+  * https://github.com/WebAssembly/binaryen/blob/e6bbbc1cadce319eacec6ac6ebbd71d86f3d1082/src/ts/binaryen.ts#L2269
+  */
+ 
+-import binaryen, {
+-  Module,
+-  ExpressionRef,
+-  TypeBuilderRef,
+-  HeapTypeRef,
+-  Type,
+-  PackedType,
+-} from "binaryen";
++import binaryen from "binaryen";
+ 
+ export interface TypeBuilderResult {
+-  heapTypes: HeapTypeRef[];
++  heapTypes: binaryen.HeapTypeRef[];
+   errorIndex: number | null;
+   errorReason: number | null;
+ }
+ 
+ export interface FieldType {
+-  type: Type;
+-  packedType: PackedType;
++  type: binaryen.Type;
++  packedType: binaryen.PackedType;
+   mutable: boolean;
+ }
+ 
+ export class TypeBuilder {
+-  static typeFromTempHeapType(heapType: HeapTypeRef, nullable: boolean): Type {
++  static typeFromTempHeapType(heapType: binaryen.HeapTypeRef, nullable: boolean): binaryen.Type {
+     return binaryen["_BinaryenTypeFromHeapType"](heapType, nullable);
+   }
+ 
+-  static heapTypeFromType(type: Type): HeapTypeRef {
++  static heapTypeFromType(type: binaryen.Type): binaryen.HeapTypeRef {
+     return binaryen["_BinaryenTypeGetHeapType"](type);
+   }
+ 
+-  static arrayElementType(heapType: HeapTypeRef): Type {
++  static arrayElementType(heapType: binaryen.HeapTypeRef): binaryen.Type {
+     return binaryen["_BinaryenArrayTypeGetElementType"](heapType);
+   }
+ 
+-  static structMemberCount(heapType: HeapTypeRef): number {
++  static structMemberCount(heapType: binaryen.HeapTypeRef): number {
+     return binaryen["_BinaryenStructTypeGetNumFields"](heapType);
+   }
+ 
+-  static structMemberType(heapType: HeapTypeRef, index: number): Type {
++  static structMemberType(heapType: binaryen.HeapTypeRef, index: number): binaryen.Type {
+     return binaryen["_BinaryenStructTypeGetFieldType"](heapType, index);
+   }
+ 
+-  readonly ref: TypeBuilderRef;
++  readonly ref: binaryen.TypeBuilderRef;
+ 
+   constructor(slots: number) {
+     this.ref = binaryen["_TypeBuilderCreate"](slots);
+@@ -92,7 +85,7 @@ export class TypeBuilder {
+     return this;
+   }
+ 
+-  getTempHeapType(slot: number): HeapTypeRef {
++  getTempHeapType(slot: number): binaryen.HeapTypeRef {
+     return binaryen["_TypeBuilderGetTempHeapType"](this.ref, slot);
+   }
+ 
+@@ -110,7 +103,7 @@ export class TypeBuilder {
+     );
+     const errorIndex = binaryen.__i32_load(errorIndexPtr);
+     const errorReason = binaryen.__i32_load(errorReasonPtr);
+-    const heapTypes: HeapTypeRef[] = [];
++    const heapTypes: binaryen.HeapTypeRef[] = [];
+     if (ok) {
+       for (let i = 0, offset = heapTypesPtr; i < size; i++, offset += 4) {
+         const type = binaryen.__i32_load(offset);
+@@ -129,20 +122,20 @@ function strToStack(str: string) {
+ export const gc = {
+   arrays: {
+     newFromInit: (
+-      mod: Module,
+-      heapType: HeapTypeRef,
++      mod: binaryen.Module,
++      heapType: binaryen.HeapTypeRef,
+       size: binaryen.ExpressionRef,
+-      init: ExpressionRef
+-    ): ExpressionRef => {
++      init: binaryen.ExpressionRef
++    ): binaryen.ExpressionRef => {
+       return binaryen._BinaryenArrayNew(mod.ptr, heapType, size, init);
+     },
+     newFromData: (
+-      mod: Module,
+-      heapType: HeapTypeRef,
++      mod: binaryen.Module,
++      heapType: binaryen.HeapTypeRef,
+       name: string,
+-      offset: ExpressionRef,
+-      size: ExpressionRef
+-    ): ExpressionRef =>
++      offset: binaryen.ExpressionRef,
++      size: binaryen.ExpressionRef
++    ): binaryen.ExpressionRef =>
+       binaryen._BinaryenArrayNewData(
+         mod.ptr,
+         heapType,
+@@ -151,10 +144,10 @@ export const gc = {
+         size
+       ),
+     newFromItems: (
+-      mod: Module,
+-      heapType: HeapTypeRef,
+-      values: ExpressionRef[]
+-    ): ExpressionRef => {
++      mod: binaryen.Module,
++      heapType: binaryen.HeapTypeRef,
++      values: binaryen.ExpressionRef[]
++    ): binaryen.ExpressionRef => {
+       const ptr = binaryen._malloc(Math.max(8, values.length * 4));
+       let offset = ptr;
+       values.forEach((value) => {
+@@ -171,13 +164,13 @@ export const gc = {
+       return result;
+     },
+     copy: (
+-      mod: Module,
+-      destArray: ExpressionRef,
+-      destItem: ExpressionRef,
+-      srcArray: ExpressionRef,
+-      srcItem: ExpressionRef,
+-      numItems: ExpressionRef
+-    ): ExpressionRef =>
++      mod: binaryen.Module,
++      destArray: binaryen.ExpressionRef,
++      destItem: binaryen.ExpressionRef,
++      srcArray: binaryen.ExpressionRef,
++      srcItem: binaryen.ExpressionRef,
++      numItems: binaryen.ExpressionRef
++    ): binaryen.ExpressionRef =>
+       binaryen["_BinaryenArrayCopy"](
+         mod.ptr,
+         destArray,
+@@ -187,29 +180,29 @@ export const gc = {
+         numItems
+       ),
+     getItem: (
+-      mod: Module,
+-      array: ExpressionRef,
+-      item: ExpressionRef,
++      mod: binaryen.Module,
++      array: binaryen.ExpressionRef,
++      item: binaryen.ExpressionRef,
+       type: number,
+       signed: boolean
+-    ): ExpressionRef =>
++    ): binaryen.ExpressionRef =>
+       binaryen["_BinaryenArrayGet"](mod.ptr, array, item, type, signed),
+     setItem: (
+-      mod: Module,
+-      array: ExpressionRef,
+-      index: ExpressionRef,
+-      value: ExpressionRef
+-    ): ExpressionRef =>
++      mod: binaryen.Module,
++      array: binaryen.ExpressionRef,
++      index: binaryen.ExpressionRef,
++      value: binaryen.ExpressionRef
++    ): binaryen.ExpressionRef =>
+       binaryen["_BinaryenArraySet"](mod.ptr, array, index, value),
+-    length: (mod: Module, array: ExpressionRef): ExpressionRef =>
++    length: (mod: binaryen.Module, array: binaryen.ExpressionRef): binaryen.ExpressionRef =>
+       binaryen["_BinaryenArrayLen"](mod.ptr, array),
+   },
+   structs: {
+     newFromFields: (
+-      mod: Module,
+-      heapType: HeapTypeRef,
+-      values: ExpressionRef[]
+-    ): ExpressionRef => {
++      mod: binaryen.Module,
++      heapType: binaryen.HeapTypeRef,
++      values: binaryen.ExpressionRef[]
++    ): binaryen.ExpressionRef => {
+       const ptr = binaryen._malloc(4 * values.length);
+       let offset = ptr;
+       values.forEach((value) => {
+@@ -226,8 +219,8 @@ export const gc = {
+       return result;
+     },
+     getMember: (
+-      mod: Module,
+-      struct: ExpressionRef,
++      mod: binaryen.Module,
++      struct: binaryen.ExpressionRef,
+       memberIndex: number,
+       resultType: number,
+       signed: boolean
+@@ -240,10 +233,10 @@ export const gc = {
+         signed
+       ),
+     setMember: (
+-      mod: Module,
+-      struct: ExpressionRef,
++      mod: binaryen.Module,
++      struct: binaryen.ExpressionRef,
+       memberIndex: number,
+-      value: ExpressionRef
++      value: binaryen.ExpressionRef
+     ) => binaryen["_BinaryenStructSet"](mod.ptr, memberIndex, struct, value),
+   },
+ };

@@ -1,4 +1,4 @@
-import type {Position} from "@vader/compiler/parser/types.ts";
+import type {Position} from "../parser/types.ts";
 
 type CreateToken<T extends string, V = string> = {
     type: T,

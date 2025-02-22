@@ -9,12 +9,13 @@ import {
 
 let client: LanguageClient;
 
+declare const LSP_LOCATION: string;
+
+
 export function activate(context: vscode.ExtensionContext) {
   // The server is implemented in node
   console.log(`CWD: ${context.asAbsolutePath('.')}`)
-  const serverModule = context.asAbsolutePath(
-    path.join("..", "lsp-server", "build", "index.js")
-  );
+  const serverModule = context.asAbsolutePath(LSP_LOCATION);
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used

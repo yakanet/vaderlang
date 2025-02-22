@@ -1,6 +1,6 @@
 import binaryen from "binaryen";
-import type {FunctionDeclarationExpression, Statement, VaderType} from "@vader/compiler/parser/types.ts";
-import type {Token} from "@vader/compiler/tokens/types.ts";
+import type {FunctionDeclarationExpression, Statement, VaderType} from "../parser/types.ts";
+import type {Token} from "../tokens/types.ts";
 
 const GLOBAL_SCOPE = '$$GLOBAL_SCOPE$$'
 type SymbolScope = 'parameter' | 'local' | 'global'

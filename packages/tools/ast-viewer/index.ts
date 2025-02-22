@@ -1,8 +1,8 @@
 import {compile} from 'svelte/compiler'
-import {FileResolver} from "@vaderlang/compiler/resolver/module_resolver.ts";
+import {FileResolver} from "@vaderlang/compiler";
 import process from "node:process";
-import {parseProgram} from "@vaderlang/compiler/parser/index.ts";
-import {resolve} from "@vaderlang/compiler/resolver/resolver.ts";
+import {parseProgram} from "@vaderlang/compiler";
+import {resolve} from "@vaderlang/compiler";
 import fs from "node:fs";
 import path from 'node:path';
 

@@ -3,6 +3,7 @@
   "type": "module",
   "scripts": {
     "package": "bun run --filter '*' build",
+    "bundle": "bun run --filter '*' bundle",
     "watch": "bun run --filter '*' watch",
     "ast": "bun run packages/tools/ast-viewer/index.ts"
   },
@@ -12,5 +13,8 @@
   "peerDependencies": {
     "@types/bun": "latest",
     "typescript": "^5.0.0"
+  },
+  "patchedDependencies": {
+    "binaryen-gc@0.1.2": "patches/binaryen-gc@0.1.2.patch"
   }
 }

@@ -1,5 +1,5 @@
 import type {Token} from "./types.ts";
-import type {Position} from "@vader/compiler/parser/types.ts";
+import type {Position} from "../parser/types.ts";
 
 export class Tokenizer {
     private current: number = 0;

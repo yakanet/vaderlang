@@ -1,7 +1,8 @@
 {
   "name": "@vaderlang/lsp-server",
+  "type": "module",
   "scripts": {
-    "build": "bun build --format=cjs --sourcemap=linked --packages=external --outdir=build src/index.ts",
+    "build": "bun build --target=node --outfile=build/index.js src/index.ts",
     "watch": "bun run build --watch"
   },
   "dependencies": {

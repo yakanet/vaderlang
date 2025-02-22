@@ -1,7 +1,7 @@
 import type { Hover, HoverParams } from "vscode-languageserver";
 import { DocumentService } from "./document.service";
 import { ConnectionService } from "./connection.service";
-import tokens from "@vaderlang/compiler/build/index";
+import {tokenize} from '@vaderlang/compiler'
 
 export class HoverService {
   constructor(
@@ -14,13 +14,24 @@ export class HoverService {
     const document = this.documentService.documents.get(
       handler.textDocument.uri
     );
-    if (document) {
-      console.log(tokens.tokenize(document.getText(), document.uri));
+    if (!document) {
+      return {
+        contents: []
+      }
+    }
+    for(const token of tokenize(document.getText(), document.uri)) {
+      if(token.location.start.line === handler.position.line + 1) {
+        if(token.location.start.column <= handler.position.character + 1 && token.location.end.column > handler.position.character + 1) {
+          return {
+            contents: [
+              JSON.stringify({type: token.type, value: token.value})
+            ]
+          }
+        }
+      }
     }
     return {
-      contents: [
-        `Hover content ${handler.textDocument.uri}:${handler.position.line}:${handler.position.character}`,
-      ],
+      contents: [],
     };
   }
 }

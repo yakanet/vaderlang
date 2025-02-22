@@ -121,8 +121,10 @@ export class Scope {
     }
 }
 
-export const UnresolvedScope = new class extends Scope {
+class _UnresolvedScope extends Scope {
     override lookupVariable(_value: string): Ref {
         throw new Error(`Attempt to lookup for a variable with an unresolved scope`)
     }
 }
+
+export const UnresolvedScope = new _UnresolvedScope();
