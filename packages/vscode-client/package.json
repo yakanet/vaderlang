@@ -5,10 +5,8 @@
   "version": "0.0.1",
   "publisher": "yakanet",
   "scripts": {
-    "build": "bun copy-lsp && LSP_LOCATION=\"'./build/lsp/build/index.js'\" bun build:client",
-    "build:client": "bun build --format=cjs --target=node --external=vscode --define LSP_LOCATION:\"${LSP_LOCATION}\" --outfile=build/extension.js src/extension.ts",
-    "copy-lsp": "bun run ./copy-lsp.ts",
-    "watch": "LSP_LOCATION=\"'../lsp-server/build/index.js'\" bun run build:client --watch",
+    "build": "bun scripts/build.ts",
+    "watch": "bun --watch scripts/build.ts --dev",
     "bundle": "bun run build && vsce package --no-dependencies -o ../../dist"
   },
   "engines": {
