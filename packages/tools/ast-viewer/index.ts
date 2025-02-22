@@ -1,9 +1,10 @@
 import {compile} from 'svelte/compiler'
-import {FileResolver} from "@vader/compiler/resolver/module_resolver.ts";
+import {FileResolver} from "@vaderlang/compiler/resolver/module_resolver.ts";
 import process from "node:process";
-import {parseProgram} from "@vader/compiler/parser";
-import {resolve} from "@vader/compiler/resolver/resolver.ts";
+import {parseProgram} from "@vaderlang/compiler/parser/index.ts";
+import {resolve} from "@vaderlang/compiler/resolver/resolver.ts";
 import fs from "node:fs";
+import path from 'node:path';
 
 const [_runtime, _script, source_path, ...options] = process.argv;
 if (!source_path) {
@@ -50,7 +51,7 @@ const server = Bun.serve({
 async function buildSvelteFile(files: Record<string, string>, parsed: any) {
     const result = await Bun.build({
         entrypoints: [
-            'tools/ast-viewer/index.html'
+            path.resolve(import.meta.dir, 'index.html')
         ],
         define: {
             PARSED_PROGRAM: JSON.stringify(parsed),

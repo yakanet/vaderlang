@@ -1,0 +1,8 @@
+.vscode/**
+.vscode-test/**
+.gitignore
+packages/**
+!packages/**/out/*.js
+node_modules/@vaderlang/**
+src/**
+../../**

@@ -1,22 +1,16 @@
 {
-  "name": "@yakanet/vaderlang",
-  "module": "src/index.ts",
+  "name": "@vaderlang/root",
   "type": "module",
   "scripts": {
-    "build": "bun build src/index.ts --compile --outfile=vader",
-    "ast": "bun run tools/ast-viewer/index.ts"
+    "package": "bun run --filter '*' build",
+    "watch": "bun run --filter '*' watch",
+    "ast": "bun run packages/tools/ast-viewer/index.ts"
   },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "svelte": "^5.20.0"
-  },
+  "workspaces": [
+    "packages/*"
+  ],
   "peerDependencies": {
+    "@types/bun": "latest",
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@codemirror/lang-json": "^6.0.1",
-    "binaryen": "^122.0.0",
-    "binaryen-gc": "^0.1.2",
-    "codemirror": "^6.0.1"
   }
 }

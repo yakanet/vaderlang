@@ -1,0 +1,15 @@
+{
+  "name": "@vaderlang/lsp-server",
+  "scripts": {
+    "build": "bun build --format=cjs --sourcemap=linked --packages=external --outdir=build src/index.ts",
+    "watch": "bun run build --watch"
+  },
+  "dependencies": {
+    "@vaderlang/compiler": "workspace:*",
+		"vscode-languageserver": "^9.0.1",
+		"vscode-languageserver-textdocument": "^1.0.12"
+	},
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

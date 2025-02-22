@@ -1,0 +1,28 @@
+{
+  "name": "@vaderlang/compiler",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "bun run build:windows-x64 && bun run build:darwin-arm64",
+    "watch": "bun build src/index.cts --format=cjs --watch --packages=external --outdir=build",
+    "build:base": "bun build src/index.ts --compile --outfile=../../dist/bin/${BINARY_NAME}",
+    "build:windows-x64": "BINARY_NAME=vader-win-64 bun run build:base --target=bun-windows-x64",
+    "build:darwin-arm64": "BINARY_NAME=vader-darwin-arm64 bun run build:base --target=bun-darwin-arm64",
+    "test": "bun test"
+  },
+  "exports": {
+    "./*": {
+      "import": "./src/*"
+    }
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "binaryen": "^122.0.0",
+    "binaryen-gc": "^0.1.2"
+  }
+}

@@ -17,7 +17,7 @@ import binaryen from "binaryen";
 import {addWasiFunction} from "./wasi.ts";
 import assert from "node:assert";
 import {gc, TypeBuilder} from "binaryen-gc";
-import {BinaryenModule} from "@vader/compiler/emit/binaryen-module.ts";
+import {BinaryenModule} from "./binaryen-module.ts";
 
 const encoder = new TextEncoder();
 

@@ -1,13 +1,13 @@
 {
-  "name": "vaderlang",
+  "name": "vaderlang-vscode-client",
   "displayName": "Vader",
   "description": "Support for vader language",
   "version": "0.0.1",
   "publisher": "yakanet",
   "scripts": {
-    "compile": "bun run --filter '*' compile",
-    "watch": "bun run --filter '*' watch",
-    "bundle": "npx @vscode/vsce package"
+    "build": "bun build --format=cjs --sourcemap=linked --packages=external --outdir=build src/extension.ts",
+    "watch": "bun run build --watch",
+    "bundle": "vsce package"
   },
   "engines": {
     "vscode": "^1.97.0"
@@ -15,13 +15,17 @@
   "categories": [
     "Programming Languages"
   ],
-  "main": "./packages/client/out/index.js",
-  "devDependencies": {
-    "typescript": "^5.7.2"
+  "main": "./build/extension.js",
+  "dependencies": {
+    "glob": "^11.0.0",
+    "vscode-languageclient": "^9.0.1"
   },
-  "workspaces": [
-    "packages/*"
-  ],
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/vscode": "^1.86.0",
+    "@vscode/vsce": "^3.2.2",
+    "@vscode/test-electron": "^2.4.1"
+  },
   "contributes": {
     "languages": [
       {
