@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "package": "bun run --filter '*' build",
-    "bundle": "bun run --filter '*' bundle",
+    "bundle": "bun package && bun run --filter '*' bundle",
     "watch": "bun run --filter '*' watch",
     "ast": "bun run packages/tools/ast-viewer/index.ts"
   },

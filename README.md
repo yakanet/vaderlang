@@ -16,7 +16,7 @@ wasmtime --wasm=gc [wasm file location]
 
 ## Getting started
 
-Build the compiler using `bun package`
+Build the compiler using `bun bundle`
 
 Write a simple program :
 ```
@@ -30,7 +30,7 @@ main :: fn () -> u32 {
 
 ```
 
-Compile the source to wasm using `./build/vader [file location].vader`
+Compile the source to wasm using `./dist/bin/vader [file location].vader`
 
 Execute the wasm file with a WASM runtime 
 ```shell
@@ -41,7 +41,7 @@ wasmtime --wasm=gc [file location].wasm
 ```
 
 > If wasmtime is in your path, you can directly compile and run with the following command :
-`./build/vader --run [file location].vader`
+`./dist/bin/vader --run [file location].vader`
 
 > In dev mod, instead of building the compiler, you can directly use the command `bun src/index.ts [file location].vader` 
 
