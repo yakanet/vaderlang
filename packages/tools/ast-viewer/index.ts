@@ -1,5 +1,5 @@
 import {compile} from 'svelte/compiler'
-import {FileResolver} from "@vaderlang/compiler";
+import {BundleContext, FileResolver, locationToString} from "@vaderlang/compiler";
 import process from "node:process";
 import {parseProgram} from "@vaderlang/compiler";
 import {resolve} from "@vaderlang/compiler";
@@ -17,9 +17,16 @@ if (options.find(o => o === "--no-resolve")) {
 }
 
 const resolver = new FileResolver(process.cwd(), ['./modules']);
-let program = parseProgram(source_path, resolver);
+const context = new BundleContext(resolver);
+let program = parseProgram(source_path, context);
 if (!no_resolve) {
-    program = resolve(program);
+    program = resolve(program, context);
+}
+if(context.diagnostic.getDiagnostics().length > 0) {
+    for(const diagnostic of context.diagnostic.getDiagnostics()) {
+        console.error(`${diagnostic.type}:${locationToString(diagnostic.location)}: ${diagnostic.message}`)
+        process.exit(1);
+    }
 }
 const files = Object.fromEntries([...program.body.reduce((acc, node) => acc.add(node.location.file), new Set<string>()).values()].map(file => [file, fs.readFileSync(file, {encoding: 'utf-8'})]));
 const compiledFiles = await buildSvelteFile(files, program)

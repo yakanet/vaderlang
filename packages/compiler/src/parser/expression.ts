@@ -261,7 +261,7 @@ function parseFileDecorator(parser: Parser, decorator: Token): StringExpression 
     const file_token = parser.expect('StringLiteral');
     parser.expect('CloseRoundBracket');
     try {
-        const resolved = parser.context.resolve(file_token.value);
+        const resolved = parser.context.resolve(file_token.value, parser.current.location.file);
         return {
             kind: 'StringExpression',
             type: BasicVaderType.string,

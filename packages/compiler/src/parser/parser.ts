@@ -1,11 +1,10 @@
-import type {Token} from "../tokens/types.ts";
+import type {Location, Token} from "../tokens/types.ts";
 import {keywords, tokenize} from "../tokens";
 import type { BundleContext } from "../context/context.ts";
 
 export class Parser {
     private tokens: Token[] = [];
     private index = 0;
-    private debug = true;
     private loadedFiles = new Set<string>();
 
     constructor(public readonly context: BundleContext) {
@@ -15,24 +14,26 @@ export class Parser {
         return this.tokens[this.index++];
     }
 
-    loadVaderFile(filename: string) {
+    loadVaderFile(filename: string, from: string): boolean {
         try {
             let path = filename;
             if (!path.endsWith('.vader')) {
                 path += '.vader'
             }
-            const {key, content, location} = this.context.resolve(path);
+            const {key, content, location} = this.context.resolve(path, from);
             if (this.loadedFiles.has(key)) {
-                return
+                return true
             }
             const tokens = [...tokenize(content, location)]
             if (this.tokens.length) {
                 tokens.pop(); // Removing EOF
             }
             this.tokens = [...this.tokens.slice(0, this.index), ...tokens, ...this.tokens.slice(this.index)]
+            return true;
         } catch (e: any) {
-            this.reportError(e.message, this.current.location);
+            debugger
         }
+        return false;
     }
 
     expectKeyword(keyword: typeof keywords[number], message?: string) {
@@ -51,7 +52,7 @@ export class Parser {
         return this.current.type === type;
     }
 
-    reportError(message: string, location: Token['location']): never {
+    reportError(message: string, location: Location): never {
         this.context.reportError(message, location);
         throw new Error(`Parsing error: ${message}`)
     }

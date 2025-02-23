@@ -1,6 +1,6 @@
 import type { VaderType } from "../parser/types";
 import type { ModuleResolver } from "../resolver/module_resolver";
-import type { Location } from "../tokens/types";
+import { locationToString, type Location } from "../tokens/types";
 import { Diagnostic } from "./diagnostic";
 
 export class BundleContext {
@@ -11,14 +11,14 @@ export class BundleContext {
     ) {
     }
 
-    public resolve(uri: string) {
-        return this.resolver.resolve(uri);
+    public resolve(uri: string, from: string) {
+        return this.resolver.resolve(uri, from);
     }
 
     public addSymbol(name: string, type: VaderType, location: Location) {
         if(name in this.symbols) {
             const existingSymbol = this.symbols[name]!;
-            this.reportError(`variable '${name}' is already declared at ${existingSymbol.location.file}:${existingSymbol.location.start.line}`, location)
+            this.reportError(`variable '${name}' is already declared at ${locationToString(existingSymbol.location)}`, location)
             return;
         }
         this.symbols[name] = {type, location};

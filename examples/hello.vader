@@ -1,6 +1,7 @@
 @load "std"
 
 return_code := 32
+
 add :: fn(a: u32) -> u32 {
     x := 2
     x = x + 1

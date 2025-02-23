@@ -3,8 +3,8 @@ import type {Position} from "../parser/types.ts";
 
 export class Tokenizer {
     private current: number = 0;
-    public line = 1;
-    public column = 1;
+    public line = 0;
+    public column = 0;
     private previousPosition: Position | null = null;
 
     constructor(private content: string) {
@@ -33,7 +33,7 @@ export class Tokenizer {
         this.previousPosition = this.getCurrentPosition();
         if (this.content[this.current] === '\n') {
             this.line++;
-            this.column = 1;
+            this.column = 0;
         } else {
             this.column++
         }

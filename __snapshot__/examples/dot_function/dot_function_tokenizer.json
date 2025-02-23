@@ -5,13 +5,13 @@
     "location": {
       "start": {
         "offset": 0,
-        "line": 1,
-        "column": 1
+        "line": 0,
+        "column": 0
       },
       "end": {
         "offset": 5,
-        "line": 1,
-        "column": 6
+        "line": 0,
+        "column": 5
       },
       "file": "examples/dot_function.vader"
     }
@@ -22,13 +22,13 @@
     "location": {
       "start": {
         "offset": 6,
-        "line": 1,
-        "column": 7
+        "line": 0,
+        "column": 6
       },
       "end": {
         "offset": 7,
-        "line": 1,
-        "column": 8
+        "line": 0,
+        "column": 7
       },
       "file": "examples/dot_function.vader"
     }
@@ -39,13 +39,13 @@
     "location": {
       "start": {
         "offset": 7,
-        "line": 1,
-        "column": 8
+        "line": 0,
+        "column": 7
       },
       "end": {
         "offset": 8,
-        "line": 1,
-        "column": 9
+        "line": 0,
+        "column": 8
       },
       "file": "examples/dot_function.vader"
     }
@@ -56,13 +56,13 @@
     "location": {
       "start": {
         "offset": 9,
-        "line": 1,
-        "column": 10
+        "line": 0,
+        "column": 9
       },
       "end": {
         "offset": 15,
-        "line": 1,
-        "column": 16
+        "line": 0,
+        "column": 15
       },
       "file": "examples/dot_function.vader"
     }
@@ -73,13 +73,13 @@
     "location": {
       "start": {
         "offset": 16,
-        "line": 1,
-        "column": 17
+        "line": 0,
+        "column": 16
       },
       "end": {
         "offset": 17,
-        "line": 1,
-        "column": 18
+        "line": 0,
+        "column": 17
       },
       "file": "examples/dot_function.vader"
     }
@@ -90,13 +90,13 @@
     "location": {
       "start": {
         "offset": 22,
-        "line": 2,
-        "column": 5
+        "line": 1,
+        "column": 4
       },
       "end": {
         "offset": 23,
-        "line": 2,
-        "column": 6
+        "line": 1,
+        "column": 5
       },
       "file": "examples/dot_function.vader"
     }
@@ -107,13 +107,13 @@
     "location": {
       "start": {
         "offset": 23,
-        "line": 2,
-        "column": 6
+        "line": 1,
+        "column": 5
       },
       "end": {
         "offset": 24,
-        "line": 2,
-        "column": 7
+        "line": 1,
+        "column": 6
       },
       "file": "examples/dot_function.vader"
     }
@@ -124,13 +124,13 @@
     "location": {
       "start": {
         "offset": 25,
-        "line": 2,
-        "column": 8
+        "line": 1,
+        "column": 7
       },
       "end": {
         "offset": 28,
-        "line": 2,
-        "column": 11
+        "line": 1,
+        "column": 10
       },
       "file": "examples/dot_function.vader"
     }
@@ -141,13 +141,13 @@
     "location": {
       "start": {
         "offset": 33,
-        "line": 3,
-        "column": 5
+        "line": 2,
+        "column": 4
       },
       "end": {
         "offset": 34,
-        "line": 3,
-        "column": 6
+        "line": 2,
+        "column": 5
       },
       "file": "examples/dot_function.vader"
     }
@@ -158,13 +158,13 @@
     "location": {
       "start": {
         "offset": 34,
-        "line": 3,
-        "column": 6
+        "line": 2,
+        "column": 5
       },
       "end": {
         "offset": 35,
-        "line": 3,
-        "column": 7
+        "line": 2,
+        "column": 6
       },
       "file": "examples/dot_function.vader"
     }
@@ -175,13 +175,13 @@
     "location": {
       "start": {
         "offset": 36,
-        "line": 3,
-        "column": 8
+        "line": 2,
+        "column": 7
       },
       "end": {
         "offset": 39,
-        "line": 3,
-        "column": 11
+        "line": 2,
+        "column": 10
       },
       "file": "examples/dot_function.vader"
     }
@@ -192,13 +192,13 @@
     "location": {
       "start": {
         "offset": 40,
-        "line": 4,
-        "column": 1
+        "line": 3,
+        "column": 0
       },
       "end": {
         "offset": 41,
-        "line": 4,
-        "column": 2
+        "line": 3,
+        "column": 1
       },
       "file": "examples/dot_function.vader"
     }
@@ -209,13 +209,13 @@
     "location": {
       "start": {
         "offset": 43,
-        "line": 6,
-        "column": 1
+        "line": 5,
+        "column": 0
       },
       "end": {
         "offset": 46,
-        "line": 6,
-        "column": 4
+        "line": 5,
+        "column": 3
       },
       "file": "examples/dot_function.vader"
     }
@@ -226,13 +226,13 @@
     "location": {
       "start": {
         "offset": 46,
-        "line": 6,
-        "column": 4
+        "line": 5,
+        "column": 3
       },
       "end": {
         "offset": 47,
-        "line": 6,
-        "column": 5
+        "line": 5,
+        "column": 4
       },
       "file": "examples/dot_function.vader"
     }
@@ -243,13 +243,13 @@
     "location": {
       "start": {
         "offset": 47,
-        "line": 6,
-        "column": 5
+        "line": 5,
+        "column": 4
       },
       "end": {
         "offset": 48,
-        "line": 6,
-        "column": 6
+        "line": 5,
+        "column": 5
       },
       "file": "examples/dot_function.vader"
     }
@@ -260,13 +260,13 @@
     "location": {
       "start": {
         "offset": 49,
-        "line": 6,
-        "column": 7
+        "line": 5,
+        "column": 6
       },
       "end": {
         "offset": 51,
-        "line": 6,
-        "column": 9
+        "line": 5,
+        "column": 8
       },
       "file": "examples/dot_function.vader"
     }
@@ -277,13 +277,13 @@
     "location": {
       "start": {
         "offset": 51,
-        "line": 6,
-        "column": 9
+        "line": 5,
+        "column": 8
       },
       "end": {
         "offset": 52,
-        "line": 6,
-        "column": 10
+        "line": 5,
+        "column": 9
       },
       "file": "examples/dot_function.vader"
     }
@@ -294,13 +294,13 @@
     "location": {
       "start": {
         "offset": 52,
-        "line": 6,
-        "column": 10
+        "line": 5,
+        "column": 9
       },
       "end": {
         "offset": 56,
-        "line": 6,
-        "column": 14
+        "line": 5,
+        "column": 13
       },
       "file": "examples/dot_function.vader"
     }
@@ -311,13 +311,13 @@
     "location": {
       "start": {
         "offset": 56,
-        "line": 6,
-        "column": 14
+        "line": 5,
+        "column": 13
       },
       "end": {
         "offset": 57,
-        "line": 6,
-        "column": 15
+        "line": 5,
+        "column": 14
       },
       "file": "examples/dot_function.vader"
     }
@@ -328,13 +328,13 @@
     "location": {
       "start": {
         "offset": 58,
-        "line": 6,
-        "column": 16
+        "line": 5,
+        "column": 15
       },
       "end": {
         "offset": 63,
-        "line": 6,
-        "column": 21
+        "line": 5,
+        "column": 20
       },
       "file": "examples/dot_function.vader"
     }
@@ -345,13 +345,13 @@
     "location": {
       "start": {
         "offset": 63,
-        "line": 6,
-        "column": 21
+        "line": 5,
+        "column": 20
       },
       "end": {
         "offset": 64,
-        "line": 6,
-        "column": 22
+        "line": 5,
+        "column": 21
       },
       "file": "examples/dot_function.vader"
     }
@@ -362,13 +362,13 @@
     "location": {
       "start": {
         "offset": 65,
-        "line": 6,
-        "column": 23
+        "line": 5,
+        "column": 22
       },
       "end": {
         "offset": 70,
-        "line": 6,
-        "column": 28
+        "line": 5,
+        "column": 27
       },
       "file": "examples/dot_function.vader"
     }
@@ -379,13 +379,13 @@
     "location": {
       "start": {
         "offset": 70,
-        "line": 6,
-        "column": 28
+        "line": 5,
+        "column": 27
       },
       "end": {
         "offset": 71,
-        "line": 6,
-        "column": 29
+        "line": 5,
+        "column": 28
       },
       "file": "examples/dot_function.vader"
     }
@@ -396,13 +396,13 @@
     "location": {
       "start": {
         "offset": 72,
-        "line": 6,
-        "column": 30
+        "line": 5,
+        "column": 29
       },
       "end": {
         "offset": 77,
-        "line": 6,
-        "column": 35
+        "line": 5,
+        "column": 34
       },
       "file": "examples/dot_function.vader"
     }
@@ -413,13 +413,13 @@
     "location": {
       "start": {
         "offset": 77,
-        "line": 6,
-        "column": 35
+        "line": 5,
+        "column": 34
       },
       "end": {
         "offset": 78,
-        "line": 6,
-        "column": 36
+        "line": 5,
+        "column": 35
       },
       "file": "examples/dot_function.vader"
     }
@@ -430,13 +430,13 @@
     "location": {
       "start": {
         "offset": 79,
-        "line": 6,
-        "column": 37
+        "line": 5,
+        "column": 36
       },
       "end": {
         "offset": 81,
-        "line": 6,
-        "column": 39
+        "line": 5,
+        "column": 38
       },
       "file": "examples/dot_function.vader"
     }
@@ -447,13 +447,13 @@
     "location": {
       "start": {
         "offset": 82,
-        "line": 6,
-        "column": 40
+        "line": 5,
+        "column": 39
       },
       "end": {
         "offset": 85,
-        "line": 6,
-        "column": 43
+        "line": 5,
+        "column": 42
       },
       "file": "examples/dot_function.vader"
     }
@@ -464,13 +464,13 @@
     "location": {
       "start": {
         "offset": 86,
-        "line": 6,
-        "column": 44
+        "line": 5,
+        "column": 43
       },
       "end": {
         "offset": 87,
-        "line": 6,
-        "column": 45
+        "line": 5,
+        "column": 44
       },
       "file": "examples/dot_function.vader"
     }
@@ -481,13 +481,13 @@
     "location": {
       "start": {
         "offset": 92,
-        "line": 7,
-        "column": 5
+        "line": 6,
+        "column": 4
       },
       "end": {
         "offset": 98,
-        "line": 7,
-        "column": 11
+        "line": 6,
+        "column": 10
       },
       "file": "examples/dot_function.vader"
     }
@@ -498,13 +498,13 @@
     "location": {
       "start": {
         "offset": 99,
-        "line": 7,
-        "column": 12
+        "line": 6,
+        "column": 11
       },
       "end": {
         "offset": 103,
-        "line": 7,
-        "column": 16
+        "line": 6,
+        "column": 15
       },
       "file": "examples/dot_function.vader"
     }
@@ -515,13 +515,13 @@
     "location": {
       "start": {
         "offset": 103,
-        "line": 7,
-        "column": 16
+        "line": 6,
+        "column": 15
       },
       "end": {
         "offset": 104,
-        "line": 7,
-        "column": 17
+        "line": 6,
+        "column": 16
       },
       "file": "examples/dot_function.vader"
     }
@@ -532,13 +532,13 @@
     "location": {
       "start": {
         "offset": 104,
-        "line": 7,
-        "column": 17
+        "line": 6,
+        "column": 16
       },
       "end": {
         "offset": 105,
-        "line": 7,
-        "column": 18
+        "line": 6,
+        "column": 17
       },
       "file": "examples/dot_function.vader"
     }
@@ -549,13 +549,13 @@
     "location": {
       "start": {
         "offset": 106,
-        "line": 7,
-        "column": 19
+        "line": 6,
+        "column": 18
       },
       "end": {
         "offset": 107,
-        "line": 7,
-        "column": 20
+        "line": 6,
+        "column": 19
       },
       "file": "examples/dot_function.vader"
     }
@@ -566,13 +566,13 @@
     "location": {
       "start": {
         "offset": 108,
-        "line": 7,
-        "column": 21
+        "line": 6,
+        "column": 20
       },
       "end": {
         "offset": 113,
-        "line": 7,
-        "column": 26
+        "line": 6,
+        "column": 25
       },
       "file": "examples/dot_function.vader"
     }
@@ -583,13 +583,13 @@
     "location": {
       "start": {
         "offset": 113,
-        "line": 7,
-        "column": 26
+        "line": 6,
+        "column": 25
       },
       "end": {
         "offset": 114,
-        "line": 7,
-        "column": 27
+        "line": 6,
+        "column": 26
       },
       "file": "examples/dot_function.vader"
     }
@@ -600,13 +600,13 @@
     "location": {
       "start": {
         "offset": 114,
-        "line": 7,
-        "column": 27
+        "line": 6,
+        "column": 26
       },
       "end": {
         "offset": 115,
-        "line": 7,
-        "column": 28
+        "line": 6,
+        "column": 27
       },
       "file": "examples/dot_function.vader"
     }
@@ -617,13 +617,13 @@
     "location": {
       "start": {
         "offset": 116,
-        "line": 7,
-        "column": 29
+        "line": 6,
+        "column": 28
       },
       "end": {
         "offset": 117,
-        "line": 7,
-        "column": 30
+        "line": 6,
+        "column": 29
       },
       "file": "examples/dot_function.vader"
     }
@@ -634,13 +634,13 @@
     "location": {
       "start": {
         "offset": 118,
-        "line": 7,
-        "column": 31
+        "line": 6,
+        "column": 30
       },
       "end": {
         "offset": 122,
-        "line": 7,
-        "column": 35
+        "line": 6,
+        "column": 34
       },
       "file": "examples/dot_function.vader"
     }
@@ -651,13 +651,13 @@
     "location": {
       "start": {
         "offset": 122,
-        "line": 7,
-        "column": 35
+        "line": 6,
+        "column": 34
       },
       "end": {
         "offset": 123,
-        "line": 7,
-        "column": 36
+        "line": 6,
+        "column": 35
       },
       "file": "examples/dot_function.vader"
     }
@@ -668,13 +668,13 @@
     "location": {
       "start": {
         "offset": 123,
-        "line": 7,
-        "column": 36
+        "line": 6,
+        "column": 35
       },
       "end": {
         "offset": 124,
-        "line": 7,
-        "column": 37
+        "line": 6,
+        "column": 36
       },
       "file": "examples/dot_function.vader"
     }
@@ -685,13 +685,13 @@
     "location": {
       "start": {
         "offset": 125,
-        "line": 7,
-        "column": 38
+        "line": 6,
+        "column": 37
       },
       "end": {
         "offset": 126,
-        "line": 7,
-        "column": 39
+        "line": 6,
+        "column": 38
       },
       "file": "examples/dot_function.vader"
     }
@@ -702,13 +702,13 @@
     "location": {
       "start": {
         "offset": 127,
-        "line": 7,
-        "column": 40
+        "line": 6,
+        "column": 39
       },
       "end": {
         "offset": 132,
-        "line": 7,
-        "column": 45
+        "line": 6,
+        "column": 44
       },
       "file": "examples/dot_function.vader"
     }
@@ -719,13 +719,13 @@
     "location": {
       "start": {
         "offset": 132,
-        "line": 7,
-        "column": 45
+        "line": 6,
+        "column": 44
       },
       "end": {
         "offset": 133,
-        "line": 7,
-        "column": 46
+        "line": 6,
+        "column": 45
       },
       "file": "examples/dot_function.vader"
     }
@@ -736,13 +736,13 @@
     "location": {
       "start": {
         "offset": 133,
-        "line": 7,
-        "column": 46
+        "line": 6,
+        "column": 45
       },
       "end": {
         "offset": 134,
-        "line": 7,
-        "column": 47
+        "line": 6,
+        "column": 46
       },
       "file": "examples/dot_function.vader"
     }
@@ -753,13 +753,13 @@
     "location": {
       "start": {
         "offset": 135,
-        "line": 8,
-        "column": 1
+        "line": 7,
+        "column": 0
       },
       "end": {
         "offset": 136,
-        "line": 8,
-        "column": 2
+        "line": 7,
+        "column": 1
       },
       "file": "examples/dot_function.vader"
     }
@@ -770,13 +770,13 @@
     "location": {
       "start": {
         "offset": 138,
-        "line": 10,
-        "column": 1
+        "line": 9,
+        "column": 0
       },
       "end": {
         "offset": 143,
-        "line": 10,
-        "column": 6
+        "line": 9,
+        "column": 5
       },
       "file": "examples/dot_function.vader"
     }
@@ -787,13 +787,13 @@
     "location": {
       "start": {
         "offset": 144,
-        "line": 10,
-        "column": 7
+        "line": 9,
+        "column": 6
       },
       "end": {
         "offset": 145,
-        "line": 10,
-        "column": 8
+        "line": 9,
+        "column": 7
       },
       "file": "examples/dot_function.vader"
     }
@@ -804,13 +804,13 @@
     "location": {
       "start": {
         "offset": 145,
-        "line": 10,
-        "column": 8
+        "line": 9,
+        "column": 7
       },
       "end": {
         "offset": 146,
-        "line": 10,
-        "column": 9
+        "line": 9,
+        "column": 8
       },
       "file": "examples/dot_function.vader"
     }
@@ -821,13 +821,13 @@
     "location": {
       "start": {
         "offset": 147,
-        "line": 10,
-        "column": 10
+        "line": 9,
+        "column": 9
       },
       "end": {
         "offset": 149,
-        "line": 10,
-        "column": 12
+        "line": 9,
+        "column": 11
       },
       "file": "examples/dot_function.vader"
     }
@@ -838,13 +838,13 @@
     "location": {
       "start": {
         "offset": 149,
-        "line": 10,
-        "column": 12
+        "line": 9,
+        "column": 11
       },
       "end": {
         "offset": 150,
-        "line": 10,
-        "column": 13
+        "line": 9,
+        "column": 12
       },
       "file": "examples/dot_function.vader"
     }
@@ -855,13 +855,13 @@
     "location": {
       "start": {
         "offset": 150,
-        "line": 10,
-        "column": 13
+        "line": 9,
+        "column": 12
       },
       "end": {
         "offset": 154,
-        "line": 10,
-        "column": 17
+        "line": 9,
+        "column": 16
       },
       "file": "examples/dot_function.vader"
     }
@@ -872,13 +872,13 @@
     "location": {
       "start": {
         "offset": 154,
-        "line": 10,
-        "column": 17
+        "line": 9,
+        "column": 16
       },
       "end": {
         "offset": 155,
-        "line": 10,
-        "column": 18
+        "line": 9,
+        "column": 17
       },
       "file": "examples/dot_function.vader"
     }
@@ -889,13 +889,13 @@
     "location": {
       "start": {
         "offset": 156,
-        "line": 10,
-        "column": 19
+        "line": 9,
+        "column": 18
       },
       "end": {
         "offset": 159,
-        "line": 10,
-        "column": 22
+        "line": 9,
+        "column": 21
       },
       "file": "examples/dot_function.vader"
     }
@@ -906,13 +906,13 @@
     "location": {
       "start": {
         "offset": 159,
-        "line": 10,
-        "column": 22
+        "line": 9,
+        "column": 21
       },
       "end": {
         "offset": 160,
-        "line": 10,
-        "column": 23
+        "line": 9,
+        "column": 22
       },
       "file": "examples/dot_function.vader"
     }
@@ -923,13 +923,13 @@
     "location": {
       "start": {
         "offset": 161,
-        "line": 10,
-        "column": 24
+        "line": 9,
+        "column": 23
       },
       "end": {
         "offset": 163,
-        "line": 10,
-        "column": 26
+        "line": 9,
+        "column": 25
       },
       "file": "examples/dot_function.vader"
     }
@@ -940,13 +940,13 @@
     "location": {
       "start": {
         "offset": 164,
-        "line": 10,
-        "column": 27
+        "line": 9,
+        "column": 26
       },
       "end": {
         "offset": 167,
-        "line": 10,
-        "column": 30
+        "line": 9,
+        "column": 29
       },
       "file": "examples/dot_function.vader"
     }
@@ -957,13 +957,13 @@
     "location": {
       "start": {
         "offset": 168,
-        "line": 10,
-        "column": 31
+        "line": 9,
+        "column": 30
       },
       "end": {
         "offset": 169,
-        "line": 10,
-        "column": 32
+        "line": 9,
+        "column": 31
       },
       "file": "examples/dot_function.vader"
     }
@@ -974,13 +974,13 @@
     "location": {
       "start": {
         "offset": 174,
-        "line": 11,
-        "column": 5
+        "line": 10,
+        "column": 4
       },
       "end": {
         "offset": 180,
-        "line": 11,
-        "column": 11
+        "line": 10,
+        "column": 10
       },
       "file": "examples/dot_function.vader"
     }
@@ -991,13 +991,13 @@
     "location": {
       "start": {
         "offset": 181,
-        "line": 11,
-        "column": 12
+        "line": 10,
+        "column": 11
       },
       "end": {
         "offset": 185,
-        "line": 11,
-        "column": 16
+        "line": 10,
+        "column": 15
       },
       "file": "examples/dot_function.vader"
     }
@@ -1008,13 +1008,13 @@
     "location": {
       "start": {
         "offset": 186,
-        "line": 11,
-        "column": 17
+        "line": 10,
+        "column": 16
       },
       "end": {
         "offset": 187,
-        "line": 11,
-        "column": 18
+        "line": 10,
+        "column": 17
       },
       "file": "examples/dot_function.vader"
     }
@@ -1025,13 +1025,13 @@
     "location": {
       "start": {
         "offset": 188,
-        "line": 11,
-        "column": 19
+        "line": 10,
+        "column": 18
       },
       "end": {
         "offset": 189,
-        "line": 11,
-        "column": 20
+        "line": 10,
+        "column": 19
       },
       "file": "examples/dot_function.vader"
     }
@@ -1042,13 +1042,13 @@
     "location": {
       "start": {
         "offset": 190,
-        "line": 12,
-        "column": 1
+        "line": 11,
+        "column": 0
       },
       "end": {
         "offset": 191,
-        "line": 12,
-        "column": 2
+        "line": 11,
+        "column": 1
       },
       "file": "examples/dot_function.vader"
     }
@@ -1059,13 +1059,13 @@
     "location": {
       "start": {
         "offset": 193,
-        "line": 14,
-        "column": 1
+        "line": 13,
+        "column": 0
       },
       "end": {
         "offset": 197,
-        "line": 14,
-        "column": 5
+        "line": 13,
+        "column": 4
       },
       "file": "examples/dot_function.vader"
     }
@@ -1076,13 +1076,13 @@
     "location": {
       "start": {
         "offset": 198,
-        "line": 14,
-        "column": 6
+        "line": 13,
+        "column": 5
       },
       "end": {
         "offset": 199,
-        "line": 14,
-        "column": 7
+        "line": 13,
+        "column": 6
       },
       "file": "examples/dot_function.vader"
     }
@@ -1093,13 +1093,13 @@
     "location": {
       "start": {
         "offset": 199,
-        "line": 14,
-        "column": 7
+        "line": 13,
+        "column": 6
       },
       "end": {
         "offset": 200,
-        "line": 14,
-        "column": 8
+        "line": 13,
+        "column": 7
       },
       "file": "examples/dot_function.vader"
     }
@@ -1110,13 +1110,13 @@
     "location": {
       "start": {
         "offset": 201,
-        "line": 14,
-        "column": 9
+        "line": 13,
+        "column": 8
       },
       "end": {
         "offset": 203,
-        "line": 14,
-        "column": 11
+        "line": 13,
+        "column": 10
       },
       "file": "examples/dot_function.vader"
     }
@@ -1127,13 +1127,13 @@
     "location": {
       "start": {
         "offset": 203,
-        "line": 14,
-        "column": 11
+        "line": 13,
+        "column": 10
       },
       "end": {
         "offset": 204,
-        "line": 14,
-        "column": 12
+        "line": 13,
+        "column": 11
       },
       "file": "examples/dot_function.vader"
     }
@@ -1144,13 +1144,13 @@
     "location": {
       "start": {
         "offset": 204,
-        "line": 14,
-        "column": 12
+        "line": 13,
+        "column": 11
       },
       "end": {
         "offset": 205,
-        "line": 14,
-        "column": 13
+        "line": 13,
+        "column": 12
       },
       "file": "examples/dot_function.vader"
     }
@@ -1161,13 +1161,13 @@
     "location": {
       "start": {
         "offset": 206,
-        "line": 14,
-        "column": 14
+        "line": 13,
+        "column": 13
       },
       "end": {
         "offset": 208,
-        "line": 14,
-        "column": 16
+        "line": 13,
+        "column": 15
       },
       "file": "examples/dot_function.vader"
     }
@@ -1178,13 +1178,13 @@
     "location": {
       "start": {
         "offset": 209,
-        "line": 14,
-        "column": 17
+        "line": 13,
+        "column": 16
       },
       "end": {
         "offset": 212,
-        "line": 14,
-        "column": 20
+        "line": 13,
+        "column": 19
       },
       "file": "examples/dot_function.vader"
     }
@@ -1195,13 +1195,13 @@
     "location": {
       "start": {
         "offset": 213,
-        "line": 14,
-        "column": 21
+        "line": 13,
+        "column": 20
       },
       "end": {
         "offset": 214,
-        "line": 14,
-        "column": 22
+        "line": 13,
+        "column": 21
       },
       "file": "examples/dot_function.vader"
     }
@@ -1212,13 +1212,13 @@
     "location": {
       "start": {
         "offset": 219,
-        "line": 15,
-        "column": 5
+        "line": 14,
+        "column": 4
       },
       "end": {
         "offset": 221,
-        "line": 15,
-        "column": 7
+        "line": 14,
+        "column": 6
       },
       "file": "examples/dot_function.vader"
     }
@@ -1229,13 +1229,13 @@
     "location": {
       "start": {
         "offset": 222,
-        "line": 15,
-        "column": 8
+        "line": 14,
+        "column": 7
       },
       "end": {
         "offset": 223,
-        "line": 15,
-        "column": 9
+        "line": 14,
+        "column": 8
       },
       "file": "examples/dot_function.vader"
     }
@@ -1246,13 +1246,13 @@
     "location": {
       "start": {
         "offset": 223,
-        "line": 15,
-        "column": 9
+        "line": 14,
+        "column": 8
       },
       "end": {
         "offset": 224,
-        "line": 15,
-        "column": 10
+        "line": 14,
+        "column": 9
       },
       "file": "examples/dot_function.vader"
     }
@@ -1263,13 +1263,13 @@
     "location": {
       "start": {
         "offset": 225,
-        "line": 15,
-        "column": 11
+        "line": 14,
+        "column": 10
       },
       "end": {
         "offset": 230,
-        "line": 15,
-        "column": 16
+        "line": 14,
+        "column": 15
       },
       "file": "examples/dot_function.vader"
     }
@@ -1280,13 +1280,13 @@
     "location": {
       "start": {
         "offset": 231,
-        "line": 15,
-        "column": 17
+        "line": 14,
+        "column": 16
       },
       "end": {
         "offset": 232,
-        "line": 15,
-        "column": 18
+        "line": 14,
+        "column": 17
       },
       "file": "examples/dot_function.vader"
     }
@@ -1297,13 +1297,13 @@
     "location": {
       "start": {
         "offset": 233,
-        "line": 15,
-        "column": 19
+        "line": 14,
+        "column": 18
       },
       "end": {
         "offset": 234,
-        "line": 15,
-        "column": 20
+        "line": 14,
+        "column": 19
       },
       "file": "examples/dot_function.vader"
     }
@@ -1314,13 +1314,13 @@
     "location": {
       "start": {
         "offset": 234,
-        "line": 15,
-        "column": 20
+        "line": 14,
+        "column": 19
       },
       "end": {
         "offset": 235,
-        "line": 15,
-        "column": 21
+        "line": 14,
+        "column": 20
       },
       "file": "examples/dot_function.vader"
     }
@@ -1331,13 +1331,13 @@
     "location": {
       "start": {
         "offset": 236,
-        "line": 15,
-        "column": 22
+        "line": 14,
+        "column": 21
       },
       "end": {
         "offset": 237,
-        "line": 15,
-        "column": 23
+        "line": 14,
+        "column": 22
       },
       "file": "examples/dot_function.vader"
     }
@@ -1348,13 +1348,13 @@
     "location": {
       "start": {
         "offset": 238,
-        "line": 15,
-        "column": 24
+        "line": 14,
+        "column": 23
       },
       "end": {
         "offset": 239,
-        "line": 15,
-        "column": 25
+        "line": 14,
+        "column": 24
       },
       "file": "examples/dot_function.vader"
     }
@@ -1365,13 +1365,13 @@
     "location": {
       "start": {
         "offset": 244,
-        "line": 16,
-        "column": 5
+        "line": 15,
+        "column": 4
       },
       "end": {
         "offset": 246,
-        "line": 16,
-        "column": 7
+        "line": 15,
+        "column": 6
       },
       "file": "examples/dot_function.vader"
     }
@@ -1382,13 +1382,13 @@
     "location": {
       "start": {
         "offset": 247,
-        "line": 16,
-        "column": 8
+        "line": 15,
+        "column": 7
       },
       "end": {
         "offset": 248,
-        "line": 16,
-        "column": 9
+        "line": 15,
+        "column": 8
       },
       "file": "examples/dot_function.vader"
     }
@@ -1399,13 +1399,13 @@
     "location": {
       "start": {
         "offset": 248,
-        "line": 16,
-        "column": 9
+        "line": 15,
+        "column": 8
       },
       "end": {
         "offset": 249,
-        "line": 16,
-        "column": 10
+        "line": 15,
+        "column": 9
       },
       "file": "examples/dot_function.vader"
     }
@@ -1416,13 +1416,13 @@
     "location": {
       "start": {
         "offset": 250,
-        "line": 16,
-        "column": 11
+        "line": 15,
+        "column": 10
       },
       "end": {
         "offset": 255,
-        "line": 16,
-        "column": 16
+        "line": 15,
+        "column": 15
       },
       "file": "examples/dot_function.vader"
     }
@@ -1433,13 +1433,13 @@
     "location": {
       "start": {
         "offset": 256,
-        "line": 16,
-        "column": 17
+        "line": 15,
+        "column": 16
       },
       "end": {
         "offset": 257,
-        "line": 16,
-        "column": 18
+        "line": 15,
+        "column": 17
       },
       "file": "examples/dot_function.vader"
     }
@@ -1450,13 +1450,13 @@
     "location": {
       "start": {
         "offset": 258,
-        "line": 16,
-        "column": 19
+        "line": 15,
+        "column": 18
       },
       "end": {
         "offset": 259,
-        "line": 16,
-        "column": 20
+        "line": 15,
+        "column": 19
       },
       "file": "examples/dot_function.vader"
     }
@@ -1467,13 +1467,13 @@
     "location": {
       "start": {
         "offset": 259,
-        "line": 16,
-        "column": 20
+        "line": 15,
+        "column": 19
       },
       "end": {
         "offset": 260,
-        "line": 16,
-        "column": 21
+        "line": 15,
+        "column": 20
       },
       "file": "examples/dot_function.vader"
     }
@@ -1484,13 +1484,13 @@
     "location": {
       "start": {
         "offset": 261,
-        "line": 16,
-        "column": 22
+        "line": 15,
+        "column": 21
       },
       "end": {
         "offset": 262,
-        "line": 16,
-        "column": 23
+        "line": 15,
+        "column": 22
       },
       "file": "examples/dot_function.vader"
     }
@@ -1501,13 +1501,13 @@
     "location": {
       "start": {
         "offset": 263,
-        "line": 16,
-        "column": 24
+        "line": 15,
+        "column": 23
       },
       "end": {
         "offset": 264,
-        "line": 16,
-        "column": 25
+        "line": 15,
+        "column": 24
       },
       "file": "examples/dot_function.vader"
     }
@@ -1518,13 +1518,13 @@
     "location": {
       "start": {
         "offset": 269,
-        "line": 17,
-        "column": 5
+        "line": 16,
+        "column": 4
       },
       "end": {
         "offset": 275,
-        "line": 17,
-        "column": 11
+        "line": 16,
+        "column": 10
       },
       "file": "examples/dot_function.vader"
     }
@@ -1535,13 +1535,13 @@
     "location": {
       "start": {
         "offset": 276,
-        "line": 17,
-        "column": 12
+        "line": 16,
+        "column": 11
       },
       "end": {
         "offset": 278,
-        "line": 17,
-        "column": 14
+        "line": 16,
+        "column": 13
       },
       "file": "examples/dot_function.vader"
     }
@@ -1552,13 +1552,13 @@
     "location": {
       "start": {
         "offset": 278,
-        "line": 17,
-        "column": 14
+        "line": 16,
+        "column": 13
       },
       "end": {
         "offset": 279,
-        "line": 17,
-        "column": 15
+        "line": 16,
+        "column": 14
       },
       "file": "examples/dot_function.vader"
     }
@@ -1569,13 +1569,13 @@
     "location": {
       "start": {
         "offset": 279,
-        "line": 17,
-        "column": 15
+        "line": 16,
+        "column": 14
       },
       "end": {
         "offset": 282,
-        "line": 17,
-        "column": 18
+        "line": 16,
+        "column": 17
       },
       "file": "examples/dot_function.vader"
     }
@@ -1586,13 +1586,13 @@
     "location": {
       "start": {
         "offset": 282,
-        "line": 17,
-        "column": 18
+        "line": 16,
+        "column": 17
       },
       "end": {
         "offset": 283,
-        "line": 17,
-        "column": 19
+        "line": 16,
+        "column": 18
       },
       "file": "examples/dot_function.vader"
     }
@@ -1603,13 +1603,13 @@
     "location": {
       "start": {
         "offset": 283,
-        "line": 17,
-        "column": 19
+        "line": 16,
+        "column": 18
       },
       "end": {
         "offset": 285,
-        "line": 17,
-        "column": 21
+        "line": 16,
+        "column": 20
       },
       "file": "examples/dot_function.vader"
     }
@@ -1620,13 +1620,13 @@
     "location": {
       "start": {
         "offset": 285,
-        "line": 17,
-        "column": 21
+        "line": 16,
+        "column": 20
       },
       "end": {
         "offset": 286,
-        "line": 17,
-        "column": 22
+        "line": 16,
+        "column": 21
       },
       "file": "examples/dot_function.vader"
     }
@@ -1637,13 +1637,13 @@
     "location": {
       "start": {
         "offset": 286,
-        "line": 17,
-        "column": 22
+        "line": 16,
+        "column": 21
       },
       "end": {
         "offset": 287,
-        "line": 17,
-        "column": 23
+        "line": 16,
+        "column": 22
       },
       "file": "examples/dot_function.vader"
     }
@@ -1654,13 +1654,13 @@
     "location": {
       "start": {
         "offset": 287,
-        "line": 17,
-        "column": 23
+        "line": 16,
+        "column": 22
       },
       "end": {
         "offset": 292,
-        "line": 17,
-        "column": 28
+        "line": 16,
+        "column": 27
       },
       "file": "examples/dot_function.vader"
     }
@@ -1671,13 +1671,13 @@
     "location": {
       "start": {
         "offset": 292,
-        "line": 17,
-        "column": 28
+        "line": 16,
+        "column": 27
       },
       "end": {
         "offset": 293,
-        "line": 17,
-        "column": 29
+        "line": 16,
+        "column": 28
       },
       "file": "examples/dot_function.vader"
     }
@@ -1688,13 +1688,13 @@
     "location": {
       "start": {
         "offset": 293,
-        "line": 17,
-        "column": 29
+        "line": 16,
+        "column": 28
       },
       "end": {
         "offset": 294,
-        "line": 17,
-        "column": 30
+        "line": 16,
+        "column": 29
       },
       "file": "examples/dot_function.vader"
     }
@@ -1705,13 +1705,13 @@
     "location": {
       "start": {
         "offset": 295,
-        "line": 18,
-        "column": 1
+        "line": 17,
+        "column": 0
       },
       "end": {
         "offset": 296,
-        "line": 18,
-        "column": 2
+        "line": 17,
+        "column": 1
       },
       "file": "examples/dot_function.vader"
     }
@@ -1721,13 +1721,13 @@
     "location": {
       "start": {
         "offset": 296,
-        "line": 18,
-        "column": 2
+        "line": 17,
+        "column": 1
       },
       "end": {
         "offset": 296,
-        "line": 18,
-        "column": 2
+        "line": 17,
+        "column": 1
       },
       "file": "examples/dot_function.vader"
     },

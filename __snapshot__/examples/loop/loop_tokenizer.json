@@ -5,13 +5,13 @@
     "location": {
       "start": {
         "offset": 0,
-        "line": 1,
-        "column": 1
+        "line": 0,
+        "column": 0
       },
       "end": {
         "offset": 5,
-        "line": 1,
-        "column": 6
+        "line": 0,
+        "column": 5
       },
       "file": "examples/loop.vader"
     }
@@ -22,13 +22,13 @@
     "location": {
       "start": {
         "offset": 6,
-        "line": 1,
-        "column": 7
+        "line": 0,
+        "column": 6
       },
       "end": {
         "offset": 11,
-        "line": 1,
-        "column": 12
+        "line": 0,
+        "column": 11
       },
       "file": "examples/loop.vader"
     }
@@ -39,13 +39,13 @@
     "location": {
       "start": {
         "offset": 13,
-        "line": 3,
-        "column": 1
+        "line": 2,
+        "column": 0
       },
       "end": {
         "offset": 17,
-        "line": 3,
-        "column": 5
+        "line": 2,
+        "column": 4
       },
       "file": "examples/loop.vader"
     }
@@ -56,13 +56,13 @@
     "location": {
       "start": {
         "offset": 18,
-        "line": 3,
-        "column": 6
+        "line": 2,
+        "column": 5
       },
       "end": {
         "offset": 19,
-        "line": 3,
-        "column": 7
+        "line": 2,
+        "column": 6
       },
       "file": "examples/loop.vader"
     }
@@ -73,13 +73,13 @@
     "location": {
       "start": {
         "offset": 19,
-        "line": 3,
-        "column": 7
+        "line": 2,
+        "column": 6
       },
       "end": {
         "offset": 20,
-        "line": 3,
-        "column": 8
+        "line": 2,
+        "column": 7
       },
       "file": "examples/loop.vader"
     }
@@ -90,13 +90,13 @@
     "location": {
       "start": {
         "offset": 21,
-        "line": 3,
-        "column": 9
+        "line": 2,
+        "column": 8
       },
       "end": {
         "offset": 23,
-        "line": 3,
-        "column": 11
+        "line": 2,
+        "column": 10
       },
       "file": "examples/loop.vader"
     }
@@ -107,13 +107,13 @@
     "location": {
       "start": {
         "offset": 23,
-        "line": 3,
-        "column": 11
+        "line": 2,
+        "column": 10
       },
       "end": {
         "offset": 24,
-        "line": 3,
-        "column": 12
+        "line": 2,
+        "column": 11
       },
       "file": "examples/loop.vader"
     }
@@ -124,13 +124,13 @@
     "location": {
       "start": {
         "offset": 24,
-        "line": 3,
-        "column": 12
+        "line": 2,
+        "column": 11
       },
       "end": {
         "offset": 25,
-        "line": 3,
-        "column": 13
+        "line": 2,
+        "column": 12
       },
       "file": "examples/loop.vader"
     }
@@ -141,13 +141,13 @@
     "location": {
       "start": {
         "offset": 26,
-        "line": 3,
-        "column": 14
+        "line": 2,
+        "column": 13
       },
       "end": {
         "offset": 27,
-        "line": 3,
-        "column": 15
+        "line": 2,
+        "column": 14
       },
       "file": "examples/loop.vader"
     }
@@ -158,13 +158,13 @@
     "location": {
       "start": {
         "offset": 32,
-        "line": 4,
-        "column": 5
+        "line": 3,
+        "column": 4
       },
       "end": {
         "offset": 35,
-        "line": 4,
-        "column": 8
+        "line": 3,
+        "column": 7
       },
       "file": "examples/loop.vader"
     }
@@ -175,13 +175,13 @@
     "location": {
       "start": {
         "offset": 36,
-        "line": 4,
-        "column": 9
+        "line": 3,
+        "column": 8
       },
       "end": {
         "offset": 37,
-        "line": 4,
-        "column": 10
+        "line": 3,
+        "column": 9
       },
       "file": "examples/loop.vader"
     }
@@ -192,13 +192,13 @@
     "location": {
       "start": {
         "offset": 38,
-        "line": 4,
-        "column": 11
+        "line": 3,
+        "column": 10
       },
       "end": {
         "offset": 39,
-        "line": 4,
-        "column": 12
+        "line": 3,
+        "column": 11
       },
       "file": "examples/loop.vader"
     }
@@ -209,13 +209,13 @@
     "location": {
       "start": {
         "offset": 39,
-        "line": 4,
-        "column": 12
+        "line": 3,
+        "column": 11
       },
       "end": {
         "offset": 40,
-        "line": 4,
-        "column": 13
+        "line": 3,
+        "column": 12
       },
       "file": "examples/loop.vader"
     }
@@ -226,13 +226,13 @@
     "location": {
       "start": {
         "offset": 41,
-        "line": 4,
-        "column": 14
+        "line": 3,
+        "column": 13
       },
       "end": {
         "offset": 42,
-        "line": 4,
-        "column": 15
+        "line": 3,
+        "column": 14
       },
       "file": "examples/loop.vader"
     }
@@ -243,13 +243,13 @@
     "location": {
       "start": {
         "offset": 42,
-        "line": 4,
-        "column": 15
+        "line": 3,
+        "column": 14
       },
       "end": {
         "offset": 43,
-        "line": 4,
-        "column": 16
+        "line": 3,
+        "column": 15
       },
       "file": "examples/loop.vader"
     }
@@ -260,13 +260,13 @@
     "location": {
       "start": {
         "offset": 44,
-        "line": 4,
-        "column": 17
+        "line": 3,
+        "column": 16
       },
       "end": {
         "offset": 45,
-        "line": 4,
-        "column": 18
+        "line": 3,
+        "column": 17
       },
       "file": "examples/loop.vader"
     }
@@ -277,13 +277,13 @@
     "location": {
       "start": {
         "offset": 46,
-        "line": 4,
-        "column": 19
+        "line": 3,
+        "column": 18
       },
       "end": {
         "offset": 47,
-        "line": 4,
-        "column": 20
+        "line": 3,
+        "column": 19
       },
       "file": "examples/loop.vader"
     }
@@ -294,13 +294,13 @@
     "location": {
       "start": {
         "offset": 48,
-        "line": 4,
-        "column": 21
+        "line": 3,
+        "column": 20
       },
       "end": {
         "offset": 50,
-        "line": 4,
-        "column": 23
+        "line": 3,
+        "column": 22
       },
       "file": "examples/loop.vader"
     }
@@ -311,13 +311,13 @@
     "location": {
       "start": {
         "offset": 50,
-        "line": 4,
-        "column": 23
+        "line": 3,
+        "column": 22
       },
       "end": {
         "offset": 51,
-        "line": 4,
-        "column": 24
+        "line": 3,
+        "column": 23
       },
       "file": "examples/loop.vader"
     }
@@ -328,13 +328,13 @@
     "location": {
       "start": {
         "offset": 52,
-        "line": 4,
-        "column": 25
+        "line": 3,
+        "column": 24
       },
       "end": {
         "offset": 53,
-        "line": 4,
-        "column": 26
+        "line": 3,
+        "column": 25
       },
       "file": "examples/loop.vader"
     }
@@ -345,13 +345,13 @@
     "location": {
       "start": {
         "offset": 54,
-        "line": 4,
-        "column": 27
+        "line": 3,
+        "column": 26
       },
       "end": {
         "offset": 55,
-        "line": 4,
-        "column": 28
+        "line": 3,
+        "column": 27
       },
       "file": "examples/loop.vader"
     }
@@ -362,13 +362,13 @@
     "location": {
       "start": {
         "offset": 56,
-        "line": 4,
-        "column": 29
+        "line": 3,
+        "column": 28
       },
       "end": {
         "offset": 57,
-        "line": 4,
-        "column": 30
+        "line": 3,
+        "column": 29
       },
       "file": "examples/loop.vader"
     }
@@ -379,13 +379,13 @@
     "location": {
       "start": {
         "offset": 58,
-        "line": 4,
-        "column": 31
+        "line": 3,
+        "column": 30
       },
       "end": {
         "offset": 59,
-        "line": 4,
-        "column": 32
+        "line": 3,
+        "column": 31
       },
       "file": "examples/loop.vader"
     }
@@ -396,13 +396,13 @@
     "location": {
       "start": {
         "offset": 60,
-        "line": 4,
-        "column": 33
+        "line": 3,
+        "column": 32
       },
       "end": {
         "offset": 61,
-        "line": 4,
-        "column": 34
+        "line": 3,
+        "column": 33
       },
       "file": "examples/loop.vader"
     }
@@ -413,13 +413,13 @@
     "location": {
       "start": {
         "offset": 62,
-        "line": 4,
-        "column": 35
+        "line": 3,
+        "column": 34
       },
       "end": {
         "offset": 63,
-        "line": 4,
-        "column": 36
+        "line": 3,
+        "column": 35
       },
       "file": "examples/loop.vader"
     }
@@ -430,13 +430,13 @@
     "location": {
       "start": {
         "offset": 72,
-        "line": 5,
-        "column": 9
+        "line": 4,
+        "column": 8
       },
       "end": {
         "offset": 75,
-        "line": 5,
-        "column": 12
+        "line": 4,
+        "column": 11
       },
       "file": "examples/loop.vader"
     }
@@ -447,13 +447,13 @@
     "location": {
       "start": {
         "offset": 75,
-        "line": 5,
-        "column": 12
+        "line": 4,
+        "column": 11
       },
       "end": {
         "offset": 76,
-        "line": 5,
-        "column": 13
+        "line": 4,
+        "column": 12
       },
       "file": "examples/loop.vader"
     }
@@ -464,13 +464,13 @@
     "location": {
       "start": {
         "offset": 76,
-        "line": 5,
-        "column": 13
+        "line": 4,
+        "column": 12
       },
       "end": {
         "offset": 77,
-        "line": 5,
-        "column": 14
+        "line": 4,
+        "column": 13
       },
       "file": "examples/loop.vader"
     }
@@ -481,13 +481,13 @@
     "location": {
       "start": {
         "offset": 78,
-        "line": 5,
-        "column": 15
+        "line": 4,
+        "column": 14
       },
       "end": {
         "offset": 79,
-        "line": 5,
-        "column": 16
+        "line": 4,
+        "column": 15
       },
       "file": "examples/loop.vader"
     }
@@ -498,13 +498,13 @@
     "location": {
       "start": {
         "offset": 79,
-        "line": 5,
-        "column": 16
+        "line": 4,
+        "column": 15
       },
       "end": {
         "offset": 80,
-        "line": 5,
-        "column": 17
+        "line": 4,
+        "column": 16
       },
       "file": "examples/loop.vader"
     }
@@ -515,13 +515,13 @@
     "location": {
       "start": {
         "offset": 81,
-        "line": 5,
-        "column": 18
+        "line": 4,
+        "column": 17
       },
       "end": {
         "offset": 82,
-        "line": 5,
-        "column": 19
+        "line": 4,
+        "column": 18
       },
       "file": "examples/loop.vader"
     }
@@ -532,13 +532,13 @@
     "location": {
       "start": {
         "offset": 82,
-        "line": 5,
-        "column": 19
+        "line": 4,
+        "column": 18
       },
       "end": {
         "offset": 83,
-        "line": 5,
-        "column": 20
+        "line": 4,
+        "column": 19
       },
       "file": "examples/loop.vader"
     }
@@ -549,13 +549,13 @@
     "location": {
       "start": {
         "offset": 84,
-        "line": 5,
-        "column": 21
+        "line": 4,
+        "column": 20
       },
       "end": {
         "offset": 85,
-        "line": 5,
-        "column": 22
+        "line": 4,
+        "column": 21
       },
       "file": "examples/loop.vader"
     }
@@ -566,13 +566,13 @@
     "location": {
       "start": {
         "offset": 86,
-        "line": 5,
-        "column": 23
+        "line": 4,
+        "column": 22
       },
       "end": {
         "offset": 87,
-        "line": 5,
-        "column": 24
+        "line": 4,
+        "column": 23
       },
       "file": "examples/loop.vader"
     }
@@ -583,13 +583,13 @@
     "location": {
       "start": {
         "offset": 88,
-        "line": 5,
-        "column": 25
+        "line": 4,
+        "column": 24
       },
       "end": {
         "offset": 90,
-        "line": 5,
-        "column": 27
+        "line": 4,
+        "column": 26
       },
       "file": "examples/loop.vader"
     }
@@ -600,13 +600,13 @@
     "location": {
       "start": {
         "offset": 90,
-        "line": 5,
-        "column": 27
+        "line": 4,
+        "column": 26
       },
       "end": {
         "offset": 91,
-        "line": 5,
-        "column": 28
+        "line": 4,
+        "column": 27
       },
       "file": "examples/loop.vader"
     }
@@ -617,13 +617,13 @@
     "location": {
       "start": {
         "offset": 92,
-        "line": 5,
-        "column": 29
+        "line": 4,
+        "column": 28
       },
       "end": {
         "offset": 93,
-        "line": 5,
-        "column": 30
+        "line": 4,
+        "column": 29
       },
       "file": "examples/loop.vader"
     }
@@ -634,13 +634,13 @@
     "location": {
       "start": {
         "offset": 94,
-        "line": 5,
-        "column": 31
+        "line": 4,
+        "column": 30
       },
       "end": {
         "offset": 95,
-        "line": 5,
-        "column": 32
+        "line": 4,
+        "column": 31
       },
       "file": "examples/loop.vader"
     }
@@ -651,13 +651,13 @@
     "location": {
       "start": {
         "offset": 96,
-        "line": 5,
-        "column": 33
+        "line": 4,
+        "column": 32
       },
       "end": {
         "offset": 97,
-        "line": 5,
-        "column": 34
+        "line": 4,
+        "column": 33
       },
       "file": "examples/loop.vader"
     }
@@ -668,13 +668,13 @@
     "location": {
       "start": {
         "offset": 98,
-        "line": 5,
-        "column": 35
+        "line": 4,
+        "column": 34
       },
       "end": {
         "offset": 99,
-        "line": 5,
-        "column": 36
+        "line": 4,
+        "column": 35
       },
       "file": "examples/loop.vader"
     }
@@ -685,13 +685,13 @@
     "location": {
       "start": {
         "offset": 100,
-        "line": 5,
-        "column": 37
+        "line": 4,
+        "column": 36
       },
       "end": {
         "offset": 101,
-        "line": 5,
-        "column": 38
+        "line": 4,
+        "column": 37
       },
       "file": "examples/loop.vader"
     }
@@ -702,13 +702,13 @@
     "location": {
       "start": {
         "offset": 101,
-        "line": 5,
-        "column": 38
+        "line": 4,
+        "column": 37
       },
       "end": {
         "offset": 102,
-        "line": 5,
-        "column": 39
+        "line": 4,
+        "column": 38
       },
       "file": "examples/loop.vader"
     }
@@ -719,13 +719,13 @@
     "location": {
       "start": {
         "offset": 103,
-        "line": 5,
-        "column": 40
+        "line": 4,
+        "column": 39
       },
       "end": {
         "offset": 104,
-        "line": 5,
-        "column": 41
+        "line": 4,
+        "column": 40
       },
       "file": "examples/loop.vader"
     }
@@ -736,13 +736,13 @@
     "location": {
       "start": {
         "offset": 117,
-        "line": 6,
-        "column": 13
+        "line": 5,
+        "column": 12
       },
       "end": {
         "offset": 122,
-        "line": 6,
-        "column": 18
+        "line": 5,
+        "column": 17
       },
       "file": "examples/loop.vader"
     }
@@ -753,13 +753,13 @@
     "location": {
       "start": {
         "offset": 122,
-        "line": 6,
-        "column": 18
+        "line": 5,
+        "column": 17
       },
       "end": {
         "offset": 123,
-        "line": 6,
-        "column": 19
+        "line": 5,
+        "column": 18
       },
       "file": "examples/loop.vader"
     }
@@ -770,13 +770,13 @@
     "location": {
       "start": {
         "offset": 123,
-        "line": 6,
-        "column": 19
+        "line": 5,
+        "column": 18
       },
       "end": {
         "offset": 130,
-        "line": 6,
-        "column": 26
+        "line": 5,
+        "column": 25
       },
       "file": "examples/loop.vader"
     }
@@ -787,13 +787,13 @@
     "location": {
       "start": {
         "offset": 130,
-        "line": 6,
-        "column": 26
+        "line": 5,
+        "column": 25
       },
       "end": {
         "offset": 131,
-        "line": 6,
-        "column": 27
+        "line": 5,
+        "column": 26
       },
       "file": "examples/loop.vader"
     }
@@ -804,13 +804,13 @@
     "location": {
       "start": {
         "offset": 140,
-        "line": 7,
-        "column": 9
+        "line": 6,
+        "column": 8
       },
       "end": {
         "offset": 141,
-        "line": 7,
-        "column": 10
+        "line": 6,
+        "column": 9
       },
       "file": "examples/loop.vader"
     }
@@ -821,13 +821,13 @@
     "location": {
       "start": {
         "offset": 150,
-        "line": 8,
-        "column": 9
+        "line": 7,
+        "column": 8
       },
       "end": {
         "offset": 155,
-        "line": 8,
-        "column": 14
+        "line": 7,
+        "column": 13
       },
       "file": "examples/loop.vader"
     }
@@ -838,13 +838,13 @@
     "location": {
       "start": {
         "offset": 155,
-        "line": 8,
-        "column": 14
+        "line": 7,
+        "column": 13
       },
       "end": {
         "offset": 156,
-        "line": 8,
-        "column": 15
+        "line": 7,
+        "column": 14
       },
       "file": "examples/loop.vader"
     }
@@ -855,13 +855,13 @@
     "location": {
       "start": {
         "offset": 156,
-        "line": 8,
-        "column": 15
+        "line": 7,
+        "column": 14
       },
       "end": {
         "offset": 160,
-        "line": 8,
-        "column": 19
+        "line": 7,
+        "column": 18
       },
       "file": "examples/loop.vader"
     }
@@ -872,13 +872,13 @@
     "location": {
       "start": {
         "offset": 160,
-        "line": 8,
-        "column": 19
+        "line": 7,
+        "column": 18
       },
       "end": {
         "offset": 161,
-        "line": 8,
-        "column": 20
+        "line": 7,
+        "column": 19
       },
       "file": "examples/loop.vader"
     }
@@ -889,13 +889,13 @@
     "location": {
       "start": {
         "offset": 166,
-        "line": 9,
-        "column": 5
+        "line": 8,
+        "column": 4
       },
       "end": {
         "offset": 167,
-        "line": 9,
-        "column": 6
+        "line": 8,
+        "column": 5
       },
       "file": "examples/loop.vader"
     }
@@ -906,13 +906,13 @@
     "location": {
       "start": {
         "offset": 168,
-        "line": 10,
-        "column": 1
+        "line": 9,
+        "column": 0
       },
       "end": {
         "offset": 169,
-        "line": 10,
-        "column": 2
+        "line": 9,
+        "column": 1
       },
       "file": "examples/loop.vader"
     }
@@ -922,13 +922,13 @@
     "location": {
       "start": {
         "offset": 169,
-        "line": 10,
-        "column": 2
+        "line": 9,
+        "column": 1
       },
       "end": {
         "offset": 169,
-        "line": 10,
-        "column": 2
+        "line": 9,
+        "column": 1
       },
       "file": "examples/loop.vader"
     },

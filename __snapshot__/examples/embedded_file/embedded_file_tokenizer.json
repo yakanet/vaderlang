@@ -5,30 +5,30 @@
     "location": {
       "start": {
         "offset": 0,
-        "line": 1,
-        "column": 1
+        "line": 0,
+        "column": 0
       },
       "end": {
         "offset": 5,
-        "line": 1,
-        "column": 6
+        "line": 0,
+        "column": 5
       },
       "file": "examples/embedded_file.vader"
     }
   },
   {
     "type": "StringLiteral",
-    "value": "modules/std",
+    "value": "std",
     "location": {
       "start": {
         "offset": 6,
-        "line": 1,
-        "column": 7
+        "line": 0,
+        "column": 6
       },
       "end": {
-        "offset": 19,
-        "line": 1,
-        "column": 20
+        "offset": 11,
+        "line": 0,
+        "column": 11
       },
       "file": "examples/embedded_file.vader"
     }
@@ -38,14 +38,14 @@
     "value": "main",
     "location": {
       "start": {
-        "offset": 21,
-        "line": 3,
-        "column": 1
+        "offset": 13,
+        "line": 2,
+        "column": 0
       },
       "end": {
-        "offset": 25,
-        "line": 3,
-        "column": 5
+        "offset": 17,
+        "line": 2,
+        "column": 4
       },
       "file": "examples/embedded_file.vader"
     }
@@ -55,31 +55,31 @@
     "value": ":",
     "location": {
       "start": {
-        "offset": 26,
-        "line": 3,
+        "offset": 18,
+        "line": 2,
+        "column": 5
+      },
+      "end": {
+        "offset": 19,
+        "line": 2,
+        "column": 6
+      },
+      "file": "examples/embedded_file.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 19,
+        "line": 2,
         "column": 6
       },
       "end": {
-        "offset": 27,
-        "line": 3,
+        "offset": 20,
+        "line": 2,
         "column": 7
-      },
-      "file": "examples/embedded_file.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": {
-        "offset": 27,
-        "line": 3,
-        "column": 7
-      },
-      "end": {
-        "offset": 28,
-        "line": 3,
-        "column": 8
       },
       "file": "examples/embedded_file.vader"
     }
@@ -89,14 +89,14 @@
     "value": "fn",
     "location": {
       "start": {
-        "offset": 29,
-        "line": 3,
-        "column": 9
+        "offset": 21,
+        "line": 2,
+        "column": 8
       },
       "end": {
-        "offset": 31,
-        "line": 3,
-        "column": 11
+        "offset": 23,
+        "line": 2,
+        "column": 10
       },
       "file": "examples/embedded_file.vader"
     }
@@ -106,14 +106,14 @@
     "value": "(",
     "location": {
       "start": {
-        "offset": 31,
-        "line": 3,
-        "column": 11
+        "offset": 23,
+        "line": 2,
+        "column": 10
       },
       "end": {
-        "offset": 32,
-        "line": 3,
-        "column": 12
+        "offset": 24,
+        "line": 2,
+        "column": 11
       },
       "file": "examples/embedded_file.vader"
     }
@@ -123,14 +123,14 @@
     "value": ")",
     "location": {
       "start": {
-        "offset": 32,
-        "line": 3,
-        "column": 12
+        "offset": 24,
+        "line": 2,
+        "column": 11
       },
       "end": {
-        "offset": 33,
-        "line": 3,
-        "column": 13
+        "offset": 25,
+        "line": 2,
+        "column": 12
       },
       "file": "examples/embedded_file.vader"
     }
@@ -140,14 +140,14 @@
     "value": "{",
     "location": {
       "start": {
-        "offset": 34,
-        "line": 3,
-        "column": 14
+        "offset": 26,
+        "line": 2,
+        "column": 13
       },
       "end": {
-        "offset": 35,
-        "line": 3,
-        "column": 15
+        "offset": 27,
+        "line": 2,
+        "column": 14
       },
       "file": "examples/embedded_file.vader"
     }
@@ -157,14 +157,14 @@
     "value": "print",
     "location": {
       "start": {
-        "offset": 40,
-        "line": 4,
-        "column": 5
+        "offset": 32,
+        "line": 3,
+        "column": 4
       },
       "end": {
-        "offset": 45,
-        "line": 4,
-        "column": 10
+        "offset": 37,
+        "line": 3,
+        "column": 9
       },
       "file": "examples/embedded_file.vader"
     }
@@ -174,14 +174,14 @@
     "value": "(",
     "location": {
       "start": {
-        "offset": 45,
-        "line": 4,
-        "column": 10
+        "offset": 37,
+        "line": 3,
+        "column": 9
       },
       "end": {
-        "offset": 46,
-        "line": 4,
-        "column": 11
+        "offset": 38,
+        "line": 3,
+        "column": 10
       },
       "file": "examples/embedded_file.vader"
     }
@@ -191,14 +191,14 @@
     "value": "file",
     "location": {
       "start": {
-        "offset": 46,
-        "line": 4,
-        "column": 11
+        "offset": 38,
+        "line": 3,
+        "column": 10
       },
       "end": {
-        "offset": 51,
-        "line": 4,
-        "column": 16
+        "offset": 43,
+        "line": 3,
+        "column": 15
       },
       "file": "examples/embedded_file.vader"
     }
@@ -208,31 +208,31 @@
     "value": "(",
     "location": {
       "start": {
-        "offset": 51,
-        "line": 4,
-        "column": 16
+        "offset": 43,
+        "line": 3,
+        "column": 15
       },
       "end": {
-        "offset": 52,
-        "line": 4,
-        "column": 17
+        "offset": 44,
+        "line": 3,
+        "column": 16
       },
       "file": "examples/embedded_file.vader"
     }
   },
   {
     "type": "StringLiteral",
-    "value": "examples/embedded_file.vader",
+    "value": "./embedded_file.vader",
     "location": {
       "start": {
-        "offset": 52,
-        "line": 4,
-        "column": 17
+        "offset": 44,
+        "line": 3,
+        "column": 16
       },
       "end": {
-        "offset": 82,
-        "line": 4,
-        "column": 47
+        "offset": 67,
+        "line": 3,
+        "column": 39
       },
       "file": "examples/embedded_file.vader"
     }
@@ -242,14 +242,14 @@
     "value": ")",
     "location": {
       "start": {
-        "offset": 82,
-        "line": 4,
-        "column": 47
+        "offset": 67,
+        "line": 3,
+        "column": 39
       },
       "end": {
-        "offset": 83,
-        "line": 4,
-        "column": 48
+        "offset": 68,
+        "line": 3,
+        "column": 40
       },
       "file": "examples/embedded_file.vader"
     }
@@ -259,14 +259,14 @@
     "value": ")",
     "location": {
       "start": {
-        "offset": 83,
-        "line": 4,
-        "column": 48
+        "offset": 68,
+        "line": 3,
+        "column": 40
       },
       "end": {
-        "offset": 84,
-        "line": 4,
-        "column": 49
+        "offset": 69,
+        "line": 3,
+        "column": 41
       },
       "file": "examples/embedded_file.vader"
     }
@@ -276,14 +276,14 @@
     "value": "}",
     "location": {
       "start": {
-        "offset": 85,
-        "line": 5,
-        "column": 1
+        "offset": 70,
+        "line": 4,
+        "column": 0
       },
       "end": {
-        "offset": 86,
-        "line": 5,
-        "column": 2
+        "offset": 71,
+        "line": 4,
+        "column": 1
       },
       "file": "examples/embedded_file.vader"
     }
@@ -292,14 +292,14 @@
     "type": "EOF",
     "location": {
       "start": {
-        "offset": 86,
-        "line": 5,
-        "column": 2
+        "offset": 71,
+        "line": 4,
+        "column": 1
       },
       "end": {
-        "offset": 86,
-        "line": 5,
-        "column": 2
+        "offset": 71,
+        "line": 4,
+        "column": 1
       },
       "file": "examples/embedded_file.vader"
     },

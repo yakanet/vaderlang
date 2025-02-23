@@ -7,7 +7,7 @@ export type Location = {
 }
 
 export function locationToString(location: Location) {
-    return `${location.file}:${location.start.line}:${location.start.column}`
+    return `${location.file}:${location.start.line + 1}:${location.start.column + 1}`
 }
 
 type CreateToken<T extends string, V = string> = {

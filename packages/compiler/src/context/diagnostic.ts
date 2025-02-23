@@ -1,4 +1,4 @@
-import { Location } from "../tokens/types";
+import type { Location } from "../tokens/types";
 
 export class Diagnostic {
     private diagnostics: {type: DiagnosticType, message: string, location: Location}[] = [];

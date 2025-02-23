@@ -5,13 +5,13 @@
     "location": {
       "start": {
         "offset": 0,
-        "line": 1,
-        "column": 1
+        "line": 0,
+        "column": 0
       },
       "end": {
         "offset": 5,
-        "line": 1,
-        "column": 6
+        "line": 0,
+        "column": 5
       },
       "file": "examples/arraylists.vader"
     }
@@ -22,13 +22,13 @@
     "location": {
       "start": {
         "offset": 6,
-        "line": 1,
-        "column": 7
+        "line": 0,
+        "column": 6
       },
       "end": {
         "offset": 17,
-        "line": 1,
-        "column": 18
+        "line": 0,
+        "column": 17
       },
       "file": "examples/arraylists.vader"
     }
@@ -39,13 +39,13 @@
     "location": {
       "start": {
         "offset": 19,
-        "line": 3,
-        "column": 1
+        "line": 2,
+        "column": 0
       },
       "end": {
         "offset": 23,
-        "line": 3,
-        "column": 5
+        "line": 2,
+        "column": 4
       },
       "file": "examples/arraylists.vader"
     }
@@ -56,13 +56,13 @@
     "location": {
       "start": {
         "offset": 24,
-        "line": 3,
-        "column": 6
+        "line": 2,
+        "column": 5
       },
       "end": {
         "offset": 25,
-        "line": 3,
-        "column": 7
+        "line": 2,
+        "column": 6
       },
       "file": "examples/arraylists.vader"
     }
@@ -73,13 +73,13 @@
     "location": {
       "start": {
         "offset": 25,
-        "line": 3,
-        "column": 7
+        "line": 2,
+        "column": 6
       },
       "end": {
         "offset": 26,
-        "line": 3,
-        "column": 8
+        "line": 2,
+        "column": 7
       },
       "file": "examples/arraylists.vader"
     }
@@ -90,13 +90,13 @@
     "location": {
       "start": {
         "offset": 27,
-        "line": 3,
-        "column": 9
+        "line": 2,
+        "column": 8
       },
       "end": {
         "offset": 29,
-        "line": 3,
-        "column": 11
+        "line": 2,
+        "column": 10
       },
       "file": "examples/arraylists.vader"
     }
@@ -107,13 +107,13 @@
     "location": {
       "start": {
         "offset": 29,
-        "line": 3,
-        "column": 11
+        "line": 2,
+        "column": 10
       },
       "end": {
         "offset": 30,
-        "line": 3,
-        "column": 12
+        "line": 2,
+        "column": 11
       },
       "file": "examples/arraylists.vader"
     }
@@ -124,13 +124,13 @@
     "location": {
       "start": {
         "offset": 30,
-        "line": 3,
-        "column": 12
+        "line": 2,
+        "column": 11
       },
       "end": {
         "offset": 31,
-        "line": 3,
-        "column": 13
+        "line": 2,
+        "column": 12
       },
       "file": "examples/arraylists.vader"
     }
@@ -141,13 +141,13 @@
     "location": {
       "start": {
         "offset": 32,
-        "line": 3,
-        "column": 14
+        "line": 2,
+        "column": 13
       },
       "end": {
         "offset": 34,
-        "line": 3,
-        "column": 16
+        "line": 2,
+        "column": 15
       },
       "file": "examples/arraylists.vader"
     }
@@ -158,13 +158,13 @@
     "location": {
       "start": {
         "offset": 35,
-        "line": 3,
-        "column": 17
+        "line": 2,
+        "column": 16
       },
       "end": {
         "offset": 38,
-        "line": 3,
-        "column": 20
+        "line": 2,
+        "column": 19
       },
       "file": "examples/arraylists.vader"
     }
@@ -175,13 +175,13 @@
     "location": {
       "start": {
         "offset": 39,
-        "line": 3,
-        "column": 21
+        "line": 2,
+        "column": 20
       },
       "end": {
         "offset": 40,
-        "line": 3,
-        "column": 22
+        "line": 2,
+        "column": 21
       },
       "file": "examples/arraylists.vader"
     }
@@ -192,13 +192,13 @@
     "location": {
       "start": {
         "offset": 45,
-        "line": 4,
-        "column": 5
+        "line": 3,
+        "column": 4
       },
       "end": {
         "offset": 49,
-        "line": 4,
-        "column": 9
+        "line": 3,
+        "column": 8
       },
       "file": "examples/arraylists.vader"
     }
@@ -209,13 +209,13 @@
     "location": {
       "start": {
         "offset": 50,
-        "line": 4,
-        "column": 10
+        "line": 3,
+        "column": 9
       },
       "end": {
         "offset": 51,
-        "line": 4,
-        "column": 11
+        "line": 3,
+        "column": 10
       },
       "file": "examples/arraylists.vader"
     }
@@ -226,13 +226,13 @@
     "location": {
       "start": {
         "offset": 51,
-        "line": 4,
-        "column": 11
+        "line": 3,
+        "column": 10
       },
       "end": {
         "offset": 52,
-        "line": 4,
-        "column": 12
+        "line": 3,
+        "column": 11
       },
       "file": "examples/arraylists.vader"
     }
@@ -243,13 +243,13 @@
     "location": {
       "start": {
         "offset": 53,
-        "line": 4,
-        "column": 13
+        "line": 3,
+        "column": 12
       },
       "end": {
         "offset": 64,
-        "line": 4,
-        "column": 24
+        "line": 3,
+        "column": 23
       },
       "file": "examples/arraylists.vader"
     }
@@ -260,13 +260,13 @@
     "location": {
       "start": {
         "offset": 64,
-        "line": 4,
-        "column": 24
+        "line": 3,
+        "column": 23
       },
       "end": {
         "offset": 65,
-        "line": 4,
-        "column": 25
+        "line": 3,
+        "column": 24
       },
       "file": "examples/arraylists.vader"
     }
@@ -277,13 +277,13 @@
     "location": {
       "start": {
         "offset": 65,
-        "line": 4,
-        "column": 25
+        "line": 3,
+        "column": 24
       },
       "end": {
         "offset": 66,
-        "line": 4,
-        "column": 26
+        "line": 3,
+        "column": 25
       },
       "file": "examples/arraylists.vader"
     }
@@ -294,13 +294,13 @@
     "location": {
       "start": {
         "offset": 66,
-        "line": 4,
-        "column": 26
+        "line": 3,
+        "column": 25
       },
       "end": {
         "offset": 67,
-        "line": 4,
-        "column": 27
+        "line": 3,
+        "column": 26
       },
       "file": "examples/arraylists.vader"
     }
@@ -311,13 +311,13 @@
     "location": {
       "start": {
         "offset": 72,
-        "line": 5,
-        "column": 5
+        "line": 4,
+        "column": 4
       },
       "end": {
         "offset": 76,
-        "line": 5,
-        "column": 9
+        "line": 4,
+        "column": 8
       },
       "file": "examples/arraylists.vader"
     }
@@ -328,13 +328,13 @@
     "location": {
       "start": {
         "offset": 76,
-        "line": 5,
-        "column": 9
+        "line": 4,
+        "column": 8
       },
       "end": {
         "offset": 77,
-        "line": 5,
-        "column": 10
+        "line": 4,
+        "column": 9
       },
       "file": "examples/arraylists.vader"
     }
@@ -345,13 +345,13 @@
     "location": {
       "start": {
         "offset": 77,
-        "line": 5,
-        "column": 10
+        "line": 4,
+        "column": 9
       },
       "end": {
         "offset": 81,
-        "line": 5,
-        "column": 14
+        "line": 4,
+        "column": 13
       },
       "file": "examples/arraylists.vader"
     }
@@ -362,13 +362,13 @@
     "location": {
       "start": {
         "offset": 81,
-        "line": 5,
-        "column": 14
+        "line": 4,
+        "column": 13
       },
       "end": {
         "offset": 82,
-        "line": 5,
-        "column": 15
+        "line": 4,
+        "column": 14
       },
       "file": "examples/arraylists.vader"
     }
@@ -379,13 +379,13 @@
     "location": {
       "start": {
         "offset": 82,
-        "line": 5,
-        "column": 15
+        "line": 4,
+        "column": 14
       },
       "end": {
         "offset": 83,
-        "line": 5,
-        "column": 16
+        "line": 4,
+        "column": 15
       },
       "file": "examples/arraylists.vader"
     }
@@ -396,13 +396,13 @@
     "location": {
       "start": {
         "offset": 83,
-        "line": 5,
-        "column": 16
+        "line": 4,
+        "column": 15
       },
       "end": {
         "offset": 84,
-        "line": 5,
-        "column": 17
+        "line": 4,
+        "column": 16
       },
       "file": "examples/arraylists.vader"
     }
@@ -413,13 +413,13 @@
     "location": {
       "start": {
         "offset": 89,
-        "line": 6,
-        "column": 5
+        "line": 5,
+        "column": 4
       },
       "end": {
         "offset": 93,
-        "line": 6,
-        "column": 9
+        "line": 5,
+        "column": 8
       },
       "file": "examples/arraylists.vader"
     }
@@ -430,13 +430,13 @@
     "location": {
       "start": {
         "offset": 93,
-        "line": 6,
-        "column": 9
+        "line": 5,
+        "column": 8
       },
       "end": {
         "offset": 94,
-        "line": 6,
-        "column": 10
+        "line": 5,
+        "column": 9
       },
       "file": "examples/arraylists.vader"
     }
@@ -447,13 +447,13 @@
     "location": {
       "start": {
         "offset": 94,
-        "line": 6,
-        "column": 10
+        "line": 5,
+        "column": 9
       },
       "end": {
         "offset": 98,
-        "line": 6,
-        "column": 14
+        "line": 5,
+        "column": 13
       },
       "file": "examples/arraylists.vader"
     }
@@ -464,13 +464,13 @@
     "location": {
       "start": {
         "offset": 98,
-        "line": 6,
-        "column": 14
+        "line": 5,
+        "column": 13
       },
       "end": {
         "offset": 99,
-        "line": 6,
-        "column": 15
+        "line": 5,
+        "column": 14
       },
       "file": "examples/arraylists.vader"
     }
@@ -481,13 +481,13 @@
     "location": {
       "start": {
         "offset": 99,
-        "line": 6,
-        "column": 15
+        "line": 5,
+        "column": 14
       },
       "end": {
         "offset": 100,
-        "line": 6,
-        "column": 16
+        "line": 5,
+        "column": 15
       },
       "file": "examples/arraylists.vader"
     }
@@ -498,13 +498,13 @@
     "location": {
       "start": {
         "offset": 100,
-        "line": 6,
-        "column": 16
+        "line": 5,
+        "column": 15
       },
       "end": {
         "offset": 101,
-        "line": 6,
-        "column": 17
+        "line": 5,
+        "column": 16
       },
       "file": "examples/arraylists.vader"
     }
@@ -515,13 +515,13 @@
     "location": {
       "start": {
         "offset": 106,
-        "line": 7,
-        "column": 5
+        "line": 6,
+        "column": 4
       },
       "end": {
         "offset": 110,
-        "line": 7,
-        "column": 9
+        "line": 6,
+        "column": 8
       },
       "file": "examples/arraylists.vader"
     }
@@ -532,13 +532,13 @@
     "location": {
       "start": {
         "offset": 110,
-        "line": 7,
-        "column": 9
+        "line": 6,
+        "column": 8
       },
       "end": {
         "offset": 111,
-        "line": 7,
-        "column": 10
+        "line": 6,
+        "column": 9
       },
       "file": "examples/arraylists.vader"
     }
@@ -549,13 +549,13 @@
     "location": {
       "start": {
         "offset": 111,
-        "line": 7,
-        "column": 10
+        "line": 6,
+        "column": 9
       },
       "end": {
         "offset": 115,
-        "line": 7,
-        "column": 14
+        "line": 6,
+        "column": 13
       },
       "file": "examples/arraylists.vader"
     }
@@ -566,13 +566,13 @@
     "location": {
       "start": {
         "offset": 115,
-        "line": 7,
-        "column": 14
+        "line": 6,
+        "column": 13
       },
       "end": {
         "offset": 116,
-        "line": 7,
-        "column": 15
+        "line": 6,
+        "column": 14
       },
       "file": "examples/arraylists.vader"
     }
@@ -583,13 +583,13 @@
     "location": {
       "start": {
         "offset": 116,
-        "line": 7,
-        "column": 15
+        "line": 6,
+        "column": 14
       },
       "end": {
         "offset": 117,
-        "line": 7,
-        "column": 16
+        "line": 6,
+        "column": 15
       },
       "file": "examples/arraylists.vader"
     }
@@ -600,13 +600,13 @@
     "location": {
       "start": {
         "offset": 117,
-        "line": 7,
-        "column": 16
+        "line": 6,
+        "column": 15
       },
       "end": {
         "offset": 118,
-        "line": 7,
-        "column": 17
+        "line": 6,
+        "column": 16
       },
       "file": "examples/arraylists.vader"
     }
@@ -617,13 +617,13 @@
     "location": {
       "start": {
         "offset": 123,
-        "line": 8,
-        "column": 5
+        "line": 7,
+        "column": 4
       },
       "end": {
         "offset": 129,
-        "line": 8,
-        "column": 11
+        "line": 7,
+        "column": 10
       },
       "file": "examples/arraylists.vader"
     }
@@ -634,13 +634,13 @@
     "location": {
       "start": {
         "offset": 130,
-        "line": 8,
-        "column": 12
+        "line": 7,
+        "column": 11
       },
       "end": {
         "offset": 134,
-        "line": 8,
-        "column": 16
+        "line": 7,
+        "column": 15
       },
       "file": "examples/arraylists.vader"
     }
@@ -651,13 +651,13 @@
     "location": {
       "start": {
         "offset": 134,
-        "line": 8,
-        "column": 16
+        "line": 7,
+        "column": 15
       },
       "end": {
         "offset": 135,
-        "line": 8,
-        "column": 17
+        "line": 7,
+        "column": 16
       },
       "file": "examples/arraylists.vader"
     }
@@ -668,13 +668,13 @@
     "location": {
       "start": {
         "offset": 135,
-        "line": 8,
-        "column": 17
+        "line": 7,
+        "column": 16
       },
       "end": {
         "offset": 137,
-        "line": 8,
-        "column": 19
+        "line": 7,
+        "column": 18
       },
       "file": "examples/arraylists.vader"
     }
@@ -685,13 +685,13 @@
     "location": {
       "start": {
         "offset": 137,
-        "line": 8,
-        "column": 19
+        "line": 7,
+        "column": 18
       },
       "end": {
         "offset": 138,
-        "line": 8,
-        "column": 20
+        "line": 7,
+        "column": 19
       },
       "file": "examples/arraylists.vader"
     }
@@ -702,13 +702,13 @@
     "location": {
       "start": {
         "offset": 138,
-        "line": 8,
-        "column": 20
+        "line": 7,
+        "column": 19
       },
       "end": {
         "offset": 139,
-        "line": 8,
-        "column": 21
+        "line": 7,
+        "column": 20
       },
       "file": "examples/arraylists.vader"
     }
@@ -719,13 +719,13 @@
     "location": {
       "start": {
         "offset": 139,
-        "line": 8,
-        "column": 21
+        "line": 7,
+        "column": 20
       },
       "end": {
         "offset": 140,
-        "line": 8,
-        "column": 22
+        "line": 7,
+        "column": 21
       },
       "file": "examples/arraylists.vader"
     }
@@ -736,13 +736,13 @@
     "location": {
       "start": {
         "offset": 141,
-        "line": 9,
-        "column": 1
+        "line": 8,
+        "column": 0
       },
       "end": {
         "offset": 142,
-        "line": 9,
-        "column": 2
+        "line": 8,
+        "column": 1
       },
       "file": "examples/arraylists.vader"
     }
@@ -752,13 +752,13 @@
     "location": {
       "start": {
         "offset": 143,
-        "line": 10,
-        "column": 1
+        "line": 9,
+        "column": 0
       },
       "end": {
         "offset": 143,
-        "line": 10,
-        "column": 1
+        "line": 9,
+        "column": 0
       },
       "file": "examples/arraylists.vader"
     },

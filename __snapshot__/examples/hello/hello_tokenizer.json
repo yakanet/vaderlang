@@ -5,13 +5,13 @@
     "location": {
       "start": {
         "offset": 0,
-        "line": 1,
-        "column": 1
+        "line": 0,
+        "column": 0
       },
       "end": {
         "offset": 5,
-        "line": 1,
-        "column": 6
+        "line": 0,
+        "column": 5
       },
       "file": "examples/hello.vader"
     }
@@ -22,13 +22,13 @@
     "location": {
       "start": {
         "offset": 6,
-        "line": 1,
-        "column": 7
+        "line": 0,
+        "column": 6
       },
       "end": {
         "offset": 11,
-        "line": 1,
-        "column": 12
+        "line": 0,
+        "column": 11
       },
       "file": "examples/hello.vader"
     }
@@ -39,13 +39,13 @@
     "location": {
       "start": {
         "offset": 13,
-        "line": 3,
-        "column": 1
+        "line": 2,
+        "column": 0
       },
       "end": {
         "offset": 24,
-        "line": 3,
-        "column": 12
+        "line": 2,
+        "column": 11
       },
       "file": "examples/hello.vader"
     }
@@ -56,13 +56,13 @@
     "location": {
       "start": {
         "offset": 25,
-        "line": 3,
-        "column": 13
+        "line": 2,
+        "column": 12
       },
       "end": {
         "offset": 26,
-        "line": 3,
-        "column": 14
+        "line": 2,
+        "column": 13
       },
       "file": "examples/hello.vader"
     }
@@ -73,13 +73,13 @@
     "location": {
       "start": {
         "offset": 26,
-        "line": 3,
-        "column": 14
+        "line": 2,
+        "column": 13
       },
       "end": {
         "offset": 27,
-        "line": 3,
-        "column": 15
+        "line": 2,
+        "column": 14
       },
       "file": "examples/hello.vader"
     }
@@ -90,13 +90,13 @@
     "location": {
       "start": {
         "offset": 28,
-        "line": 3,
-        "column": 16
+        "line": 2,
+        "column": 15
       },
       "end": {
         "offset": 30,
-        "line": 3,
-        "column": 18
+        "line": 2,
+        "column": 17
       },
       "file": "examples/hello.vader"
     }
@@ -106,13 +106,455 @@
     "value": "add",
     "location": {
       "start": {
-        "offset": 31,
+        "offset": 32,
         "line": 4,
-        "column": 1
+        "column": 0
       },
       "end": {
-        "offset": 34,
+        "offset": 35,
         "line": 4,
+        "column": 3
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 36,
+        "line": 4,
+        "column": 4
+      },
+      "end": {
+        "offset": 37,
+        "line": 4,
+        "column": 5
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 37,
+        "line": 4,
+        "column": 5
+      },
+      "end": {
+        "offset": 38,
+        "line": 4,
+        "column": 6
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": {
+        "offset": 39,
+        "line": 4,
+        "column": 7
+      },
+      "end": {
+        "offset": 41,
+        "line": 4,
+        "column": 9
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": {
+        "offset": 41,
+        "line": 4,
+        "column": 9
+      },
+      "end": {
+        "offset": 42,
+        "line": 4,
+        "column": 10
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "a",
+    "location": {
+      "start": {
+        "offset": 42,
+        "line": 4,
+        "column": 10
+      },
+      "end": {
+        "offset": 43,
+        "line": 4,
+        "column": 11
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 43,
+        "line": 4,
+        "column": 11
+      },
+      "end": {
+        "offset": 44,
+        "line": 4,
+        "column": 12
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": {
+        "offset": 45,
+        "line": 4,
+        "column": 13
+      },
+      "end": {
+        "offset": 48,
+        "line": 4,
+        "column": 16
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": {
+        "offset": 48,
+        "line": 4,
+        "column": 16
+      },
+      "end": {
+        "offset": 49,
+        "line": 4,
+        "column": 17
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "LambdaArrowToken",
+    "value": "->",
+    "location": {
+      "start": {
+        "offset": 50,
+        "line": 4,
+        "column": 18
+      },
+      "end": {
+        "offset": 52,
+        "line": 4,
+        "column": 20
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": {
+        "offset": 53,
+        "line": 4,
+        "column": 21
+      },
+      "end": {
+        "offset": 56,
+        "line": 4,
+        "column": 24
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": {
+        "offset": 57,
+        "line": 4,
+        "column": 25
+      },
+      "end": {
+        "offset": 58,
+        "line": 4,
+        "column": 26
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": {
+        "offset": 63,
+        "line": 5,
+        "column": 4
+      },
+      "end": {
+        "offset": 64,
+        "line": 5,
+        "column": 5
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 65,
+        "line": 5,
+        "column": 6
+      },
+      "end": {
+        "offset": 66,
+        "line": 5,
+        "column": 7
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": {
+        "offset": 66,
+        "line": 5,
+        "column": 7
+      },
+      "end": {
+        "offset": 67,
+        "line": 5,
+        "column": 8
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "2",
+    "location": {
+      "start": {
+        "offset": 68,
+        "line": 5,
+        "column": 9
+      },
+      "end": {
+        "offset": 69,
+        "line": 5,
+        "column": 10
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": {
+        "offset": 74,
+        "line": 6,
+        "column": 4
+      },
+      "end": {
+        "offset": 75,
+        "line": 6,
+        "column": 5
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "EqualToken",
+    "value": "=",
+    "location": {
+      "start": {
+        "offset": 76,
+        "line": 6,
+        "column": 6
+      },
+      "end": {
+        "offset": 77,
+        "line": 6,
+        "column": 7
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": {
+        "offset": 78,
+        "line": 6,
+        "column": 8
+      },
+      "end": {
+        "offset": 79,
+        "line": 6,
+        "column": 9
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": {
+        "offset": 80,
+        "line": 6,
+        "column": 10
+      },
+      "end": {
+        "offset": 81,
+        "line": 6,
+        "column": 11
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "NumberToken",
+    "value": "1",
+    "location": {
+      "start": {
+        "offset": 82,
+        "line": 6,
+        "column": 12
+      },
+      "end": {
+        "offset": 83,
+        "line": 6,
+        "column": 13
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "return",
+    "location": {
+      "start": {
+        "offset": 88,
+        "line": 7,
+        "column": 4
+      },
+      "end": {
+        "offset": 94,
+        "line": 7,
+        "column": 10
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "a",
+    "location": {
+      "start": {
+        "offset": 95,
+        "line": 7,
+        "column": 11
+      },
+      "end": {
+        "offset": 96,
+        "line": 7,
+        "column": 12
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "PlusToken",
+    "value": "+",
+    "location": {
+      "start": {
+        "offset": 97,
+        "line": 7,
+        "column": 13
+      },
+      "end": {
+        "offset": 98,
+        "line": 7,
+        "column": 14
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "x",
+    "location": {
+      "start": {
+        "offset": 99,
+        "line": 7,
+        "column": 15
+      },
+      "end": {
+        "offset": 100,
+        "line": 7,
+        "column": 16
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "CloseCurlyBracket",
+    "value": "}",
+    "location": {
+      "start": {
+        "offset": 101,
+        "line": 8,
+        "column": 0
+      },
+      "end": {
+        "offset": 102,
+        "line": 8,
+        "column": 1
+      },
+      "file": "examples/hello.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "main",
+    "location": {
+      "start": {
+        "offset": 104,
+        "line": 10,
+        "column": 0
+      },
+      "end": {
+        "offset": 108,
+        "line": 10,
         "column": 4
       },
       "file": "examples/hello.vader"
@@ -123,13 +565,13 @@
     "value": ":",
     "location": {
       "start": {
-        "offset": 35,
-        "line": 4,
+        "offset": 109,
+        "line": 10,
         "column": 5
       },
       "end": {
-        "offset": 36,
-        "line": 4,
+        "offset": 110,
+        "line": 10,
         "column": 6
       },
       "file": "examples/hello.vader"
@@ -140,13 +582,13 @@
     "value": ":",
     "location": {
       "start": {
-        "offset": 36,
-        "line": 4,
+        "offset": 110,
+        "line": 10,
         "column": 6
       },
       "end": {
-        "offset": 37,
-        "line": 4,
+        "offset": 111,
+        "line": 10,
         "column": 7
       },
       "file": "examples/hello.vader"
@@ -157,13 +599,13 @@
     "value": "fn",
     "location": {
       "start": {
-        "offset": 38,
-        "line": 4,
+        "offset": 112,
+        "line": 10,
         "column": 8
       },
       "end": {
-        "offset": 40,
-        "line": 4,
+        "offset": 114,
+        "line": 10,
         "column": 10
       },
       "file": "examples/hello.vader"
@@ -174,65 +616,14 @@
     "value": "(",
     "location": {
       "start": {
-        "offset": 40,
-        "line": 4,
+        "offset": 114,
+        "line": 10,
         "column": 10
       },
       "end": {
-        "offset": 41,
-        "line": 4,
+        "offset": 115,
+        "line": 10,
         "column": 11
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "a",
-    "location": {
-      "start": {
-        "offset": 41,
-        "line": 4,
-        "column": 11
-      },
-      "end": {
-        "offset": 42,
-        "line": 4,
-        "column": 12
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": {
-        "offset": 42,
-        "line": 4,
-        "column": 12
-      },
-      "end": {
-        "offset": 43,
-        "line": 4,
-        "column": 13
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "u32",
-    "location": {
-      "start": {
-        "offset": 44,
-        "line": 4,
-        "column": 14
-      },
-      "end": {
-        "offset": 47,
-        "line": 4,
-        "column": 17
       },
       "file": "examples/hello.vader"
     }
@@ -242,14 +633,14 @@
     "value": ")",
     "location": {
       "start": {
-        "offset": 47,
-        "line": 4,
-        "column": 17
+        "offset": 115,
+        "line": 10,
+        "column": 11
       },
       "end": {
-        "offset": 48,
-        "line": 4,
-        "column": 18
+        "offset": 116,
+        "line": 10,
+        "column": 12
       },
       "file": "examples/hello.vader"
     }
@@ -259,251 +650,13 @@
     "value": "->",
     "location": {
       "start": {
-        "offset": 49,
-        "line": 4,
-        "column": 19
-      },
-      "end": {
-        "offset": 51,
-        "line": 4,
-        "column": 21
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "u32",
-    "location": {
-      "start": {
-        "offset": 52,
-        "line": 4,
-        "column": 22
-      },
-      "end": {
-        "offset": 55,
-        "line": 4,
-        "column": 25
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "OpenCurlyBracket",
-    "value": "{",
-    "location": {
-      "start": {
-        "offset": 56,
-        "line": 4,
-        "column": 26
-      },
-      "end": {
-        "offset": 57,
-        "line": 4,
-        "column": 27
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "x",
-    "location": {
-      "start": {
-        "offset": 62,
-        "line": 5,
-        "column": 5
-      },
-      "end": {
-        "offset": 63,
-        "line": 5,
-        "column": 6
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": {
-        "offset": 64,
-        "line": 5,
-        "column": 7
-      },
-      "end": {
-        "offset": 65,
-        "line": 5,
-        "column": 8
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "EqualToken",
-    "value": "=",
-    "location": {
-      "start": {
-        "offset": 65,
-        "line": 5,
-        "column": 8
-      },
-      "end": {
-        "offset": 66,
-        "line": 5,
-        "column": 9
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "NumberToken",
-    "value": "2",
-    "location": {
-      "start": {
-        "offset": 67,
-        "line": 5,
-        "column": 10
-      },
-      "end": {
-        "offset": 68,
-        "line": 5,
-        "column": 11
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "x",
-    "location": {
-      "start": {
-        "offset": 73,
-        "line": 6,
-        "column": 5
-      },
-      "end": {
-        "offset": 74,
-        "line": 6,
-        "column": 6
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "EqualToken",
-    "value": "=",
-    "location": {
-      "start": {
-        "offset": 75,
-        "line": 6,
-        "column": 7
-      },
-      "end": {
-        "offset": 76,
-        "line": 6,
-        "column": 8
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "x",
-    "location": {
-      "start": {
-        "offset": 77,
-        "line": 6,
-        "column": 9
-      },
-      "end": {
-        "offset": 78,
-        "line": 6,
-        "column": 10
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "PlusToken",
-    "value": "+",
-    "location": {
-      "start": {
-        "offset": 79,
-        "line": 6,
-        "column": 11
-      },
-      "end": {
-        "offset": 80,
-        "line": 6,
-        "column": 12
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "NumberToken",
-    "value": "1",
-    "location": {
-      "start": {
-        "offset": 81,
-        "line": 6,
+        "offset": 117,
+        "line": 10,
         "column": 13
       },
       "end": {
-        "offset": 82,
-        "line": 6,
-        "column": 14
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Keyword",
-    "value": "return",
-    "location": {
-      "start": {
-        "offset": 87,
-        "line": 7,
-        "column": 5
-      },
-      "end": {
-        "offset": 93,
-        "line": 7,
-        "column": 11
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "a",
-    "location": {
-      "start": {
-        "offset": 94,
-        "line": 7,
-        "column": 12
-      },
-      "end": {
-        "offset": 95,
-        "line": 7,
-        "column": 13
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "PlusToken",
-    "value": "+",
-    "location": {
-      "start": {
-        "offset": 96,
-        "line": 7,
-        "column": 14
-      },
-      "end": {
-        "offset": 97,
-        "line": 7,
+        "offset": 119,
+        "line": 10,
         "column": 15
       },
       "file": "examples/hello.vader"
@@ -511,170 +664,17 @@
   },
   {
     "type": "Identifier",
-    "value": "x",
-    "location": {
-      "start": {
-        "offset": 98,
-        "line": 7,
-        "column": 16
-      },
-      "end": {
-        "offset": 99,
-        "line": 7,
-        "column": 17
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "CloseCurlyBracket",
-    "value": "}",
-    "location": {
-      "start": {
-        "offset": 100,
-        "line": 8,
-        "column": 1
-      },
-      "end": {
-        "offset": 101,
-        "line": 8,
-        "column": 2
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "main",
-    "location": {
-      "start": {
-        "offset": 103,
-        "line": 10,
-        "column": 1
-      },
-      "end": {
-        "offset": 107,
-        "line": 10,
-        "column": 5
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": {
-        "offset": 108,
-        "line": 10,
-        "column": 6
-      },
-      "end": {
-        "offset": 109,
-        "line": 10,
-        "column": 7
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": {
-        "offset": 109,
-        "line": 10,
-        "column": 7
-      },
-      "end": {
-        "offset": 110,
-        "line": 10,
-        "column": 8
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Keyword",
-    "value": "fn",
-    "location": {
-      "start": {
-        "offset": 111,
-        "line": 10,
-        "column": 9
-      },
-      "end": {
-        "offset": 113,
-        "line": 10,
-        "column": 11
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "OpenRoundBracket",
-    "value": "(",
-    "location": {
-      "start": {
-        "offset": 113,
-        "line": 10,
-        "column": 11
-      },
-      "end": {
-        "offset": 114,
-        "line": 10,
-        "column": 12
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "CloseRoundBracket",
-    "value": ")",
-    "location": {
-      "start": {
-        "offset": 114,
-        "line": 10,
-        "column": 12
-      },
-      "end": {
-        "offset": 115,
-        "line": 10,
-        "column": 13
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "LambdaArrowToken",
-    "value": "->",
-    "location": {
-      "start": {
-        "offset": 116,
-        "line": 10,
-        "column": 14
-      },
-      "end": {
-        "offset": 118,
-        "line": 10,
-        "column": 16
-      },
-      "file": "examples/hello.vader"
-    }
-  },
-  {
-    "type": "Identifier",
     "value": "u32",
     "location": {
       "start": {
-        "offset": 119,
+        "offset": 120,
         "line": 10,
-        "column": 17
+        "column": 16
       },
       "end": {
-        "offset": 122,
+        "offset": 123,
         "line": 10,
-        "column": 20
+        "column": 19
       },
       "file": "examples/hello.vader"
     }
@@ -684,14 +684,14 @@
     "value": "{",
     "location": {
       "start": {
-        "offset": 123,
-        "line": 10,
-        "column": 21
-      },
-      "end": {
         "offset": 124,
         "line": 10,
-        "column": 22
+        "column": 20
+      },
+      "end": {
+        "offset": 125,
+        "line": 10,
+        "column": 21
       },
       "file": "examples/hello.vader"
     }
@@ -701,14 +701,14 @@
     "value": "print",
     "location": {
       "start": {
-        "offset": 173,
+        "offset": 174,
         "line": 12,
-        "column": 5
+        "column": 4
       },
       "end": {
-        "offset": 178,
+        "offset": 179,
         "line": 12,
-        "column": 10
+        "column": 9
       },
       "file": "examples/hello.vader"
     }
@@ -718,14 +718,14 @@
     "value": "(",
     "location": {
       "start": {
-        "offset": 178,
-        "line": 12,
-        "column": 10
-      },
-      "end": {
         "offset": 179,
         "line": 12,
-        "column": 11
+        "column": 9
+      },
+      "end": {
+        "offset": 180,
+        "line": 12,
+        "column": 10
       },
       "file": "examples/hello.vader"
     }
@@ -735,14 +735,14 @@
     "value": "Hello world\\n",
     "location": {
       "start": {
-        "offset": 179,
+        "offset": 180,
         "line": 12,
-        "column": 11
+        "column": 10
       },
       "end": {
-        "offset": 194,
+        "offset": 195,
         "line": 12,
-        "column": 26
+        "column": 25
       },
       "file": "examples/hello.vader"
     }
@@ -752,14 +752,14 @@
     "value": ")",
     "location": {
       "start": {
-        "offset": 194,
-        "line": 12,
-        "column": 26
-      },
-      "end": {
         "offset": 195,
         "line": 12,
-        "column": 27
+        "column": 25
+      },
+      "end": {
+        "offset": 196,
+        "line": 12,
+        "column": 26
       },
       "file": "examples/hello.vader"
     }
@@ -769,14 +769,14 @@
     "value": "print",
     "location": {
       "start": {
-        "offset": 200,
+        "offset": 201,
         "line": 13,
-        "column": 5
+        "column": 4
       },
       "end": {
-        "offset": 205,
+        "offset": 206,
         "line": 13,
-        "column": 10
+        "column": 9
       },
       "file": "examples/hello.vader"
     }
@@ -786,14 +786,14 @@
     "value": "(",
     "location": {
       "start": {
-        "offset": 205,
-        "line": 13,
-        "column": 10
-      },
-      "end": {
         "offset": 206,
         "line": 13,
-        "column": 11
+        "column": 9
+      },
+      "end": {
+        "offset": 207,
+        "line": 13,
+        "column": 10
       },
       "file": "examples/hello.vader"
     }
@@ -803,14 +803,14 @@
     "value": "Hello world2\\n",
     "location": {
       "start": {
-        "offset": 206,
+        "offset": 207,
         "line": 13,
-        "column": 11
+        "column": 10
       },
       "end": {
-        "offset": 222,
+        "offset": 223,
         "line": 13,
-        "column": 27
+        "column": 26
       },
       "file": "examples/hello.vader"
     }
@@ -820,14 +820,14 @@
     "value": ")",
     "location": {
       "start": {
-        "offset": 222,
-        "line": 13,
-        "column": 27
-      },
-      "end": {
         "offset": 223,
         "line": 13,
-        "column": 28
+        "column": 26
+      },
+      "end": {
+        "offset": 224,
+        "line": 13,
+        "column": 27
       },
       "file": "examples/hello.vader"
     }
@@ -837,14 +837,14 @@
     "value": "print",
     "location": {
       "start": {
-        "offset": 228,
+        "offset": 229,
         "line": 14,
-        "column": 5
+        "column": 4
       },
       "end": {
-        "offset": 233,
+        "offset": 234,
         "line": 14,
-        "column": 10
+        "column": 9
       },
       "file": "examples/hello.vader"
     }
@@ -854,14 +854,14 @@
     "value": "(",
     "location": {
       "start": {
-        "offset": 233,
-        "line": 14,
-        "column": 10
-      },
-      "end": {
         "offset": 234,
         "line": 14,
-        "column": 11
+        "column": 9
+      },
+      "end": {
+        "offset": 235,
+        "line": 14,
+        "column": 10
       },
       "file": "examples/hello.vader"
     }
@@ -871,14 +871,14 @@
     "value": "Hello 3\\n",
     "location": {
       "start": {
-        "offset": 234,
+        "offset": 235,
         "line": 14,
-        "column": 11
+        "column": 10
       },
       "end": {
-        "offset": 245,
+        "offset": 246,
         "line": 14,
-        "column": 22
+        "column": 21
       },
       "file": "examples/hello.vader"
     }
@@ -888,14 +888,14 @@
     "value": ")",
     "location": {
       "start": {
-        "offset": 245,
-        "line": 14,
-        "column": 22
-      },
-      "end": {
         "offset": 246,
         "line": 14,
-        "column": 23
+        "column": 21
+      },
+      "end": {
+        "offset": 247,
+        "line": 14,
+        "column": 22
       },
       "file": "examples/hello.vader"
     }
@@ -905,14 +905,14 @@
     "value": "return_code",
     "location": {
       "start": {
-        "offset": 251,
+        "offset": 252,
         "line": 15,
-        "column": 5
+        "column": 4
       },
       "end": {
-        "offset": 262,
+        "offset": 263,
         "line": 15,
-        "column": 16
+        "column": 15
       },
       "file": "examples/hello.vader"
     }
@@ -922,14 +922,14 @@
     "value": "=",
     "location": {
       "start": {
-        "offset": 263,
-        "line": 15,
-        "column": 17
-      },
-      "end": {
         "offset": 264,
         "line": 15,
-        "column": 18
+        "column": 16
+      },
+      "end": {
+        "offset": 265,
+        "line": 15,
+        "column": 17
       },
       "file": "examples/hello.vader"
     }
@@ -939,14 +939,14 @@
     "value": "0",
     "location": {
       "start": {
-        "offset": 265,
-        "line": 15,
-        "column": 19
-      },
-      "end": {
         "offset": 266,
         "line": 15,
-        "column": 20
+        "column": 18
+      },
+      "end": {
+        "offset": 267,
+        "line": 15,
+        "column": 19
       },
       "file": "examples/hello.vader"
     }
@@ -956,14 +956,14 @@
     "value": "return",
     "location": {
       "start": {
-        "offset": 271,
+        "offset": 272,
         "line": 16,
-        "column": 5
+        "column": 4
       },
       "end": {
-        "offset": 277,
+        "offset": 278,
         "line": 16,
-        "column": 11
+        "column": 10
       },
       "file": "examples/hello.vader"
     }
@@ -973,14 +973,14 @@
     "value": "add",
     "location": {
       "start": {
-        "offset": 278,
+        "offset": 279,
         "line": 16,
-        "column": 12
+        "column": 11
       },
       "end": {
-        "offset": 281,
+        "offset": 282,
         "line": 16,
-        "column": 15
+        "column": 14
       },
       "file": "examples/hello.vader"
     }
@@ -990,14 +990,14 @@
     "value": "(",
     "location": {
       "start": {
-        "offset": 281,
-        "line": 16,
-        "column": 15
-      },
-      "end": {
         "offset": 282,
         "line": 16,
-        "column": 16
+        "column": 14
+      },
+      "end": {
+        "offset": 283,
+        "line": 16,
+        "column": 15
       },
       "file": "examples/hello.vader"
     }
@@ -1007,14 +1007,14 @@
     "value": "return_code",
     "location": {
       "start": {
-        "offset": 282,
+        "offset": 283,
         "line": 16,
-        "column": 16
+        "column": 15
       },
       "end": {
-        "offset": 293,
+        "offset": 294,
         "line": 16,
-        "column": 27
+        "column": 26
       },
       "file": "examples/hello.vader"
     }
@@ -1024,14 +1024,14 @@
     "value": ")",
     "location": {
       "start": {
-        "offset": 293,
-        "line": 16,
-        "column": 27
-      },
-      "end": {
         "offset": 294,
         "line": 16,
-        "column": 28
+        "column": 26
+      },
+      "end": {
+        "offset": 295,
+        "line": 16,
+        "column": 27
       },
       "file": "examples/hello.vader"
     }
@@ -1041,14 +1041,14 @@
     "value": "}",
     "location": {
       "start": {
-        "offset": 295,
-        "line": 17,
-        "column": 1
-      },
-      "end": {
         "offset": 296,
         "line": 17,
-        "column": 2
+        "column": 0
+      },
+      "end": {
+        "offset": 297,
+        "line": 17,
+        "column": 1
       },
       "file": "examples/hello.vader"
     }
@@ -1057,14 +1057,14 @@
     "type": "EOF",
     "location": {
       "start": {
-        "offset": 296,
+        "offset": 297,
         "line": 17,
-        "column": 2
+        "column": 1
       },
       "end": {
-        "offset": 296,
+        "offset": 297,
         "line": 17,
-        "column": 2
+        "column": 1
       },
       "file": "examples/hello.vader"
     },

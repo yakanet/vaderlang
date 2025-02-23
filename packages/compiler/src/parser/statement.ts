@@ -42,7 +42,9 @@ function parseDecorator(parser: Parser) {
             return parseStatement(parser)
         case 'load':
             const pathToken = parser.expect("StringLiteral");
-            parser.loadVaderFile(pathToken.value)
+            if(!parser.loadVaderFile(pathToken.value, '.')) {
+                return parser.reportError(`could not locate ${pathToken.value}`, pathToken.location)
+            }
             return parseStatement(parser);
         case 'file':
             return parser.reportError(`@file decorator is not applicable as a statement`, token.location);

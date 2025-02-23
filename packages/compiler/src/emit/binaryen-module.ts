@@ -79,8 +79,8 @@ export class BinaryenModule {
                 instruction.functionName ? this.functionMapping.get(instruction.functionName)! : 0,
                 instruction.expression,
                 fileIndex,
-                instruction.location.start.line,
-                instruction.location.start.column,
+                instruction.location.start.line + 1,
+                instruction.location.start.column + 1,
             )
         }
         this.module.setMemory(1, -1, "memory", this.memoryLayout.map(layout => ({

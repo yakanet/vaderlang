@@ -9,6 +9,7 @@ import {resolve} from "./resolver/resolver.ts";
 import {WasmEmitter} from "./emit/wasm-emitter.ts";
 import process from "node:process";
 import child_process from "node:child_process";
+import { BundleContext } from "./context/context.ts";
 
 const shouldUpdate = !!process.env['UPDATE_SNAPSHOT'];
 const testFolders = [
@@ -56,8 +57,9 @@ function testParser(file: string, update = false) {
     const snapshotFile = createSnapshotFile(file, '_parser.json')
     it("Testing parser on " + file, () => {
         const resolver = new FileResolver(process.cwd(), ['./modules']);
-        let program = parseProgram(file, resolver)
-        program = resolve(program)
+        const context = new BundleContext(resolver);
+        let program = parseProgram(file, context)
+        program = resolve(program, context)
         if (update || !fs.existsSync(snapshotFile)) {
             updateSnapshot(snapshotFile, program);
         } else {
@@ -70,8 +72,9 @@ function testWasmEmitter(file: string, update: boolean) {
     const snapshotFile = createSnapshotFile(file, '_emitter.wat')
     it("Testing emiter (wasm) on " + file, () => {
         const resolver = new FileResolver(process.cwd(), ['./modules']);
-        let program = parseProgram(file, resolver)
-        program = resolve(program)
+        const context = new BundleContext(resolver);
+        let program = parseProgram(file, context)
+        program = resolve(program, context)
         const emitter = new WasmEmitter();
         const module = emitter.emit(program)
         const value = module.emitText();
@@ -88,8 +91,9 @@ function testRun(file: string, update: boolean) {
     const snapshotFile = createSnapshotFile(file, '_run.txt')
     it("Testing execution (wasm) on " + file, () => {
         const resolver = new FileResolver(process.cwd(), ['./modules']);
-        let program = parseProgram(file, resolver)
-        program = resolve(program)
+        const context = new BundleContext(resolver);
+        let program = parseProgram(file, context)
+        program = resolve(program, context)
         const emitter = new WasmEmitter();
         emitter.emit(program)
         const wasmfile = createSnapshotFile(file, '.wasm');

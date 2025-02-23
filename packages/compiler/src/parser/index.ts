@@ -1,12 +1,17 @@
 import {type Program,} from "./types.ts";
-import type {ModuleResolver} from "../resolver/module_resolver.ts";
 import {Parser} from "./parser.ts";
 import {parseStatement} from "./statement.ts";
 import { BundleContext } from "../context/context.ts";
 
 export function parseProgram(entryFile: string, context: BundleContext): Program {
     const parser = new Parser(context);
-    parser.loadVaderFile(entryFile)
+    if(!parser.loadVaderFile(entryFile, '.')) {
+        throw context.reportError(`could not find entrypoint ${entryFile}`, {
+            file: entryFile,
+            start: {offset: 0, column: 0, line: 0},
+            end: {offset: 0, column: 0, line: 0},
+        })
+    }
     const program: Program = {
         kind: 'Program',
         body: [],

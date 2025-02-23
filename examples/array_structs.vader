@@ -2,6 +2,7 @@ List :: struct {
     data: []u32
     length: u32
 }
+
 main :: fn() -> u32 {
     capacity :: 10
     x :: [3]List

@@ -19,13 +19,13 @@
             "location": {
               "start": {
                 "offset": 16,
-                "line": 1,
-                "column": 17
+                "line": 0,
+                "column": 16
               },
               "end": {
                 "offset": 24,
-                "line": 1,
-                "column": 25
+                "line": 0,
+                "column": 24
               },
               "file": "examples/fibonacci.vader"
             }
@@ -53,13 +53,13 @@
               "location": {
                 "start": {
                   "offset": 16,
-                  "line": 1,
-                  "column": 17
+                  "line": 0,
+                  "column": 16
                 },
                 "end": {
                   "offset": 24,
-                  "line": 1,
-                  "column": 25
+                  "line": 0,
+                  "column": 24
                 },
                 "file": "examples/fibonacci.vader"
               }
@@ -92,13 +92,13 @@
               "location": {
                 "start": {
                   "offset": 44,
-                  "line": 2,
-                  "column": 10
+                  "line": 1,
+                  "column": 9
                 },
                 "end": {
                   "offset": 45,
-                  "line": 2,
-                  "column": 11
+                  "line": 1,
+                  "column": 10
                 },
                 "file": "examples/fibonacci.vader"
               }
@@ -106,13 +106,13 @@
             "location": {
               "start": {
                 "offset": 39,
-                "line": 2,
-                "column": 5
+                "line": 1,
+                "column": 4
               },
               "end": {
                 "offset": 45,
-                "line": 2,
-                "column": 11
+                "line": 1,
+                "column": 10
               },
               "file": "examples/fibonacci.vader"
             }
@@ -137,13 +137,13 @@
               "location": {
                 "start": {
                   "offset": 55,
-                  "line": 3,
-                  "column": 10
+                  "line": 2,
+                  "column": 9
                 },
                 "end": {
                   "offset": 56,
-                  "line": 3,
-                  "column": 11
+                  "line": 2,
+                  "column": 10
                 },
                 "file": "examples/fibonacci.vader"
               }
@@ -151,13 +151,13 @@
             "location": {
               "start": {
                 "offset": 50,
-                "line": 3,
-                "column": 5
+                "line": 2,
+                "column": 4
               },
               "end": {
                 "offset": 56,
-                "line": 3,
-                "column": 11
+                "line": 2,
+                "column": 10
               },
               "file": "examples/fibonacci.vader"
             }
@@ -184,13 +184,13 @@
                 "location": {
                   "start": {
                     "offset": 70,
-                    "line": 4,
-                    "column": 14
+                    "line": 3,
+                    "column": 13
                   },
                   "end": {
                     "offset": 71,
-                    "line": 4,
-                    "column": 15
+                    "line": 3,
+                    "column": 14
                   },
                   "file": "examples/fibonacci.vader"
                 }
@@ -198,13 +198,13 @@
               "location": {
                 "start": {
                   "offset": 65,
-                  "line": 4,
-                  "column": 9
+                  "line": 3,
+                  "column": 8
                 },
                 "end": {
                   "offset": 71,
-                  "line": 4,
-                  "column": 15
+                  "line": 3,
+                  "column": 14
                 },
                 "file": "examples/fibonacci.vader"
               }
@@ -228,13 +228,13 @@
                 "location": {
                   "start": {
                     "offset": 74,
-                    "line": 4,
-                    "column": 18
+                    "line": 3,
+                    "column": 17
                   },
                   "end": {
                     "offset": 75,
-                    "line": 4,
-                    "column": 19
+                    "line": 3,
+                    "column": 18
                   },
                   "file": "examples/fibonacci.vader"
                 }
@@ -250,13 +250,13 @@
                 "location": {
                   "start": {
                     "offset": 78,
-                    "line": 4,
-                    "column": 22
+                    "line": 3,
+                    "column": 21
                   },
                   "end": {
                     "offset": 81,
-                    "line": 4,
-                    "column": 25
+                    "line": 3,
+                    "column": 24
                   },
                   "file": "examples/fibonacci.vader"
                 }
@@ -264,13 +264,13 @@
               "location": {
                 "start": {
                   "offset": 74,
-                  "line": 4,
-                  "column": 18
+                  "line": 3,
+                  "column": 17
                 },
                 "end": {
                   "offset": 81,
-                  "line": 4,
-                  "column": 25
+                  "line": 3,
+                  "column": 24
                 },
                 "file": "examples/fibonacci.vader"
               }
@@ -288,13 +288,13 @@
                 "location": {
                   "start": {
                     "offset": 83,
-                    "line": 4,
-                    "column": 27
+                    "line": 3,
+                    "column": 26
                   },
                   "end": {
                     "offset": 84,
-                    "line": 4,
-                    "column": 28
+                    "line": 3,
+                    "column": 27
                   },
                   "file": "examples/fibonacci.vader"
                 }
@@ -318,13 +318,13 @@
                   "location": {
                     "start": {
                       "offset": 87,
-                      "line": 4,
-                      "column": 31
+                      "line": 3,
+                      "column": 30
                     },
                     "end": {
                       "offset": 88,
-                      "line": 4,
-                      "column": 32
+                      "line": 3,
+                      "column": 31
                     },
                     "file": "examples/fibonacci.vader"
                   }
@@ -340,13 +340,13 @@
                   "location": {
                     "start": {
                       "offset": 91,
-                      "line": 4,
-                      "column": 35
+                      "line": 3,
+                      "column": 34
                     },
                     "end": {
                       "offset": 92,
-                      "line": 4,
-                      "column": 36
+                      "line": 3,
+                      "column": 35
                     },
                     "file": "examples/fibonacci.vader"
                   }
@@ -354,13 +354,13 @@
                 "location": {
                   "start": {
                     "offset": 87,
-                    "line": 4,
-                    "column": 31
+                    "line": 3,
+                    "column": 30
                   },
                   "end": {
                     "offset": 92,
-                    "line": 4,
-                    "column": 36
+                    "line": 3,
+                    "column": 35
                   },
                   "file": "examples/fibonacci.vader"
                 }
@@ -368,14 +368,14 @@
               "location": {
                 "start": {
                   "offset": 83,
-                  "line": 4,
-                  "column": 27
+                  "line": 3,
+                  "column": 26
                 },
                 "file": "examples/fibonacci.vader",
                 "end": {
                   "offset": 92,
-                  "line": 4,
-                  "column": 36
+                  "line": 3,
+                  "column": 35
                 }
               }
             },
@@ -400,13 +400,13 @@
                   "location": {
                     "start": {
                       "offset": 109,
-                      "line": 5,
-                      "column": 14
+                      "line": 4,
+                      "column": 13
                     },
                     "end": {
                       "offset": 110,
-                      "line": 5,
-                      "column": 15
+                      "line": 4,
+                      "column": 14
                     },
                     "file": "examples/fibonacci.vader"
                   }
@@ -414,13 +414,13 @@
                 "location": {
                   "start": {
                     "offset": 104,
-                    "line": 5,
-                    "column": 9
+                    "line": 4,
+                    "column": 8
                   },
                   "end": {
                     "offset": 110,
-                    "line": 5,
-                    "column": 15
+                    "line": 4,
+                    "column": 14
                   },
                   "file": "examples/fibonacci.vader"
                 }
@@ -438,13 +438,13 @@
                   "location": {
                     "start": {
                       "offset": 119,
-                      "line": 6,
-                      "column": 9
+                      "line": 5,
+                      "column": 8
                     },
                     "end": {
                       "offset": 120,
-                      "line": 6,
-                      "column": 10
+                      "line": 5,
+                      "column": 9
                     },
                     "file": "examples/fibonacci.vader"
                   }
@@ -460,13 +460,13 @@
                   "location": {
                     "start": {
                       "offset": 123,
-                      "line": 6,
-                      "column": 13
+                      "line": 5,
+                      "column": 12
                     },
                     "end": {
                       "offset": 124,
-                      "line": 6,
-                      "column": 14
+                      "line": 5,
+                      "column": 13
                     },
                     "file": "examples/fibonacci.vader"
                   }
@@ -474,14 +474,14 @@
                 "location": {
                   "start": {
                     "offset": 119,
-                    "line": 6,
-                    "column": 9
+                    "line": 5,
+                    "column": 8
                   },
                   "file": "examples/fibonacci.vader",
                   "end": {
                     "offset": 124,
-                    "line": 6,
-                    "column": 14
+                    "line": 5,
+                    "column": 13
                   }
                 }
               },
@@ -498,13 +498,13 @@
                   "location": {
                     "start": {
                       "offset": 133,
-                      "line": 7,
-                      "column": 9
+                      "line": 6,
+                      "column": 8
                     },
                     "end": {
                       "offset": 134,
-                      "line": 7,
-                      "column": 10
+                      "line": 6,
+                      "column": 9
                     },
                     "file": "examples/fibonacci.vader"
                   }
@@ -528,13 +528,13 @@
                     "location": {
                       "start": {
                         "offset": 137,
-                        "line": 7,
-                        "column": 13
+                        "line": 6,
+                        "column": 12
                       },
                       "end": {
                         "offset": 138,
-                        "line": 7,
-                        "column": 14
+                        "line": 6,
+                        "column": 13
                       },
                       "file": "examples/fibonacci.vader"
                     }
@@ -550,13 +550,13 @@
                     "location": {
                       "start": {
                         "offset": 141,
-                        "line": 7,
-                        "column": 17
+                        "line": 6,
+                        "column": 16
                       },
                       "end": {
                         "offset": 142,
-                        "line": 7,
-                        "column": 18
+                        "line": 6,
+                        "column": 17
                       },
                       "file": "examples/fibonacci.vader"
                     }
@@ -564,13 +564,13 @@
                   "location": {
                     "start": {
                       "offset": 137,
-                      "line": 7,
-                      "column": 13
+                      "line": 6,
+                      "column": 12
                     },
                     "end": {
                       "offset": 142,
-                      "line": 7,
-                      "column": 18
+                      "line": 6,
+                      "column": 17
                     },
                     "file": "examples/fibonacci.vader"
                   }
@@ -578,14 +578,14 @@
                 "location": {
                   "start": {
                     "offset": 133,
-                    "line": 7,
-                    "column": 9
+                    "line": 6,
+                    "column": 8
                   },
                   "file": "examples/fibonacci.vader",
                   "end": {
                     "offset": 142,
-                    "line": 7,
-                    "column": 18
+                    "line": 6,
+                    "column": 17
                   }
                 }
               }
@@ -593,13 +593,13 @@
             "location": {
               "start": {
                 "offset": 61,
-                "line": 4,
-                "column": 5
+                "line": 3,
+                "column": 4
               },
               "end": {
                 "offset": 148,
-                "line": 8,
-                "column": 6
+                "line": 7,
+                "column": 5
               },
               "file": "examples/fibonacci.vader"
             }
@@ -617,13 +617,13 @@
               "location": {
                 "start": {
                   "offset": 160,
-                  "line": 9,
-                  "column": 12
+                  "line": 8,
+                  "column": 11
                 },
                 "end": {
                   "offset": 161,
-                  "line": 9,
-                  "column": 13
+                  "line": 8,
+                  "column": 12
                 },
                 "file": "examples/fibonacci.vader"
               }
@@ -631,13 +631,13 @@
             "location": {
               "start": {
                 "offset": 153,
-                "line": 9,
-                "column": 5
+                "line": 8,
+                "column": 4
               },
               "end": {
                 "offset": 161,
-                "line": 9,
-                "column": 13
+                "line": 8,
+                "column": 12
               },
               "file": "examples/fibonacci.vader"
             }
@@ -646,13 +646,13 @@
         "location": {
           "start": {
             "offset": 13,
-            "line": 1,
-            "column": 14
+            "line": 0,
+            "column": 13
           },
           "end": {
             "offset": 163,
-            "line": 10,
-            "column": 2
+            "line": 9,
+            "column": 1
           },
           "file": "examples/fibonacci.vader"
         }
@@ -660,13 +660,13 @@
       "location": {
         "start": {
           "offset": 0,
-          "line": 1,
-          "column": 1
+          "line": 0,
+          "column": 0
         },
         "end": {
           "offset": 163,
-          "line": 10,
-          "column": 2
+          "line": 9,
+          "column": 1
         },
         "file": "examples/fibonacci.vader"
       }
@@ -720,13 +720,13 @@
                   "location": {
                     "start": {
                       "offset": 208,
-                      "line": 13,
-                      "column": 22
+                      "line": 12,
+                      "column": 21
                     },
                     "end": {
                       "offset": 210,
-                      "line": 13,
-                      "column": 24
+                      "line": 12,
+                      "column": 23
                     },
                     "file": "examples/fibonacci.vader"
                   }
@@ -735,13 +735,13 @@
               "location": {
                 "start": {
                   "offset": 198,
-                  "line": 13,
-                  "column": 12
+                  "line": 12,
+                  "column": 11
                 },
                 "end": {
                   "offset": 211,
-                  "line": 13,
-                  "column": 25
+                  "line": 12,
+                  "column": 24
                 },
                 "file": "examples/fibonacci.vader"
               }
@@ -749,13 +749,13 @@
             "location": {
               "start": {
                 "offset": 191,
-                "line": 13,
-                "column": 5
+                "line": 12,
+                "column": 4
               },
               "end": {
                 "offset": 211,
-                "line": 13,
-                "column": 25
+                "line": 12,
+                "column": 24
               },
               "file": "examples/fibonacci.vader"
             }
@@ -764,13 +764,13 @@
         "location": {
           "start": {
             "offset": 173,
-            "line": 12,
-            "column": 9
+            "line": 11,
+            "column": 8
           },
           "end": {
             "offset": 217,
-            "line": 14,
-            "column": 2
+            "line": 13,
+            "column": 1
           },
           "file": "examples/fibonacci.vader"
         }
@@ -778,13 +778,13 @@
       "location": {
         "start": {
           "offset": 165,
-          "line": 12,
-          "column": 1
+          "line": 11,
+          "column": 0
         },
         "end": {
           "offset": 217,
-          "line": 14,
-          "column": 2
+          "line": 13,
+          "column": 1
         },
         "file": "examples/fibonacci.vader"
       }
@@ -793,13 +793,13 @@
   "location": {
     "start": {
       "offset": 0,
-      "line": 1,
-      "column": 1
+      "line": 0,
+      "column": 0
     },
     "end": {
       "offset": 217,
-      "line": 14,
-      "column": 2
+      "line": 13,
+      "column": 1
     },
     "file": "examples/fibonacci.vader"
   }

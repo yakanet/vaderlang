@@ -5,13 +5,13 @@
     "location": {
       "start": {
         "offset": 0,
-        "line": 1,
-        "column": 1
+        "line": 0,
+        "column": 0
       },
       "end": {
         "offset": 5,
-        "line": 1,
-        "column": 6
+        "line": 0,
+        "column": 5
       },
       "file": "examples/structs.vader"
     }
@@ -22,13 +22,13 @@
     "location": {
       "start": {
         "offset": 6,
-        "line": 1,
-        "column": 7
+        "line": 0,
+        "column": 6
       },
       "end": {
         "offset": 7,
-        "line": 1,
-        "column": 8
+        "line": 0,
+        "column": 7
       },
       "file": "examples/structs.vader"
     }
@@ -39,13 +39,13 @@
     "location": {
       "start": {
         "offset": 7,
-        "line": 1,
-        "column": 8
+        "line": 0,
+        "column": 7
       },
       "end": {
         "offset": 8,
-        "line": 1,
-        "column": 9
+        "line": 0,
+        "column": 8
       },
       "file": "examples/structs.vader"
     }
@@ -56,13 +56,13 @@
     "location": {
       "start": {
         "offset": 9,
-        "line": 1,
-        "column": 10
+        "line": 0,
+        "column": 9
       },
       "end": {
         "offset": 15,
-        "line": 1,
-        "column": 16
+        "line": 0,
+        "column": 15
       },
       "file": "examples/structs.vader"
     }
@@ -73,13 +73,13 @@
     "location": {
       "start": {
         "offset": 16,
-        "line": 1,
-        "column": 17
+        "line": 0,
+        "column": 16
       },
       "end": {
         "offset": 17,
-        "line": 1,
-        "column": 18
+        "line": 0,
+        "column": 17
       },
       "file": "examples/structs.vader"
     }
@@ -90,13 +90,13 @@
     "location": {
       "start": {
         "offset": 22,
-        "line": 2,
-        "column": 5
+        "line": 1,
+        "column": 4
       },
       "end": {
         "offset": 23,
-        "line": 2,
-        "column": 6
+        "line": 1,
+        "column": 5
       },
       "file": "examples/structs.vader"
     }
@@ -107,13 +107,13 @@
     "location": {
       "start": {
         "offset": 23,
-        "line": 2,
-        "column": 6
+        "line": 1,
+        "column": 5
       },
       "end": {
         "offset": 24,
-        "line": 2,
-        "column": 7
+        "line": 1,
+        "column": 6
       },
       "file": "examples/structs.vader"
     }
@@ -124,13 +124,13 @@
     "location": {
       "start": {
         "offset": 25,
-        "line": 2,
-        "column": 8
+        "line": 1,
+        "column": 7
       },
       "end": {
         "offset": 28,
-        "line": 2,
-        "column": 11
+        "line": 1,
+        "column": 10
       },
       "file": "examples/structs.vader"
     }
@@ -141,13 +141,13 @@
     "location": {
       "start": {
         "offset": 33,
-        "line": 3,
-        "column": 5
+        "line": 2,
+        "column": 4
       },
       "end": {
         "offset": 34,
-        "line": 3,
-        "column": 6
+        "line": 2,
+        "column": 5
       },
       "file": "examples/structs.vader"
     }
@@ -158,13 +158,13 @@
     "location": {
       "start": {
         "offset": 34,
-        "line": 3,
-        "column": 6
+        "line": 2,
+        "column": 5
       },
       "end": {
         "offset": 35,
-        "line": 3,
-        "column": 7
+        "line": 2,
+        "column": 6
       },
       "file": "examples/structs.vader"
     }
@@ -175,13 +175,13 @@
     "location": {
       "start": {
         "offset": 36,
-        "line": 3,
-        "column": 8
+        "line": 2,
+        "column": 7
       },
       "end": {
         "offset": 39,
-        "line": 3,
-        "column": 11
+        "line": 2,
+        "column": 10
       },
       "file": "examples/structs.vader"
     }
@@ -192,13 +192,13 @@
     "location": {
       "start": {
         "offset": 40,
-        "line": 4,
-        "column": 1
+        "line": 3,
+        "column": 0
       },
       "end": {
         "offset": 41,
-        "line": 4,
-        "column": 2
+        "line": 3,
+        "column": 1
       },
       "file": "examples/structs.vader"
     }
@@ -209,13 +209,13 @@
     "location": {
       "start": {
         "offset": 43,
-        "line": 6,
-        "column": 1
+        "line": 5,
+        "column": 0
       },
       "end": {
         "offset": 50,
-        "line": 6,
-        "column": 8
+        "line": 5,
+        "column": 7
       },
       "file": "examples/structs.vader"
     }
@@ -226,13 +226,13 @@
     "location": {
       "start": {
         "offset": 51,
-        "line": 6,
-        "column": 9
+        "line": 5,
+        "column": 8
       },
       "end": {
         "offset": 52,
-        "line": 6,
-        "column": 10
+        "line": 5,
+        "column": 9
       },
       "file": "examples/structs.vader"
     }
@@ -243,13 +243,13 @@
     "location": {
       "start": {
         "offset": 52,
-        "line": 6,
-        "column": 10
+        "line": 5,
+        "column": 9
       },
       "end": {
         "offset": 53,
-        "line": 6,
-        "column": 11
+        "line": 5,
+        "column": 10
       },
       "file": "examples/structs.vader"
     }
@@ -260,13 +260,13 @@
     "location": {
       "start": {
         "offset": 54,
-        "line": 6,
-        "column": 12
+        "line": 5,
+        "column": 11
       },
       "end": {
         "offset": 60,
-        "line": 6,
-        "column": 18
+        "line": 5,
+        "column": 17
       },
       "file": "examples/structs.vader"
     }
@@ -277,13 +277,13 @@
     "location": {
       "start": {
         "offset": 61,
-        "line": 6,
-        "column": 19
+        "line": 5,
+        "column": 18
       },
       "end": {
         "offset": 62,
-        "line": 6,
-        "column": 20
+        "line": 5,
+        "column": 19
       },
       "file": "examples/structs.vader"
     }
@@ -294,13 +294,13 @@
     "location": {
       "start": {
         "offset": 67,
-        "line": 7,
-        "column": 5
+        "line": 6,
+        "column": 4
       },
       "end": {
         "offset": 73,
-        "line": 7,
-        "column": 11
+        "line": 6,
+        "column": 10
       },
       "file": "examples/structs.vader"
     }
@@ -311,13 +311,13 @@
     "location": {
       "start": {
         "offset": 73,
-        "line": 7,
-        "column": 11
+        "line": 6,
+        "column": 10
       },
       "end": {
         "offset": 74,
-        "line": 7,
-        "column": 12
+        "line": 6,
+        "column": 11
       },
       "file": "examples/structs.vader"
     }
@@ -328,13 +328,13 @@
     "location": {
       "start": {
         "offset": 75,
-        "line": 7,
-        "column": 13
+        "line": 6,
+        "column": 12
       },
       "end": {
         "offset": 80,
-        "line": 7,
-        "column": 18
+        "line": 6,
+        "column": 17
       },
       "file": "examples/structs.vader"
     }
@@ -345,13 +345,13 @@
     "location": {
       "start": {
         "offset": 85,
-        "line": 8,
-        "column": 5
+        "line": 7,
+        "column": 4
       },
       "end": {
         "offset": 86,
-        "line": 8,
-        "column": 6
+        "line": 7,
+        "column": 5
       },
       "file": "examples/structs.vader"
     }
@@ -362,13 +362,13 @@
     "location": {
       "start": {
         "offset": 86,
-        "line": 8,
-        "column": 6
+        "line": 7,
+        "column": 5
       },
       "end": {
         "offset": 87,
-        "line": 8,
-        "column": 7
+        "line": 7,
+        "column": 6
       },
       "file": "examples/structs.vader"
     }
@@ -379,13 +379,13 @@
     "location": {
       "start": {
         "offset": 88,
-        "line": 8,
-        "column": 8
+        "line": 7,
+        "column": 7
       },
       "end": {
         "offset": 91,
-        "line": 8,
-        "column": 11
+        "line": 7,
+        "column": 10
       },
       "file": "examples/structs.vader"
     }
@@ -396,13 +396,13 @@
     "location": {
       "start": {
         "offset": 92,
-        "line": 9,
-        "column": 1
+        "line": 8,
+        "column": 0
       },
       "end": {
         "offset": 93,
-        "line": 9,
-        "column": 2
+        "line": 8,
+        "column": 1
       },
       "file": "examples/structs.vader"
     }
@@ -413,11 +413,164 @@
     "location": {
       "start": {
         "offset": 95,
-        "line": 11,
-        "column": 1
+        "line": 10,
+        "column": 0
       },
       "end": {
         "offset": 99,
+        "line": 10,
+        "column": 4
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 100,
+        "line": 10,
+        "column": 5
+      },
+      "end": {
+        "offset": 101,
+        "line": 10,
+        "column": 6
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "ColonToken",
+    "value": ":",
+    "location": {
+      "start": {
+        "offset": 101,
+        "line": 10,
+        "column": 6
+      },
+      "end": {
+        "offset": 102,
+        "line": 10,
+        "column": 7
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Keyword",
+    "value": "fn",
+    "location": {
+      "start": {
+        "offset": 103,
+        "line": 10,
+        "column": 8
+      },
+      "end": {
+        "offset": 105,
+        "line": 10,
+        "column": 10
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "OpenRoundBracket",
+    "value": "(",
+    "location": {
+      "start": {
+        "offset": 105,
+        "line": 10,
+        "column": 10
+      },
+      "end": {
+        "offset": 106,
+        "line": 10,
+        "column": 11
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "CloseRoundBracket",
+    "value": ")",
+    "location": {
+      "start": {
+        "offset": 106,
+        "line": 10,
+        "column": 11
+      },
+      "end": {
+        "offset": 107,
+        "line": 10,
+        "column": 12
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "LambdaArrowToken",
+    "value": "->",
+    "location": {
+      "start": {
+        "offset": 108,
+        "line": 10,
+        "column": 13
+      },
+      "end": {
+        "offset": 110,
+        "line": 10,
+        "column": 15
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "u32",
+    "location": {
+      "start": {
+        "offset": 111,
+        "line": 10,
+        "column": 16
+      },
+      "end": {
+        "offset": 114,
+        "line": 10,
+        "column": 19
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "OpenCurlyBracket",
+    "value": "{",
+    "location": {
+      "start": {
+        "offset": 115,
+        "line": 10,
+        "column": 20
+      },
+      "end": {
+        "offset": 116,
+        "line": 10,
+        "column": 21
+      },
+      "file": "examples/structs.vader"
+    }
+  },
+  {
+    "type": "Identifier",
+    "value": "p1",
+    "location": {
+      "start": {
+        "offset": 120,
+        "line": 11,
+        "column": 3
+      },
+      "end": {
+        "offset": 122,
         "line": 11,
         "column": 5
       },
@@ -429,167 +582,14 @@
     "value": ":",
     "location": {
       "start": {
-        "offset": 100,
-        "line": 11,
-        "column": 6
-      },
-      "end": {
-        "offset": 101,
-        "line": 11,
-        "column": 7
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": {
-        "offset": 101,
-        "line": 11,
-        "column": 7
-      },
-      "end": {
-        "offset": 102,
-        "line": 11,
-        "column": 8
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "Keyword",
-    "value": "fn",
-    "location": {
-      "start": {
-        "offset": 103,
-        "line": 11,
-        "column": 9
-      },
-      "end": {
-        "offset": 105,
-        "line": 11,
-        "column": 11
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "OpenRoundBracket",
-    "value": "(",
-    "location": {
-      "start": {
-        "offset": 105,
-        "line": 11,
-        "column": 11
-      },
-      "end": {
-        "offset": 106,
-        "line": 11,
-        "column": 12
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "CloseRoundBracket",
-    "value": ")",
-    "location": {
-      "start": {
-        "offset": 106,
-        "line": 11,
-        "column": 12
-      },
-      "end": {
-        "offset": 107,
-        "line": 11,
-        "column": 13
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "LambdaArrowToken",
-    "value": "->",
-    "location": {
-      "start": {
-        "offset": 108,
-        "line": 11,
-        "column": 14
-      },
-      "end": {
-        "offset": 110,
-        "line": 11,
-        "column": 16
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "u32",
-    "location": {
-      "start": {
-        "offset": 111,
-        "line": 11,
-        "column": 17
-      },
-      "end": {
-        "offset": 114,
-        "line": 11,
-        "column": 20
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "OpenCurlyBracket",
-    "value": "{",
-    "location": {
-      "start": {
-        "offset": 115,
-        "line": 11,
-        "column": 21
-      },
-      "end": {
-        "offset": 116,
-        "line": 11,
-        "column": 22
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "Identifier",
-    "value": "p1",
-    "location": {
-      "start": {
-        "offset": 120,
-        "line": 12,
-        "column": 4
-      },
-      "end": {
-        "offset": 122,
-        "line": 12,
-        "column": 6
-      },
-      "file": "examples/structs.vader"
-    }
-  },
-  {
-    "type": "ColonToken",
-    "value": ":",
-    "location": {
-      "start": {
         "offset": 123,
-        "line": 12,
-        "column": 7
+        "line": 11,
+        "column": 6
       },
       "end": {
         "offset": 124,
-        "line": 12,
-        "column": 8
+        "line": 11,
+        "column": 7
       },
       "file": "examples/structs.vader"
     }
@@ -600,13 +600,13 @@
     "location": {
       "start": {
         "offset": 124,
-        "line": 12,
-        "column": 8
+        "line": 11,
+        "column": 7
       },
       "end": {
         "offset": 125,
-        "line": 12,
-        "column": 9
+        "line": 11,
+        "column": 8
       },
       "file": "examples/structs.vader"
     }
@@ -617,13 +617,13 @@
     "location": {
       "start": {
         "offset": 126,
-        "line": 12,
-        "column": 10
+        "line": 11,
+        "column": 9
       },
       "end": {
         "offset": 133,
-        "line": 12,
-        "column": 17
+        "line": 11,
+        "column": 16
       },
       "file": "examples/structs.vader"
     }
@@ -634,13 +634,13 @@
     "location": {
       "start": {
         "offset": 134,
-        "line": 12,
-        "column": 18
+        "line": 11,
+        "column": 17
       },
       "end": {
         "offset": 135,
-        "line": 12,
-        "column": 19
+        "line": 11,
+        "column": 18
       },
       "file": "examples/structs.vader"
     }
@@ -651,13 +651,13 @@
     "location": {
       "start": {
         "offset": 136,
-        "line": 12,
-        "column": 20
+        "line": 11,
+        "column": 19
       },
       "end": {
         "offset": 141,
-        "line": 12,
-        "column": 25
+        "line": 11,
+        "column": 24
       },
       "file": "examples/structs.vader"
     }
@@ -668,13 +668,13 @@
     "location": {
       "start": {
         "offset": 142,
-        "line": 12,
-        "column": 26
+        "line": 11,
+        "column": 25
       },
       "end": {
         "offset": 143,
-        "line": 12,
-        "column": 27
+        "line": 11,
+        "column": 26
       },
       "file": "examples/structs.vader"
     }
@@ -685,13 +685,13 @@
     "location": {
       "start": {
         "offset": 144,
-        "line": 12,
-        "column": 28
+        "line": 11,
+        "column": 27
       },
       "end": {
         "offset": 145,
-        "line": 12,
-        "column": 29
+        "line": 11,
+        "column": 28
       },
       "file": "examples/structs.vader"
     }
@@ -702,13 +702,13 @@
     "location": {
       "start": {
         "offset": 145,
-        "line": 12,
-        "column": 29
+        "line": 11,
+        "column": 28
       },
       "end": {
         "offset": 146,
-        "line": 12,
-        "column": 30
+        "line": 11,
+        "column": 29
       },
       "file": "examples/structs.vader"
     }
@@ -719,13 +719,13 @@
     "location": {
       "start": {
         "offset": 147,
-        "line": 12,
-        "column": 31
+        "line": 11,
+        "column": 30
       },
       "end": {
         "offset": 148,
-        "line": 12,
-        "column": 32
+        "line": 11,
+        "column": 31
       },
       "file": "examples/structs.vader"
     }
@@ -736,13 +736,13 @@
     "location": {
       "start": {
         "offset": 149,
-        "line": 12,
-        "column": 33
+        "line": 11,
+        "column": 32
       },
       "end": {
         "offset": 150,
-        "line": 12,
-        "column": 34
+        "line": 11,
+        "column": 33
       },
       "file": "examples/structs.vader"
     }
@@ -753,13 +753,13 @@
     "location": {
       "start": {
         "offset": 150,
-        "line": 12,
-        "column": 34
+        "line": 11,
+        "column": 33
       },
       "end": {
         "offset": 151,
-        "line": 12,
-        "column": 35
+        "line": 11,
+        "column": 34
       },
       "file": "examples/structs.vader"
     }
@@ -770,13 +770,13 @@
     "location": {
       "start": {
         "offset": 152,
-        "line": 12,
-        "column": 36
+        "line": 11,
+        "column": 35
       },
       "end": {
         "offset": 154,
-        "line": 12,
-        "column": 38
+        "line": 11,
+        "column": 37
       },
       "file": "examples/structs.vader"
     }
@@ -787,13 +787,13 @@
     "location": {
       "start": {
         "offset": 155,
-        "line": 12,
-        "column": 39
+        "line": 11,
+        "column": 38
       },
       "end": {
         "offset": 156,
-        "line": 12,
-        "column": 40
+        "line": 11,
+        "column": 39
       },
       "file": "examples/structs.vader"
     }
@@ -804,13 +804,13 @@
     "location": {
       "start": {
         "offset": 160,
-        "line": 13,
-        "column": 4
+        "line": 12,
+        "column": 3
       },
       "end": {
         "offset": 162,
-        "line": 13,
-        "column": 6
+        "line": 12,
+        "column": 5
       },
       "file": "examples/structs.vader"
     }
@@ -821,13 +821,13 @@
     "location": {
       "start": {
         "offset": 163,
-        "line": 13,
-        "column": 7
+        "line": 12,
+        "column": 6
       },
       "end": {
         "offset": 164,
-        "line": 13,
-        "column": 8
+        "line": 12,
+        "column": 7
       },
       "file": "examples/structs.vader"
     }
@@ -838,13 +838,13 @@
     "location": {
       "start": {
         "offset": 164,
-        "line": 13,
-        "column": 8
+        "line": 12,
+        "column": 7
       },
       "end": {
         "offset": 165,
-        "line": 13,
-        "column": 9
+        "line": 12,
+        "column": 8
       },
       "file": "examples/structs.vader"
     }
@@ -855,13 +855,13 @@
     "location": {
       "start": {
         "offset": 166,
-        "line": 13,
-        "column": 10
+        "line": 12,
+        "column": 9
       },
       "end": {
         "offset": 171,
-        "line": 13,
-        "column": 15
+        "line": 12,
+        "column": 14
       },
       "file": "examples/structs.vader"
     }
@@ -872,13 +872,13 @@
     "location": {
       "start": {
         "offset": 172,
-        "line": 13,
-        "column": 16
+        "line": 12,
+        "column": 15
       },
       "end": {
         "offset": 173,
-        "line": 13,
-        "column": 17
+        "line": 12,
+        "column": 16
       },
       "file": "examples/structs.vader"
     }
@@ -889,13 +889,13 @@
     "location": {
       "start": {
         "offset": 174,
-        "line": 13,
-        "column": 18
+        "line": 12,
+        "column": 17
       },
       "end": {
         "offset": 175,
-        "line": 13,
-        "column": 19
+        "line": 12,
+        "column": 18
       },
       "file": "examples/structs.vader"
     }
@@ -906,13 +906,13 @@
     "location": {
       "start": {
         "offset": 175,
-        "line": 13,
-        "column": 19
+        "line": 12,
+        "column": 18
       },
       "end": {
         "offset": 176,
-        "line": 13,
-        "column": 20
+        "line": 12,
+        "column": 19
       },
       "file": "examples/structs.vader"
     }
@@ -923,13 +923,13 @@
     "location": {
       "start": {
         "offset": 177,
-        "line": 13,
-        "column": 21
+        "line": 12,
+        "column": 20
       },
       "end": {
         "offset": 178,
-        "line": 13,
-        "column": 22
+        "line": 12,
+        "column": 21
       },
       "file": "examples/structs.vader"
     }
@@ -940,13 +940,13 @@
     "location": {
       "start": {
         "offset": 179,
-        "line": 13,
-        "column": 23
+        "line": 12,
+        "column": 22
       },
       "end": {
         "offset": 180,
-        "line": 13,
-        "column": 24
+        "line": 12,
+        "column": 23
       },
       "file": "examples/structs.vader"
     }
@@ -957,13 +957,13 @@
     "location": {
       "start": {
         "offset": 184,
-        "line": 14,
-        "column": 4
+        "line": 13,
+        "column": 3
       },
       "end": {
         "offset": 186,
-        "line": 14,
-        "column": 6
+        "line": 13,
+        "column": 5
       },
       "file": "examples/structs.vader"
     }
@@ -974,13 +974,13 @@
     "location": {
       "start": {
         "offset": 186,
-        "line": 14,
-        "column": 6
+        "line": 13,
+        "column": 5
       },
       "end": {
         "offset": 187,
-        "line": 14,
-        "column": 7
+        "line": 13,
+        "column": 6
       },
       "file": "examples/structs.vader"
     }
@@ -991,13 +991,13 @@
     "location": {
       "start": {
         "offset": 187,
-        "line": 14,
-        "column": 7
+        "line": 13,
+        "column": 6
       },
       "end": {
         "offset": 188,
-        "line": 14,
-        "column": 8
+        "line": 13,
+        "column": 7
       },
       "file": "examples/structs.vader"
     }
@@ -1008,13 +1008,13 @@
     "location": {
       "start": {
         "offset": 189,
-        "line": 14,
-        "column": 9
+        "line": 13,
+        "column": 8
       },
       "end": {
         "offset": 190,
-        "line": 14,
-        "column": 10
+        "line": 13,
+        "column": 9
       },
       "file": "examples/structs.vader"
     }
@@ -1025,13 +1025,13 @@
     "location": {
       "start": {
         "offset": 191,
-        "line": 14,
-        "column": 11
+        "line": 13,
+        "column": 10
       },
       "end": {
         "offset": 193,
-        "line": 14,
-        "column": 13
+        "line": 13,
+        "column": 12
       },
       "file": "examples/structs.vader"
     }
@@ -1042,13 +1042,13 @@
     "location": {
       "start": {
         "offset": 197,
-        "line": 15,
-        "column": 4
+        "line": 14,
+        "column": 3
       },
       "end": {
         "offset": 199,
-        "line": 15,
-        "column": 6
+        "line": 14,
+        "column": 5
       },
       "file": "examples/structs.vader"
     }
@@ -1059,13 +1059,13 @@
     "location": {
       "start": {
         "offset": 199,
-        "line": 15,
-        "column": 6
+        "line": 14,
+        "column": 5
       },
       "end": {
         "offset": 200,
-        "line": 15,
-        "column": 7
+        "line": 14,
+        "column": 6
       },
       "file": "examples/structs.vader"
     }
@@ -1076,13 +1076,13 @@
     "location": {
       "start": {
         "offset": 200,
-        "line": 15,
-        "column": 7
+        "line": 14,
+        "column": 6
       },
       "end": {
         "offset": 206,
-        "line": 15,
-        "column": 13
+        "line": 14,
+        "column": 12
       },
       "file": "examples/structs.vader"
     }
@@ -1093,13 +1093,13 @@
     "location": {
       "start": {
         "offset": 206,
-        "line": 15,
-        "column": 13
+        "line": 14,
+        "column": 12
       },
       "end": {
         "offset": 207,
-        "line": 15,
-        "column": 14
+        "line": 14,
+        "column": 13
       },
       "file": "examples/structs.vader"
     }
@@ -1110,13 +1110,13 @@
     "location": {
       "start": {
         "offset": 207,
-        "line": 15,
-        "column": 14
+        "line": 14,
+        "column": 13
       },
       "end": {
         "offset": 208,
-        "line": 15,
-        "column": 15
+        "line": 14,
+        "column": 14
       },
       "file": "examples/structs.vader"
     }
@@ -1127,13 +1127,13 @@
     "location": {
       "start": {
         "offset": 209,
-        "line": 15,
-        "column": 16
+        "line": 14,
+        "column": 15
       },
       "end": {
         "offset": 210,
-        "line": 15,
-        "column": 17
+        "line": 14,
+        "column": 16
       },
       "file": "examples/structs.vader"
     }
@@ -1144,13 +1144,13 @@
     "location": {
       "start": {
         "offset": 211,
-        "line": 15,
-        "column": 18
+        "line": 14,
+        "column": 17
       },
       "end": {
         "offset": 213,
-        "line": 15,
-        "column": 20
+        "line": 14,
+        "column": 19
       },
       "file": "examples/structs.vader"
     }
@@ -1161,13 +1161,13 @@
     "location": {
       "start": {
         "offset": 217,
-        "line": 16,
-        "column": 4
+        "line": 15,
+        "column": 3
       },
       "end": {
         "offset": 223,
-        "line": 16,
-        "column": 10
+        "line": 15,
+        "column": 9
       },
       "file": "examples/structs.vader"
     }
@@ -1178,13 +1178,13 @@
     "location": {
       "start": {
         "offset": 224,
-        "line": 16,
-        "column": 11
+        "line": 15,
+        "column": 10
       },
       "end": {
         "offset": 226,
-        "line": 16,
-        "column": 13
+        "line": 15,
+        "column": 12
       },
       "file": "examples/structs.vader"
     }
@@ -1195,13 +1195,13 @@
     "location": {
       "start": {
         "offset": 226,
-        "line": 16,
-        "column": 13
+        "line": 15,
+        "column": 12
       },
       "end": {
         "offset": 227,
-        "line": 16,
-        "column": 14
+        "line": 15,
+        "column": 13
       },
       "file": "examples/structs.vader"
     }
@@ -1212,13 +1212,13 @@
     "location": {
       "start": {
         "offset": 227,
-        "line": 16,
-        "column": 14
+        "line": 15,
+        "column": 13
       },
       "end": {
         "offset": 228,
-        "line": 16,
-        "column": 15
+        "line": 15,
+        "column": 14
       },
       "file": "examples/structs.vader"
     }
@@ -1229,13 +1229,13 @@
     "location": {
       "start": {
         "offset": 229,
-        "line": 16,
-        "column": 16
+        "line": 15,
+        "column": 15
       },
       "end": {
         "offset": 230,
-        "line": 16,
-        "column": 17
+        "line": 15,
+        "column": 16
       },
       "file": "examples/structs.vader"
     }
@@ -1246,13 +1246,13 @@
     "location": {
       "start": {
         "offset": 231,
-        "line": 16,
-        "column": 18
+        "line": 15,
+        "column": 17
       },
       "end": {
         "offset": 233,
-        "line": 16,
-        "column": 20
+        "line": 15,
+        "column": 19
       },
       "file": "examples/structs.vader"
     }
@@ -1263,13 +1263,13 @@
     "location": {
       "start": {
         "offset": 233,
-        "line": 16,
-        "column": 20
+        "line": 15,
+        "column": 19
       },
       "end": {
         "offset": 234,
-        "line": 16,
-        "column": 21
+        "line": 15,
+        "column": 20
       },
       "file": "examples/structs.vader"
     }
@@ -1280,13 +1280,13 @@
     "location": {
       "start": {
         "offset": 234,
-        "line": 16,
-        "column": 21
+        "line": 15,
+        "column": 20
       },
       "end": {
         "offset": 240,
-        "line": 16,
-        "column": 27
+        "line": 15,
+        "column": 26
       },
       "file": "examples/structs.vader"
     }
@@ -1297,13 +1297,13 @@
     "location": {
       "start": {
         "offset": 240,
-        "line": 16,
-        "column": 27
+        "line": 15,
+        "column": 26
       },
       "end": {
         "offset": 241,
-        "line": 16,
-        "column": 28
+        "line": 15,
+        "column": 27
       },
       "file": "examples/structs.vader"
     }
@@ -1314,13 +1314,13 @@
     "location": {
       "start": {
         "offset": 241,
-        "line": 16,
-        "column": 28
+        "line": 15,
+        "column": 27
       },
       "end": {
         "offset": 242,
-        "line": 16,
-        "column": 29
+        "line": 15,
+        "column": 28
       },
       "file": "examples/structs.vader"
     }
@@ -1331,13 +1331,13 @@
     "location": {
       "start": {
         "offset": 243,
-        "line": 16,
-        "column": 30
+        "line": 15,
+        "column": 29
       },
       "end": {
         "offset": 244,
-        "line": 16,
-        "column": 31
+        "line": 15,
+        "column": 30
       },
       "file": "examples/structs.vader"
     }
@@ -1348,13 +1348,13 @@
     "location": {
       "start": {
         "offset": 245,
-        "line": 16,
-        "column": 32
+        "line": 15,
+        "column": 31
       },
       "end": {
         "offset": 247,
-        "line": 16,
-        "column": 34
+        "line": 15,
+        "column": 33
       },
       "file": "examples/structs.vader"
     }
@@ -1365,13 +1365,13 @@
     "location": {
       "start": {
         "offset": 247,
-        "line": 16,
-        "column": 34
+        "line": 15,
+        "column": 33
       },
       "end": {
         "offset": 248,
-        "line": 16,
-        "column": 35
+        "line": 15,
+        "column": 34
       },
       "file": "examples/structs.vader"
     }
@@ -1382,13 +1382,13 @@
     "location": {
       "start": {
         "offset": 248,
-        "line": 16,
-        "column": 35
+        "line": 15,
+        "column": 34
       },
       "end": {
         "offset": 254,
-        "line": 16,
-        "column": 41
+        "line": 15,
+        "column": 40
       },
       "file": "examples/structs.vader"
     }
@@ -1399,13 +1399,13 @@
     "location": {
       "start": {
         "offset": 254,
-        "line": 16,
-        "column": 41
+        "line": 15,
+        "column": 40
       },
       "end": {
         "offset": 255,
-        "line": 16,
-        "column": 42
+        "line": 15,
+        "column": 41
       },
       "file": "examples/structs.vader"
     }
@@ -1416,13 +1416,13 @@
     "location": {
       "start": {
         "offset": 255,
-        "line": 16,
-        "column": 42
+        "line": 15,
+        "column": 41
       },
       "end": {
         "offset": 256,
-        "line": 16,
-        "column": 43
+        "line": 15,
+        "column": 42
       },
       "file": "examples/structs.vader"
     }
@@ -1433,13 +1433,13 @@
     "location": {
       "start": {
         "offset": 257,
-        "line": 17,
-        "column": 1
+        "line": 16,
+        "column": 0
       },
       "end": {
         "offset": 258,
-        "line": 17,
-        "column": 2
+        "line": 16,
+        "column": 1
       },
       "file": "examples/structs.vader"
     }
@@ -1449,13 +1449,13 @@
     "location": {
       "start": {
         "offset": 258,
-        "line": 17,
-        "column": 2
+        "line": 16,
+        "column": 1
       },
       "end": {
         "offset": 258,
-        "line": 17,
-        "column": 2
+        "line": 16,
+        "column": 1
       },
       "file": "examples/structs.vader"
     },

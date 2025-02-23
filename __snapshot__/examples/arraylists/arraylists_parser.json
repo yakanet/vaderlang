@@ -21,13 +21,13 @@
             "location": {
               "start": {
                 "offset": 22,
-                "line": 2,
-                "column": 12
+                "line": 1,
+                "column": 11
               },
               "end": {
                 "offset": 34,
-                "line": 2,
-                "column": 24
+                "line": 1,
+                "column": 23
               },
               "file": "modules/std.vader"
             }
@@ -57,13 +57,13 @@
               "location": {
                 "start": {
                   "offset": 22,
-                  "line": 2,
-                  "column": 12
+                  "line": 1,
+                  "column": 11
                 },
                 "end": {
                   "offset": 34,
-                  "line": 2,
-                  "column": 24
+                  "line": 1,
+                  "column": 23
                 },
                 "file": "modules/std.vader"
               }
@@ -79,13 +79,13 @@
         "location": {
           "start": {
             "offset": 19,
-            "line": 2,
-            "column": 9
+            "line": 1,
+            "column": 8
           },
           "end": {
             "offset": 45,
-            "line": 2,
-            "column": 35
+            "line": 1,
+            "column": 34
           },
           "file": "modules/std.vader"
         }
@@ -93,13 +93,13 @@
       "location": {
         "start": {
           "offset": 11,
-          "line": 2,
-          "column": 1
+          "line": 1,
+          "column": 0
         },
         "end": {
           "offset": 45,
-          "line": 2,
-          "column": 35
+          "line": 1,
+          "column": 34
         },
         "file": "modules/std.vader"
       }
@@ -124,13 +124,13 @@
             "location": {
               "start": {
                 "offset": 70,
-                "line": 5,
-                "column": 13
+                "line": 4,
+                "column": 12
               },
               "end": {
                 "offset": 85,
-                "line": 5,
-                "column": 28
+                "line": 4,
+                "column": 27
               },
               "file": "modules/std.vader"
             }
@@ -160,13 +160,13 @@
               "location": {
                 "start": {
                   "offset": 70,
-                  "line": 5,
-                  "column": 13
+                  "line": 4,
+                  "column": 12
                 },
                 "end": {
                   "offset": 85,
-                  "line": 5,
-                  "column": 28
+                  "line": 4,
+                  "column": 27
                 },
                 "file": "modules/std.vader"
               }
@@ -182,13 +182,13 @@
         "location": {
           "start": {
             "offset": 67,
-            "line": 5,
-            "column": 10
+            "line": 4,
+            "column": 9
           },
           "end": {
             "offset": 94,
-            "line": 5,
-            "column": 37
+            "line": 4,
+            "column": 36
           },
           "file": "modules/std.vader"
         }
@@ -196,13 +196,13 @@
       "location": {
         "start": {
           "offset": 58,
-          "line": 5,
-          "column": 1
+          "line": 4,
+          "column": 0
         },
         "end": {
           "offset": 94,
-          "line": 5,
-          "column": 37
+          "line": 4,
+          "column": 36
         },
         "file": "modules/std.vader"
       }
@@ -231,13 +231,13 @@
             "location": {
               "start": {
                 "offset": 120,
-                "line": 8,
-                "column": 14
+                "line": 7,
+                "column": 13
               },
               "end": {
                 "offset": 132,
-                "line": 8,
-                "column": 26
+                "line": 7,
+                "column": 25
               },
               "file": "modules/std.vader"
             }
@@ -271,13 +271,13 @@
               "location": {
                 "start": {
                   "offset": 120,
-                  "line": 8,
-                  "column": 14
+                  "line": 7,
+                  "column": 13
                 },
                 "end": {
                   "offset": 132,
-                  "line": 8,
-                  "column": 26
+                  "line": 7,
+                  "column": 25
                 },
                 "file": "modules/std.vader"
               }
@@ -293,13 +293,13 @@
         "location": {
           "start": {
             "offset": 117,
-            "line": 8,
-            "column": 11
+            "line": 7,
+            "column": 10
           },
           "end": {
             "offset": 140,
-            "line": 8,
-            "column": 34
+            "line": 7,
+            "column": 33
           },
           "file": "modules/std.vader"
         }
@@ -307,13 +307,13 @@
       "location": {
         "start": {
           "offset": 107,
-          "line": 8,
-          "column": 1
+          "line": 7,
+          "column": 0
         },
         "end": {
           "offset": 140,
-          "line": 8,
-          "column": 34
+          "line": 7,
+          "column": 33
         },
         "file": "modules/std.vader"
       }
@@ -339,13 +339,13 @@
             "location": {
               "start": {
                 "offset": 34,
-                "line": 4,
-                "column": 5
+                "line": 3,
+                "column": 4
               },
               "end": {
                 "offset": 47,
-                "line": 4,
-                "column": 18
+                "line": 3,
+                "column": 17
               },
               "file": "modules/arraylist.vader"
             }
@@ -360,13 +360,13 @@
             "location": {
               "start": {
                 "offset": 52,
-                "line": 5,
-                "column": 5
+                "line": 4,
+                "column": 4
               },
               "end": {
                 "offset": 63,
-                "line": 5,
-                "column": 16
+                "line": 4,
+                "column": 15
               },
               "file": "modules/arraylist.vader"
             }
@@ -392,13 +392,13 @@
               "location": {
                 "start": {
                   "offset": 34,
-                  "line": 4,
-                  "column": 5
+                  "line": 3,
+                  "column": 4
                 },
                 "end": {
                   "offset": 47,
-                  "line": 4,
-                  "column": 18
+                  "line": 3,
+                  "column": 17
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -413,13 +413,13 @@
               "location": {
                 "start": {
                   "offset": 52,
-                  "line": 5,
-                  "column": 5
+                  "line": 4,
+                  "column": 4
                 },
                 "end": {
                   "offset": 63,
-                  "line": 5,
-                  "column": 16
+                  "line": 4,
+                  "column": 15
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -429,13 +429,13 @@
         "location": {
           "start": {
             "offset": 21,
-            "line": 3,
-            "column": 9
+            "line": 2,
+            "column": 8
           },
           "end": {
             "offset": 27,
-            "line": 3,
-            "column": 15
+            "line": 2,
+            "column": 14
           },
           "file": "modules/arraylist.vader"
         }
@@ -443,13 +443,13 @@
       "location": {
         "start": {
           "offset": 13,
-          "line": 3,
-          "column": 1
+          "line": 2,
+          "column": 0
         },
         "end": {
           "offset": 27,
-          "line": 3,
-          "column": 15
+          "line": 2,
+          "column": 14
         },
         "file": "modules/arraylist.vader"
       }
@@ -472,13 +472,13 @@
             "location": {
               "start": {
                 "offset": 85,
-                "line": 8,
-                "column": 19
+                "line": 7,
+                "column": 18
               },
               "end": {
                 "offset": 106,
-                "line": 8,
-                "column": 40
+                "line": 7,
+                "column": 39
               },
               "file": "modules/arraylist.vader"
             }
@@ -501,13 +501,13 @@
               "location": {
                 "start": {
                   "offset": 34,
-                  "line": 4,
-                  "column": 5
+                  "line": 3,
+                  "column": 4
                 },
                 "end": {
                   "offset": 47,
-                  "line": 4,
-                  "column": 18
+                  "line": 3,
+                  "column": 17
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -522,13 +522,13 @@
               "location": {
                 "start": {
                   "offset": 52,
-                  "line": 5,
-                  "column": 5
+                  "line": 4,
+                  "column": 4
                 },
                 "end": {
                   "offset": 63,
-                  "line": 5,
-                  "column": 16
+                  "line": 4,
+                  "column": 15
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -552,13 +552,13 @@
               "location": {
                 "start": {
                   "offset": 85,
-                  "line": 8,
-                  "column": 19
+                  "line": 7,
+                  "column": 18
                 },
                 "end": {
                   "offset": 106,
-                  "line": 8,
-                  "column": 40
+                  "line": 7,
+                  "column": 39
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -581,13 +581,13 @@
                 "location": {
                   "start": {
                     "offset": 34,
-                    "line": 4,
-                    "column": 5
+                    "line": 3,
+                    "column": 4
                   },
                   "end": {
                     "offset": 47,
-                    "line": 4,
-                    "column": 18
+                    "line": 3,
+                    "column": 17
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -602,13 +602,13 @@
                 "location": {
                   "start": {
                     "offset": 52,
-                    "line": 5,
-                    "column": 5
+                    "line": 4,
+                    "column": 4
                   },
                   "end": {
                     "offset": 63,
-                    "line": 5,
-                    "column": 16
+                    "line": 4,
+                    "column": 15
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -645,13 +645,13 @@
                         "location": {
                           "start": {
                             "offset": 155,
-                            "line": 10,
-                            "column": 20
+                            "line": 9,
+                            "column": 19
                           },
                           "end": {
                             "offset": 170,
-                            "line": 10,
-                            "column": 35
+                            "line": 9,
+                            "column": 34
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -660,13 +660,13 @@
                     "location": {
                       "start": {
                         "offset": 154,
-                        "line": 10,
-                        "column": 19
+                        "line": 9,
+                        "column": 18
                       },
                       "end": {
                         "offset": 174,
-                        "line": 10,
-                        "column": 39
+                        "line": 9,
+                        "column": 38
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -674,13 +674,13 @@
                   "location": {
                     "start": {
                       "offset": 145,
-                      "line": 10,
-                      "column": 10
+                      "line": 9,
+                      "column": 9
                     },
                     "end": {
                       "offset": 174,
-                      "line": 10,
-                      "column": 39
+                      "line": 9,
+                      "column": 38
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -698,13 +698,13 @@
                     "location": {
                       "start": {
                         "offset": 194,
-                        "line": 11,
-                        "column": 19
+                        "line": 10,
+                        "column": 18
                       },
                       "end": {
                         "offset": 195,
-                        "line": 11,
-                        "column": 20
+                        "line": 10,
+                        "column": 19
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -712,13 +712,13 @@
                   "location": {
                     "start": {
                       "offset": 185,
-                      "line": 11,
-                      "column": 10
+                      "line": 10,
+                      "column": 9
                     },
                     "end": {
                       "offset": 195,
-                      "line": 11,
-                      "column": 20
+                      "line": 10,
+                      "column": 19
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -742,13 +742,13 @@
                     "location": {
                       "start": {
                         "offset": 34,
-                        "line": 4,
-                        "column": 5
+                        "line": 3,
+                        "column": 4
                       },
                       "end": {
                         "offset": 47,
-                        "line": 4,
-                        "column": 18
+                        "line": 3,
+                        "column": 17
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -763,13 +763,13 @@
                     "location": {
                       "start": {
                         "offset": 52,
-                        "line": 5,
-                        "column": 5
+                        "line": 4,
+                        "column": 4
                       },
                       "end": {
                         "offset": 63,
-                        "line": 5,
-                        "column": 16
+                        "line": 4,
+                        "column": 15
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -779,13 +779,13 @@
               "location": {
                 "start": {
                   "offset": 129,
-                  "line": 9,
-                  "column": 12
+                  "line": 8,
+                  "column": 11
                 },
                 "end": {
                   "offset": 202,
-                  "line": 12,
-                  "column": 6
+                  "line": 11,
+                  "column": 5
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -793,13 +793,13 @@
             "location": {
               "start": {
                 "offset": 122,
-                "line": 9,
-                "column": 5
+                "line": 8,
+                "column": 4
               },
               "end": {
                 "offset": 202,
-                "line": 12,
-                "column": 6
+                "line": 11,
+                "column": 5
               },
               "file": "modules/arraylist.vader"
             }
@@ -808,13 +808,13 @@
         "location": {
           "start": {
             "offset": 82,
-            "line": 8,
-            "column": 16
+            "line": 7,
+            "column": 15
           },
           "end": {
             "offset": 204,
-            "line": 13,
-            "column": 2
+            "line": 12,
+            "column": 1
           },
           "file": "modules/arraylist.vader"
         }
@@ -822,13 +822,13 @@
       "location": {
         "start": {
           "offset": 67,
-          "line": 8,
-          "column": 1
+          "line": 7,
+          "column": 0
         },
         "end": {
           "offset": 204,
-          "line": 13,
-          "column": 2
+          "line": 12,
+          "column": 1
         },
         "file": "modules/arraylist.vader"
       }
@@ -860,13 +860,13 @@
                   "location": {
                     "start": {
                       "offset": 34,
-                      "line": 4,
-                      "column": 5
+                      "line": 3,
+                      "column": 4
                     },
                     "end": {
                       "offset": 47,
-                      "line": 4,
-                      "column": 18
+                      "line": 3,
+                      "column": 17
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -881,13 +881,13 @@
                   "location": {
                     "start": {
                       "offset": 52,
-                      "line": 5,
-                      "column": 5
+                      "line": 4,
+                      "column": 4
                     },
                     "end": {
                       "offset": 63,
-                      "line": 5,
-                      "column": 16
+                      "line": 4,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -897,13 +897,13 @@
             "location": {
               "start": {
                 "offset": 215,
-                "line": 15,
-                "column": 10
+                "line": 14,
+                "column": 9
               },
               "end": {
                 "offset": 226,
-                "line": 15,
-                "column": 21
+                "line": 14,
+                "column": 20
               },
               "file": "modules/arraylist.vader"
             }
@@ -918,13 +918,13 @@
             "location": {
               "start": {
                 "offset": 228,
-                "line": 15,
-                "column": 23
+                "line": 14,
+                "column": 22
               },
               "end": {
                 "offset": 238,
-                "line": 15,
-                "column": 33
+                "line": 14,
+                "column": 32
               },
               "file": "modules/arraylist.vader"
             }
@@ -961,13 +961,13 @@
                     "location": {
                       "start": {
                         "offset": 34,
-                        "line": 4,
-                        "column": 5
+                        "line": 3,
+                        "column": 4
                       },
                       "end": {
                         "offset": 47,
-                        "line": 4,
-                        "column": 18
+                        "line": 3,
+                        "column": 17
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -982,13 +982,13 @@
                     "location": {
                       "start": {
                         "offset": 52,
-                        "line": 5,
-                        "column": 5
+                        "line": 4,
+                        "column": 4
                       },
                       "end": {
                         "offset": 63,
-                        "line": 5,
-                        "column": 16
+                        "line": 4,
+                        "column": 15
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -998,13 +998,13 @@
               "location": {
                 "start": {
                   "offset": 215,
-                  "line": 15,
-                  "column": 10
+                  "line": 14,
+                  "column": 9
                 },
                 "end": {
                   "offset": 226,
-                  "line": 15,
-                  "column": 21
+                  "line": 14,
+                  "column": 20
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -1019,13 +1019,13 @@
               "location": {
                 "start": {
                   "offset": 228,
-                  "line": 15,
-                  "column": 23
+                  "line": 14,
+                  "column": 22
                 },
                 "end": {
                   "offset": 238,
-                  "line": 15,
-                  "column": 33
+                  "line": 14,
+                  "column": 32
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -1061,13 +1061,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -1082,13 +1082,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -1099,13 +1099,13 @@
                 "location": {
                   "start": {
                     "offset": 289,
-                    "line": 17,
-                    "column": 12
+                    "line": 16,
+                    "column": 11
                   },
                   "end": {
                     "offset": 293,
-                    "line": 17,
-                    "column": 16
+                    "line": 16,
+                    "column": 15
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -1126,13 +1126,13 @@
                   "location": {
                     "start": {
                       "offset": 294,
-                      "line": 17,
-                      "column": 17
+                      "line": 16,
+                      "column": 16
                     },
                     "end": {
                       "offset": 298,
-                      "line": 17,
-                      "column": 21
+                      "line": 16,
+                      "column": 20
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -1150,13 +1150,13 @@
                     "location": {
                       "start": {
                         "offset": 299,
-                        "line": 17,
-                        "column": 22
+                        "line": 16,
+                        "column": 21
                       },
                       "end": {
                         "offset": 304,
-                        "line": 17,
-                        "column": 27
+                        "line": 16,
+                        "column": 26
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -1170,13 +1170,13 @@
                     "file": "modules/arraylist.vader",
                     "start": {
                       "offset": 298,
-                      "line": 17,
-                      "column": 21
+                      "line": 16,
+                      "column": 20
                     },
                     "end": {
                       "offset": 305,
-                      "line": 17,
-                      "column": 28
+                      "line": 16,
+                      "column": 27
                     }
                   }
                 }
@@ -1189,13 +1189,13 @@
               "location": {
                 "start": {
                   "offset": 289,
-                  "line": 17,
-                  "column": 12
+                  "line": 16,
+                  "column": 11
                 },
                 "end": {
                   "offset": 305,
-                  "line": 17,
-                  "column": 28
+                  "line": 16,
+                  "column": 27
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -1203,13 +1203,13 @@
             "location": {
               "start": {
                 "offset": 282,
-                "line": 17,
-                "column": 5
+                "line": 16,
+                "column": 4
               },
               "end": {
                 "offset": 305,
-                "line": 17,
-                "column": 28
+                "line": 16,
+                "column": 27
               },
               "file": "modules/arraylist.vader"
             }
@@ -1218,13 +1218,13 @@
         "location": {
           "start": {
             "offset": 212,
-            "line": 15,
-            "column": 7
+            "line": 14,
+            "column": 6
           },
           "end": {
             "offset": 307,
-            "line": 18,
-            "column": 2
+            "line": 17,
+            "column": 1
           },
           "file": "modules/arraylist.vader"
         }
@@ -1232,13 +1232,13 @@
       "location": {
         "start": {
           "offset": 206,
-          "line": 15,
-          "column": 1
+          "line": 14,
+          "column": 0
         },
         "end": {
           "offset": 307,
-          "line": 18,
-          "column": 2
+          "line": 17,
+          "column": 1
         },
         "file": "modules/arraylist.vader"
       }
@@ -1270,13 +1270,13 @@
                   "location": {
                     "start": {
                       "offset": 34,
-                      "line": 4,
-                      "column": 5
+                      "line": 3,
+                      "column": 4
                     },
                     "end": {
                       "offset": 47,
-                      "line": 4,
-                      "column": 18
+                      "line": 3,
+                      "column": 17
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -1291,13 +1291,13 @@
                   "location": {
                     "start": {
                       "offset": 52,
-                      "line": 5,
-                      "column": 5
+                      "line": 4,
+                      "column": 4
                     },
                     "end": {
                       "offset": 63,
-                      "line": 5,
-                      "column": 16
+                      "line": 4,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -1307,13 +1307,13 @@
             "location": {
               "start": {
                 "offset": 340,
-                "line": 21,
-                "column": 12
+                "line": 20,
+                "column": 11
               },
               "end": {
                 "offset": 350,
-                "line": 21,
-                "column": 22
+                "line": 20,
+                "column": 21
               },
               "file": "modules/arraylist.vader"
             }
@@ -1350,13 +1350,13 @@
                     "location": {
                       "start": {
                         "offset": 34,
-                        "line": 4,
-                        "column": 5
+                        "line": 3,
+                        "column": 4
                       },
                       "end": {
                         "offset": 47,
-                        "line": 4,
-                        "column": 18
+                        "line": 3,
+                        "column": 17
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -1371,13 +1371,13 @@
                     "location": {
                       "start": {
                         "offset": 52,
-                        "line": 5,
-                        "column": 5
+                        "line": 4,
+                        "column": 4
                       },
                       "end": {
                         "offset": 63,
-                        "line": 5,
-                        "column": 16
+                        "line": 4,
+                        "column": 15
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -1387,13 +1387,13 @@
               "location": {
                 "start": {
                   "offset": 340,
-                  "line": 21,
-                  "column": 12
+                  "line": 20,
+                  "column": 11
                 },
                 "end": {
                   "offset": 350,
-                  "line": 21,
-                  "column": 22
+                  "line": 20,
+                  "column": 21
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -1432,13 +1432,13 @@
                   "location": {
                     "start": {
                       "offset": 375,
-                      "line": 22,
-                      "column": 14
+                      "line": 21,
+                      "column": 13
                     },
                     "end": {
                       "offset": 393,
-                      "line": 22,
-                      "column": 32
+                      "line": 21,
+                      "column": 31
                     },
                     "file": "modules/arraylist.vader"
                   },
@@ -1464,13 +1464,13 @@
                               "location": {
                                 "start": {
                                   "offset": 34,
-                                  "line": 4,
-                                  "column": 5
+                                  "line": 3,
+                                  "column": 4
                                 },
                                 "end": {
                                   "offset": 47,
-                                  "line": 4,
-                                  "column": 18
+                                  "line": 3,
+                                  "column": 17
                                 },
                                 "file": "modules/arraylist.vader"
                               }
@@ -1485,13 +1485,13 @@
                               "location": {
                                 "start": {
                                   "offset": 52,
-                                  "line": 5,
-                                  "column": 5
+                                  "line": 4,
+                                  "column": 4
                                 },
                                 "end": {
                                   "offset": 63,
-                                  "line": 5,
-                                  "column": 16
+                                  "line": 4,
+                                  "column": 15
                                 },
                                 "file": "modules/arraylist.vader"
                               }
@@ -1502,13 +1502,13 @@
                         "location": {
                           "start": {
                             "offset": 375,
-                            "line": 22,
-                            "column": 14
+                            "line": 21,
+                            "column": 13
                           },
                           "end": {
                             "offset": 379,
-                            "line": 22,
-                            "column": 18
+                            "line": 21,
+                            "column": 17
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -1529,13 +1529,13 @@
                           "location": {
                             "start": {
                               "offset": 380,
-                              "line": 22,
-                              "column": 19
+                              "line": 21,
+                              "column": 18
                             },
                             "end": {
                               "offset": 384,
-                              "line": 22,
-                              "column": 23
+                              "line": 21,
+                              "column": 22
                             },
                             "file": "modules/arraylist.vader"
                           }
@@ -1553,13 +1553,13 @@
                       "location": {
                         "start": {
                           "offset": 375,
-                          "line": 22,
-                          "column": 14
+                          "line": 21,
+                          "column": 13
                         },
                         "end": {
                           "offset": 384,
-                          "line": 22,
-                          "column": 23
+                          "line": 21,
+                          "column": 22
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -1582,13 +1582,13 @@
                   "location": {
                     "start": {
                       "offset": 396,
-                      "line": 22,
-                      "column": 35
+                      "line": 21,
+                      "column": 34
                     },
                     "end": {
                       "offset": 397,
-                      "line": 22,
-                      "column": 36
+                      "line": 21,
+                      "column": 35
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -1596,13 +1596,13 @@
                 "location": {
                   "start": {
                     "offset": 375,
-                    "line": 22,
-                    "column": 14
+                    "line": 21,
+                    "column": 13
                   },
                   "end": {
                     "offset": 397,
-                    "line": 22,
-                    "column": 36
+                    "line": 21,
+                    "column": 35
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -1632,13 +1632,13 @@
                     "location": {
                       "start": {
                         "offset": 375,
-                        "line": 22,
-                        "column": 14
+                        "line": 21,
+                        "column": 13
                       },
                       "end": {
                         "offset": 393,
-                        "line": 22,
-                        "column": 32
+                        "line": 21,
+                        "column": 31
                       },
                       "file": "modules/arraylist.vader"
                     },
@@ -1664,13 +1664,13 @@
                                 "location": {
                                   "start": {
                                     "offset": 34,
-                                    "line": 4,
-                                    "column": 5
+                                    "line": 3,
+                                    "column": 4
                                   },
                                   "end": {
                                     "offset": 47,
-                                    "line": 4,
-                                    "column": 18
+                                    "line": 3,
+                                    "column": 17
                                   },
                                   "file": "modules/arraylist.vader"
                                 }
@@ -1685,13 +1685,13 @@
                                 "location": {
                                   "start": {
                                     "offset": 52,
-                                    "line": 5,
-                                    "column": 5
+                                    "line": 4,
+                                    "column": 4
                                   },
                                   "end": {
                                     "offset": 63,
-                                    "line": 5,
-                                    "column": 16
+                                    "line": 4,
+                                    "column": 15
                                   },
                                   "file": "modules/arraylist.vader"
                                 }
@@ -1702,13 +1702,13 @@
                           "location": {
                             "start": {
                               "offset": 375,
-                              "line": 22,
-                              "column": 14
+                              "line": 21,
+                              "column": 13
                             },
                             "end": {
                               "offset": 379,
-                              "line": 22,
-                              "column": 18
+                              "line": 21,
+                              "column": 17
                             },
                             "file": "modules/arraylist.vader"
                           }
@@ -1729,13 +1729,13 @@
                             "location": {
                               "start": {
                                 "offset": 380,
-                                "line": 22,
-                                "column": 19
+                                "line": 21,
+                                "column": 18
                               },
                               "end": {
                                 "offset": 384,
-                                "line": 22,
-                                "column": 23
+                                "line": 21,
+                                "column": 22
                               },
                               "file": "modules/arraylist.vader"
                             }
@@ -1753,13 +1753,13 @@
                         "location": {
                           "start": {
                             "offset": 375,
-                            "line": 22,
-                            "column": 14
+                            "line": 21,
+                            "column": 13
                           },
                           "end": {
                             "offset": 384,
-                            "line": 22,
-                            "column": 23
+                            "line": 21,
+                            "column": 22
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -1782,13 +1782,13 @@
                     "location": {
                       "start": {
                         "offset": 396,
-                        "line": 22,
-                        "column": 35
+                        "line": 21,
+                        "column": 34
                       },
                       "end": {
                         "offset": 397,
-                        "line": 22,
-                        "column": 36
+                        "line": 21,
+                        "column": 35
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -1796,13 +1796,13 @@
                   "location": {
                     "start": {
                       "offset": 375,
-                      "line": 22,
-                      "column": 14
+                      "line": 21,
+                      "column": 13
                     },
                     "end": {
                       "offset": 397,
-                      "line": 22,
-                      "column": 36
+                      "line": 21,
+                      "column": 35
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -1811,13 +1811,13 @@
               "location": {
                 "start": {
                   "offset": 374,
-                  "line": 22,
-                  "column": 13
+                  "line": 21,
+                  "column": 12
                 },
                 "end": {
                   "offset": 401,
-                  "line": 22,
-                  "column": 40
+                  "line": 21,
+                  "column": 39
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -1825,13 +1825,13 @@
             "location": {
               "start": {
                 "offset": 366,
-                "line": 22,
-                "column": 5
+                "line": 21,
+                "column": 4
               },
               "end": {
                 "offset": 401,
-                "line": 22,
-                "column": 40
+                "line": 21,
+                "column": 39
               },
               "file": "modules/arraylist.vader"
             }
@@ -1858,13 +1858,13 @@
                 "location": {
                   "start": {
                     "offset": 416,
-                    "line": 23,
-                    "column": 15
+                    "line": 22,
+                    "column": 14
                   },
                   "end": {
                     "offset": 417,
-                    "line": 23,
-                    "column": 16
+                    "line": 22,
+                    "column": 15
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -1872,13 +1872,13 @@
               "location": {
                 "start": {
                   "offset": 411,
-                  "line": 23,
-                  "column": 10
+                  "line": 22,
+                  "column": 9
                 },
                 "end": {
                   "offset": 417,
-                  "line": 23,
-                  "column": 16
+                  "line": 22,
+                  "column": 15
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -1902,13 +1902,13 @@
                 "location": {
                   "start": {
                     "offset": 419,
-                    "line": 23,
-                    "column": 18
+                    "line": 22,
+                    "column": 17
                   },
                   "end": {
                     "offset": 420,
-                    "line": 23,
-                    "column": 19
+                    "line": 22,
+                    "column": 18
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -1934,13 +1934,13 @@
                         "location": {
                           "start": {
                             "offset": 34,
-                            "line": 4,
-                            "column": 5
+                            "line": 3,
+                            "column": 4
                           },
                           "end": {
                             "offset": 47,
-                            "line": 4,
-                            "column": 18
+                            "line": 3,
+                            "column": 17
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -1955,13 +1955,13 @@
                         "location": {
                           "start": {
                             "offset": 52,
-                            "line": 5,
-                            "column": 5
+                            "line": 4,
+                            "column": 4
                           },
                           "end": {
                             "offset": 63,
-                            "line": 5,
-                            "column": 16
+                            "line": 4,
+                            "column": 15
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -1972,13 +1972,13 @@
                   "location": {
                     "start": {
                       "offset": 423,
-                      "line": 23,
-                      "column": 22
+                      "line": 22,
+                      "column": 21
                     },
                     "end": {
                       "offset": 427,
-                      "line": 23,
-                      "column": 26
+                      "line": 22,
+                      "column": 25
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -1995,13 +1995,13 @@
                     "location": {
                       "start": {
                         "offset": 428,
-                        "line": 23,
-                        "column": 27
+                        "line": 22,
+                        "column": 26
                       },
                       "end": {
                         "offset": 434,
-                        "line": 23,
-                        "column": 33
+                        "line": 22,
+                        "column": 32
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -2015,13 +2015,13 @@
                 "location": {
                   "start": {
                     "offset": 423,
-                    "line": 23,
-                    "column": 22
+                    "line": 22,
+                    "column": 21
                   },
                   "end": {
                     "offset": 434,
-                    "line": 23,
-                    "column": 33
+                    "line": 22,
+                    "column": 32
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -2029,13 +2029,13 @@
               "location": {
                 "start": {
                   "offset": 419,
-                  "line": 23,
-                  "column": 18
+                  "line": 22,
+                  "column": 17
                 },
                 "end": {
                   "offset": 434,
-                  "line": 23,
-                  "column": 33
+                  "line": 22,
+                  "column": 32
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -2053,13 +2053,13 @@
                 "location": {
                   "start": {
                     "offset": 436,
-                    "line": 23,
-                    "column": 35
+                    "line": 22,
+                    "column": 34
                   },
                   "end": {
                     "offset": 437,
-                    "line": 23,
-                    "column": 36
+                    "line": 22,
+                    "column": 35
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -2083,13 +2083,13 @@
                   "location": {
                     "start": {
                       "offset": 440,
-                      "line": 23,
-                      "column": 39
+                      "line": 22,
+                      "column": 38
                     },
                     "end": {
                       "offset": 441,
-                      "line": 23,
-                      "column": 40
+                      "line": 22,
+                      "column": 39
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -2105,13 +2105,13 @@
                   "location": {
                     "start": {
                       "offset": 444,
-                      "line": 23,
-                      "column": 43
+                      "line": 22,
+                      "column": 42
                     },
                     "end": {
                       "offset": 445,
-                      "line": 23,
-                      "column": 44
+                      "line": 22,
+                      "column": 43
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -2119,13 +2119,13 @@
                 "location": {
                   "start": {
                     "offset": 440,
-                    "line": 23,
-                    "column": 39
+                    "line": 22,
+                    "column": 38
                   },
                   "end": {
                     "offset": 445,
-                    "line": 23,
-                    "column": 44
+                    "line": 22,
+                    "column": 43
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -2133,14 +2133,14 @@
               "location": {
                 "start": {
                   "offset": 436,
-                  "line": 23,
-                  "column": 35
+                  "line": 22,
+                  "column": 34
                 },
                 "file": "modules/arraylist.vader",
                 "end": {
                   "offset": 445,
-                  "line": 23,
-                  "column": 44
+                  "line": 22,
+                  "column": 43
                 }
               }
             },
@@ -2173,13 +2173,13 @@
                           "location": {
                             "start": {
                               "offset": 375,
-                              "line": 22,
-                              "column": 14
+                              "line": 21,
+                              "column": 13
                             },
                             "end": {
                               "offset": 393,
-                              "line": 22,
-                              "column": 32
+                              "line": 21,
+                              "column": 31
                             },
                             "file": "modules/arraylist.vader"
                           },
@@ -2205,13 +2205,13 @@
                                       "location": {
                                         "start": {
                                           "offset": 34,
-                                          "line": 4,
-                                          "column": 5
+                                          "line": 3,
+                                          "column": 4
                                         },
                                         "end": {
                                           "offset": 47,
-                                          "line": 4,
-                                          "column": 18
+                                          "line": 3,
+                                          "column": 17
                                         },
                                         "file": "modules/arraylist.vader"
                                       }
@@ -2226,13 +2226,13 @@
                                       "location": {
                                         "start": {
                                           "offset": 52,
-                                          "line": 5,
-                                          "column": 5
+                                          "line": 4,
+                                          "column": 4
                                         },
                                         "end": {
                                           "offset": 63,
-                                          "line": 5,
-                                          "column": 16
+                                          "line": 4,
+                                          "column": 15
                                         },
                                         "file": "modules/arraylist.vader"
                                       }
@@ -2243,13 +2243,13 @@
                                 "location": {
                                   "start": {
                                     "offset": 375,
-                                    "line": 22,
-                                    "column": 14
+                                    "line": 21,
+                                    "column": 13
                                   },
                                   "end": {
                                     "offset": 379,
-                                    "line": 22,
-                                    "column": 18
+                                    "line": 21,
+                                    "column": 17
                                   },
                                   "file": "modules/arraylist.vader"
                                 }
@@ -2270,13 +2270,13 @@
                                   "location": {
                                     "start": {
                                       "offset": 380,
-                                      "line": 22,
-                                      "column": 19
+                                      "line": 21,
+                                      "column": 18
                                     },
                                     "end": {
                                       "offset": 384,
-                                      "line": 22,
-                                      "column": 23
+                                      "line": 21,
+                                      "column": 22
                                     },
                                     "file": "modules/arraylist.vader"
                                   }
@@ -2294,13 +2294,13 @@
                               "location": {
                                 "start": {
                                   "offset": 375,
-                                  "line": 22,
-                                  "column": 14
+                                  "line": 21,
+                                  "column": 13
                                 },
                                 "end": {
                                   "offset": 384,
-                                  "line": 22,
-                                  "column": 23
+                                  "line": 21,
+                                  "column": 22
                                 },
                                 "file": "modules/arraylist.vader"
                               }
@@ -2323,13 +2323,13 @@
                           "location": {
                             "start": {
                               "offset": 396,
-                              "line": 22,
-                              "column": 35
+                              "line": 21,
+                              "column": 34
                             },
                             "end": {
                               "offset": 397,
-                              "line": 22,
-                              "column": 36
+                              "line": 21,
+                              "column": 35
                             },
                             "file": "modules/arraylist.vader"
                           }
@@ -2337,13 +2337,13 @@
                         "location": {
                           "start": {
                             "offset": 375,
-                            "line": 22,
-                            "column": 14
+                            "line": 21,
+                            "column": 13
                           },
                           "end": {
                             "offset": 397,
-                            "line": 22,
-                            "column": 36
+                            "line": 21,
+                            "column": 35
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -2353,13 +2353,13 @@
                     "location": {
                       "start": {
                         "offset": 457,
-                        "line": 24,
-                        "column": 9
+                        "line": 23,
+                        "column": 8
                       },
                       "end": {
                         "offset": 461,
-                        "line": 24,
-                        "column": 13
+                        "line": 23,
+                        "column": 12
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -2378,13 +2378,13 @@
                         "location": {
                           "start": {
                             "offset": 462,
-                            "line": 24,
-                            "column": 14
+                            "line": 23,
+                            "column": 13
                           },
                           "end": {
                             "offset": 463,
-                            "line": 24,
-                            "column": 15
+                            "line": 23,
+                            "column": 14
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -2398,13 +2398,13 @@
                         "file": "modules/arraylist.vader",
                         "start": {
                           "offset": 461,
-                          "line": 24,
-                          "column": 13
+                          "line": 23,
+                          "column": 12
                         },
                         "end": {
                           "offset": 464,
-                          "line": 24,
-                          "column": 16
+                          "line": 23,
+                          "column": 15
                         }
                       }
                     }
@@ -2417,13 +2417,13 @@
                   "location": {
                     "start": {
                       "offset": 457,
-                      "line": 24,
-                      "column": 9
+                      "line": 23,
+                      "column": 8
                     },
                     "end": {
                       "offset": 464,
-                      "line": 24,
-                      "column": 16
+                      "line": 23,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -2449,13 +2449,13 @@
                           "location": {
                             "start": {
                               "offset": 34,
-                              "line": 4,
-                              "column": 5
+                              "line": 3,
+                              "column": 4
                             },
                             "end": {
                               "offset": 47,
-                              "line": 4,
-                              "column": 18
+                              "line": 3,
+                              "column": 17
                             },
                             "file": "modules/arraylist.vader"
                           }
@@ -2470,13 +2470,13 @@
                           "location": {
                             "start": {
                               "offset": 52,
-                              "line": 5,
-                              "column": 5
+                              "line": 4,
+                              "column": 4
                             },
                             "end": {
                               "offset": 63,
-                              "line": 5,
-                              "column": 16
+                              "line": 4,
+                              "column": 15
                             },
                             "file": "modules/arraylist.vader"
                           }
@@ -2487,13 +2487,13 @@
                     "location": {
                       "start": {
                         "offset": 467,
-                        "line": 24,
-                        "column": 19
+                        "line": 23,
+                        "column": 18
                       },
                       "end": {
                         "offset": 471,
-                        "line": 24,
-                        "column": 23
+                        "line": 23,
+                        "column": 22
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -2514,13 +2514,13 @@
                       "location": {
                         "start": {
                           "offset": 472,
-                          "line": 24,
-                          "column": 24
+                          "line": 23,
+                          "column": 23
                         },
                         "end": {
                           "offset": 476,
-                          "line": 24,
-                          "column": 28
+                          "line": 23,
+                          "column": 27
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -2538,13 +2538,13 @@
                         "location": {
                           "start": {
                             "offset": 477,
-                            "line": 24,
-                            "column": 29
+                            "line": 23,
+                            "column": 28
                           },
                           "end": {
                             "offset": 478,
-                            "line": 24,
-                            "column": 30
+                            "line": 23,
+                            "column": 29
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -2558,13 +2558,13 @@
                         "file": "modules/arraylist.vader",
                         "start": {
                           "offset": 476,
-                          "line": 24,
-                          "column": 28
+                          "line": 23,
+                          "column": 27
                         },
                         "end": {
                           "offset": 479,
-                          "line": 24,
-                          "column": 31
+                          "line": 23,
+                          "column": 30
                         }
                       }
                     }
@@ -2577,13 +2577,13 @@
                   "location": {
                     "start": {
                       "offset": 467,
-                      "line": 24,
-                      "column": 19
+                      "line": 23,
+                      "column": 18
                     },
                     "end": {
                       "offset": 479,
-                      "line": 24,
-                      "column": 31
+                      "line": 23,
+                      "column": 30
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -2591,14 +2591,14 @@
                 "location": {
                   "start": {
                     "offset": 457,
-                    "line": 24,
-                    "column": 9
+                    "line": 23,
+                    "column": 8
                   },
                   "file": "modules/arraylist.vader",
                   "end": {
                     "offset": 479,
-                    "line": 24,
-                    "column": 31
+                    "line": 23,
+                    "column": 30
                   }
                 }
               }
@@ -2606,13 +2606,13 @@
             "location": {
               "start": {
                 "offset": 406,
-                "line": 23,
-                "column": 5
+                "line": 22,
+                "column": 4
               },
               "end": {
                 "offset": 485,
-                "line": 25,
-                "column": 6
+                "line": 24,
+                "column": 5
               },
               "file": "modules/arraylist.vader"
             }
@@ -2640,13 +2640,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -2661,13 +2661,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -2678,13 +2678,13 @@
                 "location": {
                   "start": {
                     "offset": 490,
-                    "line": 26,
-                    "column": 5
+                    "line": 25,
+                    "column": 4
                   },
                   "end": {
                     "offset": 494,
-                    "line": 26,
-                    "column": 9
+                    "line": 25,
+                    "column": 8
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -2705,13 +2705,13 @@
                   "location": {
                     "start": {
                       "offset": 495,
-                      "line": 26,
-                      "column": 10
+                      "line": 25,
+                      "column": 9
                     },
                     "end": {
                       "offset": 499,
-                      "line": 26,
-                      "column": 14
+                      "line": 25,
+                      "column": 13
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -2729,13 +2729,13 @@
               "location": {
                 "start": {
                   "offset": 490,
-                  "line": 26,
-                  "column": 5
+                  "line": 25,
+                  "column": 4
                 },
                 "end": {
                   "offset": 499,
-                  "line": 26,
-                  "column": 14
+                  "line": 25,
+                  "column": 13
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -2764,13 +2764,13 @@
                     "location": {
                       "start": {
                         "offset": 375,
-                        "line": 22,
-                        "column": 14
+                        "line": 21,
+                        "column": 13
                       },
                       "end": {
                         "offset": 393,
-                        "line": 22,
-                        "column": 32
+                        "line": 21,
+                        "column": 31
                       },
                       "file": "modules/arraylist.vader"
                     },
@@ -2796,13 +2796,13 @@
                                 "location": {
                                   "start": {
                                     "offset": 34,
-                                    "line": 4,
-                                    "column": 5
+                                    "line": 3,
+                                    "column": 4
                                   },
                                   "end": {
                                     "offset": 47,
-                                    "line": 4,
-                                    "column": 18
+                                    "line": 3,
+                                    "column": 17
                                   },
                                   "file": "modules/arraylist.vader"
                                 }
@@ -2817,13 +2817,13 @@
                                 "location": {
                                   "start": {
                                     "offset": 52,
-                                    "line": 5,
-                                    "column": 5
+                                    "line": 4,
+                                    "column": 4
                                   },
                                   "end": {
                                     "offset": 63,
-                                    "line": 5,
-                                    "column": 16
+                                    "line": 4,
+                                    "column": 15
                                   },
                                   "file": "modules/arraylist.vader"
                                 }
@@ -2834,13 +2834,13 @@
                           "location": {
                             "start": {
                               "offset": 375,
-                              "line": 22,
-                              "column": 14
+                              "line": 21,
+                              "column": 13
                             },
                             "end": {
                               "offset": 379,
-                              "line": 22,
-                              "column": 18
+                              "line": 21,
+                              "column": 17
                             },
                             "file": "modules/arraylist.vader"
                           }
@@ -2861,13 +2861,13 @@
                             "location": {
                               "start": {
                                 "offset": 380,
-                                "line": 22,
-                                "column": 19
+                                "line": 21,
+                                "column": 18
                               },
                               "end": {
                                 "offset": 384,
-                                "line": 22,
-                                "column": 23
+                                "line": 21,
+                                "column": 22
                               },
                               "file": "modules/arraylist.vader"
                             }
@@ -2885,13 +2885,13 @@
                         "location": {
                           "start": {
                             "offset": 375,
-                            "line": 22,
-                            "column": 14
+                            "line": 21,
+                            "column": 13
                           },
                           "end": {
                             "offset": 384,
-                            "line": 22,
-                            "column": 23
+                            "line": 21,
+                            "column": 22
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -2914,13 +2914,13 @@
                     "location": {
                       "start": {
                         "offset": 396,
-                        "line": 22,
-                        "column": 35
+                        "line": 21,
+                        "column": 34
                       },
                       "end": {
                         "offset": 397,
-                        "line": 22,
-                        "column": 36
+                        "line": 21,
+                        "column": 35
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -2928,13 +2928,13 @@
                   "location": {
                     "start": {
                       "offset": 375,
-                      "line": 22,
-                      "column": 14
+                      "line": 21,
+                      "column": 13
                     },
                     "end": {
                       "offset": 397,
-                      "line": 22,
-                      "column": 36
+                      "line": 21,
+                      "column": 35
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -2944,13 +2944,13 @@
               "location": {
                 "start": {
                   "offset": 502,
-                  "line": 26,
-                  "column": 17
+                  "line": 25,
+                  "column": 16
                 },
                 "end": {
                   "offset": 506,
-                  "line": 26,
-                  "column": 21
+                  "line": 25,
+                  "column": 20
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -2958,14 +2958,14 @@
             "location": {
               "start": {
                 "offset": 490,
-                "line": 26,
-                "column": 5
+                "line": 25,
+                "column": 4
               },
               "file": "modules/arraylist.vader",
               "end": {
                 "offset": 506,
-                "line": 26,
-                "column": 21
+                "line": 25,
+                "column": 20
               }
             }
           }
@@ -2973,13 +2973,13 @@
         "location": {
           "start": {
             "offset": 337,
-            "line": 21,
-            "column": 9
+            "line": 20,
+            "column": 8
           },
           "end": {
             "offset": 508,
-            "line": 27,
-            "column": 2
+            "line": 26,
+            "column": 1
           },
           "file": "modules/arraylist.vader"
         }
@@ -2987,13 +2987,13 @@
       "location": {
         "start": {
           "offset": 329,
-          "line": 21,
-          "column": 1
+          "line": 20,
+          "column": 0
         },
         "end": {
           "offset": 508,
-          "line": 27,
-          "column": 2
+          "line": 26,
+          "column": 1
         },
         "file": "modules/arraylist.vader"
       }
@@ -3025,13 +3025,13 @@
                   "location": {
                     "start": {
                       "offset": 34,
-                      "line": 4,
-                      "column": 5
+                      "line": 3,
+                      "column": 4
                     },
                     "end": {
                       "offset": 47,
-                      "line": 4,
-                      "column": 18
+                      "line": 3,
+                      "column": 17
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -3046,13 +3046,13 @@
                   "location": {
                     "start": {
                       "offset": 52,
-                      "line": 5,
-                      "column": 5
+                      "line": 4,
+                      "column": 4
                     },
                     "end": {
                       "offset": 63,
-                      "line": 5,
-                      "column": 16
+                      "line": 4,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -3062,13 +3062,13 @@
             "location": {
               "start": {
                 "offset": 521,
-                "line": 29,
-                "column": 12
+                "line": 28,
+                "column": 11
               },
               "end": {
                 "offset": 531,
-                "line": 29,
-                "column": 22
+                "line": 28,
+                "column": 21
               },
               "file": "modules/arraylist.vader"
             }
@@ -3083,13 +3083,13 @@
             "location": {
               "start": {
                 "offset": 533,
-                "line": 29,
-                "column": 24
+                "line": 28,
+                "column": 23
               },
               "end": {
                 "offset": 542,
-                "line": 29,
-                "column": 33
+                "line": 28,
+                "column": 32
               },
               "file": "modules/arraylist.vader"
             }
@@ -3126,13 +3126,13 @@
                     "location": {
                       "start": {
                         "offset": 34,
-                        "line": 4,
-                        "column": 5
+                        "line": 3,
+                        "column": 4
                       },
                       "end": {
                         "offset": 47,
-                        "line": 4,
-                        "column": 18
+                        "line": 3,
+                        "column": 17
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -3147,13 +3147,13 @@
                     "location": {
                       "start": {
                         "offset": 52,
-                        "line": 5,
-                        "column": 5
+                        "line": 4,
+                        "column": 4
                       },
                       "end": {
                         "offset": 63,
-                        "line": 5,
-                        "column": 16
+                        "line": 4,
+                        "column": 15
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -3163,13 +3163,13 @@
               "location": {
                 "start": {
                   "offset": 521,
-                  "line": 29,
-                  "column": 12
+                  "line": 28,
+                  "column": 11
                 },
                 "end": {
                   "offset": 531,
-                  "line": 29,
-                  "column": 22
+                  "line": 28,
+                  "column": 21
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -3184,13 +3184,13 @@
               "location": {
                 "start": {
                   "offset": 533,
-                  "line": 29,
-                  "column": 24
+                  "line": 28,
+                  "column": 23
                 },
                 "end": {
                   "offset": 542,
-                  "line": 29,
-                  "column": 33
+                  "line": 28,
+                  "column": 32
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -3239,13 +3239,13 @@
                           "location": {
                             "start": {
                               "offset": 34,
-                              "line": 4,
-                              "column": 5
+                              "line": 3,
+                              "column": 4
                             },
                             "end": {
                               "offset": 47,
-                              "line": 4,
-                              "column": 18
+                              "line": 3,
+                              "column": 17
                             },
                             "file": "modules/arraylist.vader"
                           }
@@ -3260,13 +3260,13 @@
                           "location": {
                             "start": {
                               "offset": 52,
-                              "line": 5,
-                              "column": 5
+                              "line": 4,
+                              "column": 4
                             },
                             "end": {
                               "offset": 63,
-                              "line": 5,
-                              "column": 16
+                              "line": 4,
+                              "column": 15
                             },
                             "file": "modules/arraylist.vader"
                           }
@@ -3277,13 +3277,13 @@
                     "location": {
                       "start": {
                         "offset": 602,
-                        "line": 31,
-                        "column": 14
+                        "line": 30,
+                        "column": 13
                       },
                       "end": {
                         "offset": 606,
-                        "line": 31,
-                        "column": 18
+                        "line": 30,
+                        "column": 17
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -3292,13 +3292,13 @@
                 "location": {
                   "start": {
                     "offset": 597,
-                    "line": 31,
-                    "column": 9
+                    "line": 30,
+                    "column": 8
                   },
                   "end": {
                     "offset": 607,
-                    "line": 31,
-                    "column": 19
+                    "line": 30,
+                    "column": 18
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -3333,13 +3333,13 @@
                         "location": {
                           "start": {
                             "offset": 34,
-                            "line": 4,
-                            "column": 5
+                            "line": 3,
+                            "column": 4
                           },
                           "end": {
                             "offset": 47,
-                            "line": 4,
-                            "column": 18
+                            "line": 3,
+                            "column": 17
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -3354,13 +3354,13 @@
                         "location": {
                           "start": {
                             "offset": 52,
-                            "line": 5,
-                            "column": 5
+                            "line": 4,
+                            "column": 4
                           },
                           "end": {
                             "offset": 63,
-                            "line": 5,
-                            "column": 16
+                            "line": 4,
+                            "column": 15
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -3371,13 +3371,13 @@
                   "location": {
                     "start": {
                       "offset": 553,
-                      "line": 30,
-                      "column": 8
+                      "line": 29,
+                      "column": 7
                     },
                     "end": {
                       "offset": 557,
-                      "line": 30,
-                      "column": 12
+                      "line": 29,
+                      "column": 11
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -3394,13 +3394,13 @@
                     "location": {
                       "start": {
                         "offset": 558,
-                        "line": 30,
-                        "column": 13
+                        "line": 29,
+                        "column": 12
                       },
                       "end": {
                         "offset": 564,
-                        "line": 30,
-                        "column": 19
+                        "line": 29,
+                        "column": 18
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -3414,13 +3414,13 @@
                 "location": {
                   "start": {
                     "offset": 553,
-                    "line": 30,
-                    "column": 8
+                    "line": 29,
+                    "column": 7
                   },
                   "end": {
                     "offset": 564,
-                    "line": 30,
-                    "column": 19
+                    "line": 29,
+                    "column": 18
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -3431,13 +3431,13 @@
                 "location": {
                   "start": {
                     "offset": 568,
-                    "line": 30,
-                    "column": 23
+                    "line": 29,
+                    "column": 22
                   },
                   "end": {
                     "offset": 586,
-                    "line": 30,
-                    "column": 41
+                    "line": 29,
+                    "column": 40
                   },
                   "file": "modules/arraylist.vader"
                 },
@@ -3463,13 +3463,13 @@
                             "location": {
                               "start": {
                                 "offset": 34,
-                                "line": 4,
-                                "column": 5
+                                "line": 3,
+                                "column": 4
                               },
                               "end": {
                                 "offset": 47,
-                                "line": 4,
-                                "column": 18
+                                "line": 3,
+                                "column": 17
                               },
                               "file": "modules/arraylist.vader"
                             }
@@ -3484,13 +3484,13 @@
                             "location": {
                               "start": {
                                 "offset": 52,
-                                "line": 5,
-                                "column": 5
+                                "line": 4,
+                                "column": 4
                               },
                               "end": {
                                 "offset": 63,
-                                "line": 5,
-                                "column": 16
+                                "line": 4,
+                                "column": 15
                               },
                               "file": "modules/arraylist.vader"
                             }
@@ -3501,13 +3501,13 @@
                       "location": {
                         "start": {
                           "offset": 568,
-                          "line": 30,
-                          "column": 23
+                          "line": 29,
+                          "column": 22
                         },
                         "end": {
                           "offset": 572,
-                          "line": 30,
-                          "column": 27
+                          "line": 29,
+                          "column": 26
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -3528,13 +3528,13 @@
                         "location": {
                           "start": {
                             "offset": 573,
-                            "line": 30,
-                            "column": 28
+                            "line": 29,
+                            "column": 27
                           },
                           "end": {
                             "offset": 577,
-                            "line": 30,
-                            "column": 32
+                            "line": 29,
+                            "column": 31
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -3552,13 +3552,13 @@
                     "location": {
                       "start": {
                         "offset": 568,
-                        "line": 30,
-                        "column": 23
+                        "line": 29,
+                        "column": 22
                       },
                       "end": {
                         "offset": 577,
-                        "line": 30,
-                        "column": 32
+                        "line": 29,
+                        "column": 31
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -3573,13 +3573,13 @@
               "location": {
                 "start": {
                   "offset": 553,
-                  "line": 30,
-                  "column": 8
+                  "line": 29,
+                  "column": 7
                 },
                 "end": {
                   "offset": 586,
-                  "line": 30,
-                  "column": 41
+                  "line": 29,
+                  "column": 40
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -3587,13 +3587,13 @@
             "location": {
               "start": {
                 "offset": 550,
-                "line": 30,
-                "column": 5
+                "line": 29,
+                "column": 4
               },
               "end": {
                 "offset": 613,
-                "line": 32,
-                "column": 6
+                "line": 31,
+                "column": 5
               },
               "file": "modules/arraylist.vader"
             }
@@ -3621,13 +3621,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -3642,13 +3642,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -3659,13 +3659,13 @@
                 "location": {
                   "start": {
                     "offset": 618,
-                    "line": 33,
-                    "column": 5
+                    "line": 32,
+                    "column": 4
                   },
                   "end": {
                     "offset": 622,
-                    "line": 33,
-                    "column": 9
+                    "line": 32,
+                    "column": 8
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -3686,13 +3686,13 @@
                   "location": {
                     "start": {
                       "offset": 623,
-                      "line": 33,
-                      "column": 10
+                      "line": 32,
+                      "column": 9
                     },
                     "end": {
                       "offset": 627,
-                      "line": 33,
-                      "column": 14
+                      "line": 32,
+                      "column": 13
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -3720,13 +3720,13 @@
                             "location": {
                               "start": {
                                 "offset": 34,
-                                "line": 4,
-                                "column": 5
+                                "line": 3,
+                                "column": 4
                               },
                               "end": {
                                 "offset": 47,
-                                "line": 4,
-                                "column": 18
+                                "line": 3,
+                                "column": 17
                               },
                               "file": "modules/arraylist.vader"
                             }
@@ -3741,13 +3741,13 @@
                             "location": {
                               "start": {
                                 "offset": 52,
-                                "line": 5,
-                                "column": 5
+                                "line": 4,
+                                "column": 4
                               },
                               "end": {
                                 "offset": 63,
-                                "line": 5,
-                                "column": 16
+                                "line": 4,
+                                "column": 15
                               },
                               "file": "modules/arraylist.vader"
                             }
@@ -3758,13 +3758,13 @@
                       "location": {
                         "start": {
                           "offset": 628,
-                          "line": 33,
-                          "column": 15
+                          "line": 32,
+                          "column": 14
                         },
                         "end": {
                           "offset": 632,
-                          "line": 33,
-                          "column": 19
+                          "line": 32,
+                          "column": 18
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -3781,13 +3781,13 @@
                         "location": {
                           "start": {
                             "offset": 633,
-                            "line": 33,
-                            "column": 20
+                            "line": 32,
+                            "column": 19
                           },
                           "end": {
                             "offset": 639,
-                            "line": 33,
-                            "column": 26
+                            "line": 32,
+                            "column": 25
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -3801,13 +3801,13 @@
                     "location": {
                       "start": {
                         "offset": 628,
-                        "line": 33,
-                        "column": 15
+                        "line": 32,
+                        "column": 14
                       },
                       "end": {
                         "offset": 639,
-                        "line": 33,
-                        "column": 26
+                        "line": 32,
+                        "column": 25
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -3821,13 +3821,13 @@
                     "file": "modules/arraylist.vader",
                     "start": {
                       "offset": 627,
-                      "line": 33,
-                      "column": 14
+                      "line": 32,
+                      "column": 13
                     },
                     "end": {
                       "offset": 640,
-                      "line": 33,
-                      "column": 27
+                      "line": 32,
+                      "column": 26
                     }
                   }
                 }
@@ -3840,13 +3840,13 @@
               "location": {
                 "start": {
                   "offset": 618,
-                  "line": 33,
-                  "column": 5
+                  "line": 32,
+                  "column": 4
                 },
                 "end": {
                   "offset": 640,
-                  "line": 33,
-                  "column": 27
+                  "line": 32,
+                  "column": 26
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -3862,13 +3862,13 @@
               "location": {
                 "start": {
                   "offset": 643,
-                  "line": 33,
-                  "column": 30
+                  "line": 32,
+                  "column": 29
                 },
                 "end": {
                   "offset": 647,
-                  "line": 33,
-                  "column": 34
+                  "line": 32,
+                  "column": 33
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -3876,14 +3876,14 @@
             "location": {
               "start": {
                 "offset": 618,
-                "line": 33,
-                "column": 5
+                "line": 32,
+                "column": 4
               },
               "file": "modules/arraylist.vader",
               "end": {
                 "offset": 647,
-                "line": 33,
-                "column": 34
+                "line": 32,
+                "column": 33
               }
             }
           },
@@ -3910,13 +3910,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -3931,13 +3931,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -3948,13 +3948,13 @@
                 "location": {
                   "start": {
                     "offset": 652,
-                    "line": 34,
-                    "column": 5
+                    "line": 33,
+                    "column": 4
                   },
                   "end": {
                     "offset": 656,
-                    "line": 34,
-                    "column": 9
+                    "line": 33,
+                    "column": 8
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -3971,13 +3971,13 @@
                   "location": {
                     "start": {
                       "offset": 657,
-                      "line": 34,
-                      "column": 10
+                      "line": 33,
+                      "column": 9
                     },
                     "end": {
                       "offset": 663,
-                      "line": 34,
-                      "column": 16
+                      "line": 33,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -3991,13 +3991,13 @@
               "location": {
                 "start": {
                   "offset": 652,
-                  "line": 34,
-                  "column": 5
+                  "line": 33,
+                  "column": 4
                 },
                 "end": {
                   "offset": 663,
-                  "line": 34,
-                  "column": 16
+                  "line": 33,
+                  "column": 15
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -4031,13 +4031,13 @@
                         "location": {
                           "start": {
                             "offset": 34,
-                            "line": 4,
-                            "column": 5
+                            "line": 3,
+                            "column": 4
                           },
                           "end": {
                             "offset": 47,
-                            "line": 4,
-                            "column": 18
+                            "line": 3,
+                            "column": 17
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -4052,13 +4052,13 @@
                         "location": {
                           "start": {
                             "offset": 52,
-                            "line": 5,
-                            "column": 5
+                            "line": 4,
+                            "column": 4
                           },
                           "end": {
                             "offset": 63,
-                            "line": 5,
-                            "column": 16
+                            "line": 4,
+                            "column": 15
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -4069,13 +4069,13 @@
                   "location": {
                     "start": {
                       "offset": 666,
-                      "line": 34,
-                      "column": 19
+                      "line": 33,
+                      "column": 18
                     },
                     "end": {
                       "offset": 670,
-                      "line": 34,
-                      "column": 23
+                      "line": 33,
+                      "column": 22
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -4092,13 +4092,13 @@
                     "location": {
                       "start": {
                         "offset": 671,
-                        "line": 34,
-                        "column": 24
+                        "line": 33,
+                        "column": 23
                       },
                       "end": {
                         "offset": 677,
-                        "line": 34,
-                        "column": 30
+                        "line": 33,
+                        "column": 29
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -4112,13 +4112,13 @@
                 "location": {
                   "start": {
                     "offset": 666,
-                    "line": 34,
-                    "column": 19
+                    "line": 33,
+                    "column": 18
                   },
                   "end": {
                     "offset": 677,
-                    "line": 34,
-                    "column": 30
+                    "line": 33,
+                    "column": 29
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -4134,13 +4134,13 @@
                 "location": {
                   "start": {
                     "offset": 680,
-                    "line": 34,
-                    "column": 33
+                    "line": 33,
+                    "column": 32
                   },
                   "end": {
                     "offset": 681,
-                    "line": 34,
-                    "column": 34
+                    "line": 33,
+                    "column": 33
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -4148,13 +4148,13 @@
               "location": {
                 "start": {
                   "offset": 666,
-                  "line": 34,
-                  "column": 19
+                  "line": 33,
+                  "column": 18
                 },
                 "end": {
                   "offset": 681,
-                  "line": 34,
-                  "column": 34
+                  "line": 33,
+                  "column": 33
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -4162,14 +4162,14 @@
             "location": {
               "start": {
                 "offset": 652,
-                "line": 34,
-                "column": 5
+                "line": 33,
+                "column": 4
               },
               "file": "modules/arraylist.vader",
               "end": {
                 "offset": 681,
-                "line": 34,
-                "column": 34
+                "line": 33,
+                "column": 33
               }
             }
           }
@@ -4177,13 +4177,13 @@
         "location": {
           "start": {
             "offset": 518,
-            "line": 29,
-            "column": 9
+            "line": 28,
+            "column": 8
           },
           "end": {
             "offset": 683,
-            "line": 35,
-            "column": 2
+            "line": 34,
+            "column": 1
           },
           "file": "modules/arraylist.vader"
         }
@@ -4191,13 +4191,13 @@
       "location": {
         "start": {
           "offset": 510,
-          "line": 29,
-          "column": 1
+          "line": 28,
+          "column": 0
         },
         "end": {
           "offset": 683,
-          "line": 35,
-          "column": 2
+          "line": 34,
+          "column": 1
         },
         "file": "modules/arraylist.vader"
       }
@@ -4229,13 +4229,13 @@
                   "location": {
                     "start": {
                       "offset": 34,
-                      "line": 4,
-                      "column": 5
+                      "line": 3,
+                      "column": 4
                     },
                     "end": {
                       "offset": 47,
-                      "line": 4,
-                      "column": 18
+                      "line": 3,
+                      "column": 17
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -4250,13 +4250,13 @@
                   "location": {
                     "start": {
                       "offset": 52,
-                      "line": 5,
-                      "column": 5
+                      "line": 4,
+                      "column": 4
                     },
                     "end": {
                       "offset": 63,
-                      "line": 5,
-                      "column": 16
+                      "line": 4,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -4266,13 +4266,13 @@
             "location": {
               "start": {
                 "offset": 697,
-                "line": 37,
-                "column": 13
+                "line": 36,
+                "column": 12
               },
               "end": {
                 "offset": 707,
-                "line": 37,
-                "column": 23
+                "line": 36,
+                "column": 22
               },
               "file": "modules/arraylist.vader"
             }
@@ -4309,13 +4309,13 @@
                     "location": {
                       "start": {
                         "offset": 34,
-                        "line": 4,
-                        "column": 5
+                        "line": 3,
+                        "column": 4
                       },
                       "end": {
                         "offset": 47,
-                        "line": 4,
-                        "column": 18
+                        "line": 3,
+                        "column": 17
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -4330,13 +4330,13 @@
                     "location": {
                       "start": {
                         "offset": 52,
-                        "line": 5,
-                        "column": 5
+                        "line": 4,
+                        "column": 4
                       },
                       "end": {
                         "offset": 63,
-                        "line": 5,
-                        "column": 16
+                        "line": 4,
+                        "column": 15
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -4346,13 +4346,13 @@
               "location": {
                 "start": {
                   "offset": 697,
-                  "line": 37,
-                  "column": 13
+                  "line": 36,
+                  "column": 12
                 },
                 "end": {
                   "offset": 707,
-                  "line": 37,
-                  "column": 23
+                  "line": 36,
+                  "column": 22
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -4396,13 +4396,13 @@
                         "location": {
                           "start": {
                             "offset": 34,
-                            "line": 4,
-                            "column": 5
+                            "line": 3,
+                            "column": 4
                           },
                           "end": {
                             "offset": 47,
-                            "line": 4,
-                            "column": 18
+                            "line": 3,
+                            "column": 17
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -4417,13 +4417,13 @@
                         "location": {
                           "start": {
                             "offset": 52,
-                            "line": 5,
-                            "column": 5
+                            "line": 4,
+                            "column": 4
                           },
                           "end": {
                             "offset": 63,
-                            "line": 5,
-                            "column": 16
+                            "line": 4,
+                            "column": 15
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -4434,13 +4434,13 @@
                   "location": {
                     "start": {
                       "offset": 733,
-                      "line": 38,
-                      "column": 12
+                      "line": 37,
+                      "column": 11
                     },
                     "end": {
                       "offset": 737,
-                      "line": 38,
-                      "column": 16
+                      "line": 37,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -4457,13 +4457,13 @@
                     "location": {
                       "start": {
                         "offset": 738,
-                        "line": 38,
-                        "column": 17
+                        "line": 37,
+                        "column": 16
                       },
                       "end": {
                         "offset": 744,
-                        "line": 38,
-                        "column": 23
+                        "line": 37,
+                        "column": 22
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -4477,13 +4477,13 @@
                 "location": {
                   "start": {
                     "offset": 733,
-                    "line": 38,
-                    "column": 12
+                    "line": 37,
+                    "column": 11
                   },
                   "end": {
                     "offset": 744,
-                    "line": 38,
-                    "column": 23
+                    "line": 37,
+                    "column": 22
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -4499,13 +4499,13 @@
                 "location": {
                   "start": {
                     "offset": 748,
-                    "line": 38,
-                    "column": 27
+                    "line": 37,
+                    "column": 26
                   },
                   "end": {
                     "offset": 749,
-                    "line": 38,
-                    "column": 28
+                    "line": 37,
+                    "column": 27
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -4513,13 +4513,13 @@
               "location": {
                 "start": {
                   "offset": 733,
-                  "line": 38,
-                  "column": 12
+                  "line": 37,
+                  "column": 11
                 },
                 "end": {
                   "offset": 749,
-                  "line": 38,
-                  "column": 28
+                  "line": 37,
+                  "column": 27
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -4527,13 +4527,13 @@
             "location": {
               "start": {
                 "offset": 726,
-                "line": 38,
-                "column": 5
+                "line": 37,
+                "column": 4
               },
               "end": {
                 "offset": 749,
-                "line": 38,
-                "column": 28
+                "line": 37,
+                "column": 27
               },
               "file": "modules/arraylist.vader"
             }
@@ -4542,13 +4542,13 @@
         "location": {
           "start": {
             "offset": 694,
-            "line": 37,
-            "column": 10
+            "line": 36,
+            "column": 9
           },
           "end": {
             "offset": 751,
-            "line": 39,
-            "column": 2
+            "line": 38,
+            "column": 1
           },
           "file": "modules/arraylist.vader"
         }
@@ -4556,13 +4556,13 @@
       "location": {
         "start": {
           "offset": 685,
-          "line": 37,
-          "column": 1
+          "line": 36,
+          "column": 0
         },
         "end": {
           "offset": 751,
-          "line": 39,
-          "column": 2
+          "line": 38,
+          "column": 1
         },
         "file": "modules/arraylist.vader"
       }
@@ -4594,13 +4594,13 @@
                   "location": {
                     "start": {
                       "offset": 34,
-                      "line": 4,
-                      "column": 5
+                      "line": 3,
+                      "column": 4
                     },
                     "end": {
                       "offset": 47,
-                      "line": 4,
-                      "column": 18
+                      "line": 3,
+                      "column": 17
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -4615,13 +4615,13 @@
                   "location": {
                     "start": {
                       "offset": 52,
-                      "line": 5,
-                      "column": 5
+                      "line": 4,
+                      "column": 4
                     },
                     "end": {
                       "offset": 63,
-                      "line": 5,
-                      "column": 16
+                      "line": 4,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -4631,13 +4631,13 @@
             "location": {
               "start": {
                 "offset": 762,
-                "line": 41,
-                "column": 10
+                "line": 40,
+                "column": 9
               },
               "end": {
                 "offset": 772,
-                "line": 41,
-                "column": 20
+                "line": 40,
+                "column": 19
               },
               "file": "modules/arraylist.vader"
             }
@@ -4674,13 +4674,13 @@
                     "location": {
                       "start": {
                         "offset": 34,
-                        "line": 4,
-                        "column": 5
+                        "line": 3,
+                        "column": 4
                       },
                       "end": {
                         "offset": 47,
-                        "line": 4,
-                        "column": 18
+                        "line": 3,
+                        "column": 17
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -4695,13 +4695,13 @@
                     "location": {
                       "start": {
                         "offset": 52,
-                        "line": 5,
-                        "column": 5
+                        "line": 4,
+                        "column": 4
                       },
                       "end": {
                         "offset": 63,
-                        "line": 5,
-                        "column": 16
+                        "line": 4,
+                        "column": 15
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -4711,13 +4711,13 @@
               "location": {
                 "start": {
                   "offset": 762,
-                  "line": 41,
-                  "column": 10
+                  "line": 40,
+                  "column": 9
                 },
                 "end": {
                   "offset": 772,
-                  "line": 41,
-                  "column": 20
+                  "line": 40,
+                  "column": 19
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -4753,13 +4753,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -4774,13 +4774,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -4791,13 +4791,13 @@
                 "location": {
                   "start": {
                     "offset": 787,
-                    "line": 42,
-                    "column": 5
+                    "line": 41,
+                    "column": 4
                   },
                   "end": {
                     "offset": 791,
-                    "line": 42,
-                    "column": 9
+                    "line": 41,
+                    "column": 8
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -4814,13 +4814,13 @@
                   "location": {
                     "start": {
                       "offset": 792,
-                      "line": 42,
-                      "column": 10
+                      "line": 41,
+                      "column": 9
                     },
                     "end": {
                       "offset": 798,
-                      "line": 42,
-                      "column": 16
+                      "line": 41,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -4834,13 +4834,13 @@
               "location": {
                 "start": {
                   "offset": 787,
-                  "line": 42,
-                  "column": 5
+                  "line": 41,
+                  "column": 4
                 },
                 "end": {
                   "offset": 798,
-                  "line": 42,
-                  "column": 16
+                  "line": 41,
+                  "column": 15
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -4874,13 +4874,13 @@
                         "location": {
                           "start": {
                             "offset": 34,
-                            "line": 4,
-                            "column": 5
+                            "line": 3,
+                            "column": 4
                           },
                           "end": {
                             "offset": 47,
-                            "line": 4,
-                            "column": 18
+                            "line": 3,
+                            "column": 17
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -4895,13 +4895,13 @@
                         "location": {
                           "start": {
                             "offset": 52,
-                            "line": 5,
-                            "column": 5
+                            "line": 4,
+                            "column": 4
                           },
                           "end": {
                             "offset": 63,
-                            "line": 5,
-                            "column": 16
+                            "line": 4,
+                            "column": 15
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -4912,13 +4912,13 @@
                   "location": {
                     "start": {
                       "offset": 801,
-                      "line": 42,
-                      "column": 19
+                      "line": 41,
+                      "column": 18
                     },
                     "end": {
                       "offset": 805,
-                      "line": 42,
-                      "column": 23
+                      "line": 41,
+                      "column": 22
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -4935,13 +4935,13 @@
                     "location": {
                       "start": {
                         "offset": 806,
-                        "line": 42,
-                        "column": 24
+                        "line": 41,
+                        "column": 23
                       },
                       "end": {
                         "offset": 812,
-                        "line": 42,
-                        "column": 30
+                        "line": 41,
+                        "column": 29
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -4955,13 +4955,13 @@
                 "location": {
                   "start": {
                     "offset": 801,
-                    "line": 42,
-                    "column": 19
+                    "line": 41,
+                    "column": 18
                   },
                   "end": {
                     "offset": 812,
-                    "line": 42,
-                    "column": 30
+                    "line": 41,
+                    "column": 29
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -4977,13 +4977,13 @@
                 "location": {
                   "start": {
                     "offset": 815,
-                    "line": 42,
-                    "column": 33
+                    "line": 41,
+                    "column": 32
                   },
                   "end": {
                     "offset": 816,
-                    "line": 42,
-                    "column": 34
+                    "line": 41,
+                    "column": 33
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -4991,13 +4991,13 @@
               "location": {
                 "start": {
                   "offset": 801,
-                  "line": 42,
-                  "column": 19
+                  "line": 41,
+                  "column": 18
                 },
                 "end": {
                   "offset": 816,
-                  "line": 42,
-                  "column": 34
+                  "line": 41,
+                  "column": 33
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -5005,14 +5005,14 @@
             "location": {
               "start": {
                 "offset": 787,
-                "line": 42,
-                "column": 5
+                "line": 41,
+                "column": 4
               },
               "file": "modules/arraylist.vader",
               "end": {
                 "offset": 816,
-                "line": 42,
-                "column": 34
+                "line": 41,
+                "column": 33
               }
             }
           },
@@ -5039,13 +5039,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5060,13 +5060,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5077,13 +5077,13 @@
                 "location": {
                   "start": {
                     "offset": 828,
-                    "line": 43,
-                    "column": 12
+                    "line": 42,
+                    "column": 11
                   },
                   "end": {
                     "offset": 832,
-                    "line": 43,
-                    "column": 16
+                    "line": 42,
+                    "column": 15
                   },
                   "file": "modules/arraylist.vader"
                 }
@@ -5104,13 +5104,13 @@
                   "location": {
                     "start": {
                       "offset": 833,
-                      "line": 43,
-                      "column": 17
+                      "line": 42,
+                      "column": 16
                     },
                     "end": {
                       "offset": 837,
-                      "line": 43,
-                      "column": 21
+                      "line": 42,
+                      "column": 20
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -5138,13 +5138,13 @@
                             "location": {
                               "start": {
                                 "offset": 34,
-                                "line": 4,
-                                "column": 5
+                                "line": 3,
+                                "column": 4
                               },
                               "end": {
                                 "offset": 47,
-                                "line": 4,
-                                "column": 18
+                                "line": 3,
+                                "column": 17
                               },
                               "file": "modules/arraylist.vader"
                             }
@@ -5159,13 +5159,13 @@
                             "location": {
                               "start": {
                                 "offset": 52,
-                                "line": 5,
-                                "column": 5
+                                "line": 4,
+                                "column": 4
                               },
                               "end": {
                                 "offset": 63,
-                                "line": 5,
-                                "column": 16
+                                "line": 4,
+                                "column": 15
                               },
                               "file": "modules/arraylist.vader"
                             }
@@ -5176,13 +5176,13 @@
                       "location": {
                         "start": {
                           "offset": 838,
-                          "line": 43,
-                          "column": 22
+                          "line": 42,
+                          "column": 21
                         },
                         "end": {
                           "offset": 842,
-                          "line": 43,
-                          "column": 26
+                          "line": 42,
+                          "column": 25
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5199,13 +5199,13 @@
                         "location": {
                           "start": {
                             "offset": 843,
-                            "line": 43,
-                            "column": 27
+                            "line": 42,
+                            "column": 26
                           },
                           "end": {
                             "offset": 849,
-                            "line": 43,
-                            "column": 33
+                            "line": 42,
+                            "column": 32
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -5219,13 +5219,13 @@
                     "location": {
                       "start": {
                         "offset": 838,
-                        "line": 43,
-                        "column": 22
+                        "line": 42,
+                        "column": 21
                       },
                       "end": {
                         "offset": 849,
-                        "line": 43,
-                        "column": 33
+                        "line": 42,
+                        "column": 32
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -5239,13 +5239,13 @@
                     "file": "modules/arraylist.vader",
                     "start": {
                       "offset": 837,
-                      "line": 43,
-                      "column": 21
+                      "line": 42,
+                      "column": 20
                     },
                     "end": {
                       "offset": 850,
-                      "line": 43,
-                      "column": 34
+                      "line": 42,
+                      "column": 33
                     }
                   }
                 }
@@ -5258,13 +5258,13 @@
               "location": {
                 "start": {
                   "offset": 828,
-                  "line": 43,
-                  "column": 12
+                  "line": 42,
+                  "column": 11
                 },
                 "end": {
                   "offset": 850,
-                  "line": 43,
-                  "column": 34
+                  "line": 42,
+                  "column": 33
                 },
                 "file": "modules/arraylist.vader"
               }
@@ -5272,13 +5272,13 @@
             "location": {
               "start": {
                 "offset": 821,
-                "line": 43,
-                "column": 5
+                "line": 42,
+                "column": 4
               },
               "end": {
                 "offset": 850,
-                "line": 43,
-                "column": 34
+                "line": 42,
+                "column": 33
               },
               "file": "modules/arraylist.vader"
             }
@@ -5287,13 +5287,13 @@
         "location": {
           "start": {
             "offset": 759,
-            "line": 41,
-            "column": 7
+            "line": 40,
+            "column": 6
           },
           "end": {
             "offset": 852,
-            "line": 44,
-            "column": 2
+            "line": 43,
+            "column": 1
           },
           "file": "modules/arraylist.vader"
         }
@@ -5301,13 +5301,13 @@
       "location": {
         "start": {
           "offset": 753,
-          "line": 41,
-          "column": 1
+          "line": 40,
+          "column": 0
         },
         "end": {
           "offset": 852,
-          "line": 44,
-          "column": 2
+          "line": 43,
+          "column": 1
         },
         "file": "modules/arraylist.vader"
       }
@@ -5360,13 +5360,13 @@
                   "location": {
                     "start": {
                       "offset": 34,
-                      "line": 4,
-                      "column": 5
+                      "line": 3,
+                      "column": 4
                     },
                     "end": {
                       "offset": 47,
-                      "line": 4,
-                      "column": 18
+                      "line": 3,
+                      "column": 17
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -5381,13 +5381,13 @@
                   "location": {
                     "start": {
                       "offset": 52,
-                      "line": 5,
-                      "column": 5
+                      "line": 4,
+                      "column": 4
                     },
                     "end": {
                       "offset": 63,
-                      "line": 5,
-                      "column": 16
+                      "line": 4,
+                      "column": 15
                     },
                     "file": "modules/arraylist.vader"
                   }
@@ -5413,13 +5413,13 @@
                     "location": {
                       "start": {
                         "offset": 34,
-                        "line": 4,
-                        "column": 5
+                        "line": 3,
+                        "column": 4
                       },
                       "end": {
                         "offset": 47,
-                        "line": 4,
-                        "column": 18
+                        "line": 3,
+                        "column": 17
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -5434,13 +5434,13 @@
                     "location": {
                       "start": {
                         "offset": 52,
-                        "line": 5,
-                        "column": 5
+                        "line": 4,
+                        "column": 4
                       },
                       "end": {
                         "offset": 63,
-                        "line": 5,
-                        "column": 16
+                        "line": 4,
+                        "column": 15
                       },
                       "file": "modules/arraylist.vader"
                     }
@@ -5460,13 +5460,13 @@
                   "location": {
                     "start": {
                       "offset": 65,
-                      "line": 4,
-                      "column": 25
+                      "line": 3,
+                      "column": 24
                     },
                     "end": {
                       "offset": 66,
-                      "line": 4,
-                      "column": 26
+                      "line": 3,
+                      "column": 25
                     },
                     "file": "examples/arraylists.vader"
                   }
@@ -5475,13 +5475,13 @@
               "location": {
                 "start": {
                   "offset": 53,
-                  "line": 4,
-                  "column": 13
+                  "line": 3,
+                  "column": 12
                 },
                 "end": {
                   "offset": 67,
-                  "line": 4,
-                  "column": 27
+                  "line": 3,
+                  "column": 26
                 },
                 "file": "examples/arraylists.vader"
               }
@@ -5489,13 +5489,13 @@
             "location": {
               "start": {
                 "offset": 45,
-                "line": 4,
-                "column": 5
+                "line": 3,
+                "column": 4
               },
               "end": {
                 "offset": 67,
-                "line": 4,
-                "column": 27
+                "line": 3,
+                "column": 26
               },
               "file": "examples/arraylists.vader"
             }
@@ -5506,13 +5506,13 @@
             "location": {
               "start": {
                 "offset": 72,
-                "line": 5,
-                "column": 5
+                "line": 4,
+                "column": 4
               },
               "end": {
                 "offset": 84,
-                "line": 5,
-                "column": 17
+                "line": 4,
+                "column": 16
               },
               "file": "examples/arraylists.vader"
             },
@@ -5536,13 +5536,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5557,13 +5557,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5574,13 +5574,13 @@
                 "location": {
                   "start": {
                     "offset": 72,
-                    "line": 5,
-                    "column": 5
+                    "line": 4,
+                    "column": 4
                   },
                   "end": {
                     "offset": 76,
-                    "line": 5,
-                    "column": 9
+                    "line": 4,
+                    "column": 8
                   },
                   "file": "examples/arraylists.vader"
                 }
@@ -5596,13 +5596,13 @@
                 "location": {
                   "start": {
                     "offset": 82,
-                    "line": 5,
-                    "column": 15
+                    "line": 4,
+                    "column": 14
                   },
                   "end": {
                     "offset": 83,
-                    "line": 5,
-                    "column": 16
+                    "line": 4,
+                    "column": 15
                   },
                   "file": "examples/arraylists.vader"
                 }
@@ -5620,13 +5620,13 @@
             "location": {
               "start": {
                 "offset": 89,
-                "line": 6,
-                "column": 5
+                "line": 5,
+                "column": 4
               },
               "end": {
                 "offset": 101,
-                "line": 6,
-                "column": 17
+                "line": 5,
+                "column": 16
               },
               "file": "examples/arraylists.vader"
             },
@@ -5650,13 +5650,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5671,13 +5671,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5688,13 +5688,13 @@
                 "location": {
                   "start": {
                     "offset": 89,
-                    "line": 6,
-                    "column": 5
+                    "line": 5,
+                    "column": 4
                   },
                   "end": {
                     "offset": 93,
-                    "line": 6,
-                    "column": 9
+                    "line": 5,
+                    "column": 8
                   },
                   "file": "examples/arraylists.vader"
                 }
@@ -5710,13 +5710,13 @@
                 "location": {
                   "start": {
                     "offset": 99,
-                    "line": 6,
-                    "column": 15
+                    "line": 5,
+                    "column": 14
                   },
                   "end": {
                     "offset": 100,
-                    "line": 6,
-                    "column": 16
+                    "line": 5,
+                    "column": 15
                   },
                   "file": "examples/arraylists.vader"
                 }
@@ -5734,13 +5734,13 @@
             "location": {
               "start": {
                 "offset": 106,
-                "line": 7,
-                "column": 5
+                "line": 6,
+                "column": 4
               },
               "end": {
                 "offset": 118,
-                "line": 7,
-                "column": 17
+                "line": 6,
+                "column": 16
               },
               "file": "examples/arraylists.vader"
             },
@@ -5764,13 +5764,13 @@
                       "location": {
                         "start": {
                           "offset": 34,
-                          "line": 4,
-                          "column": 5
+                          "line": 3,
+                          "column": 4
                         },
                         "end": {
                           "offset": 47,
-                          "line": 4,
-                          "column": 18
+                          "line": 3,
+                          "column": 17
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5785,13 +5785,13 @@
                       "location": {
                         "start": {
                           "offset": 52,
-                          "line": 5,
-                          "column": 5
+                          "line": 4,
+                          "column": 4
                         },
                         "end": {
                           "offset": 63,
-                          "line": 5,
-                          "column": 16
+                          "line": 4,
+                          "column": 15
                         },
                         "file": "modules/arraylist.vader"
                       }
@@ -5802,13 +5802,13 @@
                 "location": {
                   "start": {
                     "offset": 106,
-                    "line": 7,
-                    "column": 5
+                    "line": 6,
+                    "column": 4
                   },
                   "end": {
                     "offset": 110,
-                    "line": 7,
-                    "column": 9
+                    "line": 6,
+                    "column": 8
                   },
                   "file": "examples/arraylists.vader"
                 }
@@ -5824,13 +5824,13 @@
                 "location": {
                   "start": {
                     "offset": 116,
-                    "line": 7,
-                    "column": 15
+                    "line": 6,
+                    "column": 14
                   },
                   "end": {
                     "offset": 117,
-                    "line": 7,
-                    "column": 16
+                    "line": 6,
+                    "column": 15
                   },
                   "file": "examples/arraylists.vader"
                 }
@@ -5850,13 +5850,13 @@
               "location": {
                 "start": {
                   "offset": 130,
-                  "line": 8,
-                  "column": 12
+                  "line": 7,
+                  "column": 11
                 },
                 "end": {
                   "offset": 140,
-                  "line": 8,
-                  "column": 22
+                  "line": 7,
+                  "column": 21
                 },
                 "file": "examples/arraylists.vader"
               },
@@ -5880,13 +5880,13 @@
                         "location": {
                           "start": {
                             "offset": 34,
-                            "line": 4,
-                            "column": 5
+                            "line": 3,
+                            "column": 4
                           },
                           "end": {
                             "offset": 47,
-                            "line": 4,
-                            "column": 18
+                            "line": 3,
+                            "column": 17
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -5901,13 +5901,13 @@
                         "location": {
                           "start": {
                             "offset": 52,
-                            "line": 5,
-                            "column": 5
+                            "line": 4,
+                            "column": 4
                           },
                           "end": {
                             "offset": 63,
-                            "line": 5,
-                            "column": 16
+                            "line": 4,
+                            "column": 15
                           },
                           "file": "modules/arraylist.vader"
                         }
@@ -5918,13 +5918,13 @@
                   "location": {
                     "start": {
                       "offset": 130,
-                      "line": 8,
-                      "column": 12
+                      "line": 7,
+                      "column": 11
                     },
                     "end": {
                       "offset": 134,
-                      "line": 8,
-                      "column": 16
+                      "line": 7,
+                      "column": 15
                     },
                     "file": "examples/arraylists.vader"
                   }
@@ -5940,13 +5940,13 @@
                   "location": {
                     "start": {
                       "offset": 138,
-                      "line": 8,
-                      "column": 20
+                      "line": 7,
+                      "column": 19
                     },
                     "end": {
                       "offset": 139,
-                      "line": 8,
-                      "column": 21
+                      "line": 7,
+                      "column": 20
                     },
                     "file": "examples/arraylists.vader"
                   }
@@ -5961,13 +5961,13 @@
             "location": {
               "start": {
                 "offset": 123,
-                "line": 8,
-                "column": 5
+                "line": 7,
+                "column": 4
               },
               "end": {
                 "offset": 140,
-                "line": 8,
-                "column": 22
+                "line": 7,
+                "column": 21
               },
               "file": "examples/arraylists.vader"
             }
@@ -5976,13 +5976,13 @@
         "location": {
           "start": {
             "offset": 27,
-            "line": 3,
-            "column": 9
+            "line": 2,
+            "column": 8
           },
           "end": {
             "offset": 142,
-            "line": 9,
-            "column": 2
+            "line": 8,
+            "column": 1
           },
           "file": "examples/arraylists.vader"
         }
@@ -5990,13 +5990,13 @@
       "location": {
         "start": {
           "offset": 19,
-          "line": 3,
-          "column": 1
+          "line": 2,
+          "column": 0
         },
         "end": {
           "offset": 142,
-          "line": 9,
-          "column": 2
+          "line": 8,
+          "column": 1
         },
         "file": "examples/arraylists.vader"
       }
@@ -6005,13 +6005,13 @@
   "location": {
     "start": {
       "offset": 0,
-      "line": 1,
-      "column": 1
+      "line": 0,
+      "column": 0
     },
     "end": {
       "offset": 143,
-      "line": 10,
-      "column": 1
+      "line": 9,
+      "column": 0
     },
     "file": "examples/arraylists.vader"
   }

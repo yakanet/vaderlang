@@ -48,10 +48,10 @@ connection.onInitialize((params: InitializeParams) => {
       //  resolveProvider: true,
       //},
       hoverProvider: true,
-      //diagnosticProvider: {
-      //  interFileDependencies: false,
-      //  workspaceDiagnostics: false,
-      //},
+      diagnosticProvider: {
+        interFileDependencies: false,
+        workspaceDiagnostics: false,
+      },
     },
   };
   //if (hasWorkspaceFolderCapability) {

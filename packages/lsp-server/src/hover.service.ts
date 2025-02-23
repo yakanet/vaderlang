@@ -20,8 +20,8 @@ export class HoverService {
       }
     }
     for(const token of tokenize(document.getText(), document.uri)) {
-      if(token.location.start.line === handler.position.line + 1) {
-        if(token.location.start.column <= handler.position.character + 1 && token.location.end.column > handler.position.character + 1) {
+      if(token.location.start.line === handler.position.line) {
+        if(token.location.start.column <= handler.position.character && token.location.end.column > handler.position.character) {
           return {
             contents: [
               JSON.stringify({type: token.type, value: token.value})
