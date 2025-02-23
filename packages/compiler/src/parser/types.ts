@@ -1,4 +1,4 @@
-import type {Decorator} from "../tokens/types.ts";
+import type {Decorator, Location} from "../tokens/types.ts";
 
 export interface Position {
     offset: number
@@ -107,7 +107,8 @@ export type StructInstantiationExpression = BasicStatement & {
     kind: 'StructInstantiationExpression',
     parameters: {
         name?: string,
-        value: Expression
+        value: Expression,
+        location: Location
     }[],
     type: VaderType,
     structName: string,
@@ -149,7 +150,8 @@ export interface StructVaderType {
     kind: 'struct'
     parameters: {
         name: string,
-        type: VaderType
+        type: VaderType,
+        location: Location
     }[]
 }
 
@@ -164,7 +166,8 @@ export interface FunctionVaderType {
     kind: 'function'
     parameters: {
         name: string,
-        type: VaderType
+        type: VaderType,
+        location: Location
     }[],
     decorators: Decorator[]
     returnType: VaderType,

@@ -1,12 +1,14 @@
 import type {VaderType} from "../parser/types";
 import assert from "node:assert";
-import type {Decorator} from "../tokens/types.ts";
+import {locationToString, type Decorator, type Location} from "../tokens/types.ts";
+import type { BundleContext } from "../context/context.ts";
 
 export class Ref {
     constructor(
         public readonly named: string,
         public readonly type: VaderType,
-        public readonly source: Source
+        public readonly source: Source,
+        public readonly location: Location
     ) {
     }
 }
@@ -49,19 +51,23 @@ export class Scope {
     public readonly depth: number;
     #parent?: Scope
 
-    constructor(parent?: Scope) {
+    constructor(public readonly context: BundleContext, parent?: Scope) {
         this.#parent = parent;
         this.depth = parent ? parent.depth + 1 : 0;
     }
 
-    newGlobalVariable(type: VaderType, name: string) {
+    static childScope(scope: Scope) {
+        return new Scope(scope.context, scope);
+    }
+
+    newGlobalVariable(type: VaderType, name: string, location: Location) {
         assert(this.depth === 0, "Global variable must be declared in global scope");
         return this.newVariable(type, name, {
             kind: "GlobalParameterSource",
-        })
+        }, location)
     }
 
-    newFunctionParameter(type: VaderType, index: number, name: string) {
+    newFunctionParameter(type: VaderType, index: number, name: string, location: Location) {
         if (this.depth === 0) {
             throw new Error("Function parameter must be declared in a function scope");
         }
@@ -69,15 +75,15 @@ export class Scope {
             return this.newVariable(type, name, {
                 kind: "FunctionParameterSource",
                 index
-            })
+            }, location)
         }
         return this.#parent!.newVariable(type, name, {
             kind: "FunctionParameterSource",
             index
-        })
+        }, location)
     }
 
-    newLocalVariable(type: VaderType, index: number, name: string) {
+    newLocalVariable(type: VaderType, index: number, name: string, location: Location) {
         if (this.depth === 0) {
             throw new Error("Function parameter must be declared in a function scope");
         }
@@ -85,32 +91,32 @@ export class Scope {
             return this.newVariable(type, name, {
                 kind: "LocalVariableSource",
                 index
-            })
+            }, location)
         }
         return this.#parent!.newVariable(type, name, {
             kind: "LocalVariableSource",
             index
-        })
+        }, location)
     }
 
-    private newVariable(type: VaderType, name: string, source: Source) {
+    private newVariable(type: VaderType, name: string, source: Source, location: Location) {
         if (this.namedVariables.has(name)) {
-            throw new Error(`Already declared variable ${name}`);
+            throw this.context.reportError(`variable ${name} is already declared at ${locationToString(this.namedVariables.get(name)!.location)}`, location)
         }
-        const ref = new Ref(name, type, source);
+        const ref = new Ref(name, type, source, location);
         this.namedVariables.set(name, ref);
         return ref;
     }
 
-    lookupVariable(value: string): Ref {
+    lookupVariable(value: string, location: Location): Ref {
         const ref = this.namedVariables.get(value);
         if (ref) {
             return ref;
         }
         if (this.#parent) {
-            return this.#parent.lookupVariable(value);
+            return this.#parent.lookupVariable(value, location);
         }
-        throw new Error(`Unknown variable name ${value}`);
+        throw this.context.reportError(`unknown variable ${value}`, location)
     }
 
     allFunctionLevelVariable(): Ref[] {
@@ -120,11 +126,3 @@ export class Scope {
         return this.#parent!.allFunctionLevelVariable();
     }
 }
-
-class _UnresolvedScope extends Scope {
-    override lookupVariable(_value: string): Ref {
-        throw new Error(`Attempt to lookup for a variable with an unresolved scope`)
-    }
-}
-
-export const UnresolvedScope = new _UnresolvedScope();

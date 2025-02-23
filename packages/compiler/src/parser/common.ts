@@ -2,6 +2,7 @@ import {Parser} from "./parser.ts";
 import {type ArrayVaderType, BasicVaderType, type Expression, type Statement, type VaderType} from "./types.ts";
 import {parseStatement} from "./statement.ts";
 import {parseExpression} from "./expression.ts";
+import type { Location } from "../tokens/types.ts";
 
 /**
  * identifier | []+identifier | [_]+identifier | [number]+identifier
@@ -43,14 +44,17 @@ export function parseType(parser: Parser): VaderType {
  * ([identifier: type,?]*)
  * @param parser
  */
-export function parseFunctionArguments(parser: Parser): { name: string, type: VaderType }[] {
+export function parseFunctionArguments(parser: Parser) {
     parser.expect('OpenRoundBracket')
-    const parameters: { name: string, type: VaderType }[] = [];
+    const parameters: { name: string, type: VaderType, location: Location }[] = [];
     while (!parser.isCurrentType('CloseRoundBracket')) {
         const identifier = parser.expect('Identifier')
         parser.expect('ColonToken');
         const type = parseType(parser);
-        parameters.push({name: identifier.value, type})
+        parameters.push({name: identifier.value, type, location: {
+            ...identifier.location,
+            end: parser.previous.location.end
+        }})
         if (!parser.isCurrentType('CommaToken')) {
             break
         }

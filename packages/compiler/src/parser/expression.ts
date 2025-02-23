@@ -101,13 +101,17 @@ function parseStructInstantiation(parser: Parser): Expression {
         }
         parser.expect('OpenCurlyBracket');
         while (!parser.isCurrentType('CloseCurlyBracket')) {
-            let name: string | undefined = undefined;
+            let name: Token | undefined = undefined;
             if (parser.isCurrentType('DotToken')) {
                 parser.expect('DotToken')
-                name = parser.expect('Identifier').value;
+                name = parser.expect('Identifier');
                 parser.expect('EqualToken')
             }
-            instance.parameters.push({name, value: parseExpression(parser)});
+            const expression = parseExpression(parser);
+            instance.parameters.push({name: name?.value, value: expression, location: {
+                ...(name ?? expression).location,
+                end: parser.previous.location.end
+            }});
             if (!parser.isCurrentType('CommaToken')) {
                 break
             }
@@ -247,7 +251,7 @@ function parsePrimaryExpression(parser: Parser): Expression {
         }
     }
 
-    parser.reportError(`unknown expression ${parser.current.value}`, parser.current.location)
+    parser.reportError(`unknown symbol ${parser.current.value}`, parser.current.location)
 }
 
 //////////////////
@@ -257,7 +261,7 @@ function parseFileDecorator(parser: Parser, decorator: Token): StringExpression 
     const file_token = parser.expect('StringLiteral');
     parser.expect('CloseRoundBracket');
     try {
-        const resolved = parser.resolver.resolve(file_token.value);
+        const resolved = parser.context.resolve(file_token.value);
         return {
             kind: 'StringExpression',
             type: BasicVaderType.string,
@@ -371,10 +375,13 @@ function parseStructDeclaration(parser: Parser) {
 
     parser.expect('OpenCurlyBracket');
     while (!parser.isCurrentType('CloseCurlyBracket')) {
-        const name = parser.expect('Identifier').value
+        const name = parser.expect('Identifier')
         parser.expect('ColonToken');
         const type = parseType(parser)
-        structStatement.type.parameters.push({name, type})
+        structStatement.type.parameters.push({name: name.value, type, location: {
+            ...name.location,
+            end: parser.previous.location.end
+        }})
     }
     parser.expect('CloseCurlyBracket');
     return structStatement;

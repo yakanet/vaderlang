@@ -1,16 +1,14 @@
 import type {Token} from "../tokens/types.ts";
-import {ErrorReporter} from "../utils/errors.ts";
-import type {ModuleResolver} from "../resolver/module_resolver.ts";
 import {keywords, tokenize} from "../tokens";
+import type { BundleContext } from "../context/context.ts";
 
 export class Parser {
     private tokens: Token[] = [];
     private index = 0;
-    private reporter = new ErrorReporter()
     private debug = true;
     private loadedFiles = new Set<string>();
 
-    constructor(public readonly resolver: ModuleResolver) {
+    constructor(public readonly context: BundleContext) {
     }
 
     private eat() {
@@ -23,7 +21,7 @@ export class Parser {
             if (!path.endsWith('.vader')) {
                 path += '.vader'
             }
-            const {key, content, location} = this.resolver.resolve(path);
+            const {key, content, location} = this.context.resolve(path);
             if (this.loadedFiles.has(key)) {
                 return
             }
@@ -33,7 +31,7 @@ export class Parser {
             }
             this.tokens = [...this.tokens.slice(0, this.index), ...tokens, ...this.tokens.slice(this.index)]
         } catch (e: any) {
-            this.reporter.reportError(e.message, this.current.location);
+            this.reportError(e.message, this.current.location);
         }
     }
 
@@ -54,12 +52,8 @@ export class Parser {
     }
 
     reportError(message: string, location: Token['location']): never {
-        this.reporter.reportError(message, location)
-        if (this.debug) {
-            throw new Error('debug')
-        } else {
-            process.exit(1);
-        }
+        this.context.reportError(message, location);
+        throw new Error(`Parsing error: ${message}`)
     }
 
     expect(type: Token['type'], message?: string): Token {

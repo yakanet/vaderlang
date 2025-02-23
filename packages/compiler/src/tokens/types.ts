@@ -1,13 +1,19 @@
 import type {Position} from "../parser/types.ts";
 
+export type Location = {
+    start: Position,
+    end: Position
+    file: string
+}
+
+export function locationToString(location: Location) {
+    return `${location.file}:${location.start.line}:${location.start.column}`
+}
+
 type CreateToken<T extends string, V = string> = {
     type: T,
     value: V,
-    location: {
-        start: Position,
-        end: Position
-        file: string
-    }
+    location: Location
 }
 
 export type Decorator = 'intrinsic' | 'file' | 'load'

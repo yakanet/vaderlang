@@ -16,9 +16,11 @@ import {
     type VariableDeclarationStatement,
 } from "../parser/types";
 import assert from "node:assert";
+import type { BundleContext } from "../context/context";
+import type { Location } from "../tokens/types";
 
-export function resolve(program: Program): Program {
-    const scope = new Scope();
+export function resolve(program: Program, context: BundleContext): Program {
+    const scope = new Scope(context);
     const body = program.body.map((statement) =>
         resolveStatement(statement, scope)
     );
@@ -63,7 +65,7 @@ function resolveStatement(
         }
         case "ForStatement":
             const initialization = resolveStatement(statement.initialization, scope)
-            const cloneScope = new Scope(scope)
+            const cloneScope = Scope.childScope(scope)
             return {
                 ...statement,
                 initialization,
@@ -77,18 +79,18 @@ function resolveStatement(
 
 function resolveFunctionDeclaration(
     statement: FunctionDeclarationExpression,
-    scope: Scope
+    scope: Scope,
 ): FunctionDeclarationExpression {
-    const functionScope = new Scope(scope);
+    const functionScope = Scope.childScope(scope);
     let i = 0;
     for (const parameter of statement.type.parameters) {
-        parameter.type = resolveType(parameter.type, scope);
-        functionScope.newFunctionParameter(parameter.type, i++, parameter.name);
+        parameter.type = resolveType(parameter.type, scope, parameter.location);
+        functionScope.newFunctionParameter(parameter.type, i++, parameter.name, parameter.location);
     }
     const body = statement.body.map((stmt) =>
         resolveStatement(stmt, functionScope)
     );
-    statement.type.returnType = resolveType(statement.type.returnType, scope);
+    statement.type.returnType = resolveType(statement.type.returnType, scope, statement.location);
     return {
         ...statement,
         body,
@@ -112,9 +114,9 @@ function resolveVariableDeclaration(
         value.type = type;
     }
     if (scope.depth === 0) {
-        scope.newGlobalVariable(type, statement.name);
+        scope.newGlobalVariable(type, statement.name, statement.location);
     } else {
-        scope.newLocalVariable(type, scope.allFunctionLevelVariable().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name);
+        scope.newLocalVariable(type, scope.allFunctionLevelVariable().filter(v => v.source.kind !== 'GlobalParameterSource').length, statement.name, statement.location);
     }
     return {
         ...statement,
@@ -123,11 +125,11 @@ function resolveVariableDeclaration(
     };
 }
 
-function resolveType(type: VaderType, scope: Scope): VaderType {
+function resolveType(type: VaderType, scope: Scope, location: Location): VaderType {
     if (type.kind === 'array') {
         return {
             ...type,
-            type: resolveType(type.type, scope),
+            type: resolveType(type.type, scope, location),
             length: type.length ? resolveExpression(type.length, scope) : undefined
         }
     }
@@ -135,7 +137,7 @@ function resolveType(type: VaderType, scope: Scope): VaderType {
         if (type.name in BasicVaderType) {
             return (BasicVaderType as any)[type.name];
         }
-        const resolved = scope.lookupVariable(type.name);
+        const resolved = scope.lookupVariable(type.name, location);
         return resolved.type;
     }
     return type;
@@ -143,7 +145,7 @@ function resolveType(type: VaderType, scope: Scope): VaderType {
 
 function resolveExpression(
     expression: Expression,
-    scope: Scope
+    scope: Scope,
 ): Expression {
     switch (expression.kind) {
         case "BinaryExpression": {
@@ -159,12 +161,13 @@ function resolveExpression(
         case "FunctionDeclarationExpression":
             return resolveFunctionDeclaration(expression, scope);
         case "CallExpression": {
-            const resolved = scope.lookupVariable(expression.functionName);
+            const resolved = scope.lookupVariable(expression.functionName, expression.location);
             const parameters = expression.parameters.map((param) =>
                 resolveExpression(param, scope)
             );
             if (resolved.type.kind !== 'function') {
-                throw new Error(`Only function can be call, here try to call a ${resolved.source.kind}`);
+                scope.context.reportError(`Only function can be called, here try to call a ${resolved.named}`, expression.location)
+                return expression
             }
 
             return {
@@ -179,7 +182,7 @@ function resolveExpression(
             assert(expression.type.kind === 'struct');
             for (const parameter of expression.type.parameters) {
                 if (parameter.type.kind === 'unknown') {
-                    parameter.type = resolveType(parameter.type, scope)
+                    parameter.type = resolveType(parameter.type, scope, parameter.location)
                 }
                 //type.parameters.push({name: parameter.name, type: parameter.type});
             }
@@ -188,27 +191,29 @@ function resolveExpression(
             }
         }
         case 'IdentifierExpression': {
-            const variable = scope.lookupVariable(expression.identifier)
+            const variable = scope.lookupVariable(expression.identifier, expression.location)
             return {
                 ...expression,
-                type: resolveType(variable.type, scope),
+                type: resolveType(variable.type, scope, expression.location),
             }
         }
 
         case 'ArrayDeclarationExpression': {
             return {
                 ...expression,
-                type: resolveType(expression.type, scope) as ArrayVaderType,
+                type: resolveType(expression.type, scope, expression.location) as ArrayVaderType,
                 value: expression.value?.map(i => resolveExpression(i, scope)),
             } satisfies ArrayDeclarationExpression;
         }
         case 'StructInstantiationExpression': {
-            const resolved = scope.lookupVariable(expression.structName)
+            const resolved = scope.lookupVariable(expression.structName, expression.location)
             if (resolved.type.kind !== 'struct') {
-                throw new Error(`Trying to instantiate a struct, but ${resolved.named} is not a struct`);
+                scope.context.reportError(`trying to instantiate a struct, but ${resolved.named} is not a struct`, expression.location);
+                return expression;
             }
             if (resolved.type.parameters.length !== expression.parameters.length) {
-                throw new Error(`wrong number of arguments (expected ${resolved.type.parameters.length}, got ${expression.parameters.length})`);
+                scope.context.reportError(`wrong number of arguments (expected ${resolved.type.parameters.length}, got ${expression.parameters.length})`, expression.location);
+                return expression;
             }
             if (expression.parameters.length > 0) {
                 const isNamedParameter = !!expression.parameters[0].name;
@@ -218,9 +223,10 @@ function resolveExpression(
                         assert(expression.parameters[i].name !== undefined)
                         const t = resolved.type.parameters.find(t => t.name === expression.parameters[i].name);
                         if (!t) {
-                            throw new Error(`undeclared ${expression.parameters[i].name} on struct: ${typeToString(resolved.type)}`);
+                            scope.context.reportError(`undeclared ${expression.parameters[i].name} on struct: ${typeToString(resolved.type)}`, expression.location);
+                            return expression;
                         }
-                        t.type = resolveType(t.type, scope);
+                        t.type = resolveType(t.type, scope, expression.parameters[i].location);
                         target = t;
                     } else {
                         assert(expression.parameters[i].name === undefined)
@@ -228,7 +234,8 @@ function resolveExpression(
                     }
                     expression.parameters[i].value = resolveExpression(expression.parameters[i].value, scope);
                     if (!isTypeEquals(expression.parameters[i].value.type, target.type)) {
-                        throw new Error(`wrong type for parameter ${resolved.type.parameters[i].name} (expected ${typeToString(target.type)}, got ${typeToString(expression.parameters[i].value.type)}))`);
+                        scope.context.reportError(`wrong type for parameter ${resolved.type.parameters[i].name} (expected ${typeToString(target.type)}, got ${typeToString(expression.parameters[i].value.type)}))`, expression.location);
+                        return expression;
                     }
                 }
             }
@@ -245,21 +252,25 @@ function resolveExpression(
                 const property = expression.properties[i];
                 if (previousType.kind === 'array') {
                     if (property.kind !== 'ArrayIndexExpression') {
-                        throw new Error(`unrecognized expression ${typeToString(previousType)}.${property.identifier}`);
+                        scope.context.reportError(`unrecognized expression ${typeToString(previousType)}.${property.identifier}`, expression.location);
+                        return expression;
                     }
                     property.index = resolveExpression(property.index, scope) as any;
                     property.type = previousType.type
                 } else if (previousType.kind === 'struct') {
                     if (property.kind !== 'IdentifierExpression') {
-                        throw new Error(`unrecognized expression ${typeToString(previousType)}.${typeToString(property.type)}`);
+                        scope.context.reportError(`unrecognized expression ${typeToString(previousType)}.${typeToString(property.type)}`, expression.location);
+                        return expression;
                     }
                     const resolvedType = previousType.parameters.find(p => p.name === property.identifier)
                     if (!resolvedType) {
-                        throw new Error(`Unresolved property ${property.identifier}`);
+                        scope.context.reportError(`unresolved property ${property.identifier}`, expression.location);
+                        return expression;
                     }
                     expression.properties[i].type = resolvedType.type;
                 } else {
-                    throw new Error(`Not allowed to use dot expression on ${typeToString(previousType)}`)
+                    scope.context.reportError(`not allowed to use dot expression on ${typeToString(previousType)}`, expression.location);
+                    return expression;
                 }
                 previousType = property.type;
 
@@ -275,7 +286,8 @@ function resolveExpression(
             const returnIf = ifBody.at(-1) as Expression;
             const returnElse = elseBody?.at(-1) as Expression | undefined;
             if (returnElse && !isTypeEquals(returnIf.type, returnElse.type)) {
-                throw new Error(`return type mismatch in conditional expression ${JSON.stringify([returnIf.type, returnElse.type])} at ${expression.location.start}`);
+                scope.context.reportError(`return type mismatch in conditional expression ${typeToString(returnIf.type)} != ${typeToString(returnElse.type)}`, expression.location)
+                return expression;
             }
             return {
                 ...expression,
