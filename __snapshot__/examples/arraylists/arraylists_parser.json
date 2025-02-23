@@ -17,6 +17,19 @@
               "name": "string",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 22,
+                "line": 2,
+                "column": 12
+              },
+              "end": {
+                "offset": 34,
+                "line": 2,
+                "column": 24
+              },
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -40,6 +53,19 @@
                 "name": "string",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 22,
+                  "line": 2,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 34,
+                  "line": 2,
+                  "column": 24
+                },
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -94,6 +120,19 @@
               "name": "string",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 70,
+                "line": 5,
+                "column": 13
+              },
+              "end": {
+                "offset": 85,
+                "line": 5,
+                "column": 28
+              },
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -117,6 +156,19 @@
                 "name": "string",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 70,
+                  "line": 5,
+                  "column": 13
+                },
+                "end": {
+                  "offset": 85,
+                  "line": 5,
+                  "column": 28
+                },
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -175,6 +227,19 @@
                 "signed": false
               },
               "dimension": 1
+            },
+            "location": {
+              "start": {
+                "offset": 120,
+                "line": 8,
+                "column": 14
+              },
+              "end": {
+                "offset": 132,
+                "line": 8,
+                "column": 26
+              },
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -202,6 +267,19 @@
                   "signed": false
                 },
                 "dimension": 1
+              },
+              "location": {
+                "start": {
+                  "offset": 120,
+                  "line": 8,
+                  "column": 14
+                },
+                "end": {
+                  "offset": 132,
+                  "line": 8,
+                  "column": 26
+                },
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -257,6 +335,19 @@
                 "signed": false
               },
               "dimension": 1
+            },
+            "location": {
+              "start": {
+                "offset": 34,
+                "line": 4,
+                "column": 5
+              },
+              "end": {
+                "offset": 47,
+                "line": 4,
+                "column": 18
+              },
+              "file": "modules/arraylist.vader"
             }
           },
           {
@@ -265,6 +356,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 52,
+                "line": 5,
+                "column": 5
+              },
+              "end": {
+                "offset": 63,
+                "line": 5,
+                "column": 16
+              },
+              "file": "modules/arraylist.vader"
             }
           }
         ]
@@ -284,6 +388,19 @@
                   "signed": false
                 },
                 "dimension": 1
+              },
+              "location": {
+                "start": {
+                  "offset": 34,
+                  "line": 4,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 47,
+                  "line": 4,
+                  "column": 18
+                },
+                "file": "modules/arraylist.vader"
               }
             },
             {
@@ -292,6 +409,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 52,
+                  "line": 5,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 63,
+                  "line": 5,
+                  "column": 16
+                },
+                "file": "modules/arraylist.vader"
               }
             }
           ]
@@ -338,6 +468,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 85,
+                "line": 8,
+                "column": 19
+              },
+              "end": {
+                "offset": 106,
+                "line": 8,
+                "column": 40
+              },
+              "file": "modules/arraylist.vader"
             }
           }
         ],
@@ -354,6 +497,19 @@
                   "signed": false
                 },
                 "dimension": 1
+              },
+              "location": {
+                "start": {
+                  "offset": 34,
+                  "line": 4,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 47,
+                  "line": 4,
+                  "column": 18
+                },
+                "file": "modules/arraylist.vader"
               }
             },
             {
@@ -362,6 +518,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 52,
+                  "line": 5,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 63,
+                  "line": 5,
+                  "column": 16
+                },
+                "file": "modules/arraylist.vader"
               }
             }
           ]
@@ -379,6 +548,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 85,
+                  "line": 8,
+                  "column": 19
+                },
+                "end": {
+                  "offset": 106,
+                  "line": 8,
+                  "column": 40
+                },
+                "file": "modules/arraylist.vader"
               }
             }
           ],
@@ -395,6 +577,19 @@
                     "signed": false
                   },
                   "dimension": 1
+                },
+                "location": {
+                  "start": {
+                    "offset": 34,
+                    "line": 4,
+                    "column": 5
+                  },
+                  "end": {
+                    "offset": 47,
+                    "line": 4,
+                    "column": 18
+                  },
+                  "file": "modules/arraylist.vader"
                 }
               },
               {
@@ -403,6 +598,19 @@
                   "name": "u32",
                   "kind": "primitive",
                   "signed": false
+                },
+                "location": {
+                  "start": {
+                    "offset": 52,
+                    "line": 5,
+                    "column": 5
+                  },
+                  "end": {
+                    "offset": 63,
+                    "line": 5,
+                    "column": 16
+                  },
+                  "file": "modules/arraylist.vader"
                 }
               }
             ]
@@ -462,6 +670,19 @@
                       },
                       "file": "modules/arraylist.vader"
                     }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 145,
+                      "line": 10,
+                      "column": 10
+                    },
+                    "end": {
+                      "offset": 174,
+                      "line": 10,
+                      "column": 39
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 },
                 {
@@ -487,6 +708,19 @@
                       },
                       "file": "modules/arraylist.vader"
                     }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 185,
+                      "line": 11,
+                      "column": 10
+                    },
+                    "end": {
+                      "offset": 195,
+                      "line": 11,
+                      "column": 20
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 }
               ],
@@ -504,6 +738,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 34,
+                        "line": 4,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 47,
+                        "line": 4,
+                        "column": 18
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   },
                   {
@@ -512,6 +759,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 52,
+                        "line": 5,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 63,
+                        "line": 5,
+                        "column": 16
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   }
                 ]
@@ -596,6 +856,19 @@
                       "signed": false
                     },
                     "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 34,
+                      "line": 4,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 47,
+                      "line": 4,
+                      "column": 18
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 },
                 {
@@ -604,9 +877,35 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 52,
+                      "line": 5,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 63,
+                      "line": 5,
+                      "column": 16
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 }
               ]
+            },
+            "location": {
+              "start": {
+                "offset": 215,
+                "line": 15,
+                "column": 10
+              },
+              "end": {
+                "offset": 226,
+                "line": 15,
+                "column": 21
+              },
+              "file": "modules/arraylist.vader"
             }
           },
           {
@@ -615,6 +914,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 228,
+                "line": 15,
+                "column": 23
+              },
+              "end": {
+                "offset": 238,
+                "line": 15,
+                "column": 33
+              },
+              "file": "modules/arraylist.vader"
             }
           }
         ],
@@ -645,6 +957,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 34,
+                        "line": 4,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 47,
+                        "line": 4,
+                        "column": 18
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   },
                   {
@@ -653,9 +978,35 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 52,
+                        "line": 5,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 63,
+                        "line": 5,
+                        "column": 16
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   }
                 ]
+              },
+              "location": {
+                "start": {
+                  "offset": 215,
+                  "line": 15,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 226,
+                  "line": 15,
+                  "column": 21
+                },
+                "file": "modules/arraylist.vader"
               }
             },
             {
@@ -664,6 +1015,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 228,
+                  "line": 15,
+                  "column": 23
+                },
+                "end": {
+                  "offset": 238,
+                  "line": 15,
+                  "column": 33
+                },
+                "file": "modules/arraylist.vader"
               }
             }
           ],
@@ -693,6 +1057,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -701,6 +1078,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -876,6 +1266,19 @@
                       "signed": false
                     },
                     "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 34,
+                      "line": 4,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 47,
+                      "line": 4,
+                      "column": 18
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 },
                 {
@@ -884,9 +1287,35 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 52,
+                      "line": 5,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 63,
+                      "line": 5,
+                      "column": 16
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 }
               ]
+            },
+            "location": {
+              "start": {
+                "offset": 340,
+                "line": 21,
+                "column": 12
+              },
+              "end": {
+                "offset": 350,
+                "line": 21,
+                "column": 22
+              },
+              "file": "modules/arraylist.vader"
             }
           }
         ],
@@ -917,6 +1346,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 34,
+                        "line": 4,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 47,
+                        "line": 4,
+                        "column": 18
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   },
                   {
@@ -925,9 +1367,35 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 52,
+                        "line": 5,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 63,
+                        "line": 5,
+                        "column": 16
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   }
                 ]
+              },
+              "location": {
+                "start": {
+                  "offset": 340,
+                  "line": 21,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 350,
+                  "line": 21,
+                  "column": 22
+                },
+                "file": "modules/arraylist.vader"
               }
             }
           ],
@@ -992,6 +1460,19 @@
                                   "signed": false
                                 },
                                 "dimension": 1
+                              },
+                              "location": {
+                                "start": {
+                                  "offset": 34,
+                                  "line": 4,
+                                  "column": 5
+                                },
+                                "end": {
+                                  "offset": 47,
+                                  "line": 4,
+                                  "column": 18
+                                },
+                                "file": "modules/arraylist.vader"
                               }
                             },
                             {
@@ -1000,6 +1481,19 @@
                                 "name": "u32",
                                 "kind": "primitive",
                                 "signed": false
+                              },
+                              "location": {
+                                "start": {
+                                  "offset": 52,
+                                  "line": 5,
+                                  "column": 5
+                                },
+                                "end": {
+                                  "offset": 63,
+                                  "line": 5,
+                                  "column": 16
+                                },
+                                "file": "modules/arraylist.vader"
                               }
                             }
                           ]
@@ -1166,6 +1660,19 @@
                                     "signed": false
                                   },
                                   "dimension": 1
+                                },
+                                "location": {
+                                  "start": {
+                                    "offset": 34,
+                                    "line": 4,
+                                    "column": 5
+                                  },
+                                  "end": {
+                                    "offset": 47,
+                                    "line": 4,
+                                    "column": 18
+                                  },
+                                  "file": "modules/arraylist.vader"
                                 }
                               },
                               {
@@ -1174,6 +1681,19 @@
                                   "name": "u32",
                                   "kind": "primitive",
                                   "signed": false
+                                },
+                                "location": {
+                                  "start": {
+                                    "offset": 52,
+                                    "line": 5,
+                                    "column": 5
+                                  },
+                                  "end": {
+                                    "offset": 63,
+                                    "line": 5,
+                                    "column": 16
+                                  },
+                                  "file": "modules/arraylist.vader"
                                 }
                               }
                             ]
@@ -1410,6 +1930,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 34,
+                            "line": 4,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 47,
+                            "line": 4,
+                            "column": 18
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       },
                       {
@@ -1418,6 +1951,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 52,
+                            "line": 5,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 63,
+                            "line": 5,
+                            "column": 16
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       }
                     ]
@@ -1655,6 +2201,19 @@
                                           "signed": false
                                         },
                                         "dimension": 1
+                                      },
+                                      "location": {
+                                        "start": {
+                                          "offset": 34,
+                                          "line": 4,
+                                          "column": 5
+                                        },
+                                        "end": {
+                                          "offset": 47,
+                                          "line": 4,
+                                          "column": 18
+                                        },
+                                        "file": "modules/arraylist.vader"
                                       }
                                     },
                                     {
@@ -1663,6 +2222,19 @@
                                         "name": "u32",
                                         "kind": "primitive",
                                         "signed": false
+                                      },
+                                      "location": {
+                                        "start": {
+                                          "offset": 52,
+                                          "line": 5,
+                                          "column": 5
+                                        },
+                                        "end": {
+                                          "offset": 63,
+                                          "line": 5,
+                                          "column": 16
+                                        },
+                                        "file": "modules/arraylist.vader"
                                       }
                                     }
                                   ]
@@ -1873,6 +2445,19 @@
                               "signed": false
                             },
                             "dimension": 1
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 34,
+                              "line": 4,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 47,
+                              "line": 4,
+                              "column": 18
+                            },
+                            "file": "modules/arraylist.vader"
                           }
                         },
                         {
@@ -1881,6 +2466,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 52,
+                              "line": 5,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 63,
+                              "line": 5,
+                              "column": 16
+                            },
+                            "file": "modules/arraylist.vader"
                           }
                         }
                       ]
@@ -2038,6 +2636,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -2046,6 +2657,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -2168,6 +2792,19 @@
                                     "signed": false
                                   },
                                   "dimension": 1
+                                },
+                                "location": {
+                                  "start": {
+                                    "offset": 34,
+                                    "line": 4,
+                                    "column": 5
+                                  },
+                                  "end": {
+                                    "offset": 47,
+                                    "line": 4,
+                                    "column": 18
+                                  },
+                                  "file": "modules/arraylist.vader"
                                 }
                               },
                               {
@@ -2176,6 +2813,19 @@
                                   "name": "u32",
                                   "kind": "primitive",
                                   "signed": false
+                                },
+                                "location": {
+                                  "start": {
+                                    "offset": 52,
+                                    "line": 5,
+                                    "column": 5
+                                  },
+                                  "end": {
+                                    "offset": 63,
+                                    "line": 5,
+                                    "column": 16
+                                  },
+                                  "file": "modules/arraylist.vader"
                                 }
                               }
                             ]
@@ -2371,6 +3021,19 @@
                       "signed": false
                     },
                     "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 34,
+                      "line": 4,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 47,
+                      "line": 4,
+                      "column": 18
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 },
                 {
@@ -2379,9 +3042,35 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 52,
+                      "line": 5,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 63,
+                      "line": 5,
+                      "column": 16
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 }
               ]
+            },
+            "location": {
+              "start": {
+                "offset": 521,
+                "line": 29,
+                "column": 12
+              },
+              "end": {
+                "offset": 531,
+                "line": 29,
+                "column": 22
+              },
+              "file": "modules/arraylist.vader"
             }
           },
           {
@@ -2390,6 +3079,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 533,
+                "line": 29,
+                "column": 24
+              },
+              "end": {
+                "offset": 542,
+                "line": 29,
+                "column": 33
+              },
+              "file": "modules/arraylist.vader"
             }
           }
         ],
@@ -2420,6 +3122,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 34,
+                        "line": 4,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 47,
+                        "line": 4,
+                        "column": 18
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   },
                   {
@@ -2428,9 +3143,35 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 52,
+                        "line": 5,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 63,
+                        "line": 5,
+                        "column": 16
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   }
                 ]
+              },
+              "location": {
+                "start": {
+                  "offset": 521,
+                  "line": 29,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 531,
+                  "line": 29,
+                  "column": 22
+                },
+                "file": "modules/arraylist.vader"
               }
             },
             {
@@ -2439,6 +3180,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 533,
+                  "line": 29,
+                  "column": 24
+                },
+                "end": {
+                  "offset": 542,
+                  "line": 29,
+                  "column": 33
+                },
+                "file": "modules/arraylist.vader"
               }
             }
           ],
@@ -2481,6 +3235,19 @@
                               "signed": false
                             },
                             "dimension": 1
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 34,
+                              "line": 4,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 47,
+                              "line": 4,
+                              "column": 18
+                            },
+                            "file": "modules/arraylist.vader"
                           }
                         },
                         {
@@ -2489,6 +3256,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 52,
+                              "line": 5,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 63,
+                              "line": 5,
+                              "column": 16
+                            },
+                            "file": "modules/arraylist.vader"
                           }
                         }
                       ]
@@ -2549,6 +3329,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 34,
+                            "line": 4,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 47,
+                            "line": 4,
+                            "column": 18
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       },
                       {
@@ -2557,6 +3350,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 52,
+                            "line": 5,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 63,
+                            "line": 5,
+                            "column": 16
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       }
                     ]
@@ -2653,6 +3459,19 @@
                                 "signed": false
                               },
                               "dimension": 1
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 34,
+                                "line": 4,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 47,
+                                "line": 4,
+                                "column": 18
+                              },
+                              "file": "modules/arraylist.vader"
                             }
                           },
                           {
@@ -2661,6 +3480,19 @@
                               "name": "u32",
                               "kind": "primitive",
                               "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 52,
+                                "line": 5,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 63,
+                                "line": 5,
+                                "column": 16
+                              },
+                              "file": "modules/arraylist.vader"
                             }
                           }
                         ]
@@ -2785,6 +3617,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -2793,6 +3638,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -2858,6 +3716,19 @@
                                 "signed": false
                               },
                               "dimension": 1
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 34,
+                                "line": 4,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 47,
+                                "line": 4,
+                                "column": 18
+                              },
+                              "file": "modules/arraylist.vader"
                             }
                           },
                           {
@@ -2866,6 +3737,19 @@
                               "name": "u32",
                               "kind": "primitive",
                               "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 52,
+                                "line": 5,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 63,
+                                "line": 5,
+                                "column": 16
+                              },
+                              "file": "modules/arraylist.vader"
                             }
                           }
                         ]
@@ -3022,6 +3906,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -3030,6 +3927,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -3117,6 +4027,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 34,
+                            "line": 4,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 47,
+                            "line": 4,
+                            "column": 18
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       },
                       {
@@ -3125,6 +4048,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 52,
+                            "line": 5,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 63,
+                            "line": 5,
+                            "column": 16
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       }
                     ]
@@ -3289,6 +4225,19 @@
                       "signed": false
                     },
                     "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 34,
+                      "line": 4,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 47,
+                      "line": 4,
+                      "column": 18
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 },
                 {
@@ -3297,9 +4246,35 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 52,
+                      "line": 5,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 63,
+                      "line": 5,
+                      "column": 16
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 }
               ]
+            },
+            "location": {
+              "start": {
+                "offset": 697,
+                "line": 37,
+                "column": 13
+              },
+              "end": {
+                "offset": 707,
+                "line": 37,
+                "column": 23
+              },
+              "file": "modules/arraylist.vader"
             }
           }
         ],
@@ -3330,6 +4305,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 34,
+                        "line": 4,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 47,
+                        "line": 4,
+                        "column": 18
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   },
                   {
@@ -3338,9 +4326,35 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 52,
+                        "line": 5,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 63,
+                        "line": 5,
+                        "column": 16
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   }
                 ]
+              },
+              "location": {
+                "start": {
+                  "offset": 697,
+                  "line": 37,
+                  "column": 13
+                },
+                "end": {
+                  "offset": 707,
+                  "line": 37,
+                  "column": 23
+                },
+                "file": "modules/arraylist.vader"
               }
             }
           ],
@@ -3378,6 +4392,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 34,
+                            "line": 4,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 47,
+                            "line": 4,
+                            "column": 18
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       },
                       {
@@ -3386,6 +4413,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 52,
+                            "line": 5,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 63,
+                            "line": 5,
+                            "column": 16
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       }
                     ]
@@ -3550,6 +4590,19 @@
                       "signed": false
                     },
                     "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 34,
+                      "line": 4,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 47,
+                      "line": 4,
+                      "column": 18
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 },
                 {
@@ -3558,9 +4611,35 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 52,
+                      "line": 5,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 63,
+                      "line": 5,
+                      "column": 16
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 }
               ]
+            },
+            "location": {
+              "start": {
+                "offset": 762,
+                "line": 41,
+                "column": 10
+              },
+              "end": {
+                "offset": 772,
+                "line": 41,
+                "column": 20
+              },
+              "file": "modules/arraylist.vader"
             }
           }
         ],
@@ -3591,6 +4670,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 34,
+                        "line": 4,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 47,
+                        "line": 4,
+                        "column": 18
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   },
                   {
@@ -3599,9 +4691,35 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 52,
+                        "line": 5,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 63,
+                        "line": 5,
+                        "column": 16
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   }
                 ]
+              },
+              "location": {
+                "start": {
+                  "offset": 762,
+                  "line": 41,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 772,
+                  "line": 41,
+                  "column": 20
+                },
+                "file": "modules/arraylist.vader"
               }
             }
           ],
@@ -3631,6 +4749,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -3639,6 +4770,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -3726,6 +4870,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 34,
+                            "line": 4,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 47,
+                            "line": 4,
+                            "column": 18
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       },
                       {
@@ -3734,6 +4891,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 52,
+                            "line": 5,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 63,
+                            "line": 5,
+                            "column": 16
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       }
                     ]
@@ -3865,6 +5035,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -3873,6 +5056,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -3938,6 +5134,19 @@
                                 "signed": false
                               },
                               "dimension": 1
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 34,
+                                "line": 4,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 47,
+                                "line": 4,
+                                "column": 18
+                              },
+                              "file": "modules/arraylist.vader"
                             }
                           },
                           {
@@ -3946,6 +5155,19 @@
                               "name": "u32",
                               "kind": "primitive",
                               "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 52,
+                                "line": 5,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 63,
+                                "line": 5,
+                                "column": 16
+                              },
+                              "file": "modules/arraylist.vader"
                             }
                           }
                         ]
@@ -4134,6 +5356,19 @@
                       "signed": false
                     },
                     "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 34,
+                      "line": 4,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 47,
+                      "line": 4,
+                      "column": 18
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 },
                 {
@@ -4142,6 +5377,19 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 52,
+                      "line": 5,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 63,
+                      "line": 5,
+                      "column": 16
+                    },
+                    "file": "modules/arraylist.vader"
                   }
                 }
               ]
@@ -4161,6 +5409,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 34,
+                        "line": 4,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 47,
+                        "line": 4,
+                        "column": 18
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   },
                   {
@@ -4169,6 +5430,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 52,
+                        "line": 5,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 63,
+                        "line": 5,
+                        "column": 16
+                      },
+                      "file": "modules/arraylist.vader"
                     }
                   }
                 ]
@@ -4258,6 +5532,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -4266,6 +5553,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -4346,6 +5646,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -4354,6 +5667,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -4434,6 +5760,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 34,
+                          "line": 4,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 47,
+                          "line": 4,
+                          "column": 18
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     },
                     {
@@ -4442,6 +5781,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 52,
+                          "line": 5,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 63,
+                          "line": 5,
+                          "column": 16
+                        },
+                        "file": "modules/arraylist.vader"
                       }
                     }
                   ]
@@ -4524,6 +5876,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 34,
+                            "line": 4,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 47,
+                            "line": 4,
+                            "column": 18
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       },
                       {
@@ -4532,6 +5897,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 52,
+                            "line": 5,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 63,
+                            "line": 5,
+                            "column": 16
+                          },
+                          "file": "modules/arraylist.vader"
                         }
                       }
                     ]

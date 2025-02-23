@@ -17,6 +17,19 @@
               "name": "string",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 23,
+                "line": 2,
+                "column": 13
+              },
+              "end": {
+                "offset": 38,
+                "line": 2,
+                "column": 28
+              },
+              "file": "examples/condition.vader"
             }
           }
         ],
@@ -40,6 +53,19 @@
                 "name": "string",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 23,
+                  "line": 2,
+                  "column": 13
+                },
+                "end": {
+                  "offset": 38,
+                  "line": 2,
+                  "column": 28
+                },
+                "file": "examples/condition.vader"
               }
             }
           ],

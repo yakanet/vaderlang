@@ -274,12 +274,12 @@ export type Expression =
     | StringExpression
     | IdentifierExpression
     | BinaryExpression
+    | DotExpression
     | ConditionalExpression
     | CallExpression
     | FunctionDeclarationExpression
     | StructDeclarationExpression
     | StructInstantiationExpression
-    | DotExpression
     | ArrayDeclarationExpression
     | ArrayIndexExpression
 
@@ -287,8 +287,7 @@ export type Statement =
     | Program
     | ReturnStatement
     | ConditionalStatement
-    | Expression
     | VariableDeclarationStatement
     | VariableAssignmentStatement
     | ForStatement
-    ;
+    | Expression

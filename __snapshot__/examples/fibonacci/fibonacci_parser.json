@@ -15,6 +15,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 16,
+                "line": 1,
+                "column": 17
+              },
+              "end": {
+                "offset": 24,
+                "line": 1,
+                "column": 25
+              },
+              "file": "examples/fibonacci.vader"
             }
           }
         ],
@@ -36,6 +49,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 16,
+                  "line": 1,
+                  "column": 17
+                },
+                "end": {
+                  "offset": 24,
+                  "line": 1,
+                  "column": 25
+                },
+                "file": "examples/fibonacci.vader"
               }
             }
           ],

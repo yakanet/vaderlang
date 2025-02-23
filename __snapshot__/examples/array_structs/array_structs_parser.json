@@ -18,6 +18,19 @@
                 "signed": false
               },
               "dimension": 1
+            },
+            "location": {
+              "start": {
+                "offset": 21,
+                "line": 2,
+                "column": 5
+              },
+              "end": {
+                "offset": 32,
+                "line": 2,
+                "column": 16
+              },
+              "file": "examples/array_structs.vader"
             }
           },
           {
@@ -26,6 +39,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 37,
+                "line": 3,
+                "column": 5
+              },
+              "end": {
+                "offset": 48,
+                "line": 3,
+                "column": 16
+              },
+              "file": "examples/array_structs.vader"
             }
           }
         ]
@@ -45,6 +71,19 @@
                   "signed": false
                 },
                 "dimension": 1
+              },
+              "location": {
+                "start": {
+                  "offset": 21,
+                  "line": 2,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 32,
+                  "line": 2,
+                  "column": 16
+                },
+                "file": "examples/array_structs.vader"
               }
             },
             {
@@ -53,6 +92,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 37,
+                  "line": 3,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 48,
+                  "line": 3,
+                  "column": 16
+                },
+                "file": "examples/array_structs.vader"
               }
             }
           ]
@@ -176,6 +228,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 21,
+                        "line": 2,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 32,
+                        "line": 2,
+                        "column": 16
+                      },
+                      "file": "examples/array_structs.vader"
                     }
                   },
                   {
@@ -184,6 +249,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 37,
+                        "line": 3,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 48,
+                        "line": 3,
+                        "column": 16
+                      },
+                      "file": "examples/array_structs.vader"
                     }
                   }
                 ]
@@ -229,6 +307,19 @@
                           "signed": false
                         },
                         "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 21,
+                          "line": 2,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 32,
+                          "line": 2,
+                          "column": 16
+                        },
+                        "file": "examples/array_structs.vader"
                       }
                     },
                     {
@@ -237,6 +328,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 37,
+                          "line": 3,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 48,
+                          "line": 3,
+                          "column": 16
+                        },
+                        "file": "examples/array_structs.vader"
                       }
                     }
                   ]
@@ -314,6 +418,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 21,
+                            "line": 2,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 32,
+                            "line": 2,
+                            "column": 16
+                          },
+                          "file": "examples/array_structs.vader"
                         }
                       },
                       {
@@ -322,6 +439,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 37,
+                            "line": 3,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 48,
+                            "line": 3,
+                            "column": 16
+                          },
+                          "file": "examples/array_structs.vader"
                         }
                       }
                     ]
@@ -403,6 +533,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 21,
+                            "line": 2,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 32,
+                            "line": 2,
+                            "column": 16
+                          },
+                          "file": "examples/array_structs.vader"
                         }
                       },
                       {
@@ -411,6 +554,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 37,
+                            "line": 3,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 48,
+                            "line": 3,
+                            "column": 16
+                          },
+                          "file": "examples/array_structs.vader"
                         }
                       }
                     ]
@@ -443,6 +599,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 21,
+                        "line": 2,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 32,
+                        "line": 2,
+                        "column": 16
+                      },
+                      "file": "examples/array_structs.vader"
                     }
                   },
                   {
@@ -451,6 +620,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 37,
+                        "line": 3,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 48,
+                        "line": 3,
+                        "column": 16
+                      },
+                      "file": "examples/array_structs.vader"
                     }
                   }
                 ]
@@ -520,6 +702,19 @@
                       },
                       "file": "examples/array_structs.vader"
                     }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 136,
+                      "line": 9,
+                      "column": 10
+                    },
+                    "end": {
+                      "offset": 156,
+                      "line": 9,
+                      "column": 30
+                    },
+                    "file": "examples/array_structs.vader"
                   }
                 },
                 {
@@ -545,6 +740,19 @@
                       },
                       "file": "examples/array_structs.vader"
                     }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 167,
+                      "line": 10,
+                      "column": 10
+                    },
+                    "end": {
+                      "offset": 178,
+                      "line": 10,
+                      "column": 21
+                    },
+                    "file": "examples/array_structs.vader"
                   }
                 }
               ],
@@ -562,6 +770,19 @@
                         "signed": false
                       },
                       "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 21,
+                        "line": 2,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 32,
+                        "line": 2,
+                        "column": 16
+                      },
+                      "file": "examples/array_structs.vader"
                     }
                   },
                   {
@@ -570,6 +791,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 37,
+                        "line": 3,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 48,
+                        "line": 3,
+                        "column": 16
+                      },
+                      "file": "examples/array_structs.vader"
                     }
                   }
                 ]
@@ -623,6 +857,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 21,
+                            "line": 2,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 32,
+                            "line": 2,
+                            "column": 16
+                          },
+                          "file": "examples/array_structs.vader"
                         }
                       },
                       {
@@ -631,6 +878,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 37,
+                            "line": 3,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 48,
+                            "line": 3,
+                            "column": 16
+                          },
+                          "file": "examples/array_structs.vader"
                         }
                       }
                     ]
@@ -712,6 +972,19 @@
                             "signed": false
                           },
                           "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 21,
+                            "line": 2,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 32,
+                            "line": 2,
+                            "column": 16
+                          },
+                          "file": "examples/array_structs.vader"
                         }
                       },
                       {
@@ -720,6 +993,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 37,
+                            "line": 3,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 48,
+                            "line": 3,
+                            "column": 16
+                          },
+                          "file": "examples/array_structs.vader"
                         }
                       }
                     ]

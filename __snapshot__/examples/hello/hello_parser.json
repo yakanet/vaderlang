@@ -17,6 +17,19 @@
               "name": "string",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 22,
+                "line": 2,
+                "column": 12
+              },
+              "end": {
+                "offset": 34,
+                "line": 2,
+                "column": 24
+              },
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -40,6 +53,19 @@
                 "name": "string",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 22,
+                  "line": 2,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 34,
+                  "line": 2,
+                  "column": 24
+                },
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -94,6 +120,19 @@
               "name": "string",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 70,
+                "line": 5,
+                "column": 13
+              },
+              "end": {
+                "offset": 85,
+                "line": 5,
+                "column": 28
+              },
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -117,6 +156,19 @@
                 "name": "string",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 70,
+                  "line": 5,
+                  "column": 13
+                },
+                "end": {
+                  "offset": 85,
+                  "line": 5,
+                  "column": 28
+                },
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -175,6 +227,19 @@
                 "signed": false
               },
               "dimension": 1
+            },
+            "location": {
+              "start": {
+                "offset": 120,
+                "line": 8,
+                "column": 14
+              },
+              "end": {
+                "offset": 132,
+                "line": 8,
+                "column": 26
+              },
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -202,6 +267,19 @@
                   "signed": false
                 },
                 "dimension": 1
+              },
+              "location": {
+                "start": {
+                  "offset": 120,
+                  "line": 8,
+                  "column": 14
+                },
+                "end": {
+                  "offset": 132,
+                  "line": 8,
+                  "column": 26
+                },
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -299,6 +377,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 41,
+                "line": 4,
+                "column": 11
+              },
+              "end": {
+                "offset": 47,
+                "line": 4,
+                "column": 17
+              },
+              "file": "examples/hello.vader"
             }
           }
         ],
@@ -320,6 +411,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 41,
+                  "line": 4,
+                  "column": 11
+                },
+                "end": {
+                  "offset": 47,
+                  "line": 4,
+                  "column": 17
+                },
+                "file": "examples/hello.vader"
               }
             }
           ],

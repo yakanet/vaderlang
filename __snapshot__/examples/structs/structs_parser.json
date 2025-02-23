@@ -14,6 +14,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 22,
+                "line": 2,
+                "column": 5
+              },
+              "end": {
+                "offset": 28,
+                "line": 2,
+                "column": 11
+              },
+              "file": "examples/structs.vader"
             }
           },
           {
@@ -22,6 +35,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 33,
+                "line": 3,
+                "column": 5
+              },
+              "end": {
+                "offset": 39,
+                "line": 3,
+                "column": 11
+              },
+              "file": "examples/structs.vader"
             }
           }
         ]
@@ -37,6 +63,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 22,
+                  "line": 2,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 28,
+                  "line": 2,
+                  "column": 11
+                },
+                "file": "examples/structs.vader"
               }
             },
             {
@@ -45,6 +84,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 33,
+                  "line": 3,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 39,
+                  "line": 3,
+                  "column": 11
+                },
+                "file": "examples/structs.vader"
               }
             }
           ]
@@ -95,6 +147,19 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 22,
+                      "line": 2,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 28,
+                      "line": 2,
+                      "column": 11
+                    },
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -103,9 +168,35 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 33,
+                      "line": 3,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 39,
+                      "line": 3,
+                      "column": 11
+                    },
+                    "file": "examples/structs.vader"
                   }
                 }
               ]
+            },
+            "location": {
+              "start": {
+                "offset": 67,
+                "line": 7,
+                "column": 5
+              },
+              "end": {
+                "offset": 80,
+                "line": 7,
+                "column": 18
+              },
+              "file": "examples/structs.vader"
             }
           },
           {
@@ -114,6 +205,19 @@
               "name": "u32",
               "kind": "primitive",
               "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 85,
+                "line": 8,
+                "column": 5
+              },
+              "end": {
+                "offset": 91,
+                "line": 8,
+                "column": 11
+              },
+              "file": "examples/structs.vader"
             }
           }
         ]
@@ -134,6 +238,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 22,
+                        "line": 2,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 28,
+                        "line": 2,
+                        "column": 11
+                      },
+                      "file": "examples/structs.vader"
                     }
                   },
                   {
@@ -142,9 +259,35 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 33,
+                        "line": 3,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 39,
+                        "line": 3,
+                        "column": 11
+                      },
+                      "file": "examples/structs.vader"
                     }
                   }
                 ]
+              },
+              "location": {
+                "start": {
+                  "offset": 67,
+                  "line": 7,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 80,
+                  "line": 7,
+                  "column": 18
+                },
+                "file": "examples/structs.vader"
               }
             },
             {
@@ -153,6 +296,19 @@
                 "name": "u32",
                 "kind": "primitive",
                 "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 85,
+                  "line": 8,
+                  "column": 5
+                },
+                "end": {
+                  "offset": 91,
+                  "line": 8,
+                  "column": 11
+                },
+                "file": "examples/structs.vader"
               }
             }
           ]
@@ -230,6 +386,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 22,
+                            "line": 2,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 28,
+                            "line": 2,
+                            "column": 11
+                          },
+                          "file": "examples/structs.vader"
                         }
                       },
                       {
@@ -238,9 +407,35 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 33,
+                            "line": 3,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 39,
+                            "line": 3,
+                            "column": 11
+                          },
+                          "file": "examples/structs.vader"
                         }
                       }
                     ]
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 67,
+                      "line": 7,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 80,
+                      "line": 7,
+                      "column": 18
+                    },
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -249,6 +444,19 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 85,
+                      "line": 8,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 91,
+                      "line": 8,
+                      "column": 11
+                    },
+                    "file": "examples/structs.vader"
                   }
                 }
               ]
@@ -282,6 +490,19 @@
                             },
                             "file": "examples/structs.vader"
                           }
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 144,
+                            "line": 12,
+                            "column": 28
+                          },
+                          "end": {
+                            "offset": 145,
+                            "line": 12,
+                            "column": 29
+                          },
+                          "file": "examples/structs.vader"
                         }
                       },
                       {
@@ -306,6 +527,19 @@
                             },
                             "file": "examples/structs.vader"
                           }
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 147,
+                            "line": 12,
+                            "column": 31
+                          },
+                          "end": {
+                            "offset": 148,
+                            "line": 12,
+                            "column": 32
+                          },
+                          "file": "examples/structs.vader"
                         }
                       }
                     ],
@@ -319,6 +553,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 22,
+                              "line": 2,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 28,
+                              "line": 2,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -327,6 +574,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 33,
+                              "line": 3,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 39,
+                              "line": 3,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
@@ -344,6 +604,19 @@
                       },
                       "file": "examples/structs.vader"
                     }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 136,
+                      "line": 12,
+                      "column": 20
+                    },
+                    "end": {
+                      "offset": 150,
+                      "line": 12,
+                      "column": 34
+                    },
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -368,6 +641,19 @@
                       },
                       "file": "examples/structs.vader"
                     }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 152,
+                      "line": 12,
+                      "column": 36
+                    },
+                    "end": {
+                      "offset": 154,
+                      "line": 12,
+                      "column": 38
+                    },
+                    "file": "examples/structs.vader"
                   }
                 }
               ],
@@ -386,6 +672,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 22,
+                              "line": 2,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 28,
+                              "line": 2,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -394,9 +693,35 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 33,
+                              "line": 3,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 39,
+                              "line": 3,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 67,
+                        "line": 7,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 80,
+                        "line": 7,
+                        "column": 18
+                      },
+                      "file": "examples/structs.vader"
                     }
                   },
                   {
@@ -405,6 +730,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 85,
+                        "line": 8,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 91,
+                        "line": 8,
+                        "column": 11
+                      },
+                      "file": "examples/structs.vader"
                     }
                   }
                 ]
@@ -450,6 +788,19 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 22,
+                      "line": 2,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 28,
+                      "line": 2,
+                      "column": 11
+                    },
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -458,6 +809,19 @@
                     "name": "u32",
                     "kind": "primitive",
                     "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 33,
+                      "line": 3,
+                      "column": 5
+                    },
+                    "end": {
+                      "offset": 39,
+                      "line": 3,
+                      "column": 11
+                    },
+                    "file": "examples/structs.vader"
                   }
                 }
               ]
@@ -487,6 +851,19 @@
                       },
                       "file": "examples/structs.vader"
                     }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 174,
+                      "line": 13,
+                      "column": 18
+                    },
+                    "end": {
+                      "offset": 175,
+                      "line": 13,
+                      "column": 19
+                    },
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -511,6 +888,19 @@
                       },
                       "file": "examples/structs.vader"
                     }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 177,
+                      "line": 13,
+                      "column": 21
+                    },
+                    "end": {
+                      "offset": 178,
+                      "line": 13,
+                      "column": 22
+                    },
+                    "file": "examples/structs.vader"
                   }
                 }
               ],
@@ -524,6 +914,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 22,
+                        "line": 2,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 28,
+                        "line": 2,
+                        "column": 11
+                      },
+                      "file": "examples/structs.vader"
                     }
                   },
                   {
@@ -532,6 +935,19 @@
                       "name": "u32",
                       "kind": "primitive",
                       "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 33,
+                        "line": 3,
+                        "column": 5
+                      },
+                      "end": {
+                        "offset": 39,
+                        "line": 3,
+                        "column": 11
+                      },
+                      "file": "examples/structs.vader"
                     }
                   }
                 ]
@@ -579,6 +995,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 22,
+                          "line": 2,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 28,
+                          "line": 2,
+                          "column": 11
+                        },
+                        "file": "examples/structs.vader"
                       }
                     },
                     {
@@ -587,6 +1016,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 33,
+                          "line": 3,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 39,
+                          "line": 3,
+                          "column": 11
+                        },
+                        "file": "examples/structs.vader"
                       }
                     }
                   ]
@@ -705,6 +1147,19 @@
                               "name": "u32",
                               "kind": "primitive",
                               "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 22,
+                                "line": 2,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 28,
+                                "line": 2,
+                                "column": 11
+                              },
+                              "file": "examples/structs.vader"
                             }
                           },
                           {
@@ -713,9 +1168,35 @@
                               "name": "u32",
                               "kind": "primitive",
                               "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 33,
+                                "line": 3,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 39,
+                                "line": 3,
+                                "column": 11
+                              },
+                              "file": "examples/structs.vader"
                             }
                           }
                         ]
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 67,
+                          "line": 7,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 80,
+                          "line": 7,
+                          "column": 18
+                        },
+                        "file": "examples/structs.vader"
                       }
                     },
                     {
@@ -724,6 +1205,19 @@
                         "name": "u32",
                         "kind": "primitive",
                         "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 85,
+                          "line": 8,
+                          "column": 5
+                        },
+                        "end": {
+                          "offset": 91,
+                          "line": 8,
+                          "column": 11
+                        },
+                        "file": "examples/structs.vader"
                       }
                     }
                   ]
@@ -756,6 +1250,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 22,
+                            "line": 2,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 28,
+                            "line": 2,
+                            "column": 11
+                          },
+                          "file": "examples/structs.vader"
                         }
                       },
                       {
@@ -764,6 +1271,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 33,
+                            "line": 3,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 39,
+                            "line": 3,
+                            "column": 11
+                          },
+                          "file": "examples/structs.vader"
                         }
                       }
                     ]
@@ -891,6 +1411,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 22,
+                              "line": 2,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 28,
+                              "line": 2,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -899,6 +1432,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 33,
+                              "line": 3,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 39,
+                              "line": 3,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
@@ -979,6 +1525,19 @@
                                   "name": "u32",
                                   "kind": "primitive",
                                   "signed": false
+                                },
+                                "location": {
+                                  "start": {
+                                    "offset": 22,
+                                    "line": 2,
+                                    "column": 5
+                                  },
+                                  "end": {
+                                    "offset": 28,
+                                    "line": 2,
+                                    "column": 11
+                                  },
+                                  "file": "examples/structs.vader"
                                 }
                               },
                               {
@@ -987,9 +1546,35 @@
                                   "name": "u32",
                                   "kind": "primitive",
                                   "signed": false
+                                },
+                                "location": {
+                                  "start": {
+                                    "offset": 33,
+                                    "line": 3,
+                                    "column": 5
+                                  },
+                                  "end": {
+                                    "offset": 39,
+                                    "line": 3,
+                                    "column": 11
+                                  },
+                                  "file": "examples/structs.vader"
                                 }
                               }
                             ]
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 67,
+                              "line": 7,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 80,
+                              "line": 7,
+                              "column": 18
+                            },
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -998,6 +1583,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 85,
+                              "line": 8,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 91,
+                              "line": 8,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
@@ -1030,6 +1628,19 @@
                               "name": "u32",
                               "kind": "primitive",
                               "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 22,
+                                "line": 2,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 28,
+                                "line": 2,
+                                "column": 11
+                              },
+                              "file": "examples/structs.vader"
                             }
                           },
                           {
@@ -1038,6 +1649,19 @@
                               "name": "u32",
                               "kind": "primitive",
                               "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 33,
+                                "line": 3,
+                                "column": 5
+                              },
+                              "end": {
+                                "offset": 39,
+                                "line": 3,
+                                "column": 11
+                              },
+                              "file": "examples/structs.vader"
                             }
                           }
                         ]
@@ -1130,6 +1754,19 @@
                                 "name": "u32",
                                 "kind": "primitive",
                                 "signed": false
+                              },
+                              "location": {
+                                "start": {
+                                  "offset": 22,
+                                  "line": 2,
+                                  "column": 5
+                                },
+                                "end": {
+                                  "offset": 28,
+                                  "line": 2,
+                                  "column": 11
+                                },
+                                "file": "examples/structs.vader"
                               }
                             },
                             {
@@ -1138,9 +1775,35 @@
                                 "name": "u32",
                                 "kind": "primitive",
                                 "signed": false
+                              },
+                              "location": {
+                                "start": {
+                                  "offset": 33,
+                                  "line": 3,
+                                  "column": 5
+                                },
+                                "end": {
+                                  "offset": 39,
+                                  "line": 3,
+                                  "column": 11
+                                },
+                                "file": "examples/structs.vader"
                               }
                             }
                           ]
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 67,
+                            "line": 7,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 80,
+                            "line": 7,
+                            "column": 18
+                          },
+                          "file": "examples/structs.vader"
                         }
                       },
                       {
@@ -1149,6 +1812,19 @@
                           "name": "u32",
                           "kind": "primitive",
                           "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 85,
+                            "line": 8,
+                            "column": 5
+                          },
+                          "end": {
+                            "offset": 91,
+                            "line": 8,
+                            "column": 11
+                          },
+                          "file": "examples/structs.vader"
                         }
                       }
                     ]
@@ -1181,6 +1857,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 22,
+                              "line": 2,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 28,
+                              "line": 2,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -1189,6 +1878,19 @@
                             "name": "u32",
                             "kind": "primitive",
                             "signed": false
+                          },
+                          "location": {
+                            "start": {
+                              "offset": 33,
+                              "line": 3,
+                              "column": 5
+                            },
+                            "end": {
+                              "offset": 39,
+                              "line": 3,
+                              "column": 11
+                            },
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
