@@ -18,6 +18,9 @@ wasmtime --wasm=gc [wasm file location]
 
 Build the compiler using `bun bundle`
 
+> Currently there is a bug with bug that doesn't respect dependencies when building: https://github.com/oven-sh/bun/issues/12203
+> So you may need to run 3 times this command
+
 Write a simple program :
 ```
 // Simple hello world app
@@ -72,6 +75,7 @@ wasmtime --wasm=gc [file location].wasm
 - [x] implementing WASM GC for struct & arrays
 - [ ] runtime memory allocation
 - [ ] runtime memory de-allocation
+- [ ] stdlib: String manipulation
 - [x] stdlib: arraylist
 - [ ] stdlib: hashmap
 - [ ] stdlib: number to string(2, 8, 10, 16)

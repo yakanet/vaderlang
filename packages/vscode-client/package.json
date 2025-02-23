@@ -17,9 +17,9 @@
   ],
   "main": "./build/extension.js",
   "dependencies": {
+    "@vaderlang/lsp-server": "workspace:*",
     "glob": "^11.0.0",
-    "vscode-languageclient": "^9.0.1",
-    "@vaderlang/lsp-server": "workspace:*"
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
