@@ -41,7 +41,41 @@ export class DiagnosticService {
     };
   }
 
+  validateVaderHomeFolder(): [string, Diagnostic[]] {
+    const home = process.env['VADER_HOME'];
+    if(!home) {
+      return[ '',  [{
+        message: 'no environment variable VADER_HOME defined',
+        severity: 1,
+        range: {
+          start: {line: 0, character: 0},
+          end: {line: 0, character: 0}
+        }
+      }]];
+    }
+    try{
+      const stat = fs.lstatSync(path.resolve(home, 'modules'))
+      if(stat.isDirectory()) {
+        return [home, []]
+      }
+    }catch(e) {
+
+    }
+    return[ '',  [{
+      message: 'invalid VADER_HOME env variable, no modules folder found',
+      severity: 1,
+      range: {
+        start: {line: 0, character: 0},
+        end: {line: 0, character: 0}
+      }
+    }]];
+  }
+
   validateTextDocument(document: TextDocument): Diagnostic[] {
+    const [vaderHome, diag] = this.validateVaderHomeFolder();
+    if(diag.length > 0) {
+      return diag;
+    }
     const context = new BundleContext({
       resolve: (uri, from) => {
         // Try to resolve absolute URI (should be in workspace)
@@ -83,7 +117,7 @@ export class DiagnosticService {
         // Try to resolve a module
         //FIXME: find a way to lookup for modules location (vscode settings ???)
         {
-          const newUri = `/Users/mbroutin/Developments/default/vaderlang/modules/${uri}`
+          const newUri = path.resolve(vaderHome, 'modules', uri)
           const content = fs.readFileSync(newUri, {encoding: 'utf-8'}) ?? ''
           return {
             key: newUri,

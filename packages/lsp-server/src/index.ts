@@ -51,7 +51,7 @@ connection.onInitialize((params: InitializeParams) => {
       diagnosticProvider: {
         interFileDependencies: false,
         workspaceDiagnostics: false,
-      },
+      }
     },
   };
   //if (hasWorkspaceFolderCapability) {
