@@ -29,7 +29,7 @@
                 "line": 1,
                 "column": 23
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -65,7 +65,7 @@
                   "line": 1,
                   "column": 23
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -87,7 +87,7 @@
             "line": 1,
             "column": 34
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -101,7 +101,7 @@
           "line": 1,
           "column": 34
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -132,7 +132,7 @@
                 "line": 4,
                 "column": 27
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -168,7 +168,7 @@
                   "line": 4,
                   "column": 27
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -190,7 +190,7 @@
             "line": 4,
             "column": 36
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -204,7 +204,7 @@
           "line": 4,
           "column": 36
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -239,7 +239,7 @@
                 "line": 7,
                 "column": 25
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -279,7 +279,7 @@
                   "line": 7,
                   "column": 25
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -301,7 +301,7 @@
             "line": 7,
             "column": 33
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -315,7 +315,7 @@
           "line": 7,
           "column": 33
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -373,7 +373,7 @@
                     "line": 3,
                     "column": 25
                   },
-                  "file": "examples/simple_hello.vader"
+                  "file": "examples\\simple_hello.vader"
                 }
               }
             ],
@@ -388,7 +388,7 @@
                 "line": 3,
                 "column": 26
               },
-              "file": "examples/simple_hello.vader"
+              "file": "examples\\simple_hello.vader"
             }
           }
         ],
@@ -403,7 +403,7 @@
             "line": 4,
             "column": 1
           },
-          "file": "examples/simple_hello.vader"
+          "file": "examples\\simple_hello.vader"
         }
       },
       "location": {
@@ -417,7 +417,7 @@
           "line": 4,
           "column": 1
         },
-        "file": "examples/simple_hello.vader"
+        "file": "examples\\simple_hello.vader"
       }
     }
   ],
@@ -432,6 +432,6 @@
       "line": 4,
       "column": 1
     },
-    "file": "examples/simple_hello.vader"
+    "file": "examples\\simple_hello.vader"
   }
 }

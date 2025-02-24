@@ -1,0 +1,3894 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "file",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "path",
+            "type": {
+              "name": "string",
+              "kind": "primitive",
+              "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 22,
+                "line": 1,
+                "column": 11
+              },
+              "end": {
+                "offset": 34,
+                "line": 1,
+                "column": 23
+              },
+              "file": "modules\\std.vader"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "string",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "path",
+              "type": {
+                "name": "string",
+                "kind": "primitive",
+                "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 22,
+                  "line": 1,
+                  "column": 11
+                },
+                "end": {
+                  "offset": 34,
+                  "line": 1,
+                  "column": 23
+                },
+                "file": "modules\\std.vader"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "string",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [],
+        "location": {
+          "start": {
+            "offset": 19,
+            "line": 1,
+            "column": 8
+          },
+          "end": {
+            "offset": 45,
+            "line": 1,
+            "column": 34
+          },
+          "file": "modules\\std.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 11,
+          "line": 1,
+          "column": 0
+        },
+        "end": {
+          "offset": 45,
+          "line": 1,
+          "column": 34
+        },
+        "file": "modules\\std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "print",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "message",
+            "type": {
+              "name": "string",
+              "kind": "primitive",
+              "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 70,
+                "line": 4,
+                "column": 12
+              },
+              "end": {
+                "offset": 85,
+                "line": 4,
+                "column": 27
+              },
+              "file": "modules\\std.vader"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "void",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "type": {
+                "name": "string",
+                "kind": "primitive",
+                "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 70,
+                  "line": 4,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 85,
+                  "line": 4,
+                  "column": 27
+                },
+                "file": "modules\\std.vader"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "void",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [],
+        "location": {
+          "start": {
+            "offset": 67,
+            "line": 4,
+            "column": 9
+          },
+          "end": {
+            "offset": 94,
+            "line": 4,
+            "column": 36
+          },
+          "file": "modules\\std.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 58,
+          "line": 4,
+          "column": 0
+        },
+        "end": {
+          "offset": 94,
+          "line": 4,
+          "column": 36
+        },
+        "file": "modules\\std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "length",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [
+          "intrinsic"
+        ],
+        "parameters": [
+          {
+            "name": "array",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "dimension": 1
+            },
+            "location": {
+              "start": {
+                "offset": 120,
+                "line": 7,
+                "column": 13
+              },
+              "end": {
+                "offset": 132,
+                "line": 7,
+                "column": 25
+              },
+              "file": "modules\\std.vader"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [
+            "intrinsic"
+          ],
+          "parameters": [
+            {
+              "name": "array",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "dimension": 1
+              },
+              "location": {
+                "start": {
+                  "offset": 120,
+                  "line": 7,
+                  "column": 13
+                },
+                "end": {
+                  "offset": 132,
+                  "line": 7,
+                  "column": 25
+                },
+                "file": "modules\\std.vader"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [],
+        "location": {
+          "start": {
+            "offset": 117,
+            "line": 7,
+            "column": 10
+          },
+          "end": {
+            "offset": 140,
+            "line": 7,
+            "column": 33
+          },
+          "file": "modules\\std.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 107,
+          "line": 7,
+          "column": 0
+        },
+        "end": {
+          "offset": 140,
+          "line": 7,
+          "column": 33
+        },
+        "file": "modules\\std.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "String",
+      "isConstant": true,
+      "type": {
+        "kind": "struct",
+        "parameters": [
+          {
+            "name": "length",
+            "type": {
+              "name": "u32",
+              "kind": "primitive",
+              "signed": false
+            },
+            "location": {
+              "start": {
+                "offset": 23,
+                "line": 1,
+                "column": 4
+              },
+              "end": {
+                "offset": 34,
+                "line": 1,
+                "column": 15
+              },
+              "file": "modules\\string.vader"
+            }
+          },
+          {
+            "name": "value",
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u8",
+                "kind": "primitive",
+                "signed": false
+              },
+              "dimension": 1
+            },
+            "location": {
+              "start": {
+                "offset": 39,
+                "line": 2,
+                "column": 4
+              },
+              "end": {
+                "offset": 50,
+                "line": 2,
+                "column": 15
+              },
+              "file": "modules\\string.vader"
+            }
+          }
+        ]
+      },
+      "value": {
+        "kind": "StructDeclarationExpression",
+        "type": {
+          "kind": "struct",
+          "parameters": [
+            {
+              "name": "length",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 23,
+                  "line": 1,
+                  "column": 4
+                },
+                "end": {
+                  "offset": 34,
+                  "line": 1,
+                  "column": 15
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            {
+              "name": "value",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u8",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "dimension": 1
+              },
+              "location": {
+                "start": {
+                  "offset": 39,
+                  "line": 2,
+                  "column": 4
+                },
+                "end": {
+                  "offset": 50,
+                  "line": 2,
+                  "column": 15
+                },
+                "file": "modules\\string.vader"
+              }
+            }
+          ]
+        },
+        "location": {
+          "start": {
+            "offset": 10,
+            "line": 0,
+            "column": 10
+          },
+          "end": {
+            "offset": 16,
+            "line": 0,
+            "column": 16
+          },
+          "file": "modules\\string.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 0,
+          "line": 0,
+          "column": 0
+        },
+        "end": {
+          "offset": 16,
+          "line": 0,
+          "column": 16
+        },
+        "file": "modules\\string.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "equals",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 23,
+                      "line": 1,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 34,
+                      "line": 1,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 39,
+                      "line": 2,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 50,
+                      "line": 2,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                }
+              ]
+            },
+            "location": {
+              "start": {
+                "offset": 67,
+                "line": 5,
+                "column": 13
+              },
+              "end": {
+                "offset": 79,
+                "line": 5,
+                "column": 25
+              },
+              "file": "modules\\string.vader"
+            }
+          },
+          {
+            "name": "other",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 23,
+                      "line": 1,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 34,
+                      "line": 1,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 39,
+                      "line": 2,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 50,
+                      "line": 2,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                }
+              ]
+            },
+            "location": {
+              "start": {
+                "offset": 81,
+                "line": 5,
+                "column": 27
+              },
+              "end": {
+                "offset": 94,
+                "line": 5,
+                "column": 40
+              },
+              "file": "modules\\string.vader"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "boolean",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 23,
+                        "line": 1,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 34,
+                        "line": 1,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 39,
+                        "line": 2,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 50,
+                        "line": 2,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": {
+                  "offset": 67,
+                  "line": 5,
+                  "column": 13
+                },
+                "end": {
+                  "offset": 79,
+                  "line": 5,
+                  "column": 25
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            {
+              "name": "other",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 23,
+                        "line": 1,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 34,
+                        "line": 1,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 39,
+                        "line": 2,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 50,
+                        "line": 2,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": {
+                  "offset": 81,
+                  "line": 5,
+                  "column": 27
+                },
+                "end": {
+                  "offset": 94,
+                  "line": 5,
+                  "column": 40
+                },
+                "file": "modules\\string.vader"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "boolean",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [
+          {
+            "kind": "ConditionalStatement",
+            "type": {
+              "name": "void",
+              "kind": "primitive",
+              "signed": false
+            },
+            "ifBody": [
+              {
+                "kind": "ReturnStatement",
+                "expression": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 0,
+                  "location": {
+                    "start": {
+                      "offset": 161,
+                      "line": 7,
+                      "column": 15
+                    },
+                    "end": {
+                      "offset": 162,
+                      "line": 7,
+                      "column": 16
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 154,
+                    "line": 7,
+                    "column": 8
+                  },
+                  "end": {
+                    "offset": 162,
+                    "line": 7,
+                    "column": 16
+                  },
+                  "file": "modules\\string.vader"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "!=",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 23,
+                            "line": 1,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 34,
+                            "line": 1,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "name": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u8",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 39,
+                            "line": 2,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 50,
+                            "line": 2,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "this",
+                  "location": {
+                    "start": {
+                      "offset": 116,
+                      "line": 6,
+                      "column": 7
+                    },
+                    "end": {
+                      "offset": 120,
+                      "line": 6,
+                      "column": 11
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 121,
+                        "line": 6,
+                        "column": 12
+                      },
+                      "end": {
+                        "offset": 127,
+                        "line": 6,
+                        "column": 18
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "location": {
+                  "start": {
+                    "offset": 116,
+                    "line": 6,
+                    "column": 7
+                  },
+                  "end": {
+                    "offset": 127,
+                    "line": 6,
+                    "column": 18
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 23,
+                            "line": 1,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 34,
+                            "line": 1,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "name": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u8",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 39,
+                            "line": 2,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 50,
+                            "line": 2,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "other",
+                  "location": {
+                    "start": {
+                      "offset": 131,
+                      "line": 6,
+                      "column": 22
+                    },
+                    "end": {
+                      "offset": 136,
+                      "line": 6,
+                      "column": 27
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 137,
+                        "line": 6,
+                        "column": 28
+                      },
+                      "end": {
+                        "offset": 143,
+                        "line": 6,
+                        "column": 34
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "location": {
+                  "start": {
+                    "offset": 131,
+                    "line": 6,
+                    "column": 22
+                  },
+                  "end": {
+                    "offset": 143,
+                    "line": 6,
+                    "column": 34
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 116,
+                  "line": 6,
+                  "column": 7
+                },
+                "end": {
+                  "offset": 143,
+                  "line": 6,
+                  "column": 34
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 113,
+                "line": 6,
+                "column": 4
+              },
+              "end": {
+                "offset": 168,
+                "line": 8,
+                "column": 5
+              },
+              "file": "modules\\string.vader"
+            }
+          },
+          {
+            "kind": "ForStatement",
+            "initialization": {
+              "kind": "VariableDeclarationStatement",
+              "name": "i",
+              "isConstant": false,
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "value": 0,
+                "location": {
+                  "start": {
+                    "offset": 240,
+                    "line": 11,
+                    "column": 14
+                  },
+                  "end": {
+                    "offset": 241,
+                    "line": 11,
+                    "column": 15
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 235,
+                  "line": 11,
+                  "column": 9
+                },
+                "end": {
+                  "offset": 241,
+                  "line": 11,
+                  "column": 15
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "<",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "lhs": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "identifier": "i",
+                "location": {
+                  "start": {
+                    "offset": 243,
+                    "line": 11,
+                    "column": 17
+                  },
+                  "end": {
+                    "offset": 244,
+                    "line": 11,
+                    "column": 18
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 23,
+                            "line": 1,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 34,
+                            "line": 1,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "name": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u8",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 39,
+                            "line": 2,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 50,
+                            "line": 2,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "this",
+                  "location": {
+                    "start": {
+                      "offset": 245,
+                      "line": 11,
+                      "column": 19
+                    },
+                    "end": {
+                      "offset": 249,
+                      "line": 11,
+                      "column": 23
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 250,
+                        "line": 11,
+                        "column": 24
+                      },
+                      "end": {
+                        "offset": 256,
+                        "line": 11,
+                        "column": 30
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "location": {
+                  "start": {
+                    "offset": 245,
+                    "line": 11,
+                    "column": 19
+                  },
+                  "end": {
+                    "offset": 256,
+                    "line": 11,
+                    "column": 30
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 243,
+                  "line": 11,
+                  "column": 17
+                },
+                "end": {
+                  "offset": 256,
+                  "line": 11,
+                  "column": 30
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            "iteration": {
+              "kind": "VariableAssignmentStatement",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "identifier": "i",
+                "location": {
+                  "start": {
+                    "offset": 258,
+                    "line": 11,
+                    "column": 32
+                  },
+                  "end": {
+                    "offset": 259,
+                    "line": 11,
+                    "column": 33
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "value": {
+                "kind": "BinaryExpression",
+                "operator": "+",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "lhs": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "identifier": "i",
+                  "location": {
+                    "start": {
+                      "offset": 260,
+                      "line": 11,
+                      "column": 34
+                    },
+                    "end": {
+                      "offset": 261,
+                      "line": 11,
+                      "column": 35
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 1,
+                  "location": {
+                    "start": {
+                      "offset": 262,
+                      "line": 11,
+                      "column": 36
+                    },
+                    "end": {
+                      "offset": 263,
+                      "line": 11,
+                      "column": 37
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 260,
+                    "line": 11,
+                    "column": 34
+                  },
+                  "end": {
+                    "offset": 263,
+                    "line": 11,
+                    "column": 37
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 258,
+                  "line": 11,
+                  "column": 32
+                },
+                "file": "modules\\string.vader",
+                "end": {
+                  "offset": 263,
+                  "line": 11,
+                  "column": 37
+                }
+              }
+            },
+            "body": [
+              {
+                "kind": "ConditionalStatement",
+                "type": {
+                  "name": "void",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "ifBody": [
+                  {
+                    "kind": "ReturnStatement",
+                    "expression": {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "boolean",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "value": 0,
+                      "location": {
+                        "start": {
+                          "offset": 332,
+                          "line": 13,
+                          "column": 19
+                        },
+                        "end": {
+                          "offset": 337,
+                          "line": 13,
+                          "column": 24
+                        },
+                        "file": "modules\\string.vader"
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 325,
+                        "line": 13,
+                        "column": 12
+                      },
+                      "end": {
+                        "offset": 337,
+                        "line": 13,
+                        "column": 24
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "BinaryExpression",
+                  "operator": "!=",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "u8"
+                  },
+                  "lhs": {
+                    "kind": "DotExpression",
+                    "identifier": {
+                      "kind": "IdentifierExpression",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive",
+                              "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 23,
+                                "line": 1,
+                                "column": 4
+                              },
+                              "end": {
+                                "offset": 34,
+                                "line": 1,
+                                "column": 15
+                              },
+                              "file": "modules\\string.vader"
+                            }
+                          },
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u8",
+                                "kind": "primitive",
+                                "signed": false
+                              },
+                              "dimension": 1
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 39,
+                                "line": 2,
+                                "column": 4
+                              },
+                              "end": {
+                                "offset": 50,
+                                "line": 2,
+                                "column": 15
+                              },
+                              "file": "modules\\string.vader"
+                            }
+                          }
+                        ]
+                      },
+                      "identifier": "this",
+                      "location": {
+                        "start": {
+                          "offset": 279,
+                          "line": 12,
+                          "column": 11
+                        },
+                        "end": {
+                          "offset": 283,
+                          "line": 12,
+                          "column": 15
+                        },
+                        "file": "modules\\string.vader"
+                      }
+                    },
+                    "properties": [
+                      {
+                        "kind": "IdentifierExpression",
+                        "identifier": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "u8"
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 284,
+                            "line": 12,
+                            "column": 16
+                          },
+                          "end": {
+                            "offset": 289,
+                            "line": 12,
+                            "column": 21
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "kind": "ArrayIndexExpression",
+                        "index": {
+                          "kind": "IdentifierExpression",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "identifier": "i",
+                          "location": {
+                            "start": {
+                              "offset": 290,
+                              "line": 12,
+                              "column": 22
+                            },
+                            "end": {
+                              "offset": 291,
+                              "line": 12,
+                              "column": 23
+                            },
+                            "file": "modules\\string.vader"
+                          }
+                        },
+                        "type": {
+                          "kind": "unknown",
+                          "name": "u8"
+                        },
+                        "location": {
+                          "file": "modules\\string.vader",
+                          "start": {
+                            "offset": 289,
+                            "line": 12,
+                            "column": 21
+                          },
+                          "end": {
+                            "offset": 292,
+                            "line": 12,
+                            "column": 24
+                          }
+                        }
+                      }
+                    ],
+                    "type": {
+                      "kind": "unknown",
+                      "name": "u8"
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 279,
+                        "line": 12,
+                        "column": 11
+                      },
+                      "end": {
+                        "offset": 292,
+                        "line": 12,
+                        "column": 24
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  "rhs": {
+                    "kind": "DotExpression",
+                    "identifier": {
+                      "kind": "IdentifierExpression",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive",
+                              "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 23,
+                                "line": 1,
+                                "column": 4
+                              },
+                              "end": {
+                                "offset": 34,
+                                "line": 1,
+                                "column": 15
+                              },
+                              "file": "modules\\string.vader"
+                            }
+                          },
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u8",
+                                "kind": "primitive",
+                                "signed": false
+                              },
+                              "dimension": 1
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 39,
+                                "line": 2,
+                                "column": 4
+                              },
+                              "end": {
+                                "offset": 50,
+                                "line": 2,
+                                "column": 15
+                              },
+                              "file": "modules\\string.vader"
+                            }
+                          }
+                        ]
+                      },
+                      "identifier": "other",
+                      "location": {
+                        "start": {
+                          "offset": 296,
+                          "line": 12,
+                          "column": 28
+                        },
+                        "end": {
+                          "offset": 301,
+                          "line": 12,
+                          "column": 33
+                        },
+                        "file": "modules\\string.vader"
+                      }
+                    },
+                    "properties": [
+                      {
+                        "kind": "IdentifierExpression",
+                        "identifier": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "u8"
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 302,
+                            "line": 12,
+                            "column": 34
+                          },
+                          "end": {
+                            "offset": 307,
+                            "line": 12,
+                            "column": 39
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "kind": "ArrayIndexExpression",
+                        "index": {
+                          "kind": "IdentifierExpression",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "identifier": "i",
+                          "location": {
+                            "start": {
+                              "offset": 308,
+                              "line": 12,
+                              "column": 40
+                            },
+                            "end": {
+                              "offset": 309,
+                              "line": 12,
+                              "column": 41
+                            },
+                            "file": "modules\\string.vader"
+                          }
+                        },
+                        "type": {
+                          "kind": "unknown",
+                          "name": "u8"
+                        },
+                        "location": {
+                          "file": "modules\\string.vader",
+                          "start": {
+                            "offset": 307,
+                            "line": 12,
+                            "column": 39
+                          },
+                          "end": {
+                            "offset": 310,
+                            "line": 12,
+                            "column": 42
+                          }
+                        }
+                      }
+                    ],
+                    "type": {
+                      "kind": "unknown",
+                      "name": "u8"
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 296,
+                        "line": 12,
+                        "column": 28
+                      },
+                      "end": {
+                        "offset": 310,
+                        "line": 12,
+                        "column": 42
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 279,
+                      "line": 12,
+                      "column": 11
+                    },
+                    "end": {
+                      "offset": 310,
+                      "line": 12,
+                      "column": 42
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 276,
+                    "line": 12,
+                    "column": 8
+                  },
+                  "end": {
+                    "offset": 347,
+                    "line": 14,
+                    "column": 9
+                  },
+                  "file": "modules\\string.vader"
+                }
+              }
+            ],
+            "location": {
+              "start": {
+                "offset": 230,
+                "line": 11,
+                "column": 4
+              },
+              "end": {
+                "offset": 353,
+                "line": 15,
+                "column": 5
+              },
+              "file": "modules\\string.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "boolean",
+                "kind": "primitive",
+                "signed": false
+              },
+              "value": 1,
+              "location": {
+                "start": {
+                  "offset": 365,
+                  "line": 16,
+                  "column": 11
+                },
+                "end": {
+                  "offset": 369,
+                  "line": 16,
+                  "column": 15
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 358,
+                "line": 16,
+                "column": 4
+              },
+              "end": {
+                "offset": 369,
+                "line": 16,
+                "column": 15
+              },
+              "file": "modules\\string.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": {
+            "offset": 64,
+            "line": 5,
+            "column": 10
+          },
+          "end": {
+            "offset": 371,
+            "line": 17,
+            "column": 1
+          },
+          "file": "modules\\string.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 54,
+          "line": 5,
+          "column": 0
+        },
+        "end": {
+          "offset": 371,
+          "line": 17,
+          "column": 1
+        },
+        "file": "modules\\string.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "startWith",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [
+          {
+            "name": "this",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 23,
+                      "line": 1,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 34,
+                      "line": 1,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 39,
+                      "line": 2,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 50,
+                      "line": 2,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                }
+              ]
+            },
+            "location": {
+              "start": {
+                "offset": 389,
+                "line": 19,
+                "column": 16
+              },
+              "end": {
+                "offset": 401,
+                "line": 19,
+                "column": 28
+              },
+              "file": "modules\\string.vader"
+            }
+          },
+          {
+            "name": "prefix",
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 23,
+                      "line": 1,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 34,
+                      "line": 1,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 39,
+                      "line": 2,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 50,
+                      "line": 2,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                }
+              ]
+            },
+            "location": {
+              "start": {
+                "offset": 403,
+                "line": 19,
+                "column": 30
+              },
+              "end": {
+                "offset": 417,
+                "line": 19,
+                "column": 44
+              },
+              "file": "modules\\string.vader"
+            }
+          }
+        ],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [
+            {
+              "name": "this",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 23,
+                        "line": 1,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 34,
+                        "line": 1,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 39,
+                        "line": 2,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 50,
+                        "line": 2,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": {
+                  "offset": 389,
+                  "line": 19,
+                  "column": 16
+                },
+                "end": {
+                  "offset": 401,
+                  "line": 19,
+                  "column": 28
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            {
+              "name": "prefix",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 23,
+                        "line": 1,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 34,
+                        "line": 1,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 39,
+                        "line": 2,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 50,
+                        "line": 2,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": {
+                  "offset": 403,
+                  "line": 19,
+                  "column": 30
+                },
+                "end": {
+                  "offset": 417,
+                  "line": 19,
+                  "column": 44
+                },
+                "file": "modules\\string.vader"
+              }
+            }
+          ],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [
+          {
+            "kind": "ConditionalStatement",
+            "type": {
+              "name": "void",
+              "kind": "primitive",
+              "signed": false
+            },
+            "ifBody": [
+              {
+                "kind": "ReturnStatement",
+                "expression": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 0,
+                  "location": {
+                    "start": {
+                      "offset": 481,
+                      "line": 21,
+                      "column": 15
+                    },
+                    "end": {
+                      "offset": 482,
+                      "line": 21,
+                      "column": 16
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 474,
+                    "line": 21,
+                    "column": 8
+                  },
+                  "end": {
+                    "offset": 482,
+                    "line": 21,
+                    "column": 16
+                  },
+                  "file": "modules\\string.vader"
+                }
+              }
+            ],
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": ">",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "lhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 23,
+                            "line": 1,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 34,
+                            "line": 1,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "name": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u8",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 39,
+                            "line": 2,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 50,
+                            "line": 2,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "prefix",
+                  "location": {
+                    "start": {
+                      "offset": 436,
+                      "line": 20,
+                      "column": 7
+                    },
+                    "end": {
+                      "offset": 442,
+                      "line": 20,
+                      "column": 13
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 443,
+                        "line": 20,
+                        "column": 14
+                      },
+                      "end": {
+                        "offset": 449,
+                        "line": 20,
+                        "column": 20
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "location": {
+                  "start": {
+                    "offset": 436,
+                    "line": 20,
+                    "column": 7
+                  },
+                  "end": {
+                    "offset": 449,
+                    "line": 20,
+                    "column": 20
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 23,
+                            "line": 1,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 34,
+                            "line": 1,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "name": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u8",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 39,
+                            "line": 2,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 50,
+                            "line": 2,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "this",
+                  "location": {
+                    "start": {
+                      "offset": 452,
+                      "line": 20,
+                      "column": 23
+                    },
+                    "end": {
+                      "offset": 456,
+                      "line": 20,
+                      "column": 27
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 457,
+                        "line": 20,
+                        "column": 28
+                      },
+                      "end": {
+                        "offset": 463,
+                        "line": 20,
+                        "column": 34
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "location": {
+                  "start": {
+                    "offset": 452,
+                    "line": 20,
+                    "column": 23
+                  },
+                  "end": {
+                    "offset": 463,
+                    "line": 20,
+                    "column": 34
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 436,
+                  "line": 20,
+                  "column": 7
+                },
+                "end": {
+                  "offset": 463,
+                  "line": 20,
+                  "column": 34
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 433,
+                "line": 20,
+                "column": 4
+              },
+              "end": {
+                "offset": 488,
+                "line": 22,
+                "column": 5
+              },
+              "file": "modules\\string.vader"
+            }
+          },
+          {
+            "kind": "ForStatement",
+            "initialization": {
+              "kind": "VariableDeclarationStatement",
+              "name": "i",
+              "isConstant": false,
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "value": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "value": 0,
+                "location": {
+                  "start": {
+                    "offset": 559,
+                    "line": 24,
+                    "column": 14
+                  },
+                  "end": {
+                    "offset": 560,
+                    "line": 24,
+                    "column": 15
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 554,
+                  "line": 24,
+                  "column": 9
+                },
+                "end": {
+                  "offset": 560,
+                  "line": 24,
+                  "column": 15
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            "condition": {
+              "kind": "BinaryExpression",
+              "operator": "<",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "lhs": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "identifier": "i",
+                "location": {
+                  "start": {
+                    "offset": 562,
+                    "line": 24,
+                    "column": 17
+                  },
+                  "end": {
+                    "offset": 563,
+                    "line": 24,
+                    "column": 18
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "rhs": {
+                "kind": "DotExpression",
+                "identifier": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "kind": "struct",
+                    "parameters": [
+                      {
+                        "name": "length",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 23,
+                            "line": 1,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 34,
+                            "line": 1,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "name": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "name": "u8",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 39,
+                            "line": 2,
+                            "column": 4
+                          },
+                          "end": {
+                            "offset": 50,
+                            "line": 2,
+                            "column": 15
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      }
+                    ]
+                  },
+                  "identifier": "prefix",
+                  "location": {
+                    "start": {
+                      "offset": 564,
+                      "line": 24,
+                      "column": 19
+                    },
+                    "end": {
+                      "offset": 570,
+                      "line": 24,
+                      "column": 25
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "properties": [
+                  {
+                    "kind": "IdentifierExpression",
+                    "identifier": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 571,
+                        "line": 24,
+                        "column": 26
+                      },
+                      "end": {
+                        "offset": 577,
+                        "line": 24,
+                        "column": 32
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ],
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "location": {
+                  "start": {
+                    "offset": 564,
+                    "line": 24,
+                    "column": 19
+                  },
+                  "end": {
+                    "offset": 577,
+                    "line": 24,
+                    "column": 32
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 562,
+                  "line": 24,
+                  "column": 17
+                },
+                "end": {
+                  "offset": 577,
+                  "line": 24,
+                  "column": 32
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            "iteration": {
+              "kind": "VariableAssignmentStatement",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "identifier": "i",
+                "location": {
+                  "start": {
+                    "offset": 579,
+                    "line": 24,
+                    "column": 34
+                  },
+                  "end": {
+                    "offset": 580,
+                    "line": 24,
+                    "column": 35
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "value": {
+                "kind": "BinaryExpression",
+                "operator": "+",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "lhs": {
+                  "kind": "IdentifierExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "identifier": "i",
+                  "location": {
+                    "start": {
+                      "offset": 581,
+                      "line": 24,
+                      "column": 36
+                    },
+                    "end": {
+                      "offset": 582,
+                      "line": 24,
+                      "column": 37
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "rhs": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 1,
+                  "location": {
+                    "start": {
+                      "offset": 583,
+                      "line": 24,
+                      "column": 38
+                    },
+                    "end": {
+                      "offset": 584,
+                      "line": 24,
+                      "column": 39
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 581,
+                    "line": 24,
+                    "column": 36
+                  },
+                  "end": {
+                    "offset": 584,
+                    "line": 24,
+                    "column": 39
+                  },
+                  "file": "modules\\string.vader"
+                }
+              },
+              "location": {
+                "start": {
+                  "offset": 579,
+                  "line": 24,
+                  "column": 34
+                },
+                "file": "modules\\string.vader",
+                "end": {
+                  "offset": 584,
+                  "line": 24,
+                  "column": 39
+                }
+              }
+            },
+            "body": [
+              {
+                "kind": "ConditionalStatement",
+                "type": {
+                  "name": "void",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "ifBody": [
+                  {
+                    "kind": "ReturnStatement",
+                    "expression": {
+                      "kind": "NumberExpression",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "value": 0,
+                      "location": {
+                        "start": {
+                          "offset": 654,
+                          "line": 26,
+                          "column": 19
+                        },
+                        "end": {
+                          "offset": 655,
+                          "line": 26,
+                          "column": 20
+                        },
+                        "file": "modules\\string.vader"
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 647,
+                        "line": 26,
+                        "column": 12
+                      },
+                      "end": {
+                        "offset": 655,
+                        "line": 26,
+                        "column": 20
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "BinaryExpression",
+                  "operator": "!=",
+                  "type": {
+                    "kind": "unknown",
+                    "name": "u8"
+                  },
+                  "lhs": {
+                    "kind": "DotExpression",
+                    "identifier": {
+                      "kind": "IdentifierExpression",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive",
+                              "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 23,
+                                "line": 1,
+                                "column": 4
+                              },
+                              "end": {
+                                "offset": 34,
+                                "line": 1,
+                                "column": 15
+                              },
+                              "file": "modules\\string.vader"
+                            }
+                          },
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u8",
+                                "kind": "primitive",
+                                "signed": false
+                              },
+                              "dimension": 1
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 39,
+                                "line": 2,
+                                "column": 4
+                              },
+                              "end": {
+                                "offset": 50,
+                                "line": 2,
+                                "column": 15
+                              },
+                              "file": "modules\\string.vader"
+                            }
+                          }
+                        ]
+                      },
+                      "identifier": "this",
+                      "location": {
+                        "start": {
+                          "offset": 600,
+                          "line": 25,
+                          "column": 11
+                        },
+                        "end": {
+                          "offset": 604,
+                          "line": 25,
+                          "column": 15
+                        },
+                        "file": "modules\\string.vader"
+                      }
+                    },
+                    "properties": [
+                      {
+                        "kind": "IdentifierExpression",
+                        "identifier": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "u8"
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 605,
+                            "line": 25,
+                            "column": 16
+                          },
+                          "end": {
+                            "offset": 610,
+                            "line": 25,
+                            "column": 21
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "kind": "ArrayIndexExpression",
+                        "index": {
+                          "kind": "IdentifierExpression",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "identifier": "i",
+                          "location": {
+                            "start": {
+                              "offset": 611,
+                              "line": 25,
+                              "column": 22
+                            },
+                            "end": {
+                              "offset": 612,
+                              "line": 25,
+                              "column": 23
+                            },
+                            "file": "modules\\string.vader"
+                          }
+                        },
+                        "type": {
+                          "kind": "unknown",
+                          "name": "u8"
+                        },
+                        "location": {
+                          "file": "modules\\string.vader",
+                          "start": {
+                            "offset": 610,
+                            "line": 25,
+                            "column": 21
+                          },
+                          "end": {
+                            "offset": 613,
+                            "line": 25,
+                            "column": 24
+                          }
+                        }
+                      }
+                    ],
+                    "type": {
+                      "kind": "unknown",
+                      "name": "u8"
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 600,
+                        "line": 25,
+                        "column": 11
+                      },
+                      "end": {
+                        "offset": 613,
+                        "line": 25,
+                        "column": 24
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  "rhs": {
+                    "kind": "DotExpression",
+                    "identifier": {
+                      "kind": "IdentifierExpression",
+                      "type": {
+                        "kind": "struct",
+                        "parameters": [
+                          {
+                            "name": "length",
+                            "type": {
+                              "name": "u32",
+                              "kind": "primitive",
+                              "signed": false
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 23,
+                                "line": 1,
+                                "column": 4
+                              },
+                              "end": {
+                                "offset": 34,
+                                "line": 1,
+                                "column": 15
+                              },
+                              "file": "modules\\string.vader"
+                            }
+                          },
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "array",
+                              "type": {
+                                "name": "u8",
+                                "kind": "primitive",
+                                "signed": false
+                              },
+                              "dimension": 1
+                            },
+                            "location": {
+                              "start": {
+                                "offset": 39,
+                                "line": 2,
+                                "column": 4
+                              },
+                              "end": {
+                                "offset": 50,
+                                "line": 2,
+                                "column": 15
+                              },
+                              "file": "modules\\string.vader"
+                            }
+                          }
+                        ]
+                      },
+                      "identifier": "prefix",
+                      "location": {
+                        "start": {
+                          "offset": 617,
+                          "line": 25,
+                          "column": 28
+                        },
+                        "end": {
+                          "offset": 623,
+                          "line": 25,
+                          "column": 34
+                        },
+                        "file": "modules\\string.vader"
+                      }
+                    },
+                    "properties": [
+                      {
+                        "kind": "IdentifierExpression",
+                        "identifier": "value",
+                        "type": {
+                          "kind": "array",
+                          "type": {
+                            "kind": "unknown",
+                            "name": "u8"
+                          },
+                          "dimension": 1
+                        },
+                        "location": {
+                          "start": {
+                            "offset": 624,
+                            "line": 25,
+                            "column": 35
+                          },
+                          "end": {
+                            "offset": 629,
+                            "line": 25,
+                            "column": 40
+                          },
+                          "file": "modules\\string.vader"
+                        }
+                      },
+                      {
+                        "kind": "ArrayIndexExpression",
+                        "index": {
+                          "kind": "IdentifierExpression",
+                          "type": {
+                            "name": "u32",
+                            "kind": "primitive",
+                            "signed": false
+                          },
+                          "identifier": "i",
+                          "location": {
+                            "start": {
+                              "offset": 630,
+                              "line": 25,
+                              "column": 41
+                            },
+                            "end": {
+                              "offset": 631,
+                              "line": 25,
+                              "column": 42
+                            },
+                            "file": "modules\\string.vader"
+                          }
+                        },
+                        "type": {
+                          "kind": "unknown",
+                          "name": "u8"
+                        },
+                        "location": {
+                          "file": "modules\\string.vader",
+                          "start": {
+                            "offset": 629,
+                            "line": 25,
+                            "column": 40
+                          },
+                          "end": {
+                            "offset": 632,
+                            "line": 25,
+                            "column": 43
+                          }
+                        }
+                      }
+                    ],
+                    "type": {
+                      "kind": "unknown",
+                      "name": "u8"
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 617,
+                        "line": 25,
+                        "column": 28
+                      },
+                      "end": {
+                        "offset": 632,
+                        "line": 25,
+                        "column": 43
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 600,
+                      "line": 25,
+                      "column": 11
+                    },
+                    "end": {
+                      "offset": 632,
+                      "line": 25,
+                      "column": 43
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 597,
+                    "line": 25,
+                    "column": 8
+                  },
+                  "end": {
+                    "offset": 665,
+                    "line": 27,
+                    "column": 9
+                  },
+                  "file": "modules\\string.vader"
+                }
+              }
+            ],
+            "location": {
+              "start": {
+                "offset": 549,
+                "line": 24,
+                "column": 4
+              },
+              "end": {
+                "offset": 671,
+                "line": 28,
+                "column": 5
+              },
+              "file": "modules\\string.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "NumberExpression",
+              "type": {
+                "name": "u32",
+                "kind": "primitive",
+                "signed": false
+              },
+              "value": 1,
+              "location": {
+                "start": {
+                  "offset": 683,
+                  "line": 29,
+                  "column": 11
+                },
+                "end": {
+                  "offset": 684,
+                  "line": 29,
+                  "column": 12
+                },
+                "file": "modules\\string.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 676,
+                "line": 29,
+                "column": 4
+              },
+              "end": {
+                "offset": 684,
+                "line": 29,
+                "column": 12
+              },
+              "file": "modules\\string.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": {
+            "offset": 386,
+            "line": 19,
+            "column": 13
+          },
+          "end": {
+            "offset": 686,
+            "line": 30,
+            "column": 1
+          },
+          "file": "modules\\string.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 373,
+          "line": 19,
+          "column": 0
+        },
+        "end": {
+          "offset": 686,
+          "line": 30,
+          "column": 1
+        },
+        "file": "modules\\string.vader"
+      }
+    },
+    {
+      "kind": "VariableDeclarationStatement",
+      "name": "main",
+      "isConstant": true,
+      "type": {
+        "kind": "function",
+        "decorators": [],
+        "parameters": [],
+        "returnType": {
+          "name": "u32",
+          "kind": "primitive",
+          "signed": false
+        }
+      },
+      "value": {
+        "kind": "FunctionDeclarationExpression",
+        "type": {
+          "kind": "function",
+          "decorators": [],
+          "parameters": [],
+          "returnType": {
+            "name": "u32",
+            "kind": "primitive",
+            "signed": false
+          }
+        },
+        "body": [
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "y",
+            "isConstant": true,
+            "type": {
+              "kind": "array",
+              "type": {
+                "name": "u8",
+                "kind": "primitive",
+                "signed": false
+              },
+              "dimension": 1,
+              "length": {
+                "kind": "NumberExpression",
+                "type": {
+                  "name": "u32",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "value": 3,
+                "location": {
+                  "start": {
+                    "offset": 65,
+                    "line": 4,
+                    "column": 15
+                  },
+                  "end": {
+                    "offset": 83,
+                    "line": 5,
+                    "column": 5
+                  },
+                  "file": "examples\\strings.vader"
+                }
+              }
+            },
+            "value": {
+              "kind": "ArrayDeclarationExpression",
+              "type": {
+                "kind": "array",
+                "type": {
+                  "name": "u8",
+                  "kind": "primitive",
+                  "signed": false
+                },
+                "dimension": 1,
+                "length": {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 3,
+                  "location": {
+                    "start": {
+                      "offset": 65,
+                      "line": 4,
+                      "column": 15
+                    },
+                    "end": {
+                      "offset": 83,
+                      "line": 5,
+                      "column": 5
+                    },
+                    "file": "examples\\strings.vader"
+                  }
+                }
+              },
+              "value": [
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 85,
+                  "location": {
+                    "start": {
+                      "offset": 66,
+                      "line": 4,
+                      "column": 16
+                    },
+                    "end": {
+                      "offset": 68,
+                      "line": 4,
+                      "column": 18
+                    },
+                    "file": "examples\\strings.vader"
+                  }
+                },
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 90,
+                  "location": {
+                    "start": {
+                      "offset": 70,
+                      "line": 4,
+                      "column": 20
+                    },
+                    "end": {
+                      "offset": 72,
+                      "line": 4,
+                      "column": 22
+                    },
+                    "file": "examples\\strings.vader"
+                  }
+                },
+                {
+                  "kind": "NumberExpression",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "value": 23,
+                  "location": {
+                    "start": {
+                      "offset": 74,
+                      "line": 4,
+                      "column": 24
+                    },
+                    "end": {
+                      "offset": 76,
+                      "line": 4,
+                      "column": 26
+                    },
+                    "file": "examples\\strings.vader"
+                  }
+                }
+              ],
+              "location": {
+                "start": {
+                  "offset": 59,
+                  "line": 4,
+                  "column": 9
+                },
+                "end": {
+                  "offset": 77,
+                  "line": 4,
+                  "column": 27
+                },
+                "file": "examples\\strings.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 54,
+                "line": 4,
+                "column": 4
+              },
+              "end": {
+                "offset": 77,
+                "line": 4,
+                "column": 27
+              },
+              "file": "examples\\strings.vader"
+            }
+          },
+          {
+            "kind": "VariableDeclarationStatement",
+            "name": "x",
+            "isConstant": true,
+            "type": {
+              "kind": "struct",
+              "parameters": [
+                {
+                  "name": "length",
+                  "type": {
+                    "name": "u32",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 23,
+                      "line": 1,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 34,
+                      "line": 1,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 39,
+                      "line": 2,
+                      "column": 4
+                    },
+                    "end": {
+                      "offset": 50,
+                      "line": 2,
+                      "column": 15
+                    },
+                    "file": "modules\\string.vader"
+                  }
+                }
+              ]
+            },
+            "value": {
+              "kind": "StructInstantiationExpression",
+              "parameters": [
+                {
+                  "name": "value",
+                  "value": {
+                    "kind": "IdentifierExpression",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1,
+                      "length": {
+                        "kind": "NumberExpression",
+                        "type": {
+                          "name": "u32",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "value": 3,
+                        "location": {
+                          "start": {
+                            "offset": 65,
+                            "line": 4,
+                            "column": 15
+                          },
+                          "end": {
+                            "offset": 83,
+                            "line": 5,
+                            "column": 5
+                          },
+                          "file": "examples\\strings.vader"
+                        }
+                      }
+                    },
+                    "identifier": "y",
+                    "location": {
+                      "start": {
+                        "offset": 113,
+                        "line": 6,
+                        "column": 17
+                      },
+                      "end": {
+                        "offset": 114,
+                        "line": 6,
+                        "column": 18
+                      },
+                      "file": "examples\\strings.vader"
+                    }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 105,
+                      "line": 6,
+                      "column": 9
+                    },
+                    "end": {
+                      "offset": 114,
+                      "line": 6,
+                      "column": 18
+                    },
+                    "file": "examples\\strings.vader"
+                  }
+                },
+                {
+                  "name": "length",
+                  "value": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "value": 3,
+                    "location": {
+                      "start": {
+                        "offset": 134,
+                        "line": 7,
+                        "column": 18
+                      },
+                      "end": {
+                        "offset": 135,
+                        "line": 7,
+                        "column": 19
+                      },
+                      "file": "examples\\strings.vader"
+                    }
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 125,
+                      "line": 7,
+                      "column": 9
+                    },
+                    "end": {
+                      "offset": 135,
+                      "line": 7,
+                      "column": 19
+                    },
+                    "file": "examples\\strings.vader"
+                  }
+                }
+              ],
+              "structName": "String",
+              "type": {
+                "kind": "struct",
+                "parameters": [
+                  {
+                    "name": "length",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 23,
+                        "line": 1,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 34,
+                        "line": 1,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  },
+                  {
+                    "name": "value",
+                    "type": {
+                      "kind": "array",
+                      "type": {
+                        "name": "u8",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "dimension": 1
+                    },
+                    "location": {
+                      "start": {
+                        "offset": 39,
+                        "line": 2,
+                        "column": 4
+                      },
+                      "end": {
+                        "offset": 50,
+                        "line": 2,
+                        "column": 15
+                      },
+                      "file": "modules\\string.vader"
+                    }
+                  }
+                ]
+              },
+              "location": {
+                "start": {
+                  "offset": 87,
+                  "line": 5,
+                  "column": 9
+                },
+                "end": {
+                  "offset": 142,
+                  "line": 8,
+                  "column": 5
+                },
+                "file": "examples\\strings.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 82,
+                "line": 5,
+                "column": 4
+              },
+              "end": {
+                "offset": 142,
+                "line": 8,
+                "column": 5
+              },
+              "file": "examples\\strings.vader"
+            }
+          },
+          {
+            "kind": "ReturnStatement",
+            "expression": {
+              "kind": "DotExpression",
+              "identifier": {
+                "kind": "IdentifierExpression",
+                "type": {
+                  "kind": "struct",
+                  "parameters": [
+                    {
+                      "name": "length",
+                      "type": {
+                        "name": "u32",
+                        "kind": "primitive",
+                        "signed": false
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 23,
+                          "line": 1,
+                          "column": 4
+                        },
+                        "end": {
+                          "offset": 34,
+                          "line": 1,
+                          "column": 15
+                        },
+                        "file": "modules\\string.vader"
+                      }
+                    },
+                    {
+                      "name": "value",
+                      "type": {
+                        "kind": "array",
+                        "type": {
+                          "name": "u8",
+                          "kind": "primitive",
+                          "signed": false
+                        },
+                        "dimension": 1
+                      },
+                      "location": {
+                        "start": {
+                          "offset": 39,
+                          "line": 2,
+                          "column": 4
+                        },
+                        "end": {
+                          "offset": 50,
+                          "line": 2,
+                          "column": 15
+                        },
+                        "file": "modules\\string.vader"
+                      }
+                    }
+                  ]
+                },
+                "identifier": "x",
+                "location": {
+                  "start": {
+                    "offset": 154,
+                    "line": 9,
+                    "column": 11
+                  },
+                  "end": {
+                    "offset": 155,
+                    "line": 9,
+                    "column": 12
+                  },
+                  "file": "examples\\strings.vader"
+                }
+              },
+              "properties": [
+                {
+                  "kind": "IdentifierExpression",
+                  "identifier": "value",
+                  "type": {
+                    "kind": "array",
+                    "type": {
+                      "name": "u8",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "dimension": 1
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 156,
+                      "line": 9,
+                      "column": 13
+                    },
+                    "end": {
+                      "offset": 161,
+                      "line": 9,
+                      "column": 18
+                    },
+                    "file": "examples\\strings.vader"
+                  }
+                },
+                {
+                  "kind": "ArrayIndexExpression",
+                  "index": {
+                    "kind": "NumberExpression",
+                    "type": {
+                      "name": "u32",
+                      "kind": "primitive",
+                      "signed": false
+                    },
+                    "value": 3,
+                    "location": {
+                      "start": {
+                        "offset": 162,
+                        "line": 9,
+                        "column": 19
+                      },
+                      "end": {
+                        "offset": 163,
+                        "line": 9,
+                        "column": 20
+                      },
+                      "file": "examples\\strings.vader"
+                    }
+                  },
+                  "type": {
+                    "name": "u8",
+                    "kind": "primitive",
+                    "signed": false
+                  },
+                  "location": {
+                    "file": "examples\\strings.vader",
+                    "start": {
+                      "offset": 161,
+                      "line": 9,
+                      "column": 18
+                    },
+                    "end": {
+                      "offset": 164,
+                      "line": 9,
+                      "column": 21
+                    }
+                  }
+                }
+              ],
+              "type": {
+                "name": "u8",
+                "kind": "primitive",
+                "signed": false
+              },
+              "location": {
+                "start": {
+                  "offset": 154,
+                  "line": 9,
+                  "column": 11
+                },
+                "end": {
+                  "offset": 164,
+                  "line": 9,
+                  "column": 21
+                },
+                "file": "examples\\strings.vader"
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 147,
+                "line": 9,
+                "column": 4
+              },
+              "end": {
+                "offset": 164,
+                "line": 9,
+                "column": 21
+              },
+              "file": "examples\\strings.vader"
+            }
+          }
+        ],
+        "location": {
+          "start": {
+            "offset": 36,
+            "line": 3,
+            "column": 8
+          },
+          "end": {
+            "offset": 166,
+            "line": 10,
+            "column": 1
+          },
+          "file": "examples\\strings.vader"
+        }
+      },
+      "location": {
+        "start": {
+          "offset": 28,
+          "line": 3,
+          "column": 0
+        },
+        "end": {
+          "offset": 166,
+          "line": 10,
+          "column": 1
+        },
+        "file": "examples\\strings.vader"
+      }
+    }
+  ],
+  "location": {
+    "start": {
+      "offset": 0,
+      "line": 0,
+      "column": 0
+    },
+    "end": {
+      "offset": 166,
+      "line": 10,
+      "column": 1
+    },
+    "file": "examples\\strings.vader"
+  }
+}

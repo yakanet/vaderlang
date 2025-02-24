@@ -29,7 +29,7 @@
                 "line": 1,
                 "column": 23
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -65,7 +65,7 @@
                   "line": 1,
                   "column": 23
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -87,7 +87,7 @@
             "line": 1,
             "column": 34
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -101,7 +101,7 @@
           "line": 1,
           "column": 34
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -132,7 +132,7 @@
                 "line": 4,
                 "column": 27
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -168,7 +168,7 @@
                   "line": 4,
                   "column": 27
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -190,7 +190,7 @@
             "line": 4,
             "column": 36
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -204,7 +204,7 @@
           "line": 4,
           "column": 36
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -239,7 +239,7 @@
                 "line": 7,
                 "column": 25
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -279,7 +279,7 @@
                   "line": 7,
                   "column": 25
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -301,7 +301,7 @@
             "line": 7,
             "column": 33
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -315,7 +315,7 @@
           "line": 7,
           "column": 33
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -375,7 +375,7 @@
                     "line": 3,
                     "column": 14
                   },
-                  "file": "examples/loop.vader"
+                  "file": "examples\\loop.vader"
                 }
               },
               "location": {
@@ -389,7 +389,7 @@
                   "line": 3,
                   "column": 14
                 },
-                "file": "examples/loop.vader"
+                "file": "examples\\loop.vader"
               }
             },
             "condition": {
@@ -419,7 +419,7 @@
                     "line": 3,
                     "column": 17
                   },
-                  "file": "examples/loop.vader"
+                  "file": "examples\\loop.vader"
                 }
               },
               "rhs": {
@@ -441,7 +441,7 @@
                     "line": 3,
                     "column": 22
                   },
-                  "file": "examples/loop.vader"
+                  "file": "examples\\loop.vader"
                 }
               },
               "location": {
@@ -455,7 +455,7 @@
                   "line": 3,
                   "column": 22
                 },
-                "file": "examples/loop.vader"
+                "file": "examples\\loop.vader"
               }
             },
             "iteration": {
@@ -479,7 +479,7 @@
                     "line": 3,
                     "column": 25
                   },
-                  "file": "examples/loop.vader"
+                  "file": "examples\\loop.vader"
                 }
               },
               "value": {
@@ -509,7 +509,7 @@
                       "line": 3,
                       "column": 29
                     },
-                    "file": "examples/loop.vader"
+                    "file": "examples\\loop.vader"
                   }
                 },
                 "rhs": {
@@ -531,7 +531,7 @@
                       "line": 3,
                       "column": 33
                     },
-                    "file": "examples/loop.vader"
+                    "file": "examples\\loop.vader"
                   }
                 },
                 "location": {
@@ -545,7 +545,7 @@
                     "line": 3,
                     "column": 33
                   },
-                  "file": "examples/loop.vader"
+                  "file": "examples\\loop.vader"
                 }
               },
               "location": {
@@ -554,7 +554,7 @@
                   "line": 3,
                   "column": 24
                 },
-                "file": "examples/loop.vader",
+                "file": "examples\\loop.vader",
                 "end": {
                   "offset": 61,
                   "line": 3,
@@ -593,7 +593,7 @@
                         "line": 4,
                         "column": 18
                       },
-                      "file": "examples/loop.vader"
+                      "file": "examples\\loop.vader"
                     }
                   },
                   "location": {
@@ -607,7 +607,7 @@
                       "line": 4,
                       "column": 18
                     },
-                    "file": "examples/loop.vader"
+                    "file": "examples\\loop.vader"
                   }
                 },
                 "condition": {
@@ -637,7 +637,7 @@
                         "line": 4,
                         "column": 21
                       },
-                      "file": "examples/loop.vader"
+                      "file": "examples\\loop.vader"
                     }
                   },
                   "rhs": {
@@ -659,7 +659,7 @@
                         "line": 4,
                         "column": 26
                       },
-                      "file": "examples/loop.vader"
+                      "file": "examples\\loop.vader"
                     }
                   },
                   "location": {
@@ -673,7 +673,7 @@
                       "line": 4,
                       "column": 26
                     },
-                    "file": "examples/loop.vader"
+                    "file": "examples\\loop.vader"
                   }
                 },
                 "iteration": {
@@ -697,7 +697,7 @@
                         "line": 4,
                         "column": 29
                       },
-                      "file": "examples/loop.vader"
+                      "file": "examples\\loop.vader"
                     }
                   },
                   "value": {
@@ -727,7 +727,7 @@
                           "line": 4,
                           "column": 33
                         },
-                        "file": "examples/loop.vader"
+                        "file": "examples\\loop.vader"
                       }
                     },
                     "rhs": {
@@ -749,7 +749,7 @@
                           "line": 4,
                           "column": 37
                         },
-                        "file": "examples/loop.vader"
+                        "file": "examples\\loop.vader"
                       }
                     },
                     "location": {
@@ -763,7 +763,7 @@
                         "line": 4,
                         "column": 37
                       },
-                      "file": "examples/loop.vader"
+                      "file": "examples\\loop.vader"
                     }
                   },
                   "location": {
@@ -772,7 +772,7 @@
                       "line": 4,
                       "column": 28
                     },
-                    "file": "examples/loop.vader",
+                    "file": "examples\\loop.vader",
                     "end": {
                       "offset": 101,
                       "line": 4,
@@ -809,7 +809,7 @@
                             "line": 5,
                             "column": 25
                           },
-                          "file": "examples/loop.vader"
+                          "file": "examples\\loop.vader"
                         }
                       }
                     ],
@@ -824,7 +824,7 @@
                         "line": 5,
                         "column": 26
                       },
-                      "file": "examples/loop.vader"
+                      "file": "examples\\loop.vader"
                     }
                   }
                 ],
@@ -839,7 +839,7 @@
                     "line": 6,
                     "column": 9
                   },
-                  "file": "examples/loop.vader"
+                  "file": "examples\\loop.vader"
                 }
               },
               {
@@ -870,7 +870,7 @@
                         "line": 7,
                         "column": 18
                       },
-                      "file": "examples/loop.vader"
+                      "file": "examples\\loop.vader"
                     }
                   }
                 ],
@@ -885,7 +885,7 @@
                     "line": 7,
                     "column": 19
                   },
-                  "file": "examples/loop.vader"
+                  "file": "examples\\loop.vader"
                 }
               }
             ],
@@ -900,7 +900,7 @@
                 "line": 8,
                 "column": 5
               },
-              "file": "examples/loop.vader"
+              "file": "examples\\loop.vader"
             }
           }
         ],
@@ -915,7 +915,7 @@
             "line": 9,
             "column": 1
           },
-          "file": "examples/loop.vader"
+          "file": "examples\\loop.vader"
         }
       },
       "location": {
@@ -929,7 +929,7 @@
           "line": 9,
           "column": 1
         },
-        "file": "examples/loop.vader"
+        "file": "examples\\loop.vader"
       }
     }
   ],
@@ -944,6 +944,6 @@
       "line": 9,
       "column": 1
     },
-    "file": "examples/loop.vader"
+    "file": "examples\\loop.vader"
   }
 }

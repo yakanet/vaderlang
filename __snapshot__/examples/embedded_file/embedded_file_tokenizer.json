@@ -13,7 +13,7 @@
         "line": 0,
         "column": 5
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -30,7 +30,7 @@
         "line": 0,
         "column": 11
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -47,7 +47,7 @@
         "line": 2,
         "column": 4
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -64,7 +64,7 @@
         "line": 2,
         "column": 6
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -81,7 +81,7 @@
         "line": 2,
         "column": 7
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -98,7 +98,7 @@
         "line": 2,
         "column": 10
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -115,7 +115,7 @@
         "line": 2,
         "column": 11
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -132,7 +132,7 @@
         "line": 2,
         "column": 12
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -149,7 +149,7 @@
         "line": 2,
         "column": 14
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -166,7 +166,7 @@
         "line": 3,
         "column": 9
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -183,7 +183,7 @@
         "line": 3,
         "column": 10
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -200,7 +200,7 @@
         "line": 3,
         "column": 15
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -217,7 +217,7 @@
         "line": 3,
         "column": 16
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -234,7 +234,7 @@
         "line": 3,
         "column": 39
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -251,7 +251,7 @@
         "line": 3,
         "column": 40
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -268,7 +268,7 @@
         "line": 3,
         "column": 41
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -285,7 +285,7 @@
         "line": 4,
         "column": 1
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     }
   },
   {
@@ -301,7 +301,7 @@
         "line": 4,
         "column": 1
       },
-      "file": "examples/embedded_file.vader"
+      "file": "examples\\embedded_file.vader"
     },
     "value": "\u0000"
   }

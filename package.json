@@ -5,6 +5,7 @@
     "package": "bun run --filter '*' build",
     "bundle": "bun package && bun run --filter '*' bundle",
     "watch": "bun run --filter '*' watch",
+    "debug": "bun run packages/tools/debug-wasm/index.ts",
     "ast": "bun run packages/tools/ast-viewer/index.ts"
   },
   "workspaces": [

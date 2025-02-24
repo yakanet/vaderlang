@@ -24,7 +24,7 @@ export class BinaryenModule {
     private symbols: Record<string, Map<string, Symbol>> = {};
     public readonly module: binaryen.Module;
 
-    constructor(private enableDebug = false) {
+    constructor(public enableDebug = false) {
         this.module = new binaryen.Module();
         this.module.setFeatures(binaryen.Features.All)
         this.module.setMemory(1, -1);

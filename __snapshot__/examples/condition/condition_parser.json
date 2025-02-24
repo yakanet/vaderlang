@@ -29,7 +29,7 @@
                 "line": 1,
                 "column": 27
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             }
           }
         ],
@@ -65,7 +65,7 @@
                   "line": 1,
                   "column": 27
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               }
             }
           ],
@@ -87,7 +87,7 @@
             "line": 1,
             "column": 36
           },
-          "file": "examples/condition.vader"
+          "file": "examples\\condition.vader"
         }
       },
       "location": {
@@ -101,7 +101,7 @@
           "line": 1,
           "column": 36
         },
-        "file": "examples/condition.vader"
+        "file": "examples\\condition.vader"
       }
     },
     {
@@ -159,7 +159,7 @@
                   "line": 4,
                   "column": 11
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               }
             },
             "location": {
@@ -173,7 +173,7 @@
                 "line": 4,
                 "column": 11
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             }
           },
           {
@@ -212,7 +212,7 @@
                         "line": 7,
                         "column": 24
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   }
                 ],
@@ -227,7 +227,7 @@
                     "line": 7,
                     "column": 25
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               }
             ],
@@ -258,7 +258,7 @@
                     "line": 6,
                     "column": 8
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "rhs": {
@@ -280,7 +280,7 @@
                     "line": 6,
                     "column": 14
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "location": {
@@ -294,7 +294,7 @@
                   "line": 6,
                   "column": 14
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               }
             },
             "location": {
@@ -308,7 +308,7 @@
                 "line": 8,
                 "column": 5
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             }
           },
           {
@@ -347,7 +347,7 @@
                         "line": 12,
                         "column": 31
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   }
                 ],
@@ -362,7 +362,7 @@
                     "line": 12,
                     "column": 32
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               }
             ],
@@ -393,7 +393,7 @@
                     "line": 11,
                     "column": 9
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "rhs": {
@@ -415,7 +415,7 @@
                     "line": 11,
                     "column": 15
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "location": {
@@ -429,7 +429,7 @@
                   "line": 11,
                   "column": 15
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               }
             },
             "location": {
@@ -443,7 +443,7 @@
                 "line": 13,
                 "column": 5
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             }
           },
           {
@@ -482,7 +482,7 @@
                         "line": 17,
                         "column": 24
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   }
                 ],
@@ -497,7 +497,7 @@
                     "line": 17,
                     "column": 25
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               }
             ],
@@ -528,7 +528,7 @@
                     "line": 16,
                     "column": 8
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "rhs": {
@@ -550,7 +550,7 @@
                     "line": 16,
                     "column": 14
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "location": {
@@ -564,7 +564,7 @@
                   "line": 16,
                   "column": 14
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               }
             },
             "location": {
@@ -578,7 +578,7 @@
                 "line": 20,
                 "column": 5
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             },
             "elseBody": [
               {
@@ -609,7 +609,7 @@
                         "line": 19,
                         "column": 28
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   }
                 ],
@@ -624,7 +624,7 @@
                     "line": 19,
                     "column": 29
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               }
             ]
@@ -665,7 +665,7 @@
                         "line": 24,
                         "column": 24
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   }
                 ],
@@ -680,7 +680,7 @@
                     "line": 24,
                     "column": 25
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               }
             ],
@@ -711,7 +711,7 @@
                     "line": 23,
                     "column": 8
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "rhs": {
@@ -733,7 +733,7 @@
                     "line": 23,
                     "column": 13
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "location": {
@@ -747,7 +747,7 @@
                   "line": 23,
                   "column": 13
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               }
             },
             "location": {
@@ -761,7 +761,7 @@
                 "line": 31,
                 "column": 5
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             },
             "elseBody": [
               {
@@ -800,7 +800,7 @@
                             "line": 26,
                             "column": 25
                           },
-                          "file": "examples/condition.vader"
+                          "file": "examples\\condition.vader"
                         }
                       }
                     ],
@@ -815,7 +815,7 @@
                         "line": 26,
                         "column": 26
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   }
                 ],
@@ -846,7 +846,7 @@
                         "line": 25,
                         "column": 12
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   },
                   "rhs": {
@@ -868,7 +868,7 @@
                         "line": 25,
                         "column": 18
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   },
                   "location": {
@@ -882,7 +882,7 @@
                       "line": 25,
                       "column": 18
                     },
-                    "file": "examples/condition.vader"
+                    "file": "examples\\condition.vader"
                   }
                 },
                 "location": {
@@ -896,7 +896,7 @@
                     "line": 25,
                     "column": 6
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 },
                 "elseBody": [
                   {
@@ -935,7 +935,7 @@
                                 "line": 28,
                                 "column": 25
                               },
-                              "file": "examples/condition.vader"
+                              "file": "examples\\condition.vader"
                             }
                           }
                         ],
@@ -950,7 +950,7 @@
                             "line": 28,
                             "column": 26
                           },
-                          "file": "examples/condition.vader"
+                          "file": "examples\\condition.vader"
                         }
                       }
                     ],
@@ -981,7 +981,7 @@
                             "line": 27,
                             "column": 12
                           },
-                          "file": "examples/condition.vader"
+                          "file": "examples\\condition.vader"
                         }
                       },
                       "rhs": {
@@ -1003,7 +1003,7 @@
                             "line": 27,
                             "column": 18
                           },
-                          "file": "examples/condition.vader"
+                          "file": "examples\\condition.vader"
                         }
                       },
                       "location": {
@@ -1017,7 +1017,7 @@
                           "line": 27,
                           "column": 18
                         },
-                        "file": "examples/condition.vader"
+                        "file": "examples\\condition.vader"
                       }
                     },
                     "location": {
@@ -1031,7 +1031,7 @@
                         "line": 27,
                         "column": 6
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     },
                     "elseBody": [
                       {
@@ -1062,7 +1062,7 @@
                                 "line": 30,
                                 "column": 28
                               },
-                              "file": "examples/condition.vader"
+                              "file": "examples\\condition.vader"
                             }
                           }
                         ],
@@ -1077,7 +1077,7 @@
                             "line": 30,
                             "column": 29
                           },
-                          "file": "examples/condition.vader"
+                          "file": "examples\\condition.vader"
                         }
                       }
                     ]
@@ -1114,7 +1114,7 @@
                   "line": 32,
                   "column": 10
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               }
             },
             "location": {
@@ -1128,7 +1128,7 @@
                 "line": 32,
                 "column": 10
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             }
           },
           {
@@ -1169,7 +1169,7 @@
                         "line": 34,
                         "column": 9
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   },
                   "value": {
@@ -1191,7 +1191,7 @@
                         "line": 34,
                         "column": 13
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   },
                   "location": {
@@ -1200,7 +1200,7 @@
                       "line": 34,
                       "column": 8
                     },
-                    "file": "examples/condition.vader",
+                    "file": "examples\\condition.vader",
                     "end": {
                       "offset": 651,
                       "line": 34,
@@ -1227,7 +1227,7 @@
                       "line": 35,
                       "column": 9
                     },
-                    "file": "examples/condition.vader"
+                    "file": "examples\\condition.vader"
                   }
                 }
               ],
@@ -1258,7 +1258,7 @@
                       "line": 33,
                       "column": 13
                     },
-                    "file": "examples/condition.vader"
+                    "file": "examples\\condition.vader"
                   }
                 },
                 "rhs": {
@@ -1280,7 +1280,7 @@
                       "line": 33,
                       "column": 19
                     },
-                    "file": "examples/condition.vader"
+                    "file": "examples\\condition.vader"
                   }
                 },
                 "location": {
@@ -1294,7 +1294,7 @@
                     "line": 33,
                     "column": 19
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "location": {
@@ -1308,7 +1308,7 @@
                   "line": 38,
                   "column": 14
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               },
               "elseBody": [
                 {
@@ -1338,7 +1338,7 @@
                           "line": 37,
                           "column": 20
                         },
-                        "file": "examples/condition.vader"
+                        "file": "examples\\condition.vader"
                       }
                     }
                   ],
@@ -1369,7 +1369,7 @@
                           "line": 37,
                           "column": 10
                         },
-                        "file": "examples/condition.vader"
+                        "file": "examples\\condition.vader"
                       }
                     },
                     "rhs": {
@@ -1391,7 +1391,7 @@
                           "line": 37,
                           "column": 16
                         },
-                        "file": "examples/condition.vader"
+                        "file": "examples\\condition.vader"
                       }
                     },
                     "location": {
@@ -1405,7 +1405,7 @@
                         "line": 37,
                         "column": 16
                       },
-                      "file": "examples/condition.vader"
+                      "file": "examples\\condition.vader"
                     }
                   },
                   "location": {
@@ -1419,7 +1419,7 @@
                       "line": 37,
                       "column": 4
                     },
-                    "file": "examples/condition.vader"
+                    "file": "examples\\condition.vader"
                   },
                   "elseBody": [
                     {
@@ -1441,7 +1441,7 @@
                           "line": 38,
                           "column": 12
                         },
-                        "file": "examples/condition.vader"
+                        "file": "examples\\condition.vader"
                       }
                     }
                   ]
@@ -1459,7 +1459,7 @@
                 "line": 38,
                 "column": 14
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             }
           },
           {
@@ -1499,7 +1499,7 @@
                       "line": 39,
                       "column": 12
                     },
-                    "file": "examples/condition.vader"
+                    "file": "examples\\condition.vader"
                   }
                 },
                 "rhs": {
@@ -1521,7 +1521,7 @@
                       "line": 39,
                       "column": 16
                     },
-                    "file": "examples/condition.vader"
+                    "file": "examples\\condition.vader"
                   }
                 },
                 "location": {
@@ -1535,7 +1535,7 @@
                     "line": 39,
                     "column": 16
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "rhs": {
@@ -1557,7 +1557,7 @@
                     "line": 39,
                     "column": 20
                   },
-                  "file": "examples/condition.vader"
+                  "file": "examples\\condition.vader"
                 }
               },
               "location": {
@@ -1571,7 +1571,7 @@
                   "line": 39,
                   "column": 20
                 },
-                "file": "examples/condition.vader"
+                "file": "examples\\condition.vader"
               }
             },
             "location": {
@@ -1585,7 +1585,7 @@
                 "line": 39,
                 "column": 20
               },
-              "file": "examples/condition.vader"
+              "file": "examples\\condition.vader"
             }
           }
         ],
@@ -1600,7 +1600,7 @@
             "line": 40,
             "column": 1
           },
-          "file": "examples/condition.vader"
+          "file": "examples\\condition.vader"
         }
       },
       "location": {
@@ -1614,7 +1614,7 @@
           "line": 40,
           "column": 1
         },
-        "file": "examples/condition.vader"
+        "file": "examples\\condition.vader"
       }
     }
   ],
@@ -1629,6 +1629,6 @@
       "line": 40,
       "column": 1
     },
-    "file": "examples/condition.vader"
+    "file": "examples\\condition.vader"
   }
 }

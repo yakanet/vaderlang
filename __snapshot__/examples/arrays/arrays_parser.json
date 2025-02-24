@@ -29,7 +29,7 @@
                 "line": 1,
                 "column": 23
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -65,7 +65,7 @@
                   "line": 1,
                   "column": 23
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -87,7 +87,7 @@
             "line": 1,
             "column": 34
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -101,7 +101,7 @@
           "line": 1,
           "column": 34
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -132,7 +132,7 @@
                 "line": 4,
                 "column": 27
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -168,7 +168,7 @@
                   "line": 4,
                   "column": 27
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -190,7 +190,7 @@
             "line": 4,
             "column": 36
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -204,7 +204,7 @@
           "line": 4,
           "column": 36
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -239,7 +239,7 @@
                 "line": 7,
                 "column": 25
               },
-              "file": "modules/std.vader"
+              "file": "modules\\std.vader"
             }
           }
         ],
@@ -279,7 +279,7 @@
                   "line": 7,
                   "column": 25
                 },
-                "file": "modules/std.vader"
+                "file": "modules\\std.vader"
               }
             }
           ],
@@ -301,7 +301,7 @@
             "line": 7,
             "column": 33
           },
-          "file": "modules/std.vader"
+          "file": "modules\\std.vader"
         }
       },
       "location": {
@@ -315,7 +315,7 @@
           "line": 7,
           "column": 33
         },
-        "file": "modules/std.vader"
+        "file": "modules\\std.vader"
       }
     },
     {
@@ -346,7 +346,7 @@
             "line": 2,
             "column": 7
           },
-          "file": "examples/arrays.vader"
+          "file": "examples\\arrays.vader"
         }
       },
       "location": {
@@ -360,7 +360,7 @@
           "line": 2,
           "column": 7
         },
-        "file": "examples/arrays.vader"
+        "file": "examples\\arrays.vader"
       }
     },
     {
@@ -389,7 +389,7 @@
                 "line": 4,
                 "column": 20
               },
-              "file": "examples/arrays.vader"
+              "file": "examples\\arrays.vader"
             }
           }
         ],
@@ -427,7 +427,7 @@
                   "line": 4,
                   "column": 20
                 },
-                "file": "examples/arrays.vader"
+                "file": "examples\\arrays.vader"
               }
             }
           ],
@@ -473,7 +473,7 @@
                     "line": 5,
                     "column": 17
                   },
-                  "file": "examples/arrays.vader"
+                  "file": "examples\\arrays.vader"
                 }
               }
             },
@@ -506,7 +506,7 @@
                       "line": 5,
                       "column": 17
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 }
               },
@@ -521,7 +521,7 @@
                   "line": 5,
                   "column": 20
                 },
-                "file": "examples/arrays.vader"
+                "file": "examples\\arrays.vader"
               }
             },
             "location": {
@@ -535,7 +535,7 @@
                 "line": 5,
                 "column": 20
               },
-              "file": "examples/arrays.vader"
+              "file": "examples\\arrays.vader"
             }
           },
           {
@@ -569,7 +569,7 @@
                       "line": 5,
                       "column": 17
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 }
               },
@@ -585,7 +585,7 @@
                   "line": 6,
                   "column": 17
                 },
-                "file": "examples/arrays.vader"
+                "file": "examples\\arrays.vader"
               }
             },
             "location": {
@@ -599,7 +599,7 @@
                 "line": 6,
                 "column": 17
               },
-              "file": "examples/arrays.vader"
+              "file": "examples\\arrays.vader"
             }
           }
         ],
@@ -614,7 +614,7 @@
             "line": 7,
             "column": 1
           },
-          "file": "examples/arrays.vader"
+          "file": "examples\\arrays.vader"
         }
       },
       "location": {
@@ -628,7 +628,7 @@
           "line": 7,
           "column": 1
         },
-        "file": "examples/arrays.vader"
+        "file": "examples\\arrays.vader"
       }
     },
     {
@@ -689,7 +689,7 @@
                     "line": 11,
                     "column": 5
                   },
-                  "file": "examples/arrays.vader"
+                  "file": "examples\\arrays.vader"
                 }
               }
             },
@@ -722,7 +722,7 @@
                       "line": 11,
                       "column": 5
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 }
               },
@@ -746,7 +746,7 @@
                       "line": 10,
                       "column": 18
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 },
                 {
@@ -768,7 +768,7 @@
                       "line": 10,
                       "column": 21
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 },
                 {
@@ -790,7 +790,7 @@
                       "line": 10,
                       "column": 24
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 },
                 {
@@ -812,7 +812,7 @@
                       "line": 10,
                       "column": 27
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 }
               ],
@@ -827,7 +827,7 @@
                   "line": 10,
                   "column": 28
                 },
-                "file": "examples/arrays.vader"
+                "file": "examples\\arrays.vader"
               }
             },
             "location": {
@@ -841,7 +841,7 @@
                 "line": 10,
                 "column": 28
               },
-              "file": "examples/arrays.vader"
+              "file": "examples\\arrays.vader"
             }
           },
           {
@@ -875,7 +875,7 @@
                     "line": 11,
                     "column": 11
                   },
-                  "file": "examples/arrays.vader"
+                  "file": "examples\\arrays.vader"
                 }
               }
             },
@@ -908,7 +908,7 @@
                       "line": 11,
                       "column": 11
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 }
               },
@@ -923,7 +923,7 @@
                   "line": 11,
                   "column": 15
                 },
-                "file": "examples/arrays.vader"
+                "file": "examples\\arrays.vader"
               }
             },
             "location": {
@@ -937,7 +937,7 @@
                 "line": 11,
                 "column": 15
               },
-              "file": "examples/arrays.vader"
+              "file": "examples\\arrays.vader"
             }
           },
           {
@@ -967,7 +967,7 @@
                   "line": 12,
                   "column": 17
                 },
-                "file": "examples/arrays.vader"
+                "file": "examples\\arrays.vader"
               },
               "parameters": [
                 {
@@ -989,7 +989,7 @@
                       "line": 12,
                       "column": 10
                     },
-                    "file": "examples/arrays.vader"
+                    "file": "examples\\arrays.vader"
                   }
                 }
               ],
@@ -1014,7 +1014,7 @@
                 "line": 12,
                 "column": 17
               },
-              "file": "examples/arrays.vader"
+              "file": "examples\\arrays.vader"
             }
           },
           {
@@ -1057,7 +1057,7 @@
                         "line": 11,
                         "column": 5
                       },
-                      "file": "examples/arrays.vader"
+                      "file": "examples\\arrays.vader"
                     }
                   }
                 },
@@ -1073,7 +1073,7 @@
                     "line": 13,
                     "column": 10
                   },
-                  "file": "examples/arrays.vader"
+                  "file": "examples\\arrays.vader"
                 }
               },
               "properties": [
@@ -1098,7 +1098,7 @@
                         "line": 13,
                         "column": 12
                       },
-                      "file": "examples/arrays.vader"
+                      "file": "examples\\arrays.vader"
                     }
                   },
                   "type": {
@@ -1107,7 +1107,7 @@
                     "signed": false
                   },
                   "location": {
-                    "file": "examples/arrays.vader",
+                    "file": "examples\\arrays.vader",
                     "start": {
                       "offset": 191,
                       "line": 13,
@@ -1137,7 +1137,7 @@
                   "line": 13,
                   "column": 13
                 },
-                "file": "examples/arrays.vader"
+                "file": "examples\\arrays.vader"
               }
             },
             "location": {
@@ -1151,7 +1151,7 @@
                 "line": 13,
                 "column": 13
               },
-              "file": "examples/arrays.vader"
+              "file": "examples\\arrays.vader"
             }
           },
           {
@@ -1178,7 +1178,7 @@
                     "line": 14,
                     "column": 21
                   },
-                  "file": "examples/arrays.vader"
+                  "file": "examples\\arrays.vader"
                 },
                 "parameters": [
                   {
@@ -1204,7 +1204,7 @@
                         "line": 14,
                         "column": 12
                       },
-                      "file": "examples/arrays.vader"
+                      "file": "examples\\arrays.vader"
                     }
                   }
                 ],
@@ -1233,7 +1233,7 @@
                     "line": 14,
                     "column": 25
                   },
-                  "file": "examples/arrays.vader"
+                  "file": "examples\\arrays.vader"
                 }
               },
               "location": {
@@ -1247,7 +1247,7 @@
                   "line": 14,
                   "column": 25
                 },
-                "file": "examples/arrays.vader"
+                "file": "examples\\arrays.vader"
               }
             },
             "location": {
@@ -1261,7 +1261,7 @@
                 "line": 14,
                 "column": 25
               },
-              "file": "examples/arrays.vader"
+              "file": "examples\\arrays.vader"
             }
           }
         ],
@@ -1276,7 +1276,7 @@
             "line": 15,
             "column": 1
           },
-          "file": "examples/arrays.vader"
+          "file": "examples\\arrays.vader"
         }
       },
       "location": {
@@ -1290,7 +1290,7 @@
           "line": 15,
           "column": 1
         },
-        "file": "examples/arrays.vader"
+        "file": "examples\\arrays.vader"
       }
     }
   ],
@@ -1305,6 +1305,6 @@
       "line": 15,
       "column": 1
     },
-    "file": "examples/arrays.vader"
+    "file": "examples\\arrays.vader"
   }
 }

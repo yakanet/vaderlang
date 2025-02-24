@@ -30,7 +30,7 @@ function serveStaticBinary(path: string, contentType: string) {
 const server = Bun.serve({
     async fetch(request) {
         const url = new URL(request.url);
-        if (url.pathname === '/') return serveStatic('tools/debug-wasm/index.html', 'text/html')
+        if (url.pathname === '/') return serveStatic('packages/tools/debug-wasm/index.html', 'text/html')
         if (url.pathname === '/module.wasm') return serveStaticBinary(wasm_path, 'application/wasm')//'__snapshot__/examples/arraylists/arraylists.wasm', 'application/wasm')
         return new Response(undefined, {
             status: 404

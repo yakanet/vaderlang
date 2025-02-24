@@ -16,19 +16,15 @@
  (export "memory" (memory $0))
  (start $_start)
  (func $_start (type $2)
-  ;;@ examples/condition.vader:8:9
   (block
-   ;;@
    (i32.store
     (i32.const 8)
     (i32.const 0)
    )
-   ;;@
    (i32.store
     (i32.const 12)
     (i32.const 7)
    )
-   ;;@
    (drop
     (call $wasi_snapshot_preview1:fd_write
      (i32.const 1)
@@ -38,17 +34,14 @@
     )
    )
   )
-  ;;@
   (i32.store
    (i32.const 36)
    (i32.const 20)
   )
-  ;;@
   (i32.store
    (i32.const 40)
    (i32.const 14)
   )
-  ;;@
   (drop
    (call $wasi_snapshot_preview1:fd_write
     (i32.const 1)
@@ -57,17 +50,14 @@
     (i32.const 44)
    )
   )
-  ;;@
   (i32.store
    (i32.const 80)
    (i32.const 68)
   )
-  ;;@
   (i32.store
    (i32.const 84)
    (i32.const 11)
   )
-  ;;@
   (drop
    (call $wasi_snapshot_preview1:fd_write
     (i32.const 1)
@@ -76,17 +66,14 @@
     (i32.const 88)
    )
   )
-  ;;@
   (i32.store
    (i32.const 120)
    (i32.const 112)
   )
-  ;;@
   (i32.store
    (i32.const 124)
    (i32.const 8)
   )
-  ;;@
   (drop
    (call $wasi_snapshot_preview1:fd_write
     (i32.const 1)
@@ -95,9 +82,7 @@
     (i32.const 128)
    )
   )
-  ;;@
   (call $wasi_snapshot_preview1:proc_exit
-   ;;@ examples/condition.vader:40:12
    (i32.const 35)
   )
  )

@@ -75,7 +75,7 @@ function testWasmEmitter(file: string, update: boolean) {
         const context = new BundleContext(resolver);
         let program = parseProgram(file, context)
         program = resolve(program, context)
-        const emitter = new WasmEmitter();
+        const emitter = new WasmEmitter(false);
         const module = emitter.emit(program)
         const value = module.emitText();
         if (update || !fs.existsSync(snapshotFile)) {
@@ -94,7 +94,7 @@ function testRun(file: string, update: boolean) {
         const context = new BundleContext(resolver);
         let program = parseProgram(file, context)
         program = resolve(program, context)
-        const emitter = new WasmEmitter();
+        const emitter = new WasmEmitter(false);
         emitter.emit(program)
         const wasmfile = createSnapshotFile(file, '.wasm');
         fs.writeFileSync(wasmfile, emitter.mod.module.emitBinary());

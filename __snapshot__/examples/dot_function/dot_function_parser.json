@@ -26,7 +26,7 @@
                 "line": 1,
                 "column": 10
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           },
           {
@@ -47,7 +47,7 @@
                 "line": 2,
                 "column": 10
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           }
         ]
@@ -75,7 +75,7 @@
                   "line": 1,
                   "column": 10
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             },
             {
@@ -96,7 +96,7 @@
                   "line": 2,
                   "column": 10
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             }
           ]
@@ -112,7 +112,7 @@
             "line": 0,
             "column": 15
           },
-          "file": "examples/dot_function.vader"
+          "file": "examples\\dot_function.vader"
         }
       },
       "location": {
@@ -126,7 +126,7 @@
           "line": 0,
           "column": 15
         },
-        "file": "examples/dot_function.vader"
+        "file": "examples\\dot_function.vader"
       }
     },
     {
@@ -160,7 +160,7 @@
                       "line": 1,
                       "column": 10
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 {
@@ -181,7 +181,7 @@
                       "line": 2,
                       "column": 10
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 }
               ]
@@ -197,7 +197,7 @@
                 "line": 5,
                 "column": 20
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           },
           {
@@ -223,7 +223,7 @@
                       "line": 1,
                       "column": 10
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 {
@@ -244,7 +244,7 @@
                       "line": 2,
                       "column": 10
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 }
               ]
@@ -260,7 +260,7 @@
                 "line": 5,
                 "column": 34
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           }
         ],
@@ -299,7 +299,7 @@
                         "line": 1,
                         "column": 10
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   {
@@ -320,7 +320,7 @@
                         "line": 2,
                         "column": 10
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   }
                 ]
@@ -336,7 +336,7 @@
                   "line": 5,
                   "column": 20
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             },
             {
@@ -362,7 +362,7 @@
                         "line": 1,
                         "column": 10
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   {
@@ -383,7 +383,7 @@
                         "line": 2,
                         "column": 10
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   }
                 ]
@@ -399,7 +399,7 @@
                   "line": 5,
                   "column": 34
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             }
           ],
@@ -453,7 +453,7 @@
                               "line": 1,
                               "column": 10
                             },
-                            "file": "examples/dot_function.vader"
+                            "file": "examples\\dot_function.vader"
                           }
                         },
                         {
@@ -474,7 +474,7 @@
                               "line": 2,
                               "column": 10
                             },
-                            "file": "examples/dot_function.vader"
+                            "file": "examples\\dot_function.vader"
                           }
                         }
                       ]
@@ -491,7 +491,7 @@
                         "line": 6,
                         "column": 15
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   "properties": [
@@ -514,7 +514,7 @@
                           "line": 6,
                           "column": 17
                         },
-                        "file": "examples/dot_function.vader"
+                        "file": "examples\\dot_function.vader"
                       }
                     }
                   ],
@@ -534,7 +534,7 @@
                       "line": 6,
                       "column": 17
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 "rhs": {
@@ -562,7 +562,7 @@
                               "line": 1,
                               "column": 10
                             },
-                            "file": "examples/dot_function.vader"
+                            "file": "examples\\dot_function.vader"
                           }
                         },
                         {
@@ -583,7 +583,7 @@
                               "line": 2,
                               "column": 10
                             },
-                            "file": "examples/dot_function.vader"
+                            "file": "examples\\dot_function.vader"
                           }
                         }
                       ]
@@ -600,7 +600,7 @@
                         "line": 6,
                         "column": 25
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   "properties": [
@@ -623,7 +623,7 @@
                           "line": 6,
                           "column": 27
                         },
-                        "file": "examples/dot_function.vader"
+                        "file": "examples\\dot_function.vader"
                       }
                     }
                   ],
@@ -643,7 +643,7 @@
                       "line": 6,
                       "column": 27
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 "location": {
@@ -657,7 +657,7 @@
                     "line": 6,
                     "column": 27
                   },
-                  "file": "examples/dot_function.vader"
+                  "file": "examples\\dot_function.vader"
                 }
               },
               "rhs": {
@@ -693,7 +693,7 @@
                               "line": 1,
                               "column": 10
                             },
-                            "file": "examples/dot_function.vader"
+                            "file": "examples\\dot_function.vader"
                           }
                         },
                         {
@@ -714,7 +714,7 @@
                               "line": 2,
                               "column": 10
                             },
-                            "file": "examples/dot_function.vader"
+                            "file": "examples\\dot_function.vader"
                           }
                         }
                       ]
@@ -731,7 +731,7 @@
                         "line": 6,
                         "column": 34
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   "properties": [
@@ -754,7 +754,7 @@
                           "line": 6,
                           "column": 36
                         },
-                        "file": "examples/dot_function.vader"
+                        "file": "examples\\dot_function.vader"
                       }
                     }
                   ],
@@ -774,7 +774,7 @@
                       "line": 6,
                       "column": 36
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 "rhs": {
@@ -802,7 +802,7 @@
                               "line": 1,
                               "column": 10
                             },
-                            "file": "examples/dot_function.vader"
+                            "file": "examples\\dot_function.vader"
                           }
                         },
                         {
@@ -823,7 +823,7 @@
                               "line": 2,
                               "column": 10
                             },
-                            "file": "examples/dot_function.vader"
+                            "file": "examples\\dot_function.vader"
                           }
                         }
                       ]
@@ -840,7 +840,7 @@
                         "line": 6,
                         "column": 44
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   "properties": [
@@ -863,7 +863,7 @@
                           "line": 6,
                           "column": 46
                         },
-                        "file": "examples/dot_function.vader"
+                        "file": "examples\\dot_function.vader"
                       }
                     }
                   ],
@@ -883,7 +883,7 @@
                       "line": 6,
                       "column": 46
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 "location": {
@@ -897,7 +897,7 @@
                     "line": 6,
                     "column": 46
                   },
-                  "file": "examples/dot_function.vader"
+                  "file": "examples\\dot_function.vader"
                 }
               },
               "location": {
@@ -911,7 +911,7 @@
                   "line": 6,
                   "column": 46
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             },
             "location": {
@@ -925,7 +925,7 @@
                 "line": 6,
                 "column": 46
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           }
         ],
@@ -940,7 +940,7 @@
             "line": 7,
             "column": 1
           },
-          "file": "examples/dot_function.vader"
+          "file": "examples\\dot_function.vader"
         }
       },
       "location": {
@@ -954,7 +954,7 @@
           "line": 7,
           "column": 1
         },
-        "file": "examples/dot_function.vader"
+        "file": "examples\\dot_function.vader"
       }
     },
     {
@@ -983,7 +983,7 @@
                 "line": 9,
                 "column": 21
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           }
         ],
@@ -1017,7 +1017,7 @@
                   "line": 9,
                   "column": 21
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             }
           ],
@@ -1057,7 +1057,7 @@
                     "line": 10,
                     "column": 15
                   },
-                  "file": "examples/dot_function.vader"
+                  "file": "examples\\dot_function.vader"
                 }
               },
               "rhs": {
@@ -1079,7 +1079,7 @@
                     "line": 10,
                     "column": 19
                   },
-                  "file": "examples/dot_function.vader"
+                  "file": "examples\\dot_function.vader"
                 }
               },
               "location": {
@@ -1093,7 +1093,7 @@
                   "line": 10,
                   "column": 19
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             },
             "location": {
@@ -1107,7 +1107,7 @@
                 "line": 10,
                 "column": 19
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           }
         ],
@@ -1122,7 +1122,7 @@
             "line": 11,
             "column": 1
           },
-          "file": "examples/dot_function.vader"
+          "file": "examples\\dot_function.vader"
         }
       },
       "location": {
@@ -1136,7 +1136,7 @@
           "line": 11,
           "column": 1
         },
-        "file": "examples/dot_function.vader"
+        "file": "examples\\dot_function.vader"
       }
     },
     {
@@ -1191,7 +1191,7 @@
                       "line": 1,
                       "column": 10
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 {
@@ -1212,7 +1212,7 @@
                       "line": 2,
                       "column": 10
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 }
               ]
@@ -1240,7 +1240,7 @@
                         "line": 14,
                         "column": 19
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   "location": {
@@ -1254,7 +1254,7 @@
                       "line": 14,
                       "column": 19
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 {
@@ -1277,7 +1277,7 @@
                         "line": 14,
                         "column": 22
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   "location": {
@@ -1291,7 +1291,7 @@
                       "line": 14,
                       "column": 22
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 }
               ],
@@ -1317,7 +1317,7 @@
                         "line": 1,
                         "column": 10
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   {
@@ -1338,7 +1338,7 @@
                         "line": 2,
                         "column": 10
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   }
                 ]
@@ -1354,7 +1354,7 @@
                   "line": 14,
                   "column": 24
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             },
             "location": {
@@ -1368,7 +1368,7 @@
                 "line": 14,
                 "column": 24
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           },
           {
@@ -1396,7 +1396,7 @@
                       "line": 1,
                       "column": 10
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 {
@@ -1417,7 +1417,7 @@
                       "line": 2,
                       "column": 10
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 }
               ]
@@ -1445,7 +1445,7 @@
                         "line": 15,
                         "column": 19
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   "location": {
@@ -1459,7 +1459,7 @@
                       "line": 15,
                       "column": 19
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 },
                 {
@@ -1482,7 +1482,7 @@
                         "line": 15,
                         "column": 22
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   "location": {
@@ -1496,7 +1496,7 @@
                       "line": 15,
                       "column": 22
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   }
                 }
               ],
@@ -1522,7 +1522,7 @@
                         "line": 1,
                         "column": 10
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   },
                   {
@@ -1543,7 +1543,7 @@
                         "line": 2,
                         "column": 10
                       },
-                      "file": "examples/dot_function.vader"
+                      "file": "examples\\dot_function.vader"
                     }
                   }
                 ]
@@ -1559,7 +1559,7 @@
                   "line": 15,
                   "column": 24
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               }
             },
             "location": {
@@ -1573,7 +1573,7 @@
                 "line": 15,
                 "column": 24
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           },
           {
@@ -1592,7 +1592,7 @@
                   "line": 16,
                   "column": 29
                 },
-                "file": "examples/dot_function.vader"
+                "file": "examples\\dot_function.vader"
               },
               "parameters": [
                 {
@@ -1609,7 +1609,7 @@
                       "line": 16,
                       "column": 21
                     },
-                    "file": "examples/dot_function.vader"
+                    "file": "examples\\dot_function.vader"
                   },
                   "parameters": [
                     {
@@ -1635,7 +1635,7 @@
                                 "line": 1,
                                 "column": 10
                               },
-                              "file": "examples/dot_function.vader"
+                              "file": "examples\\dot_function.vader"
                             }
                           },
                           {
@@ -1656,7 +1656,7 @@
                                 "line": 2,
                                 "column": 10
                               },
-                              "file": "examples/dot_function.vader"
+                              "file": "examples\\dot_function.vader"
                             }
                           }
                         ]
@@ -1673,7 +1673,7 @@
                           "line": 16,
                           "column": 13
                         },
-                        "file": "examples/dot_function.vader"
+                        "file": "examples\\dot_function.vader"
                       }
                     },
                     {
@@ -1699,7 +1699,7 @@
                                 "line": 1,
                                 "column": 10
                               },
-                              "file": "examples/dot_function.vader"
+                              "file": "examples\\dot_function.vader"
                             }
                           },
                           {
@@ -1720,7 +1720,7 @@
                                 "line": 2,
                                 "column": 10
                               },
-                              "file": "examples/dot_function.vader"
+                              "file": "examples\\dot_function.vader"
                             }
                           }
                         ]
@@ -1737,7 +1737,7 @@
                           "line": 16,
                           "column": 20
                         },
-                        "file": "examples/dot_function.vader"
+                        "file": "examples\\dot_function.vader"
                       }
                     }
                   ],
@@ -1765,7 +1765,7 @@
                 "line": 16,
                 "column": 29
               },
-              "file": "examples/dot_function.vader"
+              "file": "examples\\dot_function.vader"
             }
           }
         ],
@@ -1780,7 +1780,7 @@
             "line": 17,
             "column": 1
           },
-          "file": "examples/dot_function.vader"
+          "file": "examples\\dot_function.vader"
         }
       },
       "location": {
@@ -1794,7 +1794,7 @@
           "line": 17,
           "column": 1
         },
-        "file": "examples/dot_function.vader"
+        "file": "examples\\dot_function.vader"
       }
     }
   ],
@@ -1809,6 +1809,6 @@
       "line": 17,
       "column": 1
     },
-    "file": "examples/dot_function.vader"
+    "file": "examples\\dot_function.vader"
   }
 }

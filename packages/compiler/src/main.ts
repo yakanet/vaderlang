@@ -22,7 +22,7 @@ for (const source_path of cli.positionalArgument) {
       console.log(util.inspect(resolvedProgram, { depth: null, colors: true }));
     }
 
-    const emitter = new WasmEmitter();
+    const emitter = new WasmEmitter(false);
     const module = emitter.emit(resolvedProgram);
     if (debug) {
       console.log(module.emitText());
