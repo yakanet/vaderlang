@@ -26,7 +26,7 @@
                 "line": 1,
                 "column": 10
               },
-              "file": "examples\\structs.vader"
+              "file": "examples/structs.vader"
             }
           },
           {
@@ -47,7 +47,7 @@
                 "line": 2,
                 "column": 10
               },
-              "file": "examples\\structs.vader"
+              "file": "examples/structs.vader"
             }
           }
         ]
@@ -75,7 +75,7 @@
                   "line": 1,
                   "column": 10
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             {
@@ -96,7 +96,7 @@
                   "line": 2,
                   "column": 10
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             }
           ]
@@ -112,7 +112,7 @@
             "line": 0,
             "column": 15
           },
-          "file": "examples\\structs.vader"
+          "file": "examples/structs.vader"
         }
       },
       "location": {
@@ -126,7 +126,7 @@
           "line": 0,
           "column": 15
         },
-        "file": "examples\\structs.vader"
+        "file": "examples/structs.vader"
       }
     },
     {
@@ -159,7 +159,7 @@
                       "line": 1,
                       "column": 10
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -180,7 +180,7 @@
                       "line": 2,
                       "column": 10
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 }
               ]
@@ -196,7 +196,7 @@
                 "line": 6,
                 "column": 17
               },
-              "file": "examples\\structs.vader"
+              "file": "examples/structs.vader"
             }
           },
           {
@@ -217,7 +217,7 @@
                 "line": 7,
                 "column": 10
               },
-              "file": "examples\\structs.vader"
+              "file": "examples/structs.vader"
             }
           }
         ]
@@ -250,7 +250,7 @@
                         "line": 1,
                         "column": 10
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   {
@@ -271,7 +271,7 @@
                         "line": 2,
                         "column": 10
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   }
                 ]
@@ -287,7 +287,7 @@
                   "line": 6,
                   "column": 17
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             {
@@ -308,7 +308,7 @@
                   "line": 7,
                   "column": 10
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             }
           ]
@@ -324,7 +324,7 @@
             "line": 5,
             "column": 17
           },
-          "file": "examples\\structs.vader"
+          "file": "examples/structs.vader"
         }
       },
       "location": {
@@ -338,7 +338,7 @@
           "line": 5,
           "column": 17
         },
-        "file": "examples\\structs.vader"
+        "file": "examples/structs.vader"
       }
     },
     {
@@ -398,7 +398,7 @@
                             "line": 1,
                             "column": 10
                           },
-                          "file": "examples\\structs.vader"
+                          "file": "examples/structs.vader"
                         }
                       },
                       {
@@ -419,7 +419,7 @@
                             "line": 2,
                             "column": 10
                           },
-                          "file": "examples\\structs.vader"
+                          "file": "examples/structs.vader"
                         }
                       }
                     ]
@@ -435,7 +435,7 @@
                       "line": 6,
                       "column": 17
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -456,7 +456,7 @@
                       "line": 7,
                       "column": 10
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 }
               ]
@@ -488,7 +488,7 @@
                               "line": 11,
                               "column": 28
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         },
                         "location": {
@@ -502,7 +502,7 @@
                             "line": 11,
                             "column": 28
                           },
-                          "file": "examples\\structs.vader"
+                          "file": "examples/structs.vader"
                         }
                       },
                       {
@@ -525,7 +525,7 @@
                               "line": 11,
                               "column": 31
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         },
                         "location": {
@@ -539,7 +539,7 @@
                             "line": 11,
                             "column": 31
                           },
-                          "file": "examples\\structs.vader"
+                          "file": "examples/structs.vader"
                         }
                       }
                     ],
@@ -565,7 +565,7 @@
                               "line": 1,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -586,7 +586,7 @@
                               "line": 2,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
@@ -602,7 +602,7 @@
                         "line": 11,
                         "column": 33
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   "location": {
@@ -616,7 +616,7 @@
                       "line": 11,
                       "column": 33
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -639,7 +639,7 @@
                         "line": 11,
                         "column": 37
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   "location": {
@@ -653,7 +653,7 @@
                       "line": 11,
                       "column": 37
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 }
               ],
@@ -684,7 +684,7 @@
                               "line": 1,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -705,7 +705,7 @@
                               "line": 2,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
@@ -721,7 +721,7 @@
                         "line": 6,
                         "column": 17
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   {
@@ -742,7 +742,7 @@
                         "line": 7,
                         "column": 10
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   }
                 ]
@@ -758,7 +758,7 @@
                   "line": 11,
                   "column": 39
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             "location": {
@@ -772,7 +772,7 @@
                 "line": 11,
                 "column": 39
               },
-              "file": "examples\\structs.vader"
+              "file": "examples/structs.vader"
             }
           },
           {
@@ -800,7 +800,7 @@
                       "line": 1,
                       "column": 10
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -821,7 +821,7 @@
                       "line": 2,
                       "column": 10
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 }
               ]
@@ -849,7 +849,7 @@
                         "line": 12,
                         "column": 18
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   "location": {
@@ -863,7 +863,7 @@
                       "line": 12,
                       "column": 18
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -886,7 +886,7 @@
                         "line": 12,
                         "column": 21
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   "location": {
@@ -900,7 +900,7 @@
                       "line": 12,
                       "column": 21
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 }
               ],
@@ -926,7 +926,7 @@
                         "line": 1,
                         "column": 10
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   {
@@ -947,7 +947,7 @@
                         "line": 2,
                         "column": 10
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   }
                 ]
@@ -963,7 +963,7 @@
                   "line": 12,
                   "column": 23
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             "location": {
@@ -977,7 +977,7 @@
                 "line": 12,
                 "column": 23
               },
-              "file": "examples\\structs.vader"
+              "file": "examples/structs.vader"
             }
           },
           {
@@ -1007,7 +1007,7 @@
                           "line": 1,
                           "column": 10
                         },
-                        "file": "examples\\structs.vader"
+                        "file": "examples/structs.vader"
                       }
                     },
                     {
@@ -1028,7 +1028,7 @@
                           "line": 2,
                           "column": 10
                         },
-                        "file": "examples\\structs.vader"
+                        "file": "examples/structs.vader"
                       }
                     }
                   ]
@@ -1045,7 +1045,7 @@
                     "line": 13,
                     "column": 5
                   },
-                  "file": "examples\\structs.vader"
+                  "file": "examples/structs.vader"
                 }
               },
               "properties": [
@@ -1068,7 +1068,7 @@
                       "line": 13,
                       "column": 7
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 }
               ],
@@ -1088,7 +1088,7 @@
                   "line": 13,
                   "column": 7
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             "value": {
@@ -1110,7 +1110,7 @@
                   "line": 13,
                   "column": 12
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             "location": {
@@ -1119,7 +1119,7 @@
                 "line": 13,
                 "column": 3
               },
-              "file": "examples\\structs.vader",
+              "file": "examples/structs.vader",
               "end": {
                 "offset": 193,
                 "line": 13,
@@ -1159,7 +1159,7 @@
                                 "line": 1,
                                 "column": 10
                               },
-                              "file": "examples\\structs.vader"
+                              "file": "examples/structs.vader"
                             }
                           },
                           {
@@ -1180,7 +1180,7 @@
                                 "line": 2,
                                 "column": 10
                               },
-                              "file": "examples\\structs.vader"
+                              "file": "examples/structs.vader"
                             }
                           }
                         ]
@@ -1196,7 +1196,7 @@
                           "line": 6,
                           "column": 17
                         },
-                        "file": "examples\\structs.vader"
+                        "file": "examples/structs.vader"
                       }
                     },
                     {
@@ -1217,7 +1217,7 @@
                           "line": 7,
                           "column": 10
                         },
-                        "file": "examples\\structs.vader"
+                        "file": "examples/structs.vader"
                       }
                     }
                   ]
@@ -1234,7 +1234,7 @@
                     "line": 14,
                     "column": 5
                   },
-                  "file": "examples\\structs.vader"
+                  "file": "examples/structs.vader"
                 }
               },
               "properties": [
@@ -1262,7 +1262,7 @@
                             "line": 1,
                             "column": 10
                           },
-                          "file": "examples\\structs.vader"
+                          "file": "examples/structs.vader"
                         }
                       },
                       {
@@ -1283,7 +1283,7 @@
                             "line": 2,
                             "column": 10
                           },
-                          "file": "examples\\structs.vader"
+                          "file": "examples/structs.vader"
                         }
                       }
                     ]
@@ -1299,7 +1299,7 @@
                       "line": 14,
                       "column": 12
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 {
@@ -1321,7 +1321,7 @@
                       "line": 14,
                       "column": 14
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 }
               ],
@@ -1341,7 +1341,7 @@
                   "line": 14,
                   "column": 14
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             "value": {
@@ -1363,7 +1363,7 @@
                   "line": 14,
                   "column": 19
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             "location": {
@@ -1372,7 +1372,7 @@
                 "line": 14,
                 "column": 3
               },
-              "file": "examples\\structs.vader",
+              "file": "examples/structs.vader",
               "end": {
                 "offset": 213,
                 "line": 14,
@@ -1423,7 +1423,7 @@
                               "line": 1,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -1444,7 +1444,7 @@
                               "line": 2,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
@@ -1461,7 +1461,7 @@
                         "line": 15,
                         "column": 12
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   "properties": [
@@ -1484,7 +1484,7 @@
                           "line": 15,
                           "column": 14
                         },
-                        "file": "examples\\structs.vader"
+                        "file": "examples/structs.vader"
                       }
                     }
                   ],
@@ -1504,7 +1504,7 @@
                       "line": 15,
                       "column": 14
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 "rhs": {
@@ -1537,7 +1537,7 @@
                                     "line": 1,
                                     "column": 10
                                   },
-                                  "file": "examples\\structs.vader"
+                                  "file": "examples/structs.vader"
                                 }
                               },
                               {
@@ -1558,7 +1558,7 @@
                                     "line": 2,
                                     "column": 10
                                   },
-                                  "file": "examples\\structs.vader"
+                                  "file": "examples/structs.vader"
                                 }
                               }
                             ]
@@ -1574,7 +1574,7 @@
                               "line": 6,
                               "column": 17
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -1595,7 +1595,7 @@
                               "line": 7,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
@@ -1612,7 +1612,7 @@
                         "line": 15,
                         "column": 19
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   "properties": [
@@ -1640,7 +1640,7 @@
                                 "line": 1,
                                 "column": 10
                               },
-                              "file": "examples\\structs.vader"
+                              "file": "examples/structs.vader"
                             }
                           },
                           {
@@ -1661,7 +1661,7 @@
                                 "line": 2,
                                 "column": 10
                               },
-                              "file": "examples\\structs.vader"
+                              "file": "examples/structs.vader"
                             }
                           }
                         ]
@@ -1677,7 +1677,7 @@
                           "line": 15,
                           "column": 26
                         },
-                        "file": "examples\\structs.vader"
+                        "file": "examples/structs.vader"
                       }
                     },
                     {
@@ -1699,7 +1699,7 @@
                           "line": 15,
                           "column": 28
                         },
-                        "file": "examples\\structs.vader"
+                        "file": "examples/structs.vader"
                       }
                     }
                   ],
@@ -1719,7 +1719,7 @@
                       "line": 15,
                       "column": 28
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 "location": {
@@ -1733,7 +1733,7 @@
                     "line": 15,
                     "column": 28
                   },
-                  "file": "examples\\structs.vader"
+                  "file": "examples/structs.vader"
                 }
               },
               "rhs": {
@@ -1766,7 +1766,7 @@
                                   "line": 1,
                                   "column": 10
                                 },
-                                "file": "examples\\structs.vader"
+                                "file": "examples/structs.vader"
                               }
                             },
                             {
@@ -1787,7 +1787,7 @@
                                   "line": 2,
                                   "column": 10
                                 },
-                                "file": "examples\\structs.vader"
+                                "file": "examples/structs.vader"
                               }
                             }
                           ]
@@ -1803,7 +1803,7 @@
                             "line": 6,
                             "column": 17
                           },
-                          "file": "examples\\structs.vader"
+                          "file": "examples/structs.vader"
                         }
                       },
                       {
@@ -1824,7 +1824,7 @@
                             "line": 7,
                             "column": 10
                           },
-                          "file": "examples\\structs.vader"
+                          "file": "examples/structs.vader"
                         }
                       }
                     ]
@@ -1841,7 +1841,7 @@
                       "line": 15,
                       "column": 33
                     },
-                    "file": "examples\\structs.vader"
+                    "file": "examples/structs.vader"
                   }
                 },
                 "properties": [
@@ -1869,7 +1869,7 @@
                               "line": 1,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         },
                         {
@@ -1890,7 +1890,7 @@
                               "line": 2,
                               "column": 10
                             },
-                            "file": "examples\\structs.vader"
+                            "file": "examples/structs.vader"
                           }
                         }
                       ]
@@ -1906,7 +1906,7 @@
                         "line": 15,
                         "column": 40
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   },
                   {
@@ -1928,7 +1928,7 @@
                         "line": 15,
                         "column": 42
                       },
-                      "file": "examples\\structs.vader"
+                      "file": "examples/structs.vader"
                     }
                   }
                 ],
@@ -1948,7 +1948,7 @@
                     "line": 15,
                     "column": 42
                   },
-                  "file": "examples\\structs.vader"
+                  "file": "examples/structs.vader"
                 }
               },
               "location": {
@@ -1962,7 +1962,7 @@
                   "line": 15,
                   "column": 42
                 },
-                "file": "examples\\structs.vader"
+                "file": "examples/structs.vader"
               }
             },
             "location": {
@@ -1976,7 +1976,7 @@
                 "line": 15,
                 "column": 42
               },
-              "file": "examples\\structs.vader"
+              "file": "examples/structs.vader"
             }
           }
         ],
@@ -1991,7 +1991,7 @@
             "line": 16,
             "column": 1
           },
-          "file": "examples\\structs.vader"
+          "file": "examples/structs.vader"
         }
       },
       "location": {
@@ -2005,7 +2005,7 @@
           "line": 16,
           "column": 1
         },
-        "file": "examples\\structs.vader"
+        "file": "examples/structs.vader"
       }
     }
   ],
@@ -2020,6 +2020,6 @@
       "line": 16,
       "column": 1
     },
-    "file": "examples\\structs.vader"
+    "file": "examples/structs.vader"
   }
 }

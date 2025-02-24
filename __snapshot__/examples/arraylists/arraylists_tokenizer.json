@@ -13,7 +13,7 @@
         "line": 0,
         "column": 5
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -30,7 +30,7 @@
         "line": 0,
         "column": 17
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -47,7 +47,7 @@
         "line": 2,
         "column": 4
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -64,7 +64,7 @@
         "line": 2,
         "column": 6
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -81,7 +81,7 @@
         "line": 2,
         "column": 7
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -98,7 +98,7 @@
         "line": 2,
         "column": 10
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -115,7 +115,7 @@
         "line": 2,
         "column": 11
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -132,7 +132,7 @@
         "line": 2,
         "column": 12
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -149,7 +149,7 @@
         "line": 2,
         "column": 15
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -166,7 +166,7 @@
         "line": 2,
         "column": 19
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -183,7 +183,7 @@
         "line": 2,
         "column": 21
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -200,7 +200,7 @@
         "line": 3,
         "column": 8
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -217,7 +217,7 @@
         "line": 3,
         "column": 10
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -234,7 +234,7 @@
         "line": 3,
         "column": 11
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -251,7 +251,7 @@
         "line": 3,
         "column": 23
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -268,7 +268,7 @@
         "line": 3,
         "column": 24
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -285,7 +285,7 @@
         "line": 3,
         "column": 25
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -302,7 +302,7 @@
         "line": 3,
         "column": 26
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -319,7 +319,7 @@
         "line": 4,
         "column": 8
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -336,7 +336,7 @@
         "line": 4,
         "column": 9
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -353,7 +353,7 @@
         "line": 4,
         "column": 13
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -370,7 +370,7 @@
         "line": 4,
         "column": 14
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -387,7 +387,7 @@
         "line": 4,
         "column": 15
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -404,7 +404,7 @@
         "line": 4,
         "column": 16
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -421,7 +421,7 @@
         "line": 5,
         "column": 8
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -438,7 +438,7 @@
         "line": 5,
         "column": 9
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -455,7 +455,7 @@
         "line": 5,
         "column": 13
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -472,7 +472,7 @@
         "line": 5,
         "column": 14
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -489,7 +489,7 @@
         "line": 5,
         "column": 15
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -506,7 +506,7 @@
         "line": 5,
         "column": 16
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -523,7 +523,7 @@
         "line": 6,
         "column": 8
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -540,7 +540,7 @@
         "line": 6,
         "column": 9
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -557,7 +557,7 @@
         "line": 6,
         "column": 13
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -574,7 +574,7 @@
         "line": 6,
         "column": 14
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -591,7 +591,7 @@
         "line": 6,
         "column": 15
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -608,7 +608,7 @@
         "line": 6,
         "column": 16
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -625,7 +625,7 @@
         "line": 7,
         "column": 10
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -642,7 +642,7 @@
         "line": 7,
         "column": 15
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -659,7 +659,7 @@
         "line": 7,
         "column": 16
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -676,7 +676,7 @@
         "line": 7,
         "column": 18
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -693,7 +693,7 @@
         "line": 7,
         "column": 19
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -710,7 +710,7 @@
         "line": 7,
         "column": 20
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -727,7 +727,7 @@
         "line": 7,
         "column": 21
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -744,7 +744,7 @@
         "line": 8,
         "column": 1
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     }
   },
   {
@@ -760,7 +760,7 @@
         "line": 9,
         "column": 0
       },
-      "file": "examples\\arraylists.vader"
+      "file": "examples/arraylists.vader"
     },
     "value": "\u0000"
   }

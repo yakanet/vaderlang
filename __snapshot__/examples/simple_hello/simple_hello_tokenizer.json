@@ -13,7 +13,7 @@
         "line": 0,
         "column": 5
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -30,7 +30,7 @@
         "line": 0,
         "column": 11
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -47,7 +47,7 @@
         "line": 2,
         "column": 4
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -64,7 +64,7 @@
         "line": 2,
         "column": 6
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -81,7 +81,7 @@
         "line": 2,
         "column": 7
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -98,7 +98,7 @@
         "line": 2,
         "column": 10
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -115,7 +115,7 @@
         "line": 2,
         "column": 11
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -132,7 +132,7 @@
         "line": 2,
         "column": 12
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -149,7 +149,7 @@
         "line": 2,
         "column": 14
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -166,7 +166,7 @@
         "line": 3,
         "column": 9
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -183,7 +183,7 @@
         "line": 3,
         "column": 10
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -200,7 +200,7 @@
         "line": 3,
         "column": 25
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -217,7 +217,7 @@
         "line": 3,
         "column": 26
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -234,7 +234,7 @@
         "line": 4,
         "column": 1
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     }
   },
   {
@@ -250,7 +250,7 @@
         "line": 4,
         "column": 1
       },
-      "file": "examples\\simple_hello.vader"
+      "file": "examples/simple_hello.vader"
     },
     "value": "\u0000"
   }

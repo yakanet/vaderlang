@@ -29,7 +29,7 @@
                 "line": 1,
                 "column": 23
               },
-              "file": "modules\\std.vader"
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -65,7 +65,7 @@
                   "line": 1,
                   "column": 23
                 },
-                "file": "modules\\std.vader"
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -87,7 +87,7 @@
             "line": 1,
             "column": 34
           },
-          "file": "modules\\std.vader"
+          "file": "modules/std.vader"
         }
       },
       "location": {
@@ -101,7 +101,7 @@
           "line": 1,
           "column": 34
         },
-        "file": "modules\\std.vader"
+        "file": "modules/std.vader"
       }
     },
     {
@@ -132,7 +132,7 @@
                 "line": 4,
                 "column": 27
               },
-              "file": "modules\\std.vader"
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -168,7 +168,7 @@
                   "line": 4,
                   "column": 27
                 },
-                "file": "modules\\std.vader"
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -190,7 +190,7 @@
             "line": 4,
             "column": 36
           },
-          "file": "modules\\std.vader"
+          "file": "modules/std.vader"
         }
       },
       "location": {
@@ -204,7 +204,7 @@
           "line": 4,
           "column": 36
         },
-        "file": "modules\\std.vader"
+        "file": "modules/std.vader"
       }
     },
     {
@@ -239,7 +239,7 @@
                 "line": 7,
                 "column": 25
               },
-              "file": "modules\\std.vader"
+              "file": "modules/std.vader"
             }
           }
         ],
@@ -279,7 +279,7 @@
                   "line": 7,
                   "column": 25
                 },
-                "file": "modules\\std.vader"
+                "file": "modules/std.vader"
               }
             }
           ],
@@ -301,7 +301,7 @@
             "line": 7,
             "column": 33
           },
-          "file": "modules\\std.vader"
+          "file": "modules/std.vader"
         }
       },
       "location": {
@@ -315,7 +315,7 @@
           "line": 7,
           "column": 33
         },
-        "file": "modules\\std.vader"
+        "file": "modules/std.vader"
       }
     },
     {
@@ -346,7 +346,7 @@
             "line": 2,
             "column": 17
           },
-          "file": "examples\\hello.vader"
+          "file": "examples/hello.vader"
         }
       },
       "location": {
@@ -360,7 +360,7 @@
           "line": 2,
           "column": 17
         },
-        "file": "examples\\hello.vader"
+        "file": "examples/hello.vader"
       }
     },
     {
@@ -389,7 +389,7 @@
                 "line": 4,
                 "column": 16
               },
-              "file": "examples\\hello.vader"
+              "file": "examples/hello.vader"
             }
           }
         ],
@@ -423,7 +423,7 @@
                   "line": 4,
                   "column": 16
                 },
-                "file": "examples\\hello.vader"
+                "file": "examples/hello.vader"
               }
             }
           ],
@@ -462,7 +462,7 @@
                   "line": 5,
                   "column": 10
                 },
-                "file": "examples\\hello.vader"
+                "file": "examples/hello.vader"
               }
             },
             "location": {
@@ -476,7 +476,7 @@
                 "line": 5,
                 "column": 10
               },
-              "file": "examples\\hello.vader"
+              "file": "examples/hello.vader"
             }
           },
           {
@@ -500,7 +500,7 @@
                   "line": 6,
                   "column": 5
                 },
-                "file": "examples\\hello.vader"
+                "file": "examples/hello.vader"
               }
             },
             "value": {
@@ -530,7 +530,7 @@
                     "line": 6,
                     "column": 9
                   },
-                  "file": "examples\\hello.vader"
+                  "file": "examples/hello.vader"
                 }
               },
               "rhs": {
@@ -552,7 +552,7 @@
                     "line": 6,
                     "column": 13
                   },
-                  "file": "examples\\hello.vader"
+                  "file": "examples/hello.vader"
                 }
               },
               "location": {
@@ -566,7 +566,7 @@
                   "line": 6,
                   "column": 13
                 },
-                "file": "examples\\hello.vader"
+                "file": "examples/hello.vader"
               }
             },
             "location": {
@@ -575,7 +575,7 @@
                 "line": 6,
                 "column": 4
               },
-              "file": "examples\\hello.vader",
+              "file": "examples/hello.vader",
               "end": {
                 "offset": 83,
                 "line": 6,
@@ -612,7 +612,7 @@
                     "line": 7,
                     "column": 12
                   },
-                  "file": "examples\\hello.vader"
+                  "file": "examples/hello.vader"
                 }
               },
               "rhs": {
@@ -634,7 +634,7 @@
                     "line": 7,
                     "column": 16
                   },
-                  "file": "examples\\hello.vader"
+                  "file": "examples/hello.vader"
                 }
               },
               "location": {
@@ -648,7 +648,7 @@
                   "line": 7,
                   "column": 16
                 },
-                "file": "examples\\hello.vader"
+                "file": "examples/hello.vader"
               }
             },
             "location": {
@@ -662,7 +662,7 @@
                 "line": 7,
                 "column": 16
               },
-              "file": "examples\\hello.vader"
+              "file": "examples/hello.vader"
             }
           }
         ],
@@ -677,7 +677,7 @@
             "line": 8,
             "column": 1
           },
-          "file": "examples\\hello.vader"
+          "file": "examples/hello.vader"
         }
       },
       "location": {
@@ -691,7 +691,7 @@
           "line": 8,
           "column": 1
         },
-        "file": "examples\\hello.vader"
+        "file": "examples/hello.vader"
       }
     },
     {
@@ -749,7 +749,7 @@
                     "line": 12,
                     "column": 25
                   },
-                  "file": "examples\\hello.vader"
+                  "file": "examples/hello.vader"
                 }
               }
             ],
@@ -764,7 +764,7 @@
                 "line": 12,
                 "column": 26
               },
-              "file": "examples\\hello.vader"
+              "file": "examples/hello.vader"
             }
           },
           {
@@ -795,7 +795,7 @@
                     "line": 13,
                     "column": 26
                   },
-                  "file": "examples\\hello.vader"
+                  "file": "examples/hello.vader"
                 }
               }
             ],
@@ -810,7 +810,7 @@
                 "line": 13,
                 "column": 27
               },
-              "file": "examples\\hello.vader"
+              "file": "examples/hello.vader"
             }
           },
           {
@@ -841,7 +841,7 @@
                     "line": 14,
                     "column": 21
                   },
-                  "file": "examples\\hello.vader"
+                  "file": "examples/hello.vader"
                 }
               }
             ],
@@ -856,7 +856,7 @@
                 "line": 14,
                 "column": 22
               },
-              "file": "examples\\hello.vader"
+              "file": "examples/hello.vader"
             }
           },
           {
@@ -880,7 +880,7 @@
                   "line": 15,
                   "column": 15
                 },
-                "file": "examples\\hello.vader"
+                "file": "examples/hello.vader"
               }
             },
             "value": {
@@ -902,7 +902,7 @@
                   "line": 15,
                   "column": 19
                 },
-                "file": "examples\\hello.vader"
+                "file": "examples/hello.vader"
               }
             },
             "location": {
@@ -911,7 +911,7 @@
                 "line": 15,
                 "column": 4
               },
-              "file": "examples\\hello.vader",
+              "file": "examples/hello.vader",
               "end": {
                 "offset": 267,
                 "line": 15,
@@ -949,7 +949,7 @@
                       "line": 16,
                       "column": 26
                     },
-                    "file": "examples\\hello.vader"
+                    "file": "examples/hello.vader"
                   }
                 }
               ],
@@ -964,7 +964,7 @@
                   "line": 16,
                   "column": 27
                 },
-                "file": "examples\\hello.vader"
+                "file": "examples/hello.vader"
               }
             },
             "location": {
@@ -978,7 +978,7 @@
                 "line": 16,
                 "column": 27
               },
-              "file": "examples\\hello.vader"
+              "file": "examples/hello.vader"
             }
           }
         ],
@@ -993,7 +993,7 @@
             "line": 17,
             "column": 1
           },
-          "file": "examples\\hello.vader"
+          "file": "examples/hello.vader"
         }
       },
       "location": {
@@ -1007,7 +1007,7 @@
           "line": 17,
           "column": 1
         },
-        "file": "examples\\hello.vader"
+        "file": "examples/hello.vader"
       }
     }
   ],
@@ -1022,6 +1022,6 @@
       "line": 17,
       "column": 1
     },
-    "file": "examples\\hello.vader"
+    "file": "examples/hello.vader"
   }
 }

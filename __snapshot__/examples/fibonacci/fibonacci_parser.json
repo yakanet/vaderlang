@@ -27,7 +27,7 @@
                 "line": 0,
                 "column": 24
               },
-              "file": "examples\\fibonacci.vader"
+              "file": "examples/fibonacci.vader"
             }
           }
         ],
@@ -61,7 +61,7 @@
                   "line": 0,
                   "column": 24
                 },
-                "file": "examples\\fibonacci.vader"
+                "file": "examples/fibonacci.vader"
               }
             }
           ],
@@ -100,7 +100,7 @@
                   "line": 1,
                   "column": 10
                 },
-                "file": "examples\\fibonacci.vader"
+                "file": "examples/fibonacci.vader"
               }
             },
             "location": {
@@ -114,7 +114,7 @@
                 "line": 1,
                 "column": 10
               },
-              "file": "examples\\fibonacci.vader"
+              "file": "examples/fibonacci.vader"
             }
           },
           {
@@ -145,7 +145,7 @@
                   "line": 2,
                   "column": 10
                 },
-                "file": "examples\\fibonacci.vader"
+                "file": "examples/fibonacci.vader"
               }
             },
             "location": {
@@ -159,7 +159,7 @@
                 "line": 2,
                 "column": 10
               },
-              "file": "examples\\fibonacci.vader"
+              "file": "examples/fibonacci.vader"
             }
           },
           {
@@ -192,7 +192,7 @@
                     "line": 3,
                     "column": 14
                   },
-                  "file": "examples\\fibonacci.vader"
+                  "file": "examples/fibonacci.vader"
                 }
               },
               "location": {
@@ -206,7 +206,7 @@
                   "line": 3,
                   "column": 14
                 },
-                "file": "examples\\fibonacci.vader"
+                "file": "examples/fibonacci.vader"
               }
             },
             "condition": {
@@ -236,7 +236,7 @@
                     "line": 3,
                     "column": 18
                   },
-                  "file": "examples\\fibonacci.vader"
+                  "file": "examples/fibonacci.vader"
                 }
               },
               "rhs": {
@@ -258,7 +258,7 @@
                     "line": 3,
                     "column": 24
                   },
-                  "file": "examples\\fibonacci.vader"
+                  "file": "examples/fibonacci.vader"
                 }
               },
               "location": {
@@ -272,7 +272,7 @@
                   "line": 3,
                   "column": 24
                 },
-                "file": "examples\\fibonacci.vader"
+                "file": "examples/fibonacci.vader"
               }
             },
             "iteration": {
@@ -296,7 +296,7 @@
                     "line": 3,
                     "column": 27
                   },
-                  "file": "examples\\fibonacci.vader"
+                  "file": "examples/fibonacci.vader"
                 }
               },
               "value": {
@@ -326,7 +326,7 @@
                       "line": 3,
                       "column": 31
                     },
-                    "file": "examples\\fibonacci.vader"
+                    "file": "examples/fibonacci.vader"
                   }
                 },
                 "rhs": {
@@ -348,7 +348,7 @@
                       "line": 3,
                       "column": 35
                     },
-                    "file": "examples\\fibonacci.vader"
+                    "file": "examples/fibonacci.vader"
                   }
                 },
                 "location": {
@@ -362,7 +362,7 @@
                     "line": 3,
                     "column": 35
                   },
-                  "file": "examples\\fibonacci.vader"
+                  "file": "examples/fibonacci.vader"
                 }
               },
               "location": {
@@ -371,7 +371,7 @@
                   "line": 3,
                   "column": 26
                 },
-                "file": "examples\\fibonacci.vader",
+                "file": "examples/fibonacci.vader",
                 "end": {
                   "offset": 92,
                   "line": 3,
@@ -408,7 +408,7 @@
                       "line": 4,
                       "column": 14
                     },
-                    "file": "examples\\fibonacci.vader"
+                    "file": "examples/fibonacci.vader"
                   }
                 },
                 "location": {
@@ -422,7 +422,7 @@
                     "line": 4,
                     "column": 14
                   },
-                  "file": "examples\\fibonacci.vader"
+                  "file": "examples/fibonacci.vader"
                 }
               },
               {
@@ -446,7 +446,7 @@
                       "line": 5,
                       "column": 9
                     },
-                    "file": "examples\\fibonacci.vader"
+                    "file": "examples/fibonacci.vader"
                   }
                 },
                 "value": {
@@ -468,7 +468,7 @@
                       "line": 5,
                       "column": 13
                     },
-                    "file": "examples\\fibonacci.vader"
+                    "file": "examples/fibonacci.vader"
                   }
                 },
                 "location": {
@@ -477,7 +477,7 @@
                     "line": 5,
                     "column": 8
                   },
-                  "file": "examples\\fibonacci.vader",
+                  "file": "examples/fibonacci.vader",
                   "end": {
                     "offset": 124,
                     "line": 5,
@@ -506,7 +506,7 @@
                       "line": 6,
                       "column": 9
                     },
-                    "file": "examples\\fibonacci.vader"
+                    "file": "examples/fibonacci.vader"
                   }
                 },
                 "value": {
@@ -536,7 +536,7 @@
                         "line": 6,
                         "column": 13
                       },
-                      "file": "examples\\fibonacci.vader"
+                      "file": "examples/fibonacci.vader"
                     }
                   },
                   "rhs": {
@@ -558,7 +558,7 @@
                         "line": 6,
                         "column": 17
                       },
-                      "file": "examples\\fibonacci.vader"
+                      "file": "examples/fibonacci.vader"
                     }
                   },
                   "location": {
@@ -572,7 +572,7 @@
                       "line": 6,
                       "column": 17
                     },
-                    "file": "examples\\fibonacci.vader"
+                    "file": "examples/fibonacci.vader"
                   }
                 },
                 "location": {
@@ -581,7 +581,7 @@
                     "line": 6,
                     "column": 8
                   },
-                  "file": "examples\\fibonacci.vader",
+                  "file": "examples/fibonacci.vader",
                   "end": {
                     "offset": 142,
                     "line": 6,
@@ -601,7 +601,7 @@
                 "line": 7,
                 "column": 5
               },
-              "file": "examples\\fibonacci.vader"
+              "file": "examples/fibonacci.vader"
             }
           },
           {
@@ -625,7 +625,7 @@
                   "line": 8,
                   "column": 12
                 },
-                "file": "examples\\fibonacci.vader"
+                "file": "examples/fibonacci.vader"
               }
             },
             "location": {
@@ -639,7 +639,7 @@
                 "line": 8,
                 "column": 12
               },
-              "file": "examples\\fibonacci.vader"
+              "file": "examples/fibonacci.vader"
             }
           }
         ],
@@ -654,7 +654,7 @@
             "line": 9,
             "column": 1
           },
-          "file": "examples\\fibonacci.vader"
+          "file": "examples/fibonacci.vader"
         }
       },
       "location": {
@@ -668,7 +668,7 @@
           "line": 9,
           "column": 1
         },
-        "file": "examples\\fibonacci.vader"
+        "file": "examples/fibonacci.vader"
       }
     },
     {
@@ -728,7 +728,7 @@
                       "line": 12,
                       "column": 23
                     },
-                    "file": "examples\\fibonacci.vader"
+                    "file": "examples/fibonacci.vader"
                   }
                 }
               ],
@@ -743,7 +743,7 @@
                   "line": 12,
                   "column": 24
                 },
-                "file": "examples\\fibonacci.vader"
+                "file": "examples/fibonacci.vader"
               }
             },
             "location": {
@@ -757,7 +757,7 @@
                 "line": 12,
                 "column": 24
               },
-              "file": "examples\\fibonacci.vader"
+              "file": "examples/fibonacci.vader"
             }
           }
         ],
@@ -772,7 +772,7 @@
             "line": 13,
             "column": 1
           },
-          "file": "examples\\fibonacci.vader"
+          "file": "examples/fibonacci.vader"
         }
       },
       "location": {
@@ -786,7 +786,7 @@
           "line": 13,
           "column": 1
         },
-        "file": "examples\\fibonacci.vader"
+        "file": "examples/fibonacci.vader"
       }
     }
   ],
@@ -801,6 +801,6 @@
       "line": 13,
       "column": 1
     },
-    "file": "examples\\fibonacci.vader"
+    "file": "examples/fibonacci.vader"
   }
 }

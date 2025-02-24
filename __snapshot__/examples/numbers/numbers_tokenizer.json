@@ -13,7 +13,7 @@
         "line": 0,
         "column": 1
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -30,7 +30,7 @@
         "line": 0,
         "column": 3
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -47,7 +47,7 @@
         "line": 0,
         "column": 4
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -64,7 +64,7 @@
         "line": 0,
         "column": 10
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -81,7 +81,7 @@
         "line": 1,
         "column": 1
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -98,7 +98,7 @@
         "line": 1,
         "column": 3
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -115,7 +115,7 @@
         "line": 1,
         "column": 4
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -132,7 +132,7 @@
         "line": 1,
         "column": 16
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -149,7 +149,7 @@
         "line": 2,
         "column": 1
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -166,7 +166,7 @@
         "line": 2,
         "column": 3
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -183,7 +183,7 @@
         "line": 2,
         "column": 4
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -200,7 +200,7 @@
         "line": 2,
         "column": 10
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -217,7 +217,7 @@
         "line": 3,
         "column": 1
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -234,7 +234,7 @@
         "line": 3,
         "column": 3
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -251,7 +251,7 @@
         "line": 3,
         "column": 4
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -268,7 +268,7 @@
         "line": 3,
         "column": 6
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -285,7 +285,7 @@
         "line": 4,
         "column": 1
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -302,7 +302,7 @@
         "line": 4,
         "column": 3
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -319,7 +319,7 @@
         "line": 4,
         "column": 4
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -336,7 +336,7 @@
         "line": 4,
         "column": 14
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -353,7 +353,7 @@
         "line": 6,
         "column": 4
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -370,7 +370,7 @@
         "line": 6,
         "column": 6
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -387,7 +387,7 @@
         "line": 6,
         "column": 7
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -404,7 +404,7 @@
         "line": 6,
         "column": 10
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -421,7 +421,7 @@
         "line": 6,
         "column": 11
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -438,7 +438,7 @@
         "line": 6,
         "column": 12
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -455,7 +455,7 @@
         "line": 6,
         "column": 15
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -472,7 +472,7 @@
         "line": 6,
         "column": 19
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -489,7 +489,7 @@
         "line": 6,
         "column": 21
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -506,7 +506,7 @@
         "line": 7,
         "column": 10
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -523,7 +523,7 @@
         "line": 7,
         "column": 12
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -540,7 +540,7 @@
         "line": 7,
         "column": 14
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -557,7 +557,7 @@
         "line": 7,
         "column": 16
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -574,7 +574,7 @@
         "line": 7,
         "column": 18
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -591,7 +591,7 @@
         "line": 7,
         "column": 20
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -608,7 +608,7 @@
         "line": 7,
         "column": 22
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -625,7 +625,7 @@
         "line": 7,
         "column": 24
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -642,7 +642,7 @@
         "line": 7,
         "column": 26
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -659,7 +659,7 @@
         "line": 7,
         "column": 28
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -676,7 +676,7 @@
         "line": 8,
         "column": 1
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     }
   },
   {
@@ -692,7 +692,7 @@
         "line": 8,
         "column": 1
       },
-      "file": "examples\\numbers.vader"
+      "file": "examples/numbers.vader"
     },
     "value": "\u0000"
   }
