@@ -80,7 +80,7 @@ export class BinaryenModule {
                 instruction.expression,
                 fileIndex,
                 instruction.location.start.line + 1,
-                instruction.location.start.column + 1,
+                instruction.location.start.column,
             )
         }
         this.module.setMemory(1, -1, "memory", this.memoryLayout.map(layout => ({

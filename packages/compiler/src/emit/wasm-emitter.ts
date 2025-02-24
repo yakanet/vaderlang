@@ -14,10 +14,10 @@ import {
     type VariableDeclarationStatement,
 } from "../parser/types";
 import binaryen from "binaryen";
-import { addWasiFunction } from "./wasi.ts";
+import {addWasiFunction} from "./wasi.ts";
 import assert from "node:assert";
-import { gc, TypeBuilder } from "binaryen-gc";
-import { BinaryenModule } from "./binaryen-module.ts";
+import {gc, TypeBuilder} from "binaryen-gc";
+import {BinaryenModule} from "./binaryen-module.ts";
 
 const encoder = new TextEncoder();
 
@@ -110,13 +110,13 @@ export class WasmEmitter {
                                 statement.name,
                                 binaryen.createType(
                                     this.mod.getSymbols()
-                                        .filter(({ scope }) => scope === 'parameter')
-                                        .map(({ type }) => this.mapBinaryenType(type))
+                                        .filter(({scope}) => scope === 'parameter')
+                                        .map(({type}) => this.mapBinaryenType(type))
                                 ),
                                 this.mapBinaryenType(funct.type.returnType),
                                 this.mod.getSymbols()
-                                    .filter(({ scope }) => scope === 'local')
-                                    .map(({ type }) => this.mapBinaryenType(type)),
+                                    .filter(({scope}) => scope === 'local')
+                                    .map(({type}) => this.mapBinaryenType(type)),
                                 this.mod.module.block(null, body)
                             );
                         })
@@ -139,7 +139,7 @@ export class WasmEmitter {
     }
 
     emitStatement(stmt: Statement): binaryen.ExpressionRef {
-        const { addDebugStatement } = this.mod.createDebugStatement(stmt);
+        const {addDebugStatement} = this.mod.createDebugStatement(stmt);
         switch (stmt.kind) {
             case "ReturnStatement":
                 return addDebugStatement(
@@ -222,10 +222,10 @@ export class WasmEmitter {
                     this.emitStatement(stmt.initialization),
                     this.mod.module.loop('outer_' + forCount,
                         this.mod.module.block('inner_' + forCount, [
-                            this.mod.module.br_if('inner_' + forCount, this.mod.module.i32.eqz(this.emitStatement(stmt.condition))),
+                            this.mod.addDebugStatement(this.mod.module.br_if('inner_' + forCount, this.mod.addDebugStatement(this.mod.module.i32.eqz(this.emitStatement(stmt.condition)), stmt.condition)), stmt.condition),
                             ...stmt.body.map(b => this.emitStatement(b)),
-                            this.emitStatement(stmt.iteration),
-                            this.mod.module.br('outer_' + forCount)
+                            this.mod.addDebugStatement(this.emitStatement(stmt.iteration), stmt.iteration),
+                            this.mod.addDebugStatement(this.mod.module.br('outer_' + forCount), stmt.iteration),
                         ])
                     )
                 ])
@@ -237,7 +237,7 @@ export class WasmEmitter {
     private emitExpression(
         expression: Statement,
     ): binaryen.ExpressionRef {
-        const { addDebugStatement } = this.mod.createDebugStatement(expression);
+        const {addDebugStatement} = this.mod.createDebugStatement(expression);
         switch (expression.kind) {
             case 'CallExpression': {
                 const functionType = this.mod.resolveSymbol(expression.functionName, 'global')?.type;
@@ -294,7 +294,7 @@ export class WasmEmitter {
 
             case "ConditionalExpression": {
                 return this.mod.module.if(
-                    this.emitExpression(expression.condition),
+                    this.mod.addDebugStatement(this.emitExpression(expression.condition), expression.condition),
                     this.mod.module.block(null, expression.ifBody.map(b => this.emitStatement(b)), this.mapBinaryenType(expression.type)),
                     expression.elseBody ? this.mod.module.block(null, expression.elseBody.map(b => this.emitStatement(b as any)), this.mapBinaryenType(expression.type)) : undefined
                 )
@@ -337,7 +337,7 @@ export class WasmEmitter {
         let structType = this.mapBinaryenType(expression.type)
         // TODO Map named properties
         const parameters = expression.parameters.map(p => this.emitExpression(p.value))
-        const { addDebugStatement } = this.mod.createDebugStatement(expression);
+        const {addDebugStatement} = this.mod.createDebugStatement(expression);
         return addDebugStatement(gc.structs.newFromFields(this.mod.module, structType, parameters))
     }
 
@@ -374,7 +374,7 @@ export class WasmEmitter {
     private emitDotExpression(expression: DotExpression) {
         let exprs = this.emitExpression(expression.identifier);
         let previousType = expression.identifier.type
-        const results = [{ type: previousType, expression: exprs, index: -1 }];
+        const results = [{type: previousType, expression: exprs, index: -1}];
         for (let i = 0; i < expression.properties.length; i++) {
             const property = expression.properties[i];
             if (previousType.kind === 'struct') {
@@ -382,7 +382,7 @@ export class WasmEmitter {
                 const index = previousType.parameters.findIndex(p => p.name === property.identifier)
                 exprs = gc.structs.getMember(this.mod.module, exprs, index, this.mapBinaryenType(previousType.parameters[index].type), is_signed(property.type))
                 previousType = property.type
-                results.push({ type: previousType, expression: exprs, index })
+                results.push({type: previousType, expression: exprs, index})
             } else if (previousType.kind === 'array') {
                 assert(property.kind === 'ArrayIndexExpression');
                 const index = this.emitExpression(property.index);
@@ -395,7 +395,7 @@ export class WasmEmitter {
                     is_signed(property.type)
                 )
                 previousType = property.type
-                results.push({ type: previousType, expression: exprs, index })
+                results.push({type: previousType, expression: exprs, index})
             } else {
                 throw new Error(`unimplemented dot expression with left side ${typeToString(previousType)}`)
             }
