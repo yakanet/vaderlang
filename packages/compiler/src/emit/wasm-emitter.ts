@@ -106,7 +106,7 @@ export class WasmEmitter {
                             }
                             const body = funct.body.map((stmt) => this.emitStatement(stmt))
 
-                            return this.mod.module.addFunction(
+                            const f = this.mod.module.addFunction(
                                 statement.name,
                                 binaryen.createType(
                                     this.mod.getSymbols()
@@ -119,6 +119,10 @@ export class WasmEmitter {
                                     .map(({type}) => this.mapBinaryenType(type)),
                                 this.mod.module.block(null, body)
                             );
+                            for (let i = 0; i < funct.type.parameters.length; i++) {
+                                (binaryen as any).Function.setLocalName(f, i, funct.type.parameters[i].name)
+                            }
+                            return f;
                         })
                         //this.mod.module.addFunctionExport(statement.name, statement.name);
                         return;
@@ -281,15 +285,13 @@ export class WasmEmitter {
                 if (!functionVariable) {
                     throw new Error(`Could not find ${expression.identifier}`)
                 }
-                return addDebugStatement(this.mod.module.local.get(
+                return this.mod.module.local.get(
                     functionVariable.index,
                     this.mapBinaryenType(functionVariable.type)
-                ));
+                )
             }
             case "NumberExpression": {
-                return addDebugStatement(
-                    createBinaryenConst(this.mod.module, expression.type, expression.value!)
-                );
+                return createBinaryenConst(this.mod.module, expression.type, expression.value!)
             }
 
             case "ConditionalExpression": {

@@ -7,13 +7,13 @@
     "build:esm": "bun build src/index.ts --target=node --format=esm --outfile=build/index.mjs",
     "build:types": "tsc --emitDeclarationOnly",
     "bundle": "bun run bundle:windows-x64 && bun run bundle:darwin-arm64",
-    "bundle:base": "bun build src/main.ts --compile",
+    "bundle:base": "bun build src/cli.ts --compile",
     "bundle:windows-x64": "bun run bundle:base --target=bun-windows-x64 --outfile=../../dist/bin/vader-win64",
     "bundle:darwin-arm64": "bun run bundle:base --target=bun-darwin-arm64 --outfile=../../dist/bin/vader-arm64",
     "test": "bun test"
   },
   "types": "./build/types/index.d.ts",
-  "main": "./build/index.mjs",
+  "cli": "./build/index.mjs",
   "module": "./build/index.mjs",
   "devDependencies": {
     "@types/bun": "latest",
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "binaryen": "^122.0.0",
-    "binaryen-gc": "^0.1.2"
+    "binaryen-gc": "^0.1.2",
+    "commander": "^13.1.0"
   }
 }
