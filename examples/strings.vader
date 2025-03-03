@@ -1,5 +1,6 @@
 @load "std"
 @load "string"
+@load "string_builder"
 
 main :: fn() -> u32 {
     y :: [_]u8 {85, 90, 23}

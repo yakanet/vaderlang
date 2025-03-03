@@ -24,6 +24,7 @@ export class Parser {
             if (this.loadedFiles.has(key)) {
                 return true
             }
+            this.loadedFiles.add(key);
             const tokens = [...tokenize(content, location)]
             if (this.tokens.length) {
                 tokens.pop(); // Removing EOF

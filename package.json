@@ -4,6 +4,7 @@
   "scripts": {
     "package": "bun run --filter '*' build",
     "bundle": "bun package && bun run --filter '*' bundle",
+    "compile": "bun packages/compiler/src/cli.ts --",
     "watch": "bun run --filter '*' watch",
     "debug": "bun run packages/tools/debug-wasm/index.ts",
     "ast": "bun run packages/tools/ast-viewer/index.ts"
