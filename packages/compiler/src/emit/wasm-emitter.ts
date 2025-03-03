@@ -479,7 +479,7 @@ export class WasmEmitter {
 
     private emitArrayLength(expression: CallExpression) {
         assert(expression.parameters.length === 1)
-        assert(expression.parameters[0].type.kind === 'array');
+        assert(expression.parameters[0].type.kind === 'array', `${expression.parameters[0].type.kind} is not an array`);
         return this.mod.addDebugStatement(
             gc.arrays.length(this.mod.module, this.emitExpression(expression.parameters[0])),
             expression
