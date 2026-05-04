@@ -7,6 +7,10 @@ import { DiagnosticCollector } from "../src/diagnostics/collector.ts";
 import { resolveProject } from "../src/resolver/index.ts";
 import { checkProject, displayType } from "../src/typecheck/index.ts";
 import { evaluateProject, displayValue } from "../src/comptime/index.ts";
+import { lowerProject } from "../src/lower/index.ts";
+import type {
+  LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
+} from "../src/lower/index.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
@@ -112,6 +116,196 @@ export function dumpComptime(_source: string, entryPath: string): string {
   }
 
   return lines.join("\n") + "\n" + formatDiagnostics(diags.sorted());
+}
+
+/** Lowerer dump: per-module lowered decls in a compact tree form + diagnostics. */
+export function dumpLower(_source: string, entryPath: string): string {
+  const diags = new DiagnosticCollector();
+  const project = resolveProject({ entryPath, diags });
+  const typed = checkProject(project, diags);
+  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
+  const lowered = lowerProject(evaled);
+
+  const lines: string[] = ["# Lower"];
+  for (const id of [...lowered.modules.keys()].sort()) {
+    const m = lowered.modules.get(id)!;
+    if (m.displayPath.startsWith("std/")) continue;
+    lines.push(`\n## ${m.displayPath}`);
+    for (const d of m.decls) emitDecl(lines, d, "  ");
+  }
+  return lines.join("\n") + "\n" + formatDiagnostics(diags.sorted());
+}
+
+// Expression renderer. Returns a list of lines (the first line is the "head",
+// subsequent lines are indented children). Single-line forms (literals, idents,
+// flat ops) yield exactly one line; compound forms (blocks, ifs, intrinsics
+// with non-trivial args) expand vertically so the structure stays readable.
+function emitDecl(lines: string[], d: LoweredDecl, indent: string): void {
+  switch (d.kind) {
+    case "LoweredFnDecl": {
+      const params = d.params.map((p) => `${p.name}: ${displayType(p.type)}`).join(", ");
+      lines.push(`${indent}fn ${d.mangled}(${params}) -> ${displayType(d.returnType)}`);
+      if (d.body !== null) emitBlock(lines, d.body, indent + "  ");
+      else lines.push(`${indent}  <extern / signature only>`);
+      return;
+    }
+    case "LoweredStructDecl": {
+      const fields = d.fields.map((f) => `${f.name}: ${displayType(f.type)}`).join(", ");
+      lines.push(`${indent}struct ${d.mangled} { ${fields} }`);
+      return;
+    }
+    case "LoweredConstDecl": {
+      lines.push(`${indent}const ${d.mangled}: ${displayType(d.type)} =`);
+      emitExpr(lines, d.value, indent + "  ");
+      return;
+    }
+  }
+}
+
+function emitBlock(lines: string[], b: LoweredBlock, indent: string): void {
+  for (const s of b.stmts) emitStmt(lines, s, indent);
+  if (b.trailing !== null) {
+    lines.push(`${indent}~>`);
+    emitExpr(lines, b.trailing, indent + "  ");
+  }
+}
+
+function emitStmt(lines: string[], s: LoweredStmt, indent: string): void {
+  switch (s.kind) {
+    case "LoweredLet": {
+      const single = exprInline(s.value);
+      if (single !== null) lines.push(`${indent}let ${s.name}#${s.symbol.id}: ${displayType(s.type)} = ${single}`);
+      else {
+        lines.push(`${indent}let ${s.name}#${s.symbol.id}: ${displayType(s.type)} =`);
+        emitExpr(lines, s.value, indent + "  ");
+      }
+      return;
+    }
+    case "LoweredAssign":
+      lines.push(`${indent}assign`);
+      lines.push(`${indent}  target:`);
+      emitExpr(lines, s.target, indent + "    ");
+      lines.push(`${indent}  value:`);
+      emitExpr(lines, s.value, indent + "    ");
+      return;
+    case "LoweredExprStmt":
+      emitExpr(lines, s.expr, indent);
+      return;
+    case "LoweredReturn":
+      if (s.value === null) { lines.push(`${indent}return`); return; }
+      const single = exprInline(s.value);
+      if (single !== null) lines.push(`${indent}return ${single}`);
+      else { lines.push(`${indent}return`); emitExpr(lines, s.value, indent + "  "); }
+      return;
+    case "LoweredLoop":
+      lines.push(`${indent}loop${s.cond === null ? "" : ` while (${exprInline(s.cond) ?? "<…>"})`}${s.label === null ? "" : ` :${s.label}`}`);
+      emitBlock(lines, s.body, indent + "  ");
+      return;
+    case "LoweredBreak":
+      lines.push(`${indent}break${s.label === null ? "" : ` :${s.label}`}`);
+      return;
+    case "LoweredContinue":
+      lines.push(`${indent}continue${s.label === null ? "" : ` :${s.label}`}`);
+      return;
+  }
+}
+
+function emitExpr(lines: string[], e: LoweredExpr, indent: string): void {
+  const inline = exprInline(e);
+  if (inline !== null) { lines.push(`${indent}${inline}`); return; }
+  switch (e.kind) {
+    case "LoweredCall":
+      lines.push(`${indent}call :${displayType(e.type)}`);
+      lines.push(`${indent}  callee:`);
+      emitExpr(lines, e.callee, indent + "    ");
+      for (let i = 0; i < e.args.length; i++) {
+        lines.push(`${indent}  arg${i}:`);
+        emitExpr(lines, e.args[i]!, indent + "    ");
+      }
+      return;
+    case "LoweredFieldAccess":
+      lines.push(`${indent}.${e.field} :${displayType(e.type)}`);
+      emitExpr(lines, e.target, indent + "  ");
+      return;
+    case "LoweredIndex":
+      lines.push(`${indent}index :${displayType(e.type)}`);
+      lines.push(`${indent}  on:`);
+      emitExpr(lines, e.target, indent + "    ");
+      lines.push(`${indent}  ix:`);
+      emitExpr(lines, e.index, indent + "    ");
+      return;
+    case "LoweredUnary":
+      lines.push(`${indent}${e.op} :${displayType(e.type)}`);
+      emitExpr(lines, e.operand, indent + "  ");
+      return;
+    case "LoweredBinary":
+      lines.push(`${indent}${e.op} :${displayType(e.type)}`);
+      lines.push(`${indent}  l:`);
+      emitExpr(lines, e.left, indent + "    ");
+      lines.push(`${indent}  r:`);
+      emitExpr(lines, e.right, indent + "    ");
+      return;
+    case "LoweredIf":
+      lines.push(`${indent}if :${displayType(e.type)}`);
+      lines.push(`${indent}  cond:`);
+      emitExpr(lines, e.cond, indent + "    ");
+      lines.push(`${indent}  then:`);
+      emitBlock(lines, e.then, indent + "    ");
+      if (e.else !== null) {
+        lines.push(`${indent}  else:`);
+        emitBlock(lines, e.else, indent + "    ");
+      }
+      return;
+    case "LoweredBlock":
+      lines.push(`${indent}block :${displayType(e.type)}`);
+      emitBlock(lines, e, indent + "  ");
+      return;
+    case "LoweredStructLit":
+      lines.push(`${indent}${displayType(e.type)} {`);
+      for (const f of e.fields) {
+        const inlineField = exprInline(f.value);
+        if (inlineField !== null) lines.push(`${indent}  ${f.name}: ${inlineField}`);
+        else { lines.push(`${indent}  ${f.name}:`); emitExpr(lines, f.value, indent + "    "); }
+      }
+      lines.push(`${indent}}`);
+      return;
+    case "LoweredArrayLit":
+      lines.push(`${indent}array :${displayType(e.type)}`);
+      for (const elt of e.elements) emitExpr(lines, elt, indent + "  ");
+      return;
+    case "LoweredCast":
+      lines.push(`${indent}cast → ${displayType(e.type)}`);
+      emitExpr(lines, e.value, indent + "  ");
+      return;
+    case "LoweredTypeCheck":
+      lines.push(`${indent}is ${displayType(e.checkType)} :bool`);
+      emitExpr(lines, e.value, indent + "  ");
+      return;
+    case "LoweredIntrinsicCall": {
+      const tail = e.displayFor !== undefined ? ` <for ${displayType(e.displayFor)}>` : "";
+      lines.push(`${indent}@${e.name}${tail} :${displayType(e.type)}`);
+      for (const a of e.args) emitExpr(lines, a, indent + "  ");
+      return;
+    }
+    default:
+      lines.push(`${indent}${e.kind}`);
+      return;
+  }
+}
+
+/** Render an expr as a single line if compact, otherwise null. */
+function exprInline(e: LoweredExpr): string | null {
+  switch (e.kind) {
+    case "LoweredIntLit":    return `int(${e.value.toString()}) :${displayType(e.type)}`;
+    case "LoweredFloatLit":  return `float(${e.value}) :${displayType(e.type)}`;
+    case "LoweredBoolLit":   return `${e.value}`;
+    case "LoweredNullLit":   return `null`;
+    case "LoweredCharLit":   return `char(0x${e.value.toString(16)})`;
+    case "LoweredStringLit": return `${JSON.stringify(e.value)} :string`;
+    case "LoweredIdent":     return `${e.symbol.name}#${e.symbol.id} :${displayType(e.type)}`;
+    case "LoweredUnreachable": return `unreachable("${e.reason}") :${displayType(e.type)}`;
+    default:                 return null;
+  }
 }
 
 /** Type-checker dump: per-module decl + expression types for the entry module + diagnostics. */

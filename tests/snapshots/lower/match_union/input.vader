@@ -1,0 +1,7 @@
+describe :: fn(x: i32 | string | null) -> string {
+    return match x {
+        is i32    -> "an int"
+        is string -> "a string"
+        is null   -> "nothing"
+    }
+}

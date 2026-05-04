@@ -1,0 +1,30 @@
+// Output of the monomorphization pass: a flat list of concrete decls (one per
+// non-generic decl plus one per `(generic decl, concrete args)` instance).
+// Each entry carries the substitution to apply when lowering bodies and looking
+// up types — the original decl AST is never mutated.
+
+import type * as A from "../parser/ast.ts";
+import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
+import type { Symbol } from "../resolver/symbol.ts";
+import type { Substitution, Type } from "../typecheck/types.ts";
+
+export interface MonoEntry {
+  /** Stable mangled name, e.g. `main` or `List$i32`. Used as the lowered decl's identity. */
+  readonly mangled: string;
+  /** Origin decl in the source AST. Multiple MonoEntry can share the same origin (different specialisations). */
+  readonly decl: A.FnDecl | A.StructDecl | A.ImplDecl | A.ConstDecl;
+  /** The decl's symbol, when applicable. ImplDecl has none — its members are emitted as separate entries. */
+  readonly symbol: Symbol | null;
+  /** Substitution mapping `TypeParam` symbol IDs to the concrete type-args. Empty for non-generic decls. */
+  readonly subst: Substitution;
+  /** When this entry comes from a generic instantiation, the concrete type-args (in source order). */
+  readonly typeArgs: readonly Type[];
+  /** Module the origin decl lives in — needed for resolver-table lookups. */
+  readonly module: ResolvedProgram;
+}
+
+export interface MonoProject {
+  readonly entries: readonly MonoEntry[];
+  /** Lookup by `(declIdentity, typeArgsKey)` returning the entry's mangled name. */
+  readonly lookupByInstance: ReadonlyMap<string, MonoEntry>;
+}

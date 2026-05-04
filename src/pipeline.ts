@@ -12,8 +12,10 @@ import { checkProject } from "./typecheck/index.ts";
 import type { TypedProject } from "./typecheck/index.ts";
 import { evaluateProject } from "./comptime/index.ts";
 import type { EvaluatedProject } from "./comptime/index.ts";
+import { lowerProject } from "./lower/index.ts";
+import type { LoweredProject } from "./lower/index.ts";
 
-export type PipelineStage = "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast";
+export type PipelineStage = "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast" | "lowered-ast";
 
 export interface AstResult {
   readonly file: string;
@@ -32,6 +34,10 @@ export interface TypedResult extends ResolvedResult {
 
 export interface EvaluatedResult extends TypedResult {
   readonly evaluated: EvaluatedProject;
+}
+
+export interface LoweredResult extends EvaluatedResult {
+  readonly lowered: LoweredProject;
 }
 
 export async function pipelineAst(file: string): Promise<AstResult> {
@@ -73,6 +79,14 @@ export async function pipelineEvaluated(
     sandbox: { allowEnv: opts?.allowEnv ?? false },
   });
   return { ...r, evaluated };
+}
+
+export async function pipelineLowered(
+  file: string, opts?: { allowEnv?: boolean },
+): Promise<LoweredResult> {
+  const r = await pipelineEvaluated(file, opts);
+  const lowered = lowerProject(r.evaluated);
+  return { ...r, lowered };
 }
 
 function p404(file: string): Program {

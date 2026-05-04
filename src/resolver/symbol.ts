@@ -18,7 +18,8 @@ export type SymbolKind =
   | "local"
   | "binding"            // for-loop var, match-arm binding, struct-pattern field, is-pattern alias
   | "builtin-type"
-  | "builtin-fn";
+  | "builtin-fn"
+  | "synthetic";         // compiler-introduced binding (lowerer temps: __scrut, __try, __sb, …)
 
 /** Where a "binding" symbol came from. */
 export type BindingOrigin =
@@ -51,7 +52,8 @@ export type SymbolSource =
   | { readonly kind: "local"; readonly stmt: A.LetStmt }
   | { readonly kind: "binding"; readonly origin: BindingOrigin }
   | { readonly kind: "builtin-type"; readonly typeName: string }
-  | { readonly kind: "builtin-fn"; readonly fnName: string };
+  | { readonly kind: "builtin-fn"; readonly fnName: string }
+  | { readonly kind: "synthetic"; readonly origin: string };
 
 export class SymbolFactory {
   private next: SymbolId = 1;

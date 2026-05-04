@@ -1,0 +1,30 @@
+# Lower
+
+## tests/snapshots/lower/defer_block/input.vader
+  fn tests_snapshots_lower_defer_block_input_vader$main() -> i32
+    call :void
+      callee:
+        println#17 :fn(string) -> void
+      arg0:
+        "hi" :string
+    block :void
+      let __block_0#-1: void =
+        call :void
+          callee:
+            println#17 :fn(string) -> void
+          arg0:
+            "nested" :string
+      call :void
+        callee:
+          println#17 :fn(string) -> void
+        arg0:
+          "inner cleanup" :string
+      ~>
+        __block_0#-1 :void
+    block :void
+      call :void
+        callee:
+          println#17 :fn(string) -> void
+        arg0:
+          "outer cleanup" :string
+      return int(0) :i32

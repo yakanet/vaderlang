@@ -127,7 +127,8 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 - [x] Sandbox (`src/comptime/sandbox.ts`): `@file(path)` reads project files relative to the calling .vader source; `@env(name)` gated by `--allow-env`; everything else is implicitly forbidden (the `callBuiltin` whitelist is the only path to host-side I/O at comptime).
 - [x] `@comptime` evaluation pass (`src/comptime/evaluate.ts`): walks every module's top-level `ConstDecl`s, evaluates the ones bearing `@comptime`, records values in a side-table. The typed AST is never mutated; downstream phases consume the `EvaluatedProject` overlay.
 - [x] `@file "path"` decorator: parses `@file("…")`, resolves the path relative to the source file, reads as UTF-8, replaces the const value.
-- [x] Generic instance registry (`src/comptime/instances.ts`): walks every `Type` in `declTypes`/`paramTypes`/`typeExprTypes`/`exprTypes`/`localTypes` and records concrete instantiations (only when **every** arg is concrete — `Iterator($T)` inside the trait's own decl is excluded). Passive: 1.7 monomorphization will read this list to know which specialisations to materialise.
+- [x] Generic instance registry (`src/comptime/instances.ts`): walks every `Type` in `declTypes`/`paramTypes`/`typeExprTypes`/`exprTypes`/`localTypes` and records concrete instantiations (only when **every** arg is concrete — `Iterator($T)` inside the trait's own decl is excluded). Passive: 1.6 monomorphization reads this list to know which specialisations to materialise.
+- [x] Minimal monomorphization pass (`src/monomorphize/`): produces a flat `MonoProject` where every non-generic top-level decl gets one entry and every concrete struct instance gets one entry with a `(typeParam → concrete-type)` substitution. Mangles names. Generic-fn dispatch isn't tracked yet (registry only observes struct/trait); when needed, this pass extends the same way.
 - [x] Diagnostic codes `C4001..C4013` (registered in `src/diagnostics/codes.ts`); helper via the shared `makeErr` factory.
 - [x] CLI: `vader dump --stage=evaluated-ast <file>` exposes the same pipeline as JSON.
 - [x] Snapshot tests: 5 scenarios under `tests/snapshots/comptime/<scenario>/{input.vader,evaluated.snap}` — `simple_arith`, `square_call`, `interp_string`, `file_decorator` (with a sibling `data.txt`), `bad_div_zero`.
@@ -137,20 +138,31 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 - [ ] Bytecode design (op table, operand encoding) — **shared between comptime VM and the runtime emitters** so we only design it once.
 - [ ] AST → bytecode lowering for the comptime-eligible subset
 - [ ] Stack-based VM (replace the AST-walker)
-- [ ] Concrete monomorphization: clone & specialise the AST per registered instance, substituting type-params. Right now the type-checker keeps generic structs in their `Struct { args }` shape and the registry just notes which `(T, args)` pairs occur.
+- [ ] Generic-fn instance tracking: the registry currently only observes struct/trait instantiations; when generic-fn calls become reachable in real code, extend `InstanceRegistry.observe` to also walk fn-call sites and add their `(decl, type-args)` pairs.
 - [ ] `for x in iter` / `MutableList(u32){}.add(...)` inside @comptime — needs Iterator-trait dispatch + arena allocation for transient collections.
 - [ ] Cycle detection across @comptime decls (currently a 64-deep call-stack guard; cross-decl evaluation order is not analysed).
 - [ ] Recursive @comptime evaluation: `@comptime A :: f(B)` where `B :: @comptime g()` should evaluate B first.
 
-### 1.6 Lowerer
+### 1.6 Lowerer — done
 
-- [ ] Pattern match → if/else chains and jumps
-- [ ] Trait calls → vtable lookup or static dispatch (depending on monomorphization status)
-- [ ] `expr?` → `match expr { is Error e -> return e; is T t -> t }`
-- [ ] String interpolation → `StringBuilder` calls + `Display.show`
-- [ ] `defer` → block-exit code injection
-- [ ] Null checks where required (TS-style narrowing should already handle most)
-- [ ] Snapshot tests: snapshot the lowered AST
+Per SPEC §2 ("Lowered AST"), the lowerer consumes the post-mono typed AST and emits a separate, smaller IR (the *Lowered AST*) where high-level constructs are desugared into a fixed core. Lives under `src/lower/`. Runs `monomorphize` first, then walks each `MonoEntry`'s body.
+
+- [x] Dedicated lowered AST (`src/lower/lowered-ast.ts`) — separate node tree, every value-bearing node carries its concrete `Type`. No `MatchExpr`, no `TryExpr`, no `DeferStmt`, no string-interpolation parts; adds `LoweredTypeCheck`, `LoweredIntrinsicCall`, `LoweredUnreachable`.
+- [x] Pattern match → naive if/else chain over `LoweredTypeCheck` and equality predicates (no decision-tree compilation in MVP). Bindings introduced by `is T as x` and struct destructuring become plain `let`s at the head of the arm body. A trailing unreachable arm guards against non-exhaustive scrutinees that slipped past the typechecker.
+- [x] `expr?` → `let __try = inner; if (__try is <error variants>) return __try else cast(__try)`. Error variants are taken from the inner type's union, filtered by `ImplRegistry.hasUser` / `forPrimitive` against the core `Error` trait. The trait type itself counts as an error variant (so `string!` ⇒ `Error | string` works without an explicit struct impl).
+- [x] String interpolation → block of `@builder.new` / `@builder.append_str` / `@builder.append_display` / `@builder.finish` intrinsic calls. Each `append_display` carries the static type of the interpolated value so the bytecode emitter can later route to the right `Display::show` impl.
+- [x] `defer` → physical duplication at every textual exit of the declaring block. Per-block defer stack, LIFO. Exits handled: implicit fallthrough (with trailing-expr saved to a `__block_<n>` temp), `return` (defers from current block up through the fn root), `break`/`continue` (defers from current block up through the innermost loop body). Stmts after a `return`/`break`/`continue` are dropped as unreachable. Panics do not unwind.
+- [x] Trait calls → static dispatch is the only path post-mono; trait methods resolve to the impl's specialised function. Untriggered today since none of the snapshot scenarios exercise a trait method call — the wiring is in place for when one shows up.
+- [x] No inserted runtime checks (no bounds checks, null checks, division/overflow guards) — left to the runtime / out of MVP scope.
+- [x] Pipeline integration: `pipelineLowered` in `src/pipeline.ts`; `vader dump --stage=lowered-ast <file>` exposes the same pipeline as JSON.
+- [x] Snapshot tests: 7 scenarios under `tests/snapshots/lower/<scenario>/{input.vader,lowered.snap}` — `hello`, `arith`, `if_branches`, `match_union`, `interp_string`, `try_op`, `defer_block`.
+
+**Deferred to later phases:**
+
+- [ ] Lambda lifting (closure conversion). Today an unlowered `LambdaExpr` becomes a `LoweredUnreachable` so the gap is visible in dumps; when generic-fn dispatch and Iterator land, lambdas need to be hoisted to top-level fns with explicit captures.
+- [ ] `for x in iter` and `RangeExpr` lowering. Both currently surface as `LoweredUnreachable("…deferred until Iterator dispatch")`. Work happens alongside §1.5b's iterator support.
+- [ ] Per-binding type narrowing: `is T as x` patterns currently rely on `LoweredCast` because the typechecker leaves the binding's symbol type at `Unresolved`. Once finer-grained narrowing lands (typecheck deferred item), the lowerer can drop the cast.
+- [ ] Match decision-tree compilation (Maranget-style). Naive linear chains are good enough for MVP; revisit if perf or code size become an issue.
 
 ### 1.7 Bytecode emitter
 
