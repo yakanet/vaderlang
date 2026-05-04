@@ -10,8 +10,10 @@ import { resolveProject } from "./resolver/index.ts";
 import type { ResolvedProject } from "./resolver/resolved-ast.ts";
 import { checkProject } from "./typecheck/index.ts";
 import type { TypedProject } from "./typecheck/index.ts";
+import { evaluateProject } from "./comptime/index.ts";
+import type { EvaluatedProject } from "./comptime/index.ts";
 
-export type PipelineStage = "ast" | "resolved-ast" | "typed-ast";
+export type PipelineStage = "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast";
 
 export interface AstResult {
   readonly file: string;
@@ -26,6 +28,10 @@ export interface ResolvedResult extends AstResult {
 
 export interface TypedResult extends ResolvedResult {
   readonly typed: TypedProject;
+}
+
+export interface EvaluatedResult extends TypedResult {
+  readonly evaluated: EvaluatedProject;
 }
 
 export async function pipelineAst(file: string): Promise<AstResult> {
@@ -56,6 +62,17 @@ export async function pipelineTyped(file: string): Promise<TypedResult> {
   const r = await pipelineResolved(file);
   const typed = checkProject(r.project, r.diagnostics);
   return { ...r, typed };
+}
+
+export async function pipelineEvaluated(
+  file: string, opts?: { allowEnv?: boolean },
+): Promise<EvaluatedResult> {
+  const r = await pipelineTyped(file);
+  const evaluated = evaluateProject(r.typed, {
+    diags: r.diagnostics,
+    sandbox: { allowEnv: opts?.allowEnv ?? false },
+  });
+  return { ...r, evaluated };
 }
 
 function p404(file: string): Program {

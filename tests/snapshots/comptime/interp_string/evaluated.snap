@@ -1,0 +1,4 @@
+# Comptime
+
+## tests/snapshots/comptime/interp_string/input.vader
+  @comptime  GREETING             = "Hello, Vader!"

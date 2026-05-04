@@ -285,6 +285,31 @@ export function isAssignable(from: Type, to: Type): boolean {
   return false;
 }
 
+// --------------------------------------------------------------- visit
+
+/** Visit a Type and all its structural children (post-order traversal). */
+export function forEachType(t: Type, visit: (t: Type) => void): void {
+  visit(t);
+  switch (t.kind) {
+    case "Struct":
+    case "Trait":
+      for (const a of t.args) forEachType(a, visit);
+      return;
+    case "Array":
+      forEachType(t.element, visit);
+      return;
+    case "Fn":
+      for (const p of t.params) forEachType(p, visit);
+      forEachType(t.returnType, visit);
+      return;
+    case "Union":
+      for (const v of t.variants) forEachType(v, visit);
+      return;
+    default:
+      return;
+  }
+}
+
 // --------------------------------------------------------------- substitute
 
 export interface Substitution {

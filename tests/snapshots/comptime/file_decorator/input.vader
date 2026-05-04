@@ -1,0 +1,6 @@
+@file("data.txt")
+GREETING :: ""
+
+main :: fn() -> i32 {
+    return 0
+}

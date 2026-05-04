@@ -99,3 +99,21 @@ export const TYPECHECK = {
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;
+
+export const COMPTIME = {
+  C4001: "expression cannot be evaluated at compile time",
+  C4002: "comptime evaluation panicked",
+  C4003: "function is not callable in comptime context",
+  C4004: "comptime call stack overflow",
+  C4005: "comptime division by zero",
+  C4006: "@file path could not be read",
+  C4007: "comptime value has incompatible type",
+  C4008: "ENV access requires `--allow-env`",
+  C4009: "comptime evaluation depends on itself",
+  C4010: "comptime index out of bounds",
+  C4011: "comptime feature not yet supported",
+  C4012: "@file expects a single string-literal argument",
+  C4013: "decorator arguments must be string literals at comptime",
+} as const;
+
+export type ComptimeCode = keyof typeof COMPTIME;

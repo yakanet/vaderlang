@@ -300,6 +300,16 @@ export type StringLitPart =
   | { readonly kind: "text"; readonly value: string; readonly span: Span }
   | { readonly kind: "interp"; readonly expr: Expr; readonly span: Span };
 
+/** Returns the static text of a StringLitExpr, or null if it contains interpolation. */
+export function staticStringValue(expr: StringLitExpr): string | null {
+  let out = "";
+  for (const part of expr.parts) {
+    if (part.kind !== "text") return null;
+    out += part.value;
+  }
+  return out;
+}
+
 export interface IdentExpr {
   readonly kind: "IdentExpr";
   readonly span: Span;

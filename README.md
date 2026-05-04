@@ -20,8 +20,8 @@ Vader is a general-purpose, statically-typed language with type inference, targe
 ### Clone & install
 
 ```sh
-git clone <repo-url> vaderlang2
-cd vaderlang2
+git clone https://github.com/yakanet/vaderlang.git
+cd vaderlang
 bun install
 ```
 

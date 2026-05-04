@@ -8,8 +8,16 @@ export type DecoratorName =
   | "file"
   | "test";
 
+export const DEC = {
+  comptime: "comptime",
+  extern:   "extern",
+  export:   "export",
+  file:     "file",
+  test:     "test",
+} as const satisfies Record<DecoratorName, DecoratorName>;
+
 export const KNOWN_DECORATORS: ReadonlySet<DecoratorName> = new Set([
-  "comptime", "extern", "export", "file", "test",
+  DEC.comptime, DEC.extern, DEC.export, DEC.file, DEC.test,
 ]);
 
 export function isKnownDecorator(name: string): name is DecoratorName {

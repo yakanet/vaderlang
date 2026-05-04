@@ -1,0 +1,4 @@
+# Comptime
+
+## tests/snapshots/comptime/simple_arith/input.vader
+  @comptime  ANSWER               = 42_i32

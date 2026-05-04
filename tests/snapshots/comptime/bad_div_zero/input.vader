@@ -1,0 +1,6 @@
+@comptime
+BOOM :: 10 / 0
+
+main :: fn() -> i32 {
+    return BOOM
+}

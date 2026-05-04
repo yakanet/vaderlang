@@ -1087,6 +1087,10 @@ A call `List(i32)` is a `@comptime` expression (the engine resolves the type, in
 
 See section 2 (Compilation Model).
 
+### Implementation note (TypeScript bootstrap)
+
+The bootstrap compiler runs an **AST-walking interpreter** for `@comptime`, not the bytecode VM described in §2. The op table and stack machine are built later in the bytecode-emitter phase, where they'll be shared by both the comptime engine and the C/WASM emitters. The semantics described above hold either way — the choice is purely an engineering one to avoid designing the op set twice. Self-hosted Vader switches to the bytecode VM uniformly.
+
 ---
 
 ## 15. Standard Library — MVP scope

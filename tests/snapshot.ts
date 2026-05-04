@@ -6,6 +6,7 @@ import { parseSource } from "../src/parser/pipeline.ts";
 import { DiagnosticCollector } from "../src/diagnostics/collector.ts";
 import { resolveProject } from "../src/resolver/index.ts";
 import { checkProject, displayType } from "../src/typecheck/index.ts";
+import { evaluateProject, displayValue } from "../src/comptime/index.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
@@ -78,6 +79,39 @@ export function dumpLexer(source: string, file: string): string {
 export function dumpParser(source: string, file: string): string {
   const { program, diagnostics } = parseSource(source, file);
   return formatProgram(program) + formatDiagnostics(diagnostics.sorted());
+}
+
+/** Comptime dump: @comptime / @file values + generic instances + diagnostics. */
+export function dumpComptime(_source: string, entryPath: string): string {
+  const diags = new DiagnosticCollector();
+  const project = resolveProject({ entryPath, diags });
+  const typed = checkProject(project, diags);
+  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
+
+  const lines: string[] = ["# Comptime"];
+  for (const id of [...evaled.modules.keys()].sort()) {
+    const m = evaled.modules.get(id)!;
+    if (m.typed.resolved.module.displayPath.startsWith("std/")) continue;
+    lines.push(`\n## ${m.typed.resolved.module.displayPath}`);
+    const entries: string[] = [];
+    for (const [decl, value] of m.comptimeDecls) {
+      entries.push(`  @comptime  ${decl.name.padEnd(20)} = ${displayValue(value)}`);
+    }
+    for (const [decl, value] of m.fileDecls) {
+      entries.push(`  @file      ${decl.name.padEnd(20)} = ${displayValue(value)}`);
+    }
+    entries.sort();
+    lines.push(...entries);
+  }
+
+  if (evaled.instances.length > 0) {
+    lines.push("\n## generic instances");
+    for (const inst of evaled.instances) {
+      lines.push(`  ${inst.symbol.name}(${inst.args.map(displayType).join(", ")})`);
+    }
+  }
+
+  return lines.join("\n") + "\n" + formatDiagnostics(diags.sorted());
 }
 
 /** Type-checker dump: per-module decl + expression types for the entry module + diagnostics. */

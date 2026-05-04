@@ -1,19 +1,16 @@
 import type { GlobalOpts } from "../cli/options.ts";
 import { renderAllJson, renderAllTextSingle } from "../diagnostics/render.ts";
 import { displayType } from "../typecheck/index.ts";
-import { pipelineAst, pipelineResolved, pipelineTyped } from "../pipeline.ts";
+import { displayValue } from "../comptime/index.ts";
+import { pipelineAst, pipelineEvaluated, pipelineResolved, pipelineTyped } from "../pipeline.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 
-type Stage = "ast" | "resolved-ast" | "typed-ast" | "bytecode" | "c" | "wasm";
-
-const STAGES: readonly Stage[] = [
-  "ast",
-  "resolved-ast",
-  "typed-ast",
-  "bytecode",
-  "c",
-  "wasm",
-] as const;
+/** Stages the frontend pipeline can produce today. Mirrors `PipelineStage`. */
+const IMPLEMENTED_STAGES = ["ast", "resolved-ast", "typed-ast", "evaluated-ast"] as const;
+/** Stages reserved for future codegen work — accepted by the CLI for help-text honesty. */
+const FUTURE_STAGES = ["bytecode", "c", "wasm"] as const;
+const STAGES = [...IMPLEMENTED_STAGES, ...FUTURE_STAGES];
+type Stage = typeof STAGES[number];
 
 function isStage(s: string): s is Stage {
   return (STAGES as readonly string[]).includes(s);
@@ -38,9 +35,10 @@ export async function cmdDump(opts: GlobalOpts, args: string[]): Promise<number>
   }
 
   switch (stage) {
-    case "ast":          return runStage(opts, file, runAst);
-    case "resolved-ast": return runStage(opts, file, runResolvedAst);
-    case "typed-ast":    return runStage(opts, file, runTypedAst);
+    case "ast":           return runStage(opts, file, runAst);
+    case "resolved-ast":  return runStage(opts, file, runResolvedAst);
+    case "typed-ast":     return runStage(opts, file, runTypedAst);
+    case "evaluated-ast": return runStage(opts, file, (f) => runEvaluatedAst(f, opts));
     default:
       console.error(`vader dump: stage "${stage}" not yet implemented`);
       return 2;
@@ -84,6 +82,19 @@ async function runResolvedAst(file: string) {
         locals: p.locals.size, typeParams: p.typeParams.size, fields: p.fields.size,
       },
     })),
+  };
+  return { output, diagnostics: r.diagnostics, source: r.source };
+}
+
+async function runEvaluatedAst(file: string, opts: GlobalOpts) {
+  const r = await pipelineEvaluated(file, { allowEnv: opts.allowEnv });
+  const output = {
+    modules: [...r.evaluated.modules.values()].map((m) => ({
+      module: m.typed.resolved.module.displayPath,
+      comptime: [...m.comptimeDecls].map(([d, v]) => ({ name: d.name, value: displayValue(v) })),
+      file:     [...m.fileDecls].map(([d, v]) => ({ name: d.name, value: displayValue(v) })),
+    })),
+    instances: r.evaluated.instances.map((i) => i.displayKey),
   };
   return { output, diagnostics: r.diagnostics, source: r.source };
 }

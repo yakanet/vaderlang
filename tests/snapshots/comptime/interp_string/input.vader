@@ -1,0 +1,10 @@
+@comptime
+GREETING :: "Hello, ${name()}!"
+
+name :: fn() -> string {
+    return "Vader"
+}
+
+main :: fn() -> i32 {
+    return 0
+}

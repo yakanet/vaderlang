@@ -116,17 +116,31 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 - Field-type substitution for generic struct instances (e.g. `List(i32).items` should be `[i32]`).
 - Validation of `where T: Trait` bounds against a concrete substitution at call sites.
 
-### 1.5 Comptime engine + monomorphizer
+### 1.5 Comptime engine + monomorphizer (split into MVP / deferred)
 
-- [ ] Bytecode design (op table, operand encoding)
+**Decision**: the TS implementation runs an **AST-walking interpreter**, not a bytecode VM. The bytecode VM (with its op table, encoding, stack-machine semantics) is built later in §1.7 alongside the C/WASM emitters; both backends and the comptime VM will share that final IR. Doing a custom VM now would force two rewrites — once when the op table changes in 1.7, and again at self-host time. The MVP covers what's actually needed to bake constants and register generic instances.
+
+#### MVP (1.5a) — done
+
+- [x] Comptime value IR (`src/comptime/value.ts`): tagged JS objects (`int`/`float`/`bool`/`char`/`string`/`null`/`void`/`array`/`struct`/`fn-ref`). Pretty-printer for diagnostics.
+- [x] AST-walking interpreter (`src/comptime/interp.ts`): pure expressions (arith, comparisons, logic, bitwise), blocks, `if`/`else`, `let`, fn calls (with frame stack, `MAX_CALL_DEPTH = 64`), string interpolation (recursive eval), struct/array literals, field & index access. `return` is a `ReturnSignal` exception unwound at fn boundaries.
+- [x] Sandbox (`src/comptime/sandbox.ts`): `@file(path)` reads project files relative to the calling .vader source; `@env(name)` gated by `--allow-env`; everything else is implicitly forbidden (the `callBuiltin` whitelist is the only path to host-side I/O at comptime).
+- [x] `@comptime` evaluation pass (`src/comptime/evaluate.ts`): walks every module's top-level `ConstDecl`s, evaluates the ones bearing `@comptime`, records values in a side-table. The typed AST is never mutated; downstream phases consume the `EvaluatedProject` overlay.
+- [x] `@file "path"` decorator: parses `@file("…")`, resolves the path relative to the source file, reads as UTF-8, replaces the const value.
+- [x] Generic instance registry (`src/comptime/instances.ts`): walks every `Type` in `declTypes`/`paramTypes`/`typeExprTypes`/`exprTypes`/`localTypes` and records concrete instantiations (only when **every** arg is concrete — `Iterator($T)` inside the trait's own decl is excluded). Passive: 1.7 monomorphization will read this list to know which specialisations to materialise.
+- [x] Diagnostic codes `C4001..C4013` (registered in `src/diagnostics/codes.ts`); helper via the shared `makeErr` factory.
+- [x] CLI: `vader dump --stage=evaluated-ast <file>` exposes the same pipeline as JSON.
+- [x] Snapshot tests: 5 scenarios under `tests/snapshots/comptime/<scenario>/{input.vader,evaluated.snap}` — `simple_arith`, `square_call`, `interp_string`, `file_decorator` (with a sibling `data.txt`), `bad_div_zero`.
+
+#### Deferred (1.5b — picked up alongside 1.7 bytecode emitter)
+
+- [ ] Bytecode design (op table, operand encoding) — **shared between comptime VM and the runtime emitters** so we only design it once.
 - [ ] AST → bytecode lowering for the comptime-eligible subset
-- [ ] Stack-based VM with: locals, frames, calls, branches, allocations
-- [ ] Sandbox: file read enabled, ENV gated by `--allow-env`, network/exec rejected
-- [ ] Generic instantiation: when the type-checker encounters `List(i32)`, the engine specialises and registers the instance
-- [ ] `@comptime` evaluation pass: walk the typed AST, evaluate marked nodes, replace with their values
-- [ ] `@file "path"` reads contents at compile time
-- [ ] Cycle detection: comptime depending on something not yet compiled triggers incremental compile
-- [ ] Snapshot tests: small comptime programs whose results are baked into the AST
+- [ ] Stack-based VM (replace the AST-walker)
+- [ ] Concrete monomorphization: clone & specialise the AST per registered instance, substituting type-params. Right now the type-checker keeps generic structs in their `Struct { args }` shape and the registry just notes which `(T, args)` pairs occur.
+- [ ] `for x in iter` / `MutableList(u32){}.add(...)` inside @comptime — needs Iterator-trait dispatch + arena allocation for transient collections.
+- [ ] Cycle detection across @comptime decls (currently a 64-deep call-stack guard; cross-decl evaluation order is not analysed).
+- [ ] Recursive @comptime evaluation: `@comptime A :: f(B)` where `B :: @comptime g()` should evaluate B first.
 
 ### 1.6 Lowerer
 
@@ -225,6 +239,7 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 
 - [ ] `examples/hello.vader` ✓ (already created)
 - [ ] `examples/fib.vader` — Fibonacci
+- [ ] `examples/rule110.vader` — Rule 110 cellular automaton
 - [ ] `examples/aoc_2024_day1.vader` — solve an AOC problem end-to-end (validates I/O + parsing + collections)
 - [ ] `examples/wasm_browser/` — minimal HTML + Vader code calling JS via `@extern`
 

@@ -1,0 +1,4 @@
+# Comptime
+
+## tests/snapshots/comptime/square_call/input.vader
+  @comptime  NINE                 = 9_i32
