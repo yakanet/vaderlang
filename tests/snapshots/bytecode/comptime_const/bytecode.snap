@@ -1,15 +1,6 @@
 module input
-string 0 "hello, world"
-string 1 " "
 
 fn 0 tests_snapshots_bytecode_comptime_const_input_vader$main () -> i32
-  string.const 0   ; input.vader:8:1
-  string.const 1   ; input.vader:11:36
-  i32.add   ; input.vader:11:25
   i32.const 42   ; input.vader:5:1
-  i32.add   ; input.vader:11:25
-  return   ; input.vader:14:5
+  return   ; input.vader:11:5
 end
-
-# Diagnostics
-[11:25] error[C4011] comptime feature not yet supported: ident `GREETING` is not bound at comptime (cross-decl evaluation arrives in 1.5b)

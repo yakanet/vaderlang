@@ -7,9 +7,6 @@ ANSWER :: (40 + 2) * 1
 @comptime
 GREETING :: "hello, " + "world"
 
-@comptime
-GREETING_WITH_ANSWER :: GREETING + " " + ANSWER
-
 main :: fn() -> i32 {
-    return GREETING_WITH_ANSWER
+    return ANSWER
 }
