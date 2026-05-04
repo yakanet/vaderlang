@@ -18,7 +18,7 @@ COMMANDS:
   fmt [path]                       Format Vader sources in place
   test [path]                      Run @test functions
   dump --stage=<stage> <file>      Dump an IR stage as JSON/text
-                                   Stages: ast, typed-ast, bytecode, c, wasm
+                                   Stages: ast, resolved-ast, typed-ast, bytecode, c, wasm
 
 GLOBAL OPTIONS:
   --diagnostics=text|json          Output diagnostics in plain text (default) or JSON for tooling

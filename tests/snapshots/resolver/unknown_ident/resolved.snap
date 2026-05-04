@@ -1,0 +1,23 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterable 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  trait            public   Sub 
+  refs: idents=0 types=22 params=18 locals=0 typeParams=2 fields=0
+
+## tests/snapshots/resolver/unknown_ident/input.vader
+  fn               public   main 
+  refs: idents=0 types=1 params=0 locals=0 typeParams=0 fields=0
+
+# Diagnostics
+[2:5] error[R2006] unresolved identifier: `nope_here`

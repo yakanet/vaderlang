@@ -37,7 +37,7 @@
           "name": "T",
           "bound": {
             "kind": "NamedType",
-            "name": "?"
+            "name": "type"
           },
           "isComptimeValue": false
         }
@@ -98,6 +98,3 @@
     }
   ]
 }
-
-# Diagnostics
-[6:19] error[P1005] expected a type: got `type`

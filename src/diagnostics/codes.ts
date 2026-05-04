@@ -48,3 +48,23 @@ export const PARSER = {
 } as const;
 
 export type ParserCode = keyof typeof PARSER;
+
+export const RESOLVER = {
+  R2001: "module not found",
+  R2002: "import path is empty",
+  R2003: "imported name not exported by module",
+  R2004: "duplicate top-level symbol in module",
+  R2005: "import cycle detected",
+  R2006: "unresolved identifier",
+  R2007: "unresolved type name",
+  R2008: "private symbol cannot be accessed across module boundaries",
+  R2009: "trait name does not refer to a trait",
+  R2010: "decorator unknown to the compiler",
+  R2011: "duplicate import binding",
+  R2012: "imported symbol shadows a builtin",
+  R2013: "self only valid as the first parameter of a method",
+  R2014: "vader.json malformed or unreadable",
+  R2015: "module folder is empty (no .vader files)",
+} as const;
+
+export type ResolverCode = keyof typeof RESOLVER;

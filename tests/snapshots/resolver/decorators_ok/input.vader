@@ -1,0 +1,7 @@
+@extern("env", "console_log")
+log :: fn(ptr: i32, len: i32)
+
+@test
+test_log :: fn() {
+    log(0, 0)
+}

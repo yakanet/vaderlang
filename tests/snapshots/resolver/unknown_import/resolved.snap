@@ -1,0 +1,25 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterable 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  trait            public   Sub 
+  refs: idents=0 types=22 params=18 locals=0 typeParams=2 fields=0
+
+## tests/snapshots/resolver/unknown_import/input.vader
+  import-binding   private  do_thing → do_thing
+  fn               public   main 
+  import std/nonexistent → <unresolved>
+  refs: idents=1 types=1 params=0 locals=0 typeParams=0 fields=0
+
+# Diagnostics
+[1:1] error[R2001] module not found: `std/nonexistent`

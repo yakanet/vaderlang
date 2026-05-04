@@ -1,0 +1,6 @@
+import "std/io" as fs
+
+main :: fn() -> i32 {
+    fs.println("aliased")
+    return 0
+}

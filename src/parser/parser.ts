@@ -502,12 +502,15 @@ class Parser {
       const start = this.peek();
       const typeName = this.expect("ident", "type parameter name in `where`");
       this.expect("colon", "`:` between type param and trait bound");
-      const traitName = this.expect("ident", "trait name in `where` clause");
-      out.push({
-        span: this.spanOf(start, traitName),
-        typeName: typeName.text,
-        traitName: traitName.text,
-      });
+      // Multi-trait bound: `T: A + B + C` flattens into one clause per trait.
+      do {
+        const traitName = this.expect("ident", "trait name in `where` clause");
+        out.push({
+          span: this.spanOf(start, traitName),
+          typeName: typeName.text,
+          traitName: traitName.text,
+        });
+      } while (this.match("plus") !== null);
     } while (this.match("comma") !== null);
     return out;
   }
@@ -1360,6 +1363,15 @@ class Parser {
 
   private parseType(): A.TypeExpr {
     let head = this.parseTypePrimary();
+    // Postfix `!`: `T!` desugars to `T | Error` (SPEC §10).
+    if (this.match("bang") !== null) {
+      const bangEnd = this.peek(-1).span.end;
+      head = {
+        kind: "UnionType",
+        span: { start: head.span.start, end: bangEnd },
+        variants: [head, { kind: "NamedType", span: { start: bangEnd, end: bangEnd }, name: "Error" }],
+      };
+    }
     // Union: `T | U | V`
     if (this.check("pipe")) {
       const variants: A.TypeExpr[] = [head];
@@ -1400,6 +1412,11 @@ class Parser {
     if (t.kind === "kw_null") {
       this.advance();
       return { kind: "NamedType", span: t.span, name: "null" };
+    }
+    if (t.kind === "kw_type") {
+      // `type` as a type bound: `(T: type)` — the metatype.
+      this.advance();
+      return { kind: "NamedType", span: t.span, name: "type" };
     }
     if (t.kind === "ident") {
       const name = this.advance();

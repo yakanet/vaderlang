@@ -1,0 +1,30 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterable 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  trait            public   Sub 
+  refs: idents=0 types=22 params=18 locals=0 typeParams=2 fields=0
+
+## tests/snapshots/resolver/private_violation/input.vader
+  fn               public   main 
+  import-binding   private  secret_helper → secret_helper
+  import ./lib → ok
+  refs: idents=1 types=1 params=0 locals=0 typeParams=0 fields=0
+
+## tests/snapshots/resolver/private_violation/lib
+  fn               public   public_helper 
+  fn               private  secret_helper 
+  refs: idents=1 types=2 params=0 locals=0 typeParams=0 fields=0
+
+# Diagnostics
+[1:18] error[R2008] private symbol cannot be accessed across module boundaries: `secret_helper` is private to `./lib`

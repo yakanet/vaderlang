@@ -1,0 +1,7 @@
+private secret_helper :: fn() -> i32 {
+    return 42
+}
+
+public_helper :: fn() -> i32 {
+    return secret_helper()
+}

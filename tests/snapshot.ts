@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tokenize } from "../src/lexer/lexer.ts";
 import { parseSource } from "../src/parser/pipeline.ts";
 import { DiagnosticCollector } from "../src/diagnostics/collector.ts";
+import { resolveProject } from "../src/resolver/index.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
@@ -76,6 +77,31 @@ export function dumpLexer(source: string, file: string): string {
 export function dumpParser(source: string, file: string): string {
   const { program, diagnostics } = parseSource(source, file);
   return formatProgram(program) + formatDiagnostics(diagnostics.sorted());
+}
+
+/** Resolver dump: per-module symbol table + resolution counts + diagnostics. */
+export function dumpResolver(_source: string, entryPath: string): string {
+  const diags = new DiagnosticCollector();
+  const project = resolveProject({ entryPath, diags });
+
+  const lines: string[] = ["# Modules"];
+  const sortedIds = [...project.modules.keys()].sort();
+  for (const id of sortedIds) {
+    const p = project.modules.get(id)!;
+    lines.push(`\n## ${p.module.displayPath}`);
+    const sortedSyms = [...p.module.symbols.values()].sort((a, b) => a.name.localeCompare(b.name));
+    for (const s of sortedSyms) {
+      const ix = (s.source.kind === "import" && s.source.importedName !== null) ? `→ ${s.source.importedName}` : "";
+      lines.push(`  ${s.kind.padEnd(16)} ${s.visibility.padEnd(8)} ${s.name} ${ix}`);
+    }
+    const importLines = [...p.module.imports]
+      .map((imp) => `  import ${imp.path} → ${imp.resolvedTo === null ? "<unresolved>" : "ok"}`);
+    if (importLines.length > 0) {
+      lines.push(...importLines);
+    }
+    lines.push(`  refs: idents=${p.idents.size} types=${p.types.size} params=${p.params.size} locals=${p.locals.size} typeParams=${p.typeParams.size} fields=${p.fields.size}`);
+  }
+  return lines.join("\n") + "\n" + formatDiagnostics(diags.sorted());
 }
 
 const SPAN_KEYS = new Set<string>([

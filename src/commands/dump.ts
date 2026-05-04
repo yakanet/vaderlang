@@ -1,11 +1,14 @@
 import type { GlobalOpts } from "../cli/options.ts";
 import { parseSource } from "../parser/pipeline.ts";
 import { renderAllJson, renderAllTextSingle } from "../diagnostics/render.ts";
+import { resolveProject } from "../resolver/index.ts";
+import { DiagnosticCollector } from "../diagnostics/collector.ts";
 
-type Stage = "ast" | "typed-ast" | "bytecode" | "c" | "wasm";
+type Stage = "ast" | "resolved-ast" | "typed-ast" | "bytecode" | "c" | "wasm";
 
 const STAGES: readonly Stage[] = [
   "ast",
+  "resolved-ast",
   "typed-ast",
   "bytecode",
   "c",
@@ -34,13 +37,28 @@ export async function cmdDump(opts: GlobalOpts, args: string[]): Promise<number>
     return 1;
   }
 
-  if (stage !== "ast") {
-    console.error(`vader dump: stage "${stage}" not yet implemented`);
-    return 2;
+  switch (stage) {
+    case "ast":          return runStage(opts, file, runAst);
+    case "resolved-ast": return runStage(opts, file, runResolvedAst);
+    default:
+      console.error(`vader dump: stage "${stage}" not yet implemented`);
+      return 2;
   }
+}
 
+interface StagePayload {
+  readonly diagnostics: DiagnosticCollector;
+  readonly output: unknown;
+  /** JSON.stringify replacer; defaults to identity (with BigInt→`Nn`). */
+  readonly replacer?: (key: string, value: unknown) => unknown;
+}
+
+async function runStage(
+  opts: GlobalOpts, file: string,
+  run: (file: string, source: string) => StagePayload,
+): Promise<number> {
   const source = await Bun.file(file).text();
-  const { program, diagnostics } = parseSource(source, file);
+  const { diagnostics, output, replacer } = run(file, source);
 
   const sorted = diagnostics.sorted();
   if (sorted.length > 0) {
@@ -49,8 +67,36 @@ export async function cmdDump(opts: GlobalOpts, args: string[]): Promise<number>
       : renderAllTextSingle(sorted, file, source));
   }
 
-  console.log(JSON.stringify(program, (_k, v) =>
-    typeof v === "bigint" ? `${v.toString()}n` : v, 2));
-
+  console.log(JSON.stringify(output, replacer ?? bigintReplacer, 2));
   return sorted.some((d) => d.severity === "error") ? 1 : 0;
+}
+
+function bigintReplacer(_k: string, v: unknown): unknown {
+  return typeof v === "bigint" ? `${v.toString()}n` : v;
+}
+
+function runAst(file: string, source: string): StagePayload {
+  const { program, diagnostics } = parseSource(source, file);
+  const collector = new DiagnosticCollector();
+  for (const d of diagnostics.sorted()) collector.emit(d);
+  return { diagnostics: collector, output: program };
+}
+
+function runResolvedAst(file: string, _source: string): StagePayload {
+  const diagnostics = new DiagnosticCollector();
+  const project = resolveProject({ entryPath: file, diags: diagnostics });
+  const output = {
+    modules: [...project.modules.values()].map((p) => ({
+      module: p.module.displayPath,
+      symbols: [...p.module.symbols.values()].map((s) => ({
+        name: s.name, kind: s.kind, visibility: s.visibility,
+      })),
+      imports: p.module.imports.map((i) => ({ path: i.path, resolved: i.resolvedTo !== null })),
+      counts: {
+        idents: p.idents.size, types: p.types.size, params: p.params.size,
+        locals: p.locals.size, typeParams: p.typeParams.size, fields: p.fields.size,
+      },
+    })),
+  };
+  return { diagnostics, output };
 }

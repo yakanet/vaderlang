@@ -1,0 +1,32 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterable 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  trait            public   Sub 
+  refs: idents=0 types=22 params=18 locals=0 typeParams=2 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## tests/snapshots/resolver/namespace_import/input.vader
+  import-binding   private  io 
+  fn               public   main 
+  import std/io → ok
+  refs: idents=1 types=1 params=0 locals=0 typeParams=0 fields=1

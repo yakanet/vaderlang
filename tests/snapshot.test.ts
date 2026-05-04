@@ -1,11 +1,12 @@
 import { expect, test } from "bun:test";
-import { dumpLexer, dumpParser, listScenarios, snapshotEquals } from "./snapshot.ts";
+import { dumpLexer, dumpParser, dumpResolver, listScenarios, snapshotEquals } from "./snapshot.ts";
 
 function runScenarios(
   rootDir: string,
   snapName: string,
-  dump: (source: string, file: string) => string,
+  dump: (source: string, fileOrPath: string) => string,
   label: string,
+  fileArg: "logical" | "path",
 ): void {
   const scenarios = listScenarios(rootDir);
   test(`${label} snapshot: at least one scenario discovered`, () => {
@@ -13,7 +14,8 @@ function runScenarios(
   });
   for (const s of scenarios) {
     test(`${label} snapshot: ${s.name}`, () => {
-      const actual = dump(s.inputSource, "input.vader");
+      const file = fileArg === "logical" ? "input.vader" : s.inputPath;
+      const actual = dump(s.inputSource, file);
       const result = snapshotEquals(s.dir, snapName, actual);
       if (!result.ok) {
         const expectedDisplay = result.expected ?? "(no snap file yet)";
@@ -28,5 +30,6 @@ function runScenarios(
   }
 }
 
-runScenarios("tests/snapshots/lexer",  "tokens.snap", dumpLexer,  "lexer");
-runScenarios("tests/snapshots/parser", "ast.snap",    dumpParser, "parser");
+runScenarios("tests/snapshots/lexer",    "tokens.snap",   dumpLexer,    "lexer",    "logical");
+runScenarios("tests/snapshots/parser",   "ast.snap",      dumpParser,   "parser",   "logical");
+runScenarios("tests/snapshots/resolver", "resolved.snap", dumpResolver, "resolver", "path");

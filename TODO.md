@@ -80,15 +80,16 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 
 ### 1.3 Resolver
 
-- [ ] Module loader: walk `vader.json`, find `.vader` files in each module folder
-- [ ] Build a module graph; detect import cycles (error)
-- [ ] Symbol tables per module, with scoping (file → module → import → builtins)
-- [ ] Resolve `import "std/io"` against embedded stdlib
-- [ ] Resolve `./relative` and `project-relative` paths
-- [ ] Resolve `import ... { a, b }` destructuring and `as alias`
-- [ ] Reject `private` access across module boundaries
-- [ ] Wire decorators and trait impls to their target symbols
-- [ ] Snapshot tests: parse + resolve, snapshot the resolved-AST + symbol table
+- [x] Module loader: reads optional `vader.json`, discovers `.vader` files per module folder, supports both single-file modules (stdlib + `vader run foo.vader`) and folder modules (`src/resolver/{loader,module}.ts`)
+- [x] Build a module graph; detect import cycles via DFS coloring (`R2005`)
+- [x] Symbol tables per module, with scoping (builtins → std/core → module-level → fn type-params → fn params → block locals) — `src/resolver/{collect,resolve}.ts`
+- [x] Resolve `import "std/io"` against the on-disk stdlib (filesystem-loaded for now via `vader.json.stdlib` or compiler-relative fallback). True embedding is a packaging step, deferred.
+- [x] Resolve `./relative` (relative to the importing file) and bare `foo/bar` (project-rel via `vader.json` location)
+- [x] Resolve `import ... { a, b }` destructuring (with `as` rename) and `import ... as fs` alias and bare-namespace `import "std/io"` (last segment as the local namespace name)
+- [x] Reject `private` access across module boundaries: both the destructured form (`R2008` at wire-time) and the namespace form `mod.private_member` (`R2008` at field-resolution time)
+- [x] Wire decorators (`@comptime`, `@extern`, `@export`, `@file`, `@test` recognized; unknown ⇒ `R2010`) and trait impls (`forType` resolved as a type, `traitName` resolved + checked to actually be a trait — `R2007`/`R2009`)
+- [x] Snapshot tests: 8 scenarios under `tests/snapshots/resolver/<scenario>/{input.vader[, lib/...],resolved.snap}` — `hello`, `unknown_ident`, `namespace_import`, `alias_import`, `unknown_import`, `private_violation` (multi-module), `decorators_ok`, `unknown_decorator`. Driver dumps per-module symbol table + import resolutions + reference counts + diagnostics.
+- [x] CLI integration: `vader dump --stage=resolved-ast <file>` exposes the same pipeline through JSON.
 
 ### 1.4 Type-checker
 
