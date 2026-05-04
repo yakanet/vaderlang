@@ -1,0 +1,20 @@
+// std/iter — iterator combinators.
+//
+// Iterator(T) is defined in std/core. This module provides the standard
+// transformations and consumers, callable via UFCS:
+//
+//   items.map(f).filter(p).fold(init, g)
+
+// Transformations (return new Iterator).
+map    :: fn(it: Iterator($T), f: fn(T) -> $U) -> Iterator(U)
+filter :: fn(it: Iterator($T), pred: fn(T) -> bool) -> Iterator(T)
+take   :: fn(it: Iterator($T), n: u32) -> Iterator(T)
+skip   :: fn(it: Iterator($T), n: u32) -> Iterator(T)
+
+// Consumers.
+fold   :: fn(it: Iterator($T), init: $A, f: fn(A, T) -> A) -> A
+sum    :: fn(it: Iterator($T)) -> T where T: Add
+count  :: fn(it: Iterator($T)) -> u32
+
+// Materialization.
+collect :: fn(it: Iterator($T)) -> [T]

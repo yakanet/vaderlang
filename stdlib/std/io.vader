@@ -1,0 +1,25 @@
+// std/io — synchronous blocking I/O.
+//
+// MVP scope: stdin/stdout/stderr, file read/write, existence check.
+// No async, no networking, no streaming primitives.
+
+// IOError — raised by every fallible operation in this module.
+IOError :: struct {
+    msg: string
+}
+
+IOError implements Error {
+    fn message(self) -> string { return self.msg }
+}
+
+// print / println — write to stdout.
+print   :: fn(msg: string) -> void
+println :: fn(msg: string) -> void
+
+// read_line — block on stdin until newline.
+read_line :: fn() -> string!
+
+// File operations.
+read_file  :: fn(path: string) -> string!
+write_file :: fn(path: string, content: string) -> void!
+exists     :: fn(path: string) -> bool

@@ -1,0 +1,24 @@
+// std/math — basic numeric operations and constants.
+
+// Constants.
+pi :: f64 = 3.141592653589793
+e  :: f64 = 2.718281828459045
+
+// Generic min/max via Ord.
+min :: fn(a: $T, b: T) -> T where T: Ord
+max :: fn(a: $T, b: T) -> T where T: Ord
+
+// Absolute value (works for any signed numeric).
+abs :: fn(x: $T) -> T
+
+// Float operations.
+sqrt  :: fn(x: f64) -> f64
+pow   :: fn(x: f64, n: f64) -> f64
+floor :: fn(x: f64) -> f64
+ceil  :: fn(x: f64) -> f64
+round :: fn(x: f64) -> f64
+
+// Trigonometry.
+sin :: fn(x: f64) -> f64
+cos :: fn(x: f64) -> f64
+tan :: fn(x: f64) -> f64

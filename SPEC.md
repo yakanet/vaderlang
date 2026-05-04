@@ -1,0 +1,1335 @@
+# Vader Language Specification
+
+> **Status**: Draft — Edition Vader 1.0 (target for bootstrap)
+> **Author**: Mathieu BROUTIN
+> **Last revision**: 2026-05-04
+
+This document describes the Vader language, its execution model, type system, MVP standard library, and bootstrap strategy. It serves as the reference for the TypeScript implementation of the compiler, then for its self-rewrite in Vader.
+
+---
+
+## 1. Vision
+
+### Mission
+
+Vader is a **general-purpose application language**, **strongly typed with type inference**, **portable** (Linux, macOS, Windows, WebAssembly), designed to remain **simple to learn** (close to Java/Kotlin/TypeScript in mental model) while allowing performant programs through a transparent compilation pipeline.
+
+### Tagline
+
+> *"Vader: applicative, simple, portable. The discipline of static typing, the ergonomics of a script."*
+
+### Explicit non-goals
+
+- **No OOP** — no inheritance, no classes, no "real" methods. UFCS (`a.f(b)` ≡ `f(a, b)`) covers object-call ergonomics.
+- **No visible pointers** in source code. No pointer arithmetic. Memory layout is opaque.
+- **No implicit `null`**. Nullability is expressed only as an explicit union (`T | null`).
+- **No exceptions** in the Java/Python sense. Errors are values.
+- **No text macros** nor runtime reflection. Metaprogramming goes through typed `@comptime`.
+
+### Philosophy
+
+- **Simplicity over exotic features** — no feature for the feature's sake.
+- **Reading > writing** — syntax must read top to bottom, with no ambiguous `<`.
+- **Compile-time errors > runtime errors** — string interpolation is type-checked at compile time.
+- **Evolvability** — the pipeline must be easy to extend, every intermediate IR dumpable.
+
+---
+
+## 2. Compilation Model
+
+### Overall pipeline
+
+```
+Source (.vader)
+  ↓ Lexer            → Tokens
+  ↓ Parser           → AST
+  ↓ Resolver         → AST with resolved names (modules, imports)
+  ↓ Type-checker     → Typed AST (with narrowing, traits, bidirectional inference)
+  ↓ Comptime engine  → Typed AST (@comptime values evaluated; engine also drives monomorphization)
+  ↓ Monomorphizer    → AST with no abstract generics
+  ↓ Lowerer          → Desugaring (pattern match → jumps, traits → vtables/inline, try → match)
+  ↓ Bytecode emitter → Bytecode IR (stack-based)
+  │
+  ├──→ Stack-based VM   → vader run / @comptime
+  ├──→ IR text emitter  → .vir file (debug / inspection / replay)
+  ├──→ C emitter        → cc → native binary (Linux/macOS/Windows)
+  └──→ WASM emitter     → .wasm (~1:1 mapping with bytecode, since WASM is also stack-based)
+```
+
+### Canonical IR
+
+The canonical IR is a **stack-based bytecode**. This IR is the pivot of the ecosystem:
+
+- it is directly executable by the **VM** (interp + comptime modes)
+- it is translatable to **C** (text) for the native backend
+- it maps **1:1** to WASM (both are stack-based)
+
+### Comptime ↔ monomorphization
+
+The compile-time execution (CTE) engine and generic monomorphization are the **same machinery**. When `List(i32)` is instantiated, the engine evaluates at compile time to generate the specialized code. For a `@comptime fn`, the same VM executes the bytecode.
+
+The pipeline is therefore **incremental**: to evaluate a `@comptime`, its dependencies must be compiled-to-bytecode, executed, and the result injected into the AST before continuing.
+
+### Exposed execution modes
+
+- `vader run script.vader`: parse + typecheck + interp via VM. No binary emission.
+- `vader build [file|--manifest]`: full pipeline + emission of either C-based native binary or WASM.
+- `vader` (no args): REPL.
+
+### Compile-time sandbox
+
+Code in `@comptime` context can:
+
+- ✅ compute (pure functions)
+- ✅ allocate memory and manipulate structures
+- ✅ read project files (equivalent to v1 `@file`)
+- ⚠️ read `ENV` / `args`: **opt-in** only, via `vader build --allow-env`
+- ❌ network syscalls / exec / stdout: **forbidden**, to preserve build reproducibility
+
+---
+
+## 3. Lexical Structure
+
+### Comments
+
+```vader
+// line comment
+/* block comment */
+```
+
+### Identifiers
+
+`[a-zA-Z_][a-zA-Z0-9_]*`. Case-sensitive. No Unicode in identifiers in MVP.
+
+### Reserved keywords
+
+```
+fn struct trait implements impl
+if else match is for in return defer break continue
+import as
+private
+true false null
+type      // used in (T: type) for generics
+where
+self
+@<decorator>
+```
+
+### Literals
+
+- **Integers**: `42` (defaults to `i32`), `42u32`, `42i64`, `0xFF`, `0b1010`, `0o755`, separators `1_000_000`
+- **Floats**: `3.14`, `1.0e-10`, suffixes `3.14f32`, `3.14f64` (default `f64`)
+- **Booleans**: `true`, `false`
+- **Null**: `null` (of type `null`, can participate in a union)
+- **Chars**: `'a'`, `'é'`, `'\n'` (type `char`, Unicode codepoint, 32 bits)
+- **Strings**: `"..."` (interpolation allowed) or `r"..."` (raw, no interpolation, no escapes) or `"""..."""` (multiline, interpolation allowed)
+
+### Operators
+
+```
+Arithmetic   : + - * / %
+Bitwise      : & | ^ ~ << >>
+Comparison   : == != < <= > >=
+Logical      : && || !
+Assignment   : =
+Declaration  : :: (immutable)  := (mutable)
+Range        : 0..<10 (exclusive)  0..=10 (inclusive)
+Postfix      : ? (try, propagates the error)
+Cast         : Type(expr) (Go-style)
+Field access : .name
+Index access : [expr]
+```
+
+### Newline-significant
+
+A newline terminates a statement (Go-style). No `;` required. An expression may span multiple lines if it is syntactically incomplete at end of line (open parens, pending operator, etc.).
+
+---
+
+## 4. Type System
+
+### Primitive types
+
+| Category | Types |
+|----------|-------|
+| Boolean | `bool` |
+| Unsigned integers | `u8`, `u16`, `u32`, `u64` |
+| Signed integers | `i8`, `i16`, `i32`, `i64` |
+| Floats | `f32`, `f64` |
+| Text | `char` (32-bit codepoint), `string` (UTF-8 sequence) |
+| Null | `null` |
+
+### Default integer
+
+A literal integer with no suffix **infers to `i32`** (`x := 42` ⇒ `x: i32`).
+
+### Signed overflow
+
+`a + b` that overflows **panics in debug, wraps in release** (Rust-style). Behavior not configurable in MVP.
+
+### Strings
+
+- Internals: **fat value** `(ptr: rawptr, len: u32)` — 16 bytes copied on assignment, no shared reference.
+- Immutable. Concatenation allocates.
+- `len()` returns the number of UTF-8 **bytes**.
+- `chars()` or `codepoints()` returns an iterator of `char`.
+- Literals stored in the binary's data section.
+
+### Arrays
+
+- `[T]` is a dynamic array (runtime length).
+- **Implicit reference** semantics: `arr2 := arr` copies the reference; use `clone(arr)` (free function) for a real copy.
+- Indexing: `arr[i]`. Bounds-checked in debug (panic), elidable in release.
+- Slicing: `arr[0..<3]` (to validate in MVP, otherwise deferred).
+
+### Structs
+
+```vader
+Point :: struct {
+    x: f64
+    y: f64
+}
+
+p :: Point { .x = 1.0, .y = 2.0 }
+```
+
+- Heap-allocated by default (Java-style).
+- `p2 := p` copies the **reference**, not the contents.
+- `==` is reference identity by default. For structural comparison: implement the `Eq` trait, or call a free function `equals(a, b)`.
+- Field layout is **not guaranteed** (the compiler arranges fields freely).
+- The user has no access to the layout (no `@offset_of`, no `unsafe_cast` in MVP).
+
+### Unions (TS-style)
+
+```vader
+type Result = string | i32 | null
+
+show :: fn(r: Result) -> string {
+    match r {
+        is string -> r
+        is i32    -> Display.show(r)
+        is null   -> "(none)"
+    }
+}
+```
+
+- Ad-hoc union declared via `type Name = A | B | C`.
+- `T | null` is the standard idiom for nullability.
+- A union `A | B` satisfies a trait `T` if **and only if** both `A` and `B` implement it.
+- Runtime representation: `(tag, payload)` (tagged sum). The compiler chooses the tag size.
+
+### Pattern matching
+
+```vader
+match value {
+    is i32 if value > 0 -> "positive"
+    is i32              -> "negative or zero"
+    is Point { x: 0, y } -> "Y axis at $y"
+    is Point { x, y }    -> "($x, $y)"
+    is null              -> "nothing"
+    _                    -> "other"
+}
+```
+
+- `is Type` for narrowing
+- Struct patterns with bindings and constraints
+- Guards via `if cond`
+- Wildcard `_`
+- **Exhaustiveness checked** by the compiler — error if a union variant is uncovered.
+
+### Type inference
+
+**Bidirectional**, TS/Swift-style:
+
+- Local: `x := 12` infers `x: i32`.
+- Top-down: function signatures used to infer lambda arguments.
+- No global Hindley-Milner (by simplicity choice).
+- **Function signatures must be fully annotated** (no top-level inference).
+
+### Casts
+
+Go-style, "constructor-call" syntax:
+
+```vader
+x: i32 = 42
+y: i64 = i64(x)            // widening cast, safe
+z: u8  = u8(x)             // narrowing cast, panics in debug if overflow
+```
+
+For risky conversions (parsing), use explicit functions returning unions:
+
+```vader
+n: i32 | Error = parse_int("42")
+```
+
+### Generics — Pure Odin
+
+**Generic functions**: type parameter introduced inline with `$T`; subsequent uses without `$`.
+
+```vader
+map :: fn(items: [$T], f: fn(T) -> $U) -> [U] {
+    result := MutableList(U){}
+    for x in items {
+        result.add(f(x))
+    }
+    return result.to_list()
+}
+```
+
+**Generic structs**: type params declared up front.
+
+```vader
+List :: struct(T: type) {
+    items: [T]
+    len: u32
+}
+
+list := List(i32) { .items = [1, 2, 3], .len = 3 }
+```
+
+**Constraints** via `where`:
+
+```vader
+sort :: fn(items: [$T]) where T: Ord {
+    // ...
+}
+```
+
+**Compile-time values** (post-MVP candidate):
+
+```vader
+make_buffer :: fn($N: i32) -> [N]u8 { ... }
+```
+
+**Implementation**: monomorphization at compile time, driven by the comptime engine. Single specialization machinery.
+
+### Traits
+
+A trait defines a contract of methods (in practice, UFCS-callable functions on a type).
+
+```vader
+Display :: trait {
+    fn show(self) -> string
+}
+
+u32 implements Display {
+    fn show(self) -> string {
+        // ... implementation
+    }
+}
+
+print_it :: fn(x: $T) where T: Display {
+    println(x.show())
+}
+```
+
+- Declaration: `Name :: trait { ... }`.
+- Implementation: `T implements Trait { ... }`.
+- A union satisfies a trait iff all its members satisfy it.
+- Operator overloading via stdlib traits: `Add`, `Sub`, `Mul`, `Div`, `Eq`, `Ord`, `Hash`, `Clone`.
+
+### Nullability
+
+No implicit `null`. To express absence, use a union:
+
+```vader
+find_user :: fn(id: u32) -> User | null {
+    // ...
+}
+
+u := find_user(42)
+match u {
+    is User -> println("found ${u.name}")
+    is null -> println("not found")
+}
+```
+
+### Equality
+
+| Type | Default `==` behavior |
+|------|----------------------|
+| Primitives (numeric, bool, char) | Bit-for-bit |
+| `string` | Structural (compares contents) |
+| Struct, array | **Reference identity** (Java-style) |
+| Type with `impl Eq` | Delegated to `Eq.equals` |
+
+To compare two structs structurally, implement `Eq` or call `equals(a, b)`.
+
+---
+
+## 5. Variables and Bindings
+
+### Three operators
+
+- **`x :: <expr>`**: **immutable** declaration. The binding cannot be reassigned.
+- **`x := <expr>`**: **mutable** declaration. The binding can be reassigned via `=`.
+- **`x = <expr>`**: reassignment of an existing mutable variable.
+
+### Mutability = binding only
+
+`::` freezes the binding, not the contents. If `p :: Point { ... }`, you cannot `p = otherPoint`, but `p.x = 5` is allowed.
+
+For deep immutability, use **stdlib convention**:
+- `List<T>`: read-only
+- `MutableList<T>`: mutable
+(Kotlin-style)
+
+### Explicit type annotations
+
+```vader
+x: i64 = 42
+buffer: [u8] = []
+name: string | null = null
+```
+
+The annotation `: T` is used when inference cannot decide or to clarify intent.
+
+### Scoping
+
+- Lexical, function and block.
+- Shadowing **allowed** in a sub-block.
+- No hoisting.
+
+---
+
+## 6. Functions
+
+### Declaration
+
+```vader
+add :: fn(a: i32, b: i32) -> i32 {
+    return a + b   // explicit
+}
+
+double :: fn(x: i32) -> i32 {
+    x * 2          // implicit (last expression)
+}
+```
+
+`return` is valid anywhere. If the last expression of a block is an expression and its type matches the return type, `return` is optional.
+
+### Default parameter values
+
+```vader
+greet :: fn(name: string, prefix: string = "Hello") -> string {
+    return "${prefix}, ${name}"
+}
+
+greet("Alice")                    // "Hello, Alice"
+greet("Bob", "Hi")                // "Hi, Bob"
+greet("Eve", prefix = "Hello")    // "Hello, Eve" (named parameter)
+```
+
+### Named arguments at call site
+
+`f(a = 1, b = 2)` is always allowed.
+
+### Variadics
+
+```vader
+sum :: fn(...nums: [i32]) -> i32 {
+    total := 0
+    for n in nums { total = total + n }
+    return total
+}
+
+sum(1, 2, 3, 4)
+```
+
+### Closures / lambdas
+
+Full form, identical to functions:
+
+```vader
+inc :: fn(x: i32) -> i32 { x + 1 }
+items.map(fn(x: i32) -> i32 { x * 2 })
+```
+
+Closures capture their environment **by reference** (consistent with the Java-style model).
+
+### UFCS (Uniform Function Call Syntax)
+
+```vader
+plus :: fn(this: i32, other: i32) -> i32 {
+    return this + other
+}
+
+// Equivalent calls:
+plus(2, 3)
+2.plus(3)
+```
+
+`a.f(b)` is desugared to `f(a, b)` at compile time. There are **no methods** in Vader, only free functions + UFCS.
+
+### Visibility
+
+- **`public` by default** (Java-style).
+- **`private`** to hide a symbol outside its **module** (= folder).
+
+```vader
+private helper :: fn(x: i32) -> i32 {
+    // visible to other files in the same module, not outside
+}
+```
+
+---
+
+## 7. Control Flow
+
+### `if` / `else` (expression)
+
+```vader
+x :: if (b > 2) 2 else 3
+
+if (cond) {
+    // ...
+} else if (other) {
+    // ...
+} else {
+    // ...
+}
+```
+
+`if` is always an expression. When used as a value, all branches must return a compatible type.
+
+### `match` (expression)
+
+```vader
+result :: match value {
+    is i32 if value > 0 -> "pos"
+    is i32              -> "non-pos"
+    is string           -> "str: $value"
+    _                   -> "?"
+}
+```
+
+Exhaustive match on unions, checked at compile time.
+
+### `for` (universal loop)
+
+```vader
+// Exclusive range
+for i in 0..<10 {
+    println("$i")
+}
+
+// Inclusive range
+for i in 0..=10 { ... }
+
+// Iterate over a collection
+for item in items {
+    println(item)
+}
+
+// While-like
+for cond {
+    // ...
+}
+
+// Infinite
+for {
+    if exit_condition { break }
+}
+```
+
+### Labeled `break` / `continue`
+
+```vader
+outer: for i in 0..<10 {
+    for j in 0..<10 {
+        if (i + j > 12) {
+            break outer
+        }
+    }
+}
+```
+
+Without a label, `break`/`continue` act on the innermost loop.
+
+### `defer`
+
+Block-scoped, executed when leaving the block where it was written (Zig/Swift-style):
+
+```vader
+fn process(path: string) -> string! {
+    file := open(path)?
+    defer close(file)
+
+    {
+        tmp := allocate_temp()
+        defer free(tmp)
+        // tmp freed at the end of this sub-block
+    }
+
+    // file closed at the end of the function
+    return read_all(file)?
+}
+```
+
+### `?` operator (try)
+
+Postfix, propagates the error:
+
+```vader
+content :: read_file("a.txt")?
+// if read_file returns string | Error :
+//   - if Error : the current function returns that Error
+//   - else     : content receives the string
+
+// Chainable
+first_line :: read_file("a.txt")?.lines()?.first()?
+```
+
+`expr?` is only usable inside a function whose return type is itself a union including an `Error`.
+
+---
+
+## 8. Memory Model
+
+### GC
+
+All non-primitive values (struct, array, string buffer contents, future stdlib types) are allocated on the **GC-managed heap**.
+
+### GC backends
+
+- **Native (C)**: hand-written mark-sweep stop-the-world GC, in C, linked into the binary.
+- **WASM**: uses the `(ref struct)`, `(ref array)`, `anyref` types of the WASM GC proposal (the host runtime — wasmtime / V8 — performs GC).
+
+### Storage semantics
+
+**Java-style**:
+
+- Primitives (`i32`, `f64`, `bool`, etc.): value, copied on assignment.
+- `string`: fat value `(ptr, len)`, copied on assignment, immutable shared content.
+- Structs, arrays: heap-allocated, manipulated via implicit references (the user does not see pointers).
+
+### No visible pointers
+
+No `&`, `*`, or "pointer" type exposed in MVP. Memory management is entirely implicit (except via explicit allocator APIs for perf-critical zones, post-MVP).
+
+### Escape analysis
+
+The spec **allows** the compiler to allocate a struct on the stack if analysis proves it does not escape, but **does not require** it in MVP. This is a transparent optimization the user never observes.
+
+### Explicit allocators (post-MVP)
+
+API for perf-critical zones, Zig-style. Allows allocating into an arena, a buffer, etc., without breaking the GC model. To be specified when needed.
+
+### Finalizers
+
+**None**. Non-memory resources (files, sockets, handles) must be released explicitly via `defer`.
+
+```vader
+file := open("a.txt")?
+defer close(file)
+```
+
+---
+
+## 9. Strings
+
+### Literal syntax
+
+```vader
+s1 :: "Hello, World!"                 // simple string
+s2 :: "Hello, $name"                  // simple variable interpolation
+s3 :: "${prefix}_value_${suffix}"     // expression interpolation
+s4 :: r"C:\Windows\System32"          // raw string, no interpolation
+s5 :: """
+line 1
+line 2 with ${var}
+"""                                   // multiline with interpolation
+```
+
+### Escapes
+
+`\n`, `\t`, `\\`, `\"`, `\$` (literal dollar), `\0`, `\u{1F600}` (codepoint).
+
+### Compile-time verification
+
+Interpolation expressions `${...}` are parsed and **type-checked at compile time**. Errors caught:
+
+- Variable does not exist
+- Type incompatible with `Display`
+- Malformed expression
+
+Interpolation is **desugared** into calls to `Display.show` followed by concatenation via `StringBuilder`.
+
+### `Display` trait
+
+All primitives implement `Display`. User types must impl explicitly:
+
+```vader
+Point implements Display {
+    fn show(self) -> string {
+        return "(${self.x}, ${self.y})"
+    }
+}
+```
+
+---
+
+## 10. Errors
+
+### "Errors as values" model
+
+Errors are ordinary values, returned in a union with the success type.
+
+```vader
+read_file :: fn(path: string) -> string | IOError {
+    // ...
+}
+```
+
+### `!T` sugar
+
+`!T` is a syntactic alias for `T | Error`, where `Error` is the stdlib's nominal trait:
+
+```vader
+read_file :: fn(path: string) -> string!  {
+    // equivalent to : -> string | Error
+}
+```
+
+### `Error` trait
+
+```vader
+Error :: trait {
+    fn message(self) -> string
+}
+```
+
+Any type implementing `Error` may be returned by an `!T` function. The stdlib provides concrete errors: `IOError`, `ParseError`, etc.
+
+### `?` operator
+
+Postfix, propagates the error if present:
+
+```vader
+process :: fn(path: string) -> string! {
+    raw    := read_file(path)?     // if Error: return the Error
+    parsed := parse(raw)?
+    return parsed
+}
+```
+
+### Explicit match
+
+When errors must be handled locally:
+
+```vader
+match read_file("a.txt") {
+    is string -> println("got: ${value}")
+    is Error  -> println("error: ${value.message()}")
+}
+```
+
+---
+
+## 11. Modules
+
+### Granularity
+
+**One folder = one module.** All `.vader` files in a folder share a common namespace. Files see each other (including `private` symbols).
+
+### Imports
+
+```vader
+import "std/io"                              // access via prefix : io.read_file()
+import "std/io" as fs                        // alias : fs.read_file()
+import "std/io" { read_file, write_file }    // destructuring : read_file() direct
+```
+
+### Path resolution
+
+| Form | Resolution |
+|------|-----------|
+| `std/...` | Stdlib embedded in the compiler |
+| `./foo/bar` | Relative to current file |
+| `foo/bar` (no `./`) | Relative to project root (where `vader.json` lives) |
+
+**No external packages in MVP.** Post-MVP topic.
+
+### Manifest
+
+**`vader.json`** at the root, JSON format:
+
+```json
+{
+  "name": "myapp",
+  "version": "0.1.0",
+  "entries": {
+    "main": "src/main.vader",
+    "cli":  "src/cli.vader"
+  }
+}
+```
+
+Manifest is **optional** — `vader build single_file.vader` also works as long as `single_file.vader` contains a `main` function.
+
+### Visibility
+
+- `public` (default): visible everywhere.
+- `private`: visible **within the module** (other files in the same folder OK), invisible outside the module.
+
+### Forbidden import cycles
+
+A → B → A is a compile-time error.
+
+### Entry point
+
+Always a `main` function. No overloaded conventions.
+
+```vader
+main :: fn() -> i32 {
+    println("Hello")
+    return 0
+}
+```
+
+`main` may also return `void` (equivalent to returning `0` from `i32`). Or return `i32!` to propagate errors via `?`.
+
+### Future: programmable build API
+
+Following Jai/Zig, post-MVP: a `build.vader` file that drives the build via Vader code (instead of a declarative manifest).
+
+---
+
+## 12. Decorators
+
+Decorators are **compiler instructions** prefixed with `@`. They operate at compile time, never at runtime.
+
+| Decorator | Target | Purpose |
+|-----------|--------|---------|
+| `@comptime` | fn / value | Forces compile-time evaluation |
+| `@extern("module", "name")` | fn (no body) | Declares an import (WASM) or external symbol (C) |
+| `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
+| `@file` | string literal | Embeds file contents at compile time |
+| `@test` | fn | Marks as a test, executed by `vader test` |
+
+The v1 `@intrinsic` is **replaced by `@extern`** to unify the mechanism.
+
+The v1 `@load` is **replaced by `import`**.
+
+---
+
+## 13. FFI / External Functions
+
+### `@extern` — declaring imports
+
+```vader
+@extern("env", "console_log")
+console_log :: fn(ptr: i32, len: i32)
+```
+
+On the **WASM** target, the compiler generates:
+```wat
+(import "env" "console_log" (func (param i32 i32)))
+```
+
+On the **native (C)** target, the compiler generates:
+```c
+extern void console_log(int32_t, int32_t);
+```
+and passes `-lenv` (or equivalent) to `cc`.
+
+### String marshalling — no magic in MVP
+
+To pass a Vader string to an external function:
+
+```vader
+@extern("env", "console_log")
+console_log :: fn(ptr: i32, len: i32)
+
+print_message :: fn(msg: string) {
+    console_log(msg.ptr, msg.len)
+}
+```
+
+The user writes the host-side glue (JS, C) themselves. The Vader JS stdlib provides helpers `vader_string_decode(memory, ptr, len)`.
+
+### `@export` — exposing a function
+
+```vader
+@export("addNumbers")
+add_numbers :: fn(a: i32, b: i32) -> i32 {
+    return a + b
+}
+```
+
+JS side:
+
+```javascript
+const { instance } = await WebAssembly.instantiateStreaming(fetch("app.wasm"));
+console.log(instance.exports.addNumbers(2, 3));
+```
+
+---
+
+## 14. Compile-time Execution
+
+### `@comptime`
+
+Forces evaluation at compile time:
+
+```vader
+TABLE :: @comptime build_lookup_table()
+
+build_lookup_table :: fn() -> [u32] {
+    result := MutableList(u32){}
+    for i in 0..<256 {
+        result.add(i * i)
+    }
+    return result.to_list()
+}
+```
+
+`build_lookup_table()` runs during compilation. `TABLE` is a constant whose value is placed in the binary's data section.
+
+### Synergy with generics
+
+A call `List(i32)` is a `@comptime` expression (the engine resolves the type, instantiates the generic struct, generates the specialized code).
+
+### Sandbox
+
+See section 2 (Compilation Model).
+
+---
+
+## 15. Standard Library — MVP scope
+
+### `std/core` (auto-imported)
+
+Traits: `Display`, `Eq`, `Ord`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator<T>`, `Iterable<T>`, `Error`.
+Type: `Error` (base).
+
+### `std/io`
+
+```vader
+fn print(msg: string) -> void
+fn println(msg: string) -> void
+fn read_line() -> string!
+fn read_file(path: string) -> string!
+fn write_file(path: string, content: string) -> void!
+fn exists(path: string) -> bool
+```
+
+I/O is **synchronous blocking** only in MVP.
+
+### `std/string`
+
+```vader
+fn len(s: string) -> u32                       // bytes
+fn chars(s: string) -> Iterator(char)
+fn slice(s: string, range: Range) -> string
+fn contains(s: string, sub: string) -> bool
+fn starts_with(s: string, prefix: string) -> bool
+fn ends_with(s: string, suffix: string) -> bool
+fn split(s: string, sep: string) -> [string]
+fn trim(s: string) -> string
+fn to_upper(s: string) -> string
+fn to_lower(s: string) -> string
+fn parse_int(s: string) -> i32!
+fn parse_float(s: string) -> f64!
+```
+
+### `std/collections`
+
+```vader
+List(T)              // read-only
+MutableList(T)       // mutable
+Map(K, V)            // read-only
+MutableMap(K, V)     // mutable
+Set(T)               // read-only
+MutableSet(T)        // mutable
+```
+
+Kotlin convention: `Mutable*` is a subtype of the read-only version.
+
+### `std/math`
+
+```vader
+fn min(a, b)        // generic via Ord
+fn max(a, b)
+fn abs(x)
+fn sqrt(x: f64) -> f64
+fn pow(x: f64, n: f64) -> f64
+fn floor(x: f64) -> f64
+fn ceil(x: f64) -> f64
+fn round(x: f64) -> f64
+fn sin / cos / tan
+const pi: f64
+const e:  f64
+```
+
+### `std/builder`
+
+```vader
+StringBuilder :: struct {
+    fn append(self, s: string) -> void
+    fn append_char(self, c: char) -> void
+    fn to_string(self) -> string
+}
+```
+
+### `std/iter`
+
+```vader
+Iterator(T) :: trait {
+    fn next(self) -> T | null
+}
+
+// Methods/UFCS on Iterator
+fn map<T, U>(it: Iterator(T), f: fn(T) -> U) -> Iterator(U)
+fn filter<T>(it: Iterator(T), pred: fn(T) -> bool) -> Iterator(T)
+fn fold<T, A>(it: Iterator(T), init: A, f: fn(A, T) -> A) -> A
+fn sum / count / take / skip / collect
+```
+
+### Out of MVP
+
+- networking
+- regex
+- json
+- time / date
+- random
+- threads / async
+- crypto
+- compression
+
+---
+
+## 16. Concurrency (post-MVP)
+
+### MVP
+
+**No concurrency.** Synchronous blocking I/O. Single-threaded program.
+
+### Post-MVP — async/await
+
+Add `async` and `await` keywords. Single-threaded cooperative semantics, lowered to state machines at compile time. Portable across the four targets.
+
+### Later — coroutines
+
+Kotlin-style envisioned (continuation-passing), to provide better ergonomics than plain `async`/`await`.
+
+### Native threads
+
+Possibly post-MVP, in `std/thread`, **not available on the WASM target** (compile-time assertion if imported on WASM).
+
+---
+
+## 17. Compilation Targets
+
+### Native (Linux, macOS, Windows)
+
+- Backend = **portable C emission**, invokes `cc` (gcc, clang, or tcc depending on availability).
+- Minimal C runtime: GC mark-sweep + string helpers + I/O helpers via libc.
+- Future possibility: direct ASM backends per target.
+
+### WebAssembly
+
+- Backend = **direct WASM emission** (~1:1 mapping from bytecode IR).
+- Uses WASM GC proposal for structs/arrays.
+- MVP target: **browser** (priority 1). Imports/exports via `@extern`/`@export`.
+- WASI: upcoming.
+
+### IR (Intermediate Representation)
+
+A first-class debug/inspection target. The bytecode IR is serialized into a textual `.vir` file alongside any final artifact, and can be requested as the **only** output of a build via `--target=ir`.
+
+- Stack-based, mirrors the in-memory bytecode 1:1.
+- Textual, line-oriented, human-readable.
+- Includes source positions (mapping IR ops back to `file:line:col` in the original Vader source).
+- Generated for the **whole program** post-monomorphization: every specialized generic instance is materialized.
+- Loadable: `vader run program.vir` re-executes the IR via the VM without re-parsing the source.
+
+Use cases:
+- Debugging the compiler pipeline ("did monomorphization specialize as expected?").
+- Inspecting what `@comptime` produced.
+- Reproducing a bug without the full source tree.
+- Sharing a minimal repro with a third party.
+
+### Single codegen strategy
+
+A single C native backend + a single WASM backend + IR text emission = **three output targets to maintain** (the IR is a near-trivial textualization of the in-memory bytecode). No QBE/Cranelift/LLVM in MVP.
+
+---
+
+## 18. Tooling
+
+### CLI
+
+| Command | Description |
+|---------|-------------|
+| `vader run [file]` | Interpret via VM. No arg → REPL |
+| `vader build [file\|--manifest]` | Compile to binary (default target = native) |
+| `vader build --target=wasm` | Targets WebAssembly |
+| `vader build --target=ir` | Emits a textual `.vir` IR file (debug / replay) |
+| `vader fmt [path]` | Single opinionated formatter, **no config** |
+| `vader test [path]` | Runs all functions marked `@test` |
+| `vader dump --stage=<stage> file.vader` | Dumps JSON/text of a stage (`ast`, `typed-ast`, `bytecode`, `c`, `wasm`) |
+
+### REPL
+
+Interactive mode (`vader` with no arg). Reuses the VM.
+
+### Tests
+
+```vader
+@test
+test_addition :: fn() {
+    assert_eq(1 + 1, 2)
+}
+```
+
+### Debugging
+
+- **WASM**: DWARF emission, debuggable in Chrome DevTools / wasmtime.
+- **Native**: `#line` directives in emitted C, gdb / lldb on the binary.
+- No Vader-specific debugger tool in MVP.
+
+### LSP
+
+**Deferred to post-self-host.** Ideally written in Vader.
+
+---
+
+## 19. Self-hosting Strategy
+
+### Vader 1.0 — the bootstrap edition
+
+The **Vader 1.0 edition** corresponds to the set of features needed for the Vader compiler to compile its own source code. At successful bootstrap, this perimeter is frozen.
+
+Subsequent evolutions:
+- v1.x: backwards-compatible changes (new features, optimizations)
+- v2.0: breaking changes (new edition, re-bootstrap required)
+
+### Goal — self-host as soon as possible
+
+As soon as the TS compiler can compile simple functions (a syntactic subset: fns, ifs, loops, structs, arrays, strings, imports, traits), we begin porting piece by piece. The intent: **validate the language design early** by using it to write itself.
+
+### Porting order
+
+1. **Parser** (the simplest, mostly pattern matching on tokens)
+2. **C-emit** (text emission, mechanical)
+3. **Bytecode-emit** (mechanical)
+4. **VM** (simple algorithms, dispatch table)
+5. **WASM-emit** (slightly more complex due to binary encoding)
+6. **Type-checker** (the most complex, last — Vader must be mature enough to self-represent)
+
+### Double-maintenance period
+
+During the transition:
+
+- **Snapshot tests**: for each sample in the test suite, the **TS** compiler's output is snapshotted as the reference. The **Vader-in-Vader** compiler must produce the same output. Guarantees consistency step by step.
+- **After successful bootstrap**: the TS compiler is set to read-only. No more bug-fixes nor features added in TS, except emergencies. All evolution happens in Vader.
+
+### Bootstrap success criterion
+
+Let `compile_ts(src)` be the output of the TS compiler on the Vader compiler source `src`.
+Let `compile_vader(src)` be the output of the Vader compiler (compiled by TS) on the same source.
+
+**Bootstrap successful** ⇔ `compile_ts(src) == compile_vader(src)` AND `compile_vader(src) == compile_vader(src)` (idempotence over two generations).
+
+---
+
+## 20. Examples
+
+### Hello World
+
+```vader
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    println("Hello, World!")
+    return 0
+}
+```
+
+### Fibonacci
+
+```vader
+fib :: fn(n: u32) -> u64 {
+    if (n < 2) return u64(n)
+    return fib(n - 1) + fib(n - 2)
+}
+
+main :: fn() -> i32 {
+    for i in 0..<10 {
+        println("fib($i) = ${fib(i)}")
+    }
+    return 0
+}
+```
+
+### Generic List
+
+```vader
+import "std/collections" { MutableList }
+
+main :: fn() -> i32 {
+    list := MutableList(i32){}
+    for i in 0..<5 {
+        list.add(i * i)
+    }
+    for x in list {
+        println("$x")
+    }
+    return 0
+}
+```
+
+### Trait + impl
+
+```vader
+import "std/io" { println }
+
+Display :: trait {
+    fn show(self) -> string
+}
+
+Point :: struct {
+    x: f64
+    y: f64
+}
+
+Point implements Display {
+    fn show(self) -> string {
+        return "(${self.x}, ${self.y})"
+    }
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1.5, .y = 2.5 }
+    println(p.show())
+    return 0
+}
+```
+
+### Pattern matching + errors
+
+```vader
+import "std/io" { read_file }
+import "std/string" { parse_int }
+
+read_count :: fn(path: string) -> i32! {
+    raw := read_file(path)?
+    n   := parse_int(raw.trim())?
+    return n
+}
+
+main :: fn() -> i32 {
+    match read_count("count.txt") {
+        is i32   -> println("Count: $value")
+        is Error -> println("Error: ${value.message()}")
+    }
+    return 0
+}
+```
+
+### `@comptime`
+
+```vader
+import "std/io" { println }
+
+squares :: fn() -> [u32] {
+    result := MutableList(u32){}
+    for i in 0..<10 {
+        result.add(u32(i * i))
+    }
+    return result.to_list()
+}
+
+SQUARES :: @comptime squares()
+
+main :: fn() -> i32 {
+    for s in SQUARES {
+        println("$s")
+    }
+    return 0
+}
+```
+
+### `@extern` — calling JS from WASM
+
+```vader
+@extern("env", "alert")
+js_alert :: fn(ptr: i32, len: i32)
+
+@export("greet")
+greet :: fn() {
+    msg :: "Hello from Vader!"
+    js_alert(msg.ptr, msg.len)
+}
+
+main :: fn() -> i32 {
+    return 0
+}
+```
+
+HTML/JS side:
+```html
+<script>
+const memory = new WebAssembly.Memory({ initial: 256 });
+const decoder = new TextDecoder("utf-8");
+const imports = {
+    env: {
+        alert: (ptr, len) => {
+            const buf = new Uint8Array(memory.buffer, ptr, len);
+            window.alert(decoder.decode(buf));
+        }
+    }
+};
+WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance }) => {
+    instance.exports.greet();
+});
+</script>
+```
+
+---
+
+## Appendices
+
+### A. MVP TypeScript implementation roadmap
+
+1. **Lexer**: tokens, newline-significant handling, strings with interpolation parsed as composed tokens
+2. **Parser**: full AST covering expressions / statements / declarations
+3. **Resolver**: modules, imports, scoping
+4. **Type-checker**: bidirectional inference, narrowing, traits, match exhaustiveness
+5. **Comptime engine + monomorphizer**: bytecode VM, `@comptime` execution, generic instantiation
+6. **Lowerer**: pattern match → jumps, traits → vtables/inline, `?` → match
+7. **Bytecode emitter**: from lowered AST
+8. **VM**: bytecode interpretation (mode `vader run` + comptime)
+9. **IR text emitter**: serialize the bytecode into a human-readable `.vir` file with source-position annotations
+10. **IR text reader**: parse `.vir` back into in-memory bytecode for `vader run program.vir`
+11. **C emitter**: from bytecode
+12. **WASM emitter**: from bytecode
+13. **Stdlib in Vader**: core, io, string, collections, math, builder, iter
+14. **C runtime**: mark-sweep stop-the-world GC, string helpers, basic syscalls
+15. **CLI**: `run`, `build` (with `--target=ir|native|wasm`), `fmt`, `test`, `dump`, REPL
+16. **Snapshot tests**: for each sample, snapshot the output of every stage
+
+### B. Deferred decisions / topics to revisit
+
+- `unsafe` for low-level FFI (native need)
+- Explicit allocator API (arena, etc.) for perf-critical zones
+- Auto string marshalling WASM ↔ JS
+- Async / await
+- Kotlin-style coroutines
+- Native threads (`std/thread`)
+- Networking, regex, json, time, random
+- LSP
+- Programmable build API (`build.vader`)
+- External packages
+- Pure WASM compilation without WASI
+- Full array slicing
+
+### C. Glossary
+
+- **UFCS**: Uniform Function Call Syntax. `a.f(b)` ≡ `f(a, b)`.
+- **Comptime**: Compile-Time Execution. Vader code executed during compilation.
+- **Monomorphization**: generation of specialized versions of a generic function/struct for each concrete combination of type parameters.
+- **HIR / MIR / LIR**: High/Mid/Low Intermediate Representation. Vader v1.0 has a single IR (the bytecode); later levels possible.
+- **VM**: the stack-based virtual machine that executes bytecode (interp + comptime modes).
+- **Bootstrap**: compilation of the Vader compiler with itself.

@@ -1,0 +1,51 @@
+// std/core — auto-imported in every Vader program.
+//
+// Provides the core traits used throughout the language:
+//   Display, Eq, Ord, Add, Sub, Mul, Div, Hash, Clone, Iterator, Iterable, Error
+//
+// And the base Error type used by !T sugar.
+
+// Display — for compile-time string interpolation and println().
+Display :: trait {
+    fn show(self) -> string
+}
+
+// Eq — for == and !=.
+Eq :: trait {
+    fn equals(self, other: Self) -> bool
+}
+
+// Ord — for <, <=, >, >=.
+Ord :: trait {
+    fn compare(self, other: Self) -> i32
+}
+
+// Hash — for Map / Set keys.
+Hash :: trait {
+    fn hash(self) -> u64
+}
+
+// Clone — explicit deep copy. Free function `clone(x)` calls into this.
+Clone :: trait {
+    fn clone(self) -> Self
+}
+
+// Arithmetic operator traits.
+Add :: trait { fn add(self, other: Self) -> Self }
+Sub :: trait { fn sub(self, other: Self) -> Self }
+Mul :: trait { fn mul(self, other: Self) -> Self }
+Div :: trait { fn div(self, other: Self) -> Self }
+
+// Iterator / Iterable.
+Iterator :: trait(T: type) {
+    fn next(self) -> T | null
+}
+
+Iterable :: trait(T: type) {
+    fn iter(self) -> Iterator(T)
+}
+
+// Error — base trait for any value usable in !T returns and the `?` operator.
+Error :: trait {
+    fn message(self) -> string
+}

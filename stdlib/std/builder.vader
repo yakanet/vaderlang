@@ -1,0 +1,17 @@
+// std/builder — efficient string construction.
+//
+// Concatenating strings with `+` allocates each time. StringBuilder accumulates
+// into an internal mutable buffer and flushes once via to_string().
+
+StringBuilder :: struct {
+    // Internal buffer; layout opaque to user.
+}
+
+// Append a full string.
+append :: fn(self: StringBuilder, s: string) -> void
+
+// Append a single codepoint.
+append_char :: fn(self: StringBuilder, c: char) -> void
+
+// Materialize the accumulated bytes into an immutable string.
+to_string :: fn(self: StringBuilder) -> string

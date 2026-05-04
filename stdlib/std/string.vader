@@ -1,0 +1,38 @@
+// std/string — string operations.
+//
+// All string operations treat strings as immutable UTF-8 byte sequences.
+// Use `chars(s)` to iterate by Unicode codepoint.
+
+// Length in bytes (NOT codepoints).
+len :: fn(s: string) -> u32
+
+// Codepoint iteration.
+chars :: fn(s: string) -> Iterator(char)
+
+// Substring extraction (bytes-based).
+slice :: fn(s: string, range: Range) -> string
+
+// Predicates.
+contains    :: fn(s: string, sub: string) -> bool
+starts_with :: fn(s: string, prefix: string) -> bool
+ends_with   :: fn(s: string, suffix: string) -> bool
+
+// Splitting and trimming.
+split :: fn(s: string, sep: string) -> [string]
+trim  :: fn(s: string) -> string
+
+// Case conversion.
+to_upper :: fn(s: string) -> string
+to_lower :: fn(s: string) -> string
+
+// Parsing.
+ParseError :: struct {
+    msg: string
+}
+
+ParseError implements Error {
+    fn message(self) -> string { return self.msg }
+}
+
+parse_int   :: fn(s: string) -> i32!
+parse_float :: fn(s: string) -> f64!

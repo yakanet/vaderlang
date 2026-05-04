@@ -1,0 +1,14 @@
+// Hello world — the canonical first program.
+// Compile and run with:
+//   vader build examples/hello.vader
+//   ./hello
+//
+// Or run via the interpreter:
+//   vader run examples/hello.vader
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    println("Hello, World!")
+    return 0
+}
