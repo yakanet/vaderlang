@@ -1,0 +1,14 @@
+Display :: trait {
+    fn show(self) -> string
+}
+
+Point :: struct {
+    x: f64
+    y: f64
+}
+
+Point implements Display {
+    fn show(self) -> string {
+        return "point"
+    }
+}

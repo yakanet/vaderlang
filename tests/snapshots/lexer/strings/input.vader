@@ -1,0 +1,7 @@
+plain := "hello"
+escaped := "a\nb\tc"
+raw := r"C:\Users\path"
+multi := """
+line one
+line two
+"""

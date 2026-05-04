@@ -1,0 +1,111 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "TraitDecl",
+      "name": "Display",
+      "visibility": "public",
+      "typeParams": [],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "show",
+          "visibility": "public",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "NamedType",
+            "name": "string"
+          },
+          "whereClauses": [],
+          "body": null,
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Point",
+      "visibility": "public",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "x",
+          "type": {
+            "kind": "NamedType",
+            "name": "f64"
+          },
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": {
+            "kind": "NamedType",
+            "name": "f64"
+          },
+          "visibility": "public"
+        }
+      ],
+      "whereClauses": [],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "forType": {
+        "kind": "NamedType",
+        "name": "Point"
+      },
+      "traitName": "Display",
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "show",
+          "visibility": "public",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "NamedType",
+            "name": "string"
+          },
+          "whereClauses": [],
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "ReturnStmt",
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "point"
+                    }
+                  ]
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    }
+  ]
+}

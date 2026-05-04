@@ -1,0 +1,74 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "bad",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [],
+      "returnType": null,
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "a"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "b"
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "NullLitExpr"
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IdentExpr",
+              "name": "c"
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IdentExpr",
+              "name": "x"
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IntLitExpr",
+                "value": "1n",
+                "suffix": null
+              },
+              "right": {
+                "kind": "NullLitExpr"
+              }
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}
+
+# Diagnostics
+[2:12] error[P1003] expected an expression: got `==`
+[2:12] error[P1010] non-associative operator chained: chained ``==``
+[3:13] error[P1003] expected an expression: got `+`

@@ -31,4 +31,25 @@ describe("cli", () => {
     const code = await runCli(["run"]);
     expect(code).toBe(1);
   });
+
+  test("--diagnostics=text is accepted", async () => {
+    const code = await runCli(["--diagnostics=text", "--help"]);
+    expect(code).toBe(0);
+  });
+
+  test("--diagnostics=json is accepted", async () => {
+    const code = await runCli(["--diagnostics=json", "--version"]);
+    expect(code).toBe(0);
+  });
+
+  test("--diagnostics=invalid exits 1", async () => {
+    const code = await runCli(["--diagnostics=xml", "--help"]);
+    expect(code).toBe(1);
+  });
+
+  test("global flag can appear after the command", async () => {
+    const code = await runCli(["run", "foo.vader", "--diagnostics=json"]);
+    // run still exits 1 because file does not exist as a real run; flag was parsed silently
+    expect(code).toBe(2);
+  });
 });

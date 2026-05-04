@@ -7,7 +7,7 @@
   "scripts": {
     "vader": "bun src/index.ts",
     "test": "bun test",
-    "test:update": "bun test --update-snapshots",
+    "test:update": "UPDATE_SNAPSHOTS=1 bun test --update-snapshots",
     "build": "bun build src/index.ts --target=bun --outdir=dist",
     "typecheck": "tsc --noEmit"
   },

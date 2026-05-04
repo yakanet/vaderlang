@@ -220,6 +220,38 @@ Field access : .name
 Index access : [expr]
 ```
 
+### Operator precedence
+
+From tightest to loosest. Higher levels bind more tightly. Non-assoc operators forbid chaining (`a == b == c` is a parse error — write `(a == b) == c`).
+
+| Level | Operators                              | Associativity |
+|-------|----------------------------------------|----------------|
+| 1     | postfix `?`, `.`, `[]`, `()`           | left           |
+| 2     | prefix `-`, `!`, `~`                   | right          |
+| 3     | `*`, `/`, `%`                          | left           |
+| 4     | `+`, `-`                               | left           |
+| 5     | `<<`, `>>`                             | left           |
+| 6     | `&`                                    | left           |
+| 7     | `^`                                    | left           |
+| 8     | `\|`                                   | left           |
+| 9     | `..<`, `..=`                           | non-assoc      |
+| 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `is` | non-assoc      |
+| 11    | `&&`                                   | left           |
+| 12    | `\|\|`                                 | left           |
+| 13    | `=` (statement-level only)             | n/a            |
+
+Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. The `is Type` form used in `match` arms binds at the comparison level.
+
+### Statement separators
+
+Inside a block, statements are separated by `NEWLINE` tokens (emitted per the rules below). Vader does **not** accept `;` as a statement separator.
+
+A leading newline immediately after `{` is silently absorbed: a block may start on a new line without an empty statement.
+
+### Trailing commas
+
+Trailing commas are allowed in every comma-separated list: function arguments, function parameters, struct literal fields, struct definition fields, array literals, match arms, generic argument lists, and import destructuring lists.
+
 ### Newline-significant
 
 A newline terminates a statement (Go-style). No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the four cases below, where the newline is silently absorbed:
@@ -309,10 +341,28 @@ p :: Point { .x = 1.0, .y = 2.0 }
 - Field layout is **not guaranteed** (the compiler arranges fields freely).
 - The user has no access to the layout (no `@offset_of`, no `unsafe_cast` in MVP).
 
+#### Struct literals in `if` / `for` / `match` / `while` conditions
+
+A `Foo { ... }` literal opens a `{` that would collide with the body brace of a control-flow statement. To keep the grammar unambiguous, struct literals are **not allowed at the top level** of the condition expression of `if`, `for`, `match`, and (future) `while`. Wrap in parentheses if needed:
+
+```vader
+// Error: ambiguous between struct literal and if-body
+if Point { .x = 1 } == p {
+    do_something()
+}
+
+// OK: parens disambiguate
+if (Point { .x = 1 }) == p {
+    do_something()
+}
+```
+
+The rule applies to the **immediate** condition expression. Struct literals nested inside calls, ranges, or other parenthesised contexts inside the condition remain valid without an extra pair of parens.
+
 ### Unions (TS-style)
 
 ```vader
-type Result = string | i32 | null
+Result :: type string | i32 | null
 
 show :: fn(r: Result) -> string {
     match r {
@@ -323,7 +373,7 @@ show :: fn(r: Result) -> string {
 }
 ```
 
-- Ad-hoc union declared via `type Name = A | B | C`.
+- Ad-hoc union declared via `Name :: type A | B | C`.
 - `T | null` is the standard idiom for nullability.
 - A union `A | B` satisfies a trait `T` if **and only if** both `A` and `B` implement it.
 - Runtime representation: `(tag, payload)` (tagged sum). The compiler chooses the tag size.
@@ -554,6 +604,15 @@ Full form, identical to functions:
 inc :: fn(x: i32) -> i32 { x + 1 }
 items.map(fn(x: i32) -> i32 { x * 2 })
 ```
+
+**Type annotations on lambda parameters and return are optional** when the surrounding context provides them via bidirectional inference:
+
+```vader
+items.map(fn(x) { x * 2 })            // x and return inferred from map's signature
+items.map(fn(x: i32) -> i32 { x * 2 }) // explicit, also valid
+```
+
+Top-level function declarations (`name :: fn(...)`) still require full annotations — see §4 inference rules.
 
 Closures capture their environment **by reference** (consistent with the Java-style model).
 
@@ -898,6 +957,21 @@ main :: fn() -> i32 {
 ```
 
 `main` may also return `void` (equivalent to returning `0` from `i32`). Or return `i32!` to propagate errors via `?`.
+
+### What appears at the top level of a `.vader` file
+
+A source file may contain only:
+
+- `import` statements
+- Type declarations: `Result :: type ...`
+- Function declarations: `name :: fn(...) -> T { ... }`
+- Struct declarations: `Foo :: struct { ... }`
+- Trait declarations: `T :: trait { ... }`
+- Trait implementations: `T implements Trait { ... }`
+- Constant declarations: `PI :: 3.14159`
+- Decorators on any of the above
+
+**No executable statements at the top level** — no top-level `print(...)`, no top-level loops. Every side-effecting expression lives inside a function body, typically `main`. This keeps the parser simple, makes module loading order independent of execution order, and means `import`-ing a module never runs code (unlike Python).
 
 ### Future: programmable build API
 

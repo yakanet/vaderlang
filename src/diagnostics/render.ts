@@ -20,6 +20,14 @@ export function renderAllText(
   return blocks.join("\n\n");
 }
 
+export function renderAllTextSingle(
+  diagnostics: readonly Diagnostic[],
+  file: string,
+  source: string,
+): string {
+  return renderAllText(diagnostics, new Map([[file, source]]));
+}
+
 export function renderAllJson(diagnostics: readonly Diagnostic[]): string {
   return JSON.stringify(diagnostics, null, 2);
 }

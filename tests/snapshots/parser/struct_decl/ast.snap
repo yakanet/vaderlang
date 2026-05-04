@@ -1,0 +1,103 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "StructDecl",
+      "name": "Point",
+      "visibility": "public",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "x",
+          "type": {
+            "kind": "NamedType",
+            "name": "f64"
+          },
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": {
+            "kind": "NamedType",
+            "name": "f64"
+          },
+          "visibility": "public"
+        }
+      ],
+      "whereClauses": [],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "List",
+      "visibility": "public",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": {
+            "kind": "NamedType",
+            "name": "?"
+          },
+          "isComptimeValue": false
+        }
+      ],
+      "fields": [
+        {
+          "name": "items",
+          "type": {
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "NamedType",
+              "name": "T"
+            }
+          },
+          "visibility": "public"
+        },
+        {
+          "name": "len",
+          "type": {
+            "kind": "NamedType",
+            "name": "u32"
+          },
+          "visibility": "public"
+        }
+      ],
+      "whereClauses": [],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Buffer",
+      "visibility": "public",
+      "typeParams": [
+        {
+          "name": "N",
+          "bound": {
+            "kind": "NamedType",
+            "name": "i32"
+          },
+          "isComptimeValue": true
+        }
+      ],
+      "fields": [
+        {
+          "name": "data",
+          "type": {
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "NamedType",
+              "name": "u8"
+            }
+          },
+          "visibility": "public"
+        }
+      ],
+      "whereClauses": [],
+      "decorators": []
+    }
+  ]
+}
+
+# Diagnostics
+[6:19] error[P1005] expected a type: got `type`

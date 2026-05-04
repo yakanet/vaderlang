@@ -26,3 +26,25 @@ export const LEXER = {
 } as const;
 
 export type LexerCode = keyof typeof LEXER;
+
+export const PARSER = {
+  P1001: "unexpected token",
+  P1002: "expected token",
+  P1003: "expected an expression",
+  P1004: "expected a statement",
+  P1005: "expected a type",
+  P1006: "expected a declaration",
+  P1007: "expected a pattern",
+  P1008: "expected an identifier",
+  P1009: "trailing comma allowed but list ended unexpectedly",
+  P1010: "non-associative operator chained",
+  P1011: "struct literal not allowed at the top level of a control-flow condition",
+  P1012: "missing function body",
+  P1013: "executable statement at top level (only declarations allowed)",
+  P1014: "unknown decorator placement",
+  P1015: "duplicate field name in struct literal",
+  P1016: "expected a generic argument list",
+  P1017: "missing newline between top-level declarations",
+} as const;
+
+export type ParserCode = keyof typeof PARSER;

@@ -1,0 +1,13 @@
+demo :: fn() -> i32 {
+    a := 1 + 2 * 3
+    b := (1 + 2) * 3
+    c := -a + b
+    d := !true && false || true
+    e := 0..<10
+    f := arr[0]
+    g := obj.field.subfield
+    h := f(1, 2, 3)
+    i := f(name = 42, other = "x")
+    j := if (cond) 1 else 2
+    return a
+}

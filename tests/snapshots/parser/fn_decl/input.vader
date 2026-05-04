@@ -1,0 +1,11 @@
+add :: fn(a: i32, b: i32) -> i32 {
+    return a + b
+}
+
+greet :: fn(name: string, prefix: string = "Hello") -> string {
+    return prefix
+}
+
+map :: fn(items: [$T], f: fn(T) -> $U) -> [U] {
+    return items
+}

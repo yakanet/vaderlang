@@ -1,0 +1,4 @@
+x := 1__0
+y := "unterminated
+z := 'ab'
+w := /* unclosed comment

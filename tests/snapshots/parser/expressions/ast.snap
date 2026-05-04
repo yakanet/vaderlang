@@ -1,0 +1,324 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "demo",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "i32"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "a",
+            "type": null,
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IntLitExpr",
+                "value": "1n",
+                "suffix": null
+              },
+              "right": {
+                "kind": "BinaryExpr",
+                "op": "mul",
+                "left": {
+                  "kind": "IntLitExpr",
+                  "value": "2n",
+                  "suffix": null
+                },
+                "right": {
+                  "kind": "IntLitExpr",
+                  "value": "3n",
+                  "suffix": null
+                }
+              }
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "b",
+            "type": null,
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "mul",
+              "left": {
+                "kind": "BinaryExpr",
+                "op": "add",
+                "left": {
+                  "kind": "IntLitExpr",
+                  "value": "1n",
+                  "suffix": null
+                },
+                "right": {
+                  "kind": "IntLitExpr",
+                  "value": "2n",
+                  "suffix": null
+                }
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "3n",
+                "suffix": null
+              }
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "c",
+            "type": null,
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "UnaryExpr",
+                "op": "neg",
+                "operand": {
+                  "kind": "IdentExpr",
+                  "name": "a"
+                }
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "b"
+              }
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "d",
+            "type": null,
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "or",
+              "left": {
+                "kind": "BinaryExpr",
+                "op": "and",
+                "left": {
+                  "kind": "UnaryExpr",
+                  "op": "not",
+                  "operand": {
+                    "kind": "BoolLitExpr",
+                    "value": true
+                  }
+                },
+                "right": {
+                  "kind": "BoolLitExpr",
+                  "value": false
+                }
+              },
+              "right": {
+                "kind": "BoolLitExpr",
+                "value": true
+              }
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "e",
+            "type": null,
+            "value": {
+              "kind": "RangeExpr",
+              "inclusive": false,
+              "lower": {
+                "kind": "IntLitExpr",
+                "value": "0n",
+                "suffix": null
+              },
+              "upper": {
+                "kind": "IntLitExpr",
+                "value": "10n",
+                "suffix": null
+              }
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "f",
+            "type": null,
+            "value": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "arr"
+              },
+              "index": {
+                "kind": "IntLitExpr",
+                "value": "0n",
+                "suffix": null
+              }
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "g",
+            "type": null,
+            "value": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "obj"
+                },
+                "field": "field"
+              },
+              "field": "subfield"
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "h",
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "f"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "1n",
+                    "suffix": null
+                  },
+                  "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "2n",
+                    "suffix": null
+                  },
+                  "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "3n",
+                    "suffix": null
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "i",
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "f"
+              },
+              "args": [
+                {
+                  "name": "name",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "42n",
+                    "suffix": null
+                  },
+                  "spread": false
+                },
+                {
+                  "name": "other",
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "x"
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "j",
+            "type": null,
+            "value": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "IdentExpr",
+                "name": "cond"
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "ExprStmt",
+                    "expr": {
+                      "kind": "IntLitExpr",
+                      "value": "1n",
+                      "suffix": null
+                    }
+                  },
+                  {
+                    "kind": "ExprStmt",
+                    "expr": {
+                      "kind": "NullLitExpr"
+                    }
+                  },
+                  {
+                    "kind": "ExprStmt",
+                    "expr": {
+                      "kind": "IntLitExpr",
+                      "value": "2n",
+                      "suffix": null
+                    }
+                  },
+                  {
+                    "kind": "ReturnStmt",
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "a"
+                    }
+                  }
+                ],
+                "trailing": null
+              },
+              "else": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}
+
+# Diagnostics
+[11:20] error[P1002] expected token: expected `{` to open block (got 1)
+[11:22] error[P1003] expected an expression: got `else`
+[14:1] error[P1002] expected token: expected `}` to close block (got end of file)

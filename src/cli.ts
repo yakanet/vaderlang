@@ -1,3 +1,4 @@
+import { parseGlobalOpts, type GlobalOpts } from "./cli/options.ts";
 import { cmdRun } from "./commands/run.ts";
 import { cmdBuild } from "./commands/build.ts";
 import { cmdFmt } from "./commands/fmt.ts";
@@ -8,7 +9,7 @@ import { cmdRepl } from "./commands/repl.ts";
 const HELP = `vader — the Vader compiler
 
 USAGE:
-  vader <command> [options] [args]
+  vader [global-options] <command> [options] [args]
 
 COMMANDS:
   run [file]                       Interpret a Vader file (no args → REPL)
@@ -20,6 +21,7 @@ COMMANDS:
                                    Stages: ast, typed-ast, bytecode, c, wasm
 
 GLOBAL OPTIONS:
+  --diagnostics=text|json          Output diagnostics in plain text (default) or JSON for tooling
   --allow-env                      Permit @comptime to read process env
   --help, -h                       Show this message
   --version, -v                    Show the compiler version
@@ -28,11 +30,17 @@ GLOBAL OPTIONS:
 const VERSION = "0.0.0-pre-mvp";
 
 export async function runCli(argv: string[]): Promise<number> {
-  if (argv.length === 0) {
-    return cmdRepl();
+  if (argv.length === 0) return cmdRepl();
+
+  const { opts, rest, errors } = parseGlobalOpts(argv);
+  if (errors.length > 0) {
+    for (const e of errors) console.error(`vader: ${e}`);
+    return 1;
   }
 
-  const [command, ...rest] = argv;
+  if (rest.length === 0) return cmdRepl();
+
+  const [command, ...commandArgs] = rest;
 
   switch (command) {
     case "--help":
@@ -48,19 +56,19 @@ export async function runCli(argv: string[]): Promise<number> {
       return 0;
 
     case "run":
-      return cmdRun(rest);
+      return cmdRun(opts, commandArgs);
 
     case "build":
-      return cmdBuild(rest);
+      return cmdBuild(opts, commandArgs);
 
     case "fmt":
-      return cmdFmt(rest);
+      return cmdFmt(opts, commandArgs);
 
     case "test":
-      return cmdTest(rest);
+      return cmdTest(opts, commandArgs);
 
     case "dump":
-      return cmdDump(rest);
+      return cmdDump(opts, commandArgs);
 
     default:
       console.error(`vader: unknown command "${command}"`);
@@ -68,3 +76,5 @@ export async function runCli(argv: string[]): Promise<number> {
       return 1;
   }
 }
+
+export type { GlobalOpts };

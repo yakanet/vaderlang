@@ -1,0 +1,183 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "add",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "a",
+          "type": {
+            "kind": "NamedType",
+            "name": "i32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "b",
+          "type": {
+            "kind": "NamedType",
+            "name": "i32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "i32"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "a"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "b"
+              }
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "greet",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "name",
+          "type": {
+            "kind": "NamedType",
+            "name": "string"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "prefix",
+          "type": {
+            "kind": "NamedType",
+            "name": "string"
+          },
+          "defaultValue": {
+            "kind": "StringLitExpr",
+            "parts": [
+              {
+                "kind": "text",
+                "value": "Hello"
+              }
+            ]
+          },
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "string"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "prefix"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "map",
+      "visibility": "public",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        },
+        {
+          "name": "U",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "params": [
+        {
+          "name": "items",
+          "type": {
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "TypeParamType",
+              "name": "T"
+            }
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "f",
+          "type": {
+            "kind": "FnTypeExpr",
+            "params": [
+              {
+                "kind": "NamedType",
+                "name": "T"
+              }
+            ],
+            "returnType": {
+              "kind": "TypeParamType",
+              "name": "U"
+            }
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "NamedType",
+          "name": "U"
+        }
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "items"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

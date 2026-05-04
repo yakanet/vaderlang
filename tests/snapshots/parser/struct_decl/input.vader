@@ -1,0 +1,13 @@
+Point :: struct {
+    x: f64
+    y: f64
+}
+
+List :: struct(T: type) {
+    items: [T]
+    len: u32
+}
+
+Buffer :: struct($N: i32) {
+    data: [u8]
+}

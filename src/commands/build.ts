@@ -1,3 +1,5 @@
+import type { GlobalOpts } from "../cli/options.ts";
+
 type Target = "native" | "wasm" | "ir";
 
 const TARGETS: readonly Target[] = ["native", "wasm", "ir"] as const;
@@ -6,7 +8,7 @@ function isTarget(s: string): s is Target {
   return (TARGETS as readonly string[]).includes(s);
 }
 
-export async function cmdBuild(args: string[]): Promise<number> {
+export async function cmdBuild(_opts: GlobalOpts, args: string[]): Promise<number> {
   const positional = args.filter((a) => !a.startsWith("--"));
   const flags = args.filter((a) => a.startsWith("--"));
 

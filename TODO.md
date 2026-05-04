@@ -15,7 +15,7 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 - [x] `bun init` to scaffold the TypeScript compiler under `src/`
 - [x] Add `tsconfig.json` with strict mode enabled (and stricter flags: `noUncheckedIndexedAccess`, `noFallthroughCasesInSwitch`, `noImplicitOverride`)
 - [x] Add a test runner (`bun test`) and wire it to `tests/`
-- [ ] Add a basic snapshot-testing utility (read `tests/**/*.vader`, snapshot each pipeline stage's dump) — helper `tests/_helpers.ts` started, full snapshot driver to follow once the lexer exists
+- [x] Snapshot-testing driver (folder-per-scenario, `tests/snapshot.ts`). Refresh with `UPDATE_SNAPSHOTS=1 bun test` or `bun run test:update`. Lexer scenarios live under `tests/snapshots/lexer/<name>/{input.vader,tokens.snap}`
 - [x] Wire a minimal CLI entry point: `bun src/index.ts <command>` — all top-level commands stubbed (`run`, `build`, `fmt`, `test`, `dump`, REPL)
 - [x] Add `.gitignore` for `dist/`, `node_modules/`, build artifacts
 
@@ -25,56 +25,58 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 
 ### 1.0 Diagnostic infrastructure (cross-cutting, prerequisite)
 
-- [ ] Diagnostic data shape (severity, code, message, primary span, secondary spans, notes, fixes) — extend `src/diagnostics/diagnostic.ts`
-- [ ] Diagnostic collector (per-compilation-unit): accumulate, dedupe, sort by position
-- [ ] Code registry (`src/diagnostics/codes.ts`) — start with lexer codes `L0001..L00xx`
-- [ ] Terminal renderer: source snippet, primary-span caret/underline, optional color (TTY detect), fix hints
-- [ ] JSON renderer: stable schema for LSP / CI consumption
-- [ ] CLI flag `--diagnostics=text|json` plumbed through every command that compiles
+- [x] Diagnostic data shape (severity, code, message, primary span, secondary spans, notes, fixes) — `src/diagnostics/diagnostic.ts`
+- [x] Diagnostic collector (per-compilation-unit): accumulate, sort stable by `(file, offset, code)` — `src/diagnostics/collector.ts`. Dedup deferred (no real source of duplicates yet)
+- [x] Code registry (`src/diagnostics/codes.ts`) — `L0001..L0010` for the lexer
+- [x] Terminal renderer: source snippet, primary-span caret/underline, notes, help — `src/diagnostics/render.ts`. Optional ANSI color deferred
+- [x] JSON renderer: stable schema, `JSON.stringify` of the diagnostic array
+- [x] CLI flag `--diagnostics=text|json` parsed and threaded as `GlobalOpts` to every command (`src/cli/options.ts`). Renderer selection happens at the call site once compilation is wired
 
 ### 1.1 Lexer
 
-- [ ] Token kinds: ident, int, float, char, string_begin/string_part/string_end/interp_open/interp_close, every keyword as its own kind, every operator as its own kind, punctuation, newline, eof
-- [ ] Token data: source text slice, byte span, parsed value (for literals), suffix (for numerics)
-- [ ] Source-position tracking: file, byte offset, 1-based line, 1-based UTF-8 column
-- [ ] Shebang: skip `#!...` on line 1 only, error on `#!` anywhere else
-- [ ] Whitespace: spaces and tabs absorbed; tabs not interpreted as a fixed width
-- [ ] Comments: `//` line; `/* */` block with **nested** depth tracking
-- [ ] Identifiers and keyword recognition (full keyword set per SPEC §3)
-- [ ] Numeric literals:
-  - Integer with bases (`0x`, `0b`, `0o`) and underscores
-  - Float with optional leading zeros, exponents, no trailing-point
-  - Suffixes (`i32`, `u64`, `f32`, etc.) with optional underscore separator
-  - Reject malformed underscores (`_42`, `42_`, `1__0`)
-- [ ] Char literals with escapes (`\n \t \r \\ \' \0 \u{...}`), exactly one codepoint
-- [ ] String literals — three forms:
-  - Plain `"..."`: emit `STRING_BEGIN`, alternating `STRING_PART` and `INTERP_OPEN..INTERP_CLOSE`, then `STRING_END`
-  - Raw `r"..."`: emit a single `STRING_PART` with no escape processing or interpolation
-  - Triple-quoted `"""..."""`: same model as plain, allowed to span newlines, swallow the optional newline right after opening `"""`
-  - **Nested interpolation** support: lexer maintains a stack of modes (string vs. interpolation) so `"a${"b${c}"}d"` works
-- [ ] Operators: each its own kind. Multi-char tokens lexed greedily: `==`, `!=`, `<=`, `>=`, `&&`, `||`, `<<`, `>>`, `..<`, `..=`, `->`, `::`, `:=`
-- [ ] Newline emission rules per SPEC §3:
-  1. Suppressed inside unclosed `(`, `[`, `{`
-  2. Suppressed after a pending binary/unary operator
-  3. Suppressed after `,`
-  4. Suppressed after `=`, `:`, `->`, `=>`
-  5. No backslash-continuation
-- [ ] Diagnostic emission: malformed numeric, unterminated string, unterminated comment, invalid escape, lone `'`, stray `\`, unexpected character — each gets a code in `L0xxx`
-- [ ] Recovery: on a malformed token, skip to next whitespace/newline boundary and continue
-- [ ] Snapshot tests under `tests/lexer/` — one folder per scenario: `input.vader` + `tokens.snap`
+- [x] Token kinds: ident, int, float, char, string_begin/string_part/string_end/interp_open/interp_close, every keyword as its own kind, every operator as its own kind, punctuation, newline, eof — `src/lexer/token.ts`
+- [x] Token data: source text slice, span, parsed value (for literals), numeric suffix
+- [x] Source-position tracking: file, offset, 1-based line/column (JS code-units; ASCII-accurate, LSP boundary will translate)
+- [x] Shebang: skip `#!...` on line 1 only, error otherwise (`L0008` reserved)
+- [x] Whitespace: spaces/tabs absorbed; tabs not given a fixed width
+- [x] Comments: `//` line, `/* */` block with nested depth tracking
+- [x] Identifiers and keyword recognition (table-driven via `KEYWORDS`)
+- [x] Numeric literals:
+  - [x] Integer in bases 10 / 16 / 2 / 8 with underscore separators
+  - [x] Float with leading zeros, exponents, no trailing-point
+  - [x] Suffixes (`i8..i64`, `u8..u64`, `f32`, `f64`) with optional underscore separator (`42_i32`)
+  - [x] Reject `42_`, `1__0`, unknown suffix, integer suffix on a float literal
+- [x] Char literals with escapes (`\n \t \r \\ \' \" \$ \0 \u{...}`), exactly one codepoint
+- [x] String literals — three forms:
+  - [x] Plain `"..."`: `STRING_BEGIN`, alternating `STRING_PART` and `INTERP_OPEN..INTERP_CLOSE`, then `STRING_END`
+  - [x] Raw `r"..."`: single `STRING_PART`, no escape processing, no interpolation
+  - [x] Triple-quoted `"""..."""`: spans newlines, swallows the optional initial newline
+  - [x] `${expr}` and `$ident` interpolation forms
+  - [x] Nested interpolation via mode stack (`"a${"b${c}"}d"` works)
+- [x] Operators table-driven — `..<`, `..=`, `==`, `!=`, `<=`, `>=`, `&&`, `||`, `<<`, `>>`, `->`, `=>`, `::`, `:=`, plus single-char ops and brackets
+- [x] Newline emission rules per SPEC §3:
+  1. [x] Suppressed inside unclosed `(`, `[` (NOT `{`, since blocks separate statements with newlines)
+  2. [x] Suppressed after a pending binary/unary operator
+  3. [x] Suppressed after `,`
+  4. [x] Suppressed after `=`, `:`, `->`, `=>`
+  5. [x] No backslash-continuation (stray `\` is `L0007`)
+- [x] Diagnostic emission for: malformed numeric (`L0006`), unterminated string (`L0002`), unterminated block comment (`L0003`), invalid escape (`L0004`), invalid char literal (`L0005`), stray `\` (`L0007`), unexpected character (`L0001`), bad `\u{...}` (`L0009`), bad `${` (`L0010`)
+- [x] Recovery: skip the offending byte / scan to next quote boundary, continue tokenizing
+- [x] Tests: 60+ unit tests in `tests/lexer.test.ts`, covering each token family, every newline rule, every error path
+- [x] Snapshot tests under `tests/snapshots/lexer/<scenario>/{input.vader,tokens.snap}` — driver in `tests/snapshot.ts`, scenarios: `hello`, `numerics`, `strings`, `interpolation`, `errors`
 
 ### 1.2 Parser
 
-- [ ] AST node types (declarations, statements, expressions, patterns, types)
-- [ ] Top-level: `import`, `type`, `:: fn`, `:: struct`, `:: trait`, `T implements Trait`, decorators
-- [ ] Expressions: literals, identifiers, calls, field access, indexing, unary, binary (with precedence table), if-expression, match-expression, lambdas, blocks, casts, generic instantiation `Foo(T)`, `expr?` postfix
-- [ ] Statements: `:=` / `::`, assignments, `for`, `break`/`continue` (with labels), `defer`, `return`, expression-statements
-- [ ] Patterns: `is Type`, struct destructuring with bindings and constraints, wildcard `_`, guards
-- [ ] Type expressions: primitives, named, unions (`A | B`), generic instantiation, function types (`fn(T) -> U`), array `[T]`, nullability via union
-- [ ] Decorator parsing: `@name`, `@name(args)`
-- [ ] Generic syntax: `$T` introduction inline; `(T: type)` for struct headers; `where T: Trait` clauses
-- [ ] Error recovery: synchronize on `}`, `;`, top-level keywords
-- [ ] Snapshot tests: parse samples, snapshot the AST as JSON
+- [x] AST node types (declarations, statements, expressions, patterns, types) — `src/parser/ast.ts`
+- [x] Top-level: `import`, `type`, `:: fn`, `:: struct`, `:: trait`, `T implements Trait`, decorators
+- [x] Expressions: literals, identifiers, calls, field access, indexing, unary, binary (Pratt precedence table), if-expression, match-expression, lambdas, blocks, generic instantiation `Foo(T)` (as `CallExpr` at parse time), `expr?` postfix. Cast nodes are reserved in the AST but never emitted by the parser — `Type(value)` is parsed as a call and disambiguated later.
+- [x] Statements: `:=` / `::`, assignments, `for` (infinite/while/in), `break`/`continue` (with labels), `defer`, `return`, expression-statements
+- [x] Patterns: `is Type`, struct destructuring with bindings and literal constraints, wildcard `_`, guards (`if`)
+- [x] Type expressions: primitives, named, unions (`A | B`), generic instantiation, function types (`fn(T) -> U`), array `[T]`, nullability via union
+- [x] Decorator parsing: `@name`, `@name(args)`
+- [x] Generic syntax: `$T` introduction inline (collected from fn-param types); `(T: type)` and `($N: i32)` heads on struct/trait/type-alias; `where T: Trait` clauses
+- [x] Error recovery: structured diagnostics via collector, never throws on user input; `syncToTopLevel` on bad decl; per-list progress guards prevent infinite loops on malformed input
+- [x] Snapshot tests under `tests/snapshots/parser/<scenario>/{input.vader,ast.snap}` — scenarios: `hello`, `expressions`, `fn_decl`, `struct_decl`, `trait_impl`, `match_expr`, `errors`. Driver shared with the lexer (`tests/snapshot.ts`); `vader dump --stage=ast <file>` exposes the same pipeline through the CLI.
 
 ### 1.3 Resolver
 
