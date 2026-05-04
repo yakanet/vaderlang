@@ -1,0 +1,10 @@
+# Typecheck
+
+## tests/snapshots/typecheck/non_exhaustive_match/input.vader
+  FnDecl         classify             :: fn(i32 | string) -> string
+  expr 2:12     MatchExpr      :: string
+  expr 2:18     IdentExpr      :: i32 | string
+  expr 3:19     StringLitExpr  :: string
+
+# Diagnostics
+[2:12] error[T3013] non-exhaustive match: variant string of i32 | string is not covered

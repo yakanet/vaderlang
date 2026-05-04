@@ -3,18 +3,16 @@
 // Primitive type names are recognised by the resolver and bound to symbols in
 // a synthetic module so later phases can reason about them uniformly.
 
+import { PRIMITIVE_NAMES } from "../typecheck/types.ts";
 import type { Symbol } from "./symbol.ts";
 import { SymbolFactory } from "./symbol.ts";
 
 export const BUILTIN_MODULE_ID = "<builtin>";
 
+/** Names visible at every scope's root. Primitives + the `type` metatype + `Self`. */
 export const BUILTIN_TYPE_NAMES: readonly string[] = [
-  "i8", "i16", "i32", "i64",
-  "u8", "u16", "u32", "u64",
-  "f32", "f64",
-  "bool", "char", "string", "void",
+  ...PRIMITIVE_NAMES,
   "type",
-  "null",
   "Self",
 ];
 

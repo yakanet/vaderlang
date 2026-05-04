@@ -68,3 +68,34 @@ export const RESOLVER = {
 } as const;
 
 export type ResolverCode = keyof typeof RESOLVER;
+
+export const TYPECHECK = {
+  T3001: "type mismatch",
+  T3002: "expected an expression of a known type",
+  T3003: "wrong number of arguments",
+  T3004: "unknown named argument",
+  T3005: "missing required argument",
+  T3006: "trait not satisfied",
+  T3007: "expression is not callable",
+  T3008: "expression is not indexable",
+  T3009: "field does not exist on this type",
+  T3010: "invalid cast",
+  T3011: "`?` requires a union with an `Error` variant",
+  T3012: "`?` cannot propagate this error from the enclosing function",
+  T3013: "non-exhaustive match",
+  T3014: "unreachable match arm",
+  T3015: "`break` / `continue` only allowed inside a loop",
+  T3016: "`self` only valid inside a method body",
+  T3017: "operator not defined for these operand types",
+  T3018: "string interpolation expression must implement `Display`",
+  T3019: "condition must be `bool`",
+  T3020: "function body returns a value incompatible with its declared return type",
+  T3021: "generic argument count mismatch",
+  T3022: "cyclic type alias",
+  T3023: "use of `Self` outside a trait or impl context",
+  T3024: "function signature must be fully annotated",
+  T3025: "named argument duplicates a positional one",
+  T3026: "type does not have generic parameters",
+} as const;
+
+export type TypecheckCode = keyof typeof TYPECHECK;

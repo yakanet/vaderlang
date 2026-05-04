@@ -1,0 +1,9 @@
+# Typecheck
+
+## tests/snapshots/typecheck/try_op/input.vader
+  FnDecl         content              :: fn(string) -> Error | string
+  expr 4:12     CallExpr       :: Error | string
+  expr 4:12     IdentExpr      :: fn(string) -> Error | string
+  expr 4:12     TryExpr        :: string
+  expr 4:22     IdentExpr      :: string
+  expr 5:12     IdentExpr      :: string

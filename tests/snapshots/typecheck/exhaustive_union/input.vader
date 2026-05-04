@@ -1,0 +1,6 @@
+classify :: fn(x: i32 | bool) -> string {
+    return match x {
+        is i32  -> "int"
+        is bool -> "bool"
+    }
+}

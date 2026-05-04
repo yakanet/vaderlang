@@ -59,3 +59,16 @@ export class SymbolFactory {
     return { id: this.next++, ...spec };
   }
 }
+
+/** The AST decl backing a symbol, when there is one. */
+export function declOf(sym: Symbol): A.Decl | null {
+  switch (sym.source.kind) {
+    case "fn":         return sym.source.decl;
+    case "struct":     return sym.source.decl;
+    case "trait":      return sym.source.decl;
+    case "type-alias": return sym.source.decl;
+    case "const":      return sym.source.decl;
+    case "import":     return sym.source.decl;
+    default:           return null;
+  }
+}

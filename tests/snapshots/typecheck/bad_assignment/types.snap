@@ -1,0 +1,8 @@
+# Typecheck
+
+## tests/snapshots/typecheck/bad_assignment/input.vader
+  FnDecl         length               :: fn(string) -> i32
+  expr 2:12     IdentExpr      :: string
+
+# Diagnostics
+[2:5] error[T3020] function body returns a value incompatible with its declared return type: expected i32, got string

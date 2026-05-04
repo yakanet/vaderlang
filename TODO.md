@@ -93,20 +93,28 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 
 ### 1.4 Type-checker
 
-- [ ] Type representation: primitives, structs, unions, generics, function types, nullable types
-- [ ] Bidirectional inference engine
-- [ ] Generic type parameter handling (`$T` ↔ deferred until comptime resolves it)
-- [ ] Trait satisfaction check (with the union rule: union satisfies trait iff every member does)
-- [ ] Type unification for `match` arms, `if`/`else` branches
-- [ ] Narrowing in `match` arms (value's type is the matched variant inside the arm body)
-- [ ] Match exhaustiveness checking for unions
-- [ ] Default integer/float resolution (`i32` / `f64`)
-- [ ] String interpolation type check: every `${expr}` must satisfy `Display`
-- [ ] Operator resolution via traits (`+` → `Add.add`, `==` → `Eq.equals` for non-default types)
-- [ ] Cast validity check
-- [ ] `?` operator validation: callee must return a union; current function must return a compatible error union
-- [ ] Diagnostics with source positions, multi-line context
-- [ ] Snapshot tests: type-check samples, snapshot the typed AST + diagnostics
+- [x] Type IR (`src/typecheck/types.ts`): `Primitive`, `Struct`, `Trait`, `Union`, `Fn`, `Array`, `TypeParam`, `TypeMeta`, `Unresolved`, `FreeInt`/`FreeFloat` (untyped numeric literals), `Never`. Structural equality, canonical `unionOf` (flatten + dedupe + sort), substitution.
+- [x] Bidirectional inference engine — `inferExpr` (bottom-up) + `checkExpr` (with `expected`). No global Hindley-Milner. Top-level fn signatures must be fully annotated (`T3024`); lambda params/return inferred from call-site context. Free numeric literals adapt to their typed context (`let x: i64 = 42` works without a cast).
+- [x] Generic type parameter handling: `$T` collected by parser, made visible as `TypeParam` symbols by the resolver, recognized in type expressions. Generic instances `Foo(T)` parse as type constructor calls; **monomorphization is deferred to phase 1.5** (comptime engine).
+- [x] Trait satisfaction (`src/typecheck/impls.ts`): `ImplRegistry` indexes every `T implements Trait` block; queries used for `Display` (interpolation) and `Error` (`?` operator). Primitive impls resolved by name match. Union rule: a union satisfies a trait iff all variants do.
+- [x] Type unification for `match` arms / `if`/`else` branches: arm types are joined via `unionOf` (so `if (c) "a" else 1` → `i32 | string`).
+- [x] Narrowing in `match` arms: an `is T` arm typechecks its body with `T` as the scrutinee's type (binding-level narrowing tracked at the symbol-source level; finer-grained binding type comes with 1.5 generic dispatch).
+- [x] Match exhaustiveness: union scrutinees require every variant covered or a wildcard arm; non-union scrutinees require an explicit `_` wildcard (`T3013`).
+- [x] Default integer/float: unsuffixed integer literals default to `i32` and floats to `f64` per SPEC §4. Both are `FreeInt`/`FreeFloat` until used in a typed context.
+- [x] String interpolation type check: every `${expr}` is validated to satisfy `Display`. Primitives all impl Display per SPEC §9.
+- [x] Operator resolution: native dispatch for primitive numeric arithmetic, comparisons, equality on primitives + string, logical ops on bool, bitwise ops on integers. **Trait-based operator dispatch (Add, Sub, Eq…) on user types is deferred** — `T3017` is emitted when a user type tries to use an arith/comparison operator without a native fallback.
+- [x] Cast validity: `T(x)` parses as a CallExpr; if `T` resolves to a builtin numeric type, validated as a numeric → numeric cast (`T3010` otherwise). Struct constructors (`Foo(args)`) are accepted but not yet differentiated from generic instantiation — that gets resolved in 1.5.
+- [x] `?` operator: scrutinee must be a union containing at least one Error-implementing variant; the enclosing function's return type must be able to absorb every Error variant (`T3011`/`T3012`).
+- [x] Diagnostics: 26 codes `T3001..T3026` registered, all using the resolver-style `err()` helper for consistency (`src/typecheck/diag.ts`).
+- [x] Snapshot tests: 10 scenarios under `tests/snapshots/typecheck/` — `hello`, `arith`, `if_branches`, `match_union`, `non_exhaustive_match`, `exhaustive_union`, `interp_display`, `try_op`, `unknown_field`, `bad_call_arity`, `bad_assignment`. Driver dumps decl types + per-expression types + diagnostics.
+- [x] CLI integration: `vader dump --stage=typed-ast <file>` exposes the same pipeline as JSON.
+
+**Deferred to later phases (tracked here for visibility):**
+- Generic monomorphization (1.5 — comptime engine).
+- Trait dispatch for operator overloading on user types.
+- Per-binding type narrowing in `is T as x` patterns (the binding currently has `Unresolved` type; scope-narrow it in the arm body).
+- Field-type substitution for generic struct instances (e.g. `List(i32).items` should be `[i32]`).
+- Validation of `where T: Trait` bounds against a concrete substitution at call sites.
 
 ### 1.5 Comptime engine + monomorphizer
 

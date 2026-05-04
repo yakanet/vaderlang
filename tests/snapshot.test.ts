@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { dumpLexer, dumpParser, dumpResolver, listScenarios, snapshotEquals } from "./snapshot.ts";
+import { dumpLexer, dumpParser, dumpResolver, dumpTypecheck, listScenarios, snapshotEquals } from "./snapshot.ts";
 
 function runScenarios(
   rootDir: string,
@@ -30,6 +30,7 @@ function runScenarios(
   }
 }
 
-runScenarios("tests/snapshots/lexer",    "tokens.snap",   dumpLexer,    "lexer",    "logical");
-runScenarios("tests/snapshots/parser",   "ast.snap",      dumpParser,   "parser",   "logical");
-runScenarios("tests/snapshots/resolver", "resolved.snap", dumpResolver, "resolver", "path");
+runScenarios("tests/snapshots/lexer",     "tokens.snap",   dumpLexer,     "lexer",     "logical");
+runScenarios("tests/snapshots/parser",    "ast.snap",      dumpParser,    "parser",    "logical");
+runScenarios("tests/snapshots/resolver",  "resolved.snap", dumpResolver,  "resolver",  "path");
+runScenarios("tests/snapshots/typecheck", "types.snap",    dumpTypecheck, "typecheck", "path");

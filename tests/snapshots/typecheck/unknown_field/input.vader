@@ -1,0 +1,8 @@
+Point :: struct {
+    x: f64
+    y: f64
+}
+
+dist :: fn(p: Point) -> f64 {
+    return p.z
+}

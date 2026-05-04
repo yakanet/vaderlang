@@ -5,6 +5,7 @@ import { tokenize } from "../src/lexer/lexer.ts";
 import { parseSource } from "../src/parser/pipeline.ts";
 import { DiagnosticCollector } from "../src/diagnostics/collector.ts";
 import { resolveProject } from "../src/resolver/index.ts";
+import { checkProject, displayType } from "../src/typecheck/index.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
@@ -77,6 +78,39 @@ export function dumpLexer(source: string, file: string): string {
 export function dumpParser(source: string, file: string): string {
   const { program, diagnostics } = parseSource(source, file);
   return formatProgram(program) + formatDiagnostics(diagnostics.sorted());
+}
+
+/** Type-checker dump: per-module decl + expression types for the entry module + diagnostics. */
+export function dumpTypecheck(_source: string, entryPath: string): string {
+  const diags = new DiagnosticCollector();
+  const project = resolveProject({ entryPath, diags });
+  const typed = checkProject(project, diags);
+
+  const lines: string[] = ["# Typecheck"];
+  for (const id of [...typed.modules.keys()].sort()) {
+    const p = typed.modules.get(id)!;
+    if (p.resolved.module.displayPath.startsWith("std/")) continue;
+    lines.push(`\n## ${p.resolved.module.displayPath}`);
+    const decls = p.resolved.source.decls
+      .filter((d) => "name" in d)
+      .sort((a, b) => ("name" in a && "name" in b ? a.name.localeCompare(b.name) : 0));
+    for (const d of decls) {
+      const ty = p.declTypes.get(d);
+      const name = "name" in d ? d.name : "?";
+      lines.push(`  ${d.kind.padEnd(14)} ${name.padEnd(20)} :: ${ty !== undefined ? displayType(ty) : "?"}`);
+    }
+    const exprLines: string[] = [];
+    for (const [expr, ty] of p.exprTypes) {
+      if (expr.kind === "IntLitExpr" || expr.kind === "FloatLitExpr"
+          || expr.kind === "BoolLitExpr" || expr.kind === "NullLitExpr"
+          || expr.kind === "CharLitExpr" || expr.kind === "BlockExpr") continue;
+      const loc = `${expr.span.start.line}:${expr.span.start.column}`;
+      exprLines.push(`  expr ${loc.padEnd(8)} ${expr.kind.padEnd(14)} :: ${displayType(ty)}`);
+    }
+    exprLines.sort();
+    lines.push(...exprLines);
+  }
+  return lines.join("\n") + "\n" + formatDiagnostics(diags.sorted());
 }
 
 /** Resolver dump: per-module symbol table + resolution counts + diagnostics. */

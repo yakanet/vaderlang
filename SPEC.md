@@ -305,6 +305,14 @@ x := a + \
 
 A literal integer with no suffix **infers to `i32`** (`x := 42` ⇒ `x: i32`).
 
+### Default float
+
+A literal float with no suffix **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
+
+### Implicit numeric coercion
+
+There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `let x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
+
 ### Signed overflow
 
 `a + b` that overflows **panics in debug, wraps in release** (Rust-style). Behavior not configurable in MVP.
@@ -395,7 +403,7 @@ match value {
 - Struct patterns with bindings and constraints
 - Guards via `if cond`
 - Wildcard `_`
-- **Exhaustiveness checked** by the compiler — error if a union variant is uncovered.
+- **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_`). For non-union scrutinees a wildcard arm is required, since the compiler cannot enumerate all values of, say, `i32`.
 
 ### Type inference
 
@@ -487,6 +495,7 @@ print_it :: fn(x: $T) where T: Display {
 - Implementation: `T implements Trait { ... }`.
 - A union satisfies a trait iff all its members satisfy it.
 - Operator overloading via stdlib traits: `Add`, `Sub`, `Mul`, `Div`, `Eq`, `Ord`, `Hash`, `Clone`.
+- **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in an `impl Foo` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
 
 ### Nullability
 

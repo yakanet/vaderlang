@@ -1,0 +1,7 @@
+# Typecheck
+
+## tests/snapshots/typecheck/interp_display/input.vader
+  FnDecl         greet                :: fn(string, i32) -> string
+  expr 2:12     StringLitExpr  :: string
+  expr 2:22     IdentExpr      :: string
+  expr 2:39     IdentExpr      :: i32
