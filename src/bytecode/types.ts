@@ -1,0 +1,84 @@
+// Bytecode-level type primitives.
+//   - `ValType` — stack-machine value type, à la WASM, plus Vader's `ref`/`any`.
+//   - `BcType`  — type-table entries referenced by index from struct/array/
+//                 type_check ops.
+
+import type { PrimitiveName } from "../typecheck/types.ts";
+import { ALL_INTS, FLOATS, NUMERICS } from "../typecheck/types.ts";
+
+export type ValType =
+  | PrimitiveName
+  | "ref"
+  | "any";
+
+const VAL_TYPE_SET = new Set<ValType>([
+  "i8", "i16", "i32", "i64",
+  "u8", "u16", "u32", "u64",
+  "f32", "f64",
+  "bool", "char", "string", "null", "void", "ref", "any",
+]);
+
+export function isValType(s: string): s is ValType {
+  return VAL_TYPE_SET.has(s as ValType);
+}
+
+export function isIntegerVal(t: ValType): boolean {
+  return (ALL_INTS as readonly string[]).includes(t);
+}
+
+export function isFloatVal(t: ValType): boolean {
+  return (FLOATS as readonly string[]).includes(t);
+}
+
+export function isNumericVal(t: ValType): boolean {
+  return (NUMERICS as readonly string[]).includes(t);
+}
+
+// =========================================================================
+// Type-table entries
+// =========================================================================
+
+export type BcType =
+  | BcPrimitive
+  | BcStruct
+  | BcArray
+  | BcUnion
+  | BcRef;
+
+/** Plain primitive — wraps a `ValType` with a stable index. */
+export interface BcPrimitive {
+  readonly kind: "primitive";
+  readonly val: ValType;
+}
+
+/** Concrete struct, post-monomorphization. Field order is significant. */
+export interface BcStruct {
+  readonly kind: "struct";
+  readonly name: string;          // mangled name from the lowerer
+  readonly fields: readonly BcField[];
+}
+
+export interface BcField {
+  readonly name: string;
+  readonly typeIndex: number;     // index into BytecodeModule.types
+}
+
+export interface BcArray {
+  readonly kind: "array";
+  readonly element: number;       // type index of element
+}
+
+/** Union of variants, each variant referenced by type index. The runtime
+ *  representation uses a tag (the variant's index in this list) plus a
+ *  payload slot wide enough for the largest variant. */
+export interface BcUnion {
+  readonly kind: "union";
+  readonly variants: readonly number[];   // type indices
+}
+
+/** Open reference type — used only for traits-as-values that escaped mono.
+ *  Effectively `ref any` from the verifier's point of view. */
+export interface BcRef {
+  readonly kind: "ref";
+  readonly traitName: string | null;       // for diagnostics; not load-bearing
+}

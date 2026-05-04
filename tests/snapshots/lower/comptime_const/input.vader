@@ -1,0 +1,12 @@
+// `@comptime` decls are evaluated at compile time and baked into the lowered
+// IR as literals. The arith below never runs at runtime.
+
+@comptime
+ANSWER :: (40 + 2) * 1
+
+@comptime
+GREETING :: "hello, " + "world"
+
+main :: fn() -> i32 {
+    return ANSWER
+}

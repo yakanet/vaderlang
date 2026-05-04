@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { dumpComptime, dumpLexer, dumpLower, dumpParser, dumpResolver, dumpTypecheck, listScenarios, snapshotEquals } from "./snapshot.ts";
+import { dumpBytecode, dumpComptime, dumpLexer, dumpLower, dumpParser, dumpResolver, dumpTypecheck, listScenarios, snapshotEquals } from "./snapshot.ts";
 
 function runScenarios(
   rootDir: string,
@@ -36,3 +36,4 @@ runScenarios("tests/snapshots/resolver",  "resolved.snap", dumpResolver,  "resol
 runScenarios("tests/snapshots/typecheck", "types.snap",    dumpTypecheck, "typecheck", "path");
 runScenarios("tests/snapshots/comptime",  "evaluated.snap", dumpComptime, "comptime",  "path");
 runScenarios("tests/snapshots/lower",     "lowered.snap",   dumpLower,    "lower",     "path");
+runScenarios("tests/snapshots/bytecode",  "bytecode.snap",  dumpBytecode, "bytecode",  "path");

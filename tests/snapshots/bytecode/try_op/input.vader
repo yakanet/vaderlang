@@ -1,0 +1,6 @@
+import "std/io" { read_file }
+
+content :: fn(path: string) -> string! {
+    raw := read_file(path)?
+    return raw
+}

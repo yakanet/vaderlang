@@ -3,6 +3,7 @@
 import type * as A from "../parser/ast.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
+import type { ComptimeValue } from "../comptime/value.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram } from "../typecheck/typed-ast.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
@@ -135,19 +136,57 @@ function lowerStructEntry(entry: MonoEntry, struct: A.StructDecl, ctx: LowerProj
 
 function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerProjectCtx): LoweredDecl | null {
   const typed = ctx.evaluated.typed.modules.get(entry.module.module.id);
+  const evaled = ctx.evaluated.modules.get(entry.module.module.id);
   if (typed === undefined) return null;
   const type = applySubst(typed.exprTypes.get(decl.value) ?? TY.unresolved, entry.subst);
-  const fnCtx: FnLowerCtx = {
-    project: ctx, entry, typed, subst: entry.subst,
-    returnType: type, selfType: null, blocks: [], uniq: 0,
-  };
+
+  // @comptime / @file values were already baked by the comptime pass — emit
+  // the literal directly so downstream phases see the materialized constant
+  // rather than re-running the AST.
+  const baked = evaled?.comptimeDecls.get(decl) ?? evaled?.fileDecls.get(decl);
+  const value: LoweredExpr = baked !== undefined
+    ? comptimeValueToLowered(baked, defaultIfFree(type), decl.span)
+    : lowerExpr({
+        project: ctx, entry, typed, subst: entry.subst,
+        returnType: type, selfType: null, blocks: [], uniq: 0,
+      }, decl.value);
+
   return {
     kind: "LoweredConstDecl",
     mangled: entry.mangled,
-    type,
-    value: lowerExpr(fnCtx, decl.value),
+    type: defaultIfFree(type),
+    value,
     origin: entry,
   };
+}
+
+/** Materialize a comptime value as a Lowered AST literal. Compound values
+ *  (arrays, structs) are recursively lowered field-by-field. */
+function comptimeValueToLowered(v: ComptimeValue, typeHint: Type, span: Span): LoweredExpr {
+  switch (v.kind) {
+    case "int":    return { kind: "LoweredIntLit",   span, type: typeHint, value: v.value };
+    case "float":  return { kind: "LoweredFloatLit", span, type: typeHint, value: v.value };
+    case "bool":   return { kind: "LoweredBoolLit",  span, type: TY.bool,  value: v.value };
+    case "char":   return { kind: "LoweredCharLit",  span, type: TY.char,  value: v.value };
+    case "string": return { kind: "LoweredStringLit", span, type: TY.string, value: v.value };
+    case "null":   return { kind: "LoweredNullLit",  span, type: TY.null };
+    case "void":
+      return { kind: "LoweredUnreachable", span, type: typeHint, reason: "comptime void value" };
+    case "array": {
+      const elementType: Type = typeHint.kind === "Array" ? typeHint.element : TY.unresolved;
+      return {
+        kind: "LoweredArrayLit", span, type: typeHint,
+        elements: v.elements.map((e) => comptimeValueToLowered(e, elementType, span)),
+      };
+    }
+    case "struct":
+      return {
+        kind: "LoweredStructLit", span, type: typeHint,
+        fields: [...v.fields].map(([name, val]) => ({
+          name, value: comptimeValueToLowered(val, TY.unresolved, span),
+        })),
+      };
+  }
 }
 
 // ---------------------------------------------------------------- blocks & defers

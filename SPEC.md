@@ -1285,6 +1285,7 @@ A single C native backend + a single WASM backend + IR text emission = **three o
 | `vader fmt [path]` | Single opinionated formatter, **no config** |
 | `vader test [path]` | Runs all functions marked `@test` |
 | `vader dump --stage=<stage> file.vader` | Dumps JSON/text of a stage (`ast`, `typed-ast`, `bytecode`, `c`, `wasm`) |
+| `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: creates the directory, an `examples/hello.vader`, and a default `vader.json` manifest |
 
 ### REPL
 
@@ -1563,6 +1564,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - External packages
 - Pure WASM compilation without WASI
 - Full array slicing
+- `vader init [name]`: project scaffolder (creates the dir, an `examples/hello.vader`, and a default `vader.json`)
 
 ### C. Glossary
 

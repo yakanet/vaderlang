@@ -1,0 +1,28 @@
+module input
+string 0 "Hello, "
+string 1 "! You are "
+string 2 " years old."
+
+fn 0 tests_snapshots_bytecode_interp_string_input_vader$greet (string,i32) -> string
+  local __sb_0 any
+  intrinsic builder.new   ; input.vader:2:12
+  local.set 2   ; input.vader:2:12
+  local.get 2   ; input.vader:2:13
+  string.const 0   ; input.vader:2:13
+  intrinsic builder.append_str   ; input.vader:2:13
+  local.get 2   ; input.vader:2:20
+  local.get 0   ; input.vader:2:22
+  intrinsic builder.append_display   ; input.vader:2:20
+  local.get 2   ; input.vader:2:27
+  string.const 1   ; input.vader:2:27
+  intrinsic builder.append_str   ; input.vader:2:27
+  local.get 2   ; input.vader:2:37
+  local.get 1   ; input.vader:2:39
+  intrinsic builder.append_display   ; input.vader:2:37
+  local.get 2   ; input.vader:2:43
+  string.const 2   ; input.vader:2:43
+  intrinsic builder.append_str   ; input.vader:2:43
+  local.get 2   ; input.vader:2:12
+  intrinsic builder.finish   ; input.vader:2:12
+  return   ; input.vader:2:5
+end

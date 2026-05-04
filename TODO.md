@@ -164,20 +164,54 @@ Per SPEC §2 ("Lowered AST"), the lowerer consumes the post-mono typed AST and e
 - [ ] Per-binding type narrowing: `is T as x` patterns currently rely on `LoweredCast` because the typechecker leaves the binding's symbol type at `Unresolved`. Once finer-grained narrowing lands (typecheck deferred item), the lowerer can drop the cast.
 - [ ] Match decision-tree compilation (Maranget-style). Naive linear chains are good enough for MVP; revisit if perf or code size become an issue.
 
-### 1.7 Bytecode emitter
+### 1.7 Bytecode emitter — done
 
-- [ ] Lowered AST → final bytecode (same op table as comptime VM, possibly extended)
-- [ ] String literal pool, generic instance table, function table
-- [ ] Debug info: file/line per op (for the C `#line` directives, the WASM DWARF, and the IR text emitter)
-- [ ] Snapshot tests: dump the bytecode in textual form
+Stack-based, WASM-aligned op table; structured control flow (`block`/`loop`/`if`/`else`/`end` + relative `br`/`br_if`); per-fn locals model. Lives under `src/bytecode/`.
 
-### 1.7b IR text emitter / reader (target `--target=ir`)
+- [x] Op table (`src/bytecode/ops.ts`) — typed primitives (`i32.add` … `f64.div`, `eq`/`ne`/`lt`/`le`/`gt`/`ge` per width, `bitand`/`bitor`/`bitxor`/`shl`/`shr`/`bitnot` for ints, `*.neg`, `*.to_*` numeric conversions), constants (`i32.const`, `i64.const`, `f32.const`, `f64.const`, `bool.const`, `char.const`, `null.const`, `string.const <pool-idx>`), locals (`local.get`/`local.set`/`local.tee`), structured control (`block`/`loop`/`if`/`else`/`end`, `br`/`br_if`/`return`/`unreachable`), calls (`call <fn>`/`call.import <imp>`/`intrinsic <id>`), GC ops (`struct.new`/`struct.get`/`struct.set`, `array.new`/`array.get`/`array.set`/`array.len`), and Vader-specific `type_check <T>` and `ref.cast <T>`.
+- [x] Type table (`src/bytecode/types.ts`) — primitives, structs (with field types), arrays, unions (variant indices), open refs (for opaque traits). Indexed; deduped on insertion via `displayType` keying.
+- [x] String literal pool — interned during emission, indexed.
+- [x] Function table + import table + export table. Function indices are resolved through symbol IDs so `call`/`call.import` see the right slot regardless of declaration order. `@extern` and signature-only fns route to imports; `@export` populates the exports section.
+- [x] Intrinsic table (`INTRINSIC_TABLE` in `ops.ts`) — stable IDs for `builder.{new,append_str,append_display,finish}`. Append-only; never reuse.
+- [x] Debug info — per-op `(file, line, column)` side-table on each `BcFunction`. Survives the round-trip via `; file:line:col` annotations in `.vir`.
+- [x] Two-pass emission (`src/bytecode/emit.ts`): pass 1 reserves indices for fns/imports/consts and interns struct decls eagerly; pass 2 emits each fn body with WASM-style label-stack tracking for `br`/`br_if` depth.
+- [x] Short-circuit `and`/`or` lowered to structured if/else (so user-side `&&`/`||` semantics are preserved even though the lowerer keeps them as plain Binary).
+- [x] CLI: `vader dump --stage=bytecode <file>` prints the `.vir` text of the lowered project.
+- [x] Snapshot tests: 7 scenarios under `tests/snapshots/bytecode/` reusing the lowerer's `input.vader`s. Each snapshot is the `.vir` text plus a `; round-trip OK/MISMATCH` banner asserting `parse(write(m))` is a fixpoint.
 
-- [ ] Define the textual `.vir` grammar (line-oriented, one op per line, source position annotations, header for module / function / generic-instance tables)
-- [ ] Bytecode → `.vir` serializer
-- [ ] `.vir` → bytecode parser (so `vader run program.vir` works)
-- [ ] Round-trip tests: serialize → parse → re-serialize must be a fixed point
-- [ ] Tests: snapshot the `.vir` of every example program
+**Deferred to later phases:**
+
+- [ ] Slot reuse (live-range analysis) — every let currently gets a fresh slot. Acceptable for MVP; revisit if the C/WASM emitters need tighter footprints.
+- [ ] First-class function values (closures, function pointers) — bare `LoweredIdent` of a fn symbol outside a call's callee position currently emits `unreachable`.
+- [ ] `@comptime` evaluation via the bytecode VM — comptime still uses the AST-walking interpreter; sharing the op table is now possible (1.5b).
+
+### 1.7b IR text emitter / reader (`--target=ir`) — done
+
+Line-oriented, one op per line, header sections for `module` / `type` / `string` / `import` / `export`. Round-trip is a fixpoint by construction.
+
+- [x] `.vir` grammar (`src/bytecode/text.ts`):
+  ```
+  module <name>
+  type <i> <kind> <args…>            ; primitive | struct | array | union | ref
+  string <i> "<json-quoted>"
+  import <i> <extern> <mangled> (<params…>) -> <result>
+  export <extern> <fnIndex>
+
+  fn <i> <name> (<params…>) -> <result>
+    local <name> <valType>
+    <op> [<operands…>]   ; <file>:<line>:<column>
+    …
+  end
+  ```
+- [x] `BytecodeModule → .vir` serializer (`writeVir`).
+- [x] `.vir → BytecodeModule` parser (`parseVir`). Tolerates inline `; …` comments on every line; preserves debug annotations.
+- [x] Round-trip fixpoint: serialize → parse → re-serialize is byte-identical for all 7 snapshot scenarios. The snapshot driver embeds the round-trip status as a banner so a regression surfaces in the diff.
+- [x] CLI: `vader build --target=ir <file>` writes the `.vir` next to the source (or to `--out=<path>`).
+
+**Deferred to later phases:**
+
+- [ ] `vader run program.vir` — needs the VM (1.8) to consume the parsed module directly. The parser is in place; only the VM hookup remains.
+- [ ] Manifest mode (`vader build --target=ir --manifest`) — single-file mode is wired today; multi-module projects come when the build pipeline learns to merge bytecode modules.
 
 ### 1.8 VM (interpreter mode for `vader run`)
 

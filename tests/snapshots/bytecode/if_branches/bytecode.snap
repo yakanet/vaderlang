@@ -1,0 +1,23 @@
+module input
+string 0 "positive"
+string 1 "negative"
+string 2 "zero"
+
+fn 0 tests_snapshots_bytecode_if_branches_input_vader$classify (i32) -> string
+  local.get 0   ; input.vader:2:16
+  i32.const 0   ; input.vader:2:20
+  i32.gt   ; input.vader:2:16
+  if string   ; input.vader:2:12
+  string.const 0   ; input.vader:3:9
+  else   ; input.vader:2:12
+  local.get 0   ; input.vader:4:16
+  i32.const 0   ; input.vader:4:20
+  i32.lt   ; input.vader:4:16
+  if string   ; input.vader:4:12
+  string.const 1   ; input.vader:5:9
+  else   ; input.vader:4:12
+  string.const 2   ; input.vader:7:9
+  end   ; input.vader:4:12
+  end   ; input.vader:2:12
+  return   ; input.vader:2:5
+end

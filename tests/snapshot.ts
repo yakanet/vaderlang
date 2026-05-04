@@ -11,6 +11,8 @@ import { lowerProject } from "../src/lower/index.ts";
 import type {
   LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
 } from "../src/lower/index.ts";
+import { emitBytecode } from "../src/bytecode/index.ts";
+import { writeVir, parseVir } from "../src/bytecode/text.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
@@ -116,6 +118,32 @@ export function dumpComptime(_source: string, entryPath: string): string {
   }
 
   return lines.join("\n") + "\n" + formatDiagnostics(diags.sorted());
+}
+
+/** Bytecode dump: the .vir text emitter's output. The driver also asserts the
+ *  parse → re-serialize round-trip is a fixpoint and embeds a marker line if
+ *  it isn't, so a regression surfaces in the snapshot diff. */
+export function dumpBytecode(_source: string, entryPath: string): string {
+  const diags = new DiagnosticCollector();
+  const project = resolveProject({ entryPath, diags });
+  const typed = checkProject(project, diags);
+  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
+  const lowered = lowerProject(evaled);
+  const moduleName = (entryPath.split("/").pop() ?? entryPath).replace(/\.vader$/, "");
+  const bc = emitBytecode(lowered, moduleName);
+
+  const text1 = writeVir(bc);
+  let roundTripBanner = "";
+  try {
+    const text2 = writeVir(parseVir(text1));
+    if (text2 !== text1) roundTripBanner = "\n; round-trip MISMATCH\n";
+  } catch (e) {
+    roundTripBanner = `\n; round-trip FAILED: ${(e as Error).message}\n`;
+  }
+
+  // Strip absolute paths from debug annotations so snapshots are portable.
+  const portable = text1.replace(/; [^:\n]*\/(?=[^/]+\.vader:)/g, "; ");
+  return portable + roundTripBanner + formatDiagnostics(diags.sorted());
 }
 
 /** Lowerer dump: per-module lowered decls in a compact tree form + diagnostics. */

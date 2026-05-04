@@ -4,7 +4,9 @@
 
 Vader is a general-purpose, statically-typed language with type inference, targeting native binaries and WebAssembly. The compiler is being bootstrapped in TypeScript and will later self-host in Vader.
 
-**Status:** pre-MVP. The frontend (lexer → parser → resolver → type-checker) is implemented; backends (interpreter, C, WASM) are next. See [`TODO.md`](./TODO.md) for the live roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
+**Status:** pre-MVP. The frontend (lexer → parser → resolver → type-checker → comptime → monomorphizer → lowerer →
+bytecode emitter → `.vir` text I/O) is implemented; runtime backends (VM, C, WASM) are next. See [`TODO.md`](./TODO.md)
+for the live roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
 
 ---
 
@@ -35,14 +37,7 @@ bun src/index.ts
 
 # Show CLI help
 bun src/index.ts --help
-
-# Inspect a Vader source at any compilation stage
-bun src/index.ts dump --stage=ast          examples/hello.vader
-bun src/index.ts dump --stage=resolved-ast examples/hello.vader
-bun src/index.ts dump --stage=typed-ast    examples/hello.vader
 ```
-
-The `run` / `build` / `test` / `fmt` subcommands are stubbed today (the type-checker just landed; codegen is the next milestone). The `dump` subcommand is the most useful exercise of the current frontend.
 
 ### Hello, Vader
 
@@ -57,29 +52,58 @@ main :: fn() -> i32 {
 }
 ```
 
-Once the interpreter lands you'll be able to run it with `vader run examples/hello.vader`. For now, dumping the typed AST will show that `main` is `fn() -> i32` and `println` resolves to `std/io::println : fn(string) -> void`.
+Once the VM lands you'll be able to run it with `vader run examples/hello.vader`. For now, you can inspect every
+compilation stage via the `dump` subcommand or emit the textual `.vir` IR via `build --target=ir` (see below).
 
 ---
 
-## Project layout
+## CLI
 
-```
-src/
-├── lexer/         Token stream, number/string/comment handling, newline rules
-├── parser/        Pratt expression parser + recursive-descent decls
-├── resolver/      Module loading, symbol tables, import resolution, name lookup
-├── typecheck/     Type IR, bidirectional inference, trait satisfaction, ?
-├── diagnostics/   Structured Diagnostic, Span, Position, terminal/JSON renderers
-├── commands/      CLI subcommands (run, build, fmt, test, dump, repl)
-├── cli/           Global option parsing
-├── pipeline.ts    Frontend pipeline helpers (parse → resolve → typecheck)
-└── index.ts       Entry point
+Invoke as `bun src/index.ts <command>` (or via the `vader` wrapper script: `bun vader <command>`).
 
-stdlib/std/        Vader source for the standard library (parsed by the resolver)
-examples/          Sample programs
-tests/             Bun test suites + folder-per-scenario snapshot tests
-SPEC.md            Language specification
-TODO.md            Implementation roadmap
+| Command                                        | Status  | What it does                                                                                                                                                                                                          |
+|------------------------------------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `vader` *(no args)*                            | stub    | Starts the REPL — placeholder until the VM lands.                                                                                                                                                                     |
+| `vader --help` / `--version`                   | ✓       | Print usage / version.                                                                                                                                                                                                |
+| `vader run [file]`                             | stub    | Will interpret a `.vader` (or `.vir`) file via the VM. Not yet wired.                                                                                                                                                 |
+| `vader build [file] [--target=…] [--out=path]` | partial | `--target=ir` writes the textual `.vir` next to the source (or to `--out=`). `--target=native` and `--target=wasm` are stubs awaiting the C / WASM emitters. `--manifest` mode is reserved for multi-module projects. |
+| `vader fmt [path]`                             | stub    | Will canonicalise source layout. Not yet implemented.                                                                                                                                                                 |
+| `vader test [path]`                            | stub    | Will discover and execute `@test` functions. Not yet implemented.                                                                                                                                                     |
+| `vader dump --stage=<stage> <file>`            | ✓       | Run the frontend up to `<stage>` and print the result (JSON or text, depending on stage).                                                                                                                             |
+
+### Global options
+
+- `--diagnostics=text|json` — render diagnostics for terminals (default) or as a stable JSON schema for tooling.
+- `--allow-env` — let `@comptime` code read process environment variables (gated to preserve build reproducibility).
+
+### `dump` stages
+
+| Stage           | Output                                                                               | Why look at it                                                   |
+|-----------------|--------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| `ast`           | parser AST as JSON                                                                   | Verify parse shape; debug grammar issues.                        |
+| `resolved-ast`  | per-module symbol table + import resolutions + reference counts                      | See how names bind across modules.                               |
+| `typed-ast`     | per-decl types + per-expression type counts                                          | Inspect inference, narrowing, generic instantiation.             |
+| `evaluated-ast` | `@comptime` / `@file` decl values + collected generic instances                      | See what the comptime engine baked.                              |
+| `lowered-ast`   | desugared tree (match → if/else, `?` → match, interp → builder calls, defer inlined) | Confirm the desugarings match expectations.                      |
+| `bytecode`      | `.vir` text of the compiled module                                                   | Inspect the final stack-machine ops + type/string/import tables. |
+| `c`, `wasm`     | (not yet implemented)                                                                | Reserved for the native / WASM backends.                         |
+
+Examples:
+
+```sh
+# Frontend stages
+bun src/index.ts dump --stage=ast          examples/hello.vader
+bun src/index.ts dump --stage=resolved-ast examples/hello.vader
+bun src/index.ts dump --stage=typed-ast    examples/hello.vader
+
+# Comptime + lowering + bytecode
+bun src/index.ts dump --stage=evaluated-ast examples/hello.vader
+bun src/index.ts dump --stage=lowered-ast   examples/hello.vader
+bun src/index.ts dump --stage=bytecode      examples/hello.vader
+
+# Emit the .vir IR alongside the source
+bun src/index.ts build --target=ir examples/hello.vader
+# → writes examples/hello.vir
 ```
 
 ---
@@ -90,7 +114,7 @@ TODO.md            Implementation roadmap
 bun test                                   # run all tests (lexer + parser + resolver + typecheck snapshots + CLI)
 bun run test:update                        # refresh snapshots after intentional output changes
 bun run typecheck                          # TypeScript check (no emit)
-bun run vader -- dump --stage=ast file.vader  # convenience wrapper around `bun src/index.ts`
+bun vader dump --stage=ast file.vader      # convenience wrapper around `bun src/index.ts`
 ```
 
 Snapshot tests live under `tests/snapshots/<phase>/<scenario>/` — each scenario is a folder with an `input.vader` and a `*.snap`. Setting `UPDATE_SNAPSHOTS=1` regenerates the snap files. Spotted a mismatch? Re-run with that env var, then `git diff` to review the change before committing.

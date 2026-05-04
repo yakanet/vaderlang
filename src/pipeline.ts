@@ -3,6 +3,8 @@
 // DiagnosticCollector. Use this from CLI commands so they all see the same
 // staged outputs without re-implementing the wiring.
 
+import { basename } from "node:path";
+
 import { DiagnosticCollector } from "./diagnostics/collector.ts";
 import { parseSource } from "./parser/pipeline.ts";
 import type { Program } from "./parser/ast.ts";
@@ -14,8 +16,12 @@ import { evaluateProject } from "./comptime/index.ts";
 import type { EvaluatedProject } from "./comptime/index.ts";
 import { lowerProject } from "./lower/index.ts";
 import type { LoweredProject } from "./lower/index.ts";
+import { emitBytecode } from "./bytecode/index.ts";
+import type { BytecodeModule } from "./bytecode/index.ts";
 
-export type PipelineStage = "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast" | "lowered-ast";
+export type PipelineStage =
+  | "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast"
+  | "lowered-ast" | "bytecode";
 
 export interface AstResult {
   readonly file: string;
@@ -38,6 +44,10 @@ export interface EvaluatedResult extends TypedResult {
 
 export interface LoweredResult extends EvaluatedResult {
   readonly lowered: LoweredProject;
+}
+
+export interface BytecodeResult extends LoweredResult {
+  readonly bytecode: BytecodeModule;
 }
 
 export async function pipelineAst(file: string): Promise<AstResult> {
@@ -87,6 +97,18 @@ export async function pipelineLowered(
   const r = await pipelineEvaluated(file, opts);
   const lowered = lowerProject(r.evaluated);
   return { ...r, lowered };
+}
+
+export async function pipelineBytecode(
+  file: string, opts?: { allowEnv?: boolean },
+): Promise<BytecodeResult> {
+  const r = await pipelineLowered(file, opts);
+  const bytecode = emitBytecode(r.lowered, moduleNameFromFile(file));
+  return { ...r, bytecode };
+}
+
+function moduleNameFromFile(file: string): string {
+  return basename(file, ".vader");
 }
 
 function p404(file: string): Program {
