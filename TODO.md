@@ -23,21 +23,45 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 
 ## Phase 1 — MVP compiler in TypeScript
 
+### 1.0 Diagnostic infrastructure (cross-cutting, prerequisite)
+
+- [ ] Diagnostic data shape (severity, code, message, primary span, secondary spans, notes, fixes) — extend `src/diagnostics/diagnostic.ts`
+- [ ] Diagnostic collector (per-compilation-unit): accumulate, dedupe, sort by position
+- [ ] Code registry (`src/diagnostics/codes.ts`) — start with lexer codes `L0001..L00xx`
+- [ ] Terminal renderer: source snippet, primary-span caret/underline, optional color (TTY detect), fix hints
+- [ ] JSON renderer: stable schema for LSP / CI consumption
+- [ ] CLI flag `--diagnostics=text|json` plumbed through every command that compiles
+
 ### 1.1 Lexer
 
-- [ ] Token types enum (keywords, identifiers, operators, literals, layout)
-- [ ] Source position tracking (file, line, column)
-- [ ] Number literal parsing: int (with suffix), float (with suffix), hex/oct/bin, separators `_`
-- [ ] String literal parsing:
-  - [ ] Plain `"..."` with escapes
-  - [ ] Interpolation tokens: split into `STRING_PART`, `INTERP_OPEN`, `INTERP_CLOSE` so the parser can re-enter expression mode inside `${...}`
-  - [ ] Raw `r"..."`
-  - [ ] Multiline `"""..."""` with interpolation
-- [ ] Char literal `'a'` with escapes and Unicode codepoints
-- [ ] Comments: `//` line, `/* */` block (nested? — decide and document)
-- [ ] Newline-significance rules (treat newline as statement terminator unless line ends in operator / open bracket)
-- [ ] Lexer error recovery: report and skip to next line
-- [ ] Snapshot tests: feed sample sources, snapshot the token stream
+- [ ] Token kinds: ident, int, float, char, string_begin/string_part/string_end/interp_open/interp_close, every keyword as its own kind, every operator as its own kind, punctuation, newline, eof
+- [ ] Token data: source text slice, byte span, parsed value (for literals), suffix (for numerics)
+- [ ] Source-position tracking: file, byte offset, 1-based line, 1-based UTF-8 column
+- [ ] Shebang: skip `#!...` on line 1 only, error on `#!` anywhere else
+- [ ] Whitespace: spaces and tabs absorbed; tabs not interpreted as a fixed width
+- [ ] Comments: `//` line; `/* */` block with **nested** depth tracking
+- [ ] Identifiers and keyword recognition (full keyword set per SPEC §3)
+- [ ] Numeric literals:
+  - Integer with bases (`0x`, `0b`, `0o`) and underscores
+  - Float with optional leading zeros, exponents, no trailing-point
+  - Suffixes (`i32`, `u64`, `f32`, etc.) with optional underscore separator
+  - Reject malformed underscores (`_42`, `42_`, `1__0`)
+- [ ] Char literals with escapes (`\n \t \r \\ \' \0 \u{...}`), exactly one codepoint
+- [ ] String literals — three forms:
+  - Plain `"..."`: emit `STRING_BEGIN`, alternating `STRING_PART` and `INTERP_OPEN..INTERP_CLOSE`, then `STRING_END`
+  - Raw `r"..."`: emit a single `STRING_PART` with no escape processing or interpolation
+  - Triple-quoted `"""..."""`: same model as plain, allowed to span newlines, swallow the optional newline right after opening `"""`
+  - **Nested interpolation** support: lexer maintains a stack of modes (string vs. interpolation) so `"a${"b${c}"}d"` works
+- [ ] Operators: each its own kind. Multi-char tokens lexed greedily: `==`, `!=`, `<=`, `>=`, `&&`, `||`, `<<`, `>>`, `..<`, `..=`, `->`, `::`, `:=`
+- [ ] Newline emission rules per SPEC §3:
+  1. Suppressed inside unclosed `(`, `[`, `{`
+  2. Suppressed after a pending binary/unary operator
+  3. Suppressed after `,`
+  4. Suppressed after `=`, `:`, `->`, `=>`
+  5. No backslash-continuation
+- [ ] Diagnostic emission: malformed numeric, unterminated string, unterminated comment, invalid escape, lone `'`, stray `\`, unexpected character — each gets a code in `L0xxx`
+- [ ] Recovery: on a malformed token, skip to next whitespace/newline boundary and continue
+- [ ] Snapshot tests under `tests/lexer/` — one folder per scenario: `input.vader` + `tokens.snap`
 
 ### 1.2 Parser
 

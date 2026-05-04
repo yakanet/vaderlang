@@ -31,6 +31,7 @@ Vader is a **general-purpose application language**, **strongly typed with type 
 - **Simplicity over exotic features** — no feature for the feature's sake.
 - **Reading > writing** — syntax must read top to bottom, with no ambiguous `<`.
 - **Compile-time errors > runtime errors** — string interpolation is type-checked at compile time.
+- **Rich diagnostics** — every phase emits structured diagnostics (severity, message, span, notes, hints), continues after errors when possible, and produces messages that read well both in the terminal and through an LSP. The LSP itself is a post-MVP target, but the diagnostic plumbing is built in from day one.
 - **Evolvability** — the pipeline must be easy to extend, every intermediate IR dumpable.
 
 ---
@@ -90,12 +91,33 @@ Code in `@comptime` context can:
 
 ## 3. Lexical Structure
 
+### Source encoding
+
+UTF-8. A leading BOM is silently ignored.
+
+### Shebang
+
+A `#!` shebang line is allowed on the **first line only** and is silently skipped by the lexer. Anywhere else, `#!` is a lexical error. This makes Vader scripts directly executable on Unix.
+
+```vader
+#!/usr/bin/env vader
+main :: fn() -> i32 { return 0 }
+```
+
 ### Comments
 
 ```vader
-// line comment
+// line comment, terminates at the next newline
+
 /* block comment */
+
+/*
+   /* nested block comments are allowed */
+   the outer comment continues here
+*/
 ```
+
+Nested block comments follow the Rust convention. The lexer tracks nesting depth and only closes the outer comment when depth returns to zero.
 
 ### Identifiers
 
@@ -117,12 +139,70 @@ self
 
 ### Literals
 
-- **Integers**: `42` (defaults to `i32`), `42u32`, `42i64`, `0xFF`, `0b1010`, `0o755`, separators `1_000_000`
-- **Floats**: `3.14`, `1.0e-10`, suffixes `3.14f32`, `3.14f64` (default `f64`)
-- **Booleans**: `true`, `false`
-- **Null**: `null` (of type `null`, can participate in a union)
-- **Chars**: `'a'`, `'é'`, `'\n'` (type `char`, Unicode codepoint, 32 bits)
-- **Strings**: `"..."` (interpolation allowed) or `r"..."` (raw, no interpolation, no escapes) or `"""..."""` (multiline, interpolation allowed)
+#### Integer literals
+
+- Decimal: `42`, `1_000_000`
+- Hexadecimal: `0xFF`, `0xff`, `0xFF_FF` (case-insensitive after `0x`)
+- Binary: `0b1010`, `0b1010_1010`
+- Octal: `0o755`, `0o7_5_5`
+- Suffix: `42i32`, `42u64`, `42_i32` (an optional underscore between magnitude and suffix is allowed for readability)
+- Default type: `i32` if no suffix and no inferred context.
+- Underscore rules: never two in a row (`1__000` is an error), never leading or trailing on the digits (`_42`, `42_` are errors).
+
+#### Float literals
+
+- Standard: `3.14`, `0.5`, `00.5` (leading zeros allowed), `1.0e-10`, `1.5E+3`
+- Suffix: `3.14f32`, `3.14f64`, `3.14_f32` (optional underscore before suffix allowed)
+- A trailing point with no fractional digits is forbidden: `5.` is an error — write `5.0`.
+- A bare `.5` is forbidden — write `0.5`.
+- Default type: `f64` if no suffix.
+- Same underscore rules as integers.
+
+#### Boolean / null
+
+`true`, `false`, `null` are reserved keywords producing literal tokens.
+
+#### Char literals
+
+```vader
+'a'        // ASCII codepoint
+'é'        // any Unicode codepoint
+'\n'       // escape sequence
+'\u{1F600}'  // explicit codepoint
+```
+
+- Escape set: `\n`, `\t`, `\r`, `\\`, `\'`, `\0`, `\u{HHHH}` (1–6 hex digits).
+- Exactly **one** logical codepoint per literal. `''` and `'ab'` are lexical errors.
+
+#### String literals
+
+Three forms:
+
+```vader
+"plain"                        // simple string, supports interpolation
+r"raw"                         // raw string, no interpolation, no escape processing
+"""
+multi-line
+"""                            // triple-quoted, supports interpolation, may span newlines
+```
+
+- Escape set inside `"..."` and `"""..."""`: `\n`, `\t`, `\r`, `\\`, `\"`, `\$` (literal dollar), `\0`, `\u{HHHH}`.
+- Inside `r"..."`: backslashes are taken literally; `\n` stays as two characters; no `${...}` interpretation.
+- Triple-quoted strings consume an optional immediately-following newline after the opening `"""` (so the body starts on a fresh line cleanly).
+
+#### String interpolation tokens
+
+The lexer emits a flat token stream when crossing into and out of `${...}`:
+
+```
+STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOSE  STRING_PART(" bar")  STRING_END
+```
+
+- `STRING_BEGIN` / `STRING_END` mark the literal's boundaries.
+- `STRING_PART` carries decoded text.
+- Inside `INTERP_OPEN..INTERP_CLOSE` the lexer is in **expression mode** and emits regular tokens.
+- **Nested interpolation** is allowed: `"outer ${"inner ${x}"}"`. The lexer maintains a stack of modes (string vs. interpolation) so it can re-enter string mode after a nested `INTERP_CLOSE`.
+- Raw strings (`r"..."`) emit `STRING_BEGIN`, a single `STRING_PART` (with the literal contents, no escape processing, no interpolation scan), then `STRING_END`.
 
 ### Operators
 
@@ -142,7 +222,37 @@ Index access : [expr]
 
 ### Newline-significant
 
-A newline terminates a statement (Go-style). No `;` required. An expression may span multiple lines if it is syntactically incomplete at end of line (open parens, pending operator, etc.).
+A newline terminates a statement (Go-style). No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the four cases below, where the newline is silently absorbed:
+
+1. **Inside an unclosed bracket** `(`, `[`, or `{` — newlines inside parens / array / block construction are insignificant.
+2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `..<`, `..=`, `?` (postfix is fine, only prefix-pending matters), and unary `!`.
+3. **After a comma** `,`.
+4. **After `=`, `:`, `->`, or `=>`** (the right-hand side is expected to follow).
+
+There is **no backslash-continuation** (`\` at end of line is not special). If you need to break a long expression, use one of the four cases above (typically wrap in parentheses, or break after a binary operator).
+
+```vader
+// OK: break inside parens
+total := (a +
+          b +
+          c)
+
+// OK: break after operator
+total := a +
+         b +
+         c
+
+// OK: break after comma
+list := [
+    1,
+    2,
+    3,
+]
+
+// ERROR: backslash is not a continuation
+x := a + \
+     b           // lexer error: stray '\'
+```
 
 ---
 
@@ -1089,9 +1199,32 @@ test_addition :: fn() {
 - **Native**: `#line` directives in emitted C, gdb / lldb on the binary.
 - No Vader-specific debugger tool in MVP.
 
+### Diagnostics
+
+Diagnostic plumbing is **MVP-mandatory** even though the LSP itself is post-self-host. The intent: when we eventually write the LSP in Vader, the entire compiler is already capable of producing the structured diagnostics the LSP needs.
+
+**Design principles**:
+
+- **Structured, not stringly-typed**. Every diagnostic carries `severity` (`error` / `warning` / `info` / `hint`), `code` (stable identifier like `E0001`), `message`, primary `span`, optional secondary spans (with their own labels), optional `notes`, and optional machine-readable `fixes`.
+- **Continuation after error**. No phase aborts on the first diagnostic. The lexer recovers at the next newline; the parser at the next top-level keyword or matching brace; the type-checker continues per-declaration. The user sees a maximal harvest of issues in one run.
+- **Two output modes from the same data**:
+  - **Terminal**: rich rendering with source snippet, primary-span underline, color, fix hints — Rust/Elm-style.
+  - **JSON**: stable schema, suitable for LSP consumption and CI tooling. Toggle via `--diagnostics=json` on every command that compiles.
+- **Source positions are byte-accurate**. The LSP needs UTF-16 column counts; we emit UTF-8 byte offsets and rely on a small conversion layer at the LSP boundary, so the compiler stays in one encoding.
+
+**Diagnostic codes** are issued per-phase with prefixes:
+- `L0xxx` lexer
+- `P1xxx` parser
+- `R2xxx` resolver
+- `T3xxx` type-checker
+- `C4xxx` comptime engine
+- `B5xxx` backend
+
+A registry of codes lives in `src/diagnostics/codes.ts` (TypeScript) / `compiler/diagnostics/codes.vader` (after self-host) — every code is documented with a short description and an example.
+
 ### LSP
 
-**Deferred to post-self-host.** Ideally written in Vader.
+**Deferred to post-self-host.** Ideally written in Vader. The compiler is built so that the LSP, when implemented, only needs to consume the existing JSON diagnostic stream and add navigation features (hover, go-to-definition, completion).
 
 ---
 
