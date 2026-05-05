@@ -432,6 +432,7 @@ function emitBinary(fn: FnEmitCtx, e: L.LoweredBinary): void {
   const lt = valTypeOf(e.left.type);
   switch (e.op) {
     case "add": case "sub": case "mul": case "div":
+      if (lt === "string") { pushOp(fn, { kind: "string.concat" }, e.span); return; }
       pushOp(fn, { kind: `${asNumeric(lt)}.${e.op}` as ArithOpKind }, e.span);
       return;
     case "mod":

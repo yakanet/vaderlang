@@ -358,6 +358,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "bool.or":    return pushBinop(s, "bool", "||", "bool");
     case "bool.not":   return pushUnop(s, "bool", "!", "bool");
 
+    case "string.concat": return pushFnCall2(s, "string", "vader_string_concat");
     case "string.eq":  return pushFnCall2(s, "bool", "vader_string_eq");
     case "string.ne": {
       const r = pop(s); const l = pop(s);

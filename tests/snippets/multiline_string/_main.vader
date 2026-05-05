@@ -1,0 +1,33 @@
+import "std/io" { print, println }
+
+main :: fn() -> i32 {
+    // opening newline stripped; trailing newline preserved
+    s := """
+line one
+line two
+"""
+    print(s)
+
+    // interpolation inside triple-quoted
+    n := 42
+    msg := """
+count: ${n}
+done
+"""
+    print(msg)
+
+    // escape sequences inside triple-quoted
+    escaped := """
+tab:\there
+"""
+    print(escaped)
+
+    // concatenation with plain string
+    prefix := "start"
+    combined := prefix + """
+ middle
+end"""
+    println(combined)
+
+    return 0
+}

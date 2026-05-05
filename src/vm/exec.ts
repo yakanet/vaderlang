@@ -179,6 +179,12 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
 
     case "ref.eq":     f.stack.push(bool(refEq(f.stack.pop()!, f.stack.pop()!))); f.ip++; return;
     case "ref.ne":     f.stack.push(bool(!refEq(f.stack.pop()!, f.stack.pop()!))); f.ip++; return;
+    case "string.concat": {
+      const r = asString(f.stack.pop()!);
+      const l = asString(f.stack.pop()!);
+      f.stack.push(makeStr(l + r));
+      f.ip++; return;
+    }
     case "string.eq":  pushBinop(f, asString, (l, r) => l === r); return;
     case "string.ne":  pushBinop(f, asString, (l, r) => l !== r); return;
     case "char.eq":    pushBinop(f, asChar, (l, r) => l === r); return;

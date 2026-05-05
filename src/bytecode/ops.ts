@@ -90,6 +90,9 @@ export type Op =
   | { readonly kind: "array.len" }
   | { readonly kind: "array.push"; readonly typeIndex: number }
 
+  // -- String arithmetic (`string.eq`/`string.ne` live in CmpOpKind above) --
+  | { readonly kind: "string.concat" }
+
   // -- Type tag check (returns bool; for `is T` patterns) ----------------
   | { readonly kind: "type_check"; readonly typeIndex: number };
 
