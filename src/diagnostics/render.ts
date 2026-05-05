@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import type { Diagnostic } from "./diagnostic.ts";
 
 export function renderText(d: Diagnostic, source: string): string {
@@ -25,33 +26,38 @@ export function renderAllTextSingle(
   file: string,
   source: string,
 ): string {
-  return renderAllText(diagnostics, new Map([[file, source]]));
+  return renderAllText(diagnostics, new Map([[resolve(file), source]]));
 }
 
 export function renderAllJson(diagnostics: readonly Diagnostic[]): string {
   return JSON.stringify(diagnostics, null, 2);
 }
 
-// Single-line spans render with a caret underline; multi-line falls back to the
-// start line only — adequate for MVP, can be enriched once we hit cases that
-// span function bodies.
+const CONTEXT = 2;
+
 function renderSnippet(span: { start: { line: number; column: number; offset: number }; end: { line: number; column: number; offset: number } }, source: string): string {
   if (source.length === 0) return "";
   const lines = source.split("\n");
   const lineIdx = span.start.line - 1;
   if (lineIdx < 0 || lineIdx >= lines.length) return "";
-  const line = lines[lineIdx]!;
-  const lineNumStr = String(span.start.line);
-  const gutter = " ".repeat(lineNumStr.length);
+
+  const startIdx = Math.max(0, lineIdx - CONTEXT);
+  const endIdx = Math.min(lines.length - 1, lineIdx + CONTEXT);
+  const gutterWidth = String(endIdx + 1).length;
+  const gutter = " ".repeat(gutterWidth);
 
   const startCol = span.start.column;
   const endCol =
-    span.end.line === span.start.line ? span.end.column : line.length + 1;
+    span.end.line === span.start.line ? span.end.column : lines[lineIdx]!.length + 1;
   const underlineLen = Math.max(1, endCol - startCol);
 
-  return [
-    `${gutter} |`,
-    `${lineNumStr} | ${line}`,
-    `${gutter} | ${" ".repeat(Math.max(0, startCol - 1))}${"^".repeat(underlineLen)}`,
-  ].join("\n");
+  const out: string[] = [`${gutter} |`];
+  for (let i = startIdx; i <= endIdx; i++) {
+    const num = String(i + 1).padStart(gutterWidth);
+    out.push(`${num} | ${lines[i]}`);
+    if (i === lineIdx) {
+      out.push(`${gutter} | ${" ".repeat(Math.max(0, startCol - 1))}${"^".repeat(underlineLen)}`);
+    }
+  }
+  return out.join("\n");
 }
