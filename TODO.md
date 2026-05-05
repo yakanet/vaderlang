@@ -133,15 +133,20 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 - [x] CLI: `vader dump --stage=evaluated-ast <file>` exposes the same pipeline as JSON.
 - [x] Snapshot tests: 5 scenarios under `tests/snapshots/comptime/<scenario>/{input.vader,evaluated.snap}` — `simple_arith`, `square_call`, `interp_string`, `file_decorator` (with a sibling `data.txt`), `bad_div_zero`.
 
-#### Deferred (1.5b — picked up alongside 1.7 bytecode emitter)
+#### 1.5b — done (core + extensions)
 
-- [ ] Bytecode design (op table, operand encoding) — **shared between comptime VM and the runtime emitters** so we only design it once.
-- [ ] AST → bytecode lowering for the comptime-eligible subset
-- [ ] Stack-based VM (replace the AST-walker)
-- [ ] Generic-fn instance tracking: the registry currently only observes struct/trait instantiations; when generic-fn calls become reachable in real code, extend `InstanceRegistry.observe` to also walk fn-call sites and add their `(decl, type-args)` pairs.
+- [x] Bytecode design — shared with §1.7 (no parallel op set; `src/bytecode/ops.ts` is the single source of truth).
+- [x] Typed-AST → bytecode lowering for the comptime-eligible subset (`src/comptime/compile.ts`). Per-decl mini-pipeline: synthetic `__comptime_main` + lazily-compiled callees + `@file`/`@env` as VM imports. Scope mirrors the former AST-walker: arith / cmp / blocks / if / let / fn calls / interpolation (via builder intrinsics) / struct & array lit / field & index. Match/try/defer surface as `C4011`.
+- [x] Stack-based VM as the comptime engine (`src/comptime/run.ts`). Reuses `src/vm/exec.ts`; `runFn` exposed so callers can capture the raw `Value` rather than the exit-code coercion. AST-walking interpreter (`src/comptime/interp.ts`) deleted.
+- [x] Cycle detection across @comptime decls — DFS coloring in `src/comptime/deps.ts`; cyclic decls are excluded from the evaluation order and surface as `C4009` with the cycle path (`A → B → A`). Snapshot `tests/snapshots/comptime/cycle/`.
+- [x] Recursive @comptime evaluation — topological sort in `planComptimeOrder` so `@comptime A :: 10`, `@comptime B :: A * 2`, `@comptime C :: A + B` evaluate in order. Snapshot `tests/snapshots/comptime/cross_decl/`.
+- [x] Generic-fn instance registry surface — `InstanceRegistry.observeFnCall(sym, typeArgs)` plus a typed-AST walker over `GenericInstExpr` that records explicit `Foo(T1, T2)(...)` call sites. Mono+lower+emit for fn-instances stay deferred (see below).
+
+**Deferred to later phases:**
+
+- [ ] Mono+lower+emit support for **fn instances** observed via `observeFnCall`. The registry now records them, but `monomorphizeProject` (`src/monomorphize/index.ts`) only materialises struct instances. Implies cloning the FnDecl with the substitution, mangling, and routing call sites to the specialised slot. Probably ~150 lines.
+- [ ] Type-checker support for **inferred** generic-fn type args — without explicit `Foo(T)`, the typecheck doesn't track which call sites instantiate which type params. Today `observeFnCall` only catches the explicit form. Lifting this requires recording `(CallExpr → typeArgs)` from the inference engine.
 - [ ] `for x in iter` / `MutableList(u32){}.add(...)` inside @comptime — needs Iterator-trait dispatch + arena allocation for transient collections.
-- [ ] Cycle detection across @comptime decls (currently a 64-deep call-stack guard; cross-decl evaluation order is not analysed).
-- [ ] Recursive @comptime evaluation: `@comptime A :: f(B)` where `B :: @comptime g()` should evaluate B first.
 
 ### 1.6 Lowerer — done
 
@@ -227,7 +232,7 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 
 - [ ] **REPL.** Persisting the symbol table between lines requires incremental compilation across resolve/typecheck/comptime/lower/emit. Substantial chantier on its own; punt until after the C/WASM emitters land.
 - [ ] **Real impl table for trait `type_check`.** Today's heuristic (`Error` matches struct names containing `$Trait$`) covers the host-driven I/O scenarios. A user-defined struct `Foo implements MyTrait` won't match `type_check MyTrait` in the VM until the bytecode emitter materialises an impl-table side-section. Picked up alongside generic-fn dispatch (1.5b).
-- [ ] **Comptime migration.** `@comptime` still uses the AST-walking interpreter (per SPEC §14 implementation note). Migrating to the bytecode VM is the same work as 1.5b — bytecode lowering for the comptime-eligible subset, then point `evaluateProject` at the VM.
+- [x] **Comptime migration.** Done in §1.5b — `@comptime` decls now run on the bytecode VM via `src/comptime/{compile,run}.ts`.
 - [ ] **Slot-typed numeric promotion.** `local.tee` followed by use through differently-sized typed ops works because the VM tag carries the canonical type, but the bytecode emitter can produce ops whose op-type disagrees with the value tag (e.g. an `i32.add` on values that flowed in as `i64`); we currently trust the emitter. Add a debug-only verifier when the WASM target lands (it'll need exactly this validation).
 
 ### 1.9 C emitter

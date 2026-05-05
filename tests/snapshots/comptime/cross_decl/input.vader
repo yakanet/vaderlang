@@ -1,0 +1,12 @@
+@comptime
+A :: 10
+
+@comptime
+B :: A * 2
+
+@comptime
+C :: A + B
+
+main :: fn() -> i32 {
+    return C
+}

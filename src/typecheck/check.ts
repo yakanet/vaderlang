@@ -794,9 +794,9 @@ function inferMatch(
       coveredVariants.add(displayType(variantTy));
       narrowed = variantTy;
     }
-    const prev = scrutSym !== null && narrowed !== null
+    const prev: Type | undefined = scrutSym !== null && narrowed !== null
       ? pushNarrowing(t, scrutSym.id, narrowed)
-      : null;
+      : undefined;
     if (arm.guard !== null) {
       const g = checkExpr(arm.guard, TY.bool, t, impls, diags, fn);
       if (!isAssignable(g, TY.bool)) err(diags, "T3019", arm.guard.span);

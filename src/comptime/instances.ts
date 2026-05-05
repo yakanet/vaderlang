@@ -37,6 +37,16 @@ export class InstanceRegistry {
     });
   }
 
+  /** Register a generic-fn call site whose explicit type args are concrete.
+   *  The downstream monomorphizer doesn't yet materialise fn instances (still
+   *  deferred — see TODO §1.5b), but the registry already accepts them so the
+   *  surface is in place when that work lands. */
+  observeFnCall(sym: Symbol, typeArgs: readonly Type[]): void {
+    if (sym.kind !== "fn") return;
+    if (typeArgs.length === 0 || !typeArgs.every(isConcrete)) return;
+    this.add(sym, typeArgs);
+  }
+
   entries(): readonly GenericInstance[] {
     return [...this.byKey.values()].sort((a, b) => a.displayKey.localeCompare(b.displayKey));
   }

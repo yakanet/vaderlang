@@ -36,11 +36,20 @@ export class VmError extends Error {
 }
 
 export function runProgram(m: BytecodeModule, opts: RunOptions): RunResult {
-  const ctx = newRunCtx(m);
-  const entry = findEntry(m, opts.entry);
-  const result = invoke(ctx, entry, [], opts);
+  const result = runFn(m, opts.entry, [], opts);
   if (result.tag === "void") return { exitCode: 0 };
   return { exitCode: Math.trunc(asNum(result)) | 0 };
+}
+
+/** Run an arbitrary fn by name (or the auto-detected main) and return its raw
+ *  Value — the comptime path uses this to capture the result without going
+ *  through the exit-code coercion. */
+export function runFn(
+  m: BytecodeModule, entry: string | undefined, args: Value[], opts: RunOptions,
+): Value {
+  const ctx = newRunCtx(m);
+  const fnIndex = findEntry(m, entry);
+  return invoke(ctx, fnIndex, args, opts);
 }
 
 export function findEntry(m: BytecodeModule, override?: string): number {

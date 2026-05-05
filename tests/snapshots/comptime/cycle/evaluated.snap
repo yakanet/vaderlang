@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snapshots/comptime/cycle/input.vader
+
+# Diagnostics
+[2:1] error[C4009] comptime evaluation depends on itself: A → B → A
