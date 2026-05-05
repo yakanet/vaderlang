@@ -93,6 +93,9 @@ export interface ImplDecl {
   readonly forType: TypeExpr;
   readonly traitName: string;
   readonly traitNameSpan: Span;
+  /** Type arguments to the trait — e.g. `[i32]` for `… implements Iterator(i32)`.
+   *  Empty for non-generic trait references like `… implements Display`. */
+  readonly traitArgs: readonly TypeExpr[];
   readonly members: readonly FnDecl[];
   readonly decorators: readonly Decorator[];
 }

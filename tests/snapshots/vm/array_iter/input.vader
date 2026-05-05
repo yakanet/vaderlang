@@ -1,0 +1,19 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    arr :: [10, 20, 30, 40]
+    sum := 0
+    for x in arr {
+        sum = sum + x
+    }
+    println("sum = ${sum}")
+
+    // empty array iterates 0 times
+    empty :: [0, 0, 0]      // can't write `[]` without type annotation yet
+    n := 0
+    for _y in empty {
+        n = n + 1
+    }
+    println("count = ${n}")
+    return 0
+}

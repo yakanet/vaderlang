@@ -29,6 +29,10 @@ export class ImplRegistry {
     return this.userIndex.has(`${forSymbol.id}::${traitSymbol.id}`);
   }
 
+  findUser(forSymbol: Symbol, traitSymbol: Symbol): ImplEntry | null {
+    return this.userIndex.get(`${forSymbol.id}::${traitSymbol.id}`) ?? null;
+  }
+
   forPrimitive(name: string, traitSymbol: Symbol): ImplEntry | null {
     for (const e of this.all) {
       if (e.forSymbol !== null) continue;

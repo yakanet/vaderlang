@@ -15,8 +15,8 @@ import type { Symbol } from "../resolver/symbol.ts";
 import { declOf } from "../resolver/symbol.ts";
 
 import { err } from "./diag.ts";
-import type { ImplRegistry } from "./impls.ts";
-import type { TypedProgram } from "./typed-ast.ts";
+import type { ImplEntry, ImplRegistry } from "./impls.ts";
+import type { MethodResolution, TypedProgram } from "./typed-ast.ts";
 import type { Type } from "./types.ts";
 import {
   CORE_TRAITS, TY, defaultIfFree, displayType, equalsType, isAssignable, isFloat,
@@ -30,12 +30,17 @@ export interface Globals {
   readonly typeExprTypes: Map<A.TypeExpr, Type>;
   /** Auto-imported std/core symbols, looked up for Display / Error / Iterator etc. */
   coreSymbols: ReadonlyMap<string, Symbol> | null;
+  /** Cross-module typeParam table from the resolver — used for O(1) lookup
+   *  when user code instantiates a generic stdlib struct and we need its
+   *  typeParam symbols. */
+  typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>;
 }
 
-export function newGlobals(): Globals {
+export function newGlobals(typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>): Globals {
   return {
     declTypes: new Map(), paramTypes: new Map(), typeExprTypes: new Map(),
     coreSymbols: null,
+    typeParamSymbols,
   };
 }
 
@@ -48,6 +53,9 @@ interface MutableTyped {
    *  so that references to a scrutinee symbol inside an `is T -> body` arm
    *  see `T` instead of the full union. Nested matches stack naturally. */
   readonly narrowed: Map<number, Type>;
+  /** UFCS-resolved trait method calls. Populated by `inferField`, consumed
+   *  by `inferCall` and the lowerer. */
+  readonly methodResolutions: Map<A.FieldExpr, MethodResolution>;
 }
 
 interface FnContext {
@@ -64,6 +72,7 @@ export function declareModule(
   const t: MutableTyped = {
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
+    methodResolutions: new Map(),
   };
   for (const decl of program.source.decls) declareType(decl, t, diags);
 }
@@ -77,6 +86,7 @@ export function checkProgram(
   const t: MutableTyped = {
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
+    methodResolutions: new Map(),
   };
 
   for (const decl of program.source.decls) {
@@ -114,6 +124,7 @@ export function checkProgram(
     declTypes: globals.declTypes,
     paramTypes: globals.paramTypes,
     typeExprTypes: globals.typeExprTypes,
+    methodResolutions: t.methodResolutions,
   };
 }
 
@@ -180,6 +191,7 @@ function declareTrait(decl: A.TraitDecl, t: MutableTyped, diags: DiagnosticColle
 
 function declareImpl(decl: A.ImplDecl, t: MutableTyped, diags: DiagnosticCollector): void {
   lowerTypeExpr(decl.forType, t, diags);
+  for (const ta of decl.traitArgs) lowerTypeExpr(ta, t, diags);
   for (const member of decl.members) declareFn(member, t, diags);
 }
 
@@ -431,9 +443,16 @@ function checkForStmt(
 }
 
 function forInElementType(iter: A.Expr, t: MutableTyped): Type | null {
-  if (iter.kind !== "RangeExpr") return null;
-  const lower = t.exprTypes.get(iter.lower);
-  return lower !== undefined ? defaultIfFree(lower) : null;
+  // Range has a known element type by construction.
+  if (iter.kind === "RangeExpr") return TY.i32;
+  // Other iterables: query the Iterator impl on the iter's static type and
+  // pull the element type from its trait args.
+  const iterType = t.exprTypes.get(iter);
+  if (iterType === undefined) return null;
+  if (iterType.kind === "Array") return iterType.element;
+  const iteratorSym = t.globals.coreSymbols?.get("Iterator");
+  if (iteratorSym === undefined) return null;
+  return null;     // user-defined iterators handled when we wire a richer trait lookup
 }
 
 // ============================================================================
@@ -661,10 +680,60 @@ function inferField(
       if (field !== undefined) return t.globals.typeExprTypes.get(field.type) ?? TY.unresolved;
     }
   }
+
+  // No struct field — try impl-method lookup. Records into `methodResolutions`
+  // so the lowerer can rewrite `obj.method(args)` into a direct call of the
+  // specialised impl fn with `obj` as the first arg.
+  const method = findImplMethod(impls, targetType, expr.field, t);
+  if (method !== null) {
+    t.methodResolutions.set(expr, method);
+    return methodBoundFnType(method, t);
+  }
+
   if (targetType.kind !== "Unresolved") {
     err(diags, "T3009", expr.fieldSpan, `\`${expr.field}\` on ${displayType(targetType)}`);
   }
   return TY.unresolved;
+}
+
+/** Walk the impl registry for a method matching the target type + name. */
+function findImplMethod(
+  impls: ImplRegistry, targetType: Type, name: string, t: MutableTyped,
+): MethodResolution | null {
+  for (const entry of impls.entries()) {
+    if (!implMatchesTarget(entry, targetType)) continue;
+    const member = entry.decl.members.find((m) => m.name === name);
+    if (member === undefined) continue;
+    const traitArgs: Type[] = [];
+    for (const ta of entry.decl.traitArgs) {
+      const arg = t.globals.typeExprTypes.get(ta);
+      if (arg !== undefined) traitArgs.push(arg);
+    }
+    return { impl: entry, member, receiverType: targetType, traitArgs };
+  }
+  return null;
+}
+
+function implMatchesTarget(entry: ImplEntry, target: Type): boolean {
+  if (target.kind === "Struct") {
+    return entry.forSymbol !== null && entry.forSymbol.id === target.symbol.id;
+  }
+  if (target.kind === "Primitive") {
+    return entry.forSymbol === null
+      && entry.decl.forType.kind === "NamedType"
+      && entry.decl.forType.name === target.name;
+  }
+  return false;
+}
+
+/** The fn type a bound method `obj.method` exposes — i.e. the impl member's
+ *  fn type minus its `self` parameter (since the receiver is implicit). */
+function methodBoundFnType(method: MethodResolution, t: MutableTyped): Type {
+  const fnType = t.globals.declTypes.get(method.member);
+  if (fnType === undefined || fnType.kind !== "Fn") return TY.unresolved;
+  // Methods take `self` as the first param; drop it from the bound type.
+  const params = fnType.params.length > 0 ? fnType.params.slice(1) : fnType.params;
+  return { kind: "Fn", params, returnType: fnType.returnType };
 }
 
 function sourceStructDecl(sym: Symbol): A.StructDecl | null {
@@ -902,9 +971,19 @@ function inferStructLit(
     return ty;
   }
   const decl = sourceStructDecl(ty.symbol);
+  // Build the typeParam → concrete-arg substitution for generic instances.
+  const subst: { typeParams: Map<number, Type> } = { typeParams: new Map() };
+  if (decl !== null && ty.args.length > 0) {
+    for (let i = 0; i < decl.typeParams.length && i < ty.args.length; i++) {
+      const tp = decl.typeParams[i]!;
+      const sym = findTypeParamSymbol(t, tp);
+      if (sym !== null) subst.typeParams.set(sym.id, ty.args[i]!);
+    }
+  }
   for (const f of expr.fields) {
     const field = decl?.fields.find((sf) => sf.name === f.name);
-    const expected = field !== undefined ? t.globals.typeExprTypes.get(field.type) ?? null : null;
+    const fieldRaw = field !== undefined ? t.globals.typeExprTypes.get(field.type) ?? null : null;
+    const expected = fieldRaw !== null ? substitute(fieldRaw, subst) : null;
     const got = checkExpr(f.value, expected, t, impls, diags, fn);
     if (field === undefined) {
       err(diags, "T3009", f.nameSpan, `\`${f.name}\` on ${displayType(ty)}`);
@@ -914,6 +993,10 @@ function inferStructLit(
     }
   }
   return ty;
+}
+
+function findTypeParamSymbol(t: MutableTyped, tp: A.TypeParam): Symbol | null {
+  return t.globals.typeParamSymbols.get(tp) ?? null;
 }
 
 function inferArrayLit(
@@ -930,10 +1013,11 @@ function inferRange(
   expr: A.RangeExpr, t: MutableTyped, impls: ImplRegistry,
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
-  checkExpr(expr.lower, null, t, impls, diags, fn);
-  checkExpr(expr.upper, null, t, impls, diags, fn);
-  // SPEC mentions `Range` in stdlib; not yet ported. MVP: leave Unresolved.
-  return TY.unresolved;
+  checkExpr(expr.lower, TY.i32, t, impls, diags, fn);
+  checkExpr(expr.upper, TY.i32, t, impls, diags, fn);
+  const rangeSym = t.globals.coreSymbols?.get("Range");
+  if (rangeSym === undefined || rangeSym.kind !== "struct") return TY.unresolved;
+  return { kind: "Struct", symbol: rangeSym, args: [] };
 }
 
 function inferTry(

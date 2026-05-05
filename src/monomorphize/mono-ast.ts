@@ -27,4 +27,9 @@ export interface MonoProject {
   readonly entries: readonly MonoEntry[];
   /** Lookup by `(declIdentity, typeArgsKey)` returning the entry's mangled name. */
   readonly lookupByInstance: ReadonlyMap<string, MonoEntry>;
+  /** Lookup by impl member FnDecl, then by the struct args' display key. The
+   *  inner key is `""` for non-generic impls; for generic impls it's
+   *  `displayType(arg).join(",")` so each `(member, struct args)` pair
+   *  resolves to its specialised entry. */
+  readonly implMethodEntries: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>;
 }

@@ -2,5 +2,8 @@
 
 ## tests/snapshots/comptime/cycle/input.vader
 
+## generic instances
+  Yielded(i32)
+
 # Diagnostics
 [2:1] error[C4009] comptime evaluation depends on itself: A → B → A

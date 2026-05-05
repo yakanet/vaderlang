@@ -336,6 +336,11 @@ function emitExpr(fn: FnEmitCtx, e: L.LoweredExpr): void {
       pushOp(fn, { kind: "intrinsic", id: id as IntrinsicId }, e.span);
       return;
     }
+    case "LoweredArrayLen": {
+      emitExpr(fn, e.target);
+      pushOp(fn, { kind: "array.len" }, e.span);
+      return;
+    }
   }
 }
 

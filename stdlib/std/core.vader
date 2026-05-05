@@ -36,13 +36,62 @@ Sub :: trait { fn sub(self, other: Self) -> Self }
 Mul :: trait { fn mul(self, other: Self) -> Self }
 Div :: trait { fn div(self, other: Self) -> Self }
 
-// Iterator / Iterable.
+// Iterator step result. `Done` signals end-of-iteration; `Yielded(T)` carries
+// the next value. Sum-type discriminator avoids the sentinel collision that
+// `T | null` would have for lists whose element type itself includes `null`.
+Done    :: struct {}
+Yielded :: struct(T: type) { value: T }
+
+// Iterator — pull-based. The lowerer dispatches `for x in iter` through the
+// impl table; users never call `step` directly.
 Iterator :: trait(T: type) {
-    fn next(self) -> T | null
+    fn step(self) -> Done | Yielded(T)
 }
 
-Iterable :: trait(T: type) {
-    fn iter(self) -> Iterator(T)
+// Range — produced by `0..<n` / `0..=n`. `cursor` advances each iteration
+// via implicit struct-ref mutation inside `step`.
+Range :: struct {
+    start:     i32
+    end:       i32
+    inclusive: bool
+    cursor:    i32
+}
+
+Range implements Iterator(i32) {
+    fn step(self) -> Done | Yielded(i32) {
+        done :: if (self.inclusive) {
+            self.cursor > self.end
+        } else {
+            self.cursor >= self.end
+        }
+        if (done) {
+            return Done {}
+        }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(i32) { .value = v }
+    }
+}
+
+// ArrayIter — iterator over a `[T]`. The lowerer auto-wraps array exprs
+// flowing into `for x in arr`, so callers rarely need to construct one. The
+// `length` field is pre-computed at construction time so `step` can avoid
+// calling a generic `len(arr)` (generic-fn dispatch is still deferred).
+ArrayIter :: struct(T: type) {
+    arr:    [T]
+    cursor: i32
+    length: i32
+}
+
+ArrayIter(T) implements Iterator(T) {
+    fn step(self) -> Done | Yielded(T) {
+        if (self.cursor >= self.length) {
+            return Done {}
+        }
+        v :: self.arr[self.cursor]
+        self.cursor = self.cursor + 1
+        return Yielded(T) { .value = v }
+    }
 }
 
 // Error — base trait for any value usable in !T returns and the `?` operator.

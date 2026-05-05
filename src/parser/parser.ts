@@ -332,6 +332,23 @@ class Parser {
     const forType = this.parseType();
     this.expect("kw_implements", "`implements` keyword");
     const traitTok = this.expect("ident", "trait name");
+
+    // Optional generic args on the trait reference: `… implements Iterator(i32)`.
+    const traitArgs: A.TypeExpr[] = [];
+    if (this.match("lparen") !== null) {
+      this.skipNewlines();
+      if (!this.check("rparen")) {
+        while (true) {
+          this.skipNewlines();
+          if (this.check("rparen")) break;
+          traitArgs.push(this.parseType());
+          this.skipNewlines();
+          if (this.match("comma") === null) break;
+        }
+      }
+      this.expect("rparen", "`)` to close trait argument list");
+    }
+
     this.expect("lbrace", "`{` to open impl body");
     this.skipNewlines();
     const members: A.FnDecl[] = [];
@@ -347,6 +364,7 @@ class Parser {
       forType,
       traitName: traitTok.text,
       traitNameSpan: traitTok.span,
+      traitArgs,
       members,
       decorators,
     };
@@ -1059,8 +1077,45 @@ class Parser {
 
   private parseIdentOrStructLit(): A.Expr {
     const t = this.advance();
+
+    // Generic struct literal: `Ident(typeArgs) { .field = … }`. Detect by
+    // scanning past balanced parens to confirm a `{` struct-lit body follows
+    // before committing to the parse. Otherwise let postfix handle `(args)`
+    // as a regular call expression.
+    if (this.allowStructLit && this.peekGenericStructLit()) {
+      this.advance();        // consume `(`
+      const args: A.TypeExpr[] = [];
+      this.skipNewlines();
+      if (!this.check("rparen")) {
+        while (true) {
+          this.skipNewlines();
+          if (this.check("rparen")) break;
+          args.push(this.parseType());
+          this.skipNewlines();
+          if (this.match("comma") === null) break;
+        }
+      }
+      const rp = this.expect("rparen", "`)` to close generic argument list");
+      const lb = this.expect("lbrace", "`{` to open generic struct literal");
+      void lb;
+      const fields = this.parseStructLitFields();
+      const rb = this.expect("rbrace", "`}` to close struct literal");
+      return {
+        kind: "StructLitExpr",
+        span: this.spanOf(t, rb),
+        typeName: {
+          kind: "GenericInstType",
+          span: this.spanOf(t, rp),
+          base: { kind: "NamedType", span: t.span, name: t.text },
+          args,
+        },
+        fields,
+      };
+    }
+
     if (this.allowStructLit && this.check("lbrace") && looksLikeStructLitBody(this.tokens, this.pos)) {
       const lb = this.advance();
+      void lb;
       const fields = this.parseStructLitFields();
       const rb = this.expect("rbrace", "`}` to close struct literal");
       return {
@@ -1071,6 +1126,31 @@ class Parser {
       };
     }
     return { kind: "IdentExpr", span: t.span, name: t.text };
+  }
+
+  /** Lookahead: are the upcoming tokens shaped like a generic struct lit
+   *  head — `( <stuff> ) {` followed by a `.<field>` struct-lit body? Used to
+   *  disambiguate `Foo(T) { … }` (struct lit) from `Foo(T)` (call expr).  */
+  private peekGenericStructLit(): boolean {
+    if (this.tokens[this.pos]?.kind !== "lparen") return false;
+    let depth = 1, j = this.pos + 1;
+    while (j < this.tokens.length && depth > 0) {
+      const t = this.tokens[j]!;
+      if (t.kind === "eof") return false;
+      if (t.kind === "lparen") depth++;
+      else if (t.kind === "rparen") {
+        depth--;
+        if (depth === 0) break;
+      }
+      j++;
+    }
+    if (depth !== 0) return false;
+    const closing = j;     // index of the matching `)`
+    // Skip newlines after `)` since the formatter may break the line.
+    let k = closing + 1;
+    while (k < this.tokens.length && this.tokens[k]!.kind === "newline") k++;
+    if (this.tokens[k]?.kind !== "lbrace") return false;
+    return looksLikeStructLitBody(this.tokens, k);
   }
 
   private parseStructLitFields(): A.StructLitField[] {
@@ -1524,12 +1604,14 @@ function collectTypeParams(t: A.TypeExpr, out: A.TypeParam[]): void {
  * token inside the braces must be `.`.
  */
 function looksLikeStructLitBody(tokens: readonly Token[], posAfterLbrace: number): boolean {
-  // posAfterLbrace points at the `{` itself (we haven't consumed it).
+  // posAfterLbrace points at the `{` itself (we haven't consumed it). The
+  // body looks like a struct lit if the first non-whitespace token is `.`
+  // (a field key) or `}` (an empty struct literal).
   let i = posAfterLbrace + 1;
   while (i < tokens.length) {
     const t = tokens[i]!;
     if (t.kind === "newline") { i++; continue; }
-    return t.kind === "dot";
+    return t.kind === "dot" || t.kind === "rbrace";
   }
   return false;
 }

@@ -143,7 +143,8 @@ export type LoweredExpr =
   | LoweredCast
   | LoweredTypeCheck
   | LoweredUnreachable
-  | LoweredIntrinsicCall;
+  | LoweredIntrinsicCall
+  | LoweredArrayLen;
 
 export interface LoweredIntLit {
   readonly kind: "LoweredIntLit";
@@ -271,6 +272,17 @@ export interface LoweredArrayLit {
   readonly span: Span;
   readonly type: Type;
   readonly elements: readonly LoweredExpr[];
+}
+
+/** Length of an array, exposed by the bytecode op `array.len`. The lowerer
+ *  emits this when auto-wrapping `for x in arr` into an `ArrayIter(T)`
+ *  literal — the `length` field needs the runtime length but Vader doesn't
+ *  yet have a generic `len(arr)` fn. */
+export interface LoweredArrayLen {
+  readonly kind: "LoweredArrayLen";
+  readonly span: Span;
+  readonly type: Type;
+  readonly target: LoweredExpr;
 }
 
 export interface LoweredCast {

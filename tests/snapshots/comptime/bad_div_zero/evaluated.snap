@@ -2,5 +2,8 @@
 
 ## tests/snapshots/comptime/bad_div_zero/input.vader
 
+## generic instances
+  Yielded(i32)
+
 # Diagnostics
 [2:9] error[C4005] comptime division by zero

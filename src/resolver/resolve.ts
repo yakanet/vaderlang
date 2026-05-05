@@ -21,6 +21,12 @@ export interface ResolveModuleInput {
   readonly builtins: BuiltinScope;
   readonly coreModule: Module | null;     // std/core, auto-imported except in std/core itself
   readonly factory: SymbolFactory;
+  /** Cross-module map from a `TypeParam` AST node to its canonical Symbol.
+   *  Populated by `bindTypeParam`; consumed by `resolveImplDecl` so generic
+   *  impls reuse the base struct's existing typeParam symbol rather than
+   *  minting a fresh one (which would clobber the struct's own field
+   *  resolutions). */
+  readonly typeParamSymbols: Map<A.TypeParam, Symbol>;
   readonly diags: DiagnosticCollector;
 }
 
@@ -144,14 +150,30 @@ function resolveTraitDecl(decl: A.TraitDecl, parent: Scope, p: MutableProgram, i
 }
 
 function resolveImplDecl(decl: A.ImplDecl, parent: Scope, p: MutableProgram, input: ResolveModuleInput): void {
-  resolveType(decl.forType, parent, p, input);
+  // Generic impls (`Foo(T) implements Trait(T) { ... }`) reuse the base
+  // struct's type parameters. Look up the EXISTING typeParam symbols (don't
+  // re-bind, which would clobber `p.typeParams[tp]` and break the struct's
+  // own field references) and expose them under their names in the impl
+  // scope so references in forType / trait args / member bodies resolve.
+  const scope = newScope(parent);
+  if (decl.forType.kind === "GenericInstType") {
+    const baseSym = lookup(parent, decl.forType.base.name);
+    if (baseSym !== null && baseSym.source.kind === "struct") {
+      for (const tp of baseSym.source.decl.typeParams) {
+        const existing = input.typeParamSymbols.get(tp);
+        if (existing !== undefined) scope.bindings.set(tp.name, existing);
+      }
+    }
+  }
+  resolveType(decl.forType, scope, p, input);
   const traitSym = lookup(parent, decl.traitName);
   if (traitSym === null) {
     err(input.diags, "R2007", decl.traitNameSpan, `\`${decl.traitName}\``);
   } else if (traitSym.kind !== "trait") {
     err(input.diags, "R2009", decl.traitNameSpan, `\`${decl.traitName}\` is a ${traitSym.kind}`);
   }
-  for (const member of decl.members) resolveFnDecl(member, parent, p, input);
+  for (const ta of decl.traitArgs) resolveType(ta, scope, p, input);
+  for (const member of decl.members) resolveFnDecl(member, scope, p, input);
 }
 
 function resolveTypeAliasDecl(decl: A.TypeAliasDecl, parent: Scope, p: MutableProgram, input: ResolveModuleInput): void {
@@ -198,6 +220,7 @@ function bindTypeParam(tp: A.TypeParam, scope: Scope, p: MutableProgram, input: 
   });
   scope.bindings.set(tp.name, sym);
   p.typeParams.set(tp, sym);
+  input.typeParamSymbols.set(tp, sym);
 }
 
 function bindLocal(stmt: A.LetStmt, scope: Scope, p: MutableProgram, input: ResolveModuleInput): Symbol {

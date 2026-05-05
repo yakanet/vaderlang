@@ -2,18 +2,21 @@
 
 ## std/core
   trait            public   Add 
+  struct           public   ArrayIter 
   trait            public   Clone 
   trait            public   Display 
   trait            public   Div 
+  struct           public   Done 
   trait            public   Eq 
   trait            public   Error 
   trait            public   Hash 
-  trait            public   Iterable 
   trait            public   Iterator 
   trait            public   Mul 
   trait            public   Ord 
+  struct           public   Range 
   trait            public   Sub 
-  refs: idents=0 types=22 params=18 locals=0 typeParams=2 fields=0
+  struct           public   Yielded 
+  refs: idents=17 types=47 params=19 locals=3 typeParams=3 fields=0
 
 ## tests/snapshots/resolver/unknown_decorator/input.vader
   fn               public   main 

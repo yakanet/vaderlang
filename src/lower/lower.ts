@@ -7,10 +7,10 @@ import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
 import type { ComptimeValue } from "../comptime/value.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram } from "../typecheck/typed-ast.ts";
-import type { ImplRegistry } from "../typecheck/impls.ts";
+import type { ImplEntry, ImplRegistry } from "../typecheck/impls.ts";
 import { buildImplRegistry } from "../typecheck/impls.ts";
 import type { Substitution, Type } from "../typecheck/types.ts";
-import { CORE_TRAITS, TY, defaultIfFree, substitute } from "../typecheck/types.ts";
+import { CORE_TRAITS, TY, defaultIfFree, displayType, substitute } from "../typecheck/types.ts";
 
 import type { MonoEntry, MonoProject } from "../monomorphize/index.ts";
 import { monomorphizeProject } from "../monomorphize/index.ts";
@@ -27,9 +27,17 @@ const STD_CORE_PATH = "std/core";
 export function lowerProject(evaluated: EvaluatedProject, diags?: DiagnosticCollector): LoweredProject {
   const mono = monomorphizeProject(evaluated);
   const impls = buildImplRegistry(evaluated.typed.resolved);
+  let coreSymbols: ReadonlyMap<string, Symbol> | null = null;
+  for (const program of evaluated.typed.modules.values()) {
+    if (program.resolved.module.displayPath === STD_CORE_PATH) {
+      coreSymbols = program.resolved.module.symbols;
+      break;
+    }
+  }
   const ctx: LowerProjectCtx = {
     evaluated, mono, impls,
     coreTraitCache: new Map(),
+    coreSymbols,
     nextSyntheticId: 1,
     diags: diags ?? new DiagnosticCollector(),
   };
@@ -61,6 +69,9 @@ interface LowerProjectCtx {
   readonly mono: MonoProject;
   readonly impls: ImplRegistry;
   readonly coreTraitCache: Map<string, Symbol | null>;
+  /** std/core's symbol table — pre-resolved at construction so trait/struct
+   *  lookups don't re-walk the module map per call. */
+  readonly coreSymbols: ReadonlyMap<string, Symbol> | null;
   nextSyntheticId: number;
   readonly diags: DiagnosticCollector;
 }
@@ -300,11 +311,7 @@ function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
         { kind: "LoweredContinue", span: stmt.span, label: stmt.label }]);
     }
     case "ForStmt": {
-      if (stmt.form.kind === "in") {
-        if (stmt.form.iter.kind === "RangeExpr") return lowerForInRange(ctx, stmt, stmt.form.iter);
-        err(ctx.project.diags, "B5001", stmt.span,
-          "`for x in iter` over non-range iterators requires Iterator dispatch (deferred — see TODO §1.5b iterators)");
-      }
+      if (stmt.form.kind === "in") return lowerForIn(ctx, stmt);
       const cond = stmt.form.kind === "while" ? lowerExpr(ctx, stmt.form.cond) : null;
       const body = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
       return { kind: "LoweredLoop", span: stmt.span, label: stmt.label, cond, body };
@@ -326,78 +333,213 @@ function collectDefersUpTo(ctx: FnLowerCtx, stopOnLoop: boolean): LoweredStmt[] 
   return out;
 }
 
-/** Desugar `for x in lower..<upper` (and `..=`) to a counted loop with the
- *  increment at the top so `continue` re-runs it correctly. Inclusive ranges
- *  use `>` for the break check, exclusive use `>=`. The lower bound is
- *  pre-decremented so the very first body iteration sees `x = lower`.
+/** Desugar `RangeExpr` (`a..<b` / `a..=b`) into a `Range` struct literal so
+ *  `for-in` can dispatch through the standard Iterator impl rather than a
+ *  bespoke fast path. The struct's fields mirror `std/core::Range`. */
+function lowerRangeExpr(ctx: FnLowerCtx, expr: A.RangeExpr, exprType: Type): LoweredExpr {
+  const span = expr.span;
+  const lower = lowerExpr(ctx, expr.lower);
+  const upper = lowerExpr(ctx, expr.upper);
+  const zero: LoweredExpr = { kind: "LoweredIntLit", span, type: TY.i32, value: 0n };
+  const inclusive: LoweredExpr = {
+    kind: "LoweredBoolLit", span, type: TY.bool, value: expr.inclusive,
+  };
+  return {
+    kind: "LoweredStructLit", span, type: exprType,
+    fields: [
+      { name: "start",     value: lower },
+      { name: "end",       value: upper },
+      { name: "inclusive", value: inclusive },
+      { name: "cursor",    value: zero },
+    ],
+  };
+}
+
+/** Desugar `for x in <iter>` into a step-loop dispatched through the
+ *  Iterator impl on `iter`'s static type. Range and other iterables share
+ *  this path; the caller-side iter is lowered first so `RangeExpr` becomes a
+ *  `Range` struct literal before we look up its Iterator impl.
  */
-function lowerForInRange(ctx: FnLowerCtx, stmt: A.ForStmt, range: A.RangeExpr): LoweredStmt {
-  if (stmt.form.kind !== "in") throw new Error("lowerForInRange called on non-`in` form");
+function lowerForIn(ctx: FnLowerCtx, stmt: A.ForStmt): LoweredStmt {
+  if (stmt.form.kind !== "in") throw new Error("lowerForIn called on non-`in` form");
   const span = stmt.span;
+  const iterExpr = stmt.form.iter;
+  let iterLowered = lowerExpr(ctx, iterExpr);
+  let iterType = iterLowered.type;
+
+  // Auto-wrap raw arrays into `ArrayIter(T)` so users can write
+  // `for x in arr` without an explicit `.iter()`. The struct literal
+  // captures the array, sets cursor=0, and pre-computes the length via the
+  // `array.len` op (no generic `len(arr)` fn needed).
+  if (iterType.kind === "Array") {
+    const arrayIterType = findCoreType(ctx, "ArrayIter", [iterType.element]);
+    if (arrayIterType !== null) {
+      iterLowered = {
+        kind: "LoweredStructLit", span: iterExpr.span, type: arrayIterType,
+        fields: [
+          { name: "arr",    value: iterLowered },
+          { name: "cursor", value: { kind: "LoweredIntLit", span, type: TY.i32, value: 0n } },
+          { name: "length", value: {
+            kind: "LoweredArrayLen", span, type: TY.i32, target: iterLowered,
+          } },
+        ],
+      };
+      iterType = arrayIterType;
+    }
+  }
+
+  const stepInfo = findIteratorStepImpl(ctx, iterType);
+  if (stepInfo === null) {
+    err(ctx.project.diags, "B5001", span,
+      `\`for x in iter\` requires Iterator impl on ${displayType(iterType)} (deferred — see TODO §1.5b iterators)`);
+    return { kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredUnreachable", span, type: TY.void,
+      reason: `no Iterator impl on ${displayType(iterType)}`,
+    } };
+  }
+
+  const elementType = stepInfo.elementType;
+  const doneType = findCoreType(ctx, "Done", []);
+  const yieldedType = findCoreType(ctx, "Yielded", [elementType]);
+  if (doneType === null || yieldedType === null) {
+    err(ctx.project.diags, "B5001", span, "Done / Yielded missing from std/core");
+    return { kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredUnreachable", span, type: TY.void, reason: "stdlib types missing",
+    } };
+  }
+
   const bindingSym = ctx.typed.resolved.forIns.get(stmt);
   if (bindingSym === undefined) {
     err(ctx.project.diags, "B5001", span, "for-in binding not resolved");
-    return { kind: "LoweredExprStmt", span,
-      expr: { kind: "LoweredUnreachable", span, type: TY.void, reason: "for-in binding missing" } };
+    return { kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredUnreachable", span, type: TY.void, reason: "missing binding",
+    } };
   }
-  const elemType = applySubst(ctx.typed.exprTypes.get(range.lower) ?? TY.unresolved, ctx.subst);
-  const elementType = defaultIfFree(elemType);
 
-  const endSym = freshSyntheticSymbol(ctx, "end");
-  const lowerVal = lowerExpr(ctx, range.lower);
-  const upperVal = lowerExpr(ctx, range.upper);
-
-  // x := lower - 1   (pre-decremented; first body iter sees x = lower)
-  const oneLit: LoweredExpr = { kind: "LoweredIntLit", span, type: elementType, value: 1n };
-  const lowerMinusOne: LoweredExpr = {
-    kind: "LoweredBinary", span, op: "sub", type: elementType, left: lowerVal, right: oneLit,
-  };
+  const iterSym = freshSyntheticSymbol(ctx, "iter");
+  const stepSym = freshSyntheticSymbol(ctx, "step");
+  const stepUnion = unionOfDoneYielded(doneType, yieldedType);
 
   const setupStmts: LoweredStmt[] = [
-    { kind: "LoweredLet", span, name: endSym.name, symbol: endSym, type: elementType, value: upperVal },
-    { kind: "LoweredLet", span, name: stmt.form.binding, symbol: bindingSym,
-      type: elementType, value: lowerMinusOne },
+    { kind: "LoweredLet", span, name: iterSym.name, symbol: iterSym, type: iterType, value: iterLowered },
   ];
 
-  const xRef = (): LoweredExpr => ({
-    kind: "LoweredIdent", span, type: elementType, symbol: bindingSym,
-  });
-  const endRef = (): LoweredExpr => ({
-    kind: "LoweredIdent", span, type: elementType, symbol: endSym,
-  });
-
-  // Top-of-iter: x = x + 1
-  const incOne: LoweredExpr = { kind: "LoweredIntLit", span, type: elementType, value: 1n };
-  const xPlusOne: LoweredExpr = {
-    kind: "LoweredBinary", span, op: "add", type: elementType, left: xRef(), right: incOne,
+  // step(__iter)
+  const stepCall: LoweredExpr = {
+    kind: "LoweredCall", span, type: stepUnion,
+    callee: {
+      kind: "LoweredIdent", span, type: TY.unresolved, symbol: stepInfo.fnSymbol,
+    },
+    args: [{ kind: "LoweredIdent", span, type: iterType, symbol: iterSym }],
   };
-  const incrementStmt: LoweredStmt = { kind: "LoweredAssign", span, target: xRef(), value: xPlusOne };
 
-  // Break when out of range. Exclusive uses `>=`, inclusive uses `>`.
-  const breakOp: A.BinaryOp = range.inclusive ? "gt" : "gte";
-  const breakCond: LoweredExpr = {
-    kind: "LoweredBinary", span, op: breakOp, type: TY.bool, left: xRef(), right: endRef(),
+  // if (step is Done) { break } else { x = step.value; <body> }
+  const stepRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: stepUnion, symbol: stepSym,
+  });
+  const isDone: LoweredExpr = {
+    kind: "LoweredTypeCheck", span, type: TY.bool, value: stepRef(), checkType: doneType,
   };
   const breakStmt: LoweredStmt = { kind: "LoweredBreak", span, label: null };
-  const breakIf: LoweredExpr = {
-    kind: "LoweredIf", span, type: TY.void, cond: breakCond,
-    then: { kind: "LoweredBlock", span, type: TY.void, stmts: [breakStmt], trailing: null },
-    else: null,
-  };
-  const breakIfStmt: LoweredStmt = { kind: "LoweredExprStmt", span, expr: breakIf };
 
+  // Body branch: bind x = ((Yielded*) __step).value, then run user body.
+  const yieldedCast: LoweredExpr = {
+    kind: "LoweredCast", span, type: yieldedType, value: stepRef(),
+  };
+  const valueAccess: LoweredExpr = {
+    kind: "LoweredFieldAccess", span, type: elementType, target: yieldedCast, field: "value",
+  };
+  const bindLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: stmt.form.binding, symbol: bindingSym,
+    type: elementType, value: valueAccess,
+  };
   const userBody = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
-  const loopBodyStmts: LoweredStmt[] = [incrementStmt, breakIfStmt, ...userBody.stmts];
-  if (userBody.trailing !== null) {
-    loopBodyStmts.push({ kind: "LoweredExprStmt", span: userBody.trailing.span, expr: userBody.trailing });
-  }
+
+  const branchIf: LoweredStmt = {
+    kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredIf", span, type: TY.void, cond: isDone,
+      then: { kind: "LoweredBlock", span, type: TY.void, stmts: [breakStmt], trailing: null },
+      else: {
+        kind: "LoweredBlock", span, type: TY.void,
+        stmts: [bindLet, ...userBody.stmts, ...(userBody.trailing !== null
+          ? [{ kind: "LoweredExprStmt", span: userBody.trailing.span, expr: userBody.trailing } as LoweredStmt]
+          : [])],
+        trailing: null,
+      },
+    },
+  };
+
+  const stepLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: stepSym.name, symbol: stepSym,
+    type: stepUnion, value: stepCall,
+  };
 
   const loop: LoweredStmt = {
     kind: "LoweredLoop", span, label: stmt.label, cond: null,
-    body: { kind: "LoweredBlock", span, type: TY.void, stmts: loopBodyStmts, trailing: null },
+    body: { kind: "LoweredBlock", span, type: TY.void, stmts: [stepLet, branchIf], trailing: null },
   };
 
   return wrapStmts(span, [...setupStmts, loop]);
+}
+
+interface StepImpl {
+  readonly fnSymbol: Symbol;
+  readonly elementType: Type;
+}
+
+/** Locate the `Iterator(T)::step` impl on the iter's static type and pull out
+ *  the materialised fn symbol + element type. Walks the impl registry for an
+ *  impl whose forSymbol matches and whose trait is `Iterator`. */
+function findIteratorStepImpl(ctx: FnLowerCtx, iterType: Type): StepImpl | null {
+  const iteratorSym = findCoreTrait(ctx.project, "Iterator");
+  if (iteratorSym === null) return null;
+  const structArgs = iterType.kind === "Struct" ? iterType.args : [];
+  const entry = lookupImplFor(ctx.project, iterType, iteratorSym);
+  if (entry === null) return null;
+  const stepDecl = entry.decl.members.find((m) => m.name === "step");
+  if (stepDecl === undefined) return null;
+  const monoEntry = lookupImplEntry(ctx, stepDecl, structArgs);
+  if (monoEntry === null || monoEntry.symbol === null) return null;
+  let elementType: Type = TY.unresolved;
+  if (entry.decl.traitArgs.length > 0) {
+    const arg = ctx.typed.typeExprTypes.get(entry.decl.traitArgs[0]!);
+    if (arg !== undefined) elementType = substitute(arg, monoEntry.subst);
+  }
+  return { fnSymbol: monoEntry.symbol, elementType };
+}
+
+/** O(1) lookup of an impl entry by `(forType, traitSym)`. Returns null when
+ *  no matching impl exists. */
+function lookupImplFor(
+  ctx: LowerProjectCtx, forType: Type, traitSym: Symbol,
+): ImplEntry | null {
+  if (forType.kind === "Struct") return ctx.impls.findUser(forType.symbol, traitSym);
+  if (forType.kind === "Primitive") return ctx.impls.forPrimitive(forType.name, traitSym);
+  return null;
+}
+
+function lookupImplEntry(ctx: FnLowerCtx, member: A.FnDecl, args: readonly Type[]): MonoEntry | null {
+  const inner = ctx.project.mono.implMethodEntries.get(member);
+  if (inner === undefined) return null;
+  const key = args.map(displayType).join(",");
+  return inner.get(key) ?? null;
+}
+
+/** Find a struct type from std/core by name, optionally with type arguments
+ *  for generic structs (e.g. `Yielded(i32)`). */
+function findCoreType(ctx: FnLowerCtx, name: string, args: readonly Type[]): Type | null {
+  const sym = lookupCoreSymbol(ctx, name);
+  if (sym === null) return null;
+  if (sym.kind !== "struct") return null;
+  return { kind: "Struct", symbol: sym, args };
+}
+
+function lookupCoreSymbol(ctx: FnLowerCtx, name: string): Symbol | null {
+  return ctx.project.coreSymbols?.get(name) ?? null;
+}
+
+function unionOfDoneYielded(done: Type, yielded: Type): Type {
+  return { kind: "Union", variants: [done, yielded] };
 }
 
 /** Pack a sequence of statements into a single statement, transparent to control flow. */
@@ -428,12 +570,39 @@ function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       return lowerStringLit(ctx, expr);
     case "IdentExpr":
       return lowerIdent(ctx, expr, exprType);
-    case "CallExpr":
+    case "CallExpr": {
+      // Trait method via UFCS: typecheck recorded a MethodResolution on the
+      // FieldExpr callee. Rewrite into a direct call of the impl's specialised
+      // fn with the receiver as the first argument. For generic impls, the
+      // right specialisation is keyed by the receiver's struct args.
+      if (expr.callee.kind === "FieldExpr") {
+        const method = ctx.typed.methodResolutions.get(expr.callee);
+        if (method !== undefined) {
+          const recv = method.receiverType;
+          const args = recv.kind === "Struct" ? recv.args : [];
+          const entry = lookupImplEntry(ctx, method.member, args);
+          if (entry !== null && entry.symbol !== null) {
+            const sym = entry.symbol;
+            const calleeIdent: LoweredExpr = {
+              kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: sym,
+            };
+            return {
+              kind: "LoweredCall", span: expr.span, type: exprType,
+              callee: calleeIdent,
+              args: [
+                lowerExpr(ctx, expr.callee.target),
+                ...expr.args.map((a) => lowerExpr(ctx, a.value)),
+              ],
+            };
+          }
+        }
+      }
       return {
         kind: "LoweredCall", span: expr.span, type: exprType,
         callee: lowerExpr(ctx, expr.callee),
         args: expr.args.map((a) => lowerExpr(ctx, a.value)),
       };
+    }
     case "FieldExpr":
       return {
         kind: "LoweredFieldAccess", span: expr.span, type: exprType,
@@ -476,10 +645,7 @@ function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         elements: expr.elements.map((e) => lowerExpr(ctx, e)),
       };
     case "RangeExpr":
-      err(ctx.project.diags, "B5001", expr.span,
-        "range expressions (`a..<b` / `a..=b`) require Iterator dispatch (deferred — see TODO §1.5b iterators)");
-      return { kind: "LoweredUnreachable", span: expr.span, type: exprType,
-               reason: "range expressions deferred until Iterator dispatch" };
+      return lowerRangeExpr(ctx, expr, exprType);
     case "TryExpr":
       return lowerTry(ctx, expr, exprType);
     case "CastExpr":
@@ -774,12 +940,8 @@ function errorVariantsOf(t: Type, ctx: FnLowerCtx): readonly Type[] {
 function findCoreTrait(ctx: LowerProjectCtx, name: string): Symbol | null {
   const cached = ctx.coreTraitCache.get(name);
   if (cached !== undefined) return cached;
-  let found: Symbol | null = null;
-  for (const program of ctx.evaluated.typed.resolved.modules.values()) {
-    if (program.module.displayPath !== STD_CORE_PATH) continue;
-    const sym = program.module.symbols.get(name);
-    if (sym !== undefined && sym.kind === "trait") { found = sym; break; }
-  }
+  const sym = ctx.coreSymbols?.get(name) ?? null;
+  const found = sym !== null && sym.kind === "trait" ? sym : null;
   ctx.coreTraitCache.set(name, found);
   return found;
 }

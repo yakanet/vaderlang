@@ -4,7 +4,7 @@
   fn tests_snapshots_lower_match_union_input_vader$describe(x: i32 | null | string) -> string
     return
       block :string
-        let __scrut_0#-1: i32 | null | string = x#31 :i32 | null | string
+        let __scrut_0#-1: i32 | null | string = x#34 :i32 | null | string
         ~>
           if :string
             cond:

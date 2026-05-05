@@ -2,3 +2,6 @@
 
 ## tests/snapshots/comptime/interp_string/input.vader
   @comptime  GREETING             = "Hello, Vader!"
+
+## generic instances
+  Yielded(i32)

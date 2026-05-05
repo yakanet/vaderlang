@@ -1,7 +1,11 @@
 module input
-type 0 primitive i32
-type 1 primitive string
-type 2 primitive null
+type 0 struct std_core$Done {  }
+type 1 struct std_core$Range { start:2,end:2,inclusive:3,cursor:2 }
+type 2 primitive i32
+type 3 primitive bool
+type 4 struct std_core$Yielded__i32 { value:2 }
+type 5 primitive string
+type 6 primitive null
 string 0 "an int"
 string 1 "a string"
 string 2 "nothing"
@@ -11,17 +15,17 @@ fn 0 tests_snapshots_bytecode_match_union_input_vader$describe (ref) -> string
   local.get 0   ; input.vader:2:18
   local.set 1   ; input.vader:2:18
   local.get 1   ; input.vader:3:9
-  type_check 0   ; input.vader:3:9
+  type_check 2   ; input.vader:3:9
   if string   ; input.vader:3:9
   string.const 0   ; input.vader:3:22
   else   ; input.vader:3:9
   local.get 1   ; input.vader:4:9
-  type_check 1   ; input.vader:4:9
+  type_check 5   ; input.vader:4:9
   if string   ; input.vader:4:9
   string.const 1   ; input.vader:4:22
   else   ; input.vader:4:9
   local.get 1   ; input.vader:5:9
-  type_check 2   ; input.vader:5:9
+  type_check 6   ; input.vader:5:9
   if string   ; input.vader:5:9
   string.const 2   ; input.vader:5:22
   else   ; input.vader:5:9
@@ -30,4 +34,42 @@ fn 0 tests_snapshots_bytecode_match_union_input_vader$describe (ref) -> string
   end   ; input.vader:4:9
   end   ; input.vader:3:9
   return   ; input.vader:2:5
+end
+
+fn 1 std_core$Range$Iterator$step (ref) -> ref
+  local done bool
+  local v i32
+  local.get 0   ; core.vader:62:21
+  struct.get 1 2   ; core.vader:62:21
+  if bool   ; core.vader:62:17
+  local.get 0   ; core.vader:63:13
+  struct.get 1 3   ; core.vader:63:13
+  local.get 0   ; core.vader:63:27
+  struct.get 1 1   ; core.vader:63:27
+  i32.gt   ; core.vader:63:13
+  else   ; core.vader:62:17
+  local.get 0   ; core.vader:65:13
+  struct.get 1 3   ; core.vader:65:13
+  local.get 0   ; core.vader:65:28
+  struct.get 1 1   ; core.vader:65:28
+  i32.ge   ; core.vader:65:13
+  end   ; core.vader:62:17
+  local.set 1   ; core.vader:62:9
+  local.get 1   ; core.vader:67:13
+  if void   ; core.vader:67:9
+  struct.new 0   ; core.vader:68:20
+  return   ; core.vader:68:13
+  end   ; core.vader:67:9
+  local.get 0   ; core.vader:70:14
+  struct.get 1 3   ; core.vader:70:14
+  local.set 2   ; core.vader:70:9
+  local.get 0   ; core.vader:71:9
+  local.get 0   ; core.vader:71:23
+  struct.get 1 3   ; core.vader:71:23
+  i32.const 1   ; core.vader:71:37
+  i32.add   ; core.vader:71:23
+  struct.set 1 3   ; core.vader:71:9
+  local.get 2   ; core.vader:72:40
+  struct.new 4   ; core.vader:72:16
+  return   ; core.vader:72:9
 end

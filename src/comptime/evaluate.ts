@@ -4,6 +4,7 @@
 
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type * as A from "../parser/ast.ts";
+import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
 import type { Type } from "../typecheck/types.ts";
 
@@ -95,15 +96,92 @@ function evalFileDecorator(
   return result.value;
 }
 
+/** Walk a block for `for x in iter` statements and pass each `iter` expr to
+ *  the visitor. Recurses into nested blocks/exprs since for-in can appear
+ *  anywhere inside a fn body. */
+function forEachForInIter(block: A.BlockExpr, visit: (iter: A.Expr) => void): void {
+  for (const stmt of block.stmts) walkStmt(stmt, visit);
+  if (block.trailing !== null) walkExpr(block.trailing, visit);
+}
+
+function walkStmt(stmt: A.Stmt, visit: (iter: A.Expr) => void): void {
+  switch (stmt.kind) {
+    case "ForStmt":
+      if (stmt.form.kind === "in") visit(stmt.form.iter);
+      forEachForInIter(stmt.body, visit);
+      return;
+    case "LetStmt":     walkExpr(stmt.value, visit); return;
+    case "ExprStmt":    walkExpr(stmt.expr, visit); return;
+    case "ReturnStmt":  if (stmt.value !== null) walkExpr(stmt.value, visit); return;
+    case "AssignStmt":  walkExpr(stmt.target, visit); walkExpr(stmt.value, visit); return;
+    case "DeferStmt":
+      if ("kind" in stmt.body && stmt.body.kind === "BlockExpr") forEachForInIter(stmt.body, visit);
+      else walkStmt(stmt.body as A.Stmt, visit);
+      return;
+    default: return;
+  }
+}
+
+function walkExpr(expr: A.Expr, visit: (iter: A.Expr) => void): void {
+  switch (expr.kind) {
+    case "BlockExpr":  forEachForInIter(expr, visit); return;
+    case "IfExpr":
+      walkExpr(expr.cond, visit);
+      forEachForInIter(expr.then, visit);
+      if (expr.else !== null) walkExpr(expr.else, visit);
+      return;
+    case "MatchExpr":
+      walkExpr(expr.scrutinee, visit);
+      for (const arm of expr.arms) walkExpr(arm.body, visit);
+      return;
+    case "CallExpr":
+      walkExpr(expr.callee, visit);
+      for (const a of expr.args) walkExpr(a.value, visit);
+      return;
+    case "BinaryExpr": walkExpr(expr.left, visit); walkExpr(expr.right, visit); return;
+    case "UnaryExpr":  walkExpr(expr.operand, visit); return;
+    case "FieldExpr":  walkExpr(expr.target, visit); return;
+    case "IndexExpr":  walkExpr(expr.target, visit); walkExpr(expr.index, visit); return;
+    default: return;
+  }
+}
+
 // ----------------------------------------------------- instance walker
 
 function collectInstances(project: TypedProject, registry: InstanceRegistry): void {
+  // Locate `std/core::ArrayIter` once so the for-in walker below can register
+  // an `ArrayIter(T)` instance whenever user code iterates a `[T]` array.
+  let arrayIterSymbol: Symbol | null = null;
+  for (const m of project.modules.values()) {
+    if (m.resolved.module.displayPath === "std/core") {
+      const s = m.resolved.module.symbols.get("ArrayIter");
+      if (s !== undefined) arrayIterSymbol = s;
+      break;
+    }
+  }
+
   for (const typed of project.modules.values()) {
     for (const ty of typed.declTypes.values()) registry.observe(ty);
     for (const ty of typed.paramTypes.values()) registry.observe(ty);
     for (const ty of typed.typeExprTypes.values()) registry.observe(ty);
     for (const ty of typed.exprTypes.values()) registry.observe(ty);
     for (const ty of typed.localTypes.values()) registry.observe(ty);
+
+    // `for x in arr` over a `[T]` triggers an auto-wrap into `ArrayIter(T)`
+    // at lower time. Register that instance here so mono materialises the
+    // specialised impl members; the lowerer can't add to the registry
+    // because it runs after mono.
+    if (arrayIterSymbol !== null) {
+      for (const decl of typed.resolved.source.decls) {
+        if (decl.kind !== "FnDecl" || decl.body === null) continue;
+        forEachForInIter(decl.body, (iter) => {
+          const iterType = typed.exprTypes.get(iter);
+          if (iterType !== undefined && iterType.kind === "Array") {
+            registry.add(arrayIterSymbol!, [iterType.element]);
+          }
+        });
+      }
+    }
     // Explicit `Foo(T1, T2)(...)` generic-fn call sites surface as
     // `GenericInstExpr` nodes — record them so a future fn-mono pass has
     // the dispatch list ready.

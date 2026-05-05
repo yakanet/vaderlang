@@ -96,7 +96,7 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
     out.push(`struct ${cname} {`);
     out.push(`    vader_obj_header_t header;`);
     for (const field of t.fields) {
-      const fty = cTypeFor(ctx, ctx.module.types[field.typeIndex]!, field.typeIndex);
+      const fty = cTypeFor(ctx, ctx.module.types[field.typeIndex]!);
       out.push(`    ${fty} f_${sanitise(field.name)};`);
     }
     out.push(`};`);
@@ -374,7 +374,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "array.len": {
       const arr = pop(s);
       const t = newTmp(s, "i32");
-      line(s, `int32_t ${t} = (int32_t) vader_array_len((vader_array_t*) ${arr.name});`);
+      line(s, `int32_t ${t} = (int32_t) vader_array_len((vader_array_t*) ${asObjPtr(arr)});`);
       return;
     }
 
@@ -577,10 +577,13 @@ function emitStructNew(s: FnState, op: Extract<Op, { kind: "struct.new" }>): voi
   line(s, `${tmp}_obj->header._pad = 0u;`);
   for (let i = 0; i < t.fields.length; i++) {
     const f = t.fields[i]!;
-    const fty = cTypeFor(s.ctx, s.ctx.module.types[f.typeIndex]!, f.typeIndex);
+    const fty = cTypeFor(s.ctx, s.ctx.module.types[f.typeIndex]!);
     line(s, `${tmp}_obj->f_${sanitise(f.name)} = (${fty}) ${fieldVals[i]!.name};`);
   }
-  line(s, `void* ${tmp} = ${tmp}_obj;`);
+  // Always emit struct values as boxed vader_box_t so they flow uniformly
+  // through `ref` slots and across fn boundaries. struct.get unboxes via
+  // .payload.obj before downcasting.
+  line(s, `vader_box_t ${tmp} = vader_box_obj(${op.typeIndex}u, ${tmp}_obj);`);
 }
 
 function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }>): void {
@@ -591,7 +594,7 @@ function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }>): voi
   const f = t.fields[op.fieldIndex]!;
   const fval = valTypeOfField(s.ctx, f.typeIndex);
   const tmp = newTmp(s, fval);
-  line(s, `${cTypeForVal(s.ctx, fval)} ${tmp} = ((${cname}*) ${obj.name})->f_${sanitise(f.name)};`);
+  line(s, `${cTypeForVal(s.ctx, fval)} ${tmp} = ((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)};`);
 }
 
 function emitStructSet(s: FnState, op: Extract<Op, { kind: "struct.set" }>): void {
@@ -601,7 +604,15 @@ function emitStructSet(s: FnState, op: Extract<Op, { kind: "struct.set" }>): voi
   const value = pop(s);
   const obj = pop(s);
   const f = t.fields[op.fieldIndex]!;
-  line(s, `((${cname}*) ${obj.name})->f_${sanitise(f.name)} = ${value.name};`);
+  line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${value.name};`);
+}
+
+/** Coerce a stack value holding a heap reference to a `void*`. Boxed values
+ *  (vader_box_t) need `.payload.obj`; typed pointer slots (struct/array C
+ *  variables) are usable directly. */
+function asObjPtr(v: { name: string; val: ValType }): string {
+  if (v.val === "ref" || v.val === "any") return `${v.name}.payload.obj`;
+  return v.name;
 }
 
 function emitArrayNew(s: FnState, op: Extract<Op, { kind: "array.new" }>): void {
@@ -613,22 +624,21 @@ function emitArrayNew(s: FnState, op: Extract<Op, { kind: "array.new" }>): void 
     const v = elements[i]!;
     line(s, `${tmp}_arr->data[${i}] = ${boxExpr(s.ctx, v.name, v.val, op.typeIndex)};`);
   }
-  line(s, `void* ${tmp} = ${tmp}_arr;`);
+  line(s, `vader_box_t ${tmp} = vader_box_obj(${op.typeIndex}u, ${tmp}_arr);`);
 }
 
-function emitArrayGet(s: FnState, op: Extract<Op, { kind: "array.get" }>): void {
+function emitArrayGet(s: FnState, _op: Extract<Op, { kind: "array.get" }>): void {
   const idx = pop(s);
   const arr = pop(s);
   const tmp = newTmp(s, "any");
-  line(s, `vader_box_t ${tmp} = vader_array_get((vader_array_t*) ${arr.name}, (size_t) ${idx.name});`);
-  void op;
+  line(s, `vader_box_t ${tmp} = vader_array_get((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${idx.name});`);
 }
 
 function emitArraySet(s: FnState, op: Extract<Op, { kind: "array.set" }>): void {
   const value = pop(s);
   const idx = pop(s);
   const arr = pop(s);
-  line(s, `vader_array_set((vader_array_t*) ${arr.name}, (size_t) ${idx.name}, ${boxExpr(s.ctx, value.name, value.val, op.typeIndex)});`);
+  line(s, `vader_array_set((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${idx.name}, ${boxExpr(s.ctx, value.name, value.val, op.typeIndex)});`);
 }
 
 function emitTypeCheck(s: FnState, op: Extract<Op, { kind: "type_check" }>): void {
@@ -715,11 +725,10 @@ function kind(t: ValType, verb: string): string { return `${t}.${verb}`; }
 
 // ------------------------------------------------------------- helpers
 
-function pushBinop(s: FnState, t: ValType, op: string, resultT: ValType): void {
+function pushBinop(s: FnState, _t: ValType, op: string, resultT: ValType): void {
   const r = pop(s); const l = pop(s);
   const tmp = newTmp(s, resultT);
   line(s, `${cTypeForVal(s.ctx, resultT)} ${tmp} = ${l.name} ${op} ${r.name};`);
-  void t;
 }
 
 function pushBinopAny(s: FnState, op: string, resultT: ValType): void {
@@ -730,11 +739,10 @@ function pushBinopAny(s: FnState, op: string, resultT: ValType): void {
   line(s, `${cTypeForVal(s.ctx, resultT)} ${tmp} = (${l.name} ${op} ${r.name});`);
 }
 
-function pushUnop(s: FnState, t: ValType, op: string, resultT: ValType): void {
+function pushUnop(s: FnState, _t: ValType, op: string, resultT: ValType): void {
   const v = pop(s);
   const tmp = newTmp(s, resultT);
   line(s, `${cTypeForVal(s.ctx, resultT)} ${tmp} = ${op}${v.name};`);
-  void t;
 }
 
 function pushFnCall2(s: FnState, resultT: ValType, fn: string): void {
@@ -891,13 +899,18 @@ function valTypeOfBcType(t: BcType): ValType {
   }
 }
 
-function cTypeFor(ctx: EmitCtx, t: BcType, typeIndex: number): string {
+function cTypeFor(_ctx: EmitCtx, t: BcType): string {
   switch (t.kind) {
     case "primitive": return cTypeForValBare(t.val);
-    case "struct":    return `${ctx.structNames[typeIndex]!}*`;
-    case "array":     return `vader_array_t*`;
-    case "union":     return `vader_box_t`;
-    case "ref":       return `vader_box_t`;
+    // All heap types are stored as `vader_box_t` everywhere (locals, struct
+    // fields, array elements). This keeps boxing/unboxing localised to the
+    // value coercion helper and avoids type mismatches between the value
+    // stack and struct field storage.
+    case "struct":
+    case "array":
+    case "union":
+    case "ref":
+      return `vader_box_t`;
   }
 }
 
@@ -907,7 +920,7 @@ function primitiveMatchesType(ctx: EmitCtx, slotVal: ValType, typeIndex: number)
   return false;
 }
 
-function zeroInit(ctx: EmitCtx, v: ValType): string {
+function zeroInit(_ctx: EmitCtx, v: ValType): string {
   switch (v) {
     case "i8": case "i16": case "i32": case "u8": case "u16": case "u32":
     case "i64": case "u64": case "char":
@@ -919,7 +932,6 @@ function zeroInit(ctx: EmitCtx, v: ValType): string {
     case "void":   return "0";
     case "ref": case "any":  return "vader_box_null()";
   }
-  void ctx;
 }
 
 function signatureFor(ctx: EmitCtx, fn: BcFunction): string {

@@ -12,7 +12,7 @@ export { checkProgram };
 
 export function checkProject(project: ResolvedProject, diags: DiagnosticCollector): TypedProject {
   const impls = buildImplRegistry(project);
-  const globals = newGlobals();
+  const globals = newGlobals(project.typeParamSymbols);
   for (const program of project.modules.values()) {
     if (program.module.displayPath === "std/core") {
       globals.coreSymbols = program.module.symbols;

@@ -2,14 +2,14 @@
 
 ## tests/snapshots/lower/try_op/input.vader
   fn tests_snapshots_lower_try_op_input_vader$content(path: string) -> Error | string
-    let raw#40: string =
+    let raw#43: string =
       block :string
         let __try_0#-1: Error | string =
           call :Error | string
             callee:
-              read_file#19 :fn(string) -> Error | string
+              read_file#22 :fn(string) -> Error | string
             arg0:
-              path#39 :string
+              path#42 :string
         ~>
           if :string
             cond:
@@ -21,4 +21,4 @@
               ~>
                 cast → string
                   __try_0#-1 :Error | string
-    return raw#40 :string
+    return raw#43 :string

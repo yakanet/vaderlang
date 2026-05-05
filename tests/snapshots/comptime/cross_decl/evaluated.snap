@@ -4,3 +4,6 @@
   @comptime  A                    = 10_i32
   @comptime  B                    = 20_i32
   @comptime  C                    = 30_i32
+
+## generic instances
+  Yielded(i32)

@@ -1,4 +1,5 @@
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
+import type * as A from "../parser/ast.ts";
 import { makeBuiltinScope, BUILTIN_MODULE_ID, BUILTIN_TYPE_NAMES, isBuiltinTypeName } from "./builtins.ts";
 import { discoverLayout, loadProject } from "./loader.ts";
 import { resolveModule } from "./resolve.ts";
@@ -6,6 +7,7 @@ import { wireImports } from "./wire.ts";
 import { SymbolFactory } from "./symbol.ts";
 import type { LoadedProject, Module, ModuleId } from "./module.ts";
 import type { ResolvedProgram, ResolvedProject } from "./resolved-ast.ts";
+import type { Symbol } from "./symbol.ts";
 
 export type { LoadedProject, Module, SourceFile, ImportEntry, ProjectLayout } from "./module.ts";
 export type { Symbol, SymbolKind, SymbolId } from "./symbol.ts";
@@ -32,6 +34,11 @@ export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCo
   const builtins = makeBuiltinScope(project.factory);
   const importTargets = wireImports(project.modules, diags);
   const coreModule = findCoreModule(project.modules);
+  // Shared cross-module typeParam table — populated as each module's
+  // resolver binds its struct/fn typeParams. Generic impls need this to
+  // reuse the canonical typeParam symbol of the base struct (potentially
+  // declared in another module, e.g. `std/core::ArrayIter`).
+  const typeParamSymbols = new Map<A.TypeParam, Symbol>();
 
   const resolved = new Map<ModuleId, ResolvedProgram>();
   for (const [id, mod] of project.modules) {
@@ -43,12 +50,11 @@ export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCo
       coreModule: id === coreModule?.id ? null : coreModule,
       factory: project.factory,
       diags,
+      typeParamSymbols,
     });
-    // TODO: expose per-file ResolvedPrograms once any consumer needs them;
-    // for now we surface only the first file's program per module.
     if (programs.length > 0) resolved.set(id, programs[0]!);
   }
-  return { modules: resolved, importTargets };
+  return { modules: resolved, importTargets, typeParamSymbols };
 }
 
 function findCoreModule(modules: ReadonlyMap<ModuleId, Module>): Module | null {

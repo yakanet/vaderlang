@@ -42,4 +42,7 @@ export interface ResolvedProgram {
 export interface ResolvedProject {
   readonly modules: ReadonlyMap<string, ResolvedProgram>;     // keyed by ModuleId
   readonly importTargets: ImportTargetTable;
+  /** Cross-module typeParam table — every TypeParam AST node maps to its
+   *  canonical Symbol regardless of which module declared the type. */
+  readonly typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>;
 }

@@ -65,6 +65,7 @@
         "name": "Point"
       },
       "traitName": "Display",
+      "traitArgs": [],
       "members": [
         {
           "kind": "FnDecl",
