@@ -318,6 +318,23 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [ ] `examples/aoc_2024_day1.vader` — solve an AOC problem end-to-end (validates I/O + parsing + collections)
 - [ ] `examples/wasm_browser/` — minimal HTML + Vader code calling JS via `@extern`
 
+### 1.17 Enums (required before self-hosting)
+
+The self-hosting compiler will use enums to represent token kinds, opcode tags, diagnostic severity, and similar closed sets. These must land before Phase 2 begins.
+
+- [ ] Lexer: add `enum` to the keyword table; emit `KW_ENUM` token (`src/lexer/token.ts`).
+- [ ] Parser: add `EnumDecl` AST node (`src/parser/ast.ts`); parse `Name :: enum { A, B, C }` (trailing comma allowed). Decorator support on `EnumDecl` (e.g. `@test`, `private`).
+- [ ] Parser: add `.Variant` dot-shorthand as a new primary expression node `DotVariantExpr` whose enum type is resolved later by the type-checker.
+- [ ] Parser: allow `.Variant -> expr` as a match arm form (distinct from `is Type -> expr`), valid only when the scrutinee is an enum.
+- [ ] Type-checker: add `Enum` type to `src/typecheck/types.ts` — value-typed, carries an ordered list of variant names. `Enum.Variant` access resolves to the enum type.
+- [ ] Type-checker: resolve `DotVariantExpr` to a concrete variant under bidirectional inference — check both operands of `==`/`!=`, the parameter type at a call site, the declared return type, and annotated declaration RHS. Emit `T3xxx` if ambiguous.
+- [ ] Type-checker: exhaustiveness for enum match — all variants must be covered or a `_` wildcard must be present.
+- [ ] Lowerer: lower enum variants to `i32` constants (0-indexed, declaration order); lower `.Variant` arms to integer equality predicates.
+- [ ] Bytecode emitter: emit `i32.const` for each variant; equality (`==`/`!=`) on enums uses `i32.eq`/`i32.ne`.
+- [ ] VM: no special handling needed — enums are integers at runtime.
+- [ ] C emitter: enum variants become `int32_t` constants (`#define` or an anonymous `enum` in the emitted C).
+- [ ] Snapshot tests: `tests/snapshots/parser/enum_decl/`, `tests/snapshots/typecheck/enum_match/`, `tests/snapshots/vm/enum_basic/`.
+
 ---
 
 ## Phase 2 — Self-hosting

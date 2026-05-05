@@ -160,7 +160,7 @@ Nested block comments follow the Rust convention. The lexer tracks nesting depth
 ### Reserved keywords
 
 ```
-fn struct trait implements impl
+fn struct trait implements impl enum
 if else match is for in return defer break continue
 import as
 private
@@ -419,6 +419,96 @@ show :: fn(r: Result) -> string {
 - `T | null` is the standard idiom for nullability.
 - A union `A | B` satisfies a trait `T` if **and only if** both `A` and `B` implement it.
 - Runtime representation: `(tag, payload)` (tagged sum). The compiler chooses the tag size.
+
+### Enums
+
+```vader
+Direction :: enum {
+    North,
+    South,
+    East,
+    West,
+}
+```
+
+An enum defines a **closed set of named variants** with no attached data. Each variant is a distinct constant of the enum's type.
+
+#### Access
+
+Full form: `EnumName.VariantName`.
+
+```vader
+d :: Direction.North
+```
+
+#### Dot-shorthand inference
+
+When the expected type can be determined from context without ambiguity, the enum name may be omitted and replaced by a leading dot:
+
+```vader
+is_north :: fn(d: Direction) -> bool {
+    return d == .North      // .North inferred as Direction.North
+}
+
+// Also in annotated declarations:
+d: Direction = .East
+
+// And in function calls:
+move_towards(.South)        // parameter type is Direction
+
+// And in return statements:
+current_dir :: fn() -> Direction { return .West }
+```
+
+The shorthand `.Variant` is accepted in any position where the target enum type is unambiguous:
+- Either operand of `==` / `!=` whose other operand has an enum type.
+- A function argument whose declared parameter type is an enum.
+- A `return` expression inside a function whose return type is an enum.
+- The right-hand side of a `: EnumType =` declaration.
+
+If the context is ambiguous (two different enum types in scope share a variant name), the compiler emits an error and requires the full `EnumName.Variant` form.
+
+#### Pattern matching
+
+Enum arms in a `match` use the dot-shorthand form. The `is` keyword is **not** used for enum variants (no type narrowing is needed — the type is already known):
+
+```vader
+match d {
+    .North -> "north"
+    .South -> "south"
+    .East  -> "east"
+    .West  -> "west"
+}
+```
+
+Match on an enum scrutinee is **exhaustive**: every variant must appear as an arm, or a wildcard `_` arm must be present.
+
+#### Equality
+
+`==` and `!=` work on enum values and compare by variant identity. No explicit `Eq` impl is required.
+
+#### Representation
+
+Variants are stored as consecutive integers starting from `0` (declaration order). No explicit integer value may be assigned to a variant in MVP. The exact representation is not observable from Vader code. Enum values are **value-typed** (copied on assignment, like `bool`), not heap-allocated.
+
+#### `Display`
+
+Enums do not implement `Display` automatically. Implement the trait explicitly to use an enum in string interpolation:
+
+```vader
+Direction implements Display {
+    fn show(self) -> string {
+        match self {
+            .North -> "North"
+            .South -> "South"
+            .East  -> "East"
+            .West  -> "West"
+        }
+    }
+}
+```
+
+---
 
 ### Pattern matching
 
@@ -1009,6 +1099,7 @@ A source file may contain only:
 - Type declarations: `Result :: type ...`
 - Function declarations: `name :: fn(...) -> T { ... }`
 - Struct declarations: `Foo :: struct { ... }`
+- Enum declarations: `Color :: enum { ... }`
 - Trait declarations: `T :: trait { ... }`
 - Trait implementations: `T implements Trait { ... }`
 - Constant declarations: `PI :: 3.14159`
