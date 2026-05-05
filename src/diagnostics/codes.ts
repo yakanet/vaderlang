@@ -117,3 +117,9 @@ export const COMPTIME = {
 } as const;
 
 export type ComptimeCode = keyof typeof COMPTIME;
+
+export const BACKEND = {
+  B5001: "language feature not yet supported by the backend",
+} as const;
+
+export type BackendCode = keyof typeof BACKEND;

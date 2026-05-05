@@ -2,6 +2,7 @@
 
 import type * as A from "../parser/ast.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
+import { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
 import type { ComptimeValue } from "../comptime/value.ts";
 import type { Symbol } from "../resolver/symbol.ts";
@@ -19,16 +20,18 @@ import type {
   LoweredModule, LoweredParam, LoweredProject, LoweredStmt, LoweredStructLitField,
 } from "./lowered-ast.ts";
 import { INTRINSICS } from "./lowered-ast.ts";
+import { err } from "./diag.ts";
 
 const STD_CORE_PATH = "std/core";
 
-export function lowerProject(evaluated: EvaluatedProject): LoweredProject {
+export function lowerProject(evaluated: EvaluatedProject, diags?: DiagnosticCollector): LoweredProject {
   const mono = monomorphizeProject(evaluated);
   const impls = buildImplRegistry(evaluated.typed.resolved);
   const ctx: LowerProjectCtx = {
     evaluated, mono, impls,
     coreTraitCache: new Map(),
     nextSyntheticId: 1,
+    diags: diags ?? new DiagnosticCollector(),
   };
 
   const byModule = new Map<string, LoweredDecl[]>();
@@ -59,6 +62,7 @@ interface LowerProjectCtx {
   readonly impls: ImplRegistry;
   readonly coreTraitCache: Map<string, Symbol | null>;
   nextSyntheticId: number;
+  readonly diags: DiagnosticCollector;
 }
 
 interface BlockCtx {
@@ -296,8 +300,11 @@ function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
         { kind: "LoweredContinue", span: stmt.span, label: stmt.label }]);
     }
     case "ForStmt": {
+      if (stmt.form.kind === "in") {
+        err(ctx.project.diags, "B5001", stmt.span,
+          "`for x in iter` requires Iterator dispatch (deferred — see TODO §1.5b iterators)");
+      }
       const cond = stmt.form.kind === "while" ? lowerExpr(ctx, stmt.form.cond) : null;
-      // for-x-in / range loops require Iterator dispatch (deferred — see TODO §1.5b).
       const body = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
       return { kind: "LoweredLoop", span: stmt.span, label: stmt.label, cond, body };
     }
@@ -377,6 +384,8 @@ function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
     case "BlockExpr":
       return lowerBlock(ctx, expr, /*isFnRoot*/ false, /*isLoopBody*/ false);
     case "LambdaExpr":
+      err(ctx.project.diags, "B5001", expr.span,
+        "lambdas / closures are not yet supported (lambda lifting deferred — see TODO §1.6)");
       return { kind: "LoweredUnreachable", span: expr.span, type: exprType,
                reason: "lambda lifting not yet implemented" };
     case "StructLitExpr":
@@ -392,6 +401,8 @@ function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         elements: expr.elements.map((e) => lowerExpr(ctx, e)),
       };
     case "RangeExpr":
+      err(ctx.project.diags, "B5001", expr.span,
+        "range expressions (`a..<b` / `a..=b`) require Iterator dispatch (deferred — see TODO §1.5b iterators)");
       return { kind: "LoweredUnreachable", span: expr.span, type: exprType,
                reason: "range expressions deferred until Iterator dispatch" };
     case "TryExpr":

@@ -95,7 +95,7 @@ export async function pipelineLowered(
   file: string, opts?: { allowEnv?: boolean },
 ): Promise<LoweredResult> {
   const r = await pipelineEvaluated(file, opts);
-  const lowered = lowerProject(r.evaluated);
+  const lowered = lowerProject(r.evaluated, r.diagnostics);
   return { ...r, lowered };
 }
 

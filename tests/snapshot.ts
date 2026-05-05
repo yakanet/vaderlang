@@ -128,7 +128,7 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   const project = resolveProject({ entryPath, diags });
   const typed = checkProject(project, diags);
   const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
-  const lowered = lowerProject(evaled);
+  const lowered = lowerProject(evaled, diags);
   const moduleName = (entryPath.split("/").pop() ?? entryPath).replace(/\.vader$/, "");
   const bc = emitBytecode(lowered, moduleName);
 
@@ -152,7 +152,7 @@ export function dumpLower(_source: string, entryPath: string): string {
   const project = resolveProject({ entryPath, diags });
   const typed = checkProject(project, diags);
   const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
-  const lowered = lowerProject(evaled);
+  const lowered = lowerProject(evaled, diags);
 
   const lines: string[] = ["# Lower"];
   for (const id of [...lowered.modules.keys()].sort()) {
