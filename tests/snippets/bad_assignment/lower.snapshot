@@ -2,7 +2,7 @@
 
 ## tests/snippets/bad_assignment/_main.vader
   fn tests_snippets_bad_assignment__main_vader$length(s: string) -> i32
-    return s#34 :string
+    return s#39 :string
 
 # Diagnostics
 [2:5] error[T3020] function body returns a value incompatible with its declared return type: expected i32, got string

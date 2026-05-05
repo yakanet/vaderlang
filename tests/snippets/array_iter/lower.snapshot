@@ -2,17 +2,17 @@
 
 ## tests/snippets/array_iter/_main.vader
   fn tests_snippets_array_iter__main_vader$main() -> i32
-    let arr#42: [i32] =
+    let arr#47: [i32] =
       array :[i32]
         int(10) :i32
         int(20) :i32
         int(30) :i32
         int(40) :i32
-    let sum#43: i32 = int(0) :i32
+    let sum#48: i32 = int(0) :i32
     block :void
       let __iter_0#-1: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: arr#42 :[i32]
+          arr: arr#47 :[i32]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -31,19 +31,19 @@
           then:
             break
           else:
-            let x#44: i32 =
+            let x#49: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_1#-2 :Done | Yielded(i32)
             assign
               target:
-                sum#43 :i32
+                sum#48 :i32
               value:
                 add :i32
                   l:
-                    sum#43 :i32
+                    sum#48 :i32
                   r:
-                    x#44 :i32
+                    x#49 :i32
     call :void
       callee:
         println#20 :fn(string) -> void
@@ -56,20 +56,20 @@
             "sum = " :string
           @builder.append_display <for i32> :void
             __sb_2#-3 :?
-            sum#43 :i32
+            sum#48 :i32
           ~>
             @builder.finish :string
               __sb_2#-3 :?
-    let empty#45: [i32] =
+    let empty#50: [i32] =
       array :[i32]
         int(0) :i32
         int(0) :i32
         int(0) :i32
-    let n#46: i32 = int(0) :i32
+    let n#51: i32 = int(0) :i32
     block :void
       let __iter_3#-4: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: empty#45 :[i32]
+          arr: empty#50 :[i32]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -88,17 +88,17 @@
           then:
             break
           else:
-            let _y#47: i32 =
+            let _y#52: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_4#-5 :Done | Yielded(i32)
             assign
               target:
-                n#46 :i32
+                n#51 :i32
               value:
                 add :i32
                   l:
-                    n#46 :i32
+                    n#51 :i32
                   r:
                     int(1) :i32
     call :void
@@ -113,7 +113,7 @@
             "count = " :string
           @builder.append_display <for i32> :void
             __sb_5#-6 :?
-            n#46 :i32
+            n#51 :i32
           ~>
             @builder.finish :string
               __sb_5#-6 :?

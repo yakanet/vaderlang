@@ -13,7 +13,7 @@ import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Type } from "../types.ts";
 import {
-  CORE_STRUCTS, TY, defaultIfFree, displayType, isAssignable, isInteger, isNumeric, isPrimitive, unionOf,
+  CORE_STRUCTS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, unionOf,
 } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
@@ -36,8 +36,8 @@ export function checkExpr(
   // it now (so `let x: i64 = 5` works without a synthetic node).
   let final = got;
   if (expected !== null) {
-    if (got.kind === "FreeInt" && isAssignable(TY.i32, expected)) final = expected;
-    else if (got.kind === "FreeFloat" && isAssignable(TY.f64, expected)) final = expected;
+    if (got.kind === "FreeInt" && (isInteger(expected) || isAssignable(TY.i32, expected))) final = expected;
+    else if (got.kind === "FreeFloat" && (isFloat(expected) || isAssignable(TY.f64, expected))) final = expected;
   }
   t.exprTypes.set(expr, final);
   return final;

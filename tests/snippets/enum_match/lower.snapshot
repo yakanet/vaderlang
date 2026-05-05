@@ -1,0 +1,349 @@
+# Lower
+
+## tests/snippets/enum_match/_main.vader
+  fn tests_snippets_enum_match__main_vader$classify(n: i32) -> Severity
+    if :void
+      cond:
+        lt :bool
+          l:
+            n#52 :i32
+          r:
+            int(0) :i32
+      then:
+        return int(2) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            n#52 :i32
+          r:
+            int(0) :i32
+      then:
+        return int(1) :i32
+    return int(0) :i32
+  fn tests_snippets_enum_match__main_vader$label(c: Color) -> string
+    ~>
+      block :string
+        let __scrut_0#-1: Color = c#53 :Color
+        ~>
+          if :string
+            cond:
+              eq :bool
+                l:
+                  __scrut_0#-1 :Color
+                r:
+                  int(0) :i32
+            then:
+              ~>
+                "red" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0#-1 :Color
+                      r:
+                        int(1) :i32
+                  then:
+                    ~>
+                      "green" :string
+                  else:
+                    ~>
+                      if :string
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0#-1 :Color
+                            r:
+                              int(2) :i32
+                        then:
+                          ~>
+                            "blue" :string
+                        else:
+                          ~>
+                            unreachable("non-exhaustive match (T3013 should have caught this)") :string
+  fn tests_snippets_enum_match__main_vader$same_color(a: Color, b: Color) -> bool
+    ~>
+      eq :bool
+        l:
+          a#54 :Color
+        r:
+          b#55 :Color
+  fn tests_snippets_enum_match__main_vader$main() -> i32
+    let c#56: Color = int(1) :i32
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            label#5 :fn(Color) -> string
+          arg0:
+            c#56 :Color
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            label#5 :fn(Color) -> string
+          arg0:
+            int(0) :i32
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            label#5 :fn(Color) -> string
+          arg0:
+            int(2) :i32
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-2: ? =
+            @builder.new :?
+          @builder.append_display <for bool> :void
+            __sb_0#-2 :?
+            call :bool
+              callee:
+                same_color#6 :fn(Color, Color) -> bool
+              arg0:
+                int(0) :i32
+              arg1:
+                int(0) :i32
+          ~>
+            @builder.finish :string
+              __sb_0#-2 :?
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1#-3: ? =
+            @builder.new :?
+          @builder.append_display <for bool> :void
+            __sb_1#-3 :?
+            call :bool
+              callee:
+                same_color#6 :fn(Color, Color) -> bool
+              arg0:
+                int(0) :i32
+              arg1:
+                int(2) :i32
+          ~>
+            @builder.finish :string
+              __sb_1#-3 :?
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2#-4: ? =
+            @builder.new :?
+          @builder.append_display <for bool> :void
+            __sb_2#-4 :?
+            neq :bool
+              l:
+                c#56 :Color
+              r:
+                int(0) :i32
+          ~>
+            @builder.finish :string
+              __sb_2#-4 :?
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3#-5: ? =
+            @builder.new :?
+          @builder.append_display <for bool> :void
+            __sb_3#-5 :?
+            neq :bool
+              l:
+                c#56 :Color
+              r:
+                int(1) :i32
+          ~>
+            @builder.finish :string
+              __sb_3#-5 :?
+    let s#57: Severity =
+      call :Severity
+        callee:
+          classify#4 :fn(i32) -> Severity
+        arg0:
+          neg :i32
+            int(5) :i32
+    block :void
+      let __scrut_4#-6: Severity = s#57 :Severity
+      ~>
+        if :void
+          cond:
+            eq :bool
+              l:
+                __scrut_4#-6 :Severity
+              r:
+                int(0) :i32
+          then:
+            ~>
+              call :void
+                callee:
+                  println#25 :fn(string) -> void
+                arg0:
+                  "info" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      __scrut_4#-6 :Severity
+                    r:
+                      int(1) :i32
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#25 :fn(string) -> void
+                      arg0:
+                        "warning" :string
+                else:
+                  ~>
+                    if :void
+                      cond:
+                        eq :bool
+                          l:
+                            __scrut_4#-6 :Severity
+                          r:
+                            int(2) :i32
+                      then:
+                        ~>
+                          call :void
+                            callee:
+                              println#25 :fn(string) -> void
+                            arg0:
+                              "error" :string
+                      else:
+                        ~>
+                          unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    let s2#58: Severity =
+      call :Severity
+        callee:
+          classify#4 :fn(i32) -> Severity
+        arg0:
+          int(0) :i32
+    block :void
+      let __scrut_5#-7: Severity = s2#58 :Severity
+      ~>
+        if :void
+          cond:
+            eq :bool
+              l:
+                __scrut_5#-7 :Severity
+              r:
+                int(0) :i32
+          then:
+            ~>
+              call :void
+                callee:
+                  println#25 :fn(string) -> void
+                arg0:
+                  "info" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      __scrut_5#-7 :Severity
+                    r:
+                      int(1) :i32
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#25 :fn(string) -> void
+                      arg0:
+                        "warning" :string
+                else:
+                  ~>
+                    if :void
+                      cond:
+                        eq :bool
+                          l:
+                            __scrut_5#-7 :Severity
+                          r:
+                            int(2) :i32
+                      then:
+                        ~>
+                          call :void
+                            callee:
+                              println#25 :fn(string) -> void
+                            arg0:
+                              "error" :string
+                      else:
+                        ~>
+                          unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    let s3#59: Severity =
+      call :Severity
+        callee:
+          classify#4 :fn(i32) -> Severity
+        arg0:
+          int(1) :i32
+    block :void
+      let __scrut_6#-8: Severity = s3#59 :Severity
+      ~>
+        if :void
+          cond:
+            eq :bool
+              l:
+                __scrut_6#-8 :Severity
+              r:
+                int(0) :i32
+          then:
+            ~>
+              call :void
+                callee:
+                  println#25 :fn(string) -> void
+                arg0:
+                  "info" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      __scrut_6#-8 :Severity
+                    r:
+                      int(1) :i32
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#25 :fn(string) -> void
+                      arg0:
+                        "warning" :string
+                else:
+                  ~>
+                    if :void
+                      cond:
+                        eq :bool
+                          l:
+                            __scrut_6#-8 :Severity
+                          r:
+                            int(2) :i32
+                      then:
+                        ~>
+                          call :void
+                            callee:
+                              println#25 :fn(string) -> void
+                            arg0:
+                              "error" :string
+                      else:
+                        ~>
+                          unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    return int(0) :i32

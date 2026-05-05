@@ -1,0 +1,66 @@
+import "std/io" { println }
+
+Color :: enum { Red, Green, Blue }
+
+Severity :: enum { Info, Warning, Error }
+
+// enum as return type
+classify :: fn(n: i32) -> Severity {
+    if n < 0 { return .Error }
+    if n == 0 { return .Warning }
+    return .Info
+}
+
+// enum as parameter with dot-shorthand
+label :: fn(c: Color) -> string {
+    match c {
+        .Red   -> "red"
+        .Green -> "green"
+        .Blue  -> "blue"
+    }
+}
+
+// enum equality (== and !=)
+same_color :: fn(a: Color, b: Color) -> bool {
+    a == b
+}
+
+main :: fn() -> i32 {
+    // dot-shorthand in variable declaration
+    c: Color = .Green
+    println(label(c))
+    println(label(.Red))
+    println(label(.Blue))
+
+    // equality
+    println("${same_color(.Red, .Red)}")
+    println("${same_color(.Red, .Blue)}")
+
+    // != operator
+    println("${c != .Red}")
+    println("${c != .Green}")
+
+    // enum as return value
+    s := classify(-5)
+    match s {
+        .Info    -> println("info")
+        .Warning -> println("warning")
+        .Error   -> println("error")
+    }
+
+    s2 := classify(0)
+    match s2 {
+        .Info    -> println("info")
+        .Warning -> println("warning")
+        .Error   -> println("error")
+    }
+
+    s3 := classify(1)
+    match s3 {
+        .Info    -> println("info")
+        .Warning -> println("warning")
+        .Error   -> println("error")
+    }
+
+    return 0
+}

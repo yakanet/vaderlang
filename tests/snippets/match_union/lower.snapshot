@@ -4,7 +4,7 @@
   fn tests_snippets_match_union__main_vader$describe(x: i32 | null | string) -> string
     return
       block :string
-        let __scrut_0#-1: i32 | null | string = x#43 :i32 | null | string
+        let __scrut_0#-1: i32 | null | string = x#48 :i32 | null | string
         ~>
           if :string
             cond:

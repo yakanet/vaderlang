@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/type_aliases/_main.vader
+  FnDecl         add                  :: fn(i32, i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         sum_doubles          :: fn(f64, f64) -> f64
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    CallExpr       :: i32
+  expr 18:16    IdentExpr      :: fn(i32, i32) -> i32
+  expr 18:20    IdentExpr      :: i32
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(string) -> void
+  expr 19:13    StringLitExpr  :: string
+  expr 19:16    IdentExpr      :: i64
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(string) -> void
+  expr 20:13    StringLitExpr  :: string
+  expr 20:16    IdentExpr      :: u8
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 4:5      BinaryExpr     :: i32
+  expr 4:5      IdentExpr      :: i32
+  expr 4:9      IdentExpr      :: i32
+  expr 8:5      BinaryExpr     :: f64
+  expr 8:5      IdentExpr      :: f64
+  expr 8:9      IdentExpr      :: f64

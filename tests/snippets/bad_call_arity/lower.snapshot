@@ -5,9 +5,9 @@
     return
       add :i32
         l:
-          a#35 :i32
+          a#40 :i32
         r:
-          b#36 :i32
+          b#41 :i32
   fn tests_snippets_bad_call_arity__main_vader$main() -> i32
     return
       call :i32

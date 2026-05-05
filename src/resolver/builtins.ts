@@ -9,9 +9,15 @@ import { SymbolFactory } from "./symbol.ts";
 
 export const BUILTIN_MODULE_ID = "<builtin>";
 
-/** Names visible at every scope's root. Primitives + the `type` metatype + `Self`. */
+/** Friendly aliases that map transparently to canonical primitive names. */
+export const BUILTIN_TYPE_ALIASES: readonly string[] = [
+  "int", "long", "float", "double", "byte",
+];
+
+/** Names visible at every scope's root. Primitives + aliases + the `type` metatype + `Self`. */
 export const BUILTIN_TYPE_NAMES: readonly string[] = [
   ...PRIMITIVE_NAMES,
+  ...BUILTIN_TYPE_ALIASES,
   "type",
   "Self",
 ];

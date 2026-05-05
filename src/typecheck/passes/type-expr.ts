@@ -94,6 +94,11 @@ export function primitiveFromName(name: string): Type | null {
     case "f32": case "f64":
     case "bool": case "char": case "string": case "void": case "null":
       return { kind: "Primitive", name };
+    case "int":    return { kind: "Primitive", name: "i32" };
+    case "long":   return { kind: "Primitive", name: "i64" };
+    case "float":  return { kind: "Primitive", name: "f32" };
+    case "double": return { kind: "Primitive", name: "f64" };
+    case "byte":   return { kind: "Primitive", name: "u8" };
     case "type":
       return TY.type;
     case "Self":
