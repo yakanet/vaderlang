@@ -4,11 +4,18 @@ import {
   dumpResolver, dumpTypecheck, errMsg, listSnippets, snapshotEquals,
 } from "./snapshot.ts";
 
+// Each phase entry describes one compilation stage to snapshot:
+//   name    — label used in test names and error messages.
+//   snap    — filename of the snapshot written inside tests/snippets/{name}/.
+//   dump    — function that runs the stage and returns the text to snapshot.
+//   usePath — true: pass the absolute file path to dump (it reads from disk to
+//             resolve imports); false: pass the logical filename and let dump
+//             use the source string directly (no import resolution needed).
 const PHASES = [
   { name: "lexer",     snap: "lexer.snapshot",     dump: dumpLexer,     usePath: false },
   { name: "parser",    snap: "parser.snapshot",    dump: dumpParser,    usePath: false },
   { name: "resolver",  snap: "resolver.snapshot",  dump: dumpResolver,  usePath: true  },
-  { name: "typecheck", snap: "typecheck.snapshot",  dump: dumpTypecheck, usePath: true  },
+  { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheck, usePath: true  },
   { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptime,  usePath: true  },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLower,     usePath: true  },
   { name: "bytecode",  snap: "bytecode.snapshot",  dump: dumpBytecode,  usePath: true  },
