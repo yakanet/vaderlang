@@ -13,6 +13,9 @@ contains    :: fn(s: string, sub: string) -> bool
 starts_with :: fn(s: string, prefix: string) -> bool
 ends_with   :: fn(s: string, suffix: string) -> bool
 
+// Character access (byte index → Unicode codepoint).
+char_at :: fn(s: string, i: i32) -> char
+
 // Splitting and trimming.
 split :: fn(s: string, sep: string) -> [string]
 trim  :: fn(s: string) -> string

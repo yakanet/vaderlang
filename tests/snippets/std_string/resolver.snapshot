@@ -29,6 +29,7 @@
   refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
 
 ## std/string
+  fn               public   char_at 
   fn               public   contains 
   fn               public   ends_with 
   fn               public   len 
@@ -41,19 +42,21 @@
   fn               public   to_lower 
   fn               public   to_upper 
   fn               public   trim 
-  refs: idents=1 types=33 params=18 locals=0 typeParams=0 fields=0
+  refs: idents=1 types=36 params=20 locals=0 typeParams=0 fields=0
 
 ## tests/snippets/std_string/_main.vader
+  import-binding   private  char_at → char_at
   import-binding   private  contains → contains
   import-binding   private  ends_with → ends_with
   import-binding   private  len → len
   fn               public   main 
   import-binding   private  println → println
   import-binding   private  slice → slice
+  import-binding   private  split → split
   import-binding   private  starts_with → starts_with
   import-binding   private  to_lower → to_lower
   import-binding   private  to_upper → to_upper
   import-binding   private  trim → trim
   import std/io → ok
   import std/string → ok
-  refs: idents=18 types=1 params=0 locals=1 typeParams=0 fields=0
+  refs: idents=33 types=1 params=0 locals=2 typeParams=0 fields=0

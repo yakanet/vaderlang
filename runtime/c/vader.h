@@ -161,6 +161,9 @@ vader_string_t vader_string_to_lower(vader_string_t s);
 /* parse_int / parse_float return a box: ok_tag on success, err_tag on failure. */
 vader_box_t    vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
 vader_box_t    vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
+vader_char_t   vader_string_char_at(vader_string_t s, vader_i32_t i);
+vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
+                                  uint32_t arr_type, uint32_t str_type);
 
 /* ----------------------------------------------------------------- math */
 

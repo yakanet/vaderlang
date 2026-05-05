@@ -142,6 +142,49 @@ vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t
     return vader_box_f64(ok_tag, v);
 }
 
+vader_char_t vader_string_char_at(vader_string_t s, vader_i32_t i) {
+    if (i < 0 || (size_t)i >= s.len) return 0;
+    const uint8_t* p = (const uint8_t*)(s.ptr + i);
+    size_t rem = s.len - (size_t)i;
+    uint8_t b = *p;
+    if (b < 0x80) return b;
+    if (b < 0xC0) return 0xFFFDu;  /* continuation byte as lead: invalid UTF-8 */
+    if (b < 0xE0) {
+        if (rem < 2) return 0;
+        return (vader_char_t)(((b & 0x1Fu) << 6) | (p[1] & 0x3Fu));
+    }
+    if (b < 0xF0) {
+        if (rem < 3) return 0;
+        return (vader_char_t)(((b & 0x0Fu) << 12) | ((p[1] & 0x3Fu) << 6) | (p[2] & 0x3Fu));
+    }
+    if (rem < 4) return 0;
+    return (vader_char_t)(((b & 0x07u) << 18) | ((p[1] & 0x3Fu) << 12) | ((p[2] & 0x3Fu) << 6) | (p[3] & 0x3Fu));
+}
+
+vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
+                                  uint32_t arr_type, uint32_t str_type) {
+    vader_array_t* arr = vader_array_new(arr_type, 0);
+    if (sep.len == 0) {
+        for (size_t i = 0; i < s.len; i++) {
+            vader_array_push(arr, vader_box_string(str_type, vader_string_new(s.ptr + i, 1)));
+        }
+        return arr;
+    }
+    const char* p   = s.ptr;
+    const char* end = s.ptr + s.len;
+    for (;;) {
+        const char* found = NULL;
+        for (const char* q = p; q + sep.len <= end; q++) {
+            if (memcmp(q, sep.ptr, sep.len) == 0) { found = q; break; }
+        }
+        size_t piece_len = found ? (size_t)(found - p) : (size_t)(end - p);
+        vader_array_push(arr, vader_box_string(str_type, vader_string_new(p, piece_len)));
+        if (found == NULL) break;
+        p = found + sep.len;
+    }
+    return arr;
+}
+
 /* ----------------------------------------------------------------- builder */
 
 struct vader_builder_s {

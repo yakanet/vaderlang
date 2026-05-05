@@ -168,6 +168,15 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_string$trim":        return `${head} { return vader_string_trim(a0); }`;
     case "std_string$to_upper":    return `${head} { return vader_string_to_upper(a0); }`;
     case "std_string$to_lower":    return `${head} { return vader_string_to_lower(a0); }`;
+    case "std_string$char_at":
+      return `${head} { return vader_string_char_at(a0, a1); }`;
+    case "std_string$split": {
+      const strIdx = ctx.stringTagIndex;
+      if (strIdx < 0) return `${head} { vader_trap("split: no string type"); }`;
+      const arrIdx = ctx.module.types.findIndex(t => t.kind === "array" && t.element === strIdx);
+      if (arrIdx < 0) return `${head} { vader_trap("split: no [string] type"); }`;
+      return `${head} { return vader_box_obj(${arrIdx}u, vader_string_split(a0, a1, ${arrIdx}u, ${strIdx}u)); }`;
+    }
     case "std_string$parse_int":
       return `${head} { return vader_string_parse_int(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_string$parse_float":

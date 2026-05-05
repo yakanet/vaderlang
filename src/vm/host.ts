@@ -7,7 +7,7 @@
 import { accessSync, readFileSync as fsReadFile, writeFileSync as fsWriteFile } from "node:fs";
 
 import type { Value } from "./value.ts";
-import { NULL, VOID, bool, err, num, str, asNum } from "./value.ts";
+import { NULL, VOID, bool, ch, err, num, str, asNum } from "./value.ts";
 
 const UTF8_ENC = new TextEncoder();
 const UTF8_DEC = new TextDecoder();
@@ -96,6 +96,18 @@ export function stdStringBindings(): Record<string, HostFn> {
     std_string$trim:        (args) => str(stringArg(args, 0).trim()),
     std_string$to_upper:    (args) => str(stringArg(args, 0).toUpperCase()),
     std_string$to_lower:    (args) => str(stringArg(args, 0).toLowerCase()),
+    std_string$char_at: (args) => {
+      const bytes = UTF8_ENC.encode(stringArg(args, 0));
+      const i = numArg(args, 1);
+      if (i < 0 || i >= bytes.length) return ch(0);
+      return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
+    },
+    std_string$split: (args) => {
+      const s = stringArg(args, 0);
+      const sep = stringArg(args, 1);
+      const parts = s.split(sep);
+      return { tag: "array" as const, typeIndex: 0, elements: parts.map(p => str(p)) };
+    },
     std_string$parse_int:   (args) => {
       const s = stringArg(args, 0);
       const n = Number(s);

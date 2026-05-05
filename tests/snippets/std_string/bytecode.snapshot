@@ -1,4 +1,6 @@
 module _main
+type 0 array 1
+type 1 primitive string
 string 0 "  Hello, World!  "
 string 1 "hello"
 string 2 "VADER"
@@ -7,6 +9,9 @@ string 4 "oba"
 string 5 "foo"
 string 6 "bar"
 string 7 "hello world"
+string 8 "你好嗎？"
+string 9 "a,b,c"
+string 10 ","
 import 0 print std_io$print (string) -> void
 import 1 println std_io$println (string) -> void
 import 2 read_line std_io$read_line () -> ref
@@ -18,12 +23,13 @@ import 7 slice std_string$slice (string,i32,i32) -> string
 import 8 contains std_string$contains (string,string) -> bool
 import 9 starts_with std_string$starts_with (string,string) -> bool
 import 10 ends_with std_string$ends_with (string,string) -> bool
-import 11 split std_string$split (string,string) -> ref
-import 12 trim std_string$trim (string) -> string
-import 13 to_upper std_string$to_upper (string) -> string
-import 14 to_lower std_string$to_lower (string) -> string
-import 15 parse_int std_string$parse_int (string) -> ref
-import 16 parse_float std_string$parse_float (string) -> ref
+import 11 char_at std_string$char_at (string,i32) -> char
+import 12 split std_string$split (string,string) -> ref
+import 13 trim std_string$trim (string) -> string
+import 14 to_upper std_string$to_upper (string) -> string
+import 15 to_lower std_string$to_lower (string) -> string
+import 16 parse_int std_string$parse_int (string) -> ref
+import 17 parse_float std_string$parse_float (string) -> ref
 
 fn 0 tests_snippets_std_string__main_vader$main () -> i32
   local s string
@@ -31,6 +37,11 @@ fn 0 tests_snippets_std_string__main_vader$main () -> i32
   local __sb_1 any
   local __sb_2 any
   local __sb_3 any
+  local __sb_4 any
+  local __sb_5 any
+  local __sb_6 any
+  local __sb_7 any
+  local parts ref
   string.const 0   ; _main.vader:5:10
   local.set 0   ; _main.vader:5:5
   intrinsic builder.new   ; _main.vader:6:13
@@ -43,13 +54,13 @@ fn 0 tests_snippets_std_string__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:6:13
   call.import 1   ; _main.vader:6:5
   local.get 0   ; _main.vader:7:18
-  call.import 12   ; _main.vader:7:13
+  call.import 13   ; _main.vader:7:13
   call.import 1   ; _main.vader:7:5
   string.const 1   ; _main.vader:8:22
-  call.import 13   ; _main.vader:8:13
+  call.import 14   ; _main.vader:8:13
   call.import 1   ; _main.vader:8:5
   string.const 2   ; _main.vader:9:22
-  call.import 14   ; _main.vader:9:13
+  call.import 15   ; _main.vader:9:13
   call.import 1   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:10:13
   local.set 2   ; _main.vader:10:13
@@ -86,6 +97,62 @@ fn 0 tests_snippets_std_string__main_vader$main () -> i32
   i32.const 11   ; _main.vader:13:37
   call.import 7   ; _main.vader:13:13
   call.import 1   ; _main.vader:13:5
-  i32.const 0   ; _main.vader:14:12
-  return   ; _main.vader:14:5
+  intrinsic builder.new   ; _main.vader:14:13
+  local.set 5   ; _main.vader:14:13
+  local.get 5   ; _main.vader:14:14
+  string.const 1   ; _main.vader:14:24
+  i32.const 1   ; _main.vader:14:33
+  call.import 11   ; _main.vader:14:16
+  intrinsic builder.append_display   ; _main.vader:14:14
+  local.get 5   ; _main.vader:14:13
+  intrinsic builder.finish   ; _main.vader:14:13
+  call.import 1   ; _main.vader:14:5
+  intrinsic builder.new   ; _main.vader:15:13
+  local.set 6   ; _main.vader:15:13
+  local.get 6   ; _main.vader:15:14
+  string.const 8   ; _main.vader:15:24
+  i32.const 0   ; _main.vader:15:32
+  call.import 11   ; _main.vader:15:16
+  intrinsic builder.append_display   ; _main.vader:15:14
+  local.get 6   ; _main.vader:15:13
+  intrinsic builder.finish   ; _main.vader:15:13
+  call.import 1   ; _main.vader:15:5
+  intrinsic builder.new   ; _main.vader:16:13
+  local.set 7   ; _main.vader:16:13
+  local.get 7   ; _main.vader:16:14
+  string.const 8   ; _main.vader:16:24
+  i32.const 1   ; _main.vader:16:32
+  call.import 11   ; _main.vader:16:16
+  intrinsic builder.append_display   ; _main.vader:16:14
+  local.get 7   ; _main.vader:16:13
+  intrinsic builder.finish   ; _main.vader:16:13
+  call.import 1   ; _main.vader:16:5
+  intrinsic builder.new   ; _main.vader:17:13
+  local.set 8   ; _main.vader:17:13
+  local.get 8   ; _main.vader:17:14
+  string.const 8   ; _main.vader:17:24
+  i32.const 3   ; _main.vader:17:32
+  call.import 11   ; _main.vader:17:16
+  intrinsic builder.append_display   ; _main.vader:17:14
+  local.get 8   ; _main.vader:17:13
+  intrinsic builder.finish   ; _main.vader:17:13
+  call.import 1   ; _main.vader:17:5
+  string.const 9   ; _main.vader:18:20
+  string.const 10   ; _main.vader:18:29
+  call.import 12   ; _main.vader:18:14
+  local.set 9   ; _main.vader:18:5
+  local.get 9   ; _main.vader:19:13
+  i32.const 0   ; _main.vader:19:19
+  array.get 0   ; _main.vader:19:13
+  call.import 1   ; _main.vader:19:5
+  local.get 9   ; _main.vader:20:13
+  i32.const 1   ; _main.vader:20:19
+  array.get 0   ; _main.vader:20:13
+  call.import 1   ; _main.vader:20:5
+  local.get 9   ; _main.vader:21:13
+  i32.const 2   ; _main.vader:21:19
+  array.get 0   ; _main.vader:21:13
+  call.import 1   ; _main.vader:21:5
+  i32.const 0   ; _main.vader:22:12
+  return   ; _main.vader:22:5
 end
