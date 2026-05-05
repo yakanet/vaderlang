@@ -1,0 +1,16 @@
+import "std/io" { println }
+
+describe :: fn(x: i32 | string | null) -> string {
+    return match x {
+        is i32    -> "an int"
+        is string -> "a string"
+        is null   -> "nothing"
+    }
+}
+
+main :: fn() -> i32 {
+    println(describe(42))
+    println(describe("hi"))
+    println(describe(null))
+    return 0
+}

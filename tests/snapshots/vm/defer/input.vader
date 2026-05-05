@@ -1,0 +1,11 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    defer println("outer cleanup")
+    println("hi")
+    {
+        defer println("inner cleanup")
+        println("nested")
+    }
+    return 0
+}

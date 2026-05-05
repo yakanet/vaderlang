@@ -1,0 +1,4 @@
+# stdout
+sum 1..5 = 15
+# exit
+0

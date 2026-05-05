@@ -1,0 +1,13 @@
+import "std/io" { println }
+
+square :: fn(n: i32) -> i32 {
+    return n * n
+}
+
+main :: fn() -> i32 {
+    println("squares:")
+    println("${square(0)}")
+    println("${square(3)}")
+    println("${square(7)}")
+    return 0
+}

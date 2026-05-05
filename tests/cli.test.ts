@@ -49,7 +49,7 @@ describe("cli", () => {
 
   test("global flag can appear after the command", async () => {
     const code = await runCli(["run", "foo.vader", "--diagnostics=json"]);
-    // run still exits 1 because file does not exist as a real run; flag was parsed silently
-    expect(code).toBe(2);
+    // run exits 1 because the file doesn't exist; the flag is parsed silently
+    expect(code).toBe(1);
   });
 });

@@ -1,0 +1,12 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    sum := 0
+    i := 1
+    for i <= 5 {
+        sum = sum + i
+        i = i + 1
+    }
+    println("sum 1..5 = ${sum}")
+    return 0
+}

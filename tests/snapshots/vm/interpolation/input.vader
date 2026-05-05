@@ -1,0 +1,8 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    name := "Vader"
+    age := 1
+    println("Hello, ${name}! You are ${age} year(s) old.")
+    return 0
+}

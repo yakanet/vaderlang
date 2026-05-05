@@ -44,6 +44,10 @@ interface MutableTyped {
   readonly globals: Globals;
   readonly exprTypes: Map<A.Expr, Type>;
   readonly localTypes: Map<A.LetStmt, Type>;
+  /** Active narrowings keyed by symbol.id. Push/pop-managed by `inferMatch`
+   *  so that references to a scrutinee symbol inside an `is T -> body` arm
+   *  see `T` instead of the full union. Nested matches stack naturally. */
+  readonly narrowed: Map<number, Type>;
 }
 
 interface FnContext {
@@ -59,7 +63,7 @@ export function declareModule(
 ): void {
   const t: MutableTyped = {
     resolved: program, globals,
-    exprTypes: new Map(), localTypes: new Map(),
+    exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
   };
   for (const decl of program.source.decls) declareType(decl, t, diags);
 }
@@ -72,7 +76,7 @@ export function checkProgram(
 ): TypedProgram {
   const t: MutableTyped = {
     resolved: program, globals,
-    exprTypes: new Map(), localTypes: new Map(),
+    exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
   };
 
   for (const decl of program.source.decls) {
@@ -492,6 +496,8 @@ function inferIdent(expr: A.IdentExpr, t: MutableTyped): Type {
 }
 
 function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {
+  const narrow = t.narrowed.get(sym.id);
+  if (narrow !== undefined) return narrow;
   switch (sym.kind) {
     case "fn":
     case "const":
@@ -776,20 +782,27 @@ function inferMatch(
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   const scrut = checkExpr(expr.scrutinee, null, t, impls, diags, fn);
+  const scrutSym = scrutineeSymbol(expr.scrutinee, t);
   const armTypes: Type[] = [];
   let hasWildcard = false;
   const coveredVariants = new Set<string>();
   for (const arm of expr.arms) {
     if (arm.pattern.kind === "WildcardPattern") hasWildcard = true;
+    let narrowed: Type | null = null;
     if (arm.pattern.kind === "IsPattern") {
       const variantTy = lowerTypeExpr(arm.pattern.type, t, diags);
       coveredVariants.add(displayType(variantTy));
+      narrowed = variantTy;
     }
+    const prev = scrutSym !== null && narrowed !== null
+      ? pushNarrowing(t, scrutSym.id, narrowed)
+      : null;
     if (arm.guard !== null) {
       const g = checkExpr(arm.guard, TY.bool, t, impls, diags, fn);
       if (!isAssignable(g, TY.bool)) err(diags, "T3019", arm.guard.span);
     }
     armTypes.push(checkExpr(arm.body, expected, t, impls, diags, fn));
+    if (scrutSym !== null && narrowed !== null) popNarrowing(t, scrutSym.id, prev);
   }
 
   if (!hasWildcard) {
@@ -808,6 +821,28 @@ function inferMatch(
   }
 
   return armTypes.length === 0 ? TY.never : unionOf(armTypes);
+}
+
+/** Resolve the scrutinee to a symbol when it's a plain identifier referring
+ *  to a local or parameter — only those flow narrowing usefully. Anything
+ *  else (calls, field access, literals) gets no narrowing. */
+function scrutineeSymbol(scrut: A.Expr, t: MutableTyped): Symbol | null {
+  if (scrut.kind !== "IdentExpr") return null;
+  const sym = t.resolved.idents.get(scrut);
+  if (sym === undefined) return null;
+  if (sym.kind !== "local" && sym.kind !== "param" && sym.kind !== "binding") return null;
+  return sym;
+}
+
+function pushNarrowing(t: MutableTyped, symId: number, narrow: Type): Type | undefined {
+  const prev = t.narrowed.get(symId);
+  t.narrowed.set(symId, narrow);
+  return prev;
+}
+
+function popNarrowing(t: MutableTyped, symId: number, prev: Type | undefined): void {
+  if (prev === undefined) t.narrowed.delete(symId);
+  else t.narrowed.set(symId, prev);
 }
 
 function inferLambda(
