@@ -14,6 +14,7 @@ import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { MethodResolution } from "../typed-ast.ts";
 import type { Type } from "../types.ts";
 import { TY, displayType, isAssignable, isNumeric } from "../types.ts";
+import type { Symbol } from "../../resolver/symbol.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
@@ -152,10 +153,39 @@ export function inferField(
     return methodBoundFnType(method, t);
   }
 
+  // UFCS for free functions: resolver recorded a candidate if the name was in scope.
+  const freeSym = t.resolved.ufcsFreeResolutions.get(expr);
+  if (freeSym !== undefined) {
+    const boundType = inferUfcsFreeBound(expr, freeSym, targetType, t, diags);
+    if (boundType !== null) return boundType;
+  }
+
   if (targetType.kind !== "Unresolved") {
     err(diags, "T3009", expr.fieldSpan, `\`${expr.field}\` on ${displayType(targetType)}`);
   }
   return TY.unresolved;
+}
+
+/** Validate that `freeSym` is a fn whose first param accepts `targetType`, record the
+ *  resolution, and return the bound fn type (params without the first). Returns null
+ *  and emits no error if the candidate doesn't match — the caller emits T3009. */
+function inferUfcsFreeBound(
+  expr: A.FieldExpr, freeSym: Symbol, targetType: Type,
+  t: MutableTyped, _diags: DiagnosticCollector,
+): Type | null {
+  const fnType = freeFnType(freeSym, t);
+  if (fnType === null || fnType.kind !== "Fn") return null;
+  if (fnType.params.length === 0 || !isAssignable(targetType, fnType.params[0]!)) return null;
+  t.ufcsFreeResolutions.set(expr, freeSym);
+  return { kind: "Fn", params: fnType.params.slice(1), returnType: fnType.returnType };
+}
+
+/** Get the Fn type for a free symbol, following import chains. */
+function freeFnType(sym: Symbol, t: MutableTyped): Type | null {
+  const resolved = sym.source.kind === "import" && sym.source.target !== null
+    ? sym.source.target : sym;
+  const decl = declOf(resolved);
+  return decl !== null ? t.globals.declTypes.get(decl) ?? null : null;
 }
 
 /** Walk the impl registry for a method matching the target type + name. */

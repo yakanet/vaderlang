@@ -59,4 +59,4 @@
   import-binding   private  trim → trim
   import std/io → ok
   import std/string → ok
-  refs: idents=33 types=1 params=0 locals=2 typeParams=0 fields=0
+  refs: idents=21 types=1 params=0 locals=2 typeParams=0 fields=0

@@ -40,6 +40,7 @@ interface MutableProgram {
   forIns: Map<A.ForStmt, Symbol>;
   typeParams: Map<A.TypeParam, Symbol>;
   fields: Map<A.FieldExpr, Symbol>;
+  ufcsFreeResolutions: Map<A.FieldExpr, Symbol>;
 }
 
 interface Scope {
@@ -83,6 +84,7 @@ export function resolveModule(input: ResolveModuleInput): ResolvedProgram[] {
       forIns: new Map(),
       typeParams: new Map(),
       fields: new Map(),
+      ufcsFreeResolutions: new Map(),
     };
     for (const decl of file.program.decls) {
       resolveDecl(decl, root, program, input);
@@ -438,24 +440,34 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
 
 function resolveFieldExpr(expr: A.FieldExpr, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {
   resolveExpr(expr.target, scope, p, input);
-  // If the target identifier resolved to an import-binding pointing at a module,
-  // bind the field name to a symbol from that module.
-  if (expr.target.kind !== "IdentExpr") return;
-  const targetSym = p.idents.get(expr.target);
-  if (targetSym === undefined || targetSym.kind !== "import-binding") return;
-  const importTarget = input.importTargets.get(targetSym.id);
-  if (importTarget === undefined || importTarget.kind !== "module") return;
-  const exported = importTarget.module.symbols.get(expr.field);
-  if (exported === undefined) {
-    err(input.diags, "R2003", expr.fieldSpan,
-      `\`${expr.field}\` from module \`${importTarget.module.displayPath}\``);
-    return;
+  // Module-namespace lookup: `module.symbol` form.
+  if (expr.target.kind === "IdentExpr") {
+    const targetSym = p.idents.get(expr.target);
+    if (targetSym !== undefined && targetSym.kind === "import-binding") {
+      const importTarget = input.importTargets.get(targetSym.id);
+      if (importTarget !== undefined && importTarget.kind === "module") {
+        const exported = importTarget.module.symbols.get(expr.field);
+        if (exported === undefined) {
+          err(input.diags, "R2003", expr.fieldSpan,
+            `\`${expr.field}\` from module \`${importTarget.module.displayPath}\``);
+          return;
+        }
+        if (exported.visibility === "private") {
+          err(input.diags, "R2008", expr.fieldSpan, `\`${expr.field}\``);
+          return;
+        }
+        p.fields.set(expr, exported);
+        return;
+      }
+    }
   }
-  if (exported.visibility === "private") {
-    err(input.diags, "R2008", expr.fieldSpan, `\`${expr.field}\``);
-    return;
+  // UFCS: `target.fn(args)` as sugar for `fn(target, args)`. Look up `expr.field`
+  // as a free function in the current scope and record the resolved symbol.
+  // Type validation (first-param compatibility) is deferred to the typechecker.
+  const freeSym = lookup(scope, expr.field);
+  if (freeSym !== null) {
+    p.ufcsFreeResolutions.set(expr, resolveImportRedirect(freeSym, input));
   }
-  p.fields.set(expr, exported);
 }
 
 function resolveLambda(expr: A.LambdaExpr, parent: Scope, p: MutableProgram, input: ResolveModuleInput): void {

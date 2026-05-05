@@ -73,6 +73,20 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
             };
           }
         }
+        const freeSym = ctx.typed.ufcsFreeResolutions.get(expr.callee);
+        if (freeSym !== undefined) {
+          const calleeIdent: LoweredExpr = {
+            kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: freeSym,
+          };
+          return {
+            kind: "LoweredCall", span: expr.span, type: exprType,
+            callee: calleeIdent,
+            args: [
+              lowerExpr(ctx, expr.callee.target),
+              ...expr.args.map((a) => lowerExpr(ctx, a.value)),
+            ],
+          };
+        }
       }
       return {
         kind: "LoweredCall", span: expr.span, type: exprType,

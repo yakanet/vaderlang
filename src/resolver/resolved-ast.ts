@@ -37,6 +37,11 @@ export interface ResolvedProgram {
 
   /** When `obj.field` resolves through a module import, the field is bound here. */
   readonly fields: ReadonlyMap<A.FieldExpr, Symbol>;
+
+  /** When `obj.method(args)` is UFCS on a free imported function, the resolved
+   *  function symbol is recorded here (after import-redirect). The typechecker
+   *  validates first-param compatibility and records into `MutableTyped.ufcsFreeResolutions`. */
+  readonly ufcsFreeResolutions: ReadonlyMap<A.FieldExpr, Symbol>;
 }
 
 export interface ResolvedProject {

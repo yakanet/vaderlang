@@ -26,7 +26,7 @@
       arg0:
         call :string
           callee:
-            trim#42 :fn(string) -> string
+            trim#42 :string
           arg0:
             s#70 :string
     call :void
@@ -35,7 +35,7 @@
       arg0:
         call :string
           callee:
-            to_upper#43 :fn(string) -> string
+            to_upper#43 :string
           arg0:
             "hello" :string
     call :void
@@ -44,7 +44,7 @@
       arg0:
         call :string
           callee:
-            to_lower#44 :fn(string) -> string
+            to_lower#44 :string
           arg0:
             "VADER" :string
     call :void
@@ -58,7 +58,7 @@
             __sb_1#-2 :?
             call :bool
               callee:
-                contains#37 :fn(string, string) -> bool
+                contains#37 :bool
               arg0:
                 "foobar" :string
               arg1:
@@ -77,7 +77,7 @@
             __sb_2#-3 :?
             call :bool
               callee:
-                starts_with#38 :fn(string, string) -> bool
+                starts_with#38 :bool
               arg0:
                 "foobar" :string
               arg1:
@@ -96,7 +96,7 @@
             __sb_3#-4 :?
             call :bool
               callee:
-                ends_with#39 :fn(string, string) -> bool
+                ends_with#39 :bool
               arg0:
                 "foobar" :string
               arg1:
@@ -110,7 +110,7 @@
       arg0:
         call :string
           callee:
-            slice#36 :fn(string, i32, i32) -> string
+            slice#36 :string
           arg0:
             "hello world" :string
           arg1:
@@ -128,7 +128,7 @@
             __sb_4#-5 :?
             call :char
               callee:
-                char_at#40 :fn(string, i32) -> char
+                char_at#40 :char
               arg0:
                 "hello" :string
               arg1:
@@ -147,7 +147,7 @@
             __sb_5#-6 :?
             call :char
               callee:
-                char_at#40 :fn(string, i32) -> char
+                char_at#40 :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -166,7 +166,7 @@
             __sb_6#-7 :?
             call :char
               callee:
-                char_at#40 :fn(string, i32) -> char
+                char_at#40 :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -185,7 +185,7 @@
             __sb_7#-8 :?
             call :char
               callee:
-                char_at#40 :fn(string, i32) -> char
+                char_at#40 :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -196,7 +196,7 @@
     let parts#71: [string] =
       call :[string]
         callee:
-          split#41 :fn(string, string) -> [string]
+          split#41 :[string]
         arg0:
           "a,b,c" :string
         arg1:

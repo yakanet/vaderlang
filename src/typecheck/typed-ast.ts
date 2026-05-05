@@ -1,5 +1,6 @@
 import type * as A from "../parser/ast.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
+import type { Symbol } from "../resolver/symbol.ts";
 import type { ImplEntry } from "./impls.ts";
 import type { Type } from "./types.ts";
 
@@ -33,6 +34,9 @@ export interface TypedProgram {
    *  UFCS. The lowerer reads this to rewrite `obj.method(args)` into a
    *  direct call of the impl's specialised fn with `obj` as the first arg. */
   readonly methodResolutions: ReadonlyMap<A.FieldExpr, MethodResolution>;
+  /** `obj.fn(args)` UFCS on free imported functions — rewritten to `fn(obj, args)`.
+   *  Populated by the typechecker after validating first-param compatibility. */
+  readonly ufcsFreeResolutions: ReadonlyMap<A.FieldExpr, Symbol>;
   /** Built-in array methods (`len`, `push`). The lowerer emits
    *  `LoweredArrayLen`/`LoweredArrayPush` for these call sites. */
   readonly arrayOps: ReadonlyMap<A.FieldExpr, "len" | "push">;

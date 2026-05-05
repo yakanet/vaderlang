@@ -34,7 +34,7 @@ export function declareModule(
   const t: MutableTyped = {
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
-    methodResolutions: new Map(), arrayOps: new Map(),
+    methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
   };
   for (const decl of program.source.decls) declareType(decl, t, diags);
 }
@@ -48,7 +48,7 @@ export function checkProgram(
   const t: MutableTyped = {
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
-    methodResolutions: new Map(), arrayOps: new Map(),
+    methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
   };
 
   for (const decl of program.source.decls) {
@@ -87,6 +87,7 @@ export function checkProgram(
     paramTypes: globals.paramTypes,
     typeExprTypes: globals.typeExprTypes,
     methodResolutions: t.methodResolutions,
+    ufcsFreeResolutions: t.ufcsFreeResolutions,
     arrayOps: t.arrayOps,
   };
 }
