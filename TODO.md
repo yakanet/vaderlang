@@ -165,7 +165,9 @@ Per SPEC §2 ("Lowered AST"), the lowerer consumes the post-mono typed AST and e
 **Deferred to later phases:**
 
 - [ ] Lambda lifting (closure conversion). Today an unlowered `LambdaExpr` becomes a `LoweredUnreachable` so the gap is visible in dumps; when generic-fn dispatch and Iterator land, lambdas need to be hoisted to top-level fns with explicit captures.
-- [ ] `for x in iter` and `RangeExpr` lowering. Both currently surface as `LoweredUnreachable("…deferred until Iterator dispatch")`. Work happens alongside §1.5b's iterator support.
+- [x] **`for x in <RangeExpr>` lowering (subset).** `for i in 0..<n` and `for i in 0..=n` now desugar to a counted `LoweredLoop` (pre-decremented init + increment-then-check at top, so `continue` re-runs the increment correctly). The for-binding type is narrowed via the typecheck `narrowed` map (default-defaulted to `i32` if the bound is a free integer literal). Resolver tracks the binding via `forIns: Map<ForStmt, Symbol>`. Snapshot `tests/snapshots/vm/for_range/`.
+- [ ] **`for x in <iterable>` over non-range targets** still requires Iterator dispatch — emits `B5001` at the for site. Lifts when the full Iterator trait machinery lands (§1.5b iterators).
+- [ ] **`RangeExpr` outside `for`** (e.g. as a value passed to a fn) still emits `B5001` — produces a `LoweredUnreachable` since `Range<T>` isn't a stdlib type yet.
 - [ ] Per-binding type narrowing: `is T as x` patterns currently rely on `LoweredCast` because the typechecker leaves the binding's symbol type at `Unresolved`. Once finer-grained narrowing lands (typecheck deferred item), the lowerer can drop the cast.
 - [ ] Match decision-tree compilation (Maranget-style). Naive linear chains are good enough for MVP; revisit if perf or code size become an issue.
 

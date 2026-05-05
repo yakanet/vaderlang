@@ -409,14 +409,31 @@ function checkForStmt(
       if (!isAssignable(got, TY.bool)) err(diags, "T3019", stmt.form.cond.span);
       break;
     }
-    case "in":
+    case "in": {
       checkExpr(stmt.form.iter, null, t, impls, diags, fn);
-      // For-in's binding type would require Iterable resolution. MVP: leave Unresolved,
-      // typecheck of references against it will succeed via Unresolved compatibility.
-      break;
+      // MVP: only `RangeExpr` iters are supported (1.5b-A1). Full Iterator
+      // dispatch is deferred — the lowerer emits B5001 if it sees anything
+      // else, so the typecheck just narrows the binding when we recognise
+      // the range form.
+      const bindingSym = t.resolved.forIns.get(stmt);
+      const elementTy = forInElementType(stmt.form.iter, t);
+      if (bindingSym !== undefined && elementTy !== null) {
+        t.narrowed.set(bindingSym.id, elementTy);
+      }
+      const newFn = fn !== null ? { ...fn, loopDepth: fn.loopDepth + 1 } : null;
+      checkBlock(stmt.body, null, t, impls, diags, newFn);
+      if (bindingSym !== undefined) t.narrowed.delete(bindingSym.id);
+      return;
+    }
   }
   const newFn = fn !== null ? { ...fn, loopDepth: fn.loopDepth + 1 } : null;
   checkBlock(stmt.body, null, t, impls, diags, newFn);
+}
+
+function forInElementType(iter: A.Expr, t: MutableTyped): Type | null {
+  if (iter.kind !== "RangeExpr") return null;
+  const lower = t.exprTypes.get(iter.lower);
+  return lower !== undefined ? defaultIfFree(lower) : null;
 }
 
 // ============================================================================

@@ -31,6 +31,7 @@ interface MutableProgram {
   types: Map<A.NamedType, Symbol>;
   params: Map<A.FnParam, Symbol>;
   locals: Map<A.LetStmt, Symbol>;
+  forIns: Map<A.ForStmt, Symbol>;
   typeParams: Map<A.TypeParam, Symbol>;
   fields: Map<A.FieldExpr, Symbol>;
 }
@@ -73,6 +74,7 @@ export function resolveModule(input: ResolveModuleInput): ResolvedProgram[] {
       types: new Map(),
       params: new Map(),
       locals: new Map(),
+      forIns: new Map(),
       typeParams: new Map(),
       fields: new Map(),
     };
@@ -215,7 +217,7 @@ function bindLocal(stmt: A.LetStmt, scope: Scope, p: MutableProgram, input: Reso
 function bindBinding(
   name: string, span: Span, origin: BindingOrigin,
   scope: Scope, input: ResolveModuleInput,
-): void {
+): Symbol {
   const sym = input.factory.make({
     kind: "binding",
     name,
@@ -225,6 +227,7 @@ function bindBinding(
     source: { kind: "binding", origin },
   });
   scope.bindings.set(name, sym);
+  return sym;
 }
 
 function resolveWhereClause(w: A.WhereClause, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {
@@ -317,10 +320,12 @@ function resolveForStmt(stmt: A.ForStmt, parent: Scope, p: MutableProgram, input
     case "while":
       resolveExpr(stmt.form.cond, scope, p, input);
       break;
-    case "in":
+    case "in": {
       resolveExpr(stmt.form.iter, scope, p, input);
-      bindBinding(stmt.form.binding, stmt.form.bindingSpan, { kind: "for-in", stmt }, scope, input);
+      const sym = bindBinding(stmt.form.binding, stmt.form.bindingSpan, { kind: "for-in", stmt }, scope, input);
+      p.forIns.set(stmt, sym);
       break;
+    }
   }
   resolveBlock(stmt.body, scope, p, input);
 }

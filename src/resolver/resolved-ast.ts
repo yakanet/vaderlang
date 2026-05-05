@@ -28,6 +28,10 @@ export interface ResolvedProgram {
   /** Symbols introduced for `:=` / `::` locals. */
   readonly locals: ReadonlyMap<A.LetStmt, Symbol>;
 
+  /** Symbols introduced by `for x in iter` — keyed by the ForStmt so the
+   *  typechecker / lowerer can resolve `x` from the form alone. */
+  readonly forIns: ReadonlyMap<A.ForStmt, Symbol>;
+
   /** Symbols introduced by `$T` and struct/trait `(T: type)` heads. */
   readonly typeParams: ReadonlyMap<A.TypeParam, Symbol>;
 

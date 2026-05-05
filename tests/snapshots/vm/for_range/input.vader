@@ -1,0 +1,23 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    sum := 0
+    for i in 0..<5 {
+        sum = sum + i
+    }
+    println("0..<5 -> ${sum}")
+
+    total := 0
+    for j in 1..=4 {
+        total = total + j
+    }
+    println("1..=4 -> ${total}")
+
+    // empty range
+    n := 0
+    for k in 5..<3 {
+        n = n + 1
+    }
+    println("5..<3 iters -> ${n}")
+    return 0
+}

@@ -301,8 +301,9 @@ function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
     }
     case "ForStmt": {
       if (stmt.form.kind === "in") {
+        if (stmt.form.iter.kind === "RangeExpr") return lowerForInRange(ctx, stmt, stmt.form.iter);
         err(ctx.project.diags, "B5001", stmt.span,
-          "`for x in iter` requires Iterator dispatch (deferred — see TODO §1.5b iterators)");
+          "`for x in iter` over non-range iterators requires Iterator dispatch (deferred — see TODO §1.5b iterators)");
       }
       const cond = stmt.form.kind === "while" ? lowerExpr(ctx, stmt.form.cond) : null;
       const body = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
@@ -323,6 +324,80 @@ function collectDefersUpTo(ctx: FnLowerCtx, stopOnLoop: boolean): LoweredStmt[] 
     if (stopOnLoop && b.isLoopBody) break;
   }
   return out;
+}
+
+/** Desugar `for x in lower..<upper` (and `..=`) to a counted loop with the
+ *  increment at the top so `continue` re-runs it correctly. Inclusive ranges
+ *  use `>` for the break check, exclusive use `>=`. The lower bound is
+ *  pre-decremented so the very first body iteration sees `x = lower`.
+ */
+function lowerForInRange(ctx: FnLowerCtx, stmt: A.ForStmt, range: A.RangeExpr): LoweredStmt {
+  if (stmt.form.kind !== "in") throw new Error("lowerForInRange called on non-`in` form");
+  const span = stmt.span;
+  const bindingSym = ctx.typed.resolved.forIns.get(stmt);
+  if (bindingSym === undefined) {
+    err(ctx.project.diags, "B5001", span, "for-in binding not resolved");
+    return { kind: "LoweredExprStmt", span,
+      expr: { kind: "LoweredUnreachable", span, type: TY.void, reason: "for-in binding missing" } };
+  }
+  const elemType = applySubst(ctx.typed.exprTypes.get(range.lower) ?? TY.unresolved, ctx.subst);
+  const elementType = defaultIfFree(elemType);
+
+  const endSym = freshSyntheticSymbol(ctx, "end");
+  const lowerVal = lowerExpr(ctx, range.lower);
+  const upperVal = lowerExpr(ctx, range.upper);
+
+  // x := lower - 1   (pre-decremented; first body iter sees x = lower)
+  const oneLit: LoweredExpr = { kind: "LoweredIntLit", span, type: elementType, value: 1n };
+  const lowerMinusOne: LoweredExpr = {
+    kind: "LoweredBinary", span, op: "sub", type: elementType, left: lowerVal, right: oneLit,
+  };
+
+  const setupStmts: LoweredStmt[] = [
+    { kind: "LoweredLet", span, name: endSym.name, symbol: endSym, type: elementType, value: upperVal },
+    { kind: "LoweredLet", span, name: stmt.form.binding, symbol: bindingSym,
+      type: elementType, value: lowerMinusOne },
+  ];
+
+  const xRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: elementType, symbol: bindingSym,
+  });
+  const endRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: elementType, symbol: endSym,
+  });
+
+  // Top-of-iter: x = x + 1
+  const incOne: LoweredExpr = { kind: "LoweredIntLit", span, type: elementType, value: 1n };
+  const xPlusOne: LoweredExpr = {
+    kind: "LoweredBinary", span, op: "add", type: elementType, left: xRef(), right: incOne,
+  };
+  const incrementStmt: LoweredStmt = { kind: "LoweredAssign", span, target: xRef(), value: xPlusOne };
+
+  // Break when out of range. Exclusive uses `>=`, inclusive uses `>`.
+  const breakOp: A.BinaryOp = range.inclusive ? "gt" : "gte";
+  const breakCond: LoweredExpr = {
+    kind: "LoweredBinary", span, op: breakOp, type: TY.bool, left: xRef(), right: endRef(),
+  };
+  const breakStmt: LoweredStmt = { kind: "LoweredBreak", span, label: null };
+  const breakIf: LoweredExpr = {
+    kind: "LoweredIf", span, type: TY.void, cond: breakCond,
+    then: { kind: "LoweredBlock", span, type: TY.void, stmts: [breakStmt], trailing: null },
+    else: null,
+  };
+  const breakIfStmt: LoweredStmt = { kind: "LoweredExprStmt", span, expr: breakIf };
+
+  const userBody = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
+  const loopBodyStmts: LoweredStmt[] = [incrementStmt, breakIfStmt, ...userBody.stmts];
+  if (userBody.trailing !== null) {
+    loopBodyStmts.push({ kind: "LoweredExprStmt", span: userBody.trailing.span, expr: userBody.trailing });
+  }
+
+  const loop: LoweredStmt = {
+    kind: "LoweredLoop", span, label: stmt.label, cond: null,
+    body: { kind: "LoweredBlock", span, type: TY.void, stmts: loopBodyStmts, trailing: null },
+  };
+
+  return wrapStmts(span, [...setupStmts, loop]);
 }
 
 /** Pack a sequence of statements into a single statement, transparent to control flow. */
