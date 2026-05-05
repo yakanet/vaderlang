@@ -52,6 +52,14 @@ export const CORE_TRAITS = {
   Iterable: "Iterable",
 } as const;
 
+/** Names of stdlib core structs the compiler refers to by symbol. */
+export const CORE_STRUCTS = {
+  Range:     "Range",
+  ArrayIter: "ArrayIter",
+  Done:      "Done",
+  Yielded:   "Yielded",
+} as const;
+
 export interface PrimitiveType {
   readonly kind: "Primitive";
   readonly name: PrimitiveName;

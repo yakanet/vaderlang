@@ -7,6 +7,7 @@ import type * as A from "../parser/ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
 import type { Type } from "../typecheck/types.ts";
+import { CORE_STRUCTS } from "../typecheck/types.ts";
 
 import { staticStringValue } from "../parser/ast.ts";
 import { DEC } from "../parser/decorators.ts";
@@ -154,7 +155,7 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry): vo
   let arrayIterSymbol: Symbol | null = null;
   for (const m of project.modules.values()) {
     if (m.resolved.module.displayPath === "std/core") {
-      const s = m.resolved.module.symbols.get("ArrayIter");
+      const s = m.resolved.module.symbols.get(CORE_STRUCTS.ArrayIter);
       if (s !== undefined) arrayIterSymbol = s;
       break;
     }

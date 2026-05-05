@@ -7,7 +7,7 @@ import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { ImplEntry } from "../../typecheck/impls.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { TY, displayType, substitute } from "../../typecheck/types.ts";
+import { CORE_STRUCTS, CORE_TRAITS, TY, displayType, substitute } from "../../typecheck/types.ts";
 import type { MonoEntry } from "../../monomorphize/index.ts";
 
 import type { FnLowerCtx, LowerProjectCtx } from "../ctx.ts";
@@ -58,7 +58,7 @@ export function lowerForIn(ctx: FnLowerCtx, stmt: A.ForStmt): LoweredStmt {
   // captures the array, sets cursor=0, and pre-computes the length via the
   // `array.len` op (no generic `len(arr)` fn needed).
   if (iterType.kind === "Array") {
-    const arrayIterType = findCoreType(ctx, "ArrayIter", [iterType.element]);
+    const arrayIterType = findCoreType(ctx, CORE_STRUCTS.ArrayIter, [iterType.element]);
     if (arrayIterType !== null) {
       iterLowered = {
         kind: "LoweredStructLit", span: iterExpr.span, type: arrayIterType,
@@ -85,8 +85,8 @@ export function lowerForIn(ctx: FnLowerCtx, stmt: A.ForStmt): LoweredStmt {
   }
 
   const elementType = stepInfo.elementType;
-  const doneType = findCoreType(ctx, "Done", []);
-  const yieldedType = findCoreType(ctx, "Yielded", [elementType]);
+  const doneType = findCoreType(ctx, CORE_STRUCTS.Done, []);
+  const yieldedType = findCoreType(ctx, CORE_STRUCTS.Yielded, [elementType]);
   if (doneType === null || yieldedType === null) {
     err(ctx.project.diags, "B5001", span, "Done / Yielded missing from std/core");
     return { kind: "LoweredExprStmt", span, expr: {
@@ -177,7 +177,7 @@ interface StepImpl {
  *  the materialised fn symbol + element type. Walks the impl registry for an
  *  impl whose forSymbol matches and whose trait is `Iterator`. */
 function findIteratorStepImpl(ctx: FnLowerCtx, iterType: Type): StepImpl | null {
-  const iteratorSym = findCoreTrait(ctx.project, "Iterator");
+  const iteratorSym = findCoreTrait(ctx.project, CORE_TRAITS.Iterator);
   if (iteratorSym === null) return null;
   const structArgs = iterType.kind === "Struct" ? iterType.args : [];
   const entry = lookupImplFor(ctx.project, iterType, iteratorSym);

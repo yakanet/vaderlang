@@ -1,0 +1,85 @@
+// Match-expression checking. Validates each arm body against the expected
+// type, narrows the scrutinee symbol inside `is T -> body` arms via the
+// shared narrowing stack, and reports T3013 when non-wildcard match arms
+// don't cover all variants of a Union scrutinee.
+
+import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
+import type * as A from "../../parser/ast.ts";
+import type { Symbol } from "../../resolver/symbol.ts";
+
+import { err } from "../diag.ts";
+import type { ImplRegistry } from "../impls.ts";
+import type { Type } from "../types.ts";
+import { TY, displayType, isAssignable, unionOf } from "../types.ts";
+
+import type { FnContext, MutableTyped } from "../ctx.ts";
+import { checkExpr } from "./expr.ts";
+import { lowerTypeExpr } from "./type-expr.ts";
+
+export function inferMatch(
+  expr: A.MatchExpr, expected: Type | null,
+  t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector, fn: FnContext | null,
+): Type {
+  const scrut = checkExpr(expr.scrutinee, null, t, impls, diags, fn);
+  const scrutSym = scrutineeSymbol(expr.scrutinee, t);
+  const armTypes: Type[] = [];
+  let hasWildcard = false;
+  const coveredVariants = new Set<string>();
+  for (const arm of expr.arms) {
+    if (arm.pattern.kind === "WildcardPattern") hasWildcard = true;
+    let narrowed: Type | null = null;
+    if (arm.pattern.kind === "IsPattern") {
+      const variantTy = lowerTypeExpr(arm.pattern.type, t, diags);
+      coveredVariants.add(displayType(variantTy));
+      narrowed = variantTy;
+    }
+    const prev: Type | undefined = scrutSym !== null && narrowed !== null
+      ? pushNarrowing(t, scrutSym.id, narrowed)
+      : undefined;
+    if (arm.guard !== null) {
+      const g = checkExpr(arm.guard, TY.bool, t, impls, diags, fn);
+      if (!isAssignable(g, TY.bool)) err(diags, "T3019", arm.guard.span);
+    }
+    armTypes.push(checkExpr(arm.body, expected, t, impls, diags, fn));
+    if (scrutSym !== null && narrowed !== null) popNarrowing(t, scrutSym.id, prev);
+  }
+
+  if (!hasWildcard) {
+    if (scrut.kind === "Union") {
+      for (const v of scrut.variants) {
+        if (!coveredVariants.has(displayType(v))) {
+          err(diags, "T3013", expr.span,
+            `variant ${displayType(v)} of ${displayType(scrut)} is not covered`);
+          break;
+        }
+      }
+    } else if (scrut.kind !== "Unresolved") {
+      err(diags, "T3013", expr.span,
+        `match on non-union ${displayType(scrut)} requires a wildcard arm`);
+    }
+  }
+
+  return armTypes.length === 0 ? TY.never : unionOf(armTypes);
+}
+
+/** Resolve the scrutinee to a symbol when it's a plain identifier referring
+ *  to a local or parameter — only those flow narrowing usefully. Anything
+ *  else (calls, field access, literals) gets no narrowing. */
+function scrutineeSymbol(scrut: A.Expr, t: MutableTyped): Symbol | null {
+  if (scrut.kind !== "IdentExpr") return null;
+  const sym = t.resolved.idents.get(scrut);
+  if (sym === undefined) return null;
+  if (sym.kind !== "local" && sym.kind !== "param" && sym.kind !== "binding") return null;
+  return sym;
+}
+
+function pushNarrowing(t: MutableTyped, symId: number, narrow: Type): Type | undefined {
+  const prev = t.narrowed.get(symId);
+  t.narrowed.set(symId, narrow);
+  return prev;
+}
+
+function popNarrowing(t: MutableTyped, symId: number, prev: Type | undefined): void {
+  if (prev === undefined) t.narrowed.delete(symId);
+  else t.narrowed.set(symId, prev);
+}

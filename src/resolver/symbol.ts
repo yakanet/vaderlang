@@ -74,3 +74,9 @@ export function declOf(sym: Symbol): A.Decl | null {
     default:           return null;
   }
 }
+
+/** The struct decl backing a struct symbol; null otherwise. Useful for field
+ *  / typeParam lookups where only the struct case is relevant. */
+export function sourceStructDecl(sym: Symbol): A.StructDecl | null {
+  return sym.source.kind === "struct" ? sym.source.decl : null;
+}

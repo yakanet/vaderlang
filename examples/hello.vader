@@ -9,6 +9,6 @@
 import "std/io" { println }
 
 main :: fn() -> i32 {
-    println("Hello, World!")
+    printl("Hello, World!")
     return 0
 }
