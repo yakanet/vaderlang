@@ -134,8 +134,7 @@ export function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {
       return TY.unresolved;
     case "binding":
     case "builtin-fn":
-      // Pattern bindings, for-in vars: type narrows from context (not yet tracked).
-      // builtin-fn: reserved for future intrinsics.
+    case "synthetic":
       return TY.unresolved;
   }
 }

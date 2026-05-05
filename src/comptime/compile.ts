@@ -569,6 +569,7 @@ function valTypeOf(t: Type): ValType {
     case "FreeFloat": return "f64";
     case "Unresolved":return "any";
     case "Union":     return "ref";
+    case "Enum":    return "i32";
     case "Struct": case "Trait": case "Array": case "Fn":
     case "TypeParam": case "TypeMeta": case "Self":
       return "ref";

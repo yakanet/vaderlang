@@ -1,13 +1,13 @@
-import type { DiagnosticCollector } from "../diagnostics/collector.ts";
+import type {DiagnosticCollector} from "../diagnostics/collector.ts";
 import type * as A from "../parser/ast.ts";
-import { makeBuiltinScope, BUILTIN_MODULE_ID, BUILTIN_TYPE_NAMES, isBuiltinTypeName } from "./builtins.ts";
-import { discoverLayout, loadProject } from "./loader.ts";
-import { resolveModule } from "./resolve.ts";
-import { wireImports } from "./wire.ts";
-import { SymbolFactory } from "./symbol.ts";
-import type { LoadedProject, Module, ModuleId } from "./module.ts";
-import type { ResolvedProgram, ResolvedProject } from "./resolved-ast.ts";
-import type { Symbol } from "./symbol.ts";
+import {BUILTIN_MODULE_ID, BUILTIN_TYPE_NAMES, isBuiltinTypeName, makeBuiltinScope} from "./builtins.ts";
+import {discoverLayout, loadProject} from "./loader.ts";
+import {resolveModule} from "./resolve.ts";
+import {wireImports} from "./wire.ts";
+import type {ModuleId, Symbol} from "./symbol.ts";
+import {SymbolFactory} from "./symbol.ts";
+import type {LoadedProject, Module} from "./module.ts";
+import type {ResolvedProgram, ResolvedProject} from "./resolved-ast.ts";
 
 export type { LoadedProject, Module, SourceFile, ImportEntry, ProjectLayout } from "./module.ts";
 export type { Symbol, SymbolKind, SymbolId } from "./symbol.ts";
