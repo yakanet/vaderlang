@@ -419,6 +419,8 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [ ] VS Code extension
 - [ ] Programmable build API (`build.vader` instead of `vader.json`)
 - [ ] External package manager + central registry (much later)
+- [ ] `man` page for the `vader` CLI
+- [ ] GitHub Actions pipeline: build linux / macOS / Windows binaries and run the full test suite on all three targets. Requires self-hosting (§2) first so the pipeline compiles the Vader compiler with itself.
 
 ### 3.8 Language ergonomics
 

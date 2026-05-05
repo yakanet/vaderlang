@@ -164,6 +164,21 @@ This is a personal hobby project for now (single-author, exploratory). The codeb
 
 ---
 
+## Roadmap
+
+The full roadmap lives in [`TODO.md`](./TODO.md). The high-level milestones are:
+
+| Phase | Goal | Status |
+|-------|------|--------|
+| **0 — Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
+| **1 — MVP (TypeScript compiler)** | Lexer → parser → resolver → type-checker → comptime engine → monomorphizer → lowerer → bytecode emitter → VM (`vader run`) → C emitter (`vader build --target=native`). WASM emitter and mark-sweep GC still pending. | in progress |
+| **1.10 — WASM emitter** | Bytecode → binary WASM with GC types, importable in the browser or via wasmtime. | next |
+| **1.11–1.15 — Runtime, stdlib, CLI, formatter** | Mark-sweep GC, full `std/` in Vader, `vader test`, `vader fmt`. | pending |
+| **2 — Self-hosting** | Port the compiler to Vader; bootstrap check (`compiler_v2 == compiler_v3`). | pending |
+| **3 — Post-MVP** | Concurrency, networking, generational GC, LSP, VS Code extension, CI pipeline for linux/macOS/Windows. | pending |
+
+---
+
 ## Further reading
 
 - [`SPEC.md`](./SPEC.md) — the language specification (target reference)
