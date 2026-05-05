@@ -174,8 +174,12 @@ vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
     const char* end = s.ptr + s.len;
     for (;;) {
         const char* found = NULL;
-        for (const char* q = p; q + sep.len <= end; q++) {
-            if (memcmp(q, sep.ptr, sep.len) == 0) { found = q; break; }
+        if (sep.len == 1) {
+            found = (const char*)memchr(p, (unsigned char)sep.ptr[0], (size_t)(end - p));
+        } else {
+            for (const char* q = p; q + sep.len <= end; q++) {
+                if (memcmp(q, sep.ptr, sep.len) == 0) { found = q; break; }
+            }
         }
         size_t piece_len = found ? (size_t)(found - p) : (size_t)(end - p);
         vader_array_push(arr, vader_box_string(str_type, vader_string_new(p, piece_len)));

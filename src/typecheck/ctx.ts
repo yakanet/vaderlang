@@ -9,7 +9,6 @@
 import type * as A from "../parser/ast.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
-import type { Symbol as VdrSymbol } from "../resolver/symbol.ts";
 import type { MethodResolution } from "./typed-ast.ts";
 import type { Type } from "./types.ts";
 
@@ -49,7 +48,7 @@ export interface MutableTyped {
   /** UFCS-resolved free function calls (`a.f(b)` → `f(a, b)`). Populated by
    *  `inferField` after type-validating the resolver's candidate, consumed by
    *  the lowerer to prepend the receiver as the first argument. */
-  readonly ufcsFreeResolutions: Map<A.FieldExpr, VdrSymbol>;
+  readonly ufcsFreeResolutions: Map<A.FieldExpr, Symbol>;
   /** Built-in array method calls (`len`, `push`). Populated by `inferField`,
    *  consumed by the lowerer to emit `LoweredArrayLen`/`LoweredArrayPush`. */
   readonly arrayOps: Map<A.FieldExpr, "len" | "push">;

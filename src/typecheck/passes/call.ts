@@ -7,6 +7,7 @@
 
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
+import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
@@ -14,7 +15,6 @@ import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { MethodResolution } from "../typed-ast.ts";
 import type { Type } from "../types.ts";
 import { TY, displayType, isAssignable, isNumeric } from "../types.ts";
-import type { Symbol } from "../../resolver/symbol.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
@@ -156,7 +156,7 @@ export function inferField(
   // UFCS for free functions: resolver recorded a candidate if the name was in scope.
   const freeSym = t.resolved.ufcsFreeResolutions.get(expr);
   if (freeSym !== undefined) {
-    const boundType = inferUfcsFreeBound(expr, freeSym, targetType, t, diags);
+    const boundType = inferUfcsFreeBound(expr, freeSym, targetType, t);
     if (boundType !== null) return boundType;
   }
 
@@ -170,22 +170,14 @@ export function inferField(
  *  resolution, and return the bound fn type (params without the first). Returns null
  *  and emits no error if the candidate doesn't match — the caller emits T3009. */
 function inferUfcsFreeBound(
-  expr: A.FieldExpr, freeSym: Symbol, targetType: Type,
-  t: MutableTyped, _diags: DiagnosticCollector,
+  expr: A.FieldExpr, freeSym: Symbol, targetType: Type, t: MutableTyped,
 ): Type | null {
-  const fnType = freeFnType(freeSym, t);
-  if (fnType === null || fnType.kind !== "Fn") return null;
+  const decl = declOf(freeSym);
+  const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
+  if (fnType === undefined || fnType.kind !== "Fn") return null;
   if (fnType.params.length === 0 || !isAssignable(targetType, fnType.params[0]!)) return null;
   t.ufcsFreeResolutions.set(expr, freeSym);
   return { kind: "Fn", params: fnType.params.slice(1), returnType: fnType.returnType };
-}
-
-/** Get the Fn type for a free symbol, following import chains. */
-function freeFnType(sym: Symbol, t: MutableTyped): Type | null {
-  const resolved = sym.source.kind === "import" && sym.source.target !== null
-    ? sym.source.target : sym;
-  const decl = declOf(resolved);
-  return decl !== null ? t.globals.declTypes.get(decl) ?? null : null;
 }
 
 /** Walk the impl registry for a method matching the target type + name. */

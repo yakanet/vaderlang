@@ -461,11 +461,11 @@ function resolveFieldExpr(expr: A.FieldExpr, scope: Scope, p: MutableProgram, in
       }
     }
   }
-  // UFCS: `target.fn(args)` as sugar for `fn(target, args)`. Look up `expr.field`
-  // as a free function in the current scope and record the resolved symbol.
+  // UFCS: `target.fn(args)` as sugar for `fn(target, args)`. Only record fn-like
+  // names to avoid spurious entries on every struct-field or enum-variant access.
   // Type validation (first-param compatibility) is deferred to the typechecker.
   const freeSym = lookup(scope, expr.field);
-  if (freeSym !== null) {
+  if (freeSym !== null && (freeSym.kind === "fn" || freeSym.kind === "import-binding")) {
     p.ufcsFreeResolutions.set(expr, resolveImportRedirect(freeSym, input));
   }
 }

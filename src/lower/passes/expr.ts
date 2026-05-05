@@ -2,6 +2,7 @@
 // interp, match, try, range, and for-in to their dedicated passes.
 
 import type * as A from "../../parser/ast.ts";
+import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { TY, defaultIfFree } from "../../typecheck/types.ts";
 
@@ -59,33 +60,12 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
           const args = recv.kind === "Struct" ? recv.args : [];
           const entry = lookupImplEntry(ctx, method.member, args);
           if (entry !== null && entry.symbol !== null) {
-            const sym = entry.symbol;
-            const calleeIdent: LoweredExpr = {
-              kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: sym,
-            };
-            return {
-              kind: "LoweredCall", span: expr.span, type: exprType,
-              callee: calleeIdent,
-              args: [
-                lowerExpr(ctx, expr.callee.target),
-                ...expr.args.map((a) => lowerExpr(ctx, a.value)),
-              ],
-            };
+            return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol);
           }
         }
         const freeSym = ctx.typed.ufcsFreeResolutions.get(expr.callee);
         if (freeSym !== undefined) {
-          const calleeIdent: LoweredExpr = {
-            kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: freeSym,
-          };
-          return {
-            kind: "LoweredCall", span: expr.span, type: exprType,
-            callee: calleeIdent,
-            args: [
-              lowerExpr(ctx, expr.callee.target),
-              ...expr.args.map((a) => lowerExpr(ctx, a.value)),
-            ],
-          };
+          return lowerUfcsCall(ctx, expr, expr.callee, exprType, freeSym);
         }
       }
       return {
@@ -174,6 +154,19 @@ function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): Lower
     op: expr.op,
     left: lowerExpr(ctx, expr.left),
     right: lowerExpr(ctx, expr.right),
+  };
+}
+
+function lowerUfcsCall(
+  ctx: FnLowerCtx, expr: A.CallExpr, callee: A.FieldExpr, exprType: Type, sym: Symbol,
+): LoweredExpr {
+  return {
+    kind: "LoweredCall", span: expr.span, type: exprType,
+    callee: { kind: "LoweredIdent", span: callee.span, type: exprType, symbol: sym },
+    args: [
+      lowerExpr(ctx, callee.target),
+      ...expr.args.map((a) => lowerExpr(ctx, a.value)),
+    ],
   };
 }
 
