@@ -12,6 +12,7 @@ import { join, resolve } from "node:path";
 import { VM_ERROR_PREFIXES, formatRun, listSnippets } from "./snapshot.ts";
 import { pipelineBytecode } from "../src/pipeline.ts";
 import { emitC } from "../src/c_emit/emit.ts";
+import { snapshotDiff } from "./diff.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
 const EXE_EXT = process.platform === "win32" ? ".exe" : "";
@@ -70,8 +71,8 @@ for (const s of scenarios) {
     if (actual !== expected) {
       throw new Error(
         `native parity mismatch: ${s.name}\n` +
-        `  binary: ${binFile}\n` +
-        `  expected:\n${expected}\n  actual:\n${actual}`,
+        `  binary: ${binFile}\n\n` +
+        snapshotDiff("vm.snapshot", expected, actual),
       );
     }
   });

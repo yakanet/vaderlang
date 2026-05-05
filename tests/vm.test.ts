@@ -2,6 +2,7 @@ import { test } from "bun:test";
 import { readFileSync, writeFileSync } from "node:fs";
 
 import { errMsg, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { snapshotDiff } from "./diff.ts";
 import { pipelineBytecode } from "../src/pipeline.ts";
 import { VmError, runProgram, makeBindings, type HostIO } from "../src/vm/index.ts";
 
@@ -59,9 +60,8 @@ for (const s of scenarios) {
     if (!cmp.ok) {
       throw new Error(
         `vm snapshot mismatch: ${s.name}\n` +
-        `  snap: ${cmp.snapPath}\n` +
-        `  expected:\n${cmp.expected ?? "<missing>"}\n` +
-        `  actual:\n${actual}`,
+        `  snap: ${cmp.snapPath}\n\n` +
+        snapshotDiff(cmp.snapPath, cmp.expected, actual),
       );
     }
   });

@@ -3,6 +3,7 @@ import {
   MAIN_FILE, dumpBytecode, dumpComptime, dumpLexer, dumpLower, dumpParser,
   dumpResolver, dumpTypecheck, errMsg, listSnippets, snapshotEquals,
 } from "./snapshot.ts";
+import { snapshotDiff } from "./diff.ts";
 
 // Each phase entry describes one compilation stage to snapshot:
 //   name    — label used in test names and error messages.
@@ -39,12 +40,10 @@ for (const s of scenarios) {
       }
       const result = snapshotEquals(s.dir, p.snap, actual);
       if (!result.ok) {
-        const expectedDisplay = result.expected ?? "(no snapshot yet)";
         throw new Error(
           `Snapshot mismatch: ${p.name}/${s.name} (${result.snapPath})\n` +
           `Run with UPDATE_SNAPSHOTS=1 to refresh.\n\n` +
-          `--- expected ---\n${expectedDisplay}\n` +
-          `--- actual ---\n${actual}`,
+          snapshotDiff(result.snapPath, result.expected, actual),
         );
       }
     });
