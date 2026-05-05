@@ -1,0 +1,50 @@
+# Typecheck
+
+## tests/snippets/enum_basic/_main.vader
+  FnDecl         describe             :: fn(Direction) -> string
+  EnumDecl       Direction            :: Direction
+  FnDecl         main                 :: fn() -> void
+  expr 11:11    IdentExpr      :: Direction
+  expr 11:5     MatchExpr      :: string
+  expr 12:19    StringLitExpr  :: string
+  expr 13:19    StringLitExpr  :: string
+  expr 14:19    StringLitExpr  :: string
+  expr 15:19    StringLitExpr  :: string
+  expr 20:20    DotVariantExpr :: Direction
+  expr 21:13    CallExpr       :: string
+  expr 21:13    IdentExpr      :: fn(Direction) -> string
+  expr 21:22    IdentExpr      :: Direction
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 22:13    CallExpr       :: string
+  expr 22:13    IdentExpr      :: fn(Direction) -> string
+  expr 22:22    FieldExpr      :: Direction
+  expr 22:22    IdentExpr      :: Direction
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 23:13    DotVariantExpr :: Direction
+  expr 23:21    CallExpr       :: void
+  expr 23:21    IdentExpr      :: fn(string) -> void
+  expr 23:29    StringLitExpr  :: string
+  expr 23:5     IfExpr         :: void
+  expr 23:8     BinaryExpr     :: bool
+  expr 23:8     IdentExpr      :: Direction
+  expr 24:13    DotVariantExpr :: Direction
+  expr 24:21    CallExpr       :: void
+  expr 24:21    IdentExpr      :: fn(string) -> void
+  expr 24:29    StringLitExpr  :: string
+  expr 24:5     IfExpr         :: void
+  expr 24:8     BinaryExpr     :: bool
+  expr 24:8     IdentExpr      :: Direction
+  expr 25:13    StringLitExpr  :: string
+  expr 25:25    BinaryExpr     :: bool
+  expr 25:25    IdentExpr      :: Direction
+  expr 25:30    DotVariantExpr :: Direction
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 26:13    StringLitExpr  :: string
+  expr 26:25    BinaryExpr     :: bool
+  expr 26:25    IdentExpr      :: Direction
+  expr 26:30    DotVariantExpr :: Direction
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(string) -> void

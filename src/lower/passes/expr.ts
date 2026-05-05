@@ -11,7 +11,7 @@ import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
 import { lookupImplEntry, lowerRangeExpr } from "./for-in.ts";
-import { applySubst, wrapAsBlock } from "./helpers.ts";
+import { applySubst, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerMatch } from "./match.ts";
 import { lowerStringLit } from "./string-interp.ts";
 import { lowerTry } from "./try.ts";
@@ -66,11 +66,13 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         args: expr.args.map((a) => lowerExpr(ctx, a.value)),
       };
     }
-    case "FieldExpr":
+    case "FieldExpr": {
+      if (exprType.kind === "Enum") return loweredEnumVariant(exprType, expr.field, expr.span);
       return {
         kind: "LoweredFieldAccess", span: expr.span, type: exprType,
         target: lowerExpr(ctx, expr.target), field: expr.field,
       };
+    }
     case "IndexExpr":
       return {
         kind: "LoweredIndex", span: expr.span, type: exprType,
@@ -111,6 +113,8 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       return lowerRangeExpr(ctx, expr, exprType);
     case "TryExpr":
       return lowerTry(ctx, expr, exprType);
+    case "DotVariantExpr":
+      return loweredEnumVariant(exprType, expr.variant, expr.span);
     case "CastExpr":
       return {
         kind: "LoweredCast", span: expr.span, type: exprType,

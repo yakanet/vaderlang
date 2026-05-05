@@ -41,6 +41,9 @@ export function collectModuleSymbols(input: CollectInput): CollectResult {
         case "StructDecl":
           addSymbol(symbols, input, decl.name, decl.nameSpan, decl.visibility, "struct", { kind: "struct", decl });
           break;
+        case "EnumDecl":
+          addSymbol(symbols, input, decl.name, decl.nameSpan, decl.visibility, "enum", { kind: "enum", decl });
+          break;
         case "TraitDecl":
           addSymbol(symbols, input, decl.name, decl.nameSpan, decl.visibility, "trait", { kind: "trait", decl });
           break;
@@ -67,7 +70,7 @@ function addSymbol(
   name: string,
   span: A.FnDecl["nameSpan"],
   visibility: A.Visibility,
-  kind: "fn" | "struct" | "trait" | "type-alias" | "const",
+  kind: "fn" | "struct" | "enum" | "trait" | "type-alias" | "const",
   source: Symbol["source"],
 ): void {
   const existing = symbols.get(name);

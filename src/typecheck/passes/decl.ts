@@ -18,6 +18,7 @@ export function declareType(decl: A.Decl, t: MutableTyped, diags: DiagnosticColl
   switch (decl.kind) {
     case "FnDecl":      declareFn(decl, t, diags); return;
     case "StructDecl":  declareStruct(decl, t, diags); return;
+    case "EnumDecl":    declareEnum(decl, t); return;
     case "TraitDecl":   declareTrait(decl, t, diags); return;
     case "ImplDecl":    declareImpl(decl, t, diags); return;
     case "TypeAliasDecl": {
@@ -53,6 +54,12 @@ function declareFn(decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector):
   }
   const returnType = decl.returnType === null ? TY.void : lowerTypeExpr(decl.returnType, t, diags);
   t.globals.declTypes.set(decl, { kind: "Fn", params, returnType });
+}
+
+function declareEnum(decl: A.EnumDecl, t: MutableTyped): void {
+  const sym = t.resolved.module.symbols.get(decl.name);
+  if (sym === undefined) return;
+  t.globals.declTypes.set(decl, { kind: "Enum", symbol: sym });
 }
 
 function declareStruct(decl: A.StructDecl, t: MutableTyped, diags: DiagnosticCollector): void {

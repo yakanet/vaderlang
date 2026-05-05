@@ -60,6 +60,7 @@ export function typeFromSymbol(
   switch (sym.kind) {
     case "builtin-type":  return primitiveFromName(sym.name) ?? TY.unresolved;
     case "struct":        return { kind: "Struct", symbol: sym, args };
+    case "enum":          return { kind: "Enum", symbol: sym };
     case "trait":         return { kind: "Trait",  symbol: sym, args };
     case "type-param":    return { kind: "TypeParam", symbol: sym };
     case "type-alias": {

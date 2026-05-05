@@ -16,6 +16,7 @@ import type { Type } from "../types.ts";
 import { TY, displayType, isAssignable, isNumeric } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
+import { checkEnumVariant } from "./enum.ts";
 import { checkExpr, typeOfSymbol } from "./expr.ts";
 import { primitiveFromName } from "./type-expr.ts";
 
@@ -120,6 +121,10 @@ export function inferField(
   if (exported !== undefined) return typeOfSymbol(exported, t);
 
   const targetType = checkExpr(expr.target, null, t, impls, diags, fn);
+  if (targetType.kind === "Enum") {
+    checkEnumVariant(targetType, expr.field, expr.fieldSpan, diags);
+    return targetType;
+  }
   if (targetType.kind === "Struct") {
     const decl = sourceStructDecl(targetType.symbol);
     if (decl !== null) {

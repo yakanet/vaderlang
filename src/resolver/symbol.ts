@@ -9,6 +9,7 @@ export type ModuleId = string;
 export type SymbolKind =
   | "fn"
   | "struct"
+  | "enum"
   | "trait"
   | "type-alias"
   | "const"
@@ -43,6 +44,7 @@ export interface Symbol {
 export type SymbolSource =
   | { readonly kind: "fn"; readonly decl: A.FnDecl }
   | { readonly kind: "struct"; readonly decl: A.StructDecl }
+  | { readonly kind: "enum"; readonly decl: A.EnumDecl }
   | { readonly kind: "trait"; readonly decl: A.TraitDecl }
   | { readonly kind: "type-alias"; readonly decl: A.TypeAliasDecl }
   | { readonly kind: "const"; readonly decl: A.ConstDecl }
@@ -67,6 +69,7 @@ export function declOf(sym: Symbol): A.Decl | null {
   switch (sym.source.kind) {
     case "fn":         return sym.source.decl;
     case "struct":     return sym.source.decl;
+    case "enum":       return sym.source.decl;
     case "trait":      return sym.source.decl;
     case "type-alias": return sym.source.decl;
     case "const":      return sym.source.decl;
@@ -75,8 +78,18 @@ export function declOf(sym: Symbol): A.Decl | null {
   }
 }
 
-/** The struct decl backing a struct symbol; null otherwise. Useful for field
- *  / typeParam lookups where only the struct case is relevant. */
+/** The struct decl backing a struct symbol; null otherwise. */
 export function sourceStructDecl(sym: Symbol): A.StructDecl | null {
   return sym.source.kind === "struct" ? sym.source.decl : null;
+}
+
+/** The enum decl backing an enum symbol; null otherwise. */
+export function sourceEnumDecl(sym: Symbol): A.EnumDecl | null {
+  return sym.source.kind === "enum" ? sym.source.decl : null;
+}
+
+/** Index of `variant` within `sym`'s enum decl, or -1 if not an enum / not found. */
+export function enumVariantIndex(sym: Symbol, variant: string): number {
+  const decl = sourceEnumDecl(sym);
+  return decl === null ? -1 : decl.variants.findIndex((v) => v.name === variant);
 }

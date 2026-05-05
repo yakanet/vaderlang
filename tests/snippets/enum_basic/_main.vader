@@ -1,0 +1,27 @@
+import "std/io" { println }
+
+Direction :: enum {
+    North,
+    South,
+    East,
+    West,
+}
+
+describe :: fn(d: Direction) -> string {
+    match d {
+        .North -> "north"
+        .South -> "south"
+        .East  -> "east"
+        .West  -> "west"
+    }
+}
+
+main :: fn() {
+    d: Direction = .East
+    println(describe(d))
+    println(describe(Direction.North))
+    if d == .East { println("d is East") }
+    if d == .West { println("d is West") }
+    println("Is EAST: ${d == .East}")
+    println("Is WEST: ${d == .West}")
+}

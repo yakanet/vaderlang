@@ -189,6 +189,7 @@ function parseNamedDecl(p: Parser, decorators: readonly A.Decorator[], visibilit
 
   if (p.check("kw_fn")) return parseFnDecl(p, decorators, visibility, nameTok);
   if (p.check("kw_struct")) return parseStructDecl(p, decorators, visibility, nameTok);
+  if (p.check("kw_enum")) return parseEnumDecl(p, decorators, visibility, nameTok);
   if (p.check("kw_trait")) return parseTraitDecl(p, decorators, visibility, nameTok);
   if (p.check("kw_type")) return parseTypeAliasDecl(p, decorators, visibility, nameTok);
 
@@ -442,6 +443,34 @@ function parseTraitDecl(
     visibility,
     typeParams,
     members,
+    decorators,
+  };
+}
+
+function parseEnumDecl(
+  p: Parser,
+  decorators: readonly A.Decorator[],
+  visibility: A.Visibility,
+  nameTok: Token,
+): A.EnumDecl {
+  p.advance(); // enum
+  p.expect("lbrace", "`{` to open enum body");
+  p.skipNewlines();
+  const variants: A.EnumVariant[] = [];
+  while (!p.check("rbrace") && !p.check("eof")) {
+    const vTok = p.expect("ident", "variant name");
+    variants.push({ span: vTok.span, name: vTok.text });
+    p.match("comma");
+    p.skipNewlines();
+  }
+  const endTok = p.expect("rbrace", "`}` to close enum body");
+  return {
+    kind: "EnumDecl",
+    span: p.spanOf(nameTok, endTok),
+    name: nameTok.text,
+    nameSpan: nameTok.span,
+    visibility,
+    variants,
     decorators,
   };
 }

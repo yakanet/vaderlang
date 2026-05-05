@@ -12,7 +12,7 @@ import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt } from "../lowered-ast.ts";
 
 import { lowerExpr } from "./expr.ts";
-import { applySubst, freshSyntheticSymbol, wrapAsBlock } from "./helpers.ts";
+import { applySubst, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 
 export function lowerMatch(ctx: FnLowerCtx, expr: A.MatchExpr, exprType: Type): LoweredExpr {
   const scrutType = applySubst(ctx.typed.exprTypes.get(expr.scrutinee) ?? TY.unresolved, ctx.subst);
@@ -83,6 +83,11 @@ function armPredicate(
     case "StructPattern":
       core = lowerStructPattern(ctx, arm.pattern, ident(), span);
       break;
+    case "EnumVariantPattern": {
+      const variantLit = loweredEnumVariant(scrutType, arm.pattern.variant, span);
+      core = { kind: "LoweredBinary", span, type: TY.bool, op: "eq", left: ident(), right: variantLit };
+      break;
+    }
   }
 
   if (arm.guard === null) return core;
@@ -146,6 +151,7 @@ function introducePatternBindings(
         });
       }
       return;
+    case "EnumVariantPattern":
     case "WildcardPattern":
       return;
   }

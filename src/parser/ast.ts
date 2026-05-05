@@ -19,6 +19,7 @@ export type Decl =
   | ImportDecl
   | FnDecl
   | StructDecl
+  | EnumDecl
   | TraitDecl
   | ImplDecl
   | TypeAliasDecl
@@ -74,6 +75,21 @@ export interface StructField {
   readonly name: string;
   readonly type: TypeExpr;
   readonly visibility: Visibility;
+}
+
+export interface EnumDecl {
+  readonly kind: "EnumDecl";
+  readonly span: Span;
+  readonly name: string;
+  readonly nameSpan: Span;
+  readonly visibility: Visibility;
+  readonly variants: readonly EnumVariant[];
+  readonly decorators: readonly Decorator[];
+}
+
+export interface EnumVariant {
+  readonly span: Span;
+  readonly name: string;
 }
 
 export interface TraitDecl {
@@ -260,7 +276,8 @@ export type Expr =
   | RangeExpr
   | TryExpr
   | CastExpr
-  | GenericInstExpr;
+  | GenericInstExpr
+  | DotVariantExpr;
 
 export interface IntLitExpr {
   readonly kind: "IntLitExpr";
@@ -457,6 +474,14 @@ export interface GenericInstExpr {
   readonly typeArgs: readonly TypeExpr[];
 }
 
+/** `.Variant` dot-shorthand — target enum type inferred from context by the type-checker. */
+export interface DotVariantExpr {
+  readonly kind: "DotVariantExpr";
+  readonly span: Span;
+  readonly variant: string;
+  readonly variantSpan: Span;
+}
+
 // ============================================================================
 // Patterns (for `match`)
 // ============================================================================
@@ -465,7 +490,8 @@ export type Pattern =
   | IsPattern
   | StructPattern
   | WildcardPattern
-  | BindingPattern;
+  | BindingPattern
+  | EnumVariantPattern;
 
 export interface IsPattern {
   readonly kind: "IsPattern";
@@ -501,6 +527,13 @@ export interface BindingPattern {
   readonly kind: "BindingPattern";
   readonly span: Span;
   readonly name: string;
+}
+
+/** `.Variant` arm in a match on an enum scrutinee. */
+export interface EnumVariantPattern {
+  readonly kind: "EnumVariantPattern";
+  readonly span: Span;
+  readonly variant: string;
 }
 
 // ============================================================================

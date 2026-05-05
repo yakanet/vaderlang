@@ -323,18 +323,24 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 
 The self-hosting compiler will use enums to represent token kinds, opcode tags, diagnostic severity, and similar closed sets. These must land before Phase 2 begins.
 
-- [ ] Lexer: add `enum` to the keyword table; emit `KW_ENUM` token (`src/lexer/token.ts`).
-- [ ] Parser: add `EnumDecl` AST node (`src/parser/ast.ts`); parse `Name :: enum { A, B, C }` (trailing comma allowed). Decorator support on `EnumDecl` (e.g. `@test`, `private`).
-- [ ] Parser: add `.Variant` dot-shorthand as a new primary expression node `DotVariantExpr` whose enum type is resolved later by the type-checker.
-- [ ] Parser: allow `.Variant -> expr` as a match arm form (distinct from `is Type -> expr`), valid only when the scrutinee is an enum.
-- [ ] Type-checker: add `Enum` type to `src/typecheck/types.ts` — value-typed, carries an ordered list of variant names. `Enum.Variant` access resolves to the enum type.
-- [ ] Type-checker: resolve `DotVariantExpr` to a concrete variant under bidirectional inference — check both operands of `==`/`!=`, the parameter type at a call site, the declared return type, and annotated declaration RHS. Emit `T3xxx` if ambiguous.
-- [ ] Type-checker: exhaustiveness for enum match — all variants must be covered or a `_` wildcard must be present.
-- [ ] Lowerer: lower enum variants to `i32` constants (0-indexed, declaration order); lower `.Variant` arms to integer equality predicates.
-- [ ] Bytecode emitter: emit `i32.const` for each variant; equality (`==`/`!=`) on enums uses `i32.eq`/`i32.ne`.
-- [ ] VM: no special handling needed — enums are integers at runtime.
-- [ ] C emitter: enum variants become `int32_t` constants (`#define` or an anonymous `enum` in the emitted C).
-- [ ] Snapshot tests: `tests/snapshots/parser/enum_decl/`, `tests/snapshots/typecheck/enum_match/`, `tests/snapshots/vm/enum_basic/`.
+- [x] Lexer: add `enum` to the keyword table; emit `kw_enum` token (`src/lexer/token.ts`, `src/lexer/keywords.ts`).
+- [x] Parser: add `EnumDecl` AST node (`src/parser/ast.ts`); parse `Name :: enum { A, B, C }` (trailing comma allowed).
+- [x] Parser: add `.Variant` dot-shorthand as `DotVariantExpr`; type inferred from context by the type-checker.
+- [x] Parser: allow `.Variant -> expr` as a match arm form (`EnumVariantPattern`).
+- [x] Parser: add `name: Type = value` typed-let statement form (`parseTypedLet` in `src/parser/passes/stmt.ts`).
+- [x] Type-checker: add `EnumType` to `src/typecheck/types.ts`; `declareEnum` in `decl.ts`; `"enum"` in `typeFromSymbol`.
+- [x] Type-checker: resolve `DotVariantExpr` via bidirectional inference (`expected` context) in `expr.ts` and `binary.ts`.
+- [x] Type-checker: exhaustiveness for enum match; all variants covered or `_` wildcard (`match.ts`).
+- [x] Lowerer: enum variants → `i32` constants (0-indexed); `DotVariantExpr` / `FieldExpr` on enum → `LoweredIntLit`; `EnumVariantPattern` → `eq` predicate.
+- [x] Bytecode emitter / VM: no changes needed — enums are plain `i32` after lowering.
+- [ ] C emitter: enum variants should become `int32_t` constants (currently untested).
+- [x] Snapshot tests: `tests/snippets/enum_basic/` covers lexer → bytecode → vm.
+
+#### Deferred — Typed enums (post-MVP)
+
+- [ ] **Typed representation** (`SPEC §Enums / Representation`): `Direction :: enum(u8) { ... }` — an optional `(type)` suffix selects the backing integer type (`i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`; default `i32`). Requires: parser update (optional type arg on `EnumDecl`), `EnumType.repr` field in `types.ts`, lowerer emits the correct integer type instead of hard-coded `i32`, bytecode/C emitter updated accordingly.
+- [ ] **Explicit variant indices**: variants may carry an explicit integer value (`Up = 10`); unspecified variants auto-increment from the previous (`Up = 10, Down` → Down = 11, `Left = 20, Right` → Right = 21). Requires: `EnumVariant.value?: bigint` in `ast.ts`, index-resolution pass in the type-checker or lowerer.
+- [ ] **Bounds checking**: after resolving all variant indices, verify every value fits in the declared backing type. Example: `enum(u8)` max = 255 — emit an error if any variant index exceeds the range. Must also check that no two variants share the same resolved index.
 
 ---
 

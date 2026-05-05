@@ -7,6 +7,7 @@ import type { Symbol } from "../resolver/symbol.ts";
 export type Type =
   | PrimitiveType
   | StructType
+  | EnumType
   | TraitType
   | UnionType
   | FnType
@@ -69,6 +70,11 @@ export interface StructType {
   readonly kind: "Struct";
   readonly symbol: Symbol;
   readonly args: readonly Type[];
+}
+
+export interface EnumType {
+  readonly kind: "Enum";
+  readonly symbol: Symbol;
 }
 
 export interface TraitType {
@@ -179,6 +185,7 @@ export function displayType(t: Type): string {
   switch (t.kind) {
     case "Primitive":  return t.name;
     case "Struct":     return formatNamed(t.symbol.name, t.args);
+    case "Enum":       return t.symbol.name;
     case "Trait":      return formatNamed(t.symbol.name, t.args);
     case "TypeParam":  return `$${t.symbol.name}`;
     case "TypeMeta":   return "type";
@@ -217,6 +224,8 @@ export function equalsType(a: Type, b: Type): boolean {
       return true;
     case "TypeParam":
       return a.symbol.id === (b as TypeParamType).symbol.id;
+    case "Enum":
+      return a.symbol.id === (b as EnumType).symbol.id;
     case "Struct":
     case "Trait": {
       const o = b as StructType | TraitType;

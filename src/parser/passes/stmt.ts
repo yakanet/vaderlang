@@ -8,6 +8,7 @@ import type * as A from "../ast.ts";
 import type { Parser } from "../parser.ts";
 
 import { parseExpr, placeholderExpr } from "./expr.ts";
+import { parseType } from "./type.ts";
 
 export function parseStmt(p: Parser): A.Stmt | null {
   if (p.check("kw_return")) return parseReturn(p);
@@ -28,6 +29,11 @@ export function parseStmt(p: Parser): A.Stmt | null {
     return parseLet(p);
   }
 
+  // `name: Type = expr` — typed mutable declaration
+  if (p.check("ident") && p.check("colon", 1)) {
+    return parseTypedLet(p);
+  }
+
   // Otherwise: expression statement (with possible assignment trailing)
   const start = p.peek();
   const expr = parseExpr(p, 0);
@@ -44,6 +50,23 @@ export function parseStmt(p: Parser): A.Stmt | null {
     kind: "ExprStmt",
     span: expr.span,
     expr,
+  };
+}
+
+function parseTypedLet(p: Parser): A.LetStmt {
+  const nameTok = p.advance(); // ident
+  p.advance(); // colon
+  const type = parseType(p);
+  p.expect("assign", "`=` after type annotation");
+  const value = parseExpr(p, 0);
+  return {
+    kind: "LetStmt",
+    span: p.spanOf(nameTok, p.peek(-1)),
+    mutable: true,
+    name: nameTok.text,
+    nameSpan: nameTok.span,
+    type,
+    value,
   };
 }
 

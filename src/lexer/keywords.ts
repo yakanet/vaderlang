@@ -3,6 +3,7 @@ import type { TokenKind } from "./token.ts";
 /** Map from raw keyword text to its dedicated token kind. */
 export const KEYWORDS: Readonly<Record<string, TokenKind>> = {
   fn:         "kw_fn",
+  enum:       "kw_enum",
   struct:     "kw_struct",
   trait:      "kw_trait",
   implements: "kw_implements",

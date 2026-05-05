@@ -489,7 +489,43 @@ Match on an enum scrutinee is **exhaustive**: every variant must appear as an ar
 
 #### Representation
 
-Variants are stored as consecutive integers starting from `0` (declaration order). No explicit integer value may be assigned to a variant in MVP. The exact representation is not observable from Vader code. Enum values are **value-typed** (copied on assignment, like `bool`), not heap-allocated.
+##### Backing type
+
+By default, variants are stored as `i32`. An optional `(type)` suffix selects any integer backing type:
+
+```vader
+Direction :: enum(u8) {
+    North,
+    South,
+    East,
+    West,
+}
+```
+
+Allowed backing types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`. Omitting the suffix is equivalent to `enum(i32)`.
+
+##### Variant indices
+
+By default, variants are numbered from `0` in declaration order. An explicit `= value` overrides the index; subsequent unspecified variants continue incrementing from that value:
+
+```vader
+Priority :: enum(u8) {
+    Low    = 10,   // 10
+    Medium,        // 11  (auto-increment)
+    High   = 20,   // 20
+    Critical,      // 21  (auto-increment)
+}
+```
+
+Rules:
+- The first variant defaults to `0` if no explicit value is given.
+- Each subsequent unspecified variant is `previous + 1`.
+- Duplicate indices are a compile error.
+- The compiler verifies that every resolved index fits in the declared backing type (e.g. `u8` range `0..=255`). Exceeding the range is a compile error.
+
+##### Memory model
+
+Enum values are **value-typed** (copied on assignment, like `bool`), not heap-allocated. The exact integer representation is not directly observable from Vader code.
 
 #### `Display`
 

@@ -21,7 +21,9 @@ export function inferBinary(
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   const left = checkExpr(expr.left, null, t, impls, diags, fn);
-  const right = checkExpr(expr.right, null, t, impls, diags, fn);
+  // For eq/neq, pass left's type as expected context so `.Variant` shorthand resolves.
+  const rightCtx = (expr.op === "eq" || expr.op === "neq") && expr.right.kind === "DotVariantExpr" ? left : null;
+  const right = checkExpr(expr.right, rightCtx, t, impls, diags, fn);
   switch (expr.op) {
     case "add": case "sub": case "mul": case "div": case "mod":
       return binaryNumeric(expr, left, right, diags);

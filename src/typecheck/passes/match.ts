@@ -6,6 +6,7 @@
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
+import { sourceEnumDecl } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
@@ -13,6 +14,7 @@ import type { Type } from "../types.ts";
 import { TY, displayType, isAssignable, unionOf } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
+import { checkEnumVariant } from "./enum.ts";
 import { checkExpr } from "./expr.ts";
 import { lowerTypeExpr } from "./type-expr.ts";
 
@@ -33,6 +35,10 @@ export function inferMatch(
       coveredVariants.add(displayType(variantTy));
       narrowed = variantTy;
     }
+    if (arm.pattern.kind === "EnumVariantPattern") {
+      coveredVariants.add(arm.pattern.variant);
+      if (scrut.kind === "Enum") checkEnumVariant(scrut, arm.pattern.variant, arm.pattern.span, diags);
+    }
     const prev: Type | undefined = scrutSym !== null && narrowed !== null
       ? pushNarrowing(t, scrutSym.id, narrowed)
       : undefined;
@@ -51,6 +57,17 @@ export function inferMatch(
           err(diags, "T3013", expr.span,
             `variant ${displayType(v)} of ${displayType(scrut)} is not covered`);
           break;
+        }
+      }
+    } else if (scrut.kind === "Enum") {
+      const decl = sourceEnumDecl(scrut.symbol);
+      if (decl !== null) {
+        for (const v of decl.variants) {
+          if (!coveredVariants.has(v.name)) {
+            err(diags, "T3013", expr.span,
+              `variant .${v.name} of ${displayType(scrut)} is not covered`);
+            break;
+          }
         }
       }
     } else if (scrut.kind !== "Unresolved") {

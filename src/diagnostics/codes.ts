@@ -96,6 +96,8 @@ export const TYPECHECK = {
   T3024: "function signature must be fully annotated",
   T3025: "named argument duplicates a positional one",
   T3026: "type does not have generic parameters",
+  T3027: "unknown enum variant",
+  T3028: "cannot infer enum type from context",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

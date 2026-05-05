@@ -3,6 +3,7 @@
 
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
+import { enumVariantIndex } from "../../resolver/symbol.ts";
 import type { Substitution, Type } from "../../typecheck/types.ts";
 import { TY, substitute } from "../../typecheck/types.ts";
 
@@ -42,6 +43,21 @@ export function wrapStmts(span: Span, stmts: readonly LoweredStmt[]): LoweredStm
 
 export function wrapAsBlock(e: LoweredExpr, span: Span): LoweredBlock {
   return { kind: "LoweredBlock", span, type: e.type, stmts: [], trailing: e };
+}
+
+/** `.Variant` / `Enum.Variant` / arm pattern → `i32` literal of the variant's index.
+ *  The type-checker has already validated `name` against `enumType` (T3027) — we
+ *  treat a missing variant as a compiler invariant violation rather than silently
+ *  emitting `0`, which would mask bugs as a successful match on the first variant. */
+export function loweredEnumVariant(enumType: Type, name: string, span: Span): LoweredExpr {
+  if (enumType.kind !== "Enum") {
+    throw new Error(`loweredEnumVariant: expected Enum type, got ${enumType.kind}`);
+  }
+  const index = enumVariantIndex(enumType.symbol, name);
+  if (index < 0) {
+    throw new Error(`loweredEnumVariant: variant ${name} not found on ${enumType.symbol.name}`);
+  }
+  return { kind: "LoweredIntLit", span, type: TY.i32, value: BigInt(index) };
 }
 
 export function orAll(span: Span, parts: readonly LoweredExpr[]): LoweredExpr {

@@ -117,6 +117,8 @@ function resolveDecl(decl: A.Decl, scope: Scope, p: MutableProgram, input: Resol
     case "ConstDecl":
       resolveConstDecl(decl, scope, p, input);
       return;
+    case "EnumDecl":
+      return;
   }
 }
 
@@ -429,6 +431,8 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       resolveExpr(expr.callee, scope, p, input);
       for (const arg of expr.typeArgs) resolveType(arg, scope, p, input);
       return;
+    case "DotVariantExpr":
+      return;
   }
 }
 
@@ -493,6 +497,8 @@ function bindPattern(pat: A.Pattern, scope: Scope, p: MutableProgram, input: Res
       bindBinding(pat.name, pat.span, { kind: "binding-pattern", pattern: pat }, scope, input);
       return;
     case "WildcardPattern":
+      return;
+    case "EnumVariantPattern":
       return;
   }
 }

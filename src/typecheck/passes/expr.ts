@@ -19,6 +19,7 @@ import {
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { inferBinary } from "./binary.ts";
 import { inferCall, inferField } from "./call.ts";
+import { checkEnumVariant } from "./enum.ts";
 import { inferMatch } from "./match.ts";
 import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
@@ -70,6 +71,7 @@ function inferExpr(
     case "RangeExpr":     return inferRange(expr, t, impls, diags, fn);
     case "TryExpr":       return inferTry(expr, t, impls, diags, fn);
     case "CastExpr":      return inferCast(expr, t, impls, diags, fn);
+    case "DotVariantExpr": return inferDotVariant(expr, expected, t, diags);
     case "GenericInstExpr": {
       checkExpr(expr.callee, null, t, impls, diags, fn);
       for (const a of expr.typeArgs) lowerTypeExpr(a, t, diags);
@@ -106,6 +108,7 @@ export function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {
     case "const":
     case "type-alias":
     case "struct":
+    case "enum":
     case "trait": {
       const decl = declOf(sym);
       return decl !== null ? t.globals.declTypes.get(decl) ?? TY.unresolved : TY.unresolved;
@@ -241,4 +244,16 @@ function inferCast(
   const target = lowerTypeExpr(expr.target, t, diags);
   checkExpr(expr.value, null, t, impls, diags, fn);
   return target;
+}
+
+function inferDotVariant(
+  expr: A.DotVariantExpr, expected: Type | null,
+  t: MutableTyped, diags: DiagnosticCollector,
+): Type {
+  if (expected !== null && expected.kind === "Enum") {
+    checkEnumVariant(expected, expr.variant, expr.variantSpan, diags);
+    return expected;
+  }
+  err(diags, "T3028", expr.span, `\`.${expr.variant}\``);
+  return TY.unresolved;
 }

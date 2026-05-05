@@ -167,6 +167,16 @@ function parsePrefix(p: Parser): A.Expr {
     case "kw_self":
       p.advance();
       return { kind: "IdentExpr", span: t.span, name: "self" };
+    case "dot": {
+      p.advance(); // consume `.`
+      const variantTok = p.expect("ident", "variant name after `.`");
+      return {
+        kind: "DotVariantExpr",
+        span: { start: t.span.start, end: variantTok.span.end },
+        variant: variantTok.text,
+        variantSpan: variantTok.span,
+      };
+    }
     default:
       p.error("P1003", t.span, `got ${describeToken(t)}`);
       p.advance();
@@ -527,6 +537,15 @@ function parseLambda(p: Parser): A.LambdaExpr {
 
 function parsePattern(p: Parser): A.Pattern {
   const t = p.peek();
+  if (t.kind === "dot") {
+    p.advance(); // consume `.`
+    const variantTok = p.expect("ident", "variant name after `.`");
+    return {
+      kind: "EnumVariantPattern",
+      span: { start: t.span.start, end: variantTok.span.end },
+      variant: variantTok.text,
+    };
+  }
   if (t.kind === "kw_is") {
     p.advance();
     const type = parseType(p);
