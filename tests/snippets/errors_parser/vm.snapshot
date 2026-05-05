@@ -1,0 +1,9 @@
+# compile errors
+[R2006] unresolved identifier: `a`
+[R2006] unresolved identifier: `b`
+[P1003] expected an expression: got `==`
+[P1010] non-associative operator chained: chained ``==``
+[R2006] unresolved identifier: `c`
+[R2006] unresolved identifier: `x`
+[T3017] operator not defined for these operand types: add between {integer} and null
+[P1003] expected an expression: got `+`

@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/comptime_const/_main.vader
+  @comptime  ANSWER               = 42_i32
+  @comptime  GREETING             = "hello, world"
+
+## generic instances
+  Yielded(i32)

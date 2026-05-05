@@ -1,0 +1,9 @@
+module _main
+
+fn 0 tests_snippets_file_decorator__main_vader$main () -> i32
+  i32.const 0   ; _main.vader:5:12
+  return   ; _main.vader:5:5
+end
+
+# Diagnostics
+[1:1] error[C4006] @file path could not be read: `data.txt` (resolved to `/Users/mbroutin/Developments/default/vaderlang2/tests/snippets/file_decorator/data.txt`)

@@ -1,0 +1,10 @@
+# Typecheck
+
+## tests/snippets/interp_string_comptime/_main.vader
+  ConstDecl      GREETING             :: ?
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         name                 :: fn() -> string
+  expr 2:13     StringLitExpr  :: string
+  expr 2:23     CallExpr       :: string
+  expr 2:23     IdentExpr      :: fn() -> string
+  expr 5:12     StringLitExpr  :: string

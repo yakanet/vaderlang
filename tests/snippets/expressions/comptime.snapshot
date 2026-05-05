@@ -1,0 +1,14 @@
+# Comptime
+
+## tests/snippets/expressions/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[7:10] error[R2006] unresolved identifier: `arr`
+[8:10] error[R2006] unresolved identifier: `obj`
+[11:14] error[R2006] unresolved identifier: `cond`
+[11:20] error[P1002] expected token: expected `{` to open block (got 1)
+[11:22] error[P1003] expected an expression: got `else`
+[14:1] error[P1002] expected token: expected `}` to close block (got end of file)

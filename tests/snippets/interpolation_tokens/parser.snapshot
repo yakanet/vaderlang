@@ -1,0 +1,8 @@
+# AST
+{
+  "kind": "Program",
+  "decls": []
+}
+
+# Diagnostics
+[1:1] error[P1006] expected a declaration: got `simple`

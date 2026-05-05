@@ -1,0 +1,11 @@
+module _main
+
+fn 0 tests_snippets_unknown_import__main_vader$main () -> i32
+  unreachable   ; _main.vader:4:5
+  drop   ; _main.vader:4:5
+  i32.const 0   ; _main.vader:5:12
+  return   ; _main.vader:5:5
+end
+
+# Diagnostics
+[1:1] error[R2001] module not found: `std/nonexistent`

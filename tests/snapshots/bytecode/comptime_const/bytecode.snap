@@ -1,6 +1,0 @@
-module input
-
-fn 0 tests_snapshots_bytecode_comptime_const_input_vader$main () -> i32
-  i32.const 42   ; input.vader:5:1
-  return   ; input.vader:11:5
-end

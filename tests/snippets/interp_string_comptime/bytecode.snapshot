@@ -1,0 +1,12 @@
+module _main
+string 0 "Vader"
+
+fn 0 tests_snippets_interp_string_comptime__main_vader$name () -> string
+  string.const 0   ; _main.vader:5:12
+  return   ; _main.vader:5:5
+end
+
+fn 1 tests_snippets_interp_string_comptime__main_vader$main () -> i32
+  i32.const 0   ; _main.vader:9:12
+  return   ; _main.vader:9:5
+end

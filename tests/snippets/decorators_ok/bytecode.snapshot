@@ -1,0 +1,8 @@
+module _main
+import 0 log tests_snippets_decorators_ok__main_vader$log (i32,i32) -> void
+
+fn 0 tests_snippets_decorators_ok__main_vader$test_log () -> void
+  i32.const 0   ; _main.vader:6:9
+  i32.const 0   ; _main.vader:6:12
+  call.import 0   ; _main.vader:6:5
+end

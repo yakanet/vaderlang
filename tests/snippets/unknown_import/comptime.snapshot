@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/unknown_import/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[1:1] error[R2001] module not found: `std/nonexistent`

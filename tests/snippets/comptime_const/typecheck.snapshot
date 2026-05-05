@@ -1,0 +1,12 @@
+# Typecheck
+
+## tests/snippets/comptime_const/_main.vader
+  ConstDecl      ANSWER               :: ?
+  ConstDecl      GREETING             :: ?
+  FnDecl         main                 :: fn() -> i32
+  expr 11:12    IdentExpr      :: ?
+  expr 5:12     BinaryExpr     :: {integer}
+  expr 5:12     BinaryExpr     :: {integer}
+  expr 8:13     BinaryExpr     :: string
+  expr 8:13     StringLitExpr  :: string
+  expr 8:25     StringLitExpr  :: string

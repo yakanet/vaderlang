@@ -1,0 +1,27 @@
+# Typecheck
+
+## tests/snippets/for_loop/_main.vader
+  FnDecl         mixed_loops          :: fn(i32) -> i32
+  expr 11:13    BinaryExpr     :: i32
+  expr 11:13    IdentExpr      :: i32
+  expr 11:9     IdentExpr      :: i32
+  expr 17:13    BinaryExpr     :: bool
+  expr 17:13    IdentExpr      :: i32
+  expr 17:9     IfExpr         :: void
+  expr 20:13    BinaryExpr     :: i32
+  expr 20:13    IdentExpr      :: i32
+  expr 20:9     IdentExpr      :: i32
+  expr 21:13    BinaryExpr     :: i32
+  expr 21:13    IdentExpr      :: i32
+  expr 21:9     IdentExpr      :: i32
+  expr 24:12    IdentExpr      :: i32
+  expr 5:10     IdentExpr      :: i32
+  expr 6:9      BinaryExpr     :: bool
+  expr 6:9      IdentExpr      :: i32
+  expr 7:13     BinaryExpr     :: i32
+  expr 7:13     IdentExpr      :: i32
+  expr 7:9      IdentExpr      :: i32
+  expr 8:13     BinaryExpr     :: bool
+  expr 8:13     BinaryExpr     :: i32
+  expr 8:13     IdentExpr      :: i32
+  expr 8:9      IfExpr         :: void

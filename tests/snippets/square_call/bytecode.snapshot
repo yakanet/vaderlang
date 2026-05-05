@@ -1,0 +1,13 @@
+module _main
+
+fn 0 tests_snippets_square_call__main_vader$square (i32) -> i32
+  local.get 0   ; _main.vader:2:12
+  local.get 0   ; _main.vader:2:16
+  i32.mul   ; _main.vader:2:12
+  return   ; _main.vader:2:5
+end
+
+fn 1 tests_snippets_square_call__main_vader$main () -> i32
+  i32.const 9   ; _main.vader:6:1
+  return   ; _main.vader:9:5
+end

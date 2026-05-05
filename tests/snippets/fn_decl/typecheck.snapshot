@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/fn_decl/_main.vader
+  FnDecl         add                  :: fn(i32, i32) -> i32
+  FnDecl         greet                :: fn(string, string) -> string
+  FnDecl         map                  :: fn([?], fn($T) -> ?) -> [$U]
+  expr 10:12    IdentExpr      :: [?]
+  expr 2:12     BinaryExpr     :: i32
+  expr 2:12     IdentExpr      :: i32
+  expr 2:16     IdentExpr      :: i32
+  expr 6:12     IdentExpr      :: string
+
+# Diagnostics
+[10:5] error[T3020] function body returns a value incompatible with its declared return type: expected [$U], got [?]

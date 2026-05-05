@@ -1,9 +1,0 @@
-# Typecheck
-
-## tests/snapshots/typecheck/match_union/input.vader
-  FnDecl         describe             :: fn(i32 | null | string) -> string
-  expr 2:12     MatchExpr      :: string
-  expr 2:18     IdentExpr      :: i32 | null | string
-  expr 3:22     StringLitExpr  :: string
-  expr 4:22     StringLitExpr  :: string
-  expr 5:22     StringLitExpr  :: string

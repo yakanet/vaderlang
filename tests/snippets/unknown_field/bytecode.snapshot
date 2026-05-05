@@ -1,0 +1,13 @@
+module _main
+type 0 struct tests_snippets_unknown_field__main_vader$Point { x:1,y:1 }
+type 1 primitive f64
+
+fn 0 tests_snippets_unknown_field__main_vader$dist (ref) -> f64
+  local.get 0   ; _main.vader:7:12
+  drop   ; _main.vader:7:12
+  unreachable   ; _main.vader:7:12
+  return   ; _main.vader:7:5
+end
+
+# Diagnostics
+[7:14] error[T3009] field does not exist on this type: `z` on Point

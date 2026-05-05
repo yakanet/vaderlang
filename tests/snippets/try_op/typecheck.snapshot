@@ -1,0 +1,28 @@
+# Typecheck
+
+## tests/snippets/try_op/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         read_or_default      :: fn(string) -> Error | string
+  FnDecl         show                 :: fn(Error | string) -> void
+  expr 10:11    IdentExpr      :: Error | string
+  expr 10:5     MatchExpr      :: void
+  expr 11:22    CallExpr       :: void
+  expr 11:22    IdentExpr      :: fn(string) -> void
+  expr 11:30    IdentExpr      :: string
+  expr 12:22    CallExpr       :: void
+  expr 12:22    IdentExpr      :: fn(string) -> void
+  expr 12:30    StringLitExpr  :: string
+  expr 17:10    CallExpr       :: Error | string
+  expr 17:10    IdentExpr      :: fn(string) -> Error | string
+  expr 17:26    StringLitExpr  :: string
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(Error | string) -> void
+  expr 18:10    CallExpr       :: Error | string
+  expr 18:10    IdentExpr      :: fn(string) -> Error | string
+  expr 18:26    StringLitExpr  :: string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(Error | string) -> void
+  expr 6:12     CallExpr       :: Error | string
+  expr 6:12     IdentExpr      :: fn(string) -> Error | string
+  expr 6:12     TryExpr        :: string
+  expr 6:22     IdentExpr      :: string

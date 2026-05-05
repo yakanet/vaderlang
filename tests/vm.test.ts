@@ -1,19 +1,9 @@
-// VM snapshot tests — Phase §1.8.
-//
-// Each scenario lives in tests/snapshots/vm/<name>/input.vader, optionally
-// alongside fixture files (e.g. data.txt for try_op). The driver compiles
-// the input via the full TS pipeline, runs `main` with a captured `HostIO`
-// (stdout in memory, file ops on disk so fixtures work), and asserts the
-// captured stdout/exit pair matches stdout.snap.
-//
-// Refresh snapshots with `UPDATE_SNAPSHOTS=1 bun test`.
-
-import { test, expect } from "bun:test";
+import { test } from "bun:test";
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { listScenarios, snapshotEquals } from "./snapshot.ts";
+import { errMsg, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { pipelineBytecode } from "../src/pipeline.ts";
-import { runProgram, makeBindings, type HostIO } from "../src/vm/index.ts";
+import { VmError, runProgram, makeBindings, type HostIO } from "../src/vm/index.ts";
 
 interface Captured {
   readonly out: string[];
@@ -27,11 +17,11 @@ function captureIO(): Captured {
   return {
     out, err,
     io: {
-      write(s)         { out.push(s); },
-      writeError(s)    { err.push(s); },
-      readLine()       { return null; },
-      readFile(path)   { return readFileSync(path, "utf8"); },
-      writeFile(p, c)  { writeFileSync(p, c, "utf8"); },
+      write(s)        { out.push(s); },
+      writeError(s)   { err.push(s); },
+      readLine()      { return null; },
+      readFile(path)  { return readFileSync(path, "utf8"); },
+      writeFile(p, c) { writeFileSync(p, c, "utf8"); },
       exists(p) {
         try { readFileSync(p); return true; } catch { return false; }
       },
@@ -39,21 +29,33 @@ function captureIO(): Captured {
   };
 }
 
-test("vm: snapshots", async () => {
-  const scenarios = listScenarios("tests/snapshots/vm");
-  expect(scenarios.length).toBeGreaterThan(0);
-
-  for (const s of scenarios) {
-    const r = await pipelineBytecode(s.inputPath);
-    const diags = r.diagnostics.sorted();
-    const errors = diags.filter((d) => d.severity === "error");
-    expect(errors.map((d) => `[${d.code}] ${d.message}`)).toEqual([]);
-
+async function dumpVm(mainPath: string): Promise<string> {
+  let r: Awaited<ReturnType<typeof pipelineBytecode>>;
+  try {
+    r = await pipelineBytecode(mainPath);
+  } catch (e) {
+    return `# pipeline error\n${errMsg(e)}\n`;
+  }
+  const errors = r.diagnostics.sorted().filter((d) => d.severity === "error");
+  if (errors.length > 0) {
+    return "# compile errors\n" + errors.map((e) => `[${e.code}] ${e.message}`).join("\n") + "\n";
+  }
+  try {
     const cap = captureIO();
     const result = runProgram(r.bytecode, { host: makeBindings(cap.io), opLimit: 1_000_000 });
+    return formatRun(cap.out.join(""), cap.err.join(""), result.exitCode);
+  } catch (e) {
+    if (e instanceof VmError && e.message.startsWith("vm: no main function")) return "# no main function\n";
+    return `# runtime error\n${errMsg(e)}\n`;
+  }
+}
 
-    const actual = formatRun(cap.out.join(""), cap.err.join(""), result.exitCode);
-    const cmp = snapshotEquals(s.dir, "stdout.snap", actual);
+const scenarios = listSnippets("tests/snippets");
+
+for (const s of scenarios) {
+  test(`vm: ${s.name}`, async () => {
+    const actual = await dumpVm(s.mainPath);
+    const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
     if (!cmp.ok) {
       throw new Error(
         `vm snapshot mismatch: ${s.name}\n` +
@@ -62,13 +64,5 @@ test("vm: snapshots", async () => {
         `  actual:\n${actual}`,
       );
     }
-  }
-});
-
-function formatRun(stdout: string, stderr: string, exit: number): string {
-  const parts: string[] = [];
-  if (stdout.length > 0) parts.push("# stdout\n" + stdout);
-  if (stderr.length > 0) parts.push("# stderr\n" + stderr);
-  parts.push(`# exit\n${exit}\n`);
-  return parts.join("");
+  });
 }

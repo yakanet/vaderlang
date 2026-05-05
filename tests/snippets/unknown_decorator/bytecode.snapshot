@@ -1,0 +1,9 @@
+module _main
+
+fn 0 tests_snippets_unknown_decorator__main_vader$main () -> i32
+  i32.const 0   ; _main.vader:3:12
+  return   ; _main.vader:3:5
+end
+
+# Diagnostics
+[1:1] error[R2010] decorator unknown to the compiler: `@bogus`

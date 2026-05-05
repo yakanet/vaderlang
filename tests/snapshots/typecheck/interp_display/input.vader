@@ -1,3 +1,0 @@
-greet :: fn(name: string, age: i32) -> string {
-    return "Hello, ${name}! You are ${age} years old."
-}

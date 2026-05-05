@@ -1,0 +1,2 @@
+# runtime error
+vm: reached unreachable (at tests_snippets_namespace_import__main_vader$main+1 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/namespace_import/_main.vader:4:5)

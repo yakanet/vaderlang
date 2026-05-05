@@ -1,0 +1,14 @@
+# Lower
+
+## tests/snippets/decorators_ok/_main.vader
+  fn tests_snippets_decorators_ok__main_vader$log(ptr: i32, len: i32) -> void
+    <extern / signature only>
+  fn tests_snippets_decorators_ok__main_vader$test_log() -> void
+    ~>
+      call :void
+        callee:
+          log#1 :fn(i32, i32) -> void
+        arg0:
+          int(0) :i32
+        arg1:
+          int(0) :i32

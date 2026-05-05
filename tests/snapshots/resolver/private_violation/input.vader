@@ -1,6 +1,0 @@
-import "./lib" { secret_helper }
-
-main :: fn() -> i32 {
-    secret_helper()
-    return 0
-}

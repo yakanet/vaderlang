@@ -1,0 +1,6 @@
+module _main
+
+fn 0 tests_snippets_cross_decl__main_vader$main () -> i32
+  i32.const 30   ; _main.vader:8:1
+  return   ; _main.vader:11:5
+end

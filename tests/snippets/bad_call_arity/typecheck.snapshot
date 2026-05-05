@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/bad_call_arity/_main.vader
+  FnDecl         add                  :: fn(i32, i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 2:12     BinaryExpr     :: i32
+  expr 2:12     IdentExpr      :: i32
+  expr 2:16     IdentExpr      :: i32
+  expr 6:12     CallExpr       :: i32
+  expr 6:12     IdentExpr      :: fn(i32, i32) -> i32
+
+# Diagnostics
+[6:12] error[T3003] wrong number of arguments: expected 2, got 1

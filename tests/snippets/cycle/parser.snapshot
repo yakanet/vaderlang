@@ -1,0 +1,82 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ConstDecl",
+      "name": "A",
+      "visibility": "public",
+      "type": null,
+      "value": {
+        "kind": "BinaryExpr",
+        "op": "add",
+        "left": {
+          "kind": "IdentExpr",
+          "name": "B"
+        },
+        "right": {
+          "kind": "IntLitExpr",
+          "value": "1n",
+          "suffix": null
+        }
+      },
+      "decorators": [
+        {
+          "name": "comptime",
+          "args": []
+        }
+      ]
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "B",
+      "visibility": "public",
+      "type": null,
+      "value": {
+        "kind": "BinaryExpr",
+        "op": "add",
+        "left": {
+          "kind": "IdentExpr",
+          "name": "A"
+        },
+        "right": {
+          "kind": "IntLitExpr",
+          "value": "1n",
+          "suffix": null
+        }
+      },
+      "decorators": [
+        {
+          "name": "comptime",
+          "args": []
+        }
+      ]
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "i32"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "A"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

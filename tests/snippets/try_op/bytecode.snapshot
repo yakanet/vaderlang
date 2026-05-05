@@ -1,0 +1,61 @@
+module _main
+type 0 ref Error
+type 1 primitive string
+string 0 "err: this file does not exists"
+string 1 "./tests/snippets/try_op/data.txt"
+string 2 "./does_not_exist.txt"
+import 0 print std_io$print (string) -> void
+import 1 println std_io$println (string) -> void
+import 2 read_line std_io$read_line () -> ref
+import 3 read_file std_io$read_file (string) -> ref
+import 4 write_file std_io$write_file (string,string) -> ref
+import 5 exists std_io$exists (string) -> bool
+
+fn 0 tests_snippets_try_op__main_vader$read_or_default (string) -> ref
+  local __try_0 ref
+  local.get 0   ; _main.vader:6:22
+  call.import 3   ; _main.vader:6:12
+  local.set 1   ; _main.vader:6:12
+  local.get 1   ; _main.vader:6:12
+  type_check 0   ; _main.vader:6:12
+  if string   ; _main.vader:6:12
+  local.get 1   ; _main.vader:6:12
+  return   ; _main.vader:6:12
+  else   ; _main.vader:6:12
+  local.get 1   ; _main.vader:6:12
+  ref.cast 1   ; _main.vader:6:12
+  end   ; _main.vader:6:12
+  return   ; _main.vader:6:5
+end
+
+fn 1 tests_snippets_try_op__main_vader$show (ref) -> void
+  local __scrut_0 ref
+  local.get 0   ; _main.vader:10:11
+  local.set 1   ; _main.vader:10:11
+  local.get 1   ; _main.vader:11:9
+  type_check 1   ; _main.vader:11:9
+  if void   ; _main.vader:11:9
+  local.get 0   ; _main.vader:11:30
+  call.import 1   ; _main.vader:11:22
+  else   ; _main.vader:11:9
+  local.get 1   ; _main.vader:12:9
+  type_check 0   ; _main.vader:12:9
+  if void   ; _main.vader:12:9
+  string.const 0   ; _main.vader:12:30
+  call.import 1   ; _main.vader:12:22
+  else   ; _main.vader:12:9
+  unreachable   ; _main.vader:10:5
+  end   ; _main.vader:12:9
+  end   ; _main.vader:11:9
+end
+
+fn 2 tests_snippets_try_op__main_vader$main () -> i32
+  string.const 1   ; _main.vader:17:26
+  call 0   ; _main.vader:17:10
+  call 1   ; _main.vader:17:5
+  string.const 2   ; _main.vader:18:26
+  call 0   ; _main.vader:18:10
+  call 1   ; _main.vader:18:5
+  i32.const 0   ; _main.vader:19:12
+  return   ; _main.vader:19:5
+end

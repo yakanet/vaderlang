@@ -1,0 +1,2 @@
+# compile errors
+[T3009] field does not exist on this type: `z` on Point

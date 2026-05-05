@@ -1,0 +1,31 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=17 types=47 params=19 locals=3 typeParams=3 fields=0
+
+## tests/snippets/expressions/_main.vader
+  fn               public   demo 
+  refs: idents=5 types=1 params=0 locals=10 typeParams=0 fields=0
+
+# Diagnostics
+[7:10] error[R2006] unresolved identifier: `arr`
+[8:10] error[R2006] unresolved identifier: `obj`
+[11:14] error[R2006] unresolved identifier: `cond`
+[11:20] error[P1002] expected token: expected `{` to open block (got 1)
+[11:22] error[P1003] expected an expression: got `else`
+[14:1] error[P1002] expected token: expected `}` to close block (got end of file)

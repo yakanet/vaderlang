@@ -1,0 +1,34 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=17 types=47 params=19 locals=3 typeParams=3 fields=0
+
+## tests/snippets/private_violation/_main.vader
+  fn               public   main 
+  import-binding   private  secret_helper → secret_helper
+  import ./lib → ok
+  refs: idents=1 types=1 params=0 locals=0 typeParams=0 fields=0
+
+## tests/snippets/private_violation/lib
+  fn               public   public_helper 
+  fn               private  secret_helper 
+  refs: idents=1 types=2 params=0 locals=0 typeParams=0 fields=0
+
+# Diagnostics
+[1:18] error[R2008] private symbol cannot be accessed across module boundaries: `secret_helper` is private to `./lib`
+[4:5] error[R2006] unresolved identifier: `public_helper`

@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/if_branches/_main.vader
+  FnDecl         classify             :: fn(i32) -> string
+  expr 2:12     IfExpr         :: string
+  expr 2:16     BinaryExpr     :: bool
+  expr 2:16     IdentExpr      :: i32
+  expr 3:9      StringLitExpr  :: string
+  expr 4:12     IfExpr         :: string
+  expr 4:16     BinaryExpr     :: bool
+  expr 4:16     IdentExpr      :: i32
+  expr 5:9      StringLitExpr  :: string
+  expr 7:9      StringLitExpr  :: string

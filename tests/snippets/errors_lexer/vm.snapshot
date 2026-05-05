@@ -1,0 +1,6 @@
+# compile errors
+[P1006] expected a declaration: got `x`
+[L0006] malformed numeric literal: underscore not allowed here
+[L0002] unterminated string literal
+[L0005] invalid character literal: character literal must contain exactly one codepoint
+[L0003] unterminated block comment

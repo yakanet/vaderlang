@@ -1,7 +1,0 @@
-# Comptime
-
-## tests/snapshots/comptime/file_decorator/input.vader
-  @file      GREETING             = "hello from disk\n"
-
-## generic instances
-  Yielded(i32)

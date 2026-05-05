@@ -1,0 +1,26 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=17 types=47 params=19 locals=3 typeParams=3 fields=0
+
+## tests/snippets/cross_decl/_main.vader
+  const            public   A 
+  const            public   B 
+  const            public   C 
+  fn               public   main 
+  refs: idents=4 types=1 params=0 locals=0 typeParams=0 fields=0

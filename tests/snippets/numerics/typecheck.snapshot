@@ -1,0 +1,8 @@
+# Typecheck
+
+## tests/snippets/numerics/_main.vader
+
+# Diagnostics
+[1:1] error[P1006] expected a declaration: got `a`
+[8:6] error[L0006] malformed numeric literal: trailing underscore in numeric literal
+[12:6] error[L0006] malformed numeric literal: trailing underscore in numeric literal

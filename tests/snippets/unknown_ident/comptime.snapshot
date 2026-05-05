@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/unknown_ident/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[2:5] error[R2006] unresolved identifier: `nope_here`

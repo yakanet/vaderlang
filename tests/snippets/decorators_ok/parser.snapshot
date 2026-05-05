@@ -1,0 +1,106 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "log",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "ptr",
+          "type": {
+            "kind": "NamedType",
+            "name": "i32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "len",
+          "type": {
+            "kind": "NamedType",
+            "name": "i32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": null,
+      "whereClauses": [],
+      "body": null,
+      "decorators": [
+        {
+          "name": "extern",
+          "args": [
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "env"
+                }
+              ]
+            },
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "console_log"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "FnDecl",
+      "name": "test_log",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [],
+      "returnType": null,
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "log"
+          },
+          "args": [
+            {
+              "name": null,
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n",
+                "suffix": null
+              },
+              "spread": false
+            },
+            {
+              "name": null,
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n",
+                "suffix": null
+              },
+              "spread": false
+            }
+          ]
+        }
+      },
+      "decorators": [
+        {
+          "name": "test",
+          "args": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+# Lower
+
+## tests/snippets/match_expr/_main.vader
+  fn tests_snippets_match_expr__main_vader$classify(x: i32 | null | string) -> string
+    return
+      block :string
+        let __scrut_0#-1: i32 | null | string = x#34 :i32 | null | string
+        ~>
+          if :string
+            cond:
+              and :bool
+                l:
+                  is i32 :bool
+                    __scrut_0#-1 :i32 | null | string
+                r:
+                  gt :bool
+                    l:
+                      x#34 :i32
+                    r:
+                      int(0) :i32
+            then:
+              ~>
+                "positive" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    is i32 :bool
+                      __scrut_0#-1 :i32 | null | string
+                  then:
+                    ~>
+                      "non-positive" :string
+                  else:
+                    ~>
+                      if :string
+                        cond:
+                          is string :bool
+                            __scrut_0#-1 :i32 | null | string
+                        then:
+                          ~>
+                            x#34 :string
+                        else:
+                          ~>
+                            if :string
+                              cond:
+                                is null :bool
+                                  __scrut_0#-1 :i32 | null | string
+                              then:
+                                ~>
+                                  "nothing" :string
+                              else:
+                                ~>
+                                  "?" :string

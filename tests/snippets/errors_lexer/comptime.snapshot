@@ -1,0 +1,13 @@
+# Comptime
+
+## tests/snippets/errors_lexer/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[1:1] error[P1006] expected a declaration: got `x`
+[1:6] error[L0006] malformed numeric literal: underscore not allowed here
+[2:7] error[L0002] unterminated string literal
+[3:6] error[L0005] invalid character literal: character literal must contain exactly one codepoint
+[4:6] error[L0003] unterminated block comment

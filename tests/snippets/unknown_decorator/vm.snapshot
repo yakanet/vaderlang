@@ -1,0 +1,2 @@
+# compile errors
+[R2010] decorator unknown to the compiler: `@bogus`

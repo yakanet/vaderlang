@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/bad_assignment/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[2:5] error[T3020] function body returns a value incompatible with its declared return type: expected i32, got string

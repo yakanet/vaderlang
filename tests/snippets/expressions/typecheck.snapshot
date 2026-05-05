@@ -1,0 +1,37 @@
+# Typecheck
+
+## tests/snippets/expressions/_main.vader
+  FnDecl         demo                 :: fn() -> i32
+  expr 10:10    CallExpr       :: ?
+  expr 10:10    IdentExpr      :: ?
+  expr 10:31    StringLitExpr  :: string
+  expr 11:10    IfExpr         :: void
+  expr 11:14    IdentExpr      :: ?
+  expr 12:12    IdentExpr      :: i32
+  expr 2:10     BinaryExpr     :: {integer}
+  expr 2:14     BinaryExpr     :: {integer}
+  expr 3:11     BinaryExpr     :: {integer}
+  expr 3:11     BinaryExpr     :: {integer}
+  expr 4:10     BinaryExpr     :: i32
+  expr 4:10     UnaryExpr      :: i32
+  expr 4:11     IdentExpr      :: i32
+  expr 4:15     IdentExpr      :: i32
+  expr 5:10     BinaryExpr     :: bool
+  expr 5:10     BinaryExpr     :: bool
+  expr 5:10     UnaryExpr      :: bool
+  expr 6:10     RangeExpr      :: Range
+  expr 7:10     IdentExpr      :: ?
+  expr 7:10     IndexExpr      :: ?
+  expr 8:10     FieldExpr      :: ?
+  expr 8:10     FieldExpr      :: ?
+  expr 8:10     IdentExpr      :: ?
+  expr 9:10     CallExpr       :: ?
+  expr 9:10     IdentExpr      :: ?
+
+# Diagnostics
+[7:10] error[R2006] unresolved identifier: `arr`
+[8:10] error[R2006] unresolved identifier: `obj`
+[11:14] error[R2006] unresolved identifier: `cond`
+[11:20] error[P1002] expected token: expected `{` to open block (got 1)
+[11:22] error[P1003] expected an expression: got `else`
+[14:1] error[P1002] expected token: expected `}` to close block (got end of file)

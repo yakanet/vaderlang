@@ -1,0 +1,11 @@
+# Typecheck
+
+## tests/snippets/arith/_main.vader
+  FnDecl         add                  :: fn(i32, i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 2:12     BinaryExpr     :: i32
+  expr 2:12     IdentExpr      :: i32
+  expr 2:16     IdentExpr      :: i32
+  expr 6:10     CallExpr       :: i32
+  expr 6:10     IdentExpr      :: fn(i32, i32) -> i32
+  expr 7:12     IdentExpr      :: i32

@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/file_decorator/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[1:1] error[C4006] @file path could not be read: `data.txt` (resolved to `/Users/mbroutin/Developments/default/vaderlang2/tests/snippets/file_decorator/data.txt`)

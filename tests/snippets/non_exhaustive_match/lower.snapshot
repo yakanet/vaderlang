@@ -1,0 +1,21 @@
+# Lower
+
+## tests/snippets/non_exhaustive_match/_main.vader
+  fn tests_snippets_non_exhaustive_match__main_vader$classify(x: i32 | string) -> string
+    return
+      block :string
+        let __scrut_0#-1: i32 | string = x#34 :i32 | string
+        ~>
+          if :string
+            cond:
+              is i32 :bool
+                __scrut_0#-1 :i32 | string
+            then:
+              ~>
+                "int" :string
+            else:
+              ~>
+                unreachable("non-exhaustive match (T3013 should have caught this)") :string
+
+# Diagnostics
+[2:12] error[T3013] non-exhaustive match: variant string of i32 | string is not covered

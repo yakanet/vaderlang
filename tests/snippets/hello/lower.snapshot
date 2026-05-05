@@ -1,0 +1,10 @@
+# Lower
+
+## tests/snippets/hello/_main.vader
+  fn tests_snippets_hello__main_vader$main() -> i32
+    call :void
+      callee:
+        println#20 :fn(string) -> void
+      arg0:
+        "Hello, World!" :string
+    return int(0) :i32

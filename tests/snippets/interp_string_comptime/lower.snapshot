@@ -1,0 +1,9 @@
+# Lower
+
+## tests/snippets/interp_string_comptime/_main.vader
+  const tests_snippets_interp_string_comptime__main_vader$GREETING: string =
+    "Hello, Vader!" :string
+  fn tests_snippets_interp_string_comptime__main_vader$name() -> string
+    return "Vader" :string
+  fn tests_snippets_interp_string_comptime__main_vader$main() -> i32
+    return int(0) :i32

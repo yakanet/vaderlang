@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/bad_call_arity/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[6:12] error[T3003] wrong number of arguments: expected 2, got 1

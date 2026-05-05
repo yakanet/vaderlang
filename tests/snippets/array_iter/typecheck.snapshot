@@ -1,0 +1,23 @@
+# Typecheck
+
+## tests/snippets/array_iter/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 12:14    ArrayLitExpr   :: [i32]
+  expr 14:15    IdentExpr      :: [i32]
+  expr 15:13    BinaryExpr     :: i32
+  expr 15:13    IdentExpr      :: i32
+  expr 15:9     IdentExpr      :: i32
+  expr 17:13    StringLitExpr  :: string
+  expr 17:24    IdentExpr      :: i32
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(string) -> void
+  expr 4:12     ArrayLitExpr   :: [i32]
+  expr 6:14     IdentExpr      :: [i32]
+  expr 7:15     BinaryExpr     :: i32
+  expr 7:15     IdentExpr      :: i32
+  expr 7:21     IdentExpr      :: i32
+  expr 7:9      IdentExpr      :: i32
+  expr 9:13     StringLitExpr  :: string
+  expr 9:22     IdentExpr      :: i32
+  expr 9:5      CallExpr       :: void
+  expr 9:5      IdentExpr      :: fn(string) -> void

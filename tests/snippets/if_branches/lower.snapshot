@@ -1,0 +1,30 @@
+# Lower
+
+## tests/snippets/if_branches/_main.vader
+  fn tests_snippets_if_branches__main_vader$classify(n: i32) -> string
+    return
+      if :string
+        cond:
+          gt :bool
+            l:
+              n#34 :i32
+            r:
+              int(0) :i32
+        then:
+          ~>
+            "positive" :string
+        else:
+          ~>
+            if :string
+              cond:
+                lt :bool
+                  l:
+                    n#34 :i32
+                  r:
+                    int(0) :i32
+              then:
+                ~>
+                  "negative" :string
+              else:
+                ~>
+                  "zero" :string

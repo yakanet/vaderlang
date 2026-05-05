@@ -1,0 +1,8 @@
+# Typecheck
+
+## tests/snippets/simple_arith/_main.vader
+  ConstDecl      ANSWER               :: ?
+  FnDecl         main                 :: fn() -> i32
+  expr 2:12     BinaryExpr     :: {integer}
+  expr 2:12     BinaryExpr     :: {integer}
+  expr 5:12     IdentExpr      :: ?

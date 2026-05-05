@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/interpolation_tokens/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[1:1] error[P1006] expected a declaration: got `simple`

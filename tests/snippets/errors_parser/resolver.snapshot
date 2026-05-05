@@ -1,0 +1,32 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=17 types=47 params=19 locals=3 typeParams=3 fields=0
+
+## tests/snippets/errors_parser/_main.vader
+  fn               public   bad 
+  refs: idents=0 types=0 params=0 locals=0 typeParams=0 fields=0
+
+# Diagnostics
+[2:5] error[R2006] unresolved identifier: `a`
+[2:10] error[R2006] unresolved identifier: `b`
+[2:12] error[P1003] expected an expression: got `==`
+[2:12] error[P1010] non-associative operator chained: chained ``==``
+[2:15] error[R2006] unresolved identifier: `c`
+[3:5] error[R2006] unresolved identifier: `x`
+[3:13] error[P1003] expected an expression: got `+`

@@ -1,0 +1,30 @@
+# Lower
+
+## tests/snippets/errors_parser/_main.vader
+  fn tests_snippets_errors_parser__main_vader$bad() -> void
+    eq :bool
+      l:
+        unreachable("unresolved ident a") :?
+      r:
+        unreachable("unresolved ident b") :?
+    null
+    unreachable("unresolved ident c") :?
+    assign
+      target:
+        unreachable("unresolved ident x") :?
+      value:
+        add :?
+          l:
+            int(1) :i32
+          r:
+            null
+
+# Diagnostics
+[2:5] error[R2006] unresolved identifier: `a`
+[2:10] error[R2006] unresolved identifier: `b`
+[2:12] error[P1003] expected an expression: got `==`
+[2:12] error[P1010] non-associative operator chained: chained ``==``
+[2:15] error[R2006] unresolved identifier: `c`
+[3:5] error[R2006] unresolved identifier: `x`
+[3:9] error[T3017] operator not defined for these operand types: add between {integer} and null
+[3:13] error[P1003] expected an expression: got `+`

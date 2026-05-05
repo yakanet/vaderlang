@@ -18,24 +18,42 @@ import { writeVir, parseVir } from "../src/bytecode/text.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
+export const MAIN_FILE = "_main.vader";
+
+export const VM_ERROR_PREFIXES = ["# pipeline error", "# compile errors", "# no main function", "# runtime error"] as const;
+
 export interface Scenario {
-  readonly dir: string;
   readonly name: string;
-  readonly inputPath: string;
-  readonly inputSource: string;
+  readonly dir: string;
+  readonly mainPath: string;
+  readonly source: string;
 }
 
 const UPDATE = process.env["UPDATE_SNAPSHOTS"] === "1";
 
-export function listScenarios(rootDir: string): Scenario[] {
-  if (!existsSync(rootDir)) return [];
+export function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
+
+export function formatRun(stdout: string, stderr: string, exit: number): string {
+  const parts: string[] = [];
+  if (stdout.length > 0) parts.push("# stdout\n" + stdout);
+  if (stderr.length > 0) parts.push("# stderr\n" + stderr);
+  parts.push(`# exit\n${exit}\n`);
+  return parts.join("");
+}
+
+export function listSnippets(snippetsDir: string): Scenario[] {
   const out: Scenario[] = [];
-  for (const name of readdirSync(rootDir)) {
-    const dir = join(rootDir, name);
+  let entries: string[];
+  try { entries = readdirSync(snippetsDir); } catch { return []; }
+  for (const name of entries) {
+    const dir = join(snippetsDir, name);
     if (!statSync(dir).isDirectory()) continue;
-    const inputPath = join(dir, "input.vader");
-    if (!existsSync(inputPath)) continue;
-    out.push({ dir, name, inputPath, inputSource: readFileSync(inputPath, "utf8") });
+    const mainPath = join(dir, MAIN_FILE);
+    let source: string;
+    try { source = readFileSync(mainPath, "utf8"); } catch { continue; }
+    out.push({ name, dir, mainPath, source });
   }
   out.sort((a, b) => (a.name < b.name ? -1 : 1));
   return out;

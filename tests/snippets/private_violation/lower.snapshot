@@ -1,0 +1,24 @@
+# Lower
+
+## tests/snippets/private_violation/_main.vader
+  fn tests_snippets_private_violation__main_vader$main() -> i32
+    call :?
+      callee:
+        unreachable("unresolved ident public_helper") :?
+    call :?
+      callee:
+        secret_helper#1 :?
+    return int(0) :i32
+
+## tests/snippets/private_violation/lib
+  fn tests_snippets_private_violation_lib$secret_helper() -> i32
+    return int(42) :i32
+  fn tests_snippets_private_violation_lib$public_helper() -> i32
+    return
+      call :i32
+        callee:
+          secret_helper#18 :fn() -> i32
+
+# Diagnostics
+[1:18] error[R2008] private symbol cannot be accessed across module boundaries: `secret_helper` is private to `./lib`
+[4:5] error[R2006] unresolved identifier: `public_helper`

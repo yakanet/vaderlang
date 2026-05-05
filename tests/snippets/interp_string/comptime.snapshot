@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/interp_string/_main.vader
+
+## generic instances
+  Yielded(i32)

@@ -1,0 +1,7 @@
+# Typecheck
+
+## tests/snippets/decorators_ok/_main.vader
+  FnDecl         log                  :: fn(i32, i32) -> void
+  FnDecl         test_log             :: fn() -> void
+  expr 6:5      CallExpr       :: void
+  expr 6:5      IdentExpr      :: fn(i32, i32) -> void

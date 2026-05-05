@@ -1,0 +1,6 @@
+# Typecheck
+
+## tests/snippets/struct_decl/_main.vader
+  StructDecl     Buffer               :: Buffer($N)
+  StructDecl     List                 :: List($T)
+  StructDecl     Point                :: Point

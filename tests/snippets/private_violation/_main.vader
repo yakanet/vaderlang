@@ -1,0 +1,7 @@
+import "./lib" { secret_helper }
+
+main :: fn() -> i32 {
+    public_helper()
+    secret_helper()
+    return 0
+}
