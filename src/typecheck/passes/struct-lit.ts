@@ -11,6 +11,7 @@ import type { ImplRegistry } from "../impls.ts";
 import type { Type } from "../types.ts";
 import { displayType, isAssignable, substitute } from "../types.ts";
 
+import { buildStructSubst } from "../ctx.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkExpr } from "./expr.ts";
 import { lowerTypeExpr } from "./type-expr.ts";
@@ -27,15 +28,7 @@ export function inferStructLit(
     return ty;
   }
   const decl = sourceStructDecl(ty.symbol);
-  // Build the typeParam → concrete-arg substitution for generic instances.
-  const subst: { typeParams: Map<number, Type> } = { typeParams: new Map() };
-  if (decl !== null && ty.args.length > 0) {
-    for (let i = 0; i < decl.typeParams.length && i < ty.args.length; i++) {
-      const tp = decl.typeParams[i]!;
-      const sym = t.globals.typeParamSymbols.get(tp);
-      if (sym !== undefined) subst.typeParams.set(sym.id, ty.args[i]!);
-    }
-  }
+  const subst = buildStructSubst(decl?.typeParams ?? [], ty.args, t.globals);
   for (const f of expr.fields) {
     const field = decl?.fields.find((sf) => sf.name === f.name);
     const fieldRaw = field !== undefined ? t.globals.typeExprTypes.get(field.type) ?? null : null;

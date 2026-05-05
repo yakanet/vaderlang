@@ -32,7 +32,7 @@ export interface ResolvedProgram {
    *  typechecker / lowerer can resolve `x` from the form alone. */
   readonly forIns: ReadonlyMap<A.ForStmt, Symbol>;
 
-  /** Symbols introduced by `$T` and struct/trait `(T: type)` heads. */
+  /** Symbols introduced by `$T` heads on struct/trait declarations. */
   readonly typeParams: ReadonlyMap<A.TypeParam, Symbol>;
 
   /** Resolution of inline `$T` type-param references in fn param positions.

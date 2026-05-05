@@ -16,6 +16,7 @@ import type { MethodResolution } from "../typed-ast.ts";
 import type { Substitution, Type } from "../types.ts";
 import { TY, defaultIfFree, displayType, isAssignable, isNumeric, substitute } from "../types.ts";
 
+import { buildStructSubst } from "../ctx.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr, typeOfSymbol } from "./expr.ts";
@@ -326,12 +327,27 @@ function implMatchesTarget(entry: ImplEntry, target: Type): boolean {
 }
 
 /** The fn type a bound method `obj.method` exposes — i.e. the impl member's
- *  fn type minus its `self` parameter (since the receiver is implicit). */
+ *  fn type minus its `self` parameter (since the receiver is implicit).
+ *  For generic structs, substitutes the struct's type params with the
+ *  receiver's concrete args (e.g. Stack(i32) → T=i32). */
 function methodBoundFnType(method: MethodResolution, t: MutableTyped): Type {
   const fnType = t.globals.declTypes.get(method.member);
   if (fnType === undefined || fnType.kind !== "Fn") return TY.unresolved;
-  // Methods take `self` as the first param; drop it from the bound type.
   const params = fnType.params.length > 0 ? fnType.params.slice(1) : fnType.params;
+
+  const recv = method.receiverType;
+  if (recv.kind === "Struct" && recv.args.length > 0) {
+    const structDecl = sourceStructDecl(recv.symbol);
+    if (structDecl !== null && structDecl.typeParams.length === recv.args.length) {
+      const subst = buildStructSubst(structDecl.typeParams, recv.args, t.globals);
+      return {
+        kind: "Fn",
+        params: params.map((p) => substitute(p, subst)),
+        returnType: substitute(fnType.returnType, subst),
+      };
+    }
+  }
+
   return { kind: "Fn", params, returnType: fnType.returnType };
 }
 

@@ -388,7 +388,7 @@ function parseStructDecl(
   };
 }
 
-/** Parse the optional `(T: type, U: type, $N: i32)` head on a struct/trait declaration. */
+/** Parse the optional `($T, $U, $N: i32)` head on a struct/trait declaration. */
 function parseStructTypeParamList(p: Parser): A.TypeParam[] {
   if (!p.match("lparen")) return [];
   const out: A.TypeParam[] = [];
@@ -401,16 +401,27 @@ function parseStructTypeParamList(p: Parser): A.TypeParam[] {
       if (p.check("rparen")) break;
       first = false;
 
-      const isComptime = p.match("dollar") !== null;
+      const hasDollar = p.match("dollar") !== null;
       const start = p.peek();
       const name = p.expect("ident", "type parameter name");
-      p.expect("colon", "`:` between name and bound");
-      const bound = parseType(p);
+      let bound: A.TypeExpr | null = null;
+      if (p.match("colon") !== null) bound = parseType(p);
+      if (!hasDollar) {
+        const hint = bound === null
+          ? `\`${name.text}\` must be written \`$${name.text}\``
+          : `\`${name.text}\` must be prefixed with \`$\``;
+        p.error("P1018", p.spanOf(start, p.peek(-1)), hint);
+      } else if (bound?.kind === "NamedType" && bound.name === "type") {
+        p.error("P1019", p.spanOf(start, p.peek(-1)),
+          `\`: type\` bound is redundant; write \`$${name.text}\``);
+        bound = null;
+      }
+      const isComptimeValue = bound !== null;
       out.push({
         span: p.spanOf(start, p.peek(-1)),
         name: name.text,
         bound,
-        isComptimeValue: isComptime,
+        isComptimeValue,
       });
     }
   }

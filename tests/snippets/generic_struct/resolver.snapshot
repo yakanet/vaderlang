@@ -16,7 +16,7 @@
   struct           public   Range 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=17 types=47 params=19 locals=3 typeParams=3 fields=0
+  refs: idents=17 types=43 params=19 locals=3 typeParams=3 fields=0
 
 ## std/io
   fn               public   exists 
@@ -28,8 +28,10 @@
   fn               public   write_file 
   refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
 
-## tests/snippets/defer/_main.vader
+## tests/snippets/generic_struct/_main.vader
   fn               public   main 
   import-binding   private  println → println
+  struct           public   Stack 
+  trait            public   Stackable 
   import std/io → ok
-  refs: idents=4 types=1 params=0 locals=0 typeParams=0 fields=0
+  refs: idents=19 types=17 params=10 locals=1 typeParams=2 fields=0

@@ -5,11 +5,11 @@
     return
       add :i32
         l:
-          a#41 :i32
+          a#40 :i32
         r:
-          b#42 :i32
+          b#41 :i32
   fn tests_snippets_fn_decl__main_vader$greet(name: string, prefix: string) -> string
-    return prefix#44 :string
+    return prefix#43 :string
 
 # Diagnostics
 [10:5] error[T3020] function body returns a value incompatible with its declared return type: expected [$U], got [$T]

@@ -5,7 +5,7 @@
   fn tests_snippets_unknown_field__main_vader$dist(p: Point) -> f64
     return
       .z :?
-        p#40 :Point
+        p#39 :Point
 
 # Diagnostics
 [7:14] error[T3009] field does not exist on this type: `z` on Point

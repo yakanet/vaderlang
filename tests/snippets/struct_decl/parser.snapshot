@@ -35,10 +35,7 @@
       "typeParams": [
         {
           "name": "T",
-          "bound": {
-            "kind": "NamedType",
-            "name": "type"
-          },
+          "bound": null,
           "isComptimeValue": false
         }
       ],

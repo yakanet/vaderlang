@@ -3,7 +3,7 @@ Point :: struct {
     y: f64
 }
 
-List :: struct(T: type) {
+List :: struct($T) {
     items: [T]
     len: u32
 }

@@ -2,16 +2,16 @@
 
 ## tests/snippets/for_loop/_main.vader
   fn tests_snippets_for_loop__main_vader$mixed_loops(start: i32) -> i32
-    let n#40: i32 = int(0) :i32
-    let i#41: i32 = start#39 :i32
+    let n#39: i32 = int(0) :i32
+    let i#40: i32 = start#38 :i32
     loop while (<…>)
       assign
         target:
-          i#41 :i32
+          i#40 :i32
         value:
           add :i32
             l:
-              i#41 :i32
+              i#40 :i32
             r:
               int(1) :i32
       if :void
@@ -20,7 +20,7 @@
             l:
               mod :i32
                 l:
-                  i#41 :i32
+                  i#40 :i32
                 r:
                   int(2) :i32
             r:
@@ -29,40 +29,40 @@
           continue
       assign
         target:
-          n#40 :i32
+          n#39 :i32
         value:
           add :i32
             l:
-              n#40 :i32
+              n#39 :i32
             r:
               int(1) :i32
-    let j#42: i32 = int(0) :i32
+    let j#41: i32 = int(0) :i32
     loop
       if :void
         cond:
           gte :bool
             l:
-              j#42 :i32
+              j#41 :i32
             r:
               int(5) :i32
         then:
           break
       assign
         target:
-          j#42 :i32
+          j#41 :i32
         value:
           add :i32
             l:
-              j#42 :i32
+              j#41 :i32
             r:
               int(1) :i32
       assign
         target:
-          n#40 :i32
+          n#39 :i32
         value:
           add :i32
             l:
-              n#40 :i32
+              n#39 :i32
             r:
               int(1) :i32
-    return n#40 :i32
+    return n#39 :i32

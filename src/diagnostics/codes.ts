@@ -45,6 +45,8 @@ export const PARSER = {
   P1015: "duplicate field name in struct literal",
   P1016: "expected a generic argument list",
   P1017: "missing newline between top-level declarations",
+  P1018: "type parameter must be prefixed with `$`",
+  P1019: "`: type` bound is redundant; write `$T` instead",
 } as const;
 
 export type ParserCode = keyof typeof PARSER;

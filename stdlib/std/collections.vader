@@ -4,16 +4,16 @@
 // MutableX is a subtype of the read-only X.
 
 // Sequence collections.
-List         :: struct(T: type) { /* ... */ }
-MutableList  :: struct(T: type) { /* ... */ }
+List         :: struct($T) { /* ... */ }
+MutableList  :: struct($T) { /* ... */ }
 
 // Key/value collections.
-Map          :: struct(K: type, V: type) where K: Hash + Eq { /* ... */ }
-MutableMap   :: struct(K: type, V: type) where K: Hash + Eq { /* ... */ }
+Map          :: struct($K, $V) where K: Hash + Eq { /* ... */ }
+MutableMap   :: struct($K, $V) where K: Hash + Eq { /* ... */ }
 
 // Set collections.
-Set          :: struct(T: type) where T: Hash + Eq { /* ... */ }
-MutableSet   :: struct(T: type) where T: Hash + Eq { /* ... */ }
+Set          :: struct($T) where T: Hash + Eq { /* ... */ }
+MutableSet   :: struct($T) where T: Hash + Eq { /* ... */ }
 
 // TODO: full implementations once the compiler supports the generic + trait
 // machinery required.

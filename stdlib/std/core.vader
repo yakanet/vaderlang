@@ -40,11 +40,11 @@ Div :: trait { fn div(self, other: Self) -> Self }
 // the next value. Sum-type discriminator avoids the sentinel collision that
 // `T | null` would have for lists whose element type itself includes `null`.
 Done    :: struct {}
-Yielded :: struct(T: type) { value: T }
+Yielded :: struct($T) { value: T }
 
 // Iterator — pull-based. The lowerer dispatches `for x in iter` through the
 // impl table; users never call `step` directly.
-Iterator :: trait(T: type) {
+Iterator :: trait($T) {
     fn step(self) -> Done | Yielded(T)
 }
 
@@ -77,13 +77,13 @@ Range implements Iterator(i32) {
 // flowing into `for x in arr`, so callers rarely need to construct one. The
 // `length` field is pre-computed at construction time so `step` can avoid
 // calling a generic `len(arr)` (generic-fn dispatch is still deferred).
-ArrayIter :: struct(T: type) {
+ArrayIter :: struct($T) {
     arr:    [T]
     cursor: i32
     length: i32
 }
 
-ArrayIter(T) implements Iterator(T) {
+ArrayIter($T) implements Iterator(T) {
     fn step(self) -> Done | Yielded(T) {
         if (self.cursor >= self.length) {
             return Done {}

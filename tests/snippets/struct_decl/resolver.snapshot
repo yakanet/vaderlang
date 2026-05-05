@@ -16,10 +16,10 @@
   struct           public   Range 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=17 types=47 params=19 locals=3 typeParams=3 fields=0
+  refs: idents=17 types=43 params=19 locals=3 typeParams=3 fields=0
 
 ## tests/snippets/struct_decl/_main.vader
   struct           public   Buffer 
   struct           public   List 
   struct           public   Point 
-  refs: idents=0 types=7 params=0 locals=0 typeParams=2 fields=0
+  refs: idents=0 types=6 params=0 locals=0 typeParams=2 fields=0

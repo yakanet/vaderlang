@@ -4,7 +4,7 @@
   fn tests_snippets_match_expr__main_vader$classify(x: i32 | null | string) -> string
     return
       block :string
-        let __scrut_0#-1: i32 | null | string = x#39 :i32 | null | string
+        let __scrut_0#-1: i32 | null | string = x#38 :i32 | null | string
         ~>
           if :string
             cond:
@@ -15,7 +15,7 @@
                 r:
                   gt :bool
                     l:
-                      x#39 :i32
+                      x#38 :i32
                     r:
                       int(0) :i32
             then:
@@ -38,7 +38,7 @@
                             __scrut_0#-1 :i32 | null | string
                         then:
                           ~>
-                            x#39 :string
+                            x#38 :string
                         else:
                           ~>
                             if :string

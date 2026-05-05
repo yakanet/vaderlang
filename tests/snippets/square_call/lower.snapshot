@@ -5,9 +5,9 @@
     return
       mul :i32
         l:
-          x#41 :i32
+          x#40 :i32
         r:
-          x#41 :i32
+          x#40 :i32
   const tests_snippets_square_call__main_vader$NINE: i32 =
     int(9) :i32
   fn tests_snippets_square_call__main_vader$main() -> i32

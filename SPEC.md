@@ -165,7 +165,6 @@ if else match is for in return defer break continue
 import as
 private
 true false null
-type      // used in (T: type) for generics
 where
 self
 @<decorator>
@@ -620,10 +619,10 @@ map :: fn(items: [$T], f: fn(T) -> $U) -> [U] {
 }
 ```
 
-**Generic structs**: type params declared up front.
+**Generic structs**: type params declared up front with `$` prefix.
 
 ```vader
-List :: struct(T: type) {
+List :: struct($T) {
     items: [T]
     len: u32
 }

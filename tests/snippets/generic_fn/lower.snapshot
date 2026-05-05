@@ -2,7 +2,7 @@
 
 ## tests/snippets/generic_fn/_main.vader
   fn tests_snippets_generic_fn__main_vader$main() -> i32
-    let n#54: i32 =
+    let n#53: i32 =
       call :i32
         callee:
           identity#1000002 :i32
@@ -20,21 +20,21 @@
             "n = " :string
           @builder.append_display <for i32> :void
             __sb_0#-1 :?
-            n#54 :i32
+            n#53 :i32
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let arr#55: [i32] =
+    let arr#54: [i32] =
       array :[i32]
         int(10) :i32
         int(20) :i32
         int(30) :i32
-    let v#56: i32 =
+    let v#55: i32 =
       call :i32
         callee:
           first#1000003 :i32
         arg0:
-          arr#55 :[i32]
+          arr#54 :[i32]
         arg1:
           int(0) :i32
     call :void
@@ -49,13 +49,13 @@
             "v = " :string
           @builder.append_display <for i32> :void
             __sb_1#-2 :?
-            v#56 :i32
+            v#55 :i32
           ~>
             @builder.finish :string
               __sb_1#-2 :?
     return int(0) :i32
   fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$identity__i32(x: i32) -> i32
-    return x#50 :i32
+    return x#49 :i32
   fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$first__i32(arr: [i32], fallback: i32) -> i32
     if :void
       cond:
@@ -68,7 +68,7 @@
         return
           index :i32
             on:
-              arr#52 :[i32]
+              arr#51 :[i32]
             ix:
               int(0) :i32
-    return fallback#53 :i32
+    return fallback#52 :i32

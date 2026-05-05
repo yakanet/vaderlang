@@ -14,11 +14,10 @@ export const BUILTIN_TYPE_ALIASES: readonly string[] = [
   "int", "long", "float", "double", "byte",
 ];
 
-/** Names visible at every scope's root. Primitives + aliases + the `type` metatype + `Self`. */
+/** Names visible at every scope's root. Primitives + aliases + `Self`. */
 export const BUILTIN_TYPE_NAMES: readonly string[] = [
   ...PRIMITIVE_NAMES,
   ...BUILTIN_TYPE_ALIASES,
-  "type",
   "Self",
 ];
 

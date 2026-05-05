@@ -10,7 +10,7 @@ import type * as A from "../parser/ast.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { MethodResolution } from "./typed-ast.ts";
-import type { Type } from "./types.ts";
+import type { Substitution, Type } from "./types.ts";
 
 /** Tables shared across modules — populated by declareTypes, consumed by check bodies. */
 export interface Globals {
@@ -57,6 +57,21 @@ export interface MutableTyped {
    *  `typeParams` list. Populated by `inferCall`, consumed by the lowerer to
    *  route the call to the right monomorphized specialisation. */
   readonly genericFnCalls: Map<A.CallExpr, readonly Type[]>;
+}
+
+/** Build a typeParam-id → concrete-arg substitution for a generic struct instance. */
+export function buildStructSubst(
+  typeParams: readonly A.TypeParam[],
+  args: readonly Type[],
+  globals: Globals,
+): Substitution {
+  if (typeParams.length === 0 || args.length === 0) return {};
+  const bindings = new Map<number, Type>();
+  for (let i = 0; i < typeParams.length && i < args.length; i++) {
+    const sym = globals.typeParamSymbols.get(typeParams[i]!);
+    if (sym !== undefined) bindings.set(sym.id, args[i]!);
+  }
+  return { typeParams: bindings };
 }
 
 export interface FnContext {

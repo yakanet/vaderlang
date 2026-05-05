@@ -95,8 +95,6 @@ export function primitiveFromName(name: string): Type | null {
     case "float":  return { kind: "Primitive", name: "f32" };
     case "double": return { kind: "Primitive", name: "f64" };
     case "byte":   return { kind: "Primitive", name: "u8" };
-    case "type":
-      return TY.type;
     case "Self":
       // Substituted at body-check time when we know the surrounding impl's target.
       return TY.self;
