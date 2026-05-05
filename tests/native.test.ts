@@ -3,7 +3,7 @@
 // For every snippet under tests/snippets/, build a native binary via the
 // C emitter and assert its stdout matches the VM-recorded snapshot. Skipped
 // silently when `cc` is unavailable so CI on hosts without a C toolchain still
-// passes. The compiled binary is written to tests/snippets/{name}/native
+// passes. The compiled binary is written to tests/snippets/{name}/native[.exe]
 // (gitignored) so it's adjacent to its source.
 
 import { test, expect } from "bun:test";
@@ -14,6 +14,7 @@ import { pipelineBytecode } from "../src/pipeline.ts";
 import { emitC } from "../src/c_emit/emit.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
+const EXE_EXT = process.platform === "win32" ? ".exe" : "";
 
 const CC_AVAILABLE = await (async () => {
   try {
@@ -42,7 +43,7 @@ for (const s of scenarios) {
     if (errors.length > 0) return;
 
     const cFile = join(s.dir, "native.c");
-    const binFile = join(s.dir, "native");
+    const binFile = join(s.dir, `native${EXE_EXT}`);
     await Bun.write(cFile, emitC(r.bytecode));
 
     const buildProc = Bun.spawn([

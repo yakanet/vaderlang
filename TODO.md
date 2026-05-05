@@ -257,6 +257,7 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [ ] Stable ABI for `@extern` user imports (today: stubs trap).
 - [ ] i32/i64 overflow handling per SPEC §4 (panic in debug). Currently wraps silently (matches "release" semantics).
 - [ ] Configurable C compiler via `vader.json` (e.g. `{ "build": { "cc": "clang" } }` or per-platform map). Falls back to `cc` (the POSIX default, auto-resolved by the system) when unset. CLI flag `--cc=<path>` should win over the manifest entry.
+- [ ] Windows native parity in `tests/native.test.ts`: add a `WINE=1` mode that cross-compiles with `x86_64-w64-mingw32-gcc` (mingw-w64) and runs the `.exe` via Wine, so Windows binary parity can be verified on macOS/Linux without a VM. On native Windows, detect `clang` or `cl` instead of `cc`.
 
 ### 1.10 WASM emitter
 
