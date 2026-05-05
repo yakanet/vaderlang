@@ -13,8 +13,8 @@ USAGE:
 
 COMMANDS:
   run [file]                       Interpret a Vader file (no args → REPL)
-  build [file] [--target=native|wasm|ir] [--manifest]
-                                   Compile to a binary (or .vir IR text for --target=ir)
+  build [file] [--target=native|wasm|ir|c] [--manifest]
+                                   Compile to a binary (--target=ir → .vir, --target=c → .c next to the source)
   fmt [path]                       Format Vader sources in place
   test [path]                      Run @test functions
   dump --stage=<stage> <file>      Dump an IR stage as JSON/text

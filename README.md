@@ -4,9 +4,10 @@
 
 Vader is a general-purpose, statically-typed language with type inference, targeting native binaries and WebAssembly. The compiler is being bootstrapped in TypeScript and will later self-host in Vader.
 
-**Status:** pre-MVP. The frontend (lexer → parser → resolver → type-checker → comptime → monomorphizer → lowerer →
-bytecode emitter → `.vir` text I/O) is implemented; runtime backends (VM, C, WASM) are next. See [`TODO.md`](./TODO.md)
-for the live roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
+**Status:** pre-MVP. Frontend (lexer → parser → resolver → type-checker → comptime → monomorphizer → lowerer →
+bytecode emitter → `.vir` text I/O), the **bytecode VM** (powering `vader run`), and the **C emitter** (powering
+`vader build --target=native`) are all implemented. WASM emitter is next. See [`TODO.md`](./TODO.md) for the live
+roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
 
 ---
 
@@ -52,8 +53,23 @@ main :: fn() -> i32 {
 }
 ```
 
-Once the VM lands you'll be able to run it with `vader run examples/hello.vader`. For now, you can inspect every
-compilation stage via the `dump` subcommand or emit the textual `.vir` IR via `build --target=ir` (see below).
+Run it via the bytecode VM:
+
+```sh
+bun src/index.ts run examples/hello.vader
+# → Hello, World!
+```
+
+Or compile it to a native binary (requires a C compiler in `PATH`):
+
+```sh
+bun src/index.ts build examples/hello.vader --target=native --out=/tmp/hello
+/tmp/hello
+# → Hello, World!
+```
+
+You can also inspect every compilation stage via the `dump` subcommand or emit the textual `.vir` IR via
+`build --target=ir` (see below).
 
 ---
 
@@ -61,15 +77,15 @@ compilation stage via the `dump` subcommand or emit the textual `.vir` IR via `b
 
 Invoke as `bun src/index.ts <command>` (or via the `vader` wrapper script: `bun vader <command>`).
 
-| Command                                        | Status  | What it does                                                                                                                                                                                                          |
-|------------------------------------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `vader` *(no args)*                            | stub    | Starts the REPL — placeholder until the VM lands.                                                                                                                                                                     |
-| `vader --help` / `--version`                   | ✓       | Print usage / version.                                                                                                                                                                                                |
-| `vader run [file]`                             | stub    | Will interpret a `.vader` (or `.vir`) file via the VM. Not yet wired.                                                                                                                                                 |
-| `vader build [file] [--target=…] [--out=path]` | partial | `--target=ir` writes the textual `.vir` next to the source (or to `--out=`). `--target=native` and `--target=wasm` are stubs awaiting the C / WASM emitters. `--manifest` mode is reserved for multi-module projects. |
-| `vader fmt [path]`                             | stub    | Will canonicalise source layout. Not yet implemented.                                                                                                                                                                 |
-| `vader test [path]`                            | stub    | Will discover and execute `@test` functions. Not yet implemented.                                                                                                                                                     |
-| `vader dump --stage=<stage> <file>`            | ✓       | Run the frontend up to `<stage>` and print the result (JSON or text, depending on stage).                                                                                                                             |
+| Command                                        | Status  | What it does                                                                                                                                                                                                                                                              |
+|------------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `vader` *(no args)*                            | stub    | Will start a REPL. Not yet implemented.                                                                                                                                                                                                                                   |
+| `vader --help` / `--version`                   | ✓       | Print usage / version.                                                                                                                                                                                                                                                    |
+| `vader run [file]`                             | ✓       | Interpret a `.vader` source or a parsed `.vir` IR through the bytecode VM. Stdout/stderr go to the host.                                                                                                                                                                  |
+| `vader build [file] [--target=…] [--out=path]` | partial | `--target=native` (default) writes a native binary **and** the generated C next to it (`<out>.c`). `--target=c` writes only the generated C. `--target=ir` writes the textual `.vir`. `--target=wasm` is a stub. `--manifest` mode is reserved for multi-module projects. |
+| `vader fmt [path]`                             | stub    | Will canonicalise source layout. Not yet implemented.                                                                                                                                                                                                                     |
+| `vader test [path]`                            | stub    | Will discover and execute `@test` functions. Not yet implemented.                                                                                                                                                                                                         |
+| `vader dump --stage=<stage> <file>`            | ✓       | Run the frontend up to `<stage>` and print the result (JSON or text, depending on stage).                                                                                                                                                                                 |
 
 ### Global options
 
@@ -104,6 +120,23 @@ bun src/index.ts dump --stage=bytecode      examples/hello.vader
 # Emit the .vir IR alongside the source
 bun src/index.ts build --target=ir examples/hello.vader
 # → writes examples/hello.vir
+```
+
+### Build targets
+
+| Target            | Output                                                                            | Notes                                                                                                                                                                  |
+|-------------------|-----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--target=native` | A native executable **plus** the intermediate C source (`<out>.c`)                 | Default. Invokes `cc` (auto-detected POSIX). Runtime lives at `runtime/c/`. The `.c` is kept on disk so it can be inspected, profiled, or compiled with custom flags.  |
+| `--target=c`      | Just the generated C source                                                        | Useful when you want to drive the C compiler yourself, or to stash the C as a snapshot. Symmetric with `--target=ir`.                                                  |
+| `--target=ir`     | Textual `.vir` bytecode                                                            | Round-trippable: `vader run program.vir` re-executes it without re-parsing the source.                                                                                 |
+| `--target=wasm`   | (not yet implemented)                                                              | Direct WebAssembly emission with the WASM GC proposal. Coming next.                                                                                                    |
+
+```sh
+# Native binary (writes ./hello and ./hello.c)
+bun src/index.ts build examples/hello.vader --target=native --out=/tmp/hello
+
+# Just the C, no cc
+bun src/index.ts build examples/hello.vader --target=c --out=/tmp/hello.c
 ```
 
 ---

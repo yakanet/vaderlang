@@ -16,6 +16,7 @@ fibonacci :: fn(n: i32) -> i32 {
 
 main :: fn() -> i32 {
     n :: 50
+    defer println("Fibonacci numbers: $n")
     println("fibonacci($n): ${fibonacci(n)}")
     return 0
 }
