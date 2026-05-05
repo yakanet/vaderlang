@@ -8,6 +8,15 @@ import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Substitution, Type } from "../typecheck/types.ts";
 
+/** Mangled-name suffix produced for any fn named `main`. The DCE root finder,
+ *  the VM's entry-point lookup, and the C emitter's `main()` shim all key off
+ *  this. Centralised so they stay in sync. */
+export const MAIN_MANGLED_SUFFIX = "$main";
+
+export function isMainMangled(mangled: string): boolean {
+  return mangled.endsWith(MAIN_MANGLED_SUFFIX);
+}
+
 export interface MonoEntry {
   /** Stable mangled name, e.g. `main` or `List$i32`. Used as the lowered decl's identity. */
   readonly mangled: string;

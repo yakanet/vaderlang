@@ -16,12 +16,13 @@ import { evaluateProject } from "./comptime/index.ts";
 import type { EvaluatedProject } from "./comptime/index.ts";
 import { lowerProject } from "./lower/index.ts";
 import type { LoweredProject } from "./lower/index.ts";
+import { eliminateDeadCode } from "./dce/index.ts";
 import { emitBytecode } from "./bytecode/index.ts";
 import type { BytecodeModule } from "./bytecode/index.ts";
 
 export type PipelineStage =
   | "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast"
-  | "lowered-ast" | "bytecode";
+  | "lowered-ast" | "dced-ast" | "bytecode";
 
 export interface AstResult {
   readonly file: string;
@@ -46,7 +47,11 @@ export interface LoweredResult extends EvaluatedResult {
   readonly lowered: LoweredProject;
 }
 
-export interface BytecodeResult extends LoweredResult {
+export interface DcedResult extends LoweredResult {
+  readonly dced: LoweredProject;
+}
+
+export interface BytecodeResult extends DcedResult {
   readonly bytecode: BytecodeModule;
 }
 
@@ -99,11 +104,19 @@ export async function pipelineLowered(
   return { ...r, lowered };
 }
 
+export async function pipelineDced(
+  file: string, opts?: { allowEnv?: boolean },
+): Promise<DcedResult> {
+  const r = await pipelineLowered(file, opts);
+  const dced = eliminateDeadCode(r.lowered);
+  return { ...r, dced };
+}
+
 export async function pipelineBytecode(
   file: string, opts?: { allowEnv?: boolean },
 ): Promise<BytecodeResult> {
-  const r = await pipelineLowered(file, opts);
-  const bytecode = emitBytecode(r.lowered, moduleNameFromFile(file));
+  const r = await pipelineDced(file, opts);
+  const bytecode = emitBytecode(r.dced, moduleNameFromFile(file));
   return { ...r, bytecode };
 }
 

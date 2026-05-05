@@ -5,9 +5,9 @@
 Vader is a general-purpose, statically-typed language with type inference, targeting native binaries and WebAssembly. The compiler is being bootstrapped in TypeScript and will later self-host in Vader.
 
 **Status:** pre-MVP. Frontend (lexer → parser → resolver → type-checker → comptime → monomorphizer → lowerer →
-bytecode emitter → `.vir` text I/O), the **bytecode VM** (powering `vader run`), and the **C emitter** (powering
-`vader build --target=native`) are all implemented. WASM emitter is next. See [`TODO.md`](./TODO.md) for the live
-roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
+DCE → bytecode emitter → `.vir` text I/O), the **bytecode VM** (powering `vader run`), and the **C emitter**
+(powering `vader build --target=native`) are all implemented. WASM emitter is next. See [`TODO.md`](./TODO.md)
+for the live roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
 
 ---
 
@@ -101,6 +101,7 @@ Invoke as `bun src/index.ts <command>` (or via the `vader` wrapper script: `bun 
 | `typed-ast`     | per-decl types + per-expression type counts                                          | Inspect inference, narrowing, generic instantiation.             |
 | `evaluated-ast` | `@comptime` / `@file` decl values + collected generic instances                      | See what the comptime engine baked.                              |
 | `lowered-ast`   | desugared tree (match → if/else, `?` → match, interp → builder calls, defer inlined) | Confirm the desugarings match expectations.                      |
+| `dced-ast`      | lowered tree after dead-code elimination                                             | See which stdlib decls survive the reachability prune.           |
 | `bytecode`      | `.vir` text of the compiled module                                                   | Inspect the final stack-machine ops + type/string/import tables. |
 | `c`, `wasm`     | (not yet implemented)                                                                | Reserved for the native / WASM backends.                         |
 
@@ -112,9 +113,10 @@ bun src/index.ts dump --stage=ast          examples/hello.vader
 bun src/index.ts dump --stage=resolved-ast examples/hello.vader
 bun src/index.ts dump --stage=typed-ast    examples/hello.vader
 
-# Comptime + lowering + bytecode
+# Comptime + lowering + DCE + bytecode
 bun src/index.ts dump --stage=evaluated-ast examples/hello.vader
 bun src/index.ts dump --stage=lowered-ast   examples/hello.vader
+bun src/index.ts dump --stage=dced-ast      examples/hello.vader
 bun src/index.ts dump --stage=bytecode      examples/hello.vader
 
 # Emit the .vir IR alongside the source
@@ -171,7 +173,7 @@ The full roadmap lives in [`TODO.md`](./TODO.md). The high-level milestones are:
 | Phase | Goal | Status |
 |-------|------|--------|
 | **0 — Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
-| **1 — MVP (TypeScript compiler)** | Lexer → parser → resolver → type-checker → comptime engine → monomorphizer → lowerer → bytecode emitter → VM (`vader run`) → C emitter (`vader build --target=native`). WASM emitter and mark-sweep GC still pending. | in progress |
+| **1 — MVP (TypeScript compiler)** | Lexer → parser → resolver → type-checker → comptime engine → monomorphizer → lowerer → DCE → bytecode emitter → VM (`vader run`) → C emitter (`vader build --target=native`). WASM emitter and mark-sweep GC still pending. | in progress |
 | **1.10 — WASM emitter** | Bytecode → binary WASM with GC types, importable in the browser or via wasmtime. | next |
 | **1.11–1.15 — Runtime, stdlib, CLI, formatter** | Mark-sweep GC, full `std/` in Vader, `vader test`, `vader fmt`. | pending |
 | **2 — Self-hosting** | Port the compiler to Vader; bootstrap check (`compiler_v2 == compiler_v3`). | pending |

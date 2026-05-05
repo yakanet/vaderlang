@@ -2,7 +2,7 @@
 // AST" → bytecode) and §17 (canonical IR).
 
 import type { Span } from "../diagnostics/diagnostic.ts";
-import { DEC } from "../parser/decorators.ts";
+import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type * as L from "../lower/lowered-ast.ts";
 import type { LoweredProject } from "../lower/index.ts";
 import type { PrimitiveName, Type } from "../typecheck/types.ts";
@@ -106,11 +106,6 @@ function reserveFn(d: L.LoweredFnDecl, ctx: EmitterCtx): void {
   if (hasDecorator(decoratorList, DEC.export)) {
     ctx.exports.push({ externName, fnIndex });
   }
-}
-
-function hasDecorator(decs: ReadonlyArray<{ name: string }>, name: string): boolean {
-  for (const d of decs) if (d.name === name) return true;
-  return false;
 }
 
 // ------------------------------------------------------- pass 2: emit bodies

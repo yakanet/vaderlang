@@ -407,6 +407,7 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [ ] Generational GC (if mark-sweep proves limiting)
 - [ ] Direct-ASM backend for one native target (validate the design)
 - [ ] Escape analysis enabled (lower allocations on stack when proven safe)
+- [ ] **Whole-program DCE.** Today the DCE pass (`src/dce/`) only prunes stdlib decls — user modules are kept verbatim so library targets and snapshot fixtures without `main` survive. Lift the `displayPath.startsWith("std/")` short-circuit and treat reachability uniformly across all `.vader` files, starting from `main`. Open questions to resolve before flipping the switch: (a) decide whether the absence of `main` is a hard error for native binaries, and how that interacts with `--target=wasm` (a wasm module typically has no `main` — it exposes `@export` fns to a JS host); (b) decide root semantics for `vader test` runs (every `@test` fn becomes a root); (c) ensure incremental rebuild stays sound once user code is also pruned.
 
 ### 3.6 Memory model extensions
 

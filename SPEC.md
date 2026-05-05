@@ -49,6 +49,7 @@ Source (.vader)
   ↓ Comptime engine  → Typed AST (@comptime values evaluated; engine also drives monomorphization)
   ↓ Monomorphizer    → AST with no abstract generics
   ↓ Lowerer          → Desugaring (pattern match → jumps, traits → vtables/inline, try → match)
+  ↓ DCE              → Lowered AST with stdlib decls unreachable from user code pruned
   ↓ Bytecode emitter → Bytecode IR (stack-based)
   │
   ├──→ Stack-based VM   → vader run / @comptime
@@ -88,7 +89,21 @@ The lowerer consumes the monomorphised typed AST and produces a **separate, smal
 - **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.show()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
 - **No inserted runtime checks.** The lowerer does not synthesize bounds checks, null checks, division-by-zero guards, or overflow checks. Type narrowing already covers nullability; the remaining safety checks are the runtime's responsibility (when emitted) or are explicitly out of scope for MVP.
 
-The Lowered AST is the input to the bytecode emitter. It is dumpable as JSON via `vader dump --stage=lowered-ast` for debugging and snapshot tests.
+The Lowered AST is the input to the dead-code elimination pass. It is dumpable as JSON via `vader dump --stage=lowered-ast` for debugging and snapshot tests.
+
+### Dead-code elimination
+
+Between the lowerer and the bytecode emitter, a DCE pass prunes lowered declarations that are not transitively reachable from a small set of roots. This keeps unused stdlib machinery out of the final artifact: `std/core` is auto-imported in every program, but a `hello world` doesn't need `Range`, `ArrayIter`, `Done`, `Yielded`, `IOError`, or their impls — DCE drops them before emission.
+
+Roots — preserved unconditionally:
+
+- every decl from a non-stdlib module (the user's own code is never DCE'd, so library targets and snapshot fixtures without `main` keep all their decls);
+- `main` (the fn whose mangled name ends in `$main` and has a body);
+- any decl carrying `@export`, `@test`, or `@extern` (`@extern` covers signature-only imports — the import table must stay aligned with what the host expects).
+
+`@comptime` and `@file` constants are not automatic roots — their value is inlined at each use site by the bytecode emitter, so an unreferenced one is genuinely dead. They are still preserved when defined in a non-stdlib module by the user-code rule.
+
+Reachability is computed via BFS over the Lowered AST: every `LoweredIdent.symbol.id` and every struct/trait `Type.symbol.id` encountered is added to the live set. Trait dispatch is already statically resolved by the lowerer (one impl-member symbol per call site), so there is no need to over-approximate by keeping every impl of a referenced trait. The pass is a pure `LoweredProject → LoweredProject` transform and is shared across backends. It is dumpable via `vader dump --stage=dced-ast`.
 
 ### Exposed execution modes
 

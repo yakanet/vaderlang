@@ -5,12 +5,14 @@ import { tokenize } from "../src/lexer/lexer.ts";
 import { parseSource } from "../src/parser/pipeline.ts";
 import { DiagnosticCollector } from "../src/diagnostics/collector.ts";
 import { resolveProject } from "../src/resolver/index.ts";
+import { isStdlibModule } from "../src/resolver/module.ts";
 import { checkProject, displayType } from "../src/typecheck/index.ts";
 import { evaluateProject, displayValue } from "../src/comptime/index.ts";
 import { lowerProject } from "../src/lower/index.ts";
 import type {
   LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
 } from "../src/lower/index.ts";
+import { eliminateDeadCode } from "../src/dce/index.ts";
 import { emitBytecode } from "../src/bytecode/index.ts";
 import { writeVir, parseVir } from "../src/bytecode/text.ts";
 import type { Token } from "../src/lexer/token.ts";
@@ -97,7 +99,7 @@ export function dumpComptime(_source: string, entryPath: string): string {
   const lines: string[] = ["# Comptime"];
   for (const id of [...evaled.modules.keys()].sort()) {
     const m = evaled.modules.get(id)!;
-    if (m.typed.resolved.module.displayPath.startsWith("std/")) continue;
+    if (isStdlibModule(m.typed.resolved.module.displayPath)) continue;
     lines.push(`\n## ${m.typed.resolved.module.displayPath}`);
     const entries: string[] = [];
     for (const [decl, value] of m.comptimeDecls) {
@@ -129,8 +131,9 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   const typed = checkProject(project, diags);
   const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
   const lowered = lowerProject(evaled, diags);
+  const dced = eliminateDeadCode(lowered);
   const moduleName = (entryPath.split("/").pop() ?? entryPath).replace(/\.vader$/, "");
-  const bc = emitBytecode(lowered, moduleName);
+  const bc = emitBytecode(dced, moduleName);
 
   const text1 = writeVir(bc);
   let roundTripBanner = "";
@@ -157,7 +160,7 @@ export function dumpLower(_source: string, entryPath: string): string {
   const lines: string[] = ["# Lower"];
   for (const id of [...lowered.modules.keys()].sort()) {
     const m = lowered.modules.get(id)!;
-    if (m.displayPath.startsWith("std/")) continue;
+    if (isStdlibModule(m.displayPath)) continue;
     lines.push(`\n## ${m.displayPath}`);
     for (const d of m.decls) emitDecl(lines, d, "  ");
   }
@@ -345,7 +348,7 @@ export function dumpTypecheck(_source: string, entryPath: string): string {
   const lines: string[] = ["# Typecheck"];
   for (const id of [...typed.modules.keys()].sort()) {
     const p = typed.modules.get(id)!;
-    if (p.resolved.module.displayPath.startsWith("std/")) continue;
+    if (isStdlibModule(p.resolved.module.displayPath)) continue;
     lines.push(`\n## ${p.resolved.module.displayPath}`);
     const decls = p.resolved.source.decls
       .filter((d) => "name" in d)

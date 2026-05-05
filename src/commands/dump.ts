@@ -2,13 +2,13 @@ import type { GlobalOpts } from "../cli/options.ts";
 import { renderAllJson, renderAllTextSingle } from "../diagnostics/render.ts";
 import { displayType } from "../typecheck/index.ts";
 import { displayValue } from "../comptime/index.ts";
-import { pipelineAst, pipelineBytecode, pipelineEvaluated, pipelineLowered, pipelineResolved, pipelineTyped } from "../pipeline.ts";
+import { pipelineAst, pipelineBytecode, pipelineDced, pipelineEvaluated, pipelineLowered, pipelineResolved, pipelineTyped } from "../pipeline.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
-import type { LoweredDecl } from "../lower/index.ts";
+import type { LoweredDecl, LoweredProject } from "../lower/index.ts";
 import { writeVir } from "../bytecode/text.ts";
 
 /** Stages the frontend pipeline can produce today. Mirrors `PipelineStage`. */
-const IMPLEMENTED_STAGES = ["ast", "resolved-ast", "typed-ast", "evaluated-ast", "lowered-ast", "bytecode"] as const;
+const IMPLEMENTED_STAGES = ["ast", "resolved-ast", "typed-ast", "evaluated-ast", "lowered-ast", "dced-ast", "bytecode"] as const;
 /** Stages reserved for future codegen work — accepted by the CLI for help-text honesty. */
 const FUTURE_STAGES = ["c", "wasm"] as const;
 const STAGES = [...IMPLEMENTED_STAGES, ...FUTURE_STAGES];
@@ -42,6 +42,7 @@ export async function cmdDump(opts: GlobalOpts, args: string[]): Promise<number>
     case "typed-ast":     return runStage(opts, file, runTypedAst);
     case "evaluated-ast": return runStage(opts, file, (f) => runEvaluatedAst(f, opts));
     case "lowered-ast":   return runStage(opts, file, (f) => runLoweredAst(f, opts));
+    case "dced-ast":      return runStage(opts, file, (f) => runDcedAst(f, opts));
     case "bytecode":      return runBytecodeStage(opts, file);
     default:
       console.error(`vader dump: stage "${stage}" not yet implemented`);
@@ -117,13 +118,21 @@ async function runBytecodeStage(opts: GlobalOpts, file: string): Promise<number>
 
 async function runLoweredAst(file: string, opts: GlobalOpts) {
   const r = await pipelineLowered(file, { allowEnv: opts.allowEnv });
-  const output = {
-    modules: [...r.lowered.modules.values()].map((m) => ({
+  return { output: summariseProject(r.lowered), diagnostics: r.diagnostics, source: r.source };
+}
+
+async function runDcedAst(file: string, opts: GlobalOpts) {
+  const r = await pipelineDced(file, { allowEnv: opts.allowEnv });
+  return { output: summariseProject(r.dced), diagnostics: r.diagnostics, source: r.source };
+}
+
+function summariseProject(p: LoweredProject) {
+  return {
+    modules: [...p.modules.values()].map((m) => ({
       module: m.displayPath,
       decls: m.decls.map(summariseDecl),
     })),
   };
-  return { output, diagnostics: r.diagnostics, source: r.source };
 }
 
 function summariseDecl(d: LoweredDecl) {

@@ -14,6 +14,15 @@ import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 
 import type { ModuleId, Symbol, SymbolFactory } from "./symbol.ts";
 
+/** `import "std/…"` and the `displayPath` of any stdlib module both start
+ *  with this prefix. Centralised so DCE / dump filtering / import resolution
+ *  agree on what counts as stdlib. */
+export const STDLIB_PATH_PREFIX = "std/";
+
+export function isStdlibModule(displayPath: string): boolean {
+  return displayPath.startsWith(STDLIB_PATH_PREFIX);
+}
+
 export interface SourceFile {
   readonly path: string;
   readonly content: string;
@@ -105,7 +114,7 @@ export interface ResolveImportOptions {
 
 /** Resolve a raw `import "path"` string to an on-disk module location, or null. */
 export function resolveImportPath(rawPath: string, opts: ResolveImportOptions): string | null {
-  if (rawPath.startsWith("std/")) {
+  if (rawPath.startsWith(STDLIB_PATH_PREFIX)) {
     return resolveStdlibImport(rawPath, opts.stdlibRoot);
   }
   if (rawPath.startsWith("./") || rawPath.startsWith("../")) {
