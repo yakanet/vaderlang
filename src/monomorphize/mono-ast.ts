@@ -41,4 +41,8 @@ export interface MonoProject {
    *  `displayType(arg).join(",")` so each `(member, struct args)` pair
    *  resolves to its specialised entry. */
   readonly implMethodEntries: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>;
+  /** Lookup by generic FnDecl, then by the concrete type-args key (`displayType`
+   *  joined by `,`). Populated by the fn-instance pass for call sites of the
+   *  form `foo(T)(args)`. */
+  readonly fnInstanceEntries: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>;
 }

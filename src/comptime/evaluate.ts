@@ -183,22 +183,17 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry): vo
         });
       }
     }
-    // Explicit `Foo(T1, T2)(...)` generic-fn call sites surface as
-    // `GenericInstExpr` nodes — record them so a future fn-mono pass has
-    // the dispatch list ready.
-    for (const expr of typed.exprTypes.keys()) {
-      if (expr.kind !== "GenericInstExpr") continue;
-      if (expr.callee.kind !== "IdentExpr") continue;
-      const sym = typed.resolved.idents.get(expr.callee);
-      if (sym === undefined) continue;
-      const args: Type[] = [];
-      let allKnown = true;
-      for (const ta of expr.typeArgs) {
-        const t = typed.typeExprTypes.get(ta);
-        if (t === undefined) { allKnown = false; break; }
-        args.push(t);
+    // Inferred generic-fn call sites: the typechecker records (CallExpr → typeArgs)
+    // for each call site where it successfully unified the fn's type params.
+    for (const [callExpr, typeArgs] of typed.genericFnCalls) {
+      if (callExpr.callee.kind === "IdentExpr") {
+        const sym = typed.resolved.idents.get(callExpr.callee);
+        if (sym !== undefined) registry.observeFnCall(sym, typeArgs);
+      } else if (callExpr.callee.kind === "FieldExpr") {
+        // UFCS generic call: sym is in ufcsFreeResolutions
+        const sym = typed.ufcsFreeResolutions.get(callExpr.callee);
+        if (sym !== undefined) registry.observeFnCall(sym, typeArgs);
       }
-      if (allKnown) registry.observeFnCall(sym, args);
     }
   }
 }

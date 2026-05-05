@@ -101,7 +101,22 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
     }
   }
 
-  return { entries, lookupByInstance: byInstance, implMethodEntries };
+  // Pass 3: fn instances — one entry per (generic fn, concrete type-args) call site.
+  // The instance registry already collected these via `observeFnCall` in evaluate.ts.
+  const fnInstanceEntries = new Map<A.FnDecl, Map<string, MonoEntry>>();
+  for (const inst of evaluated.instances) {
+    if (inst.symbol.kind !== "fn" || inst.symbol.source.kind !== "fn") continue;
+    const fnDecl = inst.symbol.source.decl;
+    if (fnDecl.typeParams.length === 0 || fnDecl.typeParams.length !== inst.args.length) continue;
+    const program = evaluated.typed.modules.get(inst.symbol.module)?.resolved ?? null;
+    if (program === null) continue;
+    const subst = buildSubst(fnDecl.typeParams, inst.args, program);
+    const entry = makeImplMemberEntry(fnDecl, mangle(inst.symbol.name, program, []), program, subst, inst.args, seenMangled, synthIds);
+    entries.push(entry);
+    putImplEntry(fnInstanceEntries, fnDecl, inst.args, entry);
+  }
+
+  return { entries, lookupByInstance: byInstance, implMethodEntries, fnInstanceEntries };
 }
 
 function putImplEntry(

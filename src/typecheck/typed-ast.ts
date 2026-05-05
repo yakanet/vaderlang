@@ -40,6 +40,9 @@ export interface TypedProgram {
   /** Built-in array methods (`len`, `push`). The lowerer emits
    *  `LoweredArrayLen`/`LoweredArrayPush` for these call sites. */
   readonly arrayOps: ReadonlyMap<A.FieldExpr, "len" | "push">;
+  /** Generic fn call sites whose type params were successfully inferred.
+   *  Ordered by the fn's `typeParams` list. Consumed by the lowerer. */
+  readonly genericFnCalls: ReadonlyMap<A.CallExpr, readonly Type[]>;
 }
 
 export interface TypedProject {

@@ -1,0 +1,329 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "identity",
+      "visibility": "public",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "params": [
+        {
+          "name": "x",
+          "type": {
+            "kind": "TypeParamType",
+            "name": "T"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "T"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "x"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "first",
+      "visibility": "public",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "params": [
+        {
+          "name": "arr",
+          "type": {
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "TypeParamType",
+              "name": "T"
+            }
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "fallback",
+          "type": {
+            "kind": "NamedType",
+            "name": "T"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "T"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "BinaryExpr",
+                "op": "gt",
+                "left": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "arr"
+                    },
+                    "field": "len"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "IntLitExpr",
+                  "value": "0n",
+                  "suffix": null
+                }
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "ReturnStmt",
+                    "value": {
+                      "kind": "IndexExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "arr"
+                      },
+                      "index": {
+                        "kind": "IntLitExpr",
+                        "value": "0n",
+                        "suffix": null
+                      }
+                    }
+                  }
+                ],
+                "trailing": null
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "fallback"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "i32"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "name": "n",
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IntLitExpr",
+                  "value": "42n",
+                  "suffix": null
+                },
+                "field": "identity"
+              },
+              "args": []
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "n = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "n"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "arr",
+            "type": null,
+            "value": {
+              "kind": "ArrayLitExpr",
+              "elements": [
+                {
+                  "kind": "IntLitExpr",
+                  "value": "10n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "20n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "30n",
+                  "suffix": null
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "name": "v",
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "arr"
+                },
+                "field": "first"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "0n",
+                    "suffix": null
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "v = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "v"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

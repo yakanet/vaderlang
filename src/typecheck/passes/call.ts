@@ -13,8 +13,8 @@ import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import { err } from "../diag.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { MethodResolution } from "../typed-ast.ts";
-import type { Type } from "../types.ts";
-import { TY, displayType, isAssignable, isNumeric } from "../types.ts";
+import type { Substitution, Type } from "../types.ts";
+import { TY, defaultIfFree, displayType, isAssignable, isNumeric, substitute } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
@@ -41,6 +41,26 @@ export function inferCall(
     return TY.unresolved;
   }
 
+  // Generic UFCS free fn call: callee is `receiver.fn(args)` where `fn` is a
+  // generic free function. The bound calleeType has the receiver param dropped,
+  // so we must use the full fn type (with receiver as params[0]) to infer T.
+  if (expr.callee.kind === "FieldExpr") {
+    const freeSym = t.ufcsFreeResolutions.get(expr.callee);
+    if (freeSym !== undefined) {
+      const ufcsDecl = declOf(freeSym);
+      const fullFnType = ufcsDecl !== null ? t.globals.declTypes.get(ufcsDecl) : undefined;
+      if (fullFnType !== undefined && fullFnType.kind === "Fn" && fullFnType.params.some(typeContainsTypeParam)) {
+        return inferGenericUfcsCall(expr, expr.callee, fullFnType, freeSym, t, impls, diags, fn);
+      }
+    }
+  }
+
+  // Generic fn call: at least one param type contains a TypeParam.
+  // Infer the substitution from argument types, then re-check under it.
+  if (calleeType.params.some(typeContainsTypeParam)) {
+    return inferGenericFnCall(expr, calleeType, t, impls, diags, fn);
+  }
+
   // Arity check.
   const positionals = expr.args.filter((a) => a.name === null);
   if (positionals.length !== calleeType.params.length) {
@@ -60,6 +80,45 @@ export function inferCall(
     }
   }
   return calleeType.returnType;
+}
+
+function inferGenericFnCall(
+  expr: A.CallExpr,
+  calleeType: Extract<Type, { kind: "Fn" }>,
+  t: MutableTyped, impls: ImplRegistry,
+  diags: DiagnosticCollector, fn: FnContext | null,
+): Type {
+  // Step 1: collect arg types without type-param expected context.
+  const argTypes: Type[] = expr.args.map((a) => checkExpr(a.value, null, t, impls, diags, fn));
+
+  // Step 2: unify param types with (defaulted) arg types to build the substitution.
+  const bindings = new Map<number, Type>();
+  for (let i = 0; i < calleeType.params.length && i < argTypes.length; i++) {
+    unifyTypeParam(calleeType.params[i]!, defaultIfFree(argTypes[i]!), bindings);
+  }
+  const subst: Substitution = { typeParams: bindings };
+
+  // Step 3: arity check.
+  if (expr.args.length !== calleeType.params.length) {
+    err(diags, "T3003", expr.span,
+      `expected ${calleeType.params.length}, got ${expr.args.length}`);
+  }
+
+  // Step 4: assignability check against the substituted param types.
+  for (let i = 0; i < calleeType.params.length && i < argTypes.length; i++) {
+    const expectedTy = substitute(calleeType.params[i]!, subst);
+    if (!typeContainsTypeParam(expectedTy) && !isAssignable(argTypes[i]!, expectedTy)) {
+      err(diags, "T3001", expr.args[i]!.value.span,
+        `expected ${displayType(expectedTy)}, got ${displayType(argTypes[i]!)}`);
+    }
+  }
+
+  if (expr.callee.kind === "IdentExpr") {
+    const sym = t.resolved.idents.get(expr.callee);
+    if (sym !== undefined) recordGenericCallSite(expr, declOf(sym), bindings, t);
+  }
+
+  return substitute(calleeType.returnType, subst);
 }
 
 function inferTypeConstructorCall(
@@ -168,16 +227,72 @@ export function inferField(
 
 /** Validate that `freeSym` is a fn whose first param accepts `targetType`, record the
  *  resolution, and return the bound fn type (params without the first). Returns null
- *  and emits no error if the candidate doesn't match — the caller emits T3009. */
+ *  and emits no error if the candidate doesn't match — the caller emits T3009.
+ *  A first param containing a TypeParam is always accepted (generic fn — any receiver). */
 function inferUfcsFreeBound(
   expr: A.FieldExpr, freeSym: Symbol, targetType: Type, t: MutableTyped,
 ): Type | null {
   const decl = declOf(freeSym);
   const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
   if (fnType === undefined || fnType.kind !== "Fn") return null;
-  if (fnType.params.length === 0 || !isAssignable(targetType, fnType.params[0]!)) return null;
+  const firstParam = fnType.params[0];
+  if (firstParam === undefined) return null;
+  if (!typeContainsTypeParam(firstParam) && !isAssignable(targetType, firstParam)) return null;
   t.ufcsFreeResolutions.set(expr, freeSym);
   return { kind: "Fn", params: fnType.params.slice(1), returnType: fnType.returnType };
+}
+
+/** Generic UFCS free-fn call. Uses the full fn type (receiver as params[0]) to
+ *  infer type-param bindings from both the receiver and the explicit arguments. */
+function inferGenericUfcsCall(
+  expr: A.CallExpr, callee: A.FieldExpr,
+  fullFnType: Extract<Type, { kind: "Fn" }>,
+  freeSym: Symbol,
+  t: MutableTyped, impls: ImplRegistry,
+  diags: DiagnosticCollector, fn: FnContext | null,
+): Type {
+  const receiverType = defaultIfFree(t.exprTypes.get(callee.target) ?? TY.unresolved);
+  const explicitArgTypes = expr.args.map((a) => checkExpr(a.value, null, t, impls, diags, fn));
+
+  const expectedExplicit = fullFnType.params.length - 1;
+  if (expr.args.length !== expectedExplicit) {
+    err(diags, "T3003", expr.span, `expected ${expectedExplicit}, got ${expr.args.length}`);
+  }
+
+  const bindings = new Map<number, Type>();
+  unifyTypeParam(fullFnType.params[0]!, receiverType, bindings);
+  for (let i = 0; i < explicitArgTypes.length && i + 1 < fullFnType.params.length; i++) {
+    unifyTypeParam(fullFnType.params[i + 1]!, defaultIfFree(explicitArgTypes[i]!), bindings);
+  }
+  const subst: Substitution = { typeParams: bindings };
+
+  for (let i = 0; i < expr.args.length; i++) {
+    const paramIdx = i + 1;
+    if (paramIdx >= fullFnType.params.length) break;
+    const expectedTy = substitute(fullFnType.params[paramIdx]!, subst);
+    if (!typeContainsTypeParam(expectedTy) && !isAssignable(explicitArgTypes[i]!, expectedTy)) {
+      err(diags, "T3001", expr.args[i]!.value.span,
+        `expected ${displayType(expectedTy)}, got ${displayType(explicitArgTypes[i]!)}`);
+    }
+  }
+
+  recordGenericCallSite(expr, declOf(freeSym), bindings, t);
+
+  return substitute(fullFnType.returnType, subst);
+}
+
+function recordGenericCallSite(
+  expr: A.CallExpr, decl: ReturnType<typeof declOf>,
+  bindings: ReadonlyMap<number, Type>, t: MutableTyped,
+): void {
+  if (decl === null || decl.kind !== "FnDecl" || decl.typeParams.length === 0) return;
+  const typeArgs = decl.typeParams.map((tp) => {
+    const tpSym = t.globals.typeParamSymbols.get(tp);
+    return tpSym !== undefined ? (bindings.get(tpSym.id) ?? TY.unresolved) : TY.unresolved;
+  });
+  if (typeArgs.every((a) => a.kind !== "Unresolved" && a.kind !== "TypeParam")) {
+    t.genericFnCalls.set(expr, typeArgs);
+  }
 }
 
 /** Walk the impl registry for a method matching the target type + name. */
@@ -218,4 +333,45 @@ function methodBoundFnType(method: MethodResolution, t: MutableTyped): Type {
   // Methods take `self` as the first param; drop it from the bound type.
   const params = fnType.params.length > 0 ? fnType.params.slice(1) : fnType.params;
   return { kind: "Fn", params, returnType: fnType.returnType };
+}
+
+/** True if `t` contains at least one `TypeParam` node. */
+function typeContainsTypeParam(t: Type): boolean {
+  switch (t.kind) {
+    case "TypeParam": return true;
+    case "Array":     return typeContainsTypeParam(t.element);
+    case "Struct":
+    case "Trait":     return t.args.some(typeContainsTypeParam);
+    case "Fn":        return t.params.some(typeContainsTypeParam) || typeContainsTypeParam(t.returnType);
+    case "Union":     return t.variants.some(typeContainsTypeParam);
+    default:          return false;
+  }
+}
+
+/** Structural unification: extract TypeParam-symbol-id → concrete-type bindings
+ *  by matching the shape of `paramType` against `argType`. Does not overwrite
+ *  an already-bound symbol (first binding wins). */
+function unifyTypeParam(paramType: Type, argType: Type, out: Map<number, Type>): void {
+  if (paramType.kind === "TypeParam") {
+    if (!out.has(paramType.symbol.id)) out.set(paramType.symbol.id, argType);
+    return;
+  }
+  if (paramType.kind === "Array" && argType.kind === "Array") {
+    unifyTypeParam(paramType.element, argType.element, out);
+    return;
+  }
+  if ((paramType.kind === "Struct" || paramType.kind === "Trait")
+      && argType.kind === paramType.kind
+      && paramType.symbol.id === argType.symbol.id) {
+    for (let i = 0; i < paramType.args.length && i < argType.args.length; i++) {
+      unifyTypeParam(paramType.args[i]!, argType.args[i]!, out);
+    }
+    return;
+  }
+  if (paramType.kind === "Fn" && argType.kind === "Fn") {
+    for (let i = 0; i < paramType.params.length && i < argType.params.length; i++) {
+      unifyTypeParam(paramType.params[i]!, argType.params[i]!, out);
+    }
+    unifyTypeParam(paramType.returnType, argType.returnType, out);
+  }
 }

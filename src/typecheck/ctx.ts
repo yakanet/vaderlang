@@ -52,6 +52,11 @@ export interface MutableTyped {
   /** Built-in array method calls (`len`, `push`). Populated by `inferField`,
    *  consumed by the lowerer to emit `LoweredArrayLen`/`LoweredArrayPush`. */
   readonly arrayOps: Map<A.FieldExpr, "len" | "push">;
+  /** Generic fn call sites whose type params were successfully inferred.
+   *  Key: the CallExpr; value: ordered concrete type-args matching the fn's
+   *  `typeParams` list. Populated by `inferCall`, consumed by the lowerer to
+   *  route the call to the right monomorphized specialisation. */
+  readonly genericFnCalls: Map<A.CallExpr, readonly Type[]>;
 }
 
 export interface FnContext {

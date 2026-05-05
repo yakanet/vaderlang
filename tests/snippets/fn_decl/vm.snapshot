@@ -1,2 +1,2 @@
 # compile errors
-[T3020] function body returns a value incompatible with its declared return type: expected [$U], got [?]
+[T3020] function body returns a value incompatible with its declared return type: expected [$U], got [$T]

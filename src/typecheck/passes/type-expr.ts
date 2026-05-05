@@ -42,12 +42,8 @@ function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: Diagnostic
     case "ArrayTypeExpr":
       return { kind: "Array", element: lowerTypeExpr(expr.element, t, diags) };
     case "TypeParamType": {
-      const sym = t.resolved.module.symbols.get(expr.name);
-      if (sym !== undefined && sym.kind === "type-param") {
-        return { kind: "TypeParam", symbol: sym };
-      }
-      // Inline-introduced (`$T`): the resolver records nothing for these; we
-      // still tolerate them as fresh type-params in fn-signature context.
+      const sym = t.resolved.typeParamTypes.get(expr);
+      if (sym !== undefined) return { kind: "TypeParam", symbol: sym };
       return TY.unresolved;
     }
   }

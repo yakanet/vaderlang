@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/generic_fn/_main.vader
+
+## generic instances
+  Yielded(i32)
+  identity(i32)
+  first(i32)

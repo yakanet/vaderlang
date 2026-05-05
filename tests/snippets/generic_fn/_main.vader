@@ -1,0 +1,23 @@
+import "std/io" { println }
+
+identity :: fn(x: $T) -> T {
+    return x
+}
+
+first :: fn(arr: [$T], fallback: T) -> T {
+    if arr.len() > 0 {
+        return arr[0]
+    }
+    return fallback
+}
+
+main :: fn() -> i32 {
+    n :: 42.identity()
+    println("n = ${n}")
+
+    arr := [10, 20, 30]
+    v :: arr.first(0)
+    println("v = ${v}")
+
+    return 0
+}

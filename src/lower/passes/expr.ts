@@ -3,8 +3,9 @@
 
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
+import { declOf } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { TY, defaultIfFree } from "../../typecheck/types.ts";
+import { TY, defaultIfFree, displayType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStructLitField } from "../lowered-ast.ts";
@@ -35,6 +36,45 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
     case "IdentExpr":
       return lowerIdent(ctx, expr, exprType);
     case "CallExpr": {
+      if (expr.callee.kind === "IdentExpr") {
+        const typeArgs = ctx.typed.genericFnCalls.get(expr);
+        if (typeArgs !== undefined) {
+          const sym = ctx.typed.resolved.idents.get(expr.callee);
+          if (sym !== undefined) {
+            const fnDecl = declOf(sym);
+            if (fnDecl !== null && fnDecl.kind === "FnDecl") {
+              const entry = lookupFnInstance(ctx, fnDecl, typeArgs);
+              if (entry !== null) {
+                return {
+                  kind: "LoweredCall", span: expr.span, type: exprType,
+                  callee: { kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: entry.symbol! },
+                  args: expr.args.map((a) => lowerExpr(ctx, a.value)),
+                };
+              }
+            }
+          }
+        }
+      }
+      // GenericInstExpr callee (explicit `foo(T)(args)` form, if the parser ever produces it).
+      if (expr.callee.kind === "GenericInstExpr" && expr.callee.callee.kind === "IdentExpr") {
+        const innerSym = ctx.typed.resolved.idents.get(expr.callee.callee);
+        if (innerSym !== undefined) {
+          const fnDecl = declOf(innerSym);
+          if (fnDecl !== null && fnDecl.kind === "FnDecl" && fnDecl.typeParams.length > 0) {
+            const typeArgs = expr.callee.typeArgs.map((ta) =>
+              applySubst(ctx.typed.typeExprTypes.get(ta) ?? TY.unresolved, ctx.subst),
+            );
+            const entry = lookupFnInstance(ctx, fnDecl, typeArgs);
+            if (entry !== null) {
+              return {
+                kind: "LoweredCall", span: expr.span, type: exprType,
+                callee: { kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: entry.symbol! },
+                args: expr.args.map((a) => lowerExpr(ctx, a.value)),
+              };
+            }
+          }
+        }
+      }
       // Trait method via UFCS: typecheck recorded a MethodResolution on the
       // FieldExpr callee. Rewrite into a direct call of the impl's specialised
       // fn with the receiver as the first argument. For generic impls, the
@@ -65,6 +105,14 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         }
         const freeSym = ctx.typed.ufcsFreeResolutions.get(expr.callee);
         if (freeSym !== undefined) {
+          const ufcsTypeArgs = ctx.typed.genericFnCalls.get(expr);
+          if (ufcsTypeArgs !== undefined) {
+            const fnDecl = declOf(freeSym);
+            if (fnDecl !== null && fnDecl.kind === "FnDecl") {
+              const entry = lookupFnInstance(ctx, fnDecl, ufcsTypeArgs);
+              if (entry !== null) return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol!);
+            }
+          }
           return lowerUfcsCall(ctx, expr, expr.callee, exprType, freeSym);
         }
       }
@@ -155,6 +203,14 @@ function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): Lower
     left: lowerExpr(ctx, expr.left),
     right: lowerExpr(ctx, expr.right),
   };
+}
+
+import type { MonoEntry } from "../../monomorphize/mono-ast.ts";
+
+function lookupFnInstance(ctx: FnLowerCtx, fnDecl: A.FnDecl, typeArgs: readonly Type[]): MonoEntry | null {
+  const key = typeArgs.map((ta) => displayType(applySubst(ta, ctx.subst))).join(",");
+  const entry = ctx.project.mono.fnInstanceEntries.get(fnDecl)?.get(key) ?? null;
+  return entry !== null && entry.symbol !== null ? entry : null;
 }
 
 function lowerUfcsCall(

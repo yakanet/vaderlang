@@ -35,6 +35,11 @@ export interface ResolvedProgram {
   /** Symbols introduced by `$T` and struct/trait `(T: type)` heads. */
   readonly typeParams: ReadonlyMap<A.TypeParam, Symbol>;
 
+  /** Resolution of inline `$T` type-param references in fn param positions.
+   *  Keyed by the `TypeParamType` AST node; value is the same symbol as the
+   *  matching entry in `typeParams`. */
+  readonly typeParamTypes: ReadonlyMap<A.TypeParamType, Symbol>;
+
   /** When `obj.field` resolves through a module import, the field is bound here. */
   readonly fields: ReadonlyMap<A.FieldExpr, Symbol>;
 

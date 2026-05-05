@@ -13,7 +13,7 @@ import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Type } from "../types.ts";
 import {
-  CORE_STRUCTS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, unionOf,
+  CORE_STRUCTS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, substitute, unionOf,
 } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
@@ -73,9 +73,22 @@ function inferExpr(
     case "CastExpr":      return inferCast(expr, t, impls, diags, fn);
     case "DotVariantExpr": return inferDotVariant(expr, expected, t, diags);
     case "GenericInstExpr": {
-      checkExpr(expr.callee, null, t, impls, diags, fn);
+      const innerType = checkExpr(expr.callee, null, t, impls, diags, fn);
       for (const a of expr.typeArgs) lowerTypeExpr(a, t, diags);
-      return TY.unresolved;
+      if (innerType.kind !== "Fn") return TY.unresolved;
+      // Specialize the fn type by substituting typeParams with the resolved args
+      // so inferCall can type-check the arguments and return type correctly.
+      const innerSym = expr.callee.kind === "IdentExpr" ? t.resolved.idents.get(expr.callee) : undefined;
+      if (innerSym === undefined) return TY.unresolved;
+      const fnDecl = declOf(innerSym);
+      if (fnDecl === null || fnDecl.kind !== "FnDecl" || fnDecl.typeParams.length === 0) return innerType;
+      const typeParamMap = new Map<number, Type>();
+      for (let i = 0; i < fnDecl.typeParams.length; i++) {
+        const tpSym = t.globals.typeParamSymbols.get(fnDecl.typeParams[i]!);
+        const concreteArg = t.globals.typeExprTypes.get(expr.typeArgs[i]!);
+        if (tpSym !== undefined && concreteArg !== undefined) typeParamMap.set(tpSym.id, concreteArg);
+      }
+      return substitute(innerType, { typeParams: typeParamMap });
     }
   }
 }

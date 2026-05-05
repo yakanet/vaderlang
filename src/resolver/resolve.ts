@@ -39,6 +39,7 @@ interface MutableProgram {
   locals: Map<A.LetStmt, Symbol>;
   forIns: Map<A.ForStmt, Symbol>;
   typeParams: Map<A.TypeParam, Symbol>;
+  typeParamTypes: Map<A.TypeParamType, Symbol>;
   fields: Map<A.FieldExpr, Symbol>;
   ufcsFreeResolutions: Map<A.FieldExpr, Symbol>;
 }
@@ -83,6 +84,7 @@ export function resolveModule(input: ResolveModuleInput): ResolvedProgram[] {
       locals: new Map(),
       forIns: new Map(),
       typeParams: new Map(),
+      typeParamTypes: new Map(),
       fields: new Map(),
       ufcsFreeResolutions: new Map(),
     };
@@ -278,10 +280,11 @@ function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: Reso
       else p.types.set(t, resolveImportRedirect(sym, input));
       return;
     }
-    case "TypeParamType":
-      // `$T` is hoisted to the enclosing fn's typeParams by the parser; nothing
-      // to do here for value-position references.
+    case "TypeParamType": {
+      const sym = lookup(scope, t.name);
+      if (sym !== null && sym.kind === "type-param") p.typeParamTypes.set(t, sym);
       return;
+    }
     case "UnionType":
       for (const v of t.variants) resolveType(v, scope, p, input);
       return;

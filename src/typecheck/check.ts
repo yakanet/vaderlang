@@ -35,6 +35,7 @@ export function declareModule(
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
     methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
+    genericFnCalls: new Map(),
   };
   for (const decl of program.source.decls) declareType(decl, t, diags);
 }
@@ -49,6 +50,7 @@ export function checkProgram(
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
     methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
+    genericFnCalls: new Map(),
   };
 
   for (const decl of program.source.decls) {
@@ -89,5 +91,6 @@ export function checkProgram(
     methodResolutions: t.methodResolutions,
     ufcsFreeResolutions: t.ufcsFreeResolutions,
     arrayOps: t.arrayOps,
+    genericFnCalls: t.genericFnCalls,
   };
 }
