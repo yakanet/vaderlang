@@ -108,6 +108,10 @@ function walkExpr(e: LoweredExpr, visit: RefVisitor): void {
     case "LoweredArrayLen":
       walkExpr(e.target, visit);
       return;
+    case "LoweredArrayPush":
+      walkExpr(e.target, visit);
+      walkExpr(e.value, visit);
+      return;
     case "LoweredCast":
       walkExpr(e.value, visit);
       return;

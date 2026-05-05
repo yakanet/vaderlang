@@ -1,0 +1,15 @@
+import "std/io" { println }
+import "std/string" { len, trim, to_upper, to_lower, contains, starts_with, ends_with, slice }
+
+main :: fn() -> i32 {
+    s := "  Hello, World!  "
+    println("${len(s)}")
+    println(trim(s))
+    println(to_upper("hello"))
+    println(to_lower("VADER"))
+    println("${contains("foobar", "oba")}")
+    println("${starts_with("foobar", "foo")}")
+    println("${ends_with("foobar", "bar")}")
+    println(slice("hello world", 6, 11))
+    return 0
+}

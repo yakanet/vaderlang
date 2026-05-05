@@ -1,16 +1,12 @@
 // std/string — string operations.
 //
 // All string operations treat strings as immutable UTF-8 byte sequences.
-// Use `chars(s)` to iterate by Unicode codepoint.
 
-// Length in bytes (NOT codepoints).
-len :: fn(s: string) -> u32
+// Length in bytes.
+len :: fn(s: string) -> i32
 
-// Codepoint iteration.
-chars :: fn(s: string) -> Iterator(char)
-
-// Substring extraction (bytes-based).
-slice :: fn(s: string, range: Range) -> string
+// Substring extraction (bytes-based, exclusive end).
+slice :: fn(s: string, start: i32, end: i32) -> string
 
 // Predicates.
 contains    :: fn(s: string, sub: string) -> bool

@@ -1,0 +1,52 @@
+# Typecheck
+
+## tests/snippets/std_string/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    StringLitExpr  :: string
+  expr 10:16    CallExpr       :: bool
+  expr 10:16    IdentExpr      :: fn(string, string) -> bool
+  expr 10:25    StringLitExpr  :: string
+  expr 10:35    StringLitExpr  :: string
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(string) -> void
+  expr 11:13    StringLitExpr  :: string
+  expr 11:16    CallExpr       :: bool
+  expr 11:16    IdentExpr      :: fn(string, string) -> bool
+  expr 11:28    StringLitExpr  :: string
+  expr 11:38    StringLitExpr  :: string
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 12:13    StringLitExpr  :: string
+  expr 12:16    CallExpr       :: bool
+  expr 12:16    IdentExpr      :: fn(string, string) -> bool
+  expr 12:26    StringLitExpr  :: string
+  expr 12:36    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(string) -> void
+  expr 13:13    CallExpr       :: string
+  expr 13:13    IdentExpr      :: fn(string, i32, i32) -> string
+  expr 13:19    StringLitExpr  :: string
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(string) -> void
+  expr 5:10     StringLitExpr  :: string
+  expr 6:13     StringLitExpr  :: string
+  expr 6:16     CallExpr       :: i32
+  expr 6:16     IdentExpr      :: fn(string) -> i32
+  expr 6:20     IdentExpr      :: string
+  expr 6:5      CallExpr       :: void
+  expr 6:5      IdentExpr      :: fn(string) -> void
+  expr 7:13     CallExpr       :: string
+  expr 7:13     IdentExpr      :: fn(string) -> string
+  expr 7:18     IdentExpr      :: string
+  expr 7:5      CallExpr       :: void
+  expr 7:5      IdentExpr      :: fn(string) -> void
+  expr 8:13     CallExpr       :: string
+  expr 8:13     IdentExpr      :: fn(string) -> string
+  expr 8:22     StringLitExpr  :: string
+  expr 8:5      CallExpr       :: void
+  expr 8:5      IdentExpr      :: fn(string) -> void
+  expr 9:13     CallExpr       :: string
+  expr 9:13     IdentExpr      :: fn(string) -> string
+  expr 9:22     StringLitExpr  :: string
+  expr 9:5      CallExpr       :: void
+  expr 9:5      IdentExpr      :: fn(string) -> void

@@ -5,6 +5,7 @@
 
 #include "vader.h"
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,11 +36,12 @@ bool vader_string_eq(vader_string_t a, vader_string_t b) {
 /* ----------------------------------------------------------------- array */
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length) {
-    vader_array_t* a = (vader_array_t*) vader_alloc(sizeof(vader_array_t) + length * sizeof(vader_box_t));
+    vader_array_t* a = (vader_array_t*) vader_alloc(sizeof(vader_array_t));
     a->type_index = type_index;
     a->_pad = 0;
     a->length = length;
-    /* leave data uninitialised — emitted code fills it */
+    a->capacity = length > 0 ? length : 4;
+    a->data = (vader_box_t*) vader_alloc(a->capacity * sizeof(vader_box_t));
     return a;
 }
 
@@ -53,6 +55,91 @@ vader_box_t vader_array_get(vader_array_t* a, size_t i) {
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
     if (i >= a->length) vader_trap("array index out of bounds");
     a->data[i] = v;
+}
+
+void vader_array_push(vader_array_t* a, vader_box_t v) {
+    if (a->length >= a->capacity) {
+        size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
+        vader_box_t* fresh = (vader_box_t*) vader_alloc(cap * sizeof(vader_box_t));
+        if (a->length > 0) memcpy(fresh, a->data, a->length * sizeof(vader_box_t));
+        a->data = fresh;
+        a->capacity = cap;
+    }
+    a->data[a->length++] = v;
+}
+
+/* ----------------------------------------------------------------- std/string */
+
+vader_i32_t vader_string_len(vader_string_t s) {
+    return (vader_i32_t) s.len;
+}
+
+vader_string_t vader_string_slice(vader_string_t s, vader_i32_t start, vader_i32_t end) {
+    if (start < 0) start = 0;
+    if (end < 0 || (size_t) end > s.len) end = (vader_i32_t) s.len;
+    if (start >= end) return vader_string_new("", 0);
+    return vader_string_new(s.ptr + start, (size_t) (end - start));
+}
+
+vader_bool_t vader_string_contains(vader_string_t s, vader_string_t sub) {
+    if (sub.len == 0) return true;
+    if (sub.len > s.len) return false;
+    for (size_t i = 0; i <= s.len - sub.len; i++) {
+        if (memcmp(s.ptr + i, sub.ptr, sub.len) == 0) return true;
+    }
+    return false;
+}
+
+vader_bool_t vader_string_starts_with(vader_string_t s, vader_string_t prefix) {
+    if (prefix.len > s.len) return false;
+    return memcmp(s.ptr, prefix.ptr, prefix.len) == 0;
+}
+
+vader_bool_t vader_string_ends_with(vader_string_t s, vader_string_t suffix) {
+    if (suffix.len > s.len) return false;
+    return memcmp(s.ptr + s.len - suffix.len, suffix.ptr, suffix.len) == 0;
+}
+
+vader_string_t vader_string_trim(vader_string_t s) {
+    const char* p = s.ptr;
+    size_t n = s.len;
+    while (n > 0 && isspace((unsigned char) *p))    { p++; n--; }
+    while (n > 0 && isspace((unsigned char) p[n-1])) { n--; }
+    return vader_string_new(p, n);
+}
+
+vader_string_t vader_string_to_upper(vader_string_t s) {
+    char* buf = (char*) vader_alloc(s.len);
+    for (size_t i = 0; i < s.len; i++) buf[i] = (char) toupper((unsigned char) s.ptr[i]);
+    return vader_string_new(buf, s.len);
+}
+
+vader_string_t vader_string_to_lower(vader_string_t s) {
+    char* buf = (char*) vader_alloc(s.len);
+    for (size_t i = 0; i < s.len; i++) buf[i] = (char) tolower((unsigned char) s.ptr[i]);
+    return vader_string_new(buf, s.len);
+}
+
+vader_box_t vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
+    char* p = (char*) vader_alloc(s.len + 1);
+    memcpy(p, s.ptr, s.len); p[s.len] = '\0';
+    char* end;
+    long v = strtol(p, &end, 10);
+    if (end == p || *end != '\0') {
+        return vader_box_string(err_tag, vader_string_new("invalid integer", 15));
+    }
+    return vader_box_i32(ok_tag, (vader_i32_t) v);
+}
+
+vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
+    char* p = (char*) vader_alloc(s.len + 1);
+    memcpy(p, s.ptr, s.len); p[s.len] = '\0';
+    char* end;
+    double v = strtod(p, &end);
+    if (end == p || *end != '\0') {
+        return vader_box_string(err_tag, vader_string_new("invalid float", 13));
+    }
+    return vader_box_f64(ok_tag, v);
 }
 
 /* ----------------------------------------------------------------- builder */
@@ -101,8 +188,15 @@ void vader_builder_append_display_i32(vader_builder_t* b, vader_i32_t v) { build
 void vader_builder_append_display_i64(vader_builder_t* b, vader_i64_t v) { builder_append_fmt(b, "%" PRId64, v); }
 void vader_builder_append_display_u32(vader_builder_t* b, vader_u32_t v) { builder_append_fmt(b, "%" PRIu32, v); }
 void vader_builder_append_display_u64(vader_builder_t* b, vader_u64_t v) { builder_append_fmt(b, "%" PRIu64, v); }
-void vader_builder_append_display_f32(vader_builder_t* b, vader_f32_t v) { builder_append_fmt(b, "%g", (double) v); }
-void vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v) { builder_append_fmt(b, "%g", v); }
+void vader_builder_append_display_f32(vader_builder_t* b, vader_f32_t v) {
+    double d = (double) v;
+    if (isfinite(d) && d == floor(d)) builder_append_fmt(b, "%.1f", d);
+    else                              builder_append_fmt(b, "%g",   d);
+}
+void vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v) {
+    if (isfinite(v) && v == floor(v)) builder_append_fmt(b, "%.1f", v);
+    else                              builder_append_fmt(b, "%g",   v);
+}
 void vader_builder_append_display_bool(vader_builder_t* b, vader_bool_t v) {
     vader_string_t s = v ? vader_string_new("true", 4) : vader_string_new("false", 5);
     vader_builder_append_str(b, s);

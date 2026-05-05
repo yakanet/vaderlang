@@ -39,6 +39,20 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       // fn with the receiver as the first argument. For generic impls, the
       // right specialisation is keyed by the receiver's struct args.
       if (expr.callee.kind === "FieldExpr") {
+        const arrayOp = ctx.typed.arrayOps.get(expr.callee);
+        if (arrayOp === "len") {
+          return {
+            kind: "LoweredArrayLen", span: expr.span, type: TY.i32,
+            target: lowerExpr(ctx, expr.callee.target),
+          };
+        }
+        if (arrayOp === "push") {
+          return {
+            kind: "LoweredArrayPush", span: expr.span, type: TY.void,
+            target: lowerExpr(ctx, expr.callee.target),
+            value: lowerExpr(ctx, expr.args[0]!.value),
+          };
+        }
         const method = ctx.typed.methodResolutions.get(expr.callee);
         if (method !== undefined) {
           const recv = method.receiverType;

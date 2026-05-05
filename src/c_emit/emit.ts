@@ -159,6 +159,29 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_write_file(a0, a1, 0u, ${tagOrTrap(ctx, "error")}); }`;
     case "std_io$read_line":
       return `${head} { return vader_read_line(${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
+
+    case "std_string$len":         return `${head} { return vader_string_len(a0); }`;
+    case "std_string$slice":       return `${head} { return vader_string_slice(a0, a1, a2); }`;
+    case "std_string$contains":    return `${head} { return vader_string_contains(a0, a1); }`;
+    case "std_string$starts_with": return `${head} { return vader_string_starts_with(a0, a1); }`;
+    case "std_string$ends_with":   return `${head} { return vader_string_ends_with(a0, a1); }`;
+    case "std_string$trim":        return `${head} { return vader_string_trim(a0); }`;
+    case "std_string$to_upper":    return `${head} { return vader_string_to_upper(a0); }`;
+    case "std_string$to_lower":    return `${head} { return vader_string_to_lower(a0); }`;
+    case "std_string$parse_int":
+      return `${head} { return vader_string_parse_int(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
+    case "std_string$parse_float":
+      return `${head} { return vader_string_parse_float(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
+
+    case "std_math$sqrt":  return `${head} { return vader_math_sqrt(a0); }`;
+    case "std_math$pow":   return `${head} { return vader_math_pow(a0, a1); }`;
+    case "std_math$floor": return `${head} { return vader_math_floor(a0); }`;
+    case "std_math$ceil":  return `${head} { return vader_math_ceil(a0); }`;
+    case "std_math$round": return `${head} { return vader_math_round(a0); }`;
+    case "std_math$sin":   return `${head} { return vader_math_sin(a0); }`;
+    case "std_math$cos":   return `${head} { return vader_math_cos(a0); }`;
+    case "std_math$tan":   return `${head} { return vader_math_tan(a0); }`;
+
     default:
       // Foreign imports — emit a stub that traps, the user supplies linkage
       // via `cc <user>.o` post-MVP.
@@ -376,6 +399,12 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       const arr = pop(s);
       const t = newTmp(s, "i32");
       line(s, `int32_t ${t} = (int32_t) vader_array_len((vader_array_t*) ${asObjPtr(arr)});`);
+      return;
+    }
+    case "array.push": {
+      const value = pop(s);
+      const arr = pop(s);
+      line(s, `vader_array_push((vader_array_t*) ${asObjPtr(arr)}, ${boxExpr(s.ctx, value.name, value.val, op.typeIndex)});`);
       return;
     }
 

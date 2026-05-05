@@ -121,6 +121,16 @@ export function inferField(
   if (exported !== undefined) return typeOfSymbol(exported, t);
 
   const targetType = checkExpr(expr.target, null, t, impls, diags, fn);
+  if (targetType.kind === "Array") {
+    if (expr.field === "len") {
+      t.arrayOps.set(expr, "len");
+      return { kind: "Fn", params: [], returnType: TY.i32 };
+    }
+    if (expr.field === "push") {
+      t.arrayOps.set(expr, "push");
+      return { kind: "Fn", params: [targetType.element], returnType: TY.void };
+    }
+  }
   if (targetType.kind === "Enum") {
     checkEnumVariant(targetType, expr.field, expr.fieldSpan, diags);
     return targetType;

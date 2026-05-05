@@ -1,0 +1,12 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    arr := []
+    arr.push(1)
+    arr.push(2)
+    arr.push(3)
+    println("${arr.len()}")
+    println("${arr[0]}")
+    println("${arr[2]}")
+    return 0
+}

@@ -279,7 +279,8 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
     }
 
     case "array.new": {
-      const elements = popArgs(f, op.length);
+      // empty literal must be a fresh array (not the frozen EMPTY_ARGS sentinel) so push works
+      const elements: Value[] = op.length === 0 ? [] : popArgs(f, op.length);
       f.stack.push({ tag: "array", typeIndex: op.typeIndex, elements });
       f.ip++; return;
     }
@@ -301,6 +302,12 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
     case "array.len": {
       const v = asArray(f.stack.pop()!);
       f.stack.push(num("i32", v.elements.length));
+      f.ip++; return;
+    }
+    case "array.push": {
+      const value = f.stack.pop()!;
+      const v = asArray(f.stack.pop()!);
+      v.elements.push(value);
       f.ip++; return;
     }
 

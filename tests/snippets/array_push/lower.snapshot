@@ -1,0 +1,57 @@
+# Lower
+
+## tests/snippets/array_push/_main.vader
+  fn tests_snippets_array_push__main_vader$main() -> i32
+    let arr#42: [?] =
+      array :[?]
+    LoweredArrayPush
+    LoweredArrayPush
+    LoweredArrayPush
+    call :void
+      callee:
+        println#20 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-1: ? =
+            @builder.new :?
+          @builder.append_display <for i32> :void
+            __sb_0#-1 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_0#-1 :?
+    call :void
+      callee:
+        println#20 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1#-2: ? =
+            @builder.new :?
+          @builder.append_display <for ?> :void
+            __sb_1#-2 :?
+            index :?
+              on:
+                arr#42 :[?]
+              ix:
+                int(0) :i32
+          ~>
+            @builder.finish :string
+              __sb_1#-2 :?
+    call :void
+      callee:
+        println#20 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2#-3: ? =
+            @builder.new :?
+          @builder.append_display <for ?> :void
+            __sb_2#-3 :?
+            index :?
+              on:
+                arr#42 :[?]
+              ix:
+                int(2) :i32
+          ~>
+            @builder.finish :string
+              __sb_2#-3 :?
+    return int(0) :i32

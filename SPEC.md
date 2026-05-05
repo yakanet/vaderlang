@@ -335,6 +335,22 @@ x := a + \
 | Text | `char` (32-bit codepoint), `string` (UTF-8 sequence) |
 | Null | `null` |
 
+### Built-in type aliases
+
+To ease migration from Java/Kotlin and reduce typing in everyday code, the compiler recognises a set of **canonical aliases** for primitive types. They are fully transparent — the compiler treats an alias and its target as the same type everywhere (error messages, snapshots, inference).
+
+| Alias | Resolves to | Java / C equivalent |
+|-------|-------------|---------------------|
+| `int` | `i32` | Java `int`, C `int32_t` |
+| `long` | `i64` | Java `long`, C `int64_t` |
+| `float` | `f32` | Java `float`, C `float` |
+| `double` | `f64` | Java `double`, C `double` |
+| `byte` | `u8` | Java `byte` (sign differs — Vader byte is unsigned) |
+
+`char` and `string` are already first-class names in the primitive table, so they need no alias.
+
+These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases (those use the `name :: type SomeType` form). Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
+
 ### Default integer
 
 A literal integer with no suffix **infers to `i32`** (`x := 42` ⇒ `x: i32`).

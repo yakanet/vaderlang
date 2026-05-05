@@ -342,6 +342,17 @@ The self-hosting compiler will use enums to represent token kinds, opcode tags, 
 - [ ] **Explicit variant indices**: variants may carry an explicit integer value (`Up = 10`); unspecified variants auto-increment from the previous (`Up = 10, Down` → Down = 11, `Left = 20, Right` → Right = 21). Requires: `EnumVariant.value?: bigint` in `ast.ts`, index-resolution pass in the type-checker or lowerer.
 - [ ] **Bounds checking**: after resolving all variant indices, verify every value fits in the declared backing type. Example: `enum(u8)` max = 255 — emit an error if any variant index exceeds the range. Must also check that no two variants share the same resolved index.
 
+### 1.18 Built-in type aliases
+
+Per SPEC §4 ("Built-in type aliases"), the compiler should recognise `int`, `long`, `float`, `double`, `byte` as transparent synonyms for their primitive counterparts.
+
+Implementation is small and self-contained — no new IR nodes, no new passes:
+
+- [ ] **Resolver** (`src/resolver/builtins.ts`): add `int`, `long`, `float`, `double`, `byte` to `BUILTIN_TYPE_NAMES` so the resolver creates `builtin-type` symbols for them.
+- [ ] **Type-checker** (`src/typecheck/passes/type-expr.ts`): extend `primitiveFromName` to map `int → i32`, `long → i64`, `float → f32`, `double → f64`, `byte → u8`.
+- [ ] **Diagnostics**: error messages and snapshot dumps continue to show the *canonical* name (`i32`, not `int`) so the output is stable regardless of which alias the user typed.
+- [ ] **Tests**: add a snippet `tests/snippets/type_aliases/` that exercises each alias in a variable declaration, a function parameter, and a cast; verify the VM output matches.
+
 ---
 
 ## Phase 2 — Self-hosting

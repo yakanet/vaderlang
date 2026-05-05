@@ -1,15 +1,8 @@
 // std/math — basic numeric operations and constants.
 
 // Constants.
-pi :: f64 = 3.141592653589793
-e  :: f64 = 2.718281828459045
-
-// Generic min/max via Ord.
-min :: fn(a: $T, b: T) -> T where T: Ord
-max :: fn(a: $T, b: T) -> T where T: Ord
-
-// Absolute value (works for any signed numeric).
-abs :: fn(x: $T) -> T
+pi :: 3.141592653589793
+e  :: 2.718281828459045
 
 // Float operations.
 sqrt  :: fn(x: f64) -> f64

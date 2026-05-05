@@ -1,0 +1,59 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=17 types=47 params=19 locals=3 typeParams=3 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## std/string
+  fn               public   contains 
+  fn               public   ends_with 
+  fn               public   len 
+  fn               public   parse_float 
+  fn               public   parse_int 
+  struct           public   ParseError 
+  fn               public   slice 
+  fn               public   split 
+  fn               public   starts_with 
+  fn               public   to_lower 
+  fn               public   to_upper 
+  fn               public   trim 
+  refs: idents=1 types=33 params=18 locals=0 typeParams=0 fields=0
+
+## tests/snippets/std_string/_main.vader
+  import-binding   private  contains → contains
+  import-binding   private  ends_with → ends_with
+  import-binding   private  len → len
+  fn               public   main 
+  import-binding   private  println → println
+  import-binding   private  slice → slice
+  import-binding   private  starts_with → starts_with
+  import-binding   private  to_lower → to_lower
+  import-binding   private  to_upper → to_upper
+  import-binding   private  trim → trim
+  import std/io → ok
+  import std/string → ok
+  refs: idents=18 types=1 params=0 locals=1 typeParams=0 fields=0

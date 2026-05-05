@@ -45,6 +45,9 @@ export interface MutableTyped {
   /** UFCS-resolved trait method calls. Populated by `inferField`, consumed
    *  by `inferCall` and the lowerer. */
   readonly methodResolutions: Map<A.FieldExpr, MethodResolution>;
+  /** Built-in array method calls (`len`, `push`). Populated by `inferField`,
+   *  consumed by the lowerer to emit `LoweredArrayLen`/`LoweredArrayPush`. */
+  readonly arrayOps: Map<A.FieldExpr, "len" | "push">;
 }
 
 export interface FnContext {

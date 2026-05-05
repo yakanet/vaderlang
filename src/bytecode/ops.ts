@@ -88,6 +88,7 @@ export type Op =
   | { readonly kind: "array.get"; readonly typeIndex: number }
   | { readonly kind: "array.set"; readonly typeIndex: number }
   | { readonly kind: "array.len" }
+  | { readonly kind: "array.push"; readonly typeIndex: number }
 
   // -- Type tag check (returns bool; for `is T` patterns) ----------------
   | { readonly kind: "type_check"; readonly typeIndex: number };

@@ -144,7 +144,8 @@ export type LoweredExpr =
   | LoweredTypeCheck
   | LoweredUnreachable
   | LoweredIntrinsicCall
-  | LoweredArrayLen;
+  | LoweredArrayLen
+  | LoweredArrayPush;
 
 export interface LoweredIntLit {
   readonly kind: "LoweredIntLit";
@@ -283,6 +284,15 @@ export interface LoweredArrayLen {
   readonly span: Span;
   readonly type: Type;
   readonly target: LoweredExpr;
+}
+
+/** Push an element onto a mutable array. Type is always void. */
+export interface LoweredArrayPush {
+  readonly kind: "LoweredArrayPush";
+  readonly span: Span;
+  readonly type: Type;
+  readonly target: LoweredExpr;
+  readonly value: LoweredExpr;
 }
 
 export interface LoweredCast {

@@ -1,0 +1,11 @@
+import "std/io" { println }
+import "std/math" { sqrt, pow, floor, ceil, round }
+
+main :: fn() -> i32 {
+    println("${sqrt(4.0)}")
+    println("${pow(2.0, 10.0)}")
+    println("${floor(3.7)}")
+    println("${ceil(3.2)}")
+    println("${round(2.5)}")
+    return 0
+}

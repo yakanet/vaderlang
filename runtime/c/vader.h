@@ -100,13 +100,15 @@ typedef struct {
     uint32_t      type_index;
     uint32_t      _pad;
     size_t        length;
-    vader_box_t   data[];        /* uniform boxed elements (MVP) */
+    size_t        capacity;
+    vader_box_t*  data;
 } vader_array_t;
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length);
 size_t         vader_array_len(vader_array_t* a);
 vader_box_t    vader_array_get(vader_array_t* a, size_t i);
 void           vader_array_set(vader_array_t* a, size_t i, vader_box_t v);
+void           vader_array_push(vader_array_t* a, vader_box_t v);
 
 /* ----------------------------------------------------------------- struct */
 
@@ -145,6 +147,34 @@ vader_box_t    vader_write_file(vader_string_t path, vader_string_t content,
                                 uint32_t ok_tag, uint32_t err_tag);
 vader_box_t    vader_read_line(uint32_t ok_tag, uint32_t err_tag);
 vader_bool_t   vader_exists(vader_string_t path);
+
+/* ----------------------------------------------------------------- string */
+
+vader_i32_t    vader_string_len(vader_string_t s);
+vader_string_t vader_string_slice(vader_string_t s, vader_i32_t start, vader_i32_t end);
+vader_bool_t   vader_string_contains(vader_string_t s, vader_string_t sub);
+vader_bool_t   vader_string_starts_with(vader_string_t s, vader_string_t prefix);
+vader_bool_t   vader_string_ends_with(vader_string_t s, vader_string_t suffix);
+vader_string_t vader_string_trim(vader_string_t s);
+vader_string_t vader_string_to_upper(vader_string_t s);
+vader_string_t vader_string_to_lower(vader_string_t s);
+/* parse_int / parse_float return a box: ok_tag on success, err_tag on failure. */
+vader_box_t    vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
+vader_box_t    vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
+
+/* ----------------------------------------------------------------- math */
+
+#include <math.h>
+
+/* Wrappers that match the exact signature the emitter expects (single arg). */
+static inline vader_f64_t vader_math_sqrt(vader_f64_t x)  { return sqrt(x);  }
+static inline vader_f64_t vader_math_pow(vader_f64_t x, vader_f64_t n) { return pow(x, n); }
+static inline vader_f64_t vader_math_floor(vader_f64_t x) { return floor(x); }
+static inline vader_f64_t vader_math_ceil(vader_f64_t x)  { return ceil(x);  }
+static inline vader_f64_t vader_math_round(vader_f64_t x) { return round(x); }
+static inline vader_f64_t vader_math_sin(vader_f64_t x)   { return sin(x);   }
+static inline vader_f64_t vader_math_cos(vader_f64_t x)   { return cos(x);   }
+static inline vader_f64_t vader_math_tan(vader_f64_t x)   { return tan(x);   }
 
 /* ----------------------------------------------------------------- traps */
 

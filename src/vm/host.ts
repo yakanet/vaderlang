@@ -7,7 +7,10 @@
 import { accessSync, readFileSync as fsReadFile, writeFileSync as fsWriteFile } from "node:fs";
 
 import type { Value } from "./value.ts";
-import { NULL, VOID, bool, err, str } from "./value.ts";
+import { NULL, VOID, bool, err, num, str, asNum } from "./value.ts";
+
+const UTF8_ENC = new TextEncoder();
+const UTF8_DEC = new TextDecoder();
 
 export interface HostIO {
   write(s: string): void;
@@ -77,11 +80,55 @@ export function stdIoBindings(io: HostIO): Record<string, HostFn> {
   };
 }
 
+export function stdStringBindings(): Record<string, HostFn> {
+  return {
+    std_string$len:         (args) => num("i32", UTF8_ENC.encode(stringArg(args, 0)).length),
+    std_string$slice:       (args) => {
+      const s = stringArg(args, 0);
+      const bytes = UTF8_ENC.encode(s);
+      const start = Math.max(0, numArg(args, 1));
+      const end   = Math.min(bytes.length, numArg(args, 2));
+      return str(UTF8_DEC.decode(bytes.slice(start, end)));
+    },
+    std_string$contains:    (args) => bool(stringArg(args, 0).includes(stringArg(args, 1))),
+    std_string$starts_with: (args) => bool(stringArg(args, 0).startsWith(stringArg(args, 1))),
+    std_string$ends_with:   (args) => bool(stringArg(args, 0).endsWith(stringArg(args, 1))),
+    std_string$trim:        (args) => str(stringArg(args, 0).trim()),
+    std_string$to_upper:    (args) => str(stringArg(args, 0).toUpperCase()),
+    std_string$to_lower:    (args) => str(stringArg(args, 0).toLowerCase()),
+    std_string$parse_int:   (args) => {
+      const s = stringArg(args, 0);
+      const n = Number(s);
+      if (s.trim() === "" || !Number.isInteger(n)) return err(`invalid integer: "${s}"`);
+      return num("i32", n | 0);
+    },
+    std_string$parse_float: (args) => {
+      const s = stringArg(args, 0);
+      const n = Number(s);
+      if (s.trim() === "" || isNaN(n)) return err(`invalid float: "${s}"`);
+      return num("f64", n);
+    },
+  };
+}
+
+export function stdMathBindings(): Record<string, HostFn> {
+  return {
+    std_math$sqrt:  (args) => num("f64", Math.sqrt(numArg(args, 0))),
+    std_math$pow:   (args) => num("f64", Math.pow(numArg(args, 0), numArg(args, 1))),
+    std_math$floor: (args) => num("f64", Math.floor(numArg(args, 0))),
+    std_math$ceil:  (args) => num("f64", Math.ceil(numArg(args, 0))),
+    std_math$round: (args) => num("f64", Math.round(numArg(args, 0))),
+    std_math$sin:   (args) => num("f64", Math.sin(numArg(args, 0))),
+    std_math$cos:   (args) => num("f64", Math.cos(numArg(args, 0))),
+    std_math$tan:   (args) => num("f64", Math.tan(numArg(args, 0))),
+  };
+}
+
 export function makeBindings(io: HostIO): HostBindings {
-  const stdio = stdIoBindings(io);
+  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdMathBindings() };
   return {
     get(mangledName, externName) {
-      return stdio[mangledName] ?? stdio[externName] ?? null;
+      return all[mangledName] ?? all[externName] ?? null;
     },
   };
 }
@@ -92,6 +139,13 @@ function stringArg(args: Value[], i: number): string {
     throw new Error(`vm: expected string at host arg ${i}, got ${v?.tag ?? "<missing>"}`);
   }
   return v.n;
+}
+
+function numArg(args: Value[], i: number): number {
+  const v = args[i];
+  if (v === undefined) throw new Error(`vm: missing host arg ${i}`);
+  try { return asNum(v); }
+  catch { throw new Error(`vm: expected numeric at host arg ${i}, got ${v.tag}`); }
 }
 
 function messageOf(e: unknown): string {

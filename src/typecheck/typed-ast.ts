@@ -33,6 +33,9 @@ export interface TypedProgram {
    *  UFCS. The lowerer reads this to rewrite `obj.method(args)` into a
    *  direct call of the impl's specialised fn with `obj` as the first arg. */
   readonly methodResolutions: ReadonlyMap<A.FieldExpr, MethodResolution>;
+  /** Built-in array methods (`len`, `push`). The lowerer emits
+   *  `LoweredArrayLen`/`LoweredArrayPush` for these call sites. */
+  readonly arrayOps: ReadonlyMap<A.FieldExpr, "len" | "push">;
 }
 
 export interface TypedProject {
