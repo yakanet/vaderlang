@@ -300,10 +300,10 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 
 ### 1.14 Snapshot test infrastructure
 
-- [ ] Test directory layout: each scenario is a folder with `input.vader` and a `snapshots/` subfolder
-- [ ] Driver: run every stage, compare its dump against the snapshot
-- [ ] Update mode: `bun test --update` to refresh snapshots after intentional changes
-- [ ] Cover: simple programs, generics, traits, comptime, `@extern`, error propagation
+- [x] Test directory layout: `tests/snippets/{name}/_main.vader` (single source per test, `_main` sorts first in IDEs) + `{phase}.snapshot` files alongside it.
+- [x] Driver: runs every pipeline phase (lexer → parser → resolver → typecheck → comptime → lower → bytecode → vm → native) on each snippet; compares dump against snapshot. Lives in `tests/snapshot.ts` + `tests/snapshot.test.ts` + `tests/vm.test.ts` + `tests/native.test.ts`.
+- [x] Update mode: `UPDATE_SNAPSHOTS=1 bun test` to refresh snapshots after intentional changes.
+- [x] Cover: 45 snippets — simple programs, generics, traits, comptime, error propagation, multi-file modules, fixtures.
 
 ### 1.15 Formatter
 
