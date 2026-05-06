@@ -232,4 +232,4 @@
   import vader/diagnostics/diagnostic → ok
   import vader/diagnostics/codes → ok
   import vader/diagnostics/diagnostic → ok
-  refs: idents=1013 types=183 params=82 locals=119 typeParams=0 fields=0
+  refs: idents=1005 types=183 params=82 locals=117 typeParams=0 fields=0

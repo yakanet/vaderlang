@@ -32,9 +32,11 @@ test("parity: at least one snippet", () => {
 });
 
 for (const s of scenarios) {
-  test(`parity: ${s.name}`, async () => {
-    if (UTF8_KNOWN_DIVERGENT.has(s.name)) return;
-
+  if (UTF8_KNOWN_DIVERGENT.has(s.name)) {
+    test.skip(`parity: ${s.name}`, () => {});
+    continue;
+  }
+  test.concurrent(`parity: ${s.name}`, async () => {
     const snapPath = `${s.dir}/lexer.snapshot`;
     let expected: string;
     try { expected = await Bun.file(snapPath).text(); } catch { return; }

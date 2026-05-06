@@ -725,18 +725,8 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     // Range ops: `..<` and `..=`.
     if c == '.' && c2 == '.' {
         c3 := l.peek_at(2)
-        if c3 == '<' {
-            start := l.position_here()
-            l.advance(3)
-            l.push_simple(.RangeExcl, "..<", start)
-            return true
-        }
-        if c3 == '=' {
-            start := l.position_here()
-            l.advance(3)
-            l.push_simple(.RangeIncl, "..=", start)
-            return true
-        }
+        if c3 == '<' { return l.emit_and_advance(.RangeExcl, "..<") }
+        if c3 == '=' { return l.emit_and_advance(.RangeIncl, "..=") }
     }
 
     // Two-char ops.
