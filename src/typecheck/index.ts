@@ -3,7 +3,7 @@ import type { Module } from "../resolver/module.ts";
 import type { ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { ModuleId } from "../resolver/symbol.ts";
 
-import { checkProgram, declareModule, newGlobals } from "./check.ts";
+import { checkProgram, declareModule, inferExprBodiedReturns, newGlobals } from "./check.ts";
 import { findCoreSymbols } from "./ctx.ts";
 import { buildImplRegistry } from "./impls.ts";
 import type { TypedProject, TypedProgram } from "./typed-ast.ts";
@@ -29,6 +29,10 @@ export function checkProject(project: ResolvedProject, diags: DiagnosticCollecto
   // modules.
   for (const program of project.modules.values()) declareModule(program, globals, diags, "enums");
   for (const program of project.modules.values()) declareModule(program, globals, diags, "rest");
+
+  // Pass 1.5: infer return types for expression-bodied fns (`fn(...) = expr`).
+  // Runs as a fixpoint so forward references between one-liners resolve.
+  inferExprBodiedReturns(project.modules, globals, impls, diags);
 
   // Pass 2: check expression bodies.
   const modules = new Map<string, TypedProgram>();

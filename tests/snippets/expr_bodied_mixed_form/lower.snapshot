@@ -1,0 +1,15 @@
+# Lower
+
+## tests/snippets/expr_bodied_mixed_form/_main.vader
+  fn tests_snippets_expr_bodied_mixed_form__main_vader$square(x: i32) -> i32
+    ~>
+      mul :i32
+        l:
+          x#48 :i32
+        r:
+          x#48 :i32
+  fn tests_snippets_expr_bodied_mixed_form__main_vader$main() -> i32
+    return int(0) :i32
+
+# Diagnostics
+[4:29] error[P1020] expression-bodied function cannot also declare an explicit return type

@@ -798,102 +798,86 @@
         return int(33) :i32
     return int(0) :i32
   fn vader_lexer$is_int_suffix(s: string) -> bool
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#198 :string
-          r:
-            "i8" :string
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#198 :string
-          r:
-            "i16" :string
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#198 :string
-          r:
-            "i32" :string
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#198 :string
-          r:
-            "i64" :string
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#198 :string
-          r:
-            "u8" :string
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#198 :string
-          r:
-            "u16" :string
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#198 :string
-          r:
-            "u32" :string
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#198 :string
-          r:
-            "u64" :string
-      then:
-        return true
-    return false
+    ~>
+      or :bool
+        l:
+          or :bool
+            l:
+              or :bool
+                l:
+                  or :bool
+                    l:
+                      or :bool
+                        l:
+                          or :bool
+                            l:
+                              or :bool
+                                l:
+                                  eq :bool
+                                    l:
+                                      s#198 :string
+                                    r:
+                                      "i8" :string
+                                r:
+                                  eq :bool
+                                    l:
+                                      s#198 :string
+                                    r:
+                                      "i16" :string
+                            r:
+                              eq :bool
+                                l:
+                                  s#198 :string
+                                r:
+                                  "i32" :string
+                        r:
+                          eq :bool
+                            l:
+                              s#198 :string
+                            r:
+                              "i64" :string
+                    r:
+                      eq :bool
+                        l:
+                          s#198 :string
+                        r:
+                          "u8" :string
+                r:
+                  eq :bool
+                    l:
+                      s#198 :string
+                    r:
+                      "u16" :string
+            r:
+              eq :bool
+                l:
+                  s#198 :string
+                r:
+                  "u32" :string
+        r:
+          eq :bool
+            l:
+              s#198 :string
+            r:
+              "u64" :string
   fn vader_lexer$is_float_suffix(s: string) -> bool
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#199 :string
-          r:
-            "f32" :string
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            s#199 :string
-          r:
-            "f64" :string
-      then:
-        return true
-    return false
+    ~>
+      or :bool
+        l:
+          eq :bool
+            l:
+              s#199 :string
+            r:
+              "f32" :string
+        r:
+          eq :bool
+            l:
+              s#199 :string
+            r:
+              "f64" :string
   struct vader_lexer$Lexer { src: string, file: string, pos: i32, line: i32, col: i32, paren_depth: i32, last_kind: TokenKind, tokens: [Token], errors: [string] }
   fn vader_lexer$new_lexer(source: string, file: string) -> Lexer
-    return
+    ~>
       Lexer {
         src: source#200 :string
         file: file#201 :string
@@ -908,7 +892,7 @@
           array :[string]
       }
   fn vader_lexer$is_digit(c: char) -> bool
-    return
+    ~>
       and :bool
         l:
           gte :bool
@@ -923,66 +907,59 @@
             r:
               char(0x39)
   fn vader_lexer$is_ident_start(c: char) -> bool
-    if :void
-      cond:
-        and :bool
-          l:
-            gte :bool
-              l:
-                c#203 :char
-              r:
-                char(0x61)
-          r:
-            lte :bool
-              l:
-                c#203 :char
-              r:
-                char(0x7a)
-      then:
-        return true
-    if :void
-      cond:
-        and :bool
-          l:
-            gte :bool
-              l:
-                c#203 :char
-              r:
-                char(0x41)
-          r:
-            lte :bool
-              l:
-                c#203 :char
-              r:
-                char(0x5a)
-      then:
-        return true
-    if :void
-      cond:
-        eq :bool
-          l:
-            c#203 :char
-          r:
-            char(0x5f)
-      then:
-        return true
-    return false
+    ~>
+      or :bool
+        l:
+          or :bool
+            l:
+              and :bool
+                l:
+                  gte :bool
+                    l:
+                      c#203 :char
+                    r:
+                      char(0x61)
+                r:
+                  lte :bool
+                    l:
+                      c#203 :char
+                    r:
+                      char(0x7a)
+            r:
+              and :bool
+                l:
+                  gte :bool
+                    l:
+                      c#203 :char
+                    r:
+                      char(0x41)
+                r:
+                  lte :bool
+                    l:
+                      c#203 :char
+                    r:
+                      char(0x5a)
+        r:
+          eq :bool
+            l:
+              c#203 :char
+            r:
+              char(0x5f)
   fn vader_lexer$is_ident_continue(c: char) -> bool
-    if :void
-      cond:
-        call :bool
-          callee:
-            is_ident_start#46 :bool
-          arg0:
-            c#204 :char
-      then:
-        return true
-    return
-      call :bool
-        callee:
-          is_digit#45 :bool
-        arg0:
-          c#204 :char
+    ~>
+      or :bool
+        l:
+          call :bool
+            callee:
+              is_ident_start#46 :bool
+            arg0:
+              c#204 :char
+        r:
+          call :bool
+            callee:
+              is_digit#45 :bool
+            arg0:
+              c#204 :char
   fn vader_lexer$suppresses_newline_after(k: TokenKind) -> bool
     ~>
       block :bool
@@ -1290,7 +1267,7 @@
                                                                                                                                                               ~>
                                                                                                                                                                 false
   fn vader_lexer$at_end(l: Lexer) -> bool
-    return
+    ~>
       gte :bool
         l:
           .pos :i32
@@ -1360,7 +1337,7 @@
         arg1:
           p#210 :i32
   fn vader_lexer$position_here(l: Lexer) -> Position
-    return
+    ~>
       Position {
         offset:
           .pos :i32

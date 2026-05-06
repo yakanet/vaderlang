@@ -52,7 +52,15 @@ function declareFn(decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector):
       t.globals.paramTypes.set(p, pt);
     }
   }
-  const returnType = decl.returnType === null ? TY.void : lowerTypeExpr(decl.returnType, t, diags);
+  // Expression-bodied fns (`fn(...) = expr`) defer their return type to the
+  // separate inference pass — leave it Unresolved here. Annotated and
+  // block-bodied fns keep the existing behaviour (block body without `->`
+  // → `void` return).
+  const returnType = decl.isExpressionBodied
+    ? TY.unresolved
+    : decl.returnType === null
+      ? TY.void
+      : lowerTypeExpr(decl.returnType, t, diags);
   t.globals.declTypes.set(decl, { kind: "Fn", params, returnType });
 }
 

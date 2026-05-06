@@ -1,0 +1,28 @@
+// Expression-bodied function decls (`name :: fn(...) = expr`).
+// Return type is inferred from the body. Forward references resolve via
+// the typecheck fixpoint pass. Generics work because each call instantiates.
+
+import "std/io" { println }
+
+square :: fn(x: i32) = x * x
+
+max :: fn(a: f64, b: f64) = if a > b { a } else { b }
+
+// Forward reference: `b` calls `a` declared after it. The fixpoint
+// inference resolves them in dependency order.
+b :: fn(x: i32) = a(x) + 1
+a :: fn(x: i32) = x * 10
+
+// Generic one-liner.
+id :: fn(x: $T) = x
+
+main :: fn() -> i32 {
+    println("${square(7)}")
+    println("${max(3.5, 7.2)}")
+    println("${max(10.0, 4.0)}")
+    println("${b(5)}")
+    println("${id(42)}")
+    println("${id(7.5)}")
+    println(id("hello"))
+    return 0
+}

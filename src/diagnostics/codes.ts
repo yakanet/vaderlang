@@ -47,6 +47,7 @@ export const PARSER = {
   P1017: "missing newline between top-level declarations",
   P1018: "type parameter must be prefixed with `$`",
   P1019: "`: type` bound is redundant; write `$T` instead",
+  P1020: "expression-bodied function cannot also declare an explicit return type",
 } as const;
 
 export type ParserCode = keyof typeof PARSER;
@@ -106,6 +107,7 @@ export const TYPECHECK = {
   T3031: "duplicate enum variant value",
   T3032: "ambiguous overload resolution",
   T3033: "invalid `main` signature",
+  T3034: "recursive expression-bodied function requires an explicit `-> Type` annotation",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

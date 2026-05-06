@@ -1,0 +1,10 @@
+// Recursion in an expression-bodied fn (no `-> Type` annotation) is rejected
+// by the fixpoint inference pass — the function's type cannot be derived
+// without knowing it ahead of time. The user must add `-> i32` to break the
+// cycle.
+
+fact :: fn(n: i32) = if n <= 1 { 1 } else { n * fact(n - 1) }
+
+main :: fn() -> i32 {
+    return fact(5)
+}

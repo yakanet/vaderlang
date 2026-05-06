@@ -16,14 +16,16 @@ import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 
 import type * as A from "../parser/ast.ts";
 
+import { DiagnosticCollector } from "../diagnostics/collector.ts";
 import { err } from "./diag.ts";
 import type { ImplRegistry } from "./impls.ts";
 import type { TypedProgram } from "./typed-ast.ts";
+import type { Type } from "./types.ts";
 import { TY, defaultIfFree, displayType, isAssignable, isPrimitive } from "./types.ts";
 
 import type { Globals, MutableTyped } from "./ctx.ts";
 import { checkExpr } from "./passes/expr.ts";
-import { checkFnBody } from "./passes/stmt.ts";
+import { checkBlock, checkFnBody } from "./passes/stmt.ts";
 import { declareType } from "./passes/decl.ts";
 
 export type { Globals } from "./ctx.ts";
@@ -119,6 +121,91 @@ export function checkProgram(
     traitVirtualResolutions: t.traitVirtualResolutions,
     directCallOverloads: t.directCallOverloads,
   };
+}
+
+/** Resolve return types of expression-bodied fns (`fn(...) = expr`).
+ *
+ *  Runs between `declareModule` and `checkProgram`. Each iteration tries to
+ *  type-check every still-unresolved expression-bodied fn's body ; success
+ *  writes the inferred return type into `globals.declTypes` and unblocks any
+ *  fn that called this one. The loop stops when an iteration makes no
+ *  progress — survivors are diagnosed as `T3034` (recursion needs an
+ *  explicit `-> Type`).
+ *
+ *  Per-iteration body checks run against a *scratch* `DiagnosticCollector`
+ *  so we don't pollute the real one with cascade errors from "this caller
+ *  saw `Unresolved` because the callee is still pending"; the final
+ *  `checkProgram` pass re-runs every body and emits the canonical
+ *  diagnostics from a clean slate. */
+export function inferExprBodiedReturns(
+  programs: ReadonlyMap<string, ResolvedProgram>,
+  globals: Globals, impls: ImplRegistry, diags: DiagnosticCollector,
+): void {
+  const pending: Array<{ program: ResolvedProgram; decl: A.FnDecl }> = [];
+  for (const program of programs.values()) {
+    for (const decl of program.source.decls) {
+      if (decl.kind !== "FnDecl") continue;
+      if (decl.isExpressionBodied !== true || decl.body === null) continue;
+      pending.push({ program, decl });
+    }
+  }
+
+  let stuck = pending;
+  while (stuck.length > 0) {
+    const next: typeof stuck = [];
+    for (const item of stuck) {
+      const scratch = new DiagnosticCollector();
+      const t: MutableTyped = {
+        resolved: item.program, globals,
+        exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
+        methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
+        genericFnCalls: new Map(), traitMethodResolutions: new Map(),
+        traitVirtualResolutions: new Map(),
+        directCallOverloads: new Map(),
+      };
+      const inferred = checkBlock(item.decl.body!, null, t, impls, scratch,
+        { returnType: TY.unresolved, selfType: null, loopDepth: 0 });
+      if (containsUnresolved(inferred)) {
+        next.push(item);
+        continue;
+      }
+      const current = globals.declTypes.get(item.decl);
+      if (current !== undefined && current.kind === "Fn") {
+        globals.declTypes.set(item.decl, {
+          kind: "Fn", params: current.params, returnType: defaultIfFree(inferred),
+        });
+      }
+    }
+    if (next.length === stuck.length) {
+      stuck = next;
+      break;
+    }
+    stuck = next;
+  }
+
+  // Whatever's left is part of a recursion cycle — typed-ast would otherwise
+  // emit cascading `T3009`/`T3007` once `checkProgram` sees the Unresolved
+  // return. Replace with the actionable diagnostic.
+  for (const { decl } of stuck) {
+    err(diags, "T3034", decl.nameSpan, `\`${decl.name}\``);
+  }
+}
+
+/** True when `t` is `Unresolved` or any of its sub-types (union variants,
+ *  fn params/return, array element, struct/trait args) is. Used by the
+ *  expression-bodied inference loop to detect "this fn body still depends
+ *  on something we haven't typed yet" without committing a partial type. */
+function containsUnresolved(t: Type): boolean {
+  switch (t.kind) {
+    case "Unresolved": return true;
+    case "Union": return t.variants.some(containsUnresolved);
+    case "Fn": return t.params.some(containsUnresolved) || containsUnresolved(t.returnType);
+    case "Array": return containsUnresolved(t.element);
+    case "Struct":
+    case "Trait":
+      return t.args.some(containsUnresolved);
+    default: return false;
+  }
 }
 
 /** `main` accepts exactly one of two shapes : `fn() -> i32` or

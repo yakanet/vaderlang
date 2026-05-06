@@ -126,4 +126,4 @@
   enum             public   TokenKind 
   fn               public   try_lex_operator 
   import std/string → ok
-  refs: idents=410 types=108 params=45 locals=43 typeParams=0 fields=0
+  refs: idents=410 types=99 params=45 locals=43 typeParams=0 fields=0

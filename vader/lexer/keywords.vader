@@ -38,20 +38,8 @@ lookup_keyword :: fn(text: string) -> TokenKind {
     return .Ident
 }
 
-is_int_suffix :: fn(s: string) -> bool {
-    if s == "i8"  { return true }
-    if s == "i16" { return true }
-    if s == "i32" { return true }
-    if s == "i64" { return true }
-    if s == "u8"  { return true }
-    if s == "u16" { return true }
-    if s == "u32" { return true }
-    if s == "u64" { return true }
-    return false
-}
+is_int_suffix :: fn(s: string) =
+    s == "i8" || s == "i16" || s == "i32" || s == "i64" ||
+    s == "u8" || s == "u16" || s == "u32" || s == "u64"
 
-is_float_suffix :: fn(s: string) -> bool {
-    if s == "f32" { return true }
-    if s == "f64" { return true }
-    return false
-}
+is_float_suffix :: fn(s: string) = s == "f32" || s == "f64"

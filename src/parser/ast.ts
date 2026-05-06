@@ -67,6 +67,12 @@ export interface FnDecl {
    *  When set, `name`/`params`/`returnType` are placeholders until the
    *  resolver copies them from the trait's single method. */
   readonly samSynthetic?: true;
+  /** True when the source used `name :: fn(params) = expr` (expression body,
+   *  return type to be inferred). The body is normalised to a BlockExpr with
+   *  `stmts: []` and the expr as `trailing`, but downstream phases need the
+   *  flag to know they should infer the return type instead of defaulting to
+   *  `void`. */
+  readonly isExpressionBodied?: true;
 }
 
 export interface StructDecl {

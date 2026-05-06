@@ -1,0 +1,40 @@
+# Lower
+
+## tests/snippets/expr_bodied_recursive_fn/_main.vader
+  fn tests_snippets_expr_bodied_recursive_fn__main_vader$fact(n: i32) -> ?
+    ~>
+      if :?
+        cond:
+          lte :bool
+            l:
+              n#48 :i32
+            r:
+              int(1) :i32
+        then:
+          ~>
+            int(1) :?
+        else:
+          ~>
+            mul :?
+              l:
+                n#48 :i32
+              r:
+                call :?
+                  callee:
+                    fact#1 :fn(i32) -> ?
+                  arg0:
+                    sub :i32
+                      l:
+                        n#48 :i32
+                      r:
+                        int(1) :i32
+  fn tests_snippets_expr_bodied_recursive_fn__main_vader$main() -> i32
+    return
+      call :?
+        callee:
+          fact#1 :fn(i32) -> ?
+        arg0:
+          int(5) :i32
+
+# Diagnostics
+[6:1] error[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`

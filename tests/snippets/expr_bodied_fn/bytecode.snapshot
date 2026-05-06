@@ -1,0 +1,122 @@
+module _main
+string 0 "hello"
+import 0 hash_string std_core$hash_string (string) -> u64
+import 1 print std_io$print (string) -> void
+import 2 println std_io$println (string) -> void
+import 3 read_line std_io$read_line () -> ref
+import 4 read_file std_io$read_file (string) -> ref
+import 5 write_file std_io$write_file (string,string) -> ref
+import 6 exists std_io$exists (string) -> bool
+
+fn 0 tests_snippets_expr_bodied_fn__main_vader$square (i32) -> i32
+  local.get 0   ; _main.vader:7:24
+  local.get 0   ; _main.vader:7:28
+  i32.mul   ; _main.vader:7:24
+  return   ; _main.vader:7:24
+end
+
+fn 1 tests_snippets_expr_bodied_fn__main_vader$max (f64,f64) -> f64
+  local.get 0   ; _main.vader:9:32
+  local.get 1   ; _main.vader:9:36
+  f64.gt   ; _main.vader:9:32
+  if f64   ; _main.vader:9:29
+  local.get 0   ; _main.vader:9:40
+  else   ; _main.vader:9:29
+  local.get 1   ; _main.vader:9:51
+  end   ; _main.vader:9:29
+  return   ; _main.vader:9:29
+end
+
+fn 2 tests_snippets_expr_bodied_fn__main_vader$b (i32) -> i32
+  local.get 0   ; _main.vader:13:21
+  call 3   ; _main.vader:13:19
+  i32.const 1   ; _main.vader:13:26
+  i32.add   ; _main.vader:13:19
+  return   ; _main.vader:13:19
+end
+
+fn 3 tests_snippets_expr_bodied_fn__main_vader$a (i32) -> i32
+  local.get 0   ; _main.vader:14:19
+  i32.const 10   ; _main.vader:14:23
+  i32.mul   ; _main.vader:14:19
+  return   ; _main.vader:14:19
+end
+
+fn 4 tests_snippets_expr_bodied_fn__main_vader$main () -> i32
+  local __sb_0 any
+  local __sb_1 any
+  local __sb_2 any
+  local __sb_3 any
+  local __sb_4 any
+  local __sb_5 any
+  intrinsic builder.new   ; _main.vader:20:13
+  local.tee 0   ; _main.vader:20:13
+  i32.const 7   ; _main.vader:20:23
+  call 0   ; _main.vader:20:16
+  intrinsic builder.append_display   ; _main.vader:20:14
+  local.get 0   ; _main.vader:20:13
+  intrinsic builder.finish   ; _main.vader:20:13
+  call.import 2   ; _main.vader:20:5
+  intrinsic builder.new   ; _main.vader:21:13
+  local.tee 1   ; _main.vader:21:13
+  f64.const 3.5   ; _main.vader:21:20
+  f64.const 7.2   ; _main.vader:21:25
+  call 1   ; _main.vader:21:16
+  intrinsic builder.append_display   ; _main.vader:21:14
+  local.get 1   ; _main.vader:21:13
+  intrinsic builder.finish   ; _main.vader:21:13
+  call.import 2   ; _main.vader:21:5
+  intrinsic builder.new   ; _main.vader:22:13
+  local.tee 2   ; _main.vader:22:13
+  f64.const 10.0   ; _main.vader:22:20
+  f64.const 4.0   ; _main.vader:22:26
+  call 1   ; _main.vader:22:16
+  intrinsic builder.append_display   ; _main.vader:22:14
+  local.get 2   ; _main.vader:22:13
+  intrinsic builder.finish   ; _main.vader:22:13
+  call.import 2   ; _main.vader:22:5
+  intrinsic builder.new   ; _main.vader:23:13
+  local.tee 3   ; _main.vader:23:13
+  i32.const 5   ; _main.vader:23:18
+  call 2   ; _main.vader:23:16
+  intrinsic builder.append_display   ; _main.vader:23:14
+  local.get 3   ; _main.vader:23:13
+  intrinsic builder.finish   ; _main.vader:23:13
+  call.import 2   ; _main.vader:23:5
+  intrinsic builder.new   ; _main.vader:24:13
+  local.tee 4   ; _main.vader:24:13
+  i32.const 42   ; _main.vader:24:19
+  call 6   ; _main.vader:24:16
+  intrinsic builder.append_display   ; _main.vader:24:14
+  local.get 4   ; _main.vader:24:13
+  intrinsic builder.finish   ; _main.vader:24:13
+  call.import 2   ; _main.vader:24:5
+  intrinsic builder.new   ; _main.vader:25:13
+  local.tee 5   ; _main.vader:25:13
+  f64.const 7.5   ; _main.vader:25:19
+  call 5   ; _main.vader:25:16
+  intrinsic builder.append_display   ; _main.vader:25:14
+  local.get 5   ; _main.vader:25:13
+  intrinsic builder.finish   ; _main.vader:25:13
+  call.import 2   ; _main.vader:25:5
+  string.const 0   ; _main.vader:26:16
+  call 7   ; _main.vader:26:13
+  call.import 2   ; _main.vader:26:5
+  i32.const 0   ; _main.vader:27:12
+  return   ; _main.vader:27:5
+end
+
+fn 5 tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__f64 (f64) -> f64
+  local.get 0   ; _main.vader:17:19
+  return   ; _main.vader:17:19
+end
+
+fn 6 tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__i32 (i32) -> i32
+  local.get 0   ; _main.vader:17:19
+  return   ; _main.vader:17:19
+end
+
+fn 7 tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__string (string) -> string
+  local.get 0   ; _main.vader:17:19
+  return   ; _main.vader:17:19
+end

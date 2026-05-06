@@ -1,0 +1,2 @@
+# compile errors
+[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`

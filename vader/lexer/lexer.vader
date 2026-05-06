@@ -32,76 +32,61 @@ Lexer :: struct {
     errors: [string]
 }
 
-new_lexer :: fn(source: string, file: string) -> Lexer {
-    return Lexer {
-        .src = source,
-        .file = file,
-        .pos = 0,
-        .line = 1,
-        .col = 1,
-        .paren_depth = 0,
-        .last_kind = .Newline,
-        .tokens = [],
-        .errors = [],
-    }
+new_lexer :: fn(source: string, file: string) = Lexer {
+    .src = source,
+    .file = file,
+    .pos = 0,
+    .line = 1,
+    .col = 1,
+    .paren_depth = 0,
+    .last_kind = .Newline,
+    .tokens = [],
+    .errors = [],
 }
 
 // ---- predicates -----------------------------------------------------------
 
-is_digit :: fn(c: char) -> bool {
-    return c >= '0' && c <= '9'
-}
+is_digit :: fn(c: char) = c >= '0' && c <= '9'
 
-is_ident_start :: fn(c: char) -> bool {
-    if c >= 'a' && c <= 'z' { return true }
-    if c >= 'A' && c <= 'Z' { return true }
-    if c == '_' { return true }
-    return false
-}
+is_ident_start :: fn(c: char) =
+    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
 
-is_ident_continue :: fn(c: char) -> bool {
-    if c.is_ident_start() { return true }
-    return c.is_digit()
-}
+is_ident_continue :: fn(c: char) = c.is_ident_start() || c.is_digit()
 
 // SPEC §3 newline-suppression set — operators / separators after which a
 // physical newline is NOT a statement terminator.
-suppresses_newline_after :: fn(k: TokenKind) -> bool {
-    match k {
-        .Plus      -> true
-        .Minus     -> true
-        .Star      -> true
-        .Slash     -> true
-        .Percent   -> true
-        .Amp       -> true
-        .Pipe      -> true
-        .Caret     -> true
-        .Shl       -> true
-        .Shr       -> true
-        .Eq        -> true
-        .Neq       -> true
-        .Lt        -> true
-        .Lte       -> true
-        .Gt        -> true
-        .Gte       -> true
-        .AndAnd    -> true
-        .OrOr      -> true
-        .RangeExcl -> true
-        .RangeIncl -> true
-        .Assign    -> true
-        .Colon     -> true
-        .Arrow     -> true
-        .FatArrow  -> true
-        .Comma     -> true
-        _          -> false
-    }
+suppresses_newline_after :: fn(k: TokenKind) = match k {
+    .Plus      -> true
+    .Minus     -> true
+    .Star      -> true
+    .Slash     -> true
+    .Percent   -> true
+    .Amp       -> true
+    .Pipe      -> true
+    .Caret     -> true
+    .Shl       -> true
+    .Shr       -> true
+    .Eq        -> true
+    .Neq       -> true
+    .Lt        -> true
+    .Lte       -> true
+    .Gt        -> true
+    .Gte       -> true
+    .AndAnd    -> true
+    .OrOr      -> true
+    .RangeExcl -> true
+    .RangeIncl -> true
+    .Assign    -> true
+    .Colon     -> true
+    .Arrow     -> true
+    .FatArrow  -> true
+    .Comma     -> true
+    _          -> false
 }
 
 // ---- cursor helpers -------------------------------------------------------
 
-at_end :: fn(l: Lexer) -> bool {
-    return l.pos >= l.src.len()
-}
+at_end :: fn(l: Lexer) = l.pos >= l.src.len()
 
 peek :: fn(l: Lexer) -> char {
     if l.pos >= l.src.len() {
@@ -118,9 +103,8 @@ peek_at :: fn(l: Lexer, n: i32) -> char {
     return l.src.char_at(p)
 }
 
-position_here :: fn(l: Lexer) -> Position {
-    return Position { .offset = l.pos, .line = l.line, .column = l.col }
-}
+position_here :: fn(l: Lexer) =
+    Position { .offset = l.pos, .line = l.line, .column = l.col }
 
 advance :: fn(l: Lexer, n: i32) -> void {
     i := 0

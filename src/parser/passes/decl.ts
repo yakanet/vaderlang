@@ -283,9 +283,7 @@ function parseFnDecl(
   if (p.match("arrow") !== null) returnType = parseType(p);
   const whereClauses = parseWhereClauses(p);
 
-  let body: A.BlockExpr | null = null;
-  if (p.check("lbrace")) body = parseBlock(p);
-  // No-body fns are allowed for @extern declarations and trait method signatures.
+  const { body, isExpressionBodied } = parseFnBodyTail(p, returnType !== null);
 
   return {
     kind: "FnDecl",
@@ -299,7 +297,36 @@ function parseFnDecl(
     whereClauses,
     body,
     decorators,
+    isExpressionBodied: isExpressionBodied ? true : undefined,
   };
+}
+
+/** After the optional `-> T` and `where ...`, a fn decl's tail is one of :
+ *    - `{ block }`     — explicit block body (today's form)
+ *    - `= expr`        — Kotlin-style expression body, return type inferred
+ *    - <nothing>       — signature-only (extern / trait method shape)
+ *
+ *  Combining `-> T` with `= expr` is rejected as P1020 ; the explicit form
+ *  already declares the return type. */
+function parseFnBodyTail(
+  p: Parser, hasReturnType: boolean,
+): { body: A.BlockExpr | null; isExpressionBodied: boolean } {
+  if (p.check("assign")) {
+    const eqTok = p.advance(); // `=`
+    if (hasReturnType) {
+      p.error("P1020", eqTok.span);
+    }
+    const expr = parseExpr(p, 0);
+    const body: A.BlockExpr = {
+      kind: "BlockExpr", span: expr.span, stmts: [], trailing: expr,
+    };
+    return { body, isExpressionBodied: !hasReturnType };
+  }
+  if (p.check("lbrace")) {
+    return { body: parseBlock(p), isExpressionBodied: false };
+  }
+  // No-body fns are allowed for @extern declarations and trait method signatures.
+  return { body: null, isExpressionBodied: false };
 }
 
 /** Same fn syntax used in trait member lists and impl bodies — body optional. */
@@ -319,8 +346,7 @@ function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
   let returnType: A.TypeExpr | null = null;
   if (p.match("arrow") !== null) returnType = parseType(p);
   const whereClauses = parseWhereClauses(p);
-  let body: A.BlockExpr | null = null;
-  if (p.check("lbrace")) body = parseBlock(p);
+  const { body, isExpressionBodied } = parseFnBodyTail(p, returnType !== null);
   return {
     kind: "FnDecl",
     span: p.spanOf(fnTok, p.peek(-1)),
@@ -333,6 +359,7 @@ function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
     whereClauses,
     body,
     decorators,
+    isExpressionBodied: isExpressionBodied ? true : undefined,
   };
 }
 

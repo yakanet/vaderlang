@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/expr_bodied_fn/_main.vader
+
+## generic instances
+  Yielded(i32)
+  id(f64)
+  id(i32)
+  id(string)
