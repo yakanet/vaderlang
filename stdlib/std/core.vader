@@ -104,27 +104,19 @@ Error :: trait {
 // Required for using primitives as keys in Map / Set.
 // ===========================================================================
 
-i32 implements Hash {
-    fn hash(self) -> u64 { return u64(self) }
-}
-
-u32 implements Hash {
-    fn hash(self) -> u64 { return u64(self) }
-}
-
-usize implements Hash {
-    fn hash(self) -> u64 { return u64(self) }
-}
+i32   implements Hash -> u64(self)
+u32   implements Hash -> u64(self)
+usize implements Hash -> u64(self)
 
 // String Hash — TODO post-MVP. Requires std/string functions (len, char_at)
 // which would create a circular import (std/string imports Error from core).
 // Workaround : add a stdlib helper module or move string hash to std/string
 // once cross-module trait impls cleanup is settled.
 
-i32   implements Eq { fn equals(self, other: i32)    -> bool { return self == other } }
-u32   implements Eq { fn equals(self, other: u32)    -> bool { return self == other } }
-usize implements Eq { fn equals(self, other: usize)  -> bool { return self == other } }
-string implements Eq { fn equals(self, other: string) -> bool { return self == other } }
+i32    implements Eq -> self == other
+u32    implements Eq -> self == other
+usize  implements Eq -> self == other
+string implements Eq -> self == other
 
 // Free function variants — usable as `fn(K) -> u64` / `fn(K, K) -> bool`
 // values. Generic collections that need to dispatch hashing/equality on a

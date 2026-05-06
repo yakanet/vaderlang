@@ -1,0 +1,3 @@
+# compile errors
+[R2016] short impl form requires a trait with exactly one method: `TwoFns` has 2 methods
+[R2016] short impl form requires a trait with exactly one method: `TwoFns` has 2 methods

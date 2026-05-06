@@ -78,20 +78,20 @@ fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32
 end
 
 fn 1 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:108:39
-  i32.to_u64   ; core.vader:108:35
-  return   ; core.vader:108:28
+  local.get 0   ; core.vader:107:30
+  i32.to_u64   ; core.vader:107:26
+  return   ; core.vader:107:26
 end
 
 fn 2 std_core$usize$Hash$hash (usize) -> u64
-  local.get 0   ; core.vader:116:39
-  usize.to_u64   ; core.vader:116:35
-  return   ; core.vader:116:28
+  local.get 0   ; core.vader:109:30
+  usize.to_u64   ; core.vader:109:26
+  return   ; core.vader:109:26
 end
 
 fn 3 std_core$i32$Eq$equals (i32,i32) -> bool
-  local.get 0   ; core.vader:124:71
-  local.get 1   ; core.vader:124:79
-  i32.eq   ; core.vader:124:71
-  return   ; core.vader:124:64
+  local.get 0   ; core.vader:116:25
+  local.get 1   ; core.vader:116:33
+  i32.eq   ; core.vader:116:25
+  return   ; core.vader:116:25
 end

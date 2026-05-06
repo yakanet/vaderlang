@@ -1,0 +1,75 @@
+# Lower
+
+## tests/snippets/sam_impl/_main.vader
+  fn tests_snippets_sam_impl__main_vader$i32$Display$show(self: i32) -> string
+    ~>
+      block :string
+        let __sb_0#-1: ? =
+          @builder.new :?
+        @builder.append_str :void
+          __sb_0#-1 :?
+          "the answer is " :string
+        @builder.append_display <for i32> :void
+          __sb_0#-1 :?
+          self#53 :i32
+        ~>
+          @builder.finish :string
+            __sb_0#-1 :?
+  fn tests_snippets_sam_impl__main_vader$i64$Display$show(self: i64) -> string
+    let prefix#55: string = "i64=" :string
+    return
+      block :string
+        let __sb_0#-2: ? =
+          @builder.new :?
+        @builder.append_display <for string> :void
+          __sb_0#-2 :?
+          prefix#55 :string
+        @builder.append_display <for i64> :void
+          __sb_0#-2 :?
+          self#54 :i64
+        ~>
+          @builder.finish :string
+            __sb_0#-2 :?
+  fn tests_snippets_sam_impl__main_vader$i32$Hash$hash(self: i32) -> u64
+    ~>
+      cast → u64
+        self#56 :i32
+  fn tests_snippets_sam_impl__main_vader$main() -> i32
+    let x#57: i32 = int(42) :i32
+    let y#58: i64 = int(7) :i64
+    call :void
+      callee:
+        println#26 :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            show#1000000 :string
+          arg0:
+            x#57 :i32
+    call :void
+      callee:
+        println#26 :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            show#1000001 :string
+          arg0:
+            y#58 :i64
+    call :void
+      callee:
+        println#26 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-3: ? =
+            @builder.new :?
+          @builder.append_display <for u64> :void
+            __sb_0#-3 :?
+            call :u64
+              callee:
+                hash#1000002 :u64
+              arg0:
+                x#57 :i32
+          ~>
+            @builder.finish :string
+              __sb_0#-3 :?
+    return int(0) :i32

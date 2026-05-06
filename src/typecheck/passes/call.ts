@@ -396,7 +396,8 @@ function implMatchesTarget(entry: ImplEntry, target: Type): boolean {
 /** The fn type a bound method `obj.method` exposes — i.e. the impl member's
  *  fn type minus its `self` parameter (since the receiver is implicit).
  *  For generic structs, substitutes the struct's type params with the
- *  receiver's concrete args (e.g. Stack(i32) → T=i32). */
+ *  receiver's concrete args (e.g. Stack(i32) → T=i32). `Self` is already
+ *  substituted at materialisation / declareImpl time, so no `self` subst here. */
 function methodBoundFnType(method: MethodResolution, t: MutableTyped): Type {
   const fnType = t.globals.declTypes.get(method.member);
   if (fnType === undefined || fnType.kind !== "Fn") return TY.unresolved;

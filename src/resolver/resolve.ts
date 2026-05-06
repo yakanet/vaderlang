@@ -180,8 +180,88 @@ function resolveImplDecl(decl: A.ImplDecl, parent: Scope, p: MutableProgram, inp
     err(input.diags, "R2009", decl.traitNameSpan, `\`${decl.traitName}\` is a ${traitSym.kind}`);
   }
   for (const ta of decl.traitArgs) resolveType(ta, scope, p, input);
+
+  // Materialise SAM-synthetic members from the trait's single method before
+  // walking bodies — `bindParam` needs the params to exist for `self`/`other`
+  // references in the body to resolve.
+  if (traitSym !== null && traitSym.source.kind === "trait") {
+    materializeSamMembers(decl, traitSym.source.decl, input);
+  }
+
   for (const member of decl.members) resolveFnDecl(member, scope, p, input);
 }
+
+/** Fill in `name`, `params`, and `returnType` on each SAM-synthetic member of
+ *  `decl` from the trait's single method, applying the trait-arg substitution
+ *  at the TypeExpr level so the body type-checks against concrete types. */
+function materializeSamMembers(
+  decl: A.ImplDecl, trait: A.TraitDecl, input: ResolveModuleInput,
+): void {
+  const synthetics = decl.members.filter((m) => m.samSynthetic !== undefined);
+  if (synthetics.length === 0) return;
+  if (trait.members.length !== 1) {
+    for (const fn of synthetics) {
+      err(input.diags, "R2016", fn.span,
+        `\`${decl.traitName}\` has ${trait.members.length} methods`);
+    }
+    if (trait.members.length === 0) return;
+    // Fall through with `members[0]` to keep the body resolvable and avoid
+    // a T3020 cascade — the primary R2016 is already emitted.
+  }
+  const method = trait.members[0]!;
+  const subst = new Map<string, A.TypeExpr>();
+  subst.set("Self", decl.forType);
+  for (let i = 0; i < trait.typeParams.length && i < decl.traitArgs.length; i++) {
+    subst.set(trait.typeParams[i]!.name, decl.traitArgs[i]!);
+  }
+  for (const fn of synthetics) {
+    fn.name = method.name;
+    fn.params = method.params.map((mp) => ({
+      span: fn.span,
+      name: mp.name,
+      type: mp.type !== null ? substituteTypeExpr(mp.type, subst) : null,
+      defaultValue: mp.defaultValue,
+      variadic: mp.variadic,
+    }));
+    fn.returnType = method.returnType !== null
+      ? substituteTypeExpr(method.returnType, subst) : null;
+  }
+}
+
+/** Clone a TypeExpr tree, replacing any `NamedType` whose name matches a key
+ *  in `subst` with a clone of the corresponding replacement. Cloning is
+ *  required so the resolver records its own per-impl side-table entries
+ *  rather than overwriting the trait's. */
+function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeExpr>): A.TypeExpr {
+  switch (expr.kind) {
+    case "NamedType": {
+      const replacement = subst.get(expr.name);
+      if (replacement !== undefined) return cloneTypeExpr(replacement);
+      return { kind: "NamedType", span: expr.span, name: expr.name };
+    }
+    case "UnionType":
+      return { kind: "UnionType", span: expr.span,
+        variants: expr.variants.map((v) => substituteTypeExpr(v, subst)) };
+    case "FnTypeExpr":
+      return { kind: "FnTypeExpr", span: expr.span,
+        params: expr.params.map((par) => substituteTypeExpr(par, subst)),
+        returnType: expr.returnType !== null ? substituteTypeExpr(expr.returnType, subst) : null };
+    case "ArrayTypeExpr":
+      return { kind: "ArrayTypeExpr", span: expr.span,
+        element: substituteTypeExpr(expr.element, subst) };
+    case "GenericInstType":
+      return { kind: "GenericInstType", span: expr.span,
+        base: { kind: "NamedType", span: expr.base.span, name: expr.base.name },
+        args: expr.args.map((a) => substituteTypeExpr(a, subst)) };
+    case "TypeParamType":
+      return { kind: "TypeParamType", span: expr.span, name: expr.name };
+  }
+}
+
+function cloneTypeExpr(expr: A.TypeExpr): A.TypeExpr {
+  return substituteTypeExpr(expr, NO_SUBST);
+}
+const NO_SUBST: ReadonlyMap<string, A.TypeExpr> = new Map();
 
 function resolveTypeAliasDecl(decl: A.TypeAliasDecl, parent: Scope, p: MutableProgram, input: ResolveModuleInput): void {
   const scope = newScope(parent);

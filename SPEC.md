@@ -679,10 +679,44 @@ print_it :: fn(x: $T) where T: Display {
 ```
 
 - Declaration: `Name :: trait { ... }`.
-- Implementation: `T implements Trait { ... }`.
+- Implementation: `T implements Trait { ... }` (three forms — see below).
 - A union satisfies a trait iff all its members satisfy it.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in an `impl Foo` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
+
+#### Single-method trait sugar (SAM)
+
+When a trait has **exactly one method**, the implementation may omit the redundant `fn name(...) -> RetType` line and write the body directly. The compiler synthesises the signature from the trait declaration; parameter names (`self`, `other`, …) come from the trait and are in scope of the body — no redeclaration required.
+
+```vader
+// Arrow form — single-expression body.
+i32   implements Hash -> u64(self)
+i32   implements Eq   -> self == other
+
+// With generic trait args.
+Tutu  implements Toto(i32, i64) -> i64(self + other)
+
+// Block form — multi-statement body.
+string implements Hash {
+    h: u64 = 14695981039346656037
+    n: usize = self.length()
+    i: usize = 0
+    while i < n {
+        h = (h ^ u64(self.char_at(i))) * 1099511628211
+        i = i + 1
+    }
+    return h
+}
+
+// Classic form — required for traits with two or more methods.
+ArrayIter($T) implements Iterator(T) {
+    fn step(self) -> Done | Yielded(T) { ... }
+}
+```
+
+- Detection: the impl body starts with `->` (arrow) or `{` not followed by `fn` (block).
+- The classic form (`{ fn name(...) ... }`) remains valid and is **required** for multi-method traits.
+- `R2016` is emitted when the short forms are used on a trait with 0 or ≥ 2 methods.
 
 #### Operator overloading
 

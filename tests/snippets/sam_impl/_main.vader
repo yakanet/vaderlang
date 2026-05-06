@@ -1,0 +1,24 @@
+import "std/io" { println }
+
+// Arrow form: corps mono-expression. Le compilateur synthétise
+// `fn show(self) -> string { return "..." }` à partir de Display.
+i32 implements Display -> "the answer is ${self}"
+
+// Bloc anonyme : multi-statements, signature toujours synthétisée.
+i64 implements Display {
+    prefix: string = "i64="
+    return "${prefix}${self}"
+}
+
+// Trait générique : `Hash` a `fn hash(self) -> u64`. La forme arrow
+// reprend la signature du trait sans la redéclarer.
+i32 implements Hash -> u64(self)
+
+main :: fn() -> i32 {
+    x: i32 = 42
+    y: i64 = 7
+    println(x.show())
+    println(y.show())
+    println("${x.hash()}")
+    return 0
+}

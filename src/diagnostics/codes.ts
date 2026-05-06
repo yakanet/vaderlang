@@ -67,6 +67,7 @@ export const RESOLVER = {
   R2013: "self only valid as the first parameter of a method",
   R2014: "vader.json malformed or unreadable",
   R2015: "module folder is empty (no .vader files)",
+  R2016: "short impl form requires a trait with exactly one method",
 } as const;
 
 export type ResolverCode = keyof typeof RESOLVER;

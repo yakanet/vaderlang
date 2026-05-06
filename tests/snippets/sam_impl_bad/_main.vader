@@ -1,0 +1,15 @@
+// Multi-method trait : la forme courte (arrow ou bloc anonyme) ne s'applique
+// pas — il faut décliner toutes les méthodes via la forme classique.
+
+TwoFns :: trait {
+    fn first(self) -> i32
+    fn second(self) -> i32
+}
+
+i32 implements TwoFns -> 0
+
+i32 implements TwoFns {
+    self + 1
+}
+
+main :: fn() -> i32 { return 0 }

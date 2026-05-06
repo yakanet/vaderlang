@@ -1,0 +1,34 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=43 types=76 params=39 locals=3 typeParams=3 fields=0
+
+## tests/snippets/sam_impl_bad/_main.vader
+  fn               public   main 
+  trait            public   TwoFns 
+  refs: idents=1 types=7 params=4 locals=0 typeParams=0 fields=0
+
+# Diagnostics
+[9:23] error[R2016] short impl form requires a trait with exactly one method: `TwoFns` has 2 methods
+[11:23] error[R2016] short impl form requires a trait with exactly one method: `TwoFns` has 2 methods

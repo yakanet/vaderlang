@@ -47,15 +47,26 @@ export interface ImportName {
 export interface FnDecl {
   readonly kind: "FnDecl";
   readonly span: Span;
-  readonly name: string;
+  /** Filled by the parser, but the resolver overwrites it for `samSynthetic`
+   *  FnDecls (it copies the unique trait method's name). After resolver, all
+   *  FnDecls have their final name. */
+  name: string;
   readonly nameSpan: Span;
   readonly visibility: Visibility;
   readonly typeParams: readonly TypeParam[];
-  readonly params: readonly FnParam[];
-  readonly returnType: TypeExpr | null;
+  /** Same story as `name`/`returnType` — the parser leaves an empty array on
+   *  `samSynthetic` FnDecls; the resolver materialises the params from the
+   *  trait method's signature before the body is walked. */
+  params: readonly FnParam[];
+  returnType: TypeExpr | null;
   readonly whereClauses: readonly WhereClause[];
   readonly body: BlockExpr | null;
   readonly decorators: readonly Decorator[];
+  /** Marker for parser-fabricated FnDecls produced by the SAM impl sugar
+   *  (`Type implements Trait -> expr` or `Type implements Trait { stmts }`).
+   *  When set, `name`/`params`/`returnType` are placeholders until the
+   *  resolver copies them from the trait's single method. */
+  readonly samSynthetic?: true;
 }
 
 export interface StructDecl {

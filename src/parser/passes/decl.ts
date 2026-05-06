@@ -162,15 +162,36 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
     p.expect("rparen", "`)` to close trait argument list");
   }
 
-  p.expect("lbrace", "`{` to open impl body");
-  p.skipNewlines();
+  // Three impl shapes after the trait reference:
+  //   `... -> expr`        → SAM arrow: synthesise a single FnDecl whose body
+  //                          returns `expr`.
+  //   `... { fn ... }`     → classic: one or more explicit fn members.
+  //   `... { stmts }`      → SAM block: synthesise a single FnDecl whose body
+  //                          is the parsed block.
+  // Detection for the brace forms peeks past `{` and any newlines: if the
+  // next significant token is `kw_fn`, classic; otherwise SAM block.
   const members: A.FnDecl[] = [];
-  while (!p.check("rbrace") && !p.check("eof")) {
-    const fn = parseFnDeclInsideTrait(p);
-    if (fn !== null) members.push(fn);
+  let endTok: Token;
+  if (p.check("arrow")) {
+    members.push(parseSamArrowMember(p));
+    endTok = p.peek(-1);
+  } else if (p.check("lbrace") && peekIsClassicImplBody(p)) {
+    p.advance(); // {
     p.skipNewlines();
+    while (!p.check("rbrace") && !p.check("eof")) {
+      const fn = parseFnDeclInsideTrait(p);
+      if (fn !== null) members.push(fn);
+      p.skipNewlines();
+    }
+    endTok = p.expect("rbrace", "`}` to close impl body");
+  } else if (p.check("lbrace")) {
+    members.push(parseSamBlockMember(p));
+    endTok = p.peek(-1);
+  } else {
+    const t = p.peek();
+    p.error("P1006", t.span, `expected \`->\` or \`{\` after trait reference (got ${describeToken(t)})`);
+    endTok = t;
   }
-  const endTok = p.expect("rbrace", "`}` to close impl body");
   return {
     kind: "ImplDecl",
     span: p.spanOf(startTok, endTok),
@@ -180,6 +201,60 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
     traitArgs,
     members,
     decorators,
+  };
+}
+
+/** True when the impl body is the classic `{ fn ... }` shape. The parser is
+ *  positioned at `lbrace`; we peek past it and any newlines to see whether
+ *  the first significant token is `kw_fn`. */
+function peekIsClassicImplBody(p: Parser): boolean {
+  let i = 1;
+  while (p.peek(i).kind === "newline") i++;
+  return p.peek(i).kind === "kw_fn";
+}
+
+/** SAM arrow form: `… implements Trait -> expr`. Build a synthetic FnDecl
+ *  whose body is a one-statement block that returns the expression. The
+ *  resolver fills in `name`, `params`, and `returnType` from the trait. */
+function parseSamArrowMember(p: Parser): A.FnDecl {
+  const arrowTok = p.expect("arrow", "`->` to introduce a SAM impl body");
+  const expr = parseExpr(p, 0);
+  const span = p.spanOf(arrowTok, p.peek(-1));
+  const body: A.BlockExpr = {
+    kind: "BlockExpr", span, stmts: [], trailing: expr,
+  };
+  return {
+    kind: "FnDecl", span,
+    name: "",                          // filled by resolver
+    nameSpan: arrowTok.span,
+    visibility: "public",
+    typeParams: [],
+    params: [],                        // filled by resolver
+    returnType: null,                  // filled by resolver
+    whereClauses: [],
+    body,
+    decorators: [],
+    samSynthetic: true,
+  };
+}
+
+/** SAM block form: `… implements Trait { stmts }`. Same idea as the arrow
+ *  form, but the body is the parsed block (may have multiple statements and
+ *  a trailing expression). */
+function parseSamBlockMember(p: Parser): A.FnDecl {
+  const block = parseBlock(p);
+  return {
+    kind: "FnDecl", span: block.span,
+    name: "",
+    nameSpan: block.span,
+    visibility: "public",
+    typeParams: [],
+    params: [],
+    returnType: null,
+    whereClauses: [],
+    body: block,
+    decorators: [],
+    samSynthetic: true,
   };
 }
 
