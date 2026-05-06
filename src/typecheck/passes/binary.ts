@@ -21,14 +21,15 @@ export function inferBinary(
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   const left = checkExpr(expr.left, null, t, impls, diags, fn);
-  // For arithmetic / comparison, pass left's concrete type as expected context so
-  // free numeric literals on the right adopt it (e.g. `self.size + 1` → `1: usize`).
-  // For eq/neq with `.Variant` shorthand, do the same so the variant resolves.
-  const numericOp = expr.op === "add" || expr.op === "sub" || expr.op === "mul"
-                 || expr.op === "div" || expr.op === "mod"
-                 || expr.op === "lt"  || expr.op === "lte"
-                 || expr.op === "gt"  || expr.op === "gte";
-  const rightCtx = numericOp && isNumeric(left) ? left
+  // For arithmetic / comparison / equality, pass left's concrete type as expected
+  // context so free numeric literals on the right adopt it (e.g. `self.size + 1`
+  // → `1: usize`, `if u64_var == 0` → `0: u64`).
+  const propagatesLeft = expr.op === "add" || expr.op === "sub" || expr.op === "mul"
+                      || expr.op === "div" || expr.op === "mod"
+                      || expr.op === "lt"  || expr.op === "lte"
+                      || expr.op === "gt"  || expr.op === "gte"
+                      || expr.op === "eq"  || expr.op === "neq";
+  const rightCtx = propagatesLeft && isNumeric(left) ? left
                  : (expr.op === "eq" || expr.op === "neq") && expr.right.kind === "DotVariantExpr" ? left
                  : null;
   const right = checkExpr(expr.right, rightCtx, t, impls, diags, fn);

@@ -39,7 +39,7 @@ export function inferTry(
   // Validate fn return type can absorb the propagated errors.
   if (fn !== null) {
     for (const e of errorVariants) {
-      if (!isAssignable(e, fn.returnType)) {
+      if (!isAssignable(e, fn.returnType, impls)) {
         err(diags, "T3012", expr.span,
           `${displayType(e)} not in ${displayType(fn.returnType)}`);
         break;

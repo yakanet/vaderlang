@@ -13,7 +13,7 @@ import "std/string" {
     starts_with as str_starts_with, parse_float, pad_start,
 }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
-import "std/collections" { MutableMap, put, get, contains_key, len as map_len, keys, values }
+import "std/collections" { MutableMap, put, get, contains_key, len, keys, values }
 import "std/numbers" { to_hex }
 
 // ---- value tree -----------------------------------------------------------
@@ -464,7 +464,7 @@ private write_array :: fn(sb: StringBuilder, a: JsonArray, indent: i32, depth: i
 }
 
 private write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) -> void {
-    if o.entries.map_len() == usize(0) {
+    if o.entries.len() == 0 {
         sb.append("{}")
         return
     }

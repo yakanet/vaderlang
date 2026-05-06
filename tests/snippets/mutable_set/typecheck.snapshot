@@ -15,7 +15,8 @@
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(string) -> void
   expr 5:10     StructLitExpr  :: MutableSet(i32)
-  expr 5:36     ArrayLitExpr   :: [i32]
+  expr 5:37     StructLitExpr  :: MutableMap(i32, bool)
+  expr 5:72     ArrayLitExpr   :: [Entry(i32, bool) | null]
   expr 6:13     StringLitExpr  :: string
   expr 6:21     CallExpr       :: bool
   expr 6:21     FieldExpr      :: fn($T) -> bool

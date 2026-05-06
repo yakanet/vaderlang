@@ -146,9 +146,17 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
           }
         }
       }
+      // Assignment targets need the raw (un-narrowed) lvalue so the bytecode
+      // emitter can resolve the slot/field. lowerExpr would wrap a narrowed
+      // ident in a LoweredCast (for match-arm reads), which breaks
+      // emitAssign's pattern-match on target.kind. Build the target manually
+      // for IdentExpr.
+      const target: LoweredExpr = stmt.target.kind === "IdentExpr"
+        ? rawIdentTarget(ctx, stmt.target)
+        : lowerExpr(ctx, stmt.target);
       return {
         kind: "LoweredAssign", span: stmt.span,
-        target: lowerExpr(ctx, stmt.target),
+        target,
         value: lowerExpr(ctx, stmt.value),
       };
     }
@@ -178,6 +186,16 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
     case "DeferStmt":
       return null;     // registered in lowerBlock, never emitted in place
   }
+}
+
+/** Build an assignment target ident without applying match-arm narrowing.
+ *  `lowerExpr` would wrap the narrowed lvalue in a LoweredCast, which
+ *  emitAssign can't pattern-match on. */
+function rawIdentTarget(ctx: FnLowerCtx, expr: A.IdentExpr): LoweredExpr {
+  const sym = ctx.typed.resolved.idents.get(expr);
+  if (sym === undefined) return lowerExpr(ctx, expr);
+  const type = applySubst(ctx.typed.exprTypes.get(expr) ?? TY.unresolved, ctx.subst);
+  return { kind: "LoweredIdent", span: expr.span, type, symbol: sym };
 }
 
 /** Collect defers from the current block out to either the fn root (for return)

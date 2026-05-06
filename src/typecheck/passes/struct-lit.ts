@@ -28,7 +28,7 @@ export function inferStructLit(
     return ty;
   }
   const decl = sourceStructDecl(ty.symbol);
-  const subst = buildStructSubst(decl?.typeParams ?? [], ty.args, t.globals);
+  const subst = buildStructSubst(decl?.typeParams ?? [], ty.args, t.globals.typeParamSymbols);
   for (const f of expr.fields) {
     const field = decl?.fields.find((sf) => sf.name === f.name);
     const fieldRaw = field !== undefined ? t.globals.typeExprTypes.get(field.type) ?? null : null;
@@ -36,7 +36,7 @@ export function inferStructLit(
     const got = checkExpr(f.value, expected, t, impls, diags, fn);
     if (field === undefined) {
       err(diags, "T3009", f.nameSpan, `\`${f.name}\` on ${displayType(ty)}`);
-    } else if (expected !== null && !isAssignable(got, expected)) {
+    } else if (expected !== null && !isAssignable(got, expected, impls)) {
       err(diags, "T3001", f.span,
         `expected ${displayType(expected)}, got ${displayType(got)}`);
     }

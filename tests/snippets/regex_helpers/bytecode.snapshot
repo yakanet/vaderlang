@@ -144,6 +144,7 @@ fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
   local.get 0   ; _main.vader:27:17
   local.get 3   ; _main.vader:27:23
   array.get 1   ; _main.vader:27:17
+  ref.cast 2   ; _main.vader:27:17
   call.import 2   ; _main.vader:27:9
   local.get 3   ; _main.vader:28:13
   i32.const 1   ; _main.vader:28:17

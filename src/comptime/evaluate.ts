@@ -6,8 +6,10 @@ import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type * as A from "../parser/ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
-import type { Type } from "../typecheck/types.ts";
-import { CORE_STRUCTS } from "../typecheck/types.ts";
+import type { Substitution, Type } from "../typecheck/types.ts";
+import { CORE_STRUCTS, substitute } from "../typecheck/types.ts";
+import { buildStructSubst } from "../typecheck/ctx.ts";
+import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 
 import { staticStringValue } from "../parser/ast.ts";
 import { DEC } from "../parser/decorators.ts";
@@ -97,52 +99,82 @@ function evalFileDecorator(
   return result.value;
 }
 
-/** Walk a block for `for x in iter` statements and pass each `iter` expr to
- *  the visitor. Recurses into nested blocks/exprs since for-in can appear
- *  anywhere inside a fn body. */
-function forEachForInIter(block: A.BlockExpr, visit: (iter: A.Expr) => void): void {
-  for (const stmt of block.stmts) walkStmt(stmt, visit);
-  if (block.trailing !== null) walkExpr(block.trailing, visit);
+/** Tree walker over a fn body. Surfaces three event kinds — every expression,
+ *  every CallExpr (so callers can peek at `genericFnCalls`), and every
+ *  `for x in iter` iter expr. Lets `closeOverGenericImpls` collect everything
+ *  it needs in one pass over each generic fn instance. Each callback is
+ *  optional. */
+interface BlockVisitor {
+  expr?: (e: A.Expr) => void;
+  call?: (e: A.CallExpr) => void;
+  forInIter?: (iter: A.Expr) => void;
 }
 
-function walkStmt(stmt: A.Stmt, visit: (iter: A.Expr) => void): void {
+function walkBlock(block: A.BlockExpr, v: BlockVisitor): void {
+  for (const stmt of block.stmts) walkStmt(stmt, v);
+  if (block.trailing !== null) walkExpr(block.trailing, v);
+}
+
+function walkStmt(stmt: A.Stmt, v: BlockVisitor): void {
   switch (stmt.kind) {
     case "ForStmt":
-      if (stmt.form.kind === "in") visit(stmt.form.iter);
-      forEachForInIter(stmt.body, visit);
+      if (stmt.form.kind === "in") {
+        v.forInIter?.(stmt.form.iter);
+        walkExpr(stmt.form.iter, v);
+      } else if (stmt.form.kind === "while") {
+        walkExpr(stmt.form.cond, v);
+      }
+      walkBlock(stmt.body, v);
       return;
-    case "LetStmt":     walkExpr(stmt.value, visit); return;
-    case "ExprStmt":    walkExpr(stmt.expr, visit); return;
-    case "ReturnStmt":  if (stmt.value !== null) walkExpr(stmt.value, visit); return;
-    case "AssignStmt":  walkExpr(stmt.target, visit); walkExpr(stmt.value, visit); return;
+    case "LetStmt":     walkExpr(stmt.value, v); return;
+    case "AssignStmt":  walkExpr(stmt.target, v); walkExpr(stmt.value, v); return;
+    case "ExprStmt":    walkExpr(stmt.expr, v); return;
+    case "ReturnStmt":  if (stmt.value !== null) walkExpr(stmt.value, v); return;
     case "DeferStmt":
-      if ("kind" in stmt.body && stmt.body.kind === "BlockExpr") forEachForInIter(stmt.body, visit);
-      else walkStmt(stmt.body as A.Stmt, visit);
+      if ("kind" in stmt.body && stmt.body.kind === "BlockExpr") walkBlock(stmt.body, v);
+      else walkStmt(stmt.body as A.Stmt, v);
       return;
     default: return;
   }
 }
 
-function walkExpr(expr: A.Expr, visit: (iter: A.Expr) => void): void {
+function walkExpr(expr: A.Expr, v: BlockVisitor): void {
+  v.expr?.(expr);
+  if (expr.kind === "CallExpr") v.call?.(expr);
   switch (expr.kind) {
-    case "BlockExpr":  forEachForInIter(expr, visit); return;
+    case "BlockExpr": walkBlock(expr, v); return;
     case "IfExpr":
-      walkExpr(expr.cond, visit);
-      forEachForInIter(expr.then, visit);
-      if (expr.else !== null) walkExpr(expr.else, visit);
+      walkExpr(expr.cond, v);
+      walkBlock(expr.then, v);
+      if (expr.else !== null) walkExpr(expr.else, v);
       return;
     case "MatchExpr":
-      walkExpr(expr.scrutinee, visit);
-      for (const arm of expr.arms) walkExpr(arm.body, visit);
+      walkExpr(expr.scrutinee, v);
+      for (const arm of expr.arms) {
+        if (arm.guard !== null) walkExpr(arm.guard, v);
+        walkExpr(arm.body, v);
+      }
       return;
     case "CallExpr":
-      walkExpr(expr.callee, visit);
-      for (const a of expr.args) walkExpr(a.value, visit);
+      walkExpr(expr.callee, v);
+      for (const a of expr.args) walkExpr(a.value, v);
       return;
-    case "BinaryExpr": walkExpr(expr.left, visit); walkExpr(expr.right, visit); return;
-    case "UnaryExpr":  walkExpr(expr.operand, visit); return;
-    case "FieldExpr":  walkExpr(expr.target, visit); return;
-    case "IndexExpr":  walkExpr(expr.target, visit); walkExpr(expr.index, visit); return;
+    case "BinaryExpr": walkExpr(expr.left, v); walkExpr(expr.right, v); return;
+    case "UnaryExpr":  walkExpr(expr.operand, v); return;
+    case "FieldExpr":  walkExpr(expr.target, v); return;
+    case "IndexExpr":  walkExpr(expr.target, v); walkExpr(expr.index, v); return;
+    case "RangeExpr":  walkExpr(expr.lower, v); walkExpr(expr.upper, v); return;
+    case "TryExpr":    walkExpr(expr.inner, v); return;
+    case "CastExpr":   walkExpr(expr.value, v); return;
+    case "LambdaExpr":
+      if (expr.body !== null) {
+        if (expr.body.kind === "BlockExpr") walkBlock(expr.body, v);
+        else walkExpr(expr.body, v);
+      }
+      return;
+    case "ArrayLitExpr":  for (const e of expr.elements) walkExpr(e, v); return;
+    case "StructLitExpr": for (const f of expr.fields) walkExpr(f.value, v); return;
+    case "GenericInstExpr": walkExpr(expr.callee, v); return;
     default: return;
   }
 }
@@ -175,19 +207,22 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry): vo
     if (arrayIterSymbol !== null) {
       for (const decl of typed.resolved.source.decls) {
         if (decl.kind !== "FnDecl" || decl.body === null) continue;
-        forEachForInIter(decl.body, (iter) => {
+        walkBlock(decl.body, { forInIter: (iter) => {
           const iterType = typed.exprTypes.get(iter);
           if (iterType !== undefined && iterType.kind === "Array") {
             registry.add(arrayIterSymbol!, [iterType.element]);
           }
-        });
+        } });
       }
     }
     // Inferred generic-fn call sites: the typechecker records (CallExpr → typeArgs)
     // for each call site where it successfully unified the fn's type params.
     for (const [callExpr, typeArgs] of typed.genericFnCalls) {
       if (callExpr.callee.kind === "IdentExpr") {
-        const sym = typed.resolved.idents.get(callExpr.callee);
+        // Honor any overload-resolution override before falling back to the
+        // resolver's primary symbol.
+        const sym = typed.directCallOverloads.get(callExpr)
+                 ?? typed.resolved.idents.get(callExpr.callee);
         if (sym !== undefined) registry.observeFnCall(sym, typeArgs);
       } else if (callExpr.callee.kind === "FieldExpr") {
         // UFCS generic call: sym is in ufcsFreeResolutions
@@ -196,4 +231,137 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry): vo
       }
     }
   }
+
+  // Transitive closure: when `ArrayIter(string)` is registered, the impl `step`
+  // returns `Done | Yielded(T)`. Substituting T=string yields `Yielded(string)`,
+  // which must also be observed so mono materialises it. Without this sweep the
+  // bytecode emit would only see a `ref Yielded` placeholder for the Yielded
+  // struct in `step__string` — and crash with `unreachable` at the StructLit.
+  // Same idea propagates to generic fn instances: `hashed_count<i32>`'s body
+  // contains `for x in items` (items: [T]) and inner generic call sites — both
+  // need their substituted types/instances observed to materialise the right
+  // mono entries downstream.
+  closeOverGenericImpls(project, registry, arrayIterSymbol);
+}
+
+interface ImplSite {
+  readonly impl: A.ImplDecl;
+  readonly program: ResolvedProgram;
+  readonly structDecl: A.StructDecl;
+}
+
+function closeOverGenericImpls(
+  project: TypedProject, registry: InstanceRegistry, arrayIterSymbol: Symbol | null,
+): void {
+  // Index generic impls by the symbol id of their target struct.
+  const implsByStructId = new Map<number, ImplSite[]>();
+  // Index generic fn decls by their symbol id, with the program they live in.
+  const genericFnsBySymId = new Map<number, { fn: A.FnDecl; program: ResolvedProgram }>();
+  for (const m of project.modules.values()) {
+    for (const d of m.resolved.source.decls) {
+      if (d.kind === "ImplDecl") {
+        if (d.forType.kind !== "GenericInstType") continue;
+        const sym = m.resolved.module.symbols.get(d.forType.base.name);
+        if (sym === undefined || sym.source.kind !== "struct") continue;
+        const list = implsByStructId.get(sym.id) ?? [];
+        list.push({ impl: d, program: m.resolved, structDecl: sym.source.decl });
+        implsByStructId.set(sym.id, list);
+      } else if (d.kind === "FnDecl" && d.typeParams.length > 0) {
+        // Overloaded fn names share the same `module.symbols` slot for the
+        // primary — match the exact `decl` via the overload bucket so we
+        // don't conflate `len(MutableMap)` with `len(MutableSet)`.
+        const bucket = m.resolved.module.fnOverloads.get(d.name);
+        const sym = bucket?.find((s) => s.source.kind === "fn" && s.source.decl === d);
+        if (sym !== undefined) {
+          genericFnsBySymId.set(sym.id, { fn: d, program: m.resolved });
+        }
+      }
+    }
+  }
+
+  // Bound at 64 — recursive generic fn bodies (e.g. user-defined linked types)
+  // could in principle grow the registry per iteration ; the cap turns a
+  // pathological infinite loop into a deterministic stop without needing
+  // heuristic pruning.
+  const MAX_ITERS = 64;
+  let prev = -1;
+  for (let iter = 0; iter < MAX_ITERS && registry.size() !== prev; iter++) {
+    prev = registry.size();
+    // Snapshot once per iteration — `entries()` allocates + sorts a fresh
+    // array, so calling it inside the inner loop would amplify cost.
+    const snapshot = registry.entries();
+    for (const inst of snapshot) {
+      const sites = implsByStructId.get(inst.symbol.id);
+      if (sites !== undefined) {
+        for (const site of sites) observeImplMembers(project, registry, inst, site);
+      }
+      if (inst.symbol.kind === "fn") {
+        const entry = genericFnsBySymId.get(inst.symbol.id);
+        if (entry !== undefined) {
+          observeFnBody(project, registry, inst, entry.fn, entry.program, arrayIterSymbol);
+        }
+      }
+    }
+  }
+}
+
+function observeImplMembers(
+  project: TypedProject, registry: InstanceRegistry,
+  inst: { args: readonly Type[] }, site: ImplSite,
+): void {
+  const subst = buildStructSubst(site.structDecl.typeParams, inst.args, site.program.typeParams);
+  if (subst.typeParams === undefined || subst.typeParams.size === 0) return;
+  const typed = project.modules.get(site.program.module.id);
+  if (typed === undefined) return;
+  for (const member of site.impl.members) {
+    const fnType = typed.declTypes.get(member);
+    if (fnType !== undefined) registry.observe(substitute(fnType, subst));
+    for (const p of member.params) {
+      const pt = typed.paramTypes.get(p);
+      if (pt !== undefined) registry.observe(substitute(pt, subst));
+    }
+  }
+}
+
+/** Walk a generic fn instance's body once, dispatching three observation
+ *  tasks per visited node : substitute the iter's element type for `for x in
+ *  iter` (registers `ArrayIter(elem)`), substitute inner generic call sites'
+ *  typeArgs (transitive monomorphisation), and observe every expression's
+ *  substituted type (catches struct/trait instances buried in matches). */
+function observeFnBody(
+  project: TypedProject, registry: InstanceRegistry,
+  inst: { args: readonly Type[] }, fn: A.FnDecl, program: ResolvedProgram,
+  arrayIterSymbol: Symbol | null,
+): void {
+  if (fn.body === null) return;
+  const subst = buildStructSubst(fn.typeParams, inst.args, program.typeParams);
+  if (subst.typeParams === undefined || subst.typeParams.size === 0) return;
+  const typed = project.modules.get(program.module.id);
+  if (typed === undefined) return;
+
+  walkBlock(fn.body, {
+    expr(e) {
+      const ty = typed.exprTypes.get(e);
+      if (ty !== undefined) registry.observe(substitute(ty, subst));
+    },
+    call(callExpr) {
+      const innerArgs = typed.genericFnCalls.get(callExpr);
+      if (innerArgs === undefined) return;
+      const sub = innerArgs.map((a) => substitute(a, subst));
+      let calleeSym: Symbol | undefined;
+      if (callExpr.callee.kind === "IdentExpr") {
+        calleeSym = typed.directCallOverloads.get(callExpr)
+                 ?? typed.resolved.idents.get(callExpr.callee);
+      } else if (callExpr.callee.kind === "FieldExpr") {
+        calleeSym = typed.ufcsFreeResolutions.get(callExpr.callee);
+      }
+      if (calleeSym !== undefined) registry.observeFnCall(calleeSym, sub);
+    },
+    forInIter: arrayIterSymbol === null ? undefined : (iter) => {
+      const iterType = typed.exprTypes.get(iter);
+      if (iterType === undefined) return;
+      const sub = substitute(iterType, subst);
+      if (sub.kind === "Array") registry.add(arrayIterSymbol, [sub.element]);
+    },
+  });
 }

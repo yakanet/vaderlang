@@ -1,0 +1,24 @@
+// Trait-method dispatch on a `where T: Trait` bound. The mono pass
+// materialises the impl member matching the call-site substitution; the
+// lowerer rewrites `x.hash()` into a direct call against the specialised fn.
+
+import "std/io" { println }
+
+count_matching :: fn(items: [$T], target: T) -> i32 where T: Hash + Eq {
+    n := 0
+    for x in items {
+        if x.hash() == target.hash() && x.equals(target) {
+            n = n + 1
+        }
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    nums := [1, 2, 3, 2, 5, 2]
+    println("${count_matching(nums, 2)}")
+
+    words := ["foo", "bar", "foo", "baz", "foo"]
+    println("${count_matching(words, "foo")}")
+    return 0
+}

@@ -1,0 +1,29 @@
+# Typecheck
+
+## tests/snippets/transitive_mono/_main.vader
+  FnDecl         inner_count          :: fn([$T]) -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         outer                :: fn([$T]) -> i32
+  expr 10:14    IdentExpr      :: [$T]
+  expr 11:13    BinaryExpr     :: i32
+  expr 11:13    IdentExpr      :: i32
+  expr 11:9     IdentExpr      :: i32
+  expr 13:12    IdentExpr      :: i32
+  expr 17:12    CallExpr       :: i32
+  expr 17:12    IdentExpr      :: fn([$T]) -> i32
+  expr 17:24    IdentExpr      :: [$T]
+  expr 21:13    StringLitExpr  :: string
+  expr 21:16    CallExpr       :: i32
+  expr 21:16    IdentExpr      :: fn([$T]) -> i32
+  expr 21:22    ArrayLitExpr   :: [i32]
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 22:13    StringLitExpr  :: string
+  expr 22:16    CallExpr       :: i32
+  expr 22:16    IdentExpr      :: fn([$T]) -> i32
+  expr 22:22    ArrayLitExpr   :: [string]
+  expr 22:23    StringLitExpr  :: string
+  expr 22:28    StringLitExpr  :: string
+  expr 22:33    StringLitExpr  :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(string) -> void

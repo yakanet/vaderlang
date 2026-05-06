@@ -45,7 +45,7 @@
   fn               public   to_hex 
   import-binding   private  to_string → to_string
   import std/string_builder → ok
-  refs: idents=55 types=10 params=3 locals=11 typeParams=0 fields=0
+  refs: idents=50 types=10 params=3 locals=11 typeParams=0 fields=0
 
 ## std/string
   import-binding   private  append → append

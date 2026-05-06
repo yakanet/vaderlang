@@ -38,6 +38,8 @@ export function declareModule(
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
     methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
     genericFnCalls: new Map(), traitMethodResolutions: new Map(),
+    traitVirtualResolutions: new Map(),
+    directCallOverloads: new Map(),
   };
   for (const decl of program.source.decls) declareType(decl, t, diags);
 }
@@ -53,6 +55,8 @@ export function checkProgram(
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
     methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
     genericFnCalls: new Map(), traitMethodResolutions: new Map(),
+    traitVirtualResolutions: new Map(),
+    directCallOverloads: new Map(),
   };
 
   for (const decl of program.source.decls) {
@@ -75,7 +79,7 @@ export function checkProgram(
       case "ConstDecl": {
         const expected = decl.type !== null ? t.globals.typeExprTypes.get(decl.type) ?? TY.unresolved : null;
         const got = checkExpr(decl.value, expected, t, impls, diags, /*fn*/ null);
-        if (expected !== null && !isAssignable(got, expected)) {
+        if (expected !== null && !isAssignable(got, expected, impls)) {
           err(diags, "T3001", decl.span,
             `expected ${displayType(expected)}, got ${displayType(got)}`);
         }
@@ -102,6 +106,8 @@ export function checkProgram(
     arrayOps: t.arrayOps,
     genericFnCalls: t.genericFnCalls,
     traitMethodResolutions: t.traitMethodResolutions,
+    traitVirtualResolutions: t.traitVirtualResolutions,
+    directCallOverloads: t.directCallOverloads,
   };
 }
 

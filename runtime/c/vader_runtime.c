@@ -14,6 +14,13 @@
 #include <string.h>
 #include <inttypes.h>
 
+#include <errno.h>
+#include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+extern char** environ;
+
 /* ----------------------------------------------------------------- gc arena */
 
 #ifndef VADER_GC_ARENA_BYTES
@@ -662,6 +669,154 @@ vader_bool_t vader_exists(vader_string_t path) {
     if (f == NULL) return false;
     fclose(f);
     return true;
+}
+
+/* ----------------------------------------------------------------- process
+ *
+ * `vader_spawn_run` posix_spawn-s a child with stdout/stderr redirected to
+ * pipes, drains both, waitpid()s, and stashes the captured output into
+ * runtime-owned static buffers. Single-threaded by design — last-call wins,
+ * follow-up `spawn_last_stdout` / `_stderr` calls fetch the buffers.
+ *
+ * Pipes are read fully into heap buffers before waitpid completes ; on a
+ * deadlock-prone large output the buffer pumps grow with realloc. We use
+ * `vader_string_alloc` for the final buffers so the strings live outside the
+ * GC arena and persist for the lifetime of the program (matches the existing
+ * convention for I/O-produced strings — see `read_file`).
+ */
+
+/* Captured pipes from the most recent `vader_spawn_run`. Buffers are
+ * `vader_string_alloc`-ed (GC-arena-safe, leaks for the program's lifetime
+ * — same convention as `vader_read_file`'s result). Each new spawn replaces
+ * the buffers : `vader_string_alloc` is non-freeing so the previous strings
+ * remain valid until the program exits, which dodges a use-after-free for
+ * any Vader value still referencing the previous result. */
+static char*  g_spawn_stdout_buf = NULL;
+static size_t g_spawn_stdout_len = 0;
+static char*  g_spawn_stderr_buf = NULL;
+static size_t g_spawn_stderr_len = 0;
+
+/* Drain a fd into a freshly-malloc'd buffer. Caller frees. NULL on read error. */
+static char* drain_fd(int fd, size_t* out_len) {
+    size_t cap = 4096, len = 0;
+    char* buf = (char*) malloc(cap);
+    if (buf == NULL) { *out_len = 0; return NULL; }
+    for (;;) {
+        if (len + 4096 > cap) {
+            cap *= 2;
+            char* grown = (char*) realloc(buf, cap);
+            if (grown == NULL) { free(buf); *out_len = 0; return NULL; }
+            buf = grown;
+        }
+        ssize_t n = read(fd, buf + len, cap - len);
+        if (n < 0) {
+            if (errno == EINTR) continue;
+            free(buf); *out_len = 0; return NULL;
+        }
+        if (n == 0) break;
+        len += (size_t) n;
+    }
+    *out_len = len;
+    return buf;
+}
+
+static void capture_spawn_output(char** dst_buf, size_t* dst_len, char* src, size_t src_len) {
+    if (src == NULL || src_len == 0) {
+        *dst_buf = NULL; *dst_len = 0;
+        if (src != NULL) free(src);
+        return;
+    }
+    char* copy = (char*) vader_string_alloc(src_len);
+    memcpy(copy, src, src_len);
+    free(src);
+    *dst_buf = copy;
+    *dst_len = src_len;
+}
+
+vader_i32_t vader_spawn_run(vader_array_t* argv) {
+    if (argv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    size_t n = vader_array_len(argv);
+    if (n == 0) return VADER_SPAWN_LAUNCH_FAIL;
+
+    /* Build a NULL-terminated argv from the Vader [string] array — each slot
+     * needs to be a 0-terminated C string. */
+    char** cargv = (char**) calloc(n + 1, sizeof(char*));
+    if (cargv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    for (size_t i = 0; i < n; i++) {
+        vader_box_t b = vader_array_get(argv, i);
+        vader_string_t s = b.payload.s;
+        char* z = (char*) malloc(s.len + 1);
+        if (z == NULL) {
+            for (size_t j = 0; j < i; j++) free(cargv[j]);
+            free(cargv);
+            return VADER_SPAWN_LAUNCH_FAIL;
+        }
+        memcpy(z, s.ptr, s.len); z[s.len] = '\0';
+        cargv[i] = z;
+    }
+
+    int out_pipe[2] = {-1, -1};
+    int err_pipe[2] = {-1, -1};
+    if (pipe(out_pipe) != 0 || pipe(err_pipe) != 0) {
+        for (size_t j = 0; j < n; j++) free(cargv[j]);
+        free(cargv);
+        if (out_pipe[0] >= 0) { close(out_pipe[0]); close(out_pipe[1]); }
+        return VADER_SPAWN_LAUNCH_FAIL;
+    }
+
+    posix_spawn_file_actions_t fa;
+    posix_spawn_file_actions_init(&fa);
+    posix_spawn_file_actions_addclose(&fa, out_pipe[0]);
+    posix_spawn_file_actions_addclose(&fa, err_pipe[0]);
+    posix_spawn_file_actions_adddup2 (&fa, out_pipe[1], STDOUT_FILENO);
+    posix_spawn_file_actions_adddup2 (&fa, err_pipe[1], STDERR_FILENO);
+    posix_spawn_file_actions_addclose(&fa, out_pipe[1]);
+    posix_spawn_file_actions_addclose(&fa, err_pipe[1]);
+
+    pid_t pid;
+    int rc = posix_spawnp(&pid, cargv[0], &fa, NULL, cargv, environ);
+    posix_spawn_file_actions_destroy(&fa);
+
+    /* Parent closes write ends — the child has them. */
+    close(out_pipe[1]);
+    close(err_pipe[1]);
+
+    for (size_t j = 0; j < n; j++) free(cargv[j]);
+    free(cargv);
+
+    if (rc != 0) {
+        close(out_pipe[0]);
+        close(err_pipe[0]);
+        capture_spawn_output(&g_spawn_stdout_buf, &g_spawn_stdout_len, NULL, 0);
+        capture_spawn_output(&g_spawn_stderr_buf, &g_spawn_stderr_len, NULL, 0);
+        return VADER_SPAWN_LAUNCH_FAIL;
+    }
+
+    size_t out_len = 0, err_len = 0;
+    char* out_buf = drain_fd(out_pipe[0], &out_len);
+    char* err_buf = drain_fd(err_pipe[0], &err_len);
+    close(out_pipe[0]);
+    close(err_pipe[0]);
+
+    int status = 0;
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno != EINTR) { status = -1; break; }
+    }
+
+    capture_spawn_output(&g_spawn_stdout_buf, &g_spawn_stdout_len, out_buf, out_len);
+    capture_spawn_output(&g_spawn_stderr_buf, &g_spawn_stderr_len, err_buf, err_len);
+
+    if (WIFEXITED(status))   return (vader_i32_t) WEXITSTATUS(status);
+    if (WIFSIGNALED(status)) return VADER_SPAWN_SIGNALED;
+    return VADER_SPAWN_LAUNCH_FAIL;
+}
+
+vader_string_t vader_spawn_last_stdout(void) {
+    return vader_string_new(g_spawn_stdout_buf, g_spawn_stdout_len);
+}
+
+vader_string_t vader_spawn_last_stderr(void) {
+    return vader_string_new(g_spawn_stderr_buf, g_spawn_stderr_len);
 }
 
 /* ----------------------------------------------------------------- traps */

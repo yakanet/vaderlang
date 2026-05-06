@@ -1,2 +1,6 @@
+# stdout
+slice mid len=4
+slice over len=0
+slice tail len=2
 # exit
 238

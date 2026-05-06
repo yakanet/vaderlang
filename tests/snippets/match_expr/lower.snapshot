@@ -15,7 +15,8 @@
                 r:
                   gt :bool
                     l:
-                      x#47 :i32
+                      cast → i32
+                        x#47 :i32 | null | string
                     r:
                       int(0) :i32
             then:
@@ -38,7 +39,8 @@
                             __scrut_0#-1 :i32 | null | string
                         then:
                           ~>
-                            x#47 :string
+                            cast → string
+                              x#47 :i32 | null | string
                         else:
                           ~>
                             if :string

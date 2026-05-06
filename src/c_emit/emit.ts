@@ -366,6 +366,13 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_math$cos":   return `${head} { return vader_math_cos(a0); }`;
     case "std_math$tan":   return `${head} { return vader_math_tan(a0); }`;
 
+    case "std_process$spawn_run":
+      return `${head} { return vader_spawn_run((vader_array_t*) a0.payload.obj); }`;
+    case "std_process$spawn_last_stdout":
+      return `${head} { return vader_spawn_last_stdout(); }`;
+    case "std_process$spawn_last_stderr":
+      return `${head} { return vader_spawn_last_stderr(); }`;
+
     default:
       // Foreign imports — emit a stub that traps, the user supplies linkage
       // via `cc <user>.o` post-MVP.
@@ -498,7 +505,7 @@ interface FnState {
   readonly out: string[];
   indent: string;
   readonly labels: LabelTable;
-  readonly scopeStack: OpenLabel[];
+  readonly scopeStack: ActiveScope[];
   /** tmp indices that hold ref-typed values — pre-declared in the function
    *  prelude and registered as GC roots via the shadow stack frame. */
   readonly refTmpIndices: number[];
@@ -510,6 +517,15 @@ interface OpenLabel {
   readonly elseIp: number;     // -1 if none
   readonly kind: "block" | "loop" | "if";
   readonly resultType: ValType;
+}
+
+/** Mutable runtime view of an `OpenLabel` while emit walks its body. The
+ *  `unreachable` flag flips on after a `(br|return|unreachable)` op — tells
+ *  `else`/`end` to skip the result-pop since the stack past that point is
+ *  polymorphic per WASM semantics. Reset by `else` (the else branch starts
+ *  reachable again). */
+interface ActiveScope extends OpenLabel {
+  unreachable: boolean;
 }
 
 interface LabelTable {
@@ -635,6 +651,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "return":     return emitReturn(s);
     case "unreachable":
       line(s, `vader_unreachable("${escapeC(s.fn.name)}+${ip}");`);
+      markUnreachable(s);
       return;
 
     case "call":         return emitCall(s, op);
@@ -676,7 +693,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
 
 function emitOpenScope(s: FnState, ip: number, op: Op): void {
   const info = labelOf(s, ip);
-  if (info !== null) s.scopeStack.push(info);
+  if (info !== null) s.scopeStack.push({ ...info, unreachable: false });
   if (op.kind === "if") {
     const cond = pop(s);
     line(s, `if (${cond.name}) {`);
@@ -696,12 +713,17 @@ function emitOpenScope(s: FnState, ip: number, op: Op): void {
 }
 
 function emitElse(s: FnState, ip: number): void {
-  // First close the then-branch's resultPush, then open else.
+  // Close the then-branch's resultPush, then open else. If the then-branch
+  // ended unreachable, `blockres_X` keeps its zeroInit value — control never
+  // reaches it (polymorphic-stack invariant).
   const info = scopeForElseEnd(s, ip);
-  if (info !== null && info.resultType !== "void" && s.stack.length > 0) {
+  const top = s.scopeStack.at(-1);
+  const wasUnreachable = top?.unreachable ?? false;
+  if (info !== null && info.resultType !== "void" && !wasUnreachable && s.stack.length > 0) {
     const v = pop(s);
     line(s, `blockres_${info.openIp} = ${coerce(s, v.name, v.val, info.resultType)};`);
   }
+  if (top !== undefined) top.unreachable = false;     // else branch is reachable
   popIndent(s);
   line(s, `} else { /* else */`);
   s.indent += "    ";
@@ -709,7 +731,9 @@ function emitElse(s: FnState, ip: number): void {
 
 function emitEnd(s: FnState, ip: number): void {
   const info = scopeForEnd(s, ip);
-  if (info !== null && info.resultType !== "void" && s.stack.length > 0) {
+  const top = s.scopeStack.at(-1);
+  const wasUnreachable = top?.unreachable ?? false;
+  if (info !== null && info.resultType !== "void" && !wasUnreachable && s.stack.length > 0) {
     const v = pop(s);
     line(s, `blockres_${info.openIp} = ${coerce(s, v.name, v.val, info.resultType)};`);
   }
@@ -724,6 +748,11 @@ function emitEnd(s: FnState, ip: number): void {
   } else {
     line(s, `}`);
   }
+}
+
+function markUnreachable(s: FnState): void {
+  const top = s.scopeStack.at(-1);
+  if (top !== undefined) top.unreachable = true;
 }
 
 function emitBr(s: FnState, _ip: number, depth: number, conditional: boolean): void {
@@ -749,6 +778,9 @@ function emitBr(s: FnState, _ip: number, depth: number, conditional: boolean): v
   } else {
     line(s, condGuard(`goto ${dest};`));
   }
+  // Unconditional `br` makes the rest of the enclosing scope unreachable —
+  // tells `else`/`end` not to pop a stale top-of-stack as the result.
+  if (!conditional) markUnreachable(s);
 }
 
 function activeScopes(s: FnState): OpenLabel[] {
@@ -767,6 +799,7 @@ function emitReturn(s: FnState): void {
     const cret = cTypeForVal(s.ctx, s.fn.signature.result);
     line(s, `{ ${cret} __vret = ${ret}; vader_gc_top = gc_frame.prev; return __vret; }`);
   }
+  markUnreachable(s);
 }
 
 // ------------------------------------------------------------- calls
@@ -958,7 +991,7 @@ function emitArrayNew(s: FnState, op: Extract<Op, { kind: "array.new" }>): void 
   line(s, `vader_array_t* ${tmp}_arr = vader_array_new(${op.typeIndex}u, ${op.length}u);`);
   for (let i = 0; i < op.length; i++) {
     const v = elements[i]!;
-    line(s, `${tmp}_arr->data[${i}] = ${boxExpr(s.ctx, v.name, v.val, op.typeIndex)};`);
+    line(s, `${tmp}_arr->buf->slots[${i}] = ${boxExpr(s.ctx, v.name, v.val, op.typeIndex)};`);
   }
   line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_arr);`);
 }

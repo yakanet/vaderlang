@@ -66,6 +66,7 @@ fn 1 tests_snippets_expressions__main_vader$demo () -> i32
   local.tee 5   ; _main.vader:11:5
   i32.const 0   ; _main.vader:12:14
   array.get 3   ; _main.vader:12:10
+  ref.cast 1   ; _main.vader:12:10
   local.set 6   ; _main.vader:12:5
   i32.const 1   ; _main.vader:13:14
   i32.const 2   ; _main.vader:13:17

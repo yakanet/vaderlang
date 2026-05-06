@@ -285,6 +285,14 @@ export function unionOf(variants: readonly Type[]): Type {
 
 // --------------------------------------------------------- assignability
 
+/** Minimal duck-typed view of `ImplRegistry` consumed by `isAssignable`'s
+ *  trait-widening branch. The full registry lives in `./impls.ts`; redeclaring
+ *  the surface here avoids a circular import. */
+export interface TraitOracle {
+  hasUser(forSymbol: Symbol, trait: Symbol): boolean;
+  forPrimitive(name: string, trait: Symbol): unknown | null;
+}
+
 /**
  * Whether `from` can flow into a slot expecting `to` without an explicit cast.
  *
@@ -294,10 +302,12 @@ export function unionOf(variants: readonly Type[]): Type {
  * - Free numeric literals: FreeInt → any integer type; FreeFloat → any float type
  * - Union widening: T → A|B|C if T is one of {A, B, C}
  * - Union → Union: every variant of `from` must be assignable to `to`
+ * - Trait widening (only when `impls` is supplied): struct/primitive → Trait
+ *   when the source implements the trait.
  *
  * No implicit numeric widening (i32 → i64): explicit cast required (per SPEC §4).
  */
-export function isAssignable(from: Type, to: Type): boolean {
+export function isAssignable(from: Type, to: Type, impls?: TraitOracle): boolean {
   if (from.kind === "Unresolved" || to.kind === "Unresolved") return true;
   if (from.kind === "Never") return true;
   if (equalsType(from, to)) return true;
@@ -305,9 +315,15 @@ export function isAssignable(from: Type, to: Type): boolean {
   if (from.kind === "FreeInt") return to.kind === "Primitive" && (NUMERICS as readonly string[]).includes(to.name);
   if (from.kind === "FreeFloat") return to.kind === "Primitive" && (FLOATS as readonly string[]).includes(to.name);
 
+  if (impls !== undefined && to.kind === "Trait") {
+    if (from.kind === "Struct") return impls.hasUser(from.symbol, to.symbol);
+    if (from.kind === "Primitive") return impls.forPrimitive(from.name, to.symbol) !== null;
+    if (from.kind === "Union") return from.variants.every((v) => isAssignable(v, to, impls));
+  }
+
   if (to.kind === "Union") {
-    if (from.kind === "Union") return from.variants.every((v) => isAssignable(v, to));
-    return to.variants.some((v) => isAssignable(from, v));
+    if (from.kind === "Union") return from.variants.every((v) => isAssignable(v, to, impls));
+    return to.variants.some((v) => isAssignable(from, v, impls));
   }
   return false;
 }

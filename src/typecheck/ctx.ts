@@ -10,7 +10,7 @@ import type * as A from "../parser/ast.ts";
 import type { Module } from "../resolver/module.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { ModuleId, Symbol } from "../resolver/symbol.ts";
-import type { MethodResolution, TraitMethodResolution } from "./typed-ast.ts";
+import type { MethodResolution, TraitMethodResolution, TraitVirtualResolution } from "./typed-ast.ts";
 import type { Substitution, Type } from "./types.ts";
 
 /** Tables shared across modules — populated by declareTypes, consumed by check bodies. */
@@ -64,6 +64,9 @@ export interface MutableTyped {
    *  concrete impl member once the call-site substitution is known) and the
    *  lowerer. */
   readonly traitMethodResolutions: Map<A.FieldExpr, TraitMethodResolution>;
+  /** Virtual trait-method dispatch on a trait-typed receiver. Populated by
+   *  `inferField`, consumed by the lowerer to emit a tag-keyed dispatch. */
+  readonly traitVirtualResolutions: Map<A.FieldExpr, TraitVirtualResolution>;
   /** UFCS-resolved free function calls (`a.f(b)` → `f(a, b)`). Populated by
    *  `inferField` after type-validating the resolver's candidate, consumed by
    *  the lowerer to prepend the receiver as the first argument. */
@@ -76,6 +79,11 @@ export interface MutableTyped {
    *  `typeParams` list. Populated by `inferCall`, consumed by the lowerer to
    *  route the call to the right monomorphized specialisation. */
   readonly genericFnCalls: Map<A.CallExpr, readonly Type[]>;
+  /** Direct `f(args)` calls whose name resolves to multiple fn overloads —
+   *  records the chosen overload's symbol so the lowerer dispatches to the
+   *  right specialisation. Empty when the resolver's primary already matched
+   *  (single overload, or first overload picked unambiguously). */
+  readonly directCallOverloads: Map<A.CallExpr, Symbol>;
 }
 
 /** Find the std/core module's exported symbol map. Used by the impl registry
@@ -89,16 +97,18 @@ export function findCoreSymbols(project: ResolvedProject): ReadonlyMap<string, S
   return null;
 }
 
-/** Build a typeParam-id → concrete-arg substitution for a generic struct instance. */
+/** Build a typeParam-id → concrete-arg substitution. Works on any source of
+ *  `A.TypeParam → Symbol` resolution — typecheck `Globals.typeParamSymbols`
+ *  or the resolver's per-program `typeParams` map both fit. */
 export function buildStructSubst(
   typeParams: readonly A.TypeParam[],
   args: readonly Type[],
-  globals: Globals,
+  typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>,
 ): Substitution {
   if (typeParams.length === 0 || args.length === 0) return {};
   const bindings = new Map<number, Type>();
   for (let i = 0; i < typeParams.length && i < args.length; i++) {
-    const sym = globals.typeParamSymbols.get(typeParams[i]!);
+    const sym = typeParamSymbols.get(typeParams[i]!);
     if (sym !== undefined) bindings.set(sym.id, args[i]!);
   }
   return { typeParams: bindings };
@@ -113,7 +123,7 @@ export function tryStructSubst(
   globals: Globals,
 ): Substitution | null {
   if (args.length === 0 || decl.typeParams.length !== args.length) return null;
-  return buildStructSubst(decl.typeParams, args, globals);
+  return buildStructSubst(decl.typeParams, args, globals.typeParamSymbols);
 }
 
 export interface FnContext {

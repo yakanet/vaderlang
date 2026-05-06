@@ -91,6 +91,7 @@ fn 2 tests_snippets_generic_struct__main_vader$Stack$Stackable$pop__i32 (ref) ->
   local.get 0   ; _main.vader:22:26
   struct.get 0 1   ; _main.vader:22:26
   array.get 1   ; _main.vader:22:16
+  ref.cast 2   ; _main.vader:22:16
   return   ; _main.vader:22:9
 end
 

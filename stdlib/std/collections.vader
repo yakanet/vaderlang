@@ -201,45 +201,30 @@ values :: fn(self: MutableMap($K, $V)) -> [V] {
 }
 
 // ===========================================================================
-// MutableSet(T) — linear-search.
-//
-// TODO post-MVP : redesign as `inner: MutableMap(T, bool)` (Java HashSet
-// pattern). The wrapper design is currently blocked by *transitive
-// monomorphization* — when `add(MutableSet)` is monomorphised at T=i32, its
-// body's nested calls (`self.inner.contains_key(value)`) need to materialise
-// `contains_key__i32__bool`, but the comptime InstanceRegistry only observes
-// generic call sites with concrete type-args, missing inner calls inside
-// abstract bodies. Once that pass propagates the outer substitution into
-// nested calls, the wrapper design becomes free.
+// MutableSet(T) — hash-backed via a wrapping MutableMap. Each member is stored
+// as a (T → true) entry, so lookups inherit the chained-bucket O(1) behaviour
+// from MutableMap. `where T: Hash + Eq` mirrors MutableMap's own bound.
 // ===========================================================================
 
 Set :: struct($T) {
-    data: [T]
-    size: usize
+    inner: MutableMap(T, bool)
 }
 
 MutableSet :: struct($T) {
-    data: [T]
-    size: usize
+    inner: MutableMap(T, bool)
 }
 
 // Returns true if the value was newly added, false if it was already present.
-add :: fn(self: MutableSet($T), value: T) -> bool {
-    for i in 0..<i32(self.size) {
-        if self.data[i] == value { return false }
-    }
-    self.data.push(value)
-    self.size = self.size + 1
+add :: fn(self: MutableSet($T), value: T) -> bool where T: Hash + Eq {
+    if self.inner.contains_key(value) { return false }
+    self.inner.put(value, true)
     return true
 }
 
-contains :: fn(self: MutableSet($T), value: T) -> bool {
-    for i in 0..<i32(self.size) {
-        if self.data[i] == value { return true }
-    }
-    return false
+contains :: fn(self: MutableSet($T), value: T) -> bool where T: Hash + Eq {
+    return self.inner.contains_key(value)
 }
 
-len :: fn(self: MutableSet($T)) -> usize { return self.size }
+len :: fn(self: MutableSet($T)) -> usize { return self.inner.size }
 
-is_empty :: fn(self: MutableSet($T)) -> bool { return self.size == 0 }
+is_empty :: fn(self: MutableSet($T)) -> bool { return self.inner.size == 0 }

@@ -363,8 +363,7 @@ fn 6 std_numbers$to_hex (u64) -> string
   local sb ref
   local i i32
   local.get 0   ; numbers.vader:19:8
-  i32.const 0   ; numbers.vader:19:20
-  i32.to_u64   ; numbers.vader:19:16
+  i64.const 0   ; numbers.vader:19:16
   u64.eq   ; numbers.vader:19:8
   if void   ; numbers.vader:19:5
   string.const 11   ; numbers.vader:20:16
@@ -379,8 +378,7 @@ fn 6 std_numbers$to_hex (u64) -> string
   block void   ; numbers.vader:27:5
   loop void   ; numbers.vader:27:5
   local.get 3   ; numbers.vader:27:9
-  i32.const 0   ; numbers.vader:27:17
-  i32.to_u64   ; numbers.vader:27:13
+  i64.const 0   ; numbers.vader:27:13
   u64.le   ; numbers.vader:27:9
   br_if 1   ; numbers.vader:27:9
   local.get 1   ; numbers.vader:28:9
@@ -413,6 +411,7 @@ fn 6 std_numbers$to_hex (u64) -> string
   local.get 1   ; numbers.vader:34:24
   local.get 5   ; numbers.vader:34:28
   array.get 6   ; numbers.vader:34:24
+  ref.cast 7   ; numbers.vader:34:24
   call 10   ; numbers.vader:34:9
   local.get 5   ; numbers.vader:35:13
   i32.const 1   ; numbers.vader:35:17
@@ -433,8 +432,7 @@ fn 7 std_numbers$to_bin (u64) -> string
   local sb ref
   local i i32
   local.get 0   ; numbers.vader:42:8
-  i32.const 0   ; numbers.vader:42:20
-  i32.to_u64   ; numbers.vader:42:16
+  i64.const 0   ; numbers.vader:42:16
   u64.eq   ; numbers.vader:42:8
   if void   ; numbers.vader:42:5
   string.const 11   ; numbers.vader:43:16
@@ -449,15 +447,13 @@ fn 7 std_numbers$to_bin (u64) -> string
   block void   ; numbers.vader:48:5
   loop void   ; numbers.vader:48:5
   local.get 3   ; numbers.vader:48:9
-  i32.const 0   ; numbers.vader:48:17
-  i32.to_u64   ; numbers.vader:48:13
+  i64.const 0   ; numbers.vader:48:13
   u64.le   ; numbers.vader:48:9
   br_if 1   ; numbers.vader:48:9
   local.get 3   ; numbers.vader:49:12
   local.get 2   ; numbers.vader:49:16
   u64.rem   ; numbers.vader:49:12
-  i32.const 0   ; numbers.vader:49:27
-  i32.to_u64   ; numbers.vader:49:23
+  i64.const 0   ; numbers.vader:49:23
   u64.eq   ; numbers.vader:49:12
   if void   ; numbers.vader:49:9
   local.get 1   ; numbers.vader:50:13
@@ -492,6 +488,7 @@ fn 7 std_numbers$to_bin (u64) -> string
   local.get 1   ; numbers.vader:59:24
   local.get 5   ; numbers.vader:59:28
   array.get 6   ; numbers.vader:59:24
+  ref.cast 7   ; numbers.vader:59:24
   call 10   ; numbers.vader:59:9
   local.get 5   ; numbers.vader:60:13
   i32.const 1   ; numbers.vader:60:17

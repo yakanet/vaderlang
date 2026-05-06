@@ -4,3 +4,5 @@
 
 ## generic instances
   Yielded(i32)
+  Yielded(string)
+  ArrayIter(string)

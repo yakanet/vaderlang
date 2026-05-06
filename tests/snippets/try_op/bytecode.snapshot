@@ -35,6 +35,7 @@ fn 1 tests_snippets_try_op__main_vader$show (ref) -> void
   type_check 1   ; _main.vader:11:9
   if void   ; _main.vader:11:9
   local.get 0   ; _main.vader:11:30
+  ref.cast 1   ; _main.vader:11:30
   call.import 2   ; _main.vader:11:22
   else   ; _main.vader:11:9
   local.get 1   ; _main.vader:12:9

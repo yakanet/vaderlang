@@ -736,6 +736,7 @@ fn 14 std_path$normalize (ref) -> ref
   i32.const 1   ; path.vader:173:58
   i32.sub   ; path.vader:173:50
   array.get 3   ; path.vader:173:41
+  ref.cast 1   ; path.vader:173:41
   string.const 38   ; path.vader:173:64
   string.ne   ; path.vader:173:41
   else   ; path.vader:173:28
@@ -832,6 +833,7 @@ fn 14 std_path$normalize (ref) -> ref
   local.get 2   ; path.vader:205:19
   local.get 12   ; path.vader:205:28
   array.get 3   ; path.vader:205:19
+  ref.cast 1   ; path.vader:205:19
   call 17   ; path.vader:205:9
   local.get 12   ; path.vader:206:13
   i32.const 1   ; path.vader:206:17

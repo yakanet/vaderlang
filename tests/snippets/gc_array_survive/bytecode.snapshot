@@ -87,6 +87,7 @@ fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32
   local.get 0   ; _main.vader:29:21
   local.get 7   ; _main.vader:29:26
   array.get 0   ; _main.vader:29:21
+  ref.cast 1   ; _main.vader:29:21
   i32.add   ; _main.vader:29:15
   local.set 6   ; _main.vader:29:9
   local.get 7   ; _main.vader:30:13

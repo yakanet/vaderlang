@@ -2,18 +2,12 @@
 
 ## tests/snippets/runtime_argv/_main.vader
   FnDecl         main                 :: fn([string]) -> i32
-  expr 10:13    IdentExpr      :: i32
-  expr 10:9     BinaryExpr     :: bool
-  expr 10:9     IdentExpr      :: i32
-  expr 11:14    IdentExpr      :: [string]
-  expr 11:14    IndexExpr      :: string
-  expr 11:19    IdentExpr      :: i32
-  expr 12:17    IdentExpr      :: string
-  expr 12:9     CallExpr       :: void
-  expr 12:9     IdentExpr      :: fn(string) -> void
-  expr 13:13    BinaryExpr     :: i32
-  expr 13:13    IdentExpr      :: i32
-  expr 13:9     IdentExpr      :: i32
+  expr 10:12    IdentExpr      :: bool
+  expr 10:9     IfExpr         :: void
+  expr 11:13    IdentExpr      :: bool
+  expr 13:13    CallExpr       :: void
+  expr 13:13    IdentExpr      :: fn(string) -> void
+  expr 13:21    IdentExpr      :: string
   expr 7:13     StringLitExpr  :: string
   expr 7:21     BinaryExpr     :: i32
   expr 7:21     CallExpr       :: i32
@@ -21,6 +15,4 @@
   expr 7:21     IdentExpr      :: [string]
   expr 7:5      CallExpr       :: void
   expr 7:5      IdentExpr      :: fn(string) -> void
-  expr 8:10     CallExpr       :: i32
-  expr 8:10     FieldExpr      :: fn() -> i32
-  expr 8:10     IdentExpr      :: [string]
+  expr 9:14     IdentExpr      :: [string]

@@ -57,7 +57,8 @@
                       "read: " :string
                     @builder.append_display <for string> :void
                       __sb_2#-3 :?
-                      contents#59 :string
+                      cast → string
+                        contents#59 :Error | string
                     ~>
                       @builder.finish :string
                         __sb_2#-3 :?

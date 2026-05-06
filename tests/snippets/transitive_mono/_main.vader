@@ -1,0 +1,24 @@
+// Transitive monomorphisation: a generic fn instance materialises any inner
+// generic call sites and for-in iters under the call-site substitution.
+// Without that, `outer_fn<i32>` would fail to find `inner_fn<i32>` at lower
+// time and emit `unreachable`.
+
+import "std/io" { println }
+
+inner_count :: fn(arr: [$T]) -> i32 {
+    n := 0
+    for x in arr {
+        n = n + 1
+    }
+    return n
+}
+
+outer :: fn(arr: [$T]) -> i32 {
+    return inner_count(arr)
+}
+
+main :: fn() -> i32 {
+    println("${outer([1, 2, 3, 4, 5])}")
+    println("${outer(["a", "b", "c"])}")
+    return 0
+}

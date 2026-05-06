@@ -1,0 +1,22 @@
+// Function overloading by first-param type. Two free fns share the name
+// `describe` but dispatch on the receiver, both via direct call and UFCS.
+
+import "std/io" { println }
+
+Box :: struct { v: i32 }
+Bag :: struct { v: string }
+
+describe :: fn(b: Box) -> string { return "box ${b.v}" }
+describe :: fn(b: Bag) -> string { return "bag ${b.v}" }
+
+main :: fn() -> i32 {
+    a := Box { .v = 42 }
+    b := Bag { .v = "hi" }
+    // Direct calls.
+    println(describe(a))
+    println(describe(b))
+    // UFCS — the same dispatch policy applies via `inferUfcsFreeBound`.
+    println(a.describe())
+    println(b.describe())
+    return 0
+}

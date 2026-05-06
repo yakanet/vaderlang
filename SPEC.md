@@ -76,6 +76,8 @@ The pipeline is therefore **incremental**: to evaluate a `@comptime`, its depend
 
 Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List(i32)`, `Map(string, User)`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct(args)` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
 
+Registry collection is **transitive**: when `outer<i32>` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn<i32>`), every `for x in arr` over `[T]` (registers `ArrayIter(i32)`), and every substituted struct/trait reference inside the body (so e.g. `Yielded(string)` materialises when `step` is monomorphised over a `[string]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
+
 Lowering and every downstream phase therefore see only concrete types — they never have to invent dispatch logic for `$T`.
 
 ### Lowered AST
@@ -697,6 +699,20 @@ print_it :: fn(x: $T) where T: Display {
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in an `impl Foo` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
 
+#### Method dispatch on trait values
+
+A receiver typed as a trait dispatches **virtually** at runtime:
+
+```vader
+report :: fn(e: Error) -> string {
+    return e.message()       // dispatches on `e`'s actual struct tag
+}
+```
+
+The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that's in scope. Generic-struct impls are skipped (their concrete instance args aren't recoverable from the trait-typed receiver alone), so virtual dispatch covers non-generic impls and primitives that share a Display/Hash trait. Dynamic-dispatch on generic structs is post-MVP.
+
+Inside a generic body, `key.method()` where `key: $T` and `T: Trait` resolves at typecheck and is monomorphised statically — each call site gets a direct call to the concrete impl member after substitution. No runtime dispatch.
+
 #### Single-method trait sugar (SAM)
 
 When a trait has **exactly one method**, the implementation may omit the redundant `fn name(...) -> RetType` line and write the body directly. The compiler synthesises the signature from the trait declaration; parameter names (`self`, `other`, …) come from the trait and are in scope of the body — no redeclaration required.
@@ -1218,9 +1234,10 @@ process :: fn(path: string) -> string! {
 When errors must be handled locally:
 
 ```vader
-match read_file("a.txt") {
-    is string -> println("got: ${value}")
-    is Error  -> println("error: ${value.message()}")
+r :: read_file("a.txt")
+match r {
+    is string -> println("got: ${r}")
+    is Error  -> println("error: ${r.message()}")    // virtual dispatch
 }
 ```
 
@@ -1515,11 +1532,11 @@ fn is_empty     (self: MutableMap(K, V)) -> bool
 fn keys         (self: MutableMap(K, V)) -> [K]
 fn values       (self: MutableMap(K, V)) -> [V]
 
-// Hash set — linear-search MVP, will migrate to hash-backed once trait
-// dispatch on bounded type params lands.
-MutableSet(T)
+// Hash set — wraps a `MutableMap(T, bool)` (Java HashSet pattern). Lookups
+// inherit the chained-bucket O(1) behaviour from the underlying map.
+MutableSet(T)      where T: Hash + Eq
 Set(T)             // read-only (struct stub, post-MVP API)
-fn add      (self: MutableSet(T), value: T) -> void
+fn add      (self: MutableSet(T), value: T) -> bool   // true if newly added
 fn contains (self: MutableSet(T), value: T) -> bool
 fn len      (self: MutableSet(T)) -> usize
 fn is_empty (self: MutableSet(T)) -> bool
@@ -1528,15 +1545,24 @@ fn is_empty (self: MutableSet(T)) -> bool
 ### `std/math`
 
 ```vader
-fn min(a, b)        // generic via Ord
-fn max(a, b)
-fn abs(x)
+// Comparison + helpers — f64-only in MVP. Generic `Ord`-driven variants land
+// once trait-method dispatch on bounded type params can construct a `min`
+// returning the receiver type (post-MVP).
+fn min(a: f64, b: f64) -> f64
+fn max(a: f64, b: f64) -> f64
+fn abs(x: f64) -> f64
+fn lerp(a: f64, b: f64, t: f64) -> f64    // a + (b - a) * t
+
+// Float intrinsics — wired to libm on native, JS Math on the VM.
 fn sqrt(x: f64) -> f64
 fn pow(x: f64, n: f64) -> f64
 fn floor(x: f64) -> f64
 fn ceil(x: f64) -> f64
 fn round(x: f64) -> f64
-fn sin / cos / tan
+fn sin(x: f64) -> f64
+fn cos(x: f64) -> f64
+fn tan(x: f64) -> f64
+
 const pi: f64
 const e:  f64
 ```
@@ -1581,6 +1607,7 @@ fn fold(arr: [$T], init: $U, f: fn(U, T) -> U) -> U
 fn sum(arr: [i32]) -> i32
 fn take(arr: [$T], n: i32) -> [T]
 fn skip(arr: [$T], n: i32) -> [T]
+fn slice(arr: [$T], start: i32, end: i32) -> [T]    // bounds clamped, end exclusive
 ```
 
 The closure-driven combinators take a concrete `[T]` rather than `Iterator($T)` because direct trait-method dispatch on a generic `$T : Iterator` parameter is post-MVP (the `for x in it` form has compiler-internal dispatch but user code can't `it.step()` directly). Bridging from an iterator goes through `collect(it)` first; once trait dispatch on bounded type params lands the two flavours converge.
@@ -1617,6 +1644,31 @@ fn starts_with (self: Path, prefix: Path)     -> bool   // segment-aware
 fn ends_with   (self: Path, suffix: Path)     -> bool   // segment-aware
 fn normalize   (self: Path)                   -> Path   // collapse `.` and `..`
 ```
+
+### `std/process`
+
+Synchronous external-process invocation. Native-only in MVP — the runtime
+wires `posix_spawnp` + pipes to capture stdout/stderr ; on the WASM target
+the imports are unbound and fail at link time (WASI preview2's process API
+is post-MVP). Used by the self-host build pipeline to drive `cc`.
+
+```vader
+ProcessError :: struct { msg: string }              // implements Error
+ProcessResult :: struct {
+    exit:   i32
+    stdout: string
+    stderr: string
+}
+
+fn spawn(argv: [string]) -> ProcessResult!
+```
+
+`argv[0]` is the program name (resolved against `PATH`) ; `argv[1..]` are
+arguments. Stdin is inherited from the parent — no MVP need to wire a stdin
+pipe (most tooling reads its inputs from files). Single-threaded by design :
+the runtime captures the most recent run's output into module-level buffers ;
+calling `spawn` again replaces them. Returns `ProcessError` when argv is
+empty, the program can't be launched, or the child is killed by a signal.
 
 ### `std/json`
 

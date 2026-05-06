@@ -107,13 +107,15 @@
                                   sum#67 :i32
                                 r:
                                   .value :i32
-                                    cur#68 :Node
+                                    cast → Node
+                                      cur#68 :Node | null
                           assign
                             target:
                               cur#68 :Node
                             value:
                               .next :Node | null
-                                cur#68 :Node
+                                cast → Node
+                                  cur#68 :Node | null
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void

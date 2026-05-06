@@ -17,7 +17,7 @@
   fn               public   put 
   struct           public   Set 
   fn               public   values 
-  refs: idents=119 types=98 params=18 locals=25 typeParams=26 fields=0
+  refs: idents=111 types=100 params=18 locals=25 typeParams=26 fields=0
 
 ## std/core
   trait            public   Add 
@@ -77,7 +77,6 @@
   type-alias       public   JsonValue 
   import-binding   private  keys → keys
   import-binding   private  len → len
-  import-binding   private  map_len → len
   fn               private  match_keyword 
   import-binding   private  MutableMap → MutableMap
   import-binding   private  new_builder → new_builder
@@ -116,7 +115,7 @@
   import std/string_builder → ok
   import std/collections → ok
   import std/numbers → ok
-  refs: idents=551 types=125 params=46 locals=38 typeParams=0 fields=0
+  refs: idents=550 types=125 params=46 locals=38 typeParams=0 fields=0
 
 ## std/numbers
   import-binding   private  append_char → append_char
@@ -127,7 +126,7 @@
   fn               public   to_hex 
   import-binding   private  to_string → to_string
   import std/string_builder → ok
-  refs: idents=55 types=10 params=3 locals=11 typeParams=0 fields=0
+  refs: idents=50 types=10 params=3 locals=11 typeParams=0 fields=0
 
 ## std/string
   import-binding   private  append → append
@@ -186,3 +185,6 @@
   import std/io → ok
   import std/json → ok
   refs: idents=45 types=11 params=2 locals=1 typeParams=0 fields=0
+
+# Diagnostics
+[16:64] error[R2011] duplicate import binding: `len`

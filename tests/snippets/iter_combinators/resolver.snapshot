@@ -26,6 +26,16 @@
   struct           public   Yielded 
   refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
 
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
 ## std/iter
   fn               public   collect 
   fn               public   count 
@@ -33,17 +43,21 @@
   fn               public   fold 
   fn               public   map 
   fn               public   skip 
+  fn               public   slice 
   fn               public   sum 
   fn               public   take 
-  refs: idents=48 types=24 params=14 locals=10 typeParams=9 fields=0
+  refs: idents=74 types=28 params=17 locals=15 typeParams=10 fields=0
 
 ## tests/snippets/iter_combinators/_main.vader
   import-binding   private  filter → filter
   import-binding   private  fold → fold
   fn               public   main 
   import-binding   private  map → map
+  import-binding   private  println → println
   import-binding   private  skip → skip
+  import-binding   private  slice → slice
   import-binding   private  sum → sum
   import-binding   private  take → take
+  import std/io → ok
   import std/iter → ok
-  refs: idents=26 types=8 params=4 locals=10 typeParams=0 fields=0
+  refs: idents=35 types=8 params=4 locals=10 typeParams=0 fields=0

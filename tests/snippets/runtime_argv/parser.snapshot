@@ -95,73 +95,54 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "n",
+            "name": "first",
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "FieldExpr",
-                "target": {
-                  "kind": "IdentExpr",
-                  "name": "argv"
-                },
-                "field": "len"
-              },
-              "args": []
-            }
-          },
-          {
-            "kind": "LetStmt",
-            "mutable": true,
-            "name": "i",
-            "type": null,
-            "value": {
-              "kind": "IntLitExpr",
-              "value": "1n",
-              "suffix": null
+              "kind": "BoolLitExpr",
+              "value": true
             }
           },
           {
             "kind": "ForStmt",
             "label": null,
             "form": {
-              "kind": "while",
-              "cond": {
-                "kind": "BinaryExpr",
-                "op": "lt",
-                "left": {
-                  "kind": "IdentExpr",
-                  "name": "i"
-                },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "n"
-                }
+              "kind": "in",
+              "binding": "s",
+              "iter": {
+                "kind": "IdentExpr",
+                "name": "argv"
               }
             },
             "body": {
               "kind": "BlockExpr",
-              "stmts": [
-                {
-                  "kind": "LetStmt",
-                  "mutable": true,
-                  "name": "s",
-                  "type": null,
-                  "value": {
-                    "kind": "IndexExpr",
-                    "target": {
-                      "kind": "IdentExpr",
-                      "name": "argv"
-                    },
-                    "index": {
-                      "kind": "IdentExpr",
-                      "name": "i"
-                    }
-                  }
+              "stmts": [],
+              "trailing": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "IdentExpr",
+                  "name": "first"
                 },
-                {
-                  "kind": "ExprStmt",
-                  "expr": {
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [
+                    {
+                      "kind": "AssignStmt",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "first"
+                      },
+                      "value": {
+                        "kind": "BoolLitExpr",
+                        "value": false
+                      }
+                    }
+                  ],
+                  "trailing": null
+                },
+                "else": {
+                  "kind": "BlockExpr",
+                  "stmts": [],
+                  "trailing": {
                     "kind": "CallExpr",
                     "callee": {
                       "kind": "IdentExpr",
@@ -178,29 +159,8 @@
                       }
                     ]
                   }
-                },
-                {
-                  "kind": "AssignStmt",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "i"
-                  },
-                  "value": {
-                    "kind": "BinaryExpr",
-                    "op": "add",
-                    "left": {
-                      "kind": "IdentExpr",
-                      "name": "i"
-                    },
-                    "right": {
-                      "kind": "IntLitExpr",
-                      "value": "1n",
-                      "suffix": null
-                    }
-                  }
                 }
-              ],
-              "trailing": null
+              }
             }
           },
           {

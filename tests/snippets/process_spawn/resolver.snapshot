@@ -1,0 +1,57 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_string 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## std/process
+  const            private  LAUNCH_FAIL 
+  struct           public   ProcessError 
+  struct           public   ProcessResult 
+  const            private  SIGNALED 
+  fn               public   spawn 
+  fn               private  spawn_last_stderr 
+  fn               private  spawn_last_stdout 
+  fn               private  spawn_run 
+  refs: idents=15 types=17 params=3 locals=3 typeParams=0 fields=0
+
+## tests/snippets/process_spawn/_main.vader
+  fn               public   main 
+  import-binding   private  println → println
+  import-binding   private  ProcessResult → ProcessResult
+  import-binding   private  spawn → spawn
+  import std/io → ok
+  import std/process → ok
+  refs: idents=8 types=3 params=0 locals=1 typeParams=0 fields=0

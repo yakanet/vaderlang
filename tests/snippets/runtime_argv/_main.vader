@@ -5,12 +5,13 @@ import "std/io" { println }
 // echo back the user args.
 main :: fn(argv: [string]) -> i32 {
     println("argc=${argv.len() - 1}")
-    n := argv.len()
-    i := 1
-    for i < n {
-        s := argv[i]
-        println(s)
-        i = i + 1
+    first := true
+    for s in argv {
+        if first {
+            first = false
+        } else {
+            println(s)
+        }
     }
     return 0
 }

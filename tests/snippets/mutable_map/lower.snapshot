@@ -101,7 +101,8 @@
                                 "v1 = " :string
                               @builder.append_display <for i32> :void
                                 __sb_2#-3 :?
-                                v1#79 :i32
+                                cast → i32
+                                  v1#79 :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_2#-3 :?
@@ -154,7 +155,8 @@
                                 "v17 = " :string
                               @builder.append_display <for i32> :void
                                 __sb_4#-5 :?
-                                v17#80 :i32
+                                cast → i32
+                                  v17#80 :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_4#-5 :?
@@ -260,7 +262,8 @@
                                 "v1b = " :string
                               @builder.append_display <for i32> :void
                                 __sb_8#-9 :?
-                                v1b#81 :i32
+                                cast → i32
+                                  v1b#81 :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_8#-9 :?

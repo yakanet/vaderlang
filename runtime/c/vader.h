@@ -270,6 +270,20 @@ vader_box_t    vader_write_file(vader_string_t path, vader_string_t content,
 vader_box_t    vader_read_line(uint32_t ok_tag, uint32_t err_tag);
 vader_bool_t   vader_exists(vader_string_t path);
 
+/* ----------------------------------------------------------------- process
+ * `spawn_run` blocks on the child, stashes captured stdout/stderr into
+ * runtime-owned buffers, and returns the exit status (>= 0) or one of the
+ * negative sentinels below. `spawn_last_stdout/_stderr` surface those
+ * buffers as `vader_string_t`. Non-reentrant — last call wins. The Vader
+ * wrapper in `std/process` glues all three into a `ProcessResult`. */
+
+#define VADER_SPAWN_LAUNCH_FAIL (-1)
+#define VADER_SPAWN_SIGNALED    (-2)
+
+vader_i32_t    vader_spawn_run(vader_array_t* argv);
+vader_string_t vader_spawn_last_stdout(void);
+vader_string_t vader_spawn_last_stderr(void);
+
 /* ----------------------------------------------------------------- string */
 
 vader_i32_t    vader_string_len(vader_string_t s);

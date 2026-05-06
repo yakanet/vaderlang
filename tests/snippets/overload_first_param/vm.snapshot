@@ -1,0 +1,7 @@
+# stdout
+box 42
+bag hi
+box 42
+bag hi
+# exit
+0

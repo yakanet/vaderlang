@@ -88,6 +88,11 @@ export function sourceEnumDecl(sym: Symbol): A.EnumDecl | null {
   return sym.source.kind === "enum" ? sym.source.decl : null;
 }
 
+/** The trait decl backing a trait symbol; null otherwise. */
+export function sourceTraitDecl(sym: Symbol): A.TraitDecl | null {
+  return sym.source.kind === "trait" ? sym.source.decl : null;
+}
+
 /** Index of `variant` within `sym`'s enum decl, or -1 if not an enum / not found. */
 export function enumVariantIndex(sym: Symbol, variant: string): number {
   const decl = sourceEnumDecl(sym);

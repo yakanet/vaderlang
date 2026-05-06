@@ -1,0 +1,12 @@
+# Comptime
+
+## tests/snippets/trait_dispatch_bounded/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Yielded(string)
+  ArrayIter($T)
+  ArrayIter(i32)
+  ArrayIter(string)
+  count_matching(i32)
+  count_matching(string)

@@ -172,8 +172,38 @@ export function stdRuntimeBindings(): Record<string, HostFn> {
   };
 }
 
+export function stdProcessBindings(): Record<string, HostFn> {
+  // Last-call wins, single-threaded — matches the native runtime's behaviour
+  // (`vader_spawn_run` stashes stdout/stderr into static buffers fetched by
+  // `_last_stdout` / `_last_stderr`).
+  let lastStdout = "";
+  let lastStderr = "";
+  return {
+    std_process$spawn_run: (args) => {
+      const argv = args[0];
+      if (argv === undefined || argv.tag !== "array") {
+        throw new Error(`vm: spawn_run: expected array at arg 0, got ${argv?.tag ?? "<missing>"}`);
+      }
+      const cmd = argv.elements.map((e) => e.tag === "string" ? e.n : "");
+      if (cmd.length === 0 || cmd[0] === "") return num("i32", -1);
+      try {
+        const proc = Bun.spawnSync({ cmd, stdout: "pipe", stderr: "pipe" });
+        lastStdout = new TextDecoder().decode(proc.stdout);
+        lastStderr = new TextDecoder().decode(proc.stderr);
+        return num("i32", proc.exitCode ?? -1);
+      } catch (e) {
+        lastStdout = "";
+        lastStderr = messageOf(e);
+        return num("i32", -1);
+      }
+    },
+    std_process$spawn_last_stdout: () => str(lastStdout),
+    std_process$spawn_last_stderr: () => str(lastStderr),
+  };
+}
+
 export function makeBindings(io: HostIO): HostBindings {
-  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdMathBindings(), ...stdRuntimeBindings() };
+  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdMathBindings(), ...stdRuntimeBindings(), ...stdProcessBindings() };
   return {
     get(mangledName, externName) {
       return all[mangledName] ?? all[externName] ?? null;

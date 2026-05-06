@@ -22,28 +22,47 @@
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let n#56: i32 =
-      LoweredArrayLen
-    let i#57: i32 = int(1) :i32
-    loop while (<…>)
-      let s#58: string =
-        index :string
-          on:
-            argv#55 :[string]
-          ix:
-            i#57 :i32
-      call :void
-        callee:
-          println#28 :fn(string) -> void
-        arg0:
-          s#58 :string
-      assign
-        target:
-          i#57 :i32
-        value:
-          add :i32
-            l:
-              i#57 :i32
-            r:
-              int(1) :i32
+    let first#56: bool = true
+    block :void
+      let __iter_1#-2: ArrayIter(string) =
+        ArrayIter(string) {
+          arr: argv#55 :[string]
+          cursor: int(0) :i32
+          length:
+            LoweredArrayLen
+        }
+      loop
+        let __step_2#-3: Done | Yielded(string) =
+          call :Done | Yielded(string)
+            callee:
+              step#1000011 :?
+            arg0:
+              __iter_1#-2 :ArrayIter(string)
+        if :void
+          cond:
+            is Done :bool
+              __step_2#-3 :Done | Yielded(string)
+          then:
+            break
+          else:
+            let s#57: string =
+              .value :string
+                cast → Yielded(string)
+                  __step_2#-3 :Done | Yielded(string)
+            if :void
+              cond:
+                first#56 :bool
+              then:
+                assign
+                  target:
+                    first#56 :bool
+                  value:
+                    false
+              else:
+                ~>
+                  call :void
+                    callee:
+                      println#28 :fn(string) -> void
+                    arg0:
+                      s#57 :string
     return int(0) :i32

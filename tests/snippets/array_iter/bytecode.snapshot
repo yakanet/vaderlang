@@ -134,6 +134,7 @@ fn 1 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref
   local.get 0   ; core.vader:109:23
   struct.get 3 1   ; core.vader:109:23
   array.get 4   ; core.vader:109:14
+  ref.cast 2   ; core.vader:109:14
   local.set 1   ; core.vader:109:9
   local.get 0   ; core.vader:110:9
   local.get 0   ; core.vader:110:23

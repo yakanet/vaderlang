@@ -137,14 +137,17 @@ fn 0 tests_snippets_std_string__main_vader$main () -> i32
   local.tee 9   ; _main.vader:18:5
   i32.const 0   ; _main.vader:19:19
   array.get 0   ; _main.vader:19:13
+  ref.cast 1   ; _main.vader:19:13
   call.import 2   ; _main.vader:19:5
   local.get 9   ; _main.vader:20:13
   i32.const 1   ; _main.vader:20:19
   array.get 0   ; _main.vader:20:13
+  ref.cast 1   ; _main.vader:20:13
   call.import 2   ; _main.vader:20:5
   local.get 9   ; _main.vader:21:13
   i32.const 2   ; _main.vader:21:19
   array.get 0   ; _main.vader:21:13
+  ref.cast 1   ; _main.vader:21:13
   call.import 2   ; _main.vader:21:5
   i32.const 0   ; _main.vader:22:12
   return   ; _main.vader:22:5

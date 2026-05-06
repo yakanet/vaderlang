@@ -11,3 +11,4 @@
   fold(i32, i32)
   take(i32)
   skip(i32)
+  slice(i32)

@@ -349,6 +349,14 @@ function emitExpr(fn: FnEmitCtx, e: L.LoweredExpr): void {
       emitExpr(fn, e.target);
       emitExpr(fn, e.index);
       pushOp(fn, { kind: "array.get", typeIndex }, e.span);
+      // `array.get` always yields a boxed value (`any`/`ref`), but the lowered
+      // expression's static type is the element type. Insert a `ref.cast`
+      // when the element is a primitive so downstream typed ops see the
+      // unboxed value (matches the policy used for match-arm narrowing).
+      const elemVal = valTypeOf(e.type);
+      if (elemVal !== "ref" && elemVal !== "any" && elemVal !== "void") {
+        pushOp(fn, { kind: "ref.cast", typeIndex: internType(fn.project, e.type) }, e.span);
+      }
       return;
     }
     case "LoweredUnary":         emitUnary(fn, e); return;

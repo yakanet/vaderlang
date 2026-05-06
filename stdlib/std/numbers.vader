@@ -16,7 +16,7 @@ private hex_digit :: fn(n: u64) -> char {
 // Hexadecimal stringification of a u64 — lowercase, no `0x` prefix, no leading
 // zeros. Caller pads via `std/string.pad_start` if a fixed width is needed.
 to_hex :: fn(self: u64) -> string {
-    if self == u64(0) {
+    if self == 0 {
         return "0"
     }
     // Build digits LSB-first into the buffer, then walk it backwards into the
@@ -24,7 +24,7 @@ to_hex :: fn(self: u64) -> string {
     rev: [char] = []
     base: u64 = 16
     x := self
-    for x > u64(0) {
+    for x > 0 {
         rev.push(hex_digit(x % base))
         x = x / base
     }
@@ -39,14 +39,14 @@ to_hex :: fn(self: u64) -> string {
 
 // Binary stringification of a u64 — no prefix, no leading zeros.
 to_bin :: fn(self: u64) -> string {
-    if self == u64(0) {
+    if self == 0 {
         return "0"
     }
     rev: [char] = []
     two: u64 = 2
     x := self
-    for x > u64(0) {
-        if x % two == u64(0) {
+    for x > 0 {
+        if x % two == 0 {
             rev.push('0')
         } else {
             rev.push('1')

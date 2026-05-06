@@ -37,17 +37,21 @@
   refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
 
 ## std/math
+  fn               public   abs 
   fn               public   ceil 
   fn               public   cos 
   const            public   e 
   fn               public   floor 
+  fn               public   lerp 
+  fn               public   max 
+  fn               public   min 
   const            public   pi 
   fn               public   pow 
   fn               public   round 
   fn               public   sin 
   fn               public   sqrt 
   fn               public   tan 
-  refs: idents=0 types=17 params=9 locals=0 typeParams=0 fields=0
+  refs: idents=15 types=29 params=17 locals=0 typeParams=0 fields=0
 
 ## tests/snippets/std_math/_main.vader
   import-binding   private  ceil → ceil

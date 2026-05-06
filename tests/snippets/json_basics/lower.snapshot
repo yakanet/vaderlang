@@ -2,15 +2,15 @@
 
 ## tests/snippets/json_basics/_main.vader
   fn tests_snippets_json_basics__main_vader$show(label: string, src: string) -> void
-    let parsed#182: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString =
+    let parsed#181: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString =
       call :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
         callee:
-          parse#92 :fn(string) -> JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+          parse#91 :fn(string) -> JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
         arg0:
-          src#181 :string
+          src#180 :string
     ~>
       block :void
-        let __scrut_0#-1: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString = parsed#182 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+        let __scrut_0#-1: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString = parsed#181 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
         ~>
           if :void
             cond:
@@ -29,14 +29,15 @@
                             @builder.new :?
                           @builder.append_display <for string> :void
                             __sb_7#-8 :?
-                            label#180 :string
+                            label#179 :string
                           @builder.append_str :void
                             __sb_7#-8 :?
                             ": error: " :string
                           @builder.append_display <for string> :void
                             __sb_7#-8 :?
                             .msg :string
-                              parsed#182 :JsonError
+                              cast → JsonError
+                                parsed#181 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                           ~>
                             @builder.finish :string
                               __sb_7#-8 :?
@@ -59,7 +60,7 @@
                                   @builder.new :?
                                 @builder.append_display <for string> :void
                                   __sb_6#-7 :?
-                                  label#180 :string
+                                  label#179 :string
                                 @builder.append_str :void
                                   __sb_6#-7 :?
                                   ": " :string
@@ -67,9 +68,10 @@
                                   __sb_6#-7 :?
                                   call :string
                                     callee:
-                                      stringify#99 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                      stringify#98 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                     arg0:
-                                      parsed#182 :JsonString
+                                      cast → JsonString
+                                        parsed#181 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                 ~>
                                   @builder.finish :string
                                     __sb_6#-7 :?
@@ -92,7 +94,7 @@
                                         @builder.new :?
                                       @builder.append_display <for string> :void
                                         __sb_5#-6 :?
-                                        label#180 :string
+                                        label#179 :string
                                       @builder.append_str :void
                                         __sb_5#-6 :?
                                         ": " :string
@@ -100,9 +102,10 @@
                                         __sb_5#-6 :?
                                         call :string
                                           callee:
-                                            stringify#99 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                            stringify#98 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                           arg0:
-                                            parsed#182 :JsonNumber
+                                            cast → JsonNumber
+                                              parsed#181 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                       ~>
                                         @builder.finish :string
                                           __sb_5#-6 :?
@@ -125,7 +128,7 @@
                                               @builder.new :?
                                             @builder.append_display <for string> :void
                                               __sb_4#-5 :?
-                                              label#180 :string
+                                              label#179 :string
                                             @builder.append_str :void
                                               __sb_4#-5 :?
                                               ": " :string
@@ -133,9 +136,10 @@
                                               __sb_4#-5 :?
                                               call :string
                                                 callee:
-                                                  stringify#99 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                                  stringify#98 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                 arg0:
-                                                  parsed#182 :JsonBool
+                                                  cast → JsonBool
+                                                    parsed#181 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                             ~>
                                               @builder.finish :string
                                                 __sb_4#-5 :?
@@ -158,7 +162,7 @@
                                                     @builder.new :?
                                                   @builder.append_display <for string> :void
                                                     __sb_3#-4 :?
-                                                    label#180 :string
+                                                    label#179 :string
                                                   @builder.append_str :void
                                                     __sb_3#-4 :?
                                                     ": " :string
@@ -166,9 +170,10 @@
                                                     __sb_3#-4 :?
                                                     call :string
                                                       callee:
-                                                        stringify#99 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                                        stringify#98 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                       arg0:
-                                                        parsed#182 :JsonNull
+                                                        cast → JsonNull
+                                                          parsed#181 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                   ~>
                                                     @builder.finish :string
                                                       __sb_3#-4 :?
@@ -191,7 +196,7 @@
                                                           @builder.new :?
                                                         @builder.append_display <for string> :void
                                                           __sb_2#-3 :?
-                                                          label#180 :string
+                                                          label#179 :string
                                                         @builder.append_str :void
                                                           __sb_2#-3 :?
                                                           ": " :string
@@ -199,9 +204,10 @@
                                                           __sb_2#-3 :?
                                                           call :string
                                                             callee:
-                                                              stringify#99 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                                              stringify#98 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                             arg0:
-                                                              parsed#182 :JsonArray
+                                                              cast → JsonArray
+                                                                parsed#181 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                         ~>
                                                           @builder.finish :string
                                                             __sb_2#-3 :?
@@ -224,7 +230,7 @@
                                                                 @builder.new :?
                                                               @builder.append_display <for string> :void
                                                                 __sb_1#-2 :?
-                                                                label#180 :string
+                                                                label#179 :string
                                                               @builder.append_str :void
                                                                 __sb_1#-2 :?
                                                                 ": " :string
@@ -232,9 +238,10 @@
                                                                 __sb_1#-2 :?
                                                                 call :string
                                                                   callee:
-                                                                    stringify#99 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                                                    stringify#98 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                                   arg0:
-                                                                    parsed#182 :JsonObject
+                                                                    cast → JsonObject
+                                                                      parsed#181 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                               ~>
                                                                 @builder.finish :string
                                                                   __sb_1#-2 :?
@@ -348,3 +355,7 @@
       arg1:
         "\"\\q\"" :string
     return int(0) :i32
+
+# Diagnostics
+[16:64] error[R2011] duplicate import binding: `len`
+[467:18] error[T3009] field does not exist on this type: `len` on MutableMap(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)

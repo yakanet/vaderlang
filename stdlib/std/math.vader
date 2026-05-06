@@ -15,3 +15,27 @@ round :: fn(x: f64) -> f64
 sin :: fn(x: f64) -> f64
 cos :: fn(x: f64) -> f64
 tan :: fn(x: f64) -> f64
+
+// Comparison + helpers — pure Vader, f64. Integer variants will arrive once
+// function overloading by first-param type lands (TODO §1.18c) so `min(i32,
+// i32)` and `min(f64, f64)` can coexist.
+min :: fn(a: f64, b: f64) -> f64 {
+    if a < b { return a }
+    return b
+}
+
+max :: fn(a: f64, b: f64) -> f64 {
+    if a > b { return a }
+    return b
+}
+
+abs :: fn(x: f64) -> f64 {
+    if x < 0.0 { return -x }
+    return x
+}
+
+// lerp — linear interpolation. `t = 0` returns `a`, `t = 1` returns `b`;
+// values outside `[0, 1]` extrapolate.
+lerp :: fn(a: f64, b: f64, t: f64) -> f64 {
+    return a + (b - a) * t
+}

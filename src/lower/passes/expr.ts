@@ -5,7 +5,7 @@ import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_TRAITS, TY, defaultIfFree, displayType } from "../../typecheck/types.ts";
+import { CORE_TRAITS, TY, defaultIfFree, displayType, equalsType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStructLitField } from "../lowered-ast.ts";
@@ -14,7 +14,7 @@ import { err } from "../diag.ts";
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
 import { lookupImplEntry, lookupImplFor, lowerRangeExpr } from "./for-in.ts";
-import { applySubst, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
+import { applySubst, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
 import { lowerMatch } from "./match.ts";
 import { lowerStringLit } from "./string-interp.ts";
@@ -39,7 +39,11 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       return lowerIdent(ctx, expr, exprType);
     case "CallExpr": {
       if (expr.callee.kind === "IdentExpr") {
-        const calleeSym = ctx.typed.resolved.idents.get(expr.callee);
+        const resolverSym = ctx.typed.resolved.idents.get(expr.callee);
+        // Direct-call overload override: typecheck recorded a non-primary
+        // sibling overload as the matched candidate. Use that symbol for the
+        // rest of the lowering (generic instance lookup + plain call emit).
+        const calleeSym = ctx.typed.directCallOverloads.get(expr) ?? resolverSym;
         // Cast call `Type(value)` — lower to a `LoweredCast` so the bytecode
         // emitter inserts a convert op (otherwise it'd treat the type symbol
         // as a callable and emit `unreachable`).
@@ -64,6 +68,16 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
               };
             }
           }
+        }
+        // Non-generic direct call to a chosen overload: synthesise a
+        // LoweredCall whose callee is the chosen symbol (the resolver's
+        // primary would route to the wrong fn entry otherwise).
+        if (calleeSym !== resolverSym && calleeSym !== undefined) {
+          return {
+            kind: "LoweredCall", span: expr.span, type: exprType,
+            callee: { kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: calleeSym },
+            args: expr.args.map((a) => lowerExpr(ctx, a.value)),
+          };
         }
       }
       // GenericInstExpr callee (explicit `foo(T)(args)` form, if the parser ever produces it).
@@ -132,6 +146,15 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
               }
             }
           }
+        }
+        // Virtual dispatch on a Trait-typed receiver — chain `is X -> impl_X`
+        // checks over every impl of the trait. Lets `err.message()` work when
+        // `err: Error` without forcing the user to match on each concrete
+        // error type at every call site.
+        const virtual = ctx.typed.traitVirtualResolutions.get(expr.callee);
+        if (virtual !== undefined) {
+          const dispatched = lowerVirtualDispatch(ctx, expr, expr.callee, exprType, virtual.trait, virtual.member.name);
+          if (dispatched !== null) return dispatched;
         }
         const freeSym = ctx.typed.ufcsFreeResolutions.get(expr.callee);
         if (freeSym !== undefined) {
@@ -236,7 +259,30 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
     const cellRef: LoweredExpr = { kind: "LoweredIdent", span: expr.span, type, symbol: sym };
     return { kind: "LoweredCellGet", span: expr.span, type, target: cellRef, valueType: type };
   }
+  // Match-arm narrowing: the slot stores the declared union type but the
+  // typed-AST has narrowed this access to a concrete variant (e.g. inside
+  // `is f64 -> ...`). Insert a LoweredCast so the C emit unboxes via
+  // `.payload.f` instead of feeding `vader_box_t` into a primitive op.
+  const declared = declaredTypeOfSymbol(ctx, sym);
+  if (declared !== null && declared.kind === "Union" && !equalsType(declared, type)) {
+    return {
+      kind: "LoweredCast", span: expr.span, type,
+      value: { kind: "LoweredIdent", span: expr.span, type: declared, symbol: sym },
+    };
+  }
   return { kind: "LoweredIdent", span: expr.span, type, symbol: sym };
+}
+
+function declaredTypeOfSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {
+  if (sym.kind === "param" && sym.source.kind === "param") {
+    const t = ctx.typed.paramTypes.get(sym.source.param);
+    return t !== undefined ? applySubst(t, ctx.subst) : null;
+  }
+  if (sym.kind === "local" && sym.source.kind === "local") {
+    const t = ctx.typed.localTypes.get(sym.source.stmt);
+    return t !== undefined ? applySubst(t, ctx.subst) : null;
+  }
+  return null;
 }
 
 function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): LoweredExpr {
@@ -310,6 +356,89 @@ function lowerUfcsCall(
       ...expr.args.map((a) => lowerExpr(ctx, a.value)),
     ],
   };
+}
+
+/** Synthesise a tag-keyed dispatch for `recv.method(args)` where `recv` has a
+ *  trait type. Returns null when no impl in scope can handle the call (caller
+ *  falls back to the existing error path). */
+function lowerVirtualDispatch(
+  ctx: FnLowerCtx, expr: A.CallExpr, callee: A.FieldExpr, exprType: Type,
+  traitSym: Symbol, methodName: string,
+): LoweredExpr | null {
+  type Cand = { forType: Type; memberSym: Symbol };
+  const candidates: Cand[] = [];
+  for (const impl of ctx.project.impls.forTrait(traitSym)) {
+    const member = impl.decl.members.find((m) => m.name === methodName);
+    if (member === undefined) continue;
+    // Primitive impls and generic struct impls are skipped — primitives carry
+    // a per-primitive box tag but the chain is structured around `is Struct`
+    // checks ; generic impls would need the instance args, which the
+    // trait-typed receiver doesn't expose. Common case (Error) is non-generic.
+    if (impl.forSymbol === null || impl.forSymbol.source.kind !== "struct") continue;
+    if (impl.forSymbol.source.decl.typeParams.length > 0) continue;
+    const entry = lookupImplEntry(ctx, member, []);
+    if (entry === null || entry.symbol === null) continue;
+    candidates.push({
+      forType: { kind: "Struct", symbol: impl.forSymbol, args: [] },
+      memberSym: entry.symbol,
+    });
+  }
+  if (candidates.length === 0) return null;
+
+  const span = expr.span;
+  const recvSym = freshSyntheticSymbol(ctx, "vdisp");
+  const recvType = applySubst(ctx.typed.exprTypes.get(callee.target) ?? TY.unresolved, ctx.subst);
+  const recvLet: LoweredExpr = {
+    kind: "LoweredBlock", span, type: exprType, stmts: [
+      {
+        kind: "LoweredLet", span, name: recvSym.name, symbol: recvSym,
+        type: recvType, value: lowerExpr(ctx, callee.target),
+      },
+    ],
+    trailing: buildDispatchChain(ctx, candidates, expr, exprType, recvSym, recvType),
+  };
+  return recvLet;
+}
+
+function buildDispatchChain(
+  ctx: FnLowerCtx,
+  candidates: ReadonlyArray<{ forType: Type; memberSym: Symbol }>,
+  expr: A.CallExpr, exprType: Type,
+  recvSym: Symbol, recvType: Type,
+): LoweredExpr {
+  const span = expr.span;
+  const tailArgs = expr.args.map((a) => lowerExpr(ctx, a.value));
+
+  let chain: LoweredExpr = {
+    kind: "LoweredUnreachable", span, type: exprType,
+    reason: "no matching impl for virtual trait dispatch",
+  };
+  for (let i = candidates.length - 1; i >= 0; i--) {
+    const c = candidates[i]!;
+    const recvIdent: LoweredExpr = {
+      kind: "LoweredIdent", span, type: recvType, symbol: recvSym,
+    };
+    const cond: LoweredExpr = {
+      kind: "LoweredTypeCheck", span, type: TY.bool,
+      value: recvIdent, checkType: c.forType,
+    };
+    const cast: LoweredExpr = {
+      kind: "LoweredCast", span, type: c.forType,
+      value: { kind: "LoweredIdent", span, type: recvType, symbol: recvSym },
+    };
+    const call: LoweredExpr = {
+      kind: "LoweredCall", span, type: exprType,
+      callee: { kind: "LoweredIdent", span, type: exprType, symbol: c.memberSym },
+      args: [cast, ...tailArgs],
+    };
+    chain = {
+      kind: "LoweredIf", span, type: exprType,
+      cond,
+      then: wrapAsBlock(call, span),
+      else: wrapAsBlock(chain, span),
+    };
+  }
+  return chain;
 }
 
 export function lowerIf(ctx: FnLowerCtx, expr: A.IfExpr, exprType: Type): LoweredIf {

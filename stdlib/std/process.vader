@@ -1,0 +1,47 @@
+// std/process — synchronous external-process invocation.
+//
+// Native-only in MVP : the runtime wires `posix_spawnp` + pipes for stdout
+// and stderr. WASM has no spawn equivalent (browser sandboxing makes it
+// meaningless ; WASI preview2's process API is post-MVP), so the imports
+// below are unbound on `--target=wasm` and fail at link time.
+
+// Sentinels mirror the negative codes returned by `vader_spawn_run` — kept
+// in sync with `runtime/c/vader.h`'s VADER_SPAWN_* macros.
+private LAUNCH_FAIL :: -1
+private SIGNALED    :: -2
+
+ProcessError :: struct {
+    msg: string
+}
+
+ProcessError implements Error {
+    fn message(self) -> string { return self.msg }
+}
+
+ProcessResult :: struct {
+    exit:   i32
+    stdout: string
+    stderr: string
+}
+
+private spawn_run         :: fn(argv: [string]) -> i32
+private spawn_last_stdout :: fn() -> string
+private spawn_last_stderr :: fn() -> string
+
+// spawn — run `argv[0]` with `argv[1..]` as arguments, block until exit,
+// return the exit code plus captured stdout/stderr.
+spawn :: fn(argv: [string]) -> ProcessResult! {
+    if argv.len() == 0 {
+        return ProcessError { .msg = "spawn: empty argv" }
+    }
+    code :: spawn_run(argv)
+    out  :: spawn_last_stdout()
+    err  :: spawn_last_stderr()
+    if code == LAUNCH_FAIL {
+        return ProcessError { .msg = "spawn: failed to launch \"${argv[0]}\"" }
+    }
+    if code == SIGNALED {
+        return ProcessError { .msg = "spawn: \"${argv[0]}\" terminated by signal" }
+    }
+    return ProcessResult { .exit = code, .stdout = out, .stderr = err }
+}

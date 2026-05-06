@@ -1,0 +1,14 @@
+# Comptime
+
+## tests/snippets/transitive_mono/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Yielded(string)
+  ArrayIter($T)
+  ArrayIter(i32)
+  ArrayIter(string)
+  inner_count(i32)
+  inner_count(string)
+  outer(i32)
+  outer(string)

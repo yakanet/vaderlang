@@ -36,6 +36,15 @@ export interface TraitMethodResolution {
   readonly receiverParam: Type;
 }
 
+/** Virtual trait method dispatch on a trait-typed receiver. Recorded by the
+ *  type-checker when `obj.method()` and `obj : Some Trait`; the lowerer reads
+ *  it to synthesise an `is X -> X_method(box)` cascade over each impl in the
+ *  registry. */
+export interface TraitVirtualResolution {
+  readonly trait: Symbol;
+  readonly member: A.FnDecl;
+}
+
 export interface TypedProgram {
   readonly resolved: ResolvedProgram;
 
@@ -59,6 +68,10 @@ export interface TypedProgram {
    *  trait that owns `method`. Resolved at mono time once the substitution
    *  pins the receiver to a concrete type. */
   readonly traitMethodResolutions: ReadonlyMap<A.FieldExpr, TraitMethodResolution>;
+  /** `obj.method` where `obj` itself has a Trait type (existential). The
+   *  lowerer emits a chain of `is X -> X_method(box)` dispatches over every
+   *  registered impl of the trait. */
+  readonly traitVirtualResolutions: ReadonlyMap<A.FieldExpr, TraitVirtualResolution>;
   /** `obj.fn(args)` UFCS on free imported functions — rewritten to `fn(obj, args)`.
    *  Populated by the typechecker after validating first-param compatibility. */
   readonly ufcsFreeResolutions: ReadonlyMap<A.FieldExpr, Symbol>;
@@ -68,6 +81,9 @@ export interface TypedProgram {
   /** Generic fn call sites whose type params were successfully inferred.
    *  Ordered by the fn's `typeParams` list. Consumed by the lowerer. */
   readonly genericFnCalls: ReadonlyMap<A.CallExpr, readonly Type[]>;
+  /** Direct `f(args)` calls where overload resolution picked a non-primary
+   *  fn symbol. Lowerer consults this before falling back to `resolved.idents`. */
+  readonly directCallOverloads: ReadonlyMap<A.CallExpr, Symbol>;
 }
 
 export interface TypedProject {

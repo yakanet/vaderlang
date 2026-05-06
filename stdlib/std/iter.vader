@@ -94,3 +94,23 @@ skip :: fn(arr: [$T], n: i32) -> [T] {
     }
     return out
 }
+
+// slice — copy `arr[start..<end]` into a fresh array. Bounds are clamped
+// (start to [0, len], end to [start, len]), so out-of-range indices yield a
+// shorter result rather than panicking. Negative indices are not supported.
+slice :: fn(arr: [$T], start: i32, end: i32) -> [T] {
+    out: [T] = []
+    len := arr.len()
+    lo := start
+    if lo < 0 { lo = 0 }
+    if lo > len { lo = len }
+    hi := end
+    if hi < lo { hi = lo }
+    if hi > len { hi = len }
+    i := lo
+    for i < hi {
+        out.push(arr[i])
+        i = i + 1
+    }
+    return out
+}

@@ -17,12 +17,16 @@ export interface ImplEntry {
 
 export class ImplRegistry {
   private readonly userIndex = new Map<string, ImplEntry>();
+  private readonly byTrait = new Map<number, ImplEntry[]>();
   private readonly all: ImplEntry[] = [];
 
   add(entry: ImplEntry): void {
     if (entry.forSymbol !== null) {
       this.userIndex.set(`${entry.forSymbol.id}::${entry.traitSymbol.id}`, entry);
     }
+    const bucket = this.byTrait.get(entry.traitSymbol.id);
+    if (bucket === undefined) this.byTrait.set(entry.traitSymbol.id, [entry]);
+    else bucket.push(entry);
     this.all.push(entry);
   }
 
@@ -35,12 +39,19 @@ export class ImplRegistry {
   }
 
   forPrimitive(name: string, traitSymbol: Symbol): ImplEntry | null {
-    for (const e of this.all) {
+    const bucket = this.byTrait.get(traitSymbol.id);
+    if (bucket === undefined) return null;
+    for (const e of bucket) {
       if (e.forSymbol !== null) continue;
-      if (e.traitSymbol.id !== traitSymbol.id) continue;
       if (e.decl.forType.kind === "NamedType" && e.decl.forType.name === name) return e;
     }
     return null;
+  }
+
+  /** Every impl whose trait matches — used by the lowerer to synthesise
+   *  virtual dispatch over a trait-typed receiver. */
+  forTrait(traitSymbol: Symbol): readonly ImplEntry[] {
+    return this.byTrait.get(traitSymbol.id) ?? [];
   }
 
   entries(): readonly ImplEntry[] { return this.all; }

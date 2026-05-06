@@ -8,7 +8,7 @@
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
-import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
+import { declOf, sourceStructDecl, sourceTraitDecl } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
@@ -32,9 +32,26 @@ export function inferCall(
     if (sym !== undefined && (sym.kind === "builtin-type" || sym.kind === "struct" || sym.kind === "type-alias")) {
       return inferTypeConstructorCall(expr, t, impls, diags, fn);
     }
+    // Direct-call overload resolution: a fn name that resolves to multiple
+    // sibling overloads needs the right candidate picked by the first arg's
+    // type before we infer the callee's fn type. Matches the UFCS dispatch
+    // policy (concrete > symbol-match > wildcard).
+    if (sym !== undefined && sym.kind === "fn") {
+      const overloads = fnOverloadsForSymbol(sym, t);
+      if (overloads.length > 1 && expr.args.length > 0) {
+        const firstArgTy = checkExpr(expr.args[0]!.value, null, t, impls, diags, fn);
+        const chosen = pickDirectCallOverload(overloads, firstArgTy, t);
+        if (chosen !== null && chosen !== sym) {
+          t.directCallOverloads.set(expr, chosen);
+        } else if (chosen === null) {
+          err(diags, "T3032", expr.callee.span,
+            `no overload of \`${sym.name}\` matches receiver ${displayType(firstArgTy)}`);
+        }
+      }
+    }
   }
 
-  const calleeType = checkExpr(expr.callee, null, t, impls, diags, fn);
+  const calleeType = chooseCalleeType(expr, t, impls, diags, fn);
 
   if (calleeType.kind !== "Fn") {
     if (calleeType.kind !== "Unresolved") err(diags, "T3007", expr.callee.span, displayType(calleeType));
@@ -75,7 +92,7 @@ export function inferCall(
     const arg = expr.args[i]!;
     const expectedTy = i < calleeType.params.length ? calleeType.params[i]! : null;
     const got = checkExpr(arg.value, expectedTy, t, impls, diags, fn);
-    if (expectedTy !== null && !isAssignable(got, expectedTy)) {
+    if (expectedTy !== null && !isAssignable(got, expectedTy, impls)) {
       err(diags, "T3001", arg.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(got)}`);
     }
@@ -108,7 +125,7 @@ function inferGenericFnCall(
   // Step 4: assignability check against the substituted param types.
   for (let i = 0; i < calleeType.params.length && i < argTypes.length; i++) {
     const expectedTy = substitute(calleeType.params[i]!, subst);
-    if (!typeContainsTypeParam(expectedTy) && !isAssignable(argTypes[i]!, expectedTy)) {
+    if (!typeContainsTypeParam(expectedTy) && !isAssignable(argTypes[i]!, expectedTy, impls)) {
       err(diags, "T3001", expr.args[i]!.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(argTypes[i]!)}`);
     }
@@ -236,6 +253,31 @@ export function inferField(
     return methodBoundFnType(method, t);
   }
 
+  // Trait receiver: `t: Some Trait; t.method()`. The runtime knows the actual
+  // struct via the box tag, so the lowerer emits a chain of `is X -> X_method`
+  // dispatches over every known impl of the trait. Type-check side just
+  // returns the method's bound fn type (with Self → trait receiver).
+  if (targetType.kind === "Trait") {
+    const traitDecl = sourceTraitDecl(targetType.symbol);
+    if (traitDecl !== null) {
+      const member = traitDecl.members.find((m) => m.name === expr.field);
+      if (member !== undefined) {
+        const fnType = t.globals.declTypes.get(member);
+        if (fnType !== undefined && fnType.kind === "Fn") {
+          t.traitVirtualResolutions.set(expr, { trait: targetType.symbol, member });
+          // Drop the receiver param (params[0] is `self`); substitute Self with
+          // the trait type so the return type is meaningful at the call site.
+          const subst: Substitution = { self: targetType };
+          return {
+            kind: "Fn",
+            params: fnType.params.slice(1).map((p) => substitute(p, subst)),
+            returnType: substitute(fnType.returnType, subst),
+          };
+        }
+      }
+    }
+  }
+
   // Trait-method dispatch on a generic type parameter — receiver type is a
   // bare `$T`; we look up its bounds via the resolver's `typeParamBounds`,
   // then for each bound trait check whether it owns the requested method.
@@ -301,35 +343,29 @@ function traitMethodBoundFnType(
   };
 }
 
-/** Validate that `freeSym` (or one of its sibling overloads) is a fn whose
- *  first param accepts `targetType`, record the chosen resolution, and return
- *  the bound fn type (params without the first). Returns null when no
- *  candidate matches — caller emits T3009.
+/** Rank fn overloads by their first parameter's compatibility with `recvType`,
+ *  returning the best of three tiers (best wins) and a runner-up at the
+ *  concrete tier so callers can flag ambiguity (T3032).
  *
- *  Match-rank ladder (best wins; ties at the *concrete* tier emit T3032) :
  *    1. Concrete `isAssignable` (no TypeParams in first-param at all).
  *    2. Generic struct/trait of same symbol as receiver (e.g. first-param
  *       `MutableList($T)` matches receiver `MutableList(i32)` by symbol.id).
  *    3. Pure type-param wildcard (`fn(self: $T, ...)`) — accepts anything.
  */
-function inferUfcsFreeBound(
-  expr: A.FieldExpr, freeSym: Symbol, targetType: Type, t: MutableTyped,
-  diags: DiagnosticCollector,
-): Type | null {
-  const overloads = fnOverloadsForSymbol(freeSym, t);
-
+function rankOverloadsByFirstParam(
+  overloads: readonly Symbol[], recvType: Type, t: MutableTyped,
+): { concrete: Symbol | null; concreteOther: Symbol | null; symMatch: Symbol | null; wildcard: Symbol | null } {
   let concrete: Symbol | null = null;
   let concreteOther: Symbol | null = null;
   let symMatch: Symbol | null = null;
   let wildcard: Symbol | null = null;
-
   for (const cand of overloads) {
     const decl = declOf(cand);
     const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
     if (fnType === undefined || fnType.kind !== "Fn") continue;
     const firstParam = fnType.params[0];
     if (firstParam === undefined) continue;
-    if (matchesByStructSymbol(firstParam, targetType)) {
+    if (matchesByStructSymbol(firstParam, recvType)) {
       if (symMatch === null) symMatch = cand;
       continue;
     }
@@ -337,20 +373,29 @@ function inferUfcsFreeBound(
       if (wildcard === null) wildcard = cand;
       continue;
     }
-    if (typeContainsTypeParam(firstParam)) continue;     // already handled by symbol-match
-    if (!isAssignable(targetType, firstParam)) continue;
+    if (typeContainsTypeParam(firstParam)) continue;
+    if (!isAssignable(recvType, firstParam)) continue;
     if (concrete === null) concrete = cand;
     else if (concreteOther === null) concreteOther = cand;
   }
+  return { concrete, concreteOther, symMatch, wildcard };
+}
 
-  if (concrete !== null && concreteOther !== null) {
+/** Validate that `freeSym` (or one of its sibling overloads) is a fn whose
+ *  first param accepts `targetType`, record the chosen resolution, and return
+ *  the bound fn type (params without the first). Returns null when no
+ *  candidate matches — caller emits T3009. */
+function inferUfcsFreeBound(
+  expr: A.FieldExpr, freeSym: Symbol, targetType: Type, t: MutableTyped,
+  diags: DiagnosticCollector,
+): Type | null {
+  const ranked = rankOverloadsByFirstParam(fnOverloadsForSymbol(freeSym, t), targetType, t);
+  if (ranked.concrete !== null && ranked.concreteOther !== null) {
     err(diags, "T3032", expr.fieldSpan,
       `multiple concrete candidates for \`${expr.field}\` on ${displayType(targetType)}`);
   }
-
-  const chosen = concrete ?? symMatch ?? wildcard;
+  const chosen = ranked.concrete ?? ranked.symMatch ?? ranked.wildcard;
   if (chosen === null) return null;
-
   const decl = declOf(chosen);
   const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
   if (fnType === undefined || fnType.kind !== "Fn") return null;
@@ -384,6 +429,37 @@ function fnOverloadsForSymbol(sym: Symbol, t: MutableTyped): readonly Symbol[] {
   return bucket !== undefined && bucket.length > 0 ? bucket : [sym];
 }
 
+/** Pick the best overload for a direct `f(arg, …)` call by matching the
+ *  first argument's type. Mirrors UFCS dispatch policy. Returns null when no
+ *  candidate matches. */
+function pickDirectCallOverload(
+  overloads: readonly Symbol[], firstArgTy: Type, t: MutableTyped,
+): Symbol | null {
+  const ranked = rankOverloadsByFirstParam(overloads, firstArgTy, t);
+  return ranked.concrete ?? ranked.symMatch ?? ranked.wildcard;
+}
+
+/** Build the fn-typed `calleeType` for an inferCall, honoring the chosen
+ *  overload when overload resolution picked a non-primary symbol. Falls back to
+ *  the resolver's primary by running `checkExpr(expr.callee, …)` as before. */
+function chooseCalleeType(
+  expr: A.CallExpr, t: MutableTyped, impls: ImplRegistry,
+  diags: DiagnosticCollector, fn: FnContext | null,
+): Type {
+  const chosen = t.directCallOverloads.get(expr);
+  if (chosen !== undefined) {
+    const decl = declOf(chosen);
+    const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
+    if (fnType !== undefined && fnType.kind === "Fn") {
+      // Record the chosen fn type on the callee so downstream consumers
+      // (lower's emit-by-type heuristics, dump tooling) see the picked overload.
+      t.exprTypes.set(expr.callee, fnType);
+      return fnType;
+    }
+  }
+  return checkExpr(expr.callee, null, t, impls, diags, fn);
+}
+
 /** Generic UFCS free-fn call. Uses the full fn type (receiver as params[0]) to
  *  infer type-param bindings from both the receiver and the explicit arguments. */
 function inferGenericUfcsCall(
@@ -412,7 +488,7 @@ function inferGenericUfcsCall(
     const paramIdx = i + 1;
     if (paramIdx >= fullFnType.params.length) break;
     const expectedTy = substitute(fullFnType.params[paramIdx]!, subst);
-    if (!typeContainsTypeParam(expectedTy) && !isAssignable(explicitArgTypes[i]!, expectedTy)) {
+    if (!typeContainsTypeParam(expectedTy) && !isAssignable(explicitArgTypes[i]!, expectedTy, impls)) {
       err(diags, "T3001", expr.args[i]!.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(explicitArgTypes[i]!)}`);
     }
@@ -432,7 +508,13 @@ function recordGenericCallSite(
     const tpSym = t.globals.typeParamSymbols.get(tp);
     return tpSym !== undefined ? (bindings.get(tpSym.id) ?? TY.unresolved) : TY.unresolved;
   });
-  if (typeArgs.every((a) => a.kind !== "Unresolved" && a.kind !== "TypeParam")) {
+  // Record even when args still contain TypeParams — the comptime
+  // closeOverGenericImpls pass substitutes them at each enclosing instance to
+  // observe transitive generic call sites (e.g. inner_fn called from
+  // outer_fn<T>'s body materialises `inner_fn<i32>` once outer_fn<i32> is
+  // observed). Unresolved entries are still skipped — those signal a real
+  // unification failure already reported elsewhere.
+  if (typeArgs.every((a) => a.kind !== "Unresolved")) {
     t.genericFnCalls.set(expr, typeArgs);
   }
 }

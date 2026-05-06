@@ -109,13 +109,15 @@
                                   sum#67 :i32
                                 r:
                                   .left :i32
-                                    cur#68 :Pair
+                                    cast → Pair
+                                      cur#68 :null | Pair
                           assign
                             target:
                               cur#68 :Pair
                             value:
                               .right :null | Pair
-                                cur#68 :Pair
+                                cast → Pair
+                                  cur#68 :null | Pair
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void

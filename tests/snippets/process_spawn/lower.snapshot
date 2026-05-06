@@ -1,0 +1,120 @@
+# Lower
+
+## tests/snippets/process_spawn/_main.vader
+  fn tests_snippets_process_spawn__main_vader$main() -> i32
+    let r#65: Error | ProcessResult =
+      call :Error | ProcessResult
+        callee:
+          spawn#42 :fn([string]) -> Error | ProcessResult
+        arg0:
+          array :[string]
+            "/bin/echo" :string
+            "ok" :string
+    block :void
+      let __scrut_0#-1: Error | ProcessResult = r#65 :Error | ProcessResult
+      ~>
+        if :void
+          cond:
+            is ProcessResult :bool
+              __scrut_0#-1 :Error | ProcessResult
+          then:
+            ~>
+              block :void
+                call :void
+                  callee:
+                    println#30 :fn(string) -> void
+                  arg0:
+                    block :string
+                      let __sb_3#-4: ? =
+                        @builder.new :?
+                      @builder.append_str :void
+                        __sb_3#-4 :?
+                        "exit=" :string
+                      @builder.append_display <for i32> :void
+                        __sb_3#-4 :?
+                        .exit :i32
+                          cast → ProcessResult
+                            r#65 :Error | ProcessResult
+                      ~>
+                        @builder.finish :string
+                          __sb_3#-4 :?
+                ~>
+                  call :void
+                    callee:
+                      println#30 :fn(string) -> void
+                    arg0:
+                      block :string
+                        let __sb_4#-5: ? =
+                          @builder.new :?
+                        @builder.append_str :void
+                          __sb_4#-5 :?
+                          "out=" :string
+                        @builder.append_display <for string> :void
+                          __sb_4#-5 :?
+                          .stdout :string
+                            cast → ProcessResult
+                              r#65 :Error | ProcessResult
+                        ~>
+                          @builder.finish :string
+                            __sb_4#-5 :?
+          else:
+            ~>
+              if :void
+                cond:
+                  is Error :bool
+                    __scrut_0#-1 :Error | ProcessResult
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#30 :fn(string) -> void
+                      arg0:
+                        block :string
+                          let __sb_1#-2: ? =
+                            @builder.new :?
+                          @builder.append_str :void
+                            __sb_1#-2 :?
+                            "err: " :string
+                          @builder.append_display <for string> :void
+                            __sb_1#-2 :?
+                            block :string
+                              let __vdisp_2#-3: Error =
+                                cast → Error
+                                  r#65 :Error | ProcessResult
+                              ~>
+                                if :string
+                                  cond:
+                                    is IOError :bool
+                                      __vdisp_2#-3 :Error
+                                  then:
+                                    ~>
+                                      call :string
+                                        callee:
+                                          message#1000010 :string
+                                        arg0:
+                                          cast → IOError
+                                            __vdisp_2#-3 :Error
+                                  else:
+                                    ~>
+                                      if :string
+                                        cond:
+                                          is ProcessError :bool
+                                            __vdisp_2#-3 :Error
+                                        then:
+                                          ~>
+                                            call :string
+                                              callee:
+                                                message#1000011 :string
+                                              arg0:
+                                                cast → ProcessError
+                                                  __vdisp_2#-3 :Error
+                                        else:
+                                          ~>
+                                            unreachable("no matching impl for virtual trait dispatch") :string
+                          ~>
+                            @builder.finish :string
+                              __sb_1#-2 :?
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    return int(0) :i32

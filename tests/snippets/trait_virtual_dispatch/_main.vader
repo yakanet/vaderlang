@@ -1,0 +1,25 @@
+// Virtual dispatch on a trait-typed receiver. The lowerer synthesises an
+// `is X -> X_method(box)` cascade over every impl of the trait, picked by the
+// runtime tag carried in the boxed value.
+
+import "std/io" { println }
+
+ParseErr :: struct { msg: string }
+NetErr   :: struct { reason: string }
+
+ParseErr implements Error {
+    fn message(self) -> string { return "parse: ${self.msg}" }
+}
+NetErr implements Error {
+    fn message(self) -> string { return "net: ${self.reason}" }
+}
+
+report :: fn(e: Error) -> string {
+    return e.message()
+}
+
+main :: fn() -> i32 {
+    println(report(ParseErr { .msg = "bad token" }))
+    println(report(NetErr   { .reason = "timeout" }))
+    return 0
+}

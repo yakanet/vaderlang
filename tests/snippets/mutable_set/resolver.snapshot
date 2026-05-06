@@ -17,7 +17,7 @@
   fn               public   put 
   struct           public   Set 
   fn               public   values 
-  refs: idents=119 types=98 params=18 locals=25 typeParams=26 fields=0
+  refs: idents=111 types=100 params=18 locals=25 typeParams=26 fields=0
 
 ## std/core
   trait            public   Add 
@@ -60,8 +60,9 @@
   import-binding   private  contains → contains
   import-binding   private  len → len
   fn               public   main 
+  import-binding   private  MutableMap → MutableMap
   import-binding   private  MutableSet → MutableSet
   import-binding   private  println → println
   import std/io → ok
   import std/collections → ok
-  refs: idents=12 types=3 params=0 locals=1 typeParams=0 fields=0
+  refs: idents=12 types=6 params=0 locals=1 typeParams=0 fields=0

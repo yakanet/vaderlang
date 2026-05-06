@@ -40,4 +40,4 @@
   fn               public   main 
   import-binding   private  println → println
   import std/io → ok
-  refs: idents=11 types=2 params=1 locals=3 typeParams=0 fields=0
+  refs: idents=7 types=2 params=1 locals=1 typeParams=0 fields=0

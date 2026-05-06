@@ -36,7 +36,8 @@
                   callee:
                     println#31 :fn(string) -> void
                   arg0:
-                    res#59 :string
+                    cast → string
+                      res#59 :Error | string
             else:
               ~>
                 if :void

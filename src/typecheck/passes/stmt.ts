@@ -46,7 +46,7 @@ export function checkFnBody(
   // Implicit return: if the block has no trailing expr the body type is void
   // (already handled). If the trailing expr is incompatible the diagnostic
   // already fired.
-  if (body.trailing !== null && !isAssignable(got, ctx.returnType)) {
+  if (body.trailing !== null && !isAssignable(got, ctx.returnType, impls)) {
     err(diags, "T3020", body.trailing.span,
       `expected ${displayType(ctx.returnType)}, got ${displayType(got)}`);
   }
@@ -74,17 +74,21 @@ function checkStmt(
       const expected = stmt.type !== null ? lowerTypeExpr(stmt.type, t, diags) : null;
       const got = checkExpr(stmt.value, expected, t, impls, diags, fn);
       const declared = expected ?? defaultIfFree(got);
-      if (expected !== null && !isAssignable(got, expected)) {
+      if (expected !== null && !isAssignable(got, expected, impls)) {
         err(diags, "T3001", stmt.span,
           `expected ${displayType(expected)}, got ${displayType(got)}`);
       }
       t.localTypes.set(stmt, declared);
       return;
     }
-    case "AssignStmt":
-      checkExpr(stmt.target, null, t, impls, diags, fn);
-      checkExpr(stmt.value, null, t, impls, diags, fn);
+    case "AssignStmt": {
+      const targetType = checkExpr(stmt.target, null, t, impls, diags, fn);
+      // Pass the target's type as expected so free numeric literals adopt it
+      // (e.g. `v: u64; v = 5` → `5: u64`, not `5: i32`).
+      const valueCtx = targetType.kind === "Unresolved" ? null : targetType;
+      checkExpr(stmt.value, valueCtx, t, impls, diags, fn);
       return;
+    }
     case "ExprStmt":
       checkExpr(stmt.expr, null, t, impls, diags, fn);
       return;
@@ -98,7 +102,7 @@ function checkStmt(
         return;
       }
       const got = checkExpr(stmt.value, fn.returnType, t, impls, diags, fn);
-      if (!isAssignable(got, fn.returnType)) {
+      if (!isAssignable(got, fn.returnType, impls)) {
         err(diags, "T3020", stmt.span,
           `expected ${displayType(fn.returnType)}, got ${displayType(got)}`);
       }
