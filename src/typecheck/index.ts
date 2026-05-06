@@ -23,8 +23,12 @@ export function checkProject(project: ResolvedProject, diags: DiagnosticCollecto
 
   // Pass 1: declare every module's top-level types into shared globals so that
   // cross-module references (calls into std/io, generic instantiations, etc.)
-  // see concrete types when bodies are checked.
-  for (const program of project.modules.values()) declareModule(program, globals, diags);
+  // see concrete types when bodies are checked. Split in two so that any
+  // struct field / fn signature referencing an enum sees the fully-populated
+  // `Enum` type (with its `indices` map) regardless of decl order across
+  // modules.
+  for (const program of project.modules.values()) declareModule(program, globals, diags, "enums");
+  for (const program of project.modules.values()) declareModule(program, globals, diags, "rest");
 
   // Pass 2: check expression bodies.
   const modules = new Map<string, TypedProgram>();

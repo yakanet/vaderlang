@@ -1,0 +1,94 @@
+// vader/lexer/token — token shapes for the self-hosted lexer.
+//
+// Mirror of `src/lexer/token.ts`. One enum variant per kind so downstream
+// passes get exhaustive `match` checking. Token payload uses sentinel-default
+// fields rather than a payload union (simpler; the kind tells you which slot
+// is meaningful).
+
+Position :: struct {
+    offset: i32
+    line: i32
+    column: i32
+}
+
+Span :: struct {
+    start: Position
+    end: Position
+}
+
+TokenKind :: enum {
+    // Identifiers and literals
+    Ident,
+    IntLit,
+    FloatLit,
+    CharLit,
+
+    // String tokens. A literal yields:
+    //   StringBegin ( StringPart | InterpOpen <expr...> InterpClose )* StringEnd
+    StringBegin,
+    StringPart,
+    StringEnd,
+    InterpOpen,
+    InterpClose,
+
+    // Keywords
+    KwFn, KwStruct, KwTrait, KwImplements, KwImpl, KwEnum,
+    KwIf, KwElse, KwMatch, KwIs, KwFor, KwIn,
+    KwReturn, KwDefer, KwBreak, KwContinue,
+    KwImport, KwAs, KwPrivate,
+    KwTrue, KwFalse, KwNull,
+    KwType, KwWhere, KwSelf,
+
+    // Operators
+    Plus, Minus, Star, Slash, Percent,
+    Amp, Pipe, Caret, Tilde, Shl, Shr,
+    Eq, Neq, Lt, Lte, Gt, Gte,
+    AndAnd, OrOr, Bang,
+    Assign,        // =
+    DeclConst,     // ::
+    DeclVar,       // :=
+    RangeExcl,     // ..<
+    RangeIncl,     // ..=
+    Question,      // ?
+    Arrow,         // ->
+    FatArrow,      // =>
+    At,            // @
+    Dollar,        // $
+
+    // Punctuation
+    LParen, RParen,
+    LBracket, RBracket,
+    LBrace, RBrace,
+    Comma, Dot, Colon,
+
+    // Layout
+    Newline,
+    Eof,
+}
+
+// `value` carries the parsed payload: the integer for `IntLit`, the float for
+// `FloatLit`, the codepoint for `CharLit`, the decoded text for `StringPart`,
+// and `null` for everything else (keywords, ops, punctuation). `numeric_suffix`
+// is independent — it coexists with `value` on numeric literals.
+Token :: struct {
+    kind: TokenKind
+    text: string
+    span: Span
+    value: i64 | f64 | u32 | string | null
+    numeric_suffix: string
+}
+
+empty_span :: fn() -> Span {
+    p := Position { .offset = 0, .line = 1, .column = 1 }
+    return Span { .start = p, .end = p }
+}
+
+make_token :: fn(kind: TokenKind, text: string, span: Span) -> Token {
+    return Token {
+        .kind = kind,
+        .text = text,
+        .span = span,
+        .value = null,
+        .numeric_suffix = "",
+    }
+}

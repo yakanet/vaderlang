@@ -1,0 +1,3708 @@
+# Lower
+
+## tests/snippets/selfhost_lexer_basic/_main.vader
+  fn tests_snippets_selfhost_lexer_basic__main_vader$kind_name(k: TokenKind) -> string
+    ~>
+      block :string
+        let __scrut_0#-1: TokenKind = k#129 :TokenKind
+        ~>
+          if :string
+            cond:
+              eq :bool
+                l:
+                  __scrut_0#-1 :TokenKind
+                r:
+                  int(0) :i32
+            then:
+              ~>
+                "ident" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0#-1 :TokenKind
+                      r:
+                        int(1) :i32
+                  then:
+                    ~>
+                      "int" :string
+                  else:
+                    ~>
+                      if :string
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0#-1 :TokenKind
+                            r:
+                              int(2) :i32
+                        then:
+                          ~>
+                            "float" :string
+                        else:
+                          ~>
+                            if :string
+                              cond:
+                                eq :bool
+                                  l:
+                                    __scrut_0#-1 :TokenKind
+                                  r:
+                                    int(9) :i32
+                              then:
+                                ~>
+                                  "kw_fn" :string
+                              else:
+                                ~>
+                                  if :string
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          __scrut_0#-1 :TokenKind
+                                        r:
+                                          int(15) :i32
+                                    then:
+                                      ~>
+                                        "kw_if" :string
+                                    else:
+                                      ~>
+                                        if :string
+                                          cond:
+                                            eq :bool
+                                              l:
+                                                __scrut_0#-1 :TokenKind
+                                              r:
+                                                int(21) :i32
+                                          then:
+                                            ~>
+                                              "kw_return" :string
+                                          else:
+                                            ~>
+                                              if :string
+                                                cond:
+                                                  eq :bool
+                                                    l:
+                                                      __scrut_0#-1 :TokenKind
+                                                    r:
+                                                      int(28) :i32
+                                                then:
+                                                  ~>
+                                                    "kw_true" :string
+                                                else:
+                                                  ~>
+                                                    if :string
+                                                      cond:
+                                                        eq :bool
+                                                          l:
+                                                            __scrut_0#-1 :TokenKind
+                                                          r:
+                                                            int(34) :i32
+                                                      then:
+                                                        ~>
+                                                          "plus" :string
+                                                      else:
+                                                        ~>
+                                                          if :string
+                                                            cond:
+                                                              eq :bool
+                                                                l:
+                                                                  __scrut_0#-1 :TokenKind
+                                                                r:
+                                                                  int(35) :i32
+                                                            then:
+                                                              ~>
+                                                                "minus" :string
+                                                            else:
+                                                              ~>
+                                                                if :string
+                                                                  cond:
+                                                                    eq :bool
+                                                                      l:
+                                                                        __scrut_0#-1 :TokenKind
+                                                                      r:
+                                                                        int(36) :i32
+                                                                  then:
+                                                                    ~>
+                                                                      "star" :string
+                                                                  else:
+                                                                    ~>
+                                                                      if :string
+                                                                        cond:
+                                                                          eq :bool
+                                                                            l:
+                                                                              __scrut_0#-1 :TokenKind
+                                                                            r:
+                                                                              int(37) :i32
+                                                                        then:
+                                                                          ~>
+                                                                            "slash" :string
+                                                                        else:
+                                                                          ~>
+                                                                            if :string
+                                                                              cond:
+                                                                                eq :bool
+                                                                                  l:
+                                                                                    __scrut_0#-1 :TokenKind
+                                                                                  r:
+                                                                                    int(45) :i32
+                                                                              then:
+                                                                                ~>
+                                                                                  "eq" :string
+                                                                              else:
+                                                                                ~>
+                                                                                  if :string
+                                                                                    cond:
+                                                                                      eq :bool
+                                                                                        l:
+                                                                                          __scrut_0#-1 :TokenKind
+                                                                                        r:
+                                                                                          int(47) :i32
+                                                                                    then:
+                                                                                      ~>
+                                                                                        "lt" :string
+                                                                                    else:
+                                                                                      ~>
+                                                                                        if :string
+                                                                                          cond:
+                                                                                            eq :bool
+                                                                                              l:
+                                                                                                __scrut_0#-1 :TokenKind
+                                                                                              r:
+                                                                                                int(54) :i32
+                                                                                          then:
+                                                                                            ~>
+                                                                                              "assign" :string
+                                                                                          else:
+                                                                                            ~>
+                                                                                              if :string
+                                                                                                cond:
+                                                                                                  eq :bool
+                                                                                                    l:
+                                                                                                      __scrut_0#-1 :TokenKind
+                                                                                                    r:
+                                                                                                      int(55) :i32
+                                                                                                then:
+                                                                                                  ~>
+                                                                                                    "decl_const" :string
+                                                                                                else:
+                                                                                                  ~>
+                                                                                                    if :string
+                                                                                                      cond:
+                                                                                                        eq :bool
+                                                                                                          l:
+                                                                                                            __scrut_0#-1 :TokenKind
+                                                                                                          r:
+                                                                                                            int(56) :i32
+                                                                                                      then:
+                                                                                                        ~>
+                                                                                                          "decl_var" :string
+                                                                                                      else:
+                                                                                                        ~>
+                                                                                                          if :string
+                                                                                                            cond:
+                                                                                                              eq :bool
+                                                                                                                l:
+                                                                                                                  __scrut_0#-1 :TokenKind
+                                                                                                                r:
+                                                                                                                  int(60) :i32
+                                                                                                            then:
+                                                                                                              ~>
+                                                                                                                "arrow" :string
+                                                                                                            else:
+                                                                                                              ~>
+                                                                                                                if :string
+                                                                                                                  cond:
+                                                                                                                    eq :bool
+                                                                                                                      l:
+                                                                                                                        __scrut_0#-1 :TokenKind
+                                                                                                                      r:
+                                                                                                                        int(57) :i32
+                                                                                                                  then:
+                                                                                                                    ~>
+                                                                                                                      "range_excl" :string
+                                                                                                                  else:
+                                                                                                                    ~>
+                                                                                                                      if :string
+                                                                                                                        cond:
+                                                                                                                          eq :bool
+                                                                                                                            l:
+                                                                                                                              __scrut_0#-1 :TokenKind
+                                                                                                                            r:
+                                                                                                                              int(70) :i32
+                                                                                                                        then:
+                                                                                                                          ~>
+                                                                                                                            "comma" :string
+                                                                                                                        else:
+                                                                                                                          ~>
+                                                                                                                            if :string
+                                                                                                                              cond:
+                                                                                                                                eq :bool
+                                                                                                                                  l:
+                                                                                                                                    __scrut_0#-1 :TokenKind
+                                                                                                                                  r:
+                                                                                                                                    int(71) :i32
+                                                                                                                              then:
+                                                                                                                                ~>
+                                                                                                                                  "dot" :string
+                                                                                                                              else:
+                                                                                                                                ~>
+                                                                                                                                  if :string
+                                                                                                                                    cond:
+                                                                                                                                      eq :bool
+                                                                                                                                        l:
+                                                                                                                                          __scrut_0#-1 :TokenKind
+                                                                                                                                        r:
+                                                                                                                                          int(72) :i32
+                                                                                                                                    then:
+                                                                                                                                      ~>
+                                                                                                                                        "colon" :string
+                                                                                                                                    else:
+                                                                                                                                      ~>
+                                                                                                                                        if :string
+                                                                                                                                          cond:
+                                                                                                                                            eq :bool
+                                                                                                                                              l:
+                                                                                                                                                __scrut_0#-1 :TokenKind
+                                                                                                                                              r:
+                                                                                                                                                int(62) :i32
+                                                                                                                                          then:
+                                                                                                                                            ~>
+                                                                                                                                              "at" :string
+                                                                                                                                          else:
+                                                                                                                                            ~>
+                                                                                                                                              if :string
+                                                                                                                                                cond:
+                                                                                                                                                  eq :bool
+                                                                                                                                                    l:
+                                                                                                                                                      __scrut_0#-1 :TokenKind
+                                                                                                                                                    r:
+                                                                                                                                                      int(64) :i32
+                                                                                                                                                then:
+                                                                                                                                                  ~>
+                                                                                                                                                    "lparen" :string
+                                                                                                                                                else:
+                                                                                                                                                  ~>
+                                                                                                                                                    if :string
+                                                                                                                                                      cond:
+                                                                                                                                                        eq :bool
+                                                                                                                                                          l:
+                                                                                                                                                            __scrut_0#-1 :TokenKind
+                                                                                                                                                          r:
+                                                                                                                                                            int(65) :i32
+                                                                                                                                                      then:
+                                                                                                                                                        ~>
+                                                                                                                                                          "rparen" :string
+                                                                                                                                                      else:
+                                                                                                                                                        ~>
+                                                                                                                                                          if :string
+                                                                                                                                                            cond:
+                                                                                                                                                              eq :bool
+                                                                                                                                                                l:
+                                                                                                                                                                  __scrut_0#-1 :TokenKind
+                                                                                                                                                                r:
+                                                                                                                                                                  int(68) :i32
+                                                                                                                                                            then:
+                                                                                                                                                              ~>
+                                                                                                                                                                "lbrace" :string
+                                                                                                                                                            else:
+                                                                                                                                                              ~>
+                                                                                                                                                                if :string
+                                                                                                                                                                  cond:
+                                                                                                                                                                    eq :bool
+                                                                                                                                                                      l:
+                                                                                                                                                                        __scrut_0#-1 :TokenKind
+                                                                                                                                                                      r:
+                                                                                                                                                                        int(69) :i32
+                                                                                                                                                                  then:
+                                                                                                                                                                    ~>
+                                                                                                                                                                      "rbrace" :string
+                                                                                                                                                                  else:
+                                                                                                                                                                    ~>
+                                                                                                                                                                      if :string
+                                                                                                                                                                        cond:
+                                                                                                                                                                          eq :bool
+                                                                                                                                                                            l:
+                                                                                                                                                                              __scrut_0#-1 :TokenKind
+                                                                                                                                                                            r:
+                                                                                                                                                                              int(66) :i32
+                                                                                                                                                                        then:
+                                                                                                                                                                          ~>
+                                                                                                                                                                            "lbracket" :string
+                                                                                                                                                                        else:
+                                                                                                                                                                          ~>
+                                                                                                                                                                            if :string
+                                                                                                                                                                              cond:
+                                                                                                                                                                                eq :bool
+                                                                                                                                                                                  l:
+                                                                                                                                                                                    __scrut_0#-1 :TokenKind
+                                                                                                                                                                                  r:
+                                                                                                                                                                                    int(67) :i32
+                                                                                                                                                                              then:
+                                                                                                                                                                                ~>
+                                                                                                                                                                                  "rbracket" :string
+                                                                                                                                                                              else:
+                                                                                                                                                                                ~>
+                                                                                                                                                                                  if :string
+                                                                                                                                                                                    cond:
+                                                                                                                                                                                      eq :bool
+                                                                                                                                                                                        l:
+                                                                                                                                                                                          __scrut_0#-1 :TokenKind
+                                                                                                                                                                                        r:
+                                                                                                                                                                                          int(73) :i32
+                                                                                                                                                                                    then:
+                                                                                                                                                                                      ~>
+                                                                                                                                                                                        "newline" :string
+                                                                                                                                                                                    else:
+                                                                                                                                                                                      ~>
+                                                                                                                                                                                        if :string
+                                                                                                                                                                                          cond:
+                                                                                                                                                                                            eq :bool
+                                                                                                                                                                                              l:
+                                                                                                                                                                                                __scrut_0#-1 :TokenKind
+                                                                                                                                                                                              r:
+                                                                                                                                                                                                int(74) :i32
+                                                                                                                                                                                          then:
+                                                                                                                                                                                            ~>
+                                                                                                                                                                                              "eof" :string
+                                                                                                                                                                                          else:
+                                                                                                                                                                                            ~>
+                                                                                                                                                                                              "??" :string
+  fn tests_snippets_selfhost_lexer_basic__main_vader$show(label: string, source: string) -> void
+    call :void
+      callee:
+        println#32 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0#-2 :?
+            "# " :string
+          @builder.append_display <for string> :void
+            __sb_0#-2 :?
+            label#130 :string
+          ~>
+            @builder.finish :string
+              __sb_0#-2 :?
+    let l#132: Lexer =
+      call :Lexer
+        callee:
+          tokenize#68 :fn(string, string) -> Lexer
+        arg0:
+          source#131 :string
+        arg1:
+          "t.v" :string
+    let n#133: i32 =
+      LoweredArrayLen
+    let i#134: i32 = int(0) :i32
+    loop while (<…>)
+      let t#135: Token =
+        index :Token
+          on:
+            .tokens :[Token]
+              l#132 :Lexer
+          ix:
+            i#134 :i32
+      if :void
+        cond:
+          eq :bool
+            l:
+              .kind :TokenKind
+                t#135 :Token
+            r:
+              int(73) :i32
+        then:
+          ~>
+            call :void
+              callee:
+                println#32 :fn(string) -> void
+              arg0:
+                "  newline" :string
+        else:
+          ~>
+            call :void
+              callee:
+                println#32 :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_1#-3: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_1#-3 :?
+                    "  " :string
+                  @builder.append_display <for string> :void
+                    __sb_1#-3 :?
+                    call :string
+                      callee:
+                        kind_name#4 :fn(TokenKind) -> string
+                      arg0:
+                        .kind :TokenKind
+                          t#135 :Token
+                  @builder.append_str :void
+                    __sb_1#-3 :?
+                    " '" :string
+                  @builder.append_display <for string> :void
+                    __sb_1#-3 :?
+                    .text :string
+                      t#135 :Token
+                  @builder.append_str :void
+                    __sb_1#-3 :?
+                    "'" :string
+                  ~>
+                    @builder.finish :string
+                      __sb_1#-3 :?
+      assign
+        target:
+          i#134 :i32
+        value:
+          add :i32
+            l:
+              i#134 :i32
+            r:
+              int(1) :i32
+    let en#136: i32 =
+      LoweredArrayLen
+    ~>
+      if :void
+        cond:
+          gt :bool
+            l:
+              en#136 :i32
+            r:
+              int(0) :i32
+        then:
+          let j#137: i32 = int(0) :i32
+          loop while (<…>)
+            call :void
+              callee:
+                println#32 :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_2#-4: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_2#-4 :?
+                    "  err: " :string
+                  @builder.append_display <for string> :void
+                    __sb_2#-4 :?
+                    index :string
+                      on:
+                        .errors :[string]
+                          l#132 :Lexer
+                      ix:
+                        j#137 :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_2#-4 :?
+            assign
+              target:
+                j#137 :i32
+              value:
+                add :i32
+                  l:
+                    j#137 :i32
+                  r:
+                    int(1) :i32
+  fn tests_snippets_selfhost_lexer_basic__main_vader$main() -> i32
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "decl_var" :string
+      arg1:
+        "x := 42" :string
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "expr" :string
+      arg1:
+        "a + b * c" :string
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "fn_header" :string
+      arg1:
+        "main :: fn() -> i32 {}" :string
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "if_return" :string
+      arg1:
+        "if x == 0 { return 1 }" :string
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "range" :string
+      arg1:
+        "for i in 0..<10 {}" :string
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "comment" :string
+      arg1:
+        "y := 1 // tail\nz := 2" :string
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "block_cmt" :string
+      arg1:
+        "/* outer /* inner */ tail */ a" :string
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "suppress" :string
+      arg1:
+        "x =\n  1 +\n  2" :string
+    call :void
+      callee:
+        show#5 :fn(string, string) -> void
+      arg0:
+        "suffix" :string
+      arg1:
+        "n := 42_i32 + 7u64" :string
+    return int(0) :i32
+
+## vader/lexer
+  fn vader_lexer$lookup_keyword(text: string) -> TokenKind
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "fn" :string
+      then:
+        return int(9) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "struct" :string
+      then:
+        return int(10) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "trait" :string
+      then:
+        return int(11) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "implements" :string
+      then:
+        return int(12) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "impl" :string
+      then:
+        return int(13) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "enum" :string
+      then:
+        return int(14) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "if" :string
+      then:
+        return int(15) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "else" :string
+      then:
+        return int(16) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "match" :string
+      then:
+        return int(17) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "is" :string
+      then:
+        return int(18) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "for" :string
+      then:
+        return int(19) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "in" :string
+      then:
+        return int(20) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "return" :string
+      then:
+        return int(21) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "defer" :string
+      then:
+        return int(22) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "break" :string
+      then:
+        return int(23) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "continue" :string
+      then:
+        return int(24) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "import" :string
+      then:
+        return int(25) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "as" :string
+      then:
+        return int(26) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "private" :string
+      then:
+        return int(27) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "true" :string
+      then:
+        return int(28) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "false" :string
+      then:
+        return int(29) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "null" :string
+      then:
+        return int(30) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "type" :string
+      then:
+        return int(31) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "where" :string
+      then:
+        return int(32) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            text#197 :string
+          r:
+            "self" :string
+      then:
+        return int(33) :i32
+    return int(0) :i32
+  fn vader_lexer$is_int_suffix(s: string) -> bool
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#198 :string
+          r:
+            "i8" :string
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#198 :string
+          r:
+            "i16" :string
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#198 :string
+          r:
+            "i32" :string
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#198 :string
+          r:
+            "i64" :string
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#198 :string
+          r:
+            "u8" :string
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#198 :string
+          r:
+            "u16" :string
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#198 :string
+          r:
+            "u32" :string
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#198 :string
+          r:
+            "u64" :string
+      then:
+        return true
+    return false
+  fn vader_lexer$is_float_suffix(s: string) -> bool
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#199 :string
+          r:
+            "f32" :string
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            s#199 :string
+          r:
+            "f64" :string
+      then:
+        return true
+    return false
+  struct vader_lexer$Lexer { src: string, file: string, pos: i32, line: i32, col: i32, paren_depth: i32, last_kind: TokenKind, tokens: [Token], errors: [string] }
+  fn vader_lexer$new_lexer(source: string, file: string) -> Lexer
+    return
+      Lexer {
+        src: source#200 :string
+        file: file#201 :string
+        pos: int(0) :i32
+        line: int(1) :i32
+        col: int(1) :i32
+        paren_depth: int(0) :i32
+        last_kind: int(73) :i32
+        tokens:
+          array :[Token]
+        errors:
+          array :[string]
+      }
+  fn vader_lexer$is_digit(c: char) -> bool
+    return
+      and :bool
+        l:
+          gte :bool
+            l:
+              c#202 :char
+            r:
+              char(0x30)
+        r:
+          lte :bool
+            l:
+              c#202 :char
+            r:
+              char(0x39)
+  fn vader_lexer$is_ident_start(c: char) -> bool
+    if :void
+      cond:
+        and :bool
+          l:
+            gte :bool
+              l:
+                c#203 :char
+              r:
+                char(0x61)
+          r:
+            lte :bool
+              l:
+                c#203 :char
+              r:
+                char(0x7a)
+      then:
+        return true
+    if :void
+      cond:
+        and :bool
+          l:
+            gte :bool
+              l:
+                c#203 :char
+              r:
+                char(0x41)
+          r:
+            lte :bool
+              l:
+                c#203 :char
+              r:
+                char(0x5a)
+      then:
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#203 :char
+          r:
+            char(0x5f)
+      then:
+        return true
+    return false
+  fn vader_lexer$is_ident_continue(c: char) -> bool
+    if :void
+      cond:
+        call :bool
+          callee:
+            is_ident_start#46 :bool
+          arg0:
+            c#204 :char
+      then:
+        return true
+    return
+      call :bool
+        callee:
+          is_digit#45 :bool
+        arg0:
+          c#204 :char
+  fn vader_lexer$suppresses_newline_after(k: TokenKind) -> bool
+    ~>
+      block :bool
+        let __scrut_0#-5: TokenKind = k#205 :TokenKind
+        ~>
+          if :bool
+            cond:
+              eq :bool
+                l:
+                  __scrut_0#-5 :TokenKind
+                r:
+                  int(34) :i32
+            then:
+              ~>
+                true
+            else:
+              ~>
+                if :bool
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0#-5 :TokenKind
+                      r:
+                        int(35) :i32
+                  then:
+                    ~>
+                      true
+                  else:
+                    ~>
+                      if :bool
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0#-5 :TokenKind
+                            r:
+                              int(36) :i32
+                        then:
+                          ~>
+                            true
+                        else:
+                          ~>
+                            if :bool
+                              cond:
+                                eq :bool
+                                  l:
+                                    __scrut_0#-5 :TokenKind
+                                  r:
+                                    int(37) :i32
+                              then:
+                                ~>
+                                  true
+                              else:
+                                ~>
+                                  if :bool
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          __scrut_0#-5 :TokenKind
+                                        r:
+                                          int(38) :i32
+                                    then:
+                                      ~>
+                                        true
+                                    else:
+                                      ~>
+                                        if :bool
+                                          cond:
+                                            eq :bool
+                                              l:
+                                                __scrut_0#-5 :TokenKind
+                                              r:
+                                                int(39) :i32
+                                          then:
+                                            ~>
+                                              true
+                                          else:
+                                            ~>
+                                              if :bool
+                                                cond:
+                                                  eq :bool
+                                                    l:
+                                                      __scrut_0#-5 :TokenKind
+                                                    r:
+                                                      int(40) :i32
+                                                then:
+                                                  ~>
+                                                    true
+                                                else:
+                                                  ~>
+                                                    if :bool
+                                                      cond:
+                                                        eq :bool
+                                                          l:
+                                                            __scrut_0#-5 :TokenKind
+                                                          r:
+                                                            int(41) :i32
+                                                      then:
+                                                        ~>
+                                                          true
+                                                      else:
+                                                        ~>
+                                                          if :bool
+                                                            cond:
+                                                              eq :bool
+                                                                l:
+                                                                  __scrut_0#-5 :TokenKind
+                                                                r:
+                                                                  int(43) :i32
+                                                            then:
+                                                              ~>
+                                                                true
+                                                            else:
+                                                              ~>
+                                                                if :bool
+                                                                  cond:
+                                                                    eq :bool
+                                                                      l:
+                                                                        __scrut_0#-5 :TokenKind
+                                                                      r:
+                                                                        int(44) :i32
+                                                                  then:
+                                                                    ~>
+                                                                      true
+                                                                  else:
+                                                                    ~>
+                                                                      if :bool
+                                                                        cond:
+                                                                          eq :bool
+                                                                            l:
+                                                                              __scrut_0#-5 :TokenKind
+                                                                            r:
+                                                                              int(45) :i32
+                                                                        then:
+                                                                          ~>
+                                                                            true
+                                                                        else:
+                                                                          ~>
+                                                                            if :bool
+                                                                              cond:
+                                                                                eq :bool
+                                                                                  l:
+                                                                                    __scrut_0#-5 :TokenKind
+                                                                                  r:
+                                                                                    int(46) :i32
+                                                                              then:
+                                                                                ~>
+                                                                                  true
+                                                                              else:
+                                                                                ~>
+                                                                                  if :bool
+                                                                                    cond:
+                                                                                      eq :bool
+                                                                                        l:
+                                                                                          __scrut_0#-5 :TokenKind
+                                                                                        r:
+                                                                                          int(47) :i32
+                                                                                    then:
+                                                                                      ~>
+                                                                                        true
+                                                                                    else:
+                                                                                      ~>
+                                                                                        if :bool
+                                                                                          cond:
+                                                                                            eq :bool
+                                                                                              l:
+                                                                                                __scrut_0#-5 :TokenKind
+                                                                                              r:
+                                                                                                int(48) :i32
+                                                                                          then:
+                                                                                            ~>
+                                                                                              true
+                                                                                          else:
+                                                                                            ~>
+                                                                                              if :bool
+                                                                                                cond:
+                                                                                                  eq :bool
+                                                                                                    l:
+                                                                                                      __scrut_0#-5 :TokenKind
+                                                                                                    r:
+                                                                                                      int(49) :i32
+                                                                                                then:
+                                                                                                  ~>
+                                                                                                    true
+                                                                                                else:
+                                                                                                  ~>
+                                                                                                    if :bool
+                                                                                                      cond:
+                                                                                                        eq :bool
+                                                                                                          l:
+                                                                                                            __scrut_0#-5 :TokenKind
+                                                                                                          r:
+                                                                                                            int(50) :i32
+                                                                                                      then:
+                                                                                                        ~>
+                                                                                                          true
+                                                                                                      else:
+                                                                                                        ~>
+                                                                                                          if :bool
+                                                                                                            cond:
+                                                                                                              eq :bool
+                                                                                                                l:
+                                                                                                                  __scrut_0#-5 :TokenKind
+                                                                                                                r:
+                                                                                                                  int(51) :i32
+                                                                                                            then:
+                                                                                                              ~>
+                                                                                                                true
+                                                                                                            else:
+                                                                                                              ~>
+                                                                                                                if :bool
+                                                                                                                  cond:
+                                                                                                                    eq :bool
+                                                                                                                      l:
+                                                                                                                        __scrut_0#-5 :TokenKind
+                                                                                                                      r:
+                                                                                                                        int(52) :i32
+                                                                                                                  then:
+                                                                                                                    ~>
+                                                                                                                      true
+                                                                                                                  else:
+                                                                                                                    ~>
+                                                                                                                      if :bool
+                                                                                                                        cond:
+                                                                                                                          eq :bool
+                                                                                                                            l:
+                                                                                                                              __scrut_0#-5 :TokenKind
+                                                                                                                            r:
+                                                                                                                              int(57) :i32
+                                                                                                                        then:
+                                                                                                                          ~>
+                                                                                                                            true
+                                                                                                                        else:
+                                                                                                                          ~>
+                                                                                                                            if :bool
+                                                                                                                              cond:
+                                                                                                                                eq :bool
+                                                                                                                                  l:
+                                                                                                                                    __scrut_0#-5 :TokenKind
+                                                                                                                                  r:
+                                                                                                                                    int(58) :i32
+                                                                                                                              then:
+                                                                                                                                ~>
+                                                                                                                                  true
+                                                                                                                              else:
+                                                                                                                                ~>
+                                                                                                                                  if :bool
+                                                                                                                                    cond:
+                                                                                                                                      eq :bool
+                                                                                                                                        l:
+                                                                                                                                          __scrut_0#-5 :TokenKind
+                                                                                                                                        r:
+                                                                                                                                          int(54) :i32
+                                                                                                                                    then:
+                                                                                                                                      ~>
+                                                                                                                                        true
+                                                                                                                                    else:
+                                                                                                                                      ~>
+                                                                                                                                        if :bool
+                                                                                                                                          cond:
+                                                                                                                                            eq :bool
+                                                                                                                                              l:
+                                                                                                                                                __scrut_0#-5 :TokenKind
+                                                                                                                                              r:
+                                                                                                                                                int(72) :i32
+                                                                                                                                          then:
+                                                                                                                                            ~>
+                                                                                                                                              true
+                                                                                                                                          else:
+                                                                                                                                            ~>
+                                                                                                                                              if :bool
+                                                                                                                                                cond:
+                                                                                                                                                  eq :bool
+                                                                                                                                                    l:
+                                                                                                                                                      __scrut_0#-5 :TokenKind
+                                                                                                                                                    r:
+                                                                                                                                                      int(60) :i32
+                                                                                                                                                then:
+                                                                                                                                                  ~>
+                                                                                                                                                    true
+                                                                                                                                                else:
+                                                                                                                                                  ~>
+                                                                                                                                                    if :bool
+                                                                                                                                                      cond:
+                                                                                                                                                        eq :bool
+                                                                                                                                                          l:
+                                                                                                                                                            __scrut_0#-5 :TokenKind
+                                                                                                                                                          r:
+                                                                                                                                                            int(61) :i32
+                                                                                                                                                      then:
+                                                                                                                                                        ~>
+                                                                                                                                                          true
+                                                                                                                                                      else:
+                                                                                                                                                        ~>
+                                                                                                                                                          if :bool
+                                                                                                                                                            cond:
+                                                                                                                                                              eq :bool
+                                                                                                                                                                l:
+                                                                                                                                                                  __scrut_0#-5 :TokenKind
+                                                                                                                                                                r:
+                                                                                                                                                                  int(70) :i32
+                                                                                                                                                            then:
+                                                                                                                                                              ~>
+                                                                                                                                                                true
+                                                                                                                                                            else:
+                                                                                                                                                              ~>
+                                                                                                                                                                false
+  fn vader_lexer$at_end(l: Lexer) -> bool
+    return
+      gte :bool
+        l:
+          .pos :i32
+            l#206 :Lexer
+        r:
+          call :i32
+            callee:
+              len#80 :i32
+            arg0:
+              .src :string
+                l#206 :Lexer
+  fn vader_lexer$peek(l: Lexer) -> char
+    if :void
+      cond:
+        gte :bool
+          l:
+            .pos :i32
+              l#207 :Lexer
+          r:
+            call :i32
+              callee:
+                len#80 :i32
+              arg0:
+                .src :string
+                  l#207 :Lexer
+      then:
+        return char(0x0)
+    return
+      call :char
+        callee:
+          char_at#85 :char
+        arg0:
+          .src :string
+            l#207 :Lexer
+        arg1:
+          .pos :i32
+            l#207 :Lexer
+  fn vader_lexer$peek_at(l: Lexer, n: i32) -> char
+    let p#210: i32 =
+      add :i32
+        l:
+          .pos :i32
+            l#208 :Lexer
+        r:
+          n#209 :i32
+    if :void
+      cond:
+        gte :bool
+          l:
+            p#210 :i32
+          r:
+            call :i32
+              callee:
+                len#80 :i32
+              arg0:
+                .src :string
+                  l#208 :Lexer
+      then:
+        return char(0x0)
+    return
+      call :char
+        callee:
+          char_at#85 :char
+        arg0:
+          .src :string
+            l#208 :Lexer
+        arg1:
+          p#210 :i32
+  fn vader_lexer$position_here(l: Lexer) -> Position
+    return
+      Position {
+        offset:
+          .pos :i32
+            l#211 :Lexer
+        line:
+          .line :i32
+            l#211 :Lexer
+        column:
+          .col :i32
+            l#211 :Lexer
+      }
+  fn vader_lexer$advance(l: Lexer, n: i32) -> void
+    let i#214: i32 = int(0) :i32
+    loop while (<…>)
+      if :void
+        cond:
+          gte :bool
+            l:
+              .pos :i32
+                l#212 :Lexer
+            r:
+              call :i32
+                callee:
+                  len#80 :i32
+                arg0:
+                  .src :string
+                    l#212 :Lexer
+        then:
+          return
+      let c#215: char =
+        call :char
+          callee:
+            char_at#85 :char
+          arg0:
+            .src :string
+              l#212 :Lexer
+          arg1:
+            .pos :i32
+              l#212 :Lexer
+      if :void
+        cond:
+          eq :bool
+            l:
+              c#215 :char
+            r:
+              char(0xa)
+        then:
+          assign
+            target:
+              .line :i32
+                l#212 :Lexer
+            value:
+              add :i32
+                l:
+                  .line :i32
+                    l#212 :Lexer
+                r:
+                  int(1) :i32
+          assign
+            target:
+              .col :i32
+                l#212 :Lexer
+            value:
+              int(1) :i32
+        else:
+          assign
+            target:
+              .col :i32
+                l#212 :Lexer
+            value:
+              add :i32
+                l:
+                  .col :i32
+                    l#212 :Lexer
+                r:
+                  int(1) :i32
+      assign
+        target:
+          .pos :i32
+            l#212 :Lexer
+        value:
+          add :i32
+            l:
+              .pos :i32
+                l#212 :Lexer
+            r:
+              int(1) :i32
+      assign
+        target:
+          i#214 :i32
+        value:
+          add :i32
+            l:
+              i#214 :i32
+            r:
+              int(1) :i32
+  fn vader_lexer$emit(l: Lexer, t: Token) -> void
+    LoweredArrayPush
+    assign
+      target:
+        .last_kind :TokenKind
+          l#216 :Lexer
+      value:
+        .kind :TokenKind
+          t#217 :Token
+  fn vader_lexer$push_simple(l: Lexer, kind: TokenKind, text: string, start: Position) -> void
+    let span#222: Span =
+      Span {
+        start: start#221 :Position
+        end:
+          call :Position
+            callee:
+              position_here#52 :Position
+            arg0:
+              l#218 :Lexer
+      }
+    ~>
+      call :void
+        callee:
+          emit#54 :void
+        arg0:
+          l#218 :Lexer
+        arg1:
+          call :Token
+            callee:
+              make_token#74 :fn(TokenKind, string, Span) -> Token
+            arg0:
+              kind#219 :TokenKind
+            arg1:
+              text#220 :string
+            arg2:
+              span#222 :Span
+  fn vader_lexer$push_error(l: Lexer, msg: string) -> void
+    ~>
+      LoweredArrayPush
+  fn vader_lexer$skip_horizontal(l: Lexer) -> void
+    loop while (<…>)
+      let c#226: char =
+        call :char
+          callee:
+            peek#50 :char
+          arg0:
+            l#225 :Lexer
+      ~>
+        if :void
+          cond:
+            or :bool
+              l:
+                eq :bool
+                  l:
+                    c#226 :char
+                  r:
+                    char(0x20)
+              r:
+                eq :bool
+                  l:
+                    c#226 :char
+                  r:
+                    char(0x9)
+          then:
+            ~>
+              call :void
+                callee:
+                  advance#53 :void
+                arg0:
+                  l#225 :Lexer
+                arg1:
+                  int(1) :i32
+          else:
+            return
+  fn vader_lexer$lex_block_comment(l: Lexer) -> void
+    let start#228: Position =
+      call :Position
+        callee:
+          position_here#52 :Position
+        arg0:
+          l#227 :Lexer
+    call :void
+      callee:
+        advance#53 :void
+      arg0:
+        l#227 :Lexer
+      arg1:
+        int(2) :i32
+    let depth#229: i32 = int(1) :i32
+    loop while (<…>)
+      if :void
+        cond:
+          and :bool
+            l:
+              eq :bool
+                l:
+                  call :char
+                    callee:
+                      peek#50 :char
+                    arg0:
+                      l#227 :Lexer
+                r:
+                  char(0x2f)
+            r:
+              eq :bool
+                l:
+                  call :char
+                    callee:
+                      peek_at#51 :char
+                    arg0:
+                      l#227 :Lexer
+                    arg1:
+                      int(1) :i32
+                r:
+                  char(0x2a)
+        then:
+          call :void
+            callee:
+              advance#53 :void
+            arg0:
+              l#227 :Lexer
+            arg1:
+              int(2) :i32
+          assign
+            target:
+              depth#229 :i32
+            value:
+              add :i32
+                l:
+                  depth#229 :i32
+                r:
+                  int(1) :i32
+          continue
+      if :void
+        cond:
+          and :bool
+            l:
+              eq :bool
+                l:
+                  call :char
+                    callee:
+                      peek#50 :char
+                    arg0:
+                      l#227 :Lexer
+                r:
+                  char(0x2a)
+            r:
+              eq :bool
+                l:
+                  call :char
+                    callee:
+                      peek_at#51 :char
+                    arg0:
+                      l#227 :Lexer
+                    arg1:
+                      int(1) :i32
+                r:
+                  char(0x2f)
+        then:
+          call :void
+            callee:
+              advance#53 :void
+            arg0:
+              l#227 :Lexer
+            arg1:
+              int(2) :i32
+          assign
+            target:
+              depth#229 :i32
+            value:
+              sub :i32
+                l:
+                  depth#229 :i32
+                r:
+                  int(1) :i32
+          continue
+      ~>
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#227 :Lexer
+          arg1:
+            int(1) :i32
+    ~>
+      if :void
+        cond:
+          gt :bool
+            l:
+              depth#229 :i32
+            r:
+              int(0) :i32
+        then:
+          ~>
+            call :void
+              callee:
+                push_error#56 :void
+              arg0:
+                l#227 :Lexer
+              arg1:
+                block :string
+                  let __sb_0#-6: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_0#-6 :?
+                    "L0003: unterminated block comment at " :string
+                  @builder.append_display <for i32> :void
+                    __sb_0#-6 :?
+                    .line :i32
+                      start#228 :Position
+                  @builder.append_str :void
+                    __sb_0#-6 :?
+                    ":" :string
+                  @builder.append_display <for i32> :void
+                    __sb_0#-6 :?
+                    .column :i32
+                      start#228 :Position
+                  ~>
+                    @builder.finish :string
+                      __sb_0#-6 :?
+  fn vader_lexer$handle_newline(l: Lexer) -> void
+    if :void
+      cond:
+        eq :bool
+          l:
+            call :char
+              callee:
+                peek#50 :char
+              arg0:
+                l#230 :Lexer
+          r:
+            char(0xd)
+      then:
+        ~>
+          call :void
+            callee:
+              advance#53 :void
+            arg0:
+              l#230 :Lexer
+            arg1:
+              int(1) :i32
+    if :void
+      cond:
+        eq :bool
+          l:
+            call :char
+              callee:
+                peek#50 :char
+              arg0:
+                l#230 :Lexer
+          r:
+            char(0xa)
+      then:
+        ~>
+          call :void
+            callee:
+              advance#53 :void
+            arg0:
+              l#230 :Lexer
+            arg1:
+              int(1) :i32
+    if :void
+      cond:
+        gt :bool
+          l:
+            .paren_depth :i32
+              l#230 :Lexer
+          r:
+            int(0) :i32
+      then:
+        return
+    if :void
+      cond:
+        call :bool
+          callee:
+            suppresses_newline_after#48 :bool
+          arg0:
+            .last_kind :TokenKind
+              l#230 :Lexer
+      then:
+        return
+    if :void
+      cond:
+        eq :bool
+          l:
+            .last_kind :TokenKind
+              l#230 :Lexer
+          r:
+            int(73) :i32
+      then:
+        return
+    let here#231: Position =
+      call :Position
+        callee:
+          position_here#52 :Position
+        arg0:
+          l#230 :Lexer
+    let span#232: Span =
+      Span {
+        start: here#231 :Position
+        end: here#231 :Position
+      }
+    ~>
+      call :void
+        callee:
+          emit#54 :void
+        arg0:
+          l#230 :Lexer
+        arg1:
+          call :Token
+            callee:
+              make_token#74 :fn(TokenKind, string, Span) -> Token
+            arg0:
+              int(73) :i32
+            arg1:
+              "\n" :string
+            arg2:
+              span#232 :Span
+  fn vader_lexer$lex_ident(l: Lexer) -> void
+    let start#234: Position =
+      call :Position
+        callee:
+          position_here#52 :Position
+        arg0:
+          l#233 :Lexer
+    loop while (<…>)
+      ~>
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#233 :Lexer
+          arg1:
+            int(1) :i32
+    let text#235: string =
+      call :string
+        callee:
+          slice#81 :string
+        arg0:
+          .src :string
+            l#233 :Lexer
+        arg1:
+          .offset :i32
+            start#234 :Position
+        arg2:
+          .pos :i32
+            l#233 :Lexer
+    let kw#236: TokenKind =
+      call :TokenKind
+        callee:
+          lookup_keyword#37 :fn(string) -> TokenKind
+        arg0:
+          text#235 :string
+    ~>
+      call :void
+        callee:
+          push_simple#55 :void
+        arg0:
+          l#233 :Lexer
+        arg1:
+          kw#236 :TokenKind
+        arg2:
+          text#235 :string
+        arg3:
+          start#234 :Position
+  fn vader_lexer$read_numeric_suffix(l: Lexer) -> string
+    let start#238: i32 =
+      .pos :i32
+        l#237 :Lexer
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                call :char
+                  callee:
+                    peek#50 :char
+                  arg0:
+                    l#237 :Lexer
+              r:
+                char(0x5f)
+          r:
+            call :bool
+              callee:
+                is_ident_start#46 :bool
+              arg0:
+                call :char
+                  callee:
+                    peek_at#51 :char
+                  arg0:
+                    l#237 :Lexer
+                  arg1:
+                    int(1) :i32
+      then:
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#237 :Lexer
+          arg1:
+            int(1) :i32
+        let suff_start#239: i32 =
+          .pos :i32
+            l#237 :Lexer
+        loop while (<…>)
+          ~>
+            call :void
+              callee:
+                advance#53 :void
+              arg0:
+                l#237 :Lexer
+              arg1:
+                int(1) :i32
+        return
+          call :string
+            callee:
+              slice#81 :string
+            arg0:
+              .src :string
+                l#237 :Lexer
+            arg1:
+              suff_start#239 :i32
+            arg2:
+              .pos :i32
+                l#237 :Lexer
+    if :void
+      cond:
+        call :bool
+          callee:
+            is_ident_start#46 :bool
+          arg0:
+            call :char
+              callee:
+                peek#50 :char
+              arg0:
+                l#237 :Lexer
+      then:
+        loop while (<…>)
+          ~>
+            call :void
+              callee:
+                advance#53 :void
+              arg0:
+                l#237 :Lexer
+              arg1:
+                int(1) :i32
+        return
+          call :string
+            callee:
+              slice#81 :string
+            arg0:
+              .src :string
+                l#237 :Lexer
+            arg1:
+              start#238 :i32
+            arg2:
+              .pos :i32
+                l#237 :Lexer
+    return "" :string
+  fn vader_lexer$consume_decimal_digits(l: Lexer, start_anchor: Position) -> void
+    let last_was_underscore#242: bool = false
+    let first#243: bool = true
+    loop while (<…>)
+      let c#244: char =
+        call :char
+          callee:
+            peek#50 :char
+          arg0:
+            l#240 :Lexer
+      if :void
+        cond:
+          eq :bool
+            l:
+              c#244 :char
+            r:
+              char(0x5f)
+        then:
+          let next#245: char =
+            call :char
+              callee:
+                peek_at#51 :char
+              arg0:
+                l#240 :Lexer
+              arg1:
+                int(1) :i32
+          if :void
+            cond:
+              and :bool
+                l:
+                  call :bool
+                    callee:
+                      is_ident_start#46 :bool
+                    arg0:
+                      next#245 :char
+                r:
+                  not :bool
+                    call :bool
+                      callee:
+                        is_digit#45 :bool
+                      arg0:
+                        next#245 :char
+            then:
+              return
+          if :void
+            cond:
+              or :bool
+                l:
+                  first#243 :bool
+                r:
+                  last_was_underscore#242 :bool
+            then:
+              ~>
+                call :void
+                  callee:
+                    push_error#56 :void
+                  arg0:
+                    l#240 :Lexer
+                  arg1:
+                    block :string
+                      let __sb_0#-7: ? =
+                        @builder.new :?
+                      @builder.append_str :void
+                        __sb_0#-7 :?
+                        "L0006: underscore not allowed here at " :string
+                      @builder.append_display <for i32> :void
+                        __sb_0#-7 :?
+                        .line :i32
+                          start_anchor#241 :Position
+                      @builder.append_str :void
+                        __sb_0#-7 :?
+                        ":" :string
+                      @builder.append_display <for i32> :void
+                        __sb_0#-7 :?
+                        .column :i32
+                          start_anchor#241 :Position
+                      ~>
+                        @builder.finish :string
+                          __sb_0#-7 :?
+          assign
+            target:
+              last_was_underscore#242 :bool
+            value:
+              true
+          assign
+            target:
+              first#243 :bool
+            value:
+              false
+          call :void
+            callee:
+              advance#53 :void
+            arg0:
+              l#240 :Lexer
+            arg1:
+              int(1) :i32
+          continue
+      if :void
+        cond:
+          call :bool
+            callee:
+              is_digit#45 :bool
+            arg0:
+              c#244 :char
+        then:
+          assign
+            target:
+              last_was_underscore#242 :bool
+            value:
+              false
+          assign
+            target:
+              first#243 :bool
+            value:
+              false
+          call :void
+            callee:
+              advance#53 :void
+            arg0:
+              l#240 :Lexer
+            arg1:
+              int(1) :i32
+          continue
+      return
+  fn vader_lexer$lex_number(l: Lexer) -> void
+    let start#247: Position =
+      call :Position
+        callee:
+          position_here#52 :Position
+        arg0:
+          l#246 :Lexer
+    let is_float#248: bool = false
+    call :void
+      callee:
+        consume_decimal_digits#62 :void
+      arg0:
+        l#246 :Lexer
+      arg1:
+        start#247 :Position
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                call :char
+                  callee:
+                    peek#50 :char
+                  arg0:
+                    l#246 :Lexer
+              r:
+                char(0x2e)
+          r:
+            call :bool
+              callee:
+                is_digit#45 :bool
+              arg0:
+                call :char
+                  callee:
+                    peek_at#51 :char
+                  arg0:
+                    l#246 :Lexer
+                  arg1:
+                    int(1) :i32
+      then:
+        assign
+          target:
+            is_float#248 :bool
+          value:
+            true
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#246 :Lexer
+          arg1:
+            int(1) :i32
+        ~>
+          call :void
+            callee:
+              consume_decimal_digits#62 :void
+            arg0:
+              l#246 :Lexer
+            arg1:
+              start#247 :Position
+    if :void
+      cond:
+        or :bool
+          l:
+            eq :bool
+              l:
+                call :char
+                  callee:
+                    peek#50 :char
+                  arg0:
+                    l#246 :Lexer
+              r:
+                char(0x65)
+          r:
+            eq :bool
+              l:
+                call :char
+                  callee:
+                    peek#50 :char
+                  arg0:
+                    l#246 :Lexer
+              r:
+                char(0x45)
+      then:
+        assign
+          target:
+            is_float#248 :bool
+          value:
+            true
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#246 :Lexer
+          arg1:
+            int(1) :i32
+        if :void
+          cond:
+            or :bool
+              l:
+                eq :bool
+                  l:
+                    call :char
+                      callee:
+                        peek#50 :char
+                      arg0:
+                        l#246 :Lexer
+                  r:
+                    char(0x2b)
+              r:
+                eq :bool
+                  l:
+                    call :char
+                      callee:
+                        peek#50 :char
+                      arg0:
+                        l#246 :Lexer
+                  r:
+                    char(0x2d)
+          then:
+            ~>
+              call :void
+                callee:
+                  advance#53 :void
+                arg0:
+                  l#246 :Lexer
+                arg1:
+                  int(1) :i32
+        if :void
+          cond:
+            not :bool
+              call :bool
+                callee:
+                  is_digit#45 :bool
+                arg0:
+                  call :char
+                    callee:
+                      peek#50 :char
+                    arg0:
+                      l#246 :Lexer
+          then:
+            ~>
+              call :void
+                callee:
+                  push_error#56 :void
+                arg0:
+                  l#246 :Lexer
+                arg1:
+                  block :string
+                    let __sb_0#-8: ? =
+                      @builder.new :?
+                    @builder.append_str :void
+                      __sb_0#-8 :?
+                      "L0006: exponent has no digits at " :string
+                    @builder.append_display <for i32> :void
+                      __sb_0#-8 :?
+                      .line :i32
+                        start#247 :Position
+                    @builder.append_str :void
+                      __sb_0#-8 :?
+                      ":" :string
+                    @builder.append_display <for i32> :void
+                      __sb_0#-8 :?
+                      .column :i32
+                        start#247 :Position
+                    ~>
+                      @builder.finish :string
+                        __sb_0#-8 :?
+        ~>
+          call :void
+            callee:
+              consume_decimal_digits#62 :void
+            arg0:
+              l#246 :Lexer
+            arg1:
+              start#247 :Position
+    let suffix#249: string =
+      call :string
+        callee:
+          read_numeric_suffix#61 :string
+        arg0:
+          l#246 :Lexer
+    let has_suffix#250: bool =
+      gt :bool
+        l:
+          call :i32
+            callee:
+              len#80 :i32
+            arg0:
+              suffix#249 :string
+        r:
+          int(0) :i32
+    if :void
+      cond:
+        and :bool
+          l:
+            and :bool
+              l:
+                has_suffix#250 :bool
+              r:
+                not :bool
+                  call :bool
+                    callee:
+                      is_int_suffix#38 :bool
+                    arg0:
+                      suffix#249 :string
+          r:
+            not :bool
+              call :bool
+                callee:
+                  is_float_suffix#39 :bool
+                arg0:
+                  suffix#249 :string
+      then:
+        ~>
+          call :void
+            callee:
+              push_error#56 :void
+            arg0:
+              l#246 :Lexer
+            arg1:
+              block :string
+                let __sb_1#-9: ? =
+                  @builder.new :?
+                @builder.append_str :void
+                  __sb_1#-9 :?
+                  "L0006: unknown numeric suffix \"" :string
+                @builder.append_display <for string> :void
+                  __sb_1#-9 :?
+                  suffix#249 :string
+                @builder.append_str :void
+                  __sb_1#-9 :?
+                  "\" at " :string
+                @builder.append_display <for i32> :void
+                  __sb_1#-9 :?
+                  .line :i32
+                    start#247 :Position
+                @builder.append_str :void
+                  __sb_1#-9 :?
+                  ":" :string
+                @builder.append_display <for i32> :void
+                  __sb_1#-9 :?
+                  .column :i32
+                    start#247 :Position
+                ~>
+                  @builder.finish :string
+                    __sb_1#-9 :?
+    if :void
+      cond:
+        and :bool
+          l:
+            has_suffix#250 :bool
+          r:
+            call :bool
+              callee:
+                is_float_suffix#39 :bool
+              arg0:
+                suffix#249 :string
+      then:
+        assign
+          target:
+            is_float#248 :bool
+          value:
+            true
+    if :void
+      cond:
+        and :bool
+          l:
+            and :bool
+              l:
+                has_suffix#250 :bool
+              r:
+                call :bool
+                  callee:
+                    is_int_suffix#38 :bool
+                  arg0:
+                    suffix#249 :string
+          r:
+            is_float#248 :bool
+      then:
+        ~>
+          call :void
+            callee:
+              push_error#56 :void
+            arg0:
+              l#246 :Lexer
+            arg1:
+              block :string
+                let __sb_2#-10: ? =
+                  @builder.new :?
+                @builder.append_str :void
+                  __sb_2#-10 :?
+                  "L0006: integer suffix \"" :string
+                @builder.append_display <for string> :void
+                  __sb_2#-10 :?
+                  suffix#249 :string
+                @builder.append_str :void
+                  __sb_2#-10 :?
+                  "\" on a float literal at " :string
+                @builder.append_display <for i32> :void
+                  __sb_2#-10 :?
+                  .line :i32
+                    start#247 :Position
+                @builder.append_str :void
+                  __sb_2#-10 :?
+                  ":" :string
+                @builder.append_display <for i32> :void
+                  __sb_2#-10 :?
+                  .column :i32
+                    start#247 :Position
+                ~>
+                  @builder.finish :string
+                    __sb_2#-10 :?
+    let text#251: string =
+      call :string
+        callee:
+          slice#81 :string
+        arg0:
+          .src :string
+            l#246 :Lexer
+        arg1:
+          .offset :i32
+            start#247 :Position
+        arg2:
+          .pos :i32
+            l#246 :Lexer
+    let span#252: Span =
+      Span {
+        start: start#247 :Position
+        end:
+          call :Position
+            callee:
+              position_here#52 :Position
+            arg0:
+              l#246 :Lexer
+      }
+    let kind#253: TokenKind = int(1) :i32
+    if :void
+      cond:
+        is_float#248 :bool
+      then:
+        assign
+          target:
+            kind#253 :TokenKind
+          value:
+            int(2) :i32
+    let t#254: Token =
+      call :Token
+        callee:
+          make_token#74 :fn(TokenKind, string, Span) -> Token
+        arg0:
+          kind#253 :TokenKind
+        arg1:
+          text#251 :string
+        arg2:
+          span#252 :Span
+    if :void
+      cond:
+        has_suffix#250 :bool
+      then:
+        assign
+          target:
+            .numeric_suffix :string
+              t#254 :Token
+          value:
+            suffix#249 :string
+    ~>
+      call :void
+        callee:
+          emit#54 :void
+        arg0:
+          l#246 :Lexer
+        arg1:
+          t#254 :Token
+  fn vader_lexer$try_lex_operator(l: Lexer) -> bool
+    let c#256: char =
+      call :char
+        callee:
+          peek#50 :char
+        arg0:
+          l#255 :Lexer
+    let c2#257: char =
+      call :char
+        callee:
+          peek_at#51 :char
+        arg0:
+          l#255 :Lexer
+        arg1:
+          int(1) :i32
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x2e)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x2e)
+      then:
+        let c3#258: char =
+          call :char
+            callee:
+              peek_at#51 :char
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(2) :i32
+        if :void
+          cond:
+            eq :bool
+              l:
+                c3#258 :char
+              r:
+                char(0x3c)
+          then:
+            let start#259: Position =
+              call :Position
+                callee:
+                  position_here#52 :Position
+                arg0:
+                  l#255 :Lexer
+            call :void
+              callee:
+                advance#53 :void
+              arg0:
+                l#255 :Lexer
+              arg1:
+                int(3) :i32
+            call :void
+              callee:
+                push_simple#55 :void
+              arg0:
+                l#255 :Lexer
+              arg1:
+                int(57) :i32
+              arg2:
+                "..<" :string
+              arg3:
+                start#259 :Position
+            return true
+        ~>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  c3#258 :char
+                r:
+                  char(0x3d)
+            then:
+              let start#260: Position =
+                call :Position
+                  callee:
+                    position_here#52 :Position
+                  arg0:
+                    l#255 :Lexer
+              call :void
+                callee:
+                  advance#53 :void
+                arg0:
+                  l#255 :Lexer
+                arg1:
+                  int(3) :i32
+              call :void
+                callee:
+                  push_simple#55 :void
+                arg0:
+                  l#255 :Lexer
+                arg1:
+                  int(58) :i32
+                arg2:
+                  "..=" :string
+                arg3:
+                  start#260 :Position
+              return true
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x3d)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3d)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(45) :i32
+            arg2:
+              "==" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x21)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3d)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(46) :i32
+            arg2:
+              "!=" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x3c)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3d)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(48) :i32
+            arg2:
+              "<=" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x3e)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3d)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(50) :i32
+            arg2:
+              ">=" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x26)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x26)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(51) :i32
+            arg2:
+              "&&" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x7c)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x7c)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(52) :i32
+            arg2:
+              "||" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x3c)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3c)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(43) :i32
+            arg2:
+              "<<" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x3e)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3e)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(44) :i32
+            arg2:
+              ">>" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x2d)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3e)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(60) :i32
+            arg2:
+              "->" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x3d)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3e)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(61) :i32
+            arg2:
+              "=>" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x3a)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3a)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(55) :i32
+            arg2:
+              "::" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#256 :char
+              r:
+                char(0x3a)
+          r:
+            eq :bool
+              l:
+                c2#257 :char
+              r:
+                char(0x3d)
+      then:
+        return
+          call :bool
+            callee:
+              emit2#66 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(56) :i32
+            arg2:
+              ":=" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x2b)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(34) :i32
+            arg2:
+              "+" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x2d)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(35) :i32
+            arg2:
+              "-" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x2a)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(36) :i32
+            arg2:
+              "*" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x2f)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(37) :i32
+            arg2:
+              "/" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x25)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(38) :i32
+            arg2:
+              "%" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x26)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(39) :i32
+            arg2:
+              "&" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x7c)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(40) :i32
+            arg2:
+              "|" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x5e)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(41) :i32
+            arg2:
+              "^" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x7e)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(42) :i32
+            arg2:
+              "~" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x3c)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(47) :i32
+            arg2:
+              "<" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x3e)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(49) :i32
+            arg2:
+              ">" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x21)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(53) :i32
+            arg2:
+              "!" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x3d)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(54) :i32
+            arg2:
+              "=" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x3f)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(59) :i32
+            arg2:
+              "?" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x40)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(62) :i32
+            arg2:
+              "@" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x24)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(63) :i32
+            arg2:
+              "$" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x3a)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(72) :i32
+            arg2:
+              ":" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x2c)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(70) :i32
+            arg2:
+              "," :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x2e)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(71) :i32
+            arg2:
+              "." :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x28)
+      then:
+        let start#261: Position =
+          call :Position
+            callee:
+              position_here#52 :Position
+            arg0:
+              l#255 :Lexer
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#255 :Lexer
+          arg1:
+            int(1) :i32
+        assign
+          target:
+            .paren_depth :i32
+              l#255 :Lexer
+          value:
+            add :i32
+              l:
+                .paren_depth :i32
+                  l#255 :Lexer
+              r:
+                int(1) :i32
+        call :void
+          callee:
+            push_simple#55 :void
+          arg0:
+            l#255 :Lexer
+          arg1:
+            int(64) :i32
+          arg2:
+            "(" :string
+          arg3:
+            start#261 :Position
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x5b)
+      then:
+        let start#262: Position =
+          call :Position
+            callee:
+              position_here#52 :Position
+            arg0:
+              l#255 :Lexer
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#255 :Lexer
+          arg1:
+            int(1) :i32
+        assign
+          target:
+            .paren_depth :i32
+              l#255 :Lexer
+          value:
+            add :i32
+              l:
+                .paren_depth :i32
+                  l#255 :Lexer
+              r:
+                int(1) :i32
+        call :void
+          callee:
+            push_simple#55 :void
+          arg0:
+            l#255 :Lexer
+          arg1:
+            int(66) :i32
+          arg2:
+            "[" :string
+          arg3:
+            start#262 :Position
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x29)
+      then:
+        let start#263: Position =
+          call :Position
+            callee:
+              position_here#52 :Position
+            arg0:
+              l#255 :Lexer
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#255 :Lexer
+          arg1:
+            int(1) :i32
+        if :void
+          cond:
+            gt :bool
+              l:
+                .paren_depth :i32
+                  l#255 :Lexer
+              r:
+                int(0) :i32
+          then:
+            assign
+              target:
+                .paren_depth :i32
+                  l#255 :Lexer
+              value:
+                sub :i32
+                  l:
+                    .paren_depth :i32
+                      l#255 :Lexer
+                  r:
+                    int(1) :i32
+        call :void
+          callee:
+            push_simple#55 :void
+          arg0:
+            l#255 :Lexer
+          arg1:
+            int(65) :i32
+          arg2:
+            ")" :string
+          arg3:
+            start#263 :Position
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x5d)
+      then:
+        let start#264: Position =
+          call :Position
+            callee:
+              position_here#52 :Position
+            arg0:
+              l#255 :Lexer
+        call :void
+          callee:
+            advance#53 :void
+          arg0:
+            l#255 :Lexer
+          arg1:
+            int(1) :i32
+        if :void
+          cond:
+            gt :bool
+              l:
+                .paren_depth :i32
+                  l#255 :Lexer
+              r:
+                int(0) :i32
+          then:
+            assign
+              target:
+                .paren_depth :i32
+                  l#255 :Lexer
+              value:
+                sub :i32
+                  l:
+                    .paren_depth :i32
+                      l#255 :Lexer
+                  r:
+                    int(1) :i32
+        call :void
+          callee:
+            push_simple#55 :void
+          arg0:
+            l#255 :Lexer
+          arg1:
+            int(67) :i32
+          arg2:
+            "]" :string
+          arg3:
+            start#264 :Position
+        return true
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x7b)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(68) :i32
+            arg2:
+              "{" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c#256 :char
+          r:
+            char(0x7d)
+      then:
+        return
+          call :bool
+            callee:
+              emit1#65 :bool
+            arg0:
+              l#255 :Lexer
+            arg1:
+              int(69) :i32
+            arg2:
+              "}" :string
+    return false
+  fn vader_lexer$emit1(l: Lexer, kind: TokenKind, text: string) -> bool
+    let start#268: Position =
+      call :Position
+        callee:
+          position_here#52 :Position
+        arg0:
+          l#265 :Lexer
+    call :void
+      callee:
+        advance#53 :void
+      arg0:
+        l#265 :Lexer
+      arg1:
+        int(1) :i32
+    call :void
+      callee:
+        push_simple#55 :void
+      arg0:
+        l#265 :Lexer
+      arg1:
+        kind#266 :TokenKind
+      arg2:
+        text#267 :string
+      arg3:
+        start#268 :Position
+    return true
+  fn vader_lexer$emit2(l: Lexer, kind: TokenKind, text: string) -> bool
+    let start#272: Position =
+      call :Position
+        callee:
+          position_here#52 :Position
+        arg0:
+          l#269 :Lexer
+    call :void
+      callee:
+        advance#53 :void
+      arg0:
+        l#269 :Lexer
+      arg1:
+        int(2) :i32
+    call :void
+      callee:
+        push_simple#55 :void
+      arg0:
+        l#269 :Lexer
+      arg1:
+        kind#270 :TokenKind
+      arg2:
+        text#271 :string
+      arg3:
+        start#272 :Position
+    return true
+  fn vader_lexer$lex_one(l: Lexer) -> void
+    call :void
+      callee:
+        skip_horizontal#57 :void
+      arg0:
+        l#273 :Lexer
+    if :void
+      cond:
+        call :bool
+          callee:
+            at_end#49 :bool
+          arg0:
+            l#273 :Lexer
+      then:
+        return
+    let c#274: char =
+      call :char
+        callee:
+          peek#50 :char
+        arg0:
+          l#273 :Lexer
+    if :void
+      cond:
+        or :bool
+          l:
+            eq :bool
+              l:
+                c#274 :char
+              r:
+                char(0xa)
+          r:
+            eq :bool
+              l:
+                c#274 :char
+              r:
+                char(0xd)
+      then:
+        call :void
+          callee:
+            handle_newline#59 :void
+          arg0:
+            l#273 :Lexer
+        return
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#274 :char
+              r:
+                char(0x2f)
+          r:
+            eq :bool
+              l:
+                call :char
+                  callee:
+                    peek_at#51 :char
+                  arg0:
+                    l#273 :Lexer
+                  arg1:
+                    int(1) :i32
+              r:
+                char(0x2f)
+      then:
+        loop while (<…>)
+          ~>
+            call :void
+              callee:
+                advance#53 :void
+              arg0:
+                l#273 :Lexer
+              arg1:
+                int(1) :i32
+        return
+    if :void
+      cond:
+        and :bool
+          l:
+            eq :bool
+              l:
+                c#274 :char
+              r:
+                char(0x2f)
+          r:
+            eq :bool
+              l:
+                call :char
+                  callee:
+                    peek_at#51 :char
+                  arg0:
+                    l#273 :Lexer
+                  arg1:
+                    int(1) :i32
+              r:
+                char(0x2a)
+      then:
+        call :void
+          callee:
+            lex_block_comment#58 :void
+          arg0:
+            l#273 :Lexer
+        return
+    if :void
+      cond:
+        call :bool
+          callee:
+            is_ident_start#46 :bool
+          arg0:
+            c#274 :char
+      then:
+        call :void
+          callee:
+            lex_ident#60 :void
+          arg0:
+            l#273 :Lexer
+        return
+    if :void
+      cond:
+        call :bool
+          callee:
+            is_digit#45 :bool
+          arg0:
+            c#274 :char
+      then:
+        call :void
+          callee:
+            lex_number#63 :void
+          arg0:
+            l#273 :Lexer
+        return
+    if :void
+      cond:
+        call :bool
+          callee:
+            try_lex_operator#64 :bool
+          arg0:
+            l#273 :Lexer
+      then:
+        return
+    let start#275: Position =
+      call :Position
+        callee:
+          position_here#52 :Position
+        arg0:
+          l#273 :Lexer
+    call :void
+      callee:
+        advance#53 :void
+      arg0:
+        l#273 :Lexer
+      arg1:
+        int(1) :i32
+    ~>
+      call :void
+        callee:
+          push_error#56 :void
+        arg0:
+          l#273 :Lexer
+        arg1:
+          block :string
+            let __sb_0#-11: ? =
+              @builder.new :?
+            @builder.append_str :void
+              __sb_0#-11 :?
+              "L0001: unexpected character at " :string
+            @builder.append_display <for i32> :void
+              __sb_0#-11 :?
+              .line :i32
+                start#275 :Position
+            @builder.append_str :void
+              __sb_0#-11 :?
+              ":" :string
+            @builder.append_display <for i32> :void
+              __sb_0#-11 :?
+              .column :i32
+                start#275 :Position
+            ~>
+              @builder.finish :string
+                __sb_0#-11 :?
+  fn vader_lexer$tokenize(source: string, file: string) -> Lexer
+    let l#278: Lexer =
+      call :Lexer
+        callee:
+          new_lexer#44 :fn(string, string) -> Lexer
+        arg0:
+          source#276 :string
+        arg1:
+          file#277 :string
+    loop while (<…>)
+      ~>
+        call :void
+          callee:
+            lex_one#67 :void
+          arg0:
+            l#278 :Lexer
+    let here#279: Position =
+      call :Position
+        callee:
+          position_here#52 :Position
+        arg0:
+          l#278 :Lexer
+    let eof_span#280: Span =
+      Span {
+        start: here#279 :Position
+        end: here#279 :Position
+      }
+    call :void
+      callee:
+        emit#54 :void
+      arg0:
+        l#278 :Lexer
+      arg1:
+        call :Token
+          callee:
+            make_token#74 :fn(TokenKind, string, Span) -> Token
+          arg0:
+            int(74) :i32
+          arg1:
+            "" :string
+          arg2:
+            eof_span#280 :Span
+    return l#278 :Lexer
+  struct vader_lexer$Position { offset: i32, line: i32, column: i32 }
+  struct vader_lexer$Span { start: Position, end: Position }
+  struct vader_lexer$Token { kind: TokenKind, text: string, span: Span, value: f64 | i64 | null | string | u32, numeric_suffix: string }
+  fn vader_lexer$empty_span() -> Span
+    let p#281: Position =
+      Position {
+        offset: int(0) :i32
+        line: int(1) :i32
+        column: int(1) :i32
+      }
+    return
+      Span {
+        start: p#281 :Position
+        end: p#281 :Position
+      }
+  fn vader_lexer$make_token(kind: TokenKind, text: string, span: Span) -> Token
+    return
+      Token {
+        kind: kind#282 :TokenKind
+        text: text#283 :string
+        span: span#284 :Span
+        value: null
+        numeric_suffix: "" :string
+      }

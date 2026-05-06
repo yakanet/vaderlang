@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/selfhost_lexer_basic/_main.vader
+
+## vader/lexer
+
+## generic instances
+  Yielded(i32)

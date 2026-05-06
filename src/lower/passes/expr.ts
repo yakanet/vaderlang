@@ -176,7 +176,10 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       };
     }
     case "FieldExpr": {
-      if (exprType.kind === "Enum") return loweredEnumVariant(exprType, expr.field, expr.span);
+      // Disambiguate `Enum.Variant` from `b.field_of_enum_type` on the TARGET
+      // — both leave `exprType` as the enum.
+      const targetType = applySubst(ctx.typed.exprTypes.get(expr.target) ?? TY.unresolved, ctx.subst);
+      if (targetType.kind === "Enum") return loweredEnumVariant(targetType, expr.field, expr.span);
       return {
         kind: "LoweredFieldAccess", span: expr.span, type: exprType,
         target: lowerExpr(ctx, expr.target), field: expr.field,

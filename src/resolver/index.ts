@@ -58,9 +58,47 @@ export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCo
       typeParamSymbols,
       typeParamBounds,
     });
-    if (programs.length > 0) resolved.set(id, programs[0]!);
+    const merged = mergeFilePrograms(programs);
+    if (merged !== null) resolved.set(id, merged);
   }
   return { modules: resolved, importTargets, typeParamSymbols, typeParamBounds };
+}
+
+/** Fold the per-file `ResolvedProgram`s of a multi-file module into one.
+ *  All resolution side-tables are keyed by AST node identity, so a flat
+ *  `Map.set(...)` merge is enough. The synthetic `source.decls` concatenates
+ *  every file's top-level decls in load order; per-decl spans still carry
+ *  their original file path, so diagnostics aren't affected. */
+function mergeFilePrograms(programs: readonly ResolvedProgram[]): ResolvedProgram | null {
+  if (programs.length === 0) return null;
+  if (programs.length === 1) return programs[0]!;
+  const first = programs[0]!;
+  const allDecls: A.Decl[] = [];
+  for (const p of programs) allDecls.push(...p.source.decls);
+  const source: A.Program = {
+    kind: "Program",
+    file: first.module.rootDir,
+    span: first.source.span,
+    decls: allDecls,
+  };
+  const merge = <K, V>(maps: ReadonlyArray<ReadonlyMap<K, V>>): Map<K, V> => {
+    const out = new Map<K, V>();
+    for (const m of maps) for (const [k, v] of m) out.set(k, v);
+    return out;
+  };
+  return {
+    module: first.module,
+    source,
+    idents: merge(programs.map((p) => p.idents)),
+    types: merge(programs.map((p) => p.types)),
+    params: merge(programs.map((p) => p.params)),
+    locals: merge(programs.map((p) => p.locals)),
+    forIns: merge(programs.map((p) => p.forIns)),
+    typeParams: merge(programs.map((p) => p.typeParams)),
+    typeParamTypes: merge(programs.map((p) => p.typeParamTypes)),
+    fields: merge(programs.map((p) => p.fields)),
+    ufcsFreeResolutions: merge(programs.map((p) => p.ufcsFreeResolutions)),
+  };
 }
 
 function findCoreModule(modules: ReadonlyMap<ModuleId, Module>): Module | null {

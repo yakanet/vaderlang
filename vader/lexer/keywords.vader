@@ -1,0 +1,57 @@
+// vader/lexer/keywords — keyword + numeric-suffix tables.
+//
+// Mirrors `src/lexer/keywords.ts`. A flat `if` chain is fine for 25 entries;
+// a hash table would be overkill at module init time. `lookup_keyword`
+// returns the dedicated `TokenKind` for a keyword text, or `Ident` to mean
+// "not a keyword — keep it as an identifier".
+
+// Special sentinel: callers compare against `TokenKind.Ident` to decide
+// whether the lookup hit. Returning a `TokenKind | null` would be cleaner
+// but every call site already needs the fallback `Ident`, so this saves
+// the unwrap.
+lookup_keyword :: fn(text: string) -> TokenKind {
+    if text == "fn"         { return .KwFn }
+    if text == "struct"     { return .KwStruct }
+    if text == "trait"      { return .KwTrait }
+    if text == "implements" { return .KwImplements }
+    if text == "impl"       { return .KwImpl }
+    if text == "enum"       { return .KwEnum }
+    if text == "if"         { return .KwIf }
+    if text == "else"       { return .KwElse }
+    if text == "match"      { return .KwMatch }
+    if text == "is"         { return .KwIs }
+    if text == "for"        { return .KwFor }
+    if text == "in"         { return .KwIn }
+    if text == "return"     { return .KwReturn }
+    if text == "defer"      { return .KwDefer }
+    if text == "break"      { return .KwBreak }
+    if text == "continue"   { return .KwContinue }
+    if text == "import"     { return .KwImport }
+    if text == "as"         { return .KwAs }
+    if text == "private"    { return .KwPrivate }
+    if text == "true"       { return .KwTrue }
+    if text == "false"      { return .KwFalse }
+    if text == "null"       { return .KwNull }
+    if text == "type"       { return .KwType }
+    if text == "where"      { return .KwWhere }
+    if text == "self"       { return .KwSelf }
+    return .Ident
+}
+
+is_int_suffix :: fn(s: string) -> bool {
+    if s == "i8"  { return true }
+    if s == "i16" { return true }
+    if s == "i32" { return true }
+    if s == "i64" { return true }
+    if s == "u8"  { return true }
+    if s == "u16" { return true }
+    if s == "u32" { return true }
+    if s == "u64" { return true }
+    return false
+}
+
+is_float_suffix :: fn(s: string) -> bool {
+    if s == "f32" { return true }
+    if s == "f64" { return true }
+    return false
+}

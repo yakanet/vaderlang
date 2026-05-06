@@ -228,7 +228,10 @@ export function inferField(
       return { kind: "Fn", params: [targetType.element], returnType: TY.void };
     }
   }
-  if (targetType.kind === "Enum") {
+  if (targetType.kind === "Enum" && targetType.indices.has(expr.field)) {
+    // `Enum.Variant` form: target is the enum *type*. For an enum *value*
+    // (`e.method`), fall through to UFCS so a free fn whose first param is
+    // the enum can be called via dot-notation.
     checkEnumVariant(targetType, expr.field, expr.fieldSpan, diags);
     return targetType;
   }

@@ -1,0 +1,72 @@
+# stdout
+# decl_var
+  ident 'x'
+  decl_var ':='
+  int '42'
+  eof ''
+# expr
+  ident 'a'
+  plus '+'
+  ident 'b'
+  star '*'
+  ident 'c'
+  eof ''
+# fn_header
+  ident 'main'
+  decl_const '::'
+  kw_fn 'fn'
+  lparen '('
+  rparen ')'
+  arrow '->'
+  ident 'i32'
+  lbrace '{'
+  rbrace '}'
+  eof ''
+# if_return
+  kw_if 'if'
+  ident 'x'
+  eq '=='
+  int '0'
+  lbrace '{'
+  kw_return 'return'
+  int '1'
+  rbrace '}'
+  eof ''
+# range
+  ?? 'for'
+  ident 'i'
+  ?? 'in'
+  int '0'
+  range_excl '..<'
+  int '10'
+  lbrace '{'
+  rbrace '}'
+  eof ''
+# comment
+  ident 'y'
+  decl_var ':='
+  int '1'
+  newline
+  ident 'z'
+  decl_var ':='
+  int '2'
+  eof ''
+# block_cmt
+  ident 'a'
+  eof ''
+# suppress
+  ident 'x'
+  assign '='
+  int '1'
+  plus '+'
+  int '2'
+  eof ''
+# suffix
+  ident 'n'
+  decl_var ':='
+  int '42_i32'
+  plus '+'
+  int '7u64'
+  eof ''
+# exit
+0

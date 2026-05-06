@@ -29,9 +29,15 @@ import { declareType } from "./passes/decl.ts";
 export type { Globals } from "./ctx.ts";
 export { newGlobals } from "./ctx.ts";
 
-/** Declare top-level types into the shared globals — must run for every module first. */
+/** Declare top-level types into the shared globals — must run for every module first.
+ *  `phase` controls which decls participate so callers can split the work into
+ *  sub-passes (enums first, then everything else) — required because struct
+ *  fields and fn signatures may reference enums declared later in source order
+ *  (or even in a later module), and they need the populated `indices` map at
+ *  lowering time. Enums never reference other user types, so the split is safe. */
 export function declareModule(
   program: ResolvedProgram, globals: Globals, diags: DiagnosticCollector,
+  phase: "enums" | "rest" | "all" = "all",
 ): void {
   const t: MutableTyped = {
     resolved: program, globals,
@@ -41,7 +47,11 @@ export function declareModule(
     traitVirtualResolutions: new Map(),
     directCallOverloads: new Map(),
   };
-  for (const decl of program.source.decls) declareType(decl, t, diags);
+  for (const decl of program.source.decls) {
+    if (phase === "enums" && decl.kind !== "EnumDecl") continue;
+    if (phase === "rest" && decl.kind === "EnumDecl") continue;
+    declareType(decl, t, diags);
+  }
 }
 
 export function checkProgram(

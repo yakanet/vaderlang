@@ -1,0 +1,497 @@
+// vader/lexer/lexer — first cut of the Vader-in-Vader lexer.
+//
+// Scope of this jet (kept deliberately small to validate the porting path):
+//   - whitespace, // line comments, /* block comments */ (nested)
+//   - identifiers + keyword recognition
+//   - decimal int literals with `_` separators and optional suffix
+//   - float literals (digits.digits, optional exponent) with optional suffix
+//   - one- and two-char operators, range ops `..<` `..=`
+//   - brackets, punctuation
+//   - newlines with the SUPPRESS_AFTER rules from SPEC §3
+//
+// Deferred (will land in subsequent passes, not blocked):
+//   - hex/bin/oct int literals
+//   - char literals + escape sequences
+//   - string literals, raw strings, triple strings, interpolation
+//   - shebang, BOM
+//   - structured Diagnostic objects (we collect plain strings for now)
+
+import "std/string" { len, slice, char_at }
+
+// ---- driver state ---------------------------------------------------------
+
+Lexer :: struct {
+    src: string
+    file: string
+    pos: i32
+    line: i32
+    col: i32
+    paren_depth: i32      // unclosed `(` and `[` (NOT `{`)
+    last_kind: TokenKind  // initialised to .Newline so first-token rules fire correctly
+    tokens: [Token]
+    errors: [string]
+}
+
+new_lexer :: fn(source: string, file: string) -> Lexer {
+    return Lexer {
+        .src = source,
+        .file = file,
+        .pos = 0,
+        .line = 1,
+        .col = 1,
+        .paren_depth = 0,
+        .last_kind = .Newline,
+        .tokens = [],
+        .errors = [],
+    }
+}
+
+// ---- predicates -----------------------------------------------------------
+
+is_digit :: fn(c: char) -> bool {
+    return c >= '0' && c <= '9'
+}
+
+is_ident_start :: fn(c: char) -> bool {
+    if c >= 'a' && c <= 'z' { return true }
+    if c >= 'A' && c <= 'Z' { return true }
+    if c == '_' { return true }
+    return false
+}
+
+is_ident_continue :: fn(c: char) -> bool {
+    if c.is_ident_start() { return true }
+    return c.is_digit()
+}
+
+// SPEC §3 newline-suppression set — operators / separators after which a
+// physical newline is NOT a statement terminator.
+suppresses_newline_after :: fn(k: TokenKind) -> bool {
+    match k {
+        .Plus      -> true
+        .Minus     -> true
+        .Star      -> true
+        .Slash     -> true
+        .Percent   -> true
+        .Amp       -> true
+        .Pipe      -> true
+        .Caret     -> true
+        .Shl       -> true
+        .Shr       -> true
+        .Eq        -> true
+        .Neq       -> true
+        .Lt        -> true
+        .Lte       -> true
+        .Gt        -> true
+        .Gte       -> true
+        .AndAnd    -> true
+        .OrOr      -> true
+        .RangeExcl -> true
+        .RangeIncl -> true
+        .Assign    -> true
+        .Colon     -> true
+        .Arrow     -> true
+        .FatArrow  -> true
+        .Comma     -> true
+        _          -> false
+    }
+}
+
+// ---- cursor helpers -------------------------------------------------------
+
+at_end :: fn(l: Lexer) -> bool {
+    return l.pos >= l.src.len()
+}
+
+peek :: fn(l: Lexer) -> char {
+    if l.pos >= l.src.len() {
+        return '\0'
+    }
+    return l.src.char_at(l.pos)
+}
+
+peek_at :: fn(l: Lexer, n: i32) -> char {
+    p := l.pos + n
+    if p >= l.src.len() {
+        return '\0'
+    }
+    return l.src.char_at(p)
+}
+
+position_here :: fn(l: Lexer) -> Position {
+    return Position { .offset = l.pos, .line = l.line, .column = l.col }
+}
+
+advance :: fn(l: Lexer, n: i32) -> void {
+    i := 0
+    for i < n {
+        if l.pos >= l.src.len() {
+            return
+        }
+        c := l.src.char_at(l.pos)
+        if c == '\n' {
+            l.line = l.line + 1
+            l.col = 1
+        } else {
+            l.col = l.col + 1
+        }
+        l.pos = l.pos + 1
+        i = i + 1
+    }
+}
+
+// ---- token emission -------------------------------------------------------
+
+emit :: fn(l: Lexer, t: Token) -> void {
+    l.tokens.push(t)
+    l.last_kind = t.kind
+}
+
+push_simple :: fn(l: Lexer, kind: TokenKind, text: string, start: Position) -> void {
+    span := Span { .start = start, .end = l.position_here() }
+    l.emit(make_token(kind, text, span))
+}
+
+push_error :: fn(l: Lexer, msg: string) -> void {
+    l.errors.push(msg)
+}
+
+// ---- whitespace + comments -----------------------------------------------
+
+skip_horizontal :: fn(l: Lexer) -> void {
+    for !l.at_end() {
+        c := l.peek()
+        if c == ' ' || c == '\t' {
+            l.advance(1)
+        } else {
+            return
+        }
+    }
+}
+
+lex_block_comment :: fn(l: Lexer) -> void {
+    start := l.position_here()
+    l.advance(2)  // consume `/*`
+    depth := 1
+    for !l.at_end() && depth > 0 {
+        if l.peek() == '/' && l.peek_at(1) == '*' {
+            l.advance(2)
+            depth = depth + 1
+            continue
+        }
+        if l.peek() == '*' && l.peek_at(1) == '/' {
+            l.advance(2)
+            depth = depth - 1
+            continue
+        }
+        l.advance(1)
+    }
+    if depth > 0 {
+        l.push_error("L0003: unterminated block comment at ${start.line}:${start.column}")
+    }
+}
+
+// ---- newlines -------------------------------------------------------------
+
+handle_newline :: fn(l: Lexer) -> void {
+    // Consume the line terminator (CRLF or LF or lone CR).
+    if l.peek() == '\r' {
+        l.advance(1)
+    }
+    if l.peek() == '\n' {
+        l.advance(1)
+    }
+    if l.paren_depth > 0 { return }
+    if l.last_kind.suppresses_newline_after() { return }
+    if l.last_kind == .Newline { return }
+
+    here := l.position_here()
+    span := Span { .start = here, .end = here }
+    l.emit(make_token(.Newline, "\n", span))
+}
+
+// ---- identifiers ----------------------------------------------------------
+
+lex_ident :: fn(l: Lexer) -> void {
+    start := l.position_here()
+    for !l.at_end() && l.peek().is_ident_continue() {
+        l.advance(1)
+    }
+    text := l.src.slice(start.offset, l.pos)
+    kw := lookup_keyword(text)
+    l.push_simple(kw, text, start)
+}
+
+// ---- numbers --------------------------------------------------------------
+
+// Read trailing identifier-shaped text after a digit run. Returns "" if no
+// suffix is present. Accepts both forms `42i32` and `42_i32`.
+read_numeric_suffix :: fn(l: Lexer) -> string {
+    start := l.pos
+    if l.peek() == '_' && l.peek_at(1).is_ident_start() {
+        l.advance(1)
+        suff_start := l.pos
+        for !l.at_end() && l.peek().is_ident_continue() {
+            l.advance(1)
+        }
+        return l.src.slice(suff_start, l.pos)
+    }
+    if l.peek().is_ident_start() {
+        for !l.at_end() && l.peek().is_ident_continue() {
+            l.advance(1)
+        }
+        return l.src.slice(start, l.pos)
+    }
+    return ""
+}
+
+// Consume base-10 digit run with `_` separators. Validates that underscores
+// don't appear consecutively or trail. `start_anchor` is for diagnostic spans.
+consume_decimal_digits :: fn(l: Lexer, start_anchor: Position) -> void {
+    last_was_underscore := false
+    first := true
+    for !l.at_end() {
+        c := l.peek()
+        if c == '_' {
+            // If the next char starts an identifier and isn't a digit, this
+            // underscore actually belongs to the suffix (`42_i32`).
+            next := l.peek_at(1)
+            if next.is_ident_start() && !next.is_digit() {
+                return
+            }
+            if first || last_was_underscore {
+                l.push_error("L0006: underscore not allowed here at ${start_anchor.line}:${start_anchor.column}")
+            }
+            last_was_underscore = true
+            first = false
+            l.advance(1)
+            continue
+        }
+        if c.is_digit() {
+            last_was_underscore = false
+            first = false
+            l.advance(1)
+            continue
+        }
+        return
+    }
+}
+
+lex_number :: fn(l: Lexer) -> void {
+    start := l.position_here()
+    is_float := false
+
+    l.consume_decimal_digits(start)
+
+    // `.<digit>` introduces a fractional part. A trailing `.` alone is reserved
+    // for member access / range, so we require the next char to be a digit.
+    if l.peek() == '.' && l.peek_at(1).is_digit() {
+        is_float = true
+        l.advance(1)
+        l.consume_decimal_digits(start)
+    }
+
+    // Optional exponent.
+    if l.peek() == 'e' || l.peek() == 'E' {
+        is_float = true
+        l.advance(1)
+        if l.peek() == '+' || l.peek() == '-' {
+            l.advance(1)
+        }
+        if !l.peek().is_digit() {
+            l.push_error("L0006: exponent has no digits at ${start.line}:${start.column}")
+        }
+        l.consume_decimal_digits(start)
+    }
+
+    suffix := l.read_numeric_suffix()
+    has_suffix := suffix.len() > 0
+
+    if has_suffix && !suffix.is_int_suffix() && !suffix.is_float_suffix() {
+        l.push_error("L0006: unknown numeric suffix \"${suffix}\" at ${start.line}:${start.column}")
+    }
+    if has_suffix && suffix.is_float_suffix() {
+        is_float = true
+    }
+    if has_suffix && suffix.is_int_suffix() && is_float {
+        l.push_error("L0006: integer suffix \"${suffix}\" on a float literal at ${start.line}:${start.column}")
+    }
+
+    text := l.src.slice(start.offset, l.pos)
+    span := Span { .start = start, .end = l.position_here() }
+    kind: TokenKind = .IntLit
+    if is_float {
+        kind = .FloatLit
+    }
+    t := make_token(kind, text, span)
+    if has_suffix {
+        t.numeric_suffix = suffix
+    }
+    // Numeric value parsing is left to the typechecker pass for now —
+    // emitting the raw text is enough for the parser/AST shape we need.
+    l.emit(t)
+}
+
+// ---- operators ------------------------------------------------------------
+
+// Return true if dispatched. The dispatch order matters: 3-char ops first,
+// then 2-char, then 1-char.
+try_lex_operator :: fn(l: Lexer) -> bool {
+    c := l.peek()
+    c2 := l.peek_at(1)
+
+    // Range ops: `..<` and `..=`.
+    if c == '.' && c2 == '.' {
+        c3 := l.peek_at(2)
+        if c3 == '<' {
+            start := l.position_here()
+            l.advance(3)
+            l.push_simple(.RangeExcl, "..<", start)
+            return true
+        }
+        if c3 == '=' {
+            start := l.position_here()
+            l.advance(3)
+            l.push_simple(.RangeIncl, "..=", start)
+            return true
+        }
+    }
+
+    // Two-char ops.
+    if c == '=' && c2 == '=' { return l.emit2(.Eq, "==") }
+    if c == '!' && c2 == '=' { return l.emit2(.Neq, "!=") }
+    if c == '<' && c2 == '=' { return l.emit2(.Lte, "<=") }
+    if c == '>' && c2 == '=' { return l.emit2(.Gte, ">=") }
+    if c == '&' && c2 == '&' { return l.emit2(.AndAnd, "&&") }
+    if c == '|' && c2 == '|' { return l.emit2(.OrOr, "||") }
+    if c == '<' && c2 == '<' { return l.emit2(.Shl, "<<") }
+    if c == '>' && c2 == '>' { return l.emit2(.Shr, ">>") }
+    if c == '-' && c2 == '>' { return l.emit2(.Arrow, "->") }
+    if c == '=' && c2 == '>' { return l.emit2(.FatArrow, "=>") }
+    if c == ':' && c2 == ':' { return l.emit2(.DeclConst, "::") }
+    if c == ':' && c2 == '=' { return l.emit2(.DeclVar, ":=") }
+
+    // One-char ops.
+    if c == '+' { return l.emit1(.Plus, "+") }
+    if c == '-' { return l.emit1(.Minus, "-") }
+    if c == '*' { return l.emit1(.Star, "*") }
+    if c == '/' { return l.emit1(.Slash, "/") }
+    if c == '%' { return l.emit1(.Percent, "%") }
+    if c == '&' { return l.emit1(.Amp, "&") }
+    if c == '|' { return l.emit1(.Pipe, "|") }
+    if c == '^' { return l.emit1(.Caret, "^") }
+    if c == '~' { return l.emit1(.Tilde, "~") }
+    if c == '<' { return l.emit1(.Lt, "<") }
+    if c == '>' { return l.emit1(.Gt, ">") }
+    if c == '!' { return l.emit1(.Bang, "!") }
+    if c == '=' { return l.emit1(.Assign, "=") }
+    if c == '?' { return l.emit1(.Question, "?") }
+    if c == '@' { return l.emit1(.At, "@") }
+    if c == '$' { return l.emit1(.Dollar, "$") }
+    if c == ':' { return l.emit1(.Colon, ":") }
+    if c == ',' { return l.emit1(.Comma, ",") }
+    if c == '.' { return l.emit1(.Dot, ".") }
+
+    // Brackets — `(` and `[` raise paren_depth, `{` does not (blocks separate
+    // statements with newlines).
+    if c == '(' {
+        start := l.position_here()
+        l.advance(1)
+        l.paren_depth = l.paren_depth + 1
+        l.push_simple(.LParen, "(", start)
+        return true
+    }
+    if c == '[' {
+        start := l.position_here()
+        l.advance(1)
+        l.paren_depth = l.paren_depth + 1
+        l.push_simple(.LBracket, "[", start)
+        return true
+    }
+    if c == ')' {
+        start := l.position_here()
+        l.advance(1)
+        if l.paren_depth > 0 { l.paren_depth = l.paren_depth - 1 }
+        l.push_simple(.RParen, ")", start)
+        return true
+    }
+    if c == ']' {
+        start := l.position_here()
+        l.advance(1)
+        if l.paren_depth > 0 { l.paren_depth = l.paren_depth - 1 }
+        l.push_simple(.RBracket, "]", start)
+        return true
+    }
+    if c == '{' { return l.emit1(.LBrace, "{") }
+    if c == '}' { return l.emit1(.RBrace, "}") }
+
+    return false
+}
+
+private emit1 :: fn(l: Lexer, kind: TokenKind, text: string) -> bool {
+    start := l.position_here()
+    l.advance(1)
+    l.push_simple(kind, text, start)
+    return true
+}
+
+private emit2 :: fn(l: Lexer, kind: TokenKind, text: string) -> bool {
+    start := l.position_here()
+    l.advance(2)
+    l.push_simple(kind, text, start)
+    return true
+}
+
+// ---- main loop ------------------------------------------------------------
+
+lex_one :: fn(l: Lexer) -> void {
+    l.skip_horizontal()
+    if l.at_end() { return }
+
+    c := l.peek()
+
+    if c == '\n' || c == '\r' {
+        l.handle_newline()
+        return
+    }
+    if c == '/' && l.peek_at(1) == '/' {
+        // Line comment: skip to (but not past) the newline.
+        for !l.at_end() && l.peek() != '\n' {
+            l.advance(1)
+        }
+        return
+    }
+    if c == '/' && l.peek_at(1) == '*' {
+        l.lex_block_comment()
+        return
+    }
+    if c.is_ident_start() {
+        l.lex_ident()
+        return
+    }
+    if c.is_digit() {
+        l.lex_number()
+        return
+    }
+    if l.try_lex_operator() {
+        return
+    }
+
+    // Anything else is an unexpected character — record and skip one byte.
+    start := l.position_here()
+    l.advance(1)
+    l.push_error("L0001: unexpected character at ${start.line}:${start.column}")
+}
+
+// ---- public entry ---------------------------------------------------------
+
+tokenize :: fn(source: string, file: string) -> Lexer {
+    l := new_lexer(source, file)
+    for !l.at_end() {
+        l.lex_one()
+    }
+    here := l.position_here()
+    eof_span := Span { .start = here, .end = here }
+    l.emit(make_token(.Eof, "", eof_span))
+    return l
+}

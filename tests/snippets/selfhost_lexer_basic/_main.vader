@@ -1,0 +1,81 @@
+// First validation of vader/lexer/* — runs the self-hosted lexer over a
+// small Vader program and prints every token on its own line. The snapshot
+// is compared by the bundled snapshot driver.
+
+import "std/io" { println }
+import "vader/lexer" { tokenize, TokenKind }
+
+// Subset of TokenKind names we expect to print. Anything else falls through
+// to "??" so the snapshot makes the gap visible if it ever fires.
+kind_name :: fn(k: TokenKind) -> string {
+    match k {
+        .Ident      -> "ident"
+        .IntLit     -> "int"
+        .FloatLit   -> "float"
+        .KwFn       -> "kw_fn"
+        .KwIf       -> "kw_if"
+        .KwReturn   -> "kw_return"
+        .KwTrue     -> "kw_true"
+        .Plus       -> "plus"
+        .Minus      -> "minus"
+        .Star       -> "star"
+        .Slash      -> "slash"
+        .Eq         -> "eq"
+        .Lt         -> "lt"
+        .Assign     -> "assign"
+        .DeclConst  -> "decl_const"
+        .DeclVar    -> "decl_var"
+        .Arrow      -> "arrow"
+        .RangeExcl  -> "range_excl"
+        .Comma      -> "comma"
+        .Dot        -> "dot"
+        .Colon      -> "colon"
+        .At         -> "at"
+        .LParen     -> "lparen"
+        .RParen     -> "rparen"
+        .LBrace     -> "lbrace"
+        .RBrace     -> "rbrace"
+        .LBracket   -> "lbracket"
+        .RBracket   -> "rbracket"
+        .Newline    -> "newline"
+        .Eof        -> "eof"
+        _           -> "??"
+    }
+}
+
+show :: fn(label: string, source: string) -> void {
+    println("# ${label}")
+    l := tokenize(source, "t.v")
+    n := l.tokens.len()
+    i := 0
+    for i < n {
+        t := l.tokens[i]
+        if t.kind == .Newline {
+            println("  newline")
+        } else {
+            println("  ${kind_name(t.kind)} '${t.text}'")
+        }
+        i = i + 1
+    }
+    en := l.errors.len()
+    if en > 0 {
+        j := 0
+        for j < en {
+            println("  err: ${l.errors[j]}")
+            j = j + 1
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    show("decl_var",   "x := 42")
+    show("expr",       "a + b * c")
+    show("fn_header",  "main :: fn() -> i32 {}")
+    show("if_return",  "if x == 0 { return 1 }")
+    show("range",      "for i in 0..<10 {}")
+    show("comment",    "y := 1 // tail\nz := 2")
+    show("block_cmt",  "/* outer /* inner */ tail */ a")
+    show("suppress",   "x =\n  1 +\n  2")
+    show("suffix",     "n := 42_i32 + 7u64")
+    return 0
+}

@@ -1,0 +1,129 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_string 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## std/string
+  import-binding   private  append → append
+  import-binding   private  append_char → append_char
+  fn               public   char_at 
+  fn               public   contains 
+  fn               public   ends_with 
+  fn               public   is_whitechar 
+  fn               public   last_index_of 
+  fn               public   len 
+  import-binding   private  new_builder → new_builder
+  fn               public   pad_end 
+  fn               public   pad_start 
+  fn               public   parse_float 
+  fn               public   parse_int 
+  struct           public   ParseError 
+  fn               public   replace_chars_where 
+  fn               public   slice 
+  fn               public   split 
+  fn               public   split_whitespace 
+  fn               public   starts_with 
+  import-binding   private  StringBuilder → StringBuilder
+  fn               public   to_lower 
+  import-binding   private  to_string → to_string
+  fn               public   to_upper 
+  fn               public   trim 
+  fn               public   trim_prefix 
+  fn               public   trim_suffix 
+  import std/string_builder → ok
+  refs: idents=93 types=64 params=38 locals=17 typeParams=0 fields=0
+
+## std/string_builder
+  fn               public   append 
+  fn               public   append_char 
+  fn               public   concat_all 
+  fn               public   new_builder 
+  struct           public   StringBuilder 
+  fn               public   to_string 
+  refs: idents=6 types=13 params=6 locals=0 typeParams=0 fields=0
+
+## tests/snippets/selfhost_lexer_basic/_main.vader
+  fn               public   kind_name 
+  fn               public   main 
+  import-binding   private  println → println
+  fn               public   show 
+  import-binding   private  tokenize → tokenize
+  import-binding   private  TokenKind → TokenKind
+  import std/io → ok
+  import vader/lexer → ok
+  refs: idents=36 types=6 params=3 locals=6 typeParams=0 fields=0
+
+## vader/lexer
+  fn               public   advance 
+  fn               public   at_end 
+  import-binding   private  char_at → char_at
+  fn               public   consume_decimal_digits 
+  fn               public   emit 
+  fn               private  emit1 
+  fn               private  emit2 
+  fn               public   empty_span 
+  fn               public   handle_newline 
+  fn               public   is_digit 
+  fn               public   is_float_suffix 
+  fn               public   is_ident_continue 
+  fn               public   is_ident_start 
+  fn               public   is_int_suffix 
+  import-binding   private  len → len
+  fn               public   lex_block_comment 
+  fn               public   lex_ident 
+  fn               public   lex_number 
+  fn               public   lex_one 
+  struct           public   Lexer 
+  fn               public   lookup_keyword 
+  fn               public   make_token 
+  fn               public   new_lexer 
+  fn               public   peek 
+  fn               public   peek_at 
+  struct           public   Position 
+  fn               public   position_here 
+  fn               public   push_error 
+  fn               public   push_simple 
+  fn               public   read_numeric_suffix 
+  fn               public   skip_horizontal 
+  import-binding   private  slice → slice
+  struct           public   Span 
+  fn               public   suppresses_newline_after 
+  struct           public   Token 
+  fn               public   tokenize 
+  enum             public   TokenKind 
+  fn               public   try_lex_operator 
+  import std/string → ok
+  refs: idents=410 types=108 params=45 locals=43 typeParams=0 fields=0
