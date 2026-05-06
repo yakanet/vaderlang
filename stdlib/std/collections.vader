@@ -1,80 +1,26 @@
-// std/collections — generic mutable collections.
+// std/collections — hash-based mutable collections.
 //
 // Java-inspired API : struct-literal construction + UFCS methods. Method
-// names like `add` / `get` / `len` / `is_empty` / `iter` are deliberately
-// shared across the three collections; UFCS dispatch picks the right
-// overload by receiver type (cf. SPEC §6 *Function overloading*).
+// names like `put` / `get` / `len` / `is_empty` are deliberately shared
+// across the two collections; UFCS dispatch picks the right overload by
+// receiver type (cf. SPEC §6 *Function overloading*).
+//
+// Sequence collections live in the language : `[T]` arrays support `push`,
+// `len`, indexed access, mutation, and `for x in arr` — no `MutableList`
+// wrapper is needed at MVP. Immutable `List<T>` (post-MVP) will pair with
+// arrays once read-only views and `to_immutable` are designed.
 //
 // Construction examples :
-//   list := MutableList(i32) { .data = [], .size = 0 }
-//   list.add(10)
 //
-//   m := MutableMap(string, i32) { .keys = [], .values = [], .size = 0 }
+//   m := MutableMap(string, i32) { .buckets = [], .size = 0 }
 //   m.put("answer", 42)
 //
 //   s := MutableSet(i32) { .data = [], .size = 0 }
 //   s.add(10)
 //
-// `MutableMap` / `MutableSet` are linear-search at MVP. Promotion to a
-// chaining HashMap is post-MVP — needs trait dispatch on bounded `$K`.
-//
-// Immutable variants (`List`, `Set`, `Map`) are struct stubs only; their
-// op surface is post-MVP (read-only subset + `to_immutable` conversion).
-
-// ===========================================================================
-// MutableList(T)
-// ===========================================================================
-
-List :: struct($T) {
-    data: [T]
-    size: usize
-}
-
-MutableList :: struct($T) {
-    data: [T]
-    size: usize
-}
-
-add :: fn(self: MutableList($T), value: T) -> void {
-    self.data.push(value)
-    self.size = self.size + 1
-}
-
-get :: fn(self: MutableList($T), index: usize) -> T {
-    return self.data[index]
-}
-
-set :: fn(self: MutableList($T), index: usize, value: T) -> void {
-    self.data[index] = value
-}
-
-len :: fn(self: MutableList($T)) -> usize {
-    return self.size
-}
-
-is_empty :: fn(self: MutableList($T)) -> bool {
-    return self.size == 0
-}
-
-private MutableListIter :: struct($T) {
-    list:   MutableList(T)
-    cursor: usize
-}
-
-MutableListIter($T) implements Iterator(T) {
-    fn step(self) -> Done | Yielded(T) {
-        if (self.cursor >= self.list.size) {
-            return Done {}
-        }
-        v :: self.list.data[self.cursor]
-        self.cursor = self.cursor + 1
-        return Yielded(T) { .value = v }
-    }
-}
-
-iter :: fn(self: MutableList($T)) -> MutableListIter(T) {
-    return MutableListIter(T) { .list = self, .cursor = 0 }
-}
+// `MutableMap` is a chaining HashMap with fixed bucket count ; `MutableSet`
+// is linear-search. Both will need trait dispatch on bounded `$K`/`$T` to
+// migrate (post-MVP).
 
 // ===========================================================================
 // MutableMap(K, V) — chaining hash map. Each bucket holds a singly-linked
@@ -204,6 +150,55 @@ contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool where K: Hash + Eq 
 len :: fn(self: MutableMap($K, $V)) -> usize { return self.size }
 
 is_empty :: fn(self: MutableMap($K, $V)) -> bool { return self.size == 0 }
+
+// Snapshot of every key in insertion-independent order (bucket-walk order).
+// Calls allocate a fresh `[K]`. Suitable for stringification / iteration.
+keys :: fn(self: MutableMap($K, $V)) -> [K] {
+    out: [K] = []
+    if self.buckets.len() == 0 {
+        return out
+    }
+    bi := 0
+    for bi < self.buckets.len() {
+        cur: Entry(K, V) | null = self.buckets[bi]
+        done := false
+        for !done {
+            match cur {
+                is null -> { done = true }
+                is Entry(K, V) -> {
+                    out.push(cur.key)
+                    cur = cur.next
+                }
+            }
+        }
+        bi = bi + 1
+    }
+    return out
+}
+
+// Snapshot of every value matching `keys()` order.
+values :: fn(self: MutableMap($K, $V)) -> [V] {
+    out: [V] = []
+    if self.buckets.len() == 0 {
+        return out
+    }
+    bi := 0
+    for bi < self.buckets.len() {
+        cur: Entry(K, V) | null = self.buckets[bi]
+        done := false
+        for !done {
+            match cur {
+                is null -> { done = true }
+                is Entry(K, V) -> {
+                    out.push(cur.value)
+                    cur = cur.next
+                }
+            }
+        }
+        bi = bi + 1
+    }
+    return out
+}
 
 // ===========================================================================
 // MutableSet(T) — linear-search.

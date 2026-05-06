@@ -1,0 +1,213 @@
+// std/path — filesystem path manipulation.
+//
+// Paths are immutable string-backed values. Every operation returns a fresh
+// Path rather than mutating. POSIX-style `/` separator only in MVP — Windows
+// support deferred (will replace the constant with a runtime-determined value).
+
+import "std/string" {
+    len, slice, char_at, last_index_of,
+    starts_with as str_starts_with, ends_with as str_ends_with,
+}
+import "std/string_builder" { StringBuilder, new_builder, append, to_string }
+
+SEP :: '/'
+SEP_STR :: "/"
+
+Path :: struct {
+    repr: string
+}
+
+// ---- constructors ---------------------------------------------------------
+
+to_path :: fn(s: string) -> Path {
+    return Path { .repr = s }
+}
+
+empty_path :: fn() -> Path {
+    return Path { .repr = "" }
+}
+
+// ---- accessors ------------------------------------------------------------
+
+as_string :: fn(self: Path) -> string {
+    return self.repr
+}
+
+is_empty :: fn(self: Path) -> bool {
+    return self.repr.len() == 0
+}
+
+is_absolute :: fn(self: Path) -> bool {
+    if self.repr.len() == 0 {
+        return false
+    }
+    return self.repr.char_at(0) == SEP
+}
+
+
+// Parent directory — everything before the last separator. Returns the empty
+// path when there's no separator.
+parent :: fn(self: Path) -> Path {
+    idx := self.repr.last_index_of(SEP, 0)
+    if idx < 0 {
+        return Path { .repr = "" }
+    }
+    if idx == 0 {
+        // Root: keep the leading "/" so parent of "/foo" is "/".
+        return Path { .repr = SEP_STR }
+    }
+    return Path { .repr = self.repr.slice(0, idx) }
+}
+
+// Last segment (filename or directory name).
+filename :: fn(self: Path) -> string {
+    idx := self.repr.last_index_of(SEP, 0)
+    if idx < 0 {
+        return self.repr
+    }
+    return self.repr.slice(idx + 1, self.repr.len())
+}
+
+// File extension without the leading dot, or empty when there's no extension.
+// A leading-dot name (e.g. `.gitignore`) has no extension — `min_index = 1`.
+extension :: fn(self: Path) -> string {
+    name := self.filename()
+    idx := name.last_index_of('.', 1)
+    if idx < 0 {
+        return ""
+    }
+    return name.slice(idx + 1, name.len())
+}
+
+// Filename without the extension. For names without an extension, returns
+// the filename as-is.
+stem :: fn(self: Path) -> string {
+    name := self.filename()
+    idx := name.last_index_of('.', 1)
+    if idx < 0 {
+        return name
+    }
+    return name.slice(0, idx)
+}
+
+// ---- combinators ----------------------------------------------------------
+
+// Append a sub-path. Adds a separator between segments unless one is already
+// present. If `other` is absolute, it replaces `self` (Java-style resolve).
+join :: fn(self: Path, other: string) -> Path {
+    if other.len() == 0 {
+        return self
+    }
+    if other.char_at(0) == SEP {
+        return Path { .repr = other }
+    }
+    if self.repr.len() == 0 {
+        return Path { .repr = other }
+    }
+    if self.repr.char_at(self.repr.len() - 1) == SEP {
+        return Path { .repr = self.repr + other }
+    }
+    return Path { .repr = self.repr + SEP_STR + other }
+}
+
+// ---- predicates -----------------------------------------------------------
+
+// True when `self` starts with `prefix` on a segment boundary (so `/foo`
+// starts with `/foo` but `/foobar` does not).
+starts_with :: fn(self: Path, prefix: Path) -> bool {
+    if !self.repr.str_starts_with(prefix.repr) {
+        return false
+    }
+    if self.repr.len() == prefix.repr.len() {
+        return true
+    }
+    // Boundary check: next char in self must be a separator, or prefix must
+    // itself end on one.
+    if prefix.repr.len() > 0 && prefix.repr.char_at(prefix.repr.len() - 1) == SEP {
+        return true
+    }
+    return self.repr.char_at(prefix.repr.len()) == SEP
+}
+
+// True when `self` ends with `suffix` on a segment boundary.
+ends_with :: fn(self: Path, suffix: Path) -> bool {
+    if !self.repr.str_ends_with(suffix.repr) {
+        return false
+    }
+    if self.repr.len() == suffix.repr.len() {
+        return true
+    }
+    cut := self.repr.len() - suffix.repr.len()
+    if suffix.repr.len() > 0 && suffix.repr.char_at(0) == SEP {
+        return true
+    }
+    return self.repr.char_at(cut - 1) == SEP
+}
+
+// ---- normalization --------------------------------------------------------
+
+// Collapse `.` and `..` segments. Does not touch the filesystem (no symlink
+// resolution). Preserves an absolute prefix when present.
+//
+// Maintains the kept-segments stack via an explicit `count` cursor and
+// overwrites `segments[count]` in place — avoids the O(N²) of rebuilding
+// a fresh array on every `..` collapse.
+normalize :: fn(self: Path) -> Path {
+    if self.repr.len() == 0 {
+        return self
+    }
+    abs := self.is_absolute()
+    segments: [string] = []
+    count := 0
+    n := self.repr.len()
+    i := if abs { 1 } else { 0 }
+    seg_start := i
+    for i <= n {
+        at_end := i == n
+        is_sep := !at_end && self.repr.char_at(i) == SEP
+        if is_sep || at_end {
+            seg := self.repr.slice(seg_start, i)
+            if seg.len() == 0 || seg == "." {
+                // skip
+            } else if seg == ".." {
+                can_pop := count > 0 && segments[count - 1] != ".."
+                if can_pop {
+                    count = count - 1
+                } else if !abs {
+                    if count < segments.len() {
+                        segments[count] = seg
+                    } else {
+                        segments.push(seg)
+                    }
+                    count = count + 1
+                }
+            } else {
+                if count < segments.len() {
+                    segments[count] = seg
+                } else {
+                    segments.push(seg)
+                }
+                count = count + 1
+            }
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    sb := new_builder()
+    if abs {
+        sb.append(SEP_STR)
+    }
+    j := 0
+    for j < count {
+        if j > 0 {
+            sb.append(SEP_STR)
+        }
+        sb.append(segments[j])
+        j = j + 1
+    }
+    out := sb.to_string()
+    if out.len() == 0 && !abs {
+        return Path { .repr = "." }
+    }
+    return Path { .repr = out }
+}

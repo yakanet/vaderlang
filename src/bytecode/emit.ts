@@ -7,6 +7,7 @@ import type * as L from "../lower/lowered-ast.ts";
 import type { LoweredProject } from "../lower/index.ts";
 import type { PrimitiveName, Type } from "../typecheck/types.ts";
 import { displayType } from "../typecheck/types.ts";
+import type { ImplRegistry } from "../typecheck/impls.ts";
 
 import {
   intrinsicIdByName,
@@ -26,12 +27,15 @@ import { isIntegerVal, isNumericVal } from "./types.ts";
 export interface EmitOptions {
   /** Run peephole optimisations on every function body. Default: `true`. */
   readonly optimize?: boolean;
+  /** When provided, trait impl information is recorded in the module's
+   *  `implTable` so consumers (VM, C emit) can resolve `match val { is Trait -> … }`. */
+  readonly implRegistry?: ImplRegistry;
 }
 
 export function emitBytecode(
   project: LoweredProject, name: string, options: EmitOptions = {},
 ): BytecodeModule {
-  const ctx = newEmitterCtx(options.optimize ?? true);
+  const ctx = newEmitterCtx(options.optimize ?? true, options.implRegistry ?? null);
   // Pass 1 reserves indices so cross-references resolve regardless of decl order.
   for (const m of project.modules.values()) {
     for (const d of m.decls) reserveDecl(d, ctx);
@@ -47,6 +51,7 @@ export function emitBytecode(
     functions: ctx.functions,
     imports:   ctx.imports,
     exports:   ctx.exports,
+    implTable: ctx.implTable,
   };
 }
 
@@ -63,6 +68,11 @@ interface EmitterCtx {
   /** Const decls inlined at every use site by `emitIdent`. */
   readonly constDecls: Map<number, L.LoweredConstDecl>;
   readonly optimize: boolean;
+  /** Impl table being built: structTypeIndex → set of trait names. */
+  readonly implTable: Map<number, string[]>;
+  /** Pre-built index: struct symbol id → trait names it implements. Empty when
+   *  no `ImplRegistry` was provided. Avoids O(structs × impls) at intern time. */
+  readonly traitsBySymbolId: Map<number, string[]>;
 }
 
 /** Writable shadow of `BcFunction` — populated during pass 2, returned as the
@@ -75,7 +85,16 @@ interface MutableFn {
   debug: (DebugPos | null)[];
 }
 
-function newEmitterCtx(optimize: boolean): EmitterCtx {
+function newEmitterCtx(optimize: boolean, implRegistry: ImplRegistry | null): EmitterCtx {
+  const traitsBySymbolId = new Map<number, string[]>();
+  if (implRegistry !== null) {
+    for (const entry of implRegistry.entries()) {
+      if (entry.forSymbol === null) continue;
+      const list = traitsBySymbolId.get(entry.forSymbol.id);
+      if (list !== undefined) list.push(entry.traitSymbol.name);
+      else traitsBySymbolId.set(entry.forSymbol.id, [entry.traitSymbol.name]);
+    }
+  }
   return {
     types: [], typeKey: new Map(),
     strings: [], stringKey: new Map(),
@@ -84,6 +103,8 @@ function newEmitterCtx(optimize: boolean): EmitterCtx {
     exports: [],
     constDecls: new Map(),
     optimize,
+    implTable: new Map(),
+    traitsBySymbolId,
   };
 }
 
@@ -572,7 +593,11 @@ function emitCast(fn: FnEmitCtx, e: L.LoweredCast): void {
     pushOp(fn, { kind: "ref.cast", typeIndex: internType(fn.project, e.type) }, e.span);
     return;
   }
-  pushOp(fn, { kind: `${asNumeric(fromType)}.to_${asNumeric(toType)}` as ConvertOpKind }, e.span);
+  // Preserve `char` on either side so the VM/C emitter can retag (char is
+  // wire-compatible with u32 but needs a distinct tag).
+  const fromWire = fromType === "char" ? "char" : asNumeric(fromType);
+  const toWire   = toType   === "char" ? "char" : asNumeric(toType);
+  pushOp(fn, { kind: `${fromWire}.to_${toWire}` as ConvertOpKind }, e.span);
 }
 
 // ----------------------------------------------------------- interning
@@ -648,6 +673,10 @@ function internStructDecl(d: L.LoweredStructDecl, ctx: EmitterCtx): number {
     name: f.name, typeIndex: internType(ctx, f.type),
   }));
   ctx.types[idx] = { kind: "struct", name: d.mangled, fields };
+
+  const traits = ctx.traitsBySymbolId.get(d.origin.symbol.id);
+  if (traits !== undefined && traits.length > 0) ctx.implTable.set(idx, traits);
+
   return idx;
 }
 
@@ -706,6 +735,7 @@ function cmpKind(lt: ValType, op: "eq" | "ne" | "lt" | "le" | "gt" | "ge"): CmpO
     if (lt === "char")   return `char.${op}`;
     return `ref.${op}`;       // ref / any / null / void
   }
+  if (lt === "char")   return `char.${op}` as CmpOpKind;
   return `${asNumeric(lt)}.${op}` as CmpOpKind;
 }
 

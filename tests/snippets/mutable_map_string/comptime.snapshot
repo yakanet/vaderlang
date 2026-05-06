@@ -1,0 +1,12 @@
+# Comptime
+
+## tests/snippets/mutable_map_string/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Entry(string, i32)
+  MutableMap(string, i32)
+  put(string, i32)
+  get(string, i32)
+  contains_key(string, i32)
+  len(string, i32)

@@ -1,0 +1,13 @@
+# stdout
+[00042]
+[42...]
+[hello]
+hex=ff
+bin=11111111
+hex_padded=00ff
+zero_bin=0
+ws_space=true
+ws_a=false
+ws_tab=true
+# exit
+0

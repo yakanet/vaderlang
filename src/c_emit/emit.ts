@@ -60,6 +60,9 @@ interface EmitCtx {
    *  into a `ref`/`any` slot (e.g. passing `i32` to a fn expecting `ref`).
    *  -1 means the type isn't materialised in this module's type table.  */
   readonly primitiveTagOf: ReadonlyMap<ValType, number>;
+  /** Inverse of `module.implTable`: trait name → struct type-indices that
+   *  implement it. Built once so `is Trait` checks don't re-scan the table. */
+  readonly structIdxsByTrait: ReadonlyMap<string, readonly number[]>;
 }
 
 function newCtx(m: BytecodeModule): EmitCtx {
@@ -76,7 +79,18 @@ function newCtx(m: BytecodeModule): EmitCtx {
     }
     if (t.kind === "ref" && t.traitName === "Error") errorIdx = i;
   }
-  return { module: m, stringTagIndex: stringIdx, errorTagIndex: errorIdx, fnNames, structNames, primitiveTagOf };
+  const structIdxsByTrait = new Map<string, number[]>();
+  for (const [structIdx, traits] of m.implTable) {
+    for (const traitName of traits) {
+      const list = structIdxsByTrait.get(traitName);
+      if (list !== undefined) list.push(structIdx);
+      else structIdxsByTrait.set(traitName, [structIdx]);
+    }
+  }
+  return {
+    module: m, stringTagIndex: stringIdx, errorTagIndex: errorIdx,
+    fnNames, structNames, primitiveTagOf, structIdxsByTrait,
+  };
 }
 
 // =========================================================================
@@ -330,14 +344,18 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_box_obj(${arrIdx}u, vader_string_split(a0, a1, ${arrIdx}u, ${strIdx}u)); }`;
     }
     case "std_string$parse_int":
-      return `${head} { return vader_string_parse_int(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
+      return `${head} { return vader_string_parse_int(a0, ${primTagOrTrap(ctx, "i32")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_string$parse_float":
-      return `${head} { return vader_string_parse_float(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
+      return `${head} { return vader_string_parse_float(a0, ${primTagOrTrap(ctx, "f64")}, ${tagOrTrap(ctx, "error")}); }`;
+    case "std_core$hash_string":
+      return `${head} { return vader_string_hash(a0); }`;
+    case "std_string_builder$concat_all":
+      return `${head} { return vader_string_concat_all((vader_array_t*) a0.payload.obj); }`;
 
-    case "std_runtime$gc_collect":      return `${head} { vader_gc_collect(); }`;
-    case "std_runtime$gc_collections":  return `${head} { return (int32_t) vader_gc_get_stats().total_collections; }`;
-    case "std_runtime$gc_bytes_used":   return `${head} { return (int32_t) vader_gc_get_stats().bytes_used; }`;
-    case "std_runtime$gc_bytes_copied": return `${head} { return (int32_t) vader_gc_get_stats().total_copied; }`;
+    case "std_gc$collect":      return `${head} { vader_gc_collect(); }`;
+    case "std_gc$collections":  return `${head} { return (int32_t) vader_gc_get_stats().total_collections; }`;
+    case "std_gc$bytes_used":   return `${head} { return (int32_t) vader_gc_get_stats().bytes_used; }`;
+    case "std_gc$bytes_copied": return `${head} { return (int32_t) vader_gc_get_stats().total_copied; }`;
 
     case "std_math$sqrt":  return `${head} { return vader_math_sqrt(a0); }`;
     case "std_math$pow":   return `${head} { return vader_math_pow(a0, a1); }`;
@@ -358,6 +376,15 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
 function tagOrTrap(ctx: EmitCtx, kind: "string" | "error"): string {
   const idx = kind === "string" ? ctx.stringTagIndex : ctx.errorTagIndex;
   if (idx < 0) return `0u /* ${kind} tag absent */`;
+  return `${idx}u`;
+}
+
+/** Primitive-type tag lookup for runtime calls that must box their result with
+ *  the user-visible type's BcType index (e.g. `parse_int` boxing as `i32` so
+ *  `match r { is i32 -> ... }` succeeds). */
+function primTagOrTrap(ctx: EmitCtx, val: ValType): string {
+  const idx = ctx.primitiveTagOf.get(val);
+  if (idx === undefined) return `0u /* ${val} tag absent */`;
   return `${idx}u`;
 }
 
@@ -546,8 +573,13 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "local.tee": {
       const slotVal = slotValType(s, op.slot);
       if (slotVal === "void") return;
-      const v = peek(s);
+      const v = pop(s);
       line(s, `l${op.slot} = ${coerce(s, v.name, v.val, slotVal)};`);
+      // Re-push a fresh tmp typed as the slot. Critical when the source is a
+      // boxed value (`any`/`ref`) but the slot is a primitive — peeking would
+      // leave the box on the stack and break downstream typed ops.
+      const t = newTmp(s, slotVal);
+      line(s, `${decl(s, slotVal, t)} = l${op.slot};`);
       return;
     }
 
@@ -584,6 +616,10 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     }
     case "char.eq":    return pushBinop(s, "char", "==", "bool");
     case "char.ne":    return pushBinop(s, "char", "!=", "bool");
+    case "char.lt":    return pushBinop(s, "char", "<",  "bool");
+    case "char.le":    return pushBinop(s, "char", "<=", "bool");
+    case "char.gt":    return pushBinop(s, "char", ">",  "bool");
+    case "char.ge":    return pushBinop(s, "char", ">=", "bool");
     case "bool.eq":    return pushBinop(s, "bool", "==", "bool");
     case "bool.ne":    return pushBinop(s, "bool", "!=", "bool");
     case "ref.eq":     return pushBinopAny(s, "==", "bool");
@@ -948,12 +984,31 @@ function emitTypeCheck(s: FnState, op: Extract<Op, { kind: "type_check" }>): voi
   // a primitively-typed one. For boxed values we compare tags; for primitives
   // we compare the slot's static type against the target tag.
   if (v.val === "ref" || v.val === "any") {
-    line(s, `bool ${tmp} = (${v.name}.tag == ${op.typeIndex}u);`);
+    const targetType = s.ctx.module.types[op.typeIndex];
+    // For trait references, check whether the value's tag corresponds to any
+    // struct that implements the trait (using the module's impl table).
+    // Also always include a direct tag comparison against op.typeIndex itself:
+    // built-in ref types like Error are tagged with their own type index.
+    if (targetType?.kind === "ref" && targetType.traitName !== null) {
+      const cond = traitCheckExpr(s.ctx, v.name, targetType.traitName, op.typeIndex);
+      line(s, `bool ${tmp} = ${cond};`);
+    } else {
+      line(s, `bool ${tmp} = (${v.name}.tag == ${op.typeIndex}u);`);
+    }
   } else {
     // Primitive slot can only match if its static ValType corresponds to the
     // target type's primitive (or struct/array typeIndex matches).
     line(s, `bool ${tmp} = ${primitiveMatchesType(s.ctx, v.val, op.typeIndex) ? "true" : "false"};`);
   }
+}
+
+/** Build the C boolean expression that checks whether `vName` (a `vader_box_t`)
+ *  has a tag corresponding to any struct implementing `traitName`, or is
+ *  directly tagged as the trait ref type itself (e.g. built-in Error). */
+function traitCheckExpr(ctx: EmitCtx, vName: string, traitName: string, refTypeIndex: number): string {
+  const structIdxs = ctx.structIdxsByTrait.get(traitName) ?? [];
+  const tags = [refTypeIndex, ...structIdxs];
+  return tags.map((idx) => `(${vName}.tag == ${idx}u)`).join(" || ");
 }
 
 function emitRefCast(s: FnState, op: Extract<Op, { kind: "ref.cast" }>): void {
@@ -1185,7 +1240,8 @@ function cTypeForValBare(v: ValType): string {
     case "bool":return "bool";
     case "char":return "uint32_t";
     case "string": return "vader_string_t";
-    case "null": case "void": return "void";
+    case "null": return "vader_box_t";    // null is a tagged box at runtime
+    case "void": return "void";
     case "ref": case "any": return "vader_box_t";
   }
 }
@@ -1262,17 +1318,33 @@ function signatureFor(ctx: EmitCtx, fn: BcFunction): string {
 function emitMain(ctx: EmitCtx, out: string[]): void {
   const main = ctx.module.functions.findIndex((f) => isMainMangled(f.name) && f.body.length > 0);
   if (main < 0) {
-    out.push(`int main(void) { return 0; }`);
+    out.push(`int main(int argc, char** argv) { (void)argc; (void)argv; return 0; }`);
     return;
   }
   const fn = ctx.module.functions[main]!;
   const cname = ctx.fnNames[main]!;
-  out.push(`int main(void) {`);
+  // Typechecker (T3033) guarantees the signature is `()` or `([string])` → i32.
+  const takesArgv = fn.signature.params.length === 1;
+  out.push(`int main(int argc, char** argv) {`);
+  let callArgs = "";
+  if (takesArgv) {
+    const strIdx = ctx.stringTagIndex;
+    const arrIdx = ctx.module.types.findIndex(t => t.kind === "array" && t.element === strIdx);
+    if (strIdx < 0 || arrIdx < 0) {
+      out.push(`    (void)argc; (void)argv; vader_trap("main(argv): missing [string] type"); return 1;`);
+      out.push(`}`);
+      return;
+    }
+    out.push(`    vader_box_t __args = vader_box_obj(${arrIdx}u, vader_runtime_argv(argc, argv, ${arrIdx}u, ${strIdx}u));`);
+    callArgs = "__args";
+  } else {
+    out.push(`    (void)argc; (void)argv;`);
+  }
   if (fn.signature.result === "void") {
-    out.push(`    ${cname}();`);
+    out.push(`    ${cname}(${callArgs});`);
     out.push(`    return 0;`);
   } else {
-    out.push(`    return (int) ${cname}();`);
+    out.push(`    return (int) ${cname}(${callArgs});`);
   }
   out.push(`}`);
 }

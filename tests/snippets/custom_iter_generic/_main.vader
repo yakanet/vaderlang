@@ -1,0 +1,30 @@
+import "std/io" { println }
+
+// A generic "repeat" iterator: yields the same value `count` times.
+Repeat :: struct($T) {
+    value:     T
+    remaining: i32
+}
+
+Repeat($T) implements Iterator(T) {
+    fn step(self) -> Done | Yielded(T) {
+        if (self.remaining <= 0) {
+            return Done {}
+        }
+        v :: self.value
+        self.remaining = self.remaining - 1
+        return Yielded(T) { .value = v }
+    }
+}
+
+main :: fn() -> i32 {
+    // Repeat i32 value 3 times
+    it := Repeat(i32) { .value = 42, .remaining = 3 }
+    sum := 0
+    for x in it {
+        sum = sum + x
+    }
+    // 42 * 3 = 126
+    println("${sum}")
+    return 0
+}

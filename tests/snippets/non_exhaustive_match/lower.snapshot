@@ -4,7 +4,7 @@
   fn tests_snippets_non_exhaustive_match__main_vader$classify(x: i32 | string) -> string
     return
       block :string
-        let __scrut_0#-1: i32 | string = x#45 :i32 | string
+        let __scrut_0#-1: i32 | string = x#47 :i32 | string
         ~>
           if :string
             cond:

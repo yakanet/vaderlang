@@ -1,0 +1,18 @@
+# stdout
+null: null
+true: true
+false: false
+number: 42.0
+neg: -3.14
+expo: 150.0
+string: "hello"
+escaped: "a\nb\tc\"d"
+array: [1.0,2.0,3.0]
+nested: [[1.0,2.0],["x","y"]]
+object: {"b":true,"a":1.0}
+mixed: {"name":"vader","version":0.1,"flags":["-O0","-g"]}
+err: trailing: error: trailing characters after JSON value
+err: bad bool: error: expected `true` or `false`
+err: bad escape: error: unknown escape
+# exit
+0

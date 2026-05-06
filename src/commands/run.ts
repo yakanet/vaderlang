@@ -13,13 +13,16 @@ export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> 
 
   const isIr = file.endsWith(".vir");
   const bindings = makeBindings(defaultHostIO());
+  // argv[0] is the script path, the rest is forwarded — mirrors the C target
+  // where main captures the OS-level argv (incl. argv[0]).
+  const argv = [file, ...args.slice(1)];
 
   try {
     const bc = isIr
       ? parseVir(await Bun.file(file).text())
       : await compileToBytecode(file, opts);
     if (bc === null) return 1;
-    const result = runProgram(bc, { host: bindings });
+    const result = runProgram(bc, { host: bindings, argv });
     return result.exitCode;
   } catch (e) {
     if (e instanceof VmError) {

@@ -4,6 +4,3 @@
 
 ## generic instances
   Yielded(i32)
-  MutableList(i32)
-  add(i32)
-  get(i32)

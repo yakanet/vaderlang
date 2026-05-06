@@ -1,4 +1,5 @@
 module _main
+import 0 hash_string std_core$hash_string (string) -> u64
 
 # Diagnostics
 [1:1] error[P1006] expected a declaration: got `x`

@@ -5,8 +5,8 @@
     return
       add :i32
         l:
-          a#47 :i32
+          a#49 :i32
         r:
-          b#48 :i32
+          b#50 :i32
   fn tests_snippets_fn_decl__main_vader$greet(name: string, prefix: string) -> string
-    return prefix#50 :string
+    return prefix#52 :string

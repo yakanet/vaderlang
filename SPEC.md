@@ -84,7 +84,7 @@ The lowerer consumes the monomorphised typed AST and produces a **separate, smal
 
 - **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. Bindings introduced by `is T as x` and struct destructuring become local lets at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
 - **`expr?` → `match`.** Lowered to `match expr { is Error e -> return e; is T t -> t }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
-- **String interpolation → builder intrinsics.** Each `"…${x}…"` lowers to a sequence of `__builder_new`, `__builder_append_str`, `__builder_append_display(x)`, `__builder_finish` intrinsic calls. The runtime / std/builder provides the actual implementation; the lowerer only emits the call chain. `__builder_append_display` is dispatched statically per the post-mono `Display` impl table.
+- **String interpolation → builder intrinsics.** Each `"…${x}…"` lowers to a sequence of `builder.new`, `builder.append_str`, `builder.append_display(x)`, `builder.finish` intrinsic calls. The runtime (which `std/string_builder` wraps) provides the actual implementation; the lowerer only emits the call chain. `builder.append_display` is dispatched statically per the post-mono `Display` impl table.
 - **`defer` → exit-point duplication.** The lowerer keeps a per-block stack of pending defers (LIFO) and inlines them physically at every textual exit of the block: implicit fallthrough, `return`, `break`, `continue`. Panics are **not** unwound through defers in MVP (panics abort the program). Defers do not propagate across function boundaries.
 - **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.show()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
 - **No inserted runtime checks.** The lowerer does not synthesize bounds checks, null checks, division-by-zero guards, or overflow checks. Type narrowing already covers nullability; the remaining safety checks are the runtime's responsibility (when emitted) or are explicitly out of scope for MVP.
@@ -243,15 +243,20 @@ STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOS
 Arithmetic   : + - * / %
 Bitwise      : & | ^ ~ << >>
 Comparison   : == != < <= > >=
+Membership   : in   (sugar for `right.contains(left)`)
+              !in   (sugar for `!right.contains(left)`, parsed as `bang` + `kw_in`)
+Type test    : is Type   (used in match arms)
 Logical      : && || !
 Assignment   : =
 Declaration  : :: (immutable)  := (mutable)
 Range        : 0..<10 (exclusive)  0..=10 (inclusive)
 Postfix      : ? (try, propagates the error)
-Cast         : Type(expr) (Go-style)
+Cast         : Type(expr) (Go-style; numeric ↔ numeric, char ↔ integer)
 Field access : .name
 Index access : [expr]
 ```
+
+`in` and `!in` desugar to a method call on the `Contains($T)` trait (see §11). Char comparisons (`<`, `<=`, `>`, `>=`) work on codepoint order (`char` is wire-compatible with `u32`).
 
 ### Operator precedence
 
@@ -268,7 +273,7 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 | 7     | `^`                                    | left           |
 | 8     | `\|`                                   | left           |
 | 9     | `..<`, `..=`                           | non-assoc      |
-| 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `is` | non-assoc      |
+| 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `is`, `in`, `!in` | non-assoc      |
 | 11    | `&&`                                   | left           |
 | 12    | `\|\|`                                 | left           |
 | 13    | `=` (statement-level only)             | n/a            |
@@ -601,6 +606,14 @@ y: i64 = i64(x)            // widening cast, safe
 z: u8  = u8(x)             // narrowing cast, panics in debug if overflow
 ```
 
+**`char` ↔ integer** : `char` is a `u32` codepoint at the wire level, so casts between `char` and any integer type (`i32`, `u32`, `i64`, `u64`, `usize`, …) are allowed and reinterpret the bits with a tag change. Casts between `char` and float types are rejected — go through an integer first.
+
+```vader
+c   := 'A'
+n   := u32(c)              // 65
+back := char(n + u32(1))   // 'B'
+```
+
 For risky conversions (parsing), use explicit functions returning unions:
 
 ```vader
@@ -613,11 +626,11 @@ n: i32 | Error = parse_int("42")
 
 ```vader
 map :: fn(items: [$T], f: fn(T) -> $U) -> [U] {
-    result := MutableList(U){}
+    result: [U] = []
     for x in items {
-        result.add(f(x))
+        result.push(f(x))
     }
-    return result.to_list()
+    return result
 }
 ```
 
@@ -655,7 +668,7 @@ make_buffer :: fn($N: i32) -> [N]u8 { ... }
 **Implementation**: monomorphization at compile time, driven by the comptime engine. Single specialization machinery.
 
 **Limitations (MVP)**:
-- **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_list(...)`, `MutableList(T) { ... }` for struct-literal construction. Post-MVP candidate.
+- **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap(K, V) { ... }` for struct-literal construction. Post-MVP candidate.
 - **No trait-method dispatch on bounded type parameters** — inside a generic body, `key.hash()` where `key: $K` and `K: Hash` doesn't resolve, since the typechecker doesn't propagate where-clause methods to type-params. Workaround: pass dispatch as `fn`-typed parameters or specialise per concrete key type. Post-MVP work.
 
 ### Traits
@@ -785,10 +798,9 @@ To compare two structs structurally, implement `Eq` or call `equals(a, b)`.
 
 `::` freezes the binding, not the contents. If `p :: Point { ... }`, you cannot `p = otherPoint`, but `p.x = 5` is allowed.
 
-For deep immutability, use **stdlib convention**:
-- `List<T>`: read-only
-- `MutableList<T>`: mutable
-(Kotlin-style)
+For deep immutability of collections, use **stdlib convention** :
+- raw `[T]` arrays are mutable (Java-style — `arr.push`, `arr[i] = v`)
+- read-only `List(T)` / `Map(K, V)` / `Set(T)` will pair with mutable variants when implemented (post-MVP — currently struct stubs in `std/collections`)
 
 ### Explicit type annotations
 
@@ -830,6 +842,17 @@ log :: fn(message: string) {
 `return` is valid anywhere. If the last expression of a block is an expression and its type matches the return type, `return` is optional.
 
 **No-return functions** drop the `-> void` annotation. Internally the compiler still has a unit/void type, but it is not user-facing — `void` is **not** a name available in source code. Function-pointer types that produce no value drop the arrow likewise: `callback: fn()` instead of `callback: fn() -> void`. This mirrors Rust's `()` being implicit.
+
+### `main` entry point
+
+The program entry is a fn called `main` declared at module scope. It accepts exactly one of two shapes (T3033 otherwise) :
+
+```vader
+main :: fn() -> i32                 // ignore argv
+main :: fn(argv: [string]) -> i32   // receive process args
+```
+
+`argv[0]` is implementation-defined : the script path under `vader run`, the binary path under a native build. User-supplied args start at `argv[1]`.
 
 ### Default parameter values
 
@@ -913,11 +936,11 @@ plus(2, 3)
 Two free functions with the same name **may coexist in the same module** when they differ in the type of their **first parameter** (the receiver). The resolver dispatches based on the receiver's type at the call site.
 
 ```vader
-get :: fn(self: MutableList($T), i: usize) -> T { ... }
-get :: fn(self: MutableMap($K, $V), k: K) -> V | null { ... }
+size :: fn(self: Path) -> i32 { ... }
+size :: fn(self: MutableMap($K, $V)) -> usize { ... }
 
-list.get(0)         // resolves to the MutableList version
-map.get("key")      // resolves to the MutableMap version
+p.size()            // resolves to the Path version
+m.size()            // resolves to the MutableMap version
 ```
 
 Rules :
@@ -1001,7 +1024,7 @@ The iteration form `for x in expr` accepts three shapes for `expr`:
 2. A value of type `Iterator(T)` — used directly.
 3. A value implementing `Iterable(T)` — `expr.iter()` is auto-called and the result drives the loop.
 
-Collections like `MutableList(T)` implement `Iterable(T)`, so `for x in list { ... }` works without an explicit `list.iter()`.
+Raw `[T]` arrays are auto-wrapped in `ArrayIter(T)`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable(T)` so `for x in coll { ... }` works without an explicit `coll.iter()`.
 
 ```vader
 Iterable :: trait($T) {
@@ -1369,11 +1392,11 @@ Forces evaluation at compile time:
 TABLE :: @comptime build_lookup_table()
 
 build_lookup_table :: fn() -> [u32] {
-    result := MutableList(u32){}
+    result: [u32] = []
     for i in 0..<256 {
-        result.add(i * i)
+        result.push(u32(i * i))
     }
-    return result.to_list()
+    return result
 }
 ```
 
@@ -1397,8 +1420,22 @@ The bootstrap compiler runs an **AST-walking interpreter** for `@comptime`, not 
 
 ### `std/core` (auto-imported)
 
-Traits: `Display`, `Eq`, `Ord`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Error`.
-Types: `Done`, `Yielded(T)`, `Range`, `ArrayIter(T)`. Free fns for primitive `Hash`/`Eq` dispatch (`hash_i32`, `eq_i32`, …) — workaround for trait-method dispatch on bounded type params (post-MVP).
+Traits : `Display`, `Eq`, `Ord`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Error`.
+
+Types : `Done`, `Yielded(T)`, `Range`, `ArrayIter(T)`.
+
+The `Contains(T)` trait powers the `in` / `!in` operators :
+
+```vader
+Contains :: trait($T) {
+    fn contains(self, value: T) -> bool
+}
+
+// `Range implements Contains(i32)` is shipped, so `5 in 0..<10` works
+// out of the box. User types opt in by implementing the trait.
+```
+
+Free helpers for primitive `Hash`/`Eq` dispatch (`hash_i32`, `eq_i32`, …) — workaround for trait-method dispatch on bounded type params (post-MVP). String hashing is FNV-1a over the UTF-8 bytes (intrinsic, exposed via `string implements Hash`).
 
 ### `std/io`
 
@@ -1415,10 +1452,13 @@ I/O is **synchronous blocking** only in MVP.
 
 ### `std/string`
 
+Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
+
 ```vader
-fn len(s: string) -> u32                       // bytes
-fn chars(s: string) -> Iterator(char)
-fn slice(s: string, range: Range) -> string
+// Core access (intrinsics — no body in Vader).
+fn len(s: string) -> i32                       // bytes
+fn slice(s: string, start: i32, end: i32) -> string
+fn char_at(s: string, i: i32) -> char
 fn contains(s: string, sub: string) -> bool
 fn starts_with(s: string, prefix: string) -> bool
 fn ends_with(s: string, suffix: string) -> bool
@@ -1428,32 +1468,62 @@ fn to_upper(s: string) -> string
 fn to_lower(s: string) -> string
 fn parse_int(s: string) -> i32!
 fn parse_float(s: string) -> f64!
+
+// Indexing helpers.
+fn last_index_of(s: string, c: char, min_index: i32) -> i32
+
+// Format helpers (pure Vader).
+fn pad_start(s: string, width: i32, fill: char) -> string
+fn pad_end(s: string, width: i32, fill: char) -> string
+fn is_whitechar(c: char) -> bool
+
+// Pattern helpers (ad-hoc — no real regex engine in MVP).
+fn replace_chars_where(s: string, pred: fn(char) -> bool, replacement: string) -> string
+fn trim_suffix(s: string, suffix: string) -> string
+fn trim_prefix(s: string, prefix: string) -> string
+fn split_whitespace(s: string) -> [string]
 ```
 
-### `std/list`, `std/map`, `std/set`
+### `std/numbers`
 
-Each collection family lives in its own module so that overlapping names
-(`add`, `get`, `len`, `is_empty`, `iter`) don't collide at module scope.
-User code imports from the modules it needs.
+UFCS-callable numeric formatting.
 
 ```vader
-// std/list
-List(T)              // read-only (struct stub)
-MutableList(T)       // mutable
-MutableListIter(T)   // iterator
-
-// std/map
-Map(K, V)            // read-only (struct stub)
-MutableMap(K, V)     // mutable
-Bucket(K, V)         // chain node (post-MVP HashMap)
-Entry(K, V)          // (key, value) yielded by iteration
-
-// std/set
-Set(T)               // read-only (struct stub)
-MutableSet(T)        // mutable
+fn to_hex(self: u64) -> string   // lowercase, no `0x`, no leading zeros
+fn to_bin(self: u64) -> string   // no prefix, no leading zeros
 ```
 
-Kotlin convention: `Mutable*` is a subtype of the read-only version.
+Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
+
+### `std/collections`
+
+All hash-based mutable collections live in a single module. Sequence
+collections use raw `[T]` arrays (which already support `push`, `len`,
+indexed access, mutation, and `for x in arr`) — no `MutableList` wrapper
+in MVP. Immutable `List<T>` will pair with arrays once read-only views
+land (post-MVP).
+
+```vader
+// Hash map — chaining HashMap with fixed bucket count.
+MutableMap(K, V)   where K: Hash + Eq
+Map(K, V)          // read-only (struct stub, post-MVP API)
+fn put          (self: MutableMap(K, V), key: K, value: V) -> void
+fn get          (self: MutableMap(K, V), key: K) -> V | null
+fn contains_key (self: MutableMap(K, V), key: K) -> bool
+fn len          (self: MutableMap(K, V)) -> usize
+fn is_empty     (self: MutableMap(K, V)) -> bool
+fn keys         (self: MutableMap(K, V)) -> [K]
+fn values       (self: MutableMap(K, V)) -> [V]
+
+// Hash set — linear-search MVP, will migrate to hash-backed once trait
+// dispatch on bounded type params lands.
+MutableSet(T)
+Set(T)             // read-only (struct stub, post-MVP API)
+fn add      (self: MutableSet(T), value: T) -> void
+fn contains (self: MutableSet(T), value: T) -> bool
+fn len      (self: MutableSet(T)) -> usize
+fn is_empty (self: MutableSet(T)) -> bool
+```
 
 ### `std/math`
 
@@ -1471,14 +1541,17 @@ const pi: f64
 const e:  f64
 ```
 
-### `std/builder`
+### `std/string_builder`
+
+Efficient string construction. `to_string` flushes via the `concat_all` runtime intrinsic — single allocation sized from the total length, avoids the O(N²) of repeated `+`.
 
 ```vader
-StringBuilder :: struct {
-    fn append(self, s: string) -> void
-    fn append_char(self, c: char) -> void
-    fn to_string(self) -> string
-}
+StringBuilder :: struct { parts: [string] }
+
+fn new_builder()                                -> StringBuilder
+fn append      (self: StringBuilder, s: string) -> void
+fn append_char (self: StringBuilder, c: char)   -> void
+fn to_string   (self: StringBuilder)            -> string
 ```
 
 ### `std/iter`
@@ -1512,22 +1585,66 @@ fn skip(arr: [$T], n: i32) -> [T]
 
 The closure-driven combinators take a concrete `[T]` rather than `Iterator($T)` because direct trait-method dispatch on a generic `$T : Iterator` parameter is post-MVP (the `for x in it` form has compiler-internal dispatch but user code can't `it.step()` directly). Bridging from an iterator goes through `collect(it)` first; once trait dispatch on bounded type params lands the two flavours converge.
 
-### `std/runtime`
+### `std/gc`
 
-Runtime introspection and GC controls. Mostly a debug/test surface :
+Garbage-collector introspection and controls. Mostly a debug/test surface :
 
 ```vader
-fn gc_collect()           -> void   // force a Cheney cycle
-fn gc_collections()       -> i32    // total cycles since start
-fn gc_bytes_used()        -> i32    // live bytes in from-space
-fn gc_bytes_copied()      -> i32    // cumulative bytes copied
+fn collect()       -> void   // force a Cheney cycle
+fn collections()   -> i32    // total cycles since start
+fn bytes_used()    -> i32    // live bytes in from-space
+fn bytes_copied()  -> i32    // cumulative bytes copied
 ```
+
+### `std/path`
+
+Filesystem path manipulation. POSIX `/` separator only in MVP — Windows support deferred. All operations return fresh `Path` values (no mutation).
+
+```vader
+Path :: struct { repr: string }
+
+fn to_path     (s: string)                    -> Path
+fn empty_path  ()                             -> Path
+fn as_string   (self: Path)                   -> string
+fn is_empty    (self: Path)                   -> bool
+fn is_absolute (self: Path)                   -> bool
+fn parent      (self: Path)                   -> Path
+fn filename    (self: Path)                   -> string
+fn extension   (self: Path)                   -> string
+fn stem        (self: Path)                   -> string
+fn join        (self: Path, other: string)    -> Path
+fn starts_with (self: Path, prefix: Path)     -> bool   // segment-aware
+fn ends_with   (self: Path, suffix: Path)     -> bool   // segment-aware
+fn normalize   (self: Path)                   -> Path   // collapse `.` and `..`
+```
+
+### `std/json`
+
+Recursive-descent JSON parse + stringify, pure Vader. Numbers are stored as `f64` (loses precision past 2^53 — fine for compiler use cases).
+
+```vader
+JsonValue :: type JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
+JsonString :: struct { value: string }
+JsonNumber :: struct { value: f64 }
+JsonBool   :: struct { value: bool }
+JsonNull   :: struct {}
+JsonArray  :: struct { items: [JsonValue] }
+JsonObject :: struct { entries: MutableMap(string, JsonValue) }
+
+JsonError  :: struct { msg: string, pos: i32 }   // implements Error
+
+fn parse            (input: string)                -> JsonValue | JsonError
+fn stringify        (v: JsonValue)                 -> string
+fn stringify_pretty (v: JsonValue, indent: i32)    -> string
+```
+
+The trait-widening limitation (struct implementing `Error` → `Error`) prevents `T!` sugar on `parse`'s return today (cf. self-host TODO). Returns `JsonValue | JsonError` explicitly.
 
 ### Out of MVP
 
 - networking
-- regex
-- json
+- real regex engine (ad-hoc helpers ship in `std/string` ; full NFA/DFA post-MVP)
+- compile-time-generated JSON parsers (kotlinx-serialization style ; runtime parser ships today via `std/json`)
 - time / date
 - random
 - threads / async
@@ -1724,15 +1841,15 @@ main :: fn() -> i32 {
 }
 ```
 
-### Generic List
+### Array build + iterate
 
 ```vader
-import "std/list" { MutableList }
+import "std/io" { println }
 
 main :: fn() -> i32 {
-    list := MutableList(i32){}
+    list: [i32] = []
     for i in 0..<5 {
-        list.add(i * i)
+        list.push(i * i)
     }
     for x in list {
         println("$x")
@@ -1795,11 +1912,11 @@ main :: fn() -> i32 {
 import "std/io" { println }
 
 squares :: fn() -> [u32] {
-    result := MutableList(u32){}
+    result: [u32] = []
     for i in 0..<10 {
-        result.add(u32(i * i))
+        result.push(u32(i * i))
     }
-    return result.to_list()
+    return result
 }
 
 SQUARES :: @comptime squares()

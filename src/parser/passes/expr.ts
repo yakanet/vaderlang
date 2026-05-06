@@ -33,7 +33,8 @@ const INFIX_OPS: ReadonlyMap<TokenKind, InfixOp> = new Map([
   ["lte",       { leftBP:  20, rightBP:  20, op: "lte", nonAssoc: true }],
   ["gt",        { leftBP:  20, rightBP:  20, op: "gt",  nonAssoc: true }],
   ["gte",       { leftBP:  20, rightBP:  20, op: "gte", nonAssoc: true }],
-  ["kw_is",     { leftBP:  20, rightBP:  20, op: "is",  nonAssoc: true }],
+  ["kw_is",     { leftBP:  20, rightBP:  20, op: "is",     nonAssoc: true }],
+  ["kw_in",     { leftBP:  20, rightBP:  20, op: "in",     nonAssoc: true }],
   // range (non-assoc)
   ["range_excl",{ leftBP:  30, rightBP:  30, op: "lt",  nonAssoc: true }],
   ["range_incl",{ leftBP:  30, rightBP:  30, op: "lte", nonAssoc: true }],
@@ -70,6 +71,25 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
     if (postfixBP !== undefined && postfixBP >= minBP) {
       left = parsePostfix(p, left, t);
       lastNonAssocLevel = -1;
+      continue;
+    }
+
+    // `!in` — two tokens, parsed as a single non-assoc infix at comparison level.
+    if (t.kind === "bang" && p.peek(1).kind === "kw_in" && 20 >= minBP) {
+      if (lastNonAssocLevel === 20) {
+        p.error("P1010", t.span, "chained `!in`");
+        break;
+      }
+      p.advance(); p.advance();
+      const right = parseExpr(p, 21);
+      left = {
+        kind: "BinaryExpr",
+        span: { start: left.span.start, end: right.span.end },
+        op: "not_in",
+        left,
+        right,
+      };
+      lastNonAssocLevel = 20;
       continue;
     }
 

@@ -1,0 +1,7 @@
+# Comptime
+
+## tests/snippets/vm_trait_dispatch/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Wrapper(i32)

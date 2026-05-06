@@ -7,7 +7,7 @@
 import { accessSync, readFileSync as fsReadFile, writeFileSync as fsWriteFile } from "node:fs";
 
 import type { Value } from "./value.ts";
-import { NULL, VOID, bool, ch, err, num, str, asNum } from "./value.ts";
+import { NULL, VOID, bool, ch, err, num, str, asNum, i64 } from "./value.ts";
 
 const UTF8_ENC = new TextEncoder();
 const UTF8_DEC = new TextDecoder();
@@ -80,6 +80,17 @@ export function stdIoBindings(io: HostIO): Record<string, HostFn> {
   };
 }
 
+/** FNV-1a 64-bit hash over the raw UTF-8 bytes — mirrors vader_string_hash in C. */
+function fnv1a64(s: string): bigint {
+  const bytes = UTF8_ENC.encode(s);
+  const MASK64 = (1n << 64n) - 1n;
+  let h = 14695981039346656037n;
+  for (const b of bytes) {
+    h = ((h ^ BigInt(b)) * 1099511628211n) & MASK64;
+  }
+  return h;
+}
+
 export function stdStringBindings(): Record<string, HostFn> {
   return {
     std_string$len:         (args) => num("i32", UTF8_ENC.encode(stringArg(args, 0)).length),
@@ -120,6 +131,18 @@ export function stdStringBindings(): Record<string, HostFn> {
       if (s.trim() === "" || isNaN(n)) return err(`invalid float: "${s}"`);
       return num("f64", n);
     },
+    std_core$hash_string: (args) => i64("u64", fnv1a64(stringArg(args, 0))),
+    std_string_builder$concat_all: (args) => {
+      const arr = args[0];
+      if (arr === undefined || arr.tag !== "array") {
+        throw new Error(`vm: expected array at host arg 0, got ${arr?.tag ?? "<missing>"}`);
+      }
+      let result = "";
+      for (const el of arr.elements) {
+        if (el.tag === "string") result += el.n;
+      }
+      return str(result);
+    },
   };
 }
 
@@ -142,10 +165,10 @@ export function stdRuntimeBindings(): Record<string, HostFn> {
   // assertions across both the VM and the native backend.
   let collections = 0;
   return {
-    std_runtime$gc_collect:      ()     => { collections++; return VOID; },
-    std_runtime$gc_collections:  ()     => num("i32", collections),
-    std_runtime$gc_bytes_used:   ()     => num("i32", 0),
-    std_runtime$gc_bytes_copied: ()     => num("i32", 0),
+    std_gc$collect:      ()     => { collections++; return VOID; },
+    std_gc$collections:  ()     => num("i32", collections),
+    std_gc$bytes_used:   ()     => num("i32", 0),
+    std_gc$bytes_copied: ()     => num("i32", 0),
   };
 }
 

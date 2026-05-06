@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/runtime" { gc_collect, gc_collections }
+import "std/gc" { collect, collections }
 
 Pair :: struct {
     left:  i32
@@ -15,11 +15,11 @@ main :: fn() -> i32 {
     }
 
     // Three collections in a row — each should copy the same live set.
-    c1 := gc_collections()
-    gc_collect()
-    gc_collect()
-    gc_collect()
-    c2 := gc_collections()
+    c1 := collections()
+    collect()
+    collect()
+    collect()
+    c2 := collections()
 
     diff := c2 - c1
     if diff != 3 {

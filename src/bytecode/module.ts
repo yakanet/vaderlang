@@ -15,6 +15,10 @@ export interface BytecodeModule {
   readonly imports: readonly BcImport[];
   /** Symbols exposed to the host (`@export` fns). */
   readonly exports: readonly BcExport[];
+  /** Maps struct type-index → trait names the struct implements. Built from
+   *  `T implements Trait { … }` declarations; consumed by `match val { is Trait }`
+   *  in the VM and the C emitter. */
+  readonly implTable: ReadonlyMap<number, readonly string[]>;
 }
 
 export interface BcFunction {

@@ -6,6 +6,7 @@ string 0 "positive"
 string 1 "non-positive"
 string 2 "nothing"
 string 3 "?"
+import 0 hash_string std_core$hash_string (string) -> u64
 
 fn 0 tests_snippets_match_expr__main_vader$classify (ref) -> string
   local __scrut_0 ref

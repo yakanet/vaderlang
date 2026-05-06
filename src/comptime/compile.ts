@@ -92,6 +92,7 @@ class Compiler {
           functions: this.functions,
           imports: this.imports,
           exports: [],
+          implTable: new Map(),
         },
         mainFnIndex,
         resultType,

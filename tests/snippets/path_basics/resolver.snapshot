@@ -1,0 +1,129 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_string 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## std/path
+  import-binding   private  append → append
+  fn               public   as_string 
+  import-binding   private  char_at → char_at
+  fn               public   empty_path 
+  fn               public   ends_with 
+  fn               public   extension 
+  fn               public   filename 
+  fn               public   is_absolute 
+  fn               public   is_empty 
+  fn               public   join 
+  import-binding   private  last_index_of → last_index_of
+  import-binding   private  len → len
+  import-binding   private  new_builder → new_builder
+  fn               public   normalize 
+  fn               public   parent 
+  struct           public   Path 
+  const            public   SEP 
+  const            public   SEP_STR 
+  import-binding   private  slice → slice
+  fn               public   starts_with 
+  fn               public   stem 
+  import-binding   private  str_ends_with → ends_with
+  import-binding   private  str_starts_with → starts_with
+  import-binding   private  StringBuilder → StringBuilder
+  fn               public   to_path 
+  import-binding   private  to_string → to_string
+  import std/string → ok
+  import std/string_builder → ok
+  refs: idents=139 types=41 params=15 locals=20 typeParams=0 fields=0
+
+## std/string
+  import-binding   private  append → append
+  import-binding   private  append_char → append_char
+  fn               public   char_at 
+  fn               public   contains 
+  fn               public   ends_with 
+  fn               public   is_whitechar 
+  fn               public   last_index_of 
+  fn               public   len 
+  import-binding   private  new_builder → new_builder
+  fn               public   pad_end 
+  fn               public   pad_start 
+  fn               public   parse_float 
+  fn               public   parse_int 
+  struct           public   ParseError 
+  fn               public   replace_chars_where 
+  fn               public   slice 
+  fn               public   split 
+  fn               public   split_whitespace 
+  fn               public   starts_with 
+  import-binding   private  StringBuilder → StringBuilder
+  fn               public   to_lower 
+  import-binding   private  to_string → to_string
+  fn               public   to_upper 
+  fn               public   trim 
+  fn               public   trim_prefix 
+  fn               public   trim_suffix 
+  import std/string_builder → ok
+  refs: idents=93 types=64 params=38 locals=17 typeParams=0 fields=0
+
+## std/string_builder
+  fn               public   append 
+  fn               public   append_char 
+  fn               public   concat_all 
+  fn               public   new_builder 
+  struct           public   StringBuilder 
+  fn               public   to_string 
+  refs: idents=6 types=13 params=6 locals=0 typeParams=0 fields=0
+
+## tests/snippets/path_basics/_main.vader
+  import-binding   private  as_string → as_string
+  import-binding   private  empty_path → empty_path
+  import-binding   private  ends_with → ends_with
+  import-binding   private  extension → extension
+  import-binding   private  filename → filename
+  import-binding   private  is_absolute → is_absolute
+  import-binding   private  is_empty → is_empty
+  import-binding   private  join → join
+  fn               public   main 
+  import-binding   private  normalize → normalize
+  import-binding   private  parent → parent
+  import-binding   private  Path → Path
+  import-binding   private  println → println
+  fn               public   show_path 
+  import-binding   private  starts_with → starts_with
+  import-binding   private  stem → stem
+  import-binding   private  to_path → to_path
+  import std/io → ok
+  import std/path → ok
+  refs: idents=42 types=4 params=2 locals=2 typeParams=0 fields=0

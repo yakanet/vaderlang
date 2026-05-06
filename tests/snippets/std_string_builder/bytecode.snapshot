@@ -1,0 +1,139 @@
+module _main
+type 0 struct std_string_builder$StringBuilder { parts:1 }
+type 1 array 2
+type 2 primitive string
+string 0 "Hello"
+string 1 ", "
+string 2 "World"
+string 3 "foo"
+string 4 "bar"
+string 5 "baz"
+string 6 "empty='"
+string 7 "'"
+string 8 "n="
+import 0 hash_string std_core$hash_string (string) -> u64
+import 1 print std_io$print (string) -> void
+import 2 println std_io$println (string) -> void
+import 3 read_line std_io$read_line () -> ref
+import 4 read_file std_io$read_file (string) -> ref
+import 5 write_file std_io$write_file (string,string) -> ref
+import 6 exists std_io$exists (string) -> bool
+import 7 concat_all std_string_builder$concat_all (ref) -> string
+
+fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
+  local sb ref
+  local sb2 ref
+  local sb3 ref
+  local __sb_0 any
+  local sb4 ref
+  local n i32
+  local sb5 ref
+  local __sb_1 any
+  call 1   ; _main.vader:6:11
+  local.tee 0   ; _main.vader:6:5
+  string.const 0   ; _main.vader:7:15
+  call 2   ; _main.vader:7:5
+  local.get 0   ; _main.vader:8:5
+  string.const 1   ; _main.vader:8:15
+  call 2   ; _main.vader:8:5
+  local.get 0   ; _main.vader:9:5
+  string.const 2   ; _main.vader:9:15
+  call 2   ; _main.vader:9:5
+  local.get 0   ; _main.vader:10:5
+  char.const 33   ; _main.vader:10:20
+  call 3   ; _main.vader:10:5
+  local.get 0   ; _main.vader:11:13
+  call 4   ; _main.vader:11:13
+  call.import 2   ; _main.vader:11:5
+  call 1   ; _main.vader:14:12
+  local.tee 1   ; _main.vader:14:5
+  string.const 3   ; _main.vader:15:16
+  call 2   ; _main.vader:15:5
+  local.get 1   ; _main.vader:16:5
+  string.const 4   ; _main.vader:16:16
+  call 2   ; _main.vader:16:5
+  local.get 1   ; _main.vader:17:5
+  string.const 5   ; _main.vader:17:16
+  call 2   ; _main.vader:17:5
+  local.get 1   ; _main.vader:18:13
+  call 4   ; _main.vader:18:13
+  call.import 2   ; _main.vader:18:5
+  call 1   ; _main.vader:21:12
+  local.set 2   ; _main.vader:21:5
+  intrinsic builder.new   ; _main.vader:22:13
+  local.tee 3   ; _main.vader:22:13
+  string.const 6   ; _main.vader:22:14
+  intrinsic builder.append_str   ; _main.vader:22:14
+  local.get 3   ; _main.vader:22:21
+  local.get 2   ; _main.vader:22:23
+  call 4   ; _main.vader:22:23
+  intrinsic builder.append_display   ; _main.vader:22:21
+  local.get 3   ; _main.vader:22:39
+  string.const 7   ; _main.vader:22:39
+  intrinsic builder.append_str   ; _main.vader:22:39
+  local.get 3   ; _main.vader:22:13
+  intrinsic builder.finish   ; _main.vader:22:13
+  call.import 2   ; _main.vader:22:5
+  call 1   ; _main.vader:25:12
+  local.tee 4   ; _main.vader:25:5
+  char.const 8364   ; _main.vader:26:21
+  call 3   ; _main.vader:26:5
+  local.get 4   ; _main.vader:27:5
+  char.const 41   ; _main.vader:27:21
+  call 3   ; _main.vader:27:5
+  local.get 4   ; _main.vader:28:13
+  call 4   ; _main.vader:28:13
+  call.import 2   ; _main.vader:28:5
+  i32.const 42   ; _main.vader:31:10
+  local.set 5   ; _main.vader:31:5
+  call 1   ; _main.vader:32:12
+  local.tee 6   ; _main.vader:32:5
+  string.const 8   ; _main.vader:33:16
+  call 2   ; _main.vader:33:5
+  local.get 6   ; _main.vader:34:5
+  intrinsic builder.new   ; _main.vader:34:16
+  local.tee 7   ; _main.vader:34:16
+  local.get 5   ; _main.vader:34:19
+  intrinsic builder.append_display   ; _main.vader:34:17
+  local.get 7   ; _main.vader:34:16
+  intrinsic builder.finish   ; _main.vader:34:16
+  call 2   ; _main.vader:34:5
+  local.get 6   ; _main.vader:35:13
+  call 4   ; _main.vader:35:13
+  call.import 2   ; _main.vader:35:5
+  i32.const 0   ; _main.vader:37:12
+  return   ; _main.vader:37:5
+end
+
+fn 1 std_string_builder$new_builder () -> ref
+  array.new 1 0   ; string_builder.vader:19:37
+  struct.new 0   ; string_builder.vader:19:12
+  return   ; string_builder.vader:19:5
+end
+
+fn 2 std_string_builder$append (ref,string) -> void
+  local.get 0   ; string_builder.vader:23:5
+  struct.get 0 0   ; string_builder.vader:23:5
+  local.get 1   ; string_builder.vader:23:21
+  array.push 2   ; string_builder.vader:23:5
+end
+
+fn 3 std_string_builder$append_char (ref,char) -> void
+  local __sb_0 any
+  local.get 0   ; string_builder.vader:27:5
+  struct.get 0 0   ; string_builder.vader:27:5
+  intrinsic builder.new   ; string_builder.vader:27:21
+  local.tee 2   ; string_builder.vader:27:21
+  local.get 1   ; string_builder.vader:27:24
+  intrinsic builder.append_display   ; string_builder.vader:27:22
+  local.get 2   ; string_builder.vader:27:21
+  intrinsic builder.finish   ; string_builder.vader:27:21
+  array.push 2   ; string_builder.vader:27:5
+end
+
+fn 4 std_string_builder$to_string (ref) -> string
+  local.get 0   ; string_builder.vader:34:23
+  struct.get 0 0   ; string_builder.vader:34:23
+  call.import 7   ; string_builder.vader:34:12
+  return   ; string_builder.vader:34:5
+end

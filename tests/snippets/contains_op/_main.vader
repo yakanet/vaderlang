@@ -1,0 +1,29 @@
+import "std/io" { println }
+
+// Custom Contains impl on a user struct.
+DigitSet :: struct {
+    bits: i32   // bit i = digit i present
+}
+
+DigitSet implements Contains(i32) {
+    fn contains(self, value: i32) -> bool {
+        if value < 0 || value > 9 {
+            return false
+        }
+        mask := 1 << value
+        return (self.bits & mask) != 0
+    }
+}
+
+main :: fn() -> i32 {
+    if 5 in 0..<10 { println("range yes") }
+    if 10 !in 0..<10 { println("range !in yes") }
+    if 10 in 0..=10 { println("range incl yes") }
+
+    s := DigitSet { .bits = (1 << 1) | (1 << 4) | (1 << 7) }
+    if 4 in s { println("set has 4") }
+    if 5 !in s { println("set lacks 5") }
+    if 7 in s { println("set has 7") }
+
+    return 0
+}

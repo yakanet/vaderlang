@@ -4,7 +4,7 @@
   fn tests_snippets_enum_typed__main_vader$describe(d: Direction) -> string
     return
       block :string
-        let __scrut_0#-1: Direction = d#56 :Direction
+        let __scrut_0#-1: Direction = d#58 :Direction
         ~>
           if :string
             cond:
@@ -58,7 +58,7 @@
   fn tests_snippets_enum_typed__main_vader$main() -> i32
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         call :string
           callee:
@@ -67,16 +67,16 @@
             int(1) :u8
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         call :string
           callee:
             describe#4 :fn(Direction) -> string
           arg0:
             int(8) :u8
-    let op#57: Op = int(101) :u16
+    let op#59: Op = int(101) :u16
     block :void
-      let __scrut_0#-2: Op = op#57 :Op
+      let __scrut_0#-2: Op = op#59 :Op
       ~>
         if :void
           cond:
@@ -89,7 +89,7 @@
             ~>
               call :void
                 callee:
-                  println#29 :fn(string) -> void
+                  println#31 :fn(string) -> void
                 arg0:
                   "halt" :string
           else:
@@ -105,7 +105,7 @@
                   ~>
                     call :void
                       callee:
-                        println#29 :fn(string) -> void
+                        println#31 :fn(string) -> void
                       arg0:
                         "push" :string
                 else:
@@ -121,7 +121,7 @@
                         ~>
                           call :void
                             callee:
-                              println#29 :fn(string) -> void
+                              println#31 :fn(string) -> void
                             arg0:
                               "pop" :string
                       else:
@@ -137,7 +137,7 @@
                               ~>
                                 call :void
                                   callee:
-                                    println#29 :fn(string) -> void
+                                    println#31 :fn(string) -> void
                                   arg0:
                                     "add" :string
                             else:

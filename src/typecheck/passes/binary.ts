@@ -48,6 +48,12 @@ export function inferBinary(
     case "is":
       // `lhs is RHS`: lhs is a value, rhs would be a type ident; MVP accepts.
       return TY.bool;
+    case "in": case "not_in":
+      // `x in coll` / `x !in coll`: collection-side must implement Contains($T)
+      // where $T accepts the element's type. Returns bool. Validation happens
+      // in the lowerer when the call gets resolved against the impl registry —
+      // here we just report the result type.
+      return TY.bool;
   }
 }
 
@@ -85,6 +91,7 @@ function binaryComparison(expr: A.BinaryExpr, left: Type, right: Type, diags: Di
     (isNumeric(right) || right.kind === "FreeInt" || right.kind === "FreeFloat");
   if (okPair) return TY.bool;
   if (isPrimitive(left, "string") && isPrimitive(right, "string")) return TY.bool;
+  if (isPrimitive(left, "char") && isPrimitive(right, "char")) return TY.bool;
   err(diags, "T3017", expr.span, `comparison ${displayType(left)} vs ${displayType(right)}`);
   return TY.bool;
 }

@@ -51,6 +51,7 @@ export const CORE_TRAITS = {
   Clone:   "Clone",
   Iterator: "Iterator",
   Iterable: "Iterable",
+  Contains: "Contains",
 } as const;
 
 /** Names of stdlib core structs the compiler refers to by symbol. */

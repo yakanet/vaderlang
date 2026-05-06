@@ -1,0 +1,917 @@
+module _main
+type 0 struct std_path$Path { repr:1 }
+type 1 primitive string
+type 2 struct std_string_builder$StringBuilder { parts:3 }
+type 3 array 1
+string 0 "="
+string 1 "src/parser/expr.ts"
+string 2 "path"
+string 3 "filename="
+string 4 "stem="
+string 5 "extension="
+string 6 "parent"
+string 7 "grand"
+string 8 "/usr/local/bin/vader"
+string 9 "abs is_absolute="
+string 10 "abs.parent"
+string 11 "abs.filename"
+string 12 "abs.parent.parent"
+string 13 "empty.is_empty="
+string 14 "p.is_empty="
+string 15 "join"
+string 16 "/etc"
+string 17 "hosts"
+string 18 "join with sep"
+string 19 "/etc/"
+string 20 "join absolute"
+string 21 "/var/log"
+string 22 "join empty base"
+string 23 "foo"
+string 24 "a/b/c starts_with a/b: "
+string 25 "a/b/c"
+string 26 "a/b"
+string 27 "a/bc starts_with a/b: "
+string 28 "a/bc"
+string 29 "a/b/c ends_with b/c: "
+string 30 "b/c"
+string 31 "a/b/c ends_with /c: "
+string 32 "/c"
+string 33 "norm a/./b/../c"
+string 34 "a/./b/../c"
+string 35 "norm /a/b/../c"
+string 36 "/a/b/../c"
+string 37 "norm .."
+string 38 ".."
+string 39 "norm ./."
+string 40 "./."
+string 41 "norm /a//b"
+string 42 "/a//b"
+string 43 ""
+string 44 "/"
+string 45 "."
+import 0 hash_string std_core$hash_string (string) -> u64
+import 1 print std_io$print (string) -> void
+import 2 println std_io$println (string) -> void
+import 3 read_line std_io$read_line () -> ref
+import 4 read_file std_io$read_file (string) -> ref
+import 5 write_file std_io$write_file (string,string) -> ref
+import 6 exists std_io$exists (string) -> bool
+import 7 len std_string$len (string) -> i32
+import 8 slice std_string$slice (string,i32,i32) -> string
+import 9 contains std_string$contains (string,string) -> bool
+import 10 starts_with std_string$starts_with (string,string) -> bool
+import 11 ends_with std_string$ends_with (string,string) -> bool
+import 12 char_at std_string$char_at (string,i32) -> char
+import 13 split std_string$split (string,string) -> ref
+import 14 trim std_string$trim (string) -> string
+import 15 to_upper std_string$to_upper (string) -> string
+import 16 to_lower std_string$to_lower (string) -> string
+import 17 parse_int std_string$parse_int (string) -> ref
+import 18 parse_float std_string$parse_float (string) -> ref
+import 19 concat_all std_string_builder$concat_all (ref) -> string
+
+fn 0 tests_snippets_path_basics__main_vader$show_path (string,ref) -> void
+  local __sb_0 any
+  intrinsic builder.new   ; _main.vader:10:13
+  local.tee 2   ; _main.vader:10:13
+  local.get 0   ; _main.vader:10:16
+  intrinsic builder.append_display   ; _main.vader:10:14
+  local.get 2   ; _main.vader:10:22
+  string.const 0   ; _main.vader:10:22
+  intrinsic builder.append_str   ; _main.vader:10:22
+  local.get 2   ; _main.vader:10:23
+  local.get 1   ; _main.vader:10:25
+  call 4   ; _main.vader:10:25
+  intrinsic builder.append_display   ; _main.vader:10:23
+  local.get 2   ; _main.vader:10:13
+  intrinsic builder.finish   ; _main.vader:10:13
+  call.import 2   ; _main.vader:10:5
+end
+
+fn 1 tests_snippets_path_basics__main_vader$main () -> i32
+  local p ref
+  local __sb_0 any
+  local __sb_1 any
+  local __sb_2 any
+  local abs ref
+  local __sb_3 any
+  local __sb_4 any
+  local __sb_5 any
+  local __sb_6 any
+  local __sb_7 any
+  local __sb_8 any
+  local __sb_9 any
+  string.const 1   ; _main.vader:14:10
+  call 2   ; _main.vader:14:10
+  local.set 0   ; _main.vader:14:5
+  string.const 2   ; _main.vader:15:15
+  local.get 0   ; _main.vader:15:23
+  call 0   ; _main.vader:15:5
+  intrinsic builder.new   ; _main.vader:16:13
+  local.tee 1   ; _main.vader:16:13
+  string.const 3   ; _main.vader:16:14
+  intrinsic builder.append_str   ; _main.vader:16:14
+  local.get 1   ; _main.vader:16:23
+  local.get 0   ; _main.vader:16:25
+  call 8   ; _main.vader:16:25
+  intrinsic builder.append_display   ; _main.vader:16:23
+  local.get 1   ; _main.vader:16:13
+  intrinsic builder.finish   ; _main.vader:16:13
+  call.import 2   ; _main.vader:16:5
+  intrinsic builder.new   ; _main.vader:17:13
+  local.tee 2   ; _main.vader:17:13
+  string.const 4   ; _main.vader:17:14
+  intrinsic builder.append_str   ; _main.vader:17:14
+  local.get 2   ; _main.vader:17:19
+  local.get 0   ; _main.vader:17:21
+  call 10   ; _main.vader:17:21
+  intrinsic builder.append_display   ; _main.vader:17:19
+  local.get 2   ; _main.vader:17:13
+  intrinsic builder.finish   ; _main.vader:17:13
+  call.import 2   ; _main.vader:17:5
+  intrinsic builder.new   ; _main.vader:18:13
+  local.tee 3   ; _main.vader:18:13
+  string.const 5   ; _main.vader:18:14
+  intrinsic builder.append_str   ; _main.vader:18:14
+  local.get 3   ; _main.vader:18:24
+  local.get 0   ; _main.vader:18:26
+  call 9   ; _main.vader:18:26
+  intrinsic builder.append_display   ; _main.vader:18:24
+  local.get 3   ; _main.vader:18:13
+  intrinsic builder.finish   ; _main.vader:18:13
+  call.import 2   ; _main.vader:18:5
+  string.const 6   ; _main.vader:19:15
+  local.get 0   ; _main.vader:19:25
+  call 7   ; _main.vader:19:25
+  call 0   ; _main.vader:19:5
+  string.const 7   ; _main.vader:20:15
+  local.get 0   ; _main.vader:20:24
+  call 7   ; _main.vader:20:24
+  call 7   ; _main.vader:20:24
+  call 0   ; _main.vader:20:5
+  string.const 8   ; _main.vader:22:12
+  call 2   ; _main.vader:22:12
+  local.set 4   ; _main.vader:22:5
+  intrinsic builder.new   ; _main.vader:23:13
+  local.tee 5   ; _main.vader:23:13
+  string.const 9   ; _main.vader:23:14
+  intrinsic builder.append_str   ; _main.vader:23:14
+  local.get 5   ; _main.vader:23:30
+  local.get 4   ; _main.vader:23:32
+  call 6   ; _main.vader:23:32
+  intrinsic builder.append_display   ; _main.vader:23:30
+  local.get 5   ; _main.vader:23:13
+  intrinsic builder.finish   ; _main.vader:23:13
+  call.import 2   ; _main.vader:23:5
+  string.const 10   ; _main.vader:24:15
+  local.get 4   ; _main.vader:24:29
+  call 7   ; _main.vader:24:29
+  call 0   ; _main.vader:24:5
+  string.const 11   ; _main.vader:25:15
+  local.get 4   ; _main.vader:25:39
+  call 8   ; _main.vader:25:39
+  call 2   ; _main.vader:25:31
+  call 0   ; _main.vader:25:5
+  string.const 12   ; _main.vader:26:15
+  local.get 4   ; _main.vader:26:36
+  call 7   ; _main.vader:26:36
+  call 7   ; _main.vader:26:36
+  call 0   ; _main.vader:26:5
+  intrinsic builder.new   ; _main.vader:28:13
+  local.tee 6   ; _main.vader:28:13
+  string.const 13   ; _main.vader:28:14
+  intrinsic builder.append_str   ; _main.vader:28:14
+  local.get 6   ; _main.vader:28:29
+  call 3   ; _main.vader:28:31
+  call 5   ; _main.vader:28:31
+  intrinsic builder.append_display   ; _main.vader:28:29
+  local.get 6   ; _main.vader:28:13
+  intrinsic builder.finish   ; _main.vader:28:13
+  call.import 2   ; _main.vader:28:5
+  intrinsic builder.new   ; _main.vader:29:13
+  local.tee 7   ; _main.vader:29:13
+  string.const 14   ; _main.vader:29:14
+  intrinsic builder.append_str   ; _main.vader:29:14
+  local.get 7   ; _main.vader:29:25
+  local.get 0   ; _main.vader:29:27
+  call 5   ; _main.vader:29:27
+  intrinsic builder.append_display   ; _main.vader:29:25
+  local.get 7   ; _main.vader:29:13
+  intrinsic builder.finish   ; _main.vader:29:13
+  call.import 2   ; _main.vader:29:5
+  string.const 15   ; _main.vader:31:15
+  string.const 16   ; _main.vader:31:23
+  call 2   ; _main.vader:31:23
+  string.const 17   ; _main.vader:31:45
+  call 11   ; _main.vader:31:23
+  call 0   ; _main.vader:31:5
+  string.const 18   ; _main.vader:32:15
+  string.const 19   ; _main.vader:32:32
+  call 2   ; _main.vader:32:32
+  string.const 17   ; _main.vader:32:55
+  call 11   ; _main.vader:32:32
+  call 0   ; _main.vader:32:5
+  string.const 20   ; _main.vader:33:15
+  string.const 16   ; _main.vader:33:32
+  call 2   ; _main.vader:33:32
+  string.const 21   ; _main.vader:33:54
+  call 11   ; _main.vader:33:32
+  call 0   ; _main.vader:33:5
+  string.const 22   ; _main.vader:34:15
+  call 3   ; _main.vader:34:34
+  string.const 23   ; _main.vader:34:52
+  call 11   ; _main.vader:34:34
+  call 0   ; _main.vader:34:5
+  intrinsic builder.new   ; _main.vader:36:13
+  local.tee 8   ; _main.vader:36:13
+  string.const 24   ; _main.vader:36:14
+  intrinsic builder.append_str   ; _main.vader:36:14
+  local.get 8   ; _main.vader:36:37
+  string.const 25   ; _main.vader:36:39
+  call 2   ; _main.vader:36:39
+  string.const 26   ; _main.vader:36:69
+  call 2   ; _main.vader:36:69
+  call 12   ; _main.vader:36:39
+  intrinsic builder.append_display   ; _main.vader:36:37
+  local.get 8   ; _main.vader:36:13
+  intrinsic builder.finish   ; _main.vader:36:13
+  call.import 2   ; _main.vader:36:5
+  intrinsic builder.new   ; _main.vader:37:13
+  local.tee 9   ; _main.vader:37:13
+  string.const 27   ; _main.vader:37:14
+  intrinsic builder.append_str   ; _main.vader:37:14
+  local.get 9   ; _main.vader:37:36
+  string.const 28   ; _main.vader:37:38
+  call 2   ; _main.vader:37:38
+  string.const 26   ; _main.vader:37:67
+  call 2   ; _main.vader:37:67
+  call 12   ; _main.vader:37:38
+  intrinsic builder.append_display   ; _main.vader:37:36
+  local.get 9   ; _main.vader:37:13
+  intrinsic builder.finish   ; _main.vader:37:13
+  call.import 2   ; _main.vader:37:5
+  intrinsic builder.new   ; _main.vader:38:13
+  local.tee 10   ; _main.vader:38:13
+  string.const 29   ; _main.vader:38:14
+  intrinsic builder.append_str   ; _main.vader:38:14
+  local.get 10   ; _main.vader:38:35
+  string.const 25   ; _main.vader:38:37
+  call 2   ; _main.vader:38:37
+  string.const 30   ; _main.vader:38:65
+  call 2   ; _main.vader:38:65
+  call 13   ; _main.vader:38:37
+  intrinsic builder.append_display   ; _main.vader:38:35
+  local.get 10   ; _main.vader:38:13
+  intrinsic builder.finish   ; _main.vader:38:13
+  call.import 2   ; _main.vader:38:5
+  intrinsic builder.new   ; _main.vader:39:13
+  local.tee 11   ; _main.vader:39:13
+  string.const 31   ; _main.vader:39:14
+  intrinsic builder.append_str   ; _main.vader:39:14
+  local.get 11   ; _main.vader:39:34
+  string.const 25   ; _main.vader:39:36
+  call 2   ; _main.vader:39:36
+  string.const 32   ; _main.vader:39:64
+  call 2   ; _main.vader:39:64
+  call 13   ; _main.vader:39:36
+  intrinsic builder.append_display   ; _main.vader:39:34
+  local.get 11   ; _main.vader:39:13
+  intrinsic builder.finish   ; _main.vader:39:13
+  call.import 2   ; _main.vader:39:5
+  string.const 33   ; _main.vader:41:15
+  string.const 34   ; _main.vader:41:34
+  call 2   ; _main.vader:41:34
+  call 14   ; _main.vader:41:34
+  call 0   ; _main.vader:41:5
+  string.const 35   ; _main.vader:42:15
+  string.const 36   ; _main.vader:42:33
+  call 2   ; _main.vader:42:33
+  call 14   ; _main.vader:42:33
+  call 0   ; _main.vader:42:5
+  string.const 37   ; _main.vader:43:15
+  string.const 38   ; _main.vader:43:26
+  call 2   ; _main.vader:43:26
+  call 14   ; _main.vader:43:26
+  call 0   ; _main.vader:43:5
+  string.const 39   ; _main.vader:44:15
+  string.const 40   ; _main.vader:44:27
+  call 2   ; _main.vader:44:27
+  call 14   ; _main.vader:44:27
+  call 0   ; _main.vader:44:5
+  string.const 41   ; _main.vader:45:15
+  string.const 42   ; _main.vader:45:29
+  call 2   ; _main.vader:45:29
+  call 14   ; _main.vader:45:29
+  call 0   ; _main.vader:45:5
+  i32.const 0   ; _main.vader:46:12
+  return   ; _main.vader:46:5
+end
+
+fn 2 std_path$to_path (string) -> ref
+  local.get 0   ; path.vader:23:27
+  struct.new 0   ; path.vader:23:12
+  return   ; path.vader:23:5
+end
+
+fn 3 std_path$empty_path () -> ref
+  string.const 43   ; path.vader:27:27
+  struct.new 0   ; path.vader:27:12
+  return   ; path.vader:27:5
+end
+
+fn 4 std_path$as_string (ref) -> string
+  local.get 0   ; path.vader:33:12
+  struct.get 0 0   ; path.vader:33:12
+  return   ; path.vader:33:5
+end
+
+fn 5 std_path$is_empty (ref) -> bool
+  local.get 0   ; path.vader:37:12
+  struct.get 0 0   ; path.vader:37:12
+  call.import 7   ; path.vader:37:12
+  i32.const 0   ; path.vader:37:31
+  i32.eq   ; path.vader:37:12
+  return   ; path.vader:37:5
+end
+
+fn 6 std_path$is_absolute (ref) -> bool
+  local.get 0   ; path.vader:41:8
+  struct.get 0 0   ; path.vader:41:8
+  call.import 7   ; path.vader:41:8
+  i32.const 0   ; path.vader:41:27
+  i32.eq   ; path.vader:41:8
+  if void   ; path.vader:41:5
+  bool.const false   ; path.vader:42:16
+  return   ; path.vader:42:9
+  end   ; path.vader:41:5
+  local.get 0   ; path.vader:44:12
+  struct.get 0 0   ; path.vader:44:12
+  i32.const 0   ; path.vader:44:30
+  call.import 12   ; path.vader:44:12
+  char.const 47   ; path.vader:13:8
+  char.eq   ; path.vader:44:12
+  return   ; path.vader:44:5
+end
+
+fn 7 std_path$parent (ref) -> ref
+  local idx i32
+  local.get 0   ; path.vader:51:12
+  struct.get 0 0   ; path.vader:51:12
+  char.const 47   ; path.vader:13:8
+  i32.const 0   ; path.vader:51:41
+  call 15   ; path.vader:51:12
+  local.tee 1   ; path.vader:51:5
+  i32.const 0   ; path.vader:52:14
+  i32.lt   ; path.vader:52:8
+  if void   ; path.vader:52:5
+  string.const 43   ; path.vader:53:31
+  struct.new 0   ; path.vader:53:16
+  return   ; path.vader:53:9
+  end   ; path.vader:52:5
+  local.get 1   ; path.vader:55:8
+  i32.const 0   ; path.vader:55:15
+  i32.eq   ; path.vader:55:8
+  if void   ; path.vader:55:5
+  string.const 44   ; path.vader:14:12
+  struct.new 0   ; path.vader:57:16
+  return   ; path.vader:57:9
+  end   ; path.vader:55:5
+  local.get 0   ; path.vader:59:27
+  struct.get 0 0   ; path.vader:59:27
+  i32.const 0   ; path.vader:59:43
+  local.get 1   ; path.vader:59:46
+  call.import 8   ; path.vader:59:27
+  struct.new 0   ; path.vader:59:12
+  return   ; path.vader:59:5
+end
+
+fn 8 std_path$filename (ref) -> string
+  local idx i32
+  local.get 0   ; path.vader:64:12
+  struct.get 0 0   ; path.vader:64:12
+  char.const 47   ; path.vader:13:8
+  i32.const 0   ; path.vader:64:41
+  call 15   ; path.vader:64:12
+  local.tee 1   ; path.vader:64:5
+  i32.const 0   ; path.vader:65:14
+  i32.lt   ; path.vader:65:8
+  if void   ; path.vader:65:5
+  local.get 0   ; path.vader:66:16
+  struct.get 0 0   ; path.vader:66:16
+  return   ; path.vader:66:9
+  end   ; path.vader:65:5
+  local.get 0   ; path.vader:68:12
+  struct.get 0 0   ; path.vader:68:12
+  local.get 1   ; path.vader:68:28
+  i32.const 1   ; path.vader:68:34
+  i32.add   ; path.vader:68:28
+  local.get 0   ; path.vader:68:37
+  struct.get 0 0   ; path.vader:68:37
+  call.import 7   ; path.vader:68:37
+  call.import 8   ; path.vader:68:12
+  return   ; path.vader:68:5
+end
+
+fn 9 std_path$extension (ref) -> string
+  local name string
+  local idx i32
+  local.get 0   ; path.vader:74:13
+  call 8   ; path.vader:74:13
+  local.tee 1   ; path.vader:74:5
+  char.const 46   ; path.vader:75:31
+  i32.const 1   ; path.vader:75:36
+  call 15   ; path.vader:75:12
+  local.tee 2   ; path.vader:75:5
+  i32.const 0   ; path.vader:76:14
+  i32.lt   ; path.vader:76:8
+  if void   ; path.vader:76:5
+  string.const 43   ; path.vader:77:16
+  return   ; path.vader:77:9
+  end   ; path.vader:76:5
+  local.get 1   ; path.vader:79:12
+  local.get 2   ; path.vader:79:23
+  i32.const 1   ; path.vader:79:29
+  i32.add   ; path.vader:79:23
+  local.get 1   ; path.vader:79:32
+  call.import 7   ; path.vader:79:32
+  call.import 8   ; path.vader:79:12
+  return   ; path.vader:79:5
+end
+
+fn 10 std_path$stem (ref) -> string
+  local name string
+  local idx i32
+  local.get 0   ; path.vader:85:13
+  call 8   ; path.vader:85:13
+  local.tee 1   ; path.vader:85:5
+  char.const 46   ; path.vader:86:31
+  i32.const 1   ; path.vader:86:36
+  call 15   ; path.vader:86:12
+  local.tee 2   ; path.vader:86:5
+  i32.const 0   ; path.vader:87:14
+  i32.lt   ; path.vader:87:8
+  if void   ; path.vader:87:5
+  local.get 1   ; path.vader:88:16
+  return   ; path.vader:88:9
+  end   ; path.vader:87:5
+  local.get 1   ; path.vader:90:12
+  i32.const 0   ; path.vader:90:23
+  local.get 2   ; path.vader:90:26
+  call.import 8   ; path.vader:90:12
+  return   ; path.vader:90:5
+end
+
+fn 11 std_path$join (ref,string) -> ref
+  local.get 1   ; path.vader:98:8
+  call.import 7   ; path.vader:98:8
+  i32.const 0   ; path.vader:98:23
+  i32.eq   ; path.vader:98:8
+  if void   ; path.vader:98:5
+  local.get 0   ; path.vader:99:16
+  return   ; path.vader:99:9
+  end   ; path.vader:98:5
+  local.get 1   ; path.vader:101:8
+  i32.const 0   ; path.vader:101:22
+  call.import 12   ; path.vader:101:8
+  char.const 47   ; path.vader:13:8
+  char.eq   ; path.vader:101:8
+  if void   ; path.vader:101:5
+  local.get 1   ; path.vader:102:31
+  struct.new 0   ; path.vader:102:16
+  return   ; path.vader:102:9
+  end   ; path.vader:101:5
+  local.get 0   ; path.vader:104:8
+  struct.get 0 0   ; path.vader:104:8
+  call.import 7   ; path.vader:104:8
+  i32.const 0   ; path.vader:104:27
+  i32.eq   ; path.vader:104:8
+  if void   ; path.vader:104:5
+  local.get 1   ; path.vader:105:31
+  struct.new 0   ; path.vader:105:16
+  return   ; path.vader:105:9
+  end   ; path.vader:104:5
+  local.get 0   ; path.vader:107:8
+  struct.get 0 0   ; path.vader:107:8
+  local.get 0   ; path.vader:107:26
+  struct.get 0 0   ; path.vader:107:26
+  call.import 7   ; path.vader:107:26
+  i32.const 1   ; path.vader:107:44
+  i32.sub   ; path.vader:107:26
+  call.import 12   ; path.vader:107:8
+  char.const 47   ; path.vader:13:8
+  char.eq   ; path.vader:107:8
+  if void   ; path.vader:107:5
+  local.get 0   ; path.vader:108:31
+  struct.get 0 0   ; path.vader:108:31
+  local.get 1   ; path.vader:108:43
+  string.concat   ; path.vader:108:31
+  struct.new 0   ; path.vader:108:16
+  return   ; path.vader:108:9
+  end   ; path.vader:107:5
+  local.get 0   ; path.vader:110:27
+  struct.get 0 0   ; path.vader:110:27
+  string.const 44   ; path.vader:14:12
+  string.concat   ; path.vader:110:27
+  local.get 1   ; path.vader:110:49
+  string.concat   ; path.vader:110:27
+  struct.new 0   ; path.vader:110:12
+  return   ; path.vader:110:5
+end
+
+fn 12 std_path$starts_with (ref,ref) -> bool
+  local.get 0   ; path.vader:118:9
+  struct.get 0 0   ; path.vader:118:9
+  local.get 1   ; path.vader:118:35
+  struct.get 0 0   ; path.vader:118:35
+  call.import 10   ; path.vader:118:9
+  bool.not   ; path.vader:118:8
+  if void   ; path.vader:118:5
+  bool.const false   ; path.vader:119:16
+  return   ; path.vader:119:9
+  end   ; path.vader:118:5
+  local.get 0   ; path.vader:121:8
+  struct.get 0 0   ; path.vader:121:8
+  call.import 7   ; path.vader:121:8
+  local.get 1   ; path.vader:121:27
+  struct.get 0 0   ; path.vader:121:27
+  call.import 7   ; path.vader:121:27
+  i32.eq   ; path.vader:121:8
+  if void   ; path.vader:121:5
+  bool.const true   ; path.vader:122:16
+  return   ; path.vader:122:9
+  end   ; path.vader:121:5
+  local.get 1   ; path.vader:126:8
+  struct.get 0 0   ; path.vader:126:8
+  call.import 7   ; path.vader:126:8
+  i32.const 0   ; path.vader:126:28
+  i32.gt   ; path.vader:126:8
+  if bool   ; path.vader:126:8
+  local.get 1   ; path.vader:126:33
+  struct.get 0 0   ; path.vader:126:33
+  local.get 1   ; path.vader:126:53
+  struct.get 0 0   ; path.vader:126:53
+  call.import 7   ; path.vader:126:53
+  i32.const 1   ; path.vader:126:73
+  i32.sub   ; path.vader:126:53
+  call.import 12   ; path.vader:126:33
+  char.const 47   ; path.vader:13:8
+  char.eq   ; path.vader:126:33
+  else   ; path.vader:126:8
+  bool.const false   ; path.vader:126:8
+  end   ; path.vader:126:8
+  if void   ; path.vader:126:5
+  bool.const true   ; path.vader:127:16
+  return   ; path.vader:127:9
+  end   ; path.vader:126:5
+  local.get 0   ; path.vader:129:12
+  struct.get 0 0   ; path.vader:129:12
+  local.get 1   ; path.vader:129:30
+  struct.get 0 0   ; path.vader:129:30
+  call.import 7   ; path.vader:129:30
+  call.import 12   ; path.vader:129:12
+  char.const 47   ; path.vader:13:8
+  char.eq   ; path.vader:129:12
+  return   ; path.vader:129:5
+end
+
+fn 13 std_path$ends_with (ref,ref) -> bool
+  local cut i32
+  local.get 0   ; path.vader:134:9
+  struct.get 0 0   ; path.vader:134:9
+  local.get 1   ; path.vader:134:33
+  struct.get 0 0   ; path.vader:134:33
+  call.import 11   ; path.vader:134:9
+  bool.not   ; path.vader:134:8
+  if void   ; path.vader:134:5
+  bool.const false   ; path.vader:135:16
+  return   ; path.vader:135:9
+  end   ; path.vader:134:5
+  local.get 0   ; path.vader:137:8
+  struct.get 0 0   ; path.vader:137:8
+  call.import 7   ; path.vader:137:8
+  local.get 1   ; path.vader:137:27
+  struct.get 0 0   ; path.vader:137:27
+  call.import 7   ; path.vader:137:27
+  i32.eq   ; path.vader:137:8
+  if void   ; path.vader:137:5
+  bool.const true   ; path.vader:138:16
+  return   ; path.vader:138:9
+  end   ; path.vader:137:5
+  local.get 0   ; path.vader:140:12
+  struct.get 0 0   ; path.vader:140:12
+  call.import 7   ; path.vader:140:12
+  local.get 1   ; path.vader:140:30
+  struct.get 0 0   ; path.vader:140:30
+  call.import 7   ; path.vader:140:30
+  i32.sub   ; path.vader:140:12
+  local.set 2   ; path.vader:140:5
+  local.get 1   ; path.vader:141:8
+  struct.get 0 0   ; path.vader:141:8
+  call.import 7   ; path.vader:141:8
+  i32.const 0   ; path.vader:141:28
+  i32.gt   ; path.vader:141:8
+  if bool   ; path.vader:141:8
+  local.get 1   ; path.vader:141:33
+  struct.get 0 0   ; path.vader:141:33
+  i32.const 0   ; path.vader:141:53
+  call.import 12   ; path.vader:141:33
+  char.const 47   ; path.vader:13:8
+  char.eq   ; path.vader:141:33
+  else   ; path.vader:141:8
+  bool.const false   ; path.vader:141:8
+  end   ; path.vader:141:8
+  if void   ; path.vader:141:5
+  bool.const true   ; path.vader:142:16
+  return   ; path.vader:142:9
+  end   ; path.vader:141:5
+  local.get 0   ; path.vader:144:12
+  struct.get 0 0   ; path.vader:144:12
+  local.get 2   ; path.vader:144:30
+  i32.const 1   ; path.vader:144:36
+  i32.sub   ; path.vader:144:30
+  call.import 12   ; path.vader:144:12
+  char.const 47   ; path.vader:13:8
+  char.eq   ; path.vader:144:12
+  return   ; path.vader:144:5
+end
+
+fn 14 std_path$normalize (ref) -> ref
+  local abs bool
+  local segments ref
+  local count i32
+  local n i32
+  local i i32
+  local seg_start i32
+  local at_end bool
+  local is_sep bool
+  local seg string
+  local can_pop bool
+  local sb ref
+  local j i32
+  local out string
+  local.get 0   ; path.vader:156:8
+  struct.get 0 0   ; path.vader:156:8
+  call.import 7   ; path.vader:156:8
+  i32.const 0   ; path.vader:156:27
+  i32.eq   ; path.vader:156:8
+  if void   ; path.vader:156:5
+  local.get 0   ; path.vader:157:16
+  return   ; path.vader:157:9
+  end   ; path.vader:156:5
+  local.get 0   ; path.vader:159:12
+  call 6   ; path.vader:159:12
+  local.set 1   ; path.vader:159:5
+  array.new 3 0   ; path.vader:160:26
+  local.set 2   ; path.vader:160:5
+  i32.const 0   ; path.vader:161:14
+  local.set 3   ; path.vader:161:5
+  local.get 0   ; path.vader:162:10
+  struct.get 0 0   ; path.vader:162:10
+  call.import 7   ; path.vader:162:10
+  local.set 4   ; path.vader:162:5
+  local.get 1   ; path.vader:163:13
+  if i32   ; path.vader:163:10
+  i32.const 1   ; path.vader:163:19
+  else   ; path.vader:163:10
+  i32.const 0   ; path.vader:163:30
+  end   ; path.vader:163:10
+  local.tee 5   ; path.vader:163:5
+  local.set 6   ; path.vader:164:5
+  block void   ; path.vader:165:5
+  loop void   ; path.vader:165:5
+  local.get 5   ; path.vader:165:9
+  local.get 4   ; path.vader:165:14
+  i32.gt   ; path.vader:165:9
+  br_if 1   ; path.vader:165:9
+  local.get 5   ; path.vader:166:19
+  local.get 4   ; path.vader:166:24
+  i32.eq   ; path.vader:166:19
+  local.tee 7   ; path.vader:166:9
+  bool.not   ; path.vader:167:19
+  if bool   ; path.vader:167:19
+  local.get 0   ; path.vader:167:30
+  struct.get 0 0   ; path.vader:167:30
+  local.get 5   ; path.vader:167:48
+  call.import 12   ; path.vader:167:30
+  char.const 47   ; path.vader:13:8
+  char.eq   ; path.vader:167:30
+  else   ; path.vader:167:19
+  bool.const false   ; path.vader:167:19
+  end   ; path.vader:167:19
+  local.tee 8   ; path.vader:167:9
+  if bool   ; path.vader:168:12
+  bool.const true   ; path.vader:168:12
+  else   ; path.vader:168:12
+  local.get 7   ; path.vader:168:22
+  end   ; path.vader:168:12
+  if void   ; path.vader:168:9
+  local.get 0   ; path.vader:169:20
+  struct.get 0 0   ; path.vader:169:20
+  local.get 6   ; path.vader:169:36
+  local.get 5   ; path.vader:169:47
+  call.import 8   ; path.vader:169:20
+  local.tee 9   ; path.vader:169:13
+  call.import 7   ; path.vader:170:16
+  i32.const 0   ; path.vader:170:29
+  i32.eq   ; path.vader:170:16
+  if bool   ; path.vader:170:16
+  bool.const true   ; path.vader:170:16
+  else   ; path.vader:170:16
+  local.get 9   ; path.vader:170:34
+  string.const 45   ; path.vader:170:41
+  string.eq   ; path.vader:170:34
+  end   ; path.vader:170:16
+  if void   ; path.vader:170:13
+  else   ; path.vader:170:13
+  local.get 9   ; path.vader:172:23
+  string.const 38   ; path.vader:172:30
+  string.eq   ; path.vader:172:23
+  if void   ; path.vader:172:20
+  local.get 3   ; path.vader:173:28
+  i32.const 0   ; path.vader:173:36
+  i32.gt   ; path.vader:173:28
+  if bool   ; path.vader:173:28
+  local.get 2   ; path.vader:173:41
+  local.get 3   ; path.vader:173:50
+  i32.const 1   ; path.vader:173:58
+  i32.sub   ; path.vader:173:50
+  array.get 3   ; path.vader:173:41
+  string.const 38   ; path.vader:173:64
+  string.ne   ; path.vader:173:41
+  else   ; path.vader:173:28
+  bool.const false   ; path.vader:173:28
+  end   ; path.vader:173:28
+  local.tee 10   ; path.vader:173:17
+  if void   ; path.vader:174:17
+  local.get 3   ; path.vader:175:29
+  i32.const 1   ; path.vader:175:37
+  i32.sub   ; path.vader:175:29
+  local.set 3   ; path.vader:175:21
+  else   ; path.vader:174:17
+  local.get 1   ; path.vader:176:28
+  bool.not   ; path.vader:176:27
+  if void   ; path.vader:176:24
+  local.get 3   ; path.vader:177:24
+  local.get 2   ; path.vader:177:32
+  array.len   ; path.vader:177:32
+  i32.lt   ; path.vader:177:24
+  if void   ; path.vader:177:21
+  local.get 2   ; path.vader:178:25
+  local.get 3   ; path.vader:178:34
+  local.get 9   ; path.vader:178:43
+  array.set 3   ; path.vader:178:25
+  else   ; path.vader:177:21
+  local.get 2   ; path.vader:180:25
+  local.get 9   ; path.vader:180:39
+  array.push 1   ; path.vader:180:25
+  end   ; path.vader:177:21
+  local.get 3   ; path.vader:182:29
+  i32.const 1   ; path.vader:182:37
+  i32.add   ; path.vader:182:29
+  local.set 3   ; path.vader:182:21
+  end   ; path.vader:176:24
+  end   ; path.vader:174:17
+  else   ; path.vader:172:20
+  local.get 3   ; path.vader:185:20
+  local.get 2   ; path.vader:185:28
+  array.len   ; path.vader:185:28
+  i32.lt   ; path.vader:185:20
+  if void   ; path.vader:185:17
+  local.get 2   ; path.vader:186:21
+  local.get 3   ; path.vader:186:30
+  local.get 9   ; path.vader:186:39
+  array.set 3   ; path.vader:186:21
+  else   ; path.vader:185:17
+  local.get 2   ; path.vader:188:21
+  local.get 9   ; path.vader:188:35
+  array.push 1   ; path.vader:188:21
+  end   ; path.vader:185:17
+  local.get 3   ; path.vader:190:25
+  i32.const 1   ; path.vader:190:33
+  i32.add   ; path.vader:190:25
+  local.set 3   ; path.vader:190:17
+  end   ; path.vader:172:20
+  end   ; path.vader:170:13
+  local.get 5   ; path.vader:192:25
+  i32.const 1   ; path.vader:192:29
+  i32.add   ; path.vader:192:25
+  local.set 6   ; path.vader:192:13
+  end   ; path.vader:168:9
+  local.get 5   ; path.vader:194:13
+  i32.const 1   ; path.vader:194:17
+  i32.add   ; path.vader:194:13
+  local.set 5   ; path.vader:194:9
+  br 0   ; path.vader:165:5
+  end   ; path.vader:165:5
+  end   ; path.vader:165:5
+  call 16   ; path.vader:196:11
+  local.set 11   ; path.vader:196:5
+  local.get 1   ; path.vader:197:8
+  if void   ; path.vader:197:5
+  local.get 11   ; path.vader:198:9
+  string.const 44   ; path.vader:14:12
+  call 17   ; path.vader:198:9
+  end   ; path.vader:197:5
+  i32.const 0   ; path.vader:200:10
+  local.set 12   ; path.vader:200:5
+  block void   ; path.vader:201:5
+  loop void   ; path.vader:201:5
+  local.get 12   ; path.vader:201:9
+  local.get 3   ; path.vader:201:13
+  i32.ge   ; path.vader:201:9
+  br_if 1   ; path.vader:201:9
+  local.get 12   ; path.vader:202:12
+  i32.const 0   ; path.vader:202:16
+  i32.gt   ; path.vader:202:12
+  if void   ; path.vader:202:9
+  local.get 11   ; path.vader:203:13
+  string.const 44   ; path.vader:14:12
+  call 17   ; path.vader:203:13
+  end   ; path.vader:202:9
+  local.get 11   ; path.vader:205:9
+  local.get 2   ; path.vader:205:19
+  local.get 12   ; path.vader:205:28
+  array.get 3   ; path.vader:205:19
+  call 17   ; path.vader:205:9
+  local.get 12   ; path.vader:206:13
+  i32.const 1   ; path.vader:206:17
+  i32.add   ; path.vader:206:13
+  local.set 12   ; path.vader:206:9
+  br 0   ; path.vader:201:5
+  end   ; path.vader:201:5
+  end   ; path.vader:201:5
+  local.get 11   ; path.vader:208:12
+  call 18   ; path.vader:208:12
+  local.tee 13   ; path.vader:208:5
+  call.import 7   ; path.vader:209:8
+  i32.const 0   ; path.vader:209:21
+  i32.eq   ; path.vader:209:8
+  if bool   ; path.vader:209:8
+  local.get 1   ; path.vader:209:27
+  bool.not   ; path.vader:209:26
+  else   ; path.vader:209:8
+  bool.const false   ; path.vader:209:8
+  end   ; path.vader:209:8
+  if void   ; path.vader:209:5
+  string.const 45   ; path.vader:210:31
+  struct.new 0   ; path.vader:210:16
+  return   ; path.vader:210:9
+  end   ; path.vader:209:5
+  local.get 13   ; path.vader:212:27
+  struct.new 0   ; path.vader:212:12
+  return   ; path.vader:212:5
+end
+
+fn 15 std_string$last_index_of (string,char,i32) -> i32
+  local i i32
+  local.get 0   ; string.vader:25:10
+  call.import 7   ; string.vader:25:10
+  i32.const 1   ; string.vader:25:20
+  i32.sub   ; string.vader:25:10
+  local.set 3   ; string.vader:25:5
+  block void   ; string.vader:26:5
+  loop void   ; string.vader:26:5
+  local.get 3   ; string.vader:26:9
+  local.get 2   ; string.vader:26:14
+  i32.lt   ; string.vader:26:9
+  br_if 1   ; string.vader:26:9
+  local.get 0   ; string.vader:27:12
+  local.get 3   ; string.vader:27:22
+  call.import 12   ; string.vader:27:12
+  local.get 1   ; string.vader:27:28
+  char.eq   ; string.vader:27:12
+  if void   ; string.vader:27:9
+  local.get 3   ; string.vader:28:20
+  return   ; string.vader:28:13
+  end   ; string.vader:27:9
+  local.get 3   ; string.vader:30:13
+  i32.const 1   ; string.vader:30:17
+  i32.sub   ; string.vader:30:13
+  local.set 3   ; string.vader:30:9
+  br 0   ; string.vader:26:5
+  end   ; string.vader:26:5
+  end   ; string.vader:26:5
+  i32.const 1   ; string.vader:32:13
+  i32.neg   ; string.vader:32:12
+  return   ; string.vader:32:5
+end
+
+fn 16 std_string_builder$new_builder () -> ref
+  array.new 3 0   ; string_builder.vader:19:37
+  struct.new 2   ; string_builder.vader:19:12
+  return   ; string_builder.vader:19:5
+end
+
+fn 17 std_string_builder$append (ref,string) -> void
+  local.get 0   ; string_builder.vader:23:5
+  struct.get 2 0   ; string_builder.vader:23:5
+  local.get 1   ; string_builder.vader:23:21
+  array.push 1   ; string_builder.vader:23:5
+end
+
+fn 18 std_string_builder$to_string (ref) -> string
+  local.get 0   ; string_builder.vader:34:23
+  struct.get 2 0   ; string_builder.vader:34:23
+  call.import 19   ; string_builder.vader:34:12
+  return   ; string_builder.vader:34:5
+end

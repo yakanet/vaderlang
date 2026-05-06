@@ -57,6 +57,24 @@ Range :: struct {
     cursor:    i32
 }
 
+// Contains — `x in coll` desugars to `coll.contains(x)`. `x !in coll` desugars
+// to `!coll.contains(x)`.
+Contains :: trait($T) {
+    fn contains(self, value: T) -> bool
+}
+
+Range implements Contains(i32) {
+    fn contains(self, value: i32) -> bool {
+        if value < self.start {
+            return false
+        }
+        if self.inclusive {
+            return value <= self.end
+        }
+        return value < self.end
+    }
+}
+
 Range implements Iterator(i32) {
     fn step(self) -> Done | Yielded(i32) {
         done :: if (self.inclusive) {
@@ -108,10 +126,13 @@ i32   implements Hash -> u64(self)
 u32   implements Hash -> u64(self)
 usize implements Hash -> u64(self)
 
-// String Hash — TODO post-MVP. Requires std/string functions (len, char_at)
-// which would create a circular import (std/string imports Error from core).
-// Workaround : add a stdlib helper module or move string hash to std/string
-// once cross-module trait impls cleanup is settled.
+// String Hash — FNV-1a over the UTF-8 bytes; intrinsic provided by the host.
+hash_string :: fn(s: string) -> u64
+
+string implements Hash -> hash_string(self)
+
+// Number formatting (`to_hex`, `to_bin`) lives in `std/numbers` so it can use
+// std/string_builder.
 
 i32    implements Eq -> self == other
 u32    implements Eq -> self == other

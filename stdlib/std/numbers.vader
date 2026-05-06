@@ -1,0 +1,63 @@
+// std/numbers — number formatting helpers.
+//
+// Lives outside std/core so we can use std/builder for efficient construction.
+// UFCS-callable as `n.to_hex()` once `import "std/numbers"` is in scope.
+
+import "std/string_builder" { StringBuilder, new_builder, append_char, to_string }
+
+private hex_digit :: fn(n: u64) -> char {
+    d := i32(n)
+    if d in 0..=9 {
+        return char(u32('0') + u32(d))
+    }
+    return char(u32('a') + u32(d) - u32(10))
+}
+
+// Hexadecimal stringification of a u64 — lowercase, no `0x` prefix, no leading
+// zeros. Caller pads via `std/string.pad_start` if a fixed width is needed.
+to_hex :: fn(self: u64) -> string {
+    if self == u64(0) {
+        return "0"
+    }
+    // Build digits LSB-first into the buffer, then walk it backwards into the
+    // builder so the output reads MSB-first.
+    rev: [char] = []
+    base: u64 = 16
+    x := self
+    for x > u64(0) {
+        rev.push(hex_digit(x % base))
+        x = x / base
+    }
+    sb := new_builder()
+    i := rev.len() - 1
+    for i >= 0 {
+        sb.append_char(rev[i])
+        i = i - 1
+    }
+    return sb.to_string()
+}
+
+// Binary stringification of a u64 — no prefix, no leading zeros.
+to_bin :: fn(self: u64) -> string {
+    if self == u64(0) {
+        return "0"
+    }
+    rev: [char] = []
+    two: u64 = 2
+    x := self
+    for x > u64(0) {
+        if x % two == u64(0) {
+            rev.push('0')
+        } else {
+            rev.push('1')
+        }
+        x = x / two
+    }
+    sb := new_builder()
+    i := rev.len() - 1
+    for i >= 0 {
+        sb.append_char(rev[i])
+        i = i - 1
+    }
+    return sb.to_string()
+}

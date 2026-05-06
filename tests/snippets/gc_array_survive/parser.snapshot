@@ -18,42 +18,16 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/runtime",
+      "path": "std/gc",
       "binding": {
         "kind": "destructure",
         "names": [
           {
-            "name": "gc_collect",
+            "name": "collect",
             "alias": null
           },
           {
-            "name": "gc_collections",
-            "alias": null
-          }
-        ]
-      },
-      "decorators": []
-    },
-    {
-      "kind": "ImportDecl",
-      "path": "std/collections",
-      "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "MutableList",
-            "alias": null
-          },
-          {
-            "name": "add",
-            "alias": null
-          },
-          {
-            "name": "get",
-            "alias": null
-          },
-          {
-            "name": "len",
+            "name": "collections",
             "alias": null
           }
         ]
@@ -78,39 +52,16 @@
             "kind": "LetStmt",
             "mutable": true,
             "name": "list",
-            "type": null,
+            "type": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "NamedType",
+                "name": "i32"
+              }
+            },
             "value": {
-              "kind": "StructLitExpr",
-              "typeName": {
-                "kind": "GenericInstType",
-                "base": {
-                  "kind": "NamedType",
-                  "name": "MutableList"
-                },
-                "args": [
-                  {
-                    "kind": "NamedType",
-                    "name": "i32"
-                  }
-                ]
-              },
-              "fields": [
-                {
-                  "name": "data",
-                  "value": {
-                    "kind": "ArrayLitExpr",
-                    "elements": []
-                  }
-                },
-                {
-                  "name": "size",
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "0n",
-                    "suffix": null
-                  }
-                }
-              ]
+              "kind": "ArrayLitExpr",
+              "elements": []
             }
           },
           {
@@ -156,7 +107,7 @@
                         "kind": "IdentExpr",
                         "name": "list"
                       },
-                      "field": "add"
+                      "field": "push"
                     },
                     "args": [
                       {
@@ -203,7 +154,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "gc_collections"
+                "name": "collections"
               },
               "args": []
             }
@@ -214,7 +165,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "gc_collect"
+                "name": "collect"
               },
               "args": []
             }
@@ -228,7 +179,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "gc_collections"
+                "name": "collections"
               },
               "args": []
             }
@@ -375,38 +326,15 @@
                       "name": "sum"
                     },
                     "right": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "list"
-                        },
-                        "field": "get"
+                      "kind": "IndexExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "list"
                       },
-                      "args": [
-                        {
-                          "name": null,
-                          "value": {
-                            "kind": "CallExpr",
-                            "callee": {
-                              "kind": "IdentExpr",
-                              "name": "usize"
-                            },
-                            "args": [
-                              {
-                                "name": null,
-                                "value": {
-                                  "kind": "IdentExpr",
-                                  "name": "j"
-                                },
-                                "spread": false
-                              }
-                            ]
-                          },
-                          "spread": false
-                        }
-                      ]
+                      "index": {
+                        "kind": "IdentExpr",
+                        "name": "j"
+                      }
                     }
                   }
                 },

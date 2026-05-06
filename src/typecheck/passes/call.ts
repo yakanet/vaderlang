@@ -14,7 +14,7 @@ import { err } from "../diag.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { MethodResolution } from "../typed-ast.ts";
 import type { Substitution, Type } from "../types.ts";
-import { TY, defaultIfFree, displayType, isAssignable, isNumeric, substitute } from "../types.ts";
+import { TY, defaultIfFree, displayType, isAssignable, isNumeric, isPrimitive, substitute } from "../types.ts";
 
 import { tryStructSubst } from "../ctx.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
@@ -141,7 +141,9 @@ function inferTypeConstructorCall(
     return target;
   }
 
-  // Numeric cast `i32(x)` etc. — primitive numeric source + target only in MVP.
+  // Numeric cast `i32(x)` etc. + char ↔ integer casts. The MVP allows numeric
+  // primitives both ways, plus `char` on either side (treated as a u32
+  // codepoint at the wire level).
   if (expr.args.length !== 1) {
     err(diags, "T3010", expr.span, "cast takes exactly one argument");
     for (const a of expr.args) checkExpr(a.value, null, t, impls, diags, fn);
@@ -149,14 +151,31 @@ function inferTypeConstructorCall(
   }
   const arg = expr.args[0]!.value;
   const argType = checkExpr(arg, null, t, impls, diags, fn);
-  if (!isNumeric(target)) {
+  const targetOk = isNumeric(target) || isPrimitive(target, "char");
+  if (!targetOk) {
     err(diags, "T3010", expr.callee.span,
-      `cast target must be a primitive numeric type, got ${displayType(target)}`);
+      `cast target must be a primitive numeric type or char, got ${displayType(target)}`);
     return target;
   }
-  if (!isNumeric(argType) && argType.kind !== "Unresolved" && argType.kind !== "FreeInt" && argType.kind !== "FreeFloat") {
+  const sourceOk = isNumeric(argType)
+    || isPrimitive(argType, "char")
+    || argType.kind === "Unresolved"
+    || argType.kind === "FreeInt"
+    || argType.kind === "FreeFloat";
+  if (!sourceOk) {
     err(diags, "T3010", arg.span,
-      `cast source must be numeric, got ${displayType(argType)}`);
+      `cast source must be numeric or char, got ${displayType(argType)}`);
+  }
+  // Casting char → float or float → char is rejected — chars are integral.
+  if (isPrimitive(target, "char") && argType.kind === "Primitive"
+      && (argType.name === "f32" || argType.name === "f64")) {
+    err(diags, "T3010", arg.span, "cannot cast float to char");
+  }
+  if (isPrimitive(argType, "char") && isPrimitive(target, "f32")) {
+    err(diags, "T3010", expr.callee.span, "cannot cast char to f32 (use u32 first)");
+  }
+  if (isPrimitive(argType, "char") && isPrimitive(target, "f64")) {
+    err(diags, "T3010", expr.callee.span, "cannot cast char to f64 (use u32 first)");
   }
   return target;
 }

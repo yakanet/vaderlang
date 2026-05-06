@@ -304,17 +304,47 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [ ] `std/core` — finalise traits and base `Error`
 - [ ] `std/io` — implement `print`, `println`, `read_file`, `write_file`, `read_line`, `exists`
 - [ ] `std/string` — finalise all listed operations
-- [x] `std/list` — `MutableList(T)` with full ops + `Iterator(T)` impl. Stub `List(T)`.
-- [x] `std/map` — `MutableMap(K, V)` linear-search MVP (post-MVP : promote to chaining HashMap once trait dispatch on `$K` lands). Stub `Map(K, V)` + `Bucket(K, V)` for future.
-- [x] `std/set` — `MutableSet(T)` linear-search MVP. Stub `Set(T)`.
-- [ ] **Promote `MutableMap` / `MutableSet` to chaining HashMap** once trait-method dispatch on bounded type parameters is implemented (so `key.hash()` / `key.equals(other)` work inside generic bodies).
-- [ ] **Implement immutable `List`/`Map`/`Set` ops + `to_immutable` conversion** (currently struct stubs only).
+- [x] `std/collections` — `MutableMap(K, V)` chaining HashMap (string keys via FNV-1a hash). `MutableSet(T)` linear-search. `keys()` / `values()` snapshot helpers. Stub immutable `Map`/`Set`.
+- [ ] **Promote `MutableSet` to hash-backed** once trait-method dispatch on bounded type parameters is implemented (so `key.hash()` / `key.equals(other)` work inside generic bodies).
+- [ ] **Implement immutable `Map`/`Set` ops + `to_immutable` conversion** (currently struct stubs only).
 - [ ] **Iterator impls for `MutableMap` / `MutableSet`** — yield `Entry(K, V)` / `T`. Skipped at MVP because writing them in a generic body needs the trait-dispatch fix above to be ergonomic.
+- [ ] **Restore `MutableList(T)` once immutable `List<T>` lands**. Today raw `[T]` arrays already provide `push`/`len`/indexing/`for x in arr`, so `MutableList` was a wrapper with no extra value and was dropped (was previously `MutableList(T) { data: [T], size: usize }` — `size` field was redundant with `data.len()`). Re-introduce when there's an immutable `List<T>` to pair with.
 - [ ] `std/math` — constants and float operations (use `@extern` to libm where useful on native, intrinsics on WASM)
-- [ ] `std/builder` — `StringBuilder`
+- [x] `std/string_builder` — `StringBuilder` (was `std/builder`, renamed for clarity).
 - [x] `std/iter` — `count(it: Iterator($T))` + `collect(it: Iterator($T))` driven by `for x in it`; closure-driven combinators `map`/`filter`/`fold`/`sum`/`take`/`skip` operate on `[T]` directly (eager — return arrays or single values). Snapshot : `tests/snippets/iter_combinators/`.
 - [ ] **`std/iter` lazy / iterator-driven combinators** — `map(it: Iterator($T), f: fn(T) -> $U) -> Iterator(U)` and friends require trait-method dispatch on a bounded type parameter (`$T : Iterator`) so combinators can call `inner.step()` directly. Today user code can only iterate via `for x in it` (compiler-internal magic). Bridge for now : `collect(it)` then operate on the array.
-- [x] `std/runtime` — `gc_collect()`, `gc_collections()`, `gc_bytes_used()`, `gc_bytes_copied()`. Backed by `vader_gc_*` in the runtime + matching VM stubs in `src/vm/host.ts`.
+- [x] `std/gc` — `collect()`, `collections()`, `bytes_used()`, `bytes_copied()` (was `std/runtime`, renamed for clarity ; `gc_` prefix dropped from fn names since the module name disambiguates).
+
+### 1.13b Self-hosting prerequisites (pre-bootstrap stdlib additions)
+
+These items unblock porting the TS compiler to Vader.
+
+- [x] **Process argv as a `main` parameter**. Two valid signatures (mutually exclusive) : `main :: fn() -> i32` or `main :: fn(argv: [string]) -> i32`. The typechecker enforces the shape (T3033). Native main wraps argc/argv into a `[string]` via `vader_runtime_argv` ; VM passes through `RunOptions.argv`. `argv[0]` is implementation-defined (script path in VM, binary path in native). No `std/gc.argv()` global — strictly parameter-passed. Tested by `tests/snippets/runtime_argv`.
+- [x] **Format helpers** — pure Vader.
+  - `std/string` : `pad_start`, `pad_end`, `is_whitechar` (uses `StringBuilder`).
+  - `std/numbers` : `to_hex(self: u64) -> string`, `to_bin(self: u64) -> string` (UFCS-callable as `n.to_hex()` after `import "std/numbers"`). Uses StringBuilder + char arithmetic via `char(u32(...) + ...)` casts. Lives outside `std/core` so it can `import std/string_builder`.
+  - Tested by `tests/snippets/format_helpers`.
+- [x] **`in` / `!in` operators + `Contains($T)` trait** — `x in coll` desugars to `coll.contains(x)` ; `x !in coll` desugars to `!coll.contains(x)`. Trait lives in `std/core`. `Range implements Contains(i32)` shipped. Tested by `tests/snippets/contains_op` (covers both Range and a user struct).
+- [x] **`char ↔ u32` casts** (and `char ↔ i64/u64/usize/i32` etc., minus floats) — `u32(c)` and `char(code)` work in both VM and native. Convert op extended in bytecode (`char.to_X`, `X.to_char`). Char ↔ float casts intentionally rejected.
+- [x] **`std/path`** — `Path` struct + `to_path/empty_path/as_string/is_empty/is_absolute/parent/filename/extension/stem/join/starts_with/ends_with/normalize`. POSIX `/` only (Windows deferred). Pure Vader. Tested by `tests/snippets/path_basics`. Found and fixed a `local.tee` bug along the way: when fusing `local.set N; local.get N → local.tee N`, the C emit kept the original (possibly boxed) value on the stack instead of re-fetching the typed slot, breaking `[string]` element access into a primitive-typed local.
+- [x] **`std/regex` ad-hoc helpers** — `replace_chars_where`, `trim_suffix`, `trim_prefix`, `split_whitespace` in `std/string`. Char ordering ops (`char.lt`/`le`/`gt`/`ge`) added across the pipeline so predicates like `c >= '0' && c <= '9'` work. Tested by `tests/snippets/regex_helpers`.
+- [x] **`std/json`** — recursive-descent parse + stringify, pure Vader.
+  - `JsonValue :: type JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject`
+  - `parse(s: string) -> JsonValue | JsonError`, `stringify(v) -> string`, `stringify_pretty(v, indent) -> string`
+  - `MutableMap.keys()` / `values()` added in `std/collections` to support stringification.
+  - Tested by `tests/snippets/json_basics`.
+  - Returns `JsonValue | JsonError` rather than `JsonValue!` because trait widening (struct-implementing-Error to `Error`) doesn't fire on `return` statements — see TODO §1.13c.
+- [x] **`std/path`** (already done above, listed here for grouping)
+
+### 1.13c Bugs uncovered while building 1.13b (fix before self-host)
+
+- [ ] **Integer-literal coercion to `u64`/`i64` in assignments / comparisons**. `if u64_var == 0` typechecks but the bytecode emitter writes `i32.const 0` (FreeInt → i32 default) before a `u64.eq`, blowing up the VM. Same for `v: u64; v = 5`. Workaround in stdlib uses explicit `u64(N)` casts everywhere — verbose and viral. Fix in the emitter : when a `LoweredIntLit` is consumed as an operand whose `valTypeOf` is `i64`/`u64`/`usize`, emit `i64.const` instead of `i32.const`. Same pattern for `assign` statements.
+- [ ] **Iterating `[string]` via `for x in arr` reaches `unreachable` in the VM**. `tests/snippets/runtime_argv/_main.vader` works around this with manual indexing. The C-emit path works fine, so the bug is VM-only. Likely an issue in `step__string` monomorphisation or how the VM dispatches `Iterator(string).step` — investigate `src/vm/exec.ts` against a known-good `step__i32`.
+- [ ] **`char` arithmetic / casts**. Today `i32(c)` is rejected with `cast source must be numeric, got char`, even though `char` is a `u32` codepoint internally. Allow `i32(c)` / `u32(c)` casts (and the reverse, with bounds checks) so user code can do codepoint arithmetic without a wrapper trait.
+- [ ] **Trait widening on `return`**. A function returning `T | Error` cannot `return some_struct` even when `some_struct implements Error` — the typechecker emits T3020. Today's workaround : return the concrete error type in the union (`T | MyError`), losing the `T!` sugar's expressiveness. Fix : when an arm of a return is a struct value and the expected type is a union containing the `Error` trait (or any trait the struct implements), widen the value to the trait position.
+- [ ] **C-emit narrowing-aware unbox on local reads inside match arms**. After `match r { is f64 -> ... }`, the local `r` stays `vader_box_t` in C — using it as an f64 inside the arm produces `vader_box_t where double expected`. Workaround in user code : rebind `n: f64 = r` inside the arm (the typed assignment unboxes). Fix : track narrowed types per-arm in the C emit and emit `lN.payload.f` (or analog) at use sites.
+- [ ] **`null` ValType maps to `void` in C**. `cTypeForValBare("null")` returned `"void"`, producing invalid `void blockres_X = ...;` declarations. Fixed (now `vader_box_t`) but worth keeping a regression test.
+- [ ] **`parse_int` / `parse_float` C shim tagged success boxes with the string type's index**. Found while building `std/json` — `match r { is i32 -> ... }` would never fire on the native target. Fixed by adding `primTagOrTrap` to look up the right primitive type's BcType index. Worth checking other extern shims for the same pattern (any shim using `tagOrTrap(_, "string")` for a non-string success).
 
 ### 1.14 Snapshot test infrastructure
 
@@ -474,8 +504,8 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 
 ### 3.4 Stdlib expansion
 
-- [ ] `std/json` — parse and serialise
-- [ ] `std/regex` — pattern matching for strings
+- [ ] **`std/json` v2 — compile-time-generated parsers** (kotlinx-serialization style). Today's `std/json` (§1.13b) is a runtime recursive-descent parser working on `JsonValue` unions. Post-MVP, generate per-struct parsers at compile time : `@derive(Json) MyStruct :: struct { ... }` produces a typed `MyStruct.from_json(s) -> MyStruct!` via a comptime decorator that walks the struct's fields and emits the parsing code. Faster (no `JsonValue` boxing) and gives type errors at compile time. Requires the `@derive` machinery (§3.8).
+- [ ] **`std/regex` — full pattern engine** (NFA or DFA). Today's `std/string` ad-hoc helpers (§1.13b) cover the few patterns the compiler needs ; a real engine handles arbitrary user regex with `+`/`*`/`?`/char-classes/anchors/groups. ~800-1200 LoC in Vader, no host dependency.
 - [ ] `std/time` — instants, durations, formatting
 - [ ] `std/random` — PRNG (deterministic seeds)
 - [ ] `std/crypto` — at least hashes (SHA, MD5)
@@ -513,6 +543,9 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [ ] **Operator overloading via trait dispatch** : `+`/`-`/`*`/`/`/`%` route through `Add`/`Sub`/`Mul`/`Div`/`Rem` ; `==` through `Eq` ; `<`/`<=`/`>`/`>=` through `Ord` ; `a[i]` through new `Index($I, $T)` ; `a[i] = v` through new `IndexSet($I, $T)` ; `v in a` through new `Contains($T)`. Compound assignments (`+=` etc.) desugar at parse time. Add `Rem`, `Index`, `IndexSet`, `Contains` to `std/core`. Cf. SPEC §4 *Operator overloading*.
 - [ ] **Function overloading by full signature** (post-MVP elevation of the pre-MVP receiver-type-only overloading) : pick the candidate whose all parameter types match the call site, not just the first. Subsumes pre-MVP behaviour ; requires generalising the resolver's overload table and the typechecker's call resolution.
 - [ ] **Expression-bodied functions** (`fn double(x: i32) -> i32 -> x * 2`). Generalises the SAM impl arrow form (`Type implements Trait -> expr`) to all fn declarations. Two consecutive `->` are unambiguous in the parser (return type then body), but visually overloaded — accept the cost only when there's broad demand. Cf. SPEC §11 *Traits — Single-method trait sugar (SAM)*.
+- [ ] **Struct spread / functional update** : `MyStruct { ...other, .field = v }` — copy every field of `other`, override `.field`. The TS compiler relies massively on `{ ...r, typed }` style updates ; without this, the Vader port of the pipeline drivers (`src/pipeline.ts`) explodes from ~5 lines to ~80 lines per stage. Touches : parser (struct-literal grammar), typecheck (validate `other`'s type matches the struct), lowerer (expand to per-field copies).
+- [ ] **Tuple destructuring in `let` / fn-params** : `let [first, ...rest] = arr` and similar. TS uses this in CLI parsing and pipeline glue. Workaround : index manually (`arr[0]`, `arr.slice(1)`). Low-priority but ergonomic.
+- [ ] **Process spawn intrinsic** (`std/process.spawn(argv: [string]) -> ProcessResult`) — invoke external programs (notably `cc` for `vader build --target=native`). Currently the TS driver uses `Bun.spawn`. Required to self-host the native build pipeline. Native-only ; on WASM the import is unbound and triggers a comptime error.
 - [ ] **Inline `@file(path)` as a comptime expression** (Zig `@embedFile` style). Today `@file("...")` is decorator-only and attaches to a top-level `ConstDecl`; lifting it to an expression position would let `show(@file("./data.txt"))` work directly. Touches: parser (allow `@`-expressions in expression position; carve out `@file` / `@env` etc. as recognised comptime expression heads), typecheck (`@file` ⇒ `string`, `@env` ⇒ `string \| null`), comptime (route through the existing sandbox path so `@allow-env` still gates `@env`). Path resolution stays source-relative to match decorator semantics. Estimate ~150 lines across phases.
 
 ---

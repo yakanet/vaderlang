@@ -1,0 +1,188 @@
+# Modules
+
+## std/collections
+  fn               public   add 
+  const            private  BUCKET_COUNT 
+  fn               private  bucket_index 
+  fn               public   contains 
+  fn               public   contains_key 
+  struct           private  Entry 
+  fn               public   get 
+  fn               public   is_empty 
+  fn               public   keys 
+  fn               public   len 
+  struct           public   Map 
+  struct           public   MutableMap 
+  struct           public   MutableSet 
+  fn               public   put 
+  struct           public   Set 
+  fn               public   values 
+  refs: idents=119 types=98 params=18 locals=25 typeParams=26 fields=0
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_string 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## std/json
+  fn               private  advance 
+  import-binding   private  append → append
+  import-binding   private  append_char → append_char
+  fn               private  append_codepoint 
+  fn               private  at_end 
+  import-binding   private  char_at → char_at
+  import-binding   private  contains_key → contains_key
+  fn               private  expect_byte 
+  fn               private  fail 
+  import-binding   private  get → get
+  fn               private  is_digit 
+  struct           public   JsonArray 
+  struct           public   JsonBool 
+  struct           public   JsonError 
+  struct           public   JsonNull 
+  struct           public   JsonNumber 
+  struct           public   JsonObject 
+  struct           public   JsonString 
+  type-alias       public   JsonValue 
+  import-binding   private  keys → keys
+  import-binding   private  len → len
+  import-binding   private  map_len → len
+  fn               private  match_keyword 
+  import-binding   private  MutableMap → MutableMap
+  import-binding   private  new_builder → new_builder
+  fn               private  new_parser 
+  import-binding   private  pad_start → pad_start
+  fn               public   parse 
+  fn               private  parse_array 
+  fn               private  parse_bool 
+  import-binding   private  parse_float → parse_float
+  fn               private  parse_hex_digit 
+  fn               private  parse_null 
+  fn               private  parse_number 
+  fn               private  parse_object 
+  fn               private  parse_string 
+  fn               private  parse_value 
+  struct           private  Parser 
+  fn               private  peek_byte 
+  import-binding   private  put → put
+  fn               private  skip_ws 
+  import-binding   private  slice → slice
+  import-binding   private  str_contains → contains
+  import-binding   private  str_starts_with → starts_with
+  import-binding   private  StringBuilder → StringBuilder
+  fn               public   stringify 
+  fn               public   stringify_pretty 
+  import-binding   private  to_hex → to_hex
+  import-binding   private  to_string → to_string
+  import-binding   private  values → values
+  fn               private  write_array 
+  fn               private  write_indent 
+  fn               private  write_number 
+  fn               private  write_object 
+  fn               private  write_string 
+  fn               private  write_value 
+  import std/string → ok
+  import std/string_builder → ok
+  import std/collections → ok
+  import std/numbers → ok
+  refs: idents=551 types=125 params=46 locals=38 typeParams=0 fields=0
+
+## std/numbers
+  import-binding   private  append_char → append_char
+  fn               private  hex_digit 
+  import-binding   private  new_builder → new_builder
+  import-binding   private  StringBuilder → StringBuilder
+  fn               public   to_bin 
+  fn               public   to_hex 
+  import-binding   private  to_string → to_string
+  import std/string_builder → ok
+  refs: idents=55 types=10 params=3 locals=11 typeParams=0 fields=0
+
+## std/string
+  import-binding   private  append → append
+  import-binding   private  append_char → append_char
+  fn               public   char_at 
+  fn               public   contains 
+  fn               public   ends_with 
+  fn               public   is_whitechar 
+  fn               public   last_index_of 
+  fn               public   len 
+  import-binding   private  new_builder → new_builder
+  fn               public   pad_end 
+  fn               public   pad_start 
+  fn               public   parse_float 
+  fn               public   parse_int 
+  struct           public   ParseError 
+  fn               public   replace_chars_where 
+  fn               public   slice 
+  fn               public   split 
+  fn               public   split_whitespace 
+  fn               public   starts_with 
+  import-binding   private  StringBuilder → StringBuilder
+  fn               public   to_lower 
+  import-binding   private  to_string → to_string
+  fn               public   to_upper 
+  fn               public   trim 
+  fn               public   trim_prefix 
+  fn               public   trim_suffix 
+  import std/string_builder → ok
+  refs: idents=93 types=64 params=38 locals=17 typeParams=0 fields=0
+
+## std/string_builder
+  fn               public   append 
+  fn               public   append_char 
+  fn               public   concat_all 
+  fn               public   new_builder 
+  struct           public   StringBuilder 
+  fn               public   to_string 
+  refs: idents=6 types=13 params=6 locals=0 typeParams=0 fields=0
+
+## tests/snippets/json_basics/_main.vader
+  import-binding   private  JsonArray → JsonArray
+  import-binding   private  JsonBool → JsonBool
+  import-binding   private  JsonError → JsonError
+  import-binding   private  JsonNull → JsonNull
+  import-binding   private  JsonNumber → JsonNumber
+  import-binding   private  JsonObject → JsonObject
+  import-binding   private  JsonString → JsonString
+  import-binding   private  JsonValue → JsonValue
+  fn               public   main 
+  import-binding   private  parse → parse
+  import-binding   private  println → println
+  fn               public   show 
+  import-binding   private  stringify → stringify
+  import-binding   private  stringify_pretty → stringify_pretty
+  import std/io → ok
+  import std/json → ok
+  refs: idents=45 types=11 params=2 locals=1 typeParams=0 fields=0

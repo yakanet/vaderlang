@@ -4,6 +4,7 @@
   trait            public   Add 
   struct           public   ArrayIter 
   trait            public   Clone 
+  trait            public   Contains 
   trait            public   Display 
   trait            public   Div 
   struct           public   Done 
@@ -14,6 +15,7 @@
   trait            public   Error 
   trait            public   Hash 
   fn               public   hash_i32 
+  fn               public   hash_string 
   fn               public   hash_u32 
   fn               public   hash_usize 
   trait            public   Iterator 
@@ -22,7 +24,7 @@
   struct           public   Range 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=43 types=76 params=39 locals=3 typeParams=3 fields=0
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
 
 ## std/iter
   fn               public   collect 

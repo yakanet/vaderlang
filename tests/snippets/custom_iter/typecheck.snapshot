@@ -1,0 +1,25 @@
+# Typecheck
+
+## tests/snippets/custom_iter/_main.vader
+  StructDecl     Countdown            :: Countdown
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    BinaryExpr     :: bool
+  expr 10:13    FieldExpr      :: i32
+  expr 10:13    IdentExpr      :: Countdown
+  expr 10:9     IfExpr         :: void
+  expr 11:20    StructLitExpr  :: Done
+  expr 13:14    FieldExpr      :: i32
+  expr 13:14    IdentExpr      :: Countdown
+  expr 14:24    BinaryExpr     :: i32
+  expr 14:24    FieldExpr      :: i32
+  expr 14:24    IdentExpr      :: Countdown
+  expr 14:9     FieldExpr      :: i32
+  expr 14:9     IdentExpr      :: Countdown
+  expr 15:16    StructLitExpr  :: Yielded(i32)
+  expr 15:40    IdentExpr      :: i32
+  expr 20:11    StructLitExpr  :: Countdown
+  expr 21:14    IdentExpr      :: Countdown
+  expr 22:17    StringLitExpr  :: string
+  expr 22:20    IdentExpr      :: ?
+  expr 22:9     CallExpr       :: void
+  expr 22:9     IdentExpr      :: fn(string) -> void

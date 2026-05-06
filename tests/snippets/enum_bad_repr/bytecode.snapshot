@@ -1,4 +1,5 @@
 module _main
+import 0 hash_string std_core$hash_string (string) -> u64
 
 # Diagnostics
 [4:9] error[T3030] enum variant value out of range for backing type: 300 not in [0, 255] for `u8`

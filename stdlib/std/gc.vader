@@ -1,0 +1,16 @@
+// std/gc — garbage-collector introspection and controls.
+//
+// Mostly intended for test harnesses and stress tests; user programs
+// should rarely need to call these.
+
+// collect — force a Cheney semi-space collection cycle now.
+collect :: fn() -> void
+
+// collections — total number of GC cycles run since process start.
+collections :: fn() -> i32
+
+// bytes_used — bytes currently allocated in the from-space arena.
+bytes_used :: fn() -> i32
+
+// bytes_copied — cumulative bytes copied across all collections.
+bytes_copied :: fn() -> i32

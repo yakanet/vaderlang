@@ -2,7 +2,7 @@
 
 ## tests/snippets/generic_struct/_main.vader
   fn tests_snippets_generic_struct__main_vader$main() -> i32
-    let s#67: Stack(i32) =
+    let s#69: Stack(i32) =
       Stack(i32) {
         data:
           array :[i32]
@@ -10,28 +10,28 @@
       }
     call :void
       callee:
-        push#1000009 :void
+        push#1000011 :void
       arg0:
-        s#67 :Stack(i32)
+        s#69 :Stack(i32)
       arg1:
         int(10) :i32
     call :void
       callee:
-        push#1000009 :void
+        push#1000011 :void
       arg0:
-        s#67 :Stack(i32)
+        s#69 :Stack(i32)
       arg1:
         int(20) :i32
     call :void
       callee:
-        push#1000009 :void
+        push#1000011 :void
       arg0:
-        s#67 :Stack(i32)
+        s#69 :Stack(i32)
       arg1:
         int(30) :i32
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#30 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -43,15 +43,15 @@
             __sb_0#-1 :?
             call :i32
               callee:
-                len#1000011 :i32
+                len#1000013 :i32
               arg0:
-                s#67 :Stack(i32)
+                s#69 :Stack(i32)
           ~>
             @builder.finish :string
               __sb_0#-1 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#30 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -63,15 +63,15 @@
             __sb_1#-2 :?
             call :i32
               callee:
-                pop#1000010 :i32
+                pop#1000012 :i32
               arg0:
-                s#67 :Stack(i32)
+                s#69 :Stack(i32)
           ~>
             @builder.finish :string
               __sb_1#-2 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#30 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -83,9 +83,9 @@
             __sb_2#-3 :?
             call :i32
               callee:
-                len#1000011 :i32
+                len#1000013 :i32
               arg0:
-                s#67 :Stack(i32)
+                s#69 :Stack(i32)
           ~>
             @builder.finish :string
               __sb_2#-3 :?
@@ -96,43 +96,43 @@
     assign
       target:
         .size :i32
-          self#62 :Stack(i32)
+          self#64 :Stack(i32)
       value:
         add :i32
           l:
             .size :i32
-              self#62 :Stack(i32)
+              self#64 :Stack(i32)
           r:
             int(1) :i32
   fn tests_snippets_generic_struct__main_vader$Stack$Stackable$pop__i32(self: Stack(i32)) -> i32
     assign
       target:
         .size :i32
-          self#64 :Stack(i32)
+          self#66 :Stack(i32)
       value:
         sub :i32
           l:
             .size :i32
-              self#64 :Stack(i32)
+              self#66 :Stack(i32)
           r:
             int(1) :i32
     return
       index :i32
         on:
           .data :[i32]
-            self#64 :Stack(i32)
+            self#66 :Stack(i32)
         ix:
           .size :i32
-            self#64 :Stack(i32)
+            self#66 :Stack(i32)
   fn tests_snippets_generic_struct__main_vader$Stack$Stackable$len__i32(self: Stack(i32)) -> i32
     return
       .size :i32
-        self#65 :Stack(i32)
+        self#67 :Stack(i32)
   fn tests_snippets_generic_struct__main_vader$Stack$Stackable$is_empty__i32(self: Stack(i32)) -> bool
     return
       eq :bool
         l:
           .size :i32
-            self#66 :Stack(i32)
+            self#68 :Stack(i32)
         r:
           int(0) :i32

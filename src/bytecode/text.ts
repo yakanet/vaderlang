@@ -158,6 +158,7 @@ function finalizeModule(m: MutableModule): BytecodeModule {
   return {
     name: m.name, types: m.types, strings: m.strings,
     functions: m.functions, imports: m.imports, exports: m.exports,
+    implTable: new Map(),
   };
 }
 

@@ -4,6 +4,7 @@
   trait            public   Add 
   struct           public   ArrayIter 
   trait            public   Clone 
+  trait            public   Contains 
   trait            public   Display 
   trait            public   Div 
   struct           public   Done 
@@ -14,6 +15,7 @@
   trait            public   Error 
   trait            public   Hash 
   fn               public   hash_i32 
+  fn               public   hash_string 
   fn               public   hash_u32 
   fn               public   hash_usize 
   trait            public   Iterator 
@@ -22,7 +24,14 @@
   struct           public   Range 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=43 types=76 params=39 locals=3 typeParams=3 fields=0
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
+
+## std/gc
+  fn               public   bytes_copied 
+  fn               public   bytes_used 
+  fn               public   collect 
+  fn               public   collections 
+  refs: idents=0 types=4 params=0 locals=0 typeParams=0 fields=0
 
 ## std/io
   fn               public   exists 
@@ -34,19 +43,12 @@
   fn               public   write_file 
   refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
 
-## std/runtime
-  fn               public   gc_bytes_copied 
-  fn               public   gc_bytes_used 
-  fn               public   gc_collect 
-  fn               public   gc_collections 
-  refs: idents=0 types=4 params=0 locals=0 typeParams=0 fields=0
-
 ## tests/snippets/gc_chain_survive/_main.vader
-  import-binding   private  gc_collect → gc_collect
-  import-binding   private  gc_collections → gc_collections
+  import-binding   private  collect → collect
+  import-binding   private  collections → collections
   fn               public   main 
   struct           public   Node 
   import-binding   private  println → println
   import std/io → ok
-  import std/runtime → ok
+  import std/gc → ok
   refs: idents=30 types=10 params=0 locals=9 typeParams=0 fields=0

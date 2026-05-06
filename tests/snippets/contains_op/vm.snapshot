@@ -1,0 +1,9 @@
+# stdout
+range yes
+range !in yes
+range incl yes
+set has 4
+set lacks 5
+set has 7
+# exit
+0

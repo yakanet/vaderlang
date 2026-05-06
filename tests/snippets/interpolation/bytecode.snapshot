@@ -3,12 +3,13 @@ string 0 "Vader"
 string 1 "Hello, "
 string 2 "! You are "
 string 3 " year(s) old."
-import 0 print std_io$print (string) -> void
-import 1 println std_io$println (string) -> void
-import 2 read_line std_io$read_line () -> ref
-import 3 read_file std_io$read_file (string) -> ref
-import 4 write_file std_io$write_file (string,string) -> ref
-import 5 exists std_io$exists (string) -> bool
+import 0 hash_string std_core$hash_string (string) -> u64
+import 1 print std_io$print (string) -> void
+import 2 println std_io$println (string) -> void
+import 3 read_line std_io$read_line () -> ref
+import 4 read_file std_io$read_file (string) -> ref
+import 5 write_file std_io$write_file (string,string) -> ref
+import 6 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_interpolation__main_vader$main () -> i32
   local name string
@@ -36,7 +37,7 @@ fn 0 tests_snippets_interpolation__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:6:44
   local.get 2   ; _main.vader:6:13
   intrinsic builder.finish   ; _main.vader:6:13
-  call.import 1   ; _main.vader:6:5
+  call.import 2   ; _main.vader:6:5
   i32.const 0   ; _main.vader:7:12
   return   ; _main.vader:7:5
 end

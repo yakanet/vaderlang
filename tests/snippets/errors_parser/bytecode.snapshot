@@ -1,4 +1,5 @@
 module _main
+import 0 hash_string std_core$hash_string (string) -> u64
 
 fn 0 tests_snippets_errors_parser__main_vader$bad () -> void
   unreachable   ; _main.vader:2:5

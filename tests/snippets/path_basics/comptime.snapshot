@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/path_basics/_main.vader
+
+## generic instances
+  Yielded(i32)

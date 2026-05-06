@@ -1,0 +1,12 @@
+# Comptime
+
+## tests/snippets/json_basics/_main.vader
+
+## generic instances
+  Entry(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  MutableMap(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  put(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  len(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  keys(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  values(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  Yielded(i32)

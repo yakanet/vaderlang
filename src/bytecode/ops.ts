@@ -123,14 +123,17 @@ export type CmpOpKind =
   | "bool.eq" | "bool.ne"
   | "string.eq" | "string.ne"
   | "char.eq" | "char.ne"
+  | "char.lt" | "char.le" | "char.gt" | "char.ge"
   | "ref.eq" | "ref.ne";
 
 export type NegOpKind    = `${NumWidth}.neg`;
 export type BitNotOpKind = `${IntWidth}.bitnot`;
 
 /** Reflexive (e.g. `i32.to_i32`) ops are a no-op but kept to keep the
- *  emitter uniform. The `from`/`to` widths are independent. */
-export type ConvertOpKind = `${NumWidth}.to_${NumWidth}`;
+ *  emitter uniform. The `from`/`to` widths are independent. `char` participates
+ *  on both sides — its wire format is u32 but the value tag must be retagged. */
+type ConvertWidth = NumWidth | "char";
+export type ConvertOpKind = `${ConvertWidth}.to_${ConvertWidth}`;
 
 // =========================================================================
 // Intrinsics

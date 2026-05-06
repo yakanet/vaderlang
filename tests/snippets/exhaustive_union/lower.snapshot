@@ -4,7 +4,7 @@
   fn tests_snippets_exhaustive_union__main_vader$classify(x: bool | i32) -> string
     return
       block :string
-        let __scrut_0#-1: bool | i32 = x#45 :bool | i32
+        let __scrut_0#-1: bool | i32 = x#47 :bool | i32
         ~>
           if :string
             cond:

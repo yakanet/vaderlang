@@ -105,6 +105,7 @@ export const TYPECHECK = {
   T3030: "enum variant value out of range for backing type",
   T3031: "duplicate enum variant value",
   T3032: "ambiguous overload resolution",
+  T3033: "invalid `main` signature",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

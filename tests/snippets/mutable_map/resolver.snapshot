@@ -9,23 +9,21 @@
   struct           private  Entry 
   fn               public   get 
   fn               public   is_empty 
-  fn               public   iter 
+  fn               public   keys 
   fn               public   len 
-  struct           public   List 
   struct           public   Map 
-  struct           public   MutableList 
-  struct           private  MutableListIter 
   struct           public   MutableMap 
   struct           public   MutableSet 
   fn               public   put 
-  fn               public   set 
   struct           public   Set 
-  refs: idents=106 types=110 params=27 locals=18 typeParams=31 fields=0
+  fn               public   values 
+  refs: idents=119 types=98 params=18 locals=25 typeParams=26 fields=0
 
 ## std/core
   trait            public   Add 
   struct           public   ArrayIter 
   trait            public   Clone 
+  trait            public   Contains 
   trait            public   Display 
   trait            public   Div 
   struct           public   Done 
@@ -36,6 +34,7 @@
   trait            public   Error 
   trait            public   Hash 
   fn               public   hash_i32 
+  fn               public   hash_string 
   fn               public   hash_u32 
   fn               public   hash_usize 
   trait            public   Iterator 
@@ -44,7 +43,7 @@
   struct           public   Range 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=43 types=76 params=39 locals=3 typeParams=3 fields=0
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
 
 ## std/io
   fn               public   exists 

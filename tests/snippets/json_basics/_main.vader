@@ -1,0 +1,48 @@
+import "std/io" { println }
+import "std/json" {
+    JsonValue, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray, JsonObject,
+    JsonError, parse, stringify, stringify_pretty,
+}
+
+show :: fn(label: string, src: string) -> void {
+    parsed := parse(src)
+    match parsed {
+        is JsonError -> { println("${label}: error: ${parsed.msg}") }
+        is JsonString -> { println("${label}: ${stringify(parsed)}") }
+        is JsonNumber -> { println("${label}: ${stringify(parsed)}") }
+        is JsonBool   -> { println("${label}: ${stringify(parsed)}") }
+        is JsonNull   -> { println("${label}: ${stringify(parsed)}") }
+        is JsonArray  -> { println("${label}: ${stringify(parsed)}") }
+        is JsonObject -> { println("${label}: ${stringify(parsed)}") }
+    }
+}
+
+// NOTE: this `match` has 6 identical non-error arms because Vader doesn't
+// recognise a `type` alias (here `JsonValue`) as covering all its variants
+// in a single pattern. T3013 would fire on `is JsonValue ->`. Once the
+// typechecker treats type aliases as patterns this collapses to one arm.
+
+main :: fn() -> i32 {
+    // Raw strings (`r"..."`) skip backslash escapes — used for inputs that
+    // don't contain `"`. Inputs with embedded JSON quotes still need a
+    // regular escape-string until Vader gains a raw form with custom
+    // delimiters (e.g. Rust's `r#"..."#`).
+    show("null",   r"null")
+    show("true",   r"true")
+    show("false",  r"false")
+    show("number", r"42")
+    show("neg",    r"-3.14")
+    show("expo",   r"1.5e2")
+    show("string",  "\"hello\"")
+    show("escaped", "\"a\\nb\\tc\\\"d\"")
+    show("array",  r"[1, 2, 3]")
+    show("nested",  "[[1, 2], [\"x\", \"y\"]]")
+    show("object",  "{\"a\": 1, \"b\": true}")
+    show("mixed",   "{\"name\": \"vader\", \"version\": 0.1, \"flags\": [\"-O0\", \"-g\"]}")
+
+    show("err: trailing", r"42 garbage")
+    show("err: bad bool", r"tru")
+    show("err: bad escape", "\"\\q\"")
+
+    return 0
+}

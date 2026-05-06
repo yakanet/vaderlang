@@ -1,0 +1,23 @@
+import "std/io" { println }
+import "std/string" { pad_start, pad_end, is_whitechar }
+import "std/numbers" { to_hex, to_bin }
+
+main :: fn() -> i32 {
+    println("[${"42".pad_start(5, '0')}]")
+    println("[${"42".pad_end(5, '.')}]")
+    println("[${"hello".pad_start(3, ' ')}]")
+
+    n: u64 = 255
+    println("hex=${n.to_hex()}")
+    println("bin=${n.to_bin()}")
+    println("hex_padded=${n.to_hex().pad_start(4, '0')}")
+
+    zero: u64 = 0
+    println("zero_bin=${zero.to_bin()}")
+
+    println("ws_space=${' '.is_whitechar()}")
+    println("ws_a=${'a'.is_whitechar()}")
+    println("ws_tab=${'\t'.is_whitechar()}")
+
+    return 0
+}

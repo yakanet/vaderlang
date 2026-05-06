@@ -5,13 +5,14 @@ import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { TY, defaultIfFree, displayType } from "../../typecheck/types.ts";
+import { CORE_TRAITS, TY, defaultIfFree, displayType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStructLitField } from "../lowered-ast.ts";
 import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
+import { findCoreTrait } from "./core.ts";
 import { lookupImplEntry, lookupImplFor, lowerRangeExpr } from "./for-in.ts";
 import { applySubst, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
@@ -246,12 +247,48 @@ function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): Lower
       value: lowerExpr(ctx, expr.left), checkType,
     };
   }
+  if (expr.op === "in" || expr.op === "not_in") {
+    return lowerInOp(ctx, expr);
+  }
   return {
     kind: "LoweredBinary", span: expr.span, type: exprType,
     op: expr.op,
     left: lowerExpr(ctx, expr.left),
     right: lowerExpr(ctx, expr.right),
   };
+}
+
+/** Desugar `x in coll` to `coll.contains(x)`, or `x !in coll` to `!coll.contains(x)`.
+ *  Resolves the `Contains($T)::contains` impl on `coll`'s static type and emits a
+ *  direct call to the monomorphised symbol. */
+function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {
+  const collType = applySubst(ctx.typed.exprTypes.get(expr.right) ?? TY.unresolved, ctx.subst);
+  const fail = (msg: string): LoweredExpr => {
+    err(ctx.project.diags, "B5001", expr.span, msg);
+    return { kind: "LoweredBoolLit", span: expr.span, type: TY.bool, value: false };
+  };
+  const containsTrait = findCoreTrait(ctx.project, CORE_TRAITS.Contains);
+  if (containsTrait === null) return fail("Contains trait not found in std/core");
+  const entry = lookupImplFor(ctx.project, collType, containsTrait);
+  if (entry === null) {
+    return fail(`\`${expr.op === "in" ? "in" : "!in"}\` requires Contains impl on ${displayType(collType)}`);
+  }
+  const containsDecl = entry.decl.members.find((m) => m.name === "contains");
+  if (containsDecl === undefined) return fail("Contains impl missing `contains` member");
+  const structArgs = collType.kind === "Struct" ? collType.args : [];
+  const monoEntry = lookupImplEntry(ctx, containsDecl, structArgs);
+  if (monoEntry === null || monoEntry.symbol === null) {
+    return fail("Contains.contains has no monomorphised instance");
+  }
+  const call: LoweredExpr = {
+    kind: "LoweredCall", span: expr.span, type: TY.bool,
+    callee: { kind: "LoweredIdent", span: expr.span, type: TY.bool, symbol: monoEntry.symbol },
+    args: [lowerExpr(ctx, expr.right), lowerExpr(ctx, expr.left)],
+  };
+  if (expr.op === "not_in") {
+    return { kind: "LoweredUnary", span: expr.span, type: TY.bool, op: "not", operand: call };
+  }
+  return call;
 }
 
 import type { MonoEntry } from "../../monomorphize/mono-ast.ts";

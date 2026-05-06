@@ -1,0 +1,38 @@
+import "std/io" { println }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
+
+main :: fn() -> i32 {
+    // Basic usage via new_builder()
+    sb := new_builder()
+    sb.append("Hello")
+    sb.append(", ")
+    sb.append("World")
+    sb.append_char('!')
+    println(sb.to_string())
+
+    // Build from parts
+    sb2 := new_builder()
+    sb2.append("foo")
+    sb2.append("bar")
+    sb2.append("baz")
+    println(sb2.to_string())
+
+    // Empty builder
+    sb3 := new_builder()
+    println("empty='${sb3.to_string()}'")
+
+    // Unicode char
+    sb4 := new_builder()
+    sb4.append_char('€')
+    sb4.append_char(')')
+    println(sb4.to_string())
+
+    // Build with numbers via string interp
+    n := 42
+    sb5 := new_builder()
+    sb5.append("n=")
+    sb5.append("${n}")
+    println(sb5.to_string())
+
+    return 0
+}

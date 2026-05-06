@@ -1,6 +1,10 @@
 // std/string — string operations.
 //
 // All string operations treat strings as immutable UTF-8 byte sequences.
+// Width-based helpers (`pad_start`, `pad_end`) measure width in bytes, not
+// codepoints — accurate for ASCII, approximate for non-ASCII content.
+
+import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
 
 // Length in bytes.
 len :: fn(s: string) -> i32
@@ -15,6 +19,18 @@ ends_with   :: fn(s: string, suffix: string) -> bool
 
 // Character access (byte index → Unicode codepoint).
 char_at :: fn(s: string, i: i32) -> char
+
+// Last byte-index of `c` at or after `min_index`, or -1 if not found.
+last_index_of :: fn(s: string, c: char, min_index: i32) -> i32 {
+    i := s.len() - 1
+    for i >= min_index {
+        if s.char_at(i) == c {
+            return i
+        }
+        i = i - 1
+    }
+    return -1
+}
 
 // Splitting and trimming.
 split :: fn(s: string, sep: string) -> [string]
@@ -35,3 +51,102 @@ ParseError implements Error {
 
 parse_int   :: fn(s: string) -> i32!
 parse_float :: fn(s: string) -> f64!
+
+// Pad `s` on the left with `fill` until its byte length reaches `width`.
+// Returns `s` unchanged when it's already at least `width` bytes.
+pad_start :: fn(s: string, width: i32, fill: char) -> string {
+    n := s.len()
+    if n >= width {
+        return s
+    }
+    sb := new_builder()
+    i := n
+    for i < width {
+        sb.append_char(fill)
+        i = i + 1
+    }
+    sb.append(s)
+    return sb.to_string()
+}
+
+// Pad `s` on the right with `fill` until its byte length reaches `width`.
+pad_end :: fn(s: string, width: i32, fill: char) -> string {
+    n := s.len()
+    if n >= width {
+        return s
+    }
+    sb := new_builder()
+    sb.append(s)
+    i := n
+    for i < width {
+        sb.append_char(fill)
+        i = i + 1
+    }
+    return sb.to_string()
+}
+
+// True for ASCII whitespace: space, tab, newline, carriage return.
+is_whitechar :: fn(c: char) -> bool {
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r'
+}
+
+// Strip a `suffix` if `s` ends with it; otherwise return `s` unchanged.
+trim_suffix :: fn(s: string, suffix: string) -> string {
+    if s.ends_with(suffix) {
+        return s.slice(0, s.len() - suffix.len())
+    }
+    return s
+}
+
+// Strip a `prefix` if `s` starts with it; otherwise return `s` unchanged.
+trim_prefix :: fn(s: string, prefix: string) -> string {
+    if s.starts_with(prefix) {
+        return s.slice(prefix.len(), s.len())
+    }
+    return s
+}
+
+// Replace every char that satisfies `pred` with `replacement`. Subsumes
+// the regex pattern `replace(/[<class>]/g, "<replacement>")`.
+replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
+    sb := new_builder()
+    n := s.len()
+    i := 0
+    for i < n {
+        c := s.char_at(i)
+        if pred(c) {
+            sb.append(replacement)
+        } else {
+            sb.append_char(c)
+        }
+        i = i + 1
+    }
+    return sb.to_string()
+}
+
+// Split on runs of whitespace, dropping empty segments.
+split_whitespace :: fn(s: string) -> [string] {
+    out: [string] = []
+    sb := new_builder()
+    has_pending := false
+    n := s.len()
+    i := 0
+    for i < n {
+        c := s.char_at(i)
+        if c.is_whitechar() {
+            if has_pending {
+                out.push(sb.to_string())
+                sb = new_builder()
+                has_pending = false
+            }
+        } else {
+            sb.append_char(c)
+            has_pending = true
+        }
+        i = i + 1
+    }
+    if has_pending {
+        out.push(sb.to_string())
+    }
+    return out
+}

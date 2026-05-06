@@ -3,6 +3,7 @@ type 0 primitive i32
 type 1 primitive bool
 string 0 "int"
 string 1 "bool"
+import 0 hash_string std_core$hash_string (string) -> u64
 
 fn 0 tests_snippets_exhaustive_union__main_vader$classify (ref) -> string
   local __scrut_0 ref

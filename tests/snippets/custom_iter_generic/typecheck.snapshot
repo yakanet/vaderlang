@@ -1,0 +1,29 @@
+# Typecheck
+
+## tests/snippets/custom_iter_generic/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Repeat               :: Repeat($T)
+  expr 11:13    BinaryExpr     :: bool
+  expr 11:13    FieldExpr      :: i32
+  expr 11:13    IdentExpr      :: Repeat($T)
+  expr 11:9     IfExpr         :: void
+  expr 12:20    StructLitExpr  :: Done
+  expr 14:14    FieldExpr      :: $T
+  expr 14:14    IdentExpr      :: Repeat($T)
+  expr 15:26    BinaryExpr     :: i32
+  expr 15:26    FieldExpr      :: i32
+  expr 15:26    IdentExpr      :: Repeat($T)
+  expr 15:9     FieldExpr      :: i32
+  expr 15:9     IdentExpr      :: Repeat($T)
+  expr 16:16    StructLitExpr  :: Yielded($T)
+  expr 16:38    IdentExpr      :: $T
+  expr 22:11    StructLitExpr  :: Repeat(i32)
+  expr 24:14    IdentExpr      :: Repeat(i32)
+  expr 25:15    BinaryExpr     :: ?
+  expr 25:15    IdentExpr      :: i32
+  expr 25:21    IdentExpr      :: ?
+  expr 25:9     IdentExpr      :: i32
+  expr 28:13    StringLitExpr  :: string
+  expr 28:16    IdentExpr      :: i32
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(string) -> void

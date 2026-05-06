@@ -1,0 +1,499 @@
+# Lower
+
+## tests/snippets/path_basics/_main.vader
+  fn tests_snippets_path_basics__main_vader$show_path(label: string, p: Path) -> void
+    ~>
+      call :void
+        callee:
+          println#43 :fn(string) -> void
+        arg0:
+          block :string
+            let __sb_0#-1: ? =
+              @builder.new :?
+            @builder.append_display <for string> :void
+              __sb_0#-1 :?
+              label#128 :string
+            @builder.append_str :void
+              __sb_0#-1 :?
+              "=" :string
+            @builder.append_display <for string> :void
+              __sb_0#-1 :?
+              call :string
+                callee:
+                  as_string#63 :string
+                arg0:
+                  p#129 :Path
+            ~>
+              @builder.finish :string
+                __sb_0#-1 :?
+  fn tests_snippets_path_basics__main_vader$main() -> i32
+    let p#130: Path =
+      call :Path
+        callee:
+          to_path#61 :Path
+        arg0:
+          "src/parser/expr.ts" :string
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "path" :string
+      arg1:
+        p#130 :Path
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0#-2 :?
+            "filename=" :string
+          @builder.append_display <for string> :void
+            __sb_0#-2 :?
+            call :string
+              callee:
+                filename#67 :string
+              arg0:
+                p#130 :Path
+          ~>
+            @builder.finish :string
+              __sb_0#-2 :?
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1#-3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1#-3 :?
+            "stem=" :string
+          @builder.append_display <for string> :void
+            __sb_1#-3 :?
+            call :string
+              callee:
+                stem#69 :string
+              arg0:
+                p#130 :Path
+          ~>
+            @builder.finish :string
+              __sb_1#-3 :?
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2#-4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2#-4 :?
+            "extension=" :string
+          @builder.append_display <for string> :void
+            __sb_2#-4 :?
+            call :string
+              callee:
+                extension#68 :string
+              arg0:
+                p#130 :Path
+          ~>
+            @builder.finish :string
+              __sb_2#-4 :?
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "parent" :string
+      arg1:
+        call :Path
+          callee:
+            parent#66 :Path
+          arg0:
+            p#130 :Path
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "grand" :string
+      arg1:
+        call :Path
+          callee:
+            parent#66 :Path
+          arg0:
+            call :Path
+              callee:
+                parent#66 :Path
+              arg0:
+                p#130 :Path
+    let abs#131: Path =
+      call :Path
+        callee:
+          to_path#61 :Path
+        arg0:
+          "/usr/local/bin/vader" :string
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3#-5: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3#-5 :?
+            "abs is_absolute=" :string
+          @builder.append_display <for bool> :void
+            __sb_3#-5 :?
+            call :bool
+              callee:
+                is_absolute#65 :bool
+              arg0:
+                abs#131 :Path
+          ~>
+            @builder.finish :string
+              __sb_3#-5 :?
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "abs.parent" :string
+      arg1:
+        call :Path
+          callee:
+            parent#66 :Path
+          arg0:
+            abs#131 :Path
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "abs.filename" :string
+      arg1:
+        call :Path
+          callee:
+            to_path#61 :fn(string) -> Path
+          arg0:
+            call :string
+              callee:
+                filename#67 :string
+              arg0:
+                abs#131 :Path
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "abs.parent.parent" :string
+      arg1:
+        call :Path
+          callee:
+            parent#66 :Path
+          arg0:
+            call :Path
+              callee:
+                parent#66 :Path
+              arg0:
+                abs#131 :Path
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_4#-6: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_4#-6 :?
+            "empty.is_empty=" :string
+          @builder.append_display <for bool> :void
+            __sb_4#-6 :?
+            call :bool
+              callee:
+                is_empty#64 :bool
+              arg0:
+                call :Path
+                  callee:
+                    empty_path#62 :fn() -> Path
+          ~>
+            @builder.finish :string
+              __sb_4#-6 :?
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_5#-7: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_5#-7 :?
+            "p.is_empty=" :string
+          @builder.append_display <for bool> :void
+            __sb_5#-7 :?
+            call :bool
+              callee:
+                is_empty#64 :bool
+              arg0:
+                p#130 :Path
+          ~>
+            @builder.finish :string
+              __sb_5#-7 :?
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "join" :string
+      arg1:
+        call :Path
+          callee:
+            join#70 :Path
+          arg0:
+            call :Path
+              callee:
+                to_path#61 :Path
+              arg0:
+                "/etc" :string
+          arg1:
+            "hosts" :string
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "join with sep" :string
+      arg1:
+        call :Path
+          callee:
+            join#70 :Path
+          arg0:
+            call :Path
+              callee:
+                to_path#61 :Path
+              arg0:
+                "/etc/" :string
+          arg1:
+            "hosts" :string
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "join absolute" :string
+      arg1:
+        call :Path
+          callee:
+            join#70 :Path
+          arg0:
+            call :Path
+              callee:
+                to_path#61 :Path
+              arg0:
+                "/etc" :string
+          arg1:
+            "/var/log" :string
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "join empty base" :string
+      arg1:
+        call :Path
+          callee:
+            join#70 :Path
+          arg0:
+            call :Path
+              callee:
+                empty_path#62 :fn() -> Path
+          arg1:
+            "foo" :string
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_6#-8: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_6#-8 :?
+            "a/b/c starts_with a/b: " :string
+          @builder.append_display <for bool> :void
+            __sb_6#-8 :?
+            call :bool
+              callee:
+                starts_with#71 :bool
+              arg0:
+                call :Path
+                  callee:
+                    to_path#61 :Path
+                  arg0:
+                    "a/b/c" :string
+              arg1:
+                call :Path
+                  callee:
+                    to_path#61 :Path
+                  arg0:
+                    "a/b" :string
+          ~>
+            @builder.finish :string
+              __sb_6#-8 :?
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_7#-9: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_7#-9 :?
+            "a/bc starts_with a/b: " :string
+          @builder.append_display <for bool> :void
+            __sb_7#-9 :?
+            call :bool
+              callee:
+                starts_with#71 :bool
+              arg0:
+                call :Path
+                  callee:
+                    to_path#61 :Path
+                  arg0:
+                    "a/bc" :string
+              arg1:
+                call :Path
+                  callee:
+                    to_path#61 :Path
+                  arg0:
+                    "a/b" :string
+          ~>
+            @builder.finish :string
+              __sb_7#-9 :?
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_8#-10: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_8#-10 :?
+            "a/b/c ends_with b/c: " :string
+          @builder.append_display <for bool> :void
+            __sb_8#-10 :?
+            call :bool
+              callee:
+                ends_with#72 :bool
+              arg0:
+                call :Path
+                  callee:
+                    to_path#61 :Path
+                  arg0:
+                    "a/b/c" :string
+              arg1:
+                call :Path
+                  callee:
+                    to_path#61 :Path
+                  arg0:
+                    "b/c" :string
+          ~>
+            @builder.finish :string
+              __sb_8#-10 :?
+    call :void
+      callee:
+        println#43 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_9#-11: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_9#-11 :?
+            "a/b/c ends_with /c: " :string
+          @builder.append_display <for bool> :void
+            __sb_9#-11 :?
+            call :bool
+              callee:
+                ends_with#72 :bool
+              arg0:
+                call :Path
+                  callee:
+                    to_path#61 :Path
+                  arg0:
+                    "a/b/c" :string
+              arg1:
+                call :Path
+                  callee:
+                    to_path#61 :Path
+                  arg0:
+                    "/c" :string
+          ~>
+            @builder.finish :string
+              __sb_9#-11 :?
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "norm a/./b/../c" :string
+      arg1:
+        call :Path
+          callee:
+            normalize#73 :Path
+          arg0:
+            call :Path
+              callee:
+                to_path#61 :Path
+              arg0:
+                "a/./b/../c" :string
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "norm /a/b/../c" :string
+      arg1:
+        call :Path
+          callee:
+            normalize#73 :Path
+          arg0:
+            call :Path
+              callee:
+                to_path#61 :Path
+              arg0:
+                "/a/b/../c" :string
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "norm .." :string
+      arg1:
+        call :Path
+          callee:
+            normalize#73 :Path
+          arg0:
+            call :Path
+              callee:
+                to_path#61 :Path
+              arg0:
+                ".." :string
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "norm ./." :string
+      arg1:
+        call :Path
+          callee:
+            normalize#73 :Path
+          arg0:
+            call :Path
+              callee:
+                to_path#61 :Path
+              arg0:
+                "./." :string
+    call :void
+      callee:
+        show_path#16 :fn(string, Path) -> void
+      arg0:
+        "norm /a//b" :string
+      arg1:
+        call :Path
+          callee:
+            normalize#73 :Path
+          arg0:
+            call :Path
+              callee:
+                to_path#61 :Path
+              arg0:
+                "/a//b" :string
+    return int(0) :i32

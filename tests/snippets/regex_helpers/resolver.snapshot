@@ -1,0 +1,88 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_string 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## std/string
+  import-binding   private  append → append
+  import-binding   private  append_char → append_char
+  fn               public   char_at 
+  fn               public   contains 
+  fn               public   ends_with 
+  fn               public   is_whitechar 
+  fn               public   last_index_of 
+  fn               public   len 
+  import-binding   private  new_builder → new_builder
+  fn               public   pad_end 
+  fn               public   pad_start 
+  fn               public   parse_float 
+  fn               public   parse_int 
+  struct           public   ParseError 
+  fn               public   replace_chars_where 
+  fn               public   slice 
+  fn               public   split 
+  fn               public   split_whitespace 
+  fn               public   starts_with 
+  import-binding   private  StringBuilder → StringBuilder
+  fn               public   to_lower 
+  import-binding   private  to_string → to_string
+  fn               public   to_upper 
+  fn               public   trim 
+  fn               public   trim_prefix 
+  fn               public   trim_suffix 
+  import std/string_builder → ok
+  refs: idents=93 types=64 params=38 locals=17 typeParams=0 fields=0
+
+## std/string_builder
+  fn               public   append 
+  fn               public   append_char 
+  fn               public   concat_all 
+  fn               public   new_builder 
+  struct           public   StringBuilder 
+  fn               public   to_string 
+  refs: idents=6 types=13 params=6 locals=0 typeParams=0 fields=0
+
+## tests/snippets/regex_helpers/_main.vader
+  fn               public   is_non_id 
+  fn               public   main 
+  import-binding   private  println → println
+  import-binding   private  replace_chars_where → replace_chars_where
+  import-binding   private  split_whitespace → split_whitespace
+  import-binding   private  trim_prefix → trim_prefix
+  import-binding   private  trim_suffix → trim_suffix
+  import std/io → ok
+  import std/string → ok
+  refs: idents=29 types=3 params=1 locals=3 typeParams=0 fields=0

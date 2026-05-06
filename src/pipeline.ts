@@ -21,6 +21,7 @@ import type { LoweredProject } from "./lower/index.ts";
 import { eliminateDeadCode } from "./dce/index.ts";
 import { emitBytecode } from "./bytecode/index.ts";
 import type { BytecodeModule } from "./bytecode/index.ts";
+import { buildImplRegistry } from "./typecheck/impls.ts";
 
 export type PipelineStage =
   | "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast"
@@ -120,8 +121,10 @@ export async function pipelineBytecode(
   file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean },
 ): Promise<BytecodeResult> {
   const r = await pipelineDced(file, opts);
+  const implRegistry = buildImplRegistry(r.evaluated.typed.resolved);
   const bytecode = emitBytecode(r.dced, moduleNameFromFile(file), {
     optimize: opts?.bytecodeOpt ?? true,
+    implRegistry,
   });
   return { ...r, bytecode };
 }

@@ -1,5 +1,6 @@
 module _main
 string 0 "Vader"
+import 0 hash_string std_core$hash_string (string) -> u64
 
 fn 0 tests_snippets_interp_string_comptime__main_vader$name () -> string
   string.const 0   ; _main.vader:5:12

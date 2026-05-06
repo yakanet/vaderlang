@@ -1,0 +1,68 @@
+# Modules
+
+## std/collections
+  fn               public   add 
+  const            private  BUCKET_COUNT 
+  fn               private  bucket_index 
+  fn               public   contains 
+  fn               public   contains_key 
+  struct           private  Entry 
+  fn               public   get 
+  fn               public   is_empty 
+  fn               public   keys 
+  fn               public   len 
+  struct           public   Map 
+  struct           public   MutableMap 
+  struct           public   MutableSet 
+  fn               public   put 
+  struct           public   Set 
+  fn               public   values 
+  refs: idents=119 types=98 params=18 locals=25 typeParams=26 fields=0
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_string 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## tests/snippets/mutable_map_string/_main.vader
+  import-binding   private  contains_key → contains_key
+  import-binding   private  get → get
+  import-binding   private  len → len
+  fn               public   main 
+  import-binding   private  MutableMap → MutableMap
+  import-binding   private  println → println
+  import-binding   private  put → put
+  import std/io → ok
+  import std/collections → ok
+  refs: idents=30 types=12 params=0 locals=5 typeParams=0 fields=0

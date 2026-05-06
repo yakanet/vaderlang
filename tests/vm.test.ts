@@ -43,7 +43,9 @@ async function dumpVm(mainPath: string): Promise<string> {
   }
   try {
     const cap = captureIO();
-    const result = runProgram(r.bytecode, { host: makeBindings(cap.io), opLimit: 1_000_000 });
+    // Pass argv[0] (script path) so snippets that take `main(argv)` see at
+    // least one element — mirrors the native binary which always gets argv[0].
+    const result = runProgram(r.bytecode, { host: makeBindings(cap.io), opLimit: 1_000_000, argv: [mainPath] });
     return formatRun(cap.out.join(""), cap.err.join(""), result.exitCode);
   } catch (e) {
     if (e instanceof VmError && e.message.startsWith("vm: no main function")) return "# no main function\n";

@@ -8,7 +8,7 @@
     ~>
       add :i32
         l:
-          self#49 :i32
+          self#51 :i32
         r:
           int(1) :i32
   fn tests_snippets_sam_impl_bad__main_vader$main() -> i32

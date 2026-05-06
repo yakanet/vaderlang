@@ -1,0 +1,7 @@
+# Comptime
+
+## tests/snippets/custom_iter_generic/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Repeat(i32)

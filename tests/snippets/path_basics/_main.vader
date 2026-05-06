@@ -1,0 +1,47 @@
+import "std/io" { println }
+import "std/path" {
+    Path, to_path, empty_path,
+    as_string, is_empty, is_absolute,
+    parent, filename, extension, stem,
+    join, starts_with, ends_with, normalize,
+}
+
+show_path :: fn(label: string, p: Path) -> void {
+    println("${label}=${p.as_string()}")
+}
+
+main :: fn() -> i32 {
+    p :: "src/parser/expr.ts".to_path()
+    show_path("path", p)
+    println("filename=${p.filename()}")
+    println("stem=${p.stem()}")
+    println("extension=${p.extension()}")
+    show_path("parent", p.parent())
+    show_path("grand", p.parent().parent())
+
+    abs :: "/usr/local/bin/vader".to_path()
+    println("abs is_absolute=${abs.is_absolute()}")
+    show_path("abs.parent", abs.parent())
+    show_path("abs.filename", to_path(abs.filename()))
+    show_path("abs.parent.parent", abs.parent().parent())
+
+    println("empty.is_empty=${empty_path().is_empty()}")
+    println("p.is_empty=${p.is_empty()}")
+
+    show_path("join", "/etc".to_path().join("hosts"))
+    show_path("join with sep", "/etc/".to_path().join("hosts"))
+    show_path("join absolute", "/etc".to_path().join("/var/log"))
+    show_path("join empty base", empty_path().join("foo"))
+
+    println("a/b/c starts_with a/b: ${"a/b/c".to_path().starts_with("a/b".to_path())}")
+    println("a/bc starts_with a/b: ${"a/bc".to_path().starts_with("a/b".to_path())}")
+    println("a/b/c ends_with b/c: ${"a/b/c".to_path().ends_with("b/c".to_path())}")
+    println("a/b/c ends_with /c: ${"a/b/c".to_path().ends_with("/c".to_path())}")
+
+    show_path("norm a/./b/../c", "a/./b/../c".to_path().normalize())
+    show_path("norm /a/b/../c", "/a/b/../c".to_path().normalize())
+    show_path("norm ..", "..".to_path().normalize())
+    show_path("norm ./.", "./.".to_path().normalize())
+    show_path("norm /a//b", "/a//b".to_path().normalize())
+    return 0
+}

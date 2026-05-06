@@ -18,16 +18,16 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/runtime",
+      "path": "std/gc",
       "binding": {
         "kind": "destructure",
         "names": [
           {
-            "name": "gc_collect",
+            "name": "collect",
             "alias": null
           },
           {
-            "name": "gc_collections",
+            "name": "collections",
             "alias": null
           }
         ]
@@ -200,7 +200,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "gc_collections"
+                "name": "collections"
               },
               "args": []
             }
@@ -211,7 +211,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "gc_collect"
+                "name": "collect"
               },
               "args": []
             }
@@ -222,7 +222,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "gc_collect"
+                "name": "collect"
               },
               "args": []
             }
@@ -233,7 +233,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "gc_collect"
+                "name": "collect"
               },
               "args": []
             }
@@ -247,7 +247,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "gc_collections"
+                "name": "collections"
               },
               "args": []
             }

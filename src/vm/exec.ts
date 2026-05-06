@@ -24,6 +24,9 @@ export interface RunOptions {
   readonly entry?: string;
   /** Stop after this many ops to guard tests against runaway loops. */
   readonly opLimit?: number;
+  /** Process argv to pass to `main(args: [string])`. Empty when main takes
+   *  no arguments or when the host doesn't supply them. */
+  readonly argv?: readonly string[];
 }
 
 export interface RunResult {
@@ -37,7 +40,12 @@ export class VmError extends Error {
 }
 
 export function runProgram(m: BytecodeModule, opts: RunOptions): RunResult {
-  const result = runFn(m, opts.entry, [], opts);
+  const fnIndex = findEntry(m, opts.entry);
+  const fn = m.functions[fnIndex]!;
+  const args: Value[] = fn.signature.params.length === 1
+    ? [{ tag: "array", typeIndex: 0, elements: (opts.argv ?? []).map((s) => makeStr(s)) }]
+    : [];
+  const result = runFn(m, opts.entry, args, opts);
   if (result.tag === "void") return { exitCode: 0 };
   return { exitCode: Math.trunc(asNum(result)) | 0 };
 }
@@ -189,6 +197,10 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
     case "string.ne":  pushBinop(f, asString, (l, r) => l !== r); return;
     case "char.eq":    pushBinop(f, asChar, (l, r) => l === r); return;
     case "char.ne":    pushBinop(f, asChar, (l, r) => l !== r); return;
+    case "char.lt":    pushBinop(f, asChar, (l, r) => l <  r); return;
+    case "char.le":    pushBinop(f, asChar, (l, r) => l <= r); return;
+    case "char.gt":    pushBinop(f, asChar, (l, r) => l >  r); return;
+    case "char.ge":    pushBinop(f, asChar, (l, r) => l >= r); return;
     case "bool.eq":    pushBinop(f, asBool, (l, r) => l === r); return;
     case "bool.ne":    pushBinop(f, asBool, (l, r) => l !== r); return;
 
@@ -463,12 +475,21 @@ function applyTyped(f: Frame, t: ValType, verb: ArithVerb): void {
 function convert(f: Frame, from: ValType, to: ValType): void {
   const v = f.stack.pop()!;
   if (from === to) { f.stack.push(v); return; }
-  const fromBig = isBigTag(from);
-  const toBig = isBigTag(to);
-  if (fromBig && toBig)        f.stack.push(i64(to, asBig(v)));
-  else if (fromBig && !toBig)  f.stack.push(num(to as NumTag, Number(asBig(v))));
-  else if (!fromBig && toBig)  f.stack.push(i64(to, BigInt(Math.trunc(asNum(v)))));
-  else                          f.stack.push(num(to as NumTag, asNum(v)));
+  // Char and integers share the wire format (32-bit unsigned). Extract a raw
+  // numeric (or bigint) value irrespective of the source tag.
+  const numVal = from === "char"
+    ? asChar(v)
+    : isBigTag(from) ? null : asNum(v);
+  const bigVal = isBigTag(from) ? asBig(v) : null;
+  if (to === "char") {
+    f.stack.push(ch(numVal !== null ? numVal : Number(bigVal!)));
+    return;
+  }
+  if (isBigTag(to)) {
+    f.stack.push(i64(to, bigVal !== null ? bigVal : BigInt(Math.trunc(numVal!))));
+    return;
+  }
+  f.stack.push(num(to as NumTag, numVal !== null ? numVal : Number(bigVal!)));
 }
 
 // ----------------------------------------------------------- helpers
@@ -541,12 +562,14 @@ function matchTo(m: BytecodeModule, v: Value, t: BcType, idx: number): boolean {
       }
       return false;
     case "ref":
-      // TODO(impl-table): user structs implementing a trait should match here
-      // via the impl-table. Today only host-produced `error` sentinels and a
-      // mangled-name heuristic resolve against `Error` / unnamed refs.
       if (v.tag === "error") return t.traitName === "Error" || t.traitName === null;
       if (t.traitName === null) return v.tag === "struct" || v.tag === "array";
       if (v.tag === "struct") {
+        // Check the impl table first: populated from `T implements Trait { … }`
+        // declarations at compile time, covers both non-generic and monomorphised structs.
+        const implTraits = m.implTable.get(v.typeIndex);
+        if (implTraits !== undefined && implTraits.includes(t.traitName)) return true;
+        // Fallback: mangled-name heuristic for legacy / host-produced structs.
         const stype = m.types[v.typeIndex];
         if (stype?.kind === "struct") return stype.name.includes(`$${t.traitName}$`);
       }

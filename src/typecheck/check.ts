@@ -14,10 +14,12 @@
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 
+import type * as A from "../parser/ast.ts";
+
 import { err } from "./diag.ts";
 import type { ImplRegistry } from "./impls.ts";
 import type { TypedProgram } from "./typed-ast.ts";
-import { TY, defaultIfFree, displayType, isAssignable } from "./types.ts";
+import { TY, defaultIfFree, displayType, isAssignable, isPrimitive } from "./types.ts";
 
 import type { Globals, MutableTyped } from "./ctx.ts";
 import { checkExpr } from "./passes/expr.ts";
@@ -57,6 +59,7 @@ export function checkProgram(
     switch (decl.kind) {
       case "FnDecl":
         if (decl.body !== null) checkFnBody(decl, decl.body, null, t, impls, diags);
+        if (decl.name === "main") checkMainSignature(decl, t, diags);
         break;
       case "ImplDecl":
         for (const member of decl.members) {
@@ -100,4 +103,28 @@ export function checkProgram(
     genericFnCalls: t.genericFnCalls,
     traitMethodResolutions: t.traitMethodResolutions,
   };
+}
+
+/** `main` accepts exactly one of two shapes : `fn() -> i32` or
+ *  `fn(args: [string]) -> i32`. Anything else is a hard error so emitters
+ *  can rely on the signature when wiring the entry point. */
+function checkMainSignature(
+  decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector,
+): void {
+  const ret = decl.returnType !== null ? t.globals.typeExprTypes.get(decl.returnType) : null;
+  if (ret === null || ret === undefined || !isPrimitive(ret, "i32")) {
+    err(diags, "T3033", decl.span, "main must return i32");
+    return;
+  }
+  if (decl.params.length === 0) return;
+  if (decl.params.length === 1 && decl.params[0]!.type !== null) {
+    const paramType = t.globals.typeExprTypes.get(decl.params[0]!.type!);
+    if (paramType !== undefined
+        && paramType.kind === "Array"
+        && isPrimitive(paramType.element, "string")) {
+      return;
+    }
+  }
+  err(diags, "T3033", decl.span,
+    "main takes either no parameters or a single `[string]` argument");
 }

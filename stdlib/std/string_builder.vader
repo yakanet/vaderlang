@@ -1,0 +1,35 @@
+// std/builder — efficient string construction.
+//
+// Concatenating strings with `+` allocates each time. StringBuilder accumulates
+// parts into an internal `[string]` buffer and flushes once via to_string()
+// using the host `concat_all` intrinsic — a single pass with one allocation
+// sized from the total length, instead of the O(N²) of repeated `+`.
+//
+// Usage:
+//   sb := new_builder()
+//   sb.append("Hello")
+//   sb.append_char('!')
+//   result := sb.to_string()  // "Hello!"
+
+StringBuilder :: struct {
+    parts: [string]
+}
+
+new_builder :: fn() -> StringBuilder {
+    return StringBuilder { .parts = [] }
+}
+
+append :: fn(self: StringBuilder, s: string) -> void {
+    self.parts.push(s)
+}
+
+append_char :: fn(self: StringBuilder, c: char) -> void {
+    self.parts.push("${c}")
+}
+
+// Host intrinsic: flatten a [string] into one string in a single allocation.
+concat_all :: fn(parts: [string]) -> string
+
+to_string :: fn(self: StringBuilder) -> string {
+    return concat_all(self.parts)
+}

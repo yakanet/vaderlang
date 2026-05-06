@@ -7,16 +7,17 @@ string 0 "expected 3 collections, got "
 string 1 "sum mismatch after 3 collections: "
 string 2 " vs "
 string 3 "ok: 50 nodes survived 3 collections; sum="
-import 0 print std_io$print (string) -> void
-import 1 println std_io$println (string) -> void
-import 2 read_line std_io$read_line () -> ref
-import 3 read_file std_io$read_file (string) -> ref
-import 4 write_file std_io$write_file (string,string) -> ref
-import 5 exists std_io$exists (string) -> bool
-import 6 gc_collect std_runtime$gc_collect () -> void
-import 7 gc_collections std_runtime$gc_collections () -> i32
-import 8 gc_bytes_used std_runtime$gc_bytes_used () -> i32
-import 9 gc_bytes_copied std_runtime$gc_bytes_copied () -> i32
+import 0 hash_string std_core$hash_string (string) -> u64
+import 1 print std_io$print (string) -> void
+import 2 println std_io$println (string) -> void
+import 3 read_line std_io$read_line () -> ref
+import 4 read_file std_io$read_file (string) -> ref
+import 5 write_file std_io$write_file (string,string) -> ref
+import 6 exists std_io$exists (string) -> bool
+import 7 collect std_gc$collect () -> void
+import 8 collections std_gc$collections () -> i32
+import 9 bytes_used std_gc$bytes_used () -> i32
+import 10 bytes_copied std_gc$bytes_copied () -> i32
 
 fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
   local head ref
@@ -53,12 +54,12 @@ fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
   br 0   ; _main.vader:12:5
   end   ; _main.vader:12:5
   end   ; _main.vader:12:5
-  call.import 7   ; _main.vader:18:11
+  call.import 8   ; _main.vader:18:11
   local.set 2   ; _main.vader:18:5
-  call.import 6   ; _main.vader:19:5
-  call.import 6   ; _main.vader:20:5
-  call.import 6   ; _main.vader:21:5
-  call.import 7   ; _main.vader:22:11
+  call.import 7   ; _main.vader:19:5
+  call.import 7   ; _main.vader:20:5
+  call.import 7   ; _main.vader:21:5
+  call.import 8   ; _main.vader:22:11
   local.tee 3   ; _main.vader:22:5
   local.get 2   ; _main.vader:24:18
   i32.sub   ; _main.vader:24:13
@@ -75,7 +76,7 @@ fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:26:46
   local.get 5   ; _main.vader:26:17
   intrinsic builder.finish   ; _main.vader:26:17
-  call.import 1   ; _main.vader:26:9
+  call.import 2   ; _main.vader:26:9
   i32.const 1   ; _main.vader:27:16
   return   ; _main.vader:27:9
   end   ; _main.vader:25:5
@@ -139,7 +140,7 @@ fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:45:62
   local.get 11   ; _main.vader:45:17
   intrinsic builder.finish   ; _main.vader:45:17
-  call.import 1   ; _main.vader:45:9
+  call.import 2   ; _main.vader:45:9
   i32.const 2   ; _main.vader:46:16
   return   ; _main.vader:46:9
   end   ; _main.vader:44:5
@@ -152,7 +153,7 @@ fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:49:55
   local.get 12   ; _main.vader:49:13
   intrinsic builder.finish   ; _main.vader:49:13
-  call.import 1   ; _main.vader:49:5
+  call.import 2   ; _main.vader:49:5
   i32.const 0   ; _main.vader:50:12
   return   ; _main.vader:50:5
 end

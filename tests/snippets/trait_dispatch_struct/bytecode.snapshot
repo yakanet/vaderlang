@@ -1,4 +1,5 @@
 module _main
+import 0 hash_string std_core$hash_string (string) -> u64
 
 fn 0 tests_snippets_trait_dispatch_struct__main_vader$i32$Tagger$tag (i32) -> i32
   local.get 0   ; _main.vader:9:34

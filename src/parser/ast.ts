@@ -397,7 +397,7 @@ export type BinaryOp =
   | "shl" | "shr" | "bitand" | "bitor" | "bitxor"
   | "and" | "or"
   | "eq" | "neq" | "lt" | "lte" | "gt" | "gte"
-  | "is";
+  | "is" | "in" | "not_in";
 
 export interface BinaryExpr {
   readonly kind: "BinaryExpr";

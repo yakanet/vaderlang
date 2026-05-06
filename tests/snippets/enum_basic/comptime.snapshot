@@ -4,3 +4,6 @@
 
 ## generic instances
   Yielded(i32)
+
+# Diagnostics
+[19:1] error[T3033] invalid `main` signature: main must return i32

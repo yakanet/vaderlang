@@ -244,6 +244,17 @@ bool vader_string_eq(vader_string_t a, vader_string_t b) {
     return a.len == b.len && memcmp(a.ptr, b.ptr, a.len) == 0;
 }
 
+/* FNV-1a 64-bit hash over the raw UTF-8 bytes of the string. */
+vader_u64_t vader_string_hash(vader_string_t s) {
+    uint64_t h = UINT64_C(14695981039346656037);
+    const uint8_t* p = (const uint8_t*) s.ptr;
+    for (size_t i = 0; i < s.len; i++) {
+        h ^= (uint64_t) p[i];
+        h *= UINT64_C(1099511628211);
+    }
+    return h;
+}
+
 /* ----------------------------------------------------------------- array */
 
 /* Allocate a fresh array buffer of `capacity` slots with the ARRAY_BUF
@@ -431,6 +442,20 @@ vader_char_t vader_string_char_at(vader_string_t s, vader_i32_t i) {
     return (vader_char_t)(((b & 0x07u) << 18) | ((p[1] & 0x3Fu) << 12) | ((p[2] & 0x3Fu) << 6) | (p[3] & 0x3Fu));
 }
 
+/* Box the host argv into a `[string]` Vader array. Called from emitted main
+ * when the user's `main` takes an `[string]` parameter. The caller passes the
+ * BcType indices for the array type and the string element type (the emitter
+ * knows them at codegen time). */
+vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint32_t str_type) {
+    vader_array_t* arr = vader_array_new(arr_type, 0);
+    for (int i = 0; i < argc; i++) {
+        const char* a = argv[i];
+        size_t len = strlen(a);
+        vader_array_push(arr, vader_box_string(str_type, vader_string_new(a, len)));
+    }
+    return arr;
+}
+
 vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
                                   uint32_t arr_type, uint32_t str_type) {
     vader_array_t* arr = vader_array_new(arr_type, 0);
@@ -554,6 +579,26 @@ vader_string_t vader_builder_finish(vader_builder_t* b) {
     /* The buffer is already big enough; just expose its current view. The
      * builder itself isn't reused after finish so the buffer is safe to lend. */
     return vader_string_new(b->buf, b->len);
+}
+
+/* Flatten an array of strings into a single string in one allocation. Used
+ * by std/string_builder StringBuilder.to_string to avoid the O(N²) of repeated `+`. */
+vader_string_t vader_string_concat_all(vader_array_t* parts) {
+    if (parts->length == 0) {
+        return vader_string_new("", 0);
+    }
+    size_t total = 0;
+    for (size_t i = 0; i < parts->length; i++) {
+        total += parts->buf->slots[i].payload.s.len;
+    }
+    char* buf = (char*) vader_string_alloc(total);
+    size_t pos = 0;
+    for (size_t i = 0; i < parts->length; i++) {
+        vader_string_t s = parts->buf->slots[i].payload.s;
+        memcpy(buf + pos, s.ptr, s.len);
+        pos += s.len;
+    }
+    return vader_string_new(buf, total);
 }
 
 /* ----------------------------------------------------------------- I/O */

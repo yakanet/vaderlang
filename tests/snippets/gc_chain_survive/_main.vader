@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/runtime" { gc_collect, gc_collections }
+import "std/gc" { collect, collections }
 
 Node :: struct {
     value: i32
@@ -14,9 +14,9 @@ main :: fn() -> i32 {
         i = i + 1
     }
 
-    before := gc_collections()
-    gc_collect()
-    after := gc_collections()
+    before := collections()
+    collect()
+    after := collections()
 
     diff := after - before
     if diff != 1 {
