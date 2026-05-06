@@ -16,7 +16,11 @@ Span :: struct {
     end: Position
 }
 
-TokenKind :: enum {
+TokenKind :: enum(u8) {
+    // Layout
+    Eof,
+    Newline,
+
     // Identifiers and literals
     Ident,
     IntLit,
@@ -61,9 +65,6 @@ TokenKind :: enum {
     LBrace, RBrace,
     Comma, Dot, Colon,
 
-    // Layout
-    Newline,
-    Eof,
 }
 
 // `value` carries the parsed payload: the integer for `IntLit`, the float for
@@ -83,12 +84,10 @@ empty_span :: fn() -> Span {
     return Span { .start = p, .end = p }
 }
 
-make_token :: fn(kind: TokenKind, text: string, span: Span) -> Token {
-    return Token {
-        .kind = kind,
-        .text = text,
-        .span = span,
-        .value = null,
-        .numeric_suffix = "",
-    }
+make_token :: fn(kind: TokenKind, text: string, span: Span) = Token {
+    .kind = kind,
+    .text = text,
+    .span = span,
+    .value = null,
+    .numeric_suffix = "",
 }

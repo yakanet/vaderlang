@@ -1439,13 +1439,13 @@
   expr 54:58    IdentExpr      :: char
   expr 58:48    MatchExpr      :: bool
   expr 58:54    IdentExpr      :: TokenKind
-  expr 82:10    StructLitExpr  :: Position
-  expr 83:12    StructLitExpr  :: Span
-  expr 83:28    IdentExpr      :: Position
-  expr 83:38    IdentExpr      :: Position
-  expr 87:12    StructLitExpr  :: Token
-  expr 88:17    IdentExpr      :: TokenKind
-  expr 89:17    IdentExpr      :: string
+  expr 83:10    StructLitExpr  :: Position
+  expr 84:12    StructLitExpr  :: Span
+  expr 84:28    IdentExpr      :: Position
+  expr 84:38    IdentExpr      :: Position
+  expr 87:63    StructLitExpr  :: Token
+  expr 88:13    IdentExpr      :: TokenKind
+  expr 89:13    IdentExpr      :: string
   expr 89:26    BinaryExpr     :: bool
   expr 89:26    FieldExpr      :: i32
   expr 89:26    IdentExpr      :: Lexer
@@ -1453,12 +1453,12 @@
   expr 89:35    FieldExpr      :: fn() -> i32
   expr 89:35    FieldExpr      :: string
   expr 89:35    IdentExpr      :: Lexer
-  expr 90:17    IdentExpr      :: Span
+  expr 90:13    IdentExpr      :: Span
   expr 92:17    CallExpr       :: i32
   expr 92:17    FieldExpr      :: fn() -> i32
   expr 92:17    FieldExpr      :: string
   expr 92:17    IdentExpr      :: Lexer
-  expr 92:27    StringLitExpr  :: string
+  expr 92:23    StringLitExpr  :: string
   expr 92:5     IfExpr         :: void
   expr 92:8     BinaryExpr     :: bool
   expr 92:8     FieldExpr      :: i32
