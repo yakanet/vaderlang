@@ -36,6 +36,18 @@
   fn               public   write_file 
   refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
 
+## std/iter
+  fn               public   collect 
+  fn               public   count 
+  fn               public   filter 
+  fn               public   fold 
+  fn               public   map 
+  fn               public   skip 
+  fn               public   slice 
+  fn               public   sum 
+  fn               public   take 
+  refs: idents=74 types=28 params=17 locals=15 typeParams=10 fields=0
+
 ## std/string
   import-binding   private  append → append
   import-binding   private  append_char → append_char
@@ -79,51 +91,105 @@
   fn               public   kind_name 
   fn               public   main 
   import-binding   private  println → println
+  import-binding   private  render → render
   fn               public   show 
   import-binding   private  tokenize → tokenize
   import-binding   private  TokenKind → TokenKind
   import std/io → ok
   import vader/lexer → ok
-  refs: idents=36 types=6 params=3 locals=6 typeParams=0 fields=0
+  import vader/diagnostics/diagnostic → ok
+  refs: idents=37 types=6 params=3 locals=6 typeParams=0 fields=0
+
+## vader/diagnostics/codes.vader
+  struct           public   CodeInfo 
+  type-alias       public   DiagCode 
+  fn               public   info 
+  enum             public   LexerCode 
+  refs: idents=1 types=15 params=1 locals=0 typeParams=0 fields=0
+
+## vader/diagnostics/diagnostic.vader
+  import-binding   private  CodeInfo → CodeInfo
+  import-binding   private  DiagCode → DiagCode
+  struct           public   Diagnostic 
+  fn               public   error 
+  import-binding   private  info → info
+  import-binding   private  len → len
+  import-binding   private  LexerCode → LexerCode
+  fn               public   make 
+  struct           public   Position 
+  fn               public   render 
+  enum             public   Severity 
+  struct           public   Span 
+  import std/string → ok
+  import vader/diagnostics/codes → ok
+  refs: idents=21 types=21 params=8 locals=4 typeParams=0 fields=0
 
 ## vader/lexer
   fn               public   advance 
+  import-binding   private  append → append
+  import-binding   private  append_char → append_char
+  fn               private  append_codepoint 
   fn               public   at_end 
   import-binding   private  char_at → char_at
-  fn               public   consume_decimal_digits 
+  fn               public   consume_digits 
+  import-binding   private  Diagnostic → Diagnostic
   fn               public   emit 
   fn               private  emit1 
   fn               private  emit2 
   fn               public   empty_span 
+  import-binding   private  error → error
+  fn               public   error_span 
+  fn               private  flush_string_part 
   fn               public   handle_newline 
+  fn               public   hex_digit_value 
+  struct           public   InterpFrame 
   fn               public   is_digit 
+  fn               public   is_digit_in_base 
   fn               public   is_float_suffix 
+  fn               public   is_hex_digit 
   fn               public   is_ident_continue 
   fn               public   is_ident_start 
   fn               public   is_int_suffix 
   import-binding   private  len → len
   fn               public   lex_block_comment 
+  fn               public   lex_char 
+  fn               public   lex_escape 
   fn               public   lex_ident 
   fn               public   lex_number 
   fn               public   lex_one 
+  fn               public   lex_string 
+  fn               public   lex_string_body 
+  fn               public   lex_unicode_escape 
   struct           public   Lexer 
+  import-binding   private  LexerCode → LexerCode
   fn               public   lookup_keyword 
   fn               public   make_token 
+  import-binding   private  new_builder → new_builder
   fn               public   new_lexer 
   fn               public   peek 
   fn               public   peek_at 
-  struct           public   Position 
+  fn               public   pop_interp 
+  import-binding   private  Position → Position
   fn               public   position_here 
   fn               public   push_error 
   fn               public   push_simple 
   fn               public   read_numeric_suffix 
   fn               public   skip_horizontal 
   import-binding   private  slice → slice
-  struct           public   Span 
+  import-binding   private  slice_array → slice
+  import-binding   private  Span → Span
+  import-binding   private  StringBuilder → StringBuilder
   fn               public   suppresses_newline_after 
+  import-binding   private  to_string → to_string
   struct           public   Token 
   fn               public   tokenize 
   enum             public   TokenKind 
+  fn               public   top_interp 
   fn               public   try_lex_operator 
   import std/string → ok
-  refs: idents=410 types=99 params=45 locals=43 typeParams=0 fields=0
+  import std/string_builder → ok
+  import std/iter → ok
+  import vader/diagnostics/diagnostic → ok
+  import vader/diagnostics/codes → ok
+  import vader/diagnostics/diagnostic → ok
+  refs: idents=886 types=158 params=72 locals=92 typeParams=0 fields=0

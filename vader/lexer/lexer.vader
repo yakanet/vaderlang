@@ -10,15 +10,27 @@
 //   - newlines with the SUPPRESS_AFTER rules from SPEC §3
 //
 // Deferred (will land in subsequent passes, not blocked):
-//   - hex/bin/oct int literals
 //   - char literals + escape sequences
 //   - string literals, raw strings, triple strings, interpolation
-//   - shebang, BOM
-//   - structured Diagnostic objects (we collect plain strings for now)
 
 import "std/string" { len, slice, char_at }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
+import "std/iter" { slice as slice_array }
+import "vader/diagnostics/diagnostic" { Diagnostic, error }
+import "vader/diagnostics/codes" { LexerCode }
+// Position/Span are re-imported transparently via token.vader (same module);
+// no need to import them again here — that would trigger R2011.
 
 // ---- driver state ---------------------------------------------------------
+
+// One per active `${...}` interpolation. `brace_depth` counts unclosed `{`s
+// inside the current interp expression so we know when a `}` closes the
+// interp (depth 0) vs an inner expression (depth > 0). `triple` records
+// which string mode to resume on close.
+InterpFrame :: struct {
+    brace_depth: i32
+    triple: bool
+}
 
 Lexer :: struct {
     src: string
@@ -26,10 +38,11 @@ Lexer :: struct {
     pos: i32
     line: i32
     col: i32
-    paren_depth: i32      // unclosed `(` and `[` (NOT `{`)
-    last_kind: TokenKind  // initialised to .Newline so first-token rules fire correctly
+    paren_depth: i32          // unclosed `(` and `[` (NOT `{`)
+    last_kind: TokenKind      // initialised to .Newline so first-token rules fire correctly
     tokens: [Token]
-    errors: [string]
+    errors: [Diagnostic]
+    interp_stack: [InterpFrame]
 }
 
 new_lexer :: fn(source: string, file: string) = Lexer {
@@ -42,6 +55,7 @@ new_lexer :: fn(source: string, file: string) = Lexer {
     .last_kind = .Newline,
     .tokens = [],
     .errors = [],
+    .interp_stack = [],
 }
 
 // ---- predicates -----------------------------------------------------------
@@ -104,7 +118,7 @@ peek_at :: fn(l: Lexer, n: i32) -> char {
 }
 
 position_here :: fn(l: Lexer) =
-    Position { .offset = l.pos, .line = l.line, .column = l.col }
+    Position { .file = l.file, .offset = l.pos, .line = l.line, .column = l.col }
 
 advance :: fn(l: Lexer, n: i32) -> void {
     i := 0
@@ -136,16 +150,26 @@ push_simple :: fn(l: Lexer, kind: TokenKind, text: string, start: Position) -> v
     l.emit(make_token(kind, text, span))
 }
 
-push_error :: fn(l: Lexer, msg: string) -> void {
-    l.errors.push(msg)
+push_error :: fn(l: Lexer, code: LexerCode, span: Span, detail: string) -> void {
+    l.errors.push(error(code, span, detail))
 }
+
+// Convenience: most lexer errors take a single-token span anchored at `start`
+// up to the current position.
+error_span :: fn(l: Lexer, start: Position) =
+    Span { .start = start, .end = l.position_here() }
 
 // ---- whitespace + comments -----------------------------------------------
 
 skip_horizontal :: fn(l: Lexer) -> void {
+    in_interp :: l.interp_stack.len() > 0
     for !l.at_end() {
         c := l.peek()
         if c == ' ' || c == '\t' {
+            l.advance(1)
+        } else if in_interp && (c == '\n' || c == '\r') {
+            // Newlines inside `${...}` are absorbed so the resumed string
+            // body keeps its anchor position in the source.
             l.advance(1)
         } else {
             return
@@ -171,7 +195,7 @@ lex_block_comment :: fn(l: Lexer) -> void {
         l.advance(1)
     }
     if depth > 0 {
-        l.push_error("L0003: unterminated block comment at ${start.line}:${start.column}")
+        l.push_error(.UnterminatedBlockComment, l.error_span(start), "")
     }
 }
 
@@ -229,29 +253,41 @@ read_numeric_suffix :: fn(l: Lexer) -> string {
     return ""
 }
 
-// Consume base-10 digit run with `_` separators. Validates that underscores
-// don't appear consecutively or trail. `start_anchor` is for diagnostic spans.
-consume_decimal_digits :: fn(l: Lexer, start_anchor: Position) -> void {
+is_hex_digit :: fn(c: char) =
+    c.is_digit() || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+
+is_digit_in_base :: fn(c: char, base: i32) -> bool {
+    if base == 2 { return c == '0' || c == '1' }
+    if base == 8 { return c >= '0' && c <= '7' }
+    if base == 16 { return c.is_hex_digit() }
+    return c.is_digit()
+}
+
+// Consume a digit run in the given base with `_` separators. Validates that
+// underscores don't appear consecutively or trail. `start_anchor` is for
+// diagnostic spans. Returns void — callers detecting "no digits after base
+// prefix" should compare `l.pos` before and after the call.
+consume_digits :: fn(l: Lexer, base: i32, start_anchor: Position) -> void {
     last_was_underscore := false
     first := true
     for !l.at_end() {
         c := l.peek()
         if c == '_' {
-            // If the next char starts an identifier and isn't a digit, this
-            // underscore actually belongs to the suffix (`42_i32`).
+            // If the next char starts an identifier and isn't a digit in this
+            // base, the underscore belongs to the suffix (`42_i32`, `0xFF_u8`).
             next := l.peek_at(1)
-            if next.is_ident_start() && !next.is_digit() {
+            if next.is_ident_start() && !is_digit_in_base(next, base) {
                 return
             }
             if first || last_was_underscore {
-                l.push_error("L0006: underscore not allowed here at ${start_anchor.line}:${start_anchor.column}")
+                l.push_error(.MalformedNumericLiteral, l.error_span(start_anchor), "underscore not allowed here")
             }
             last_was_underscore = true
             first = false
             l.advance(1)
             continue
         }
-        if c.is_digit() {
+        if is_digit_in_base(c, base) {
             last_was_underscore = false
             first = false
             l.advance(1)
@@ -265,40 +301,59 @@ lex_number :: fn(l: Lexer) -> void {
     start := l.position_here()
     is_float := false
 
-    l.consume_decimal_digits(start)
-
-    // `.<digit>` introduces a fractional part. A trailing `.` alone is reserved
-    // for member access / range, so we require the next char to be a digit.
-    if l.peek() == '.' && l.peek_at(1).is_digit() {
-        is_float = true
-        l.advance(1)
-        l.consume_decimal_digits(start)
+    // Detect base prefix: `0x` / `0X` (hex), `0b` / `0B` (binary),
+    // `0o` / `0O` (octal). Anything else is base-10 (including `0` alone or
+    // `00.5`). Hex/bin/oct cannot be float and reject suffixed `e`/`E`.
+    base: i32 = 10
+    if l.peek() == '0' {
+        next := l.peek_at(1)
+        if next == 'x' || next == 'X' { base = 16 }
+        else if next == 'b' || next == 'B' { base = 2 }
+        else if next == 'o' || next == 'O' { base = 8 }
     }
+    if base != 10 {
+        l.advance(2)
+        digits_start := l.pos
+        l.consume_digits(base, start)
+        if l.pos == digits_start {
+            l.push_error(.MalformedNumericLiteral, l.error_span(start), "expected digits after base prefix")
+        }
+    } else {
+        l.consume_digits(10, start)
 
-    // Optional exponent.
-    if l.peek() == 'e' || l.peek() == 'E' {
-        is_float = true
-        l.advance(1)
-        if l.peek() == '+' || l.peek() == '-' {
+        // `.<digit>` introduces a fractional part. A trailing `.` alone is reserved
+        // for member access / range, so we require the next char to be a digit.
+        if l.peek() == '.' && l.peek_at(1).is_digit() {
+            is_float = true
             l.advance(1)
+            l.consume_digits(10, start)
         }
-        if !l.peek().is_digit() {
-            l.push_error("L0006: exponent has no digits at ${start.line}:${start.column}")
+
+        // Optional exponent.
+        if l.peek() == 'e' || l.peek() == 'E' {
+            is_float = true
+            l.advance(1)
+            if l.peek() == '+' || l.peek() == '-' {
+                l.advance(1)
+            }
+            if !l.peek().is_digit() {
+                l.push_error(.MalformedNumericLiteral, l.error_span(start), "exponent has no digits")
+            }
+            l.consume_digits(10, start)
         }
-        l.consume_decimal_digits(start)
     }
 
     suffix := l.read_numeric_suffix()
     has_suffix := suffix.len() > 0
 
     if has_suffix && !suffix.is_int_suffix() && !suffix.is_float_suffix() {
-        l.push_error("L0006: unknown numeric suffix \"${suffix}\" at ${start.line}:${start.column}")
+        l.push_error(.MalformedNumericLiteral, l.error_span(start), "unknown numeric suffix \"${suffix}\"")
     }
     if has_suffix && suffix.is_float_suffix() {
         is_float = true
     }
     if has_suffix && suffix.is_int_suffix() && is_float {
-        l.push_error("L0006: integer suffix \"${suffix}\" on a float literal at ${start.line}:${start.column}")
+        l.push_error(.MalformedNumericLiteral, l.error_span(start), "integer suffix \"${suffix}\" on a float literal")
     }
 
     text := l.src.slice(start.offset, l.pos)
@@ -314,6 +369,314 @@ lex_number :: fn(l: Lexer) -> void {
     // Numeric value parsing is left to the typechecker pass for now —
     // emitting the raw text is enough for the parser/AST shape we need.
     l.emit(t)
+}
+
+// ---- escape decoding ------------------------------------------------------
+
+// 0..15 for an ASCII hex digit, -1 otherwise. Reused by `\u{...}` escapes
+// and by future numeric-literal value parsing.
+hex_digit_value :: fn(c: char) -> i32 {
+    if c >= '0' && c <= '9' { return i32(u32(c) - u32('0')) }
+    if c >= 'a' && c <= 'f' { return i32(u32(c) - u32('a') + u32(10)) }
+    if c >= 'A' && c <= 'F' { return i32(u32(c) - u32('A') + u32(10)) }
+    return -1
+}
+
+// Decode `\X`. Caller must have positioned the cursor at the leading `\`.
+// Returns the decoded codepoint. Emits L0004 / L0009 on malformed input.
+lex_escape :: fn(l: Lexer) -> u32 {
+    esc_start :: l.position_here()
+    l.advance(1)  // consume `\`
+    if l.at_end() {
+        l.push_error(.InvalidEscapeSequence, l.error_span(esc_start), "incomplete escape sequence")
+        return u32(0)
+    }
+    c :: l.peek()
+    l.advance(1)
+    if c == 'n'  { return u32(0x0A) }
+    if c == 't'  { return u32(0x09) }
+    if c == 'r'  { return u32(0x0D) }
+    if c == '\\' { return u32(0x5C) }
+    if c == '\'' { return u32(0x27) }
+    if c == '"'  { return u32(0x22) }
+    if c == '$'  { return u32(0x24) }
+    if c == '0'  { return u32(0x00) }
+    if c == 'u'  { return l.lex_unicode_escape(esc_start) }
+    l.push_error(.InvalidEscapeSequence, l.error_span(esc_start), "unknown escape \\${c}")
+    return u32(c)
+}
+
+// Decode `\u{HEX}` — caller has already consumed `\u`. Up to 6 hex digits,
+// codepoint must fit in U+10FFFF.
+lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
+    if l.peek() != '{' {
+        l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start), "expected '{' after \\u")
+        return u32(0)
+    }
+    l.advance(1)  // consume `{`
+    hex_start :: l.pos
+    for !l.at_end() && l.peek() != '}' {
+        if hex_digit_value(l.peek()) < 0 {
+            l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start), "invalid hex digit in codepoint escape")
+            // Skip to the closing brace (or EOL) for recovery.
+            for !l.at_end() && l.peek() != '}' && l.peek() != '\n' {
+                l.advance(1)
+            }
+            // Fall through to closing-brace consumption below.
+            break
+        }
+        l.advance(1)
+    }
+    hex_len :: l.pos - hex_start
+    if l.peek() == '}' {
+        l.advance(1)
+    }
+    if hex_len == 0 || hex_len > 6 {
+        l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start),
+            "codepoint escape must have 1–6 hex digits")
+        return u32(0)
+    }
+    cp: u32 = u32(0)
+    i := 0
+    for i < hex_len {
+        d :: hex_digit_value(l.src.char_at(hex_start + i))
+        cp = cp * u32(16) + u32(d)
+        i = i + 1
+    }
+    if cp > u32(0x10FFFF) {
+        l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start),
+            "codepoint exceeds U+10FFFF")
+        return u32(0)
+    }
+    return cp
+}
+
+// Append the UTF-8 encoding of `cp` to `sb`. Mirrors `append_codepoint` in
+// std/json — kept private here so the lexer module is self-contained.
+private append_codepoint :: fn(sb: StringBuilder, cp: u32) -> void {
+    if cp < u32(0x80) {
+        sb.append_char(char(cp))
+        return
+    }
+    if cp < u32(0x800) {
+        sb.append_char(char(u32(0xC0) | (cp >> u32(6))))
+        sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
+        return
+    }
+    if cp < u32(0x10000) {
+        sb.append_char(char(u32(0xE0) | (cp >> u32(12))))
+        sb.append_char(char(u32(0x80) | ((cp >> u32(6)) & u32(0x3F))))
+        sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
+        return
+    }
+    sb.append_char(char(u32(0xF0) | (cp >> u32(18))))
+    sb.append_char(char(u32(0x80) | ((cp >> u32(12)) & u32(0x3F))))
+    sb.append_char(char(u32(0x80) | ((cp >> u32(6)) & u32(0x3F))))
+    sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
+}
+
+// ---- char literals --------------------------------------------------------
+
+lex_char :: fn(l: Lexer) -> void {
+    start :: l.position_here()
+    l.advance(1)  // consume opening `'`
+
+    if l.peek() == '\'' {
+        l.advance(1)
+        l.push_error(.InvalidCharacterLiteral, l.error_span(start), "character literal cannot be empty")
+        text :: l.src.slice(start.offset, l.pos)
+        t := make_token(.CharLit, text, l.error_span(start))
+        t.value = u32(0)
+        l.emit(t)
+        return
+    }
+
+    cp: u32 = u32(0)
+    if l.peek() == '\\' {
+        cp = l.lex_escape()
+    } else if l.peek() == '\n' || l.at_end() {
+        l.push_error(.InvalidCharacterLiteral, l.error_span(start), "unterminated character literal")
+        text :: l.src.slice(start.offset, l.pos)
+        t := make_token(.CharLit, text, l.error_span(start))
+        t.value = u32(0)
+        l.emit(t)
+        return
+    } else {
+        cp = u32(l.peek())
+        l.advance(1)
+    }
+
+    if l.peek() != '\'' {
+        l.push_error(.InvalidCharacterLiteral, l.error_span(start),
+            "character literal must contain exactly one codepoint")
+        // Recovery: scan to the next `'` or end of line.
+        for !l.at_end() && l.peek() != '\'' && l.peek() != '\n' {
+            l.advance(1)
+        }
+        if l.peek() == '\'' {
+            l.advance(1)
+        }
+    } else {
+        l.advance(1)  // consume closing `'`
+    }
+
+    text :: l.src.slice(start.offset, l.pos)
+    t := make_token(.CharLit, text, l.error_span(start))
+    t.value = cp
+    l.emit(t)
+}
+
+// ---- string literals ------------------------------------------------------
+
+// Top of the interp stack, or null when not currently inside an interpolation.
+top_interp :: fn(l: Lexer) -> InterpFrame | null {
+    n :: l.interp_stack.len()
+    if n == 0 { return null }
+    return l.interp_stack[n - 1]
+}
+
+// Drop the current top frame (called at `}` matching depth 0).
+pop_interp :: fn(l: Lexer) -> void {
+    n :: l.interp_stack.len()
+    if n == 0 { return }
+    l.interp_stack = l.interp_stack.slice_array(0, n - 1) // FIXME: use `pop`
+}
+
+// Open a `"` / `r"` / `"""` / `r"""` literal. Emits StringBegin, then drives
+// the body. Caller must have already verified the leading `"` (and optional
+// `r` prefix) via `lex_one`.
+lex_string :: fn(l: Lexer, raw: bool) -> void {
+    start :: l.position_here()
+    if raw {
+        l.advance(1)  // consume `r`
+    }
+    l.advance(1)  // consume opening `"`
+
+    triple := false
+    if l.peek() == '"' && l.peek_at(1) == '"' {
+        triple = true
+        l.advance(2)
+        // Triple-quoted strings swallow the optional immediately-following
+        // newline so `"""\n  hello"""` doesn't include the leading blank line.
+        if l.peek() == '\r' && l.peek_at(1) == '\n' {
+            l.advance(2)
+        } else if l.peek() == '\n' {
+            l.advance(1)
+        }
+    }
+
+    text :: l.src.slice(start.offset, l.pos)
+    span :: Span { .start = start, .end = l.position_here() }
+    l.emit(make_token(.StringBegin, text, span))
+    l.lex_string_body(triple, raw)
+}
+
+// Emit a StringPart token if the builder accumulated any content — no-op
+// otherwise so we don't generate empty parts between back-to-back interps.
+private flush_string_part :: fn(l: Lexer, sb: StringBuilder, part_start: Position, has_part: bool) -> void {
+    if !has_part { return }
+    text :: sb.to_string()
+    span :: Span { .start = part_start, .end = l.position_here() }
+    t := make_token(.StringPart, text, span)
+    t.value = text
+    l.emit(t)
+}
+
+// Drive the body of a string literal. Handles raw vs. interpolated input,
+// emits StringPart / InterpOpen / StringEnd as needed. When the body opens
+// an interpolation we push onto `interp_stack` and return — `lex_one` will
+// resume the body when the matching `}` closes the interp.
+lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
+    part_start := l.position_here()
+    sb := new_builder()
+    has_part := false
+
+    for !l.at_end() {
+        c :: l.peek()
+
+        // Closing quote: `"""` for triple, `"` otherwise.
+        is_close := false
+        if triple {
+            if c == '"' && l.peek_at(1) == '"' && l.peek_at(2) == '"' {
+                is_close = true
+            }
+        } else if c == '"' {
+            is_close = true
+        }
+        if is_close {
+            flush_string_part(l, sb, part_start, has_part)
+            close_start :: l.position_here()
+            close_text: string = "\""
+            if triple {
+                l.advance(3)
+                close_text = "\"\"\""
+            } else {
+                l.advance(1)
+            }
+            close_span :: Span { .start = close_start, .end = l.position_here() }
+            l.emit(make_token(.StringEnd, close_text, close_span))
+            return
+        }
+
+        // Plain (non-triple) strings forbid raw newlines.
+        if !triple && c == '\n' {
+            l.push_error(.UnterminatedStringLiteral,
+                Span { .start = part_start, .end = l.position_here() }, "")
+            flush_string_part(l, sb, part_start, has_part)
+            here :: l.position_here()
+            l.emit(make_token(.StringEnd, "", Span { .start = here, .end = here }))
+            return
+        }
+
+        // `${expr}` — interp open, push frame, return so `lex_one` takes over.
+        if !raw && c == '$' && l.peek_at(1) == '{' {
+            flush_string_part(l, sb, part_start, has_part)
+            op_start :: l.position_here()
+            l.advance(2)
+            op_span :: Span { .start = op_start, .end = l.position_here() }
+            l.emit(make_token(.InterpOpen, "\${", op_span))
+            l.interp_stack.push(InterpFrame { .brace_depth = 0, .triple = triple })
+            return
+        }
+
+        // `$ident` — single-identifier interp, no `{}` brackets.
+        if !raw && c == '$' && l.peek_at(1).is_ident_start() {
+            flush_string_part(l, sb, part_start, has_part)
+            op_start :: l.position_here()
+            l.advance(1)
+            op_span :: Span { .start = op_start, .end = l.position_here() }
+            l.emit(make_token(.InterpOpen, "$", op_span))
+            l.lex_ident()
+            here :: l.position_here()
+            l.emit(make_token(.InterpClose, "", Span { .start = here, .end = here }))
+            // Resume body in-place ; reset `part_start` so the next StringPart's
+            // span starts after the interpolated identifier.
+            part_start = l.position_here()
+            sb = new_builder()
+            has_part = false
+            continue
+        }
+
+        // Escapes (only outside raw mode).
+        if !raw && c == '\\' {
+            cp :: l.lex_escape()
+            sb.append_codepoint(cp)
+            has_part = true
+            continue
+        }
+
+        // Plain content byte.
+        sb.append_char(c)
+        has_part = true
+        l.advance(1)
+    }
+
+    // Reached EOF without closing — emit the diagnostic at the current part.
+    l.push_error(.UnterminatedStringLiteral,
+        Span { .start = part_start, .end = l.position_here() }, "")
+    flush_string_part(l, sb, part_start, has_part)
+    here :: l.position_here()
+    l.emit(make_token(.StringEnd, "", Span { .start = here, .end = here }))
 }
 
 // ---- operators ------------------------------------------------------------
@@ -406,8 +769,28 @@ try_lex_operator :: fn(l: Lexer) -> bool {
         l.push_simple(.RBracket, "]", start)
         return true
     }
-    if c == '{' { return l.emit1(.LBrace, "{") }
-    if c == '}' { return l.emit1(.RBrace, "}") }
+    if c == '{' {
+        // Track unclosed `{` on the active interp frame so the matching `}`
+        // closes the inner expression rather than the interp itself.
+        top :: l.top_interp()
+        match top {
+            is InterpFrame -> { top.brace_depth = top.brace_depth + 1 }
+            is null -> { }
+        }
+        return l.emit1(.LBrace, "{")
+    }
+    if c == '}' {
+        top :: l.top_interp()
+        match top {
+            is InterpFrame -> {
+                if top.brace_depth > 0 {
+                    top.brace_depth = top.brace_depth - 1
+                }
+            }
+            is null -> { }
+        }
+        return l.emit1(.RBrace, "}")
+    }
 
     return false
 }
@@ -432,6 +815,26 @@ lex_one :: fn(l: Lexer) -> void {
     l.skip_horizontal()
     if l.at_end() { return }
 
+    // Closing `}` for the active `${...}` interpolation. Must run BEFORE
+    // `try_lex_operator` would emit a regular `rbrace` token. Inner `{...}`
+    // expressions inside the interp are still emitted normally — the brace
+    // tracking on the frame disambiguates.
+    top :: l.top_interp()
+    match top {
+        is InterpFrame -> {
+            if l.peek() == '}' && top.brace_depth == 0 {
+                close_start :: l.position_here()
+                l.advance(1)
+                l.push_simple(.InterpClose, "}", close_start)
+                triple :: top.triple
+                l.pop_interp()
+                l.lex_string_body(triple, false)
+                return
+            }
+        }
+        is null -> { }
+    }
+
     c := l.peek()
 
     if c == '\n' || c == '\r' {
@@ -449,12 +852,26 @@ lex_one :: fn(l: Lexer) -> void {
         l.lex_block_comment()
         return
     }
+    // Raw strings: `r"..."` — must be checked before `is_ident_start` since
+    // `r` is otherwise an identifier start.
+    if c == 'r' && l.peek_at(1) == '"' {
+        l.lex_string(true)
+        return
+    }
     if c.is_ident_start() {
         l.lex_ident()
         return
     }
     if c.is_digit() {
         l.lex_number()
+        return
+    }
+    if c == '\'' {
+        l.lex_char()
+        return
+    }
+    if c == '"' {
+        l.lex_string(false)
         return
     }
     if l.try_lex_operator() {
@@ -464,13 +881,26 @@ lex_one :: fn(l: Lexer) -> void {
     // Anything else is an unexpected character — record and skip one byte.
     start := l.position_here()
     l.advance(1)
-    l.push_error("L0001: unexpected character at ${start.line}:${start.column}")
+    l.push_error(.UnexpectedCharacter, l.error_span(start), "")
 }
 
 // ---- public entry ---------------------------------------------------------
 
 tokenize :: fn(source: string, file: string) -> Lexer {
     l := new_lexer(source, file)
+    // UTF-8 BOM (EF BB BF) — if present, must be the very first thing.
+    if l.src.len() >= 3 &&
+        l.src.char_at(0) == char(u32(0xEF)) &&
+        l.src.char_at(1) == char(u32(0xBB)) &&
+        l.src.char_at(2) == char(u32(0xBF)) {
+        l.advance(3)
+    }
+    // Shebang: only allowed on line 1 and silently dropped.
+    if l.line == 1 && l.peek() == '#' && l.peek_at(1) == '!' {
+        for !l.at_end() && l.peek() != '\n' {
+            l.advance(1)
+        }
+    }
     for !l.at_end() {
         l.lex_one()
     }

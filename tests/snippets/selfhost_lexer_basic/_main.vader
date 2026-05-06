@@ -4,6 +4,7 @@
 
 import "std/io" { println }
 import "vader/lexer" { tokenize, TokenKind }
+import "vader/diagnostics/diagnostic" { render }
 
 // Subset of TokenKind names we expect to print. Anything else falls through
 // to "??" so the snapshot makes the gap visible if it ever fires.
@@ -61,7 +62,7 @@ show :: fn(label: string, source: string) -> void {
     if en > 0 {
         j := 0
         for j < en {
-            println("  err: ${l.errors[j]}")
+            println("  ${render(l.errors[j])}")
             j = j + 1
         }
     }

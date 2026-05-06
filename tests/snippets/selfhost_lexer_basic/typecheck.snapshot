@@ -4,9 +4,8 @@
   FnDecl         kind_name            :: fn(TokenKind) -> string
   FnDecl         main                 :: fn() -> i32
   FnDecl         show                 :: fn(string, string) -> void
-  expr 11:11    IdentExpr      :: TokenKind
-  expr 11:5     MatchExpr      :: string
-  expr 12:24    StringLitExpr  :: string
+  expr 12:11    IdentExpr      :: TokenKind
+  expr 12:5     MatchExpr      :: string
   expr 13:24    StringLitExpr  :: string
   expr 14:24    StringLitExpr  :: string
   expr 15:24    StringLitExpr  :: string
@@ -37,69 +36,68 @@
   expr 40:24    StringLitExpr  :: string
   expr 41:24    StringLitExpr  :: string
   expr 42:24    StringLitExpr  :: string
-  expr 47:13    StringLitExpr  :: string
-  expr 47:18    IdentExpr      :: string
-  expr 47:5     CallExpr       :: void
-  expr 47:5     IdentExpr      :: fn(string) -> void
-  expr 48:10    CallExpr       :: Lexer
-  expr 48:10    IdentExpr      :: fn(string, string) -> Lexer
-  expr 48:19    IdentExpr      :: string
-  expr 48:27    StringLitExpr  :: string
-  expr 49:10    CallExpr       :: i32
-  expr 49:10    FieldExpr      :: [Token]
-  expr 49:10    FieldExpr      :: fn() -> i32
-  expr 49:10    IdentExpr      :: Lexer
-  expr 51:13    IdentExpr      :: i32
-  expr 51:9     BinaryExpr     :: bool
-  expr 51:9     IdentExpr      :: i32
-  expr 52:14    FieldExpr      :: [Token]
-  expr 52:14    IdentExpr      :: Lexer
-  expr 52:14    IndexExpr      :: Token
-  expr 52:23    IdentExpr      :: i32
-  expr 53:12    BinaryExpr     :: bool
-  expr 53:12    FieldExpr      :: TokenKind
-  expr 53:12    IdentExpr      :: Token
-  expr 53:22    DotVariantExpr :: TokenKind
-  expr 53:9     IfExpr         :: void
-  expr 54:13    CallExpr       :: void
-  expr 54:13    IdentExpr      :: fn(string) -> void
-  expr 54:21    StringLitExpr  :: string
-  expr 56:13    CallExpr       :: void
-  expr 56:13    IdentExpr      :: fn(string) -> void
-  expr 56:21    StringLitExpr  :: string
-  expr 56:26    CallExpr       :: string
-  expr 56:26    IdentExpr      :: fn(TokenKind) -> string
-  expr 56:36    FieldExpr      :: TokenKind
-  expr 56:36    IdentExpr      :: Token
-  expr 56:48    FieldExpr      :: string
-  expr 56:48    IdentExpr      :: Token
-  expr 58:13    BinaryExpr     :: i32
-  expr 58:13    IdentExpr      :: i32
-  expr 58:9     IdentExpr      :: i32
-  expr 60:11    CallExpr       :: i32
-  expr 60:11    FieldExpr      :: [string]
-  expr 60:11    FieldExpr      :: fn() -> i32
-  expr 60:11    IdentExpr      :: Lexer
-  expr 61:5     IfExpr         :: void
-  expr 61:8     BinaryExpr     :: bool
-  expr 61:8     IdentExpr      :: i32
-  expr 63:13    BinaryExpr     :: bool
-  expr 63:13    IdentExpr      :: i32
-  expr 63:17    IdentExpr      :: i32
-  expr 64:13    CallExpr       :: void
-  expr 64:13    IdentExpr      :: fn(string) -> void
-  expr 64:21    StringLitExpr  :: string
-  expr 64:31    FieldExpr      :: [string]
-  expr 64:31    IdentExpr      :: Lexer
-  expr 64:31    IndexExpr      :: string
-  expr 64:40    IdentExpr      :: i32
-  expr 65:13    IdentExpr      :: i32
-  expr 65:17    BinaryExpr     :: i32
-  expr 65:17    IdentExpr      :: i32
-  expr 71:10    StringLitExpr  :: string
-  expr 71:24    StringLitExpr  :: string
-  expr 71:5     CallExpr       :: void
-  expr 71:5     IdentExpr      :: fn(string, string) -> void
+  expr 43:24    StringLitExpr  :: string
+  expr 48:13    StringLitExpr  :: string
+  expr 48:18    IdentExpr      :: string
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(string) -> void
+  expr 49:10    CallExpr       :: Lexer
+  expr 49:10    IdentExpr      :: fn(string, string) -> Lexer
+  expr 49:19    IdentExpr      :: string
+  expr 49:27    StringLitExpr  :: string
+  expr 50:10    CallExpr       :: i32
+  expr 50:10    FieldExpr      :: [Token]
+  expr 50:10    FieldExpr      :: fn() -> i32
+  expr 50:10    IdentExpr      :: Lexer
+  expr 52:13    IdentExpr      :: i32
+  expr 52:9     BinaryExpr     :: bool
+  expr 52:9     IdentExpr      :: i32
+  expr 53:14    FieldExpr      :: [Token]
+  expr 53:14    IdentExpr      :: Lexer
+  expr 53:14    IndexExpr      :: Token
+  expr 53:23    IdentExpr      :: i32
+  expr 54:12    BinaryExpr     :: bool
+  expr 54:12    FieldExpr      :: TokenKind
+  expr 54:12    IdentExpr      :: Token
+  expr 54:22    DotVariantExpr :: TokenKind
+  expr 54:9     IfExpr         :: void
+  expr 55:13    CallExpr       :: void
+  expr 55:13    IdentExpr      :: fn(string) -> void
+  expr 55:21    StringLitExpr  :: string
+  expr 57:13    CallExpr       :: void
+  expr 57:13    IdentExpr      :: fn(string) -> void
+  expr 57:21    StringLitExpr  :: string
+  expr 57:26    CallExpr       :: string
+  expr 57:26    IdentExpr      :: fn(TokenKind) -> string
+  expr 57:36    FieldExpr      :: TokenKind
+  expr 57:36    IdentExpr      :: Token
+  expr 57:48    FieldExpr      :: string
+  expr 57:48    IdentExpr      :: Token
+  expr 59:13    BinaryExpr     :: i32
+  expr 59:13    IdentExpr      :: i32
+  expr 59:9     IdentExpr      :: i32
+  expr 61:11    CallExpr       :: i32
+  expr 61:11    FieldExpr      :: [Diagnostic]
+  expr 61:11    FieldExpr      :: fn() -> i32
+  expr 61:11    IdentExpr      :: Lexer
+  expr 62:5     IfExpr         :: void
+  expr 62:8     BinaryExpr     :: bool
+  expr 62:8     IdentExpr      :: i32
+  expr 64:13    BinaryExpr     :: bool
+  expr 64:13    IdentExpr      :: i32
+  expr 64:17    IdentExpr      :: i32
+  expr 65:13    CallExpr       :: void
+  expr 65:13    IdentExpr      :: fn(string) -> void
+  expr 65:21    StringLitExpr  :: string
+  expr 65:26    CallExpr       :: string
+  expr 65:26    IdentExpr      :: fn(Diagnostic) -> string
+  expr 65:33    FieldExpr      :: [Diagnostic]
+  expr 65:33    IdentExpr      :: Lexer
+  expr 65:33    IndexExpr      :: Diagnostic
+  expr 65:42    IdentExpr      :: i32
+  expr 66:13    IdentExpr      :: i32
+  expr 66:17    BinaryExpr     :: i32
+  expr 66:17    IdentExpr      :: i32
   expr 72:10    StringLitExpr  :: string
   expr 72:24    StringLitExpr  :: string
   expr 72:5     CallExpr       :: void
@@ -132,1139 +130,1147 @@
   expr 79:24    StringLitExpr  :: string
   expr 79:5     CallExpr       :: void
   expr 79:5     IdentExpr      :: fn(string, string) -> void
+  expr 80:10    StringLitExpr  :: string
+  expr 80:24    StringLitExpr  :: string
+  expr 80:5     CallExpr       :: void
+  expr 80:5     IdentExpr      :: fn(string, string) -> void
+
+## vader/diagnostics/codes.vader
+  StructDecl     CodeInfo             :: CodeInfo
+  TypeAliasDecl  DiagCode             :: LexerCode
+  FnDecl         info                 :: fn(LexerCode) -> CodeInfo
+  EnumDecl       LexerCode            :: LexerCode
+  expr 38:28    MatchExpr      :: CodeInfo
+  expr 38:34    IdentExpr      :: LexerCode
+  expr 39:41    StructLitExpr  :: CodeInfo
+  expr 39:58    StringLitExpr  :: string
+  expr 39:78    StringLitExpr  :: string
+  expr 40:41    StructLitExpr  :: CodeInfo
+  expr 40:58    StringLitExpr  :: string
+  expr 40:78    StringLitExpr  :: string
+  expr 41:41    StructLitExpr  :: CodeInfo
+  expr 41:58    StringLitExpr  :: string
+  expr 41:78    StringLitExpr  :: string
+  expr 42:41    StructLitExpr  :: CodeInfo
+  expr 42:58    StringLitExpr  :: string
+  expr 42:78    StringLitExpr  :: string
+  expr 43:41    StructLitExpr  :: CodeInfo
+  expr 43:58    StringLitExpr  :: string
+  expr 43:78    StringLitExpr  :: string
+  expr 44:41    StructLitExpr  :: CodeInfo
+  expr 44:58    StringLitExpr  :: string
+  expr 44:78    StringLitExpr  :: string
+  expr 45:41    StructLitExpr  :: CodeInfo
+  expr 45:58    StringLitExpr  :: string
+  expr 45:78    StringLitExpr  :: string
+  expr 46:41    StructLitExpr  :: CodeInfo
+  expr 46:58    StringLitExpr  :: string
+  expr 46:78    StringLitExpr  :: string
+  expr 47:41    StructLitExpr  :: CodeInfo
+  expr 47:58    StringLitExpr  :: string
+  expr 47:78    StringLitExpr  :: string
+  expr 48:41    StructLitExpr  :: CodeInfo
+  expr 48:58    StringLitExpr  :: string
+  expr 48:78    StringLitExpr  :: string
+
+## vader/diagnostics/diagnostic.vader
+  StructDecl     Diagnostic           :: Diagnostic
+  FnDecl         error                :: fn(?, Span, string) -> Diagnostic
+  FnDecl         make                 :: fn(Severity, ?, Span, string) -> Diagnostic
+  StructDecl     Position             :: Position
+  FnDecl         render               :: fn(Diagnostic) -> string
+  EnumDecl       Severity             :: Severity
+  StructDecl     Span                 :: Span
+  expr 46:30    IdentExpr      :: Severity
+  expr 46:48    IdentExpr      :: ?
+  expr 46:5     StructLitExpr  :: Diagnostic
+  expr 46:64    IdentExpr      :: string
+  expr 46:83    IdentExpr      :: Span
+  expr 49:10    DotVariantExpr :: Severity
+  expr 49:18    IdentExpr      :: ?
+  expr 49:24    IdentExpr      :: Span
+  expr 49:33    IdentExpr      :: string
+  expr 49:5     CallExpr       :: Diagnostic
+  expr 49:5     IdentExpr      :: fn(Severity, ?, Span, string) -> Diagnostic
+  expr 55:17    MatchExpr      :: string
+  expr 55:23    FieldExpr      :: Severity
+  expr 55:23    IdentExpr      :: Diagnostic
+  expr 56:21    StringLitExpr  :: string
+  expr 57:21    StringLitExpr  :: string
+  expr 58:21    StringLitExpr  :: string
+  expr 59:21    StringLitExpr  :: string
+  expr 63:11    CallExpr       :: CodeInfo
+  expr 63:11    FieldExpr      :: ?
+  expr 63:11    FieldExpr      :: fn() -> CodeInfo
+  expr 63:11    IdentExpr      :: Diagnostic
+  expr 64:10    FieldExpr      :: Position
+  expr 64:10    FieldExpr      :: Span
+  expr 64:10    IdentExpr      :: Diagnostic
+  expr 65:22    StringLitExpr  :: string
+  expr 66:5     IfExpr         :: void
+  expr 66:8     BinaryExpr     :: bool
+  expr 66:8     CallExpr       :: i32
+  expr 66:8     FieldExpr      :: fn() -> i32
+  expr 66:8     FieldExpr      :: string
+  expr 66:8     IdentExpr      :: Diagnostic
+  expr 67:18    StringLitExpr  :: string
+  expr 67:23    FieldExpr      :: string
+  expr 67:23    IdentExpr      :: Diagnostic
+  expr 67:9     IdentExpr      :: string
+  expr 69:12    StringLitExpr  :: string
+  expr 69:15    IdentExpr      :: string
+  expr 69:27    FieldExpr      :: string
+  expr 69:27    IdentExpr      :: CodeInfo
+  expr 69:38    FieldExpr      :: string
+  expr 69:38    IdentExpr      :: CodeInfo
+  expr 69:51    IdentExpr      :: string
+  expr 69:64    FieldExpr      :: string
+  expr 69:64    IdentExpr      :: Position
+  expr 69:74    FieldExpr      :: i32
+  expr 69:74    IdentExpr      :: Position
+  expr 69:84    FieldExpr      :: i32
+  expr 69:84    IdentExpr      :: Position
 
 ## vader/lexer
   FnDecl         advance              :: fn(Lexer, i32) -> void
+  FnDecl         append_codepoint     :: fn(StringBuilder, u32) -> void
   FnDecl         at_end               :: fn(Lexer) -> bool
-  FnDecl         consume_decimal_digits :: fn(Lexer, Position) -> void
+  FnDecl         consume_digits       :: fn(Lexer, i32, Position) -> void
   FnDecl         emit                 :: fn(Lexer, Token) -> void
   FnDecl         emit1                :: fn(Lexer, TokenKind, string) -> bool
   FnDecl         emit2                :: fn(Lexer, TokenKind, string) -> bool
-  FnDecl         empty_span           :: fn() -> Span
+  FnDecl         empty_span           :: fn(string) -> Span
+  FnDecl         error_span           :: fn(Lexer, Position) -> Span
+  FnDecl         flush_string_part    :: fn(Lexer, StringBuilder, Position, bool) -> void
   FnDecl         handle_newline       :: fn(Lexer) -> void
+  FnDecl         hex_digit_value      :: fn(char) -> i32
+  StructDecl     InterpFrame          :: InterpFrame
   FnDecl         is_digit             :: fn(char) -> bool
+  FnDecl         is_digit_in_base     :: fn(char, i32) -> bool
   FnDecl         is_float_suffix      :: fn(string) -> bool
+  FnDecl         is_hex_digit         :: fn(char) -> bool
   FnDecl         is_ident_continue    :: fn(char) -> bool
   FnDecl         is_ident_start       :: fn(char) -> bool
   FnDecl         is_int_suffix        :: fn(string) -> bool
   FnDecl         lex_block_comment    :: fn(Lexer) -> void
+  FnDecl         lex_char             :: fn(Lexer) -> void
+  FnDecl         lex_escape           :: fn(Lexer) -> u32
   FnDecl         lex_ident            :: fn(Lexer) -> void
   FnDecl         lex_number           :: fn(Lexer) -> void
   FnDecl         lex_one              :: fn(Lexer) -> void
+  FnDecl         lex_string           :: fn(Lexer, bool) -> void
+  FnDecl         lex_string_body      :: fn(Lexer, bool, bool) -> void
+  FnDecl         lex_unicode_escape   :: fn(Lexer, Position) -> u32
   StructDecl     Lexer                :: Lexer
   FnDecl         lookup_keyword       :: fn(string) -> TokenKind
   FnDecl         make_token           :: fn(TokenKind, string, Span) -> Token
   FnDecl         new_lexer            :: fn(string, string) -> Lexer
   FnDecl         peek                 :: fn(Lexer) -> char
   FnDecl         peek_at              :: fn(Lexer, i32) -> char
-  StructDecl     Position             :: Position
+  FnDecl         pop_interp           :: fn(Lexer) -> void
   FnDecl         position_here        :: fn(Lexer) -> Position
-  FnDecl         push_error           :: fn(Lexer, string) -> void
+  FnDecl         push_error           :: fn(Lexer, LexerCode, Span, string) -> void
   FnDecl         push_simple          :: fn(Lexer, TokenKind, string, Position) -> void
   FnDecl         read_numeric_suffix  :: fn(Lexer) -> string
   FnDecl         skip_horizontal      :: fn(Lexer) -> void
-  StructDecl     Span                 :: Span
   FnDecl         suppresses_newline_after :: fn(TokenKind) -> bool
   StructDecl     Token                :: Token
   FnDecl         tokenize             :: fn(string, string) -> Lexer
   EnumDecl       TokenKind            :: TokenKind
+  FnDecl         top_interp           :: fn(Lexer) -> InterpFrame | null
   FnDecl         try_lex_operator     :: fn(Lexer) -> bool
-  expr 100:13   CallExpr       :: i32
-  expr 100:13   FieldExpr      :: fn() -> i32
-  expr 100:13   FieldExpr      :: string
-  expr 100:13   IdentExpr      :: Lexer
-  expr 100:5    IfExpr         :: void
-  expr 100:8    BinaryExpr     :: bool
-  expr 100:8    IdentExpr      :: i32
-  expr 103:12   CallExpr       :: char
-  expr 103:12   FieldExpr      :: fn(i32) -> char
-  expr 103:12   FieldExpr      :: string
-  expr 103:12   IdentExpr      :: Lexer
-  expr 103:26   IdentExpr      :: i32
-  expr 107:26   FieldExpr      :: i32
-  expr 107:26   IdentExpr      :: Lexer
-  expr 107:41   FieldExpr      :: i32
-  expr 107:41   IdentExpr      :: Lexer
-  expr 107:5    StructLitExpr  :: Position
-  expr 107:59   FieldExpr      :: i32
-  expr 107:59   IdentExpr      :: Lexer
-  expr 111:13   IdentExpr      :: i32
-  expr 111:9    BinaryExpr     :: bool
-  expr 111:9    IdentExpr      :: i32
-  expr 112:12   BinaryExpr     :: bool
-  expr 112:12   FieldExpr      :: i32
-  expr 112:12   IdentExpr      :: Lexer
-  expr 112:21   CallExpr       :: i32
-  expr 112:21   FieldExpr      :: fn() -> i32
-  expr 112:21   FieldExpr      :: string
-  expr 112:21   IdentExpr      :: Lexer
-  expr 112:9    IfExpr         :: void
-  expr 115:14   CallExpr       :: char
-  expr 115:14   FieldExpr      :: fn(i32) -> char
-  expr 115:14   FieldExpr      :: string
-  expr 115:14   IdentExpr      :: Lexer
-  expr 115:28   FieldExpr      :: i32
-  expr 115:28   IdentExpr      :: Lexer
-  expr 116:12   BinaryExpr     :: bool
-  expr 116:12   IdentExpr      :: char
-  expr 116:9    IfExpr         :: void
-  expr 117:13   FieldExpr      :: i32
-  expr 117:13   IdentExpr      :: Lexer
-  expr 117:22   BinaryExpr     :: i32
-  expr 117:22   FieldExpr      :: i32
-  expr 117:22   IdentExpr      :: Lexer
-  expr 118:13   FieldExpr      :: i32
-  expr 118:13   IdentExpr      :: Lexer
-  expr 120:13   FieldExpr      :: i32
-  expr 120:13   IdentExpr      :: Lexer
-  expr 120:21   BinaryExpr     :: i32
-  expr 120:21   FieldExpr      :: i32
-  expr 120:21   IdentExpr      :: Lexer
-  expr 122:17   BinaryExpr     :: i32
-  expr 122:17   FieldExpr      :: i32
-  expr 122:17   IdentExpr      :: Lexer
-  expr 122:9    FieldExpr      :: i32
-  expr 122:9    IdentExpr      :: Lexer
-  expr 123:13   BinaryExpr     :: i32
-  expr 123:13   IdentExpr      :: i32
-  expr 123:9    IdentExpr      :: i32
-  expr 130:19   IdentExpr      :: Token
-  expr 130:5    CallExpr       :: void
-  expr 130:5    FieldExpr      :: [Token]
-  expr 130:5    FieldExpr      :: fn(Token) -> void
-  expr 130:5    IdentExpr      :: Lexer
-  expr 131:19   FieldExpr      :: TokenKind
-  expr 131:19   IdentExpr      :: Token
-  expr 131:5    FieldExpr      :: TokenKind
-  expr 131:5    IdentExpr      :: Lexer
-  expr 135:13   StructLitExpr  :: Span
-  expr 135:29   IdentExpr      :: Position
-  expr 135:43   CallExpr       :: Position
-  expr 135:43   FieldExpr      :: fn() -> Position
-  expr 135:43   IdentExpr      :: Lexer
-  expr 136:12   CallExpr       :: Token
-  expr 136:12   IdentExpr      :: fn(TokenKind, string, Span) -> Token
-  expr 136:23   IdentExpr      :: TokenKind
-  expr 136:29   IdentExpr      :: string
-  expr 136:35   IdentExpr      :: Span
-  expr 136:5    CallExpr       :: void
-  expr 136:5    FieldExpr      :: fn(Token) -> void
-  expr 136:5    IdentExpr      :: Lexer
+  expr 103:26   BinaryExpr     :: bool
+  expr 103:26   FieldExpr      :: i32
+  expr 103:26   IdentExpr      :: Lexer
+  expr 103:35   CallExpr       :: i32
+  expr 103:35   FieldExpr      :: fn() -> i32
+  expr 103:35   FieldExpr      :: string
+  expr 103:35   IdentExpr      :: Lexer
+  expr 106:17   CallExpr       :: i32
+  expr 106:17   FieldExpr      :: fn() -> i32
+  expr 106:17   FieldExpr      :: string
+  expr 106:17   IdentExpr      :: Lexer
+  expr 106:5    IfExpr         :: void
+  expr 106:8    BinaryExpr     :: bool
+  expr 106:8    FieldExpr      :: i32
+  expr 106:8    IdentExpr      :: Lexer
+  expr 109:12   CallExpr       :: char
+  expr 109:12   FieldExpr      :: fn(i32) -> char
+  expr 109:12   FieldExpr      :: string
+  expr 109:12   IdentExpr      :: Lexer
+  expr 109:26   FieldExpr      :: i32
+  expr 109:26   IdentExpr      :: Lexer
+  expr 113:10   BinaryExpr     :: i32
+  expr 113:10   FieldExpr      :: i32
+  expr 113:10   IdentExpr      :: Lexer
+  expr 113:18   IdentExpr      :: i32
+  expr 114:13   CallExpr       :: i32
+  expr 114:13   FieldExpr      :: fn() -> i32
+  expr 114:13   FieldExpr      :: string
+  expr 114:13   IdentExpr      :: Lexer
+  expr 114:5    IfExpr         :: void
+  expr 114:8    BinaryExpr     :: bool
+  expr 114:8    IdentExpr      :: i32
+  expr 117:12   CallExpr       :: char
+  expr 117:12   FieldExpr      :: fn(i32) -> char
+  expr 117:12   FieldExpr      :: string
+  expr 117:12   IdentExpr      :: Lexer
+  expr 117:26   IdentExpr      :: i32
+  expr 121:24   FieldExpr      :: string
+  expr 121:24   IdentExpr      :: Lexer
+  expr 121:42   FieldExpr      :: i32
+  expr 121:42   IdentExpr      :: Lexer
+  expr 121:5    StructLitExpr  :: Position
+  expr 121:57   FieldExpr      :: i32
+  expr 121:57   IdentExpr      :: Lexer
+  expr 121:75   FieldExpr      :: i32
+  expr 121:75   IdentExpr      :: Lexer
+  expr 125:13   IdentExpr      :: i32
+  expr 125:9    BinaryExpr     :: bool
+  expr 125:9    IdentExpr      :: i32
+  expr 126:12   BinaryExpr     :: bool
+  expr 126:12   FieldExpr      :: i32
+  expr 126:12   IdentExpr      :: Lexer
+  expr 126:21   CallExpr       :: i32
+  expr 126:21   FieldExpr      :: fn() -> i32
+  expr 126:21   FieldExpr      :: string
+  expr 126:21   IdentExpr      :: Lexer
+  expr 126:9    IfExpr         :: void
+  expr 129:14   CallExpr       :: char
+  expr 129:14   FieldExpr      :: fn(i32) -> char
+  expr 129:14   FieldExpr      :: string
+  expr 129:14   IdentExpr      :: Lexer
+  expr 129:28   FieldExpr      :: i32
+  expr 129:28   IdentExpr      :: Lexer
+  expr 130:12   BinaryExpr     :: bool
+  expr 130:12   IdentExpr      :: char
+  expr 130:9    IfExpr         :: void
+  expr 131:13   FieldExpr      :: i32
+  expr 131:13   IdentExpr      :: Lexer
+  expr 131:22   BinaryExpr     :: i32
+  expr 131:22   FieldExpr      :: i32
+  expr 131:22   IdentExpr      :: Lexer
+  expr 132:13   FieldExpr      :: i32
+  expr 132:13   IdentExpr      :: Lexer
+  expr 134:13   FieldExpr      :: i32
+  expr 134:13   IdentExpr      :: Lexer
+  expr 134:21   BinaryExpr     :: i32
+  expr 134:21   FieldExpr      :: i32
+  expr 134:21   IdentExpr      :: Lexer
+  expr 136:17   BinaryExpr     :: i32
+  expr 136:17   FieldExpr      :: i32
+  expr 136:17   IdentExpr      :: Lexer
+  expr 136:9    FieldExpr      :: i32
+  expr 136:9    IdentExpr      :: Lexer
+  expr 137:13   BinaryExpr     :: i32
+  expr 137:13   IdentExpr      :: i32
+  expr 137:9    IdentExpr      :: i32
   expr 13:16    StringLitExpr  :: string
   expr 13:38    DotVariantExpr :: TokenKind
   expr 13:5     IfExpr         :: void
   expr 13:8     BinaryExpr     :: bool
   expr 13:8     IdentExpr      :: string
-  expr 140:19   IdentExpr      :: string
-  expr 140:5    CallExpr       :: void
-  expr 140:5    FieldExpr      :: [string]
-  expr 140:5    FieldExpr      :: fn(string) -> void
-  expr 140:5    IdentExpr      :: Lexer
-  expr 146:10   CallExpr       :: bool
-  expr 146:10   FieldExpr      :: fn() -> bool
-  expr 146:10   IdentExpr      :: Lexer
-  expr 146:9    UnaryExpr      :: bool
-  expr 147:14   CallExpr       :: char
-  expr 147:14   FieldExpr      :: fn() -> char
-  expr 147:14   IdentExpr      :: Lexer
-  expr 148:12   BinaryExpr     :: bool
-  expr 148:12   BinaryExpr     :: bool
-  expr 148:12   IdentExpr      :: char
-  expr 148:24   BinaryExpr     :: bool
-  expr 148:24   IdentExpr      :: char
-  expr 148:9    IfExpr         :: void
-  expr 149:13   CallExpr       :: void
-  expr 149:13   FieldExpr      :: fn(i32) -> void
-  expr 149:13   IdentExpr      :: Lexer
+  expr 144:19   IdentExpr      :: Token
+  expr 144:5    CallExpr       :: void
+  expr 144:5    FieldExpr      :: [Token]
+  expr 144:5    FieldExpr      :: fn(Token) -> void
+  expr 144:5    IdentExpr      :: Lexer
+  expr 145:19   FieldExpr      :: TokenKind
+  expr 145:19   IdentExpr      :: Token
+  expr 145:5    FieldExpr      :: TokenKind
+  expr 145:5    IdentExpr      :: Lexer
+  expr 149:13   StructLitExpr  :: Span
+  expr 149:29   IdentExpr      :: Position
+  expr 149:43   CallExpr       :: Position
+  expr 149:43   FieldExpr      :: fn() -> Position
+  expr 149:43   IdentExpr      :: Lexer
   expr 14:16    StringLitExpr  :: string
   expr 14:38    DotVariantExpr :: TokenKind
   expr 14:5     IfExpr         :: void
   expr 14:8     BinaryExpr     :: bool
   expr 14:8     IdentExpr      :: string
-  expr 157:14   CallExpr       :: Position
-  expr 157:14   FieldExpr      :: fn() -> Position
-  expr 157:14   IdentExpr      :: Lexer
-  expr 158:5    CallExpr       :: void
-  expr 158:5    FieldExpr      :: fn(i32) -> void
-  expr 158:5    IdentExpr      :: Lexer
+  expr 150:12   CallExpr       :: Token
+  expr 150:12   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 150:23   IdentExpr      :: TokenKind
+  expr 150:29   IdentExpr      :: string
+  expr 150:35   IdentExpr      :: Span
+  expr 150:5    CallExpr       :: void
+  expr 150:5    FieldExpr      :: fn(Token) -> void
+  expr 150:5    IdentExpr      :: Lexer
+  expr 154:19   CallExpr       :: Diagnostic
+  expr 154:19   IdentExpr      :: fn(?, Span, string) -> Diagnostic
+  expr 154:25   IdentExpr      :: LexerCode
+  expr 154:31   IdentExpr      :: Span
+  expr 154:37   IdentExpr      :: string
+  expr 154:5    CallExpr       :: void
+  expr 154:5    FieldExpr      :: [Diagnostic]
+  expr 154:5    FieldExpr      :: fn(Diagnostic) -> void
+  expr 154:5    IdentExpr      :: Lexer
   expr 15:16    StringLitExpr  :: string
   expr 15:38    DotVariantExpr :: TokenKind
   expr 15:5     IfExpr         :: void
   expr 15:8     BinaryExpr     :: bool
   expr 15:8     IdentExpr      :: string
-  expr 160:10   CallExpr       :: bool
-  expr 160:10   FieldExpr      :: fn() -> bool
-  expr 160:10   IdentExpr      :: Lexer
-  expr 160:24   BinaryExpr     :: bool
-  expr 160:24   IdentExpr      :: i32
-  expr 160:9    BinaryExpr     :: bool
-  expr 160:9    UnaryExpr      :: bool
-  expr 161:12   BinaryExpr     :: bool
-  expr 161:12   BinaryExpr     :: bool
-  expr 161:12   CallExpr       :: char
-  expr 161:12   FieldExpr      :: fn() -> char
-  expr 161:12   IdentExpr      :: Lexer
-  expr 161:31   BinaryExpr     :: bool
-  expr 161:31   CallExpr       :: char
-  expr 161:31   FieldExpr      :: fn(i32) -> char
-  expr 161:31   IdentExpr      :: Lexer
-  expr 161:9    IfExpr         :: void
-  expr 162:13   CallExpr       :: void
-  expr 162:13   FieldExpr      :: fn(i32) -> void
-  expr 162:13   IdentExpr      :: Lexer
-  expr 163:13   IdentExpr      :: i32
-  expr 163:21   BinaryExpr     :: i32
-  expr 163:21   IdentExpr      :: i32
-  expr 166:12   BinaryExpr     :: bool
-  expr 166:12   BinaryExpr     :: bool
-  expr 166:12   CallExpr       :: char
-  expr 166:12   FieldExpr      :: fn() -> char
-  expr 166:12   IdentExpr      :: Lexer
-  expr 166:31   BinaryExpr     :: bool
-  expr 166:31   CallExpr       :: char
-  expr 166:31   FieldExpr      :: fn(i32) -> char
-  expr 166:31   IdentExpr      :: Lexer
-  expr 166:9    IfExpr         :: void
-  expr 167:13   CallExpr       :: void
-  expr 167:13   FieldExpr      :: fn(i32) -> void
-  expr 167:13   IdentExpr      :: Lexer
-  expr 168:13   IdentExpr      :: i32
-  expr 168:21   BinaryExpr     :: i32
-  expr 168:21   IdentExpr      :: i32
+  expr 160:21   IdentExpr      :: Position
+  expr 160:35   CallExpr       :: Position
+  expr 160:35   FieldExpr      :: fn() -> Position
+  expr 160:35   IdentExpr      :: Lexer
+  expr 160:5    StructLitExpr  :: Span
+  expr 165:18   BinaryExpr     :: bool
+  expr 165:18   CallExpr       :: i32
+  expr 165:18   FieldExpr      :: [InterpFrame]
+  expr 165:18   FieldExpr      :: fn() -> i32
+  expr 165:18   IdentExpr      :: Lexer
+  expr 166:10   CallExpr       :: bool
+  expr 166:10   FieldExpr      :: fn() -> bool
+  expr 166:10   IdentExpr      :: Lexer
+  expr 166:9    UnaryExpr      :: bool
+  expr 167:14   CallExpr       :: char
+  expr 167:14   FieldExpr      :: fn() -> char
+  expr 167:14   IdentExpr      :: Lexer
+  expr 168:12   BinaryExpr     :: bool
+  expr 168:12   BinaryExpr     :: bool
+  expr 168:12   IdentExpr      :: char
+  expr 168:24   BinaryExpr     :: bool
+  expr 168:24   IdentExpr      :: char
+  expr 168:9    IfExpr         :: void
+  expr 169:13   CallExpr       :: void
+  expr 169:13   FieldExpr      :: fn(i32) -> void
+  expr 169:13   IdentExpr      :: Lexer
   expr 16:16    StringLitExpr  :: string
   expr 16:38    DotVariantExpr :: TokenKind
   expr 16:5     IfExpr         :: void
   expr 16:8     BinaryExpr     :: bool
   expr 16:8     IdentExpr      :: string
-  expr 171:9    CallExpr       :: void
-  expr 171:9    FieldExpr      :: fn(i32) -> void
-  expr 171:9    IdentExpr      :: Lexer
-  expr 173:5    IfExpr         :: void
-  expr 173:8    BinaryExpr     :: bool
-  expr 173:8    IdentExpr      :: i32
-  expr 174:22   StringLitExpr  :: string
-  expr 174:62   FieldExpr      :: i32
-  expr 174:62   IdentExpr      :: Position
-  expr 174:76   FieldExpr      :: i32
-  expr 174:76   IdentExpr      :: Position
-  expr 174:9    CallExpr       :: void
-  expr 174:9    FieldExpr      :: fn(string) -> void
-  expr 174:9    IdentExpr      :: Lexer
+  expr 170:16   IfExpr         :: void
+  expr 170:19   BinaryExpr     :: bool
+  expr 170:19   IdentExpr      :: bool
+  expr 170:33   BinaryExpr     :: bool
+  expr 170:33   BinaryExpr     :: bool
+  expr 170:33   IdentExpr      :: char
+  expr 170:46   BinaryExpr     :: bool
+  expr 170:46   IdentExpr      :: char
+  expr 173:13   CallExpr       :: void
+  expr 173:13   FieldExpr      :: fn(i32) -> void
+  expr 173:13   IdentExpr      :: Lexer
   expr 17:16    StringLitExpr  :: string
   expr 17:38    DotVariantExpr :: TokenKind
   expr 17:5     IfExpr         :: void
   expr 17:8     BinaryExpr     :: bool
   expr 17:8     IdentExpr      :: string
-  expr 182:5    IfExpr         :: void
-  expr 182:8    BinaryExpr     :: bool
-  expr 182:8    CallExpr       :: char
-  expr 182:8    FieldExpr      :: fn() -> char
-  expr 182:8    IdentExpr      :: Lexer
-  expr 183:9    CallExpr       :: void
-  expr 183:9    FieldExpr      :: fn(i32) -> void
-  expr 183:9    IdentExpr      :: Lexer
-  expr 185:5    IfExpr         :: void
-  expr 185:8    BinaryExpr     :: bool
-  expr 185:8    CallExpr       :: char
-  expr 185:8    FieldExpr      :: fn() -> char
-  expr 185:8    IdentExpr      :: Lexer
-  expr 186:9    CallExpr       :: void
-  expr 186:9    FieldExpr      :: fn(i32) -> void
-  expr 186:9    IdentExpr      :: Lexer
-  expr 188:5    IfExpr         :: void
-  expr 188:8    BinaryExpr     :: bool
-  expr 188:8    FieldExpr      :: i32
-  expr 188:8    IdentExpr      :: Lexer
-  expr 189:5    IfExpr         :: void
-  expr 189:8    CallExpr       :: bool
-  expr 189:8    FieldExpr      :: TokenKind
-  expr 189:8    FieldExpr      :: fn() -> bool
-  expr 189:8    IdentExpr      :: Lexer
+  expr 181:14   CallExpr       :: Position
+  expr 181:14   FieldExpr      :: fn() -> Position
+  expr 181:14   IdentExpr      :: Lexer
+  expr 182:5    CallExpr       :: void
+  expr 182:5    FieldExpr      :: fn(i32) -> void
+  expr 182:5    IdentExpr      :: Lexer
+  expr 184:10   CallExpr       :: bool
+  expr 184:10   FieldExpr      :: fn() -> bool
+  expr 184:10   IdentExpr      :: Lexer
+  expr 184:24   BinaryExpr     :: bool
+  expr 184:24   IdentExpr      :: i32
+  expr 184:9    BinaryExpr     :: bool
+  expr 184:9    UnaryExpr      :: bool
+  expr 185:12   BinaryExpr     :: bool
+  expr 185:12   BinaryExpr     :: bool
+  expr 185:12   CallExpr       :: char
+  expr 185:12   FieldExpr      :: fn() -> char
+  expr 185:12   IdentExpr      :: Lexer
+  expr 185:31   BinaryExpr     :: bool
+  expr 185:31   CallExpr       :: char
+  expr 185:31   FieldExpr      :: fn(i32) -> char
+  expr 185:31   IdentExpr      :: Lexer
+  expr 185:9    IfExpr         :: void
+  expr 186:13   CallExpr       :: void
+  expr 186:13   FieldExpr      :: fn(i32) -> void
+  expr 186:13   IdentExpr      :: Lexer
+  expr 187:13   IdentExpr      :: i32
+  expr 187:21   BinaryExpr     :: i32
+  expr 187:21   IdentExpr      :: i32
   expr 18:16    StringLitExpr  :: string
   expr 18:38    DotVariantExpr :: TokenKind
   expr 18:5     IfExpr         :: void
   expr 18:8     BinaryExpr     :: bool
   expr 18:8     IdentExpr      :: string
-  expr 190:23   DotVariantExpr :: TokenKind
-  expr 190:5    IfExpr         :: void
-  expr 190:8    BinaryExpr     :: bool
-  expr 190:8    FieldExpr      :: TokenKind
-  expr 190:8    IdentExpr      :: Lexer
-  expr 192:13   CallExpr       :: Position
-  expr 192:13   FieldExpr      :: fn() -> Position
-  expr 192:13   IdentExpr      :: Lexer
-  expr 193:13   StructLitExpr  :: Span
-  expr 193:29   IdentExpr      :: Position
-  expr 193:42   IdentExpr      :: Position
-  expr 194:12   CallExpr       :: Token
-  expr 194:12   IdentExpr      :: fn(TokenKind, string, Span) -> Token
-  expr 194:23   DotVariantExpr :: TokenKind
-  expr 194:33   StringLitExpr  :: string
-  expr 194:39   IdentExpr      :: Span
-  expr 194:5    CallExpr       :: void
-  expr 194:5    FieldExpr      :: fn(Token) -> void
-  expr 194:5    IdentExpr      :: Lexer
+  expr 190:12   BinaryExpr     :: bool
+  expr 190:12   BinaryExpr     :: bool
+  expr 190:12   CallExpr       :: char
+  expr 190:12   FieldExpr      :: fn() -> char
+  expr 190:12   IdentExpr      :: Lexer
+  expr 190:31   BinaryExpr     :: bool
+  expr 190:31   CallExpr       :: char
+  expr 190:31   FieldExpr      :: fn(i32) -> char
+  expr 190:31   IdentExpr      :: Lexer
+  expr 190:9    IfExpr         :: void
+  expr 191:13   CallExpr       :: void
+  expr 191:13   FieldExpr      :: fn(i32) -> void
+  expr 191:13   IdentExpr      :: Lexer
+  expr 192:13   IdentExpr      :: i32
+  expr 192:21   BinaryExpr     :: i32
+  expr 192:21   IdentExpr      :: i32
+  expr 195:9    CallExpr       :: void
+  expr 195:9    FieldExpr      :: fn(i32) -> void
+  expr 195:9    IdentExpr      :: Lexer
+  expr 197:5    IfExpr         :: void
+  expr 197:8    BinaryExpr     :: bool
+  expr 197:8    IdentExpr      :: i32
+  expr 198:22   DotVariantExpr :: LexerCode
+  expr 198:49   CallExpr       :: Span
+  expr 198:49   FieldExpr      :: fn(Position) -> Span
+  expr 198:49   IdentExpr      :: Lexer
+  expr 198:62   IdentExpr      :: Position
+  expr 198:70   StringLitExpr  :: string
+  expr 198:9    CallExpr       :: void
+  expr 198:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 198:9    IdentExpr      :: Lexer
   expr 19:16    StringLitExpr  :: string
   expr 19:38    DotVariantExpr :: TokenKind
   expr 19:5     IfExpr         :: void
   expr 19:8     BinaryExpr     :: bool
   expr 19:8     IdentExpr      :: string
-  expr 200:14   CallExpr       :: Position
-  expr 200:14   FieldExpr      :: fn() -> Position
-  expr 200:14   IdentExpr      :: Lexer
-  expr 201:10   CallExpr       :: bool
-  expr 201:10   FieldExpr      :: fn() -> bool
-  expr 201:10   IdentExpr      :: Lexer
-  expr 201:24   CallExpr       :: bool
-  expr 201:24   CallExpr       :: char
-  expr 201:24   FieldExpr      :: fn() -> bool
-  expr 201:24   FieldExpr      :: fn() -> char
-  expr 201:24   IdentExpr      :: Lexer
-  expr 201:9    BinaryExpr     :: bool
-  expr 201:9    UnaryExpr      :: bool
-  expr 202:9    CallExpr       :: void
-  expr 202:9    FieldExpr      :: fn(i32) -> void
-  expr 202:9    IdentExpr      :: Lexer
-  expr 204:13   CallExpr       :: string
-  expr 204:13   FieldExpr      :: fn(i32, i32) -> string
-  expr 204:13   FieldExpr      :: string
-  expr 204:13   IdentExpr      :: Lexer
-  expr 204:25   FieldExpr      :: i32
-  expr 204:25   IdentExpr      :: Position
-  expr 204:39   FieldExpr      :: i32
-  expr 204:39   IdentExpr      :: Lexer
-  expr 205:11   CallExpr       :: TokenKind
-  expr 205:11   IdentExpr      :: fn(string) -> TokenKind
-  expr 205:26   IdentExpr      :: string
-  expr 206:19   IdentExpr      :: TokenKind
-  expr 206:23   IdentExpr      :: string
-  expr 206:29   IdentExpr      :: Position
-  expr 206:5    CallExpr       :: void
-  expr 206:5    FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 206:5    IdentExpr      :: Lexer
+  expr 206:5    IfExpr         :: void
+  expr 206:8    BinaryExpr     :: bool
+  expr 206:8    CallExpr       :: char
+  expr 206:8    FieldExpr      :: fn() -> char
+  expr 206:8    IdentExpr      :: Lexer
+  expr 207:9    CallExpr       :: void
+  expr 207:9    FieldExpr      :: fn(i32) -> void
+  expr 207:9    IdentExpr      :: Lexer
+  expr 209:5    IfExpr         :: void
+  expr 209:8    BinaryExpr     :: bool
+  expr 209:8    CallExpr       :: char
+  expr 209:8    FieldExpr      :: fn() -> char
+  expr 209:8    IdentExpr      :: Lexer
   expr 20:16    StringLitExpr  :: string
   expr 20:38    DotVariantExpr :: TokenKind
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
   expr 20:8     IdentExpr      :: string
-  expr 214:14   FieldExpr      :: i32
-  expr 214:14   IdentExpr      :: Lexer
-  expr 215:27   CallExpr       :: bool
-  expr 215:27   CallExpr       :: char
-  expr 215:27   FieldExpr      :: fn() -> bool
-  expr 215:27   FieldExpr      :: fn(i32) -> char
-  expr 215:27   IdentExpr      :: Lexer
-  expr 215:5    IfExpr         :: void
-  expr 215:8    BinaryExpr     :: bool
-  expr 215:8    BinaryExpr     :: bool
-  expr 215:8    CallExpr       :: char
-  expr 215:8    FieldExpr      :: fn() -> char
-  expr 215:8    IdentExpr      :: Lexer
-  expr 216:9    CallExpr       :: void
-  expr 216:9    FieldExpr      :: fn(i32) -> void
-  expr 216:9    IdentExpr      :: Lexer
-  expr 217:23   FieldExpr      :: i32
-  expr 217:23   IdentExpr      :: Lexer
-  expr 218:13   BinaryExpr     :: bool
-  expr 218:13   UnaryExpr      :: bool
-  expr 218:14   CallExpr       :: bool
-  expr 218:14   FieldExpr      :: fn() -> bool
-  expr 218:14   IdentExpr      :: Lexer
-  expr 218:28   CallExpr       :: bool
-  expr 218:28   CallExpr       :: char
-  expr 218:28   FieldExpr      :: fn() -> bool
-  expr 218:28   FieldExpr      :: fn() -> char
-  expr 218:28   IdentExpr      :: Lexer
-  expr 219:13   CallExpr       :: void
-  expr 219:13   FieldExpr      :: fn(i32) -> void
-  expr 219:13   IdentExpr      :: Lexer
+  expr 210:9    CallExpr       :: void
+  expr 210:9    FieldExpr      :: fn(i32) -> void
+  expr 210:9    IdentExpr      :: Lexer
+  expr 212:5    IfExpr         :: void
+  expr 212:8    BinaryExpr     :: bool
+  expr 212:8    FieldExpr      :: i32
+  expr 212:8    IdentExpr      :: Lexer
+  expr 213:5    IfExpr         :: void
+  expr 213:8    CallExpr       :: bool
+  expr 213:8    FieldExpr      :: TokenKind
+  expr 213:8    FieldExpr      :: fn() -> bool
+  expr 213:8    IdentExpr      :: Lexer
+  expr 214:23   DotVariantExpr :: TokenKind
+  expr 214:5    IfExpr         :: void
+  expr 214:8    BinaryExpr     :: bool
+  expr 214:8    FieldExpr      :: TokenKind
+  expr 214:8    IdentExpr      :: Lexer
+  expr 216:13   CallExpr       :: Position
+  expr 216:13   FieldExpr      :: fn() -> Position
+  expr 216:13   IdentExpr      :: Lexer
+  expr 217:13   StructLitExpr  :: Span
+  expr 217:29   IdentExpr      :: Position
+  expr 217:42   IdentExpr      :: Position
+  expr 218:12   CallExpr       :: Token
+  expr 218:12   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 218:23   DotVariantExpr :: TokenKind
+  expr 218:33   StringLitExpr  :: string
+  expr 218:39   IdentExpr      :: Span
+  expr 218:5    CallExpr       :: void
+  expr 218:5    FieldExpr      :: fn(Token) -> void
+  expr 218:5    IdentExpr      :: Lexer
   expr 21:16    StringLitExpr  :: string
   expr 21:38    DotVariantExpr :: TokenKind
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
   expr 21:8     IdentExpr      :: string
-  expr 221:16   CallExpr       :: string
-  expr 221:16   FieldExpr      :: fn(i32, i32) -> string
-  expr 221:16   FieldExpr      :: string
-  expr 221:16   IdentExpr      :: Lexer
-  expr 221:28   IdentExpr      :: i32
-  expr 221:40   FieldExpr      :: i32
-  expr 221:40   IdentExpr      :: Lexer
-  expr 223:5    IfExpr         :: void
-  expr 223:8    CallExpr       :: bool
-  expr 223:8    CallExpr       :: char
-  expr 223:8    FieldExpr      :: fn() -> bool
-  expr 223:8    FieldExpr      :: fn() -> char
-  expr 223:8    IdentExpr      :: Lexer
-  expr 224:13   BinaryExpr     :: bool
-  expr 224:13   UnaryExpr      :: bool
-  expr 224:14   CallExpr       :: bool
-  expr 224:14   FieldExpr      :: fn() -> bool
+  expr 224:14   CallExpr       :: Position
+  expr 224:14   FieldExpr      :: fn() -> Position
   expr 224:14   IdentExpr      :: Lexer
-  expr 224:28   CallExpr       :: bool
-  expr 224:28   CallExpr       :: char
-  expr 224:28   FieldExpr      :: fn() -> bool
-  expr 224:28   FieldExpr      :: fn() -> char
-  expr 224:28   IdentExpr      :: Lexer
-  expr 225:13   CallExpr       :: void
-  expr 225:13   FieldExpr      :: fn(i32) -> void
-  expr 225:13   IdentExpr      :: Lexer
-  expr 227:16   CallExpr       :: string
-  expr 227:16   FieldExpr      :: fn(i32, i32) -> string
-  expr 227:16   FieldExpr      :: string
-  expr 227:16   IdentExpr      :: Lexer
-  expr 227:28   IdentExpr      :: i32
-  expr 227:35   FieldExpr      :: i32
-  expr 227:35   IdentExpr      :: Lexer
-  expr 229:12   StringLitExpr  :: string
+  expr 225:10   CallExpr       :: bool
+  expr 225:10   FieldExpr      :: fn() -> bool
+  expr 225:10   IdentExpr      :: Lexer
+  expr 225:24   CallExpr       :: bool
+  expr 225:24   CallExpr       :: char
+  expr 225:24   FieldExpr      :: fn() -> bool
+  expr 225:24   FieldExpr      :: fn() -> char
+  expr 225:24   IdentExpr      :: Lexer
+  expr 225:9    BinaryExpr     :: bool
+  expr 225:9    UnaryExpr      :: bool
+  expr 226:9    CallExpr       :: void
+  expr 226:9    FieldExpr      :: fn(i32) -> void
+  expr 226:9    IdentExpr      :: Lexer
+  expr 228:13   CallExpr       :: string
+  expr 228:13   FieldExpr      :: fn(i32, i32) -> string
+  expr 228:13   FieldExpr      :: string
+  expr 228:13   IdentExpr      :: Lexer
+  expr 228:25   FieldExpr      :: i32
+  expr 228:25   IdentExpr      :: Position
+  expr 228:39   FieldExpr      :: i32
+  expr 228:39   IdentExpr      :: Lexer
+  expr 229:11   CallExpr       :: TokenKind
+  expr 229:11   IdentExpr      :: fn(string) -> TokenKind
+  expr 229:26   IdentExpr      :: string
   expr 22:16    StringLitExpr  :: string
   expr 22:38    DotVariantExpr :: TokenKind
   expr 22:5     IfExpr         :: void
   expr 22:8     BinaryExpr     :: bool
   expr 22:8     IdentExpr      :: string
-  expr 237:10   CallExpr       :: bool
-  expr 237:10   FieldExpr      :: fn() -> bool
-  expr 237:10   IdentExpr      :: Lexer
-  expr 237:9    UnaryExpr      :: bool
-  expr 238:14   CallExpr       :: char
-  expr 238:14   FieldExpr      :: fn() -> char
+  expr 230:19   IdentExpr      :: TokenKind
+  expr 230:23   IdentExpr      :: string
+  expr 230:29   IdentExpr      :: Position
+  expr 230:5    CallExpr       :: void
+  expr 230:5    FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 230:5    IdentExpr      :: Lexer
+  expr 238:14   FieldExpr      :: i32
   expr 238:14   IdentExpr      :: Lexer
-  expr 239:12   BinaryExpr     :: bool
-  expr 239:12   IdentExpr      :: char
-  expr 239:9    IfExpr         :: void
+  expr 239:27   CallExpr       :: bool
+  expr 239:27   CallExpr       :: char
+  expr 239:27   FieldExpr      :: fn() -> bool
+  expr 239:27   FieldExpr      :: fn(i32) -> char
+  expr 239:27   IdentExpr      :: Lexer
+  expr 239:5    IfExpr         :: void
+  expr 239:8    BinaryExpr     :: bool
+  expr 239:8    BinaryExpr     :: bool
+  expr 239:8    CallExpr       :: char
+  expr 239:8    FieldExpr      :: fn() -> char
+  expr 239:8    IdentExpr      :: Lexer
   expr 23:16    StringLitExpr  :: string
   expr 23:38    DotVariantExpr :: TokenKind
   expr 23:5     IfExpr         :: void
   expr 23:8     BinaryExpr     :: bool
   expr 23:8     IdentExpr      :: string
-  expr 242:21   CallExpr       :: char
-  expr 242:21   FieldExpr      :: fn(i32) -> char
-  expr 242:21   IdentExpr      :: Lexer
-  expr 243:13   IfExpr         :: void
-  expr 243:16   BinaryExpr     :: bool
-  expr 243:16   CallExpr       :: bool
-  expr 243:16   FieldExpr      :: fn() -> bool
-  expr 243:16   IdentExpr      :: char
-  expr 243:41   UnaryExpr      :: bool
-  expr 243:42   CallExpr       :: bool
-  expr 243:42   FieldExpr      :: fn() -> bool
-  expr 243:42   IdentExpr      :: char
-  expr 246:13   IfExpr         :: void
-  expr 246:16   BinaryExpr     :: bool
-  expr 246:16   IdentExpr      :: bool
-  expr 246:25   IdentExpr      :: bool
-  expr 247:17   CallExpr       :: void
-  expr 247:17   FieldExpr      :: fn(string) -> void
-  expr 247:17   IdentExpr      :: Lexer
-  expr 247:30   StringLitExpr  :: string
-  expr 247:71   FieldExpr      :: i32
-  expr 247:71   IdentExpr      :: Position
-  expr 247:92   FieldExpr      :: i32
-  expr 247:92   IdentExpr      :: Position
-  expr 249:13   IdentExpr      :: bool
+  expr 240:9    CallExpr       :: void
+  expr 240:9    FieldExpr      :: fn(i32) -> void
+  expr 240:9    IdentExpr      :: Lexer
+  expr 241:23   FieldExpr      :: i32
+  expr 241:23   IdentExpr      :: Lexer
+  expr 242:13   BinaryExpr     :: bool
+  expr 242:13   UnaryExpr      :: bool
+  expr 242:14   CallExpr       :: bool
+  expr 242:14   FieldExpr      :: fn() -> bool
+  expr 242:14   IdentExpr      :: Lexer
+  expr 242:28   CallExpr       :: bool
+  expr 242:28   CallExpr       :: char
+  expr 242:28   FieldExpr      :: fn() -> bool
+  expr 242:28   FieldExpr      :: fn() -> char
+  expr 242:28   IdentExpr      :: Lexer
+  expr 243:13   CallExpr       :: void
+  expr 243:13   FieldExpr      :: fn(i32) -> void
+  expr 243:13   IdentExpr      :: Lexer
+  expr 245:16   CallExpr       :: string
+  expr 245:16   FieldExpr      :: fn(i32, i32) -> string
+  expr 245:16   FieldExpr      :: string
+  expr 245:16   IdentExpr      :: Lexer
+  expr 245:28   IdentExpr      :: i32
+  expr 245:40   FieldExpr      :: i32
+  expr 245:40   IdentExpr      :: Lexer
+  expr 247:5    IfExpr         :: void
+  expr 247:8    CallExpr       :: bool
+  expr 247:8    CallExpr       :: char
+  expr 247:8    FieldExpr      :: fn() -> bool
+  expr 247:8    FieldExpr      :: fn() -> char
+  expr 247:8    IdentExpr      :: Lexer
+  expr 248:13   BinaryExpr     :: bool
+  expr 248:13   UnaryExpr      :: bool
+  expr 248:14   CallExpr       :: bool
+  expr 248:14   FieldExpr      :: fn() -> bool
+  expr 248:14   IdentExpr      :: Lexer
+  expr 248:28   CallExpr       :: bool
+  expr 248:28   CallExpr       :: char
+  expr 248:28   FieldExpr      :: fn() -> bool
+  expr 248:28   FieldExpr      :: fn() -> char
+  expr 248:28   IdentExpr      :: Lexer
+  expr 249:13   CallExpr       :: void
+  expr 249:13   FieldExpr      :: fn(i32) -> void
+  expr 249:13   IdentExpr      :: Lexer
   expr 24:16    StringLitExpr  :: string
   expr 24:38    DotVariantExpr :: TokenKind
   expr 24:5     IfExpr         :: void
   expr 24:8     BinaryExpr     :: bool
   expr 24:8     IdentExpr      :: string
-  expr 250:13   IdentExpr      :: bool
-  expr 251:13   CallExpr       :: void
-  expr 251:13   FieldExpr      :: fn(i32) -> void
-  expr 251:13   IdentExpr      :: Lexer
-  expr 254:12   CallExpr       :: bool
-  expr 254:12   FieldExpr      :: fn() -> bool
-  expr 254:12   IdentExpr      :: char
-  expr 254:9    IfExpr         :: void
-  expr 255:13   IdentExpr      :: bool
-  expr 256:13   IdentExpr      :: bool
-  expr 257:13   CallExpr       :: void
-  expr 257:13   FieldExpr      :: fn(i32) -> void
-  expr 257:13   IdentExpr      :: Lexer
+  expr 251:16   CallExpr       :: string
+  expr 251:16   FieldExpr      :: fn(i32, i32) -> string
+  expr 251:16   FieldExpr      :: string
+  expr 251:16   IdentExpr      :: Lexer
+  expr 251:28   IdentExpr      :: i32
+  expr 251:35   FieldExpr      :: i32
+  expr 251:35   IdentExpr      :: Lexer
+  expr 253:12   StringLitExpr  :: string
+  expr 257:22   BinaryExpr     :: bool
+  expr 257:22   BinaryExpr     :: bool
+  expr 257:22   IdentExpr      :: char
+  expr 257:34   BinaryExpr     :: bool
+  expr 257:34   IdentExpr      :: char
+  expr 257:48   BinaryExpr     :: bool
+  expr 257:48   BinaryExpr     :: bool
+  expr 257:48   IdentExpr      :: char
+  expr 257:5    BinaryExpr     :: bool
+  expr 257:5    BinaryExpr     :: bool
+  expr 257:5    CallExpr       :: bool
+  expr 257:5    FieldExpr      :: fn() -> bool
+  expr 257:5    IdentExpr      :: char
+  expr 257:60   BinaryExpr     :: bool
+  expr 257:60   IdentExpr      :: char
   expr 25:16    StringLitExpr  :: string
   expr 25:38    DotVariantExpr :: TokenKind
   expr 25:5     IfExpr         :: void
   expr 25:8     BinaryExpr     :: bool
   expr 25:8     IdentExpr      :: string
-  expr 265:14   CallExpr       :: Position
-  expr 265:14   FieldExpr      :: fn() -> Position
-  expr 265:14   IdentExpr      :: Lexer
-  expr 268:30   IdentExpr      :: Position
-  expr 268:5    CallExpr       :: void
-  expr 268:5    FieldExpr      :: fn(Position) -> void
-  expr 268:5    IdentExpr      :: Lexer
+  expr 260:27   BinaryExpr     :: bool
+  expr 260:27   BinaryExpr     :: bool
+  expr 260:27   IdentExpr      :: char
+  expr 260:39   BinaryExpr     :: bool
+  expr 260:39   IdentExpr      :: char
+  expr 260:5    IfExpr         :: void
+  expr 260:8    BinaryExpr     :: bool
+  expr 260:8    IdentExpr      :: i32
+  expr 261:27   BinaryExpr     :: bool
+  expr 261:27   BinaryExpr     :: bool
+  expr 261:27   IdentExpr      :: char
+  expr 261:39   BinaryExpr     :: bool
+  expr 261:39   IdentExpr      :: char
+  expr 261:5    IfExpr         :: void
+  expr 261:8    BinaryExpr     :: bool
+  expr 261:8    IdentExpr      :: i32
+  expr 262:28   CallExpr       :: bool
+  expr 262:28   FieldExpr      :: fn() -> bool
+  expr 262:28   IdentExpr      :: char
+  expr 262:5    IfExpr         :: void
+  expr 262:8    BinaryExpr     :: bool
+  expr 262:8    IdentExpr      :: i32
+  expr 263:12   CallExpr       :: bool
+  expr 263:12   FieldExpr      :: fn() -> bool
+  expr 263:12   IdentExpr      :: char
   expr 26:16    StringLitExpr  :: string
   expr 26:38    DotVariantExpr :: TokenKind
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
   expr 26:8     IdentExpr      :: string
-  expr 272:27   CallExpr       :: bool
-  expr 272:27   CallExpr       :: char
-  expr 272:27   FieldExpr      :: fn() -> bool
-  expr 272:27   FieldExpr      :: fn(i32) -> char
-  expr 272:27   IdentExpr      :: Lexer
-  expr 272:5    IfExpr         :: void
-  expr 272:8    BinaryExpr     :: bool
-  expr 272:8    BinaryExpr     :: bool
-  expr 272:8    CallExpr       :: char
-  expr 272:8    FieldExpr      :: fn() -> char
-  expr 272:8    IdentExpr      :: Lexer
-  expr 273:9    IdentExpr      :: bool
-  expr 274:9    CallExpr       :: void
-  expr 274:9    FieldExpr      :: fn(i32) -> void
-  expr 274:9    IdentExpr      :: Lexer
-  expr 275:34   IdentExpr      :: Position
-  expr 275:9    CallExpr       :: void
-  expr 275:9    FieldExpr      :: fn(Position) -> void
-  expr 275:9    IdentExpr      :: Lexer
-  expr 279:27   BinaryExpr     :: bool
-  expr 279:27   CallExpr       :: char
-  expr 279:27   FieldExpr      :: fn() -> char
-  expr 279:27   IdentExpr      :: Lexer
-  expr 279:5    IfExpr         :: void
-  expr 279:8    BinaryExpr     :: bool
-  expr 279:8    BinaryExpr     :: bool
-  expr 279:8    CallExpr       :: char
-  expr 279:8    FieldExpr      :: fn() -> char
-  expr 279:8    IdentExpr      :: Lexer
+  expr 273:10   CallExpr       :: bool
+  expr 273:10   FieldExpr      :: fn() -> bool
+  expr 273:10   IdentExpr      :: Lexer
+  expr 273:9    UnaryExpr      :: bool
+  expr 274:14   CallExpr       :: char
+  expr 274:14   FieldExpr      :: fn() -> char
+  expr 274:14   IdentExpr      :: Lexer
+  expr 275:12   BinaryExpr     :: bool
+  expr 275:12   IdentExpr      :: char
+  expr 275:9    IfExpr         :: void
+  expr 278:21   CallExpr       :: char
+  expr 278:21   FieldExpr      :: fn(i32) -> char
+  expr 278:21   IdentExpr      :: Lexer
+  expr 279:13   IfExpr         :: void
+  expr 279:16   BinaryExpr     :: bool
+  expr 279:16   CallExpr       :: bool
+  expr 279:16   FieldExpr      :: fn() -> bool
+  expr 279:16   IdentExpr      :: char
+  expr 279:41   UnaryExpr      :: bool
+  expr 279:42   CallExpr       :: bool
+  expr 279:42   IdentExpr      :: fn(char, i32) -> bool
+  expr 279:59   IdentExpr      :: char
+  expr 279:65   IdentExpr      :: i32
   expr 27:16    StringLitExpr  :: string
   expr 27:38    DotVariantExpr :: TokenKind
   expr 27:5     IfExpr         :: void
   expr 27:8     BinaryExpr     :: bool
   expr 27:8     IdentExpr      :: string
-  expr 280:9    IdentExpr      :: bool
-  expr 281:9    CallExpr       :: void
-  expr 281:9    FieldExpr      :: fn(i32) -> void
-  expr 281:9    IdentExpr      :: Lexer
-  expr 282:12   BinaryExpr     :: bool
-  expr 282:12   BinaryExpr     :: bool
-  expr 282:12   CallExpr       :: char
-  expr 282:12   FieldExpr      :: fn() -> char
-  expr 282:12   IdentExpr      :: Lexer
-  expr 282:31   BinaryExpr     :: bool
-  expr 282:31   CallExpr       :: char
-  expr 282:31   FieldExpr      :: fn() -> char
-  expr 282:31   IdentExpr      :: Lexer
-  expr 282:9    IfExpr         :: void
-  expr 283:13   CallExpr       :: void
-  expr 283:13   FieldExpr      :: fn(i32) -> void
-  expr 283:13   IdentExpr      :: Lexer
-  expr 285:12   UnaryExpr      :: bool
-  expr 285:13   CallExpr       :: bool
-  expr 285:13   CallExpr       :: char
-  expr 285:13   FieldExpr      :: fn() -> bool
-  expr 285:13   FieldExpr      :: fn() -> char
-  expr 285:13   IdentExpr      :: Lexer
-  expr 285:9    IfExpr         :: void
-  expr 286:13   CallExpr       :: void
-  expr 286:13   FieldExpr      :: fn(string) -> void
-  expr 286:13   IdentExpr      :: Lexer
-  expr 286:26   StringLitExpr  :: string
-  expr 286:62   FieldExpr      :: i32
-  expr 286:62   IdentExpr      :: Position
-  expr 286:76   FieldExpr      :: i32
-  expr 286:76   IdentExpr      :: Position
-  expr 288:34   IdentExpr      :: Position
-  expr 288:9    CallExpr       :: void
-  expr 288:9    FieldExpr      :: fn(Position) -> void
-  expr 288:9    IdentExpr      :: Lexer
+  expr 282:13   IfExpr         :: void
+  expr 282:16   BinaryExpr     :: bool
+  expr 282:16   IdentExpr      :: bool
+  expr 282:25   IdentExpr      :: bool
+  expr 283:17   CallExpr       :: void
+  expr 283:17   FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 283:17   IdentExpr      :: Lexer
+  expr 283:30   DotVariantExpr :: LexerCode
+  expr 283:56   CallExpr       :: Span
+  expr 283:56   FieldExpr      :: fn(Position) -> Span
+  expr 283:56   IdentExpr      :: Lexer
+  expr 283:69   IdentExpr      :: Position
+  expr 283:84   StringLitExpr  :: string
+  expr 285:13   IdentExpr      :: bool
+  expr 286:13   IdentExpr      :: bool
+  expr 287:13   CallExpr       :: void
+  expr 287:13   FieldExpr      :: fn(i32) -> void
+  expr 287:13   IdentExpr      :: Lexer
   expr 28:16    StringLitExpr  :: string
   expr 28:38    DotVariantExpr :: TokenKind
   expr 28:5     IfExpr         :: void
   expr 28:8     BinaryExpr     :: bool
   expr 28:8     IdentExpr      :: string
-  expr 291:15   CallExpr       :: string
-  expr 291:15   FieldExpr      :: fn() -> string
-  expr 291:15   IdentExpr      :: Lexer
-  expr 292:19   BinaryExpr     :: bool
-  expr 292:19   CallExpr       :: i32
-  expr 292:19   FieldExpr      :: fn() -> i32
-  expr 292:19   IdentExpr      :: string
-  expr 294:22   UnaryExpr      :: bool
-  expr 294:23   CallExpr       :: bool
-  expr 294:23   FieldExpr      :: fn() -> bool
-  expr 294:23   IdentExpr      :: string
-  expr 294:49   UnaryExpr      :: bool
-  expr 294:5    IfExpr         :: void
-  expr 294:50   CallExpr       :: bool
-  expr 294:50   FieldExpr      :: fn() -> bool
-  expr 294:50   IdentExpr      :: string
-  expr 294:8    BinaryExpr     :: bool
-  expr 294:8    BinaryExpr     :: bool
-  expr 294:8    IdentExpr      :: bool
-  expr 295:22   StringLitExpr  :: string
-  expr 295:57   IdentExpr      :: string
-  expr 295:72   FieldExpr      :: i32
-  expr 295:72   IdentExpr      :: Position
-  expr 295:86   FieldExpr      :: i32
-  expr 295:86   IdentExpr      :: Position
-  expr 295:9    CallExpr       :: void
-  expr 295:9    FieldExpr      :: fn(string) -> void
-  expr 295:9    IdentExpr      :: Lexer
-  expr 297:22   CallExpr       :: bool
-  expr 297:22   FieldExpr      :: fn() -> bool
-  expr 297:22   IdentExpr      :: string
-  expr 297:5    IfExpr         :: void
-  expr 297:8    BinaryExpr     :: bool
-  expr 297:8    IdentExpr      :: bool
-  expr 298:9    IdentExpr      :: bool
+  expr 290:12   CallExpr       :: bool
+  expr 290:12   IdentExpr      :: fn(char, i32) -> bool
+  expr 290:29   IdentExpr      :: char
+  expr 290:32   IdentExpr      :: i32
+  expr 290:9    IfExpr         :: void
+  expr 291:13   IdentExpr      :: bool
+  expr 292:13   IdentExpr      :: bool
+  expr 293:13   CallExpr       :: void
+  expr 293:13   FieldExpr      :: fn(i32) -> void
+  expr 293:13   IdentExpr      :: Lexer
   expr 29:16    StringLitExpr  :: string
   expr 29:38    DotVariantExpr :: TokenKind
   expr 29:5     IfExpr         :: void
   expr 29:8     BinaryExpr     :: bool
   expr 29:8     IdentExpr      :: string
-  expr 300:22   CallExpr       :: bool
-  expr 300:22   FieldExpr      :: fn() -> bool
-  expr 300:22   IdentExpr      :: string
-  expr 300:48   IdentExpr      :: bool
-  expr 300:5    IfExpr         :: void
-  expr 300:8    BinaryExpr     :: bool
-  expr 300:8    BinaryExpr     :: bool
-  expr 300:8    IdentExpr      :: bool
-  expr 301:22   StringLitExpr  :: string
-  expr 301:49   IdentExpr      :: string
-  expr 301:83   FieldExpr      :: i32
-  expr 301:83   IdentExpr      :: Position
-  expr 301:9    CallExpr       :: void
-  expr 301:9    FieldExpr      :: fn(string) -> void
-  expr 301:9    IdentExpr      :: Lexer
-  expr 301:97   FieldExpr      :: i32
-  expr 301:97   IdentExpr      :: Position
-  expr 304:13   CallExpr       :: string
-  expr 304:13   FieldExpr      :: fn(i32, i32) -> string
-  expr 304:13   FieldExpr      :: string
-  expr 304:13   IdentExpr      :: Lexer
-  expr 304:25   FieldExpr      :: i32
-  expr 304:25   IdentExpr      :: Position
-  expr 304:39   FieldExpr      :: i32
-  expr 304:39   IdentExpr      :: Lexer
-  expr 305:13   StructLitExpr  :: Span
-  expr 305:29   IdentExpr      :: Position
-  expr 305:43   CallExpr       :: Position
-  expr 305:43   FieldExpr      :: fn() -> Position
-  expr 305:43   IdentExpr      :: Lexer
-  expr 306:23   DotVariantExpr :: TokenKind
-  expr 307:5    IfExpr         :: void
-  expr 307:8    IdentExpr      :: bool
-  expr 308:16   DotVariantExpr :: TokenKind
-  expr 308:9    IdentExpr      :: TokenKind
+  expr 301:14   CallExpr       :: Position
+  expr 301:14   FieldExpr      :: fn() -> Position
+  expr 301:14   IdentExpr      :: Lexer
+  expr 308:5    IfExpr         :: void
+  expr 308:8    BinaryExpr     :: bool
+  expr 308:8    CallExpr       :: char
+  expr 308:8    FieldExpr      :: fn() -> char
+  expr 308:8    IdentExpr      :: Lexer
+  expr 309:17   CallExpr       :: char
+  expr 309:17   FieldExpr      :: fn(i32) -> char
+  expr 309:17   IdentExpr      :: Lexer
   expr 30:16    StringLitExpr  :: string
   expr 30:38    DotVariantExpr :: TokenKind
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool
   expr 30:8     IdentExpr      :: string
-  expr 310:10   CallExpr       :: Token
-  expr 310:10   IdentExpr      :: fn(TokenKind, string, Span) -> Token
-  expr 310:21   IdentExpr      :: TokenKind
-  expr 310:27   IdentExpr      :: string
-  expr 310:33   IdentExpr      :: Span
-  expr 311:5    IfExpr         :: void
-  expr 311:8    IdentExpr      :: bool
-  expr 312:28   IdentExpr      :: string
-  expr 312:9    FieldExpr      :: string
-  expr 312:9    IdentExpr      :: Token
-  expr 316:12   IdentExpr      :: Token
-  expr 316:5    CallExpr       :: void
-  expr 316:5    FieldExpr      :: fn(Token) -> void
-  expr 316:5    IdentExpr      :: Lexer
+  expr 310:12   BinaryExpr     :: bool
+  expr 310:12   BinaryExpr     :: bool
+  expr 310:12   IdentExpr      :: char
+  expr 310:27   BinaryExpr     :: bool
+  expr 310:27   IdentExpr      :: char
+  expr 310:41   IdentExpr      :: i32
+  expr 310:9    IfExpr         :: void
+  expr 311:14   IfExpr         :: void
+  expr 311:17   BinaryExpr     :: bool
+  expr 311:17   BinaryExpr     :: bool
+  expr 311:17   IdentExpr      :: char
+  expr 311:32   BinaryExpr     :: bool
+  expr 311:32   IdentExpr      :: char
+  expr 311:46   IdentExpr      :: i32
+  expr 312:14   IfExpr         :: void
+  expr 312:17   BinaryExpr     :: bool
+  expr 312:17   BinaryExpr     :: bool
+  expr 312:17   IdentExpr      :: char
+  expr 312:32   BinaryExpr     :: bool
+  expr 312:32   IdentExpr      :: char
+  expr 312:46   IdentExpr      :: i32
+  expr 314:5    IfExpr         :: void
+  expr 314:8    BinaryExpr     :: bool
+  expr 314:8    IdentExpr      :: i32
+  expr 315:9    CallExpr       :: void
+  expr 315:9    FieldExpr      :: fn(i32) -> void
+  expr 315:9    IdentExpr      :: Lexer
+  expr 316:25   FieldExpr      :: i32
+  expr 316:25   IdentExpr      :: Lexer
+  expr 317:26   IdentExpr      :: i32
+  expr 317:32   IdentExpr      :: Position
+  expr 317:9    CallExpr       :: void
+  expr 317:9    FieldExpr      :: fn(i32, Position) -> void
+  expr 317:9    IdentExpr      :: Lexer
+  expr 318:12   BinaryExpr     :: bool
+  expr 318:12   FieldExpr      :: i32
+  expr 318:12   IdentExpr      :: Lexer
+  expr 318:21   IdentExpr      :: i32
+  expr 318:9    IfExpr         :: void
+  expr 319:13   CallExpr       :: void
+  expr 319:13   FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 319:13   IdentExpr      :: Lexer
+  expr 319:26   DotVariantExpr :: LexerCode
+  expr 319:52   CallExpr       :: Span
+  expr 319:52   FieldExpr      :: fn(Position) -> Span
+  expr 319:52   IdentExpr      :: Lexer
+  expr 319:65   IdentExpr      :: Position
+  expr 319:73   StringLitExpr  :: string
   expr 31:16    StringLitExpr  :: string
   expr 31:38    DotVariantExpr :: TokenKind
   expr 31:5     IfExpr         :: void
   expr 31:8     BinaryExpr     :: bool
   expr 31:8     IdentExpr      :: string
-  expr 324:10   CallExpr       :: char
-  expr 324:10   FieldExpr      :: fn() -> char
-  expr 324:10   IdentExpr      :: Lexer
-  expr 325:11   CallExpr       :: char
-  expr 325:11   FieldExpr      :: fn(i32) -> char
-  expr 325:11   IdentExpr      :: Lexer
-  expr 328:20   BinaryExpr     :: bool
-  expr 328:20   IdentExpr      :: char
-  expr 328:5    IfExpr         :: void
-  expr 328:8    BinaryExpr     :: bool
-  expr 328:8    BinaryExpr     :: bool
-  expr 328:8    IdentExpr      :: char
-  expr 329:15   CallExpr       :: char
-  expr 329:15   FieldExpr      :: fn(i32) -> char
-  expr 329:15   IdentExpr      :: Lexer
+  expr 322:30   IdentExpr      :: Position
+  expr 322:9    CallExpr       :: void
+  expr 322:9    FieldExpr      :: fn(i32, Position) -> void
+  expr 322:9    IdentExpr      :: Lexer
+  expr 326:12   BinaryExpr     :: bool
+  expr 326:12   BinaryExpr     :: bool
+  expr 326:12   CallExpr       :: char
+  expr 326:12   FieldExpr      :: fn() -> char
+  expr 326:12   IdentExpr      :: Lexer
+  expr 326:31   CallExpr       :: bool
+  expr 326:31   CallExpr       :: char
+  expr 326:31   FieldExpr      :: fn() -> bool
+  expr 326:31   FieldExpr      :: fn(i32) -> char
+  expr 326:31   IdentExpr      :: Lexer
+  expr 326:9    IfExpr         :: void
+  expr 327:13   IdentExpr      :: bool
+  expr 328:13   CallExpr       :: void
+  expr 328:13   FieldExpr      :: fn(i32) -> void
+  expr 328:13   IdentExpr      :: Lexer
+  expr 329:13   CallExpr       :: void
+  expr 329:13   FieldExpr      :: fn(i32, Position) -> void
+  expr 329:13   IdentExpr      :: Lexer
+  expr 329:34   IdentExpr      :: Position
   expr 32:16    StringLitExpr  :: string
   expr 32:38    DotVariantExpr :: TokenKind
   expr 32:5     IfExpr         :: void
   expr 32:8     BinaryExpr     :: bool
   expr 32:8     IdentExpr      :: string
-  expr 330:12   BinaryExpr     :: bool
-  expr 330:12   IdentExpr      :: char
-  expr 330:9    IfExpr         :: void
-  expr 331:22   CallExpr       :: Position
-  expr 331:22   FieldExpr      :: fn() -> Position
-  expr 331:22   IdentExpr      :: Lexer
-  expr 332:13   CallExpr       :: void
-  expr 332:13   FieldExpr      :: fn(i32) -> void
-  expr 332:13   IdentExpr      :: Lexer
-  expr 333:13   CallExpr       :: void
-  expr 333:13   FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 333:13   IdentExpr      :: Lexer
-  expr 333:27   DotVariantExpr :: TokenKind
-  expr 333:39   StringLitExpr  :: string
-  expr 333:46   IdentExpr      :: Position
-  expr 336:12   BinaryExpr     :: bool
-  expr 336:12   IdentExpr      :: char
-  expr 336:9    IfExpr         :: void
-  expr 337:22   CallExpr       :: Position
-  expr 337:22   FieldExpr      :: fn() -> Position
-  expr 337:22   IdentExpr      :: Lexer
-  expr 338:13   CallExpr       :: void
-  expr 338:13   FieldExpr      :: fn(i32) -> void
-  expr 338:13   IdentExpr      :: Lexer
-  expr 339:13   CallExpr       :: void
-  expr 339:13   FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 339:13   IdentExpr      :: Lexer
-  expr 339:27   DotVariantExpr :: TokenKind
-  expr 339:39   StringLitExpr  :: string
-  expr 339:46   IdentExpr      :: Position
+  expr 333:12   BinaryExpr     :: bool
+  expr 333:12   BinaryExpr     :: bool
+  expr 333:12   CallExpr       :: char
+  expr 333:12   FieldExpr      :: fn() -> char
+  expr 333:12   IdentExpr      :: Lexer
+  expr 333:31   BinaryExpr     :: bool
+  expr 333:31   CallExpr       :: char
+  expr 333:31   FieldExpr      :: fn() -> char
+  expr 333:31   IdentExpr      :: Lexer
+  expr 333:9    IfExpr         :: void
+  expr 334:13   IdentExpr      :: bool
+  expr 335:13   CallExpr       :: void
+  expr 335:13   FieldExpr      :: fn(i32) -> void
+  expr 335:13   IdentExpr      :: Lexer
+  expr 336:13   IfExpr         :: void
+  expr 336:16   BinaryExpr     :: bool
+  expr 336:16   BinaryExpr     :: bool
+  expr 336:16   CallExpr       :: char
+  expr 336:16   FieldExpr      :: fn() -> char
+  expr 336:16   IdentExpr      :: Lexer
+  expr 336:35   BinaryExpr     :: bool
+  expr 336:35   CallExpr       :: char
+  expr 336:35   FieldExpr      :: fn() -> char
+  expr 336:35   IdentExpr      :: Lexer
+  expr 337:17   CallExpr       :: void
+  expr 337:17   FieldExpr      :: fn(i32) -> void
+  expr 337:17   IdentExpr      :: Lexer
+  expr 339:13   IfExpr         :: void
+  expr 339:16   UnaryExpr      :: bool
+  expr 339:17   CallExpr       :: bool
+  expr 339:17   CallExpr       :: char
+  expr 339:17   FieldExpr      :: fn() -> bool
+  expr 339:17   FieldExpr      :: fn() -> char
+  expr 339:17   IdentExpr      :: Lexer
   expr 33:16    StringLitExpr  :: string
   expr 33:38    DotVariantExpr :: TokenKind
   expr 33:5     IfExpr         :: void
   expr 33:8     BinaryExpr     :: bool
   expr 33:8     IdentExpr      :: string
-  expr 345:20   BinaryExpr     :: bool
-  expr 345:20   IdentExpr      :: char
-  expr 345:39   CallExpr       :: bool
-  expr 345:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 345:39   IdentExpr      :: Lexer
-  expr 345:47   DotVariantExpr :: TokenKind
-  expr 345:5    IfExpr         :: void
-  expr 345:52   StringLitExpr  :: string
-  expr 345:8    BinaryExpr     :: bool
-  expr 345:8    BinaryExpr     :: bool
-  expr 345:8    IdentExpr      :: char
-  expr 346:20   BinaryExpr     :: bool
-  expr 346:20   IdentExpr      :: char
-  expr 346:39   CallExpr       :: bool
-  expr 346:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 346:39   IdentExpr      :: Lexer
-  expr 346:47   DotVariantExpr :: TokenKind
-  expr 346:5    IfExpr         :: void
-  expr 346:53   StringLitExpr  :: string
-  expr 346:8    BinaryExpr     :: bool
-  expr 346:8    BinaryExpr     :: bool
-  expr 346:8    IdentExpr      :: char
-  expr 347:20   BinaryExpr     :: bool
-  expr 347:20   IdentExpr      :: char
-  expr 347:39   CallExpr       :: bool
-  expr 347:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 347:39   IdentExpr      :: Lexer
-  expr 347:47   DotVariantExpr :: TokenKind
-  expr 347:5    IfExpr         :: void
-  expr 347:53   StringLitExpr  :: string
-  expr 347:8    BinaryExpr     :: bool
-  expr 347:8    BinaryExpr     :: bool
-  expr 347:8    IdentExpr      :: char
-  expr 348:20   BinaryExpr     :: bool
-  expr 348:20   IdentExpr      :: char
-  expr 348:39   CallExpr       :: bool
-  expr 348:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 348:39   IdentExpr      :: Lexer
-  expr 348:47   DotVariantExpr :: TokenKind
-  expr 348:5    IfExpr         :: void
-  expr 348:53   StringLitExpr  :: string
-  expr 348:8    BinaryExpr     :: bool
-  expr 348:8    BinaryExpr     :: bool
-  expr 348:8    IdentExpr      :: char
-  expr 349:20   BinaryExpr     :: bool
-  expr 349:20   IdentExpr      :: char
-  expr 349:39   CallExpr       :: bool
-  expr 349:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 349:39   IdentExpr      :: Lexer
-  expr 349:47   DotVariantExpr :: TokenKind
+  expr 340:17   CallExpr       :: void
+  expr 340:17   FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 340:17   IdentExpr      :: Lexer
+  expr 340:30   DotVariantExpr :: LexerCode
+  expr 340:56   CallExpr       :: Span
+  expr 340:56   FieldExpr      :: fn(Position) -> Span
+  expr 340:56   IdentExpr      :: Lexer
+  expr 340:69   IdentExpr      :: Position
+  expr 340:77   StringLitExpr  :: string
+  expr 342:13   CallExpr       :: void
+  expr 342:13   FieldExpr      :: fn(i32, Position) -> void
+  expr 342:13   IdentExpr      :: Lexer
+  expr 342:34   IdentExpr      :: Position
+  expr 346:15   CallExpr       :: string
+  expr 346:15   FieldExpr      :: fn() -> string
+  expr 346:15   IdentExpr      :: Lexer
+  expr 347:19   BinaryExpr     :: bool
+  expr 347:19   CallExpr       :: i32
+  expr 347:19   FieldExpr      :: fn() -> i32
+  expr 347:19   IdentExpr      :: string
+  expr 349:22   UnaryExpr      :: bool
+  expr 349:23   CallExpr       :: bool
+  expr 349:23   FieldExpr      :: fn() -> bool
+  expr 349:23   IdentExpr      :: string
+  expr 349:49   UnaryExpr      :: bool
   expr 349:5    IfExpr         :: void
-  expr 349:56   StringLitExpr  :: string
+  expr 349:50   CallExpr       :: bool
+  expr 349:50   FieldExpr      :: fn() -> bool
+  expr 349:50   IdentExpr      :: string
   expr 349:8    BinaryExpr     :: bool
   expr 349:8    BinaryExpr     :: bool
-  expr 349:8    IdentExpr      :: char
+  expr 349:8    IdentExpr      :: bool
   expr 34:16    StringLitExpr  :: string
   expr 34:38    DotVariantExpr :: TokenKind
   expr 34:5     IfExpr         :: void
   expr 34:8     BinaryExpr     :: bool
   expr 34:8     IdentExpr      :: string
-  expr 350:20   BinaryExpr     :: bool
-  expr 350:20   IdentExpr      :: char
-  expr 350:39   CallExpr       :: bool
-  expr 350:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 350:39   IdentExpr      :: Lexer
-  expr 350:47   DotVariantExpr :: TokenKind
-  expr 350:5    IfExpr         :: void
-  expr 350:54   StringLitExpr  :: string
-  expr 350:8    BinaryExpr     :: bool
-  expr 350:8    BinaryExpr     :: bool
-  expr 350:8    IdentExpr      :: char
-  expr 351:20   BinaryExpr     :: bool
-  expr 351:20   IdentExpr      :: char
-  expr 351:39   CallExpr       :: bool
-  expr 351:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 351:39   IdentExpr      :: Lexer
-  expr 351:47   DotVariantExpr :: TokenKind
-  expr 351:5    IfExpr         :: void
-  expr 351:53   StringLitExpr  :: string
-  expr 351:8    BinaryExpr     :: bool
-  expr 351:8    BinaryExpr     :: bool
-  expr 351:8    IdentExpr      :: char
-  expr 352:20   BinaryExpr     :: bool
-  expr 352:20   IdentExpr      :: char
-  expr 352:39   CallExpr       :: bool
-  expr 352:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 352:39   IdentExpr      :: Lexer
-  expr 352:47   DotVariantExpr :: TokenKind
+  expr 350:22   DotVariantExpr :: LexerCode
+  expr 350:48   CallExpr       :: Span
+  expr 350:48   FieldExpr      :: fn(Position) -> Span
+  expr 350:48   IdentExpr      :: Lexer
+  expr 350:61   IdentExpr      :: Position
+  expr 350:69   StringLitExpr  :: string
+  expr 350:9    CallExpr       :: void
+  expr 350:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 350:9    IdentExpr      :: Lexer
+  expr 350:97   IdentExpr      :: string
+  expr 352:22   CallExpr       :: bool
+  expr 352:22   FieldExpr      :: fn() -> bool
+  expr 352:22   IdentExpr      :: string
   expr 352:5    IfExpr         :: void
-  expr 352:53   StringLitExpr  :: string
   expr 352:8    BinaryExpr     :: bool
-  expr 352:8    BinaryExpr     :: bool
-  expr 352:8    IdentExpr      :: char
-  expr 353:20   BinaryExpr     :: bool
-  expr 353:20   IdentExpr      :: char
-  expr 353:39   CallExpr       :: bool
-  expr 353:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 353:39   IdentExpr      :: Lexer
-  expr 353:47   DotVariantExpr :: TokenKind
-  expr 353:5    IfExpr         :: void
-  expr 353:55   StringLitExpr  :: string
-  expr 353:8    BinaryExpr     :: bool
-  expr 353:8    BinaryExpr     :: bool
-  expr 353:8    IdentExpr      :: char
-  expr 354:20   BinaryExpr     :: bool
-  expr 354:20   IdentExpr      :: char
-  expr 354:39   CallExpr       :: bool
-  expr 354:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 354:39   IdentExpr      :: Lexer
-  expr 354:47   DotVariantExpr :: TokenKind
-  expr 354:5    IfExpr         :: void
-  expr 354:58   StringLitExpr  :: string
-  expr 354:8    BinaryExpr     :: bool
-  expr 354:8    BinaryExpr     :: bool
-  expr 354:8    IdentExpr      :: char
-  expr 355:20   BinaryExpr     :: bool
-  expr 355:20   IdentExpr      :: char
-  expr 355:39   CallExpr       :: bool
-  expr 355:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 355:39   IdentExpr      :: Lexer
-  expr 355:47   DotVariantExpr :: TokenKind
+  expr 352:8    IdentExpr      :: bool
+  expr 353:9    IdentExpr      :: bool
+  expr 355:22   CallExpr       :: bool
+  expr 355:22   FieldExpr      :: fn() -> bool
+  expr 355:22   IdentExpr      :: string
+  expr 355:48   IdentExpr      :: bool
   expr 355:5    IfExpr         :: void
-  expr 355:59   StringLitExpr  :: string
   expr 355:8    BinaryExpr     :: bool
   expr 355:8    BinaryExpr     :: bool
-  expr 355:8    IdentExpr      :: char
-  expr 356:20   BinaryExpr     :: bool
-  expr 356:20   IdentExpr      :: char
-  expr 356:39   CallExpr       :: bool
-  expr 356:39   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 356:39   IdentExpr      :: Lexer
-  expr 356:47   DotVariantExpr :: TokenKind
-  expr 356:5    IfExpr         :: void
-  expr 356:57   StringLitExpr  :: string
-  expr 356:8    BinaryExpr     :: bool
-  expr 356:8    BinaryExpr     :: bool
-  expr 356:8    IdentExpr      :: char
-  expr 359:26   CallExpr       :: bool
-  expr 359:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 359:26   IdentExpr      :: Lexer
-  expr 359:34   DotVariantExpr :: TokenKind
-  expr 359:41   StringLitExpr  :: string
-  expr 359:5    IfExpr         :: void
-  expr 359:8    BinaryExpr     :: bool
-  expr 359:8    IdentExpr      :: char
+  expr 355:8    IdentExpr      :: bool
+  expr 356:22   DotVariantExpr :: LexerCode
+  expr 356:48   CallExpr       :: Span
+  expr 356:48   FieldExpr      :: fn(Position) -> Span
+  expr 356:48   IdentExpr      :: Lexer
+  expr 356:61   IdentExpr      :: Position
+  expr 356:69   StringLitExpr  :: string
+  expr 356:89   IdentExpr      :: string
+  expr 356:9    CallExpr       :: void
+  expr 356:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 356:9    IdentExpr      :: Lexer
+  expr 359:13   CallExpr       :: string
+  expr 359:13   FieldExpr      :: fn(i32, i32) -> string
+  expr 359:13   FieldExpr      :: string
+  expr 359:13   IdentExpr      :: Lexer
+  expr 359:25   FieldExpr      :: i32
+  expr 359:25   IdentExpr      :: Position
+  expr 359:39   FieldExpr      :: i32
+  expr 359:39   IdentExpr      :: Lexer
   expr 35:16    StringLitExpr  :: string
   expr 35:38    DotVariantExpr :: TokenKind
-  expr 35:49    StructLitExpr  :: Lexer
   expr 35:5     IfExpr         :: void
   expr 35:8     BinaryExpr     :: bool
   expr 35:8     IdentExpr      :: string
-  expr 360:26   CallExpr       :: bool
-  expr 360:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 360:26   IdentExpr      :: Lexer
-  expr 360:34   DotVariantExpr :: TokenKind
-  expr 360:42   StringLitExpr  :: string
-  expr 360:5    IfExpr         :: void
-  expr 360:8    BinaryExpr     :: bool
-  expr 360:8    IdentExpr      :: char
-  expr 361:26   CallExpr       :: bool
-  expr 361:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 361:26   IdentExpr      :: Lexer
-  expr 361:34   DotVariantExpr :: TokenKind
-  expr 361:41   StringLitExpr  :: string
-  expr 361:5    IfExpr         :: void
-  expr 361:8    BinaryExpr     :: bool
-  expr 361:8    IdentExpr      :: char
-  expr 362:26   CallExpr       :: bool
-  expr 362:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 362:26   IdentExpr      :: Lexer
-  expr 362:34   DotVariantExpr :: TokenKind
-  expr 362:42   StringLitExpr  :: string
+  expr 360:13   StructLitExpr  :: Span
+  expr 360:29   IdentExpr      :: Position
+  expr 360:43   CallExpr       :: Position
+  expr 360:43   FieldExpr      :: fn() -> Position
+  expr 360:43   IdentExpr      :: Lexer
+  expr 361:23   DotVariantExpr :: TokenKind
   expr 362:5    IfExpr         :: void
-  expr 362:8    BinaryExpr     :: bool
-  expr 362:8    IdentExpr      :: char
-  expr 363:26   CallExpr       :: bool
-  expr 363:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 363:26   IdentExpr      :: Lexer
-  expr 363:34   DotVariantExpr :: TokenKind
-  expr 363:44   StringLitExpr  :: string
-  expr 363:5    IfExpr         :: void
-  expr 363:8    BinaryExpr     :: bool
-  expr 363:8    IdentExpr      :: char
-  expr 364:26   CallExpr       :: bool
-  expr 364:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 364:26   IdentExpr      :: Lexer
-  expr 364:34   DotVariantExpr :: TokenKind
-  expr 364:40   StringLitExpr  :: string
-  expr 364:5    IfExpr         :: void
-  expr 364:8    BinaryExpr     :: bool
-  expr 364:8    IdentExpr      :: char
-  expr 365:26   CallExpr       :: bool
-  expr 365:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 365:26   IdentExpr      :: Lexer
-  expr 365:34   DotVariantExpr :: TokenKind
-  expr 365:41   StringLitExpr  :: string
-  expr 365:5    IfExpr         :: void
-  expr 365:8    BinaryExpr     :: bool
-  expr 365:8    IdentExpr      :: char
-  expr 366:26   CallExpr       :: bool
-  expr 366:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 366:26   IdentExpr      :: Lexer
-  expr 366:34   DotVariantExpr :: TokenKind
-  expr 366:42   StringLitExpr  :: string
+  expr 362:8    IdentExpr      :: bool
+  expr 363:16   DotVariantExpr :: TokenKind
+  expr 363:9    IdentExpr      :: TokenKind
+  expr 365:10   CallExpr       :: Token
+  expr 365:10   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 365:21   IdentExpr      :: TokenKind
+  expr 365:27   IdentExpr      :: string
+  expr 365:33   IdentExpr      :: Span
   expr 366:5    IfExpr         :: void
-  expr 366:8    BinaryExpr     :: bool
-  expr 366:8    IdentExpr      :: char
-  expr 367:26   CallExpr       :: bool
-  expr 367:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 367:26   IdentExpr      :: Lexer
-  expr 367:34   DotVariantExpr :: TokenKind
-  expr 367:42   StringLitExpr  :: string
-  expr 367:5    IfExpr         :: void
-  expr 367:8    BinaryExpr     :: bool
-  expr 367:8    IdentExpr      :: char
-  expr 368:26   CallExpr       :: bool
-  expr 368:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 368:26   IdentExpr      :: Lexer
-  expr 368:34   DotVariantExpr :: TokenKind
-  expr 368:39   StringLitExpr  :: string
-  expr 368:5    IfExpr         :: void
-  expr 368:8    BinaryExpr     :: bool
-  expr 368:8    IdentExpr      :: char
-  expr 369:26   CallExpr       :: bool
-  expr 369:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 369:26   IdentExpr      :: Lexer
-  expr 369:34   DotVariantExpr :: TokenKind
-  expr 369:39   StringLitExpr  :: string
-  expr 369:5    IfExpr         :: void
-  expr 369:8    BinaryExpr     :: bool
-  expr 369:8    IdentExpr      :: char
-  expr 36:12    IdentExpr      :: string
+  expr 366:8    IdentExpr      :: bool
+  expr 367:28   IdentExpr      :: string
+  expr 367:9    FieldExpr      :: string
+  expr 367:9    IdentExpr      :: Token
   expr 36:16    StringLitExpr  :: string
   expr 36:38    DotVariantExpr :: TokenKind
   expr 36:5     IfExpr         :: void
   expr 36:8     BinaryExpr     :: bool
   expr 36:8     IdentExpr      :: string
-  expr 370:26   CallExpr       :: bool
-  expr 370:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 370:26   IdentExpr      :: Lexer
-  expr 370:34   DotVariantExpr :: TokenKind
-  expr 370:41   StringLitExpr  :: string
-  expr 370:5    IfExpr         :: void
-  expr 370:8    BinaryExpr     :: bool
-  expr 370:8    IdentExpr      :: char
-  expr 371:26   CallExpr       :: bool
-  expr 371:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 371:26   IdentExpr      :: Lexer
-  expr 371:34   DotVariantExpr :: TokenKind
-  expr 371:43   StringLitExpr  :: string
-  expr 371:5    IfExpr         :: void
-  expr 371:8    BinaryExpr     :: bool
-  expr 371:8    IdentExpr      :: char
-  expr 372:26   CallExpr       :: bool
-  expr 372:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 372:26   IdentExpr      :: Lexer
-  expr 372:34   DotVariantExpr :: TokenKind
-  expr 372:45   StringLitExpr  :: string
-  expr 372:5    IfExpr         :: void
-  expr 372:8    BinaryExpr     :: bool
-  expr 372:8    IdentExpr      :: char
-  expr 373:26   CallExpr       :: bool
-  expr 373:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 373:26   IdentExpr      :: Lexer
-  expr 373:34   DotVariantExpr :: TokenKind
-  expr 373:39   StringLitExpr  :: string
-  expr 373:5    IfExpr         :: void
-  expr 373:8    BinaryExpr     :: bool
-  expr 373:8    IdentExpr      :: char
-  expr 374:26   CallExpr       :: bool
-  expr 374:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 374:26   IdentExpr      :: Lexer
-  expr 374:34   DotVariantExpr :: TokenKind
-  expr 374:43   StringLitExpr  :: string
-  expr 374:5    IfExpr         :: void
-  expr 374:8    BinaryExpr     :: bool
-  expr 374:8    IdentExpr      :: char
-  expr 375:26   CallExpr       :: bool
-  expr 375:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 375:26   IdentExpr      :: Lexer
-  expr 375:34   DotVariantExpr :: TokenKind
-  expr 375:42   StringLitExpr  :: string
-  expr 375:5    IfExpr         :: void
-  expr 375:8    BinaryExpr     :: bool
-  expr 375:8    IdentExpr      :: char
-  expr 376:26   CallExpr       :: bool
-  expr 376:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 376:26   IdentExpr      :: Lexer
-  expr 376:34   DotVariantExpr :: TokenKind
-  expr 376:42   StringLitExpr  :: string
-  expr 376:5    IfExpr         :: void
-  expr 376:8    BinaryExpr     :: bool
-  expr 376:8    IdentExpr      :: char
-  expr 377:26   CallExpr       :: bool
-  expr 377:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 377:26   IdentExpr      :: Lexer
-  expr 377:34   DotVariantExpr :: TokenKind
-  expr 377:40   StringLitExpr  :: string
-  expr 377:5    IfExpr         :: void
-  expr 377:8    BinaryExpr     :: bool
-  expr 377:8    IdentExpr      :: char
-  expr 37:13    IdentExpr      :: string
+  expr 371:12   IdentExpr      :: Token
+  expr 371:5    CallExpr       :: void
+  expr 371:5    FieldExpr      :: fn(Token) -> void
+  expr 371:5    IdentExpr      :: Lexer
+  expr 379:20   BinaryExpr     :: bool
+  expr 379:20   IdentExpr      :: char
+  expr 379:38   CallExpr       :: i32
+  expr 379:38   IdentExpr      :: type
+  expr 379:42   BinaryExpr     :: u32
+  expr 379:42   CallExpr       :: u32
+  expr 379:42   IdentExpr      :: type
+  expr 379:46   IdentExpr      :: char
+  expr 379:5    IfExpr         :: void
+  expr 379:51   CallExpr       :: u32
+  expr 379:51   IdentExpr      :: type
+  expr 379:8    BinaryExpr     :: bool
+  expr 379:8    BinaryExpr     :: bool
+  expr 379:8    IdentExpr      :: char
   expr 37:16    StringLitExpr  :: string
   expr 37:38    DotVariantExpr :: TokenKind
   expr 37:5     IfExpr         :: void
   expr 37:8     BinaryExpr     :: bool
   expr 37:8     IdentExpr      :: string
+  expr 380:20   BinaryExpr     :: bool
+  expr 380:20   IdentExpr      :: char
+  expr 380:38   CallExpr       :: i32
+  expr 380:38   IdentExpr      :: type
+  expr 380:42   BinaryExpr     :: u32
+  expr 380:42   BinaryExpr     :: u32
+  expr 380:42   CallExpr       :: u32
+  expr 380:42   IdentExpr      :: type
+  expr 380:46   IdentExpr      :: char
+  expr 380:5    IfExpr         :: void
+  expr 380:51   CallExpr       :: u32
+  expr 380:51   IdentExpr      :: type
+  expr 380:62   CallExpr       :: u32
+  expr 380:62   IdentExpr      :: type
+  expr 380:8    BinaryExpr     :: bool
+  expr 380:8    BinaryExpr     :: bool
+  expr 380:8    IdentExpr      :: char
+  expr 381:20   BinaryExpr     :: bool
+  expr 381:20   IdentExpr      :: char
+  expr 381:38   CallExpr       :: i32
+  expr 381:38   IdentExpr      :: type
+  expr 381:42   BinaryExpr     :: u32
+  expr 381:42   BinaryExpr     :: u32
+  expr 381:42   CallExpr       :: u32
+  expr 381:42   IdentExpr      :: type
+  expr 381:46   IdentExpr      :: char
   expr 381:5    IfExpr         :: void
+  expr 381:51   CallExpr       :: u32
+  expr 381:51   IdentExpr      :: type
+  expr 381:62   CallExpr       :: u32
+  expr 381:62   IdentExpr      :: type
+  expr 381:8    BinaryExpr     :: bool
   expr 381:8    BinaryExpr     :: bool
   expr 381:8    IdentExpr      :: char
-  expr 382:18   CallExpr       :: Position
-  expr 382:18   FieldExpr      :: fn() -> Position
-  expr 382:18   IdentExpr      :: Lexer
-  expr 383:9    CallExpr       :: void
-  expr 383:9    FieldExpr      :: fn(i32) -> void
-  expr 383:9    IdentExpr      :: Lexer
-  expr 384:25   BinaryExpr     :: i32
-  expr 384:25   FieldExpr      :: i32
-  expr 384:25   IdentExpr      :: Lexer
-  expr 384:9    FieldExpr      :: i32
-  expr 384:9    IdentExpr      :: Lexer
-  expr 385:23   DotVariantExpr :: TokenKind
-  expr 385:32   StringLitExpr  :: string
-  expr 385:37   IdentExpr      :: Position
-  expr 385:9    CallExpr       :: void
-  expr 385:9    FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 385:9    IdentExpr      :: Lexer
-  expr 388:5    IfExpr         :: void
-  expr 388:8    BinaryExpr     :: bool
-  expr 388:8    IdentExpr      :: char
-  expr 389:18   CallExpr       :: Position
-  expr 389:18   FieldExpr      :: fn() -> Position
-  expr 389:18   IdentExpr      :: Lexer
+  expr 382:12   UnaryExpr      :: i32
+  expr 388:18   CallExpr       :: Position
+  expr 388:18   FieldExpr      :: fn() -> Position
+  expr 388:18   IdentExpr      :: Lexer
+  expr 389:5    CallExpr       :: void
+  expr 389:5    FieldExpr      :: fn(i32) -> void
+  expr 389:5    IdentExpr      :: Lexer
   expr 38:12    DotVariantExpr :: TokenKind
-  expr 390:9    CallExpr       :: void
-  expr 390:9    FieldExpr      :: fn(i32) -> void
-  expr 390:9    IdentExpr      :: Lexer
-  expr 391:25   BinaryExpr     :: i32
-  expr 391:25   FieldExpr      :: i32
-  expr 391:25   IdentExpr      :: Lexer
-  expr 391:9    FieldExpr      :: i32
+  expr 390:5    IfExpr         :: void
+  expr 390:8    CallExpr       :: bool
+  expr 390:8    FieldExpr      :: fn() -> bool
+  expr 390:8    IdentExpr      :: Lexer
+  expr 391:22   DotVariantExpr :: LexerCode
+  expr 391:46   CallExpr       :: Span
+  expr 391:46   FieldExpr      :: fn(Position) -> Span
+  expr 391:46   IdentExpr      :: Lexer
+  expr 391:59   IdentExpr      :: Position
+  expr 391:71   StringLitExpr  :: string
+  expr 391:9    CallExpr       :: void
+  expr 391:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
   expr 391:9    IdentExpr      :: Lexer
-  expr 392:23   DotVariantExpr :: TokenKind
-  expr 392:34   StringLitExpr  :: string
-  expr 392:39   IdentExpr      :: Position
-  expr 392:9    CallExpr       :: void
-  expr 392:9    FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 392:9    IdentExpr      :: Lexer
-  expr 395:5    IfExpr         :: void
-  expr 395:8    BinaryExpr     :: bool
-  expr 395:8    IdentExpr      :: char
-  expr 396:18   CallExpr       :: Position
-  expr 396:18   FieldExpr      :: fn() -> Position
-  expr 396:18   IdentExpr      :: Lexer
-  expr 397:9    CallExpr       :: void
-  expr 397:9    FieldExpr      :: fn(i32) -> void
-  expr 397:9    IdentExpr      :: Lexer
-  expr 398:12   BinaryExpr     :: bool
-  expr 398:12   FieldExpr      :: i32
-  expr 398:12   IdentExpr      :: Lexer
-  expr 398:32   FieldExpr      :: i32
-  expr 398:32   IdentExpr      :: Lexer
-  expr 398:48   BinaryExpr     :: i32
-  expr 398:48   FieldExpr      :: i32
-  expr 398:48   IdentExpr      :: Lexer
-  expr 398:9    IfExpr         :: void
-  expr 399:23   DotVariantExpr :: TokenKind
-  expr 399:32   StringLitExpr  :: string
-  expr 399:37   IdentExpr      :: Position
-  expr 399:9    CallExpr       :: void
-  expr 399:9    FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 399:9    IdentExpr      :: Lexer
+  expr 392:16   CallExpr       :: u32
+  expr 392:16   IdentExpr      :: type
+  expr 394:10   CallExpr       :: char
+  expr 394:10   FieldExpr      :: fn() -> char
+  expr 394:10   IdentExpr      :: Lexer
+  expr 395:5    CallExpr       :: void
+  expr 395:5    FieldExpr      :: fn(i32) -> void
+  expr 395:5    IdentExpr      :: Lexer
+  expr 396:27   CallExpr       :: u32
+  expr 396:27   IdentExpr      :: type
+  expr 396:5    IfExpr         :: void
+  expr 396:8    BinaryExpr     :: bool
+  expr 396:8    IdentExpr      :: char
+  expr 397:27   CallExpr       :: u32
+  expr 397:27   IdentExpr      :: type
+  expr 397:5    IfExpr         :: void
+  expr 397:8    BinaryExpr     :: bool
+  expr 397:8    IdentExpr      :: char
+  expr 398:27   CallExpr       :: u32
+  expr 398:27   IdentExpr      :: type
+  expr 398:5    IfExpr         :: void
+  expr 398:8    BinaryExpr     :: bool
+  expr 398:8    IdentExpr      :: char
+  expr 399:27   CallExpr       :: u32
+  expr 399:27   IdentExpr      :: type
+  expr 399:5    IfExpr         :: void
+  expr 399:8    BinaryExpr     :: bool
+  expr 399:8    IdentExpr      :: char
+  expr 400:27   CallExpr       :: u32
+  expr 400:27   IdentExpr      :: type
+  expr 400:5    IfExpr         :: void
+  expr 400:8    BinaryExpr     :: bool
+  expr 400:8    IdentExpr      :: char
+  expr 401:27   CallExpr       :: u32
+  expr 401:27   IdentExpr      :: type
+  expr 401:5    IfExpr         :: void
+  expr 401:8    BinaryExpr     :: bool
+  expr 401:8    IdentExpr      :: char
+  expr 402:27   CallExpr       :: u32
+  expr 402:27   IdentExpr      :: type
   expr 402:5    IfExpr         :: void
   expr 402:8    BinaryExpr     :: bool
   expr 402:8    IdentExpr      :: char
-  expr 403:18   CallExpr       :: Position
-  expr 403:18   FieldExpr      :: fn() -> Position
-  expr 403:18   IdentExpr      :: Lexer
-  expr 404:9    CallExpr       :: void
-  expr 404:9    FieldExpr      :: fn(i32) -> void
-  expr 404:9    IdentExpr      :: Lexer
-  expr 405:12   BinaryExpr     :: bool
-  expr 405:12   FieldExpr      :: i32
-  expr 405:12   IdentExpr      :: Lexer
-  expr 405:32   FieldExpr      :: i32
-  expr 405:32   IdentExpr      :: Lexer
-  expr 405:48   BinaryExpr     :: i32
-  expr 405:48   FieldExpr      :: i32
-  expr 405:48   IdentExpr      :: Lexer
-  expr 405:9    IfExpr         :: void
-  expr 406:23   DotVariantExpr :: TokenKind
-  expr 406:34   StringLitExpr  :: string
-  expr 406:39   IdentExpr      :: Position
-  expr 406:9    CallExpr       :: void
-  expr 406:9    FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 406:9    IdentExpr      :: Lexer
-  expr 409:26   CallExpr       :: bool
-  expr 409:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 409:26   IdentExpr      :: Lexer
-  expr 409:34   DotVariantExpr :: TokenKind
-  expr 409:43   StringLitExpr  :: string
-  expr 409:5    IfExpr         :: void
-  expr 409:8    BinaryExpr     :: bool
-  expr 409:8    IdentExpr      :: char
-  expr 410:26   CallExpr       :: bool
-  expr 410:26   FieldExpr      :: fn(TokenKind, string) -> bool
-  expr 410:26   IdentExpr      :: Lexer
-  expr 410:34   DotVariantExpr :: TokenKind
-  expr 410:43   StringLitExpr  :: string
-  expr 410:5    IfExpr         :: void
-  expr 410:8    BinaryExpr     :: bool
-  expr 410:8    IdentExpr      :: char
-  expr 416:14   CallExpr       :: Position
-  expr 416:14   FieldExpr      :: fn() -> Position
-  expr 416:14   IdentExpr      :: Lexer
-  expr 417:5    CallExpr       :: void
-  expr 417:5    FieldExpr      :: fn(i32) -> void
-  expr 417:5    IdentExpr      :: Lexer
-  expr 418:19   IdentExpr      :: TokenKind
-  expr 418:25   IdentExpr      :: string
-  expr 418:31   IdentExpr      :: Position
-  expr 418:5    CallExpr       :: void
-  expr 418:5    FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 418:5    IdentExpr      :: Lexer
-  expr 423:14   CallExpr       :: Position
-  expr 423:14   FieldExpr      :: fn() -> Position
-  expr 423:14   IdentExpr      :: Lexer
-  expr 424:5    CallExpr       :: void
-  expr 424:5    FieldExpr      :: fn(i32) -> void
-  expr 424:5    IdentExpr      :: Lexer
-  expr 425:19   IdentExpr      :: TokenKind
-  expr 425:25   IdentExpr      :: string
-  expr 425:31   IdentExpr      :: Position
-  expr 425:5    CallExpr       :: void
-  expr 425:5    FieldExpr      :: fn(TokenKind, string, Position) -> void
-  expr 425:5    IdentExpr      :: Lexer
+  expr 403:27   CallExpr       :: u32
+  expr 403:27   IdentExpr      :: type
+  expr 403:5    IfExpr         :: void
+  expr 403:8    BinaryExpr     :: bool
+  expr 403:8    IdentExpr      :: char
+  expr 404:27   CallExpr       :: u32
+  expr 404:27   FieldExpr      :: fn(Position) -> u32
+  expr 404:27   IdentExpr      :: Lexer
+  expr 404:48   IdentExpr      :: Position
+  expr 404:5    IfExpr         :: void
+  expr 404:8    BinaryExpr     :: bool
+  expr 404:8    IdentExpr      :: char
+  expr 405:18   DotVariantExpr :: LexerCode
+  expr 405:42   CallExpr       :: Span
+  expr 405:42   FieldExpr      :: fn(Position) -> Span
+  expr 405:42   IdentExpr      :: Lexer
+  expr 405:5    CallExpr       :: void
+  expr 405:5    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 405:5    IdentExpr      :: Lexer
+  expr 405:55   IdentExpr      :: Position
+  expr 405:67   StringLitExpr  :: string
+  expr 405:87   IdentExpr      :: char
+  expr 406:12   CallExpr       :: u32
+  expr 406:12   IdentExpr      :: type
+  expr 406:16   IdentExpr      :: char
+  expr 412:5    IfExpr         :: void
+  expr 412:8    BinaryExpr     :: bool
+  expr 412:8    CallExpr       :: char
+  expr 412:8    FieldExpr      :: fn() -> char
+  expr 412:8    IdentExpr      :: Lexer
+  expr 413:22   DotVariantExpr :: LexerCode
+  expr 413:54   CallExpr       :: Span
+  expr 413:54   FieldExpr      :: fn(Position) -> Span
+  expr 413:54   IdentExpr      :: Lexer
+  expr 413:67   IdentExpr      :: Position
+  expr 413:79   StringLitExpr  :: string
+  expr 413:9    CallExpr       :: void
+  expr 413:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 413:9    IdentExpr      :: Lexer
+  expr 414:16   CallExpr       :: u32
+  expr 414:16   IdentExpr      :: type
+  expr 416:5    CallExpr       :: void
+  expr 416:5    FieldExpr      :: fn(i32) -> void
+  expr 416:5    IdentExpr      :: Lexer
+  expr 417:18   FieldExpr      :: i32
+  expr 417:18   IdentExpr      :: Lexer
+  expr 418:10   CallExpr       :: bool
+  expr 418:10   FieldExpr      :: fn() -> bool
+  expr 418:10   IdentExpr      :: Lexer
+  expr 418:24   BinaryExpr     :: bool
+  expr 418:24   CallExpr       :: char
+  expr 418:24   FieldExpr      :: fn() -> char
+  expr 418:24   IdentExpr      :: Lexer
+  expr 418:9    BinaryExpr     :: bool
+  expr 418:9    UnaryExpr      :: bool
+  expr 419:12   BinaryExpr     :: bool
+  expr 419:12   CallExpr       :: i32
+  expr 419:12   IdentExpr      :: fn(char) -> i32
+  expr 419:28   CallExpr       :: char
+  expr 419:28   FieldExpr      :: fn() -> char
+  expr 419:28   IdentExpr      :: Lexer
+  expr 419:9    IfExpr         :: void
+  expr 420:13   CallExpr       :: void
+  expr 420:13   FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 420:13   IdentExpr      :: Lexer
+  expr 420:26   DotVariantExpr :: LexerCode
+  expr 420:58   CallExpr       :: Span
+  expr 420:58   FieldExpr      :: fn(Position) -> Span
+  expr 420:58   IdentExpr      :: Lexer
+  expr 420:71   IdentExpr      :: Position
+  expr 420:83   StringLitExpr  :: string
+  expr 422:17   BinaryExpr     :: bool
+  expr 422:17   BinaryExpr     :: bool
+  expr 422:17   UnaryExpr      :: bool
+  expr 422:18   CallExpr       :: bool
+  expr 422:18   FieldExpr      :: fn() -> bool
+  expr 422:18   IdentExpr      :: Lexer
+  expr 422:32   BinaryExpr     :: bool
+  expr 422:32   CallExpr       :: char
+  expr 422:32   FieldExpr      :: fn() -> char
+  expr 422:32   IdentExpr      :: Lexer
+  expr 422:51   BinaryExpr     :: bool
+  expr 422:51   CallExpr       :: char
+  expr 422:51   FieldExpr      :: fn() -> char
+  expr 422:51   IdentExpr      :: Lexer
+  expr 423:17   CallExpr       :: void
+  expr 423:17   FieldExpr      :: fn(i32) -> void
+  expr 423:17   IdentExpr      :: Lexer
+  expr 428:9    CallExpr       :: void
+  expr 428:9    FieldExpr      :: fn(i32) -> void
+  expr 428:9    IdentExpr      :: Lexer
   expr 42:10    StringLitExpr  :: string
   expr 42:18    BinaryExpr     :: bool
-  expr 42:18    DotVariantExpr :: TokenKind
   expr 42:18    IdentExpr      :: string
   expr 42:23    StringLitExpr  :: string
   expr 42:32    BinaryExpr     :: bool
@@ -1282,27 +1288,38 @@
   expr 42:5     BinaryExpr     :: bool
   expr 42:5     IdentExpr      :: string
   expr 42:51    StringLitExpr  :: string
-  expr 432:5    CallExpr       :: void
-  expr 432:5    FieldExpr      :: fn() -> void
-  expr 432:5    IdentExpr      :: Lexer
-  expr 433:5    IfExpr         :: void
-  expr 433:8    CallExpr       :: bool
-  expr 433:8    FieldExpr      :: fn() -> bool
-  expr 433:8    IdentExpr      :: Lexer
-  expr 435:10   CallExpr       :: char
-  expr 435:10   FieldExpr      :: fn() -> char
-  expr 435:10   IdentExpr      :: Lexer
-  expr 437:21   BinaryExpr     :: bool
-  expr 437:21   IdentExpr      :: char
-  expr 437:5    IfExpr         :: void
-  expr 437:8    BinaryExpr     :: bool
-  expr 437:8    BinaryExpr     :: bool
-  expr 437:8    IdentExpr      :: char
-  expr 438:9    CallExpr       :: void
-  expr 438:9    FieldExpr      :: fn() -> void
-  expr 438:9    IdentExpr      :: Lexer
+  expr 430:16   BinaryExpr     :: i32
+  expr 430:16   FieldExpr      :: i32
+  expr 430:16   IdentExpr      :: Lexer
+  expr 430:24   IdentExpr      :: i32
+  expr 431:5    IfExpr         :: void
+  expr 431:8    BinaryExpr     :: bool
+  expr 431:8    CallExpr       :: char
+  expr 431:8    FieldExpr      :: fn() -> char
+  expr 431:8    IdentExpr      :: Lexer
+  expr 432:9    CallExpr       :: void
+  expr 432:9    FieldExpr      :: fn(i32) -> void
+  expr 432:9    IdentExpr      :: Lexer
+  expr 434:24   BinaryExpr     :: bool
+  expr 434:24   IdentExpr      :: i32
+  expr 434:5    IfExpr         :: void
+  expr 434:8    BinaryExpr     :: bool
+  expr 434:8    BinaryExpr     :: bool
+  expr 434:8    IdentExpr      :: i32
+  expr 435:22   DotVariantExpr :: LexerCode
+  expr 435:54   CallExpr       :: Span
+  expr 435:54   FieldExpr      :: fn(Position) -> Span
+  expr 435:54   IdentExpr      :: Lexer
+  expr 435:67   IdentExpr      :: Position
+  expr 435:9    CallExpr       :: void
+  expr 435:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 435:9    IdentExpr      :: Lexer
+  expr 436:13   StringLitExpr  :: string
+  expr 437:16   CallExpr       :: u32
+  expr 437:16   IdentExpr      :: type
+  expr 439:15   CallExpr       :: u32
+  expr 439:15   IdentExpr      :: type
   expr 43:10    StringLitExpr  :: string
-  expr 43:15    ArrayLitExpr   :: [Token]
   expr 43:18    BinaryExpr     :: bool
   expr 43:18    IdentExpr      :: string
   expr 43:23    StringLitExpr  :: string
@@ -1314,52 +1331,58 @@
   expr 43:5     BinaryExpr     :: bool
   expr 43:5     IdentExpr      :: string
   expr 43:51    StringLitExpr  :: string
-  expr 441:20   BinaryExpr     :: bool
-  expr 441:20   CallExpr       :: char
-  expr 441:20   FieldExpr      :: fn(i32) -> char
-  expr 441:20   IdentExpr      :: Lexer
-  expr 441:5    IfExpr         :: void
-  expr 441:8    BinaryExpr     :: bool
-  expr 441:8    BinaryExpr     :: bool
-  expr 441:8    IdentExpr      :: char
-  expr 443:13   BinaryExpr     :: bool
-  expr 443:13   UnaryExpr      :: bool
-  expr 443:14   CallExpr       :: bool
-  expr 443:14   FieldExpr      :: fn() -> bool
-  expr 443:14   IdentExpr      :: Lexer
-  expr 443:28   BinaryExpr     :: bool
-  expr 443:28   CallExpr       :: char
-  expr 443:28   FieldExpr      :: fn() -> char
-  expr 443:28   IdentExpr      :: Lexer
-  expr 444:13   CallExpr       :: void
-  expr 444:13   FieldExpr      :: fn(i32) -> void
-  expr 444:13   IdentExpr      :: Lexer
-  expr 448:20   BinaryExpr     :: bool
-  expr 448:20   CallExpr       :: char
-  expr 448:20   FieldExpr      :: fn(i32) -> char
-  expr 448:20   IdentExpr      :: Lexer
-  expr 448:5    IfExpr         :: void
-  expr 448:8    BinaryExpr     :: bool
-  expr 448:8    BinaryExpr     :: bool
-  expr 448:8    IdentExpr      :: char
-  expr 449:9    CallExpr       :: void
-  expr 449:9    FieldExpr      :: fn() -> void
-  expr 449:9    IdentExpr      :: Lexer
-  expr 44:15    ArrayLitExpr   :: [string]
-  expr 452:5    IfExpr         :: void
-  expr 452:8    CallExpr       :: bool
-  expr 452:8    FieldExpr      :: fn() -> bool
-  expr 452:8    IdentExpr      :: char
-  expr 453:9    CallExpr       :: void
-  expr 453:9    FieldExpr      :: fn() -> void
-  expr 453:9    IdentExpr      :: Lexer
-  expr 456:5    IfExpr         :: void
-  expr 456:8    CallExpr       :: bool
-  expr 456:8    FieldExpr      :: fn() -> bool
-  expr 456:8    IdentExpr      :: char
-  expr 457:9    CallExpr       :: void
-  expr 457:9    FieldExpr      :: fn() -> void
-  expr 457:9    IdentExpr      :: Lexer
+  expr 441:13   IdentExpr      :: i32
+  expr 441:9    BinaryExpr     :: bool
+  expr 441:9    IdentExpr      :: i32
+  expr 442:14   CallExpr       :: i32
+  expr 442:14   IdentExpr      :: fn(char) -> i32
+  expr 442:30   CallExpr       :: char
+  expr 442:30   FieldExpr      :: fn(i32) -> char
+  expr 442:30   FieldExpr      :: string
+  expr 442:30   IdentExpr      :: Lexer
+  expr 442:44   BinaryExpr     :: i32
+  expr 442:44   IdentExpr      :: i32
+  expr 442:56   IdentExpr      :: i32
+  expr 443:14   BinaryExpr     :: u32
+  expr 443:14   BinaryExpr     :: u32
+  expr 443:14   IdentExpr      :: u32
+  expr 443:19   CallExpr       :: u32
+  expr 443:19   IdentExpr      :: type
+  expr 443:29   CallExpr       :: u32
+  expr 443:29   IdentExpr      :: type
+  expr 443:33   IdentExpr      :: i32
+  expr 443:9    IdentExpr      :: u32
+  expr 444:13   BinaryExpr     :: i32
+  expr 444:13   IdentExpr      :: i32
+  expr 444:9    IdentExpr      :: i32
+  expr 446:13   CallExpr       :: u32
+  expr 446:13   IdentExpr      :: type
+  expr 446:5    IfExpr         :: void
+  expr 446:8    BinaryExpr     :: bool
+  expr 446:8    IdentExpr      :: u32
+  expr 447:22   DotVariantExpr :: LexerCode
+  expr 447:54   CallExpr       :: Span
+  expr 447:54   FieldExpr      :: fn(Position) -> Span
+  expr 447:54   IdentExpr      :: Lexer
+  expr 447:67   IdentExpr      :: Position
+  expr 447:9    CallExpr       :: void
+  expr 447:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 447:9    IdentExpr      :: Lexer
+  expr 448:13   StringLitExpr  :: string
+  expr 449:16   CallExpr       :: u32
+  expr 449:16   IdentExpr      :: type
+  expr 451:12   IdentExpr      :: u32
+  expr 457:13   CallExpr       :: u32
+  expr 457:13   IdentExpr      :: type
+  expr 457:5    IfExpr         :: void
+  expr 457:8    BinaryExpr     :: bool
+  expr 457:8    IdentExpr      :: u32
+  expr 458:24   CallExpr       :: char
+  expr 458:24   IdentExpr      :: type
+  expr 458:29   IdentExpr      :: u32
+  expr 458:9    CallExpr       :: void
+  expr 458:9    FieldExpr      :: fn(char) -> void
+  expr 458:9    IdentExpr      :: StringBuilder
   expr 45:36    BinaryExpr     :: bool
   expr 45:36    BinaryExpr     :: bool
   expr 45:36    IdentExpr      :: string
@@ -1367,109 +1390,1440 @@
   expr 45:50    BinaryExpr     :: bool
   expr 45:50    IdentExpr      :: string
   expr 45:55    StringLitExpr  :: string
-  expr 460:5    IfExpr         :: void
-  expr 460:8    CallExpr       :: bool
-  expr 460:8    FieldExpr      :: fn() -> bool
-  expr 460:8    IdentExpr      :: Lexer
-  expr 465:14   CallExpr       :: Position
-  expr 465:14   FieldExpr      :: fn() -> Position
-  expr 465:14   IdentExpr      :: Lexer
-  expr 466:5    CallExpr       :: void
-  expr 466:5    FieldExpr      :: fn(i32) -> void
-  expr 466:5    IdentExpr      :: Lexer
-  expr 467:18   StringLitExpr  :: string
-  expr 467:5    CallExpr       :: void
-  expr 467:5    FieldExpr      :: fn(string) -> void
-  expr 467:5    IdentExpr      :: Lexer
-  expr 467:52   FieldExpr      :: i32
-  expr 467:52   IdentExpr      :: Position
-  expr 467:66   FieldExpr      :: i32
-  expr 467:66   IdentExpr      :: Position
-  expr 473:10   CallExpr       :: Lexer
-  expr 473:10   IdentExpr      :: fn(string, string) -> Lexer
-  expr 473:20   IdentExpr      :: string
-  expr 473:28   IdentExpr      :: string
-  expr 474:10   CallExpr       :: bool
-  expr 474:10   FieldExpr      :: fn() -> bool
-  expr 474:10   IdentExpr      :: Lexer
-  expr 474:9    UnaryExpr      :: bool
-  expr 475:9    CallExpr       :: void
-  expr 475:9    FieldExpr      :: fn() -> void
-  expr 475:9    IdentExpr      :: Lexer
-  expr 477:13   CallExpr       :: Position
-  expr 477:13   FieldExpr      :: fn() -> Position
-  expr 477:13   IdentExpr      :: Lexer
-  expr 478:17   StructLitExpr  :: Span
-  expr 478:33   IdentExpr      :: Position
-  expr 478:46   IdentExpr      :: Position
-  expr 479:12   CallExpr       :: Token
-  expr 479:12   IdentExpr      :: fn(TokenKind, string, Span) -> Token
-  expr 479:23   DotVariantExpr :: TokenKind
-  expr 479:29   StringLitExpr  :: string
-  expr 479:33   IdentExpr      :: Span
-  expr 479:5    CallExpr       :: void
-  expr 479:5    FieldExpr      :: fn(Token) -> void
-  expr 479:5    IdentExpr      :: Lexer
-  expr 480:12   IdentExpr      :: Lexer
-  expr 49:27    BinaryExpr     :: bool
-  expr 49:27    BinaryExpr     :: bool
-  expr 49:27    IdentExpr      :: char
-  expr 49:39    BinaryExpr     :: bool
-  expr 49:39    IdentExpr      :: char
-  expr 52:18    BinaryExpr     :: bool
-  expr 52:18    IdentExpr      :: char
-  expr 52:32    BinaryExpr     :: bool
-  expr 52:32    BinaryExpr     :: bool
-  expr 52:32    IdentExpr      :: char
-  expr 52:44    BinaryExpr     :: bool
-  expr 52:44    IdentExpr      :: char
-  expr 52:57    BinaryExpr     :: bool
-  expr 52:57    IdentExpr      :: char
-  expr 52:6     BinaryExpr     :: bool
-  expr 52:6     BinaryExpr     :: bool
-  expr 52:6     BinaryExpr     :: bool
-  expr 52:6     BinaryExpr     :: bool
-  expr 52:6     IdentExpr      :: char
-  expr 54:36    BinaryExpr     :: bool
-  expr 54:36    CallExpr       :: bool
-  expr 54:36    FieldExpr      :: fn() -> bool
-  expr 54:36    IdentExpr      :: char
-  expr 54:58    CallExpr       :: bool
-  expr 54:58    FieldExpr      :: fn() -> bool
-  expr 54:58    IdentExpr      :: char
-  expr 58:48    MatchExpr      :: bool
-  expr 58:54    IdentExpr      :: TokenKind
-  expr 83:10    StructLitExpr  :: Position
-  expr 84:12    StructLitExpr  :: Span
-  expr 84:28    IdentExpr      :: Position
-  expr 84:38    IdentExpr      :: Position
-  expr 87:63    StructLitExpr  :: Token
-  expr 88:13    IdentExpr      :: TokenKind
-  expr 89:13    IdentExpr      :: string
-  expr 89:26    BinaryExpr     :: bool
-  expr 89:26    FieldExpr      :: i32
-  expr 89:26    IdentExpr      :: Lexer
-  expr 89:35    CallExpr       :: i32
-  expr 89:35    FieldExpr      :: fn() -> i32
-  expr 89:35    FieldExpr      :: string
-  expr 89:35    IdentExpr      :: Lexer
-  expr 90:13    IdentExpr      :: Span
-  expr 92:17    CallExpr       :: i32
-  expr 92:17    FieldExpr      :: fn() -> i32
-  expr 92:17    FieldExpr      :: string
-  expr 92:17    IdentExpr      :: Lexer
-  expr 92:23    StringLitExpr  :: string
-  expr 92:5     IfExpr         :: void
-  expr 92:8     BinaryExpr     :: bool
-  expr 92:8     FieldExpr      :: i32
-  expr 92:8     IdentExpr      :: Lexer
-  expr 95:12    CallExpr       :: char
-  expr 95:12    FieldExpr      :: fn(i32) -> char
-  expr 95:12    FieldExpr      :: string
-  expr 95:12    IdentExpr      :: Lexer
-  expr 95:26    FieldExpr      :: i32
-  expr 95:26    IdentExpr      :: Lexer
-  expr 99:10    BinaryExpr     :: i32
-  expr 99:10    FieldExpr      :: i32
-  expr 99:10    IdentExpr      :: Lexer
-  expr 99:18    IdentExpr      :: i32
+  expr 461:13   CallExpr       :: u32
+  expr 461:13   IdentExpr      :: type
+  expr 461:5    IfExpr         :: void
+  expr 461:8    BinaryExpr     :: bool
+  expr 461:8    IdentExpr      :: u32
+  expr 462:24   CallExpr       :: char
+  expr 462:24   IdentExpr      :: type
+  expr 462:29   BinaryExpr     :: u32
+  expr 462:29   CallExpr       :: u32
+  expr 462:29   IdentExpr      :: type
+  expr 462:42   BinaryExpr     :: u32
+  expr 462:42   IdentExpr      :: u32
+  expr 462:48   CallExpr       :: u32
+  expr 462:48   IdentExpr      :: type
+  expr 462:9    CallExpr       :: void
+  expr 462:9    FieldExpr      :: fn(char) -> void
+  expr 462:9    IdentExpr      :: StringBuilder
+  expr 463:24   CallExpr       :: char
+  expr 463:24   IdentExpr      :: type
+  expr 463:29   BinaryExpr     :: u32
+  expr 463:29   CallExpr       :: u32
+  expr 463:29   IdentExpr      :: type
+  expr 463:42   BinaryExpr     :: u32
+  expr 463:42   IdentExpr      :: u32
+  expr 463:47   CallExpr       :: u32
+  expr 463:47   IdentExpr      :: type
+  expr 463:9    CallExpr       :: void
+  expr 463:9    FieldExpr      :: fn(char) -> void
+  expr 463:9    IdentExpr      :: StringBuilder
+  expr 466:13   CallExpr       :: u32
+  expr 466:13   IdentExpr      :: type
+  expr 466:5    IfExpr         :: void
+  expr 466:8    BinaryExpr     :: bool
+  expr 466:8    IdentExpr      :: u32
+  expr 467:24   CallExpr       :: char
+  expr 467:24   IdentExpr      :: type
+  expr 467:29   BinaryExpr     :: u32
+  expr 467:29   CallExpr       :: u32
+  expr 467:29   IdentExpr      :: type
+  expr 467:42   BinaryExpr     :: u32
+  expr 467:42   IdentExpr      :: u32
+  expr 467:48   CallExpr       :: u32
+  expr 467:48   IdentExpr      :: type
+  expr 467:9    CallExpr       :: void
+  expr 467:9    FieldExpr      :: fn(char) -> void
+  expr 467:9    IdentExpr      :: StringBuilder
+  expr 468:24   CallExpr       :: char
+  expr 468:24   IdentExpr      :: type
+  expr 468:29   BinaryExpr     :: u32
+  expr 468:29   CallExpr       :: u32
+  expr 468:29   IdentExpr      :: type
+  expr 468:43   BinaryExpr     :: u32
+  expr 468:43   BinaryExpr     :: u32
+  expr 468:43   IdentExpr      :: u32
+  expr 468:49   CallExpr       :: u32
+  expr 468:49   IdentExpr      :: type
+  expr 468:59   CallExpr       :: u32
+  expr 468:59   IdentExpr      :: type
+  expr 468:9    CallExpr       :: void
+  expr 468:9    FieldExpr      :: fn(char) -> void
+  expr 468:9    IdentExpr      :: StringBuilder
+  expr 469:24   CallExpr       :: char
+  expr 469:24   IdentExpr      :: type
+  expr 469:29   BinaryExpr     :: u32
+  expr 469:29   CallExpr       :: u32
+  expr 469:29   IdentExpr      :: type
+  expr 469:42   BinaryExpr     :: u32
+  expr 469:42   IdentExpr      :: u32
+  expr 469:47   CallExpr       :: u32
+  expr 469:47   IdentExpr      :: type
+  expr 469:9    CallExpr       :: void
+  expr 469:9    FieldExpr      :: fn(char) -> void
+  expr 469:9    IdentExpr      :: StringBuilder
+  expr 472:20   CallExpr       :: char
+  expr 472:20   IdentExpr      :: type
+  expr 472:25   BinaryExpr     :: u32
+  expr 472:25   CallExpr       :: u32
+  expr 472:25   IdentExpr      :: type
+  expr 472:38   BinaryExpr     :: u32
+  expr 472:38   IdentExpr      :: u32
+  expr 472:44   CallExpr       :: u32
+  expr 472:44   IdentExpr      :: type
+  expr 472:5    CallExpr       :: void
+  expr 472:5    FieldExpr      :: fn(char) -> void
+  expr 472:5    IdentExpr      :: StringBuilder
+  expr 473:20   CallExpr       :: char
+  expr 473:20   IdentExpr      :: type
+  expr 473:25   BinaryExpr     :: u32
+  expr 473:25   CallExpr       :: u32
+  expr 473:25   IdentExpr      :: type
+  expr 473:39   BinaryExpr     :: u32
+  expr 473:39   BinaryExpr     :: u32
+  expr 473:39   IdentExpr      :: u32
+  expr 473:45   CallExpr       :: u32
+  expr 473:45   IdentExpr      :: type
+  expr 473:5    CallExpr       :: void
+  expr 473:5    FieldExpr      :: fn(char) -> void
+  expr 473:5    IdentExpr      :: StringBuilder
+  expr 473:56   CallExpr       :: u32
+  expr 473:56   IdentExpr      :: type
+  expr 474:20   CallExpr       :: char
+  expr 474:20   IdentExpr      :: type
+  expr 474:25   BinaryExpr     :: u32
+  expr 474:25   CallExpr       :: u32
+  expr 474:25   IdentExpr      :: type
+  expr 474:39   BinaryExpr     :: u32
+  expr 474:39   BinaryExpr     :: u32
+  expr 474:39   IdentExpr      :: u32
+  expr 474:45   CallExpr       :: u32
+  expr 474:45   IdentExpr      :: type
+  expr 474:5    CallExpr       :: void
+  expr 474:5    FieldExpr      :: fn(char) -> void
+  expr 474:5    IdentExpr      :: StringBuilder
+  expr 474:55   CallExpr       :: u32
+  expr 474:55   IdentExpr      :: type
+  expr 475:20   CallExpr       :: char
+  expr 475:20   IdentExpr      :: type
+  expr 475:25   BinaryExpr     :: u32
+  expr 475:25   CallExpr       :: u32
+  expr 475:25   IdentExpr      :: type
+  expr 475:38   BinaryExpr     :: u32
+  expr 475:38   IdentExpr      :: u32
+  expr 475:43   CallExpr       :: u32
+  expr 475:43   IdentExpr      :: type
+  expr 475:5    CallExpr       :: void
+  expr 475:5    FieldExpr      :: fn(char) -> void
+  expr 475:5    IdentExpr      :: StringBuilder
+  expr 481:14   CallExpr       :: Position
+  expr 481:14   FieldExpr      :: fn() -> Position
+  expr 481:14   IdentExpr      :: Lexer
+  expr 482:5    CallExpr       :: void
+  expr 482:5    FieldExpr      :: fn(i32) -> void
+  expr 482:5    IdentExpr      :: Lexer
+  expr 484:5    IfExpr         :: void
+  expr 484:8    BinaryExpr     :: bool
+  expr 484:8    CallExpr       :: char
+  expr 484:8    FieldExpr      :: fn() -> char
+  expr 484:8    IdentExpr      :: Lexer
+  expr 485:9    CallExpr       :: void
+  expr 485:9    FieldExpr      :: fn(i32) -> void
+  expr 485:9    IdentExpr      :: Lexer
+  expr 486:22   DotVariantExpr :: LexerCode
+  expr 486:48   CallExpr       :: Span
+  expr 486:48   FieldExpr      :: fn(Position) -> Span
+  expr 486:48   IdentExpr      :: Lexer
+  expr 486:61   IdentExpr      :: Position
+  expr 486:69   StringLitExpr  :: string
+  expr 486:9    CallExpr       :: void
+  expr 486:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 486:9    IdentExpr      :: Lexer
+  expr 487:17   CallExpr       :: string
+  expr 487:17   FieldExpr      :: fn(i32, i32) -> string
+  expr 487:17   FieldExpr      :: string
+  expr 487:17   IdentExpr      :: Lexer
+  expr 487:29   FieldExpr      :: i32
+  expr 487:29   IdentExpr      :: Position
+  expr 487:43   FieldExpr      :: i32
+  expr 487:43   IdentExpr      :: Lexer
+  expr 488:14   CallExpr       :: Token
+  expr 488:14   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 488:25   DotVariantExpr :: TokenKind
+  expr 488:35   IdentExpr      :: string
+  expr 488:41   CallExpr       :: Span
+  expr 488:41   FieldExpr      :: fn(Position) -> Span
+  expr 488:41   IdentExpr      :: Lexer
+  expr 488:54   IdentExpr      :: Position
+  expr 489:19   CallExpr       :: u32
+  expr 489:19   IdentExpr      :: type
+  expr 489:9    FieldExpr      :: f64 | i64 | null | string | u32
+  expr 489:9    IdentExpr      :: Token
+  expr 48:49    StructLitExpr  :: Lexer
+  expr 490:16   IdentExpr      :: Token
+  expr 490:9    CallExpr       :: void
+  expr 490:9    FieldExpr      :: fn(Token) -> void
+  expr 490:9    IdentExpr      :: Lexer
+  expr 494:15   CallExpr       :: u32
+  expr 494:15   IdentExpr      :: type
+  expr 495:5    IfExpr         :: void
+  expr 495:8    BinaryExpr     :: bool
+  expr 495:8    CallExpr       :: char
+  expr 495:8    FieldExpr      :: fn() -> char
+  expr 495:8    IdentExpr      :: Lexer
+  expr 496:14   CallExpr       :: u32
+  expr 496:14   FieldExpr      :: fn() -> u32
+  expr 496:14   IdentExpr      :: Lexer
+  expr 496:9    IdentExpr      :: u32
+  expr 497:12   IfExpr         :: void
+  expr 497:15   BinaryExpr     :: bool
+  expr 497:15   BinaryExpr     :: bool
+  expr 497:15   CallExpr       :: char
+  expr 497:15   FieldExpr      :: fn() -> char
+  expr 497:15   IdentExpr      :: Lexer
+  expr 497:35   CallExpr       :: bool
+  expr 497:35   FieldExpr      :: fn() -> bool
+  expr 497:35   IdentExpr      :: Lexer
+  expr 498:22   DotVariantExpr :: LexerCode
+  expr 498:48   CallExpr       :: Span
+  expr 498:48   FieldExpr      :: fn(Position) -> Span
+  expr 498:48   IdentExpr      :: Lexer
+  expr 498:61   IdentExpr      :: Position
+  expr 498:69   StringLitExpr  :: string
+  expr 498:9    CallExpr       :: void
+  expr 498:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 498:9    IdentExpr      :: Lexer
+  expr 499:17   CallExpr       :: string
+  expr 499:17   FieldExpr      :: fn(i32, i32) -> string
+  expr 499:17   FieldExpr      :: string
+  expr 499:17   IdentExpr      :: Lexer
+  expr 499:29   FieldExpr      :: i32
+  expr 499:29   IdentExpr      :: Position
+  expr 499:43   FieldExpr      :: i32
+  expr 499:43   IdentExpr      :: Lexer
+  expr 49:12    IdentExpr      :: string
+  expr 500:14   CallExpr       :: Token
+  expr 500:14   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 500:25   DotVariantExpr :: TokenKind
+  expr 500:35   IdentExpr      :: string
+  expr 500:41   CallExpr       :: Span
+  expr 500:41   FieldExpr      :: fn(Position) -> Span
+  expr 500:41   IdentExpr      :: Lexer
+  expr 500:54   IdentExpr      :: Position
+  expr 501:19   CallExpr       :: u32
+  expr 501:19   IdentExpr      :: type
+  expr 501:9    FieldExpr      :: f64 | i64 | null | string | u32
+  expr 501:9    IdentExpr      :: Token
+  expr 502:16   IdentExpr      :: Token
+  expr 502:9    CallExpr       :: void
+  expr 502:9    FieldExpr      :: fn(Token) -> void
+  expr 502:9    IdentExpr      :: Lexer
+  expr 505:14   CallExpr       :: u32
+  expr 505:14   IdentExpr      :: type
+  expr 505:18   CallExpr       :: char
+  expr 505:18   FieldExpr      :: fn() -> char
+  expr 505:18   IdentExpr      :: Lexer
+  expr 505:9    IdentExpr      :: u32
+  expr 506:9    CallExpr       :: void
+  expr 506:9    FieldExpr      :: fn(i32) -> void
+  expr 506:9    IdentExpr      :: Lexer
+  expr 509:5    IfExpr         :: void
+  expr 509:8    BinaryExpr     :: bool
+  expr 509:8    CallExpr       :: char
+  expr 509:8    FieldExpr      :: fn() -> char
+  expr 509:8    IdentExpr      :: Lexer
+  expr 50:13    IdentExpr      :: string
+  expr 510:22   DotVariantExpr :: LexerCode
+  expr 510:48   CallExpr       :: Span
+  expr 510:48   FieldExpr      :: fn(Position) -> Span
+  expr 510:48   IdentExpr      :: Lexer
+  expr 510:61   IdentExpr      :: Position
+  expr 510:9    CallExpr       :: void
+  expr 510:9    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 510:9    IdentExpr      :: Lexer
+  expr 511:13   StringLitExpr  :: string
+  expr 513:13   BinaryExpr     :: bool
+  expr 513:13   BinaryExpr     :: bool
+  expr 513:13   UnaryExpr      :: bool
+  expr 513:14   CallExpr       :: bool
+  expr 513:14   FieldExpr      :: fn() -> bool
+  expr 513:14   IdentExpr      :: Lexer
+  expr 513:28   BinaryExpr     :: bool
+  expr 513:28   CallExpr       :: char
+  expr 513:28   FieldExpr      :: fn() -> char
+  expr 513:28   IdentExpr      :: Lexer
+  expr 513:48   BinaryExpr     :: bool
+  expr 513:48   CallExpr       :: char
+  expr 513:48   FieldExpr      :: fn() -> char
+  expr 513:48   IdentExpr      :: Lexer
+  expr 514:13   CallExpr       :: void
+  expr 514:13   FieldExpr      :: fn(i32) -> void
+  expr 514:13   IdentExpr      :: Lexer
+  expr 516:12   BinaryExpr     :: bool
+  expr 516:12   CallExpr       :: char
+  expr 516:12   FieldExpr      :: fn() -> char
+  expr 516:12   IdentExpr      :: Lexer
+  expr 516:9    IfExpr         :: void
+  expr 517:13   CallExpr       :: void
+  expr 517:13   FieldExpr      :: fn(i32) -> void
+  expr 517:13   IdentExpr      :: Lexer
+  expr 520:9    CallExpr       :: void
+  expr 520:9    FieldExpr      :: fn(i32) -> void
+  expr 520:9    IdentExpr      :: Lexer
+  expr 523:13   CallExpr       :: string
+  expr 523:13   FieldExpr      :: fn(i32, i32) -> string
+  expr 523:13   FieldExpr      :: string
+  expr 523:13   IdentExpr      :: Lexer
+  expr 523:25   FieldExpr      :: i32
+  expr 523:25   IdentExpr      :: Position
+  expr 523:39   FieldExpr      :: i32
+  expr 523:39   IdentExpr      :: Lexer
+  expr 524:10   CallExpr       :: Token
+  expr 524:10   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 524:21   DotVariantExpr :: TokenKind
+  expr 524:31   IdentExpr      :: string
+  expr 524:37   CallExpr       :: Span
+  expr 524:37   FieldExpr      :: fn(Position) -> Span
+  expr 524:37   IdentExpr      :: Lexer
+  expr 524:50   IdentExpr      :: Position
+  expr 525:15   IdentExpr      :: u32
+  expr 525:5    FieldExpr      :: f64 | i64 | null | string | u32
+  expr 525:5    IdentExpr      :: Token
+  expr 526:12   IdentExpr      :: Token
+  expr 526:5    CallExpr       :: void
+  expr 526:5    FieldExpr      :: fn(Token) -> void
+  expr 526:5    IdentExpr      :: Lexer
+  expr 533:10   CallExpr       :: i32
+  expr 533:10   FieldExpr      :: [InterpFrame]
+  expr 533:10   FieldExpr      :: fn() -> i32
+  expr 533:10   IdentExpr      :: Lexer
+  expr 534:5    IfExpr         :: void
+  expr 534:8    BinaryExpr     :: bool
+  expr 534:8    IdentExpr      :: i32
+  expr 535:12   FieldExpr      :: [InterpFrame]
+  expr 535:12   IdentExpr      :: Lexer
+  expr 535:12   IndexExpr      :: InterpFrame
+  expr 535:27   BinaryExpr     :: i32
+  expr 535:27   IdentExpr      :: i32
+  expr 540:10   CallExpr       :: i32
+  expr 540:10   FieldExpr      :: [InterpFrame]
+  expr 540:10   FieldExpr      :: fn() -> i32
+  expr 540:10   IdentExpr      :: Lexer
+  expr 541:5    IfExpr         :: void
+  expr 541:8    BinaryExpr     :: bool
+  expr 541:8    IdentExpr      :: i32
+  expr 542:22   CallExpr       :: [InterpFrame]
+  expr 542:22   FieldExpr      :: [InterpFrame]
+  expr 542:22   FieldExpr      :: fn(i32, i32) -> [$T]
+  expr 542:22   IdentExpr      :: Lexer
+  expr 542:5    FieldExpr      :: [InterpFrame]
+  expr 542:5    IdentExpr      :: Lexer
+  expr 542:52   BinaryExpr     :: i32
+  expr 542:52   IdentExpr      :: i32
+  expr 549:14   CallExpr       :: Position
+  expr 549:14   FieldExpr      :: fn() -> Position
+  expr 549:14   IdentExpr      :: Lexer
+  expr 550:5    IfExpr         :: void
+  expr 550:8    IdentExpr      :: bool
+  expr 551:9    CallExpr       :: void
+  expr 551:9    FieldExpr      :: fn(i32) -> void
+  expr 551:9    IdentExpr      :: Lexer
+  expr 553:5    CallExpr       :: void
+  expr 553:5    FieldExpr      :: fn(i32) -> void
+  expr 553:5    IdentExpr      :: Lexer
+  expr 556:27   BinaryExpr     :: bool
+  expr 556:27   CallExpr       :: char
+  expr 556:27   FieldExpr      :: fn(i32) -> char
+  expr 556:27   IdentExpr      :: Lexer
+  expr 556:5    IfExpr         :: void
+  expr 556:8    BinaryExpr     :: bool
+  expr 556:8    BinaryExpr     :: bool
+  expr 556:8    CallExpr       :: char
+  expr 556:8    FieldExpr      :: fn() -> char
+  expr 556:8    IdentExpr      :: Lexer
+  expr 557:9    IdentExpr      :: bool
+  expr 558:9    CallExpr       :: void
+  expr 558:9    FieldExpr      :: fn(i32) -> void
+  expr 558:9    IdentExpr      :: Lexer
+  expr 55:18    DotVariantExpr :: TokenKind
+  expr 561:12   BinaryExpr     :: bool
+  expr 561:12   BinaryExpr     :: bool
+  expr 561:12   CallExpr       :: char
+  expr 561:12   FieldExpr      :: fn() -> char
+  expr 561:12   IdentExpr      :: Lexer
+  expr 561:32   BinaryExpr     :: bool
+  expr 561:32   CallExpr       :: char
+  expr 561:32   FieldExpr      :: fn(i32) -> char
+  expr 561:32   IdentExpr      :: Lexer
+  expr 561:9    IfExpr         :: void
+  expr 562:13   CallExpr       :: void
+  expr 562:13   FieldExpr      :: fn(i32) -> void
+  expr 562:13   IdentExpr      :: Lexer
+  expr 563:16   IfExpr         :: void
+  expr 563:19   BinaryExpr     :: bool
+  expr 563:19   CallExpr       :: char
+  expr 563:19   FieldExpr      :: fn() -> char
+  expr 563:19   IdentExpr      :: Lexer
+  expr 564:13   CallExpr       :: void
+  expr 564:13   FieldExpr      :: fn(i32) -> void
+  expr 564:13   IdentExpr      :: Lexer
+  expr 568:13   CallExpr       :: string
+  expr 568:13   FieldExpr      :: fn(i32, i32) -> string
+  expr 568:13   FieldExpr      :: string
+  expr 568:13   IdentExpr      :: Lexer
+  expr 568:25   FieldExpr      :: i32
+  expr 568:25   IdentExpr      :: Position
+  expr 568:39   FieldExpr      :: i32
+  expr 568:39   IdentExpr      :: Lexer
+  expr 569:13   StructLitExpr  :: Span
+  expr 569:29   IdentExpr      :: Position
+  expr 569:43   CallExpr       :: Position
+  expr 569:43   FieldExpr      :: fn() -> Position
+  expr 569:43   IdentExpr      :: Lexer
+  expr 56:15    ArrayLitExpr   :: [Token]
+  expr 570:12   CallExpr       :: Token
+  expr 570:12   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 570:23   DotVariantExpr :: TokenKind
+  expr 570:37   IdentExpr      :: string
+  expr 570:43   IdentExpr      :: Span
+  expr 570:5    CallExpr       :: void
+  expr 570:5    FieldExpr      :: fn(Token) -> void
+  expr 570:5    IdentExpr      :: Lexer
+  expr 571:23   IdentExpr      :: bool
+  expr 571:31   IdentExpr      :: bool
+  expr 571:5    CallExpr       :: void
+  expr 571:5    FieldExpr      :: fn(bool, bool) -> void
+  expr 571:5    IdentExpr      :: Lexer
+  expr 577:5    IfExpr         :: void
+  expr 577:8    UnaryExpr      :: bool
+  expr 577:9    IdentExpr      :: bool
+  expr 578:13   CallExpr       :: string
+  expr 578:13   FieldExpr      :: fn() -> string
+  expr 578:13   IdentExpr      :: StringBuilder
+  expr 579:13   StructLitExpr  :: Span
+  expr 579:29   IdentExpr      :: Position
+  expr 579:48   CallExpr       :: Position
+  expr 579:48   FieldExpr      :: fn() -> Position
+  expr 579:48   IdentExpr      :: Lexer
+  expr 57:15    ArrayLitExpr   :: [Diagnostic]
+  expr 580:10   CallExpr       :: Token
+  expr 580:10   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 580:21   DotVariantExpr :: TokenKind
+  expr 580:34   IdentExpr      :: string
+  expr 580:40   IdentExpr      :: Span
+  expr 581:15   IdentExpr      :: string
+  expr 581:5    FieldExpr      :: f64 | i64 | null | string | u32
+  expr 581:5    IdentExpr      :: Token
+  expr 582:12   IdentExpr      :: Token
+  expr 582:5    CallExpr       :: void
+  expr 582:5    FieldExpr      :: fn(Token) -> void
+  expr 582:5    IdentExpr      :: Lexer
+  expr 58:21    ArrayLitExpr   :: [InterpFrame]
+  expr 590:19   CallExpr       :: Position
+  expr 590:19   FieldExpr      :: fn() -> Position
+  expr 590:19   IdentExpr      :: Lexer
+  expr 591:11   CallExpr       :: StringBuilder
+  expr 591:11   IdentExpr      :: fn() -> StringBuilder
+  expr 594:10   CallExpr       :: bool
+  expr 594:10   FieldExpr      :: fn() -> bool
+  expr 594:10   IdentExpr      :: Lexer
+  expr 594:9    UnaryExpr      :: bool
+  expr 595:14   CallExpr       :: char
+  expr 595:14   FieldExpr      :: fn() -> char
+  expr 595:14   IdentExpr      :: Lexer
+  expr 599:12   IdentExpr      :: bool
+  expr 599:9    IfExpr         :: void
+  expr 600:13   IfExpr         :: void
+  expr 600:16   BinaryExpr     :: bool
+  expr 600:16   BinaryExpr     :: bool
+  expr 600:16   BinaryExpr     :: bool
+  expr 600:16   IdentExpr      :: char
+  expr 600:28   BinaryExpr     :: bool
+  expr 600:28   CallExpr       :: char
+  expr 600:28   FieldExpr      :: fn(i32) -> char
+  expr 600:28   IdentExpr      :: Lexer
+  expr 600:51   BinaryExpr     :: bool
+  expr 600:51   CallExpr       :: char
+  expr 600:51   FieldExpr      :: fn(i32) -> char
+  expr 600:51   IdentExpr      :: Lexer
+  expr 601:17   IdentExpr      :: bool
+  expr 603:16   IfExpr         :: void
+  expr 603:19   BinaryExpr     :: bool
+  expr 603:19   IdentExpr      :: char
+  expr 604:13   IdentExpr      :: bool
+  expr 606:12   IdentExpr      :: bool
+  expr 606:9    IfExpr         :: void
+  expr 607:13   CallExpr       :: void
+  expr 607:13   IdentExpr      :: fn(Lexer, StringBuilder, Position, bool) -> void
+  expr 607:31   IdentExpr      :: Lexer
+  expr 607:34   IdentExpr      :: StringBuilder
+  expr 607:38   IdentExpr      :: Position
+  expr 607:50   IdentExpr      :: bool
+  expr 608:28   CallExpr       :: Position
+  expr 608:28   FieldExpr      :: fn() -> Position
+  expr 608:28   IdentExpr      :: Lexer
+  expr 609:34   StringLitExpr  :: string
+  expr 610:13   IfExpr         :: void
+  expr 610:16   IdentExpr      :: bool
+  expr 611:17   CallExpr       :: void
+  expr 611:17   FieldExpr      :: fn(i32) -> void
+  expr 611:17   IdentExpr      :: Lexer
+  expr 612:17   IdentExpr      :: string
+  expr 612:30   StringLitExpr  :: string
+  expr 614:17   CallExpr       :: void
+  expr 614:17   FieldExpr      :: fn(i32) -> void
+  expr 614:17   IdentExpr      :: Lexer
+  expr 616:27   StructLitExpr  :: Span
+  expr 616:43   IdentExpr      :: Position
+  expr 616:63   CallExpr       :: Position
+  expr 616:63   FieldExpr      :: fn() -> Position
+  expr 616:63   IdentExpr      :: Lexer
+  expr 617:13   CallExpr       :: void
+  expr 617:13   FieldExpr      :: fn(Token) -> void
+  expr 617:13   IdentExpr      :: Lexer
+  expr 617:20   CallExpr       :: Token
+  expr 617:20   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 617:31   DotVariantExpr :: TokenKind
+  expr 617:43   IdentExpr      :: string
+  expr 617:55   IdentExpr      :: Span
+  expr 622:12   BinaryExpr     :: bool
+  expr 622:12   UnaryExpr      :: bool
+  expr 622:13   IdentExpr      :: bool
+  expr 622:23   BinaryExpr     :: bool
+  expr 622:23   IdentExpr      :: char
+  expr 622:9    IfExpr         :: void
+  expr 623:13   CallExpr       :: void
+  expr 623:13   FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 623:13   IdentExpr      :: Lexer
+  expr 623:26   DotVariantExpr :: LexerCode
+  expr 624:17   StructLitExpr  :: Span
+  expr 624:33   IdentExpr      :: Position
+  expr 624:52   CallExpr       :: Position
+  expr 624:52   FieldExpr      :: fn() -> Position
+  expr 624:52   IdentExpr      :: Lexer
+  expr 624:73   StringLitExpr  :: string
+  expr 625:13   CallExpr       :: void
+  expr 625:13   IdentExpr      :: fn(Lexer, StringBuilder, Position, bool) -> void
+  expr 625:31   IdentExpr      :: Lexer
+  expr 625:34   IdentExpr      :: StringBuilder
+  expr 625:38   IdentExpr      :: Position
+  expr 625:50   IdentExpr      :: bool
+  expr 626:21   CallExpr       :: Position
+  expr 626:21   FieldExpr      :: fn() -> Position
+  expr 626:21   IdentExpr      :: Lexer
+  expr 627:13   CallExpr       :: void
+  expr 627:13   FieldExpr      :: fn(Token) -> void
+  expr 627:13   IdentExpr      :: Lexer
+  expr 627:20   CallExpr       :: Token
+  expr 627:20   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 627:31   DotVariantExpr :: TokenKind
+  expr 627:43   StringLitExpr  :: string
+  expr 627:47   StructLitExpr  :: Span
+  expr 627:63   IdentExpr      :: Position
+  expr 627:76   IdentExpr      :: Position
+  expr 632:12   BinaryExpr     :: bool
+  expr 632:12   BinaryExpr     :: bool
+  expr 632:12   UnaryExpr      :: bool
+  expr 632:13   IdentExpr      :: bool
+  expr 632:20   BinaryExpr     :: bool
+  expr 632:20   IdentExpr      :: char
+  expr 632:32   BinaryExpr     :: bool
+  expr 632:32   CallExpr       :: char
+  expr 632:32   FieldExpr      :: fn(i32) -> char
+  expr 632:32   IdentExpr      :: Lexer
+  expr 632:9    IfExpr         :: void
+  expr 633:13   CallExpr       :: void
+  expr 633:13   IdentExpr      :: fn(Lexer, StringBuilder, Position, bool) -> void
+  expr 633:31   IdentExpr      :: Lexer
+  expr 633:34   IdentExpr      :: StringBuilder
+  expr 633:38   IdentExpr      :: Position
+  expr 633:50   IdentExpr      :: bool
+  expr 634:25   CallExpr       :: Position
+  expr 634:25   FieldExpr      :: fn() -> Position
+  expr 634:25   IdentExpr      :: Lexer
+  expr 635:13   CallExpr       :: void
+  expr 635:13   FieldExpr      :: fn(i32) -> void
+  expr 635:13   IdentExpr      :: Lexer
+  expr 636:24   StructLitExpr  :: Span
+  expr 636:40   IdentExpr      :: Position
+  expr 636:57   CallExpr       :: Position
+  expr 636:57   FieldExpr      :: fn() -> Position
+  expr 636:57   IdentExpr      :: Lexer
+  expr 637:13   CallExpr       :: void
+  expr 637:13   FieldExpr      :: fn(Token) -> void
+  expr 637:13   IdentExpr      :: Lexer
+  expr 637:20   CallExpr       :: Token
+  expr 637:20   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 637:31   DotVariantExpr :: TokenKind
+  expr 637:44   StringLitExpr  :: string
+  expr 637:51   IdentExpr      :: Span
+  expr 638:13   CallExpr       :: void
+  expr 638:13   FieldExpr      :: [InterpFrame]
+  expr 638:13   FieldExpr      :: fn(InterpFrame) -> void
+  expr 638:13   IdentExpr      :: Lexer
+  expr 638:33   StructLitExpr  :: InterpFrame
+  expr 638:75   IdentExpr      :: bool
+  expr 63:27    BinaryExpr     :: bool
+  expr 63:27    BinaryExpr     :: bool
+  expr 63:27    IdentExpr      :: char
+  expr 63:39    BinaryExpr     :: bool
+  expr 63:39    IdentExpr      :: char
+  expr 643:12   BinaryExpr     :: bool
+  expr 643:12   BinaryExpr     :: bool
+  expr 643:12   UnaryExpr      :: bool
+  expr 643:13   IdentExpr      :: bool
+  expr 643:20   BinaryExpr     :: bool
+  expr 643:20   IdentExpr      :: char
+  expr 643:32   CallExpr       :: bool
+  expr 643:32   CallExpr       :: char
+  expr 643:32   FieldExpr      :: fn() -> bool
+  expr 643:32   FieldExpr      :: fn(i32) -> char
+  expr 643:32   IdentExpr      :: Lexer
+  expr 643:9    IfExpr         :: void
+  expr 644:13   CallExpr       :: void
+  expr 644:13   IdentExpr      :: fn(Lexer, StringBuilder, Position, bool) -> void
+  expr 644:31   IdentExpr      :: Lexer
+  expr 644:34   IdentExpr      :: StringBuilder
+  expr 644:38   IdentExpr      :: Position
+  expr 644:50   IdentExpr      :: bool
+  expr 645:25   CallExpr       :: Position
+  expr 645:25   FieldExpr      :: fn() -> Position
+  expr 645:25   IdentExpr      :: Lexer
+  expr 646:13   CallExpr       :: void
+  expr 646:13   FieldExpr      :: fn(i32) -> void
+  expr 646:13   IdentExpr      :: Lexer
+  expr 647:24   StructLitExpr  :: Span
+  expr 647:40   IdentExpr      :: Position
+  expr 647:57   CallExpr       :: Position
+  expr 647:57   FieldExpr      :: fn() -> Position
+  expr 647:57   IdentExpr      :: Lexer
+  expr 648:13   CallExpr       :: void
+  expr 648:13   FieldExpr      :: fn(Token) -> void
+  expr 648:13   IdentExpr      :: Lexer
+  expr 648:20   CallExpr       :: Token
+  expr 648:20   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 648:31   DotVariantExpr :: TokenKind
+  expr 648:44   StringLitExpr  :: string
+  expr 648:49   IdentExpr      :: Span
+  expr 649:13   CallExpr       :: void
+  expr 649:13   FieldExpr      :: fn() -> void
+  expr 649:13   IdentExpr      :: Lexer
+  expr 650:21   CallExpr       :: Position
+  expr 650:21   FieldExpr      :: fn() -> Position
+  expr 650:21   IdentExpr      :: Lexer
+  expr 651:13   CallExpr       :: void
+  expr 651:13   FieldExpr      :: fn(Token) -> void
+  expr 651:13   IdentExpr      :: Lexer
+  expr 651:20   CallExpr       :: Token
+  expr 651:20   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 651:31   DotVariantExpr :: TokenKind
+  expr 651:45   StringLitExpr  :: string
+  expr 651:49   StructLitExpr  :: Span
+  expr 651:65   IdentExpr      :: Position
+  expr 651:78   IdentExpr      :: Position
+  expr 654:13   IdentExpr      :: Position
+  expr 654:26   CallExpr       :: Position
+  expr 654:26   FieldExpr      :: fn() -> Position
+  expr 654:26   IdentExpr      :: Lexer
+  expr 655:13   IdentExpr      :: StringBuilder
+  expr 655:18   CallExpr       :: StringBuilder
+  expr 655:18   IdentExpr      :: fn() -> StringBuilder
+  expr 656:13   IdentExpr      :: bool
+  expr 661:12   BinaryExpr     :: bool
+  expr 661:12   UnaryExpr      :: bool
+  expr 661:13   IdentExpr      :: bool
+  expr 661:20   BinaryExpr     :: bool
+  expr 661:20   IdentExpr      :: char
+  expr 661:9    IfExpr         :: void
+  expr 662:19   CallExpr       :: u32
+  expr 662:19   FieldExpr      :: fn() -> u32
+  expr 662:19   IdentExpr      :: Lexer
+  expr 663:13   CallExpr       :: void
+  expr 663:13   FieldExpr      :: fn(u32) -> void
+  expr 663:13   IdentExpr      :: StringBuilder
+  expr 663:33   IdentExpr      :: u32
+  expr 664:13   IdentExpr      :: bool
+  expr 669:24   IdentExpr      :: char
+  expr 669:9    CallExpr       :: void
+  expr 669:9    FieldExpr      :: fn(char) -> void
+  expr 669:9    IdentExpr      :: StringBuilder
+  expr 66:18    BinaryExpr     :: bool
+  expr 66:18    IdentExpr      :: char
+  expr 66:32    BinaryExpr     :: bool
+  expr 66:32    BinaryExpr     :: bool
+  expr 66:32    IdentExpr      :: char
+  expr 66:44    BinaryExpr     :: bool
+  expr 66:44    IdentExpr      :: char
+  expr 66:57    BinaryExpr     :: bool
+  expr 66:57    IdentExpr      :: char
+  expr 66:6     BinaryExpr     :: bool
+  expr 66:6     BinaryExpr     :: bool
+  expr 66:6     BinaryExpr     :: bool
+  expr 66:6     BinaryExpr     :: bool
+  expr 66:6     IdentExpr      :: char
+  expr 670:9    IdentExpr      :: bool
+  expr 671:9    CallExpr       :: void
+  expr 671:9    FieldExpr      :: fn(i32) -> void
+  expr 671:9    IdentExpr      :: Lexer
+  expr 675:18   DotVariantExpr :: LexerCode
+  expr 675:5    CallExpr       :: void
+  expr 675:5    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 675:5    IdentExpr      :: Lexer
+  expr 676:25   IdentExpr      :: Position
+  expr 676:44   CallExpr       :: Position
+  expr 676:44   FieldExpr      :: fn() -> Position
+  expr 676:44   IdentExpr      :: Lexer
+  expr 676:65   StringLitExpr  :: string
+  expr 676:9    StructLitExpr  :: Span
+  expr 677:23   IdentExpr      :: Lexer
+  expr 677:26   IdentExpr      :: StringBuilder
+  expr 677:30   IdentExpr      :: Position
+  expr 677:42   IdentExpr      :: bool
+  expr 677:5    CallExpr       :: void
+  expr 677:5    IdentExpr      :: fn(Lexer, StringBuilder, Position, bool) -> void
+  expr 678:13   CallExpr       :: Position
+  expr 678:13   FieldExpr      :: fn() -> Position
+  expr 678:13   IdentExpr      :: Lexer
+  expr 679:12   CallExpr       :: Token
+  expr 679:12   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 679:23   DotVariantExpr :: TokenKind
+  expr 679:35   StringLitExpr  :: string
+  expr 679:39   StructLitExpr  :: Span
+  expr 679:5    CallExpr       :: void
+  expr 679:5    FieldExpr      :: fn(Token) -> void
+  expr 679:5    IdentExpr      :: Lexer
+  expr 679:55   IdentExpr      :: Position
+  expr 679:68   IdentExpr      :: Position
+  expr 687:10   CallExpr       :: char
+  expr 687:10   FieldExpr      :: fn() -> char
+  expr 687:10   IdentExpr      :: Lexer
+  expr 688:11   CallExpr       :: char
+  expr 688:11   FieldExpr      :: fn(i32) -> char
+  expr 688:11   IdentExpr      :: Lexer
+  expr 68:36    BinaryExpr     :: bool
+  expr 68:36    CallExpr       :: bool
+  expr 68:36    FieldExpr      :: fn() -> bool
+  expr 68:36    IdentExpr      :: char
+  expr 68:58    CallExpr       :: bool
+  expr 68:58    FieldExpr      :: fn() -> bool
+  expr 68:58    IdentExpr      :: char
+  expr 691:20   BinaryExpr     :: bool
+  expr 691:20   IdentExpr      :: char
+  expr 691:5    IfExpr         :: void
+  expr 691:8    BinaryExpr     :: bool
+  expr 691:8    BinaryExpr     :: bool
+  expr 691:8    IdentExpr      :: char
+  expr 692:15   CallExpr       :: char
+  expr 692:15   FieldExpr      :: fn(i32) -> char
+  expr 692:15   IdentExpr      :: Lexer
+  expr 693:12   BinaryExpr     :: bool
+  expr 693:12   IdentExpr      :: char
+  expr 693:9    IfExpr         :: void
+  expr 694:22   CallExpr       :: Position
+  expr 694:22   FieldExpr      :: fn() -> Position
+  expr 694:22   IdentExpr      :: Lexer
+  expr 695:13   CallExpr       :: void
+  expr 695:13   FieldExpr      :: fn(i32) -> void
+  expr 695:13   IdentExpr      :: Lexer
+  expr 696:13   CallExpr       :: void
+  expr 696:13   FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 696:13   IdentExpr      :: Lexer
+  expr 696:27   DotVariantExpr :: TokenKind
+  expr 696:39   StringLitExpr  :: string
+  expr 696:46   IdentExpr      :: Position
+  expr 699:12   BinaryExpr     :: bool
+  expr 699:12   IdentExpr      :: char
+  expr 699:9    IfExpr         :: void
+  expr 700:22   CallExpr       :: Position
+  expr 700:22   FieldExpr      :: fn() -> Position
+  expr 700:22   IdentExpr      :: Lexer
+  expr 701:13   CallExpr       :: void
+  expr 701:13   FieldExpr      :: fn(i32) -> void
+  expr 701:13   IdentExpr      :: Lexer
+  expr 702:13   CallExpr       :: void
+  expr 702:13   FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 702:13   IdentExpr      :: Lexer
+  expr 702:27   DotVariantExpr :: TokenKind
+  expr 702:39   StringLitExpr  :: string
+  expr 702:46   IdentExpr      :: Position
+  expr 708:20   BinaryExpr     :: bool
+  expr 708:20   IdentExpr      :: char
+  expr 708:39   CallExpr       :: bool
+  expr 708:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 708:39   IdentExpr      :: Lexer
+  expr 708:47   DotVariantExpr :: TokenKind
+  expr 708:5    IfExpr         :: void
+  expr 708:52   StringLitExpr  :: string
+  expr 708:8    BinaryExpr     :: bool
+  expr 708:8    BinaryExpr     :: bool
+  expr 708:8    IdentExpr      :: char
+  expr 709:20   BinaryExpr     :: bool
+  expr 709:20   IdentExpr      :: char
+  expr 709:39   CallExpr       :: bool
+  expr 709:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 709:39   IdentExpr      :: Lexer
+  expr 709:47   DotVariantExpr :: TokenKind
+  expr 709:5    IfExpr         :: void
+  expr 709:53   StringLitExpr  :: string
+  expr 709:8    BinaryExpr     :: bool
+  expr 709:8    BinaryExpr     :: bool
+  expr 709:8    IdentExpr      :: char
+  expr 710:20   BinaryExpr     :: bool
+  expr 710:20   IdentExpr      :: char
+  expr 710:39   CallExpr       :: bool
+  expr 710:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 710:39   IdentExpr      :: Lexer
+  expr 710:47   DotVariantExpr :: TokenKind
+  expr 710:5    IfExpr         :: void
+  expr 710:53   StringLitExpr  :: string
+  expr 710:8    BinaryExpr     :: bool
+  expr 710:8    BinaryExpr     :: bool
+  expr 710:8    IdentExpr      :: char
+  expr 711:20   BinaryExpr     :: bool
+  expr 711:20   IdentExpr      :: char
+  expr 711:39   CallExpr       :: bool
+  expr 711:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 711:39   IdentExpr      :: Lexer
+  expr 711:47   DotVariantExpr :: TokenKind
+  expr 711:5    IfExpr         :: void
+  expr 711:53   StringLitExpr  :: string
+  expr 711:8    BinaryExpr     :: bool
+  expr 711:8    BinaryExpr     :: bool
+  expr 711:8    IdentExpr      :: char
+  expr 712:20   BinaryExpr     :: bool
+  expr 712:20   IdentExpr      :: char
+  expr 712:39   CallExpr       :: bool
+  expr 712:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 712:39   IdentExpr      :: Lexer
+  expr 712:47   DotVariantExpr :: TokenKind
+  expr 712:5    IfExpr         :: void
+  expr 712:56   StringLitExpr  :: string
+  expr 712:8    BinaryExpr     :: bool
+  expr 712:8    BinaryExpr     :: bool
+  expr 712:8    IdentExpr      :: char
+  expr 713:20   BinaryExpr     :: bool
+  expr 713:20   IdentExpr      :: char
+  expr 713:39   CallExpr       :: bool
+  expr 713:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 713:39   IdentExpr      :: Lexer
+  expr 713:47   DotVariantExpr :: TokenKind
+  expr 713:5    IfExpr         :: void
+  expr 713:54   StringLitExpr  :: string
+  expr 713:8    BinaryExpr     :: bool
+  expr 713:8    BinaryExpr     :: bool
+  expr 713:8    IdentExpr      :: char
+  expr 714:20   BinaryExpr     :: bool
+  expr 714:20   IdentExpr      :: char
+  expr 714:39   CallExpr       :: bool
+  expr 714:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 714:39   IdentExpr      :: Lexer
+  expr 714:47   DotVariantExpr :: TokenKind
+  expr 714:5    IfExpr         :: void
+  expr 714:53   StringLitExpr  :: string
+  expr 714:8    BinaryExpr     :: bool
+  expr 714:8    BinaryExpr     :: bool
+  expr 714:8    IdentExpr      :: char
+  expr 715:20   BinaryExpr     :: bool
+  expr 715:20   IdentExpr      :: char
+  expr 715:39   CallExpr       :: bool
+  expr 715:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 715:39   IdentExpr      :: Lexer
+  expr 715:47   DotVariantExpr :: TokenKind
+  expr 715:5    IfExpr         :: void
+  expr 715:53   StringLitExpr  :: string
+  expr 715:8    BinaryExpr     :: bool
+  expr 715:8    BinaryExpr     :: bool
+  expr 715:8    IdentExpr      :: char
+  expr 716:20   BinaryExpr     :: bool
+  expr 716:20   IdentExpr      :: char
+  expr 716:39   CallExpr       :: bool
+  expr 716:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 716:39   IdentExpr      :: Lexer
+  expr 716:47   DotVariantExpr :: TokenKind
+  expr 716:5    IfExpr         :: void
+  expr 716:55   StringLitExpr  :: string
+  expr 716:8    BinaryExpr     :: bool
+  expr 716:8    BinaryExpr     :: bool
+  expr 716:8    IdentExpr      :: char
+  expr 717:20   BinaryExpr     :: bool
+  expr 717:20   IdentExpr      :: char
+  expr 717:39   CallExpr       :: bool
+  expr 717:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 717:39   IdentExpr      :: Lexer
+  expr 717:47   DotVariantExpr :: TokenKind
+  expr 717:5    IfExpr         :: void
+  expr 717:58   StringLitExpr  :: string
+  expr 717:8    BinaryExpr     :: bool
+  expr 717:8    BinaryExpr     :: bool
+  expr 717:8    IdentExpr      :: char
+  expr 718:20   BinaryExpr     :: bool
+  expr 718:20   IdentExpr      :: char
+  expr 718:39   CallExpr       :: bool
+  expr 718:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 718:39   IdentExpr      :: Lexer
+  expr 718:47   DotVariantExpr :: TokenKind
+  expr 718:5    IfExpr         :: void
+  expr 718:59   StringLitExpr  :: string
+  expr 718:8    BinaryExpr     :: bool
+  expr 718:8    BinaryExpr     :: bool
+  expr 718:8    IdentExpr      :: char
+  expr 719:20   BinaryExpr     :: bool
+  expr 719:20   IdentExpr      :: char
+  expr 719:39   CallExpr       :: bool
+  expr 719:39   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 719:39   IdentExpr      :: Lexer
+  expr 719:47   DotVariantExpr :: TokenKind
+  expr 719:5    IfExpr         :: void
+  expr 719:57   StringLitExpr  :: string
+  expr 719:8    BinaryExpr     :: bool
+  expr 719:8    BinaryExpr     :: bool
+  expr 719:8    IdentExpr      :: char
+  expr 722:26   CallExpr       :: bool
+  expr 722:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 722:26   IdentExpr      :: Lexer
+  expr 722:34   DotVariantExpr :: TokenKind
+  expr 722:41   StringLitExpr  :: string
+  expr 722:5    IfExpr         :: void
+  expr 722:8    BinaryExpr     :: bool
+  expr 722:8    IdentExpr      :: char
+  expr 723:26   CallExpr       :: bool
+  expr 723:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 723:26   IdentExpr      :: Lexer
+  expr 723:34   DotVariantExpr :: TokenKind
+  expr 723:42   StringLitExpr  :: string
+  expr 723:5    IfExpr         :: void
+  expr 723:8    BinaryExpr     :: bool
+  expr 723:8    IdentExpr      :: char
+  expr 724:26   CallExpr       :: bool
+  expr 724:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 724:26   IdentExpr      :: Lexer
+  expr 724:34   DotVariantExpr :: TokenKind
+  expr 724:41   StringLitExpr  :: string
+  expr 724:5    IfExpr         :: void
+  expr 724:8    BinaryExpr     :: bool
+  expr 724:8    IdentExpr      :: char
+  expr 725:26   CallExpr       :: bool
+  expr 725:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 725:26   IdentExpr      :: Lexer
+  expr 725:34   DotVariantExpr :: TokenKind
+  expr 725:42   StringLitExpr  :: string
+  expr 725:5    IfExpr         :: void
+  expr 725:8    BinaryExpr     :: bool
+  expr 725:8    IdentExpr      :: char
+  expr 726:26   CallExpr       :: bool
+  expr 726:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 726:26   IdentExpr      :: Lexer
+  expr 726:34   DotVariantExpr :: TokenKind
+  expr 726:44   StringLitExpr  :: string
+  expr 726:5    IfExpr         :: void
+  expr 726:8    BinaryExpr     :: bool
+  expr 726:8    IdentExpr      :: char
+  expr 727:26   CallExpr       :: bool
+  expr 727:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 727:26   IdentExpr      :: Lexer
+  expr 727:34   DotVariantExpr :: TokenKind
+  expr 727:40   StringLitExpr  :: string
+  expr 727:5    IfExpr         :: void
+  expr 727:8    BinaryExpr     :: bool
+  expr 727:8    IdentExpr      :: char
+  expr 728:26   CallExpr       :: bool
+  expr 728:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 728:26   IdentExpr      :: Lexer
+  expr 728:34   DotVariantExpr :: TokenKind
+  expr 728:41   StringLitExpr  :: string
+  expr 728:5    IfExpr         :: void
+  expr 728:8    BinaryExpr     :: bool
+  expr 728:8    IdentExpr      :: char
+  expr 729:26   CallExpr       :: bool
+  expr 729:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 729:26   IdentExpr      :: Lexer
+  expr 729:34   DotVariantExpr :: TokenKind
+  expr 729:42   StringLitExpr  :: string
+  expr 729:5    IfExpr         :: void
+  expr 729:8    BinaryExpr     :: bool
+  expr 729:8    IdentExpr      :: char
+  expr 72:48    MatchExpr      :: bool
+  expr 72:54    IdentExpr      :: TokenKind
+  expr 730:26   CallExpr       :: bool
+  expr 730:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 730:26   IdentExpr      :: Lexer
+  expr 730:34   DotVariantExpr :: TokenKind
+  expr 730:42   StringLitExpr  :: string
+  expr 730:5    IfExpr         :: void
+  expr 730:8    BinaryExpr     :: bool
+  expr 730:8    IdentExpr      :: char
+  expr 731:26   CallExpr       :: bool
+  expr 731:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 731:26   IdentExpr      :: Lexer
+  expr 731:34   DotVariantExpr :: TokenKind
+  expr 731:39   StringLitExpr  :: string
+  expr 731:5    IfExpr         :: void
+  expr 731:8    BinaryExpr     :: bool
+  expr 731:8    IdentExpr      :: char
+  expr 732:26   CallExpr       :: bool
+  expr 732:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 732:26   IdentExpr      :: Lexer
+  expr 732:34   DotVariantExpr :: TokenKind
+  expr 732:39   StringLitExpr  :: string
+  expr 732:5    IfExpr         :: void
+  expr 732:8    BinaryExpr     :: bool
+  expr 732:8    IdentExpr      :: char
+  expr 733:26   CallExpr       :: bool
+  expr 733:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 733:26   IdentExpr      :: Lexer
+  expr 733:34   DotVariantExpr :: TokenKind
+  expr 733:41   StringLitExpr  :: string
+  expr 733:5    IfExpr         :: void
+  expr 733:8    BinaryExpr     :: bool
+  expr 733:8    IdentExpr      :: char
+  expr 734:26   CallExpr       :: bool
+  expr 734:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 734:26   IdentExpr      :: Lexer
+  expr 734:34   DotVariantExpr :: TokenKind
+  expr 734:43   StringLitExpr  :: string
+  expr 734:5    IfExpr         :: void
+  expr 734:8    BinaryExpr     :: bool
+  expr 734:8    IdentExpr      :: char
+  expr 735:26   CallExpr       :: bool
+  expr 735:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 735:26   IdentExpr      :: Lexer
+  expr 735:34   DotVariantExpr :: TokenKind
+  expr 735:45   StringLitExpr  :: string
+  expr 735:5    IfExpr         :: void
+  expr 735:8    BinaryExpr     :: bool
+  expr 735:8    IdentExpr      :: char
+  expr 736:26   CallExpr       :: bool
+  expr 736:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 736:26   IdentExpr      :: Lexer
+  expr 736:34   DotVariantExpr :: TokenKind
+  expr 736:39   StringLitExpr  :: string
+  expr 736:5    IfExpr         :: void
+  expr 736:8    BinaryExpr     :: bool
+  expr 736:8    IdentExpr      :: char
+  expr 737:26   CallExpr       :: bool
+  expr 737:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 737:26   IdentExpr      :: Lexer
+  expr 737:34   DotVariantExpr :: TokenKind
+  expr 737:43   StringLitExpr  :: string
+  expr 737:5    IfExpr         :: void
+  expr 737:8    BinaryExpr     :: bool
+  expr 737:8    IdentExpr      :: char
+  expr 738:26   CallExpr       :: bool
+  expr 738:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 738:26   IdentExpr      :: Lexer
+  expr 738:34   DotVariantExpr :: TokenKind
+  expr 738:42   StringLitExpr  :: string
+  expr 738:5    IfExpr         :: void
+  expr 738:8    BinaryExpr     :: bool
+  expr 738:8    IdentExpr      :: char
+  expr 739:26   CallExpr       :: bool
+  expr 739:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 739:26   IdentExpr      :: Lexer
+  expr 739:34   DotVariantExpr :: TokenKind
+  expr 739:42   StringLitExpr  :: string
+  expr 739:5    IfExpr         :: void
+  expr 739:8    BinaryExpr     :: bool
+  expr 739:8    IdentExpr      :: char
+  expr 740:26   CallExpr       :: bool
+  expr 740:26   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 740:26   IdentExpr      :: Lexer
+  expr 740:34   DotVariantExpr :: TokenKind
+  expr 740:40   StringLitExpr  :: string
+  expr 740:5    IfExpr         :: void
+  expr 740:8    BinaryExpr     :: bool
+  expr 740:8    IdentExpr      :: char
+  expr 744:5    IfExpr         :: void
+  expr 744:8    BinaryExpr     :: bool
+  expr 744:8    IdentExpr      :: char
+  expr 745:18   CallExpr       :: Position
+  expr 745:18   FieldExpr      :: fn() -> Position
+  expr 745:18   IdentExpr      :: Lexer
+  expr 746:9    CallExpr       :: void
+  expr 746:9    FieldExpr      :: fn(i32) -> void
+  expr 746:9    IdentExpr      :: Lexer
+  expr 747:25   BinaryExpr     :: i32
+  expr 747:25   FieldExpr      :: i32
+  expr 747:25   IdentExpr      :: Lexer
+  expr 747:9    FieldExpr      :: i32
+  expr 747:9    IdentExpr      :: Lexer
+  expr 748:23   DotVariantExpr :: TokenKind
+  expr 748:32   StringLitExpr  :: string
+  expr 748:37   IdentExpr      :: Position
+  expr 748:9    CallExpr       :: void
+  expr 748:9    FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 748:9    IdentExpr      :: Lexer
+  expr 74:10    StructLitExpr  :: Position
+  expr 74:29    IdentExpr      :: string
+  expr 751:5    IfExpr         :: void
+  expr 751:8    BinaryExpr     :: bool
+  expr 751:8    IdentExpr      :: char
+  expr 752:18   CallExpr       :: Position
+  expr 752:18   FieldExpr      :: fn() -> Position
+  expr 752:18   IdentExpr      :: Lexer
+  expr 753:9    CallExpr       :: void
+  expr 753:9    FieldExpr      :: fn(i32) -> void
+  expr 753:9    IdentExpr      :: Lexer
+  expr 754:25   BinaryExpr     :: i32
+  expr 754:25   FieldExpr      :: i32
+  expr 754:25   IdentExpr      :: Lexer
+  expr 754:9    FieldExpr      :: i32
+  expr 754:9    IdentExpr      :: Lexer
+  expr 755:23   DotVariantExpr :: TokenKind
+  expr 755:34   StringLitExpr  :: string
+  expr 755:39   IdentExpr      :: Position
+  expr 755:9    CallExpr       :: void
+  expr 755:9    FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 755:9    IdentExpr      :: Lexer
+  expr 758:5    IfExpr         :: void
+  expr 758:8    BinaryExpr     :: bool
+  expr 758:8    IdentExpr      :: char
+  expr 759:18   CallExpr       :: Position
+  expr 759:18   FieldExpr      :: fn() -> Position
+  expr 759:18   IdentExpr      :: Lexer
+  expr 75:12    StructLitExpr  :: Span
+  expr 75:28    IdentExpr      :: Position
+  expr 75:38    IdentExpr      :: Position
+  expr 760:9    CallExpr       :: void
+  expr 760:9    FieldExpr      :: fn(i32) -> void
+  expr 760:9    IdentExpr      :: Lexer
+  expr 761:12   BinaryExpr     :: bool
+  expr 761:12   FieldExpr      :: i32
+  expr 761:12   IdentExpr      :: Lexer
+  expr 761:32   FieldExpr      :: i32
+  expr 761:32   IdentExpr      :: Lexer
+  expr 761:48   BinaryExpr     :: i32
+  expr 761:48   FieldExpr      :: i32
+  expr 761:48   IdentExpr      :: Lexer
+  expr 761:9    IfExpr         :: void
+  expr 762:23   DotVariantExpr :: TokenKind
+  expr 762:32   StringLitExpr  :: string
+  expr 762:37   IdentExpr      :: Position
+  expr 762:9    CallExpr       :: void
+  expr 762:9    FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 762:9    IdentExpr      :: Lexer
+  expr 765:5    IfExpr         :: void
+  expr 765:8    BinaryExpr     :: bool
+  expr 765:8    IdentExpr      :: char
+  expr 766:18   CallExpr       :: Position
+  expr 766:18   FieldExpr      :: fn() -> Position
+  expr 766:18   IdentExpr      :: Lexer
+  expr 767:9    CallExpr       :: void
+  expr 767:9    FieldExpr      :: fn(i32) -> void
+  expr 767:9    IdentExpr      :: Lexer
+  expr 768:12   BinaryExpr     :: bool
+  expr 768:12   FieldExpr      :: i32
+  expr 768:12   IdentExpr      :: Lexer
+  expr 768:32   FieldExpr      :: i32
+  expr 768:32   IdentExpr      :: Lexer
+  expr 768:48   BinaryExpr     :: i32
+  expr 768:48   FieldExpr      :: i32
+  expr 768:48   IdentExpr      :: Lexer
+  expr 768:9    IfExpr         :: void
+  expr 769:23   DotVariantExpr :: TokenKind
+  expr 769:34   StringLitExpr  :: string
+  expr 769:39   IdentExpr      :: Position
+  expr 769:9    CallExpr       :: void
+  expr 769:9    FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 769:9    IdentExpr      :: Lexer
+  expr 772:5    IfExpr         :: void
+  expr 772:8    BinaryExpr     :: bool
+  expr 772:8    IdentExpr      :: char
+  expr 775:16   CallExpr       :: InterpFrame | null
+  expr 775:16   FieldExpr      :: fn() -> InterpFrame | null
+  expr 775:16   IdentExpr      :: Lexer
+  expr 776:15   IdentExpr      :: InterpFrame | null
+  expr 776:9    MatchExpr      :: void
+  expr 777:33   FieldExpr      :: i32
+  expr 777:33   IdentExpr      :: InterpFrame
+  expr 777:51   BinaryExpr     :: i32
+  expr 777:51   FieldExpr      :: i32
+  expr 777:51   IdentExpr      :: InterpFrame
+  expr 780:16   CallExpr       :: bool
+  expr 780:16   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 780:16   IdentExpr      :: Lexer
+  expr 780:24   DotVariantExpr :: TokenKind
+  expr 780:33   StringLitExpr  :: string
+  expr 782:5    IfExpr         :: void
+  expr 782:8    BinaryExpr     :: bool
+  expr 782:8    IdentExpr      :: char
+  expr 783:16   CallExpr       :: InterpFrame | null
+  expr 783:16   FieldExpr      :: fn() -> InterpFrame | null
+  expr 783:16   IdentExpr      :: Lexer
+  expr 784:15   IdentExpr      :: InterpFrame | null
+  expr 784:9    MatchExpr      :: void
+  expr 786:17   IfExpr         :: void
+  expr 786:20   BinaryExpr     :: bool
+  expr 786:20   FieldExpr      :: i32
+  expr 786:20   IdentExpr      :: InterpFrame
+  expr 787:21   FieldExpr      :: i32
+  expr 787:21   IdentExpr      :: InterpFrame
+  expr 787:39   BinaryExpr     :: i32
+  expr 787:39   FieldExpr      :: i32
+  expr 787:39   IdentExpr      :: InterpFrame
+  expr 78:63    StructLitExpr  :: Token
+  expr 792:16   CallExpr       :: bool
+  expr 792:16   FieldExpr      :: fn(TokenKind, string) -> bool
+  expr 792:16   IdentExpr      :: Lexer
+  expr 792:24   DotVariantExpr :: TokenKind
+  expr 792:33   StringLitExpr  :: string
+  expr 799:14   CallExpr       :: Position
+  expr 799:14   FieldExpr      :: fn() -> Position
+  expr 799:14   IdentExpr      :: Lexer
+  expr 79:13    IdentExpr      :: TokenKind
+  expr 800:5    CallExpr       :: void
+  expr 800:5    FieldExpr      :: fn(i32) -> void
+  expr 800:5    IdentExpr      :: Lexer
+  expr 801:19   IdentExpr      :: TokenKind
+  expr 801:25   IdentExpr      :: string
+  expr 801:31   IdentExpr      :: Position
+  expr 801:5    CallExpr       :: void
+  expr 801:5    FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 801:5    IdentExpr      :: Lexer
+  expr 806:14   CallExpr       :: Position
+  expr 806:14   FieldExpr      :: fn() -> Position
+  expr 806:14   IdentExpr      :: Lexer
+  expr 807:5    CallExpr       :: void
+  expr 807:5    FieldExpr      :: fn(i32) -> void
+  expr 807:5    IdentExpr      :: Lexer
+  expr 808:19   IdentExpr      :: TokenKind
+  expr 808:25   IdentExpr      :: string
+  expr 808:31   IdentExpr      :: Position
+  expr 808:5    CallExpr       :: void
+  expr 808:5    FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 808:5    IdentExpr      :: Lexer
+  expr 80:13    IdentExpr      :: string
+  expr 815:5    CallExpr       :: void
+  expr 815:5    FieldExpr      :: fn() -> void
+  expr 815:5    IdentExpr      :: Lexer
+  expr 816:5    IfExpr         :: void
+  expr 816:8    CallExpr       :: bool
+  expr 816:8    FieldExpr      :: fn() -> bool
+  expr 816:8    IdentExpr      :: Lexer
+  expr 81:13    IdentExpr      :: Span
+  expr 822:12   CallExpr       :: InterpFrame | null
+  expr 822:12   FieldExpr      :: fn() -> InterpFrame | null
+  expr 822:12   IdentExpr      :: Lexer
+  expr 823:11   IdentExpr      :: InterpFrame | null
+  expr 823:5    MatchExpr      :: void
+  expr 825:13   IfExpr         :: void
+  expr 825:16   BinaryExpr     :: bool
+  expr 825:16   BinaryExpr     :: bool
+  expr 825:16   CallExpr       :: char
+  expr 825:16   FieldExpr      :: fn() -> char
+  expr 825:16   IdentExpr      :: Lexer
+  expr 825:35   BinaryExpr     :: bool
+  expr 825:35   FieldExpr      :: i32
+  expr 825:35   IdentExpr      :: InterpFrame
+  expr 826:32   CallExpr       :: Position
+  expr 826:32   FieldExpr      :: fn() -> Position
+  expr 826:32   IdentExpr      :: Lexer
+  expr 827:17   CallExpr       :: void
+  expr 827:17   FieldExpr      :: fn(i32) -> void
+  expr 827:17   IdentExpr      :: Lexer
+  expr 828:17   CallExpr       :: void
+  expr 828:17   FieldExpr      :: fn(TokenKind, string, Position) -> void
+  expr 828:17   IdentExpr      :: Lexer
+  expr 828:31   DotVariantExpr :: TokenKind
+  expr 828:45   StringLitExpr  :: string
+  expr 828:50   IdentExpr      :: Position
+  expr 829:27   FieldExpr      :: bool
+  expr 829:27   IdentExpr      :: InterpFrame
+  expr 830:17   CallExpr       :: void
+  expr 830:17   FieldExpr      :: fn() -> void
+  expr 830:17   IdentExpr      :: Lexer
+  expr 831:17   CallExpr       :: void
+  expr 831:17   FieldExpr      :: fn(bool, bool) -> void
+  expr 831:17   IdentExpr      :: Lexer
+  expr 831:35   IdentExpr      :: bool
+  expr 838:10   CallExpr       :: char
+  expr 838:10   FieldExpr      :: fn() -> char
+  expr 838:10   IdentExpr      :: Lexer
+  expr 83:23    StringLitExpr  :: string
+  expr 840:21   BinaryExpr     :: bool
+  expr 840:21   IdentExpr      :: char
+  expr 840:5    IfExpr         :: void
+  expr 840:8    BinaryExpr     :: bool
+  expr 840:8    BinaryExpr     :: bool
+  expr 840:8    IdentExpr      :: char
+  expr 841:9    CallExpr       :: void
+  expr 841:9    FieldExpr      :: fn() -> void
+  expr 841:9    IdentExpr      :: Lexer
+  expr 844:20   BinaryExpr     :: bool
+  expr 844:20   CallExpr       :: char
+  expr 844:20   FieldExpr      :: fn(i32) -> char
+  expr 844:20   IdentExpr      :: Lexer
+  expr 844:5    IfExpr         :: void
+  expr 844:8    BinaryExpr     :: bool
+  expr 844:8    BinaryExpr     :: bool
+  expr 844:8    IdentExpr      :: char
+  expr 846:13   BinaryExpr     :: bool
+  expr 846:13   UnaryExpr      :: bool
+  expr 846:14   CallExpr       :: bool
+  expr 846:14   FieldExpr      :: fn() -> bool
+  expr 846:14   IdentExpr      :: Lexer
+  expr 846:28   BinaryExpr     :: bool
+  expr 846:28   CallExpr       :: char
+  expr 846:28   FieldExpr      :: fn() -> char
+  expr 846:28   IdentExpr      :: Lexer
+  expr 847:13   CallExpr       :: void
+  expr 847:13   FieldExpr      :: fn(i32) -> void
+  expr 847:13   IdentExpr      :: Lexer
+  expr 851:20   BinaryExpr     :: bool
+  expr 851:20   CallExpr       :: char
+  expr 851:20   FieldExpr      :: fn(i32) -> char
+  expr 851:20   IdentExpr      :: Lexer
+  expr 851:5    IfExpr         :: void
+  expr 851:8    BinaryExpr     :: bool
+  expr 851:8    BinaryExpr     :: bool
+  expr 851:8    IdentExpr      :: char
+  expr 852:9    CallExpr       :: void
+  expr 852:9    FieldExpr      :: fn() -> void
+  expr 852:9    IdentExpr      :: Lexer
+  expr 857:20   BinaryExpr     :: bool
+  expr 857:20   CallExpr       :: char
+  expr 857:20   FieldExpr      :: fn(i32) -> char
+  expr 857:20   IdentExpr      :: Lexer
+  expr 857:5    IfExpr         :: void
+  expr 857:8    BinaryExpr     :: bool
+  expr 857:8    BinaryExpr     :: bool
+  expr 857:8    IdentExpr      :: char
+  expr 858:9    CallExpr       :: void
+  expr 858:9    FieldExpr      :: fn(bool) -> void
+  expr 858:9    IdentExpr      :: Lexer
+  expr 861:5    IfExpr         :: void
+  expr 861:8    CallExpr       :: bool
+  expr 861:8    FieldExpr      :: fn() -> bool
+  expr 861:8    IdentExpr      :: char
+  expr 862:9    CallExpr       :: void
+  expr 862:9    FieldExpr      :: fn() -> void
+  expr 862:9    IdentExpr      :: Lexer
+  expr 865:5    IfExpr         :: void
+  expr 865:8    CallExpr       :: bool
+  expr 865:8    FieldExpr      :: fn() -> bool
+  expr 865:8    IdentExpr      :: char
+  expr 866:9    CallExpr       :: void
+  expr 866:9    FieldExpr      :: fn() -> void
+  expr 866:9    IdentExpr      :: Lexer
+  expr 869:5    IfExpr         :: void
+  expr 869:8    BinaryExpr     :: bool
+  expr 869:8    IdentExpr      :: char
+  expr 870:9    CallExpr       :: void
+  expr 870:9    FieldExpr      :: fn() -> void
+  expr 870:9    IdentExpr      :: Lexer
+  expr 873:5    IfExpr         :: void
+  expr 873:8    BinaryExpr     :: bool
+  expr 873:8    IdentExpr      :: char
+  expr 874:9    CallExpr       :: void
+  expr 874:9    FieldExpr      :: fn(bool) -> void
+  expr 874:9    IdentExpr      :: Lexer
+  expr 877:5    IfExpr         :: void
+  expr 877:8    CallExpr       :: bool
+  expr 877:8    FieldExpr      :: fn() -> bool
+  expr 877:8    IdentExpr      :: Lexer
+  expr 882:14   CallExpr       :: Position
+  expr 882:14   FieldExpr      :: fn() -> Position
+  expr 882:14   IdentExpr      :: Lexer
+  expr 883:5    CallExpr       :: void
+  expr 883:5    FieldExpr      :: fn(i32) -> void
+  expr 883:5    IdentExpr      :: Lexer
+  expr 884:18   DotVariantExpr :: LexerCode
+  expr 884:40   CallExpr       :: Span
+  expr 884:40   FieldExpr      :: fn(Position) -> Span
+  expr 884:40   IdentExpr      :: Lexer
+  expr 884:5    CallExpr       :: void
+  expr 884:5    FieldExpr      :: fn(LexerCode, Span, string) -> void
+  expr 884:5    IdentExpr      :: Lexer
+  expr 884:53   IdentExpr      :: Position
+  expr 884:61   StringLitExpr  :: string
+  expr 890:10   CallExpr       :: Lexer
+  expr 890:10   IdentExpr      :: fn(string, string) -> Lexer
+  expr 890:20   IdentExpr      :: string
+  expr 890:28   IdentExpr      :: string
+  expr 892:5    IfExpr         :: void
+  expr 892:8    BinaryExpr     :: bool
+  expr 892:8    BinaryExpr     :: bool
+  expr 892:8    BinaryExpr     :: bool
+  expr 892:8    BinaryExpr     :: bool
+  expr 892:8    CallExpr       :: i32
+  expr 892:8    FieldExpr      :: fn() -> i32
+  expr 892:8    FieldExpr      :: string
+  expr 892:8    IdentExpr      :: Lexer
+  expr 893:29   CallExpr       :: char
+  expr 893:29   IdentExpr      :: type
+  expr 893:34   CallExpr       :: u32
+  expr 893:34   IdentExpr      :: type
+  expr 893:9    BinaryExpr     :: bool
+  expr 893:9    CallExpr       :: char
+  expr 893:9    FieldExpr      :: fn(i32) -> char
+  expr 893:9    FieldExpr      :: string
+  expr 893:9    IdentExpr      :: Lexer
+  expr 894:29   CallExpr       :: char
+  expr 894:29   IdentExpr      :: type
+  expr 894:34   CallExpr       :: u32
+  expr 894:34   IdentExpr      :: type
+  expr 894:9    BinaryExpr     :: bool
+  expr 894:9    CallExpr       :: char
+  expr 894:9    FieldExpr      :: fn(i32) -> char
+  expr 894:9    FieldExpr      :: string
+  expr 894:9    IdentExpr      :: Lexer
+  expr 895:29   CallExpr       :: char
+  expr 895:29   IdentExpr      :: type
+  expr 895:34   CallExpr       :: u32
+  expr 895:34   IdentExpr      :: type
+  expr 895:9    BinaryExpr     :: bool
+  expr 895:9    CallExpr       :: char
+  expr 895:9    FieldExpr      :: fn(i32) -> char
+  expr 895:9    FieldExpr      :: string
+  expr 895:9    IdentExpr      :: Lexer
+  expr 896:9    CallExpr       :: void
+  expr 896:9    FieldExpr      :: fn(i32) -> void
+  expr 896:9    IdentExpr      :: Lexer
+  expr 899:23   BinaryExpr     :: bool
+  expr 899:23   CallExpr       :: char
+  expr 899:23   FieldExpr      :: fn() -> char
+  expr 899:23   IdentExpr      :: Lexer
+  expr 899:42   BinaryExpr     :: bool
+  expr 899:42   CallExpr       :: char
+  expr 899:42   FieldExpr      :: fn(i32) -> char
+  expr 899:42   IdentExpr      :: Lexer
+  expr 899:5    IfExpr         :: void
+  expr 899:8    BinaryExpr     :: bool
+  expr 899:8    BinaryExpr     :: bool
+  expr 899:8    BinaryExpr     :: bool
+  expr 899:8    FieldExpr      :: i32
+  expr 899:8    IdentExpr      :: Lexer
+  expr 900:13   BinaryExpr     :: bool
+  expr 900:13   UnaryExpr      :: bool
+  expr 900:14   CallExpr       :: bool
+  expr 900:14   FieldExpr      :: fn() -> bool
+  expr 900:14   IdentExpr      :: Lexer
+  expr 900:28   BinaryExpr     :: bool
+  expr 900:28   CallExpr       :: char
+  expr 900:28   FieldExpr      :: fn() -> char
+  expr 900:28   IdentExpr      :: Lexer
+  expr 901:13   CallExpr       :: void
+  expr 901:13   FieldExpr      :: fn(i32) -> void
+  expr 901:13   IdentExpr      :: Lexer
+  expr 904:10   CallExpr       :: bool
+  expr 904:10   FieldExpr      :: fn() -> bool
+  expr 904:10   IdentExpr      :: Lexer
+  expr 904:9    UnaryExpr      :: bool
+  expr 905:9    CallExpr       :: void
+  expr 905:9    FieldExpr      :: fn() -> void
+  expr 905:9    IdentExpr      :: Lexer
+  expr 907:13   CallExpr       :: Position
+  expr 907:13   FieldExpr      :: fn() -> Position
+  expr 907:13   IdentExpr      :: Lexer
+  expr 908:17   StructLitExpr  :: Span
+  expr 908:33   IdentExpr      :: Position
+  expr 908:46   IdentExpr      :: Position
+  expr 909:12   CallExpr       :: Token
+  expr 909:12   IdentExpr      :: fn(TokenKind, string, Span) -> Token
+  expr 909:23   DotVariantExpr :: TokenKind
+  expr 909:29   StringLitExpr  :: string
+  expr 909:33   IdentExpr      :: Span
+  expr 909:5    CallExpr       :: void
+  expr 909:5    FieldExpr      :: fn(Token) -> void
+  expr 909:5    IdentExpr      :: Lexer
+  expr 910:12   IdentExpr      :: Lexer

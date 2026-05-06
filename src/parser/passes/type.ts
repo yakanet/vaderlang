@@ -8,13 +8,19 @@ import { describeToken } from "../parser.ts";
 
 export function parseType(p: Parser): A.TypeExpr {
   let head = parseTypePrimary(p);
-  // Postfix `!`: `T!` desugars to `T | Error` (SPEC §10).
+  // Postfix `!`: `T!` desugars to `T | Error` (SPEC §10). Special case for
+  // `void!` — the runtime has no `void` value to box, it emits `null` for the
+  // success branch ; we rewrite to `null | Error` so `match { is null -> ... }`
+  // matches cleanly on the success arm.
   if (p.match("bang") !== null) {
     const bangEnd = p.peek(-1).span.end;
+    const successVariant: A.TypeExpr = head.kind === "NamedType" && head.name === "void"
+      ? { kind: "NamedType", span: head.span, name: "null" }
+      : head;
     head = {
       kind: "UnionType",
       span: { start: head.span.start, end: bangEnd },
-      variants: [head, { kind: "NamedType", span: { start: bangEnd, end: bangEnd }, name: "Error" }],
+      variants: [successVariant, { kind: "NamedType", span: { start: bangEnd, end: bangEnd }, name: "Error" }],
     };
   }
   // Union: `T | U | V`

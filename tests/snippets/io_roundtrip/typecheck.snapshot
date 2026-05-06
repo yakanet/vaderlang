@@ -17,8 +17,8 @@
   expr 4:13     StringLitExpr  :: string
   expr 7:16     IdentExpr      :: string
   expr 7:22     StringLitExpr  :: string
-  expr 7:5      CallExpr       :: Error | void
-  expr 7:5      IdentExpr      :: fn(string, string) -> Error | void
+  expr 7:5      CallExpr       :: Error | null
+  expr 7:5      IdentExpr      :: fn(string, string) -> Error | null
   expr 9:13     StringLitExpr  :: string
   expr 9:24     CallExpr       :: bool
   expr 9:24     IdentExpr      :: fn(string) -> bool

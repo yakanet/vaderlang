@@ -1,0 +1,70 @@
+// vader/diagnostics/diagnostic — structured diagnostic shape consumed by the
+// terminal renderer and (eventually) the LSP. Mirrors `src/diagnostics/`
+// shapes (Severity / Position / Span / Diagnostic) so a Vader-driven LSP
+// emits the same JSON schema as the TS compiler.
+
+import "std/string" { len }
+import "vader/diagnostics/codes" { DiagCode, LexerCode, info, CodeInfo }
+
+Severity :: enum {
+    Error,
+    Warning,
+    Info,
+    Hint,
+}
+
+// Source position. Offset/line/column are JS-string code-unit accurate, which
+// matches UTF-8 bytes for ASCII source. The LSP boundary translates to UTF-16
+// column counts when needed.
+Position :: struct {
+    file: string
+    offset: i32
+    line: i32
+    column: i32
+}
+
+// Half-open span [start, end) in source.
+Span :: struct {
+    start: Position
+    end: Position
+}
+
+Diagnostic :: struct {
+    severity: Severity
+    code: DiagCode
+    // Optional detail appended to the canonical message at render time.
+    detail: string
+    primary: Span
+    // Notes / fixes / secondary spans are deferred — the lexer doesn't need
+    // them today and the LSP can synthesise them later.
+}
+
+// Build a diagnostic. The canonical message is recovered from `code` at
+// render time, so callers stay terse: just pass the code variant + an
+// optional `detail` (the offending text, an unknown name, ...).
+make :: fn(severity: Severity, code: DiagCode, primary: Span, detail: string) =
+    Diagnostic { .severity = severity, .code = code, .detail = detail, .primary = primary }
+
+error :: fn(code: DiagCode, primary: Span, detail: string) =
+    make(.Error, code, primary, detail)
+
+// Render a diagnostic as a single-line `error[CODE]: message at file:line:col`.
+// Used for terminal output today; the LSP will go via the JSON shape directly
+// without this helper.
+render :: fn(d: Diagnostic) -> string {
+    severity :: match d.severity {
+        .Error   -> "error"
+        .Warning -> "warning"
+        .Info    -> "info"
+        .Hint    -> "hint"
+    }
+    // `info` will become a `match` on `DiagCode` once the union widens to
+    // `LexerCode | ParserCode | ...` ; today the alias makes a direct call fine.
+    ci :: d.code.info()
+    p :: d.primary.start
+    detail: string = ""
+    if d.detail.len() > 0 {
+        detail = ": ${d.detail}"
+    }
+    return "${severity}[${ci.id}]: ${ci.message}${detail} at ${p.file}:${p.line}:${p.column}"
+}

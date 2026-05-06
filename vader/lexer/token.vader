@@ -1,20 +1,11 @@
 // vader/lexer/token — token shapes for the self-hosted lexer.
 //
 // Mirror of `src/lexer/token.ts`. One enum variant per kind so downstream
-// passes get exhaustive `match` checking. Token payload uses sentinel-default
-// fields rather than a payload union (simpler; the kind tells you which slot
-// is meaningful).
+// passes get exhaustive `match` checking. `Position` and `Span` live in
+// `vader/diagnostics/diagnostic` so tokens and diagnostics share the same
+// canonical source-location types.
 
-Position :: struct {
-    offset: i32
-    line: i32
-    column: i32
-}
-
-Span :: struct {
-    start: Position
-    end: Position
-}
+import "vader/diagnostics/diagnostic" { Position, Span }
 
 TokenKind :: enum(u8) {
     // Layout
@@ -79,8 +70,8 @@ Token :: struct {
     numeric_suffix: string
 }
 
-empty_span :: fn() -> Span {
-    p := Position { .offset = 0, .line = 1, .column = 1 }
+empty_span :: fn(file: string) -> Span {
+    p := Position { .file = file, .offset = 0, .line = 1, .column = 1 }
     return Span { .start = p, .end = p }
 }
 

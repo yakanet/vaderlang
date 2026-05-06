@@ -1,0 +1,53 @@
+// vader/diagnostics/codes — typed diagnostic codes shared by every compiler
+// phase (lexer, parser, resolver, typecheck, comptime, lower).
+//
+// Mirrors `src/diagnostics/codes.ts`. Each phase owns its own enum so the
+// type checker enforces "the lexer can only emit LexerCode values". The
+// canonical `LXXXX`/`PXXXX`/... wire ID is recovered via `to_id` and the
+// human message via `to_message` — call sites use the variant name
+// (e.g. `.UnexpectedCharacter`) for clarity, the wire format gets the
+// stable string at the JSON boundary.
+//
+// `DiagCode` is the union of every phase's enum so the central `Diagnostic`
+// shape can carry a code from any phase without losing the per-phase
+// exhaustiveness.
+
+LexerCode :: enum(u8) {
+    UnexpectedCharacter,                    // L0001
+    UnterminatedStringLiteral,              // L0002
+    UnterminatedBlockComment,               // L0003
+    InvalidEscapeSequence,                  // L0004
+    InvalidCharacterLiteral,                // L0005
+    MalformedNumericLiteral,                // L0006
+    StrayBackslash,                         // L0007
+    ShebangNotOnFirstLine,                  // L0008
+    InvalidUnicodeCodepointEscape,          // L0009
+    InterpolationExpressionExpected,        // L0010
+}
+
+// `(id, message)` for a code, in one shot. The wire ID stays aligned with
+// `src/diagnostics/codes.ts`; the message is the canonical human wording.
+// (`private` would be ideal here, but Vader's "module = single file"
+// resolution makes `codes.vader` and `diagnostic.vader` separate modules ;
+// move both to a folder-module if we want to hide these.)
+CodeInfo :: struct {
+    id: string
+    message: string
+}
+
+info :: fn(c: LexerCode) = match c {
+    .UnexpectedCharacter             -> CodeInfo { .id = "L0001", .message = "unexpected character" }
+    .UnterminatedStringLiteral       -> CodeInfo { .id = "L0002", .message = "unterminated string literal" }
+    .UnterminatedBlockComment        -> CodeInfo { .id = "L0003", .message = "unterminated block comment" }
+    .InvalidEscapeSequence           -> CodeInfo { .id = "L0004", .message = "invalid escape sequence" }
+    .InvalidCharacterLiteral         -> CodeInfo { .id = "L0005", .message = "invalid character literal" }
+    .MalformedNumericLiteral         -> CodeInfo { .id = "L0006", .message = "malformed numeric literal" }
+    .StrayBackslash                  -> CodeInfo { .id = "L0007", .message = "stray backslash (Vader has no line continuation)" }
+    .ShebangNotOnFirstLine           -> CodeInfo { .id = "L0008", .message = "shebang only allowed on first line" }
+    .InvalidUnicodeCodepointEscape   -> CodeInfo { .id = "L0009", .message = "invalid Unicode codepoint escape" }
+    .InterpolationExpressionExpected -> CodeInfo { .id = "L0010", .message = "interpolation expression must follow `\${`" }
+}
+
+// `DiagCode` widens to every phase's code enum as new phases land. For now
+// the lexer is the only emitter; parser/resolver/... will extend the union.
+DiagCode :: type LexerCode

@@ -2,7 +2,14 @@
 
 ## tests/snippets/selfhost_lexer_basic/_main.vader
 
+## vader/diagnostics/codes.vader
+
+## vader/diagnostics/diagnostic.vader
+
 ## vader/lexer
 
 ## generic instances
+  slice(InterpFrame)
   Yielded(i32)
+  ArrayIter($T)
+  ArrayIter(i32)

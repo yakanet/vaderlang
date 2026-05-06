@@ -35,6 +35,20 @@
       "decorators": []
     },
     {
+      "kind": "ImportDecl",
+      "path": "vader/diagnostics/diagnostic",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "render",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
       "name": "kind_name",
       "visibility": "public",
@@ -761,13 +775,13 @@
                         "variant": "Newline",
                         "variantSpan": {
                           "start": {
-                            "offset": 1662,
-                            "line": 53,
+                            "offset": 1711,
+                            "line": 54,
                             "column": 23
                           },
                           "end": {
-                            "offset": 1669,
-                            "line": 53,
+                            "offset": 1718,
+                            "line": 54,
                             "column": 30
                           }
                         }
@@ -983,24 +997,37 @@
                               "parts": [
                                 {
                                   "kind": "text",
-                                  "value": "  err: "
+                                  "value": "  "
                                 },
                                 {
                                   "kind": "interp",
                                   "expr": {
-                                    "kind": "IndexExpr",
-                                    "target": {
-                                      "kind": "FieldExpr",
-                                      "target": {
-                                        "kind": "IdentExpr",
-                                        "name": "l"
-                                      },
-                                      "field": "errors"
-                                    },
-                                    "index": {
+                                    "kind": "CallExpr",
+                                    "callee": {
                                       "kind": "IdentExpr",
-                                      "name": "j"
-                                    }
+                                      "name": "render"
+                                    },
+                                    "args": [
+                                      {
+                                        "name": null,
+                                        "value": {
+                                          "kind": "IndexExpr",
+                                          "target": {
+                                            "kind": "FieldExpr",
+                                            "target": {
+                                              "kind": "IdentExpr",
+                                              "name": "l"
+                                            },
+                                            "field": "errors"
+                                          },
+                                          "index": {
+                                            "kind": "IdentExpr",
+                                            "name": "j"
+                                          }
+                                        },
+                                        "spread": false
+                                      }
+                                    ]
                                   }
                                 }
                               ]
