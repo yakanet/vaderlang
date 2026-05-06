@@ -1,0 +1,9 @@
+# stdout
+size = 3
+v1 = 10
+v17 = 170
+has 2? true
+has 99? false
+v1b = 999
+# exit
+0

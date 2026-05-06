@@ -1,0 +1,7 @@
+# Comptime
+
+## tests/snippets/array_of_union/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Node(i32)

@@ -1,0 +1,11 @@
+import "std/io" { println }
+
+are_eq :: fn(a: $T, b: T) -> bool {
+    return a == b
+}
+
+main :: fn() -> i32 {
+    println("${are_eq(1, 1)}")
+    println("${are_eq(1, 2)}")
+    return 0
+}

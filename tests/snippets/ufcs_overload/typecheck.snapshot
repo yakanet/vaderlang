@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/ufcs_overload/_main.vader
+  StructDecl     A                    :: A
+  StructDecl     B                    :: B
+  FnDecl         inc                  :: fn(A) -> i32
+  FnDecl         inc                  :: fn(B) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 11:36    BinaryExpr     :: i32
+  expr 11:36    FieldExpr      :: i32
+  expr 11:36    IdentExpr      :: A
+  expr 12:36    BinaryExpr     :: i32
+  expr 12:36    FieldExpr      :: i32
+  expr 12:36    IdentExpr      :: B
+  expr 15:10    StructLitExpr  :: A
+  expr 16:10    StructLitExpr  :: B
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    CallExpr       :: i32
+  expr 17:16    FieldExpr      :: fn() -> i32
+  expr 17:16    IdentExpr      :: A
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(string) -> void
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    CallExpr       :: ?
+  expr 18:16    FieldExpr      :: ?
+  expr 18:16    IdentExpr      :: B
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(string) -> void
+
+# Diagnostics
+[12:1] error[R2004] duplicate top-level symbol in module: `inc` already declared in this module
+[18:18] error[T3009] field does not exist on this type: `inc` on B

@@ -1,0 +1,19 @@
+import "std/io" { println }
+
+Node :: struct($T) {
+    value: T
+    next:  Node(T) | null
+}
+
+main :: fn() -> i32 {
+    arr: [Node(i32) | null] = []
+    arr.push(null)
+    arr.push(Node(i32) { .value = 42, .next = null })
+    println("len = ${arr.len()}")
+    cell :: arr[1]
+    match cell {
+        is null    -> println("none")
+        is Node(i32) -> println("got value")
+    }
+    return 0
+}

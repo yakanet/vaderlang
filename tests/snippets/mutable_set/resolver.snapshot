@@ -1,0 +1,55 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=43 types=76 params=39 locals=3 typeParams=3 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## std/set
+  fn               public   add 
+  fn               public   contains 
+  fn               public   is_empty 
+  fn               public   len 
+  struct           public   MutableSet 
+  struct           public   Set 
+  refs: idents=16 types=14 params=6 locals=0 typeParams=6 fields=0
+
+## tests/snippets/mutable_set/_main.vader
+  import-binding   private  add → add
+  import-binding   private  contains → contains
+  import-binding   private  len → len
+  fn               public   main 
+  import-binding   private  MutableSet → MutableSet
+  import-binding   private  println → println
+  import std/io → ok
+  import std/set → ok
+  refs: idents=12 types=3 params=0 locals=1 typeParams=0 fields=0

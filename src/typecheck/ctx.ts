@@ -7,7 +7,7 @@
 // while statements / expressions inside that body are checked.
 
 import type * as A from "../parser/ast.ts";
-import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
+import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { MethodResolution } from "./typed-ast.ts";
 import type { Substitution, Type } from "./types.ts";
@@ -59,6 +59,17 @@ export interface MutableTyped {
   readonly genericFnCalls: Map<A.CallExpr, readonly Type[]>;
 }
 
+/** Find the std/core module's exported symbol map. Used by the impl registry
+ *  builder and the project typecheck setup to resolve trait names that come
+ *  from the auto-imported core (e.g. `T implements Display` where `Display`
+ *  isn't in the local module's symbol table). */
+export function findCoreSymbols(project: ResolvedProject): ReadonlyMap<string, Symbol> | null {
+  for (const program of project.modules.values()) {
+    if (program.module.displayPath === "std/core") return program.module.symbols;
+  }
+  return null;
+}
+
 /** Build a typeParam-id → concrete-arg substitution for a generic struct instance. */
 export function buildStructSubst(
   typeParams: readonly A.TypeParam[],
@@ -72,6 +83,18 @@ export function buildStructSubst(
     if (sym !== undefined) bindings.set(sym.id, args[i]!);
   }
   return { typeParams: bindings };
+}
+
+/** Substitution for a generic struct instance, or `null` if the decl's
+ *  type-param count doesn't match the args count (so the caller can fall back
+ *  to the raw, unsubstituted type). */
+export function tryStructSubst(
+  decl: { readonly typeParams: readonly A.TypeParam[] },
+  args: readonly Type[],
+  globals: Globals,
+): Substitution | null {
+  if (args.length === 0 || decl.typeParams.length !== args.length) return null;
+  return buildStructSubst(decl.typeParams, args, globals);
 }
 
 export interface FnContext {

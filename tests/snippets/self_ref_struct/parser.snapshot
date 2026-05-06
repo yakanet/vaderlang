@@ -1,0 +1,249 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Node",
+      "visibility": "public",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "fields": [
+        {
+          "name": "value",
+          "type": {
+            "kind": "NamedType",
+            "name": "T"
+          },
+          "visibility": "public"
+        },
+        {
+          "name": "next",
+          "type": {
+            "kind": "UnionType",
+            "variants": [
+              {
+                "kind": "GenericInstType",
+                "base": {
+                  "kind": "NamedType",
+                  "name": "Node"
+                },
+                "args": [
+                  {
+                    "kind": "NamedType",
+                    "name": "T"
+                  }
+                ]
+              },
+              {
+                "kind": "NamedType",
+                "name": "null"
+              }
+            ]
+          },
+          "visibility": "public"
+        }
+      ],
+      "whereClauses": [],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "i32"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "name": "tail",
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "GenericInstType",
+                "base": {
+                  "kind": "NamedType",
+                  "name": "Node"
+                },
+                "args": [
+                  {
+                    "kind": "NamedType",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "name": "value",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "30n",
+                    "suffix": null
+                  }
+                },
+                {
+                  "name": "next",
+                  "value": {
+                    "kind": "NullLitExpr"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "name": "mid",
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "GenericInstType",
+                "base": {
+                  "kind": "NamedType",
+                  "name": "Node"
+                },
+                "args": [
+                  {
+                    "kind": "NamedType",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "name": "value",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "20n",
+                    "suffix": null
+                  }
+                },
+                {
+                  "name": "next",
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "tail"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "name": "head",
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "GenericInstType",
+                "base": {
+                  "kind": "NamedType",
+                  "name": "Node"
+                },
+                "args": [
+                  {
+                    "kind": "NamedType",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "name": "value",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "10n",
+                    "suffix": null
+                  }
+                },
+                {
+                  "name": "next",
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "mid"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "head.value = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "head"
+                          },
+                          "field": "value"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

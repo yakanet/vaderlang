@@ -98,3 +98,42 @@ ArrayIter($T) implements Iterator(T) {
 Error :: trait {
     fn message(self) -> string
 }
+
+// ===========================================================================
+// Hash + Eq impls for primitive types.
+// Required for using primitives as keys in Map / Set.
+// ===========================================================================
+
+i32 implements Hash {
+    fn hash(self) -> u64 { return u64(self) }
+}
+
+u32 implements Hash {
+    fn hash(self) -> u64 { return u64(self) }
+}
+
+usize implements Hash {
+    fn hash(self) -> u64 { return u64(self) }
+}
+
+// String Hash — TODO post-MVP. Requires std/string functions (len, char_at)
+// which would create a circular import (std/string imports Error from core).
+// Workaround : add a stdlib helper module or move string hash to std/string
+// once cross-module trait impls cleanup is settled.
+
+i32   implements Eq { fn equals(self, other: i32)    -> bool { return self == other } }
+u32   implements Eq { fn equals(self, other: u32)    -> bool { return self == other } }
+usize implements Eq { fn equals(self, other: usize)  -> bool { return self == other } }
+string implements Eq { fn equals(self, other: string) -> bool { return self == other } }
+
+// Free function variants — usable as `fn(K) -> u64` / `fn(K, K) -> bool`
+// values. Generic collections that need to dispatch hashing/equality on a
+// type-param `$K` accept these as struct fields (workaround for
+// trait-method dispatch on bounded type parameters, post-MVP).
+hash_i32   :: fn(x: i32)   -> u64  { return u64(x) }
+hash_u32   :: fn(x: u32)   -> u64  { return u64(x) }
+hash_usize :: fn(x: usize) -> u64  { return u64(x) }
+
+eq_i32   :: fn(a: i32,   b: i32)   -> bool { return a == b }
+eq_u32   :: fn(a: u32,   b: u32)   -> bool { return a == b }
+eq_usize :: fn(a: usize, b: usize) -> bool { return a == b }

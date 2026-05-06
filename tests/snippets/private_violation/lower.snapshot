@@ -17,7 +17,7 @@
     return
       call :i32
         callee:
-          secret_helper#18 :fn() -> i32
+          secret_helper#24 :fn() -> i32
 
 # Diagnostics
 [1:18] error[R2008] private symbol cannot be accessed across module boundaries: `secret_helper` is private to `./lib`

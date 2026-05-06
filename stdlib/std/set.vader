@@ -1,0 +1,46 @@
+// std/set — generic mutable set.
+//
+// MVP : linear-search implementation on a single array. O(n) per add/contains/remove.
+// Post-MVP : promote to hash-based (cf. std/map TODO).
+//
+// Construction example :
+//   s := MutableSet(i32) { .data = [], .size = 0 }
+//   s.add(10)
+//   s.contains(10)   // true
+
+// Set (read-only) — TODO post-MVP. Same layout as MutableSet; API will be a
+// subset (no add/remove). Declared here so user code can reference it.
+Set :: struct($T) {
+    data: [T]
+    size: usize
+}
+
+MutableSet :: struct($T) {
+    data: [T]
+    size: usize
+}
+
+// ===========================================================================
+// Operations
+// ===========================================================================
+
+// Returns true if the value was newly added, false if it was already present.
+add :: fn(self: MutableSet($T), value: T) -> bool {
+    for i in 0..<i32(self.size) {
+        if self.data[i] == value { return false }
+    }
+    self.data.push(value)
+    self.size = self.size + 1
+    return true
+}
+
+contains :: fn(self: MutableSet($T), value: T) -> bool {
+    for i in 0..<i32(self.size) {
+        if self.data[i] == value { return true }
+    }
+    return false
+}
+
+len :: fn(self: MutableSet($T)) -> usize { return self.size }
+
+is_empty :: fn(self: MutableSet($T)) -> bool { return self.size == 0 }

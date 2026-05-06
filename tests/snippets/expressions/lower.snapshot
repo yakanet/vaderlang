@@ -2,7 +2,7 @@
 
 ## tests/snippets/expressions/_main.vader
   fn tests_snippets_expressions__main_vader$demo() -> i32
-    let a#38: i32 =
+    let a#45: i32 =
       add :{integer}
         l:
           int(1) :i32
@@ -12,7 +12,7 @@
               int(2) :i32
             r:
               int(3) :i32
-    let b#39: i32 =
+    let b#46: i32 =
       mul :{integer}
         l:
           add :{integer}
@@ -22,14 +22,14 @@
               int(2) :i32
         r:
           int(3) :i32
-    let c#40: i32 =
+    let c#47: i32 =
       add :i32
         l:
           neg :i32
-            a#38 :i32
+            a#45 :i32
         r:
-          b#39 :i32
-    let d#41: bool =
+          b#46 :i32
+    let d#48: bool =
       or :bool
         l:
           and :bool
@@ -40,42 +40,42 @@
               false
         r:
           true
-    let e#42: Range =
+    let e#49: Range =
       Range {
         start: int(0) :i32
         end: int(10) :i32
         inclusive: false
         cursor: int(0) :i32
       }
-    let f#43: ? =
+    let f#50: ? =
       index :?
         on:
           unreachable("unresolved ident arr") :?
         ix:
           int(0) :i32
-    let g#44: ? =
+    let g#51: ? =
       .subfield :?
         .field :?
           unreachable("unresolved ident obj") :?
-    let h#45: ? =
+    let h#52: ? =
       call :?
         callee:
-          f#43 :?
+          f#50 :?
         arg0:
           int(1) :i32
         arg1:
           int(2) :i32
         arg2:
           int(3) :i32
-    let i#46: ? =
+    let i#53: ? =
       call :?
         callee:
-          f#43 :?
+          f#50 :?
         arg0:
           int(42) :i32
         arg1:
           "x" :string
-    let j#47: void =
+    let j#54: void =
       if :void
         cond:
           unreachable("unresolved ident cond") :?
@@ -83,7 +83,7 @@
           int(1) :i32
           null
           int(2) :i32
-          return a#38 :i32
+          return a#45 :i32
 
 # Diagnostics
 [7:10] error[R2006] unresolved identifier: `arr`

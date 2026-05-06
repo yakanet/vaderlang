@@ -293,7 +293,12 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [ ] `std/core` — finalise traits and base `Error`
 - [ ] `std/io` — implement `print`, `println`, `read_file`, `write_file`, `read_line`, `exists`
 - [ ] `std/string` — finalise all listed operations
-- [ ] `std/collections` — `List`, `MutableList`, `Map`, `MutableMap`, `Set`, `MutableSet`
+- [x] `std/list` — `MutableList(T)` with full ops + `Iterator(T)` impl. Stub `List(T)`.
+- [x] `std/map` — `MutableMap(K, V)` linear-search MVP (post-MVP : promote to chaining HashMap once trait dispatch on `$K` lands). Stub `Map(K, V)` + `Bucket(K, V)` for future.
+- [x] `std/set` — `MutableSet(T)` linear-search MVP. Stub `Set(T)`.
+- [ ] **Promote `MutableMap` / `MutableSet` to chaining HashMap** once trait-method dispatch on bounded type parameters is implemented (so `key.hash()` / `key.equals(other)` work inside generic bodies).
+- [ ] **Implement immutable `List`/`Map`/`Set` ops + `to_immutable` conversion** (currently struct stubs only).
+- [ ] **Iterator impls for `MutableMap` / `MutableSet`** — yield `Entry(K, V)` / `T`. Skipped at MVP because writing them in a generic body needs the trait-dispatch fix above to be ergonomic.
 - [ ] `std/math` — constants and float operations (use `@extern` to libm where useful on native, intrinsics on WASM)
 - [ ] `std/builder` — `StringBuilder`
 - [ ] `std/iter` — `map`, `filter`, `take`, `skip`, `fold`, `sum`, `count`, `collect`
@@ -341,6 +346,30 @@ The self-hosting compiler will use enums to represent token kinds, opcode tags, 
 - [ ] **Typed representation** (`SPEC §Enums / Representation`): `Direction :: enum(u8) { ... }` — an optional `(type)` suffix selects the backing integer type (`i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`; default `i32`). Requires: parser update (optional type arg on `EnumDecl`), `EnumType.repr` field in `types.ts`, lowerer emits the correct integer type instead of hard-coded `i32`, bytecode/C emitter updated accordingly.
 - [ ] **Explicit variant indices**: variants may carry an explicit integer value (`Up = 10`); unspecified variants auto-increment from the previous (`Up = 10, Down` → Down = 11, `Left = 20, Right` → Right = 21). Requires: `EnumVariant.value?: bigint` in `ast.ts`, index-resolution pass in the type-checker or lowerer.
 - [ ] **Bounds checking**: after resolving all variant indices, verify every value fits in the declared backing type. Example: `enum(u8)` max = 255 — emit an error if any variant index exceeds the range. Must also check that no two variants share the same resolved index.
+
+### 1.18b Generics & primitive type ergonomics
+
+Sub-tasks discovered while implementing collections:
+
+- [x] **`usize` primitive** — first-class type for sizes/indexes. Maps to `size_t` in C, 64-bit in bytecode/VM bootstrap.
+- [ ] **`isize` primitive** — symmetric to `usize` (signed pointer-size). Probably maps to `ptrdiff_t` in C.
+- [ ] **Migrate `arr.len()`, `ArrayIter.length/cursor`, `iter.vader` signatures from `i32`/`u32` to `usize`** — currently mixed (e.g. `ArrayIter` uses `i32`, `iter.vader` uses `u32`). Single canonical width is `usize`. Cascading change : also touch the `len`/`get` intrinsic types and the array-index ops.
+- [ ] **Generic `Range`** — currently hardcoded `Range(i32)`. Make it `Range($T)` so `for i in 0..<some_usize { }` works without an explicit cast. Touches the parser (range desugaring records target type), the typechecker (`inferRange` accepts any integer), the lowerer/iter wrapping.
+- [ ] **Static methods / associated functions** (`List.ofSize(10)` style) — parser + resolver + typechecker support for `Type.method(args)` where `method` is a free function declared alongside `Type` in the same module. Required for Java-like factory APIs.
+- [ ] **Trait-method dispatch on bounded type parameters** — inside a generic body, `key.hash()` where `key: $K` and `K: Hash` should resolve to the trait method, monomorphised post-typecheck. Required to promote `MutableMap`/`MutableSet` from O(n) linear-search to chaining HashMap.
+- [ ] **First-class function values** — `fn(K) -> u64` as a struct field / local variable / argument. Currently the bytecode emitter falls through to `unreachable` for free-function ident references that aren't the callee of a `CallExpr`.
+- [ ] **Decide `usize` width on the WASM target** — WASM64 only (always 64-bit) vs supporting WASM32 (`usize` becomes `i32`). Affects the C-emit side too if we want one binary to share logic.
+
+### 1.18c Function overloading by receiver type (pre-MVP)
+
+Lift `R2004` for free functions whose names collide if their **first parameter** types differ. Required so that `get(MutableList, usize)` and `get(MutableMap, K)` (and similar) coexist in user code without forcing aliasing on every import.
+
+- [ ] **Resolver** (`src/resolver/collect.ts` + symbol table) : a module-level name maps to a *list of overload candidates* instead of a single `Symbol`. R2004 fires only on truly ambiguous declarations (same first-param type).
+- [ ] **Typechecker** (`src/typecheck/passes/call.ts` `inferField` + UFCS dispatch) : at call resolution, pick the candidate whose first parameter type matches the receiver. Generic candidates (`fn(self: $T, ...)`) act as wildcards and conflict with concrete-receiver overloads of the same name.
+- [ ] **Direct-call resolution** (`inferCall` for `f(x, ...)`) : pick the overload whose first parameter accepts `x`'s type. Same wildcard rule.
+- [ ] **Diagnostic** : new code (e.g. `T3024`) for ambiguous overload resolution.
+- [ ] **Tests** : `tests/snippets/overload_first_param/` — list `get(MutableList, usize)` and `get(MutableMap, K)` and call both via UFCS in the same module.
+- [ ] **Stdlib cleanup** : remove the `len` / `is_empty` / `iter` workaround names in `std/map.vader`, `std/set.vader` once overloading lands. Same for the `MutableMap` `len` (vs `size` field) workaround.
 
 ### 1.18 Built-in type aliases
 
@@ -464,7 +493,11 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [ ] Static-size arrays: `[T; N]`
 - [ ] Pattern matching extensions (or-patterns, range-patterns)
 - [ ] `@derive(Eq, Display)` to auto-generate trivial impls
-- [ ] Operator overloading polish (`Index`, `Iter`, ...)
+- [ ] **Implicit `void` return** (no `-> void` needed; `void` not user-visible). Touches : parser (FnDecl / FnType allow missing `->`), typechecker (treat absent return type as `TY.void`), formatter (drop trailing `-> void`). Forbid `void` as identifier in user code (R2010 or similar). Cf. SPEC §6 *Declaration*.
+- [ ] **`Iterable($T)` trait + auto-`.iter()` in `for-in`** — collections implement `Iterable(T)` once and the for-loop desugars `for x in iter_target` into `for x in iter_target.iter()` whenever the target's type implements `Iterable(T)` (otherwise falls through to the existing array / `Iterator` paths). Required to drop the `iter :: fn(self: MutableList) -> ...` boilerplate. Cf. SPEC §7 *for*.
+- [ ] **`where T: A & B` syntax** for trait intersection bounds (replacing the current `+`). `&` mirrors the future union-of-bounds `|`. Single-token parser change ; small typecheck adjustment in `parseWhereClause`. Cf. SPEC §4 *Generics*.
+- [ ] **Operator overloading via trait dispatch** : `+`/`-`/`*`/`/`/`%` route through `Add`/`Sub`/`Mul`/`Div`/`Rem` ; `==` through `Eq` ; `<`/`<=`/`>`/`>=` through `Ord` ; `a[i]` through new `Index($I, $T)` ; `a[i] = v` through new `IndexSet($I, $T)` ; `v in a` through new `Contains($T)`. Compound assignments (`+=` etc.) desugar at parse time. Add `Rem`, `Index`, `IndexSet`, `Contains` to `std/core`. Cf. SPEC §4 *Operator overloading*.
+- [ ] **Function overloading by full signature** (post-MVP elevation of the pre-MVP receiver-type-only overloading) : pick the candidate whose all parameter types match the call site, not just the first. Subsumes pre-MVP behaviour ; requires generalising the resolver's overload table and the typechecker's call resolution.
 - [ ] **Inline `@file(path)` as a comptime expression** (Zig `@embedFile` style). Today `@file("...")` is decorator-only and attaches to a top-level `ConstDecl`; lifting it to an expression position would let `show(@file("./data.txt"))` work directly. Touches: parser (allow `@`-expressions in expression position; carve out `@file` / `@env` etc. as recognised comptime expression heads), typecheck (`@file` ⇒ `string`, `@env` ⇒ `string \| null`), comptime (route through the existing sandbox path so `@allow-env` still gates `@env`). Path resolution stays source-relative to match decorator semantics. Estimate ~150 lines across phases.
 
 ---

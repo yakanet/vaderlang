@@ -16,7 +16,7 @@ import type { MethodResolution } from "../typed-ast.ts";
 import type { Substitution, Type } from "../types.ts";
 import { TY, defaultIfFree, displayType, isAssignable, isNumeric, substitute } from "../types.ts";
 
-import { buildStructSubst } from "../ctx.ts";
+import { tryStructSubst } from "../ctx.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr, typeOfSymbol } from "./expr.ts";
@@ -200,7 +200,11 @@ export function inferField(
     const decl = sourceStructDecl(targetType.symbol);
     if (decl !== null) {
       const field = decl.fields.find((f) => f.name === expr.field);
-      if (field !== undefined) return t.globals.typeExprTypes.get(field.type) ?? TY.unresolved;
+      if (field !== undefined) {
+        const raw = t.globals.typeExprTypes.get(field.type) ?? TY.unresolved;
+        const subst = tryStructSubst(decl, targetType.args, t.globals);
+        return subst !== null ? substitute(raw, subst) : raw;
+      }
     }
   }
 
@@ -336,10 +340,10 @@ function methodBoundFnType(method: MethodResolution, t: MutableTyped): Type {
   const params = fnType.params.length > 0 ? fnType.params.slice(1) : fnType.params;
 
   const recv = method.receiverType;
-  if (recv.kind === "Struct" && recv.args.length > 0) {
+  if (recv.kind === "Struct") {
     const structDecl = sourceStructDecl(recv.symbol);
-    if (structDecl !== null && structDecl.typeParams.length === recv.args.length) {
-      const subst = buildStructSubst(structDecl.typeParams, recv.args, t.globals);
+    const subst = structDecl !== null ? tryStructSubst(structDecl, recv.args, t.globals) : null;
+    if (subst !== null) {
       return {
         kind: "Fn",
         params: params.map((p) => substitute(p, subst)),

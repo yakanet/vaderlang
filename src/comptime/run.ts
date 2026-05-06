@@ -117,7 +117,7 @@ function valueToComptime(v: Value, expected: Type, input: RunComptimeInput): Com
     case "i8": case "i16": case "i32":
     case "u8": case "u16": case "u32":
       return intVal(BigInt(Math.trunc(v.n)), v.tag);
-    case "i64": case "u64": return intVal(v.n, v.tag);
+    case "i64": case "u64": case "usize": return intVal(v.n, v.tag);
     case "f32": case "f64": return floatVal(v.n, v.tag);
     case "bool":   return v.n ? TRUE : FALSE;
     case "char":   return { kind: "char", value: v.n };

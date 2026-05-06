@@ -586,7 +586,7 @@ function displayFnFor(v: ValType): string {
     case "i8": case "i16": case "i32":  return "vader_builder_append_display_i32";
     case "u8": case "u16": case "u32":  return "vader_builder_append_display_u32";
     case "i64":   return "vader_builder_append_display_i64";
-    case "u64":   return "vader_builder_append_display_u64";
+    case "u64": case "usize": return "vader_builder_append_display_u64";
     case "f32":   return "vader_builder_append_display_f32";
     case "f64":   return "vader_builder_append_display_f64";
     case "bool":  return "vader_builder_append_display_bool";
@@ -861,7 +861,7 @@ function boxExpr(_ctx: EmitCtx, name: string, val: ValType, typeIndex: number): 
     case "i8": case "i16": case "i32": return `vader_box_i32(${typeIndex}u, ${name})`;
     case "u8": case "u16": case "u32": return `vader_box_i32(${typeIndex}u, (int32_t)(uint32_t) ${name})`;
     case "i64":  return `vader_box_i64(${typeIndex}u, ${name})`;
-    case "u64":  return `vader_box_i64(${typeIndex}u, (int64_t)(uint64_t) ${name})`;
+    case "u64": case "usize": return `vader_box_i64(${typeIndex}u, (int64_t)(uint64_t) ${name})`;
     case "f32":  return `vader_box_f64(${typeIndex}u, (double) ${name})`;
     case "f64":  return `vader_box_f64(${typeIndex}u, ${name})`;
     case "bool": return `vader_box_bool(${typeIndex}u, ${name})`;
@@ -886,7 +886,7 @@ function boxExprUnknown(ctx: EmitCtx, name: string, val: ValType): string {
 function unboxExpr(name: string, target: ValType): string {
   switch (target) {
     case "i8": case "i16": case "i32": case "u8": case "u16": case "u32":
-    case "i64": case "u64": case "char":
+    case "i64": case "u64": case "usize": case "char":
       return `((${cTypeForValBare(target)}) ${name}.payload.i)`;
     case "f32": case "f64":
       return `((${cTypeForValBare(target)}) ${name}.payload.f)`;
@@ -908,6 +908,7 @@ function cTypeForValBare(v: ValType): string {
     case "u16": return "uint16_t";
     case "u32": return "uint32_t";
     case "u64": return "uint64_t";
+    case "usize": return "size_t";
     case "f32": return "float";
     case "f64": return "double";
     case "bool":return "bool";
@@ -963,7 +964,7 @@ function primitiveMatchesType(ctx: EmitCtx, slotVal: ValType, typeIndex: number)
 function zeroInit(_ctx: EmitCtx, v: ValType): string {
   switch (v) {
     case "i8": case "i16": case "i32": case "u8": case "u16": case "u32":
-    case "i64": case "u64": case "char":
+    case "i64": case "u64": case "usize": case "char":
       return "0";
     case "f32": case "f64": return "0.0";
     case "bool": return "false";

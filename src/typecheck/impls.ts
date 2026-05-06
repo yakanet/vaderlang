@@ -6,6 +6,7 @@ import type * as A from "../parser/ast.ts";
 import type { Module } from "../resolver/index.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
+import { findCoreSymbols } from "./ctx.ts";
 
 export interface ImplEntry {
   readonly decl: A.ImplDecl;
@@ -47,20 +48,28 @@ export class ImplRegistry {
 
 export function buildImplRegistry(project: ResolvedProject): ImplRegistry {
   const reg = new ImplRegistry();
+  const coreSymbols = findCoreSymbols(project);
   for (const program of project.modules.values()) {
-    collectImpls(program, reg);
+    collectImpls(program, reg, coreSymbols);
   }
   return reg;
 }
 
-function collectImpls(program: ResolvedProgram, reg: ImplRegistry): void {
+function collectImpls(
+  program: ResolvedProgram,
+  reg: ImplRegistry,
+  coreSymbols: ReadonlyMap<string, Symbol> | null,
+): void {
   for (const decl of program.source.decls) {
     if (decl.kind !== "ImplDecl") continue;
-    const traitSymbol = program.module.symbols.get(decl.traitName);
-    const trait = traitSymbol?.kind === "trait" ? traitSymbol : null;
-    if (trait === null) continue;             // resolver already reported R2007/R2009
+    const local = program.module.symbols.get(decl.traitName);
+    const fallback = coreSymbols?.get(decl.traitName);
+    const traitSymbol = local?.kind === "trait" ? local
+                      : fallback?.kind === "trait" ? fallback
+                      : null;
+    if (traitSymbol === null) continue;       // resolver already reported R2007/R2009
     const forSymbol = forTypeSymbol(decl.forType, program);
-    reg.add({ decl, traitSymbol: trait, forSymbol, module: program.module });
+    reg.add({ decl, traitSymbol, forSymbol, module: program.module });
   }
 }
 

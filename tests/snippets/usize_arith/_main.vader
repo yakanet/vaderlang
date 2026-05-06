@@ -1,0 +1,8 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    n: usize = 10
+    m: usize = n + 1
+    println("$m")
+    return 0
+}

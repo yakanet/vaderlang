@@ -1,0 +1,20 @@
+import "std/io" { println }
+
+A :: struct {
+    x: i32
+}
+
+B :: struct {
+    y: i32
+}
+
+inc :: fn(self: A) -> i32 { return self.x + 1 }
+inc :: fn(self: B) -> i32 { return self.y + 100 }
+
+main :: fn() -> i32 {
+    a :: A { .x = 5 }
+    b :: B { .y = 5 }
+    println("${a.inc()}")
+    println("${b.inc()}")
+    return 0
+}

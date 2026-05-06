@@ -1,0 +1,14 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    a: i32 = 42
+    b: i32 = 42
+    c: i32 = 7
+    println("hash(a) = ${a.hash()}")
+    println("a == b : ${a.equals(b)}")
+    println("a == c : ${a.equals(c)}")
+
+    n: usize = 100
+    println("hash(n) = ${n.hash()}")
+    return 0
+}

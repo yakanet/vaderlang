@@ -1,0 +1,22 @@
+# Lower
+
+## tests/snippets/cast_test/_main.vader
+  fn tests_snippets_cast_test__main_vader$main() -> i32
+    let n#53: i32 = int(42) :i32
+    let m#54: u64 =
+      cast → u64
+        n#53 :i32
+    call :void
+      callee:
+        println#26 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-1: ? =
+            @builder.new :?
+          @builder.append_display <for u64> :void
+            __sb_0#-1 :?
+            m#54 :u64
+          ~>
+            @builder.finish :string
+              __sb_0#-1 :?
+    return int(0) :i32

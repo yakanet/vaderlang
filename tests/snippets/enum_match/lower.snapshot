@@ -6,7 +6,7 @@
       cond:
         lt :bool
           l:
-            n#51 :i32
+            n#58 :i32
           r:
             int(0) :i32
       then:
@@ -15,7 +15,7 @@
       cond:
         eq :bool
           l:
-            n#51 :i32
+            n#58 :i32
           r:
             int(0) :i32
       then:
@@ -24,7 +24,7 @@
   fn tests_snippets_enum_match__main_vader$label(c: Color) -> string
     ~>
       block :string
-        let __scrut_0#-1: Color = c#52 :Color
+        let __scrut_0#-1: Color = c#59 :Color
         ~>
           if :string
             cond:
@@ -67,23 +67,23 @@
     ~>
       eq :bool
         l:
-          a#53 :Color
+          a#60 :Color
         r:
-          b#54 :Color
+          b#61 :Color
   fn tests_snippets_enum_match__main_vader$main() -> i32
-    let c#55: Color = int(1) :i32
+    let c#62: Color = int(1) :i32
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         call :string
           callee:
             label#5 :fn(Color) -> string
           arg0:
-            c#55 :Color
+            c#62 :Color
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         call :string
           callee:
@@ -92,7 +92,7 @@
             int(0) :i32
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         call :string
           callee:
@@ -101,7 +101,7 @@
             int(2) :i32
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-2: ? =
@@ -120,7 +120,7 @@
               __sb_0#-2 :?
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-3: ? =
@@ -139,7 +139,7 @@
               __sb_1#-3 :?
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-4: ? =
@@ -148,7 +148,7 @@
             __sb_2#-4 :?
             neq :bool
               l:
-                c#55 :Color
+                c#62 :Color
               r:
                 int(0) :i32
           ~>
@@ -156,7 +156,7 @@
               __sb_2#-4 :?
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#31 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-5: ? =
@@ -165,13 +165,13 @@
             __sb_3#-5 :?
             neq :bool
               l:
-                c#55 :Color
+                c#62 :Color
               r:
                 int(1) :i32
           ~>
             @builder.finish :string
               __sb_3#-5 :?
-    let s#56: Severity =
+    let s#63: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
@@ -179,7 +179,7 @@
           neg :i32
             int(5) :i32
     block :void
-      let __scrut_4#-6: Severity = s#56 :Severity
+      let __scrut_4#-6: Severity = s#63 :Severity
       ~>
         if :void
           cond:
@@ -192,7 +192,7 @@
             ~>
               call :void
                 callee:
-                  println#25 :fn(string) -> void
+                  println#31 :fn(string) -> void
                 arg0:
                   "info" :string
           else:
@@ -208,7 +208,7 @@
                   ~>
                     call :void
                       callee:
-                        println#25 :fn(string) -> void
+                        println#31 :fn(string) -> void
                       arg0:
                         "warning" :string
                 else:
@@ -224,20 +224,20 @@
                         ~>
                           call :void
                             callee:
-                              println#25 :fn(string) -> void
+                              println#31 :fn(string) -> void
                             arg0:
                               "error" :string
                       else:
                         ~>
                           unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let s2#57: Severity =
+    let s2#64: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
         arg0:
           int(0) :i32
     block :void
-      let __scrut_5#-7: Severity = s2#57 :Severity
+      let __scrut_5#-7: Severity = s2#64 :Severity
       ~>
         if :void
           cond:
@@ -250,7 +250,7 @@
             ~>
               call :void
                 callee:
-                  println#25 :fn(string) -> void
+                  println#31 :fn(string) -> void
                 arg0:
                   "info" :string
           else:
@@ -266,7 +266,7 @@
                   ~>
                     call :void
                       callee:
-                        println#25 :fn(string) -> void
+                        println#31 :fn(string) -> void
                       arg0:
                         "warning" :string
                 else:
@@ -282,20 +282,20 @@
                         ~>
                           call :void
                             callee:
-                              println#25 :fn(string) -> void
+                              println#31 :fn(string) -> void
                             arg0:
                               "error" :string
                       else:
                         ~>
                           unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let s3#58: Severity =
+    let s3#65: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
         arg0:
           int(1) :i32
     block :void
-      let __scrut_6#-8: Severity = s3#58 :Severity
+      let __scrut_6#-8: Severity = s3#65 :Severity
       ~>
         if :void
           cond:
@@ -308,7 +308,7 @@
             ~>
               call :void
                 callee:
-                  println#25 :fn(string) -> void
+                  println#31 :fn(string) -> void
                 arg0:
                   "info" :string
           else:
@@ -324,7 +324,7 @@
                   ~>
                     call :void
                       callee:
-                        println#25 :fn(string) -> void
+                        println#31 :fn(string) -> void
                       arg0:
                         "warning" :string
                 else:
@@ -340,7 +340,7 @@
                         ~>
                           call :void
                             callee:
-                              println#25 :fn(string) -> void
+                              println#31 :fn(string) -> void
                             arg0:
                               "error" :string
                       else:

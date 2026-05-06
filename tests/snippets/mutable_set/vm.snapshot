@@ -1,0 +1,9 @@
+# stdout
+new? true
+new? true
+new? false
+len = 2
+has 10? true
+has 30? false
+# exit
+0

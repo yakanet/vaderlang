@@ -1,0 +1,36 @@
+import "std/io" { println }
+import "std/map" { MutableMap, put, get, contains_key, len }
+
+main :: fn() -> i32 {
+    m := MutableMap(i32, i32) { .keys = [], .values = [], .size = 0 }
+
+    m.put(1, 10)
+    m.put(2, 20)
+    m.put(17, 170)
+    println("size = ${m.len()}")
+
+    v1 :: m.get(1)
+    match v1 {
+        is null -> { println("v1: missing") }
+        is i32  -> { println("v1 = ${v1}") }
+    }
+
+    v17 :: m.get(17)
+    match v17 {
+        is null -> { println("v17: missing") }
+        is i32  -> { println("v17 = ${v17}") }
+    }
+
+    println("has 2? ${m.contains_key(2)}")
+    println("has 99? ${m.contains_key(99)}")
+
+    // Update existing key
+    m.put(1, 999)
+    v1b :: m.get(1)
+    match v1b {
+        is null -> { println("v1b: missing") }
+        is i32  -> { println("v1b = ${v1b}") }
+    }
+
+    return 0
+}

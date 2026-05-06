@@ -328,7 +328,7 @@ x := a + \
 | Category | Types |
 |----------|-------|
 | Boolean | `bool` |
-| Unsigned integers | `u8`, `u16`, `u32`, `u64` |
+| Unsigned integers | `u8`, `u16`, `u32`, `u64`, `usize` |
 | Signed integers | `i8`, `i16`, `i32`, `i64` |
 | Floats | `f32`, `f64` |
 | Text | `char` (32-bit codepoint), `string` (UTF-8 sequence) |
@@ -347,6 +347,8 @@ To ease migration from Java/Kotlin and reduce typing in everyday code, the compi
 | `byte` | `u8` | Java `byte` (sign differs — Vader byte is unsigned) |
 
 `char` and `string` are already first-class names in the primitive table, so they need no alias.
+
+`usize` is a **target-dependent** unsigned integer used for sizes and indexes (analogous to C's `size_t`, Rust's `usize`). It maps to `size_t` in the C backend (typically 64-bit on modern hosts). The bytecode/VM bootstrap treats it as a 64-bit value. The WASM backend will choose the platform-native width when implemented (likely WASM64 only at first).
 
 These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases (those use the `name :: type SomeType` form). Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
 
@@ -630,13 +632,19 @@ List :: struct($T) {
 list := List(i32) { .items = [1, 2, 3], .len = 3 }
 ```
 
-**Constraints** via `where`:
+**Constraints** via `where`. Multiple traits combined with `&` (intersection) — the same separator as type intersections:
 
 ```vader
 sort :: fn(items: [$T]) where T: Ord {
     // ...
 }
+
+put :: fn(self: MutableMap($K, $V), key: K, value: V) where K: Hash & Eq {
+    // ...
+}
 ```
+
+`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` is in MVP scope** ; `|` on bounds is post-MVP.
 
 **Compile-time values** (post-MVP candidate):
 
@@ -645,6 +653,10 @@ make_buffer :: fn($N: i32) -> [N]u8 { ... }
 ```
 
 **Implementation**: monomorphization at compile time, driven by the comptime engine. Single specialization machinery.
+
+**Limitations (MVP)**:
+- **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_list(...)`, `MutableList(T) { ... }` for struct-literal construction. Post-MVP candidate.
+- **No trait-method dispatch on bounded type parameters** — inside a generic body, `key.hash()` where `key: $K` and `K: Hash` doesn't resolve, since the typechecker doesn't propagate where-clause methods to type-params. Workaround: pass dispatch as `fn`-typed parameters or specialise per concrete key type. Post-MVP work.
 
 ### Traits
 
@@ -669,8 +681,34 @@ print_it :: fn(x: $T) where T: Display {
 - Declaration: `Name :: trait { ... }`.
 - Implementation: `T implements Trait { ... }`.
 - A union satisfies a trait iff all its members satisfy it.
-- Operator overloading via stdlib traits: `Add`, `Sub`, `Mul`, `Div`, `Eq`, `Ord`, `Hash`, `Clone`.
+- Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in an `impl Foo` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
+
+#### Operator overloading
+
+Built-in operators dispatch through stdlib traits when the operand types are not primitive numerics (or when `==` / `<` are applied to user types).
+
+| Operator        | Trait              | Method                                      |
+|-----------------|--------------------|---------------------------------------------|
+| `a + b`         | `Add`              | `fn add(self, other: Self) -> Self`         |
+| `a - b`         | `Sub`              | `fn sub(self, other: Self) -> Self`         |
+| `a * b`         | `Mul`              | `fn mul(self, other: Self) -> Self`         |
+| `a / b`         | `Div`              | `fn div(self, other: Self) -> Self`         |
+| `a % b`         | `Rem`              | `fn rem(self, other: Self) -> Self`         |
+| `a == b`        | `Eq`               | `fn equals(self, other: Self) -> bool`      |
+| `a < b` / `<=` / `>` / `>=` | `Ord`  | `fn compare(self, other: Self) -> i32`      |
+| `a[i]`          | `Index($I, $T)`    | `fn at(self, i: I) -> T`                    |
+| `a[i] = v`      | `IndexSet($I, $T)` | `fn set_at(self, i: I, v: T)`               |
+| `v in a`        | `Contains($T)`     | `fn contains(self, v: T) -> bool`           |
+
+Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch.
+
+Resolution rule for arithmetic and comparison operators :
+1. If both operands are primitive numerics, use the built-in op (current behaviour).
+2. Otherwise, look up the trait `impl` for the left operand's type. The right operand must be assignable to the trait's expected `Self` (or its parameter for `Index`/`IndexSet`/`Contains`).
+3. If no impl matches, error.
+
+Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch.
 
 ### Nullability
 
@@ -748,9 +786,16 @@ add :: fn(a: i32, b: i32) -> i32 {
 double :: fn(x: i32) -> i32 {
     x * 2          // implicit (last expression)
 }
+
+// Functions returning nothing omit the arrow entirely.
+log :: fn(message: string) {
+    println(message)
+}
 ```
 
 `return` is valid anywhere. If the last expression of a block is an expression and its type matches the return type, `return` is optional.
+
+**No-return functions** drop the `-> void` annotation. Internally the compiler still has a unit/void type, but it is not user-facing — `void` is **not** a name available in source code. Function-pointer types that produce no value drop the arrow likewise: `callback: fn()` instead of `callback: fn() -> void`. This mirrors Rust's `()` being implicit.
 
 ### Default parameter values
 
@@ -814,6 +859,23 @@ plus(2, 3)
 
 `a.f(b)` is desugared to `f(a, b)` at compile time. There are **no methods** in Vader, only free functions + UFCS.
 
+#### Function overloading
+
+Two free functions with the same name **may coexist in the same module** when they differ in the type of their **first parameter** (the receiver). The resolver dispatches based on the receiver's type at the call site.
+
+```vader
+get :: fn(self: MutableList($T), i: usize) -> T { ... }
+get :: fn(self: MutableMap($K, $V), k: K) -> V | null { ... }
+
+list.get(0)         // resolves to the MutableList version
+map.get("key")      // resolves to the MutableMap version
+```
+
+Rules :
+- Overload candidates must differ in their first parameter type. Differing only on later parameters is **not** an overload (post-MVP — see TODO).
+- Type-param receivers (`fn(self: $T)`) are wildcards and conflict with every concrete-receiver overload of the same name.
+- Resolution is performed at typecheck after the receiver type is known. Errors out with `R2004` if two candidates match.
+
 ### Visibility
 
 - **`public` by default** (Java-style).
@@ -869,7 +931,7 @@ for i in 0..<10 {
 // Inclusive range
 for i in 0..=10 { ... }
 
-// Iterate over a collection
+// Iterate over a collection (built-in array, Iterator, or Iterable)
 for item in items {
     println(item)
 }
@@ -882,6 +944,19 @@ for cond {
 // Infinite
 for {
     if exit_condition { break }
+}
+```
+
+The iteration form `for x in expr` accepts three shapes for `expr`:
+1. A built-in array `[T]` — auto-wrapped in `ArrayIter(T)`.
+2. A value of type `Iterator(T)` — used directly.
+3. A value implementing `Iterable(T)` — `expr.iter()` is auto-called and the result drives the loop.
+
+Collections like `MutableList(T)` implement `Iterable(T)`, so `for x in list { ... }` works without an explicit `list.iter()`.
+
+```vader
+Iterable :: trait($T) {
+    fn iter(self) -> Iterator(T)
 }
 ```
 
@@ -1306,14 +1381,26 @@ fn parse_int(s: string) -> i32!
 fn parse_float(s: string) -> f64!
 ```
 
-### `std/collections`
+### `std/list`, `std/map`, `std/set`
+
+Each collection family lives in its own module so that overlapping names
+(`add`, `get`, `len`, `is_empty`, `iter`) don't collide at module scope.
+User code imports from the modules it needs.
 
 ```vader
-List(T)              // read-only
+// std/list
+List(T)              // read-only (struct stub)
 MutableList(T)       // mutable
-Map(K, V)            // read-only
+MutableListIter(T)   // iterator
+
+// std/map
+Map(K, V)            // read-only (struct stub)
 MutableMap(K, V)     // mutable
-Set(T)               // read-only
+Bucket(K, V)         // chain node (post-MVP HashMap)
+Entry(K, V)          // (key, value) yielded by iteration
+
+// std/set
+Set(T)               // read-only (struct stub)
 MutableSet(T)        // mutable
 ```
 
@@ -1563,7 +1650,7 @@ main :: fn() -> i32 {
 ### Generic List
 
 ```vader
-import "std/collections" { MutableList }
+import "std/list" { MutableList }
 
 main :: fn() -> i32 {
     list := MutableList(i32){}

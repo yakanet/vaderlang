@@ -37,20 +37,29 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       return lowerIdent(ctx, expr, exprType);
     case "CallExpr": {
       if (expr.callee.kind === "IdentExpr") {
+        const calleeSym = ctx.typed.resolved.idents.get(expr.callee);
+        // Cast call `Type(value)` — lower to a `LoweredCast` so the bytecode
+        // emitter inserts a convert op (otherwise it'd treat the type symbol
+        // as a callable and emit `unreachable`).
+        if (calleeSym !== undefined
+            && (calleeSym.kind === "builtin-type" || calleeSym.kind === "struct" || calleeSym.kind === "type-alias")
+            && expr.args.length === 1) {
+          return {
+            kind: "LoweredCast", span: expr.span, type: exprType,
+            value: lowerExpr(ctx, expr.args[0]!.value),
+          };
+        }
         const typeArgs = ctx.typed.genericFnCalls.get(expr);
-        if (typeArgs !== undefined) {
-          const sym = ctx.typed.resolved.idents.get(expr.callee);
-          if (sym !== undefined) {
-            const fnDecl = declOf(sym);
-            if (fnDecl !== null && fnDecl.kind === "FnDecl") {
-              const entry = lookupFnInstance(ctx, fnDecl, typeArgs);
-              if (entry !== null) {
-                return {
-                  kind: "LoweredCall", span: expr.span, type: exprType,
-                  callee: { kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: entry.symbol! },
-                  args: expr.args.map((a) => lowerExpr(ctx, a.value)),
-                };
-              }
+        if (typeArgs !== undefined && calleeSym !== undefined) {
+          const fnDecl = declOf(calleeSym);
+          if (fnDecl !== null && fnDecl.kind === "FnDecl") {
+            const entry = lookupFnInstance(ctx, fnDecl, typeArgs);
+            if (entry !== null) {
+              return {
+                kind: "LoweredCall", span: expr.span, type: exprType,
+                callee: { kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: entry.symbol! },
+                args: expr.args.map((a) => lowerExpr(ctx, a.value)),
+              };
             }
           }
         }

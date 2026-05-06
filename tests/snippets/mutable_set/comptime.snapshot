@@ -1,0 +1,10 @@
+# Comptime
+
+## tests/snippets/mutable_set/_main.vader
+
+## generic instances
+  Yielded(i32)
+  MutableSet(i32)
+  add(i32)
+  contains(i32)
+  len(i32)

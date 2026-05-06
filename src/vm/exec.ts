@@ -13,7 +13,7 @@ import type { BcType, ValType } from "../bytecode/types.ts";
 import type { HostBindings } from "./host.ts";
 import {
   bool, builder, ch, FALSE, i64, NULL, num, str as makeStr, VOID,
-  asArray, asBig, asBool, asBuilder, asChar, asNum, asString, asStruct, displayValue,
+  asArray, asBig, asBool, asBuilder, asChar, asIndex, asNum, asString, asStruct, displayValue,
 } from "./value.ts";
 import type { NumTag, StringValue, Value } from "./value.ts";
 
@@ -291,7 +291,7 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       f.ip++; return;
     }
     case "array.get": {
-      const idx = Number(asNum(f.stack.pop()!));
+      const idx = asIndex(f.stack.pop()!);
       const v = asArray(f.stack.pop()!);
       const e = v.elements[idx];
       if (e === undefined) throw new VmError(`vm: array index ${idx} out of bounds (len=${v.elements.length})`, debugOf(f.fn, f.ip));
@@ -300,7 +300,7 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
     }
     case "array.set": {
       const value = f.stack.pop()!;
-      const idx = Number(asNum(f.stack.pop()!));
+      const idx = asIndex(f.stack.pop()!);
       const v = asArray(f.stack.pop()!);
       v.elements[idx] = value;
       f.ip++; return;
@@ -354,8 +354,8 @@ function applyParsedOp(f: Frame, kind: string): void {
   applyTyped(f, t, verb as ArithVerb);
 }
 
-function isBigTag(t: ValType): t is "i64" | "u64" {
-  return t === "i64" || t === "u64";
+function isBigTag(t: ValType): t is "i64" | "u64" | "usize" {
+  return t === "i64" || t === "u64" || t === "usize";
 }
 
 function applyTyped(f: Frame, t: ValType, verb: ArithVerb): void {
@@ -531,7 +531,7 @@ function zeroFor(val: string): Value {
     case "u8": case "u16": case "u32":
     case "f32": case "f64": case "char":
       return num(val as NumTag, 0);
-    case "i64": case "u64": return i64(val as "i64" | "u64", 0n);
+    case "i64": case "u64": case "usize": return i64(val as "i64" | "u64" | "usize", 0n);
     case "bool":   return FALSE;
     case "string": return makeStr("");
     case "void":   return VOID;

@@ -1,0 +1,7 @@
+# stdout
+hash(a) = 42
+a == b : true
+a == c : false
+hash(n) = 100
+# exit
+0

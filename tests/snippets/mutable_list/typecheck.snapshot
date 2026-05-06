@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/mutable_list/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    StringLitExpr  :: string
+  expr 10:22    CallExpr       :: i32
+  expr 10:22    FieldExpr      :: fn(usize) -> $T
+  expr 10:22    IdentExpr      :: MutableList(i32)
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(string) -> void
+  expr 11:13    StringLitExpr  :: string
+  expr 11:22    CallExpr       :: i32
+  expr 11:22    FieldExpr      :: fn(usize) -> $T
+  expr 11:22    IdentExpr      :: MutableList(i32)
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 12:14    CallExpr       :: MutableListIter(i32)
+  expr 12:14    FieldExpr      :: fn() -> MutableListIter($T)
+  expr 12:14    IdentExpr      :: MutableList(i32)
+  expr 13:17    StringLitExpr  :: string
+  expr 13:24    IdentExpr      :: ?
+  expr 13:9     CallExpr       :: void
+  expr 13:9     IdentExpr      :: fn(string) -> void
+  expr 5:13     StructLitExpr  :: MutableList(i32)
+  expr 5:40     ArrayLitExpr   :: [i32]
+  expr 6:5      CallExpr       :: void
+  expr 6:5      FieldExpr      :: fn($T) -> void
+  expr 6:5      IdentExpr      :: MutableList(i32)
+  expr 7:5      CallExpr       :: void
+  expr 7:5      FieldExpr      :: fn($T) -> void
+  expr 7:5      IdentExpr      :: MutableList(i32)
+  expr 8:5      CallExpr       :: void
+  expr 8:5      FieldExpr      :: fn($T) -> void
+  expr 8:5      IdentExpr      :: MutableList(i32)
+  expr 9:13     StringLitExpr  :: string
+  expr 9:22     CallExpr       :: usize
+  expr 9:22     FieldExpr      :: fn() -> usize
+  expr 9:22     IdentExpr      :: MutableList(i32)
+  expr 9:5      CallExpr       :: void
+  expr 9:5      IdentExpr      :: fn(string) -> void

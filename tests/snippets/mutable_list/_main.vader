@@ -1,0 +1,16 @@
+import "std/io" { println }
+import "std/list" { MutableList, add, get, len, iter }
+
+main :: fn() -> i32 {
+    list := MutableList(i32) { .data = [], .size = 0 }
+    list.add(10)
+    list.add(20)
+    list.add(30)
+    println("len = ${list.len()}")
+    println("[0] = ${list.get(0)}")
+    println("[2] = ${list.get(2)}")
+    for x in list.iter() {
+        println("x = ${x}")
+    }
+    return 0
+}

@@ -1,0 +1,13 @@
+import "std/io" { println }
+import "std/set" { MutableSet, add, contains, len }
+
+main :: fn() -> i32 {
+    s := MutableSet(i32) { .data = [], .size = 0 }
+    println("new? ${s.add(10)}")
+    println("new? ${s.add(20)}")
+    println("new? ${s.add(10)}")  // duplicate
+    println("len = ${s.len()}")
+    println("has 10? ${s.contains(10)}")
+    println("has 30? ${s.contains(30)}")
+    return 0
+}

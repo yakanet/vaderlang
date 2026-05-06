@@ -20,7 +20,7 @@ export type ValueTag = Value["tag"];
 export type NumTag = NumValue["tag"];
 
 export interface NumValue    { readonly tag: "i8" | "i16" | "i32" | "u8" | "u16" | "u32" | "f32" | "f64"; readonly n: number }
-export interface I64Value    { readonly tag: "i64" | "u64"; readonly n: bigint }
+export interface I64Value    { readonly tag: "i64" | "u64" | "usize"; readonly n: bigint }
 export interface BoolValue   { readonly tag: "bool"; readonly n: boolean }
 export interface CharValue   { readonly tag: "char"; readonly n: number }
 export interface StringValue { readonly tag: "string"; readonly n: string }
@@ -76,8 +76,15 @@ export function asNum(v: Value): number {
 }
 
 export function asBig(v: Value): bigint {
-  if (v.tag === "i64" || v.tag === "u64") return v.n;
-  throw new Error(`vm: expected i64/u64, got ${v.tag}`);
+  if (v.tag === "i64" || v.tag === "u64" || v.tag === "usize") return v.n;
+  throw new Error(`vm: expected i64/u64/usize, got ${v.tag}`);
+}
+
+/** Accepts any int-tagged value and projects to a JS number. Used for array
+ *  indexes and array lengths, where the source type may be `i32`, `usize`, etc. */
+export function asIndex(v: Value): number {
+  if (v.tag === "i64" || v.tag === "u64" || v.tag === "usize") return Number(v.n);
+  return asNum(v);
 }
 
 export function asBool(v: Value): boolean {
@@ -127,7 +134,7 @@ export function displayValue(v: Value): string {
     case "f32": case "f64":
       if (Number.isInteger(v.n) && Number.isFinite(v.n)) return `${v.n.toString()}.0`;
       return v.n.toString();
-    case "i64": case "u64":
+    case "i64": case "u64": case "usize":
       return v.n.toString();
     case "error":   return `Error("${v.message}")`;
     case "struct":

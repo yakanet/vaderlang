@@ -1,0 +1,62 @@
+# Lower
+
+## tests/snippets/array_of_union/_main.vader
+  fn tests_snippets_array_of_union__main_vader$main() -> i32
+    let arr#55: [Node(i32) | null] =
+      array :[Node(i32) | null]
+    LoweredArrayPush
+    LoweredArrayPush
+    call :void
+      callee:
+        println#27 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0#-1 :?
+            "len = " :string
+          @builder.append_display <for i32> :void
+            __sb_0#-1 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_0#-1 :?
+    let cell#56: Node(i32) | null =
+      index :Node(i32) | null
+        on:
+          arr#55 :[Node(i32) | null]
+        ix:
+          int(1) :i32
+    block :void
+      let __scrut_1#-2: Node(i32) | null = cell#56 :Node(i32) | null
+      ~>
+        if :void
+          cond:
+            is null :bool
+              __scrut_1#-2 :Node(i32) | null
+          then:
+            ~>
+              call :void
+                callee:
+                  println#27 :fn(string) -> void
+                arg0:
+                  "none" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  is Node(i32) :bool
+                    __scrut_1#-2 :Node(i32) | null
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#27 :fn(string) -> void
+                      arg0:
+                        "got value" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    return int(0) :i32
+  struct tests_snippets_array_of_union__main_vader$Node__i32 { value: i32, next: Node(i32) | null }

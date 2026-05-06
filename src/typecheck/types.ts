@@ -22,13 +22,13 @@ export type Type =
 
 export type PrimitiveName =
   | "i8" | "i16" | "i32" | "i64"
-  | "u8" | "u16" | "u32" | "u64"
+  | "u8" | "u16" | "u32" | "u64" | "usize"
   | "f32" | "f64"
   | "bool" | "char" | "string" | "void" | "null";
 
 export const PRIMITIVE_NAMES: readonly PrimitiveName[] = [
   "i8", "i16", "i32", "i64",
-  "u8", "u16", "u32", "u64",
+  "u8", "u16", "u32", "u64", "usize",
   "f32", "f64",
   "bool", "char", "string", "void", "null",
 ];
@@ -145,6 +145,7 @@ export const TY = {
   u16:    primitive("u16"),
   u32:    primitive("u32"),
   u64:    primitive("u64"),
+  usize:  primitive("usize"),
   f32:    primitive("f32"),
   f64:    primitive("f64"),
   bool:   primitive("bool"),
@@ -161,7 +162,7 @@ export const TY = {
 } as const;
 
 export const SIGNED_INTS: readonly PrimitiveName[]   = ["i8", "i16", "i32", "i64"];
-export const UNSIGNED_INTS: readonly PrimitiveName[] = ["u8", "u16", "u32", "u64"];
+export const UNSIGNED_INTS: readonly PrimitiveName[] = ["u8", "u16", "u32", "u64", "usize"];
 export const ALL_INTS: readonly PrimitiveName[]      = [...SIGNED_INTS, ...UNSIGNED_INTS];
 export const FLOATS: readonly PrimitiveName[]        = ["f32", "f64"];
 export const NUMERICS: readonly PrimitiveName[]      = [...ALL_INTS, ...FLOATS];

@@ -1,0 +1,15 @@
+# Typecheck
+
+## tests/snippets/usize_basic/_main.vader
+  FnDecl         add                  :: fn(usize, usize) -> usize
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    StringLitExpr  :: string
+  expr 10:16    IdentExpr      :: usize
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(string) -> void
+  expr 4:12     BinaryExpr     :: usize
+  expr 4:12     IdentExpr      :: usize
+  expr 4:16     IdentExpr      :: usize
+  expr 9:16     CallExpr       :: usize
+  expr 9:16     IdentExpr      :: fn(usize, usize) -> usize
+  expr 9:20     IdentExpr      :: usize

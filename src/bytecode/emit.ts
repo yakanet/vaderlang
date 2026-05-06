@@ -610,7 +610,7 @@ function cmpKind(lt: ValType, op: "eq" | "ne" | "lt" | "le" | "gt" | "ge"): CmpO
 }
 
 function emitIntConst(fn: FnEmitCtx, value: bigint, t: ValType, span: Span): void {
-  if (t === "i64" || t === "u64") {
+  if (t === "i64" || t === "u64" || t === "usize") {
     pushOp(fn, { kind: "i64.const", value }, span);
   } else {
     pushOp(fn, { kind: "i32.const", value: Number(value) }, span);

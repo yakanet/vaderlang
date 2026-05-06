@@ -1,0 +1,8 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    n: i32 = 42
+    m: u64 = u64(n)
+    println("${m}")
+    return 0
+}
