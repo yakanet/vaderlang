@@ -12,11 +12,11 @@
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(string) -> void
   expr 18:12    ArrayLitExpr   :: [i32]
-  expr 19:10    CallExpr       :: i32
-  expr 19:10    FieldExpr      :: fn($T) -> $T
+  expr 19:10    CallExpr       :: ?
+  expr 19:10    FieldExpr      :: ?
   expr 19:10    IdentExpr      :: [i32]
   expr 20:13    StringLitExpr  :: string
-  expr 20:20    IdentExpr      :: i32
+  expr 20:20    IdentExpr      :: ?
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(string) -> void
   expr 4:12     IdentExpr      :: $T
@@ -27,3 +27,6 @@
   expr 8:8      IdentExpr      :: [$T]
   expr 9:16     IdentExpr      :: [$T]
   expr 9:16     IndexExpr      :: $T
+
+# Diagnostics
+[19:14] error[T3009] field does not exist on this type: `first` on [i32]

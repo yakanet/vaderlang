@@ -4,7 +4,7 @@ type 1 struct std_core$Range { start:2,end:2,inclusive:3,cursor:2 }
 type 2 primitive i32
 type 3 primitive bool
 type 4 struct std_core$Yielded__i32 { value:2 }
-type 5 struct std_map$MutableMap__i32__i32 { keys:6,values:6,size:7 }
+type 5 struct std_collections$MutableMap__i32__i32 { keys:6,values:6,size:7 }
 type 6 array 2
 type 7 primitive usize
 type 8 primitive null
@@ -215,153 +215,153 @@ fn 1 std_core$Range$Iterator$step (ref) -> ref
   return   ; core.vader:72:9
 end
 
-fn 2 std_map$std_map$put__i32__i32 (ref,i32,i32) -> void
+fn 2 std_collections$std_collections$put__i32__i32 (ref,i32,i32) -> void
   local __iter_0 ref
   local __step_1 ref
   local i i32
-  i32.const 0   ; map.vader:50:14
-  local.get 0   ; map.vader:50:22
-  struct.get 5 2   ; map.vader:50:22
-  usize.to_i32   ; map.vader:50:18
-  bool.const false   ; map.vader:50:14
-  i32.const 0   ; map.vader:50:14
-  struct.new 1   ; map.vader:50:14
-  local.set 3   ; map.vader:50:5
-  block void   ; map.vader:50:5
-  loop void   ; map.vader:50:5
-  local.get 3   ; map.vader:50:5
-  call 1   ; map.vader:50:5
-  local.tee 4   ; map.vader:50:5
-  type_check 0   ; map.vader:50:5
-  if void   ; map.vader:50:5
-  br 2   ; map.vader:50:5
-  else   ; map.vader:50:5
-  local.get 4   ; map.vader:50:5
-  struct.get 4 0   ; map.vader:50:5
-  local.set 5   ; map.vader:50:5
-  local.get 0   ; map.vader:51:12
-  struct.get 5 0   ; map.vader:51:12
-  local.get 5   ; map.vader:51:22
-  array.get 6   ; map.vader:51:12
-  local.get 1   ; map.vader:51:28
-  i32.eq   ; map.vader:51:12
-  if void   ; map.vader:51:9
-  local.get 0   ; map.vader:52:13
-  struct.get 5 1   ; map.vader:52:13
-  local.get 5   ; map.vader:52:25
-  local.get 2   ; map.vader:52:30
-  array.set 6   ; map.vader:52:13
-  return   ; map.vader:53:13
-  end   ; map.vader:51:9
-  end   ; map.vader:50:5
-  br 0   ; map.vader:50:5
-  end   ; map.vader:50:5
-  end   ; map.vader:50:5
-  local.get 0   ; map.vader:56:5
-  struct.get 5 0   ; map.vader:56:5
-  local.get 1   ; map.vader:56:20
-  array.push 2   ; map.vader:56:5
-  local.get 0   ; map.vader:57:5
-  struct.get 5 1   ; map.vader:57:5
-  local.get 2   ; map.vader:57:22
-  array.push 2   ; map.vader:57:5
-  local.get 0   ; map.vader:58:5
-  local.get 0   ; map.vader:58:17
-  struct.get 5 2   ; map.vader:58:17
-  i64.const 1   ; map.vader:58:29
-  usize.add   ; map.vader:58:17
-  struct.set 5 2   ; map.vader:58:5
+  i32.const 0   ; collections.vader:108:14
+  local.get 0   ; collections.vader:108:22
+  struct.get 5 2   ; collections.vader:108:22
+  usize.to_i32   ; collections.vader:108:18
+  bool.const false   ; collections.vader:108:14
+  i32.const 0   ; collections.vader:108:14
+  struct.new 1   ; collections.vader:108:14
+  local.set 3   ; collections.vader:108:5
+  block void   ; collections.vader:108:5
+  loop void   ; collections.vader:108:5
+  local.get 3   ; collections.vader:108:5
+  call 1   ; collections.vader:108:5
+  local.tee 4   ; collections.vader:108:5
+  type_check 0   ; collections.vader:108:5
+  if void   ; collections.vader:108:5
+  br 2   ; collections.vader:108:5
+  else   ; collections.vader:108:5
+  local.get 4   ; collections.vader:108:5
+  struct.get 4 0   ; collections.vader:108:5
+  local.set 5   ; collections.vader:108:5
+  local.get 0   ; collections.vader:109:12
+  struct.get 5 0   ; collections.vader:109:12
+  local.get 5   ; collections.vader:109:22
+  array.get 6   ; collections.vader:109:12
+  local.get 1   ; collections.vader:109:28
+  i32.eq   ; collections.vader:109:12
+  if void   ; collections.vader:109:9
+  local.get 0   ; collections.vader:110:13
+  struct.get 5 1   ; collections.vader:110:13
+  local.get 5   ; collections.vader:110:25
+  local.get 2   ; collections.vader:110:30
+  array.set 6   ; collections.vader:110:13
+  return   ; collections.vader:111:13
+  end   ; collections.vader:109:9
+  end   ; collections.vader:108:5
+  br 0   ; collections.vader:108:5
+  end   ; collections.vader:108:5
+  end   ; collections.vader:108:5
+  local.get 0   ; collections.vader:114:5
+  struct.get 5 0   ; collections.vader:114:5
+  local.get 1   ; collections.vader:114:20
+  array.push 2   ; collections.vader:114:5
+  local.get 0   ; collections.vader:115:5
+  struct.get 5 1   ; collections.vader:115:5
+  local.get 2   ; collections.vader:115:22
+  array.push 2   ; collections.vader:115:5
+  local.get 0   ; collections.vader:116:5
+  local.get 0   ; collections.vader:116:17
+  struct.get 5 2   ; collections.vader:116:17
+  i64.const 1   ; collections.vader:116:29
+  usize.add   ; collections.vader:116:17
+  struct.set 5 2   ; collections.vader:116:5
 end
 
-fn 3 std_map$std_map$get__i32__i32 (ref,i32) -> ref
+fn 3 std_collections$std_collections$get__i32__i32 (ref,i32) -> ref
   local __iter_0 ref
   local __step_1 ref
   local i i32
-  i32.const 0   ; map.vader:62:14
-  local.get 0   ; map.vader:62:22
-  struct.get 5 2   ; map.vader:62:22
-  usize.to_i32   ; map.vader:62:18
-  bool.const false   ; map.vader:62:14
-  i32.const 0   ; map.vader:62:14
-  struct.new 1   ; map.vader:62:14
-  local.set 2   ; map.vader:62:5
-  block void   ; map.vader:62:5
-  loop void   ; map.vader:62:5
-  local.get 2   ; map.vader:62:5
-  call 1   ; map.vader:62:5
-  local.tee 3   ; map.vader:62:5
-  type_check 0   ; map.vader:62:5
-  if void   ; map.vader:62:5
-  br 2   ; map.vader:62:5
-  else   ; map.vader:62:5
-  local.get 3   ; map.vader:62:5
-  struct.get 4 0   ; map.vader:62:5
-  local.set 4   ; map.vader:62:5
-  local.get 0   ; map.vader:63:12
-  struct.get 5 0   ; map.vader:63:12
-  local.get 4   ; map.vader:63:22
-  array.get 6   ; map.vader:63:12
-  local.get 1   ; map.vader:63:28
-  i32.eq   ; map.vader:63:12
-  if void   ; map.vader:63:9
-  local.get 0   ; map.vader:64:20
-  struct.get 5 1   ; map.vader:64:20
-  local.get 4   ; map.vader:64:32
-  array.get 6   ; map.vader:64:20
-  return   ; map.vader:64:13
-  end   ; map.vader:63:9
-  end   ; map.vader:62:5
-  br 0   ; map.vader:62:5
-  end   ; map.vader:62:5
-  end   ; map.vader:62:5
-  null.const   ; map.vader:67:12
-  return   ; map.vader:67:5
+  i32.const 0   ; collections.vader:120:14
+  local.get 0   ; collections.vader:120:22
+  struct.get 5 2   ; collections.vader:120:22
+  usize.to_i32   ; collections.vader:120:18
+  bool.const false   ; collections.vader:120:14
+  i32.const 0   ; collections.vader:120:14
+  struct.new 1   ; collections.vader:120:14
+  local.set 2   ; collections.vader:120:5
+  block void   ; collections.vader:120:5
+  loop void   ; collections.vader:120:5
+  local.get 2   ; collections.vader:120:5
+  call 1   ; collections.vader:120:5
+  local.tee 3   ; collections.vader:120:5
+  type_check 0   ; collections.vader:120:5
+  if void   ; collections.vader:120:5
+  br 2   ; collections.vader:120:5
+  else   ; collections.vader:120:5
+  local.get 3   ; collections.vader:120:5
+  struct.get 4 0   ; collections.vader:120:5
+  local.set 4   ; collections.vader:120:5
+  local.get 0   ; collections.vader:121:12
+  struct.get 5 0   ; collections.vader:121:12
+  local.get 4   ; collections.vader:121:22
+  array.get 6   ; collections.vader:121:12
+  local.get 1   ; collections.vader:121:28
+  i32.eq   ; collections.vader:121:12
+  if void   ; collections.vader:121:9
+  local.get 0   ; collections.vader:122:20
+  struct.get 5 1   ; collections.vader:122:20
+  local.get 4   ; collections.vader:122:32
+  array.get 6   ; collections.vader:122:20
+  return   ; collections.vader:122:13
+  end   ; collections.vader:121:9
+  end   ; collections.vader:120:5
+  br 0   ; collections.vader:120:5
+  end   ; collections.vader:120:5
+  end   ; collections.vader:120:5
+  null.const   ; collections.vader:125:12
+  return   ; collections.vader:125:5
 end
 
-fn 4 std_map$std_map$contains_key__i32__i32 (ref,i32) -> bool
+fn 4 std_collections$std_collections$contains_key__i32__i32 (ref,i32) -> bool
   local __iter_0 ref
   local __step_1 ref
   local i i32
-  i32.const 0   ; map.vader:71:14
-  local.get 0   ; map.vader:71:22
-  struct.get 5 2   ; map.vader:71:22
-  usize.to_i32   ; map.vader:71:18
-  bool.const false   ; map.vader:71:14
-  i32.const 0   ; map.vader:71:14
-  struct.new 1   ; map.vader:71:14
-  local.set 2   ; map.vader:71:5
-  block void   ; map.vader:71:5
-  loop void   ; map.vader:71:5
-  local.get 2   ; map.vader:71:5
-  call 1   ; map.vader:71:5
-  local.tee 3   ; map.vader:71:5
-  type_check 0   ; map.vader:71:5
-  if void   ; map.vader:71:5
-  br 2   ; map.vader:71:5
-  else   ; map.vader:71:5
-  local.get 3   ; map.vader:71:5
-  struct.get 4 0   ; map.vader:71:5
-  local.set 4   ; map.vader:71:5
-  local.get 0   ; map.vader:72:12
-  struct.get 5 0   ; map.vader:72:12
-  local.get 4   ; map.vader:72:22
-  array.get 6   ; map.vader:72:12
-  local.get 1   ; map.vader:72:28
-  i32.eq   ; map.vader:72:12
-  if void   ; map.vader:72:9
-  bool.const true   ; map.vader:72:41
-  return   ; map.vader:72:34
-  end   ; map.vader:72:9
-  end   ; map.vader:71:5
-  br 0   ; map.vader:71:5
-  end   ; map.vader:71:5
-  end   ; map.vader:71:5
-  bool.const false   ; map.vader:74:12
-  return   ; map.vader:74:5
+  i32.const 0   ; collections.vader:129:14
+  local.get 0   ; collections.vader:129:22
+  struct.get 5 2   ; collections.vader:129:22
+  usize.to_i32   ; collections.vader:129:18
+  bool.const false   ; collections.vader:129:14
+  i32.const 0   ; collections.vader:129:14
+  struct.new 1   ; collections.vader:129:14
+  local.set 2   ; collections.vader:129:5
+  block void   ; collections.vader:129:5
+  loop void   ; collections.vader:129:5
+  local.get 2   ; collections.vader:129:5
+  call 1   ; collections.vader:129:5
+  local.tee 3   ; collections.vader:129:5
+  type_check 0   ; collections.vader:129:5
+  if void   ; collections.vader:129:5
+  br 2   ; collections.vader:129:5
+  else   ; collections.vader:129:5
+  local.get 3   ; collections.vader:129:5
+  struct.get 4 0   ; collections.vader:129:5
+  local.set 4   ; collections.vader:129:5
+  local.get 0   ; collections.vader:130:12
+  struct.get 5 0   ; collections.vader:130:12
+  local.get 4   ; collections.vader:130:22
+  array.get 6   ; collections.vader:130:12
+  local.get 1   ; collections.vader:130:28
+  i32.eq   ; collections.vader:130:12
+  if void   ; collections.vader:130:9
+  bool.const true   ; collections.vader:130:41
+  return   ; collections.vader:130:34
+  end   ; collections.vader:130:9
+  end   ; collections.vader:129:5
+  br 0   ; collections.vader:129:5
+  end   ; collections.vader:129:5
+  end   ; collections.vader:129:5
+  bool.const false   ; collections.vader:132:12
+  return   ; collections.vader:132:5
 end
 
-fn 5 std_map$std_map$len__i32__i32 (ref) -> usize
-  local.get 0   ; map.vader:77:55
-  struct.get 5 2   ; map.vader:77:55
-  return   ; map.vader:77:48
+fn 5 std_collections$std_collections$len__i32__i32 (ref) -> usize
+  local.get 0   ; collections.vader:135:55
+  struct.get 5 2   ; collections.vader:135:55
+  return   ; collections.vader:135:48
 end

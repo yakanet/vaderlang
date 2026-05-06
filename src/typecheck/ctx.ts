@@ -7,8 +7,9 @@
 // while statements / expressions inside that body are checked.
 
 import type * as A from "../parser/ast.ts";
+import type { Module } from "../resolver/module.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
-import type { Symbol } from "../resolver/symbol.ts";
+import type { ModuleId, Symbol } from "../resolver/symbol.ts";
 import type { MethodResolution } from "./typed-ast.ts";
 import type { Substitution, Type } from "./types.ts";
 
@@ -23,6 +24,10 @@ export interface Globals {
    *  when user code instantiates a generic stdlib struct and we need its
    *  typeParam symbols. */
   typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>;
+  /** All modules in the project, indexed by ModuleId. Used to look up
+   *  `fnOverloads` for a given symbol's defining module — needed by the
+   *  UFCS dispatch when picking the right overload by receiver type. */
+  modules: ReadonlyMap<ModuleId, Module> | null;
 }
 
 export function newGlobals(typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>): Globals {
@@ -30,6 +35,7 @@ export function newGlobals(typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>): 
     declTypes: new Map(), paramTypes: new Map(), typeExprTypes: new Map(),
     coreSymbols: null,
     typeParamSymbols,
+    modules: null,
   };
 }
 

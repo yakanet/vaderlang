@@ -18,7 +18,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/set",
+      "path": "std/collections",
       "binding": {
         "kind": "destructure",
         "names": [

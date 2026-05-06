@@ -2,10 +2,10 @@ module _main
 type 0 struct std_core$Done {  }
 type 1 struct std_core$Yielded__i32 { value:2 }
 type 2 primitive i32
-type 3 struct std_list$MutableList__i32 { data:4,size:5 }
+type 3 struct std_collections$MutableList__i32 { data:4,size:5 }
 type 4 array 2
 type 5 primitive usize
-type 6 struct std_list$MutableListIter__i32 { list:3,cursor:5 }
+type 6 struct std_collections$MutableListIter__i32 { list:3,cursor:5 }
 string 0 "len = "
 string 1 "[0] = "
 string 2 "[2] = "
@@ -106,66 +106,66 @@ fn 0 tests_snippets_mutable_list__main_vader$main () -> i32
   return   ; _main.vader:15:5
 end
 
-fn 1 std_list$MutableListIter$Iterator$step__i32 (ref) -> ref
+fn 1 std_collections$MutableListIter$Iterator$step__i32 (ref) -> ref
   local v i32
-  local.get 0   ; list.vader:69:13
-  struct.get 6 1   ; list.vader:69:13
-  local.get 0   ; list.vader:69:28
-  struct.get 6 0   ; list.vader:69:28
-  struct.get 3 1   ; list.vader:69:28
-  usize.ge   ; list.vader:69:13
-  if void   ; list.vader:69:9
-  struct.new 0   ; list.vader:70:20
-  return   ; list.vader:70:13
-  end   ; list.vader:69:9
-  local.get 0   ; list.vader:72:14
-  struct.get 6 0   ; list.vader:72:14
-  struct.get 3 0   ; list.vader:72:14
-  local.get 0   ; list.vader:72:29
-  struct.get 6 1   ; list.vader:72:29
-  array.get 4   ; list.vader:72:14
-  local.set 1   ; list.vader:72:9
-  local.get 0   ; list.vader:73:9
-  local.get 0   ; list.vader:73:23
-  struct.get 6 1   ; list.vader:73:23
-  i64.const 1   ; list.vader:73:37
-  usize.add   ; list.vader:73:23
-  struct.set 6 1   ; list.vader:73:9
-  local.get 1   ; list.vader:74:38
-  struct.new 1   ; list.vader:74:16
-  return   ; list.vader:74:9
+  local.get 0   ; collections.vader:66:13
+  struct.get 6 1   ; collections.vader:66:13
+  local.get 0   ; collections.vader:66:28
+  struct.get 6 0   ; collections.vader:66:28
+  struct.get 3 1   ; collections.vader:66:28
+  usize.ge   ; collections.vader:66:13
+  if void   ; collections.vader:66:9
+  struct.new 0   ; collections.vader:67:20
+  return   ; collections.vader:67:13
+  end   ; collections.vader:66:9
+  local.get 0   ; collections.vader:69:14
+  struct.get 6 0   ; collections.vader:69:14
+  struct.get 3 0   ; collections.vader:69:14
+  local.get 0   ; collections.vader:69:29
+  struct.get 6 1   ; collections.vader:69:29
+  array.get 4   ; collections.vader:69:14
+  local.set 1   ; collections.vader:69:9
+  local.get 0   ; collections.vader:70:9
+  local.get 0   ; collections.vader:70:23
+  struct.get 6 1   ; collections.vader:70:23
+  i64.const 1   ; collections.vader:70:37
+  usize.add   ; collections.vader:70:23
+  struct.set 6 1   ; collections.vader:70:9
+  local.get 1   ; collections.vader:71:38
+  struct.new 1   ; collections.vader:71:16
+  return   ; collections.vader:71:9
 end
 
-fn 2 std_list$std_list$add__i32 (ref,i32) -> void
-  local.get 0   ; list.vader:40:5
-  struct.get 3 0   ; list.vader:40:5
-  local.get 1   ; list.vader:40:20
-  array.push 2   ; list.vader:40:5
-  local.get 0   ; list.vader:41:5
-  local.get 0   ; list.vader:41:17
-  struct.get 3 1   ; list.vader:41:17
-  i64.const 1   ; list.vader:41:29
-  usize.add   ; list.vader:41:17
-  struct.set 3 1   ; list.vader:41:5
+fn 2 std_collections$std_collections$add__i32 (ref,i32) -> void
+  local.get 0   ; collections.vader:39:5
+  struct.get 3 0   ; collections.vader:39:5
+  local.get 1   ; collections.vader:39:20
+  array.push 2   ; collections.vader:39:5
+  local.get 0   ; collections.vader:40:5
+  local.get 0   ; collections.vader:40:17
+  struct.get 3 1   ; collections.vader:40:17
+  i64.const 1   ; collections.vader:40:29
+  usize.add   ; collections.vader:40:17
+  struct.set 3 1   ; collections.vader:40:5
 end
 
-fn 3 std_list$std_list$get__i32 (ref,usize) -> i32
-  local.get 0   ; list.vader:45:12
-  struct.get 3 0   ; list.vader:45:12
-  local.get 1   ; list.vader:45:22
-  array.get 4   ; list.vader:45:12
-  return   ; list.vader:45:5
+fn 3 std_collections$std_collections$get__i32 (ref,usize) -> i32
+  local.get 0   ; collections.vader:44:12
+  struct.get 3 0   ; collections.vader:44:12
+  local.get 1   ; collections.vader:44:22
+  array.get 4   ; collections.vader:44:12
+  return   ; collections.vader:44:5
 end
 
-fn 4 std_list$std_list$len__i32 (ref) -> usize
-  local.get 0   ; list.vader:53:12
-  struct.get 3 1   ; list.vader:53:12
-  return   ; list.vader:53:5
+fn 4 std_collections$std_collections$len__i32 (ref) -> usize
+  local.get 0   ; collections.vader:52:12
+  struct.get 3 1   ; collections.vader:52:12
+  return   ; collections.vader:52:5
 end
 
-fn 5 std_list$std_list$iter__i32 (ref) -> ref
-  local.get 0   ; list.vader:79:41
-  i64.const 0   ; list.vader:79:57
-  struct.new 6   ; list.vader:79:12
-  return   ; list.vader:79:5
+fn 5 std_collections$std_collections$iter__i32 (ref) -> ref
+  local.get 0   ; collections.vader:76:41
+  i64.const 0   ; collections.vader:76:57
+  struct.new 6   ; collections.vader:76:12
+  return   ; collections.vader:76:5
 end

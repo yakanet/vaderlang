@@ -590,7 +590,7 @@ function valTypeOf(t: Type): ValType {
     case "FreeFloat": return "f64";
     case "Unresolved": return "any";
     case "Union":     return "ref";
-    case "Enum":    return "i32";
+    case "Enum":    return primitiveToVal(t.repr);
     case "Struct":
     case "Trait":
     case "Array":

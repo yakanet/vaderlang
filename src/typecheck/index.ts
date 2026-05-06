@@ -1,5 +1,7 @@
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
+import type { Module } from "../resolver/module.ts";
 import type { ResolvedProject } from "../resolver/resolved-ast.ts";
+import type { ModuleId } from "../resolver/symbol.ts";
 
 import { checkProgram, declareModule, newGlobals } from "./check.ts";
 import { findCoreSymbols } from "./ctx.ts";
@@ -15,6 +17,9 @@ export function checkProject(project: ResolvedProject, diags: DiagnosticCollecto
   const impls = buildImplRegistry(project);
   const globals = newGlobals(project.typeParamSymbols);
   globals.coreSymbols = findCoreSymbols(project);
+  const moduleMap = new Map<ModuleId, Module>();
+  for (const program of project.modules.values()) moduleMap.set(program.module.id, program.module);
+  globals.modules = moduleMap;
 
   // Pass 1: declare every module's top-level types into shared globals so that
   // cross-module references (calls into std/io, generic instantiations, etc.)

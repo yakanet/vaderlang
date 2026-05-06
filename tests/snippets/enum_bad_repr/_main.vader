@@ -1,0 +1,15 @@
+// Backing-type / bounds / duplicate-value diagnostics.
+TooBig :: enum(u8) {
+    A
+    B = 300       // out of u8 range
+}
+
+DupVal :: enum {
+    X = 1
+    Y = 2
+    Z = 1         // duplicate
+}
+
+NotInt :: enum(string) {
+    A
+}

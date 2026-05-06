@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/list" { MutableList, add, get, len, iter }
+import "std/collections" { MutableList, add, get, len, iter }
 
 main :: fn() -> i32 {
     list := MutableList(i32) { .data = [], .size = 0 }

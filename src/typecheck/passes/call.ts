@@ -220,7 +220,7 @@ export function inferField(
   // UFCS for free functions: resolver recorded a candidate if the name was in scope.
   const freeSym = t.resolved.ufcsFreeResolutions.get(expr);
   if (freeSym !== undefined) {
-    const boundType = inferUfcsFreeBound(expr, freeSym, targetType, t);
+    const boundType = inferUfcsFreeBound(expr, freeSym, targetType, t, diags);
     if (boundType !== null) return boundType;
   }
 
@@ -230,21 +230,84 @@ export function inferField(
   return TY.unresolved;
 }
 
-/** Validate that `freeSym` is a fn whose first param accepts `targetType`, record the
- *  resolution, and return the bound fn type (params without the first). Returns null
- *  and emits no error if the candidate doesn't match — the caller emits T3009.
- *  A first param containing a TypeParam is always accepted (generic fn — any receiver). */
+/** Validate that `freeSym` (or one of its sibling overloads) is a fn whose
+ *  first param accepts `targetType`, record the chosen resolution, and return
+ *  the bound fn type (params without the first). Returns null when no
+ *  candidate matches — caller emits T3009.
+ *
+ *  Match-rank ladder (best wins; ties at the *concrete* tier emit T3032) :
+ *    1. Concrete `isAssignable` (no TypeParams in first-param at all).
+ *    2. Generic struct/trait of same symbol as receiver (e.g. first-param
+ *       `MutableList($T)` matches receiver `MutableList(i32)` by symbol.id).
+ *    3. Pure type-param wildcard (`fn(self: $T, ...)`) — accepts anything.
+ */
 function inferUfcsFreeBound(
   expr: A.FieldExpr, freeSym: Symbol, targetType: Type, t: MutableTyped,
+  diags: DiagnosticCollector,
 ): Type | null {
-  const decl = declOf(freeSym);
+  const overloads = fnOverloadsForSymbol(freeSym, t);
+
+  let concrete: Symbol | null = null;
+  let concreteOther: Symbol | null = null;
+  let symMatch: Symbol | null = null;
+  let wildcard: Symbol | null = null;
+
+  for (const cand of overloads) {
+    const decl = declOf(cand);
+    const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
+    if (fnType === undefined || fnType.kind !== "Fn") continue;
+    const firstParam = fnType.params[0];
+    if (firstParam === undefined) continue;
+    if (matchesByStructSymbol(firstParam, targetType)) {
+      if (symMatch === null) symMatch = cand;
+      continue;
+    }
+    if (firstParam.kind === "TypeParam") {
+      if (wildcard === null) wildcard = cand;
+      continue;
+    }
+    if (typeContainsTypeParam(firstParam)) continue;     // already handled by symbol-match
+    if (!isAssignable(targetType, firstParam)) continue;
+    if (concrete === null) concrete = cand;
+    else if (concreteOther === null) concreteOther = cand;
+  }
+
+  if (concrete !== null && concreteOther !== null) {
+    err(diags, "T3032", expr.fieldSpan,
+      `multiple concrete candidates for \`${expr.field}\` on ${displayType(targetType)}`);
+  }
+
+  const chosen = concrete ?? symMatch ?? wildcard;
+  if (chosen === null) return null;
+
+  const decl = declOf(chosen);
   const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
   if (fnType === undefined || fnType.kind !== "Fn") return null;
-  const firstParam = fnType.params[0];
-  if (firstParam === undefined) return null;
-  if (!typeContainsTypeParam(firstParam) && !isAssignable(targetType, firstParam)) return null;
-  t.ufcsFreeResolutions.set(expr, freeSym);
+  t.ufcsFreeResolutions.set(expr, chosen);
   return { kind: "Fn", params: fnType.params.slice(1), returnType: fnType.returnType };
+}
+
+/** True when both the candidate's first param and the receiver are generic
+ *  struct (or trait) types with the same backing symbol. Lets `MutableList($T)`
+ *  match `MutableList(i32)` even though `isAssignable` rejects the type-arg
+ *  pair (TypeParam ≠ concrete). The actual T = i32 binding flows through the
+ *  generic-fn dispatch downstream. */
+function matchesByStructSymbol(firstParam: Type, receiver: Type): boolean {
+  if (firstParam.kind === "Struct" && receiver.kind === "Struct") {
+    return firstParam.symbol.id === receiver.symbol.id;
+  }
+  if (firstParam.kind === "Trait" && receiver.kind === "Trait") {
+    return firstParam.symbol.id === receiver.symbol.id;
+  }
+  return false;
+}
+
+/** Sibling overloads for `sym` in its source module. Returns at least `[sym]`
+ *  if no overload set exists (callers can iterate uniformly). */
+function fnOverloadsForSymbol(sym: Symbol, t: MutableTyped): readonly Symbol[] {
+  if (sym.kind !== "fn") return [sym];
+  const bucket = t.globals.modules?.get(sym.module)?.fnOverloads.get(sym.name);
+  return bucket !== undefined && bucket.length > 0 ? bucket : [sym];
 }
 
 /** Generic UFCS free-fn call. Uses the full fn type (receiver as params[0]) to

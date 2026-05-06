@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/map" { MutableMap, put, get, contains_key, len }
+import "std/collections" { MutableMap, put, get, contains_key, len }
 
 main :: fn() -> i32 {
     m := MutableMap(i32, i32) { .keys = [], .values = [], .size = 0 }

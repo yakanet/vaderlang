@@ -1,3 +1,5 @@
-# compile errors
-[R2004] duplicate top-level symbol in module: `inc` already declared in this module
-[T3009] field does not exist on this type: `inc` on B
+# stdout
+6
+105
+# exit
+0

@@ -22,11 +22,13 @@ export interface CollectInput {
 
 export interface CollectResult {
   readonly symbols: ReadonlyMap<string, Symbol>;
+  readonly fnOverloads: ReadonlyMap<string, readonly Symbol[]>;
   readonly imports: readonly ImportEntry[];
 }
 
 export function collectModuleSymbols(input: CollectInput): CollectResult {
   const symbols = new Map<string, Symbol>();
+  const fnOverloads = new Map<string, Symbol[]>();
   const imports: ImportEntry[] = [];
 
   for (const file of input.files) {
@@ -36,7 +38,7 @@ export function collectModuleSymbols(input: CollectInput): CollectResult {
           collectImport(decl, file.path, input, imports, symbols);
           break;
         case "FnDecl":
-          addSymbol(symbols, input, decl.name, decl.nameSpan, decl.visibility, "fn", { kind: "fn", decl });
+          addFnSymbol(symbols, fnOverloads, input, decl);
           break;
         case "StructDecl":
           addSymbol(symbols, input, decl.name, decl.nameSpan, decl.visibility, "struct", { kind: "struct", decl });
@@ -61,7 +63,43 @@ export function collectModuleSymbols(input: CollectInput): CollectResult {
     }
   }
 
-  return { symbols, imports };
+  return { symbols, fnOverloads, imports };
+}
+
+/** Allow multiple `fn` decls under the same module name (overloading). The
+ *  first wins as the primary entry in `symbols`; subsequent ones append to
+ *  the overload set. Truly-conflicting overloads (same first-param type)
+ *  are rejected at typecheck time (T3032), since the resolver doesn't yet
+ *  know parameter types. */
+function addFnSymbol(
+  symbols: Map<string, Symbol>,
+  fnOverloads: Map<string, Symbol[]>,
+  input: CollectInput,
+  decl: A.FnDecl,
+): void {
+  const sym = input.factory.make({
+    kind: "fn", name: decl.name, module: input.moduleId,
+    visibility: decl.visibility, definedAt: decl.nameSpan,
+    source: { kind: "fn", decl },
+  });
+  const bucket = fnOverloads.get(decl.name);
+  if (bucket === undefined) {
+    fnOverloads.set(decl.name, [sym]);
+  } else {
+    bucket.push(sym);
+  }
+  // Keep the FIRST decl as the primary symbol — most callers want one stable
+  // entry point. Other overloads are visible only via `fnOverloads`.
+  if (!symbols.has(decl.name)) {
+    symbols.set(decl.name, sym);
+    return;
+  }
+  const existing = symbols.get(decl.name)!;
+  if (existing.kind !== "fn") {
+    // Name already taken by a non-fn (e.g. a struct/const). Real conflict.
+    err(input.diags, "R2004", decl.nameSpan, `\`${decl.name}\` already declared in this module`,
+      existing.definedAt !== null ? [{ span: existing.definedAt, label: "previous declaration" }] : undefined);
+  }
 }
 
 function addSymbol(

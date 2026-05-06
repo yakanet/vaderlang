@@ -1,5 +1,26 @@
 # Modules
 
+## std/collections
+  fn               public   add 
+  struct           private  Bucket 
+  fn               public   contains 
+  fn               public   contains_key 
+  struct           public   Entry 
+  fn               public   get 
+  fn               public   is_empty 
+  fn               public   iter 
+  fn               public   len 
+  struct           public   List 
+  struct           public   Map 
+  struct           public   MutableList 
+  struct           private  MutableListIter 
+  struct           public   MutableMap 
+  struct           public   MutableSet 
+  fn               public   put 
+  fn               public   set 
+  struct           public   Set 
+  refs: idents=63 types=77 params=26 locals=1 typeParams=33 fields=0
+
 ## std/core
   trait            public   Add 
   struct           public   ArrayIter 
@@ -34,18 +55,6 @@
   fn               public   write_file 
   refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
 
-## std/map
-  struct           private  Bucket 
-  fn               public   contains_key 
-  struct           public   Entry 
-  fn               public   get 
-  fn               public   is_empty 
-  fn               public   len 
-  struct           public   Map 
-  struct           public   MutableMap 
-  fn               public   put 
-  refs: idents=28 types=29 params=9 locals=0 typeParams=18 fields=0
-
 ## tests/snippets/mutable_map/_main.vader
   import-binding   private  contains_key → contains_key
   import-binding   private  get → get
@@ -55,5 +64,5 @@
   import-binding   private  println → println
   import-binding   private  put → put
   import std/io → ok
-  import std/map → ok
+  import std/collections → ok
   refs: idents=25 types=10 params=0 locals=4 typeParams=0 fields=0

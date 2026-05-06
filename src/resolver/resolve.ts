@@ -122,6 +122,7 @@ function resolveDecl(decl: A.Decl, scope: Scope, p: MutableProgram, input: Resol
       resolveConstDecl(decl, scope, p, input);
       return;
     case "EnumDecl":
+      if (decl.repr !== null) resolveType(decl.repr, scope, p, input);
       return;
   }
 }

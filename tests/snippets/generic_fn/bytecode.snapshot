@@ -14,7 +14,7 @@ fn 0 tests_snippets_generic_fn__main_vader$main () -> i32
   local n i32
   local __sb_0 any
   local arr ref
-  local v i32
+  local v any
   local __sb_1 any
   i32.const 42   ; _main.vader:15:10
   call 1   ; _main.vader:15:10
@@ -33,9 +33,9 @@ fn 0 tests_snippets_generic_fn__main_vader$main () -> i32
   i32.const 20   ; _main.vader:18:17
   i32.const 30   ; _main.vader:18:21
   array.new 0 3   ; _main.vader:18:12
-  local.tee 2   ; _main.vader:18:5
+  local.set 2   ; _main.vader:18:5
   i32.const 0   ; _main.vader:19:20
-  call 2   ; _main.vader:19:10
+  unreachable   ; _main.vader:19:10
   local.set 3   ; _main.vader:19:5
   intrinsic builder.new   ; _main.vader:20:13
   local.tee 4   ; _main.vader:20:13
@@ -56,17 +56,5 @@ fn 1 tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader
   return   ; _main.vader:4:5
 end
 
-fn 2 tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$first__i32 (ref,i32) -> i32
-  local.get 0   ; _main.vader:8:8
-  array.len   ; _main.vader:8:8
-  i32.const 0   ; _main.vader:8:20
-  i32.gt   ; _main.vader:8:8
-  if void   ; _main.vader:8:5
-  local.get 0   ; _main.vader:9:16
-  i32.const 0   ; _main.vader:9:20
-  array.get 0   ; _main.vader:9:16
-  return   ; _main.vader:9:9
-  end   ; _main.vader:8:5
-  local.get 1   ; _main.vader:11:12
-  return   ; _main.vader:11:5
-end
+# Diagnostics
+[19:14] error[T3009] field does not exist on this type: `first` on [i32]

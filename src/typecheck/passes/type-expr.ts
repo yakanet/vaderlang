@@ -56,7 +56,12 @@ export function typeFromSymbol(
   switch (sym.kind) {
     case "builtin-type":  return primitiveFromName(sym.name) ?? TY.unresolved;
     case "struct":        return { kind: "Struct", symbol: sym, args };
-    case "enum":          return { kind: "Enum", symbol: sym };
+    case "enum": {
+      const decl = sym.source.kind === "enum" ? sym.source.decl : null;
+      const declared = decl !== null ? t.globals.declTypes.get(decl) : undefined;
+      if (declared !== undefined && declared.kind === "Enum") return declared;
+      return { kind: "Enum", symbol: sym, repr: "i32", indices: new Map() };
+    }
     case "trait":         return { kind: "Trait",  symbol: sym, args };
     case "type-param":    return { kind: "TypeParam", symbol: sym };
     case "type-alias": {

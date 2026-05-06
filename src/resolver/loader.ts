@@ -74,6 +74,7 @@ export function loadProject(opts: LoadOptions): LoadedProject {
       rootDir: root,
       files,
       symbols: collected.symbols,
+      fnOverloads: collected.fnOverloads,
       imports: collected.imports,
     });
 

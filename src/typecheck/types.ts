@@ -75,6 +75,14 @@ export interface StructType {
 export interface EnumType {
   readonly kind: "Enum";
   readonly symbol: Symbol;
+  /** Backing integer type. Set in `declareEnum` from `EnumDecl.repr` (default
+   *  `i32`). Read by the lowerer / bytecode emit / C-emit so variant literals
+   *  flow as the right primitive width. */
+  readonly repr: PrimitiveName;
+  /** Resolved variant indices keyed by variant name. Computed in
+   *  `declareEnum` from explicit `= N` annotations + auto-increment, and
+   *  bounds-checked against `repr`. */
+  readonly indices: ReadonlyMap<string, bigint>;
 }
 
 export interface TraitType {

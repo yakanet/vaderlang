@@ -20,18 +20,27 @@
       "kind": "EnumDecl",
       "name": "Direction",
       "visibility": "public",
+      "repr": null,
       "variants": [
         {
-          "name": "North"
+          "name": "North",
+          "value": null,
+          "valueSpan": null
         },
         {
-          "name": "South"
+          "name": "South",
+          "value": null,
+          "valueSpan": null
         },
         {
-          "name": "East"
+          "name": "East",
+          "value": null,
+          "valueSpan": null
         },
         {
-          "name": "West"
+          "name": "West",
+          "value": null,
+          "valueSpan": null
         }
       ],
       "decorators": []

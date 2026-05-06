@@ -1,0 +1,39 @@
+import "std/io" { println }
+
+Direction :: enum(u8) {
+    North = 1
+    South = 2
+    East  = 4
+    West  = 8
+}
+
+Op :: enum(u16) {
+    Halt
+    Push = 100
+    Pop
+    Add
+}
+
+describe :: fn(d: Direction) -> string {
+    return match d {
+        .North -> "N"
+        .South -> "S"
+        .East  -> "E"
+        .West  -> "W"
+    }
+}
+
+main :: fn() -> i32 {
+    println(describe(.North))
+    println(describe(.West))
+
+    op: Op = .Pop
+    match op {
+        .Halt -> println("halt")
+        .Push -> println("push")
+        .Pop  -> println("pop")
+        .Add  -> println("add")
+    }
+
+    return 0
+}

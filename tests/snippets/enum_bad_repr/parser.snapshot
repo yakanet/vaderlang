@@ -1,0 +1,113 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "EnumDecl",
+      "name": "TooBig",
+      "visibility": "public",
+      "repr": {
+        "kind": "NamedType",
+        "name": "u8"
+      },
+      "variants": [
+        {
+          "name": "A",
+          "value": null,
+          "valueSpan": null
+        },
+        {
+          "name": "B",
+          "value": "300n",
+          "valueSpan": {
+            "start": {
+              "offset": 91,
+              "line": 4,
+              "column": 9
+            },
+            "end": {
+              "offset": 94,
+              "line": 4,
+              "column": 12
+            }
+          }
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "DupVal",
+      "visibility": "public",
+      "repr": null,
+      "variants": [
+        {
+          "name": "X",
+          "value": "1n",
+          "valueSpan": {
+            "start": {
+              "offset": 148,
+              "line": 8,
+              "column": 9
+            },
+            "end": {
+              "offset": 149,
+              "line": 8,
+              "column": 10
+            }
+          }
+        },
+        {
+          "name": "Y",
+          "value": "2n",
+          "valueSpan": {
+            "start": {
+              "offset": 158,
+              "line": 9,
+              "column": 9
+            },
+            "end": {
+              "offset": 159,
+              "line": 9,
+              "column": 10
+            }
+          }
+        },
+        {
+          "name": "Z",
+          "value": "1n",
+          "valueSpan": {
+            "start": {
+              "offset": 168,
+              "line": 10,
+              "column": 9
+            },
+            "end": {
+              "offset": 169,
+              "line": 10,
+              "column": 10
+            }
+          }
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "NotInt",
+      "visibility": "public",
+      "repr": {
+        "kind": "NamedType",
+        "name": "string"
+      },
+      "variants": [
+        {
+          "name": "A",
+          "value": null,
+          "valueSpan": null
+        }
+      ],
+      "decorators": []
+    }
+  ]
+}

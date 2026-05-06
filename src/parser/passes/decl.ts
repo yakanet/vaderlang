@@ -465,12 +465,24 @@ function parseEnumDecl(
   nameTok: Token,
 ): A.EnumDecl {
   p.advance(); // enum
+  let repr: A.TypeExpr | null = null;
+  if (p.match("lparen") !== null) {
+    repr = parseType(p);
+    p.expect("rparen", "`)` after enum backing type");
+  }
   p.expect("lbrace", "`{` to open enum body");
   p.skipNewlines();
   const variants: A.EnumVariant[] = [];
   while (!p.check("rbrace") && !p.check("eof")) {
     const vTok = p.expect("ident", "variant name");
-    variants.push({ span: vTok.span, name: vTok.text });
+    let value: bigint | null = null;
+    let valueSpan: Span | null = null;
+    if (p.match("assign") !== null) {
+      const litTok = p.expect("int_literal", "integer literal after `=`");
+      value = litTok.intValue ?? 0n;
+      valueSpan = litTok.span;
+    }
+    variants.push({ span: vTok.span, name: vTok.text, value, valueSpan });
     p.match("comma");
     p.skipNewlines();
   }
@@ -481,6 +493,7 @@ function parseEnumDecl(
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,
+    repr,
     variants,
     decorators,
   };

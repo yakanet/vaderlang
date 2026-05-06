@@ -1,0 +1,181 @@
+// std/collections — generic mutable collections.
+//
+// Java-inspired API : struct-literal construction + UFCS methods. Method
+// names like `add` / `get` / `len` / `is_empty` / `iter` are deliberately
+// shared across the three collections; UFCS dispatch picks the right
+// overload by receiver type (cf. SPEC §6 *Function overloading*).
+//
+// Construction examples :
+//   list := MutableList(i32) { .data = [], .size = 0 }
+//   list.add(10)
+//
+//   m := MutableMap(string, i32) { .keys = [], .values = [], .size = 0 }
+//   m.put("answer", 42)
+//
+//   s := MutableSet(i32) { .data = [], .size = 0 }
+//   s.add(10)
+//
+// `MutableMap` / `MutableSet` are linear-search at MVP. Promotion to a
+// chaining HashMap is post-MVP — needs trait dispatch on bounded `$K`.
+//
+// Immutable variants (`List`, `Set`, `Map`) are struct stubs only; their
+// op surface is post-MVP (read-only subset + `to_immutable` conversion).
+
+// ===========================================================================
+// MutableList(T)
+// ===========================================================================
+
+List :: struct($T) {
+    data: [T]
+    size: usize
+}
+
+MutableList :: struct($T) {
+    data: [T]
+    size: usize
+}
+
+add :: fn(self: MutableList($T), value: T) -> void {
+    self.data.push(value)
+    self.size = self.size + 1
+}
+
+get :: fn(self: MutableList($T), index: usize) -> T {
+    return self.data[index]
+}
+
+set :: fn(self: MutableList($T), index: usize, value: T) -> void {
+    self.data[index] = value
+}
+
+len :: fn(self: MutableList($T)) -> usize {
+    return self.size
+}
+
+is_empty :: fn(self: MutableList($T)) -> bool {
+    return self.size == 0
+}
+
+private MutableListIter :: struct($T) {
+    list:   MutableList(T)
+    cursor: usize
+}
+
+MutableListIter($T) implements Iterator(T) {
+    fn step(self) -> Done | Yielded(T) {
+        if (self.cursor >= self.list.size) {
+            return Done {}
+        }
+        v :: self.list.data[self.cursor]
+        self.cursor = self.cursor + 1
+        return Yielded(T) { .value = v }
+    }
+}
+
+iter :: fn(self: MutableList($T)) -> MutableListIter(T) {
+    return MutableListIter(T) { .list = self, .cursor = 0 }
+}
+
+// ===========================================================================
+// MutableMap(K, V) — linear-search. Promote to chaining HashMap post-MVP.
+// ===========================================================================
+
+// Bucket — stub for the future chaining HashMap implementation.
+private Bucket :: struct($K, $V) {
+    key:   K
+    value: V
+    next:  Bucket(K, V) | null
+}
+
+Map :: struct($K, $V) {
+    keys:   [K]
+    values: [V]
+    size:   usize
+}
+
+MutableMap :: struct($K, $V) {
+    keys:   [K]
+    values: [V]
+    size:   usize
+}
+
+Entry :: struct($K, $V) {
+    key:   K
+    value: V
+}
+
+put :: fn(self: MutableMap($K, $V), key: K, value: V) -> void {
+    for i in 0..<i32(self.size) {
+        if self.keys[i] == key {
+            self.values[i] = value
+            return
+        }
+    }
+    self.keys.push(key)
+    self.values.push(value)
+    self.size = self.size + 1
+}
+
+get :: fn(self: MutableMap($K, $V), key: K) -> V | null {
+    for i in 0..<i32(self.size) {
+        if self.keys[i] == key {
+            return self.values[i]
+        }
+    }
+    return null
+}
+
+contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool {
+    for i in 0..<i32(self.size) {
+        if self.keys[i] == key { return true }
+    }
+    return false
+}
+
+len :: fn(self: MutableMap($K, $V)) -> usize { return self.size }
+
+is_empty :: fn(self: MutableMap($K, $V)) -> bool { return self.size == 0 }
+
+// ===========================================================================
+// MutableSet(T) — linear-search.
+//
+// TODO post-MVP : redesign as `inner: MutableMap(T, bool)` (Java HashSet
+// pattern). The wrapper design is currently blocked by *transitive
+// monomorphization* — when `add(MutableSet)` is monomorphised at T=i32, its
+// body's nested calls (`self.inner.contains_key(value)`) need to materialise
+// `contains_key__i32__bool`, but the comptime InstanceRegistry only observes
+// generic call sites with concrete type-args, missing inner calls inside
+// abstract bodies. Once that pass propagates the outer substitution into
+// nested calls, the wrapper design becomes free.
+// ===========================================================================
+
+Set :: struct($T) {
+    data: [T]
+    size: usize
+}
+
+MutableSet :: struct($T) {
+    data: [T]
+    size: usize
+}
+
+// Returns true if the value was newly added, false if it was already present.
+add :: fn(self: MutableSet($T), value: T) -> bool {
+    for i in 0..<i32(self.size) {
+        if self.data[i] == value { return false }
+    }
+    self.data.push(value)
+    self.size = self.size + 1
+    return true
+}
+
+contains :: fn(self: MutableSet($T), value: T) -> bool {
+    for i in 0..<i32(self.size) {
+        if self.data[i] == value { return true }
+    }
+    return false
+}
+
+len :: fn(self: MutableSet($T)) -> usize { return self.size }
+
+is_empty :: fn(self: MutableSet($T)) -> bool { return self.size == 0 }

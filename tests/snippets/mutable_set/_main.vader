@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/set" { MutableSet, add, contains, len }
+import "std/collections" { MutableSet, add, contains, len }
 
 main :: fn() -> i32 {
     s := MutableSet(i32) { .data = [], .size = 0 }

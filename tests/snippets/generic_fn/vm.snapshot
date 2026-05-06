@@ -1,5 +1,2 @@
-# stdout
-n = 42
-v = 10
-# exit
-0
+# compile errors
+[T3009] field does not exist on this type: `first` on [i32]

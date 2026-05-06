@@ -1,0 +1,5 @@
+# stdout
+exists: true
+read: hello from vader
+# exit
+0

@@ -3,7 +3,6 @@
 
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
-import { enumVariantIndex } from "../../resolver/symbol.ts";
 import type { Substitution, Type } from "../../typecheck/types.ts";
 import { TY, substitute } from "../../typecheck/types.ts";
 
@@ -45,19 +44,24 @@ export function wrapAsBlock(e: LoweredExpr, span: Span): LoweredBlock {
   return { kind: "LoweredBlock", span, type: e.type, stmts: [], trailing: e };
 }
 
-/** `.Variant` / `Enum.Variant` / arm pattern → `i32` literal of the variant's index.
- *  The type-checker has already validated `name` against `enumType` (T3027) — we
- *  treat a missing variant as a compiler invariant violation rather than silently
- *  emitting `0`, which would mask bugs as a successful match on the first variant. */
+/** `.Variant` / `Enum.Variant` / arm pattern → integer literal of the variant's
+ *  resolved index, typed as the enum's backing repr. The type-checker has
+ *  already validated `name` against `enumType` (T3027) and populated `indices`
+ *  in `declareEnum`, so a missing variant here is a compiler invariant
+ *  violation. */
 export function loweredEnumVariant(enumType: Type, name: string, span: Span): LoweredExpr {
   if (enumType.kind !== "Enum") {
     throw new Error(`loweredEnumVariant: expected Enum type, got ${enumType.kind}`);
   }
-  const index = enumVariantIndex(enumType.symbol, name);
-  if (index < 0) {
-    throw new Error(`loweredEnumVariant: variant ${name} not found on ${enumType.symbol.name}`);
+  const value = enumType.indices.get(name);
+  if (value === undefined) {
+    throw new Error(`loweredEnumVariant: variant ${name} not found on ${enumType.symbol.name} (indices not populated — declareEnum did not run?)`);
   }
-  return { kind: "LoweredIntLit", span, type: TY.i32, value: BigInt(index) };
+  return {
+    kind: "LoweredIntLit", span,
+    type: { kind: "Primitive", name: enumType.repr },
+    value,
+  };
 }
 
 export function orAll(span: Span, parts: readonly LoweredExpr[]): LoweredExpr {

@@ -162,11 +162,27 @@ function makeEntry(
   decl: MonoEntry["decl"], baseName: string, program: ResolvedProgram,
   subst: Substitution, typeArgs: readonly Type[], seen: Set<string>,
 ): MonoEntry {
-  const sym = "name" in decl ? program.module.symbols.get(decl.name) ?? null : null;
+  const sym = symbolForDecl(decl, program);
   return {
     mangled: uniq(seen, mangle(baseName, program, typeArgs)),
     decl, symbol: sym, subst, typeArgs, module: program,
   };
+}
+
+/** Look up the symbol that backs a top-level decl. For overloaded fn names
+ *  the module's `symbols` map only stores the primary, so we need to scan
+ *  `fnOverloads` to find the symbol whose `source.decl` matches this decl. */
+function symbolForDecl(decl: MonoEntry["decl"], program: ResolvedProgram): Symbol | null {
+  if (!("name" in decl)) return null;
+  if (decl.kind === "FnDecl") {
+    const bucket = program.module.fnOverloads.get(decl.name);
+    if (bucket !== undefined) {
+      for (const sym of bucket) {
+        if (sym.source.kind === "fn" && sym.source.decl === decl) return sym;
+      }
+    }
+  }
+  return program.module.symbols.get(decl.name) ?? null;
 }
 
 function makeInstanceEntry(

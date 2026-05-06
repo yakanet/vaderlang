@@ -8,8 +8,8 @@ import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
-import type { Type } from "../types.ts";
-import { TY } from "../types.ts";
+import type { PrimitiveName, Type } from "../types.ts";
+import { ALL_INTS, TY } from "../types.ts";
 
 import type { MutableTyped } from "../ctx.ts";
 import { lowerTypeExpr } from "./type-expr.ts";
@@ -18,7 +18,7 @@ export function declareType(decl: A.Decl, t: MutableTyped, diags: DiagnosticColl
   switch (decl.kind) {
     case "FnDecl":      declareFn(decl, t, diags); return;
     case "StructDecl":  declareStruct(decl, t, diags); return;
-    case "EnumDecl":    declareEnum(decl, t); return;
+    case "EnumDecl":    declareEnum(decl, t, diags); return;
     case "TraitDecl":   declareTrait(decl, t, diags); return;
     case "ImplDecl":    declareImpl(decl, t, diags); return;
     case "TypeAliasDecl": {
@@ -56,10 +56,62 @@ function declareFn(decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector):
   t.globals.declTypes.set(decl, { kind: "Fn", params, returnType });
 }
 
-function declareEnum(decl: A.EnumDecl, t: MutableTyped): void {
+function declareEnum(decl: A.EnumDecl, t: MutableTyped, diags: DiagnosticCollector): void {
   const sym = t.resolved.module.symbols.get(decl.name);
   if (sym === undefined) return;
-  t.globals.declTypes.set(decl, { kind: "Enum", symbol: sym });
+  const repr = resolveEnumRepr(decl, t, diags);
+  const indices = resolveEnumIndices(decl, repr, diags);
+  t.globals.declTypes.set(decl, { kind: "Enum", symbol: sym, repr, indices });
+}
+
+function resolveEnumRepr(decl: A.EnumDecl, t: MutableTyped, diags: DiagnosticCollector): PrimitiveName {
+  if (decl.repr === null) return "i32";
+  const reprType = lowerTypeExpr(decl.repr, t, diags);
+  if (reprType.kind !== "Primitive" || !(ALL_INTS as readonly string[]).includes(reprType.name)) {
+    err(diags, "T3029", decl.repr.span, `got ${reprType.kind === "Primitive" ? reprType.name : reprType.kind}`);
+    return "i32";
+  }
+  return reprType.name;
+}
+
+const REPR_RANGES: Record<PrimitiveName, { min: bigint; max: bigint } | null> = {
+  i8:    { min: -128n, max: 127n },
+  i16:   { min: -32_768n, max: 32_767n },
+  i32:   { min: -2_147_483_648n, max: 2_147_483_647n },
+  i64:   { min: -9_223_372_036_854_775_808n, max: 9_223_372_036_854_775_807n },
+  u8:    { min: 0n, max: 255n },
+  u16:   { min: 0n, max: 65_535n },
+  u32:   { min: 0n, max: 4_294_967_295n },
+  u64:   { min: 0n, max: 18_446_744_073_709_551_615n },
+  usize: { min: 0n, max: 18_446_744_073_709_551_615n },
+  f32: null, f64: null, bool: null, char: null, string: null, void: null, null: null,
+};
+
+function resolveEnumIndices(
+  decl: A.EnumDecl, repr: PrimitiveName, diags: DiagnosticCollector,
+): ReadonlyMap<string, bigint> {
+  const range = REPR_RANGES[repr];
+  const out = new Map<string, bigint>();
+  const seen = new Map<string, string>();   // value-as-string → variant name (for dup detection)
+  let cursor = 0n;
+  for (const variant of decl.variants) {
+    const value = variant.value ?? cursor;
+    if (range !== null && (value < range.min || value > range.max)) {
+      err(diags, "T3030", variant.valueSpan ?? variant.span,
+        `${value} not in [${range.min}, ${range.max}] for \`${repr}\``);
+    }
+    const key = value.toString();
+    const prior = seen.get(key);
+    if (prior !== undefined) {
+      err(diags, "T3031", variant.valueSpan ?? variant.span,
+        `value ${value} already used by \`${prior}\``);
+    } else {
+      seen.set(key, variant.name);
+    }
+    out.set(variant.name, value);
+    cursor = value + 1n;
+  }
+  return out;
 }
 
 function declareStruct(decl: A.StructDecl, t: MutableTyped, diags: DiagnosticCollector): void {

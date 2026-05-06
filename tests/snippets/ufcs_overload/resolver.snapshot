@@ -42,6 +42,3 @@
   import-binding   private  println → println
   import std/io → ok
   refs: idents=6 types=9 params=2 locals=2 typeParams=0 fields=0
-
-# Diagnostics
-[12:1] error[R2004] duplicate top-level symbol in module: `inc` already declared in this module

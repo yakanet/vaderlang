@@ -29,13 +29,12 @@
         int(10) :i32
         int(20) :i32
         int(30) :i32
-    let v#62: i32 =
-      call :i32
+    let v#62: ? =
+      call :?
         callee:
-          first#1000010 :i32
+          .first :?
+            arr#61 :[i32]
         arg0:
-          arr#61 :[i32]
-        arg1:
           int(0) :i32
     call :void
       callee:
@@ -47,28 +46,15 @@
           @builder.append_str :void
             __sb_1#-2 :?
             "v = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_display <for ?> :void
             __sb_1#-2 :?
-            v#62 :i32
+            v#62 :?
           ~>
             @builder.finish :string
               __sb_1#-2 :?
     return int(0) :i32
   fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$identity__i32(x: i32) -> i32
     return x#56 :i32
-  fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$first__i32(arr: [i32], fallback: i32) -> i32
-    if :void
-      cond:
-        gt :bool
-          l:
-            LoweredArrayLen
-          r:
-            int(0) :i32
-      then:
-        return
-          index :i32
-            on:
-              arr#58 :[i32]
-            ix:
-              int(0) :i32
-    return fallback#59 :i32
+
+# Diagnostics
+[19:14] error[T3009] field does not exist on this type: `first` on [i32]

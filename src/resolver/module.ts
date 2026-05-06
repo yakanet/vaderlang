@@ -34,7 +34,16 @@ export interface Module {
   readonly displayPath: string;          // e.g. "std/io" or "./local"
   readonly rootDir: string;              // canonical absolute folder path
   readonly files: readonly SourceFile[];
+  /** Primary symbol per name. For an overloaded fn name (e.g. `get` declared
+   *  multiple times with different first-param types), this holds the first
+   *  declaration. Most callers want this — for overload-aware dispatch query
+   *  `fnOverloads` instead. */
   readonly symbols: ReadonlyMap<string, Symbol>;
+  /** All fn-kind decls grouped by name (overload set). Each entry has at
+   *  least one symbol — its `[0]` is the same Symbol as `symbols.get(name)`.
+   *  Length > 1 only for overloaded names. Populated by the resolver's
+   *  `collect` pass. */
+  readonly fnOverloads: ReadonlyMap<string, readonly Symbol[]>;
   readonly imports: readonly ImportEntry[];
 }
 

@@ -5,4 +5,6 @@
 ## generic instances
   Yielded(i32)
   identity(i32)
-  first(i32)
+
+# Diagnostics
+[19:14] error[T3009] field does not exist on this type: `first` on [i32]

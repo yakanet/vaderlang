@@ -1,0 +1,514 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "Direction",
+      "visibility": "public",
+      "repr": {
+        "kind": "NamedType",
+        "name": "u8"
+      },
+      "variants": [
+        {
+          "name": "North",
+          "value": "1n",
+          "valueSpan": {
+            "start": {
+              "offset": 65,
+              "line": 4,
+              "column": 13
+            },
+            "end": {
+              "offset": 66,
+              "line": 4,
+              "column": 14
+            }
+          }
+        },
+        {
+          "name": "South",
+          "value": "2n",
+          "valueSpan": {
+            "start": {
+              "offset": 79,
+              "line": 5,
+              "column": 13
+            },
+            "end": {
+              "offset": 80,
+              "line": 5,
+              "column": 14
+            }
+          }
+        },
+        {
+          "name": "East",
+          "value": "4n",
+          "valueSpan": {
+            "start": {
+              "offset": 93,
+              "line": 6,
+              "column": 13
+            },
+            "end": {
+              "offset": 94,
+              "line": 6,
+              "column": 14
+            }
+          }
+        },
+        {
+          "name": "West",
+          "value": "8n",
+          "valueSpan": {
+            "start": {
+              "offset": 107,
+              "line": 7,
+              "column": 13
+            },
+            "end": {
+              "offset": 108,
+              "line": 7,
+              "column": 14
+            }
+          }
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "Op",
+      "visibility": "public",
+      "repr": {
+        "kind": "NamedType",
+        "name": "u16"
+      },
+      "variants": [
+        {
+          "name": "Halt",
+          "value": null,
+          "valueSpan": null
+        },
+        {
+          "name": "Push",
+          "value": "100n",
+          "valueSpan": {
+            "start": {
+              "offset": 150,
+              "line": 12,
+              "column": 12
+            },
+            "end": {
+              "offset": 153,
+              "line": 12,
+              "column": 15
+            }
+          }
+        },
+        {
+          "name": "Pop",
+          "value": null,
+          "valueSpan": null
+        },
+        {
+          "name": "Add",
+          "value": null,
+          "valueSpan": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "describe",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "d",
+          "type": {
+            "kind": "NamedType",
+            "name": "Direction"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "string"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "d"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "North"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "N"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "South"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "S"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "East"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "E"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "West"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "W"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "i32"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "describe"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "DotVariantExpr",
+                          "variant": "North",
+                          "variantSpan": {
+                            "start": {
+                              "offset": 376,
+                              "line": 27,
+                              "column": 23
+                            },
+                            "end": {
+                              "offset": 381,
+                              "line": 27,
+                              "column": 28
+                            }
+                          }
+                        },
+                        "spread": false
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "describe"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "DotVariantExpr",
+                          "variant": "West",
+                          "variantSpan": {
+                            "start": {
+                              "offset": 406,
+                              "line": 28,
+                              "column": 23
+                            },
+                            "end": {
+                              "offset": 410,
+                              "line": 28,
+                              "column": 27
+                            }
+                          }
+                        },
+                        "spread": false
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "op",
+            "type": {
+              "kind": "NamedType",
+              "name": "Op"
+            },
+            "value": {
+              "kind": "DotVariantExpr",
+              "variant": "Pop",
+              "variantSpan": {
+                "start": {
+                  "offset": 428,
+                  "line": 30,
+                  "column": 15
+                },
+                "end": {
+                  "offset": 431,
+                  "line": 30,
+                  "column": 18
+                }
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "op"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "Halt"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "halt"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "Push"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "push"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "Pop"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "pop"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "Add"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "add"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

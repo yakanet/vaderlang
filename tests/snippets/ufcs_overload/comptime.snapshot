@@ -4,7 +4,3 @@
 
 ## generic instances
   Yielded(i32)
-
-# Diagnostics
-[12:1] error[R2004] duplicate top-level symbol in module: `inc` already declared in this module
-[18:18] error[T3009] field does not exist on this type: `inc` on B

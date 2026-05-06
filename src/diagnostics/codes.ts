@@ -100,6 +100,10 @@ export const TYPECHECK = {
   T3026: "type does not have generic parameters",
   T3027: "unknown enum variant",
   T3028: "cannot infer enum type from context",
+  T3029: "enum backing type must be a primitive integer",
+  T3030: "enum variant value out of range for backing type",
+  T3031: "duplicate enum variant value",
+  T3032: "ambiguous overload resolution",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

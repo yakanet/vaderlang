@@ -83,6 +83,9 @@ export interface EnumDecl {
   readonly name: string;
   readonly nameSpan: Span;
   readonly visibility: Visibility;
+  /** Optional backing-type annotation : `enum(u8) { ... }`. `null` means
+   *  default `i32`. Resolved to a primitive int by the typechecker. */
+  readonly repr: TypeExpr | null;
   readonly variants: readonly EnumVariant[];
   readonly decorators: readonly Decorator[];
 }
@@ -90,6 +93,10 @@ export interface EnumDecl {
 export interface EnumVariant {
   readonly span: Span;
   readonly name: string;
+  /** Optional explicit value (`Up = 10`). `null` means "previous + 1" (or 0
+   *  for the first variant). Resolved to a concrete index by the typechecker. */
+  readonly value: bigint | null;
+  readonly valueSpan: Span | null;
 }
 
 export interface TraitDecl {
