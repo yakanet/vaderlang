@@ -1,0 +1,4 @@
+# stdout
+ok: 200 array elements survived GC; sum=19900
+# exit
+0

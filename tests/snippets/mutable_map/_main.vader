@@ -2,7 +2,7 @@ import "std/io" { println }
 import "std/collections" { MutableMap, put, get, contains_key, len }
 
 main :: fn() -> i32 {
-    m := MutableMap(i32, i32) { .keys = [], .values = [], .size = 0 }
+    m := MutableMap(i32, i32) { .buckets = [], .size = 0 }
 
     m.put(1, 10)
     m.put(2, 20)

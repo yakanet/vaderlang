@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/interp_string_comptime/_main.vader
-  ConstDecl      GREETING             :: ?
+  ConstDecl      GREETING             :: string
   FnDecl         main                 :: fn() -> i32
   FnDecl         name                 :: fn() -> string
   expr 2:13     StringLitExpr  :: string

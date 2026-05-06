@@ -62,6 +62,7 @@ export interface LoweredParam {
 export type LoweredStmt =
   | LoweredLet
   | LoweredAssign
+  | LoweredCellSet
   | LoweredExprStmt
   | LoweredReturn
   | LoweredLoop
@@ -82,6 +83,17 @@ export interface LoweredAssign {
   readonly span: Span;
   readonly target: LoweredExpr;
   readonly value: LoweredExpr;
+}
+
+/** Update the slot of a closure cell (a heap-allocated single-slot box used
+ *  to give captured locals by-reference closure semantics). `target` resolves
+ *  to a cell ref; `value` is the new contents (statically typed `valueType`). */
+export interface LoweredCellSet {
+  readonly kind: "LoweredCellSet";
+  readonly span: Span;
+  readonly target: LoweredExpr;
+  readonly value: LoweredExpr;
+  readonly valueType: Type;
 }
 
 export interface LoweredExprStmt {
@@ -145,7 +157,10 @@ export type LoweredExpr =
   | LoweredUnreachable
   | LoweredIntrinsicCall
   | LoweredArrayLen
-  | LoweredArrayPush;
+  | LoweredArrayPush
+  | LoweredCellNew
+  | LoweredCellGet
+  | LoweredMakeClosure;
 
 export interface LoweredIntLit {
   readonly kind: "LoweredIntLit";
@@ -344,6 +359,42 @@ export interface LoweredIntrinsicCall {
   readonly args: readonly LoweredExpr[];
   /** When `name === "builder.append_display"`, the static type of the value being shown. */
   readonly displayFor?: Type;
+}
+
+/** Allocate a new closure cell holding `value`. Cells are 1-slot heap objects
+ *  used to give captured locals by-reference closure semantics — multiple
+ *  closures referencing the same captured local share the same cell.
+ *  `type` is the cell's "outer" type (an opaque ref); `valueType` is the
+ *  statically-known type of the slot contents (used by the bytecode emit to
+ *  pick the right box/unbox path). */
+export interface LoweredCellNew {
+  readonly kind: "LoweredCellNew";
+  readonly span: Span;
+  readonly type: Type;
+  readonly value: LoweredExpr;
+  readonly valueType: Type;
+}
+
+/** Read the slot of a closure cell. `target` resolves to a cell ref; the
+ *  result has type `valueType`. */
+export interface LoweredCellGet {
+  readonly kind: "LoweredCellGet";
+  readonly span: Span;
+  readonly type: Type;
+  readonly target: LoweredExpr;
+  readonly valueType: Type;
+}
+
+/** Pack an env struct + a lifted top-level fn into a closure value. The env
+ *  expression (typically a `LoweredStructLit` for the synthesized env type)
+ *  carries the cell references the closure body needs. The bytecode emit
+ *  resolves `fnSymbol` to a function index and emits `make_closure`. */
+export interface LoweredMakeClosure {
+  readonly kind: "LoweredMakeClosure";
+  readonly span: Span;
+  readonly type: Type;            // the closure's fn type
+  readonly fnSymbol: Symbol;      // synthesised symbol for the lifted fn
+  readonly env: LoweredExpr;      // produces the env struct (boxed)
 }
 
 export const INTRINSICS = {

@@ -1,0 +1,14 @@
+main :: fn() -> i32 {
+    n := 0
+    inc :: fn() {
+        n = n + 1
+    }
+    get :: fn() -> i32 {
+        return n
+    }
+    inc()
+    inc()
+    inc()
+    inc()
+    return get()
+}

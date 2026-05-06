@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/fn_value_array/_main.vader
+  FnDecl         double               :: fn(i32) -> i32
+  FnDecl         inc                  :: fn(i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 10:11    ArrayLitExpr   :: [fn(i32) -> i32]
+  expr 10:12    IdentExpr      :: fn(i32) -> i32
+  expr 10:17    IdentExpr      :: fn(i32) -> i32
+  expr 11:12    BinaryExpr     :: i32
+  expr 11:12    CallExpr       :: i32
+  expr 11:12    IdentExpr      :: [fn(i32) -> i32]
+  expr 11:12    IndexExpr      :: fn(i32) -> i32
+  expr 11:23    CallExpr       :: i32
+  expr 11:23    IdentExpr      :: [fn(i32) -> i32]
+  expr 11:23    IndexExpr      :: fn(i32) -> i32
+  expr 2:12     BinaryExpr     :: i32
+  expr 2:12     IdentExpr      :: i32
+  expr 6:12     BinaryExpr     :: i32
+  expr 6:12     IdentExpr      :: i32

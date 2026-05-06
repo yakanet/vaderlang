@@ -13,6 +13,7 @@ export type Value =
   | ArrayValue
   | ErrorValue
   | BuilderValue
+  | FnValue
   | VoidValue;
 
 export type ValueTag = Value["tag"];
@@ -55,6 +56,15 @@ export interface BuilderValue {
   readonly parts: string[];
 }
 
+/** Function value — fat pointer `{ code, env }`. `fnIndex` selects the bytecode
+ *  function to invoke; `env` is null for non-capturing globals and a struct
+ *  value for closures (Phase 3). Pushed by `fn.ref`, consumed by `call.indirect`. */
+export interface FnValue {
+  readonly tag: "fn";
+  readonly fnIndex: number;
+  readonly env: Value | null;
+}
+
 export const VOID: VoidValue = { tag: "void" };
 export const NULL: NullValue = { tag: "null" };
 export const TRUE:  BoolValue = { tag: "bool", n: true };
@@ -67,6 +77,7 @@ export function ch(cp: number): CharValue { return { tag: "char", n: cp }; }
 export function bool(b: boolean): BoolValue { return b ? TRUE : FALSE; }
 export function err(message: string): ErrorValue { return { tag: "error", message }; }
 export function builder(): BuilderValue { return { tag: "builder", parts: [] }; }
+export function fnRef(fnIndex: number, env: Value | null = null): FnValue { return { tag: "fn", fnIndex, env }; }
 
 export function asNum(v: Value): number {
   if (v.tag === "i8" || v.tag === "i16" || v.tag === "i32"
@@ -117,6 +128,11 @@ export function asBuilder(v: Value): BuilderValue {
   throw new Error(`vm: expected builder, got ${v.tag}`);
 }
 
+export function asFn(v: Value): FnValue {
+  if (v.tag === "fn") return v;
+  throw new Error(`vm: expected fn, got ${v.tag}`);
+}
+
 /** Implements the `Display` trait per SPEC §9: integers/floats print decimal
  *  (floats get a trailing `.0` when integral, à la Go `%v`), booleans
  *  `true`/`false`, chars print the codepoint as a string, null is `null`,
@@ -143,5 +159,7 @@ export function displayValue(v: Value): string {
       return `[${v.elements.map(displayValue).join(", ")}]`;
     case "builder":
       return `<builder len=${v.parts.length}>`;
+    case "fn":
+      return `<fn ${v.fnIndex}${v.env === null ? "" : "+env"}>`;
   }
 }

@@ -12,8 +12,9 @@ import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStructLitField } from
 import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
-import { lookupImplEntry, lowerRangeExpr } from "./for-in.ts";
+import { lookupImplEntry, lookupImplFor, lowerRangeExpr } from "./for-in.ts";
 import { applySubst, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
+import { lowerLambda } from "./lambda.ts";
 import { lowerMatch } from "./match.ts";
 import { lowerStringLit } from "./string-interp.ts";
 import { lowerTry } from "./try.ts";
@@ -112,6 +113,25 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
             return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol);
           }
         }
+        // Trait-method dispatch on a generic TypeParam — the typechecker
+        // recorded `(trait, method)` ; we apply the call-site substitution
+        // to the receiver type-param to get the concrete receiver, then
+        // resolve the impl member just like a regular method call.
+        const traitMethod = ctx.typed.traitMethodResolutions.get(expr.callee);
+        if (traitMethod !== undefined) {
+          const concreteRecv = applySubst(traitMethod.receiverParam, ctx.subst);
+          const impl = lookupImplFor(ctx.project, concreteRecv, traitMethod.trait);
+          if (impl !== null) {
+            const member = impl.decl.members.find((m) => m.name === traitMethod.member.name);
+            if (member !== undefined) {
+              const structArgs = concreteRecv.kind === "Struct" ? concreteRecv.args : [];
+              const entry = lookupImplEntry(ctx, member, structArgs);
+              if (entry !== null && entry.symbol !== null) {
+                return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol);
+              }
+            }
+          }
+        }
         const freeSym = ctx.typed.ufcsFreeResolutions.get(expr.callee);
         if (freeSym !== undefined) {
           const ufcsTypeArgs = ctx.typed.genericFnCalls.get(expr);
@@ -158,10 +178,7 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
     case "BlockExpr":
       return lowerBlock(ctx, expr, /*isFnRoot*/ false, /*isLoopBody*/ false);
     case "LambdaExpr":
-      err(ctx.project.diags, "B5001", expr.span,
-        "lambdas / closures are not yet supported (lambda lifting deferred — see TODO §1.6)");
-      return { kind: "LoweredUnreachable", span: expr.span, type: exprType,
-               reason: "lambda lifting not yet implemented" };
+      return lowerLambda(ctx, expr);
     case "StructLitExpr":
       return {
         kind: "LoweredStructLit", span: expr.span, type: exprType,
@@ -194,6 +211,29 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
   const sym = ctx.typed.resolved.idents.get(expr);
   if (sym === undefined) {
     return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unresolved ident ${expr.name}` };
+  }
+  // Lifted-fn context: an outer-captured symbol referenced inside the body
+  // is reached through `env.cap_X` (yielding the cell), then CellGet for the
+  // value. We never resolve to the bare outer symbol here — the lifted fn
+  // has no access to it.
+  if (ctx.liftedContext !== null) {
+    const fieldName = ctx.liftedContext.captureFields.get(sym.id);
+    if (fieldName !== undefined) {
+      const envIdent: LoweredExpr = {
+        kind: "LoweredIdent", span: expr.span, type: ctx.liftedContext.envType,
+        symbol: ctx.liftedContext.envSymbol,
+      };
+      const cellRef: LoweredExpr = {
+        kind: "LoweredFieldAccess", span: expr.span, type,
+        target: envIdent, field: fieldName,
+      };
+      return { kind: "LoweredCellGet", span: expr.span, type, target: cellRef, valueType: type };
+    }
+  }
+  // Captured local in the current scope — read through the cell.
+  if (ctx.project.closures.capturedSymbols.has(sym.id)) {
+    const cellRef: LoweredExpr = { kind: "LoweredIdent", span: expr.span, type, symbol: sym };
+    return { kind: "LoweredCellGet", span: expr.span, type, target: cellRef, valueType: type };
   }
   return { kind: "LoweredIdent", span: expr.span, type, symbol: sym };
 }

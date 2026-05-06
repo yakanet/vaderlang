@@ -207,6 +207,16 @@ function emitStmt(fn: FnEmitCtx, s: L.LoweredStmt): void {
     case "LoweredAssign":
       emitAssign(fn, s);
       return;
+    case "LoweredCellSet": {
+      // Cell update: pop cell ref, pop value, struct.set on the synthesized
+      // single-slot struct. We emit target first so the value lands on top —
+      // matching struct.set's stack convention (struct, value).
+      const cellTypeIdx = internCellType(fn.project, s.valueType);
+      emitExpr(fn, s.target);
+      emitExpr(fn, s.value);
+      pushOp(fn, { kind: "struct.set", typeIndex: cellTypeIdx, fieldIndex: 0 }, s.span);
+      return;
+    }
     case "LoweredExprStmt": {
       emitExpr(fn, s.expr);
       if (valTypeOf(s.expr.type) !== "void") pushOp(fn, { kind: "drop" }, s.span);
@@ -357,6 +367,35 @@ function emitExpr(fn: FnEmitCtx, e: L.LoweredExpr): void {
       pushOp(fn, { kind: "array.push", typeIndex: internType(fn.project, e.value.type) }, e.span);
       return;
     }
+    case "LoweredCellNew": {
+      // Synthesised one-field struct; struct.new pops the value, allocates,
+      // and pushes the cell ref.
+      const cellTypeIdx = internCellType(fn.project, e.valueType);
+      emitExpr(fn, e.value);
+      pushOp(fn, { kind: "struct.new", typeIndex: cellTypeIdx }, e.span);
+      return;
+    }
+    case "LoweredCellGet": {
+      const cellTypeIdx = internCellType(fn.project, e.valueType);
+      emitExpr(fn, e.target);
+      pushOp(fn, { kind: "struct.get", typeIndex: cellTypeIdx, fieldIndex: 0 }, e.span);
+      return;
+    }
+    case "LoweredMakeClosure": {
+      // Emit env (a struct value) then make_closure with the lifted fn's
+      // bytecode index + the closure's BcFn type index.
+      emitExpr(fn, e.env);
+      const fnIdx = fn.project.fnIndexBySymId.get(e.fnSymbol.id);
+      if (fnIdx === undefined) {
+        // Should never happen — synth lifted fns are added to the project
+        // before bytecode emit walks function bodies.
+        pushOp(fn, { kind: "unreachable" }, e.span);
+        return;
+      }
+      const typeIndex = internType(fn.project, e.type);
+      pushOp(fn, { kind: "make_closure", fnIndex: fnIdx, typeIndex }, e.span);
+      return;
+    }
   }
 }
 
@@ -369,6 +408,16 @@ function emitIdent(fn: FnEmitCtx, e: L.LoweredIdent): void {
   const constDecl = fn.project.constDecls.get(e.symbol.id);
   if (constDecl !== undefined) {
     emitExpr(fn, constDecl.value);
+    return;
+  }
+  // Fn name used as a value: push a fn ref. The runtime representation is a
+  // fat pointer `{ code, env }` with `env = null` for non-capturing globals.
+  // typeIndex resolves to a BcFn entry — used by the C emit to set the runtime
+  // tag and pick the right function-pointer cast.
+  const fnIdx = fn.project.fnIndexBySymId.get(e.symbol.id);
+  if (fnIdx !== undefined) {
+    const typeIndex = internType(fn.project, e.type);
+    pushOp(fn, { kind: "fn.ref", fnIndex: fnIdx, typeIndex }, e.span);
     return;
   }
   pushOp(fn, { kind: "unreachable" }, e.span);
@@ -390,7 +439,18 @@ function emitCall(fn: FnEmitCtx, e: L.LoweredCall): void {
       return;
     }
   }
-  // Indirect / unresolved callee — surface as unreachable for MVP.
+  // Indirect call: callee is fn-typed (a local, a struct field, an array
+  // element, etc.). WASM convention — args first, callee on top, sig index
+  // encoded in the op for verification and so the C emitter can pick the
+  // right function-pointer cast.
+  if (e.callee.type.kind === "Fn") {
+    for (const a of e.args) emitExpr(fn, a);
+    emitExpr(fn, e.callee);
+    const typeIndex = internType(fn.project, e.callee.type);
+    pushOp(fn, { kind: "call.indirect", typeIndex }, e.span);
+    return;
+  }
+  // Truly unresolved callee (non-Fn type) — surface as unreachable.
   for (const a of e.args) emitExpr(fn, a);
   pushOp(fn, { kind: "unreachable" }, e.span);
 }
@@ -540,8 +600,33 @@ function bcTypeOf(t: Type, ctx: EmitterCtx): BcType {
     case "Trait": return { kind: "ref", traitName: t.symbol.name };
     case "Array": return { kind: "array", element: internType(ctx, t.element) };
     case "Union": return { kind: "union", variants: t.variants.map((v) => internType(ctx, v)) };
+    case "Fn":    return {
+      kind: "fn",
+      params: t.params.map((p) => internType(ctx, p)),
+      returnType: internType(ctx, t.returnType),
+    };
     default:      return { kind: "ref", traitName: null };
   }
+}
+
+/** Synthesise (or look up) a single-slot struct type used by closure cells.
+ *  Each cell holds a slot of `slotType`, so we materialise one struct per
+ *  distinct slot type — kept distinct from user structs by the `$Cell_…`
+ *  name prefix. The C emit treats it like any other struct (it gets a
+ *  type-info entry, the GC scans the slot if it's a ref). */
+function internCellType(ctx: EmitterCtx, slotType: Type): number {
+  const slotIdx = internType(ctx, slotType);
+  const key = `$Cell<${displayType(slotType)}>`;
+  const cached = ctx.typeKey.get(key);
+  if (cached !== undefined) return cached;
+  const idx = ctx.types.length;
+  ctx.typeKey.set(key, idx);
+  ctx.types.push({
+    kind: "struct",
+    name: `$Cell_${idx}`,
+    fields: [{ name: "value", typeIndex: slotIdx }],
+  });
+  return idx;
 }
 
 function internStructDecl(d: L.LoweredStructDecl, ctx: EmitterCtx): number {

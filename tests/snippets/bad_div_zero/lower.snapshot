@@ -8,7 +8,7 @@
       r:
         int(0) :i32
   fn tests_snippets_bad_div_zero__main_vader$main() -> i32
-    return BOOM#1 :?
+    return BOOM#1 :i32
 
 # Diagnostics
 [2:9] error[C4005] comptime division by zero

@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/fn_value_struct/_main.vader
+
+## generic instances
+  Yielded(i32)

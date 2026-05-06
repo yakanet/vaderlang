@@ -77,59 +77,128 @@ iter :: fn(self: MutableList($T)) -> MutableListIter(T) {
 }
 
 // ===========================================================================
-// MutableMap(K, V) — linear-search. Promote to chaining HashMap post-MVP.
+// MutableMap(K, V) — chaining hash map. Each bucket holds a singly-linked
+// list of `Entry(K, V)` nodes. Lookup hashes the key, walks the bucket's
+// chain comparing keys via the `Eq` trait, and inserts at the chain head.
+//
+// Bucket count is a fixed `BUCKET_COUNT` (no resize in MVP — collisions
+// degrade gracefully into linear search per bucket). Lazy-initialised on
+// first put so the struct-literal constructor stays simple.
 // ===========================================================================
 
-// Bucket — stub for the future chaining HashMap implementation.
-private Bucket :: struct($K, $V) {
+private BUCKET_COUNT :: 16
+
+private Entry :: struct($K, $V) {
     key:   K
     value: V
-    next:  Bucket(K, V) | null
+    next:  Entry(K, V) | null
 }
 
 Map :: struct($K, $V) {
-    keys:   [K]
-    values: [V]
-    size:   usize
+    buckets: [Entry(K, V) | null]
+    size:    usize
 }
 
 MutableMap :: struct($K, $V) {
-    keys:   [K]
-    values: [V]
-    size:   usize
+    buckets: [Entry(K, V) | null]
+    size:    usize
 }
 
-Entry :: struct($K, $V) {
-    key:   K
-    value: V
+private bucket_index :: fn(h: u64) -> i32 {
+    return i32(h % u64(BUCKET_COUNT))
 }
 
-put :: fn(self: MutableMap($K, $V), key: K, value: V) -> void {
-    for i in 0..<i32(self.size) {
-        if self.keys[i] == key {
-            self.values[i] = value
-            return
+put :: fn(self: MutableMap($K, $V), key: K, value: V) -> void where K: Hash + Eq {
+    // Lazy bucket init — inlined here because nested generic calls aren't
+    // observed by the comptime InstanceRegistry yet (transitive
+    // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
+    // helper would not get materialised at the right K/V instantiation.
+    if self.buckets.len() == 0 {
+        bi := 0
+        for bi < BUCKET_COUNT {
+            self.buckets.push(null)
+            bi = bi + 1
         }
     }
-    self.keys.push(key)
-    self.values.push(value)
+    h :: key.hash()
+    idx :: bucket_index(h)
+
+    // Walk the chain — update in place if the key already exists.
+    cur: Entry(K, V) | null = self.buckets[idx]
+    done := false
+    found := false
+    for !done {
+        match cur {
+            is null -> { done = true }
+            is Entry(K, V) -> {
+                if cur.key.equals(key) {
+                    cur.value = value
+                    found = true
+                    done = true
+                } else {
+                    cur = cur.next
+                }
+            }
+        }
+    }
+    if found {
+        return
+    }
+
+    // Prepend a fresh entry — chain head becomes the new node.
+    new_entry :: Entry(K, V) { .key = key, .value = value, .next = self.buckets[idx] }
+    self.buckets[idx] = new_entry
     self.size = self.size + 1
 }
 
-get :: fn(self: MutableMap($K, $V), key: K) -> V | null {
-    for i in 0..<i32(self.size) {
-        if self.keys[i] == key {
-            return self.values[i]
+get :: fn(self: MutableMap($K, $V), key: K) -> V | null where K: Hash + Eq {
+    if self.buckets.len() == 0 {
+        return null
+    }
+    h :: key.hash()
+    idx :: bucket_index(h)
+    cur: Entry(K, V) | null = self.buckets[idx]
+    result: V | null = null
+    done := false
+    for !done {
+        match cur {
+            is null -> { done = true }
+            is Entry(K, V) -> {
+                if cur.key.equals(key) {
+                    result = cur.value
+                    done = true
+                } else {
+                    cur = cur.next
+                }
+            }
         }
     }
-    return null
+    return result
 }
 
-contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool {
-    for i in 0..<i32(self.size) {
-        if self.keys[i] == key { return true }
+contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool where K: Hash + Eq {
+    if self.buckets.len() == 0 {
+        return false
     }
-    return false
+    h :: key.hash()
+    idx :: bucket_index(h)
+    cur: Entry(K, V) | null = self.buckets[idx]
+    found := false
+    done := false
+    for !done {
+        match cur {
+            is null -> { done = true }
+            is Entry(K, V) -> {
+                if cur.key.equals(key) {
+                    found = true
+                    done = true
+                } else {
+                    cur = cur.next
+                }
+            }
+        }
+    }
+    return found
 }
 
 len :: fn(self: MutableMap($K, $V)) -> usize { return self.size }

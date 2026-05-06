@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/closure_counter/_main.vader
+
+## generic instances
+  Yielded(i32)

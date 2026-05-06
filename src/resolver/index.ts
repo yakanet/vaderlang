@@ -39,6 +39,11 @@ export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCo
   // reuse the canonical typeParam symbol of the base struct (potentially
   // declared in another module, e.g. `std/core::ArrayIter`).
   const typeParamSymbols = new Map<A.TypeParam, Symbol>();
+  // Cross-module table of trait bounds per TypeParam — populated by every
+  // `where T: Trait` clause encountered during resolution. Keyed by the
+  // TypeParam Symbol's id so an impl method's body can find the bounds
+  // declared on the surrounding struct without duplicating the lookup logic.
+  const typeParamBounds = new Map<number, Symbol[]>();
 
   const resolved = new Map<ModuleId, ResolvedProgram>();
   for (const [id, mod] of project.modules) {
@@ -51,10 +56,11 @@ export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCo
       factory: project.factory,
       diags,
       typeParamSymbols,
+      typeParamBounds,
     });
     if (programs.length > 0) resolved.set(id, programs[0]!);
   }
-  return { modules: resolved, importTargets, typeParamSymbols };
+  return { modules: resolved, importTargets, typeParamSymbols, typeParamBounds };
 }
 
 function findCoreModule(modules: ReadonlyMap<ModuleId, Module>): Module | null {

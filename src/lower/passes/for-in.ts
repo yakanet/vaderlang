@@ -196,7 +196,7 @@ function findIteratorStepImpl(ctx: FnLowerCtx, iterType: Type): StepImpl | null 
 
 /** O(1) lookup of an impl entry by `(forType, traitSym)`. Returns null when
  *  no matching impl exists. */
-function lookupImplFor(
+export function lookupImplFor(
   ctx: LowerProjectCtx, forType: Type, traitSym: Symbol,
 ): ImplEntry | null {
   if (forType.kind === "Struct") return ctx.impls.findUser(forType.symbol, traitSym);

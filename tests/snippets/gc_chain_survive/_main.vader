@@ -1,0 +1,48 @@
+import "std/io" { println }
+import "std/runtime" { gc_collect, gc_collections }
+
+Node :: struct {
+    value: i32
+    next:  Node | null
+}
+
+main :: fn() -> i32 {
+    head: Node | null = Node { .value = 0, .next = null }
+    i := 1
+    for i < 200 {
+        head = Node { .value = i, .next = head }
+        i = i + 1
+    }
+
+    before := gc_collections()
+    gc_collect()
+    after := gc_collections()
+
+    diff := after - before
+    if diff != 1 {
+        println("expected 1 collection, got ${diff}")
+        return 1
+    }
+
+    sum := 0
+    cur := head
+    done := false
+    for !done {
+        match cur {
+            is null -> { done = true }
+            is Node -> {
+                sum = sum + cur.value
+                cur = cur.next
+            }
+        }
+    }
+
+    expected :: 200 * 199 / 2
+    if sum != expected {
+        println("sum mismatch: got ${sum}, expected ${expected}")
+        return 2
+    }
+
+    println("ok: 200 nodes survived GC; sum=${sum}")
+    return 0
+}

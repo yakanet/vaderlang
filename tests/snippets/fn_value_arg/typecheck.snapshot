@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/fn_value_arg/_main.vader
+  FnDecl         apply                :: fn(fn(i32) -> i32, i32) -> i32
+  FnDecl         inc                  :: fn(i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 10:12    CallExpr       :: i32
+  expr 10:12    IdentExpr      :: fn(fn(i32) -> i32, i32) -> i32
+  expr 10:18    IdentExpr      :: fn(i32) -> i32
+  expr 2:12     CallExpr       :: i32
+  expr 2:12     IdentExpr      :: fn(i32) -> i32
+  expr 2:14     IdentExpr      :: i32
+  expr 6:12     BinaryExpr     :: i32
+  expr 6:12     IdentExpr      :: i32

@@ -27,6 +27,11 @@ export interface ResolveModuleInput {
    *  minting a fresh one (which would clobber the struct's own field
    *  resolutions). */
   readonly typeParamSymbols: Map<A.TypeParam, Symbol>;
+  /** Cross-module trait-bound table populated by `resolveWhereClause`.
+   *  `typeParam.symbol.id → traitSymbols[]`. The same map is shared across
+   *  fn / struct decls so an impl method's body can find the bounds declared
+   *  on the surrounding struct's where-clause without re-walking. */
+  readonly typeParamBounds: Map<number, Symbol[]>;
   readonly diags: DiagnosticCollector;
 }
 
@@ -341,11 +346,26 @@ function bindBinding(
 }
 
 function resolveWhereClause(w: A.WhereClause, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {
-  if (lookup(scope, w.typeName) === null) {
+  const tpSym = lookup(scope, w.typeName);
+  if (tpSym === null) {
     err(input.diags, "R2006", w.span, `\`${w.typeName}\` (in \`where\`)`);
   }
-  if (lookup(scope, w.traitName) === null) {
+  const traitSym = lookup(scope, w.traitName);
+  if (traitSym === null) {
     err(input.diags, "R2007", w.span, `\`${w.traitName}\` (trait bound)`);
+  }
+
+  // Record the bound for downstream phases. We allow recording even when the
+  // scoped name is e.g. a struct rather than a strict TypeParam — the
+  // typechecker's TypeParam-target lookup will only fire for keys that match
+  // an actual TypeParam Symbol, and unused entries are harmless.
+  if (tpSym !== null && traitSym !== null && traitSym.kind === "trait") {
+    let bucket = input.typeParamBounds.get(tpSym.id);
+    if (bucket === undefined) {
+      bucket = [];
+      input.typeParamBounds.set(tpSym.id, bucket);
+    }
+    if (!bucket.some((s) => s.id === traitSym.id)) bucket.push(traitSym);
   }
 }
 

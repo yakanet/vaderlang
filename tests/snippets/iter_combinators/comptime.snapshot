@@ -1,0 +1,13 @@
+# Comptime
+
+## tests/snippets/iter_combinators/_main.vader
+
+## generic instances
+  Yielded(i32)
+  ArrayIter($T)
+  ArrayIter(i32)
+  map(i32, i32)
+  filter(i32)
+  fold(i32, i32)
+  take(i32)
+  skip(i32)

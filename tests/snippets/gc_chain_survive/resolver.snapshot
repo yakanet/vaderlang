@@ -1,0 +1,52 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=43 types=76 params=39 locals=3 typeParams=3 fields=0
+
+## std/io
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+
+## std/runtime
+  fn               public   gc_bytes_copied 
+  fn               public   gc_bytes_used 
+  fn               public   gc_collect 
+  fn               public   gc_collections 
+  refs: idents=0 types=4 params=0 locals=0 typeParams=0 fields=0
+
+## tests/snippets/gc_chain_survive/_main.vader
+  import-binding   private  gc_collect → gc_collect
+  import-binding   private  gc_collections → gc_collections
+  fn               public   main 
+  struct           public   Node 
+  import-binding   private  println → println
+  import std/io → ok
+  import std/runtime → ok
+  refs: idents=30 types=10 params=0 locals=9 typeParams=0 fields=0

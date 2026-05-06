@@ -136,8 +136,21 @@ export function stdMathBindings(): Record<string, HostFn> {
   };
 }
 
+export function stdRuntimeBindings(): Record<string, HostFn> {
+  // The TS VM has no real GC arena — collections are conceptually free, but
+  // we still expose stable counters so test programs can drive deterministic
+  // assertions across both the VM and the native backend.
+  let collections = 0;
+  return {
+    std_runtime$gc_collect:      ()     => { collections++; return VOID; },
+    std_runtime$gc_collections:  ()     => num("i32", collections),
+    std_runtime$gc_bytes_used:   ()     => num("i32", 0),
+    std_runtime$gc_bytes_copied: ()     => num("i32", 0),
+  };
+}
+
 export function makeBindings(io: HostIO): HostBindings {
-  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdMathBindings() };
+  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdMathBindings(), ...stdRuntimeBindings() };
   return {
     get(mangledName, externName) {
       return all[mangledName] ?? all[externName] ?? null;

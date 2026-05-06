@@ -15,7 +15,7 @@ export { checkProgram };
 
 export function checkProject(project: ResolvedProject, diags: DiagnosticCollector): TypedProject {
   const impls = buildImplRegistry(project);
-  const globals = newGlobals(project.typeParamSymbols);
+  const globals = newGlobals(project.typeParamSymbols, project.typeParamBounds);
   globals.coreSymbols = findCoreSymbols(project);
   const moduleMap = new Map<ModuleId, Module>();
   for (const program of project.modules.values()) moduleMap.set(program.module.id, program.module);

@@ -10,7 +10,7 @@ import type * as A from "../parser/ast.ts";
 import type { Module } from "../resolver/module.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { ModuleId, Symbol } from "../resolver/symbol.ts";
-import type { MethodResolution } from "./typed-ast.ts";
+import type { MethodResolution, TraitMethodResolution } from "./typed-ast.ts";
 import type { Substitution, Type } from "./types.ts";
 
 /** Tables shared across modules — populated by declareTypes, consumed by check bodies. */
@@ -28,13 +28,21 @@ export interface Globals {
    *  `fnOverloads` for a given symbol's defining module — needed by the
    *  UFCS dispatch when picking the right overload by receiver type. */
   modules: ReadonlyMap<ModuleId, Module> | null;
+  /** Trait bounds declared on each TypeParam Symbol, populated by the
+   *  resolver from `where T: Trait` clauses. Read by the typechecker when a
+   *  `t.method()` site has a TypeParam-typed receiver. */
+  typeParamBounds: ReadonlyMap<number, readonly Symbol[]>;
 }
 
-export function newGlobals(typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>): Globals {
+export function newGlobals(
+  typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>,
+  typeParamBounds: ReadonlyMap<number, readonly Symbol[]>,
+): Globals {
   return {
     declTypes: new Map(), paramTypes: new Map(), typeExprTypes: new Map(),
     coreSymbols: null,
     typeParamSymbols,
+    typeParamBounds,
     modules: null,
   };
 }
@@ -51,6 +59,11 @@ export interface MutableTyped {
   /** UFCS-resolved trait method calls. Populated by `inferField`, consumed
    *  by `inferCall` and the lowerer. */
   readonly methodResolutions: Map<A.FieldExpr, MethodResolution>;
+  /** Trait-method dispatch on a generic TypeParam receiver. Populated by
+   *  `inferField`, consumed by the monomorphizer (which resolves to a
+   *  concrete impl member once the call-site substitution is known) and the
+   *  lowerer. */
+  readonly traitMethodResolutions: Map<A.FieldExpr, TraitMethodResolution>;
   /** UFCS-resolved free function calls (`a.f(b)` → `f(a, b)`). Populated by
    *  `inferField` after type-validating the resolver's candidate, consumed by
    *  the lowerer to prepend the receiver as the first argument. */

@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/closure_counter/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 10:12    BinaryExpr     :: i32
+  expr 10:12    BinaryExpr     :: i32
+  expr 10:12    IdentExpr      :: i32
+  expr 10:16    IdentExpr      :: i32
+  expr 10:20    IdentExpr      :: i32
+  expr 3:12     LambdaExpr     :: fn() -> i32
+  expr 4:13     BinaryExpr     :: i32
+  expr 4:13     IdentExpr      :: i32
+  expr 4:9      IdentExpr      :: i32
+  expr 5:16     IdentExpr      :: i32
+  expr 7:10     CallExpr       :: i32
+  expr 7:10     IdentExpr      :: fn() -> i32
+  expr 8:10     CallExpr       :: i32
+  expr 8:10     IdentExpr      :: fn() -> i32
+  expr 9:10     CallExpr       :: i32
+  expr 9:10     IdentExpr      :: fn() -> i32

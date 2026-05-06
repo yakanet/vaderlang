@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/fn_value_struct/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         mul                  :: fn(i32, i32) -> i32
+  StructDecl     Op                   :: Op
+  expr 10:10    StructLitExpr  :: Op
+  expr 10:21    IdentExpr      :: fn(i32, i32) -> i32
+  expr 11:12    CallExpr       :: i32
+  expr 11:12    FieldExpr      :: fn(i32, i32) -> i32
+  expr 11:12    IdentExpr      :: Op
+  expr 6:12     BinaryExpr     :: i32
+  expr 6:12     IdentExpr      :: i32
+  expr 6:16     IdentExpr      :: i32

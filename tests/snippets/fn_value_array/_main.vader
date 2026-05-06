@@ -1,0 +1,12 @@
+inc :: fn(x: i32) -> i32 {
+    return x + 1
+}
+
+double :: fn(x: i32) -> i32 {
+    return x * 2
+}
+
+main :: fn() -> i32 {
+    fs := [inc, double]
+    return fs[0](7) + fs[1](3)
+}

@@ -42,6 +42,7 @@ function formatType(t: BcType): string {
     case "array": return `array ${t.element}`;
     case "union": return `union ${t.variants.join(",")}`;
     case "ref":   return `ref ${t.traitName === null ? "_" : quoteIdent(t.traitName)}`;
+    case "fn":    return `fn (${t.params.join(",")}) -> ${t.returnType}`;
   }
 }
 
@@ -92,6 +93,9 @@ function formatOp(op: Op): string {
     case "br_if":        return `br_if ${op.depth}`;
     case "call":         return `call ${op.fnIndex}`;
     case "call.import":  return `call.import ${op.importIndex}`;
+    case "call.indirect": return `call.indirect ${op.typeIndex}`;
+    case "fn.ref":       return `fn.ref ${op.fnIndex} ${op.typeIndex}`;
+    case "make_closure": return `make_closure ${op.fnIndex} ${op.typeIndex}`;
     case "intrinsic":    return `intrinsic ${intrinsicNameById(op.id) ?? op.id}`;
     case "struct.new":   return `struct.new ${op.typeIndex}`;
     case "struct.get":   return `struct.get ${op.typeIndex} ${op.fieldIndex}`;
@@ -214,6 +218,12 @@ function parseType(spec: string): BcType {
     case "array":     return { kind: "array", element: Number(rest) };
     case "union":     return { kind: "union", variants: rest.split(",").map(Number) };
     case "ref":       return { kind: "ref", traitName: rest === "_" ? null : unquoteIdent(rest) };
+    case "fn": {
+      const fm = /^\((.*?)\)\s*->\s*(\d+)$/.exec(rest);
+      if (fm === null) throw new Error(`vir parse: malformed fn type "${spec}"`);
+      const params = fm[1] === "" ? [] : fm[1]!.split(",").map(Number);
+      return { kind: "fn", params, returnType: Number(fm[2]) };
+    }
     case "struct": {
       // "<name> { f0:t0,f1:t1,... }"
       const braceOpen = rest.indexOf("{");
@@ -341,6 +351,15 @@ function parseOp(text: string): Op {
     case "br_if":        return { kind: "br_if", depth: Number(tail) };
     case "call":         return { kind: "call",  fnIndex: Number(tail) };
     case "call.import":  return { kind: "call.import", importIndex: Number(tail) };
+    case "call.indirect": return { kind: "call.indirect", typeIndex: Number(tail) };
+    case "fn.ref": {
+      const [fnIdxStr, typeIdxStr] = tail.split(/\s+/);
+      return { kind: "fn.ref", fnIndex: Number(fnIdxStr), typeIndex: Number(typeIdxStr) };
+    }
+    case "make_closure": {
+      const [fnIdxStr, typeIdxStr] = tail.split(/\s+/);
+      return { kind: "make_closure", fnIndex: Number(fnIdxStr), typeIndex: Number(typeIdxStr) };
+    }
     case "intrinsic": {
       const id = intrinsicIdByName(tail);
       if (id === null) throw new Error(`vir parse: unknown intrinsic "${tail}"`);

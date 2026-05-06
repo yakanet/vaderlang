@@ -94,15 +94,60 @@ static inline vader_box_t vader_box_null(void) {
     vader_box_t bx; bx.tag = VADER_BOX_TAG_NULL; bx._pad = 0; bx.payload.obj = NULL; return bx;
 }
 
+/* ----------------------------------------------------------------- struct */
+
+/* Each emitted struct decl produces a C struct with a header and per-field
+ * slots. Only the header layout is fixed by the runtime; everything else is
+ * code-generated.
+ *
+ * GC convention (Cheney semi-space copying — Phase 2):
+ *   - `type_index` identifies the layout (size + pointer offsets) via the
+ *     per-module type info table emitted alongside.
+ *   - `forward` is NULL for live objects in from-space and non-NULL when the
+ *     object has been copied to to-space during a collection. The GC walks
+ *     forwards transparently when scanning roots.
+ *   - `_pad` is reserved for future flags (e.g. mark bit for incremental GC). */
+typedef struct {
+    uint32_t type_index;
+    uint32_t _pad;
+    void*    forward;
+} vader_obj_header_t;
+
+static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
+    vader_obj_header_t* h = (vader_obj_header_t*) obj;
+    h->type_index = type_index;
+    h->_pad       = 0;
+    h->forward    = NULL;
+}
+
 /* ----------------------------------------------------------------- array */
 
+/* Array data buffer — a separate GC object so `push` can reallocate without
+ * breaking aliases to the array header. The runtime tags it with the
+ * `VADER_TYPE_INDEX_ARRAY_BUF` sentinel rather than a per-element type, so a
+ * single GC scan path handles arrays of every element type. */
+struct vader_array_buf;
+
 typedef struct {
-    uint32_t      type_index;
-    uint32_t      _pad;
-    size_t        length;
-    size_t        capacity;
-    vader_box_t*  data;
+    vader_obj_header_t       header;
+    size_t                   length;
+    size_t                   capacity;
+    struct vader_array_buf*  buf;
 } vader_array_t;
+
+/* `capacity` and `length` are mirrored from the parent vader_array_t — the
+ * GC needs them at scan time and there's no back-pointer to the array. */
+typedef struct vader_array_buf {
+    vader_obj_header_t       header;
+    size_t                   capacity;
+    size_t                   length;
+    vader_box_t              slots[];
+} vader_array_buf_t;
+
+/* Sentinel index for buffers — distinct from any user BcType. The scan loop
+ * dispatches on it because the type info table doesn't carry a static layout
+ * for variable-length objects. */
+#define VADER_TYPE_INDEX_ARRAY_BUF UINT32_C(0xFFFFFFFE)
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length);
 size_t         vader_array_len(vader_array_t* a);
@@ -110,17 +155,94 @@ vader_box_t    vader_array_get(vader_array_t* a, size_t i);
 void           vader_array_set(vader_array_t* a, size_t i, vader_box_t v);
 void           vader_array_push(vader_array_t* a, vader_box_t v);
 
-/* ----------------------------------------------------------------- struct */
+/* Phase 2 — Cheney semi-space copying GC.
+ *
+ * Two arenas (from / to). `vader_gc_alloc` bumps the from-space pointer
+ * forward; when the arena fills, `vader_gc_collect` copies live objects to
+ * to-space and swaps. Roots are enumerated via the shadow stack emitted by
+ * the C codegen (see `vader_gc_frame_t` below). */
 
-/* Each emitted struct decl produces a C struct with a header and per-field
- * slots. Only the header layout is fixed by the runtime; everything else is
- * code-generated. */
+void vader_gc_init(void);
+void vader_gc_shutdown(void);
+void vader_gc_collect(void);
+
+/* Allocate `bytes` from the from-space arena. May trigger a collection if
+ * the arena is full. Returned memory is uninitialised — caller is responsible
+ * for writing the header (when the allocation represents a typed object).
+ *
+ * Used by the C emit for typed allocations (structs, fn objects). For arrays,
+ * see `vader_array_new` which lays out the struct + initial buf in a single
+ * call and writes the headers. Strings stay off the GC arena entirely
+ * (see `vader_string_alloc` in the implementation). */
+void* vader_gc_alloc(size_t bytes);
+
+/* Stats — exposed for tests / `runtime_gc_stats()` in stdlib. */
 typedef struct {
-    uint32_t type_index;
-    uint32_t _pad;
-} vader_obj_header_t;
+    size_t arena_size;        /* size of each semi-space, in bytes */
+    size_t bytes_used;        /* live bytes in from-space (post-collection) */
+    size_t total_collections; /* GC cycles run since process start */
+    size_t total_copied;      /* cumulative bytes copied across all cycles */
+} vader_gc_stats_t;
+vader_gc_stats_t vader_gc_get_stats(void);
 
-void* vader_alloc(size_t bytes);
+/* Type information for the GC scanner. Indexed by `vader_obj_header_t.type_index`
+ * (which is the same index space as `vader_box_t.tag` and the BcType table).
+ *
+ * The C emit generates a per-module `vader_type_info_table[]` whose entries
+ * describe each BcType: its allocation kind, the size of an instance (for
+ * heap kinds), and the byte offsets of `vader_box_t` (or other reference)
+ * fields inside the object that the GC must scan and possibly forward. */
+typedef enum {
+    VADER_TYPE_KIND_NONE      = 0,   /* primitive / non-heap */
+    VADER_TYPE_KIND_STRUCT    = 1,
+    VADER_TYPE_KIND_ARRAY     = 2,   /* vader_array_t — single ref to its buf */
+    VADER_TYPE_KIND_FN        = 3,
+} vader_type_kind_t;
+
+typedef struct {
+    vader_type_kind_t   kind;
+    size_t              size;          /* sizeof(object) incl. header; 0 if non-heap */
+    const uint16_t*     ptr_offsets;   /* byte offsets of pointer-bearing fields */
+    uint16_t            ptr_count;
+    uint16_t            _pad;
+} vader_type_info_t;
+
+/* Provided by the per-module C emit. The runtime reads it via these externs. */
+extern const vader_type_info_t  vader_type_info_table[];
+extern const size_t             vader_type_info_count;
+
+/* Shadow stack frame — emitted at the entry of every C function generated by
+ * the C emit. The frame chains through `prev` to form the precise root list
+ * the GC walks at collection time.
+ *
+ * Indirect layout: each frame holds a `ptrs` array pointing to the calling
+ * C function's ref-typed locals/tmps. This avoids restructuring the body's
+ * local naming (locals stay as `lN`/`tN`) at the cost of one extra
+ * dereference per root during scanning. The address-taken locals are pinned
+ * to the C stack, which is what we need for precise GC anyway. */
+typedef struct vader_gc_frame {
+    struct vader_gc_frame* prev;
+    uint32_t               nrefs;
+    uint32_t               _pad;
+    vader_box_t**          ptrs;
+} vader_gc_frame_t;
+
+extern vader_gc_frame_t* vader_gc_top;
+
+/* ----------------------------------------------------------------- fn */
+
+/* Function value — fat pointer `{ code, env }`. Pushed by `fn.ref`, consumed
+ * by `call.indirect`. `env == NULL` for non-capturing global fn refs; closures
+ * (Phase 3) will allocate an env struct and store a pointer to it.
+ *
+ * `code` always points to a function whose first parameter is `void* env`,
+ * even when the underlying fn doesn't use it — the C emitter generates a
+ * trampoline per fn that drops the env arg and forwards to the user fn. */
+typedef struct {
+    vader_obj_header_t header;
+    void*              code;
+    void*              env;
+} vader_fn_t;
 
 /* ----------------------------------------------------------------- builder */
 

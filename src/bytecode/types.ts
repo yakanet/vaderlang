@@ -43,7 +43,8 @@ export type BcType =
   | BcStruct
   | BcArray
   | BcUnion
-  | BcRef;
+  | BcRef
+  | BcFn;
 
 /** Plain primitive — wraps a `ValType` with a stable index. */
 export interface BcPrimitive {
@@ -81,4 +82,13 @@ export interface BcUnion {
 export interface BcRef {
   readonly kind: "ref";
   readonly traitName: string | null;       // for diagnostics; not load-bearing
+}
+
+/** Function-value signature. Referenced by `call.indirect` to validate the
+ *  call site's stack shape and (in C-emit) to pick the right function-pointer
+ *  cast. Param/return slots are type indices into the same type table. */
+export interface BcFn {
+  readonly kind: "fn";
+  readonly params: readonly number[];
+  readonly returnType: number;
 }

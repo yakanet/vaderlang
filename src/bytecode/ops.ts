@@ -76,6 +76,9 @@ export type Op =
   // -- Calls --------------------------------------------------------------
   | { readonly kind: "call"; readonly fnIndex: number }
   | { readonly kind: "call.import"; readonly importIndex: number }
+  | { readonly kind: "call.indirect"; readonly typeIndex: number }   // …args, fn ref ⇒ result
+  | { readonly kind: "fn.ref"; readonly fnIndex: number; readonly typeIndex: number }  // ⇒ fn ref
+  | { readonly kind: "make_closure"; readonly fnIndex: number; readonly typeIndex: number }   // env ⇒ closure (fn ref + env)
   | { readonly kind: "intrinsic";   readonly id: IntrinsicId }
 
   // -- Struct (GC-style) --------------------------------------------------

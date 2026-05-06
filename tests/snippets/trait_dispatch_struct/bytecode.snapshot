@@ -1,0 +1,23 @@
+module _main
+
+fn 0 tests_snippets_trait_dispatch_struct__main_vader$i32$Tagger$tag (i32) -> i32
+  local.get 0   ; _main.vader:9:34
+  i32.const 10   ; _main.vader:9:41
+  i32.mul   ; _main.vader:9:34
+  return   ; _main.vader:9:27
+end
+
+fn 1 tests_snippets_trait_dispatch_struct__main_vader$main () -> i32
+  i32.const 7   ; _main.vader:17:22
+  call 2   ; _main.vader:17:12
+  return   ; _main.vader:17:5
+end
+
+fn 2 tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32 (i32) -> i32
+  local.get 0   ; _main.vader:13:12
+  call 0   ; _main.vader:13:12
+  local.get 0   ; _main.vader:13:22
+  call 0   ; _main.vader:13:22
+  i32.add   ; _main.vader:13:12
+  return   ; _main.vader:13:5
+end

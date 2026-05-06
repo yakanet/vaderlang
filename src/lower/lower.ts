@@ -8,6 +8,8 @@ import type { Span } from "../diagnostics/diagnostic.ts";
 import { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
 import type { ComptimeValue } from "../comptime/value.ts";
+import { analyzeClosures } from "../closures/analyze.ts";
+import type { ClosureAnalysis } from "../closures/analyze.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import { buildImplRegistry } from "../typecheck/impls.ts";
 import type { Type } from "../typecheck/types.ts";
@@ -27,7 +29,11 @@ import { applySubst } from "./passes/helpers.ts";
 
 const STD_CORE_PATH = "std/core";
 
-export function lowerProject(evaluated: EvaluatedProject, diags?: DiagnosticCollector): LoweredProject {
+export function lowerProject(
+  evaluated: EvaluatedProject,
+  diags?: DiagnosticCollector,
+  closures?: ClosureAnalysis,
+): LoweredProject {
   const mono = monomorphizeProject(evaluated);
   const impls = buildImplRegistry(evaluated.typed.resolved);
   let coreSymbols: ReadonlyMap<string, Symbol> | null = null;
@@ -41,6 +47,8 @@ export function lowerProject(evaluated: EvaluatedProject, diags?: DiagnosticColl
     evaluated, mono, impls,
     coreTraitCache: new Map(),
     coreSymbols,
+    closures: closures ?? analyzeClosures(evaluated.typed),
+    synthDecls: [],
     nextSyntheticId: 1,
     diags: diags ?? new DiagnosticCollector(),
   };
@@ -52,6 +60,15 @@ export function lowerProject(evaluated: EvaluatedProject, diags?: DiagnosticColl
     if (bucket === undefined) { bucket = []; byModule.set(mid, bucket); }
     const decl = lowerEntry(entry, ctx);
     if (decl !== null) bucket.push(decl);
+  }
+
+  // Distribute lambda-lifting synthDecls — they piggy-back on the module
+  // their containing fn lived in (recovered from the synth entry's module).
+  for (const synth of ctx.synthDecls) {
+    const mid = synth.origin.module.module.id;
+    let bucket = byModule.get(mid);
+    if (bucket === undefined) { bucket = []; byModule.set(mid, bucket); }
+    bucket.push(synth);
   }
 
   const modules = new Map<string, LoweredModule>();
@@ -96,6 +113,7 @@ function lowerFnEntry(
 
   const body = fn.body === null ? null : lowerBlock({
     project: ctx, entry, typed, subst, returnType, selfType, blocks: [], uniq: 0,
+    liftedContext: null,
   }, fn.body, /*isFnRoot*/ true, /*isLoopBody*/ false);
 
   return {
@@ -135,6 +153,7 @@ function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerProjectC
     : lowerExpr({
         project: ctx, entry, typed, subst: entry.subst,
         returnType: type, selfType: null, blocks: [], uniq: 0,
+        liftedContext: null,
       }, decl.value);
 
   return {

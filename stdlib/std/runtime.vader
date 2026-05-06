@@ -1,0 +1,16 @@
+// std/runtime — runtime introspection and GC controls.
+//
+// Mostly intended for test harnesses and stress tests; user programs
+// should rarely need to call these.
+
+// gc_collect — force a Cheney semi-space collection cycle now.
+gc_collect :: fn() -> void
+
+// gc_collections — total number of GC cycles run since process start.
+gc_collections :: fn() -> i32
+
+// gc_bytes_used — bytes currently allocated in the from-space arena.
+gc_bytes_used :: fn() -> i32
+
+// gc_bytes_copied — cumulative bytes copied across all collections.
+gc_bytes_copied :: fn() -> i32

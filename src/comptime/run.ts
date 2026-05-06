@@ -130,6 +130,7 @@ function valueToComptime(v: Value, expected: Type, input: RunComptimeInput): Com
     case "struct":
     case "array":
     case "builder":
+    case "fn":
       err(input.diags, "C4011", input.decl.value.span,
         `comptime ${v.tag} value not yet convertible (return type ${expected.kind})`);
       return null;

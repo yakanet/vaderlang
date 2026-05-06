@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/trait_dispatch_param/_main.vader
+  FnDecl         hash_twice           :: fn($T) -> u64
+  FnDecl         main                 :: fn() -> i32
+  expr 10:12    CallExpr       :: i32
+  expr 10:12    IdentExpr      :: type
+  expr 10:16    IdentExpr      :: u64
+  expr 5:12     BinaryExpr     :: u64
+  expr 5:12     CallExpr       :: u64
+  expr 5:12     FieldExpr      :: fn() -> u64
+  expr 5:12     IdentExpr      :: $T
+  expr 5:23     CallExpr       :: u64
+  expr 5:23     FieldExpr      :: fn() -> u64
+  expr 5:23     IdentExpr      :: $T
+  expr 9:10     CallExpr       :: u64
+  expr 9:10     IdentExpr      :: fn($T) -> u64

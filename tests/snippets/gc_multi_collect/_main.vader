@@ -1,0 +1,51 @@
+import "std/io" { println }
+import "std/runtime" { gc_collect, gc_collections }
+
+Pair :: struct {
+    left:  i32
+    right: Pair | null
+}
+
+main :: fn() -> i32 {
+    head: Pair | null = null
+    i := 0
+    for i < 50 {
+        head = Pair { .left = i, .right = head }
+        i = i + 1
+    }
+
+    // Three collections in a row — each should copy the same live set.
+    c1 := gc_collections()
+    gc_collect()
+    gc_collect()
+    gc_collect()
+    c2 := gc_collections()
+
+    diff := c2 - c1
+    if diff != 3 {
+        println("expected 3 collections, got ${diff}")
+        return 1
+    }
+
+    sum := 0
+    cur := head
+    done := false
+    for !done {
+        match cur {
+            is null -> { done = true }
+            is Pair -> {
+                sum = sum + cur.left
+                cur = cur.right
+            }
+        }
+    }
+
+    expected :: 50 * 49 / 2
+    if sum != expected {
+        println("sum mismatch after 3 collections: ${sum} vs ${expected}")
+        return 2
+    }
+
+    println("ok: 50 nodes survived 3 collections; sum=${sum}")
+    return 0
+}

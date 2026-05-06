@@ -11,4 +11,4 @@
   const tests_snippets_square_call__main_vader$NINE: i32 =
     int(9) :i32
   fn tests_snippets_square_call__main_vader$main() -> i32
-    return NINE#2 :?
+    return NINE#2 :i32

@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/gc_array_survive/_main.vader
+
+## generic instances
+  Yielded(i32)
+  MutableList(i32)
+  add(i32)
+  get(i32)

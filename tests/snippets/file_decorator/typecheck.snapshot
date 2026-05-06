@@ -1,6 +1,6 @@
 # Typecheck
 
 ## tests/snippets/file_decorator/_main.vader
-  ConstDecl      GREETING             :: ?
+  ConstDecl      GREETING             :: string
   FnDecl         main                 :: fn() -> i32
   expr 2:13     StringLitExpr  :: string

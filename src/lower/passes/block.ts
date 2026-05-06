@@ -89,14 +89,69 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
       const type = applySubst(ctx.typed.localTypes.get(stmt) ?? defaultIfFree(value.type), ctx.subst);
       const sym = ctx.typed.resolved.locals.get(stmt);
       if (sym === undefined) return null;
+      // Captured local: heap-promote into a closure cell. The local slot now
+      // holds a *cell ref* (always boxed) instead of the original value, so
+      // the slot's lowered type widens to opaque ref. CellGet/CellSet drive
+      // the actual value access.
+      if (ctx.project.closures.capturedSymbols.has(sym.id)) {
+        const cellInit: LoweredExpr = {
+          kind: "LoweredCellNew", span: stmt.span, type: TY.unresolved, value, valueType: type,
+        };
+        return { kind: "LoweredLet", span: stmt.span, name: stmt.name, symbol: sym, type: TY.unresolved, value: cellInit };
+      }
       return { kind: "LoweredLet", span: stmt.span, name: stmt.name, symbol: sym, type, value };
     }
-    case "AssignStmt":
+    case "AssignStmt": {
+      // Reassignment to a captured local: write into its cell rather than
+      // overwriting the slot. Other targets (struct fields, indexed elements,
+      // non-captured locals) keep the regular LoweredAssign path.
+      if (stmt.target.kind === "IdentExpr") {
+        const targetSym = ctx.typed.resolved.idents.get(stmt.target);
+        if (targetSym !== undefined) {
+          const valueType = applySubst(
+            ctx.typed.exprTypes.get(stmt.target) ?? TY.unresolved,
+            ctx.subst,
+          );
+          // Inside a lifted fn: outer captured symbol → cell ref via env.cap_X.
+          if (ctx.liftedContext !== null) {
+            const fieldName = ctx.liftedContext.captureFields.get(targetSym.id);
+            if (fieldName !== undefined) {
+              const envIdent: LoweredExpr = {
+                kind: "LoweredIdent", span: stmt.target.span,
+                type: ctx.liftedContext.envType, symbol: ctx.liftedContext.envSymbol,
+              };
+              const cellRef: LoweredExpr = {
+                kind: "LoweredFieldAccess", span: stmt.target.span, type: valueType,
+                target: envIdent, field: fieldName,
+              };
+              return {
+                kind: "LoweredCellSet", span: stmt.span,
+                target: cellRef,
+                value: lowerExpr(ctx, stmt.value),
+                valueType,
+              };
+            }
+          }
+          // Direct captured local in the current scope.
+          if (ctx.project.closures.capturedSymbols.has(targetSym.id)) {
+            const cellRef: LoweredExpr = {
+              kind: "LoweredIdent", span: stmt.target.span, type: valueType, symbol: targetSym,
+            };
+            return {
+              kind: "LoweredCellSet", span: stmt.span,
+              target: cellRef,
+              value: lowerExpr(ctx, stmt.value),
+              valueType,
+            };
+          }
+        }
+      }
       return {
         kind: "LoweredAssign", span: stmt.span,
         target: lowerExpr(ctx, stmt.target),
         value: lowerExpr(ctx, stmt.value),
       };
+    }
     case "ExprStmt":
       return { kind: "LoweredExprStmt", span: stmt.span, expr: lowerExpr(ctx, stmt.expr) };
     case "ReturnStmt": {

@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/gc_chain_survive/_main.vader
+
+## generic instances
+  Yielded(i32)

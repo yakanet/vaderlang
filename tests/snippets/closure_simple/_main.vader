@@ -1,0 +1,7 @@
+main :: fn() -> i32 {
+    x := 10
+    add_x :: fn(y: i32) -> i32 {
+        return x + y
+    }
+    return add_x(5)
+}

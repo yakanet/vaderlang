@@ -60,6 +60,11 @@ function walkStmt(s: LoweredStmt, visit: RefVisitor): void {
     case "LoweredBreak":
     case "LoweredContinue":
       return;
+    case "LoweredCellSet":
+      walkExpr(s.target, visit);
+      walkExpr(s.value, visit);
+      walkType(s.valueType, visit);
+      return;
     default: {
       const _exhaustive: never = s;
       void _exhaustive;
@@ -130,6 +135,21 @@ function walkExpr(e: LoweredExpr, visit: RefVisitor): void {
     case "LoweredCharLit":
     case "LoweredStringLit":
     case "LoweredUnreachable":
+      return;
+    case "LoweredCellNew":
+      walkExpr(e.value, visit);
+      walkType(e.valueType, visit);
+      return;
+    case "LoweredCellGet":
+      walkExpr(e.target, visit);
+      walkType(e.valueType, visit);
+      return;
+    case "LoweredMakeClosure":
+      // The lifted fn is reachable iff this make_closure is. Synthesised
+      // symbols carry negative ids; we still emit the visit so DCE keeps the
+      // lifted decl alive.
+      visit(e.fnSymbol.id);
+      walkExpr(e.env, visit);
       return;
     default: {
       const _exhaustive: never = e;

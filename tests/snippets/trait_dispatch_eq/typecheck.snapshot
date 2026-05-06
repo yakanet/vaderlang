@@ -1,0 +1,41 @@
+# Typecheck
+
+## tests/snippets/trait_dispatch_eq/_main.vader
+  FnDecl         both_equal           :: fn($T, $T, $T) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 10:17    IdentExpr      :: $T
+  expr 10:5     IfExpr         :: void
+  expr 10:8     CallExpr       :: bool
+  expr 10:8     FieldExpr      :: fn($T) -> bool
+  expr 10:8     IdentExpr      :: $T
+  expr 11:13    BinaryExpr     :: i32
+  expr 11:13    IdentExpr      :: i32
+  expr 11:9     IdentExpr      :: i32
+  expr 13:17    IdentExpr      :: $T
+  expr 13:5     IfExpr         :: void
+  expr 13:8     CallExpr       :: bool
+  expr 13:8     FieldExpr      :: fn($T) -> bool
+  expr 13:8     IdentExpr      :: $T
+  expr 14:13    BinaryExpr     :: i32
+  expr 14:13    IdentExpr      :: i32
+  expr 14:9     IdentExpr      :: i32
+  expr 16:12    IdentExpr      :: i32
+  expr 21:11    CallExpr       :: i32
+  expr 21:11    IdentExpr      :: fn($T, $T, $T) -> i32
+  expr 23:11    CallExpr       :: i32
+  expr 23:11    IdentExpr      :: fn($T, $T, $T) -> i32
+  expr 25:11    CallExpr       :: i32
+  expr 25:11    IdentExpr      :: fn($T, $T, $T) -> i32
+  expr 26:12    BinaryExpr     :: i32
+  expr 26:12    BinaryExpr     :: i32
+  expr 26:12    IdentExpr      :: i32
+  expr 26:17    IdentExpr      :: i32
+  expr 26:22    IdentExpr      :: i32
+  expr 7:17     IdentExpr      :: $T
+  expr 7:5      IfExpr         :: void
+  expr 7:8      CallExpr       :: bool
+  expr 7:8      FieldExpr      :: fn($T) -> bool
+  expr 7:8      IdentExpr      :: $T
+  expr 8:13     BinaryExpr     :: i32
+  expr 8:13     IdentExpr      :: i32
+  expr 8:9      IdentExpr      :: i32

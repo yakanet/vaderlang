@@ -1,13 +1,13 @@
 # Typecheck
 
 ## tests/snippets/cross_decl/_main.vader
-  ConstDecl      A                    :: ?
-  ConstDecl      B                    :: ?
-  ConstDecl      C                    :: ?
+  ConstDecl      A                    :: i32
+  ConstDecl      B                    :: i32
+  ConstDecl      C                    :: i32
   FnDecl         main                 :: fn() -> i32
-  expr 11:12    IdentExpr      :: ?
-  expr 5:6      BinaryExpr     :: ?
-  expr 5:6      IdentExpr      :: ?
-  expr 8:10     IdentExpr      :: ?
-  expr 8:6      BinaryExpr     :: ?
-  expr 8:6      IdentExpr      :: ?
+  expr 11:12    IdentExpr      :: i32
+  expr 5:6      BinaryExpr     :: i32
+  expr 5:6      IdentExpr      :: i32
+  expr 8:10     IdentExpr      :: i32
+  expr 8:6      BinaryExpr     :: i32
+  expr 8:6      IdentExpr      :: i32

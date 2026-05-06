@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/trait_dispatch_struct/_main.vader
+  FnDecl         apply_tag            :: fn($T) -> i32
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Tagger               :: Tagger
+  expr 13:12    BinaryExpr     :: i32
+  expr 13:12    CallExpr       :: i32
+  expr 13:12    FieldExpr      :: fn() -> i32
+  expr 13:12    IdentExpr      :: $T
+  expr 13:22    CallExpr       :: i32
+  expr 13:22    FieldExpr      :: fn() -> i32
+  expr 13:22    IdentExpr      :: $T
+  expr 17:12    CallExpr       :: i32
+  expr 17:12    IdentExpr      :: fn($T) -> i32
+  expr 9:34     BinaryExpr     :: i32
+  expr 9:34     IdentExpr      :: i32

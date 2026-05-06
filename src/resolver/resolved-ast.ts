@@ -55,4 +55,10 @@ export interface ResolvedProject {
   /** Cross-module typeParam table — every TypeParam AST node maps to its
    *  canonical Symbol regardless of which module declared the type. */
   readonly typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>;
+  /** Trait bounds declared on each type parameter, keyed by its Symbol id.
+   *  Populated from `where T: Trait` clauses on FnDecls and StructDecls.
+   *  Consumed by the type-checker (and downstream phases) to resolve
+   *  `t.method()` calls when `t` has a TypeParam type — the bound traits
+   *  determine which methods are visible on a generic param. */
+  readonly typeParamBounds: ReadonlyMap<number, readonly Symbol[]>;
 }

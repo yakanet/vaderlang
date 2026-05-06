@@ -1,0 +1,8 @@
+add :: fn(a: i32, b: i32) -> i32 {
+    return a + b
+}
+
+main :: fn() -> i32 {
+    f := add
+    return f(2, 3)
+}

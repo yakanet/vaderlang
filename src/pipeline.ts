@@ -12,6 +12,8 @@ import { resolveProject } from "./resolver/index.ts";
 import type { ResolvedProject } from "./resolver/resolved-ast.ts";
 import { checkProject } from "./typecheck/index.ts";
 import type { TypedProject } from "./typecheck/index.ts";
+import { analyzeClosures } from "./closures/analyze.ts";
+import type { ClosureAnalysis } from "./closures/analyze.ts";
 import { evaluateProject } from "./comptime/index.ts";
 import type { EvaluatedProject } from "./comptime/index.ts";
 import { lowerProject } from "./lower/index.ts";
@@ -37,6 +39,7 @@ export interface ResolvedResult extends AstResult {
 
 export interface TypedResult extends ResolvedResult {
   readonly typed: TypedProject;
+  readonly closures: ClosureAnalysis;
 }
 
 export interface EvaluatedResult extends TypedResult {
@@ -82,7 +85,8 @@ export async function pipelineResolved(file: string): Promise<ResolvedResult> {
 export async function pipelineTyped(file: string): Promise<TypedResult> {
   const r = await pipelineResolved(file);
   const typed = checkProject(r.project, r.diagnostics);
-  return { ...r, typed };
+  const closures = analyzeClosures(typed);
+  return { ...r, typed, closures };
 }
 
 export async function pipelineEvaluated(
@@ -100,7 +104,7 @@ export async function pipelineLowered(
   file: string, opts?: { allowEnv?: boolean },
 ): Promise<LoweredResult> {
   const r = await pipelineEvaluated(file, opts);
-  const lowered = lowerProject(r.evaluated, r.diagnostics);
+  const lowered = lowerProject(r.evaluated, r.diagnostics, r.closures);
   return { ...r, lowered };
 }
 

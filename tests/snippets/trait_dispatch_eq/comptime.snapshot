@@ -1,0 +1,7 @@
+# Comptime
+
+## tests/snippets/trait_dispatch_eq/_main.vader
+
+## generic instances
+  both_equal(i32)
+  Yielded(i32)

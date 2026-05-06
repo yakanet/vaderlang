@@ -2,10 +2,11 @@
 
 ## std/collections
   fn               public   add 
-  struct           private  Bucket 
+  const            private  BUCKET_COUNT 
+  fn               private  bucket_index 
   fn               public   contains 
   fn               public   contains_key 
-  struct           public   Entry 
+  struct           private  Entry 
   fn               public   get 
   fn               public   is_empty 
   fn               public   iter 
@@ -19,7 +20,7 @@
   fn               public   put 
   fn               public   set 
   struct           public   Set 
-  refs: idents=63 types=77 params=26 locals=1 typeParams=33 fields=0
+  refs: idents=106 types=110 params=27 locals=18 typeParams=31 fields=0
 
 ## std/core
   trait            public   Add 

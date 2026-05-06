@@ -17,7 +17,7 @@ import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import { err } from "./diag.ts";
 import type { ImplRegistry } from "./impls.ts";
 import type { TypedProgram } from "./typed-ast.ts";
-import { TY, displayType, isAssignable } from "./types.ts";
+import { TY, defaultIfFree, displayType, isAssignable } from "./types.ts";
 
 import type { Globals, MutableTyped } from "./ctx.ts";
 import { checkExpr } from "./passes/expr.ts";
@@ -35,7 +35,7 @@ export function declareModule(
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
     methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
-    genericFnCalls: new Map(),
+    genericFnCalls: new Map(), traitMethodResolutions: new Map(),
   };
   for (const decl of program.source.decls) declareType(decl, t, diags);
 }
@@ -50,7 +50,7 @@ export function checkProgram(
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
     methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
-    genericFnCalls: new Map(),
+    genericFnCalls: new Map(), traitMethodResolutions: new Map(),
   };
 
   for (const decl of program.source.decls) {
@@ -76,6 +76,12 @@ export function checkProgram(
           err(diags, "T3001", decl.span,
             `expected ${displayType(expected)}, got ${displayType(got)}`);
         }
+        // Record the inferred type for unannotated consts so identifier lookups
+        // see a concrete type (e.g. i32 for `BUCKET_COUNT :: 16`) instead of
+        // Unresolved — otherwise downstream casts emit ref.cast on numerics.
+        if (expected === null) {
+          t.globals.declTypes.set(decl, defaultIfFree(got));
+        }
         break;
       }
     }
@@ -92,5 +98,6 @@ export function checkProgram(
     ufcsFreeResolutions: t.ufcsFreeResolutions,
     arrayOps: t.arrayOps,
     genericFnCalls: t.genericFnCalls,
+    traitMethodResolutions: t.traitMethodResolutions,
   };
 }

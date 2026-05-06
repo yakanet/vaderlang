@@ -217,6 +217,19 @@ export function inferField(
     return methodBoundFnType(method, t);
   }
 
+  // Trait-method dispatch on a generic type parameter — receiver type is a
+  // bare `$T`; we look up its bounds via the resolver's `typeParamBounds`,
+  // then for each bound trait check whether it owns the requested method.
+  // Resolution recorded so the mono pass can look up the concrete impl
+  // member once the call-site substitution is known.
+  if (targetType.kind === "TypeParam") {
+    const traitMethod = findTraitMethodOnParam(targetType, expr.field, t);
+    if (traitMethod !== null) {
+      t.traitMethodResolutions.set(expr, traitMethod);
+      return traitMethodBoundFnType(traitMethod, targetType, t);
+    }
+  }
+
   // UFCS for free functions: resolver recorded a candidate if the name was in scope.
   const freeSym = t.resolved.ufcsFreeResolutions.get(expr);
   if (freeSym !== undefined) {
@@ -228,6 +241,45 @@ export function inferField(
     err(diags, "T3009", expr.fieldSpan, `\`${expr.field}\` on ${displayType(targetType)}`);
   }
   return TY.unresolved;
+}
+
+/** Walk the trait bounds of `param`'s symbol — declared via a `where T: …`
+ *  clause — and return the first one that owns a method named `name`. */
+function findTraitMethodOnParam(
+  param: Extract<Type, { kind: "TypeParam" }>,
+  name: string,
+  t: MutableTyped,
+): import("../typed-ast.ts").TraitMethodResolution | null {
+  const traitBounds = t.globals.typeParamBounds.get(param.symbol.id);
+  if (traitBounds === undefined) return null;
+  for (const traitSym of traitBounds) {
+    if (traitSym.source.kind !== "trait") continue;
+    const member = traitSym.source.decl.members.find((m) => m.name === name);
+    if (member !== undefined) {
+      return { trait: traitSym, member, receiverParam: param };
+    }
+  }
+  return null;
+}
+
+/** The fn type a `t.method` access exposes when `t` has TypeParam type and
+ *  the method comes from a trait bound. The trait declares `fn method(self, …)`
+ *  with `Self` substituted by the TypeParam at the call site; we drop the
+ *  receiver param to mirror UFCS bound-method shape. */
+function traitMethodBoundFnType(
+  resolution: import("../typed-ast.ts").TraitMethodResolution,
+  receiverParam: Type,
+  t: MutableTyped,
+): Type {
+  const fnType = t.globals.declTypes.get(resolution.member);
+  if (fnType === undefined || fnType.kind !== "Fn") return TY.unresolved;
+  const subst: Substitution = { typeParams: new Map(), self: receiverParam };
+  const boundParams = fnType.params.length > 0 ? fnType.params.slice(1) : fnType.params;
+  return {
+    kind: "Fn",
+    params: boundParams.map((p) => substitute(p, subst)),
+    returnType: substitute(fnType.returnType, subst),
+  };
 }
 
 /** Validate that `freeSym` (or one of its sibling overloads) is a fn whose

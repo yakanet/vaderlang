@@ -2,7 +2,7 @@
 
 > **Status**: Draft — Edition Vader 1.0 (target for bootstrap)
 > **Author**: Mathieu BROUTIN
-> **Last revision**: 2026-05-04
+> **Last revision**: 2026-05-06
 
 This document describes the Vader language, its execution model, type system, MVP standard library, and bootstrap strategy. It serves as the reference for the TypeScript implementation of the compiler, then for its self-rewrite in Vader.
 
@@ -877,7 +877,22 @@ items.map(fn(x: i32) -> i32 { x * 2 }) // explicit, also valid
 
 Top-level function declarations (`name :: fn(...)`) still require full annotations — see §4 inference rules.
 
-Closures capture their environment **by reference** (consistent with the Java-style model).
+Closures capture their environment **by reference** (consistent with the Java-style model). Captured locals are heap-promoted into single-slot cells at the lowering pass: the cell lives on the GC heap, the binding becomes a pointer to it, and every closure that mentions the variable shares the same cell. This is what makes mutation visible across closures (a counter built via `n := 0; inc :: fn() { n = n + 1 }; get :: fn() -> i32 { n }` works as expected). Lifting itself is transparent: the closure value is a `(code, env)` fat pointer where `code` points to a synthesised top-level fn taking the env as its first parameter, and `env` is a heap-allocated struct holding refs to the captured cells.
+
+### Function values
+
+The function-type form `fn(T1, T2, ...) -> R` (or `fn(T1, T2, ...)` for void return) is a **first-class type**: it can appear anywhere a type is allowed — fn parameters, struct fields, array elements, locals, return types. A function name used outside of an immediate call yields a function value:
+
+```vader
+add :: fn(a: i32, b: i32) -> i32 { return a + b }
+
+main :: fn() -> i32 {
+    f := add               // f: fn(i32, i32) -> i32
+    return f(2, 3)         // indirect call — same syntax as direct
+}
+```
+
+Runtime representation: a fat pointer `{ code, env }`. Non-capturing globals carry `env = NULL` and route through a small generated trampoline so the same indirect-call path handles both global function refs and closures.
 
 ### UFCS (Uniform Function Call Syntax)
 
@@ -1054,7 +1069,7 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 
 ### GC backends
 
-- **Native (C)**: hand-written mark-sweep stop-the-world GC, in C, linked into the binary.
+- **Native (C)**: hand-written **Cheney semi-space copying GC** (stop-the-world), in C, linked into the binary. Two arenas of equal size (16 MB each by default); allocation is bump-pointer; collection copies live objects from the from-space to the to-space and swaps. Roots are enumerated **precisely** via a shadow stack: every emitted C function pushes a `vader_gc_frame_t` chained through `prev` containing the addresses of its ref-typed locals, popped on return. Per-type pointer maps emitted by the compiler tell the scanner where the heap pointers live inside each object.
 - **WASM**: uses the `(ref struct)`, `(ref array)`, `anyref` types of the WASM GC proposal (the host runtime — wasmtime / V8 — performs GC).
 
 ### Storage semantics
@@ -1382,8 +1397,8 @@ The bootstrap compiler runs an **AST-walking interpreter** for `@comptime`, not 
 
 ### `std/core` (auto-imported)
 
-Traits: `Display`, `Eq`, `Ord`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator<T>`, `Iterable<T>`, `Error`.
-Type: `Error` (base).
+Traits: `Display`, `Eq`, `Ord`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Error`.
+Types: `Done`, `Yielded(T)`, `Range`, `ArrayIter(T)`. Free fns for primitive `Hash`/`Eq` dispatch (`hash_i32`, `eq_i32`, …) — workaround for trait-method dispatch on bounded type params (post-MVP).
 
 ### `std/io`
 
@@ -1468,16 +1483,44 @@ StringBuilder :: struct {
 
 ### `std/iter`
 
-```vader
-Iterator(T) :: trait {
-    fn next(self) -> T | null
-}
+The iterator trait lives in `std/core` (auto-imported), using a `Done | Yielded(T)` step result rather than `T | null` so iterators over nullable element types stay unambiguous:
 
-// Methods/UFCS on Iterator
-fn map<T, U>(it: Iterator(T), f: fn(T) -> U) -> Iterator(U)
-fn filter<T>(it: Iterator(T), pred: fn(T) -> bool) -> Iterator(T)
-fn fold<T, A>(it: Iterator(T), init: A, f: fn(A, T) -> A) -> A
-fn sum / count / take / skip / collect
+```vader
+Done    :: struct {}
+Yielded :: struct($T) { value: T }
+
+Iterator(T) :: trait {
+    fn step(self) -> Done | Yielded(T)
+}
+```
+
+`std/iter` provides combinators on top of it. Two flavours coexist :
+
+```vader
+// Iterator-driven (require trait dispatch through `for x in it`):
+fn count(it: Iterator($T))   -> i32
+fn collect(it: Iterator($T)) -> [T]
+
+// Array-driven (closure-friendly; eager — return `[T]` or a single value):
+fn map(arr: [$T], f: fn(T) -> $U)        -> [U]
+fn filter(arr: [$T], pred: fn(T) -> bool) -> [T]
+fn fold(arr: [$T], init: $U, f: fn(U, T) -> U) -> U
+fn sum(arr: [i32]) -> i32
+fn take(arr: [$T], n: i32) -> [T]
+fn skip(arr: [$T], n: i32) -> [T]
+```
+
+The closure-driven combinators take a concrete `[T]` rather than `Iterator($T)` because direct trait-method dispatch on a generic `$T : Iterator` parameter is post-MVP (the `for x in it` form has compiler-internal dispatch but user code can't `it.step()` directly). Bridging from an iterator goes through `collect(it)` first; once trait dispatch on bounded type params lands the two flavours converge.
+
+### `std/runtime`
+
+Runtime introspection and GC controls. Mostly a debug/test surface :
+
+```vader
+fn gc_collect()           -> void   // force a Cheney cycle
+fn gc_collections()       -> i32    // total cycles since start
+fn gc_bytes_used()        -> i32    // live bytes in from-space
+fn gc_bytes_copied()      -> i32    // cumulative bytes copied
 ```
 
 ### Out of MVP

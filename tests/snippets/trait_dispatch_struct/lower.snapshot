@@ -1,0 +1,32 @@
+# Lower
+
+## tests/snippets/trait_dispatch_struct/_main.vader
+  fn tests_snippets_trait_dispatch_struct__main_vader$i32$Tagger$tag(self: i32) -> i32
+    return
+      mul :i32
+        l:
+          self#48 :i32
+        r:
+          int(10) :i32
+  fn tests_snippets_trait_dispatch_struct__main_vader$main() -> i32
+    return
+      call :i32
+        callee:
+          apply_tag#1000009 :i32
+        arg0:
+          int(7) :i32
+  fn tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32(x: i32) -> i32
+    return
+      add :i32
+        l:
+          call :i32
+            callee:
+              tag#1000000 :i32
+            arg0:
+              x#50 :i32
+        r:
+          call :i32
+            callee:
+              tag#1000000 :i32
+            arg0:
+              x#50 :i32

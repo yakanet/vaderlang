@@ -1,0 +1,47 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  fn               public   eq_i32 
+  fn               public   eq_u32 
+  fn               public   eq_usize 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_i32 
+  fn               public   hash_u32 
+  fn               public   hash_usize 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=43 types=76 params=39 locals=3 typeParams=3 fields=0
+
+## std/iter
+  fn               public   collect 
+  fn               public   count 
+  fn               public   filter 
+  fn               public   fold 
+  fn               public   map 
+  fn               public   skip 
+  fn               public   sum 
+  fn               public   take 
+  refs: idents=48 types=24 params=14 locals=10 typeParams=9 fields=0
+
+## tests/snippets/iter_combinators/_main.vader
+  import-binding   private  filter → filter
+  import-binding   private  fold → fold
+  fn               public   main 
+  import-binding   private  map → map
+  import-binding   private  skip → skip
+  import-binding   private  sum → sum
+  import-binding   private  take → take
+  import std/iter → ok
+  refs: idents=26 types=8 params=4 locals=10 typeParams=0 fields=0

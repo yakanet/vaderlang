@@ -12,8 +12,8 @@ import type { BcType, ValType } from "../bytecode/types.ts";
 
 import type { HostBindings } from "./host.ts";
 import {
-  bool, builder, ch, FALSE, i64, NULL, num, str as makeStr, VOID,
-  asArray, asBig, asBool, asBuilder, asChar, asIndex, asNum, asString, asStruct, displayValue,
+  bool, builder, ch, FALSE, fnRef, i64, NULL, num, str as makeStr, VOID,
+  asArray, asBig, asBool, asBuilder, asChar, asFn, asIndex, asNum, asString, asStruct, displayValue,
 } from "./value.ts";
 import type { NumTag, StringValue, Value } from "./value.ts";
 
@@ -261,6 +261,35 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       if (imp.signature.result !== "void") f.stack.push(result);
       f.ip++; return;
     }
+    case "fn.ref": {
+      f.stack.push(fnRef(op.fnIndex));
+      f.ip++; return;
+    }
+    case "make_closure": {
+      // Pop the env value (typically a struct), pack with the lifted fn into
+      // a closure value. The VM's `invoke` will pass `env` as the lifted
+      // fn's first arg when call.indirect fires.
+      const env = f.stack.pop()!;
+      f.stack.push(fnRef(op.fnIndex, env));
+      f.ip++; return;
+    }
+    case "call.indirect": {
+      const fnVal = asFn(f.stack.pop()!);
+      const callee = ctx.module.functions[fnVal.fnIndex];
+      if (callee === undefined) throw new VmError(`vm: bad fn index ${fnVal.fnIndex}`, debugOf(f.fn, f.ip));
+      // Closures with env get env prepended as the first arg (matching the
+      // lifted fn's bytecode signature `(ref, ...originalParams) → ret`).
+      // Plain fn refs (env === null) leave args unchanged — the global fn's
+      // signature has no env slot.
+      const explicitArgCount = fnVal.env === null
+        ? callee.signature.params.length
+        : callee.signature.params.length - 1;
+      const explicitArgs = popArgs(f, explicitArgCount);
+      const args = fnVal.env === null ? explicitArgs : [fnVal.env, ...explicitArgs];
+      const result = invoke(ctx, fnVal.fnIndex, args, opts);
+      if (callee.signature.result !== "void") f.stack.push(result);
+      f.ip++; return;
+    }
     case "intrinsic":
       runIntrinsic(f, op.id);
       f.ip++; return;
@@ -483,8 +512,8 @@ function popArgs(f: Frame, n: number): Value[] {
 }
 
 function refEq(a: Value, b: Value): boolean {
-  if (a.tag === "struct" || a.tag === "array" || a.tag === "builder") return a === b;
-  if (b.tag === "struct" || b.tag === "array" || b.tag === "builder") return false;
+  if (a.tag === "struct" || a.tag === "array" || a.tag === "builder" || a.tag === "fn") return a === b;
+  if (b.tag === "struct" || b.tag === "array" || b.tag === "builder" || b.tag === "fn") return false;
   if (a.tag !== b.tag) return false;
   if (a.tag === "null" || a.tag === "void") return true;
   if (a.tag === "i64" || a.tag === "u64") return a.n === (b as { n: bigint }).n;
@@ -522,6 +551,10 @@ function matchTo(m: BytecodeModule, v: Value, t: BcType, idx: number): boolean {
         if (stype?.kind === "struct") return stype.name.includes(`$${t.traitName}$`);
       }
       return false;
+    case "fn":
+      // Signatures are validated by the type-checker pre-emit; runtime check
+      // just confirms the value is a fn ref.
+      return v.tag === "fn";
   }
 }
 

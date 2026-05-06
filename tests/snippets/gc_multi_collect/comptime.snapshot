@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/gc_multi_collect/_main.vader
+
+## generic instances
+  Yielded(i32)

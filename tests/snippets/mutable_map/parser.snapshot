@@ -86,14 +86,7 @@
               },
               "fields": [
                 {
-                  "name": "keys",
-                  "value": {
-                    "kind": "ArrayLitExpr",
-                    "elements": []
-                  }
-                },
-                {
-                  "name": "values",
+                  "name": "buckets",
                   "value": {
                     "kind": "ArrayLitExpr",
                     "elements": []

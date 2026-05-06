@@ -1,0 +1,53 @@
+# Typecheck
+
+## tests/snippets/iter_combinators/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 11:14    CallExpr       :: [i32]
+  expr 11:14    IdentExpr      :: fn([$T], fn($T) -> bool) -> [$T]
+  expr 11:21    IdentExpr      :: [i32]
+  expr 11:27    LambdaExpr     :: fn(i32) -> bool
+  expr 11:55    BinaryExpr     :: bool
+  expr 11:55    BinaryExpr     :: i32
+  expr 11:55    IdentExpr      :: i32
+  expr 12:11    CallExpr       :: i32
+  expr 12:11    IdentExpr      :: fn([i32]) -> i32
+  expr 12:15    IdentExpr      :: [i32]
+  expr 15:10    CallExpr       :: i32
+  expr 15:10    IdentExpr      :: fn([$T], $U, fn($U, $T) -> $U) -> $U
+  expr 15:15    ArrayLitExpr   :: [i32]
+  expr 15:35    LambdaExpr     :: fn(i32, i32) -> i32
+  expr 15:72    BinaryExpr     :: i32
+  expr 15:72    IdentExpr      :: i32
+  expr 15:78    IdentExpr      :: i32
+  expr 18:14    CallExpr       :: [i32]
+  expr 18:14    IdentExpr      :: fn([$T], i32) -> [$T]
+  expr 18:19    IdentExpr      :: [i32]
+  expr 19:11    CallExpr       :: i32
+  expr 19:11    IdentExpr      :: fn([i32]) -> i32
+  expr 19:15    IdentExpr      :: [i32]
+  expr 22:13    CallExpr       :: [i32]
+  expr 22:13    IdentExpr      :: fn([$T], i32) -> [$T]
+  expr 22:18    IdentExpr      :: [i32]
+  expr 23:11    CallExpr       :: i32
+  expr 23:11    IdentExpr      :: fn([i32]) -> i32
+  expr 23:15    IdentExpr      :: [i32]
+  expr 25:12    BinaryExpr     :: i32
+  expr 25:12    BinaryExpr     :: i32
+  expr 25:12    BinaryExpr     :: i32
+  expr 25:12    BinaryExpr     :: i32
+  expr 25:12    IdentExpr      :: i32
+  expr 25:17    IdentExpr      :: i32
+  expr 25:22    IdentExpr      :: i32
+  expr 25:26    IdentExpr      :: i32
+  expr 25:31    IdentExpr      :: i32
+  expr 4:13     ArrayLitExpr   :: [i32]
+  expr 7:16     CallExpr       :: [i32]
+  expr 7:16     IdentExpr      :: fn([$T], fn($T) -> $U) -> [$U]
+  expr 7:20     ArrayLitExpr   :: [i32]
+  expr 7:37     LambdaExpr     :: fn(i32) -> i32
+  expr 7:64     BinaryExpr     :: i32
+  expr 7:64     IdentExpr      :: i32
+  expr 7:68     IdentExpr      :: i32
+  expr 8:11     CallExpr       :: i32
+  expr 8:11     IdentExpr      :: fn([i32]) -> i32
+  expr 8:15     IdentExpr      :: [i32]

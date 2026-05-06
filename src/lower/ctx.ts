@@ -8,6 +8,7 @@
 import type * as A from "../parser/ast.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
+import type { ClosureAnalysis } from "../closures/analyze.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram } from "../typecheck/typed-ast.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
@@ -22,6 +23,14 @@ export interface LowerProjectCtx {
   /** std/core's symbol table — pre-resolved at construction so trait/struct
    *  lookups don't re-walk the module map per call. */
   readonly coreSymbols: ReadonlyMap<string, Symbol> | null;
+  /** Free-variable analysis output. Lets the lowerer detect captured locals
+   *  and rewrite their declarations / reads / writes through closure cells. */
+  readonly closures: ClosureAnalysis;
+  /** Synthetic decls produced during lowering — chiefly the lifted top-level
+   *  fns and their env structs spawned by lambda lifting. Appended to the
+   *  result project under `synthModuleId` so the bytecode emit picks them up
+   *  alongside user decls. */
+  readonly synthDecls: import("./lowered-ast.ts").LoweredDecl[];
   nextSyntheticId: number;
   readonly diags: DiagnosticCollector;
 }
@@ -42,4 +51,18 @@ export interface FnLowerCtx {
   readonly selfType: Type | null;
   readonly blocks: BlockCtx[];
   uniq: number;
+  /** When non-null, we're lowering the body of a lifted lambda. Captured
+   *  symbols defined OUTSIDE the lambda are accessed via env-struct fields
+   *  rather than as direct locals. The map is keyed by the captured outer
+   *  symbol's id and yields the env field name. */
+  readonly liftedContext: LiftedFnContext | null;
+}
+
+export interface LiftedFnContext {
+  /** The synthetic env-param symbol — referenced by env field accesses inside the body. */
+  readonly envSymbol: Symbol;
+  /** Type of the env param (the synthesized struct's type). */
+  readonly envType: Type;
+  /** Captured-outer-symbol-id → env field name. */
+  readonly captureFields: ReadonlyMap<number, string>;
 }
