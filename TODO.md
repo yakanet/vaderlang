@@ -343,6 +343,10 @@ These items unblock porting the TS compiler to Vader.
 - [x] **`char` arithmetic / casts** — `i32(c)` and `u32(c)` work today (2026-05-07). The reverse (`char(n)`) was already supported.
 - [x] **Trait widening on `return`** — verified fixed (2026-05-07). `fn() -> T | Error` accepts `return some_struct_implementing_Error` for any number of error structs implementing the `Error` trait.
 - [x] **C-emit narrowing-aware unbox on local reads inside match arms** — verified fixed (2026-05-07). `match r { is f64 -> println("got float ${r}") }` works on both VM and native backends ; the C emitter handles the boxed-to-f64 unbox at use sites.
+- [x] **Multi-file modules silently dropped every file but the first** — fixed 2026-05-06 in `src/resolver/index.ts` via `mergeFilePrograms`. Pre-fix : `resolveLoadedProject` kept only `programs[0]!` from `resolveModule`'s `ResolvedProgram[]`, so any module folder with > 1 `.vader` file lost everything but the first. Required for `vader/lexer/{token,keywords,lexer}.vader`.
+- [x] **Cross-module enum referenced from a struct field had empty `indices`** — fixed 2026-05-06 in `src/typecheck/{check,index}.ts`. Pre-fix : a struct/fn declared *before* its referenced enum (or in another module typechecked first) saw `indices: new Map()` at lower-time, tripping `loweredEnumVariant`. Fix : two-pass `declareModule` — every module's enums declared first across the whole project, then everything else.
+- [x] **FieldExpr→Enum lowering misdispatch** — fixed 2026-05-06 in `src/lower/passes/expr.ts`. Pre-fix : `b.color` (struct field whose type happens to be an enum) was treated as variant access because the lowerer dispatched on the *expression* type. Fix : dispatch on the *target's* type. Typecheck side : `inferField` now also falls through to UFCS on enum *values* so `e.method()` can call free fns whose first param is the enum.
+- [x] **Expression-bodied functions** (Kotlin-style `name :: fn(...) = expr`) added 2026-05-07 — return type inferred from the body via a fixpoint pass between `declareModule` and `checkProgram`. Recursive one-liners without `-> Type` annotation surface as `T3034` after the fixpoint stalls. Mutually exclusive with `-> Type = expr` (rejected as `P1020` at parse time). Tests : `tests/snippets/expr_bodied_{fn,recursive_fn,mixed_form}/`.
 - [ ] **`null` ValType maps to `void` in C**. `cTypeForValBare("null")` returned `"void"`, producing invalid `void blockres_X = ...;` declarations. Fixed (now `vader_box_t`) but worth keeping a regression test.
 - [ ] **`parse_int` / `parse_float` C shim tagged success boxes with the string type's index**. Found while building `std/json` — `match r { is i32 -> ... }` would never fire on the native target. Fixed by adding `primTagOrTrap` to look up the right primitive type's BcType index. Worth checking other extern shims for the same pattern (any shim using `tagOrTrap(_, "string")` for a non-string success).
 
@@ -433,12 +437,49 @@ Implementation is small and self-contained — no new IR nodes, no new passes:
 
 Begin as soon as the TS compiler can compile a non-trivial subset (functions, structs, arrays, strings, control flow, generics, traits). The goal is to validate the design *as we go*, not to wait for a finished MVP.
 
+### 2.0 Vader CLI minimal (parity-check harness)
+
+Stand up a `vader` binary written in Vader so each ported phase can compare its dump against the TS reference output side-by-side. Drives the snapshot-parity workflow for §2.1+ and surfaces the next compiler bug to fix as soon as we hit it.
+
+- [x] `vader/cli/main.vader` — argv parsing (`--stage=<name> <file>`), file read via `std/io.read_file`, dispatch on stage name.
+- [x] `vader dump --stage=lexer` — emits the `# Tokens` block in the same format `tests/snapshot.ts:formatTokens` produces (line:col span, kind name, JSON-quoted text, optional `=value` for literals, `# Diagnostics` block for errors). Lexer parity sweep on the snippet corpus : 102/104 (2026-05-07). The 2 outliers are UTF-8 multi-byte fixtures hitting the byte-indexed `std/string.char_at` limitation, not a CLI bug.
+- [ ] Snapshot parity rig under `tests/parity/` — script that runs both `bun src/index.ts run vader/cli/main.vader dump --stage=lexer <file>` and `bun src/index.ts dump --stage=lexer <file>` over every snippet under `tests/snippets/` and diffs the outputs. Today this is an inline shell loop ; promote to a real test once the CLI is built native.
+- [ ] **Build the CLI native** so `vader-cli` is a real binary and the parity rig doesn't pay the bun-startup cost per snippet.
+- [ ] Future stages plug into the same dispatch as the parser / typechecker / lowerer get ported (§2.1+).
+
 ### 2.1 Port the parser to Vader
 
-- [ ] Port lexer to Vader
-- [ ] Port AST representation to Vader (struct + union types)
-- [ ] Port parser to Vader
-- [ ] Snapshot-test parity: TS parser and Vader parser must produce identical AST dumps for every sample
+#### Lexer (`vader/lexer/`) — substantial progress
+
+- [x] Token kinds (`vader/lexer/token.vader`) — `TokenKind :: enum(u8)` mirroring `src/lexer/token.ts`.
+- [x] Keywords + numeric-suffix tables (`vader/lexer/keywords.vader`) — `lookup_keyword`, `is_int_suffix`, `is_float_suffix`.
+- [x] Driver state + cursor helpers (`vader/lexer/lexer.vader`) — `Lexer` struct, `peek`/`peek_at`/`advance`/`position_here`/`at_end`.
+- [x] Whitespace, line comments (`//`), nested block comments (`/* /* */ */`).
+- [x] Identifiers + keyword recognition.
+- [x] Numeric literals : decimal + hex (`0x`/`0X`) + binary (`0b`/`0B`) + octal (`0o`/`0O`), `_` separators, integer suffixes (`i8..i64`/`u8..u64`), float (`.<digits>`, exponent), float suffixes (`f32`/`f64`).
+- [x] Char literals + escapes : `\n \t \r \\ \' \" \$ \0`, `\u{HEX}` (1–6 digits, ≤ U+10FFFF). Recovery on bad escape / multi-codepoint.
+- [x] String literals : plain `"..."`, raw `r"..."`, triple `"""..."""`. Token sequence `StringBegin / StringPart / InterpOpen / InterpClose / StringEnd` per SPEC.
+- [x] Interpolation : `${expr}` + `$ident`, nested via `interp_stack: [InterpFrame]` with brace-depth tracking. Newlines absorbed inside `${...}`.
+- [x] One- / two- / three-char operators, range ops `..<` / `..=`, brackets, punctuation.
+- [x] Newline emission with SPEC §3 SUPPRESS_AFTER set ; `paren_depth` for `(`/`[` (not `{`).
+- [x] Shebang on line 1, UTF-8 BOM at file start.
+- [x] Structured diagnostics : `errors: [Diagnostic]`, typed `LexerCode` enum, `error_span(start)` helper, `render(d) -> string` for terminal output.
+
+#### Diagnostics (`vader/diagnostics/`)
+
+- [x] `codes.vader` — `LexerCode :: enum(u8)` (10 variants), `CodeInfo :: struct { id: string, message: string }`, `info(c) = match c { ... }` returns canonical `(L0001, "unexpected character")` pairs. `DiagCode :: type LexerCode` (alias, will widen to a union once parser/resolver/typecheck land their codes).
+- [x] `diagnostic.vader` — `Severity` enum, canonical `Position` / `Span` (used by both tokens and diagnostics), `Diagnostic { severity, code, detail, primary }`, `make`/`error` constructors, `render` (single interpolated string).
+- [ ] **Folder-module migration** (deferred) — `vader/diagnostics/{codes,diagnostic}.vader` resolve as two separate single-file modules today, so the `private` modifier on `CodeInfo` / `info` doesn't survive cross-file. Migrating to a folder-module would let us hide internals.
+
+#### Lexer parity validation
+
+- [ ] **Snapshot parity with the TS lexer** — once the Vader CLI lands (§2.0), run both lexers over `tests/snippets/*` and compare the `# Tokens` blocks. Any mismatch is either a Vader-lexer port bug or a missing feature ; fix and re-snapshot.
+
+#### Parser (`vader/parser/`) — pending
+
+- [ ] Port AST representation to Vader (struct + union types). Surface : `Decl`, `FnDecl`, `StructDecl`, `EnumDecl`, `TraitDecl`, `ImplDecl`, `TypeAliasDecl`, `ConstDecl`, `ImportDecl`, plus the expression and statement nodes. Use `parser_codes.vader` for `ParserCode` codes mirroring the TS `PARSER` table.
+- [ ] Port parser body to Vader — recursive-descent for declarations / statements / types, Pratt for expressions (binding-power table). Reuse the lexer's `Token` stream verbatim.
+- [ ] Snapshot-test parity : TS parser and Vader parser must produce identical AST dumps for every sample.
 
 ### 2.2 Port the C emitter
 

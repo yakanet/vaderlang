@@ -86,8 +86,22 @@ pad_end :: fn(s: string, width: i32, fill: char) -> string {
 }
 
 // True for ASCII whitespace: space, tab, newline, carriage return.
-is_whitechar :: fn(c: char) -> bool {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r'
+is_whitechar :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
+
+// True for ASCII decimal digit `0..9`.
+is_digit :: fn(c: char) = c >= '0' && c <= '9'
+
+// True for ASCII hex digit `0..9 a..f A..F`.
+is_hex_digit :: fn(c: char) =
+    c.is_digit() || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+
+// True for any digit in `base` (2 / 8 / 10 / 16). Caller is expected to
+// pass a supported base ; unsupported bases fall through to base-10.
+is_digit_in_base :: fn(c: char, base: i32) -> bool {
+    if base == 2 { return c == '0' || c == '1' }
+    if base == 8 { return c >= '0' && c <= '7' }
+    if base == 16 { return c.is_hex_digit() }
+    return c.is_digit()
 }
 
 // Strip a `suffix` if `s` ends with it; otherwise return `s` unchanged.

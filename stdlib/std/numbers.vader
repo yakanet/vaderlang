@@ -3,14 +3,52 @@
 // Lives outside std/core so we can use std/builder for efficient construction.
 // UFCS-callable as `n.to_hex()` once `import "std/numbers"` is in scope.
 
+import "std/string" { len, char_at }
 import "std/string_builder" { StringBuilder, new_builder, append_char, to_string }
 
-private hex_digit :: fn(n: u64) -> char {
-    d := i32(n)
-    if d in 0..=9 {
-        return char(u32('0') + u32(d))
+// ParseError — raised by every fallible parser in this module. The shape
+// mirrors `std/string.ParseError` so callers can match on either as `Error`.
+ParseError :: struct { msg: string }
+ParseError implements Error {
+    fn message(self) -> string { return self.msg }
+}
+
+// 0..15 for an ASCII hex digit, -1 otherwise.
+hex_digit_value :: fn(c: char) -> i32 {
+    if c >= '0' && c <= '9' { return i32(u32(c) - u32('0')) }
+    if c >= 'a' && c <= 'f' { return i32(u32(c) - u32('a') + u32(10)) }
+    if c >= 'A' && c <= 'F' { return i32(u32(c) - u32('A') + u32(10)) }
+    return -1
+}
+
+// Parse `s` as an `i64` in the given base (2 / 8 / 10 / 16). `s` must be
+// pure digits in that base — no `0x`/`0b`/`0o` prefix, no `_` separators,
+// no leading sign. Empty input or any non-digit character yields an error.
+// Caller is responsible for stripping syntactic decoration.
+parse_int_in_base :: fn(s: string, base: i32) -> i64! {
+    n := s.len()
+    if n == 0 {
+        return ParseError { .msg = "empty input" }
     }
-    return char(u32('a') + u32(d) - u32(10))
+    acc: i64 = i64(0)
+    b: i64 = i64(base)
+    i := 0
+    for i < n {
+        d := hex_digit_value(s.char_at(i))
+        if d < 0 || d >= base {
+            return ParseError { .msg = "invalid digit" }
+        }
+        acc = acc * b + i64(d)
+        i = i + 1
+    }
+    return acc
+}
+
+private hex_digit :: fn(n: u64) -> char {
+    if n <= u64(9) {
+        return char(u32('0') + u32(n))
+    }
+    return char(u32('a') + u32(n) - u32(10))
 }
 
 // Hexadecimal stringification of a u64 — lowercase, no `0x` prefix, no leading

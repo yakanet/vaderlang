@@ -38,14 +38,20 @@
 
 ## std/numbers
   import-binding   private  append_char → append_char
+  import-binding   private  char_at → char_at
   fn               private  hex_digit 
+  fn               public   hex_digit_value 
+  import-binding   private  len → len
   import-binding   private  new_builder → new_builder
+  fn               public   parse_int_in_base 
+  struct           public   ParseError 
   import-binding   private  StringBuilder → StringBuilder
   fn               public   to_bin 
   fn               public   to_hex 
   import-binding   private  to_string → to_string
+  import std/string → ok
   import std/string_builder → ok
-  refs: idents=50 types=10 params=3 locals=11 typeParams=0 fields=0
+  refs: idents=91 types=23 params=7 locals=15 typeParams=0 fields=0
 
 ## std/string
   import-binding   private  append → append
@@ -53,6 +59,9 @@
   fn               public   char_at 
   fn               public   contains 
   fn               public   ends_with 
+  fn               public   is_digit 
+  fn               public   is_digit_in_base 
+  fn               public   is_hex_digit 
   fn               public   is_whitechar 
   fn               public   last_index_of 
   fn               public   len 
@@ -75,7 +84,7 @@
   fn               public   trim_prefix 
   fn               public   trim_suffix 
   import std/string_builder → ok
-  refs: idents=93 types=64 params=38 locals=17 typeParams=0 fields=0
+  refs: idents=109 types=68 params=42 locals=17 typeParams=0 fields=0
 
 ## std/string_builder
   fn               public   append 

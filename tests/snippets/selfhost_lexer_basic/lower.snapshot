@@ -4,7 +4,7 @@
   fn tests_snippets_selfhost_lexer_basic__main_vader$kind_name(k: TokenKind) -> string
     ~>
       block :string
-        let __scrut_0#-1: TokenKind = k#178 :TokenKind
+        let __scrut_0#-1: TokenKind = k#199 :TokenKind
         ~>
           if :string
             cond:
@@ -380,35 +380,35 @@
             "# " :string
           @builder.append_display <for string> :void
             __sb_0#-2 :?
-            label#179 :string
+            label#200 :string
           ~>
             @builder.finish :string
               __sb_0#-2 :?
-    let l#181: Lexer =
+    let l#202: Lexer =
       call :Lexer
         callee:
-          tokenize#92 :fn(string, string) -> Lexer
+          tokenize#98 :fn(string, string) -> Lexer
         arg0:
-          source#180 :string
+          source#201 :string
         arg1:
           "t.v" :string
-    let n#182: i32 =
+    let n#203: i32 =
       LoweredArrayLen
-    let i#183: i32 = int(0) :i32
+    let i#204: i32 = int(0) :i32
     loop while (<…>)
-      let t#184: Token =
+      let t#205: Token =
         index :Token
           on:
             .tokens :[Token]
-              l#181 :Lexer
+              l#202 :Lexer
           ix:
-            i#183 :i32
+            i#204 :i32
       if :void
         cond:
           eq :bool
             l:
               .kind :TokenKind
-                t#184 :Token
+                t#205 :Token
             r:
               int(1) :u8
         then:
@@ -437,14 +437,14 @@
                         kind_name#5 :fn(TokenKind) -> string
                       arg0:
                         .kind :TokenKind
-                          t#184 :Token
+                          t#205 :Token
                   @builder.append_str :void
                     __sb_1#-3 :?
                     " '" :string
                   @builder.append_display <for string> :void
                     __sb_1#-3 :?
                     .text :string
-                      t#184 :Token
+                      t#205 :Token
                   @builder.append_str :void
                     __sb_1#-3 :?
                     "'" :string
@@ -453,25 +453,25 @@
                       __sb_1#-3 :?
       assign
         target:
-          i#183 :i32
+          i#204 :i32
         value:
           add :i32
             l:
-              i#183 :i32
+              i#204 :i32
             r:
               int(1) :i32
-    let en#185: i32 =
+    let en#206: i32 =
       LoweredArrayLen
     ~>
       if :void
         cond:
           gt :bool
             l:
-              en#185 :i32
+              en#206 :i32
             r:
               int(0) :i32
         then:
-          let j#186: i32 = int(0) :i32
+          let j#207: i32 = int(0) :i32
           loop while (<…>)
             call :void
               callee:
@@ -487,24 +487,24 @@
                     __sb_2#-4 :?
                     call :string
                       callee:
-                        render#110 :fn(Diagnostic) -> string
+                        render#116 :fn(Diagnostic) -> string
                       arg0:
                         index :Diagnostic
                           on:
                             .errors :[Diagnostic]
-                              l#181 :Lexer
+                              l#202 :Lexer
                           ix:
-                            j#186 :i32
+                            j#207 :i32
                   ~>
                     @builder.finish :string
                       __sb_2#-4 :?
             assign
               target:
-                j#186 :i32
+                j#207 :i32
               value:
                 add :i32
                   l:
-                    j#186 :i32
+                    j#207 :i32
                   r:
                     int(1) :i32
   fn tests_snippets_selfhost_lexer_basic__main_vader$main() -> i32
@@ -578,13 +578,13 @@
   fn vader_diagnostics_codes_vader$info(c: LexerCode) -> CodeInfo
     ~>
       block :CodeInfo
-        let __scrut_0#-18: LexerCode = c#533 :LexerCode
+        let __scrut_0#-20: LexerCode = c#592 :LexerCode
         ~>
           if :CodeInfo
             cond:
               eq :bool
                 l:
-                  __scrut_0#-18 :LexerCode
+                  __scrut_0#-20 :LexerCode
                 r:
                   int(0) :u8
             then:
@@ -599,7 +599,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0#-18 :LexerCode
+                        __scrut_0#-20 :LexerCode
                       r:
                         int(1) :u8
                   then:
@@ -614,7 +614,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0#-18 :LexerCode
+                              __scrut_0#-20 :LexerCode
                             r:
                               int(2) :u8
                         then:
@@ -629,7 +629,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0#-18 :LexerCode
+                                    __scrut_0#-20 :LexerCode
                                   r:
                                     int(3) :u8
                               then:
@@ -644,7 +644,7 @@
                                     cond:
                                       eq :bool
                                         l:
-                                          __scrut_0#-18 :LexerCode
+                                          __scrut_0#-20 :LexerCode
                                         r:
                                           int(4) :u8
                                     then:
@@ -659,7 +659,7 @@
                                           cond:
                                             eq :bool
                                               l:
-                                                __scrut_0#-18 :LexerCode
+                                                __scrut_0#-20 :LexerCode
                                               r:
                                                 int(5) :u8
                                           then:
@@ -674,7 +674,7 @@
                                                 cond:
                                                   eq :bool
                                                     l:
-                                                      __scrut_0#-18 :LexerCode
+                                                      __scrut_0#-20 :LexerCode
                                                     r:
                                                       int(6) :u8
                                                 then:
@@ -689,7 +689,7 @@
                                                       cond:
                                                         eq :bool
                                                           l:
-                                                            __scrut_0#-18 :LexerCode
+                                                            __scrut_0#-20 :LexerCode
                                                           r:
                                                             int(7) :u8
                                                       then:
@@ -704,7 +704,7 @@
                                                             cond:
                                                               eq :bool
                                                                 l:
-                                                                  __scrut_0#-18 :LexerCode
+                                                                  __scrut_0#-20 :LexerCode
                                                                 r:
                                                                   int(8) :u8
                                                             then:
@@ -719,7 +719,7 @@
                                                                   cond:
                                                                     eq :bool
                                                                       l:
-                                                                        __scrut_0#-18 :LexerCode
+                                                                        __scrut_0#-20 :LexerCode
                                                                       r:
                                                                         int(9) :u8
                                                                   then:
@@ -739,36 +739,36 @@
   fn vader_diagnostics_diagnostic_vader$make(severity: Severity, code: ?, primary: Span, detail: string) -> Diagnostic
     ~>
       Diagnostic {
-        severity: severity#410 :Severity
-        code: code#411 :?
-        detail: detail#413 :string
-        primary: primary#412 :Span
+        severity: severity#443 :Severity
+        code: code#444 :?
+        detail: detail#446 :string
+        primary: primary#445 :Span
       }
   fn vader_diagnostics_diagnostic_vader$error(code: ?, primary: Span, detail: string) -> Diagnostic
     ~>
       call :Diagnostic
         callee:
-          make#108 :fn(Severity, ?, Span, string) -> Diagnostic
+          make#114 :fn(Severity, ?, Span, string) -> Diagnostic
         arg0:
           int(0) :i32
         arg1:
-          code#414 :?
+          code#447 :?
         arg2:
-          primary#415 :Span
+          primary#448 :Span
         arg3:
-          detail#416 :string
+          detail#449 :string
   fn vader_diagnostics_diagnostic_vader$render(d: Diagnostic) -> string
-    let severity#418: string =
+    let severity#451: string =
       block :string
-        let __scrut_0#-12: Severity =
+        let __scrut_0#-14: Severity =
           .severity :Severity
-            d#417 :Diagnostic
+            d#450 :Diagnostic
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0#-12 :Severity
+                  __scrut_0#-14 :Severity
                 r:
                   int(0) :i32
             then:
@@ -780,7 +780,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0#-12 :Severity
+                        __scrut_0#-14 :Severity
                       r:
                         int(1) :i32
                   then:
@@ -792,7 +792,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0#-12 :Severity
+                              __scrut_0#-14 :Severity
                             r:
                               int(2) :i32
                         then:
@@ -804,7 +804,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0#-12 :Severity
+                                    __scrut_0#-14 :Severity
                                   r:
                                     int(3) :i32
                               then:
@@ -813,96 +813,96 @@
                               else:
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
-    let ci#419: CodeInfo =
+    let ci#452: CodeInfo =
       call :CodeInfo
         callee:
-          info#154 :CodeInfo
+          info#175 :CodeInfo
         arg0:
           .code :?
-            d#417 :Diagnostic
-    let p#420: Position =
+            d#450 :Diagnostic
+    let p#453: Position =
       .start :Position
         .primary :Span
-          d#417 :Diagnostic
-    let detail#421: string = "" :string
+          d#450 :Diagnostic
+    let detail#454: string = "" :string
     if :void
       cond:
         gt :bool
           l:
             call :i32
               callee:
-                len#116 :i32
+                len#122 :i32
               arg0:
                 .detail :string
-                  d#417 :Diagnostic
+                  d#450 :Diagnostic
           r:
             int(0) :i32
       then:
         assign
           target:
-            detail#421 :string
+            detail#454 :string
           value:
             block :string
-              let __sb_1#-13: ? =
+              let __sb_1#-15: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_1#-13 :?
+                __sb_1#-15 :?
                 ": " :string
               @builder.append_display <for string> :void
-                __sb_1#-13 :?
+                __sb_1#-15 :?
                 .detail :string
-                  d#417 :Diagnostic
+                  d#450 :Diagnostic
               ~>
                 @builder.finish :string
-                  __sb_1#-13 :?
+                  __sb_1#-15 :?
     return
       block :string
-        let __sb_2#-14: ? =
+        let __sb_2#-16: ? =
           @builder.new :?
         @builder.append_display <for string> :void
-          __sb_2#-14 :?
-          severity#418 :string
+          __sb_2#-16 :?
+          severity#451 :string
         @builder.append_str :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           "[" :string
         @builder.append_display <for string> :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           .id :string
-            ci#419 :CodeInfo
+            ci#452 :CodeInfo
         @builder.append_str :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           "]: " :string
         @builder.append_display <for string> :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           .message :string
-            ci#419 :CodeInfo
+            ci#452 :CodeInfo
         @builder.append_display <for string> :void
-          __sb_2#-14 :?
-          detail#421 :string
+          __sb_2#-16 :?
+          detail#454 :string
         @builder.append_str :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           " at " :string
         @builder.append_display <for string> :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           .file :string
-            p#420 :Position
+            p#453 :Position
         @builder.append_str :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           ":" :string
         @builder.append_display <for i32> :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           .line :i32
-            p#420 :Position
+            p#453 :Position
         @builder.append_str :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           ":" :string
         @builder.append_display <for i32> :void
-          __sb_2#-14 :?
+          __sb_2#-16 :?
           .column :i32
-            p#420 :Position
+            p#453 :Position
         ~>
           @builder.finish :string
-            __sb_2#-14 :?
+            __sb_2#-16 :?
 
 ## vader/lexer
   fn vader_lexer$lookup_keyword(text: string) -> TokenKind
@@ -910,7 +910,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "fn" :string
       then:
@@ -919,7 +919,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "struct" :string
       then:
@@ -928,7 +928,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "trait" :string
       then:
@@ -937,7 +937,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "implements" :string
       then:
@@ -946,7 +946,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "impl" :string
       then:
@@ -955,7 +955,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "enum" :string
       then:
@@ -964,7 +964,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "if" :string
       then:
@@ -973,7 +973,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "else" :string
       then:
@@ -982,7 +982,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "match" :string
       then:
@@ -991,7 +991,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "is" :string
       then:
@@ -1000,7 +1000,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "for" :string
       then:
@@ -1009,7 +1009,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "in" :string
       then:
@@ -1018,7 +1018,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "return" :string
       then:
@@ -1027,7 +1027,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "defer" :string
       then:
@@ -1036,7 +1036,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "break" :string
       then:
@@ -1045,7 +1045,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "continue" :string
       then:
@@ -1054,7 +1054,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "import" :string
       then:
@@ -1063,7 +1063,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "as" :string
       then:
@@ -1072,7 +1072,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "private" :string
       then:
@@ -1081,7 +1081,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "true" :string
       then:
@@ -1090,7 +1090,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "false" :string
       then:
@@ -1099,7 +1099,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "null" :string
       then:
@@ -1108,7 +1108,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "type" :string
       then:
@@ -1117,7 +1117,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "where" :string
       then:
@@ -1126,7 +1126,7 @@
       cond:
         eq :bool
           l:
-            text#246 :string
+            text#267 :string
           r:
             "self" :string
       then:
@@ -1150,49 +1150,49 @@
                                 l:
                                   eq :bool
                                     l:
-                                      s#247 :string
+                                      s#268 :string
                                     r:
                                       "i8" :string
                                 r:
                                   eq :bool
                                     l:
-                                      s#247 :string
+                                      s#268 :string
                                     r:
                                       "i16" :string
                             r:
                               eq :bool
                                 l:
-                                  s#247 :string
+                                  s#268 :string
                                 r:
                                   "i32" :string
                         r:
                           eq :bool
                             l:
-                              s#247 :string
+                              s#268 :string
                             r:
                               "i64" :string
                     r:
                       eq :bool
                         l:
-                          s#247 :string
+                          s#268 :string
                         r:
                           "u8" :string
                 r:
                   eq :bool
                     l:
-                      s#247 :string
+                      s#268 :string
                     r:
                       "u16" :string
             r:
               eq :bool
                 l:
-                  s#247 :string
+                  s#268 :string
                 r:
                   "u32" :string
         r:
           eq :bool
             l:
-              s#247 :string
+              s#268 :string
             r:
               "u64" :string
   fn vader_lexer$is_float_suffix(s: string) -> bool
@@ -1201,13 +1201,13 @@
         l:
           eq :bool
             l:
-              s#248 :string
+              s#269 :string
             r:
               "f32" :string
         r:
           eq :bool
             l:
-              s#248 :string
+              s#269 :string
             r:
               "f64" :string
   struct vader_lexer$InterpFrame { brace_depth: i32, triple: bool }
@@ -1215,8 +1215,8 @@
   fn vader_lexer$new_lexer(source: string, file: string) -> Lexer
     ~>
       Lexer {
-        src: source#249 :string
-        file: file#250 :string
+        src: source#270 :string
+        file: file#271 :string
         pos: int(0) :i32
         line: int(1) :i32
         col: int(1) :i32
@@ -1229,21 +1229,6 @@
         interp_stack:
           array :[InterpFrame]
       }
-  fn vader_lexer$is_digit(c: char) -> bool
-    ~>
-      and :bool
-        l:
-          gte :bool
-            l:
-              c#251 :char
-            r:
-              char(0x30)
-        r:
-          lte :bool
-            l:
-              c#251 :char
-            r:
-              char(0x39)
   fn vader_lexer$is_ident_start(c: char) -> bool
     ~>
       or :bool
@@ -1254,13 +1239,13 @@
                 l:
                   gte :bool
                     l:
-                      c#252 :char
+                      c#272 :char
                     r:
                       char(0x61)
                 r:
                   lte :bool
                     l:
-                      c#252 :char
+                      c#272 :char
                     r:
                       char(0x7a)
             r:
@@ -1268,19 +1253,19 @@
                 l:
                   gte :bool
                     l:
-                      c#252 :char
+                      c#272 :char
                     r:
                       char(0x41)
                 r:
                   lte :bool
                     l:
-                      c#252 :char
+                      c#272 :char
                     r:
                       char(0x5a)
         r:
           eq :bool
             l:
-              c#252 :char
+              c#272 :char
             r:
               char(0x5f)
   fn vader_lexer$is_ident_continue(c: char) -> bool
@@ -1289,19 +1274,19 @@
         l:
           call :bool
             callee:
-              is_ident_start#57 :bool
+              is_ident_start#63 :bool
             arg0:
-              c#253 :char
+              c#273 :char
         r:
           call :bool
             callee:
-              is_digit#56 :bool
+              is_digit#139 :bool
             arg0:
-              c#253 :char
+              c#273 :char
   fn vader_lexer$suppresses_newline_after(k: TokenKind) -> bool
     ~>
       block :bool
-        let __scrut_0#-5: TokenKind = k#254 :TokenKind
+        let __scrut_0#-5: TokenKind = k#274 :TokenKind
         ~>
           if :bool
             cond:
@@ -1609,170 +1594,170 @@
       gte :bool
         l:
           .pos :i32
-            l#255 :Lexer
+            l#275 :Lexer
         r:
           call :i32
             callee:
-              len#116 :i32
+              len#122 :i32
             arg0:
               .src :string
-                l#255 :Lexer
+                l#275 :Lexer
   fn vader_lexer$peek(l: Lexer) -> char
     if :void
       cond:
         gte :bool
           l:
             .pos :i32
-              l#256 :Lexer
+              l#276 :Lexer
           r:
             call :i32
               callee:
-                len#116 :i32
+                len#122 :i32
               arg0:
                 .src :string
-                  l#256 :Lexer
+                  l#276 :Lexer
       then:
         return char(0x0)
     return
       call :char
         callee:
-          char_at#121 :char
+          char_at#127 :char
         arg0:
           .src :string
-            l#256 :Lexer
+            l#276 :Lexer
         arg1:
           .pos :i32
-            l#256 :Lexer
+            l#276 :Lexer
   fn vader_lexer$peek_at(l: Lexer, n: i32) -> char
-    let p#259: i32 =
+    let p#279: i32 =
       add :i32
         l:
           .pos :i32
-            l#257 :Lexer
+            l#277 :Lexer
         r:
-          n#258 :i32
+          n#278 :i32
     if :void
       cond:
         gte :bool
           l:
-            p#259 :i32
+            p#279 :i32
           r:
             call :i32
               callee:
-                len#116 :i32
+                len#122 :i32
               arg0:
                 .src :string
-                  l#257 :Lexer
+                  l#277 :Lexer
       then:
         return char(0x0)
     return
       call :char
         callee:
-          char_at#121 :char
+          char_at#127 :char
         arg0:
           .src :string
-            l#257 :Lexer
+            l#277 :Lexer
         arg1:
-          p#259 :i32
+          p#279 :i32
   fn vader_lexer$position_here(l: Lexer) -> Position
     ~>
       Position {
         file:
           .file :string
-            l#260 :Lexer
+            l#280 :Lexer
         offset:
           .pos :i32
-            l#260 :Lexer
+            l#280 :Lexer
         line:
           .line :i32
-            l#260 :Lexer
+            l#280 :Lexer
         column:
           .col :i32
-            l#260 :Lexer
+            l#280 :Lexer
       }
   fn vader_lexer$advance(l: Lexer, n: i32) -> void
-    let i#263: i32 = int(0) :i32
+    let i#283: i32 = int(0) :i32
     loop while (<…>)
       if :void
         cond:
           gte :bool
             l:
               .pos :i32
-                l#261 :Lexer
+                l#281 :Lexer
             r:
               call :i32
                 callee:
-                  len#116 :i32
+                  len#122 :i32
                 arg0:
                   .src :string
-                    l#261 :Lexer
+                    l#281 :Lexer
         then:
           return
-      let c#264: char =
+      let c#284: char =
         call :char
           callee:
-            char_at#121 :char
+            char_at#127 :char
           arg0:
             .src :string
-              l#261 :Lexer
+              l#281 :Lexer
           arg1:
             .pos :i32
-              l#261 :Lexer
+              l#281 :Lexer
       if :void
         cond:
           eq :bool
             l:
-              c#264 :char
+              c#284 :char
             r:
               char(0xa)
         then:
           assign
             target:
               .line :i32
-                l#261 :Lexer
+                l#281 :Lexer
             value:
               add :i32
                 l:
                   .line :i32
-                    l#261 :Lexer
+                    l#281 :Lexer
                 r:
                   int(1) :i32
           assign
             target:
               .col :i32
-                l#261 :Lexer
+                l#281 :Lexer
             value:
               int(1) :i32
         else:
           assign
             target:
               .col :i32
-                l#261 :Lexer
+                l#281 :Lexer
             value:
               add :i32
                 l:
                   .col :i32
-                    l#261 :Lexer
+                    l#281 :Lexer
                 r:
                   int(1) :i32
       assign
         target:
           .pos :i32
-            l#261 :Lexer
+            l#281 :Lexer
         value:
           add :i32
             l:
               .pos :i32
-                l#261 :Lexer
+                l#281 :Lexer
             r:
               int(1) :i32
       assign
         target:
-          i#263 :i32
+          i#283 :i32
         value:
           add :i32
             l:
-              i#263 :i32
+              i#283 :i32
             r:
               int(1) :i32
   fn vader_lexer$emit(l: Lexer, t: Token) -> void
@@ -1780,65 +1765,65 @@
     assign
       target:
         .last_kind :TokenKind
-          l#265 :Lexer
+          l#285 :Lexer
       value:
         .kind :TokenKind
-          t#266 :Token
+          t#286 :Token
   fn vader_lexer$push_simple(l: Lexer, kind: TokenKind, text: string, start: Position) -> void
-    let span#271: Span =
+    let span#291: Span =
       Span {
-        start: start#270 :Position
+        start: start#290 :Position
         end:
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#267 :Lexer
+              l#287 :Lexer
       }
     ~>
       call :void
         callee:
-          emit#65 :void
+          emit#71 :void
         arg0:
-          l#267 :Lexer
+          l#287 :Lexer
         arg1:
           call :Token
             callee:
-              make_token#98 :fn(TokenKind, string, Span) -> Token
+              make_token#104 :fn(TokenKind, string, Span) -> Token
             arg0:
-              kind#268 :TokenKind
+              kind#288 :TokenKind
             arg1:
-              text#269 :string
+              text#289 :string
             arg2:
-              span#271 :Span
+              span#291 :Span
   fn vader_lexer$push_error(l: Lexer, code: LexerCode, span: Span, detail: string) -> void
     ~>
       LoweredArrayPush
   fn vader_lexer$error_span(l: Lexer, start: Position) -> Span
     ~>
       Span {
-        start: start#277 :Position
+        start: start#297 :Position
         end:
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#276 :Lexer
+              l#296 :Lexer
       }
   fn vader_lexer$skip_horizontal(l: Lexer) -> void
-    let in_interp#279: bool =
+    let in_interp#299: bool =
       gt :bool
         l:
           LoweredArrayLen
         r:
           int(0) :i32
     loop while (<…>)
-      let c#280: char =
+      let c#300: char =
         call :char
           callee:
-            peek#61 :char
+            peek#67 :char
           arg0:
-            l#278 :Lexer
+            l#298 :Lexer
       ~>
         if :void
           cond:
@@ -1846,22 +1831,22 @@
               l:
                 eq :bool
                   l:
-                    c#280 :char
+                    c#300 :char
                   r:
                     char(0x20)
               r:
                 eq :bool
                   l:
-                    c#280 :char
+                    c#300 :char
                   r:
                     char(0x9)
           then:
             ~>
               call :void
                 callee:
-                  advance#64 :void
+                  advance#70 :void
                 arg0:
-                  l#278 :Lexer
+                  l#298 :Lexer
                 arg1:
                   int(1) :i32
           else:
@@ -1870,47 +1855,47 @@
                 cond:
                   and :bool
                     l:
-                      in_interp#279 :bool
+                      in_interp#299 :bool
                     r:
                       or :bool
                         l:
                           eq :bool
                             l:
-                              c#280 :char
+                              c#300 :char
                             r:
                               char(0xa)
                         r:
                           eq :bool
                             l:
-                              c#280 :char
+                              c#300 :char
                             r:
                               char(0xd)
                 then:
                   ~>
                     call :void
                       callee:
-                        advance#64 :void
+                        advance#70 :void
                       arg0:
-                        l#278 :Lexer
+                        l#298 :Lexer
                       arg1:
                         int(1) :i32
                 else:
                   return
   fn vader_lexer$lex_block_comment(l: Lexer) -> void
-    let start#282: Position =
+    let start#302: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#281 :Lexer
+          l#301 :Lexer
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#281 :Lexer
+        l#301 :Lexer
       arg1:
         int(2) :i32
-    let depth#283: i32 = int(1) :i32
+    let depth#303: i32 = int(1) :i32
     loop while (<…>)
       if :void
         cond:
@@ -1920,9 +1905,9 @@
                 l:
                   call :char
                     callee:
-                      peek#61 :char
+                      peek#67 :char
                     arg0:
-                      l#281 :Lexer
+                      l#301 :Lexer
                 r:
                   char(0x2f)
             r:
@@ -1930,9 +1915,9 @@
                 l:
                   call :char
                     callee:
-                      peek_at#62 :char
+                      peek_at#68 :char
                     arg0:
-                      l#281 :Lexer
+                      l#301 :Lexer
                     arg1:
                       int(1) :i32
                 r:
@@ -1940,18 +1925,18 @@
         then:
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#281 :Lexer
+              l#301 :Lexer
             arg1:
               int(2) :i32
           assign
             target:
-              depth#283 :i32
+              depth#303 :i32
             value:
               add :i32
                 l:
-                  depth#283 :i32
+                  depth#303 :i32
                 r:
                   int(1) :i32
           continue
@@ -1963,9 +1948,9 @@
                 l:
                   call :char
                     callee:
-                      peek#61 :char
+                      peek#67 :char
                     arg0:
-                      l#281 :Lexer
+                      l#301 :Lexer
                 r:
                   char(0x2a)
             r:
@@ -1973,9 +1958,9 @@
                 l:
                   call :char
                     callee:
-                      peek_at#62 :char
+                      peek_at#68 :char
                     arg0:
-                      l#281 :Lexer
+                      l#301 :Lexer
                     arg1:
                       int(1) :i32
                 r:
@@ -1983,27 +1968,27 @@
         then:
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#281 :Lexer
+              l#301 :Lexer
             arg1:
               int(2) :i32
           assign
             target:
-              depth#283 :i32
+              depth#303 :i32
             value:
               sub :i32
                 l:
-                  depth#283 :i32
+                  depth#303 :i32
                 r:
                   int(1) :i32
           continue
       ~>
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#281 :Lexer
+            l#301 :Lexer
           arg1:
             int(1) :i32
     ~>
@@ -2011,26 +1996,26 @@
         cond:
           gt :bool
             l:
-              depth#283 :i32
+              depth#303 :i32
             r:
               int(0) :i32
         then:
           ~>
             call :void
               callee:
-                push_error#67 :void
+                push_error#73 :void
               arg0:
-                l#281 :Lexer
+                l#301 :Lexer
               arg1:
                 int(2) :u8
               arg2:
                 call :Span
                   callee:
-                    error_span#68 :Span
+                    error_span#74 :Span
                   arg0:
-                    l#281 :Lexer
+                    l#301 :Lexer
                   arg1:
-                    start#282 :Position
+                    start#302 :Position
               arg3:
                 "" :string
   fn vader_lexer$handle_newline(l: Lexer) -> void
@@ -2040,18 +2025,18 @@
           l:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#284 :Lexer
+                l#304 :Lexer
           r:
             char(0xd)
       then:
         ~>
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#284 :Lexer
+              l#304 :Lexer
             arg1:
               int(1) :i32
     if :void
@@ -2060,18 +2045,18 @@
           l:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#284 :Lexer
+                l#304 :Lexer
           r:
             char(0xa)
       then:
         ~>
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#284 :Lexer
+              l#304 :Lexer
             arg1:
               int(1) :i32
     if :void
@@ -2079,7 +2064,7 @@
         gt :bool
           l:
             .paren_depth :i32
-              l#284 :Lexer
+              l#304 :Lexer
           r:
             int(0) :i32
       then:
@@ -2088,10 +2073,10 @@
       cond:
         call :bool
           callee:
-            suppresses_newline_after#59 :bool
+            suppresses_newline_after#65 :bool
           arg0:
             .last_kind :TokenKind
-              l#284 :Lexer
+              l#304 :Lexer
       then:
         return
     if :void
@@ -2099,89 +2084,89 @@
         eq :bool
           l:
             .last_kind :TokenKind
-              l#284 :Lexer
+              l#304 :Lexer
           r:
             int(1) :u8
       then:
         return
-    let here#285: Position =
+    let here#305: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#284 :Lexer
-    let span#286: Span =
+          l#304 :Lexer
+    let span#306: Span =
       Span {
-        start: here#285 :Position
-        end: here#285 :Position
+        start: here#305 :Position
+        end: here#305 :Position
       }
     ~>
       call :void
         callee:
-          emit#65 :void
+          emit#71 :void
         arg0:
-          l#284 :Lexer
+          l#304 :Lexer
         arg1:
           call :Token
             callee:
-              make_token#98 :fn(TokenKind, string, Span) -> Token
+              make_token#104 :fn(TokenKind, string, Span) -> Token
             arg0:
               int(1) :u8
             arg1:
               "\n" :string
             arg2:
-              span#286 :Span
+              span#306 :Span
   fn vader_lexer$lex_ident(l: Lexer) -> void
-    let start#288: Position =
+    let start#308: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#287 :Lexer
+          l#307 :Lexer
     loop while (<…>)
       ~>
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#287 :Lexer
+            l#307 :Lexer
           arg1:
             int(1) :i32
-    let text#289: string =
+    let text#309: string =
       call :string
         callee:
-          slice#117 :string
+          slice#123 :string
         arg0:
           .src :string
-            l#287 :Lexer
+            l#307 :Lexer
         arg1:
           .offset :i32
-            start#288 :Position
+            start#308 :Position
         arg2:
           .pos :i32
-            l#287 :Lexer
-    let kw#290: TokenKind =
+            l#307 :Lexer
+    let kw#310: TokenKind =
       call :TokenKind
         callee:
           lookup_keyword#38 :fn(string) -> TokenKind
         arg0:
-          text#289 :string
+          text#309 :string
     ~>
       call :void
         callee:
-          push_simple#66 :void
+          push_simple#72 :void
         arg0:
-          l#287 :Lexer
+          l#307 :Lexer
         arg1:
-          kw#290 :TokenKind
+          kw#310 :TokenKind
         arg2:
-          text#289 :string
+          text#309 :string
         arg3:
-          start#288 :Position
+          start#308 :Position
   fn vader_lexer$read_numeric_suffix(l: Lexer) -> string
-    let start#292: i32 =
+    let start#312: i32 =
       .pos :i32
-        l#291 :Lexer
+        l#311 :Lexer
     if :void
       cond:
         and :bool
@@ -2190,280 +2175,184 @@
               l:
                 call :char
                   callee:
-                    peek#61 :char
+                    peek#67 :char
                   arg0:
-                    l#291 :Lexer
+                    l#311 :Lexer
               r:
                 char(0x5f)
           r:
             call :bool
               callee:
-                is_ident_start#57 :bool
+                is_ident_start#63 :bool
               arg0:
                 call :char
                   callee:
-                    peek_at#62 :char
+                    peek_at#68 :char
                   arg0:
-                    l#291 :Lexer
+                    l#311 :Lexer
                   arg1:
                     int(1) :i32
       then:
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#291 :Lexer
+            l#311 :Lexer
           arg1:
             int(1) :i32
-        let suff_start#293: i32 =
+        let suff_start#313: i32 =
           .pos :i32
-            l#291 :Lexer
+            l#311 :Lexer
         loop while (<…>)
           ~>
             call :void
               callee:
-                advance#64 :void
+                advance#70 :void
               arg0:
-                l#291 :Lexer
+                l#311 :Lexer
               arg1:
                 int(1) :i32
         return
           call :string
             callee:
-              slice#117 :string
+              slice#123 :string
             arg0:
               .src :string
-                l#291 :Lexer
+                l#311 :Lexer
             arg1:
-              suff_start#293 :i32
+              suff_start#313 :i32
             arg2:
               .pos :i32
-                l#291 :Lexer
+                l#311 :Lexer
     if :void
       cond:
         call :bool
           callee:
-            is_ident_start#57 :bool
+            is_ident_start#63 :bool
           arg0:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#291 :Lexer
+                l#311 :Lexer
       then:
         loop while (<…>)
           ~>
             call :void
               callee:
-                advance#64 :void
+                advance#70 :void
               arg0:
-                l#291 :Lexer
+                l#311 :Lexer
               arg1:
                 int(1) :i32
         return
           call :string
             callee:
-              slice#117 :string
+              slice#123 :string
             arg0:
               .src :string
-                l#291 :Lexer
+                l#311 :Lexer
             arg1:
-              start#292 :i32
+              start#312 :i32
             arg2:
               .pos :i32
-                l#291 :Lexer
+                l#311 :Lexer
     return "" :string
-  fn vader_lexer$is_hex_digit(c: char) -> bool
-    ~>
-      or :bool
-        l:
-          or :bool
-            l:
-              call :bool
-                callee:
-                  is_digit#56 :bool
-                arg0:
-                  c#294 :char
-            r:
-              and :bool
-                l:
-                  gte :bool
-                    l:
-                      c#294 :char
-                    r:
-                      char(0x61)
-                r:
-                  lte :bool
-                    l:
-                      c#294 :char
-                    r:
-                      char(0x66)
-        r:
-          and :bool
-            l:
-              gte :bool
-                l:
-                  c#294 :char
-                r:
-                  char(0x41)
-            r:
-              lte :bool
-                l:
-                  c#294 :char
-                r:
-                  char(0x46)
-  fn vader_lexer$is_digit_in_base(c: char, base: i32) -> bool
-    if :void
-      cond:
-        eq :bool
-          l:
-            base#296 :i32
-          r:
-            int(2) :i32
-      then:
-        return
-          or :bool
-            l:
-              eq :bool
-                l:
-                  c#295 :char
-                r:
-                  char(0x30)
-            r:
-              eq :bool
-                l:
-                  c#295 :char
-                r:
-                  char(0x31)
-    if :void
-      cond:
-        eq :bool
-          l:
-            base#296 :i32
-          r:
-            int(8) :i32
-      then:
-        return
-          and :bool
-            l:
-              gte :bool
-                l:
-                  c#295 :char
-                r:
-                  char(0x30)
-            r:
-              lte :bool
-                l:
-                  c#295 :char
-                r:
-                  char(0x37)
-    if :void
-      cond:
-        eq :bool
-          l:
-            base#296 :i32
-          r:
-            int(16) :i32
-      then:
-        return
-          call :bool
-            callee:
-              is_hex_digit#74 :bool
-            arg0:
-              c#295 :char
-    return
-      call :bool
-        callee:
-          is_digit#56 :bool
-        arg0:
-          c#295 :char
   fn vader_lexer$consume_digits(l: Lexer, base: i32, start_anchor: Position) -> void
-    let last_was_underscore#300: bool = false
-    let first#301: bool = true
+    let last_was_underscore#317: bool = false
+    let first#318: bool = true
     loop while (<…>)
-      let c#302: char =
+      let c#319: char =
         call :char
           callee:
-            peek#61 :char
+            peek#67 :char
           arg0:
-            l#297 :Lexer
+            l#314 :Lexer
       if :void
         cond:
           eq :bool
             l:
-              c#302 :char
+              c#319 :char
             r:
               char(0x5f)
         then:
-          let next#303: char =
+          let next#320: char =
             call :char
               callee:
-                peek_at#62 :char
+                peek_at#68 :char
               arg0:
-                l#297 :Lexer
+                l#314 :Lexer
               arg1:
                 int(1) :i32
           if :void
             cond:
               and :bool
                 l:
-                  call :bool
-                    callee:
-                      is_ident_start#57 :bool
-                    arg0:
-                      next#303 :char
+                  and :bool
+                    l:
+                      neq :bool
+                        l:
+                          next#320 :char
+                        r:
+                          char(0x5f)
+                    r:
+                      call :bool
+                        callee:
+                          is_ident_start#63 :bool
+                        arg0:
+                          next#320 :char
                 r:
                   not :bool
                     call :bool
                       callee:
-                        is_digit_in_base#75 :fn(char, i32) -> bool
+                        is_digit_in_base#141 :fn(char, i32) -> bool
                       arg0:
-                        next#303 :char
+                        next#320 :char
                       arg1:
-                        base#298 :i32
+                        base#315 :i32
             then:
               return
           if :void
             cond:
               or :bool
                 l:
-                  first#301 :bool
+                  first#318 :bool
                 r:
-                  last_was_underscore#300 :bool
+                  last_was_underscore#317 :bool
             then:
               ~>
                 call :void
                   callee:
-                    push_error#67 :void
+                    push_error#73 :void
                   arg0:
-                    l#297 :Lexer
+                    l#314 :Lexer
                   arg1:
                     int(5) :u8
                   arg2:
                     call :Span
                       callee:
-                        error_span#68 :Span
+                        error_span#74 :Span
                       arg0:
-                        l#297 :Lexer
+                        l#314 :Lexer
                       arg1:
-                        start_anchor#299 :Position
+                        start_anchor#316 :Position
                   arg3:
                     "underscore not allowed here" :string
           assign
             target:
-              last_was_underscore#300 :bool
+              last_was_underscore#317 :bool
             value:
               true
           assign
             target:
-              first#301 :bool
+              first#318 :bool
             value:
               false
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#297 :Lexer
+              l#314 :Lexer
             arg1:
               int(1) :i32
           continue
@@ -2471,58 +2360,58 @@
         cond:
           call :bool
             callee:
-              is_digit_in_base#75 :fn(char, i32) -> bool
+              is_digit_in_base#141 :fn(char, i32) -> bool
             arg0:
-              c#302 :char
+              c#319 :char
             arg1:
-              base#298 :i32
+              base#315 :i32
         then:
           assign
             target:
-              last_was_underscore#300 :bool
+              last_was_underscore#317 :bool
             value:
               false
           assign
             target:
-              first#301 :bool
+              first#318 :bool
             value:
               false
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#297 :Lexer
+              l#314 :Lexer
             arg1:
               int(1) :i32
           continue
       return
   fn vader_lexer$lex_number(l: Lexer) -> void
-    let start#305: Position =
+    let start#322: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#304 :Lexer
-    let is_float#306: bool = false
-    let base#307: i32 = int(10) :i32
+          l#321 :Lexer
+    let is_float#323: bool = false
+    let base#324: i32 = int(10) :i32
     if :void
       cond:
         eq :bool
           l:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#304 :Lexer
+                l#321 :Lexer
           r:
             char(0x30)
       then:
-        let next#308: char =
+        let next#325: char =
           call :char
             callee:
-              peek_at#62 :char
+              peek_at#68 :char
             arg0:
-              l#304 :Lexer
+              l#321 :Lexer
             arg1:
               int(1) :i32
         ~>
@@ -2532,19 +2421,19 @@
                 l:
                   eq :bool
                     l:
-                      next#308 :char
+                      next#325 :char
                     r:
                       char(0x78)
                 r:
                   eq :bool
                     l:
-                      next#308 :char
+                      next#325 :char
                     r:
                       char(0x58)
             then:
               assign
                 target:
-                  base#307 :i32
+                  base#324 :i32
                 value:
                   int(16) :i32
             else:
@@ -2555,19 +2444,19 @@
                       l:
                         eq :bool
                           l:
-                            next#308 :char
+                            next#325 :char
                           r:
                             char(0x62)
                       r:
                         eq :bool
                           l:
-                            next#308 :char
+                            next#325 :char
                           r:
                             char(0x42)
                   then:
                     assign
                       target:
-                        base#307 :i32
+                        base#324 :i32
                       value:
                         int(2) :i32
                   else:
@@ -2578,86 +2467,86 @@
                             l:
                               eq :bool
                                 l:
-                                  next#308 :char
+                                  next#325 :char
                                 r:
                                   char(0x6f)
                             r:
                               eq :bool
                                 l:
-                                  next#308 :char
+                                  next#325 :char
                                 r:
                                   char(0x4f)
                         then:
                           assign
                             target:
-                              base#307 :i32
+                              base#324 :i32
                             value:
                               int(8) :i32
     if :void
       cond:
         neq :bool
           l:
-            base#307 :i32
+            base#324 :i32
           r:
             int(10) :i32
       then:
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#304 :Lexer
+            l#321 :Lexer
           arg1:
             int(2) :i32
-        let digits_start#309: i32 =
+        let digits_start#326: i32 =
           .pos :i32
-            l#304 :Lexer
+            l#321 :Lexer
         call :void
           callee:
-            consume_digits#76 :void
+            consume_digits#80 :void
           arg0:
-            l#304 :Lexer
+            l#321 :Lexer
           arg1:
-            base#307 :i32
+            base#324 :i32
           arg2:
-            start#305 :Position
+            start#322 :Position
         ~>
           if :void
             cond:
               eq :bool
                 l:
                   .pos :i32
-                    l#304 :Lexer
+                    l#321 :Lexer
                 r:
-                  digits_start#309 :i32
+                  digits_start#326 :i32
             then:
               ~>
                 call :void
                   callee:
-                    push_error#67 :void
+                    push_error#73 :void
                   arg0:
-                    l#304 :Lexer
+                    l#321 :Lexer
                   arg1:
                     int(5) :u8
                   arg2:
                     call :Span
                       callee:
-                        error_span#68 :Span
+                        error_span#74 :Span
                       arg0:
-                        l#304 :Lexer
+                        l#321 :Lexer
                       arg1:
-                        start#305 :Position
+                        start#322 :Position
                   arg3:
                     "expected digits after base prefix" :string
       else:
         call :void
           callee:
-            consume_digits#76 :void
+            consume_digits#80 :void
           arg0:
-            l#304 :Lexer
+            l#321 :Lexer
           arg1:
             int(10) :i32
           arg2:
-            start#305 :Position
+            start#322 :Position
         if :void
           cond:
             and :bool
@@ -2666,46 +2555,46 @@
                   l:
                     call :char
                       callee:
-                        peek#61 :char
+                        peek#67 :char
                       arg0:
-                        l#304 :Lexer
+                        l#321 :Lexer
                   r:
                     char(0x2e)
               r:
                 call :bool
                   callee:
-                    is_digit#56 :bool
+                    is_digit#139 :bool
                   arg0:
                     call :char
                       callee:
-                        peek_at#62 :char
+                        peek_at#68 :char
                       arg0:
-                        l#304 :Lexer
+                        l#321 :Lexer
                       arg1:
                         int(1) :i32
           then:
             assign
               target:
-                is_float#306 :bool
+                is_float#323 :bool
               value:
                 true
             call :void
               callee:
-                advance#64 :void
+                advance#70 :void
               arg0:
-                l#304 :Lexer
+                l#321 :Lexer
               arg1:
                 int(1) :i32
             ~>
               call :void
                 callee:
-                  consume_digits#76 :void
+                  consume_digits#80 :void
                 arg0:
-                  l#304 :Lexer
+                  l#321 :Lexer
                 arg1:
                   int(10) :i32
                 arg2:
-                  start#305 :Position
+                  start#322 :Position
         ~>
           if :void
             cond:
@@ -2715,9 +2604,9 @@
                     l:
                       call :char
                         callee:
-                          peek#61 :char
+                          peek#67 :char
                         arg0:
-                          l#304 :Lexer
+                          l#321 :Lexer
                     r:
                       char(0x65)
                 r:
@@ -2725,22 +2614,22 @@
                     l:
                       call :char
                         callee:
-                          peek#61 :char
+                          peek#67 :char
                         arg0:
-                          l#304 :Lexer
+                          l#321 :Lexer
                     r:
                       char(0x45)
             then:
               assign
                 target:
-                  is_float#306 :bool
+                  is_float#323 :bool
                 value:
                   true
               call :void
                 callee:
-                  advance#64 :void
+                  advance#70 :void
                 arg0:
-                  l#304 :Lexer
+                  l#321 :Lexer
                 arg1:
                   int(1) :i32
               if :void
@@ -2751,9 +2640,9 @@
                         l:
                           call :char
                             callee:
-                              peek#61 :char
+                              peek#67 :char
                             arg0:
-                              l#304 :Lexer
+                              l#321 :Lexer
                         r:
                           char(0x2b)
                     r:
@@ -2761,18 +2650,18 @@
                         l:
                           call :char
                             callee:
-                              peek#61 :char
+                              peek#67 :char
                             arg0:
-                              l#304 :Lexer
+                              l#321 :Lexer
                         r:
                           char(0x2d)
                 then:
                   ~>
                     call :void
                       callee:
-                        advance#64 :void
+                        advance#70 :void
                       arg0:
-                        l#304 :Lexer
+                        l#321 :Lexer
                       arg1:
                         int(1) :i32
               if :void
@@ -2780,56 +2669,56 @@
                   not :bool
                     call :bool
                       callee:
-                        is_digit#56 :bool
+                        is_digit#139 :bool
                       arg0:
                         call :char
                           callee:
-                            peek#61 :char
+                            peek#67 :char
                           arg0:
-                            l#304 :Lexer
+                            l#321 :Lexer
                 then:
                   ~>
                     call :void
                       callee:
-                        push_error#67 :void
+                        push_error#73 :void
                       arg0:
-                        l#304 :Lexer
+                        l#321 :Lexer
                       arg1:
                         int(5) :u8
                       arg2:
                         call :Span
                           callee:
-                            error_span#68 :Span
+                            error_span#74 :Span
                           arg0:
-                            l#304 :Lexer
+                            l#321 :Lexer
                           arg1:
-                            start#305 :Position
+                            start#322 :Position
                       arg3:
                         "exponent has no digits" :string
               ~>
                 call :void
                   callee:
-                    consume_digits#76 :void
+                    consume_digits#80 :void
                   arg0:
-                    l#304 :Lexer
+                    l#321 :Lexer
                   arg1:
                     int(10) :i32
                   arg2:
-                    start#305 :Position
-    let suffix#310: string =
+                    start#322 :Position
+    let suffix#327: string =
       call :string
         callee:
-          read_numeric_suffix#73 :string
+          read_numeric_suffix#79 :string
         arg0:
-          l#304 :Lexer
-    let has_suffix#311: bool =
+          l#321 :Lexer
+    let has_suffix#328: bool =
       gt :bool
         l:
           call :i32
             callee:
-              len#116 :i32
+              len#122 :i32
             arg0:
-              suffix#310 :string
+              suffix#327 :string
         r:
           int(0) :i32
     if :void
@@ -2838,38 +2727,38 @@
           l:
             and :bool
               l:
-                has_suffix#311 :bool
+                has_suffix#328 :bool
               r:
                 not :bool
                   call :bool
                     callee:
                       is_int_suffix#39 :bool
                     arg0:
-                      suffix#310 :string
+                      suffix#327 :string
           r:
             not :bool
               call :bool
                 callee:
                   is_float_suffix#40 :bool
                 arg0:
-                  suffix#310 :string
+                  suffix#327 :string
       then:
         ~>
           call :void
             callee:
-              push_error#67 :void
+              push_error#73 :void
             arg0:
-              l#304 :Lexer
+              l#321 :Lexer
             arg1:
               int(5) :u8
             arg2:
               call :Span
                 callee:
-                  error_span#68 :Span
+                  error_span#74 :Span
                 arg0:
-                  l#304 :Lexer
+                  l#321 :Lexer
                 arg1:
-                  start#305 :Position
+                  start#322 :Position
             arg3:
               block :string
                 let __sb_0#-6: ? =
@@ -2879,7 +2768,7 @@
                   "unknown numeric suffix \"" :string
                 @builder.append_display <for string> :void
                   __sb_0#-6 :?
-                  suffix#310 :string
+                  suffix#327 :string
                 @builder.append_str :void
                   __sb_0#-6 :?
                   "\"" :string
@@ -2890,17 +2779,17 @@
       cond:
         and :bool
           l:
-            has_suffix#311 :bool
+            has_suffix#328 :bool
           r:
             call :bool
               callee:
                 is_float_suffix#40 :bool
               arg0:
-                suffix#310 :string
+                suffix#327 :string
       then:
         assign
           target:
-            is_float#306 :bool
+            is_float#323 :bool
           value:
             true
     if :void
@@ -2909,32 +2798,32 @@
           l:
             and :bool
               l:
-                has_suffix#311 :bool
+                has_suffix#328 :bool
               r:
                 call :bool
                   callee:
                     is_int_suffix#39 :bool
                   arg0:
-                    suffix#310 :string
+                    suffix#327 :string
           r:
-            is_float#306 :bool
+            is_float#323 :bool
       then:
         ~>
           call :void
             callee:
-              push_error#67 :void
+              push_error#73 :void
             arg0:
-              l#304 :Lexer
+              l#321 :Lexer
             arg1:
               int(5) :u8
             arg2:
               call :Span
                 callee:
-                  error_span#68 :Span
+                  error_span#74 :Span
                 arg0:
-                  l#304 :Lexer
+                  l#321 :Lexer
                 arg1:
-                  start#305 :Position
+                  start#322 :Position
             arg3:
               block :string
                 let __sb_1#-7: ? =
@@ -2944,223 +2833,402 @@
                   "integer suffix \"" :string
                 @builder.append_display <for string> :void
                   __sb_1#-7 :?
-                  suffix#310 :string
+                  suffix#327 :string
                 @builder.append_str :void
                   __sb_1#-7 :?
                   "\" on a float literal" :string
                 ~>
                   @builder.finish :string
                     __sb_1#-7 :?
-    let text#312: string =
+    let text#329: string =
       call :string
         callee:
-          slice#117 :string
+          slice#123 :string
         arg0:
           .src :string
-            l#304 :Lexer
+            l#321 :Lexer
         arg1:
           .offset :i32
-            start#305 :Position
+            start#322 :Position
         arg2:
           .pos :i32
-            l#304 :Lexer
-    let span#313: Span =
+            l#321 :Lexer
+    let span#330: Span =
       Span {
-        start: start#305 :Position
+        start: start#322 :Position
         end:
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#304 :Lexer
+              l#321 :Lexer
       }
-    let kind#314: TokenKind = int(3) :u8
+    let kind#331: TokenKind = int(3) :u8
     if :void
       cond:
-        is_float#306 :bool
+        is_float#323 :bool
       then:
         assign
           target:
-            kind#314 :TokenKind
+            kind#331 :TokenKind
           value:
             int(4) :u8
-    let t#315: Token =
+    let t#332: Token =
       call :Token
         callee:
-          make_token#98 :fn(TokenKind, string, Span) -> Token
+          make_token#104 :fn(TokenKind, string, Span) -> Token
         arg0:
-          kind#314 :TokenKind
+          kind#331 :TokenKind
         arg1:
-          text#312 :string
+          text#329 :string
         arg2:
-          span#313 :Span
+          span#330 :Span
     if :void
       cond:
-        has_suffix#311 :bool
+        has_suffix#328 :bool
       then:
         assign
           target:
             .numeric_suffix :string
-              t#315 :Token
+              t#332 :Token
           value:
-            suffix#310 :string
+            suffix#327 :string
+    if :void
+      cond:
+        is_float#323 :bool
+      then:
+        assign
+          target:
+            .value :f64 | i64 | null | string | u32
+              t#332 :Token
+          value:
+            call :f64
+              callee:
+                decode_float_literal#84 :fn(string, string) -> f64
+              arg0:
+                text#329 :string
+              arg1:
+                suffix#327 :string
+      else:
+        assign
+          target:
+            .value :f64 | i64 | null | string | u32
+              t#332 :Token
+          value:
+            call :i64
+              callee:
+                decode_int_literal#83 :fn(string, i32, string) -> i64
+              arg0:
+                text#329 :string
+              arg1:
+                base#324 :i32
+              arg2:
+                suffix#327 :string
     ~>
       call :void
         callee:
-          emit#65 :void
+          emit#71 :void
         arg0:
-          l#304 :Lexer
+          l#321 :Lexer
         arg1:
-          t#315 :Token
-  fn vader_lexer$hex_digit_value(c: char) -> i32
+          t#332 :Token
+  fn vader_lexer$strip_numeric_text(text: string, base: i32, suffix: string) -> string
+    let start#336: i32 =
+      if :{integer}
+        cond:
+          eq :bool
+            l:
+              base#334 :i32
+            r:
+              int(10) :i32
+        then:
+          ~>
+            int(0) :i32
+        else:
+          ~>
+            int(2) :i32
+    let has_suffix#337: bool =
+      gt :bool
+        l:
+          call :i32
+            callee:
+              len#122 :i32
+            arg0:
+              suffix#335 :string
+        r:
+          int(0) :i32
+    let end_no_suffix#338: i32 =
+      sub :i32
+        l:
+          call :i32
+            callee:
+              len#122 :i32
+            arg0:
+              text#333 :string
+        r:
+          call :i32
+            callee:
+              len#122 :i32
+            arg0:
+              suffix#335 :string
+    let end#339: i32 =
+      if :i32
+        cond:
+          and :bool
+            l:
+              and :bool
+                l:
+                  has_suffix#337 :bool
+                r:
+                  gt :bool
+                    l:
+                      end_no_suffix#338 :i32
+                    r:
+                      start#336 :i32
+            r:
+              eq :bool
+                l:
+                  call :char
+                    callee:
+                      char_at#127 :char
+                    arg0:
+                      text#333 :string
+                    arg1:
+                      sub :i32
+                        l:
+                          end_no_suffix#338 :i32
+                        r:
+                          int(1) :i32
+                r:
+                  char(0x5f)
+        then:
+          ~>
+            sub :i32
+              l:
+                end_no_suffix#338 :i32
+              r:
+                int(1) :i32
+        else:
+          ~>
+            end_no_suffix#338 :i32
     if :void
       cond:
         and :bool
           l:
-            gte :bool
+            and :bool
               l:
-                c#316 :char
-              r:
-                char(0x30)
-          r:
-            lte :bool
-              l:
-                c#316 :char
-              r:
-                char(0x39)
-      then:
-        return
-          cast → i32
-            sub :u32
-              l:
-                cast → u32
-                  c#316 :char
-              r:
-                cast → u32
-                  char(0x30)
-    if :void
-      cond:
-        and :bool
-          l:
-            gte :bool
-              l:
-                c#316 :char
-              r:
-                char(0x61)
-          r:
-            lte :bool
-              l:
-                c#316 :char
-              r:
-                char(0x66)
-      then:
-        return
-          cast → i32
-            add :u32
-              l:
-                sub :u32
+                eq :bool
                   l:
-                    cast → u32
-                      c#316 :char
+                    start#336 :i32
                   r:
-                    cast → u32
-                      char(0x61)
+                    int(0) :i32
               r:
-                cast → u32
-                  int(10) :i32
-    if :void
-      cond:
-        and :bool
-          l:
-            gte :bool
-              l:
-                c#316 :char
-              r:
-                char(0x41)
-          r:
-            lte :bool
-              l:
-                c#316 :char
-              r:
-                char(0x46)
-      then:
-        return
-          cast → i32
-            add :u32
-              l:
-                sub :u32
+                eq :bool
                   l:
-                    cast → u32
-                      c#316 :char
+                    end#339 :i32
                   r:
-                    cast → u32
-                      char(0x41)
-              r:
-                cast → u32
-                  int(10) :i32
+                    call :i32
+                      callee:
+                        len#122 :i32
+                      arg0:
+                        text#333 :string
+          r:
+            not :bool
+              call :bool
+                callee:
+                  contains#124 :bool
+                arg0:
+                  text#333 :string
+                arg1:
+                  "_" :string
+      then:
+        return text#333 :string
+    let sb#340: StringBuilder =
+      call :StringBuilder
+        callee:
+          new_builder#147 :fn() -> StringBuilder
+    let i#341: i32 = start#336 :i32
+    loop while (<…>)
+      let c#342: char =
+        call :char
+          callee:
+            char_at#127 :char
+          arg0:
+            text#333 :string
+          arg1:
+            i#341 :i32
+      if :void
+        cond:
+          neq :bool
+            l:
+              c#342 :char
+            r:
+              char(0x5f)
+        then:
+          ~>
+            call :void
+              callee:
+                append_char#149 :void
+              arg0:
+                sb#340 :StringBuilder
+              arg1:
+                c#342 :char
+      assign
+        target:
+          i#341 :i32
+        value:
+          add :i32
+            l:
+              i#341 :i32
+            r:
+              int(1) :i32
     return
-      neg :i32
-        int(1) :i32
+      call :string
+        callee:
+          to_string#151 :string
+        arg0:
+          sb#340 :StringBuilder
+  fn vader_lexer$decode_int_literal(text: string, base: i32, suffix: string) -> i64
+    let parsed#346: Error | i64 =
+      call :Error | i64
+        callee:
+          parse_int_in_base#169 :fn(string, i32) -> Error | i64
+        arg0:
+          call :string
+            callee:
+              strip_numeric_text#82 :fn(string, i32, string) -> string
+            arg0:
+              text#343 :string
+            arg1:
+              base#344 :i32
+            arg2:
+              suffix#345 :string
+        arg1:
+          base#344 :i32
+    return
+      block :i64
+        let __scrut_0#-8: Error | i64 = parsed#346 :Error | i64
+        ~>
+          if :i64
+            cond:
+              is i64 :bool
+                __scrut_0#-8 :Error | i64
+            then:
+              ~>
+                cast → i64
+                  parsed#346 :Error | i64
+            else:
+              ~>
+                if :i64
+                  cond:
+                    is Error :bool
+                      __scrut_0#-8 :Error | i64
+                  then:
+                    ~>
+                      cast → i64
+                        int(0) :i32
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :i64
+  fn vader_lexer$decode_float_literal(text: string, suffix: string) -> f64
+    let parsed#349: Error | f64 =
+      call :Error | f64
+        callee:
+          parse_float#135 :Error | f64
+        arg0:
+          call :string
+            callee:
+              strip_numeric_text#82 :fn(string, i32, string) -> string
+            arg0:
+              text#347 :string
+            arg1:
+              int(10) :i32
+            arg2:
+              suffix#348 :string
+    return
+      block :f64
+        let __scrut_0#-9: Error | f64 = parsed#349 :Error | f64
+        ~>
+          if :f64
+            cond:
+              is f64 :bool
+                __scrut_0#-9 :Error | f64
+            then:
+              ~>
+                cast → f64
+                  parsed#349 :Error | f64
+            else:
+              ~>
+                if :f64
+                  cond:
+                    is Error :bool
+                      __scrut_0#-9 :Error | f64
+                  then:
+                    ~>
+                      float(0) :f64
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :f64
   fn vader_lexer$lex_escape(l: Lexer) -> u32
-    let esc_start#318: Position =
+    let esc_start#351: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#317 :Lexer
+          l#350 :Lexer
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#317 :Lexer
+        l#350 :Lexer
       arg1:
         int(1) :i32
     if :void
       cond:
         call :bool
           callee:
-            at_end#60 :bool
+            at_end#66 :bool
           arg0:
-            l#317 :Lexer
+            l#350 :Lexer
       then:
         call :void
           callee:
-            push_error#67 :void
+            push_error#73 :void
           arg0:
-            l#317 :Lexer
+            l#350 :Lexer
           arg1:
             int(3) :u8
           arg2:
             call :Span
               callee:
-                error_span#68 :Span
+                error_span#74 :Span
               arg0:
-                l#317 :Lexer
+                l#350 :Lexer
               arg1:
-                esc_start#318 :Position
+                esc_start#351 :Position
           arg3:
             "incomplete escape sequence" :string
         return
           cast → u32
             int(0) :i32
-    let c#319: char =
+    let c#352: char =
       call :char
         callee:
-          peek#61 :char
+          peek#67 :char
         arg0:
-          l#317 :Lexer
+          l#350 :Lexer
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#317 :Lexer
+        l#350 :Lexer
       arg1:
         int(1) :i32
     if :void
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x6e)
       then:
@@ -3171,7 +3239,7 @@
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x74)
       then:
@@ -3182,7 +3250,7 @@
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x72)
       then:
@@ -3193,7 +3261,7 @@
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x5c)
       then:
@@ -3204,7 +3272,7 @@
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x27)
       then:
@@ -3215,7 +3283,7 @@
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x22)
       then:
@@ -3226,7 +3294,7 @@
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x24)
       then:
@@ -3237,7 +3305,7 @@
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x30)
       then:
@@ -3248,49 +3316,49 @@
       cond:
         eq :bool
           l:
-            c#319 :char
+            c#352 :char
           r:
             char(0x75)
       then:
         return
           call :u32
             callee:
-              lex_unicode_escape#80 :u32
+              lex_unicode_escape#86 :u32
             arg0:
-              l#317 :Lexer
+              l#350 :Lexer
             arg1:
-              esc_start#318 :Position
+              esc_start#351 :Position
     call :void
       callee:
-        push_error#67 :void
+        push_error#73 :void
       arg0:
-        l#317 :Lexer
+        l#350 :Lexer
       arg1:
         int(3) :u8
       arg2:
         call :Span
           callee:
-            error_span#68 :Span
+            error_span#74 :Span
           arg0:
-            l#317 :Lexer
+            l#350 :Lexer
           arg1:
-            esc_start#318 :Position
+            esc_start#351 :Position
       arg3:
         block :string
-          let __sb_0#-8: ? =
+          let __sb_0#-10: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_0#-8 :?
+            __sb_0#-10 :?
             "unknown escape \\" :string
           @builder.append_display <for char> :void
-            __sb_0#-8 :?
-            c#319 :char
+            __sb_0#-10 :?
+            c#352 :char
           ~>
             @builder.finish :string
-              __sb_0#-8 :?
+              __sb_0#-10 :?
     return
       cast → u32
-        c#319 :char
+        c#352 :char
   fn vader_lexer$lex_unicode_escape(l: Lexer, esc_start: Position) -> u32
     if :void
       cond:
@@ -3298,27 +3366,27 @@
           l:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#320 :Lexer
+                l#353 :Lexer
           r:
             char(0x7b)
       then:
         call :void
           callee:
-            push_error#67 :void
+            push_error#73 :void
           arg0:
-            l#320 :Lexer
+            l#353 :Lexer
           arg1:
             int(8) :u8
           arg2:
             call :Span
               callee:
-                error_span#68 :Span
+                error_span#74 :Span
               arg0:
-                l#320 :Lexer
+                l#353 :Lexer
               arg1:
-                esc_start#321 :Position
+                esc_start#354 :Position
           arg3:
             "expected '{' after \\u" :string
         return
@@ -3326,14 +3394,14 @@
             int(0) :i32
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#320 :Lexer
+        l#353 :Lexer
       arg1:
         int(1) :i32
-    let hex_start#322: i32 =
+    let hex_start#355: i32 =
       .pos :i32
-        l#320 :Lexer
+        l#353 :Lexer
     loop while (<…>)
       if :void
         cond:
@@ -3341,76 +3409,76 @@
             l:
               call :i32
                 callee:
-                  hex_digit_value#78 :fn(char) -> i32
+                  hex_digit_value#168 :fn(char) -> i32
                 arg0:
                   call :char
                     callee:
-                      peek#61 :char
+                      peek#67 :char
                     arg0:
-                      l#320 :Lexer
+                      l#353 :Lexer
             r:
               int(0) :i32
         then:
           call :void
             callee:
-              push_error#67 :void
+              push_error#73 :void
             arg0:
-              l#320 :Lexer
+              l#353 :Lexer
             arg1:
               int(8) :u8
             arg2:
               call :Span
                 callee:
-                  error_span#68 :Span
+                  error_span#74 :Span
                 arg0:
-                  l#320 :Lexer
+                  l#353 :Lexer
                 arg1:
-                  esc_start#321 :Position
+                  esc_start#354 :Position
             arg3:
               "invalid hex digit in codepoint escape" :string
           loop while (<…>)
             ~>
               call :void
                 callee:
-                  advance#64 :void
+                  advance#70 :void
                 arg0:
-                  l#320 :Lexer
+                  l#353 :Lexer
                 arg1:
                   int(1) :i32
           break
       ~>
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#320 :Lexer
+            l#353 :Lexer
           arg1:
             int(1) :i32
-    let hex_len#323: i32 =
+    let hex_len#356: i32 =
       sub :i32
         l:
           .pos :i32
-            l#320 :Lexer
+            l#353 :Lexer
         r:
-          hex_start#322 :i32
+          hex_start#355 :i32
     if :void
       cond:
         eq :bool
           l:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#320 :Lexer
+                l#353 :Lexer
           r:
             char(0x7d)
       then:
         ~>
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#320 :Lexer
+              l#353 :Lexer
             arg1:
               int(1) :i32
     if :void
@@ -3419,145 +3487,145 @@
           l:
             eq :bool
               l:
-                hex_len#323 :i32
+                hex_len#356 :i32
               r:
                 int(0) :i32
           r:
             gt :bool
               l:
-                hex_len#323 :i32
+                hex_len#356 :i32
               r:
                 int(6) :i32
       then:
         call :void
           callee:
-            push_error#67 :void
+            push_error#73 :void
           arg0:
-            l#320 :Lexer
+            l#353 :Lexer
           arg1:
             int(8) :u8
           arg2:
             call :Span
               callee:
-                error_span#68 :Span
+                error_span#74 :Span
               arg0:
-                l#320 :Lexer
+                l#353 :Lexer
               arg1:
-                esc_start#321 :Position
+                esc_start#354 :Position
           arg3:
             "codepoint escape must have 1–6 hex digits" :string
         return
           cast → u32
             int(0) :i32
-    let cp#324: u32 =
+    let cp#357: u32 =
       cast → u32
         int(0) :i32
-    let i#325: i32 = int(0) :i32
+    let i#358: i32 = int(0) :i32
     loop while (<…>)
-      let d#326: i32 =
+      let d#359: i32 =
         call :i32
           callee:
-            hex_digit_value#78 :fn(char) -> i32
+            hex_digit_value#168 :fn(char) -> i32
           arg0:
             call :char
               callee:
-                char_at#121 :char
+                char_at#127 :char
               arg0:
                 .src :string
-                  l#320 :Lexer
+                  l#353 :Lexer
               arg1:
                 add :i32
                   l:
-                    hex_start#322 :i32
+                    hex_start#355 :i32
                   r:
-                    i#325 :i32
+                    i#358 :i32
       assign
         target:
-          cp#324 :u32
+          cp#357 :u32
         value:
           add :u32
             l:
               mul :u32
                 l:
-                  cp#324 :u32
+                  cp#357 :u32
                 r:
                   cast → u32
                     int(16) :i32
             r:
               cast → u32
-                d#326 :i32
+                d#359 :i32
       assign
         target:
-          i#325 :i32
+          i#358 :i32
         value:
           add :i32
             l:
-              i#325 :i32
+              i#358 :i32
             r:
               int(1) :i32
     if :void
       cond:
         gt :bool
           l:
-            cp#324 :u32
+            cp#357 :u32
           r:
             cast → u32
               int(1114111) :i32
       then:
         call :void
           callee:
-            push_error#67 :void
+            push_error#73 :void
           arg0:
-            l#320 :Lexer
+            l#353 :Lexer
           arg1:
             int(8) :u8
           arg2:
             call :Span
               callee:
-                error_span#68 :Span
+                error_span#74 :Span
               arg0:
-                l#320 :Lexer
+                l#353 :Lexer
               arg1:
-                esc_start#321 :Position
+                esc_start#354 :Position
           arg3:
             "codepoint exceeds U+10FFFF" :string
         return
           cast → u32
             int(0) :i32
-    return cp#324 :u32
+    return cp#357 :u32
   fn vader_lexer$append_codepoint(sb: StringBuilder, cp: u32) -> void
     if :void
       cond:
         lt :bool
           l:
-            cp#328 :u32
+            cp#361 :u32
           r:
             cast → u32
               int(128) :i32
       then:
         call :void
           callee:
-            append_char#140 :void
+            append_char#149 :void
           arg0:
-            sb#327 :StringBuilder
+            sb#360 :StringBuilder
           arg1:
             cast → char
-              cp#328 :u32
+              cp#361 :u32
         return
     if :void
       cond:
         lt :bool
           l:
-            cp#328 :u32
+            cp#361 :u32
           r:
             cast → u32
               int(2048) :i32
       then:
         call :void
           callee:
-            append_char#140 :void
+            append_char#149 :void
           arg0:
-            sb#327 :StringBuilder
+            sb#360 :StringBuilder
           arg1:
             cast → char
               bitor :u32
@@ -3567,15 +3635,15 @@
                 r:
                   shr :u32
                     l:
-                      cp#328 :u32
+                      cp#361 :u32
                     r:
                       cast → u32
                         int(6) :i32
         call :void
           callee:
-            append_char#140 :void
+            append_char#149 :void
           arg0:
-            sb#327 :StringBuilder
+            sb#360 :StringBuilder
           arg1:
             cast → char
               bitor :u32
@@ -3585,7 +3653,7 @@
                 r:
                   bitand :u32
                     l:
-                      cp#328 :u32
+                      cp#361 :u32
                     r:
                       cast → u32
                         int(63) :i32
@@ -3594,16 +3662,16 @@
       cond:
         lt :bool
           l:
-            cp#328 :u32
+            cp#361 :u32
           r:
             cast → u32
               int(65536) :i32
       then:
         call :void
           callee:
-            append_char#140 :void
+            append_char#149 :void
           arg0:
-            sb#327 :StringBuilder
+            sb#360 :StringBuilder
           arg1:
             cast → char
               bitor :u32
@@ -3613,15 +3681,15 @@
                 r:
                   shr :u32
                     l:
-                      cp#328 :u32
+                      cp#361 :u32
                     r:
                       cast → u32
                         int(12) :i32
         call :void
           callee:
-            append_char#140 :void
+            append_char#149 :void
           arg0:
-            sb#327 :StringBuilder
+            sb#360 :StringBuilder
           arg1:
             cast → char
               bitor :u32
@@ -3633,7 +3701,7 @@
                     l:
                       shr :u32
                         l:
-                          cp#328 :u32
+                          cp#361 :u32
                         r:
                           cast → u32
                             int(6) :i32
@@ -3642,9 +3710,9 @@
                         int(63) :i32
         call :void
           callee:
-            append_char#140 :void
+            append_char#149 :void
           arg0:
-            sb#327 :StringBuilder
+            sb#360 :StringBuilder
           arg1:
             cast → char
               bitor :u32
@@ -3654,16 +3722,16 @@
                 r:
                   bitand :u32
                     l:
-                      cp#328 :u32
+                      cp#361 :u32
                     r:
                       cast → u32
                         int(63) :i32
         return
     call :void
       callee:
-        append_char#140 :void
+        append_char#149 :void
       arg0:
-        sb#327 :StringBuilder
+        sb#360 :StringBuilder
       arg1:
         cast → char
           bitor :u32
@@ -3673,15 +3741,15 @@
             r:
               shr :u32
                 l:
-                  cp#328 :u32
+                  cp#361 :u32
                 r:
                   cast → u32
                     int(18) :i32
     call :void
       callee:
-        append_char#140 :void
+        append_char#149 :void
       arg0:
-        sb#327 :StringBuilder
+        sb#360 :StringBuilder
       arg1:
         cast → char
           bitor :u32
@@ -3693,7 +3761,7 @@
                 l:
                   shr :u32
                     l:
-                      cp#328 :u32
+                      cp#361 :u32
                     r:
                       cast → u32
                         int(12) :i32
@@ -3702,9 +3770,9 @@
                     int(63) :i32
     call :void
       callee:
-        append_char#140 :void
+        append_char#149 :void
       arg0:
-        sb#327 :StringBuilder
+        sb#360 :StringBuilder
       arg1:
         cast → char
           bitor :u32
@@ -3716,7 +3784,7 @@
                 l:
                   shr :u32
                     l:
-                      cp#328 :u32
+                      cp#361 :u32
                     r:
                       cast → u32
                         int(6) :i32
@@ -3726,9 +3794,9 @@
     ~>
       call :void
         callee:
-          append_char#140 :void
+          append_char#149 :void
         arg0:
-          sb#327 :StringBuilder
+          sb#360 :StringBuilder
         arg1:
           cast → char
             bitor :u32
@@ -3738,22 +3806,22 @@
               r:
                 bitand :u32
                   l:
-                    cp#328 :u32
+                    cp#361 :u32
                   r:
                     cast → u32
                       int(63) :i32
   fn vader_lexer$lex_char(l: Lexer) -> void
-    let start#330: Position =
+    let start#363: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#329 :Lexer
+          l#362 :Lexer
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#329 :Lexer
+        l#362 :Lexer
       arg1:
         int(1) :i32
     if :void
@@ -3762,81 +3830,81 @@
           l:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#329 :Lexer
+                l#362 :Lexer
           r:
             char(0x27)
       then:
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#329 :Lexer
+            l#362 :Lexer
           arg1:
             int(1) :i32
         call :void
           callee:
-            push_error#67 :void
+            push_error#73 :void
           arg0:
-            l#329 :Lexer
+            l#362 :Lexer
           arg1:
             int(4) :u8
           arg2:
             call :Span
               callee:
-                error_span#68 :Span
+                error_span#74 :Span
               arg0:
-                l#329 :Lexer
+                l#362 :Lexer
               arg1:
-                start#330 :Position
+                start#363 :Position
           arg3:
             "character literal cannot be empty" :string
-        let text#331: string =
+        let text#364: string =
           call :string
             callee:
-              slice#117 :string
+              slice#123 :string
             arg0:
               .src :string
-                l#329 :Lexer
+                l#362 :Lexer
             arg1:
               .offset :i32
-                start#330 :Position
+                start#363 :Position
             arg2:
               .pos :i32
-                l#329 :Lexer
-        let t#332: Token =
+                l#362 :Lexer
+        let t#365: Token =
           call :Token
             callee:
-              make_token#98 :fn(TokenKind, string, Span) -> Token
+              make_token#104 :fn(TokenKind, string, Span) -> Token
             arg0:
               int(5) :u8
             arg1:
-              text#331 :string
+              text#364 :string
             arg2:
               call :Span
                 callee:
-                  error_span#68 :Span
+                  error_span#74 :Span
                 arg0:
-                  l#329 :Lexer
+                  l#362 :Lexer
                 arg1:
-                  start#330 :Position
+                  start#363 :Position
         assign
           target:
             .value :f64 | i64 | null | string | u32
-              t#332 :Token
+              t#365 :Token
           value:
             cast → u32
               int(0) :i32
         call :void
           callee:
-            emit#65 :void
+            emit#71 :void
           arg0:
-            l#329 :Lexer
+            l#362 :Lexer
           arg1:
-            t#332 :Token
+            t#365 :Token
         return
-    let cp#333: u32 =
+    let cp#366: u32 =
       cast → u32
         int(0) :i32
     if :void
@@ -3845,21 +3913,21 @@
           l:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#329 :Lexer
+                l#362 :Lexer
           r:
             char(0x5c)
       then:
         assign
           target:
-            cp#333 :u32
+            cp#366 :u32
           value:
             call :u32
               callee:
-                lex_escape#79 :u32
+                lex_escape#85 :u32
               arg0:
-                l#329 :Lexer
+                l#362 :Lexer
       else:
         ~>
           if :void
@@ -3870,96 +3938,96 @@
                     l:
                       call :char
                         callee:
-                          peek#61 :char
+                          peek#67 :char
                         arg0:
-                          l#329 :Lexer
+                          l#362 :Lexer
                     r:
                       char(0xa)
                 r:
                   call :bool
                     callee:
-                      at_end#60 :bool
+                      at_end#66 :bool
                     arg0:
-                      l#329 :Lexer
+                      l#362 :Lexer
             then:
               call :void
                 callee:
-                  push_error#67 :void
+                  push_error#73 :void
                 arg0:
-                  l#329 :Lexer
+                  l#362 :Lexer
                 arg1:
                   int(4) :u8
                 arg2:
                   call :Span
                     callee:
-                      error_span#68 :Span
+                      error_span#74 :Span
                     arg0:
-                      l#329 :Lexer
+                      l#362 :Lexer
                     arg1:
-                      start#330 :Position
+                      start#363 :Position
                 arg3:
                   "unterminated character literal" :string
-              let text#334: string =
+              let text#367: string =
                 call :string
                   callee:
-                    slice#117 :string
+                    slice#123 :string
                   arg0:
                     .src :string
-                      l#329 :Lexer
+                      l#362 :Lexer
                   arg1:
                     .offset :i32
-                      start#330 :Position
+                      start#363 :Position
                   arg2:
                     .pos :i32
-                      l#329 :Lexer
-              let t#335: Token =
+                      l#362 :Lexer
+              let t#368: Token =
                 call :Token
                   callee:
-                    make_token#98 :fn(TokenKind, string, Span) -> Token
+                    make_token#104 :fn(TokenKind, string, Span) -> Token
                   arg0:
                     int(5) :u8
                   arg1:
-                    text#334 :string
+                    text#367 :string
                   arg2:
                     call :Span
                       callee:
-                        error_span#68 :Span
+                        error_span#74 :Span
                       arg0:
-                        l#329 :Lexer
+                        l#362 :Lexer
                       arg1:
-                        start#330 :Position
+                        start#363 :Position
               assign
                 target:
                   .value :f64 | i64 | null | string | u32
-                    t#335 :Token
+                    t#368 :Token
                 value:
                   cast → u32
                     int(0) :i32
               call :void
                 callee:
-                  emit#65 :void
+                  emit#71 :void
                 arg0:
-                  l#329 :Lexer
+                  l#362 :Lexer
                 arg1:
-                  t#335 :Token
+                  t#368 :Token
               return
             else:
               assign
                 target:
-                  cp#333 :u32
+                  cp#366 :u32
                 value:
                   cast → u32
                     call :char
                       callee:
-                        peek#61 :char
+                        peek#67 :char
                       arg0:
-                        l#329 :Lexer
+                        l#362 :Lexer
               ~>
                 call :void
                   callee:
-                    advance#64 :void
+                    advance#70 :void
                   arg0:
-                    l#329 :Lexer
+                    l#362 :Lexer
                   arg1:
                     int(1) :i32
     if :void
@@ -3968,36 +4036,36 @@
           l:
             call :char
               callee:
-                peek#61 :char
+                peek#67 :char
               arg0:
-                l#329 :Lexer
+                l#362 :Lexer
           r:
             char(0x27)
       then:
         call :void
           callee:
-            push_error#67 :void
+            push_error#73 :void
           arg0:
-            l#329 :Lexer
+            l#362 :Lexer
           arg1:
             int(4) :u8
           arg2:
             call :Span
               callee:
-                error_span#68 :Span
+                error_span#74 :Span
               arg0:
-                l#329 :Lexer
+                l#362 :Lexer
               arg1:
-                start#330 :Position
+                start#363 :Position
           arg3:
             "character literal must contain exactly one codepoint" :string
         loop while (<…>)
           ~>
             call :void
               callee:
-                advance#64 :void
+                advance#70 :void
               arg0:
-                l#329 :Lexer
+                l#362 :Lexer
               arg1:
                 int(1) :i32
         ~>
@@ -4007,80 +4075,80 @@
                 l:
                   call :char
                     callee:
-                      peek#61 :char
+                      peek#67 :char
                     arg0:
-                      l#329 :Lexer
+                      l#362 :Lexer
                 r:
                   char(0x27)
             then:
               ~>
                 call :void
                   callee:
-                    advance#64 :void
+                    advance#70 :void
                   arg0:
-                    l#329 :Lexer
+                    l#362 :Lexer
                   arg1:
                     int(1) :i32
       else:
         ~>
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#329 :Lexer
+              l#362 :Lexer
             arg1:
               int(1) :i32
-    let text#336: string =
+    let text#369: string =
       call :string
         callee:
-          slice#117 :string
+          slice#123 :string
         arg0:
           .src :string
-            l#329 :Lexer
+            l#362 :Lexer
         arg1:
           .offset :i32
-            start#330 :Position
+            start#363 :Position
         arg2:
           .pos :i32
-            l#329 :Lexer
-    let t#337: Token =
+            l#362 :Lexer
+    let t#370: Token =
       call :Token
         callee:
-          make_token#98 :fn(TokenKind, string, Span) -> Token
+          make_token#104 :fn(TokenKind, string, Span) -> Token
         arg0:
           int(5) :u8
         arg1:
-          text#336 :string
+          text#369 :string
         arg2:
           call :Span
             callee:
-              error_span#68 :Span
+              error_span#74 :Span
             arg0:
-              l#329 :Lexer
+              l#362 :Lexer
             arg1:
-              start#330 :Position
+              start#363 :Position
     assign
       target:
         .value :f64 | i64 | null | string | u32
-          t#337 :Token
+          t#370 :Token
       value:
-        cp#333 :u32
+        cp#366 :u32
     ~>
       call :void
         callee:
-          emit#65 :void
+          emit#71 :void
         arg0:
-          l#329 :Lexer
+          l#362 :Lexer
         arg1:
-          t#337 :Token
+          t#370 :Token
   fn vader_lexer$top_interp(l: Lexer) -> InterpFrame | null
-    let n#339: i32 =
+    let n#372: i32 =
       LoweredArrayLen
     if :void
       cond:
         eq :bool
           l:
-            n#339 :i32
+            n#372 :i32
           r:
             int(0) :i32
       then:
@@ -4089,21 +4157,21 @@
       index :InterpFrame
         on:
           .interp_stack :[InterpFrame]
-            l#338 :Lexer
+            l#371 :Lexer
         ix:
           sub :i32
             l:
-              n#339 :i32
+              n#372 :i32
             r:
               int(1) :i32
   fn vader_lexer$pop_interp(l: Lexer) -> void
-    let n#341: i32 =
+    let n#374: i32 =
       LoweredArrayLen
     if :void
       cond:
         eq :bool
           l:
-            n#341 :i32
+            n#374 :i32
           r:
             int(0) :i32
       then:
@@ -4111,49 +4179,49 @@
     assign
       target:
         .interp_stack :[InterpFrame]
-          l#340 :Lexer
+          l#373 :Lexer
       value:
         call :[InterpFrame]
           callee:
-            slice#1000014 :[InterpFrame]
+            slice#1000015 :[InterpFrame]
           arg0:
             .interp_stack :[InterpFrame]
-              l#340 :Lexer
+              l#373 :Lexer
           arg1:
             int(0) :i32
           arg2:
             sub :i32
               l:
-                n#341 :i32
+                n#374 :i32
               r:
                 int(1) :i32
   fn vader_lexer$lex_string(l: Lexer, raw: bool) -> void
-    let start#344: Position =
+    let start#377: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#342 :Lexer
+          l#375 :Lexer
     if :void
       cond:
-        raw#343 :bool
+        raw#376 :bool
       then:
         ~>
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#342 :Lexer
+              l#375 :Lexer
             arg1:
               int(1) :i32
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#342 :Lexer
+        l#375 :Lexer
       arg1:
         int(1) :i32
-    let triple#345: bool = false
+    let triple#378: bool = false
     if :void
       cond:
         and :bool
@@ -4162,9 +4230,9 @@
               l:
                 call :char
                   callee:
-                    peek#61 :char
+                    peek#67 :char
                   arg0:
-                    l#342 :Lexer
+                    l#375 :Lexer
               r:
                 char(0x22)
           r:
@@ -4172,9 +4240,9 @@
               l:
                 call :char
                   callee:
-                    peek_at#62 :char
+                    peek_at#68 :char
                   arg0:
-                    l#342 :Lexer
+                    l#375 :Lexer
                   arg1:
                     int(1) :i32
               r:
@@ -4182,14 +4250,14 @@
       then:
         assign
           target:
-            triple#345 :bool
+            triple#378 :bool
           value:
             true
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#342 :Lexer
+            l#375 :Lexer
           arg1:
             int(2) :i32
         ~>
@@ -4201,9 +4269,9 @@
                     l:
                       call :char
                         callee:
-                          peek#61 :char
+                          peek#67 :char
                         arg0:
-                          l#342 :Lexer
+                          l#375 :Lexer
                     r:
                       char(0xd)
                 r:
@@ -4211,9 +4279,9 @@
                     l:
                       call :char
                         callee:
-                          peek_at#62 :char
+                          peek_at#68 :char
                         arg0:
-                          l#342 :Lexer
+                          l#375 :Lexer
                         arg1:
                           int(1) :i32
                     r:
@@ -4222,9 +4290,9 @@
               ~>
                 call :void
                   callee:
-                    advance#64 :void
+                    advance#70 :void
                   arg0:
-                    l#342 :Lexer
+                    l#375 :Lexer
                   arg1:
                     int(2) :i32
             else:
@@ -4235,138 +4303,138 @@
                       l:
                         call :char
                           callee:
-                            peek#61 :char
+                            peek#67 :char
                           arg0:
-                            l#342 :Lexer
+                            l#375 :Lexer
                       r:
                         char(0xa)
                   then:
                     ~>
                       call :void
                         callee:
-                          advance#64 :void
+                          advance#70 :void
                         arg0:
-                          l#342 :Lexer
+                          l#375 :Lexer
                         arg1:
                           int(1) :i32
-    let text#346: string =
+    let text#379: string =
       call :string
         callee:
-          slice#117 :string
+          slice#123 :string
         arg0:
           .src :string
-            l#342 :Lexer
+            l#375 :Lexer
         arg1:
           .offset :i32
-            start#344 :Position
+            start#377 :Position
         arg2:
           .pos :i32
-            l#342 :Lexer
-    let span#347: Span =
+            l#375 :Lexer
+    let span#380: Span =
       Span {
-        start: start#344 :Position
+        start: start#377 :Position
         end:
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#342 :Lexer
+              l#375 :Lexer
       }
     call :void
       callee:
-        emit#65 :void
+        emit#71 :void
       arg0:
-        l#342 :Lexer
+        l#375 :Lexer
       arg1:
         call :Token
           callee:
-            make_token#98 :fn(TokenKind, string, Span) -> Token
+            make_token#104 :fn(TokenKind, string, Span) -> Token
           arg0:
             int(6) :u8
           arg1:
-            text#346 :string
+            text#379 :string
           arg2:
-            span#347 :Span
+            span#380 :Span
     ~>
       call :void
         callee:
-          lex_string_body#87 :void
+          lex_string_body#93 :void
         arg0:
-          l#342 :Lexer
+          l#375 :Lexer
         arg1:
-          triple#345 :bool
+          triple#378 :bool
         arg2:
-          raw#343 :bool
+          raw#376 :bool
   fn vader_lexer$flush_string_part(l: Lexer, sb: StringBuilder, part_start: Position, has_part: bool) -> void
     if :void
       cond:
         not :bool
-          has_part#351 :bool
+          has_part#384 :bool
       then:
         return
-    let text#352: string =
+    let text#385: string =
       call :string
         callee:
-          to_string#142 :string
+          to_string#151 :string
         arg0:
-          sb#349 :StringBuilder
-    let span#353: Span =
+          sb#382 :StringBuilder
+    let span#386: Span =
       Span {
-        start: part_start#350 :Position
+        start: part_start#383 :Position
         end:
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#348 :Lexer
+              l#381 :Lexer
       }
-    let t#354: Token =
+    let t#387: Token =
       call :Token
         callee:
-          make_token#98 :fn(TokenKind, string, Span) -> Token
+          make_token#104 :fn(TokenKind, string, Span) -> Token
         arg0:
           int(7) :u8
         arg1:
-          text#352 :string
+          text#385 :string
         arg2:
-          span#353 :Span
+          span#386 :Span
     assign
       target:
         .value :f64 | i64 | null | string | u32
-          t#354 :Token
+          t#387 :Token
       value:
-        text#352 :string
+        text#385 :string
     ~>
       call :void
         callee:
-          emit#65 :void
+          emit#71 :void
         arg0:
-          l#348 :Lexer
+          l#381 :Lexer
         arg1:
-          t#354 :Token
+          t#387 :Token
   fn vader_lexer$lex_string_body(l: Lexer, triple: bool, raw: bool) -> void
-    let part_start#358: Position =
+    let part_start#391: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#355 :Lexer
-    let sb#359: StringBuilder =
+          l#388 :Lexer
+    let sb#392: StringBuilder =
       call :StringBuilder
         callee:
-          new_builder#138 :fn() -> StringBuilder
-    let has_part#360: bool = false
+          new_builder#147 :fn() -> StringBuilder
+    let has_part#393: bool = false
     loop while (<…>)
-      let c#361: char =
+      let c#394: char =
         call :char
           callee:
-            peek#61 :char
+            peek#67 :char
           arg0:
-            l#355 :Lexer
-      let is_close#362: bool = false
+            l#388 :Lexer
+      let is_close#395: bool = false
       if :void
         cond:
-          triple#356 :bool
+          triple#389 :bool
         then:
           ~>
             if :void
@@ -4377,7 +4445,7 @@
                       l:
                         eq :bool
                           l:
-                            c#361 :char
+                            c#394 :char
                           r:
                             char(0x22)
                       r:
@@ -4385,9 +4453,9 @@
                           l:
                             call :char
                               callee:
-                                peek_at#62 :char
+                                peek_at#68 :char
                               arg0:
-                                l#355 :Lexer
+                                l#388 :Lexer
                               arg1:
                                 int(1) :i32
                           r:
@@ -4397,9 +4465,9 @@
                       l:
                         call :char
                           callee:
-                            peek_at#62 :char
+                            peek_at#68 :char
                           arg0:
-                            l#355 :Lexer
+                            l#388 :Lexer
                           arg1:
                             int(2) :i32
                       r:
@@ -4407,7 +4475,7 @@
               then:
                 assign
                   target:
-                    is_close#362 :bool
+                    is_close#395 :bool
                   value:
                     true
         else:
@@ -4416,154 +4484,154 @@
               cond:
                 eq :bool
                   l:
-                    c#361 :char
+                    c#394 :char
                   r:
                     char(0x22)
               then:
                 assign
                   target:
-                    is_close#362 :bool
+                    is_close#395 :bool
                   value:
                     true
       if :void
         cond:
-          is_close#362 :bool
+          is_close#395 :bool
         then:
           call :void
             callee:
-              flush_string_part#86 :fn(Lexer, StringBuilder, Position, bool) -> void
+              flush_string_part#92 :fn(Lexer, StringBuilder, Position, bool) -> void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
-              sb#359 :StringBuilder
+              sb#392 :StringBuilder
             arg2:
-              part_start#358 :Position
+              part_start#391 :Position
             arg3:
-              has_part#360 :bool
-          let close_start#363: Position =
+              has_part#393 :bool
+          let close_start#396: Position =
             call :Position
               callee:
-                position_here#63 :Position
+                position_here#69 :Position
               arg0:
-                l#355 :Lexer
-          let close_text#364: string = "\"" :string
+                l#388 :Lexer
+          let close_text#397: string = "\"" :string
           if :void
             cond:
-              triple#356 :bool
+              triple#389 :bool
             then:
               call :void
                 callee:
-                  advance#64 :void
+                  advance#70 :void
                 arg0:
-                  l#355 :Lexer
+                  l#388 :Lexer
                 arg1:
                   int(3) :i32
               assign
                 target:
-                  close_text#364 :string
+                  close_text#397 :string
                 value:
                   "\"\"\"" :string
             else:
               ~>
                 call :void
                   callee:
-                    advance#64 :void
+                    advance#70 :void
                   arg0:
-                    l#355 :Lexer
+                    l#388 :Lexer
                   arg1:
                     int(1) :i32
-          let close_span#365: Span =
+          let close_span#398: Span =
             Span {
-              start: close_start#363 :Position
+              start: close_start#396 :Position
               end:
                 call :Position
                   callee:
-                    position_here#63 :Position
+                    position_here#69 :Position
                   arg0:
-                    l#355 :Lexer
+                    l#388 :Lexer
             }
           call :void
             callee:
-              emit#65 :void
+              emit#71 :void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
               call :Token
                 callee:
-                  make_token#98 :fn(TokenKind, string, Span) -> Token
+                  make_token#104 :fn(TokenKind, string, Span) -> Token
                 arg0:
                   int(8) :u8
                 arg1:
-                  close_text#364 :string
+                  close_text#397 :string
                 arg2:
-                  close_span#365 :Span
+                  close_span#398 :Span
           return
       if :void
         cond:
           and :bool
             l:
               not :bool
-                triple#356 :bool
+                triple#389 :bool
             r:
               eq :bool
                 l:
-                  c#361 :char
+                  c#394 :char
                 r:
                   char(0xa)
         then:
           call :void
             callee:
-              push_error#67 :void
+              push_error#73 :void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
               int(1) :u8
             arg2:
               Span {
-                start: part_start#358 :Position
+                start: part_start#391 :Position
                 end:
                   call :Position
                     callee:
-                      position_here#63 :Position
+                      position_here#69 :Position
                     arg0:
-                      l#355 :Lexer
+                      l#388 :Lexer
               }
             arg3:
               "" :string
           call :void
             callee:
-              flush_string_part#86 :fn(Lexer, StringBuilder, Position, bool) -> void
+              flush_string_part#92 :fn(Lexer, StringBuilder, Position, bool) -> void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
-              sb#359 :StringBuilder
+              sb#392 :StringBuilder
             arg2:
-              part_start#358 :Position
+              part_start#391 :Position
             arg3:
-              has_part#360 :bool
-          let here#366: Position =
+              has_part#393 :bool
+          let here#399: Position =
             call :Position
               callee:
-                position_here#63 :Position
+                position_here#69 :Position
               arg0:
-                l#355 :Lexer
+                l#388 :Lexer
           call :void
             callee:
-              emit#65 :void
+              emit#71 :void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
               call :Token
                 callee:
-                  make_token#98 :fn(TokenKind, string, Span) -> Token
+                  make_token#104 :fn(TokenKind, string, Span) -> Token
                 arg0:
                   int(8) :u8
                 arg1:
                   "" :string
                 arg2:
                   Span {
-                    start: here#366 :Position
-                    end: here#366 :Position
+                    start: here#399 :Position
+                    end: here#399 :Position
                   }
           return
       if :void
@@ -4573,11 +4641,11 @@
               and :bool
                 l:
                   not :bool
-                    raw#357 :bool
+                    raw#390 :bool
                 r:
                   eq :bool
                     l:
-                      c#361 :char
+                      c#394 :char
                     r:
                       char(0x24)
             r:
@@ -4585,9 +4653,9 @@
                 l:
                   call :char
                     callee:
-                      peek_at#62 :char
+                      peek_at#68 :char
                     arg0:
-                      l#355 :Lexer
+                      l#388 :Lexer
                     arg1:
                       int(1) :i32
                 r:
@@ -4595,53 +4663,53 @@
         then:
           call :void
             callee:
-              flush_string_part#86 :fn(Lexer, StringBuilder, Position, bool) -> void
+              flush_string_part#92 :fn(Lexer, StringBuilder, Position, bool) -> void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
-              sb#359 :StringBuilder
+              sb#392 :StringBuilder
             arg2:
-              part_start#358 :Position
+              part_start#391 :Position
             arg3:
-              has_part#360 :bool
-          let op_start#367: Position =
+              has_part#393 :bool
+          let op_start#400: Position =
             call :Position
               callee:
-                position_here#63 :Position
+                position_here#69 :Position
               arg0:
-                l#355 :Lexer
+                l#388 :Lexer
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
               int(2) :i32
-          let op_span#368: Span =
+          let op_span#401: Span =
             Span {
-              start: op_start#367 :Position
+              start: op_start#400 :Position
               end:
                 call :Position
                   callee:
-                    position_here#63 :Position
+                    position_here#69 :Position
                   arg0:
-                    l#355 :Lexer
+                    l#388 :Lexer
             }
           call :void
             callee:
-              emit#65 :void
+              emit#71 :void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
               call :Token
                 callee:
-                  make_token#98 :fn(TokenKind, string, Span) -> Token
+                  make_token#104 :fn(TokenKind, string, Span) -> Token
                 arg0:
                   int(9) :u8
                 arg1:
                   "${" :string
                 arg2:
-                  op_span#368 :Span
+                  op_span#401 :Span
           LoweredArrayPush
           return
       if :void
@@ -4651,123 +4719,123 @@
               and :bool
                 l:
                   not :bool
-                    raw#357 :bool
+                    raw#390 :bool
                 r:
                   eq :bool
                     l:
-                      c#361 :char
+                      c#394 :char
                     r:
                       char(0x24)
             r:
               call :bool
                 callee:
-                  is_ident_start#57 :bool
+                  is_ident_start#63 :bool
                 arg0:
                   call :char
                     callee:
-                      peek_at#62 :char
+                      peek_at#68 :char
                     arg0:
-                      l#355 :Lexer
+                      l#388 :Lexer
                     arg1:
                       int(1) :i32
         then:
           call :void
             callee:
-              flush_string_part#86 :fn(Lexer, StringBuilder, Position, bool) -> void
+              flush_string_part#92 :fn(Lexer, StringBuilder, Position, bool) -> void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
-              sb#359 :StringBuilder
+              sb#392 :StringBuilder
             arg2:
-              part_start#358 :Position
+              part_start#391 :Position
             arg3:
-              has_part#360 :bool
-          let op_start#369: Position =
+              has_part#393 :bool
+          let op_start#402: Position =
             call :Position
               callee:
-                position_here#63 :Position
+                position_here#69 :Position
               arg0:
-                l#355 :Lexer
+                l#388 :Lexer
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
               int(1) :i32
-          let op_span#370: Span =
+          let op_span#403: Span =
             Span {
-              start: op_start#369 :Position
+              start: op_start#402 :Position
               end:
                 call :Position
                   callee:
-                    position_here#63 :Position
+                    position_here#69 :Position
                   arg0:
-                    l#355 :Lexer
+                    l#388 :Lexer
             }
           call :void
             callee:
-              emit#65 :void
+              emit#71 :void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
               call :Token
                 callee:
-                  make_token#98 :fn(TokenKind, string, Span) -> Token
+                  make_token#104 :fn(TokenKind, string, Span) -> Token
                 arg0:
                   int(9) :u8
                 arg1:
                   "$" :string
                 arg2:
-                  op_span#370 :Span
+                  op_span#403 :Span
           call :void
             callee:
-              lex_ident#72 :void
+              lex_ident#78 :void
             arg0:
-              l#355 :Lexer
-          let here#371: Position =
+              l#388 :Lexer
+          let here#404: Position =
             call :Position
               callee:
-                position_here#63 :Position
+                position_here#69 :Position
               arg0:
-                l#355 :Lexer
+                l#388 :Lexer
           call :void
             callee:
-              emit#65 :void
+              emit#71 :void
             arg0:
-              l#355 :Lexer
+              l#388 :Lexer
             arg1:
               call :Token
                 callee:
-                  make_token#98 :fn(TokenKind, string, Span) -> Token
+                  make_token#104 :fn(TokenKind, string, Span) -> Token
                 arg0:
                   int(10) :u8
                 arg1:
                   "" :string
                 arg2:
                   Span {
-                    start: here#371 :Position
-                    end: here#371 :Position
+                    start: here#404 :Position
+                    end: here#404 :Position
                   }
           assign
             target:
-              part_start#358 :Position
+              part_start#391 :Position
             value:
               call :Position
                 callee:
-                  position_here#63 :Position
+                  position_here#69 :Position
                 arg0:
-                  l#355 :Lexer
+                  l#388 :Lexer
           assign
             target:
-              sb#359 :StringBuilder
+              sb#392 :StringBuilder
             value:
               call :StringBuilder
                 callee:
-                  new_builder#138 :fn() -> StringBuilder
+                  new_builder#147 :fn() -> StringBuilder
           assign
             target:
-              has_part#360 :bool
+              has_part#393 :bool
             value:
               false
           continue
@@ -4776,121 +4844,121 @@
           and :bool
             l:
               not :bool
-                raw#357 :bool
+                raw#390 :bool
             r:
               eq :bool
                 l:
-                  c#361 :char
+                  c#394 :char
                 r:
                   char(0x5c)
         then:
-          let cp#372: u32 =
+          let cp#405: u32 =
             call :u32
               callee:
-                lex_escape#79 :u32
+                lex_escape#85 :u32
               arg0:
-                l#355 :Lexer
+                l#388 :Lexer
           call :void
             callee:
-              append_codepoint#81 :void
+              append_codepoint#87 :void
             arg0:
-              sb#359 :StringBuilder
+              sb#392 :StringBuilder
             arg1:
-              cp#372 :u32
+              cp#405 :u32
           assign
             target:
-              has_part#360 :bool
+              has_part#393 :bool
             value:
               true
           continue
       call :void
         callee:
-          append_char#140 :void
+          append_char#149 :void
         arg0:
-          sb#359 :StringBuilder
+          sb#392 :StringBuilder
         arg1:
-          c#361 :char
+          c#394 :char
       assign
         target:
-          has_part#360 :bool
+          has_part#393 :bool
         value:
           true
       ~>
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#355 :Lexer
+            l#388 :Lexer
           arg1:
             int(1) :i32
     call :void
       callee:
-        push_error#67 :void
+        push_error#73 :void
       arg0:
-        l#355 :Lexer
+        l#388 :Lexer
       arg1:
         int(1) :u8
       arg2:
         Span {
-          start: part_start#358 :Position
+          start: part_start#391 :Position
           end:
             call :Position
               callee:
-                position_here#63 :Position
+                position_here#69 :Position
               arg0:
-                l#355 :Lexer
+                l#388 :Lexer
         }
       arg3:
         "" :string
     call :void
       callee:
-        flush_string_part#86 :fn(Lexer, StringBuilder, Position, bool) -> void
+        flush_string_part#92 :fn(Lexer, StringBuilder, Position, bool) -> void
       arg0:
-        l#355 :Lexer
+        l#388 :Lexer
       arg1:
-        sb#359 :StringBuilder
+        sb#392 :StringBuilder
       arg2:
-        part_start#358 :Position
+        part_start#391 :Position
       arg3:
-        has_part#360 :bool
-    let here#373: Position =
+        has_part#393 :bool
+    let here#406: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#355 :Lexer
+          l#388 :Lexer
     ~>
       call :void
         callee:
-          emit#65 :void
+          emit#71 :void
         arg0:
-          l#355 :Lexer
+          l#388 :Lexer
         arg1:
           call :Token
             callee:
-              make_token#98 :fn(TokenKind, string, Span) -> Token
+              make_token#104 :fn(TokenKind, string, Span) -> Token
             arg0:
               int(8) :u8
             arg1:
               "" :string
             arg2:
               Span {
-                start: here#373 :Position
-                end: here#373 :Position
+                start: here#406 :Position
+                end: here#406 :Position
               }
   fn vader_lexer$try_lex_operator(l: Lexer) -> bool
-    let c#375: char =
+    let c#408: char =
       call :char
         callee:
-          peek#61 :char
+          peek#67 :char
         arg0:
-          l#374 :Lexer
-    let c2#376: char =
+          l#407 :Lexer
+    let c2#409: char =
       call :char
         callee:
-          peek_at#62 :char
+          peek_at#68 :char
         arg0:
-          l#374 :Lexer
+          l#407 :Lexer
         arg1:
           int(1) :i32
     if :void
@@ -4899,90 +4967,90 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x2e)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x2e)
       then:
-        let c3#377: char =
+        let c3#410: char =
           call :char
             callee:
-              peek_at#62 :char
+              peek_at#68 :char
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(2) :i32
         if :void
           cond:
             eq :bool
               l:
-                c3#377 :char
+                c3#410 :char
               r:
                 char(0x3c)
           then:
-            let start#378: Position =
+            let start#411: Position =
               call :Position
                 callee:
-                  position_here#63 :Position
+                  position_here#69 :Position
                 arg0:
-                  l#374 :Lexer
+                  l#407 :Lexer
             call :void
               callee:
-                advance#64 :void
+                advance#70 :void
               arg0:
-                l#374 :Lexer
+                l#407 :Lexer
               arg1:
                 int(3) :i32
             call :void
               callee:
-                push_simple#66 :void
+                push_simple#72 :void
               arg0:
-                l#374 :Lexer
+                l#407 :Lexer
               arg1:
                 int(59) :u8
               arg2:
                 "..<" :string
               arg3:
-                start#378 :Position
+                start#411 :Position
             return true
         ~>
           if :void
             cond:
               eq :bool
                 l:
-                  c3#377 :char
+                  c3#410 :char
                 r:
                   char(0x3d)
             then:
-              let start#379: Position =
+              let start#412: Position =
                 call :Position
                   callee:
-                    position_here#63 :Position
+                    position_here#69 :Position
                   arg0:
-                    l#374 :Lexer
+                    l#407 :Lexer
               call :void
                 callee:
-                  advance#64 :void
+                  advance#70 :void
                 arg0:
-                  l#374 :Lexer
+                  l#407 :Lexer
                 arg1:
                   int(3) :i32
               call :void
                 callee:
-                  push_simple#66 :void
+                  push_simple#72 :void
                 arg0:
-                  l#374 :Lexer
+                  l#407 :Lexer
                 arg1:
                   int(60) :u8
                 arg2:
                   "..=" :string
                 arg3:
-                  start#379 :Position
+                  start#412 :Position
               return true
     if :void
       cond:
@@ -4990,22 +5058,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x3d)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3d)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(47) :u8
             arg2:
@@ -5016,22 +5084,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x21)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3d)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(48) :u8
             arg2:
@@ -5042,22 +5110,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x3c)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3d)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(50) :u8
             arg2:
@@ -5068,22 +5136,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x3e)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3d)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(52) :u8
             arg2:
@@ -5094,22 +5162,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x26)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x26)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(53) :u8
             arg2:
@@ -5120,22 +5188,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x7c)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x7c)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(54) :u8
             arg2:
@@ -5146,22 +5214,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x3c)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3c)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(45) :u8
             arg2:
@@ -5172,22 +5240,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x3e)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3e)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(46) :u8
             arg2:
@@ -5198,22 +5266,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x2d)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3e)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(62) :u8
             arg2:
@@ -5224,22 +5292,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x3d)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3e)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(63) :u8
             arg2:
@@ -5250,22 +5318,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x3a)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3a)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(57) :u8
             arg2:
@@ -5276,22 +5344,22 @@
           l:
             eq :bool
               l:
-                c#375 :char
+                c#408 :char
               r:
                 char(0x3a)
           r:
             eq :bool
               l:
-                c2#376 :char
+                c2#409 :char
               r:
                 char(0x3d)
       then:
         return
           call :bool
             callee:
-              emit2#90 :bool
+              emit2#96 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(58) :u8
             arg2:
@@ -5300,16 +5368,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x2b)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(36) :u8
             arg2:
@@ -5318,16 +5386,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x2d)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(37) :u8
             arg2:
@@ -5336,16 +5404,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x2a)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(38) :u8
             arg2:
@@ -5354,16 +5422,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x2f)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(39) :u8
             arg2:
@@ -5372,16 +5440,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x25)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(40) :u8
             arg2:
@@ -5390,16 +5458,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x26)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(41) :u8
             arg2:
@@ -5408,16 +5476,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x7c)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(42) :u8
             arg2:
@@ -5426,16 +5494,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x5e)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(43) :u8
             arg2:
@@ -5444,16 +5512,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x7e)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(44) :u8
             arg2:
@@ -5462,16 +5530,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x3c)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(49) :u8
             arg2:
@@ -5480,16 +5548,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x3e)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(51) :u8
             arg2:
@@ -5498,16 +5566,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x21)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(55) :u8
             arg2:
@@ -5516,16 +5584,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x3d)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(56) :u8
             arg2:
@@ -5534,16 +5602,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x3f)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(61) :u8
             arg2:
@@ -5552,16 +5620,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x40)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(64) :u8
             arg2:
@@ -5570,16 +5638,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x24)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(65) :u8
             arg2:
@@ -5588,16 +5656,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x3a)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(74) :u8
             arg2:
@@ -5606,16 +5674,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x2c)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(72) :u8
             arg2:
@@ -5624,16 +5692,16 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x2e)
       then:
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(73) :u8
             arg2:
@@ -5642,109 +5710,109 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x28)
       then:
-        let start#380: Position =
+        let start#413: Position =
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#374 :Lexer
+            l#407 :Lexer
           arg1:
             int(1) :i32
         assign
           target:
             .paren_depth :i32
-              l#374 :Lexer
+              l#407 :Lexer
           value:
             add :i32
               l:
                 .paren_depth :i32
-                  l#374 :Lexer
+                  l#407 :Lexer
               r:
                 int(1) :i32
         call :void
           callee:
-            push_simple#66 :void
+            push_simple#72 :void
           arg0:
-            l#374 :Lexer
+            l#407 :Lexer
           arg1:
             int(66) :u8
           arg2:
             "(" :string
           arg3:
-            start#380 :Position
+            start#413 :Position
         return true
     if :void
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x5b)
       then:
-        let start#381: Position =
+        let start#414: Position =
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#374 :Lexer
+            l#407 :Lexer
           arg1:
             int(1) :i32
         assign
           target:
             .paren_depth :i32
-              l#374 :Lexer
+              l#407 :Lexer
           value:
             add :i32
               l:
                 .paren_depth :i32
-                  l#374 :Lexer
+                  l#407 :Lexer
               r:
                 int(1) :i32
         call :void
           callee:
-            push_simple#66 :void
+            push_simple#72 :void
           arg0:
-            l#374 :Lexer
+            l#407 :Lexer
           arg1:
             int(68) :u8
           arg2:
             "[" :string
           arg3:
-            start#381 :Position
+            start#414 :Position
         return true
     if :void
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x29)
       then:
-        let start#382: Position =
+        let start#415: Position =
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#374 :Lexer
+            l#407 :Lexer
           arg1:
             int(1) :i32
         if :void
@@ -5752,52 +5820,52 @@
             gt :bool
               l:
                 .paren_depth :i32
-                  l#374 :Lexer
+                  l#407 :Lexer
               r:
                 int(0) :i32
           then:
             assign
               target:
                 .paren_depth :i32
-                  l#374 :Lexer
+                  l#407 :Lexer
               value:
                 sub :i32
                   l:
                     .paren_depth :i32
-                      l#374 :Lexer
+                      l#407 :Lexer
                   r:
                     int(1) :i32
         call :void
           callee:
-            push_simple#66 :void
+            push_simple#72 :void
           arg0:
-            l#374 :Lexer
+            l#407 :Lexer
           arg1:
             int(67) :u8
           arg2:
             ")" :string
           arg3:
-            start#382 :Position
+            start#415 :Position
         return true
     if :void
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x5d)
       then:
-        let start#383: Position =
+        let start#416: Position =
           call :Position
             callee:
-              position_here#63 :Position
+              position_here#69 :Position
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
         call :void
           callee:
-            advance#64 :void
+            advance#70 :void
           arg0:
-            l#374 :Lexer
+            l#407 :Lexer
           arg1:
             int(1) :i32
         if :void
@@ -5805,54 +5873,54 @@
             gt :bool
               l:
                 .paren_depth :i32
-                  l#374 :Lexer
+                  l#407 :Lexer
               r:
                 int(0) :i32
           then:
             assign
               target:
                 .paren_depth :i32
-                  l#374 :Lexer
+                  l#407 :Lexer
               value:
                 sub :i32
                   l:
                     .paren_depth :i32
-                      l#374 :Lexer
+                      l#407 :Lexer
                   r:
                     int(1) :i32
         call :void
           callee:
-            push_simple#66 :void
+            push_simple#72 :void
           arg0:
-            l#374 :Lexer
+            l#407 :Lexer
           arg1:
             int(69) :u8
           arg2:
             "]" :string
           arg3:
-            start#383 :Position
+            start#416 :Position
         return true
     if :void
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x7b)
       then:
-        let top#384: InterpFrame | null =
+        let top#417: InterpFrame | null =
           call :InterpFrame | null
             callee:
-              top_interp#83 :InterpFrame | null
+              top_interp#89 :InterpFrame | null
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
         block :void
-          let __scrut_0#-9: InterpFrame | null = top#384 :InterpFrame | null
+          let __scrut_0#-11: InterpFrame | null = top#417 :InterpFrame | null
           ~>
             if :void
               cond:
                 is InterpFrame :bool
-                  __scrut_0#-9 :InterpFrame | null
+                  __scrut_0#-11 :InterpFrame | null
               then:
                 ~>
                   block :void
@@ -5860,13 +5928,13 @@
                       target:
                         .brace_depth :i32
                           cast → InterpFrame
-                            top#384 :InterpFrame | null
+                            top#417 :InterpFrame | null
                       value:
                         add :i32
                           l:
                             .brace_depth :i32
                               cast → InterpFrame
-                                top#384 :InterpFrame | null
+                                top#417 :InterpFrame | null
                           r:
                             int(1) :i32
               else:
@@ -5874,7 +5942,7 @@
                   if :void
                     cond:
                       is null :bool
-                        __scrut_0#-9 :InterpFrame | null
+                        __scrut_0#-11 :InterpFrame | null
                     then:
                       ~>
                         block :void
@@ -5884,9 +5952,9 @@
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(70) :u8
             arg2:
@@ -5895,23 +5963,23 @@
       cond:
         eq :bool
           l:
-            c#375 :char
+            c#408 :char
           r:
             char(0x7d)
       then:
-        let top#385: InterpFrame | null =
+        let top#418: InterpFrame | null =
           call :InterpFrame | null
             callee:
-              top_interp#83 :InterpFrame | null
+              top_interp#89 :InterpFrame | null
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
         block :void
-          let __scrut_1#-10: InterpFrame | null = top#385 :InterpFrame | null
+          let __scrut_1#-12: InterpFrame | null = top#418 :InterpFrame | null
           ~>
             if :void
               cond:
                 is InterpFrame :bool
-                  __scrut_1#-10 :InterpFrame | null
+                  __scrut_1#-12 :InterpFrame | null
               then:
                 ~>
                   block :void
@@ -5922,7 +5990,7 @@
                             l:
                               .brace_depth :i32
                                 cast → InterpFrame
-                                  top#385 :InterpFrame | null
+                                  top#418 :InterpFrame | null
                             r:
                               int(0) :i32
                         then:
@@ -5930,13 +5998,13 @@
                             target:
                               .brace_depth :i32
                                 cast → InterpFrame
-                                  top#385 :InterpFrame | null
+                                  top#418 :InterpFrame | null
                             value:
                               sub :i32
                                 l:
                                   .brace_depth :i32
                                     cast → InterpFrame
-                                      top#385 :InterpFrame | null
+                                      top#418 :InterpFrame | null
                                 r:
                                   int(1) :i32
               else:
@@ -5944,7 +6012,7 @@
                   if :void
                     cond:
                       is null :bool
-                        __scrut_1#-10 :InterpFrame | null
+                        __scrut_1#-12 :InterpFrame | null
                     then:
                       ~>
                         block :void
@@ -5954,94 +6022,94 @@
         return
           call :bool
             callee:
-              emit1#89 :bool
+              emit1#95 :bool
             arg0:
-              l#374 :Lexer
+              l#407 :Lexer
             arg1:
               int(71) :u8
             arg2:
               "}" :string
     return false
   fn vader_lexer$emit1(l: Lexer, kind: TokenKind, text: string) -> bool
-    let start#389: Position =
+    let start#422: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#386 :Lexer
+          l#419 :Lexer
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#386 :Lexer
+        l#419 :Lexer
       arg1:
         int(1) :i32
     call :void
       callee:
-        push_simple#66 :void
+        push_simple#72 :void
       arg0:
-        l#386 :Lexer
+        l#419 :Lexer
       arg1:
-        kind#387 :TokenKind
+        kind#420 :TokenKind
       arg2:
-        text#388 :string
+        text#421 :string
       arg3:
-        start#389 :Position
+        start#422 :Position
     return true
   fn vader_lexer$emit2(l: Lexer, kind: TokenKind, text: string) -> bool
-    let start#393: Position =
+    let start#426: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#390 :Lexer
+          l#423 :Lexer
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#390 :Lexer
+        l#423 :Lexer
       arg1:
         int(2) :i32
     call :void
       callee:
-        push_simple#66 :void
+        push_simple#72 :void
       arg0:
-        l#390 :Lexer
+        l#423 :Lexer
       arg1:
-        kind#391 :TokenKind
+        kind#424 :TokenKind
       arg2:
-        text#392 :string
+        text#425 :string
       arg3:
-        start#393 :Position
+        start#426 :Position
     return true
   fn vader_lexer$lex_one(l: Lexer) -> void
     call :void
       callee:
-        skip_horizontal#69 :void
+        skip_horizontal#75 :void
       arg0:
-        l#394 :Lexer
+        l#427 :Lexer
     if :void
       cond:
         call :bool
           callee:
-            at_end#60 :bool
+            at_end#66 :bool
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
       then:
         return
-    let top#395: InterpFrame | null =
+    let top#428: InterpFrame | null =
       call :InterpFrame | null
         callee:
-          top_interp#83 :InterpFrame | null
+          top_interp#89 :InterpFrame | null
         arg0:
-          l#394 :Lexer
+          l#427 :Lexer
     block :void
-      let __scrut_0#-11: InterpFrame | null = top#395 :InterpFrame | null
+      let __scrut_0#-13: InterpFrame | null = top#428 :InterpFrame | null
       ~>
         if :void
           cond:
             is InterpFrame :bool
-              __scrut_0#-11 :InterpFrame | null
+              __scrut_0#-13 :InterpFrame | null
           then:
             ~>
               block :void
@@ -6054,9 +6122,9 @@
                             l:
                               call :char
                                 callee:
-                                  peek#61 :char
+                                  peek#67 :char
                                 arg0:
-                                  l#394 :Lexer
+                                  l#427 :Lexer
                             r:
                               char(0x7d)
                         r:
@@ -6064,50 +6132,50 @@
                             l:
                               .brace_depth :i32
                                 cast → InterpFrame
-                                  top#395 :InterpFrame | null
+                                  top#428 :InterpFrame | null
                             r:
                               int(0) :i32
                     then:
-                      let close_start#396: Position =
+                      let close_start#429: Position =
                         call :Position
                           callee:
-                            position_here#63 :Position
+                            position_here#69 :Position
                           arg0:
-                            l#394 :Lexer
+                            l#427 :Lexer
                       call :void
                         callee:
-                          advance#64 :void
+                          advance#70 :void
                         arg0:
-                          l#394 :Lexer
+                          l#427 :Lexer
                         arg1:
                           int(1) :i32
                       call :void
                         callee:
-                          push_simple#66 :void
+                          push_simple#72 :void
                         arg0:
-                          l#394 :Lexer
+                          l#427 :Lexer
                         arg1:
                           int(10) :u8
                         arg2:
                           "}" :string
                         arg3:
-                          close_start#396 :Position
-                      let triple#397: bool =
+                          close_start#429 :Position
+                      let triple#430: bool =
                         .triple :bool
                           cast → InterpFrame
-                            top#395 :InterpFrame | null
+                            top#428 :InterpFrame | null
                       call :void
                         callee:
-                          pop_interp#84 :void
+                          pop_interp#90 :void
                         arg0:
-                          l#394 :Lexer
+                          l#427 :Lexer
                       call :void
                         callee:
-                          lex_string_body#87 :void
+                          lex_string_body#93 :void
                         arg0:
-                          l#394 :Lexer
+                          l#427 :Lexer
                         arg1:
-                          triple#397 :bool
+                          triple#430 :bool
                         arg2:
                           false
                       return
@@ -6116,40 +6184,40 @@
               if :void
                 cond:
                   is null :bool
-                    __scrut_0#-11 :InterpFrame | null
+                    __scrut_0#-13 :InterpFrame | null
                 then:
                   ~>
                     block :void
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let c#398: char =
+    let c#431: char =
       call :char
         callee:
-          peek#61 :char
+          peek#67 :char
         arg0:
-          l#394 :Lexer
+          l#427 :Lexer
     if :void
       cond:
         or :bool
           l:
             eq :bool
               l:
-                c#398 :char
+                c#431 :char
               r:
                 char(0xa)
           r:
             eq :bool
               l:
-                c#398 :char
+                c#431 :char
               r:
                 char(0xd)
       then:
         call :void
           callee:
-            handle_newline#71 :void
+            handle_newline#77 :void
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
         return
     if :void
       cond:
@@ -6157,7 +6225,7 @@
           l:
             eq :bool
               l:
-                c#398 :char
+                c#431 :char
               r:
                 char(0x2f)
           r:
@@ -6165,9 +6233,9 @@
               l:
                 call :char
                   callee:
-                    peek_at#62 :char
+                    peek_at#68 :char
                   arg0:
-                    l#394 :Lexer
+                    l#427 :Lexer
                   arg1:
                     int(1) :i32
               r:
@@ -6177,9 +6245,9 @@
           ~>
             call :void
               callee:
-                advance#64 :void
+                advance#70 :void
               arg0:
-                l#394 :Lexer
+                l#427 :Lexer
               arg1:
                 int(1) :i32
         return
@@ -6189,7 +6257,7 @@
           l:
             eq :bool
               l:
-                c#398 :char
+                c#431 :char
               r:
                 char(0x2f)
           r:
@@ -6197,9 +6265,9 @@
               l:
                 call :char
                   callee:
-                    peek_at#62 :char
+                    peek_at#68 :char
                   arg0:
-                    l#394 :Lexer
+                    l#427 :Lexer
                   arg1:
                     int(1) :i32
               r:
@@ -6207,9 +6275,9 @@
       then:
         call :void
           callee:
-            lex_block_comment#70 :void
+            lex_block_comment#76 :void
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
         return
     if :void
       cond:
@@ -6217,7 +6285,7 @@
           l:
             eq :bool
               l:
-                c#398 :char
+                c#431 :char
               r:
                 char(0x72)
           r:
@@ -6225,9 +6293,9 @@
               l:
                 call :char
                   callee:
-                    peek_at#62 :char
+                    peek_at#68 :char
                   arg0:
-                    l#394 :Lexer
+                    l#427 :Lexer
                   arg1:
                     int(1) :i32
               r:
@@ -6235,9 +6303,9 @@
       then:
         call :void
           callee:
-            lex_string#85 :void
+            lex_string#91 :void
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
           arg1:
             true
         return
@@ -6245,57 +6313,57 @@
       cond:
         call :bool
           callee:
-            is_ident_start#57 :bool
+            is_ident_start#63 :bool
           arg0:
-            c#398 :char
+            c#431 :char
       then:
         call :void
           callee:
-            lex_ident#72 :void
+            lex_ident#78 :void
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
         return
     if :void
       cond:
         call :bool
           callee:
-            is_digit#56 :bool
+            is_digit#139 :bool
           arg0:
-            c#398 :char
+            c#431 :char
       then:
         call :void
           callee:
-            lex_number#77 :void
+            lex_number#81 :void
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
         return
     if :void
       cond:
         eq :bool
           l:
-            c#398 :char
+            c#431 :char
           r:
             char(0x27)
       then:
         call :void
           callee:
-            lex_char#82 :void
+            lex_char#88 :void
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
         return
     if :void
       cond:
         eq :bool
           l:
-            c#398 :char
+            c#431 :char
           r:
             char(0x22)
       then:
         call :void
           callee:
-            lex_string#85 :void
+            lex_string#91 :void
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
           arg1:
             false
         return
@@ -6303,51 +6371,51 @@
       cond:
         call :bool
           callee:
-            try_lex_operator#88 :bool
+            try_lex_operator#94 :bool
           arg0:
-            l#394 :Lexer
+            l#427 :Lexer
       then:
         return
-    let start#399: Position =
+    let start#432: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#394 :Lexer
+          l#427 :Lexer
     call :void
       callee:
-        advance#64 :void
+        advance#70 :void
       arg0:
-        l#394 :Lexer
+        l#427 :Lexer
       arg1:
         int(1) :i32
     ~>
       call :void
         callee:
-          push_error#67 :void
+          push_error#73 :void
         arg0:
-          l#394 :Lexer
+          l#427 :Lexer
         arg1:
           int(0) :u8
         arg2:
           call :Span
             callee:
-              error_span#68 :Span
+              error_span#74 :Span
             arg0:
-              l#394 :Lexer
+              l#427 :Lexer
             arg1:
-              start#399 :Position
+              start#432 :Position
         arg3:
           "" :string
   fn vader_lexer$tokenize(source: string, file: string) -> Lexer
-    let l#402: Lexer =
+    let l#435: Lexer =
       call :Lexer
         callee:
-          new_lexer#55 :fn(string, string) -> Lexer
+          new_lexer#62 :fn(string, string) -> Lexer
         arg0:
-          source#400 :string
+          source#433 :string
         arg1:
-          file#401 :string
+          file#434 :string
     if :void
       cond:
         and :bool
@@ -6360,10 +6428,10 @@
                       l:
                         call :i32
                           callee:
-                            len#116 :i32
+                            len#122 :i32
                           arg0:
                             .src :string
-                              l#402 :Lexer
+                              l#435 :Lexer
                       r:
                         int(3) :i32
                   r:
@@ -6371,10 +6439,10 @@
                       l:
                         call :char
                           callee:
-                            char_at#121 :char
+                            char_at#127 :char
                           arg0:
                             .src :string
-                              l#402 :Lexer
+                              l#435 :Lexer
                           arg1:
                             int(0) :i32
                       r:
@@ -6386,10 +6454,10 @@
                   l:
                     call :char
                       callee:
-                        char_at#121 :char
+                        char_at#127 :char
                       arg0:
                         .src :string
-                          l#402 :Lexer
+                          l#435 :Lexer
                       arg1:
                         int(1) :i32
                   r:
@@ -6401,10 +6469,10 @@
               l:
                 call :char
                   callee:
-                    char_at#121 :char
+                    char_at#127 :char
                   arg0:
                     .src :string
-                      l#402 :Lexer
+                      l#435 :Lexer
                   arg1:
                     int(2) :i32
               r:
@@ -6415,9 +6483,9 @@
         ~>
           call :void
             callee:
-              advance#64 :void
+              advance#70 :void
             arg0:
-              l#402 :Lexer
+              l#435 :Lexer
             arg1:
               int(3) :i32
     if :void
@@ -6429,7 +6497,7 @@
                 eq :bool
                   l:
                     .line :i32
-                      l#402 :Lexer
+                      l#435 :Lexer
                   r:
                     int(1) :i32
               r:
@@ -6437,9 +6505,9 @@
                   l:
                     call :char
                       callee:
-                        peek#61 :char
+                        peek#67 :char
                       arg0:
-                        l#402 :Lexer
+                        l#435 :Lexer
                   r:
                     char(0x23)
           r:
@@ -6447,9 +6515,9 @@
               l:
                 call :char
                   callee:
-                    peek_at#62 :char
+                    peek_at#68 :char
                   arg0:
-                    l#402 :Lexer
+                    l#435 :Lexer
                   arg1:
                     int(1) :i32
               r:
@@ -6459,65 +6527,65 @@
           ~>
             call :void
               callee:
-                advance#64 :void
+                advance#70 :void
               arg0:
-                l#402 :Lexer
+                l#435 :Lexer
               arg1:
                 int(1) :i32
     loop while (<…>)
       ~>
         call :void
           callee:
-            lex_one#91 :void
+            lex_one#97 :void
           arg0:
-            l#402 :Lexer
-    let here#403: Position =
+            l#435 :Lexer
+    let here#436: Position =
       call :Position
         callee:
-          position_here#63 :Position
+          position_here#69 :Position
         arg0:
-          l#402 :Lexer
-    let eof_span#404: Span =
+          l#435 :Lexer
+    let eof_span#437: Span =
       Span {
-        start: here#403 :Position
-        end: here#403 :Position
+        start: here#436 :Position
+        end: here#436 :Position
       }
     call :void
       callee:
-        emit#65 :void
+        emit#71 :void
       arg0:
-        l#402 :Lexer
+        l#435 :Lexer
       arg1:
         call :Token
           callee:
-            make_token#98 :fn(TokenKind, string, Span) -> Token
+            make_token#104 :fn(TokenKind, string, Span) -> Token
           arg0:
             int(0) :u8
           arg1:
             "" :string
           arg2:
-            eof_span#404 :Span
-    return l#402 :Lexer
+            eof_span#437 :Span
+    return l#435 :Lexer
   struct vader_lexer$Token { kind: TokenKind, text: string, span: Span, value: f64 | i64 | null | string | u32, numeric_suffix: string }
   fn vader_lexer$empty_span(file: string) -> Span
-    let p#406: Position =
+    let p#439: Position =
       Position {
-        file: file#405 :string
+        file: file#438 :string
         offset: int(0) :i32
         line: int(1) :i32
         column: int(1) :i32
       }
     return
       Span {
-        start: p#406 :Position
-        end: p#406 :Position
+        start: p#439 :Position
+        end: p#439 :Position
       }
   fn vader_lexer$make_token(kind: TokenKind, text: string, span: Span) -> Token
     ~>
       Token {
-        kind: kind#407 :TokenKind
-        text: text#408 :string
-        span: span#409 :Span
+        kind: kind#440 :TokenKind
+        text: text#441 :string
+        span: span#442 :Span
         value: null
         numeric_suffix: "" :string
       }

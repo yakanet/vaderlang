@@ -48,12 +48,32 @@
   fn               public   take 
   refs: idents=74 types=28 params=17 locals=15 typeParams=10 fields=0
 
+## std/numbers
+  import-binding   private  append_char → append_char
+  import-binding   private  char_at → char_at
+  fn               private  hex_digit 
+  fn               public   hex_digit_value 
+  import-binding   private  len → len
+  import-binding   private  new_builder → new_builder
+  fn               public   parse_int_in_base 
+  struct           public   ParseError 
+  import-binding   private  StringBuilder → StringBuilder
+  fn               public   to_bin 
+  fn               public   to_hex 
+  import-binding   private  to_string → to_string
+  import std/string → ok
+  import std/string_builder → ok
+  refs: idents=91 types=23 params=7 locals=15 typeParams=0 fields=0
+
 ## std/string
   import-binding   private  append → append
   import-binding   private  append_char → append_char
   fn               public   char_at 
   fn               public   contains 
   fn               public   ends_with 
+  fn               public   is_digit 
+  fn               public   is_digit_in_base 
+  fn               public   is_hex_digit 
   fn               public   is_whitechar 
   fn               public   last_index_of 
   fn               public   len 
@@ -76,7 +96,7 @@
   fn               public   trim_prefix 
   fn               public   trim_suffix 
   import std/string_builder → ok
-  refs: idents=93 types=64 params=38 locals=17 typeParams=0 fields=0
+  refs: idents=109 types=68 params=42 locals=17 typeParams=0 fields=0
 
 ## std/string_builder
   fn               public   append 
@@ -132,6 +152,9 @@
   fn               public   at_end 
   import-binding   private  char_at → char_at
   fn               public   consume_digits 
+  import-binding   private  contains → contains
+  fn               public   decode_float_literal 
+  fn               public   decode_int_literal 
   import-binding   private  Diagnostic → Diagnostic
   fn               public   emit 
   fn               private  emit1 
@@ -141,12 +164,12 @@
   fn               public   error_span 
   fn               private  flush_string_part 
   fn               public   handle_newline 
-  fn               public   hex_digit_value 
+  import-binding   private  hex_digit_value → hex_digit_value
   struct           public   InterpFrame 
-  fn               public   is_digit 
-  fn               public   is_digit_in_base 
+  import-binding   private  is_digit → is_digit
+  import-binding   private  is_digit_in_base → is_digit_in_base
   fn               public   is_float_suffix 
-  fn               public   is_hex_digit 
+  import-binding   private  is_hex_digit → is_hex_digit
   fn               public   is_ident_continue 
   fn               public   is_ident_start 
   fn               public   is_int_suffix 
@@ -166,6 +189,8 @@
   fn               public   make_token 
   import-binding   private  new_builder → new_builder
   fn               public   new_lexer 
+  import-binding   private  parse_float → parse_float
+  import-binding   private  parse_int_in_base → parse_int_in_base
   fn               public   peek 
   fn               public   peek_at 
   fn               public   pop_interp 
@@ -179,6 +204,7 @@
   import-binding   private  slice_array → slice
   import-binding   private  Span → Span
   import-binding   private  StringBuilder → StringBuilder
+  fn               private  strip_numeric_text 
   fn               public   suppresses_newline_after 
   import-binding   private  to_string → to_string
   struct           public   Token 
@@ -189,7 +215,8 @@
   import std/string → ok
   import std/string_builder → ok
   import std/iter → ok
+  import std/numbers → ok
   import vader/diagnostics/diagnostic → ok
   import vader/diagnostics/codes → ok
   import vader/diagnostics/diagnostic → ok
-  refs: idents=886 types=158 params=72 locals=92 typeParams=0 fields=0
+  refs: idents=903 types=166 params=75 locals=101 typeParams=0 fields=0

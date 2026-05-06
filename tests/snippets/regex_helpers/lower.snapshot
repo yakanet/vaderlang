@@ -8,13 +8,13 @@
           l:
             gte :bool
               l:
-                c#92 :char
+                c#95 :char
               r:
                 char(0x30)
           r:
             lte :bool
               l:
-                c#92 :char
+                c#95 :char
               r:
                 char(0x39)
       then:
@@ -25,13 +25,13 @@
           l:
             gte :bool
               l:
-                c#92 :char
+                c#95 :char
               r:
                 char(0x61)
           r:
             lte :bool
               l:
-                c#92 :char
+                c#95 :char
               r:
                 char(0x7a)
       then:
@@ -42,13 +42,13 @@
           l:
             gte :bool
               l:
-                c#92 :char
+                c#95 :char
               r:
                 char(0x41)
           r:
             lte :bool
               l:
-                c#92 :char
+                c#95 :char
               r:
                 char(0x5a)
       then:
@@ -57,7 +57,7 @@
       cond:
         eq :bool
           l:
-            c#92 :char
+            c#95 :char
           r:
             char(0x5f)
       then:
@@ -70,7 +70,7 @@
       arg0:
         call :string
           callee:
-            trim_suffix#60 :fn(string, string) -> string
+            trim_suffix#63 :fn(string, string) -> string
           arg0:
             "foo.vader" :string
           arg1:
@@ -81,7 +81,7 @@
       arg0:
         call :string
           callee:
-            trim_suffix#60 :fn(string, string) -> string
+            trim_suffix#63 :fn(string, string) -> string
           arg0:
             "foo.bar" :string
           arg1:
@@ -92,7 +92,7 @@
       arg0:
         call :string
           callee:
-            trim_prefix#61 :fn(string, string) -> string
+            trim_prefix#64 :fn(string, string) -> string
           arg0:
             "std/io" :string
           arg1:
@@ -103,7 +103,7 @@
       arg0:
         call :string
           callee:
-            trim_prefix#61 :fn(string, string) -> string
+            trim_prefix#64 :fn(string, string) -> string
           arg0:
             "foo" :string
           arg1:
@@ -114,17 +114,17 @@
       arg0:
         call :string
           callee:
-            replace_chars_where#62 :fn(string, fn(char) -> bool, string) -> string
+            replace_chars_where#65 :fn(string, fn(char) -> bool, string) -> string
           arg0:
             "std::io.print!" :string
           arg1:
             is_non_id#6 :fn(char) -> bool
           arg2:
             "_" :string
-    let parts#93: [string] =
+    let parts#96: [string] =
       call :[string]
         callee:
-          split_whitespace#63 :fn(string) -> [string]
+          split_whitespace#66 :fn(string) -> [string]
         arg0:
           "  hello  world\tfoo\n bar  " :string
     call :void
@@ -143,9 +143,9 @@
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let n#94: i32 =
+    let n#97: i32 =
       LoweredArrayLen
-    let i#95: i32 = int(0) :i32
+    let i#98: i32 = int(0) :i32
     loop while (<…>)
       call :void
         callee:
@@ -153,16 +153,16 @@
         arg0:
           index :string
             on:
-              parts#93 :[string]
+              parts#96 :[string]
             ix:
-              i#95 :i32
+              i#98 :i32
       assign
         target:
-          i#95 :i32
+          i#98 :i32
         value:
           add :i32
             l:
-              i#95 :i32
+              i#98 :i32
             r:
               int(1) :i32
     return int(0) :i32

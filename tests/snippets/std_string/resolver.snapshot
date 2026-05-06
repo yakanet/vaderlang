@@ -42,6 +42,9 @@
   fn               public   char_at 
   fn               public   contains 
   fn               public   ends_with 
+  fn               public   is_digit 
+  fn               public   is_digit_in_base 
+  fn               public   is_hex_digit 
   fn               public   is_whitechar 
   fn               public   last_index_of 
   fn               public   len 
@@ -64,7 +67,7 @@
   fn               public   trim_prefix 
   fn               public   trim_suffix 
   import std/string_builder → ok
-  refs: idents=93 types=64 params=38 locals=17 typeParams=0 fields=0
+  refs: idents=109 types=68 params=42 locals=17 typeParams=0 fields=0
 
 ## std/string_builder
   fn               public   append 
