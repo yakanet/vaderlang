@@ -351,6 +351,9 @@ function matchesByStructSymbol(firstParam: Type, receiver: Type): boolean {
   if (firstParam.kind === "Trait" && receiver.kind === "Trait") {
     return firstParam.symbol.id === receiver.symbol.id;
   }
+  if (firstParam.kind === "Array" && receiver.kind === "Array") {
+    return typeContainsTypeParam(firstParam.element);
+  }
   return false;
 }
 

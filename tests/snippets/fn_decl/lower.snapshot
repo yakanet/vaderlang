@@ -10,6 +10,3 @@
           b#48 :i32
   fn tests_snippets_fn_decl__main_vader$greet(name: string, prefix: string) -> string
     return prefix#50 :string
-
-# Diagnostics
-[10:5] error[T3020] function body returns a value incompatible with its declared return type: expected [$U], got [$T]

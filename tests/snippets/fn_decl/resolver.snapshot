@@ -28,4 +28,4 @@
   fn               public   add 
   fn               public   greet 
   fn               public   map 
-  refs: idents=4 types=8 params=6 locals=0 typeParams=2 fields=0
+  refs: idents=3 types=8 params=6 locals=0 typeParams=2 fields=0

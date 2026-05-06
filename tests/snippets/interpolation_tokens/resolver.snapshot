@@ -25,7 +25,12 @@
   refs: idents=43 types=76 params=39 locals=3 typeParams=3 fields=0
 
 ## tests/snippets/interpolation_tokens/_main.vader
+  const            public   expr 
+  const            public   nested 
+  const            public   simple 
   refs: idents=0 types=0 params=0 locals=0 typeParams=0 fields=0
 
 # Diagnostics
-[1:1] error[P1006] expected a declaration: got `simple`
+[1:19] error[R2006] unresolved identifier: `name`
+[2:20] error[R2006] unresolved identifier: `x`
+[3:29] error[R2006] unresolved identifier: `y`

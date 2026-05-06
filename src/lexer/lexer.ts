@@ -341,6 +341,11 @@ class Lexer {
     while (this.pos < this.src.length) {
       const c = this.peek();
       if (c === "_") {
+        // Leave `_<ident>` for readNumericSuffix when the char after `_` is an
+        // ident-start but not a digit in the current base (e.g. `100_u32`).
+        // If it IS a valid digit (e.g. `0xFF_FF`), treat it as a separator.
+        const next = this.peekAt(1);
+        if (next !== "_" && isIdentStart(next) && !isDigitInBase(next, base)) break;
         if (firstChar || lastWasUnderscore) {
           this.error("L0006", { start: errAnchor, end: this.posHere() }, "underscore not allowed here");
         }

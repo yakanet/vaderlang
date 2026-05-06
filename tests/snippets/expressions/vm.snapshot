@@ -1,7 +1,1 @@
-# compile errors
-[R2006] unresolved identifier: `arr`
-[R2006] unresolved identifier: `obj`
-[R2006] unresolved identifier: `cond`
-[P1002] expected token: expected `{` to open block (got 1)
-[P1003] expected an expression: got `else`
-[P1002] expected token: expected `}` to close block (got end of file)
+# no main function

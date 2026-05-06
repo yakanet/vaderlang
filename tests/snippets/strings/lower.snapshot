@@ -1,4 +1,11 @@
 # Lower
 
-# Diagnostics
-[1:1] error[P1006] expected a declaration: got `plain`
+## tests/snippets/strings/_main.vader
+  const tests_snippets_strings__main_vader$plain: string =
+    "hello" :string
+  const tests_snippets_strings__main_vader$escaped: string =
+    "a\nb\tc" :string
+  const tests_snippets_strings__main_vader$raw: string =
+    "C:\\Users\\path" :string
+  const tests_snippets_strings__main_vader$multi: string =
+    "line one\nline two\n" :string

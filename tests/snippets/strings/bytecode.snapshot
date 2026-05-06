@@ -1,4 +1,1 @@
 module _main
-
-# Diagnostics
-[1:1] error[P1006] expected a declaration: got `plain`

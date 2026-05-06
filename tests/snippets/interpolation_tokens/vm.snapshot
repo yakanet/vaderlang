@@ -1,2 +1,4 @@
 # compile errors
-[P1006] expected a declaration: got `simple`
+[R2006] unresolved identifier: `name`
+[R2006] unresolved identifier: `x`
+[R2006] unresolved identifier: `y`

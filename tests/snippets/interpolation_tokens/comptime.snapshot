@@ -6,4 +6,6 @@
   Yielded(i32)
 
 # Diagnostics
-[1:1] error[P1006] expected a declaration: got `simple`
+[1:19] error[R2006] unresolved identifier: `name`
+[2:20] error[R2006] unresolved identifier: `x`
+[3:29] error[R2006] unresolved identifier: `y`

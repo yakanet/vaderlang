@@ -1,6 +1,19 @@
 # Typecheck
 
 ## tests/snippets/interpolation_tokens/_main.vader
+  ConstDecl      expr                 :: string
+  ConstDecl      nested               :: string
+  ConstDecl      simple               :: string
+  expr 1:11     StringLitExpr  :: string
+  expr 1:19     IdentExpr      :: ?
+  expr 2:20     BinaryExpr     :: ?
+  expr 2:20     IdentExpr      :: ?
+  expr 2:9      StringLitExpr  :: string
+  expr 3:11     StringLitExpr  :: string
+  expr 3:20     StringLitExpr  :: string
+  expr 3:29     IdentExpr      :: ?
 
 # Diagnostics
-[1:1] error[P1006] expected a declaration: got `simple`
+[1:19] error[R2006] unresolved identifier: `name`
+[2:20] error[R2006] unresolved identifier: `x`
+[3:29] error[R2006] unresolved identifier: `y`

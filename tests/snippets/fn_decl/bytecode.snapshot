@@ -11,6 +11,3 @@ fn 1 tests_snippets_fn_decl__main_vader$greet (string,string) -> string
   local.get 1   ; _main.vader:6:12
   return   ; _main.vader:6:5
 end
-
-# Diagnostics
-[10:5] error[T3020] function body returns a value incompatible with its declared return type: expected [$U], got [$T]

@@ -1,4 +1,1 @@
-# compile errors
-[P1006] expected a declaration: got `a`
-[L0006] malformed numeric literal: trailing underscore in numeric literal
-[L0006] malformed numeric literal: trailing underscore in numeric literal
+# no main function

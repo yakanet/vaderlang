@@ -6,6 +6,5 @@ greet :: fn(name: string, prefix: string = "Hello") -> string {
     return prefix
 }
 
-map :: fn(items: [$T], f: fn(T) -> $U) -> [U] {
-    return items
-}
+@extern
+map :: fn(items: [$T], f: fn(T) -> $U) -> [U]

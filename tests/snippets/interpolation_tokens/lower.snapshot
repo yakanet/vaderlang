@@ -1,4 +1,62 @@
 # Lower
 
+## tests/snippets/interpolation_tokens/_main.vader
+  const tests_snippets_interpolation_tokens__main_vader$simple: string =
+    block :string
+      let __sb_0#-1: ? =
+        @builder.new :?
+      @builder.append_str :void
+        __sb_0#-1 :?
+        "hello " :string
+      @builder.append_display <for ?> :void
+        __sb_0#-1 :?
+        unreachable("unresolved ident name") :?
+      ~>
+        @builder.finish :string
+          __sb_0#-1 :?
+  const tests_snippets_interpolation_tokens__main_vader$expr: string =
+    block :string
+      let __sb_0#-2: ? =
+        @builder.new :?
+      @builder.append_str :void
+        __sb_0#-2 :?
+        "result: " :string
+      @builder.append_display <for ?> :void
+        __sb_0#-2 :?
+        add :?
+          l:
+            unreachable("unresolved ident x") :?
+          r:
+            int(1) :i32
+      ~>
+        @builder.finish :string
+          __sb_0#-2 :?
+  const tests_snippets_interpolation_tokens__main_vader$nested: string =
+    block :string
+      let __sb_0#-3: ? =
+        @builder.new :?
+      @builder.append_str :void
+        __sb_0#-3 :?
+        "outer " :string
+      @builder.append_display <for string> :void
+        __sb_0#-3 :?
+        block :string
+          let __sb_1#-4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1#-4 :?
+            "inner " :string
+          @builder.append_display <for ?> :void
+            __sb_1#-4 :?
+            unreachable("unresolved ident y") :?
+          ~>
+            @builder.finish :string
+              __sb_1#-4 :?
+      ~>
+        @builder.finish :string
+          __sb_0#-3 :?
+
 # Diagnostics
-[1:1] error[P1006] expected a declaration: got `simple`
+[1:19] error[R2006] unresolved identifier: `name`
+[2:20] error[R2006] unresolved identifier: `x`
+[3:29] error[R2006] unresolved identifier: `y`

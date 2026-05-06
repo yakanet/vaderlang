@@ -164,20 +164,13 @@
         }
       },
       "whereClauses": [],
-      "body": {
-        "kind": "BlockExpr",
-        "stmts": [
-          {
-            "kind": "ReturnStmt",
-            "value": {
-              "kind": "IdentExpr",
-              "name": "items"
-            }
-          }
-        ],
-        "trailing": null
-      },
-      "decorators": []
+      "body": null,
+      "decorators": [
+        {
+          "name": "extern",
+          "args": []
+        }
+      ]
     }
   ]
 }

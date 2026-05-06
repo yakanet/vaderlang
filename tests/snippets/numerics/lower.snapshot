@@ -1,6 +1,27 @@
 # Lower
 
-# Diagnostics
-[1:1] error[P1006] expected a declaration: got `a`
-[8:6] error[L0006] malformed numeric literal: trailing underscore in numeric literal
-[12:6] error[L0006] malformed numeric literal: trailing underscore in numeric literal
+## tests/snippets/numerics/_main.vader
+  const tests_snippets_numerics__main_vader$a: i32 =
+    int(42) :i32
+  const tests_snippets_numerics__main_vader$b: i32 =
+    int(1000000) :i32
+  const tests_snippets_numerics__main_vader$c: i32 =
+    int(255) :i32
+  const tests_snippets_numerics__main_vader$d: i32 =
+    int(65535) :i32
+  const tests_snippets_numerics__main_vader$e: i32 =
+    int(10) :i32
+  const tests_snippets_numerics__main_vader$f: i32 =
+    int(493) :i32
+  const tests_snippets_numerics__main_vader$g: i64 =
+    int(42) :i64
+  const tests_snippets_numerics__main_vader$h: u32 =
+    int(100) :u32
+  const tests_snippets_numerics__main_vader$i: f64 =
+    float(3.14) :f64
+  const tests_snippets_numerics__main_vader$j: f64 =
+    float(1.5e-10) :f64
+  const tests_snippets_numerics__main_vader$k: f32 =
+    float(3.14) :f32
+  const tests_snippets_numerics__main_vader$l: f64 =
+    float(0.5) :f64

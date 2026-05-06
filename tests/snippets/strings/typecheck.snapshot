@@ -1,6 +1,11 @@
 # Typecheck
 
 ## tests/snippets/strings/_main.vader
-
-# Diagnostics
-[1:1] error[P1006] expected a declaration: got `plain`
+  ConstDecl      escaped              :: string
+  ConstDecl      multi                :: string
+  ConstDecl      plain                :: string
+  ConstDecl      raw                  :: string
+  expr 1:10     StringLitExpr  :: string
+  expr 2:12     StringLitExpr  :: string
+  expr 3:8      StringLitExpr  :: string
+  expr 4:10     StringLitExpr  :: string

@@ -1,8 +1,70 @@
 # AST
 {
   "kind": "Program",
-  "decls": []
+  "decls": [
+    {
+      "kind": "ConstDecl",
+      "name": "plain",
+      "visibility": "public",
+      "type": null,
+      "value": {
+        "kind": "StringLitExpr",
+        "parts": [
+          {
+            "kind": "text",
+            "value": "hello"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "escaped",
+      "visibility": "public",
+      "type": null,
+      "value": {
+        "kind": "StringLitExpr",
+        "parts": [
+          {
+            "kind": "text",
+            "value": "a\nb\tc"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "raw",
+      "visibility": "public",
+      "type": null,
+      "value": {
+        "kind": "StringLitExpr",
+        "parts": [
+          {
+            "kind": "text",
+            "value": "C:\\Users\\path"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "multi",
+      "visibility": "public",
+      "type": null,
+      "value": {
+        "kind": "StringLitExpr",
+        "parts": [
+          {
+            "kind": "text",
+            "value": "line one\nline two\n"
+          }
+        ]
+      },
+      "decorators": []
+    }
+  ]
 }
-
-# Diagnostics
-[1:1] error[P1006] expected a declaration: got `plain`

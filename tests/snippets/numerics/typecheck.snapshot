@@ -1,8 +1,15 @@
 # Typecheck
 
 ## tests/snippets/numerics/_main.vader
-
-# Diagnostics
-[1:1] error[P1006] expected a declaration: got `a`
-[8:6] error[L0006] malformed numeric literal: trailing underscore in numeric literal
-[12:6] error[L0006] malformed numeric literal: trailing underscore in numeric literal
+  ConstDecl      a                    :: i32
+  ConstDecl      b                    :: i32
+  ConstDecl      c                    :: i32
+  ConstDecl      d                    :: i32
+  ConstDecl      e                    :: i32
+  ConstDecl      f                    :: i32
+  ConstDecl      g                    :: i64
+  ConstDecl      h                    :: u32
+  ConstDecl      i                    :: f64
+  ConstDecl      j                    :: f64
+  ConstDecl      k                    :: f32
+  ConstDecl      l                    :: f64
