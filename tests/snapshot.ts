@@ -432,7 +432,7 @@ function formatTokens(tokens: readonly Token[]): string {
   const lines: string[] = ["# Tokens"];
   for (const t of tokens) {
     const span = `${t.span.start.line}:${t.span.start.column}-${t.span.end.line}:${t.span.end.column}`;
-    lines.push(`[${span.padEnd(11)}] ${t.kind.padEnd(14)} ${JSON.stringify(t.text)}${tokenDetail(t)}`);
+    lines.push(`[${span.padEnd(11)}] ${t.kind.padEnd(14)} ${quoteSimple(t.text)}${tokenDetail(t)}`);
   }
   return lines.join("\n") + "\n";
 }
@@ -444,15 +444,42 @@ function tokenDetail(t: Token): string {
   }
   if (t.floatValue !== undefined) {
     const suffix = t.numericSuffix !== undefined ? ` :${t.numericSuffix}` : "";
-    return ` =${t.floatValue}${suffix}`;
+    return ` =${formatFloat(t.floatValue)}${suffix}`;
   }
   if (t.charValue !== undefined) {
-    return ` =U+${t.charValue.toString(16).toUpperCase().padStart(4, "0")}`;
+    return ` =U+${t.charValue.toString(16).padStart(4, "0")}`;
   }
   if (t.stringValue !== undefined) {
-    return ` =${JSON.stringify(t.stringValue)}`;
+    return ` =${quoteSimple(t.stringValue)}`;
   }
   return "";
+}
+
+/** Match Vader's natural `${f64}` rendering : keep at least one decimal digit
+ *  for integer-valued floats so `4.0` survives (JS's `toString` would strip
+ *  it back to `"4"`). */
+function formatFloat(v: number): string {
+  if (Number.isFinite(v) && Number.isInteger(v)) return `${v}.0`;
+  return v.toString();
+}
+
+/** Match Vader CLI's simple-escape policy : wrap in `"…"` and escape only
+ *  `"`, `\\`, `\n`, `\t`, `\r`. Other bytes (including UTF-8 multi-byte and
+ *  control bytes) pass through. JSON.stringify's full `\uXXXX` escape isn't
+ *  used so the Vader CLI doesn't have to mimic it. */
+function quoteSimple(s: string): string {
+  let out = "\"";
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]!;
+    if (c === "\"") out += "\\\"";
+    else if (c === "\\") out += "\\\\";
+    else if (c === "\n") out += "\\n";
+    else if (c === "\t") out += "\\t";
+    else if (c === "\r") out += "\\r";
+    else out += c;
+  }
+  out += "\"";
+  return out;
 }
 
 function formatDiagnostics(diagnostics: readonly Diagnostic[]): string {

@@ -740,39 +740,39 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     }
 
     // Two-char ops.
-    if c == '=' && c2 == '=' { return l.emit2(.Eq, "==") }
-    if c == '!' && c2 == '=' { return l.emit2(.Neq, "!=") }
-    if c == '<' && c2 == '=' { return l.emit2(.Lte, "<=") }
-    if c == '>' && c2 == '=' { return l.emit2(.Gte, ">=") }
-    if c == '&' && c2 == '&' { return l.emit2(.AndAnd, "&&") }
-    if c == '|' && c2 == '|' { return l.emit2(.OrOr, "||") }
-    if c == '<' && c2 == '<' { return l.emit2(.Shl, "<<") }
-    if c == '>' && c2 == '>' { return l.emit2(.Shr, ">>") }
-    if c == '-' && c2 == '>' { return l.emit2(.Arrow, "->") }
-    if c == '=' && c2 == '>' { return l.emit2(.FatArrow, "=>") }
-    if c == ':' && c2 == ':' { return l.emit2(.DeclConst, "::") }
-    if c == ':' && c2 == '=' { return l.emit2(.DeclVar, ":=") }
+    if c == '=' && c2 == '=' { return l.emit_and_advance(.Eq, "==") }
+    if c == '!' && c2 == '=' { return l.emit_and_advance(.Neq, "!=") }
+    if c == '<' && c2 == '=' { return l.emit_and_advance(.Lte, "<=") }
+    if c == '>' && c2 == '=' { return l.emit_and_advance(.Gte, ">=") }
+    if c == '&' && c2 == '&' { return l.emit_and_advance(.AndAnd, "&&") }
+    if c == '|' && c2 == '|' { return l.emit_and_advance(.OrOr, "||") }
+    if c == '<' && c2 == '<' { return l.emit_and_advance(.Shl, "<<") }
+    if c == '>' && c2 == '>' { return l.emit_and_advance(.Shr, ">>") }
+    if c == '-' && c2 == '>' { return l.emit_and_advance(.Arrow, "->") }
+    if c == '=' && c2 == '>' { return l.emit_and_advance(.FatArrow, "=>") }
+    if c == ':' && c2 == ':' { return l.emit_and_advance(.DeclConst, "::") }
+    if c == ':' && c2 == '=' { return l.emit_and_advance(.DeclVar, ":=") }
 
     // One-char ops.
-    if c == '+' { return l.emit1(.Plus, "+") }
-    if c == '-' { return l.emit1(.Minus, "-") }
-    if c == '*' { return l.emit1(.Star, "*") }
-    if c == '/' { return l.emit1(.Slash, "/") }
-    if c == '%' { return l.emit1(.Percent, "%") }
-    if c == '&' { return l.emit1(.Amp, "&") }
-    if c == '|' { return l.emit1(.Pipe, "|") }
-    if c == '^' { return l.emit1(.Caret, "^") }
-    if c == '~' { return l.emit1(.Tilde, "~") }
-    if c == '<' { return l.emit1(.Lt, "<") }
-    if c == '>' { return l.emit1(.Gt, ">") }
-    if c == '!' { return l.emit1(.Bang, "!") }
-    if c == '=' { return l.emit1(.Assign, "=") }
-    if c == '?' { return l.emit1(.Question, "?") }
-    if c == '@' { return l.emit1(.At, "@") }
-    if c == '$' { return l.emit1(.Dollar, "$") }
-    if c == ':' { return l.emit1(.Colon, ":") }
-    if c == ',' { return l.emit1(.Comma, ",") }
-    if c == '.' { return l.emit1(.Dot, ".") }
+    if c == '+' { return l.emit_and_advance(.Plus, "+") }
+    if c == '-' { return l.emit_and_advance(.Minus, "-") }
+    if c == '*' { return l.emit_and_advance(.Star, "*") }
+    if c == '/' { return l.emit_and_advance(.Slash, "/") }
+    if c == '%' { return l.emit_and_advance(.Percent, "%") }
+    if c == '&' { return l.emit_and_advance(.Amp, "&") }
+    if c == '|' { return l.emit_and_advance(.Pipe, "|") }
+    if c == '^' { return l.emit_and_advance(.Caret, "^") }
+    if c == '~' { return l.emit_and_advance(.Tilde, "~") }
+    if c == '<' { return l.emit_and_advance(.Lt, "<") }
+    if c == '>' { return l.emit_and_advance(.Gt, ">") }
+    if c == '!' { return l.emit_and_advance(.Bang, "!") }
+    if c == '=' { return l.emit_and_advance(.Assign, "=") }
+    if c == '?' { return l.emit_and_advance(.Question, "?") }
+    if c == '@' { return l.emit_and_advance(.At, "@") }
+    if c == '$' { return l.emit_and_advance(.Dollar, "$") }
+    if c == ':' { return l.emit_and_advance(.Colon, ":") }
+    if c == ',' { return l.emit_and_advance(.Comma, ",") }
+    if c == '.' { return l.emit_and_advance(.Dot, ".") }
 
     // Brackets — `(` and `[` raise paren_depth, `{` does not (blocks separate
     // statements with newlines).
@@ -812,7 +812,7 @@ try_lex_operator :: fn(l: Lexer) -> bool {
             is InterpFrame -> { top.brace_depth = top.brace_depth + 1 }
             is null -> { }
         }
-        return l.emit1(.LBrace, "{")
+        return l.emit_and_advance(.LBrace, "{")
     }
     if c == '}' {
         top :: l.top_interp()
@@ -824,22 +824,18 @@ try_lex_operator :: fn(l: Lexer) -> bool {
             }
             is null -> { }
         }
-        return l.emit1(.RBrace, "}")
+        return l.emit_and_advance(.RBrace, "}")
     }
 
     return false
 }
 
-private emit1 :: fn(l: Lexer, kind: TokenKind, text: string) -> bool {
+// Capture the current position, advance past `text`, push a simple token
+// spanning [start, current). Returns `true` so call sites in `try_lex_operator`
+// can `return l.emit_and_advance(...)` directly.
+private emit_and_advance :: fn(l: Lexer, kind: TokenKind, text: string) -> bool {
     start := l.position_here()
-    l.advance(1)
-    l.push_simple(kind, text, start)
-    return true
-}
-
-private emit2 :: fn(l: Lexer, kind: TokenKind, text: string) -> bool {
-    start := l.position_here()
-    l.advance(2)
+    l.advance(text.len())
     l.push_simple(kind, text, start)
     return true
 }

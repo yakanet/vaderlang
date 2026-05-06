@@ -1,0 +1,231 @@
+// vader/lexer/dump — render a Lexer's tokens / diagnostics as text.
+//
+// Output format mirrors `tests/snapshot.ts:formatTokens` / `formatDiagnostics`
+// byte-for-byte so the parity rig (`tests/parity.test.ts`) can diff Vader-CLI
+// output against the existing `lexer.snapshot` files. When the TS compiler
+// retires post-bootstrap, this file becomes the sole snapshot producer.
+//
+// Lives in the lexer module rather than the CLI : the TokenKind→snake_case
+// table belongs next to the enum it indexes, and the dump is a primitive
+// other front-ends (LSP, formatter, future tools) will want to reuse.
+
+// `lexer.vader` (same module) already imports `len, slice, char_at` from
+// std/string and the StringBuilder surface ; we only need the extras here.
+import "std/string" { pad_start, pad_end }
+import "std/numbers" { to_hex }
+import "vader/diagnostics/codes" { info }
+
+dump_tokens :: fn(l: Lexer) -> string {
+    sb := new_builder()
+    sb.append("# Tokens")
+    n :: l.tokens.len()
+    i := 0
+    for i < n {
+        sb.append_char('\n')
+        sb.format_token(l.tokens[i])
+        i = i + 1
+    }
+    return sb.to_string()
+}
+
+dump_diagnostics :: fn(diags: [Diagnostic]) -> string {
+    sb := new_builder()
+    sb.append("\n# Diagnostics")
+    n :: diags.len()
+    i := 0
+    for i < n {
+        sb.append_char('\n')
+        format_diagnostic(sb, diags[i])
+        i = i + 1
+    }
+    return sb.to_string()
+}
+
+private format_token :: fn(sb: StringBuilder, t: Token) -> void {
+    span :: "${t.span.start.line}:${t.span.start.column}-${t.span.end.line}:${t.span.end.column}"
+    sb.append_char('[')
+    sb.append(span.pad_end(11, ' '))
+    sb.append("] ")
+    sb.append(kind_name(t.kind).pad_end(14, ' '))
+    sb.append_char(' ')
+    sb.append(quote_simple(t.text))
+    append_token_detail(sb, t)
+}
+
+private append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
+    // The `_ -> "?"` arms below are defensive : the kind/value type pairing
+    // is contractually guaranteed by `lex_number` / `lex_char` / etc., but
+    // Vader's type system can't narrow the `value` union on `t.kind`, so
+    // the inner match must be exhaustive. `?` will never appear in practice.
+    match t.kind {
+        .IntLit -> {
+            sb.append(" =")
+            v :: t.value
+            match v {
+                is i64 -> { sb.append("${v}") }
+                _      -> { sb.append("?") }
+            }
+            sb.append_char('n')
+            if t.numeric_suffix.len() > 0 {
+                sb.append(" :")
+                sb.append(t.numeric_suffix)
+            }
+        }
+        .FloatLit -> {
+            sb.append(" =")
+            v :: t.value
+            match v {
+                is f64 -> { sb.append("${v}") }
+                _      -> { sb.append("?") }
+            }
+            if t.numeric_suffix.len() > 0 {
+                sb.append(" :")
+                sb.append(t.numeric_suffix)
+            }
+        }
+        .CharLit -> {
+            v :: t.value
+            match v {
+                is u32 -> {
+                    sb.append(" =U+")
+                    sb.append(u64(v).to_hex().pad_start(4, '0'))
+                }
+                _      -> { sb.append(" =U+????") }
+            }
+        }
+        .StringPart -> {
+            v :: t.value
+            match v {
+                is string -> {
+                    sb.append(" =")
+                    sb.append(quote_simple(v))
+                }
+                _ -> { }
+            }
+        }
+        _ -> { }
+    }
+}
+
+// Wrap in `"…"` and escape `"`, `\`, `\n`, `\t`, `\r`. Matches `quoteSimple`
+// in `tests/snapshot.ts`. Other bytes (incl. multi-byte UTF-8 and non-ASCII
+// control bytes) pass through ; the TS reference does the same so the
+// dumps stay byte-identical.
+private quote_simple :: fn(s: string) -> string {
+    sb := new_builder()
+    sb.append_char('"')
+    n :: s.len()
+    i := 0
+    for i < n {
+        c :: s.char_at(i)
+        if c == '"'  { sb.append("\\\"") }
+        else if c == '\\' { sb.append("\\\\") }
+        else if c == '\n' { sb.append("\\n") }
+        else if c == '\t' { sb.append("\\t") }
+        else if c == '\r' { sb.append("\\r") }
+        else { sb.append_char(c) }
+        i = i + 1
+    }
+    sb.append_char('"')
+    return sb.to_string()
+}
+
+// TokenKind → the snake_case name that matches `src/lexer/token.ts` so the
+// dump output stays byte-identical with the TS reference.
+private kind_name :: fn(k: TokenKind) = match k {
+    .Ident       -> "ident"
+    .IntLit      -> "int_literal"
+    .FloatLit    -> "float_literal"
+    .CharLit     -> "char_literal"
+    .StringBegin -> "string_begin"
+    .StringPart  -> "string_part"
+    .StringEnd   -> "string_end"
+    .InterpOpen  -> "interp_open"
+    .InterpClose -> "interp_close"
+
+    .KwFn         -> "kw_fn"
+    .KwStruct     -> "kw_struct"
+    .KwTrait      -> "kw_trait"
+    .KwImplements -> "kw_implements"
+    .KwImpl       -> "kw_impl"
+    .KwEnum       -> "kw_enum"
+    .KwIf         -> "kw_if"
+    .KwElse       -> "kw_else"
+    .KwMatch      -> "kw_match"
+    .KwIs         -> "kw_is"
+    .KwFor        -> "kw_for"
+    .KwIn         -> "kw_in"
+    .KwReturn     -> "kw_return"
+    .KwDefer      -> "kw_defer"
+    .KwBreak      -> "kw_break"
+    .KwContinue   -> "kw_continue"
+    .KwImport     -> "kw_import"
+    .KwAs         -> "kw_as"
+    .KwPrivate    -> "kw_private"
+    .KwTrue       -> "kw_true"
+    .KwFalse      -> "kw_false"
+    .KwNull       -> "kw_null"
+    .KwType       -> "kw_type"
+    .KwWhere      -> "kw_where"
+    .KwSelf       -> "kw_self"
+
+    .Plus    -> "plus"
+    .Minus   -> "minus"
+    .Star    -> "star"
+    .Slash   -> "slash"
+    .Percent -> "percent"
+    .Amp     -> "amp"
+    .Pipe    -> "pipe"
+    .Caret   -> "caret"
+    .Tilde   -> "tilde"
+    .Shl     -> "shl"
+    .Shr     -> "shr"
+    .Eq      -> "eq"
+    .Neq     -> "neq"
+    .Lt      -> "lt"
+    .Lte     -> "lte"
+    .Gt      -> "gt"
+    .Gte     -> "gte"
+    .AndAnd  -> "and_and"
+    .OrOr    -> "or_or"
+    .Bang    -> "bang"
+    .Assign    -> "assign"
+    .DeclConst -> "decl_const"
+    .DeclVar   -> "decl_var"
+    .RangeExcl -> "range_excl"
+    .RangeIncl -> "range_incl"
+    .Question  -> "question"
+    .Arrow     -> "arrow"
+    .FatArrow  -> "fat_arrow"
+    .At        -> "at"
+    .Dollar    -> "dollar"
+
+    .LParen   -> "lparen"
+    .RParen   -> "rparen"
+    .LBracket -> "lbracket"
+    .RBracket -> "rbracket"
+    .LBrace   -> "lbrace"
+    .RBrace   -> "rbrace"
+    .Comma    -> "comma"
+    .Dot      -> "dot"
+    .Colon    -> "colon"
+
+    .Newline -> "newline"
+    .Eof     -> "eof"
+}
+
+private format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic) -> void {
+    sev :: match d.severity {
+        .Error   -> "error"
+        .Warning -> "warning"
+        .Info    -> "info"
+        .Hint    -> "hint"
+    }
+    ci :: d.code.info()
+    p :: d.primary.start
+    detail: string = ""
+    if d.detail.len() > 0 {
+        detail = ": ${d.detail}"
+    }
+    sb.append("[${p.line}:${p.column}] ${sev}[${ci.id}] ${ci.message}${detail}")
+}

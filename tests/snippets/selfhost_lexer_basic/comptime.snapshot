@@ -9,7 +9,7 @@
 ## vader/lexer
 
 ## generic instances
-  slice(InterpFrame)
   Yielded(i32)
+  slice(InterpFrame)
   ArrayIter($T)
   ArrayIter(i32)

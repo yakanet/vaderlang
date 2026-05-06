@@ -149,6 +149,7 @@
   import-binding   private  append → append
   import-binding   private  append_char → append_char
   fn               private  append_codepoint 
+  fn               private  append_token_detail 
   fn               public   at_end 
   import-binding   private  char_at → char_at
   fn               public   consume_digits 
@@ -156,15 +157,19 @@
   fn               public   decode_float_literal 
   fn               public   decode_int_literal 
   import-binding   private  Diagnostic → Diagnostic
+  fn               public   dump_diagnostics 
+  fn               public   dump_tokens 
   fn               public   emit 
-  fn               private  emit1 
-  fn               private  emit2 
+  fn               private  emit_and_advance 
   fn               public   empty_span 
   import-binding   private  error → error
   fn               public   error_span 
   fn               private  flush_string_part 
+  fn               private  format_diagnostic 
+  fn               private  format_token 
   fn               public   handle_newline 
   import-binding   private  hex_digit_value → hex_digit_value
+  import-binding   private  info → info
   struct           public   InterpFrame 
   import-binding   private  is_digit → is_digit
   import-binding   private  is_digit_in_base → is_digit_in_base
@@ -173,6 +178,7 @@
   fn               public   is_ident_continue 
   fn               public   is_ident_start 
   fn               public   is_int_suffix 
+  fn               private  kind_name 
   import-binding   private  len → len
   fn               public   lex_block_comment 
   fn               public   lex_char 
@@ -189,6 +195,8 @@
   fn               public   make_token 
   import-binding   private  new_builder → new_builder
   fn               public   new_lexer 
+  import-binding   private  pad_end → pad_end
+  import-binding   private  pad_start → pad_start
   import-binding   private  parse_float → parse_float
   import-binding   private  parse_int_in_base → parse_int_in_base
   fn               public   peek 
@@ -198,6 +206,7 @@
   fn               public   position_here 
   fn               public   push_error 
   fn               public   push_simple 
+  fn               private  quote_simple 
   fn               public   read_numeric_suffix 
   fn               public   skip_horizontal 
   import-binding   private  slice → slice
@@ -206,6 +215,7 @@
   import-binding   private  StringBuilder → StringBuilder
   fn               private  strip_numeric_text 
   fn               public   suppresses_newline_after 
+  import-binding   private  to_hex → to_hex
   import-binding   private  to_string → to_string
   struct           public   Token 
   fn               public   tokenize 
@@ -213,10 +223,13 @@
   fn               public   top_interp 
   fn               public   try_lex_operator 
   import std/string → ok
+  import std/numbers → ok
+  import vader/diagnostics/codes → ok
+  import std/string → ok
   import std/string_builder → ok
   import std/iter → ok
   import std/numbers → ok
   import vader/diagnostics/diagnostic → ok
   import vader/diagnostics/codes → ok
   import vader/diagnostics/diagnostic → ok
-  refs: idents=903 types=166 params=75 locals=101 typeParams=0 fields=0
+  refs: idents=1013 types=183 params=82 locals=119 typeParams=0 fields=0
