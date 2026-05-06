@@ -12,14 +12,12 @@ fn 0 tests_snippets_for_loop__main_vader$mixed_loops (i32) -> i32
   loop void   ; _main.vader:6:5
   local.get 2   ; _main.vader:6:9
   i32.const 10   ; _main.vader:6:13
-  i32.lt   ; _main.vader:6:9
-  bool.not   ; _main.vader:6:9
+  i32.ge   ; _main.vader:6:9
   br_if 1   ; _main.vader:6:9
   local.get 2   ; _main.vader:7:13
   i32.const 1   ; _main.vader:7:17
   i32.add   ; _main.vader:7:13
-  local.set 2   ; _main.vader:7:9
-  local.get 2   ; _main.vader:8:13
+  local.tee 2   ; _main.vader:7:9
   i32.const 2   ; _main.vader:8:17
   i32.rem   ; _main.vader:8:13
   i32.const 0   ; _main.vader:8:22

@@ -12,7 +12,6 @@ fn 1 tests_snippets_arith__main_vader$main () -> i32
   i32.const 2   ; _main.vader:6:14
   i32.const 3   ; _main.vader:6:17
   call 0   ; _main.vader:6:10
-  local.set 0   ; _main.vader:6:5
-  local.get 0   ; _main.vader:7:12
+  local.tee 0   ; _main.vader:6:5
   return   ; _main.vader:7:5
 end

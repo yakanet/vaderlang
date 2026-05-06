@@ -10,8 +10,7 @@ fn 0 tests_snippets_generic_eq__main_vader$main () -> i32
   local __sb_0 any
   local __sb_1 any
   intrinsic builder.new   ; _main.vader:8:13
-  local.set 0   ; _main.vader:8:13
-  local.get 0   ; _main.vader:8:14
+  local.tee 0   ; _main.vader:8:13
   i32.const 1   ; _main.vader:8:23
   i32.const 1   ; _main.vader:8:26
   call 1   ; _main.vader:8:16
@@ -20,8 +19,7 @@ fn 0 tests_snippets_generic_eq__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:8:13
   call.import 1   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
-  local.set 1   ; _main.vader:9:13
-  local.get 1   ; _main.vader:9:14
+  local.tee 1   ; _main.vader:9:13
   i32.const 1   ; _main.vader:9:23
   i32.const 2   ; _main.vader:9:26
   call 1   ; _main.vader:9:16

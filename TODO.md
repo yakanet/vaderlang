@@ -186,6 +186,12 @@ Stack-based, WASM-aligned op table; structured control flow (`block`/`loop`/`if`
 - [x] Short-circuit `and`/`or` lowered to structured if/else (so user-side `&&`/`||` semantics are preserved even though the lowerer keeps them as plain Binary).
 - [x] CLI: `vader dump --stage=bytecode <file>` prints the `.vir` text of the lowered project.
 - [x] Snapshot tests: 7 scenarios under `tests/snapshots/bytecode/` reusing the lowerer's `input.vader`s. Each snapshot is the `.vir` text plus a `; round-trip OK/MISMATCH` banner asserting `parse(write(m))` is a fixpoint.
+- [x] Bytecode peephole pass (`src/bytecode/peephole.ts`) — single linear scan, gated on `EmitOptions.optimize` (default `true`, CLI flag `--no-bytecode-opt`) :
+  - `local.set N; local.get N` → `local.tee N` (129 hits / 60 % of `local.set` on the test corpus)
+  - `<num>.<cmp>; bool.not` → `<num>.<inverse cmp>` (uses inverse-verb table)
+  - `bool.const X; bool.not` → `bool.const !X`
+  - `bool.not; bool.not` → ε
+  - Aligns the IR with WASM-idiomatic shapes for the future WASM backend.
 
 **Deferred to later phases:**
 

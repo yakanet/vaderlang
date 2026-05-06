@@ -10,8 +10,7 @@ import 5 exists std_io$exists (string) -> bool
 fn 0 tests_snippets_primitive_impl__main_vader$i32$Display$show (i32) -> string
   local __sb_0 any
   intrinsic builder.new   ; _main.vader:5:16
-  local.set 1   ; _main.vader:5:16
-  local.get 1   ; _main.vader:5:17
+  local.tee 1   ; _main.vader:5:16
   string.const 0   ; _main.vader:5:17
   intrinsic builder.append_str   ; _main.vader:5:17
   local.get 1   ; _main.vader:5:31
@@ -25,8 +24,7 @@ end
 fn 1 tests_snippets_primitive_impl__main_vader$main () -> i32
   local x i32
   i32.const 42   ; _main.vader:10:14
-  local.set 0   ; _main.vader:10:5
-  local.get 0   ; _main.vader:11:13
+  local.tee 0   ; _main.vader:10:5
   call 0   ; _main.vader:11:13
   call.import 1   ; _main.vader:11:5
   i32.const 0   ; _main.vader:12:12

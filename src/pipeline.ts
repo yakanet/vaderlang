@@ -113,10 +113,12 @@ export async function pipelineDced(
 }
 
 export async function pipelineBytecode(
-  file: string, opts?: { allowEnv?: boolean },
+  file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean },
 ): Promise<BytecodeResult> {
   const r = await pipelineDced(file, opts);
-  const bytecode = emitBytecode(r.dced, moduleNameFromFile(file));
+  const bytecode = emitBytecode(r.dced, moduleNameFromFile(file), {
+    optimize: opts?.bytecodeOpt ?? true,
+  });
   return { ...r, bytecode };
 }
 

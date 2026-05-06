@@ -44,8 +44,7 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   loop void   ; _main.vader:6:5
   local.get 2   ; _main.vader:6:5
   call 1   ; _main.vader:6:5
-  local.set 3   ; _main.vader:6:5
-  local.get 3   ; _main.vader:6:5
+  local.tee 3   ; _main.vader:6:5
   type_check 0   ; _main.vader:6:5
   if void   ; _main.vader:6:5
   br 2   ; _main.vader:6:5
@@ -62,8 +61,7 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   end   ; _main.vader:6:5
   end   ; _main.vader:6:5
   intrinsic builder.new   ; _main.vader:9:13
-  local.set 5   ; _main.vader:9:13
-  local.get 5   ; _main.vader:9:14
+  local.tee 5   ; _main.vader:9:13
   string.const 0   ; _main.vader:9:14
   intrinsic builder.append_str   ; _main.vader:9:14
   local.get 5   ; _main.vader:9:20
@@ -89,8 +87,7 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   loop void   ; _main.vader:14:5
   local.get 8   ; _main.vader:14:5
   call 1   ; _main.vader:14:5
-  local.set 9   ; _main.vader:14:5
-  local.get 9   ; _main.vader:14:5
+  local.tee 9   ; _main.vader:14:5
   type_check 0   ; _main.vader:14:5
   if void   ; _main.vader:14:5
   br 2   ; _main.vader:14:5
@@ -107,8 +104,7 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   end   ; _main.vader:14:5
   end   ; _main.vader:14:5
   intrinsic builder.new   ; _main.vader:17:13
-  local.set 11   ; _main.vader:17:13
-  local.get 11   ; _main.vader:17:14
+  local.tee 11   ; _main.vader:17:13
   string.const 1   ; _main.vader:17:14
   intrinsic builder.append_str   ; _main.vader:17:14
   local.get 11   ; _main.vader:17:22

@@ -26,8 +26,7 @@ fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32
   i32.const 7   ; _main.vader:6:14
   local.set 2   ; _main.vader:6:5
   intrinsic builder.new   ; _main.vader:7:13
-  local.set 3   ; _main.vader:7:13
-  local.get 3   ; _main.vader:7:14
+  local.tee 3   ; _main.vader:7:13
   string.const 0   ; _main.vader:7:14
   intrinsic builder.append_str   ; _main.vader:7:14
   local.get 3   ; _main.vader:7:24
@@ -38,8 +37,7 @@ fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:7:13
   call.import 1   ; _main.vader:7:5
   intrinsic builder.new   ; _main.vader:8:13
-  local.set 4   ; _main.vader:8:13
-  local.get 4   ; _main.vader:8:14
+  local.tee 4   ; _main.vader:8:13
   string.const 1   ; _main.vader:8:14
   intrinsic builder.append_str   ; _main.vader:8:14
   local.get 4   ; _main.vader:8:23
@@ -51,8 +49,7 @@ fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:8:13
   call.import 1   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
-  local.set 5   ; _main.vader:9:13
-  local.get 5   ; _main.vader:9:14
+  local.tee 5   ; _main.vader:9:13
   string.const 2   ; _main.vader:9:14
   intrinsic builder.append_str   ; _main.vader:9:14
   local.get 5   ; _main.vader:9:23
@@ -66,8 +63,7 @@ fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32
   i64.const 100   ; _main.vader:11:16
   local.set 6   ; _main.vader:11:5
   intrinsic builder.new   ; _main.vader:12:13
-  local.set 7   ; _main.vader:12:13
-  local.get 7   ; _main.vader:12:14
+  local.tee 7   ; _main.vader:12:13
   string.const 3   ; _main.vader:12:14
   intrinsic builder.append_str   ; _main.vader:12:14
   local.get 7   ; _main.vader:12:24

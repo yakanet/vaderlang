@@ -31,8 +31,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   struct.new 5   ; _main.vader:5:10
   local.set 0   ; _main.vader:5:5
   intrinsic builder.new   ; _main.vader:6:13
-  local.set 1   ; _main.vader:6:13
-  local.get 1   ; _main.vader:6:14
+  local.tee 1   ; _main.vader:6:13
   string.const 0   ; _main.vader:6:14
   intrinsic builder.append_str   ; _main.vader:6:14
   local.get 1   ; _main.vader:6:19
@@ -44,8 +43,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:6:13
   call.import 1   ; _main.vader:6:5
   intrinsic builder.new   ; _main.vader:7:13
-  local.set 2   ; _main.vader:7:13
-  local.get 2   ; _main.vader:7:14
+  local.tee 2   ; _main.vader:7:13
   string.const 0   ; _main.vader:7:14
   intrinsic builder.append_str   ; _main.vader:7:14
   local.get 2   ; _main.vader:7:19
@@ -57,8 +55,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:7:13
   call.import 1   ; _main.vader:7:5
   intrinsic builder.new   ; _main.vader:8:13
-  local.set 3   ; _main.vader:8:13
-  local.get 3   ; _main.vader:8:14
+  local.tee 3   ; _main.vader:8:13
   string.const 0   ; _main.vader:8:14
   intrinsic builder.append_str   ; _main.vader:8:14
   local.get 3   ; _main.vader:8:19
@@ -70,8 +67,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:8:13
   call.import 1   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
-  local.set 4   ; _main.vader:9:13
-  local.get 4   ; _main.vader:9:14
+  local.tee 4   ; _main.vader:9:13
   string.const 1   ; _main.vader:9:14
   intrinsic builder.append_str   ; _main.vader:9:14
   local.get 4   ; _main.vader:9:20
@@ -82,8 +78,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:9:13
   call.import 1   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:10:13
-  local.set 5   ; _main.vader:10:13
-  local.get 5   ; _main.vader:10:14
+  local.tee 5   ; _main.vader:10:13
   string.const 2   ; _main.vader:10:14
   intrinsic builder.append_str   ; _main.vader:10:14
   local.get 5   ; _main.vader:10:22
@@ -95,8 +90,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:10:13
   call.import 1   ; _main.vader:10:5
   intrinsic builder.new   ; _main.vader:11:13
-  local.set 6   ; _main.vader:11:13
-  local.get 6   ; _main.vader:11:14
+  local.tee 6   ; _main.vader:11:13
   string.const 3   ; _main.vader:11:14
   intrinsic builder.append_str   ; _main.vader:11:14
   local.get 6   ; _main.vader:11:22
@@ -129,8 +123,7 @@ fn 1 std_core$Range$Iterator$step (ref) -> ref
   struct.get 1 1   ; core.vader:65:28
   i32.ge   ; core.vader:65:13
   end   ; core.vader:62:17
-  local.set 1   ; core.vader:62:9
-  local.get 1   ; core.vader:67:13
+  local.tee 1   ; core.vader:62:9
   if void   ; core.vader:67:9
   struct.new 0   ; core.vader:68:20
   return   ; core.vader:68:13
@@ -165,8 +158,7 @@ fn 2 std_set$std_set$add__i32 (ref,i32) -> bool
   loop void   ; set.vader:29:5
   local.get 2   ; set.vader:29:5
   call 1   ; set.vader:29:5
-  local.set 3   ; set.vader:29:5
-  local.get 3   ; set.vader:29:5
+  local.tee 3   ; set.vader:29:5
   type_check 0   ; set.vader:29:5
   if void   ; set.vader:29:5
   br 2   ; set.vader:29:5
@@ -218,8 +210,7 @@ fn 3 std_set$std_set$contains__i32 (ref,i32) -> bool
   loop void   ; set.vader:38:5
   local.get 2   ; set.vader:38:5
   call 1   ; set.vader:38:5
-  local.set 3   ; set.vader:38:5
-  local.get 3   ; set.vader:38:5
+  local.tee 3   ; set.vader:38:5
   type_check 0   ; set.vader:38:5
   if void   ; set.vader:38:5
   br 2   ; set.vader:38:5

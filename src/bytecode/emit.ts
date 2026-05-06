@@ -16,11 +16,22 @@ import {
 import type {
   BcImport, BcLocal, BcSignature, BytecodeModule, DebugPos,
 } from "./module.ts";
+import { runPeepholes } from "./peephole.ts";
 import type { BcType, ValType } from "./types.ts";
 import { isIntegerVal, isNumericVal } from "./types.ts";
 
-export function emitBytecode(project: LoweredProject, name: string): BytecodeModule {
-  const ctx = newEmitterCtx();
+/** Knobs for the bytecode emitter. Today this only toggles the peephole
+ *  pass; future codegen-time options (e.g. inline-thresholds, bound checks)
+ *  belong here. */
+export interface EmitOptions {
+  /** Run peephole optimisations on every function body. Default: `true`. */
+  readonly optimize?: boolean;
+}
+
+export function emitBytecode(
+  project: LoweredProject, name: string, options: EmitOptions = {},
+): BytecodeModule {
+  const ctx = newEmitterCtx(options.optimize ?? true);
   // Pass 1 reserves indices so cross-references resolve regardless of decl order.
   for (const m of project.modules.values()) {
     for (const d of m.decls) reserveDecl(d, ctx);
@@ -51,6 +62,7 @@ interface EmitterCtx {
   readonly exports: { externName: string; fnIndex: number }[];
   /** Const decls inlined at every use site by `emitIdent`. */
   readonly constDecls: Map<number, L.LoweredConstDecl>;
+  readonly optimize: boolean;
 }
 
 /** Writable shadow of `BcFunction` — populated during pass 2, returned as the
@@ -63,7 +75,7 @@ interface MutableFn {
   debug: (DebugPos | null)[];
 }
 
-function newEmitterCtx(): EmitterCtx {
+function newEmitterCtx(optimize: boolean): EmitterCtx {
   return {
     types: [], typeKey: new Map(),
     strings: [], stringKey: new Map(),
@@ -71,6 +83,7 @@ function newEmitterCtx(): EmitterCtx {
     imports: [], importIndexBySymId: new Map(),
     exports: [],
     constDecls: new Map(),
+    optimize,
   };
 }
 
@@ -136,6 +149,8 @@ function emitDecl(d: L.LoweredDecl, ctx: EmitterCtx): void {
   if (slot.signature.result !== "void" && d.body.trailing !== null) {
     pushOp(fn, { kind: "return" }, d.body.trailing.span);
   }
+
+  if (ctx.optimize) runPeepholes(fn);
 
   slot.locals = fn.locals;
   slot.body = fn.body;

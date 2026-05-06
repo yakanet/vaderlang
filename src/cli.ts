@@ -24,6 +24,7 @@ COMMANDS:
 GLOBAL OPTIONS:
   --diagnostics=text|json          Output diagnostics in plain text (default) or JSON for tooling
   --allow-env                      Permit @comptime to read process env
+  --no-bytecode-opt                Disable bytecode peephole optimisations (debug)
   --help, -h                       Show this message
   --version, -v                    Show the compiler version
 `;

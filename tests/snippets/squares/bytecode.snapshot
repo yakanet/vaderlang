@@ -21,8 +21,7 @@ fn 1 tests_snippets_squares__main_vader$main () -> i32
   string.const 0   ; _main.vader:8:13
   call.import 1   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
-  local.set 0   ; _main.vader:9:13
-  local.get 0   ; _main.vader:9:14
+  local.tee 0   ; _main.vader:9:13
   i32.const 0   ; _main.vader:9:23
   call 0   ; _main.vader:9:16
   intrinsic builder.append_display   ; _main.vader:9:14
@@ -30,8 +29,7 @@ fn 1 tests_snippets_squares__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:9:13
   call.import 1   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:10:13
-  local.set 1   ; _main.vader:10:13
-  local.get 1   ; _main.vader:10:14
+  local.tee 1   ; _main.vader:10:13
   i32.const 3   ; _main.vader:10:23
   call 0   ; _main.vader:10:16
   intrinsic builder.append_display   ; _main.vader:10:14
@@ -39,8 +37,7 @@ fn 1 tests_snippets_squares__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:10:13
   call.import 1   ; _main.vader:10:5
   intrinsic builder.new   ; _main.vader:11:13
-  local.set 2   ; _main.vader:11:13
-  local.get 2   ; _main.vader:11:14
+  local.tee 2   ; _main.vader:11:13
   i32.const 7   ; _main.vader:11:23
   call 0   ; _main.vader:11:16
   intrinsic builder.append_display   ; _main.vader:11:14

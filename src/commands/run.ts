@@ -34,7 +34,7 @@ export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> 
 }
 
 async function compileToBytecode(file: string, opts: GlobalOpts) {
-  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv });
+  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   const diags = r.diagnostics.sorted();
   if (diags.length > 0) {
     if (opts.diagnostics === "json") {

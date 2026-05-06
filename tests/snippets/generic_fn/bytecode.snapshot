@@ -20,8 +20,7 @@ fn 0 tests_snippets_generic_fn__main_vader$main () -> i32
   call 1   ; _main.vader:15:10
   local.set 0   ; _main.vader:15:5
   intrinsic builder.new   ; _main.vader:16:13
-  local.set 1   ; _main.vader:16:13
-  local.get 1   ; _main.vader:16:14
+  local.tee 1   ; _main.vader:16:13
   string.const 0   ; _main.vader:16:14
   intrinsic builder.append_str   ; _main.vader:16:14
   local.get 1   ; _main.vader:16:18
@@ -34,14 +33,12 @@ fn 0 tests_snippets_generic_fn__main_vader$main () -> i32
   i32.const 20   ; _main.vader:18:17
   i32.const 30   ; _main.vader:18:21
   array.new 0 3   ; _main.vader:18:12
-  local.set 2   ; _main.vader:18:5
-  local.get 2   ; _main.vader:19:10
+  local.tee 2   ; _main.vader:18:5
   i32.const 0   ; _main.vader:19:20
   call 2   ; _main.vader:19:10
   local.set 3   ; _main.vader:19:5
   intrinsic builder.new   ; _main.vader:20:13
-  local.set 4   ; _main.vader:20:13
-  local.get 4   ; _main.vader:20:14
+  local.tee 4   ; _main.vader:20:13
   string.const 1   ; _main.vader:20:14
   intrinsic builder.append_str   ; _main.vader:20:14
   local.get 4   ; _main.vader:20:18

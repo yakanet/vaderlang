@@ -15,8 +15,7 @@ fn 0 tests_snippets_try_op__main_vader$read_or_default (string) -> ref
   local __try_0 ref
   local.get 0   ; _main.vader:6:22
   call.import 3   ; _main.vader:6:12
-  local.set 1   ; _main.vader:6:12
-  local.get 1   ; _main.vader:6:12
+  local.tee 1   ; _main.vader:6:12
   type_check 0   ; _main.vader:6:12
   if string   ; _main.vader:6:12
   local.get 1   ; _main.vader:6:12
@@ -31,8 +30,7 @@ end
 fn 1 tests_snippets_try_op__main_vader$show (ref) -> void
   local __scrut_0 ref
   local.get 0   ; _main.vader:10:11
-  local.set 1   ; _main.vader:10:11
-  local.get 1   ; _main.vader:11:9
+  local.tee 1   ; _main.vader:10:11
   type_check 1   ; _main.vader:11:9
   if void   ; _main.vader:11:9
   local.get 0   ; _main.vader:11:30

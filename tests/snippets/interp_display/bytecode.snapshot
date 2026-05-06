@@ -6,8 +6,7 @@ string 2 " years old."
 fn 0 tests_snippets_interp_display__main_vader$greet (string,i32) -> string
   local __sb_0 any
   intrinsic builder.new   ; _main.vader:2:12
-  local.set 2   ; _main.vader:2:12
-  local.get 2   ; _main.vader:2:13
+  local.tee 2   ; _main.vader:2:12
   string.const 0   ; _main.vader:2:13
   intrinsic builder.append_str   ; _main.vader:2:13
   local.get 2   ; _main.vader:2:20

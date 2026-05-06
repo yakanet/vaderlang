@@ -91,6 +91,7 @@ Invoke as `bun src/index.ts <command>` (or via the `vader` wrapper script: `bun 
 
 - `--diagnostics=text|json` — render diagnostics for terminals (default) or as a stable JSON schema for tooling.
 - `--allow-env` — let `@comptime` code read process environment variables (gated to preserve build reproducibility).
+- `--no-bytecode-opt` — disable bytecode peephole optimisations. Optimisations are on by default; turn them off when inspecting raw codegen.
 
 ### `dump` stages
 
