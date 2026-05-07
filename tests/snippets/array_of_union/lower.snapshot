@@ -2,13 +2,13 @@
 
 ## tests/snippets/array_of_union/_main.vader
   fn tests_snippets_array_of_union__main_vader$main() -> i32
-    let arr#59: [Node(i32) | null] =
+    let arr#53: [Node(i32) | null] =
       array :[Node(i32) | null]
     LoweredArrayPush
     LoweredArrayPush
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#23 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -22,14 +22,14 @@
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let cell#60: Node(i32) | null =
+    let cell#54: Node(i32) | null =
       index :Node(i32) | null
         on:
-          arr#59 :[Node(i32) | null]
+          arr#53 :[Node(i32) | null]
         ix:
           int(1) :i32
     block :void
-      let __scrut_1#-2: Node(i32) | null = cell#60 :Node(i32) | null
+      let __scrut_1#-2: Node(i32) | null = cell#54 :Node(i32) | null
       ~>
         if :void
           cond:
@@ -39,7 +39,7 @@
             ~>
               call :void
                 callee:
-                  println#29 :fn(string) -> void
+                  println#23 :fn(string) -> void
                 arg0:
                   "none" :string
           else:
@@ -52,7 +52,7 @@
                   ~>
                     call :void
                       callee:
-                        println#29 :fn(string) -> void
+                        println#23 :fn(string) -> void
                       arg0:
                         "got value" :string
                 else:

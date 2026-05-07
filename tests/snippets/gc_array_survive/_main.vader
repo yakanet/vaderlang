@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/gc" { collect, collections }
+import "std/runtime" { collect, collections }
 
 // Force a collection mid-program with a populated `[i32]` on the shadow
 // stack. Without Phase 2.6 the buf would dangle after the swap and the

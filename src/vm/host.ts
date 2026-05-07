@@ -167,10 +167,10 @@ export function stdRuntimeBindings(): Record<string, HostFn> {
   // assertions across both the VM and the native backend.
   let collections = 0;
   return {
-    std_gc$collect:      ()     => { collections++; return VOID; },
-    std_gc$collections:  ()     => num("i32", collections),
-    std_gc$bytes_used:   ()     => num("i32", 0),
-    std_gc$bytes_copied: ()     => num("i32", 0),
+    std_runtime$collect:      ()     => { collections++; return VOID; },
+    std_runtime$collections:  ()     => num("i32", collections),
+    std_runtime$bytes_used:   ()     => num("i32", 0),
+    std_runtime$bytes_copied: ()     => num("i32", 0),
   };
 }
 

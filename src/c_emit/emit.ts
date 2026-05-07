@@ -358,10 +358,10 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_string_builder$concat_all":
       return `${head} { return vader_string_concat_all((vader_array_t*) a0.payload.obj); }`;
 
-    case "std_gc$collect":      return `${head} { vader_gc_collect(); }`;
-    case "std_gc$collections":  return `${head} { return (int32_t) vader_gc_get_stats().total_collections; }`;
-    case "std_gc$bytes_used":   return `${head} { return (int32_t) vader_gc_get_stats().bytes_used; }`;
-    case "std_gc$bytes_copied": return `${head} { return (int32_t) vader_gc_get_stats().total_copied; }`;
+    case "std_runtime$collect":      return `${head} { vader_gc_collect(); }`;
+    case "std_runtime$collections":  return `${head} { return (int32_t) vader_gc_get_stats().total_collections; }`;
+    case "std_runtime$bytes_used":   return `${head} { return (int32_t) vader_gc_get_stats().bytes_used; }`;
+    case "std_runtime$bytes_copied": return `${head} { return (int32_t) vader_gc_get_stats().total_copied; }`;
 
     case "std_math$sqrt":  return `${head} { return vader_math_sqrt(a0); }`;
     case "std_math$pow":   return `${head} { return vader_math_pow(a0, a1); }`;

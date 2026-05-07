@@ -2,12 +2,12 @@
 
 ## tests/snippets/primitive_hash_eq/_main.vader
   fn tests_snippets_primitive_hash_eq__main_vader$main() -> i32
-    let a#57: i32 = int(42) :i32
-    let b#58: i32 = int(42) :i32
-    let c#59: i32 = int(7) :i32
+    let a#51: i32 = int(42) :i32
+    let b#52: i32 = int(42) :i32
+    let c#53: i32 = int(7) :i32
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#22 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -21,13 +21,13 @@
               callee:
                 hash#1000002 :u64
               arg0:
-                a#57 :i32
+                a#51 :i32
           ~>
             @builder.finish :string
               __sb_0#-1 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#22 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -41,15 +41,15 @@
               callee:
                 equals#1000006 :bool
               arg0:
-                a#57 :i32
+                a#51 :i32
               arg1:
-                b#58 :i32
+                b#52 :i32
           ~>
             @builder.finish :string
               __sb_1#-2 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#22 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -63,16 +63,16 @@
               callee:
                 equals#1000006 :bool
               arg0:
-                a#57 :i32
+                a#51 :i32
               arg1:
-                c#59 :i32
+                c#53 :i32
           ~>
             @builder.finish :string
               __sb_2#-3 :?
-    let n#60: usize = int(100) :usize
+    let n#54: usize = int(100) :usize
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#22 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-4: ? =
@@ -86,7 +86,7 @@
               callee:
                 hash#1000004 :u64
               arg0:
-                n#60 :usize
+                n#54 :usize
           ~>
             @builder.finish :string
               __sb_3#-4 :?

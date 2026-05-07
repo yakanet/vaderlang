@@ -9,22 +9,16 @@
   trait            public   Div 
   struct           public   Done 
   trait            public   Eq 
-  fn               public   eq_i32 
-  fn               public   eq_u32 
-  fn               public   eq_usize 
   trait            public   Error 
   trait            public   Hash 
-  fn               public   hash_i32 
   fn               public   hash_string 
-  fn               public   hash_u32 
-  fn               public   hash_usize 
   trait            public   Iterator 
   trait            public   Mul 
   trait            public   Ord 
   struct           public   Range 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
+  refs: idents=40 types=71 params=36 locals=3 typeParams=4 fields=0
 
 ## tests/snippets/expressions/_main.vader
   fn               public   add 

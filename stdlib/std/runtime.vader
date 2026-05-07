@@ -1,7 +1,9 @@
-// std/gc — garbage-collector introspection and controls.
+// std/runtime — runtime introspection and controls (currently GC-only).
 //
-// Mostly intended for test harnesses and stress tests; user programs
-// should rarely need to call these.
+// Lives in std/ rather than a hypothetical internal/ namespace because Vader
+// has no compiler-private visibility tier today and Go-style "runtime"
+// naming already signals the intent. Mostly intended for test harnesses
+// and stress tests ; user programs should rarely need to call these.
 
 // collect — force a Cheney semi-space collection cycle now.
 export collect :: fn() -> void

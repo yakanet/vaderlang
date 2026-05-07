@@ -3,7 +3,7 @@
 // Mirrors `src/cli.ts` : the TS host CLI is the spec for command surface,
 // flag set, help text, and error wording. Self-hosted commands stub out
 // with the same messages so users see identical output regardless of
-// whether they invoked `bun src/index.ts ...` or `./build/vaderc ...`.
+// whether they invoked `bun src/index.ts ...` or `./build/vader ...`.
 // The only command that actually runs in self-hosted today is
 // `dump --stage=lexer` ; everything else exits 2 with a TS-identical
 // "not yet implemented" message.

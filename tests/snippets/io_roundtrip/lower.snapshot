@@ -2,17 +2,17 @@
 
 ## tests/snippets/io_roundtrip/_main.vader
   fn tests_snippets_io_roundtrip__main_vader$main() -> i32
-    let path#60: string = "/tmp/vader_io_roundtrip.txt" :string
+    let path#54: string = "/tmp/vader_io_roundtrip.txt" :string
     call :Error | null
       callee:
-        write_file#36 :fn(string, string) -> Error | null
+        write_file#30 :fn(string, string) -> Error | null
       arg0:
-        path#60 :string
+        path#54 :string
       arg1:
         "hello from vader" :string
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#25 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -24,20 +24,20 @@
             __sb_0#-1 :?
             call :bool
               callee:
-                exists#37 :fn(string) -> bool
+                exists#31 :fn(string) -> bool
               arg0:
-                path#60 :string
+                path#54 :string
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let contents#61: Error | string =
+    let contents#55: Error | string =
       call :Error | string
         callee:
-          read_file#35 :fn(string) -> Error | string
+          read_file#29 :fn(string) -> Error | string
         arg0:
-          path#60 :string
+          path#54 :string
     block :void
-      let __scrut_1#-2: Error | string = contents#61 :Error | string
+      let __scrut_1#-2: Error | string = contents#55 :Error | string
       ~>
         if :void
           cond:
@@ -47,7 +47,7 @@
             ~>
               call :void
                 callee:
-                  println#31 :fn(string) -> void
+                  println#25 :fn(string) -> void
                 arg0:
                   block :string
                     let __sb_2#-3: ? =
@@ -58,7 +58,7 @@
                     @builder.append_display <for string> :void
                       __sb_2#-3 :?
                       cast → string
-                        contents#61 :Error | string
+                        contents#55 :Error | string
                     ~>
                       @builder.finish :string
                         __sb_2#-3 :?
@@ -72,7 +72,7 @@
                   ~>
                     call :void
                       callee:
-                        println#31 :fn(string) -> void
+                        println#25 :fn(string) -> void
                       arg0:
                         "read failed" :string
                 else:

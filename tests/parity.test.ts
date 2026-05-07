@@ -17,7 +17,7 @@ import { join } from "node:path";
 import { listSnippets } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
-const CLI_BIN = `build/vaderc${process.platform === "win32" ? ".exe" : ""}`;
+const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}`;
 
 // Walk every Vader source the CLI links against and every TS file driving the
 // compiler, returning the newest mtime. If the binary's mtime is older the
@@ -51,7 +51,7 @@ beforeAll(async () => {
   const code = await proc.exited;
   if (code !== 0) {
     const err = await new Response(proc.stderr).text();
-    throw new Error(`vaderc build failed (exit ${code}):\n${err}`);
+    throw new Error(`vader CLI build failed (exit ${code}):\n${err}`);
   }
 });
 

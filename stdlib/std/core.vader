@@ -138,15 +138,3 @@ i32    implements Eq -> self == other
 u32    implements Eq -> self == other
 usize  implements Eq -> self == other
 string implements Eq -> self == other
-
-// Free function variants — usable as `fn(K) -> u64` / `fn(K, K) -> bool`
-// values. Generic collections that need to dispatch hashing/equality on a
-// type-param `$K` accept these as struct fields (workaround for
-// trait-method dispatch on bounded type parameters, post-MVP).
-export hash_i32   :: fn(x: i32)   -> u64  { return u64(x) }
-export hash_u32   :: fn(x: u32)   -> u64  { return u64(x) }
-export hash_usize :: fn(x: usize) -> u64  { return u64(x) }
-
-export eq_i32   :: fn(a: i32,   b: i32)   -> bool { return a == b }
-export eq_u32   :: fn(a: u32,   b: u32)   -> bool { return a == b }
-export eq_usize :: fn(a: usize, b: usize) -> bool { return a == b }

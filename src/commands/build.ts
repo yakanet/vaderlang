@@ -24,6 +24,7 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
     "native";
   const useManifest = flags.includes("--manifest");
   const outFlag = flags.find((f) => f.startsWith("--out="))?.slice("--out=".length);
+  const release = flags.includes("--release");
 
   if (!isTarget(targetRaw)) {
     console.error(`vader build: unknown target "${targetRaw}"`);
@@ -50,7 +51,7 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
       console.error("vader build --target=native: --manifest mode not yet implemented");
       return 2;
     }
-    return await buildNative(opts, file, outFlag);
+    return await buildNative(opts, file, outFlag, release);
   }
 
   if (target === "c") {
@@ -65,7 +66,9 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
   return 2;
 }
 
-async function buildNative(opts: GlobalOpts, file: string, outPath: string | undefined): Promise<number> {
+async function buildNative(
+  opts: GlobalOpts, file: string, outPath: string | undefined, release: boolean,
+): Promise<number> {
   const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   if (!flushDiagnostics(r, opts, file)) return 1;
 
@@ -78,11 +81,15 @@ async function buildNative(opts: GlobalOpts, file: string, outPath: string | und
   const cFile = `${out}.c`;
   await Bun.write(cFile, emitC(r.bytecode));
 
+  // Default (debug) builds : `-O0 -ggdb` — cc stays fast, lldb/gdb get full
+  // line tables and locals. `--release` flips to `-O3 -DNDEBUG` (no debug
+  // info, asserts off) for production binaries.
+  const optFlags = release ? ["-O3", "-DNDEBUG"] : ["-O0", "-ggdb"];
   const runtimeRoot = resolve(import.meta.dir, "../../runtime/c");
   const proc = Bun.spawn([
-    "cc", "-std=c11", "-O0", "-I", runtimeRoot,
+    "cc", "-std=c11", ...optFlags, "-I", runtimeRoot,
     cFile, join(runtimeRoot, "vader_runtime.c"), "-o", out,
-  ], { stderr: "pipe", stdout: "pipe" });
+  ], { stderr: "pipe", stdout: "ignore" });
   const code = await proc.exited;
   if (code !== 0) {
     const err = await new Response(proc.stderr).text();
@@ -91,7 +98,19 @@ async function buildNative(opts: GlobalOpts, file: string, outPath: string | und
     console.error(`(generated C kept at ${cFile})`);
     return 1;
   }
-  console.error(`vader build: wrote ${out} (and ${cFile})`);
+
+  // Best-effort post-link strip on release : matches Cargo ≥1.77 / Go
+  // convention. `strip` is in PATH on every Unix-like system that has `cc`
+  // (binutils on Linux, llvm-tools on macOS), and absent on bare Windows.
+  // We swallow any failure — spawn-not-found OR non-zero exit — because the
+  // binary is already valid ; this is purely a size optimisation.
+  if (release) {
+    try {
+      const stripProc = Bun.spawn(["strip", out], { stderr: "ignore", stdout: "ignore" });
+      await stripProc.exited;
+    } catch {}
+  }
+  console.error(`vader build: wrote ${out} (and ${cFile})${release ? " [release]" : ""}`);
   return 0;
 }
 

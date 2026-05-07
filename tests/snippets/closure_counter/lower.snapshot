@@ -2,32 +2,32 @@
 
 ## tests/snippets/closure_counter/_main.vader
   fn tests_snippets_closure_counter__main_vader$main() -> i32
-    let n#47: ? =
+    let n#41: ? =
       LoweredCellNew
-    let inc#48: fn() -> i32 =
+    let inc#42: fn() -> i32 =
       LoweredMakeClosure
-    let a#49: i32 =
+    let a#43: i32 =
       call :i32
         callee:
-          inc#48 :fn() -> i32
-    let b#50: i32 =
+          inc#42 :fn() -> i32
+    let b#44: i32 =
       call :i32
         callee:
-          inc#48 :fn() -> i32
-    let c#51: i32 =
+          inc#42 :fn() -> i32
+    let c#45: i32 =
       call :i32
         callee:
-          inc#48 :fn() -> i32
+          inc#42 :fn() -> i32
     return
       add :i32
         l:
           add :i32
             l:
-              a#49 :i32
+              a#43 :i32
             r:
-              b#50 :i32
+              b#44 :i32
         r:
-          c#51 :i32
+          c#45 :i32
   struct __lambda_env_2 { cap_0: ? }
   fn __lambda_1(__env_0: __lambda_env_2) -> i32
     return

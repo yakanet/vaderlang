@@ -1,6 +1,6 @@
 // Parser-dump parity — Vader CLI vs the TS-generated `parser.snapshot`.
 //
-// Runs `./build/vaderc dump --stage=ast <snippet>` over every `tests/snippets/*`
+// Runs `./build/vader dump --stage=ast <snippet>` over every `tests/snippets/*`
 // and asserts the stdout matches the existing `parser.snapshot` byte-for-byte.
 // Same rebuild trigger as `tests/parity.test.ts` (lexer parity).
 //
@@ -16,7 +16,7 @@ import { join } from "node:path";
 import { listSnippets } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
-const CLI_BIN = `build/vaderc${process.platform === "win32" ? ".exe" : ""}`;
+const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}`;
 
 function newestSourceMtime(): number {
   let max = 0;
@@ -47,7 +47,7 @@ beforeAll(async () => {
   const code = await proc.exited;
   if (code !== 0) {
     const err = await new Response(proc.stderr).text();
-    throw new Error(`vaderc build failed (exit ${code}):\n${err}`);
+    throw new Error(`vader CLI build failed (exit ${code}):\n${err}`);
   }
 });
 

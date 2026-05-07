@@ -4,7 +4,7 @@
   fn tests_snippets_runtime_argv__main_vader$main(argv: [string]) -> i32
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#22 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -22,11 +22,11 @@
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let first#58: bool = true
+    let first#52: bool = true
     block :void
       let __iter_1#-2: ArrayIter(string) =
         ArrayIter(string) {
-          arr: argv#57 :[string]
+          arr: argv#51 :[string]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -45,24 +45,24 @@
           then:
             break
           else:
-            let s#59: string =
+            let s#53: string =
               .value :string
                 cast → Yielded(string)
                   __step_2#-3 :Done | Yielded(string)
             if :void
               cond:
-                first#58 :bool
+                first#52 :bool
               then:
                 assign
                   target:
-                    first#58 :bool
+                    first#52 :bool
                   value:
                     false
               else:
                 ~>
                   call :void
                     callee:
-                      println#28 :fn(string) -> void
+                      println#22 :fn(string) -> void
                     arg0:
-                      s#59 :string
+                      s#53 :string
     return int(0) :i32

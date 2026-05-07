@@ -9,29 +9,16 @@
   trait            public   Div 
   struct           public   Done 
   trait            public   Eq 
-  fn               public   eq_i32 
-  fn               public   eq_u32 
-  fn               public   eq_usize 
   trait            public   Error 
   trait            public   Hash 
-  fn               public   hash_i32 
   fn               public   hash_string 
-  fn               public   hash_u32 
-  fn               public   hash_usize 
   trait            public   Iterator 
   trait            public   Mul 
   trait            public   Ord 
   struct           public   Range 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
-
-## std/gc
-  fn               public   bytes_copied 
-  fn               public   bytes_used 
-  fn               public   collect 
-  fn               public   collections 
-  refs: idents=0 types=4 params=0 locals=0 typeParams=0 fields=0
+  refs: idents=40 types=71 params=36 locals=3 typeParams=4 fields=0
 
 ## std/io
   fn               public   eprint 
@@ -45,6 +32,13 @@
   fn               public   write_file 
   refs: idents=1 types=22 params=9 locals=0 typeParams=0 fields=0
 
+## std/runtime
+  fn               public   bytes_copied 
+  fn               public   bytes_used 
+  fn               public   collect 
+  fn               public   collections 
+  refs: idents=0 types=4 params=0 locals=0 typeParams=0 fields=0
+
 ## tests/snippets/gc_chain_survive/_main.vader
   import-binding   private  collect → collect
   import-binding   private  collections → collections
@@ -52,5 +46,5 @@
   struct           public   Node 
   import-binding   private  println → println
   import std/io → ok
-  import std/gc → ok
+  import std/runtime → ok
   refs: idents=30 types=10 params=0 locals=9 typeParams=0 fields=0

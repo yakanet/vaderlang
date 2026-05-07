@@ -262,7 +262,7 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 
 - [ ] `#line` directives for gdb/lldb debugging.
 - [ ] Manifest mode (`vader build --target=native --manifest`).
-- [ ] Optimisation flags (`-O2`, `-flto`) — currently `-O0`.
+- [x] Optimisation flags — `--release` flag (2026-05-07) flips `cc` from `-O0 -ggdb` (debug default : full DWARF, asserts on, fast iterative builds) to `-O3 -DNDEBUG` (production : no debug info, asserts off) + best-effort post-link `strip`. `strip` failure is swallowed silently so Windows hosts without binutils still produce a valid (just larger) binary. `-flto` deferred until profiling shows it matters.
 - [ ] Stable ABI for `@extern` user imports (today: stubs trap).
 - [ ] i32/i64 overflow handling per SPEC §4 (panic in debug). Currently wraps silently (matches "release" semantics).
 - [ ] Configurable C compiler via `vader.json` (e.g. `{ "build": { "cc": "clang" } }` or per-platform map). Falls back to `cc` (the POSIX default, auto-resolved by the system) when unset. CLI flag `--cc=<path>` should win over the manifest entry.
@@ -312,7 +312,7 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [x] `std/string_builder` — `StringBuilder` (was `std/builder`, renamed for clarity).
 - [x] `std/iter` — `count(it: Iterator($T))` + `collect(it: Iterator($T))` driven by `for x in it`; closure-driven combinators `map`/`filter`/`fold`/`sum`/`take`/`skip` operate on `[T]` directly (eager — return arrays or single values). Snapshot : `tests/snippets/iter_combinators/`.
 - [ ] **`std/iter` lazy / iterator-driven combinators** — `map(it: Iterator($T), f: fn(T) -> $U) -> Iterator(U)` and friends require trait-method dispatch on a bounded type parameter (`$T : Iterator`) so combinators can call `inner.step()` directly. Today user code can only iterate via `for x in it` (compiler-internal magic). Bridge for now : `collect(it)` then operate on the array.
-- [x] `std/gc` — `collect()`, `collections()`, `bytes_used()`, `bytes_copied()` (was `std/runtime`, renamed for clarity ; `gc_` prefix dropped from fn names since the module name disambiguates).
+- [x] `std/runtime` — `collect()`, `collections()`, `bytes_used()`, `bytes_copied()`. Renamed back from `std/gc` (2026-05-07) — Go-style name signals "runtime introspection" for the small set of users who need GC stats / forced collection cycles, without inventing a new visibility tier (`internal/`) we can't enforce yet.
 - [x] `std/sort` — `sort(arr: [$T], less: fn(T, T) -> bool) -> [T]`. Stable, O(n log n), non-mutating ; top-down merge sort with insertion-sort cutoff at 16 (mirrors Java TimSort). Returns a new array — input is never mutated. A `sort_by_ord(arr)` convenience is deferred until trait-method dispatch on bounded type parameters lands (TODO §1.18b). Snapshot : `tests/snippets/std_sort/`. First user : `vader/lexer/dump.vader:dump_diagnostics` swapped its inline insertion-sort + bubble-back hack for `sort(diags, diag_less)`.
 
 ### 1.13b Self-hosting prerequisites (pre-bootstrap stdlib additions)
@@ -587,6 +587,7 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [ ] LSP server (in Vader): diagnostics, hover, go-to-definition, completion
 - [ ] VS Code extension
 - [ ] Programmable build API (`build.vader` instead of `vader.json`)
+- [ ] **Multi-library namespaces** — today `STDLIB_PATH_PREFIX = "std/"` is hard-coded in `src/resolver/module.ts` ; only one library prefix is recognised. Generalise to a registry mapping prefix → on-disk root, fed by `vader.json` (e.g. `{ "libraries": { "web": "./vendor/vader-web", "experimental": "./libs/exp" } }`). Use cases : (a) third-party libs once a package manager exists, (b) compiler-private namespace (`internal/` for `unsafe`, `atomic`, low-level GC hooks) with a visibility rule "`internal/` only importable by stdlib + compiler", (c) workspace-style monorepos. Touches `resolveImportPath`, `isStdlibModule`, the DCE filter, and dump-stage filters that currently short-circuit on `std/`. Estimate ~150 lines + a manifest schema bump.
 - [ ] External package manager + central registry (much later)
 - [ ] `man` page for the `vader` CLI
 - [ ] GitHub Actions pipeline: build linux / macOS / Windows binaries and run the full test suite on all three targets. Requires self-hosting (§2) first so the pipeline compiles the Vader compiler with itself.

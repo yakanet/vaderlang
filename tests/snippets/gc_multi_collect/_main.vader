@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/gc" { collect, collections }
+import "std/runtime" { collect, collections }
 
 export Pair :: struct {
     left:  i32

@@ -5,9 +5,9 @@
     ~>
       mul :i32
         l:
-          x#48 :i32
+          x#42 :i32
         r:
-          x#48 :i32
+          x#42 :i32
   fn tests_snippets_expr_bodied_mixed_form__main_vader$main() -> i32
     return int(0) :i32
 
