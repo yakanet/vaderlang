@@ -1,0 +1,1242 @@
+// vader/parser/dump — AST → JSON pretty-printer that mirrors the TS
+// `formatProgram` (`tests/snapshot.ts`).
+//
+// Snapshot format : `# AST\n` header + 2-space-indented JSON. Spans are
+// stripped (they're noisy and span numbers shift across tiny edits) ; ints
+// land as quoted decimal strings with a trailing `n` so the snapshot stays
+// stable when the same value is parsed by the TS BigInt-based parser. The
+// helpers below walk every variant explicitly — no reflection.
+
+import "std/string" { len, char_at, pad_start }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
+import "std/numbers" { to_hex }
+
+dump_program :: fn(prog: Program) -> string {
+    sb := new_builder()
+    sb.append("# AST\n")
+    sb.write_program(prog, 0)
+    // The CLI wrapper adds the trailing newline via `println`. Returning a
+    // value without one keeps the snapshot byte-for-byte with TS where
+    // `formatProgram` returns `# AST\n<json>\n`.
+    return sb.to_string()
+}
+
+// ============================================================================
+// JSON primitives (raw strings, indentation, key-value helpers)
+// ============================================================================
+
+private indent :: fn(sb: StringBuilder, level: i32) -> void {
+    i := 0
+    n :: level * 2
+    for i < n {
+        sb.append_char(' ')
+        i = i + 1
+    }
+}
+
+private write_string :: fn(sb: StringBuilder, s: string) -> void {
+    sb.append_char('"')
+    n :: s.len()
+    i := 0
+    for i < n {
+        c :: s.char_at(i)
+        if c == '"'  { sb.append("\\\"") }
+        else if c == '\\' { sb.append("\\\\") }
+        else if c == '\n' { sb.append("\\n") }
+        else if c == '\r' { sb.append("\\r") }
+        else if c == '\t' { sb.append("\\t") }
+        else if c < ' ' {
+            // Vader's char-literal grammar doesn't expose \b/\f, so every
+            // remaining control char goes out as \u00XX. `to_hex` already
+            // handles the lowercase digit table.
+            sb.append("\\u00")
+            sb.append(u64(u32(c)).to_hex().pad_start(2, '0'))
+        } else {
+            sb.append_char(c)
+        }
+        i = i + 1
+    }
+    sb.append_char('"')
+}
+
+// Bigint rendering : matches the TS `bigintReplacer` shape — quoted decimal
+// with a trailing `n`. `${v}` invokes `Display` on i64.
+private write_bigint :: fn(sb: StringBuilder, v: i64) -> void {
+    sb.append("\"${v}n\"")
+}
+
+private write_f64 :: fn(sb: StringBuilder, v: f64) -> void {
+    sb.append("${v}")
+}
+
+private write_null :: fn(sb: StringBuilder) -> void { sb.append("null") }
+private write_bool :: fn(sb: StringBuilder, v: bool) -> void {
+    if v { sb.append("true") } else { sb.append("false") }
+}
+
+// Begin/end helpers reduce indent bookkeeping noise at call sites.
+private open_obj :: fn(sb: StringBuilder) -> void { sb.append_char('{') }
+private close_obj :: fn(sb: StringBuilder, level: i32) -> void {
+    sb.append_char('\n')
+    indent(sb, level)
+    sb.append_char('}')
+}
+
+private open_arr :: fn(sb: StringBuilder) -> void { sb.append_char('[') }
+private close_arr_empty :: fn(sb: StringBuilder) -> void { sb.append("[]") }
+private close_arr :: fn(sb: StringBuilder, level: i32) -> void {
+    sb.append_char('\n')
+    indent(sb, level)
+    sb.append_char(']')
+}
+
+// Emit `<comma><newline><indent>"key": ` for object entries. Pass `first =
+// true` for the very first entry (no leading comma).
+private entry :: fn(sb: StringBuilder, first: bool, level: i32, key: string) -> void {
+    if !first { sb.append_char(',') }
+    sb.append_char('\n')
+    indent(sb, level)
+    sb.append_char('"')
+    sb.append(key)
+    sb.append("\": ")
+}
+
+private kind_entry :: fn(sb: StringBuilder, level: i32, kind: string) -> void {
+    entry(sb, true, level, "kind")
+    write_string(sb, kind)
+}
+
+// ============================================================================
+// Program / Decl
+// ============================================================================
+
+private write_program :: fn(sb: StringBuilder, prog: Program, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "Program")
+    entry(sb, false, level + 1, "decls")
+    write_decls(sb, prog.decls, level + 1)
+    close_obj(sb, level)
+}
+
+private write_decls :: fn(sb: StringBuilder, decls: [Decl], level: i32) -> void {
+    if decls.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for d in decls {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        write_decl(sb, d, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_decl :: fn(sb: StringBuilder, d: Decl, level: i32) -> void {
+    match d {
+        is ImportDecl    -> { write_import_decl(sb, d, level) }
+        is FnDecl        -> { write_fn_decl(sb, d, level) }
+        is StructDecl    -> { write_struct_decl(sb, d, level) }
+        is EnumDecl      -> { write_enum_decl(sb, d, level) }
+        is TraitDecl     -> { write_trait_decl(sb, d, level) }
+        is ImplDecl      -> { write_impl_decl(sb, d, level) }
+        is TypeAliasDecl -> { write_type_alias_decl(sb, d, level) }
+        is ConstDecl     -> { write_const_decl(sb, d, level) }
+    }
+}
+
+// ---- ImportDecl -----------------------------------------------------------
+
+private write_import_decl :: fn(sb: StringBuilder, d: ImportDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "ImportDecl")
+    entry(sb, false, level + 1, "path")
+    write_string(sb, d.path)
+    entry(sb, false, level + 1, "binding")
+    write_import_binding(sb, d.binding, level + 1)
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    close_obj(sb, level)
+}
+
+private write_import_binding :: fn(sb: StringBuilder, b: ImportBinding, level: i32) -> void {
+    open_obj(sb)
+    match b {
+        is NamespaceImport -> {
+            kind_entry(sb, level + 1, "namespace")
+        }
+        is AliasImport -> {
+            kind_entry(sb, level + 1, "alias")
+            entry(sb, false, level + 1, "alias")
+            write_string(sb, b.alias)
+        }
+        is DestructureImport -> {
+            kind_entry(sb, level + 1, "destructure")
+            entry(sb, false, level + 1, "names")
+            write_import_names(sb, b.names, level + 1)
+        }
+    }
+    close_obj(sb, level)
+}
+
+private write_import_names :: fn(sb: StringBuilder, names: [ImportName], level: i32) -> void {
+    if names.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for n in names {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "name")
+        write_string(sb, n.name)
+        entry(sb, false, level + 2, "alias")
+        alias :: n.alias
+
+        match alias {
+            is null      -> { write_null(sb) }
+            is string -> { write_string(sb, alias) }
+        }
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+// ---- FnDecl ---------------------------------------------------------------
+
+private write_fn_decl :: fn(sb: StringBuilder, d: FnDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "FnDecl")
+    entry(sb, false, level + 1, "name")
+    write_string(sb, d.name)
+    entry(sb, false, level + 1, "visibility")
+    write_visibility(sb, d.visibility)
+    entry(sb, false, level + 1, "typeParams")
+    write_type_params(sb, d.type_params, level + 1)
+    entry(sb, false, level + 1, "params")
+    write_fn_params(sb, d.params, level + 1)
+    entry(sb, false, level + 1, "returnType")
+    write_optional_type(sb, d.return_type, level + 1)
+    entry(sb, false, level + 1, "whereClauses")
+    write_where_clauses(sb, d.where_clauses, level + 1)
+    entry(sb, false, level + 1, "body")
+    body :: d.body
+
+    match body {
+        is null              -> { write_null(sb) }
+        is BlockExpr -> { write_block_expr(sb, body, level + 1) }
+    }
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    if d.sam_synthetic {
+        entry(sb, false, level + 1, "samSynthetic")
+        write_bool(sb, true)
+    }
+    if d.is_expression_bodied {
+        entry(sb, false, level + 1, "isExpressionBodied")
+        write_bool(sb, true)
+    }
+    close_obj(sb, level)
+}
+
+private write_fn_params :: fn(sb: StringBuilder, params: [FnParam], level: i32) -> void {
+    if params.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for pp in params {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        write_fn_param(sb, pp, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_fn_param :: fn(sb: StringBuilder, p: FnParam, level: i32) -> void {
+    open_obj(sb)
+    entry(sb, true, level + 1, "name")
+    write_string(sb, p.name)
+    entry(sb, false, level + 1, "type")
+    write_optional_type(sb, p.ty, level + 1)
+    entry(sb, false, level + 1, "defaultValue")
+    write_optional_expr(sb, p.default_value, level + 1)
+    entry(sb, false, level + 1, "variadic")
+    write_bool(sb, p.variadic)
+    close_obj(sb, level)
+}
+
+// ---- StructDecl -----------------------------------------------------------
+
+private write_struct_decl :: fn(sb: StringBuilder, d: StructDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "StructDecl")
+    entry(sb, false, level + 1, "name")
+    write_string(sb, d.name)
+    entry(sb, false, level + 1, "visibility")
+    write_visibility(sb, d.visibility)
+    entry(sb, false, level + 1, "typeParams")
+    write_type_params(sb, d.type_params, level + 1)
+    entry(sb, false, level + 1, "fields")
+    write_struct_fields(sb, d.fields, level + 1)
+    entry(sb, false, level + 1, "whereClauses")
+    write_where_clauses(sb, d.where_clauses, level + 1)
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    close_obj(sb, level)
+}
+
+private write_struct_fields :: fn(sb: StringBuilder, fields: [StructField], level: i32) -> void {
+    if fields.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for f in fields {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "name")
+        write_string(sb, f.name)
+        entry(sb, false, level + 2, "type")
+        write_type(sb, f.ty, level + 2)
+        entry(sb, false, level + 2, "visibility")
+        write_visibility(sb, f.visibility)
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+// ---- EnumDecl -------------------------------------------------------------
+
+private write_enum_decl :: fn(sb: StringBuilder, d: EnumDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "EnumDecl")
+    entry(sb, false, level + 1, "name")
+    write_string(sb, d.name)
+    entry(sb, false, level + 1, "visibility")
+    write_visibility(sb, d.visibility)
+    entry(sb, false, level + 1, "repr")
+    write_optional_type(sb, d.repr, level + 1)
+    entry(sb, false, level + 1, "variants")
+    if d.variants.len() == 0 { close_arr_empty(sb) }
+    else {
+        open_arr(sb)
+        first := true
+        for v in d.variants {
+            if !first { sb.append_char(',') }
+            first = false
+            sb.append_char('\n')
+            indent(sb, level + 2)
+            open_obj(sb)
+            entry(sb, true, level + 3, "name")
+            write_string(sb, v.name)
+            entry(sb, false, level + 3, "value")
+            mv :: v.value
+
+            match mv {
+                is null    -> { write_null(sb) }
+                is i64 -> { write_bigint(sb, mv) }
+            }
+            close_obj(sb, level + 2)
+        }
+        close_arr(sb, level + 1)
+    }
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    close_obj(sb, level)
+}
+
+// ---- TraitDecl / ImplDecl / TypeAliasDecl / ConstDecl --------------------
+
+private write_trait_decl :: fn(sb: StringBuilder, d: TraitDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "TraitDecl")
+    entry(sb, false, level + 1, "name")
+    write_string(sb, d.name)
+    entry(sb, false, level + 1, "visibility")
+    write_visibility(sb, d.visibility)
+    entry(sb, false, level + 1, "typeParams")
+    write_type_params(sb, d.type_params, level + 1)
+    entry(sb, false, level + 1, "members")
+    write_fn_decls(sb, d.members, level + 1)
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    close_obj(sb, level)
+}
+
+private write_impl_decl :: fn(sb: StringBuilder, d: ImplDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "ImplDecl")
+    entry(sb, false, level + 1, "forType")
+    write_type(sb, d.for_type, level + 1)
+    entry(sb, false, level + 1, "traitName")
+    write_string(sb, d.trait_name)
+    entry(sb, false, level + 1, "traitArgs")
+    write_types(sb, d.trait_args, level + 1)
+    entry(sb, false, level + 1, "members")
+    write_fn_decls(sb, d.members, level + 1)
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    close_obj(sb, level)
+}
+
+private write_type_alias_decl :: fn(sb: StringBuilder, d: TypeAliasDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "TypeAliasDecl")
+    entry(sb, false, level + 1, "name")
+    write_string(sb, d.name)
+    entry(sb, false, level + 1, "visibility")
+    write_visibility(sb, d.visibility)
+    entry(sb, false, level + 1, "typeParams")
+    write_type_params(sb, d.type_params, level + 1)
+    entry(sb, false, level + 1, "aliased")
+    write_type(sb, d.aliased, level + 1)
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    close_obj(sb, level)
+}
+
+private write_const_decl :: fn(sb: StringBuilder, d: ConstDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "ConstDecl")
+    entry(sb, false, level + 1, "name")
+    write_string(sb, d.name)
+    entry(sb, false, level + 1, "visibility")
+    write_visibility(sb, d.visibility)
+    entry(sb, false, level + 1, "type")
+    write_optional_type(sb, d.ty, level + 1)
+    entry(sb, false, level + 1, "value")
+    write_expr(sb, d.value, level + 1)
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    close_obj(sb, level)
+}
+
+private write_fn_decls :: fn(sb: StringBuilder, ds: [FnDecl], level: i32) -> void {
+    if ds.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for d in ds {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        write_fn_decl(sb, d, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+// ---- Visibility / decorators / type-params / where-clauses --------------
+
+private write_visibility :: fn(sb: StringBuilder, v: Visibility) -> void {
+    match v {
+        .Public  -> { write_string(sb, "public")  }
+        .Private -> { write_string(sb, "private") }
+    }
+}
+
+private write_decorators :: fn(sb: StringBuilder, ds: [Decorator], level: i32) -> void {
+    if ds.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for d in ds {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "name")
+        write_string(sb, d.name)
+        entry(sb, false, level + 2, "args")
+        write_exprs(sb, d.args, level + 2)
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_type_params :: fn(sb: StringBuilder, tps: [TypeParam], level: i32) -> void {
+    if tps.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for tp in tps {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "name")
+        write_string(sb, tp.name)
+        entry(sb, false, level + 2, "bound")
+        write_optional_type(sb, tp.bound, level + 2)
+        entry(sb, false, level + 2, "isComptimeValue")
+        write_bool(sb, tp.is_comptime_value)
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_where_clauses :: fn(sb: StringBuilder, ws: [WhereClause], level: i32) -> void {
+    if ws.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for w in ws {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "typeName")
+        write_string(sb, w.type_name)
+        entry(sb, false, level + 2, "traitName")
+        write_string(sb, w.trait_name)
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+// ============================================================================
+// Type expressions
+// ============================================================================
+
+private write_types :: fn(sb: StringBuilder, ts: [TypeExpr], level: i32) -> void {
+    if ts.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for t in ts {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        write_type(sb, t, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+// Nullable-TypeExpr fields appear on FnDecl, FnParam, ConstDecl, EnumDecl,
+// TypeParam, FnTypeExpr, LetStmt, LambdaExpr — write_optional_type folds the
+// per-variant dispatch into one helper so each call site stays a single line.
+private write_optional_type :: fn(sb: StringBuilder, t: TypeExpr | null, level: i32) -> void {
+    match t {
+        is null            -> { write_null(sb) }
+        is NamedType       -> { write_type(sb, t, level) }
+        is UnionType       -> { write_type(sb, t, level) }
+        is FnTypeExpr      -> { write_type(sb, t, level) }
+        is ArrayTypeExpr   -> { write_type(sb, t, level) }
+        is GenericInstType -> { write_type(sb, t, level) }
+        is TypeParamType   -> { write_type(sb, t, level) }
+    }
+}
+
+private write_type :: fn(sb: StringBuilder, t: TypeExpr, level: i32) -> void {
+    match t {
+        is NamedType       -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "NamedType")
+            entry(sb, false, level + 1, "name")
+            write_string(sb, t.name)
+            close_obj(sb, level)
+        }
+        is UnionType -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "UnionType")
+            entry(sb, false, level + 1, "variants")
+            write_types(sb, t.variants, level + 1)
+            close_obj(sb, level)
+        }
+        is FnTypeExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "FnTypeExpr")
+            entry(sb, false, level + 1, "params")
+            write_types(sb, t.params, level + 1)
+            entry(sb, false, level + 1, "returnType")
+            write_optional_type(sb, t.return_type, level + 1)
+            close_obj(sb, level)
+        }
+        is ArrayTypeExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "ArrayTypeExpr")
+            entry(sb, false, level + 1, "element")
+            write_type(sb, t.element, level + 1)
+            close_obj(sb, level)
+        }
+        is GenericInstType -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "GenericInstType")
+            entry(sb, false, level + 1, "base")
+            write_type(sb, t.base, level + 1)
+            entry(sb, false, level + 1, "args")
+            write_types(sb, t.args, level + 1)
+            close_obj(sb, level)
+        }
+        is TypeParamType -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "TypeParamType")
+            entry(sb, false, level + 1, "name")
+            write_string(sb, t.name)
+            close_obj(sb, level)
+        }
+    }
+}
+
+// ============================================================================
+// Statements
+// ============================================================================
+
+private write_stmts :: fn(sb: StringBuilder, ss: [Stmt], level: i32) -> void {
+    if ss.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for s in ss {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        write_stmt(sb, s, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_stmt :: fn(sb: StringBuilder, s: Stmt, level: i32) -> void {
+    match s {
+        is LetStmt -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "LetStmt")
+            entry(sb, false, level + 1, "mutable")
+            write_bool(sb, s.mutable)
+            entry(sb, false, level + 1, "name")
+            write_string(sb, s.name)
+            entry(sb, false, level + 1, "type")
+            write_optional_type(sb, s.ty, level + 1)
+            entry(sb, false, level + 1, "value")
+            write_expr(sb, s.value, level + 1)
+            close_obj(sb, level)
+        }
+        is AssignStmt -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "AssignStmt")
+            entry(sb, false, level + 1, "target")
+            write_expr(sb, s.target, level + 1)
+            entry(sb, false, level + 1, "value")
+            write_expr(sb, s.value, level + 1)
+            close_obj(sb, level)
+        }
+        is ExprStmt -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "ExprStmt")
+            entry(sb, false, level + 1, "expr")
+            write_expr(sb, s.expr, level + 1)
+            close_obj(sb, level)
+        }
+        is ReturnStmt -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "ReturnStmt")
+            entry(sb, false, level + 1, "value")
+            write_optional_expr(sb, s.value, level + 1)
+            close_obj(sb, level)
+        }
+        is ForStmt -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "ForStmt")
+            entry(sb, false, level + 1, "label")
+            label :: s.label
+
+            match label {
+                is null        -> { write_null(sb) }
+                is string -> { write_string(sb, label) }
+            }
+            entry(sb, false, level + 1, "form")
+            write_for_form(sb, s.form, level + 1)
+            entry(sb, false, level + 1, "body")
+            write_block_expr(sb, s.body, level + 1)
+            close_obj(sb, level)
+        }
+        is BreakStmt -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "BreakStmt")
+            entry(sb, false, level + 1, "label")
+            label :: s.label
+
+            match label {
+                is null        -> { write_null(sb) }
+                is string -> { write_string(sb, label) }
+            }
+            close_obj(sb, level)
+        }
+        is ContinueStmt -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "ContinueStmt")
+            entry(sb, false, level + 1, "label")
+            label :: s.label
+
+            match label {
+                is null        -> { write_null(sb) }
+                is string -> { write_string(sb, label) }
+            }
+            close_obj(sb, level)
+        }
+        is DeferStmt -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "DeferStmt")
+            entry(sb, false, level + 1, "body")
+            body :: s.body
+
+            match body {
+                is DeferStmtBody -> { write_stmt(sb, body.stmt, level + 1) }
+                is DeferBlockBody -> { write_block_expr(sb, body.block, level + 1) }
+            }
+            close_obj(sb, level)
+        }
+    }
+}
+
+private write_for_form :: fn(sb: StringBuilder, f: ForForm, level: i32) -> void {
+    open_obj(sb)
+    match f {
+        is InfiniteFor -> { kind_entry(sb, level + 1, "infinite") }
+        is WhileFor -> {
+            kind_entry(sb, level + 1, "while")
+            entry(sb, false, level + 1, "cond")
+            write_expr(sb, f.cond, level + 1)
+        }
+        is InFor -> {
+            kind_entry(sb, level + 1, "in")
+            entry(sb, false, level + 1, "binding")
+            write_string(sb, f.binding)
+            entry(sb, false, level + 1, "iter")
+            write_expr(sb, f.iter, level + 1)
+        }
+    }
+    close_obj(sb, level)
+}
+
+// ============================================================================
+// Expressions
+// ============================================================================
+
+private write_optional_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
+    match e {
+        is null              -> { write_null(sb) }
+        is IntLitExpr -> { write_expr(sb, e, level) }
+        is FloatLitExpr -> { write_expr(sb, e, level) }
+        is BoolLitExpr -> { write_expr(sb, e, level) }
+        is NullLitExpr -> { write_expr(sb, e, level) }
+        is CharLitExpr -> { write_expr(sb, e, level) }
+        is StringLitExpr -> { write_expr(sb, e, level) }
+        is IdentExpr -> { write_expr(sb, e, level) }
+        is CallExpr -> { write_expr(sb, e, level) }
+        is FieldExpr -> { write_expr(sb, e, level) }
+        is IndexExpr -> { write_expr(sb, e, level) }
+        is UnaryExpr -> { write_expr(sb, e, level) }
+        is BinaryExpr -> { write_expr(sb, e, level) }
+        is IfExpr -> { write_expr(sb, e, level) }
+        is MatchExpr -> { write_expr(sb, e, level) }
+        is BlockExpr -> { write_expr(sb, e, level) }
+        is LambdaExpr -> { write_expr(sb, e, level) }
+        is StructLitExpr -> { write_expr(sb, e, level) }
+        is ArrayLitExpr -> { write_expr(sb, e, level) }
+        is RangeExpr -> { write_expr(sb, e, level) }
+        is TryExpr -> { write_expr(sb, e, level) }
+        is CastExpr -> { write_expr(sb, e, level) }
+        is GenericInstExpr -> { write_expr(sb, e, level) }
+        is DotVariantExpr -> { write_expr(sb, e, level) }
+    }
+}
+
+private write_exprs :: fn(sb: StringBuilder, es: [Expr], level: i32) -> void {
+    if es.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for e in es {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        write_expr(sb, e, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_expr :: fn(sb: StringBuilder, e: Expr, level: i32) -> void {
+    match e {
+        is IntLitExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "IntLitExpr")
+            entry(sb, false, level + 1, "value")
+            write_bigint(sb, e.value)
+            entry(sb, false, level + 1, "suffix")
+            suffix :: e.suffix
+
+            match suffix {
+                is null        -> { write_null(sb) }
+                is string -> { write_string(sb, suffix) }
+            }
+            close_obj(sb, level)
+        }
+        is FloatLitExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "FloatLitExpr")
+            entry(sb, false, level + 1, "value")
+            write_f64(sb, e.value)
+            entry(sb, false, level + 1, "suffix")
+            suffix :: e.suffix
+
+            match suffix {
+                is null        -> { write_null(sb) }
+                is string -> { write_string(sb, suffix) }
+            }
+            close_obj(sb, level)
+        }
+        is BoolLitExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "BoolLitExpr")
+            entry(sb, false, level + 1, "value")
+            write_bool(sb, e.value)
+            close_obj(sb, level)
+        }
+        is NullLitExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "NullLitExpr")
+            close_obj(sb, level)
+        }
+        is CharLitExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "CharLitExpr")
+            entry(sb, false, level + 1, "value")
+            sb.append("${e.value}")
+            close_obj(sb, level)
+        }
+        is StringLitExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "StringLitExpr")
+            entry(sb, false, level + 1, "parts")
+            write_string_parts(sb, e.parts, level + 1)
+            close_obj(sb, level)
+        }
+        is IdentExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "IdentExpr")
+            entry(sb, false, level + 1, "name")
+            write_string(sb, e.name)
+            close_obj(sb, level)
+        }
+        is CallExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "CallExpr")
+            entry(sb, false, level + 1, "callee")
+            write_expr(sb, e.callee, level + 1)
+            entry(sb, false, level + 1, "args")
+            write_call_args(sb, e.args, level + 1)
+            close_obj(sb, level)
+        }
+        is FieldExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "FieldExpr")
+            entry(sb, false, level + 1, "target")
+            write_expr(sb, e.target, level + 1)
+            entry(sb, false, level + 1, "field")
+            write_string(sb, e.field)
+            close_obj(sb, level)
+        }
+        is IndexExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "IndexExpr")
+            entry(sb, false, level + 1, "target")
+            write_expr(sb, e.target, level + 1)
+            entry(sb, false, level + 1, "index")
+            write_expr(sb, e.index, level + 1)
+            close_obj(sb, level)
+        }
+        is UnaryExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "UnaryExpr")
+            entry(sb, false, level + 1, "op")
+            write_string(sb, unary_op_name(e.op))
+            entry(sb, false, level + 1, "operand")
+            write_expr(sb, e.operand, level + 1)
+            close_obj(sb, level)
+        }
+        is BinaryExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "BinaryExpr")
+            entry(sb, false, level + 1, "op")
+            write_string(sb, binary_op_name(e.op))
+            entry(sb, false, level + 1, "left")
+            write_expr(sb, e.left, level + 1)
+            entry(sb, false, level + 1, "right")
+            write_expr(sb, e.right, level + 1)
+            close_obj(sb, level)
+        }
+        is IfExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "IfExpr")
+            entry(sb, false, level + 1, "cond")
+            write_expr(sb, e.cond, level + 1)
+            entry(sb, false, level + 1, "then")
+            write_block_expr(sb, e.then_block, level + 1)
+            entry(sb, false, level + 1, "else")
+            else_branch :: e.else_branch
+
+            match else_branch {
+                is null         -> { write_null(sb) }
+                is IfElseIf -> { write_expr(sb, else_branch.branch, level + 1) }
+                is IfElseBlock -> { write_block_expr(sb, else_branch.block, level + 1) }
+            }
+            close_obj(sb, level)
+        }
+        is MatchExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "MatchExpr")
+            entry(sb, false, level + 1, "scrutinee")
+            write_expr(sb, e.scrutinee, level + 1)
+            entry(sb, false, level + 1, "arms")
+            write_match_arms(sb, e.arms, level + 1)
+            close_obj(sb, level)
+        }
+        is BlockExpr -> { write_block_expr(sb, e, level) }
+        is LambdaExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "LambdaExpr")
+            entry(sb, false, level + 1, "params")
+            write_fn_params(sb, e.params, level + 1)
+            entry(sb, false, level + 1, "returnType")
+            write_optional_type(sb, e.return_type, level + 1)
+            entry(sb, false, level + 1, "body")
+            write_block_expr(sb, e.body, level + 1)
+            close_obj(sb, level)
+        }
+        is StructLitExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "StructLitExpr")
+            entry(sb, false, level + 1, "typeName")
+            write_type(sb, e.type_name, level + 1)
+            entry(sb, false, level + 1, "fields")
+            write_struct_lit_fields(sb, e.fields, level + 1)
+            close_obj(sb, level)
+        }
+        is ArrayLitExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "ArrayLitExpr")
+            entry(sb, false, level + 1, "elements")
+            write_exprs(sb, e.elements, level + 1)
+            close_obj(sb, level)
+        }
+        is RangeExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "RangeExpr")
+            entry(sb, false, level + 1, "inclusive")
+            write_bool(sb, e.inclusive)
+            entry(sb, false, level + 1, "lower")
+            write_expr(sb, e.lower, level + 1)
+            entry(sb, false, level + 1, "upper")
+            write_expr(sb, e.upper, level + 1)
+            close_obj(sb, level)
+        }
+        is TryExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "TryExpr")
+            entry(sb, false, level + 1, "inner")
+            write_expr(sb, e.inner, level + 1)
+            close_obj(sb, level)
+        }
+        is CastExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "CastExpr")
+            entry(sb, false, level + 1, "target")
+            write_type(sb, e.target, level + 1)
+            entry(sb, false, level + 1, "value")
+            write_expr(sb, e.value, level + 1)
+            close_obj(sb, level)
+        }
+        is GenericInstExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "GenericInstExpr")
+            entry(sb, false, level + 1, "callee")
+            write_expr(sb, e.callee, level + 1)
+            entry(sb, false, level + 1, "typeArgs")
+            write_types(sb, e.type_args, level + 1)
+            close_obj(sb, level)
+        }
+        is DotVariantExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "DotVariantExpr")
+            entry(sb, false, level + 1, "variant")
+            write_string(sb, e.variant)
+            close_obj(sb, level)
+        }
+    }
+}
+
+private write_block_expr :: fn(sb: StringBuilder, b: BlockExpr, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "BlockExpr")
+    entry(sb, false, level + 1, "stmts")
+    write_stmts(sb, b.stmts, level + 1)
+    entry(sb, false, level + 1, "trailing")
+    write_optional_expr(sb, b.trailing, level + 1)
+    close_obj(sb, level)
+}
+
+private write_string_parts :: fn(sb: StringBuilder, parts: [StringLitPart], level: i32) -> void {
+    if parts.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for pp in parts {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        match pp {
+            is StringLitText -> {
+                kind_entry(sb, level + 2, "text")
+                entry(sb, false, level + 2, "value")
+                write_string(sb, pp.value)
+            }
+            is StringLitInterp -> {
+                kind_entry(sb, level + 2, "interp")
+                entry(sb, false, level + 2, "expr")
+                write_expr(sb, pp.expr, level + 2)
+            }
+        }
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_call_args :: fn(sb: StringBuilder, args: [CallArg], level: i32) -> void {
+    if args.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for a in args {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "name")
+        mv :: a.name
+
+        match mv {
+            is null        -> { write_null(sb) }
+            is string -> { write_string(sb, mv) }
+        }
+        entry(sb, false, level + 2, "value")
+        write_expr(sb, a.value, level + 2)
+        entry(sb, false, level + 2, "spread")
+        write_bool(sb, a.spread)
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_struct_lit_fields :: fn(sb: StringBuilder, fields: [StructLitField], level: i32) -> void {
+    if fields.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for f in fields {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "name")
+        write_string(sb, f.name)
+        entry(sb, false, level + 2, "value")
+        write_expr(sb, f.value, level + 2)
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_match_arms :: fn(sb: StringBuilder, arms: [MatchArm], level: i32) -> void {
+    if arms.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for a in arms {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "pattern")
+        write_pattern(sb, a.pattern, level + 2)
+        entry(sb, false, level + 2, "guard")
+        write_optional_expr(sb, a.guard, level + 2)
+        entry(sb, false, level + 2, "body")
+        write_expr(sb, a.body, level + 2)
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private write_pattern :: fn(sb: StringBuilder, p: Pattern, level: i32) -> void {
+    match p {
+        is IsPattern -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "IsPattern")
+            entry(sb, false, level + 1, "type")
+            write_type(sb, p.ty, level + 1)
+            entry(sb, false, level + 1, "inner")
+            inner :: p.inner
+
+            match inner {
+                is null                  -> { write_null(sb) }
+                is IsPattern -> { write_pattern(sb, inner, level + 1) }
+                is StructPattern -> { write_pattern(sb, inner, level + 1) }
+                is WildcardPattern -> { write_pattern(sb, inner, level + 1) }
+                is BindingPattern -> { write_pattern(sb, inner, level + 1) }
+                is EnumVariantPattern -> { write_pattern(sb, inner, level + 1) }
+            }
+            entry(sb, false, level + 1, "bindAs")
+            bind_as :: p.bind_as
+
+            match bind_as {
+                is null        -> { write_null(sb) }
+                is string -> { write_string(sb, bind_as) }
+            }
+            close_obj(sb, level)
+        }
+        is StructPattern -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "StructPattern")
+            entry(sb, false, level + 1, "fields")
+            write_struct_pattern_fields(sb, p.fields, level + 1)
+            close_obj(sb, level)
+        }
+        is WildcardPattern -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "WildcardPattern")
+            close_obj(sb, level)
+        }
+        is BindingPattern -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "BindingPattern")
+            entry(sb, false, level + 1, "name")
+            write_string(sb, p.name)
+            close_obj(sb, level)
+        }
+        is EnumVariantPattern -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "EnumVariantPattern")
+            entry(sb, false, level + 1, "variant")
+            write_string(sb, p.variant)
+            close_obj(sb, level)
+        }
+    }
+}
+
+private write_struct_pattern_fields :: fn(sb: StringBuilder, fields: [StructPatternField], level: i32) -> void {
+    if fields.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for f in fields {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        open_obj(sb)
+        entry(sb, true, level + 2, "name")
+        write_string(sb, f.name)
+        entry(sb, false, level + 2, "value")
+        mv :: f.value
+
+        match mv {
+            is PatternBinding -> {
+                open_obj(sb)
+                kind_entry(sb, level + 3, "binding")
+                entry(sb, false, level + 3, "name")
+                write_string(sb, mv.name)
+                close_obj(sb, level + 2)
+            }
+            is PatternLiteral -> {
+                open_obj(sb)
+                kind_entry(sb, level + 3, "literal")
+                entry(sb, false, level + 3, "value")
+                write_expr(sb, mv.value, level + 3)
+                close_obj(sb, level + 2)
+            }
+        }
+        close_obj(sb, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+private unary_op_name :: fn(op: UnaryOp) = match op {
+    .Neg    -> "neg"
+    .Not    -> "not"
+    .BitNot -> "bitnot"
+}
+
+private binary_op_name :: fn(op: BinaryOp) = match op {
+    .Add    -> "add"
+    .Sub    -> "sub"
+    .Mul    -> "mul"
+    .Div    -> "div"
+    .Mod    -> "mod"
+    .Shl    -> "shl"
+    .Shr    -> "shr"
+    .BitAnd -> "bitand"
+    .BitOr  -> "bitor"
+    .BitXor -> "bitxor"
+    .And    -> "and"
+    .Or     -> "or"
+    .Eq     -> "eq"
+    .Neq    -> "neq"
+    .Lt     -> "lt"
+    .Lte    -> "lte"
+    .Gt     -> "gt"
+    .Gte    -> "gte"
+    .Is     -> "is"
+    .In     -> "in"
+    .NotIn  -> "not_in"
+}

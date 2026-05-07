@@ -21,11 +21,11 @@ type 18 struct vader_diagnostics_diagnostic_vader$Position { file:4,offset:1,lin
 type 19 struct vader_diagnostics_diagnostic_vader$Span { start:18,end:18 }
 type 20 struct vader_diagnostics_diagnostic_vader$Diagnostic { severity:21,code:22,detail:4,primary:19 }
 type 21 primitive i32
-type 22 ref _
+type 22 ref CodeInfo
 type 23 struct std_numbers$ParseError { msg:4 }
-type 24 struct vader_diagnostics_codes_vader$CodeInfo { id:4,message:4 }
-type 25 struct std_string_builder$StringBuilder { parts:26 }
-type 26 array 4
+type 24 struct std_string_builder$StringBuilder { parts:25 }
+type 25 array 4
+type 26 struct vader_diagnostics_codes_vader$CodeInfo { id:4,message:4 }
 type 27 ref Error
 type 28 array 29
 type 29 primitive char
@@ -267,6 +267,46 @@ string 234 "L0009"
 string 235 "invalid Unicode codepoint escape"
 string 236 "L0010"
 string 237 "interpolation expression must follow `${`"
+string 238 "P1001"
+string 239 "unexpected token"
+string 240 "P1002"
+string 241 "expected token"
+string 242 "P1003"
+string 243 "expected an expression"
+string 244 "P1004"
+string 245 "expected a statement"
+string 246 "P1005"
+string 247 "expected a type"
+string 248 "P1006"
+string 249 "expected a declaration"
+string 250 "P1007"
+string 251 "expected a pattern"
+string 252 "P1008"
+string 253 "expected an identifier"
+string 254 "P1009"
+string 255 "trailing comma allowed but list ended unexpectedly"
+string 256 "P1010"
+string 257 "non-associative operator chained"
+string 258 "P1011"
+string 259 "struct literal not allowed at the top level of a control-flow condition"
+string 260 "P1012"
+string 261 "missing function body"
+string 262 "P1013"
+string 263 "executable statement at top level (only declarations allowed)"
+string 264 "P1014"
+string 265 "unknown decorator placement"
+string 266 "P1015"
+string 267 "duplicate field name in struct literal"
+string 268 "P1016"
+string 269 "expected a generic argument list"
+string 270 "P1017"
+string 271 "missing newline between top-level declarations"
+string 272 "P1018"
+string 273 "type parameter must be prefixed with `$`"
+string 274 "P1019"
+string 275 "`: type` bound is redundant; write `$T` instead"
+string 276 "P1020"
+string 277 "expression-bodied function cannot also declare an explicit return type"
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 print std_io$print (string) -> void
 import 2 println std_io$println (string) -> void
@@ -608,7 +648,7 @@ fn 1 tests_snippets_selfhost_lexer_basic__main_vader$show (string,string) -> voi
   struct.get 3 8   ; _main.vader:65:33
   local.get 9   ; _main.vader:65:42
   array.get 8   ; _main.vader:65:33
-  call 53   ; _main.vader:65:26
+  call 54   ; _main.vader:65:26
   intrinsic builder.append_display   ; _main.vader:65:24
   local.get 10   ; _main.vader:65:21
   intrinsic builder.finish   ; _main.vader:65:21
@@ -782,7 +822,7 @@ fn 5 vader_lexer$format_token (ref,ref) -> void
   local.get 3   ; dump.vader:47:15
   i32.const 11   ; dump.vader:47:28
   char.const 32   ; dump.vader:47:32
-  call 55   ; dump.vader:47:15
+  call 56   ; dump.vader:47:15
   call 65   ; dump.vader:47:5
   local.get 0   ; dump.vader:48:5
   string.const 58   ; dump.vader:48:15
@@ -793,7 +833,7 @@ fn 5 vader_lexer$format_token (ref,ref) -> void
   call 8   ; dump.vader:49:15
   i32.const 14   ; dump.vader:49:41
   char.const 32   ; dump.vader:49:45
-  call 55   ; dump.vader:49:15
+  call 56   ; dump.vader:49:15
   call 65   ; dump.vader:49:5
   local.get 0   ; dump.vader:50:5
   char.const 32   ; dump.vader:50:20
@@ -926,10 +966,10 @@ fn 6 vader_lexer$append_token_detail (ref,ref) -> void
   local.get 9   ; dump.vader:91:35
   ref.cast 17   ; dump.vader:91:35
   u32.to_u64   ; dump.vader:91:31
-  call 62   ; dump.vader:91:31
+  call 63   ; dump.vader:91:31
   i32.const 4   ; dump.vader:91:57
   char.const 48   ; dump.vader:91:60
-  call 54   ; dump.vader:91:31
+  call 55   ; dump.vader:91:31
   call 65   ; dump.vader:91:21
   else   ; dump.vader:89:17
   local.get 0   ; dump.vader:93:29
@@ -1052,460 +1092,462 @@ end
 
 fn 8 vader_lexer$kind_name (u8) -> string
   local __scrut_0 u8
-  local.get 0   ; dump.vader:135:47
-  local.tee 1   ; dump.vader:135:47
-  i32.const 2   ; dump.vader:136:5
-  u8.eq   ; dump.vader:136:5
-  if string   ; dump.vader:136:5
-  string.const 0   ; dump.vader:136:21
-  else   ; dump.vader:136:5
-  local.get 1   ; dump.vader:137:5
-  i32.const 3   ; dump.vader:137:5
-  u8.eq   ; dump.vader:137:5
-  if string   ; dump.vader:137:5
-  string.const 69   ; dump.vader:137:21
-  else   ; dump.vader:137:5
-  local.get 1   ; dump.vader:138:5
-  i32.const 4   ; dump.vader:138:5
+  local.get 0   ; dump.vader:137:39
+  local.tee 1   ; dump.vader:137:39
+  i32.const 2   ; dump.vader:138:5
   u8.eq   ; dump.vader:138:5
   if string   ; dump.vader:138:5
-  string.const 70   ; dump.vader:138:21
+  string.const 0   ; dump.vader:138:21
   else   ; dump.vader:138:5
   local.get 1   ; dump.vader:139:5
-  i32.const 5   ; dump.vader:139:5
+  i32.const 3   ; dump.vader:139:5
   u8.eq   ; dump.vader:139:5
   if string   ; dump.vader:139:5
-  string.const 71   ; dump.vader:139:21
+  string.const 69   ; dump.vader:139:21
   else   ; dump.vader:139:5
   local.get 1   ; dump.vader:140:5
-  i32.const 6   ; dump.vader:140:5
+  i32.const 4   ; dump.vader:140:5
   u8.eq   ; dump.vader:140:5
   if string   ; dump.vader:140:5
-  string.const 72   ; dump.vader:140:21
+  string.const 70   ; dump.vader:140:21
   else   ; dump.vader:140:5
   local.get 1   ; dump.vader:141:5
-  i32.const 7   ; dump.vader:141:5
+  i32.const 5   ; dump.vader:141:5
   u8.eq   ; dump.vader:141:5
   if string   ; dump.vader:141:5
-  string.const 73   ; dump.vader:141:21
+  string.const 71   ; dump.vader:141:21
   else   ; dump.vader:141:5
   local.get 1   ; dump.vader:142:5
-  i32.const 8   ; dump.vader:142:5
+  i32.const 6   ; dump.vader:142:5
   u8.eq   ; dump.vader:142:5
   if string   ; dump.vader:142:5
-  string.const 74   ; dump.vader:142:21
+  string.const 72   ; dump.vader:142:21
   else   ; dump.vader:142:5
   local.get 1   ; dump.vader:143:5
-  i32.const 9   ; dump.vader:143:5
+  i32.const 7   ; dump.vader:143:5
   u8.eq   ; dump.vader:143:5
   if string   ; dump.vader:143:5
-  string.const 75   ; dump.vader:143:21
+  string.const 73   ; dump.vader:143:21
   else   ; dump.vader:143:5
   local.get 1   ; dump.vader:144:5
-  i32.const 10   ; dump.vader:144:5
+  i32.const 8   ; dump.vader:144:5
   u8.eq   ; dump.vader:144:5
   if string   ; dump.vader:144:5
-  string.const 76   ; dump.vader:144:21
+  string.const 74   ; dump.vader:144:21
   else   ; dump.vader:144:5
+  local.get 1   ; dump.vader:145:5
+  i32.const 9   ; dump.vader:145:5
+  u8.eq   ; dump.vader:145:5
+  if string   ; dump.vader:145:5
+  string.const 75   ; dump.vader:145:21
+  else   ; dump.vader:145:5
   local.get 1   ; dump.vader:146:5
-  i32.const 11   ; dump.vader:146:5
+  i32.const 10   ; dump.vader:146:5
   u8.eq   ; dump.vader:146:5
   if string   ; dump.vader:146:5
-  string.const 3   ; dump.vader:146:22
+  string.const 76   ; dump.vader:146:21
   else   ; dump.vader:146:5
-  local.get 1   ; dump.vader:147:5
-  i32.const 12   ; dump.vader:147:5
-  u8.eq   ; dump.vader:147:5
-  if string   ; dump.vader:147:5
-  string.const 77   ; dump.vader:147:22
-  else   ; dump.vader:147:5
   local.get 1   ; dump.vader:148:5
-  i32.const 13   ; dump.vader:148:5
+  i32.const 11   ; dump.vader:148:5
   u8.eq   ; dump.vader:148:5
   if string   ; dump.vader:148:5
-  string.const 78   ; dump.vader:148:22
+  string.const 3   ; dump.vader:148:22
   else   ; dump.vader:148:5
   local.get 1   ; dump.vader:149:5
-  i32.const 14   ; dump.vader:149:5
+  i32.const 12   ; dump.vader:149:5
   u8.eq   ; dump.vader:149:5
   if string   ; dump.vader:149:5
-  string.const 79   ; dump.vader:149:22
+  string.const 77   ; dump.vader:149:22
   else   ; dump.vader:149:5
   local.get 1   ; dump.vader:150:5
-  i32.const 15   ; dump.vader:150:5
+  i32.const 13   ; dump.vader:150:5
   u8.eq   ; dump.vader:150:5
   if string   ; dump.vader:150:5
-  string.const 80   ; dump.vader:150:22
+  string.const 78   ; dump.vader:150:22
   else   ; dump.vader:150:5
   local.get 1   ; dump.vader:151:5
-  i32.const 16   ; dump.vader:151:5
+  i32.const 14   ; dump.vader:151:5
   u8.eq   ; dump.vader:151:5
   if string   ; dump.vader:151:5
-  string.const 81   ; dump.vader:151:22
+  string.const 79   ; dump.vader:151:22
   else   ; dump.vader:151:5
   local.get 1   ; dump.vader:152:5
-  i32.const 17   ; dump.vader:152:5
+  i32.const 15   ; dump.vader:152:5
   u8.eq   ; dump.vader:152:5
   if string   ; dump.vader:152:5
-  string.const 4   ; dump.vader:152:22
+  string.const 80   ; dump.vader:152:22
   else   ; dump.vader:152:5
   local.get 1   ; dump.vader:153:5
-  i32.const 18   ; dump.vader:153:5
+  i32.const 16   ; dump.vader:153:5
   u8.eq   ; dump.vader:153:5
   if string   ; dump.vader:153:5
-  string.const 82   ; dump.vader:153:22
+  string.const 81   ; dump.vader:153:22
   else   ; dump.vader:153:5
   local.get 1   ; dump.vader:154:5
-  i32.const 19   ; dump.vader:154:5
+  i32.const 17   ; dump.vader:154:5
   u8.eq   ; dump.vader:154:5
   if string   ; dump.vader:154:5
-  string.const 83   ; dump.vader:154:22
+  string.const 4   ; dump.vader:154:22
   else   ; dump.vader:154:5
   local.get 1   ; dump.vader:155:5
-  i32.const 20   ; dump.vader:155:5
+  i32.const 18   ; dump.vader:155:5
   u8.eq   ; dump.vader:155:5
   if string   ; dump.vader:155:5
-  string.const 84   ; dump.vader:155:22
+  string.const 82   ; dump.vader:155:22
   else   ; dump.vader:155:5
   local.get 1   ; dump.vader:156:5
-  i32.const 21   ; dump.vader:156:5
+  i32.const 19   ; dump.vader:156:5
   u8.eq   ; dump.vader:156:5
   if string   ; dump.vader:156:5
-  string.const 85   ; dump.vader:156:22
+  string.const 83   ; dump.vader:156:22
   else   ; dump.vader:156:5
   local.get 1   ; dump.vader:157:5
-  i32.const 22   ; dump.vader:157:5
+  i32.const 20   ; dump.vader:157:5
   u8.eq   ; dump.vader:157:5
   if string   ; dump.vader:157:5
-  string.const 86   ; dump.vader:157:22
+  string.const 84   ; dump.vader:157:22
   else   ; dump.vader:157:5
   local.get 1   ; dump.vader:158:5
-  i32.const 23   ; dump.vader:158:5
+  i32.const 21   ; dump.vader:158:5
   u8.eq   ; dump.vader:158:5
   if string   ; dump.vader:158:5
-  string.const 5   ; dump.vader:158:22
+  string.const 85   ; dump.vader:158:22
   else   ; dump.vader:158:5
   local.get 1   ; dump.vader:159:5
-  i32.const 24   ; dump.vader:159:5
+  i32.const 22   ; dump.vader:159:5
   u8.eq   ; dump.vader:159:5
   if string   ; dump.vader:159:5
-  string.const 87   ; dump.vader:159:22
+  string.const 86   ; dump.vader:159:22
   else   ; dump.vader:159:5
   local.get 1   ; dump.vader:160:5
-  i32.const 25   ; dump.vader:160:5
+  i32.const 23   ; dump.vader:160:5
   u8.eq   ; dump.vader:160:5
   if string   ; dump.vader:160:5
-  string.const 88   ; dump.vader:160:22
+  string.const 5   ; dump.vader:160:22
   else   ; dump.vader:160:5
   local.get 1   ; dump.vader:161:5
-  i32.const 26   ; dump.vader:161:5
+  i32.const 24   ; dump.vader:161:5
   u8.eq   ; dump.vader:161:5
   if string   ; dump.vader:161:5
-  string.const 89   ; dump.vader:161:22
+  string.const 87   ; dump.vader:161:22
   else   ; dump.vader:161:5
   local.get 1   ; dump.vader:162:5
-  i32.const 27   ; dump.vader:162:5
+  i32.const 25   ; dump.vader:162:5
   u8.eq   ; dump.vader:162:5
   if string   ; dump.vader:162:5
-  string.const 90   ; dump.vader:162:22
+  string.const 88   ; dump.vader:162:22
   else   ; dump.vader:162:5
   local.get 1   ; dump.vader:163:5
-  i32.const 28   ; dump.vader:163:5
+  i32.const 26   ; dump.vader:163:5
   u8.eq   ; dump.vader:163:5
   if string   ; dump.vader:163:5
-  string.const 91   ; dump.vader:163:22
+  string.const 89   ; dump.vader:163:22
   else   ; dump.vader:163:5
   local.get 1   ; dump.vader:164:5
-  i32.const 29   ; dump.vader:164:5
+  i32.const 27   ; dump.vader:164:5
   u8.eq   ; dump.vader:164:5
   if string   ; dump.vader:164:5
-  string.const 92   ; dump.vader:164:22
+  string.const 90   ; dump.vader:164:22
   else   ; dump.vader:164:5
   local.get 1   ; dump.vader:165:5
-  i32.const 30   ; dump.vader:165:5
+  i32.const 28   ; dump.vader:165:5
   u8.eq   ; dump.vader:165:5
   if string   ; dump.vader:165:5
-  string.const 6   ; dump.vader:165:22
+  string.const 91   ; dump.vader:165:22
   else   ; dump.vader:165:5
   local.get 1   ; dump.vader:166:5
-  i32.const 31   ; dump.vader:166:5
+  i32.const 29   ; dump.vader:166:5
   u8.eq   ; dump.vader:166:5
   if string   ; dump.vader:166:5
-  string.const 93   ; dump.vader:166:22
+  string.const 92   ; dump.vader:166:22
   else   ; dump.vader:166:5
   local.get 1   ; dump.vader:167:5
-  i32.const 32   ; dump.vader:167:5
+  i32.const 30   ; dump.vader:167:5
   u8.eq   ; dump.vader:167:5
   if string   ; dump.vader:167:5
-  string.const 94   ; dump.vader:167:22
+  string.const 6   ; dump.vader:167:22
   else   ; dump.vader:167:5
   local.get 1   ; dump.vader:168:5
-  i32.const 33   ; dump.vader:168:5
+  i32.const 31   ; dump.vader:168:5
   u8.eq   ; dump.vader:168:5
   if string   ; dump.vader:168:5
-  string.const 95   ; dump.vader:168:22
+  string.const 93   ; dump.vader:168:22
   else   ; dump.vader:168:5
   local.get 1   ; dump.vader:169:5
-  i32.const 34   ; dump.vader:169:5
+  i32.const 32   ; dump.vader:169:5
   u8.eq   ; dump.vader:169:5
   if string   ; dump.vader:169:5
-  string.const 96   ; dump.vader:169:22
+  string.const 94   ; dump.vader:169:22
   else   ; dump.vader:169:5
   local.get 1   ; dump.vader:170:5
-  i32.const 35   ; dump.vader:170:5
+  i32.const 33   ; dump.vader:170:5
   u8.eq   ; dump.vader:170:5
   if string   ; dump.vader:170:5
-  string.const 97   ; dump.vader:170:22
+  string.const 95   ; dump.vader:170:22
   else   ; dump.vader:170:5
+  local.get 1   ; dump.vader:171:5
+  i32.const 34   ; dump.vader:171:5
+  u8.eq   ; dump.vader:171:5
+  if string   ; dump.vader:171:5
+  string.const 96   ; dump.vader:171:22
+  else   ; dump.vader:171:5
   local.get 1   ; dump.vader:172:5
-  i32.const 36   ; dump.vader:172:5
+  i32.const 35   ; dump.vader:172:5
   u8.eq   ; dump.vader:172:5
   if string   ; dump.vader:172:5
-  string.const 7   ; dump.vader:172:17
+  string.const 97   ; dump.vader:172:22
   else   ; dump.vader:172:5
-  local.get 1   ; dump.vader:173:5
-  i32.const 37   ; dump.vader:173:5
-  u8.eq   ; dump.vader:173:5
-  if string   ; dump.vader:173:5
-  string.const 8   ; dump.vader:173:17
-  else   ; dump.vader:173:5
   local.get 1   ; dump.vader:174:5
-  i32.const 38   ; dump.vader:174:5
+  i32.const 36   ; dump.vader:174:5
   u8.eq   ; dump.vader:174:5
   if string   ; dump.vader:174:5
-  string.const 9   ; dump.vader:174:17
+  string.const 7   ; dump.vader:174:17
   else   ; dump.vader:174:5
   local.get 1   ; dump.vader:175:5
-  i32.const 39   ; dump.vader:175:5
+  i32.const 37   ; dump.vader:175:5
   u8.eq   ; dump.vader:175:5
   if string   ; dump.vader:175:5
-  string.const 10   ; dump.vader:175:17
+  string.const 8   ; dump.vader:175:17
   else   ; dump.vader:175:5
   local.get 1   ; dump.vader:176:5
-  i32.const 40   ; dump.vader:176:5
+  i32.const 38   ; dump.vader:176:5
   u8.eq   ; dump.vader:176:5
   if string   ; dump.vader:176:5
-  string.const 98   ; dump.vader:176:17
+  string.const 9   ; dump.vader:176:17
   else   ; dump.vader:176:5
   local.get 1   ; dump.vader:177:5
-  i32.const 41   ; dump.vader:177:5
+  i32.const 39   ; dump.vader:177:5
   u8.eq   ; dump.vader:177:5
   if string   ; dump.vader:177:5
-  string.const 99   ; dump.vader:177:17
+  string.const 10   ; dump.vader:177:17
   else   ; dump.vader:177:5
   local.get 1   ; dump.vader:178:5
-  i32.const 42   ; dump.vader:178:5
+  i32.const 40   ; dump.vader:178:5
   u8.eq   ; dump.vader:178:5
   if string   ; dump.vader:178:5
-  string.const 100   ; dump.vader:178:17
+  string.const 98   ; dump.vader:178:17
   else   ; dump.vader:178:5
   local.get 1   ; dump.vader:179:5
-  i32.const 43   ; dump.vader:179:5
+  i32.const 41   ; dump.vader:179:5
   u8.eq   ; dump.vader:179:5
   if string   ; dump.vader:179:5
-  string.const 101   ; dump.vader:179:17
+  string.const 99   ; dump.vader:179:17
   else   ; dump.vader:179:5
   local.get 1   ; dump.vader:180:5
-  i32.const 44   ; dump.vader:180:5
+  i32.const 42   ; dump.vader:180:5
   u8.eq   ; dump.vader:180:5
   if string   ; dump.vader:180:5
-  string.const 102   ; dump.vader:180:17
+  string.const 100   ; dump.vader:180:17
   else   ; dump.vader:180:5
   local.get 1   ; dump.vader:181:5
-  i32.const 45   ; dump.vader:181:5
+  i32.const 43   ; dump.vader:181:5
   u8.eq   ; dump.vader:181:5
   if string   ; dump.vader:181:5
-  string.const 103   ; dump.vader:181:17
+  string.const 101   ; dump.vader:181:17
   else   ; dump.vader:181:5
   local.get 1   ; dump.vader:182:5
-  i32.const 46   ; dump.vader:182:5
+  i32.const 44   ; dump.vader:182:5
   u8.eq   ; dump.vader:182:5
   if string   ; dump.vader:182:5
-  string.const 104   ; dump.vader:182:17
+  string.const 102   ; dump.vader:182:17
   else   ; dump.vader:182:5
   local.get 1   ; dump.vader:183:5
-  i32.const 47   ; dump.vader:183:5
+  i32.const 45   ; dump.vader:183:5
   u8.eq   ; dump.vader:183:5
   if string   ; dump.vader:183:5
-  string.const 11   ; dump.vader:183:17
+  string.const 103   ; dump.vader:183:17
   else   ; dump.vader:183:5
   local.get 1   ; dump.vader:184:5
-  i32.const 48   ; dump.vader:184:5
+  i32.const 46   ; dump.vader:184:5
   u8.eq   ; dump.vader:184:5
   if string   ; dump.vader:184:5
-  string.const 105   ; dump.vader:184:17
+  string.const 104   ; dump.vader:184:17
   else   ; dump.vader:184:5
   local.get 1   ; dump.vader:185:5
-  i32.const 49   ; dump.vader:185:5
+  i32.const 47   ; dump.vader:185:5
   u8.eq   ; dump.vader:185:5
   if string   ; dump.vader:185:5
-  string.const 12   ; dump.vader:185:17
+  string.const 11   ; dump.vader:185:17
   else   ; dump.vader:185:5
   local.get 1   ; dump.vader:186:5
-  i32.const 50   ; dump.vader:186:5
+  i32.const 48   ; dump.vader:186:5
   u8.eq   ; dump.vader:186:5
   if string   ; dump.vader:186:5
-  string.const 106   ; dump.vader:186:17
+  string.const 105   ; dump.vader:186:17
   else   ; dump.vader:186:5
   local.get 1   ; dump.vader:187:5
-  i32.const 51   ; dump.vader:187:5
+  i32.const 49   ; dump.vader:187:5
   u8.eq   ; dump.vader:187:5
   if string   ; dump.vader:187:5
-  string.const 107   ; dump.vader:187:17
+  string.const 12   ; dump.vader:187:17
   else   ; dump.vader:187:5
   local.get 1   ; dump.vader:188:5
-  i32.const 52   ; dump.vader:188:5
+  i32.const 50   ; dump.vader:188:5
   u8.eq   ; dump.vader:188:5
   if string   ; dump.vader:188:5
-  string.const 108   ; dump.vader:188:17
+  string.const 106   ; dump.vader:188:17
   else   ; dump.vader:188:5
   local.get 1   ; dump.vader:189:5
-  i32.const 53   ; dump.vader:189:5
+  i32.const 51   ; dump.vader:189:5
   u8.eq   ; dump.vader:189:5
   if string   ; dump.vader:189:5
-  string.const 109   ; dump.vader:189:17
+  string.const 107   ; dump.vader:189:17
   else   ; dump.vader:189:5
   local.get 1   ; dump.vader:190:5
-  i32.const 54   ; dump.vader:190:5
+  i32.const 52   ; dump.vader:190:5
   u8.eq   ; dump.vader:190:5
   if string   ; dump.vader:190:5
-  string.const 110   ; dump.vader:190:17
+  string.const 108   ; dump.vader:190:17
   else   ; dump.vader:190:5
   local.get 1   ; dump.vader:191:5
-  i32.const 55   ; dump.vader:191:5
+  i32.const 53   ; dump.vader:191:5
   u8.eq   ; dump.vader:191:5
   if string   ; dump.vader:191:5
-  string.const 111   ; dump.vader:191:17
+  string.const 109   ; dump.vader:191:17
   else   ; dump.vader:191:5
   local.get 1   ; dump.vader:192:5
-  i32.const 56   ; dump.vader:192:5
+  i32.const 54   ; dump.vader:192:5
   u8.eq   ; dump.vader:192:5
   if string   ; dump.vader:192:5
-  string.const 13   ; dump.vader:192:19
+  string.const 110   ; dump.vader:192:17
   else   ; dump.vader:192:5
   local.get 1   ; dump.vader:193:5
-  i32.const 57   ; dump.vader:193:5
+  i32.const 55   ; dump.vader:193:5
   u8.eq   ; dump.vader:193:5
   if string   ; dump.vader:193:5
-  string.const 14   ; dump.vader:193:19
+  string.const 111   ; dump.vader:193:17
   else   ; dump.vader:193:5
   local.get 1   ; dump.vader:194:5
-  i32.const 58   ; dump.vader:194:5
+  i32.const 56   ; dump.vader:194:5
   u8.eq   ; dump.vader:194:5
   if string   ; dump.vader:194:5
-  string.const 15   ; dump.vader:194:19
+  string.const 13   ; dump.vader:194:19
   else   ; dump.vader:194:5
   local.get 1   ; dump.vader:195:5
-  i32.const 59   ; dump.vader:195:5
+  i32.const 57   ; dump.vader:195:5
   u8.eq   ; dump.vader:195:5
   if string   ; dump.vader:195:5
-  string.const 17   ; dump.vader:195:19
+  string.const 14   ; dump.vader:195:19
   else   ; dump.vader:195:5
   local.get 1   ; dump.vader:196:5
-  i32.const 60   ; dump.vader:196:5
+  i32.const 58   ; dump.vader:196:5
   u8.eq   ; dump.vader:196:5
   if string   ; dump.vader:196:5
-  string.const 112   ; dump.vader:196:19
+  string.const 15   ; dump.vader:196:19
   else   ; dump.vader:196:5
   local.get 1   ; dump.vader:197:5
-  i32.const 61   ; dump.vader:197:5
+  i32.const 59   ; dump.vader:197:5
   u8.eq   ; dump.vader:197:5
   if string   ; dump.vader:197:5
-  string.const 113   ; dump.vader:197:19
+  string.const 17   ; dump.vader:197:19
   else   ; dump.vader:197:5
   local.get 1   ; dump.vader:198:5
-  i32.const 62   ; dump.vader:198:5
+  i32.const 60   ; dump.vader:198:5
   u8.eq   ; dump.vader:198:5
   if string   ; dump.vader:198:5
-  string.const 16   ; dump.vader:198:19
+  string.const 112   ; dump.vader:198:19
   else   ; dump.vader:198:5
   local.get 1   ; dump.vader:199:5
-  i32.const 63   ; dump.vader:199:5
+  i32.const 61   ; dump.vader:199:5
   u8.eq   ; dump.vader:199:5
   if string   ; dump.vader:199:5
-  string.const 114   ; dump.vader:199:19
+  string.const 113   ; dump.vader:199:19
   else   ; dump.vader:199:5
   local.get 1   ; dump.vader:200:5
-  i32.const 64   ; dump.vader:200:5
+  i32.const 62   ; dump.vader:200:5
   u8.eq   ; dump.vader:200:5
   if string   ; dump.vader:200:5
-  string.const 21   ; dump.vader:200:19
+  string.const 16   ; dump.vader:200:19
   else   ; dump.vader:200:5
   local.get 1   ; dump.vader:201:5
-  i32.const 65   ; dump.vader:201:5
+  i32.const 63   ; dump.vader:201:5
   u8.eq   ; dump.vader:201:5
   if string   ; dump.vader:201:5
-  string.const 115   ; dump.vader:201:19
+  string.const 114   ; dump.vader:201:19
   else   ; dump.vader:201:5
+  local.get 1   ; dump.vader:202:5
+  i32.const 64   ; dump.vader:202:5
+  u8.eq   ; dump.vader:202:5
+  if string   ; dump.vader:202:5
+  string.const 21   ; dump.vader:202:19
+  else   ; dump.vader:202:5
   local.get 1   ; dump.vader:203:5
-  i32.const 66   ; dump.vader:203:5
+  i32.const 65   ; dump.vader:203:5
   u8.eq   ; dump.vader:203:5
   if string   ; dump.vader:203:5
-  string.const 22   ; dump.vader:203:18
+  string.const 115   ; dump.vader:203:19
   else   ; dump.vader:203:5
-  local.get 1   ; dump.vader:204:5
-  i32.const 67   ; dump.vader:204:5
-  u8.eq   ; dump.vader:204:5
-  if string   ; dump.vader:204:5
-  string.const 23   ; dump.vader:204:18
-  else   ; dump.vader:204:5
   local.get 1   ; dump.vader:205:5
-  i32.const 68   ; dump.vader:205:5
+  i32.const 66   ; dump.vader:205:5
   u8.eq   ; dump.vader:205:5
   if string   ; dump.vader:205:5
-  string.const 26   ; dump.vader:205:18
+  string.const 22   ; dump.vader:205:18
   else   ; dump.vader:205:5
   local.get 1   ; dump.vader:206:5
-  i32.const 69   ; dump.vader:206:5
+  i32.const 67   ; dump.vader:206:5
   u8.eq   ; dump.vader:206:5
   if string   ; dump.vader:206:5
-  string.const 27   ; dump.vader:206:18
+  string.const 23   ; dump.vader:206:18
   else   ; dump.vader:206:5
   local.get 1   ; dump.vader:207:5
-  i32.const 70   ; dump.vader:207:5
+  i32.const 68   ; dump.vader:207:5
   u8.eq   ; dump.vader:207:5
   if string   ; dump.vader:207:5
-  string.const 24   ; dump.vader:207:18
+  string.const 26   ; dump.vader:207:18
   else   ; dump.vader:207:5
   local.get 1   ; dump.vader:208:5
-  i32.const 71   ; dump.vader:208:5
+  i32.const 69   ; dump.vader:208:5
   u8.eq   ; dump.vader:208:5
   if string   ; dump.vader:208:5
-  string.const 25   ; dump.vader:208:18
+  string.const 27   ; dump.vader:208:18
   else   ; dump.vader:208:5
   local.get 1   ; dump.vader:209:5
-  i32.const 72   ; dump.vader:209:5
+  i32.const 70   ; dump.vader:209:5
   u8.eq   ; dump.vader:209:5
   if string   ; dump.vader:209:5
-  string.const 18   ; dump.vader:209:18
+  string.const 24   ; dump.vader:209:18
   else   ; dump.vader:209:5
   local.get 1   ; dump.vader:210:5
-  i32.const 73   ; dump.vader:210:5
+  i32.const 71   ; dump.vader:210:5
   u8.eq   ; dump.vader:210:5
   if string   ; dump.vader:210:5
-  string.const 19   ; dump.vader:210:18
+  string.const 25   ; dump.vader:210:18
   else   ; dump.vader:210:5
   local.get 1   ; dump.vader:211:5
-  i32.const 74   ; dump.vader:211:5
+  i32.const 72   ; dump.vader:211:5
   u8.eq   ; dump.vader:211:5
   if string   ; dump.vader:211:5
-  string.const 20   ; dump.vader:211:18
+  string.const 18   ; dump.vader:211:18
   else   ; dump.vader:211:5
+  local.get 1   ; dump.vader:212:5
+  i32.const 73   ; dump.vader:212:5
+  u8.eq   ; dump.vader:212:5
+  if string   ; dump.vader:212:5
+  string.const 19   ; dump.vader:212:18
+  else   ; dump.vader:212:5
   local.get 1   ; dump.vader:213:5
-  i32.const 1   ; dump.vader:213:5
+  i32.const 74   ; dump.vader:213:5
   u8.eq   ; dump.vader:213:5
   if string   ; dump.vader:213:5
-  string.const 28   ; dump.vader:213:17
+  string.const 20   ; dump.vader:213:18
   else   ; dump.vader:213:5
-  local.get 1   ; dump.vader:214:5
-  i32.const 0   ; dump.vader:214:5
-  u8.eq   ; dump.vader:214:5
-  if string   ; dump.vader:214:5
-  string.const 29   ; dump.vader:214:17
-  else   ; dump.vader:214:5
-  unreachable   ; dump.vader:135:41
-  end   ; dump.vader:214:5
+  local.get 1   ; dump.vader:215:5
+  i32.const 1   ; dump.vader:215:5
+  u8.eq   ; dump.vader:215:5
+  if string   ; dump.vader:215:5
+  string.const 28   ; dump.vader:215:17
+  else   ; dump.vader:215:5
+  local.get 1   ; dump.vader:216:5
+  i32.const 0   ; dump.vader:216:5
+  u8.eq   ; dump.vader:216:5
+  if string   ; dump.vader:216:5
+  string.const 29   ; dump.vader:216:17
+  else   ; dump.vader:216:5
+  unreachable   ; dump.vader:137:33
+  end   ; dump.vader:216:5
+  end   ; dump.vader:215:5
   end   ; dump.vader:213:5
+  end   ; dump.vader:212:5
   end   ; dump.vader:211:5
   end   ; dump.vader:210:5
   end   ; dump.vader:209:5
@@ -1513,8 +1555,8 @@ fn 8 vader_lexer$kind_name (u8) -> string
   end   ; dump.vader:207:5
   end   ; dump.vader:206:5
   end   ; dump.vader:205:5
-  end   ; dump.vader:204:5
   end   ; dump.vader:203:5
+  end   ; dump.vader:202:5
   end   ; dump.vader:201:5
   end   ; dump.vader:200:5
   end   ; dump.vader:199:5
@@ -1543,8 +1585,8 @@ fn 8 vader_lexer$kind_name (u8) -> string
   end   ; dump.vader:176:5
   end   ; dump.vader:175:5
   end   ; dump.vader:174:5
-  end   ; dump.vader:173:5
   end   ; dump.vader:172:5
+  end   ; dump.vader:171:5
   end   ; dump.vader:170:5
   end   ; dump.vader:169:5
   end   ; dump.vader:168:5
@@ -1568,8 +1610,8 @@ fn 8 vader_lexer$kind_name (u8) -> string
   end   ; dump.vader:150:5
   end   ; dump.vader:149:5
   end   ; dump.vader:148:5
-  end   ; dump.vader:147:5
   end   ; dump.vader:146:5
+  end   ; dump.vader:145:5
   end   ; dump.vader:144:5
   end   ; dump.vader:143:5
   end   ; dump.vader:142:5
@@ -1577,121 +1619,116 @@ fn 8 vader_lexer$kind_name (u8) -> string
   end   ; dump.vader:140:5
   end   ; dump.vader:139:5
   end   ; dump.vader:138:5
-  end   ; dump.vader:137:5
-  end   ; dump.vader:136:5
-  return   ; dump.vader:135:41
+  return   ; dump.vader:137:33
 end
 
 fn 9 vader_lexer$format_diagnostic (ref,ref) -> void
   local __scrut_0 i32
   local sev string
-  local ci ref
   local p ref
   local detail string
   local __sb_1 any
   local __sb_2 any
-  local.get 1   ; dump.vader:218:18
-  struct.get 20 0   ; dump.vader:218:18
-  local.tee 2   ; dump.vader:218:18
-  i32.const 0   ; dump.vader:219:9
-  i32.eq   ; dump.vader:219:9
-  if string   ; dump.vader:219:9
-  string.const 116   ; dump.vader:219:21
-  else   ; dump.vader:219:9
-  local.get 2   ; dump.vader:220:9
-  i32.const 1   ; dump.vader:220:9
-  i32.eq   ; dump.vader:220:9
-  if string   ; dump.vader:220:9
-  string.const 117   ; dump.vader:220:21
-  else   ; dump.vader:220:9
-  local.get 2   ; dump.vader:221:9
-  i32.const 2   ; dump.vader:221:9
+  local.get 1   ; dump.vader:220:18
+  struct.get 20 0   ; dump.vader:220:18
+  local.tee 2   ; dump.vader:220:18
+  i32.const 0   ; dump.vader:221:9
   i32.eq   ; dump.vader:221:9
   if string   ; dump.vader:221:9
-  string.const 118   ; dump.vader:221:21
+  string.const 116   ; dump.vader:221:21
   else   ; dump.vader:221:9
   local.get 2   ; dump.vader:222:9
-  i32.const 3   ; dump.vader:222:9
+  i32.const 1   ; dump.vader:222:9
   i32.eq   ; dump.vader:222:9
   if string   ; dump.vader:222:9
-  string.const 119   ; dump.vader:222:21
+  string.const 117   ; dump.vader:222:21
   else   ; dump.vader:222:9
-  unreachable   ; dump.vader:218:12
+  local.get 2   ; dump.vader:223:9
+  i32.const 2   ; dump.vader:223:9
+  i32.eq   ; dump.vader:223:9
+  if string   ; dump.vader:223:9
+  string.const 118   ; dump.vader:223:21
+  else   ; dump.vader:223:9
+  local.get 2   ; dump.vader:224:9
+  i32.const 3   ; dump.vader:224:9
+  i32.eq   ; dump.vader:224:9
+  if string   ; dump.vader:224:9
+  string.const 119   ; dump.vader:224:21
+  else   ; dump.vader:224:9
+  unreachable   ; dump.vader:220:12
+  end   ; dump.vader:224:9
+  end   ; dump.vader:223:9
   end   ; dump.vader:222:9
   end   ; dump.vader:221:9
-  end   ; dump.vader:220:9
-  end   ; dump.vader:219:9
-  local.set 3   ; dump.vader:218:5
-  local.get 1   ; dump.vader:224:11
-  struct.get 20 1   ; dump.vader:224:11
-  call 63   ; dump.vader:224:11
-  local.set 4   ; dump.vader:224:5
-  local.get 1   ; dump.vader:225:10
-  struct.get 20 3   ; dump.vader:225:10
-  struct.get 19 0   ; dump.vader:225:10
-  local.set 5   ; dump.vader:225:5
-  string.const 120   ; dump.vader:226:22
-  local.set 6   ; dump.vader:226:5
-  local.get 1   ; dump.vader:227:8
-  struct.get 20 2   ; dump.vader:227:8
-  call.import 9   ; dump.vader:227:8
-  i32.const 0   ; dump.vader:227:25
-  i32.gt   ; dump.vader:227:8
-  if void   ; dump.vader:227:5
-  intrinsic builder.new   ; dump.vader:228:18
-  local.tee 7   ; dump.vader:228:18
-  string.const 121   ; dump.vader:228:19
-  intrinsic builder.append_str   ; dump.vader:228:19
-  local.get 7   ; dump.vader:228:21
-  local.get 1   ; dump.vader:228:23
-  struct.get 20 2   ; dump.vader:228:23
-  intrinsic builder.append_display   ; dump.vader:228:21
-  local.get 7   ; dump.vader:228:18
-  intrinsic builder.finish   ; dump.vader:228:18
-  local.set 6   ; dump.vader:228:9
-  end   ; dump.vader:227:5
-  local.get 0   ; dump.vader:230:5
-  intrinsic builder.new   ; dump.vader:230:15
-  local.tee 8   ; dump.vader:230:15
-  string.const 122   ; dump.vader:230:16
-  intrinsic builder.append_str   ; dump.vader:230:16
-  local.get 8   ; dump.vader:230:17
-  local.get 5   ; dump.vader:230:19
-  struct.get 18 2   ; dump.vader:230:19
-  intrinsic builder.append_display   ; dump.vader:230:17
-  local.get 8   ; dump.vader:230:26
-  string.const 56   ; dump.vader:230:26
-  intrinsic builder.append_str   ; dump.vader:230:26
-  local.get 8   ; dump.vader:230:27
-  local.get 5   ; dump.vader:230:29
-  struct.get 18 3   ; dump.vader:230:29
-  intrinsic builder.append_display   ; dump.vader:230:27
-  local.get 8   ; dump.vader:230:38
-  string.const 58   ; dump.vader:230:38
-  intrinsic builder.append_str   ; dump.vader:230:38
-  local.get 8   ; dump.vader:230:40
-  local.get 3   ; dump.vader:230:42
-  intrinsic builder.append_display   ; dump.vader:230:40
-  local.get 8   ; dump.vader:230:46
-  string.const 122   ; dump.vader:230:46
-  intrinsic builder.append_str   ; dump.vader:230:46
-  local.get 8   ; dump.vader:230:47
-  local.get 4   ; dump.vader:230:49
-  struct.get 24 0   ; dump.vader:230:49
-  intrinsic builder.append_display   ; dump.vader:230:47
-  local.get 8   ; dump.vader:230:55
-  string.const 58   ; dump.vader:230:55
-  intrinsic builder.append_str   ; dump.vader:230:55
-  local.get 8   ; dump.vader:230:57
-  local.get 4   ; dump.vader:230:59
-  struct.get 24 1   ; dump.vader:230:59
-  intrinsic builder.append_display   ; dump.vader:230:57
-  local.get 8   ; dump.vader:230:70
-  local.get 6   ; dump.vader:230:72
-  intrinsic builder.append_display   ; dump.vader:230:70
-  local.get 8   ; dump.vader:230:15
-  intrinsic builder.finish   ; dump.vader:230:15
-  call 65   ; dump.vader:230:5
+  local.set 3   ; dump.vader:220:5
+  local.get 1   ; dump.vader:226:10
+  struct.get 20 3   ; dump.vader:226:10
+  struct.get 19 0   ; dump.vader:226:10
+  local.set 4   ; dump.vader:226:5
+  string.const 120   ; dump.vader:227:22
+  local.set 5   ; dump.vader:227:5
+  local.get 1   ; dump.vader:228:8
+  struct.get 20 2   ; dump.vader:228:8
+  call.import 9   ; dump.vader:228:8
+  i32.const 0   ; dump.vader:228:25
+  i32.gt   ; dump.vader:228:8
+  if void   ; dump.vader:228:5
+  intrinsic builder.new   ; dump.vader:229:18
+  local.tee 6   ; dump.vader:229:18
+  string.const 121   ; dump.vader:229:19
+  intrinsic builder.append_str   ; dump.vader:229:19
+  local.get 6   ; dump.vader:229:21
+  local.get 1   ; dump.vader:229:23
+  struct.get 20 2   ; dump.vader:229:23
+  intrinsic builder.append_display   ; dump.vader:229:21
+  local.get 6   ; dump.vader:229:18
+  intrinsic builder.finish   ; dump.vader:229:18
+  local.set 5   ; dump.vader:229:9
+  end   ; dump.vader:228:5
+  local.get 0   ; dump.vader:231:5
+  intrinsic builder.new   ; dump.vader:231:15
+  local.tee 7   ; dump.vader:231:15
+  string.const 122   ; dump.vader:231:16
+  intrinsic builder.append_str   ; dump.vader:231:16
+  local.get 7   ; dump.vader:231:17
+  local.get 4   ; dump.vader:231:19
+  struct.get 18 2   ; dump.vader:231:19
+  intrinsic builder.append_display   ; dump.vader:231:17
+  local.get 7   ; dump.vader:231:26
+  string.const 56   ; dump.vader:231:26
+  intrinsic builder.append_str   ; dump.vader:231:26
+  local.get 7   ; dump.vader:231:27
+  local.get 4   ; dump.vader:231:29
+  struct.get 18 3   ; dump.vader:231:29
+  intrinsic builder.append_display   ; dump.vader:231:27
+  local.get 7   ; dump.vader:231:38
+  string.const 58   ; dump.vader:231:38
+  intrinsic builder.append_str   ; dump.vader:231:38
+  local.get 7   ; dump.vader:231:40
+  local.get 3   ; dump.vader:231:42
+  intrinsic builder.append_display   ; dump.vader:231:40
+  local.get 7   ; dump.vader:231:46
+  string.const 122   ; dump.vader:231:46
+  intrinsic builder.append_str   ; dump.vader:231:46
+  local.get 7   ; dump.vader:231:47
+  local.get 1   ; dump.vader:231:49
+  struct.get 20 1   ; dump.vader:231:49
+  struct.get 26 0   ; dump.vader:231:49
+  intrinsic builder.append_display   ; dump.vader:231:47
+  local.get 7   ; dump.vader:231:59
+  string.const 58   ; dump.vader:231:59
+  intrinsic builder.append_str   ; dump.vader:231:59
+  local.get 7   ; dump.vader:231:61
+  local.get 1   ; dump.vader:231:63
+  struct.get 20 1   ; dump.vader:231:63
+  struct.get 26 1   ; dump.vader:231:63
+  intrinsic builder.append_display   ; dump.vader:231:61
+  local.get 7   ; dump.vader:231:78
+  local.get 5   ; dump.vader:231:80
+  intrinsic builder.append_display   ; dump.vader:231:78
+  local.get 7   ; dump.vader:231:15
+  intrinsic builder.finish   ; dump.vader:231:15
+  call 65   ; dump.vader:231:5
 end
 
 fn 10 vader_lexer$lookup_keyword (string) -> u8
@@ -1955,8 +1992,8 @@ fn 13 vader_lexer$new_lexer (string,string) -> ref
   array.new 6 0   ; lexer.vader:57:15
   array.new 8 0   ; lexer.vader:58:15
   array.new 10 0   ; lexer.vader:59:21
-  struct.new 3   ; lexer.vader:49:49
-  return   ; lexer.vader:49:49
+  struct.new 3   ; lexer.vader:49:57
+  return   ; lexer.vader:49:57
 end
 
 fn 14 vader_lexer$is_ident_start (char) -> bool
@@ -1995,21 +2032,21 @@ fn 14 vader_lexer$is_ident_start (char) -> bool
 end
 
 fn 15 vader_lexer$is_ident_continue (char) -> bool
-  local.get 0   ; lexer.vader:67:36
-  call 14   ; lexer.vader:67:36
-  if bool   ; lexer.vader:67:36
-  bool.const true   ; lexer.vader:67:36
-  else   ; lexer.vader:67:36
-  local.get 0   ; lexer.vader:67:58
-  call 56   ; lexer.vader:67:58
-  end   ; lexer.vader:67:36
-  return   ; lexer.vader:67:36
+  local.get 0   ; lexer.vader:67:44
+  call 14   ; lexer.vader:67:44
+  if bool   ; lexer.vader:67:44
+  bool.const true   ; lexer.vader:67:44
+  else   ; lexer.vader:67:44
+  local.get 0   ; lexer.vader:67:66
+  call 57   ; lexer.vader:67:66
+  end   ; lexer.vader:67:44
+  return   ; lexer.vader:67:44
 end
 
 fn 16 vader_lexer$suppresses_newline_after (u8) -> bool
   local __scrut_0 u8
-  local.get 0   ; lexer.vader:71:54
-  local.tee 1   ; lexer.vader:71:54
+  local.get 0   ; lexer.vader:71:62
+  local.tee 1   ; lexer.vader:71:62
   i32.const 36   ; lexer.vader:72:5
   u8.eq   ; lexer.vader:72:5
   if bool   ; lexer.vader:72:5
@@ -2185,17 +2222,17 @@ fn 16 vader_lexer$suppresses_newline_after (u8) -> bool
   end   ; lexer.vader:74:5
   end   ; lexer.vader:73:5
   end   ; lexer.vader:72:5
-  return   ; lexer.vader:71:48
+  return   ; lexer.vader:71:56
 end
 
 fn 17 vader_lexer$at_end (ref) -> bool
-  local.get 0   ; lexer.vader:102:26
-  struct.get 3 2   ; lexer.vader:102:26
-  local.get 0   ; lexer.vader:102:35
-  struct.get 3 0   ; lexer.vader:102:35
-  call.import 9   ; lexer.vader:102:35
-  i32.ge   ; lexer.vader:102:26
-  return   ; lexer.vader:102:26
+  local.get 0   ; lexer.vader:102:34
+  struct.get 3 2   ; lexer.vader:102:34
+  local.get 0   ; lexer.vader:102:43
+  struct.get 3 0   ; lexer.vader:102:43
+  call.import 9   ; lexer.vader:102:43
+  i32.ge   ; lexer.vader:102:34
+  return   ; lexer.vader:102:34
 end
 
 fn 18 vader_lexer$peek (ref) -> char
@@ -2730,7 +2767,7 @@ fn 31 vader_lexer$consume_digits (ref,i32,ref) -> void
   if bool   ; lexer.vader:271:16
   local.get 6   ; lexer.vader:271:74
   local.get 1   ; lexer.vader:271:80
-  call 58   ; lexer.vader:271:57
+  call 59   ; lexer.vader:271:57
   bool.not   ; lexer.vader:271:56
   else   ; lexer.vader:271:16
   bool.const false   ; lexer.vader:271:16
@@ -2764,7 +2801,7 @@ fn 31 vader_lexer$consume_digits (ref,i32,ref) -> void
   end   ; lexer.vader:264:9
   local.get 5   ; lexer.vader:282:29
   local.get 1   ; lexer.vader:282:32
-  call 58   ; lexer.vader:282:12
+  call 59   ; lexer.vader:282:12
   if void   ; lexer.vader:282:9
   bool.const false   ; lexer.vader:283:35
   local.set 3   ; lexer.vader:283:13
@@ -2895,7 +2932,7 @@ fn 32 vader_lexer$lex_number (ref) -> void
   local.get 0   ; lexer.vader:318:31
   i32.const 1   ; lexer.vader:318:41
   call 19   ; lexer.vader:318:31
-  call 56   ; lexer.vader:318:31
+  call 57   ; lexer.vader:318:31
   else   ; lexer.vader:318:12
   bool.const false   ; lexer.vader:318:12
   end   ; lexer.vader:318:12
@@ -2947,7 +2984,7 @@ fn 32 vader_lexer$lex_number (ref) -> void
   end   ; lexer.vader:328:13
   local.get 0   ; lexer.vader:331:17
   call 18   ; lexer.vader:331:17
-  call 56   ; lexer.vader:331:17
+  call 57   ; lexer.vader:331:17
   bool.not   ; lexer.vader:331:16
   if void   ; lexer.vader:331:13
   local.get 0   ; lexer.vader:332:17
@@ -3218,7 +3255,7 @@ fn 34 vader_lexer$decode_int_literal (string,i32,string) -> i64
   local.get 2   ; lexer.vader:401:64
   call 33   ; lexer.vader:401:33
   local.get 1   ; lexer.vader:401:73
-  call 60   ; lexer.vader:401:15
+  call 61   ; lexer.vader:401:15
   local.tee 3   ; lexer.vader:401:5
   local.tee 4   ; lexer.vader:402:18
   type_check 15   ; lexer.vader:403:9
@@ -3432,7 +3469,7 @@ fn 37 vader_lexer$lex_unicode_escape (ref,ref) -> u32
   br_if 1   ; lexer.vader:453:9
   local.get 0   ; lexer.vader:454:28
   call 18   ; lexer.vader:454:28
-  call 59   ; lexer.vader:454:12
+  call 60   ; lexer.vader:454:12
   i32.const 0   ; lexer.vader:454:40
   i32.lt   ; lexer.vader:454:12
   if void   ; lexer.vader:454:9
@@ -3533,7 +3570,7 @@ fn 37 vader_lexer$lex_unicode_escape (ref,ref) -> u32
   local.get 5   ; lexer.vader:477:56
   i32.add   ; lexer.vader:477:44
   call.import 14   ; lexer.vader:477:30
-  call 59   ; lexer.vader:477:14
+  call 60   ; lexer.vader:477:14
   local.set 6   ; lexer.vader:477:9
   local.get 4   ; lexer.vader:478:14
   i32.const 16   ; lexer.vader:478:23
@@ -5167,7 +5204,7 @@ fn 47 vader_lexer$lex_one (ref) -> void
   return   ; lexer.vader:884:9
   end   ; lexer.vader:882:5
   local.get 5   ; lexer.vader:886:8
-  call 56   ; lexer.vader:886:8
+  call 57   ; lexer.vader:886:8
   if void   ; lexer.vader:886:5
   local.get 0   ; lexer.vader:887:9
   call 32   ; lexer.vader:887:9
@@ -5356,140 +5393,148 @@ fn 50 vader_lexer$make_token (u8,string,ref) -> ref
   return   ; token.vader:78:63
 end
 
-fn 51 vader_diagnostics_diagnostic_vader$make (i32,any,ref,string) -> ref
-  local.get 0   ; diagnostic.vader:46:30
-  local.get 1   ; diagnostic.vader:46:48
-  local.get 3   ; diagnostic.vader:46:64
-  local.get 2   ; diagnostic.vader:46:83
-  struct.new 20   ; diagnostic.vader:46:5
-  return   ; diagnostic.vader:46:5
+fn 51 vader_diagnostics_diagnostic_vader$make (i32,ref,ref,string) -> ref
+  local.get 0   ; diagnostic.vader:45:30
+  local.get 1   ; diagnostic.vader:45:48
+  local.get 3   ; diagnostic.vader:45:64
+  local.get 2   ; diagnostic.vader:45:83
+  struct.new 20   ; diagnostic.vader:45:5
+  return   ; diagnostic.vader:45:5
 end
 
-fn 52 vader_diagnostics_diagnostic_vader$error (any,ref,string) -> ref
+fn 52 vader_diagnostics_diagnostic_vader$error (u8,ref,string) -> ref
   i32.const 0   ; diagnostic.vader:49:10
-  local.get 0   ; diagnostic.vader:49:18
-  local.get 1   ; diagnostic.vader:49:24
-  local.get 2   ; diagnostic.vader:49:33
+  local.get 0   ; diagnostic.vader:49:23
+  call 69   ; diagnostic.vader:49:18
+  local.get 1   ; diagnostic.vader:49:30
+  local.get 2   ; diagnostic.vader:49:39
   call 51   ; diagnostic.vader:49:5
   return   ; diagnostic.vader:49:5
 end
 
-fn 53 vader_diagnostics_diagnostic_vader$render (ref) -> string
+fn 53 vader_diagnostics_diagnostic_vader$parser_error (u8,ref,string) -> ref
+  i32.const 0   ; diagnostic.vader:53:10
+  local.get 0   ; diagnostic.vader:53:30
+  call 70   ; diagnostic.vader:53:18
+  local.get 1   ; diagnostic.vader:53:37
+  local.get 2   ; diagnostic.vader:53:46
+  call 51   ; diagnostic.vader:53:5
+  return   ; diagnostic.vader:53:5
+end
+
+fn 54 vader_diagnostics_diagnostic_vader$render (ref) -> string
   local __scrut_0 i32
   local severity string
-  local ci ref
   local p ref
   local detail string
   local __sb_1 any
   local __sb_2 any
-  local.get 0   ; diagnostic.vader:55:23
-  struct.get 20 0   ; diagnostic.vader:55:23
-  local.tee 1   ; diagnostic.vader:55:23
-  i32.const 0   ; diagnostic.vader:56:9
-  i32.eq   ; diagnostic.vader:56:9
-  if string   ; diagnostic.vader:56:9
-  string.const 116   ; diagnostic.vader:56:21
-  else   ; diagnostic.vader:56:9
-  local.get 1   ; diagnostic.vader:57:9
-  i32.const 1   ; diagnostic.vader:57:9
-  i32.eq   ; diagnostic.vader:57:9
-  if string   ; diagnostic.vader:57:9
-  string.const 117   ; diagnostic.vader:57:21
-  else   ; diagnostic.vader:57:9
-  local.get 1   ; diagnostic.vader:58:9
-  i32.const 2   ; diagnostic.vader:58:9
-  i32.eq   ; diagnostic.vader:58:9
-  if string   ; diagnostic.vader:58:9
-  string.const 118   ; diagnostic.vader:58:21
-  else   ; diagnostic.vader:58:9
-  local.get 1   ; diagnostic.vader:59:9
-  i32.const 3   ; diagnostic.vader:59:9
-  i32.eq   ; diagnostic.vader:59:9
-  if string   ; diagnostic.vader:59:9
-  string.const 119   ; diagnostic.vader:59:21
-  else   ; diagnostic.vader:59:9
-  unreachable   ; diagnostic.vader:55:17
-  end   ; diagnostic.vader:59:9
-  end   ; diagnostic.vader:58:9
-  end   ; diagnostic.vader:57:9
-  end   ; diagnostic.vader:56:9
-  local.set 2   ; diagnostic.vader:55:5
-  local.get 0   ; diagnostic.vader:63:11
-  struct.get 20 1   ; diagnostic.vader:63:11
-  call 63   ; diagnostic.vader:63:11
-  local.set 3   ; diagnostic.vader:63:5
-  local.get 0   ; diagnostic.vader:64:10
-  struct.get 20 3   ; diagnostic.vader:64:10
-  struct.get 19 0   ; diagnostic.vader:64:10
-  local.set 4   ; diagnostic.vader:64:5
-  string.const 120   ; diagnostic.vader:65:22
-  local.set 5   ; diagnostic.vader:65:5
-  local.get 0   ; diagnostic.vader:66:8
-  struct.get 20 2   ; diagnostic.vader:66:8
-  call.import 9   ; diagnostic.vader:66:8
-  i32.const 0   ; diagnostic.vader:66:25
-  i32.gt   ; diagnostic.vader:66:8
-  if void   ; diagnostic.vader:66:5
-  intrinsic builder.new   ; diagnostic.vader:67:18
-  local.tee 6   ; diagnostic.vader:67:18
-  string.const 121   ; diagnostic.vader:67:19
-  intrinsic builder.append_str   ; diagnostic.vader:67:19
-  local.get 6   ; diagnostic.vader:67:21
-  local.get 0   ; diagnostic.vader:67:23
-  struct.get 20 2   ; diagnostic.vader:67:23
-  intrinsic builder.append_display   ; diagnostic.vader:67:21
-  local.get 6   ; diagnostic.vader:67:18
-  intrinsic builder.finish   ; diagnostic.vader:67:18
-  local.set 5   ; diagnostic.vader:67:9
-  end   ; diagnostic.vader:66:5
-  intrinsic builder.new   ; diagnostic.vader:69:12
-  local.tee 7   ; diagnostic.vader:69:12
-  local.get 2   ; diagnostic.vader:69:15
-  intrinsic builder.append_display   ; diagnostic.vader:69:13
-  local.get 7   ; diagnostic.vader:69:24
-  string.const 122   ; diagnostic.vader:69:24
-  intrinsic builder.append_str   ; diagnostic.vader:69:24
-  local.get 7   ; diagnostic.vader:69:25
-  local.get 3   ; diagnostic.vader:69:27
-  struct.get 24 0   ; diagnostic.vader:69:27
-  intrinsic builder.append_display   ; diagnostic.vader:69:25
-  local.get 7   ; diagnostic.vader:69:33
-  string.const 213   ; diagnostic.vader:69:33
-  intrinsic builder.append_str   ; diagnostic.vader:69:33
-  local.get 7   ; diagnostic.vader:69:36
-  local.get 3   ; diagnostic.vader:69:38
-  struct.get 24 1   ; diagnostic.vader:69:38
-  intrinsic builder.append_display   ; diagnostic.vader:69:36
-  local.get 7   ; diagnostic.vader:69:49
-  local.get 5   ; diagnostic.vader:69:51
-  intrinsic builder.append_display   ; diagnostic.vader:69:49
-  local.get 7   ; diagnostic.vader:69:58
-  string.const 214   ; diagnostic.vader:69:58
-  intrinsic builder.append_str   ; diagnostic.vader:69:58
-  local.get 7   ; diagnostic.vader:69:62
-  local.get 4   ; diagnostic.vader:69:64
-  struct.get 18 0   ; diagnostic.vader:69:64
-  intrinsic builder.append_display   ; diagnostic.vader:69:62
-  local.get 7   ; diagnostic.vader:69:71
-  string.const 56   ; diagnostic.vader:69:71
-  intrinsic builder.append_str   ; diagnostic.vader:69:71
-  local.get 7   ; diagnostic.vader:69:72
-  local.get 4   ; diagnostic.vader:69:74
-  struct.get 18 2   ; diagnostic.vader:69:74
-  intrinsic builder.append_display   ; diagnostic.vader:69:72
-  local.get 7   ; diagnostic.vader:69:81
-  string.const 56   ; diagnostic.vader:69:81
-  intrinsic builder.append_str   ; diagnostic.vader:69:81
-  local.get 7   ; diagnostic.vader:69:82
-  local.get 4   ; diagnostic.vader:69:84
-  struct.get 18 3   ; diagnostic.vader:69:84
-  intrinsic builder.append_display   ; diagnostic.vader:69:82
-  local.get 7   ; diagnostic.vader:69:12
-  intrinsic builder.finish   ; diagnostic.vader:69:12
-  return   ; diagnostic.vader:69:5
+  local.get 0   ; diagnostic.vader:59:23
+  struct.get 20 0   ; diagnostic.vader:59:23
+  local.tee 1   ; diagnostic.vader:59:23
+  i32.const 0   ; diagnostic.vader:60:9
+  i32.eq   ; diagnostic.vader:60:9
+  if string   ; diagnostic.vader:60:9
+  string.const 116   ; diagnostic.vader:60:21
+  else   ; diagnostic.vader:60:9
+  local.get 1   ; diagnostic.vader:61:9
+  i32.const 1   ; diagnostic.vader:61:9
+  i32.eq   ; diagnostic.vader:61:9
+  if string   ; diagnostic.vader:61:9
+  string.const 117   ; diagnostic.vader:61:21
+  else   ; diagnostic.vader:61:9
+  local.get 1   ; diagnostic.vader:62:9
+  i32.const 2   ; diagnostic.vader:62:9
+  i32.eq   ; diagnostic.vader:62:9
+  if string   ; diagnostic.vader:62:9
+  string.const 118   ; diagnostic.vader:62:21
+  else   ; diagnostic.vader:62:9
+  local.get 1   ; diagnostic.vader:63:9
+  i32.const 3   ; diagnostic.vader:63:9
+  i32.eq   ; diagnostic.vader:63:9
+  if string   ; diagnostic.vader:63:9
+  string.const 119   ; diagnostic.vader:63:21
+  else   ; diagnostic.vader:63:9
+  unreachable   ; diagnostic.vader:59:17
+  end   ; diagnostic.vader:63:9
+  end   ; diagnostic.vader:62:9
+  end   ; diagnostic.vader:61:9
+  end   ; diagnostic.vader:60:9
+  local.set 2   ; diagnostic.vader:59:5
+  local.get 0   ; diagnostic.vader:65:10
+  struct.get 20 3   ; diagnostic.vader:65:10
+  struct.get 19 0   ; diagnostic.vader:65:10
+  local.set 3   ; diagnostic.vader:65:5
+  string.const 120   ; diagnostic.vader:66:22
+  local.set 4   ; diagnostic.vader:66:5
+  local.get 0   ; diagnostic.vader:67:8
+  struct.get 20 2   ; diagnostic.vader:67:8
+  call.import 9   ; diagnostic.vader:67:8
+  i32.const 0   ; diagnostic.vader:67:25
+  i32.gt   ; diagnostic.vader:67:8
+  if void   ; diagnostic.vader:67:5
+  intrinsic builder.new   ; diagnostic.vader:68:18
+  local.tee 5   ; diagnostic.vader:68:18
+  string.const 121   ; diagnostic.vader:68:19
+  intrinsic builder.append_str   ; diagnostic.vader:68:19
+  local.get 5   ; diagnostic.vader:68:21
+  local.get 0   ; diagnostic.vader:68:23
+  struct.get 20 2   ; diagnostic.vader:68:23
+  intrinsic builder.append_display   ; diagnostic.vader:68:21
+  local.get 5   ; diagnostic.vader:68:18
+  intrinsic builder.finish   ; diagnostic.vader:68:18
+  local.set 4   ; diagnostic.vader:68:9
+  end   ; diagnostic.vader:67:5
+  intrinsic builder.new   ; diagnostic.vader:70:12
+  local.tee 6   ; diagnostic.vader:70:12
+  local.get 2   ; diagnostic.vader:70:15
+  intrinsic builder.append_display   ; diagnostic.vader:70:13
+  local.get 6   ; diagnostic.vader:70:24
+  string.const 122   ; diagnostic.vader:70:24
+  intrinsic builder.append_str   ; diagnostic.vader:70:24
+  local.get 6   ; diagnostic.vader:70:25
+  local.get 0   ; diagnostic.vader:70:27
+  struct.get 20 1   ; diagnostic.vader:70:27
+  struct.get 26 0   ; diagnostic.vader:70:27
+  intrinsic builder.append_display   ; diagnostic.vader:70:25
+  local.get 6   ; diagnostic.vader:70:37
+  string.const 213   ; diagnostic.vader:70:37
+  intrinsic builder.append_str   ; diagnostic.vader:70:37
+  local.get 6   ; diagnostic.vader:70:40
+  local.get 0   ; diagnostic.vader:70:42
+  struct.get 20 1   ; diagnostic.vader:70:42
+  struct.get 26 1   ; diagnostic.vader:70:42
+  intrinsic builder.append_display   ; diagnostic.vader:70:40
+  local.get 6   ; diagnostic.vader:70:57
+  local.get 4   ; diagnostic.vader:70:59
+  intrinsic builder.append_display   ; diagnostic.vader:70:57
+  local.get 6   ; diagnostic.vader:70:66
+  string.const 214   ; diagnostic.vader:70:66
+  intrinsic builder.append_str   ; diagnostic.vader:70:66
+  local.get 6   ; diagnostic.vader:70:70
+  local.get 3   ; diagnostic.vader:70:72
+  struct.get 18 0   ; diagnostic.vader:70:72
+  intrinsic builder.append_display   ; diagnostic.vader:70:70
+  local.get 6   ; diagnostic.vader:70:79
+  string.const 56   ; diagnostic.vader:70:79
+  intrinsic builder.append_str   ; diagnostic.vader:70:79
+  local.get 6   ; diagnostic.vader:70:80
+  local.get 3   ; diagnostic.vader:70:82
+  struct.get 18 2   ; diagnostic.vader:70:82
+  intrinsic builder.append_display   ; diagnostic.vader:70:80
+  local.get 6   ; diagnostic.vader:70:89
+  string.const 56   ; diagnostic.vader:70:89
+  intrinsic builder.append_str   ; diagnostic.vader:70:89
+  local.get 6   ; diagnostic.vader:70:90
+  local.get 3   ; diagnostic.vader:70:92
+  struct.get 18 3   ; diagnostic.vader:70:92
+  intrinsic builder.append_display   ; diagnostic.vader:70:90
+  local.get 6   ; diagnostic.vader:70:12
+  intrinsic builder.finish   ; diagnostic.vader:70:12
+  return   ; diagnostic.vader:70:5
 end
 
-fn 54 std_string$pad_start (string,i32,char) -> string
+fn 55 std_string$pad_start (string,i32,char) -> string
   local n i32
   local sb ref
   local i i32
@@ -5530,7 +5575,7 @@ fn 54 std_string$pad_start (string,i32,char) -> string
   return   ; string.vader:69:5
 end
 
-fn 55 std_string$pad_end (string,i32,char) -> string
+fn 56 std_string$pad_end (string,i32,char) -> string
   local n i32
   local sb ref
   local i i32
@@ -5570,7 +5615,7 @@ fn 55 std_string$pad_end (string,i32,char) -> string
   return   ; string.vader:85:5
 end
 
-fn 56 std_string$is_digit (char) -> bool
+fn 57 std_string$is_digit (char) -> bool
   local.get 0   ; string.vader:92:27
   char.const 48   ; string.vader:92:32
   char.ge   ; string.vader:92:27
@@ -5584,9 +5629,9 @@ fn 56 std_string$is_digit (char) -> bool
   return   ; string.vader:92:27
 end
 
-fn 57 std_string$is_hex_digit (char) -> bool
+fn 58 std_string$is_hex_digit (char) -> bool
   local.get 0   ; string.vader:96:5
-  call 56   ; string.vader:96:5
+  call 57   ; string.vader:96:5
   if bool   ; string.vader:96:5
   bool.const true   ; string.vader:96:5
   else   ; string.vader:96:5
@@ -5618,7 +5663,7 @@ fn 57 std_string$is_hex_digit (char) -> bool
   return   ; string.vader:96:5
 end
 
-fn 58 std_string$is_digit_in_base (char,i32) -> bool
+fn 59 std_string$is_digit_in_base (char,i32) -> bool
   local.get 1   ; string.vader:101:8
   i32.const 2   ; string.vader:101:16
   i32.eq   ; string.vader:101:8
@@ -5656,15 +5701,15 @@ fn 58 std_string$is_digit_in_base (char,i32) -> bool
   i32.eq   ; string.vader:103:8
   if void   ; string.vader:103:5
   local.get 0   ; string.vader:103:28
-  call 57   ; string.vader:103:28
+  call 58   ; string.vader:103:28
   return   ; string.vader:103:21
   end   ; string.vader:103:5
   local.get 0   ; string.vader:104:12
-  call 56   ; string.vader:104:12
+  call 57   ; string.vader:104:12
   return   ; string.vader:104:5
 end
 
-fn 59 std_numbers$hex_digit_value (char) -> i32
+fn 60 std_numbers$hex_digit_value (char) -> i32
   local.get 0   ; numbers.vader:18:8
   char.const 48   ; numbers.vader:18:13
   char.ge   ; numbers.vader:18:8
@@ -5733,7 +5778,7 @@ fn 59 std_numbers$hex_digit_value (char) -> i32
   return   ; numbers.vader:21:5
 end
 
-fn 60 std_numbers$parse_int_in_base (string,i32) -> ref
+fn 61 std_numbers$parse_int_in_base (string,i32) -> ref
   local n i32
   local acc i64
   local b i64
@@ -5766,7 +5811,7 @@ fn 60 std_numbers$parse_int_in_base (string,i32) -> ref
   local.get 0   ; numbers.vader:37:30
   local.get 5   ; numbers.vader:37:40
   call.import 14   ; numbers.vader:37:30
-  call 59   ; numbers.vader:37:14
+  call 60   ; numbers.vader:37:14
   local.tee 6   ; numbers.vader:37:9
   i32.const 0   ; numbers.vader:38:16
   i32.lt   ; numbers.vader:38:12
@@ -5800,7 +5845,7 @@ fn 60 std_numbers$parse_int_in_base (string,i32) -> ref
   return   ; numbers.vader:44:5
 end
 
-fn 61 std_numbers$hex_digit (u64) -> char
+fn 62 std_numbers$hex_digit (u64) -> char
   local.get 0   ; numbers.vader:48:8
   i32.const 9   ; numbers.vader:48:17
   i32.to_u64   ; numbers.vader:48:13
@@ -5826,7 +5871,7 @@ fn 61 std_numbers$hex_digit (u64) -> char
   return   ; numbers.vader:51:5
 end
 
-fn 62 std_numbers$to_hex (u64) -> string
+fn 63 std_numbers$to_hex (u64) -> string
   local rev ref
   local base u64
   local x u64
@@ -5855,7 +5900,7 @@ fn 62 std_numbers$to_hex (u64) -> string
   local.get 3   ; numbers.vader:66:28
   local.get 2   ; numbers.vader:66:32
   u64.rem   ; numbers.vader:66:28
-  call 61   ; numbers.vader:66:18
+  call 62   ; numbers.vader:66:18
   array.push 29   ; numbers.vader:66:9
   local.get 3   ; numbers.vader:67:13
   local.get 2   ; numbers.vader:67:17
@@ -5895,112 +5940,15 @@ fn 62 std_numbers$to_hex (u64) -> string
   return   ; numbers.vader:75:5
 end
 
-fn 63 vader_diagnostics_codes_vader$info (u8) -> ref
-  local __scrut_0 u8
-  local.get 0   ; codes.vader:38:34
-  local.tee 1   ; codes.vader:38:34
-  i32.const 0   ; codes.vader:39:5
-  u8.eq   ; codes.vader:39:5
-  if ref   ; codes.vader:39:5
-  string.const 218   ; codes.vader:39:58
-  string.const 219   ; codes.vader:39:78
-  struct.new 24   ; codes.vader:39:41
-  else   ; codes.vader:39:5
-  local.get 1   ; codes.vader:40:5
-  i32.const 1   ; codes.vader:40:5
-  u8.eq   ; codes.vader:40:5
-  if ref   ; codes.vader:40:5
-  string.const 220   ; codes.vader:40:58
-  string.const 221   ; codes.vader:40:78
-  struct.new 24   ; codes.vader:40:41
-  else   ; codes.vader:40:5
-  local.get 1   ; codes.vader:41:5
-  i32.const 2   ; codes.vader:41:5
-  u8.eq   ; codes.vader:41:5
-  if ref   ; codes.vader:41:5
-  string.const 222   ; codes.vader:41:58
-  string.const 223   ; codes.vader:41:78
-  struct.new 24   ; codes.vader:41:41
-  else   ; codes.vader:41:5
-  local.get 1   ; codes.vader:42:5
-  i32.const 3   ; codes.vader:42:5
-  u8.eq   ; codes.vader:42:5
-  if ref   ; codes.vader:42:5
-  string.const 224   ; codes.vader:42:58
-  string.const 225   ; codes.vader:42:78
-  struct.new 24   ; codes.vader:42:41
-  else   ; codes.vader:42:5
-  local.get 1   ; codes.vader:43:5
-  i32.const 4   ; codes.vader:43:5
-  u8.eq   ; codes.vader:43:5
-  if ref   ; codes.vader:43:5
-  string.const 226   ; codes.vader:43:58
-  string.const 227   ; codes.vader:43:78
-  struct.new 24   ; codes.vader:43:41
-  else   ; codes.vader:43:5
-  local.get 1   ; codes.vader:44:5
-  i32.const 5   ; codes.vader:44:5
-  u8.eq   ; codes.vader:44:5
-  if ref   ; codes.vader:44:5
-  string.const 228   ; codes.vader:44:58
-  string.const 229   ; codes.vader:44:78
-  struct.new 24   ; codes.vader:44:41
-  else   ; codes.vader:44:5
-  local.get 1   ; codes.vader:45:5
-  i32.const 6   ; codes.vader:45:5
-  u8.eq   ; codes.vader:45:5
-  if ref   ; codes.vader:45:5
-  string.const 230   ; codes.vader:45:58
-  string.const 231   ; codes.vader:45:78
-  struct.new 24   ; codes.vader:45:41
-  else   ; codes.vader:45:5
-  local.get 1   ; codes.vader:46:5
-  i32.const 7   ; codes.vader:46:5
-  u8.eq   ; codes.vader:46:5
-  if ref   ; codes.vader:46:5
-  string.const 232   ; codes.vader:46:58
-  string.const 233   ; codes.vader:46:78
-  struct.new 24   ; codes.vader:46:41
-  else   ; codes.vader:46:5
-  local.get 1   ; codes.vader:47:5
-  i32.const 8   ; codes.vader:47:5
-  u8.eq   ; codes.vader:47:5
-  if ref   ; codes.vader:47:5
-  string.const 234   ; codes.vader:47:58
-  string.const 235   ; codes.vader:47:78
-  struct.new 24   ; codes.vader:47:41
-  else   ; codes.vader:47:5
-  local.get 1   ; codes.vader:48:5
-  i32.const 9   ; codes.vader:48:5
-  u8.eq   ; codes.vader:48:5
-  if ref   ; codes.vader:48:5
-  string.const 236   ; codes.vader:48:58
-  string.const 237   ; codes.vader:48:78
-  struct.new 24   ; codes.vader:48:41
-  else   ; codes.vader:48:5
-  unreachable   ; codes.vader:38:28
-  end   ; codes.vader:48:5
-  end   ; codes.vader:47:5
-  end   ; codes.vader:46:5
-  end   ; codes.vader:45:5
-  end   ; codes.vader:44:5
-  end   ; codes.vader:43:5
-  end   ; codes.vader:42:5
-  end   ; codes.vader:41:5
-  end   ; codes.vader:40:5
-  end   ; codes.vader:39:5
-  return   ; codes.vader:38:28
-end
-
 fn 64 std_string_builder$new_builder () -> ref
-  array.new 26 0   ; string_builder.vader:19:37
-  struct.new 25   ; string_builder.vader:19:12
+  array.new 25 0   ; string_builder.vader:19:37
+  struct.new 24   ; string_builder.vader:19:12
   return   ; string_builder.vader:19:5
 end
 
 fn 65 std_string_builder$append (ref,string) -> void
   local.get 0   ; string_builder.vader:23:5
-  struct.get 25 0   ; string_builder.vader:23:5
+  struct.get 24 0   ; string_builder.vader:23:5
   local.get 1   ; string_builder.vader:23:21
   array.push 4   ; string_builder.vader:23:5
 end
@@ -6008,7 +5956,7 @@ end
 fn 66 std_string_builder$append_char (ref,char) -> void
   local __sb_0 any
   local.get 0   ; string_builder.vader:27:5
-  struct.get 25 0   ; string_builder.vader:27:5
+  struct.get 24 0   ; string_builder.vader:27:5
   intrinsic builder.new   ; string_builder.vader:27:21
   local.tee 2   ; string_builder.vader:27:21
   local.get 1   ; string_builder.vader:27:24
@@ -6020,7 +5968,7 @@ end
 
 fn 67 std_string_builder$to_string (ref) -> string
   local.get 0   ; string_builder.vader:34:23
-  struct.get 25 0   ; string_builder.vader:34:23
+  struct.get 24 0   ; string_builder.vader:34:23
   call.import 21   ; string_builder.vader:34:12
   return   ; string_builder.vader:34:5
 end
@@ -6088,4 +6036,288 @@ fn 68 std_iter$std_iter$slice__InterpFrame (ref,i32,i32) -> ref
   end   ; iter.vader:111:5
   local.get 3   ; iter.vader:115:12
   return   ; iter.vader:115:5
+end
+
+fn 69 vader_diagnostics_codes_vader$info (u8) -> ref
+  local __scrut_0 u8
+  local.get 0   ; codes.vader:63:34
+  local.tee 1   ; codes.vader:63:34
+  i32.const 0   ; codes.vader:64:5
+  u8.eq   ; codes.vader:64:5
+  if ref   ; codes.vader:64:5
+  string.const 218   ; codes.vader:64:58
+  string.const 219   ; codes.vader:64:78
+  struct.new 26   ; codes.vader:64:41
+  else   ; codes.vader:64:5
+  local.get 1   ; codes.vader:65:5
+  i32.const 1   ; codes.vader:65:5
+  u8.eq   ; codes.vader:65:5
+  if ref   ; codes.vader:65:5
+  string.const 220   ; codes.vader:65:58
+  string.const 221   ; codes.vader:65:78
+  struct.new 26   ; codes.vader:65:41
+  else   ; codes.vader:65:5
+  local.get 1   ; codes.vader:66:5
+  i32.const 2   ; codes.vader:66:5
+  u8.eq   ; codes.vader:66:5
+  if ref   ; codes.vader:66:5
+  string.const 222   ; codes.vader:66:58
+  string.const 223   ; codes.vader:66:78
+  struct.new 26   ; codes.vader:66:41
+  else   ; codes.vader:66:5
+  local.get 1   ; codes.vader:67:5
+  i32.const 3   ; codes.vader:67:5
+  u8.eq   ; codes.vader:67:5
+  if ref   ; codes.vader:67:5
+  string.const 224   ; codes.vader:67:58
+  string.const 225   ; codes.vader:67:78
+  struct.new 26   ; codes.vader:67:41
+  else   ; codes.vader:67:5
+  local.get 1   ; codes.vader:68:5
+  i32.const 4   ; codes.vader:68:5
+  u8.eq   ; codes.vader:68:5
+  if ref   ; codes.vader:68:5
+  string.const 226   ; codes.vader:68:58
+  string.const 227   ; codes.vader:68:78
+  struct.new 26   ; codes.vader:68:41
+  else   ; codes.vader:68:5
+  local.get 1   ; codes.vader:69:5
+  i32.const 5   ; codes.vader:69:5
+  u8.eq   ; codes.vader:69:5
+  if ref   ; codes.vader:69:5
+  string.const 228   ; codes.vader:69:58
+  string.const 229   ; codes.vader:69:78
+  struct.new 26   ; codes.vader:69:41
+  else   ; codes.vader:69:5
+  local.get 1   ; codes.vader:70:5
+  i32.const 6   ; codes.vader:70:5
+  u8.eq   ; codes.vader:70:5
+  if ref   ; codes.vader:70:5
+  string.const 230   ; codes.vader:70:58
+  string.const 231   ; codes.vader:70:78
+  struct.new 26   ; codes.vader:70:41
+  else   ; codes.vader:70:5
+  local.get 1   ; codes.vader:71:5
+  i32.const 7   ; codes.vader:71:5
+  u8.eq   ; codes.vader:71:5
+  if ref   ; codes.vader:71:5
+  string.const 232   ; codes.vader:71:58
+  string.const 233   ; codes.vader:71:78
+  struct.new 26   ; codes.vader:71:41
+  else   ; codes.vader:71:5
+  local.get 1   ; codes.vader:72:5
+  i32.const 8   ; codes.vader:72:5
+  u8.eq   ; codes.vader:72:5
+  if ref   ; codes.vader:72:5
+  string.const 234   ; codes.vader:72:58
+  string.const 235   ; codes.vader:72:78
+  struct.new 26   ; codes.vader:72:41
+  else   ; codes.vader:72:5
+  local.get 1   ; codes.vader:73:5
+  i32.const 9   ; codes.vader:73:5
+  u8.eq   ; codes.vader:73:5
+  if ref   ; codes.vader:73:5
+  string.const 236   ; codes.vader:73:58
+  string.const 237   ; codes.vader:73:78
+  struct.new 26   ; codes.vader:73:41
+  else   ; codes.vader:73:5
+  unreachable   ; codes.vader:63:28
+  end   ; codes.vader:73:5
+  end   ; codes.vader:72:5
+  end   ; codes.vader:71:5
+  end   ; codes.vader:70:5
+  end   ; codes.vader:69:5
+  end   ; codes.vader:68:5
+  end   ; codes.vader:67:5
+  end   ; codes.vader:66:5
+  end   ; codes.vader:65:5
+  end   ; codes.vader:64:5
+  return   ; codes.vader:63:28
+end
+
+fn 70 vader_diagnostics_codes_vader$parser_info (u8) -> ref
+  local __scrut_0 u8
+  local.get 0   ; codes.vader:76:42
+  local.tee 1   ; codes.vader:76:42
+  i32.const 0   ; codes.vader:77:5
+  u8.eq   ; codes.vader:77:5
+  if ref   ; codes.vader:77:5
+  string.const 238   ; codes.vader:77:61
+  string.const 239   ; codes.vader:77:81
+  struct.new 26   ; codes.vader:77:44
+  else   ; codes.vader:77:5
+  local.get 1   ; codes.vader:78:5
+  i32.const 1   ; codes.vader:78:5
+  u8.eq   ; codes.vader:78:5
+  if ref   ; codes.vader:78:5
+  string.const 240   ; codes.vader:78:61
+  string.const 241   ; codes.vader:78:81
+  struct.new 26   ; codes.vader:78:44
+  else   ; codes.vader:78:5
+  local.get 1   ; codes.vader:79:5
+  i32.const 2   ; codes.vader:79:5
+  u8.eq   ; codes.vader:79:5
+  if ref   ; codes.vader:79:5
+  string.const 242   ; codes.vader:79:61
+  string.const 243   ; codes.vader:79:81
+  struct.new 26   ; codes.vader:79:44
+  else   ; codes.vader:79:5
+  local.get 1   ; codes.vader:80:5
+  i32.const 3   ; codes.vader:80:5
+  u8.eq   ; codes.vader:80:5
+  if ref   ; codes.vader:80:5
+  string.const 244   ; codes.vader:80:61
+  string.const 245   ; codes.vader:80:81
+  struct.new 26   ; codes.vader:80:44
+  else   ; codes.vader:80:5
+  local.get 1   ; codes.vader:81:5
+  i32.const 4   ; codes.vader:81:5
+  u8.eq   ; codes.vader:81:5
+  if ref   ; codes.vader:81:5
+  string.const 246   ; codes.vader:81:61
+  string.const 247   ; codes.vader:81:81
+  struct.new 26   ; codes.vader:81:44
+  else   ; codes.vader:81:5
+  local.get 1   ; codes.vader:82:5
+  i32.const 5   ; codes.vader:82:5
+  u8.eq   ; codes.vader:82:5
+  if ref   ; codes.vader:82:5
+  string.const 248   ; codes.vader:82:61
+  string.const 249   ; codes.vader:82:81
+  struct.new 26   ; codes.vader:82:44
+  else   ; codes.vader:82:5
+  local.get 1   ; codes.vader:83:5
+  i32.const 6   ; codes.vader:83:5
+  u8.eq   ; codes.vader:83:5
+  if ref   ; codes.vader:83:5
+  string.const 250   ; codes.vader:83:61
+  string.const 251   ; codes.vader:83:81
+  struct.new 26   ; codes.vader:83:44
+  else   ; codes.vader:83:5
+  local.get 1   ; codes.vader:84:5
+  i32.const 7   ; codes.vader:84:5
+  u8.eq   ; codes.vader:84:5
+  if ref   ; codes.vader:84:5
+  string.const 252   ; codes.vader:84:61
+  string.const 253   ; codes.vader:84:81
+  struct.new 26   ; codes.vader:84:44
+  else   ; codes.vader:84:5
+  local.get 1   ; codes.vader:85:5
+  i32.const 8   ; codes.vader:85:5
+  u8.eq   ; codes.vader:85:5
+  if ref   ; codes.vader:85:5
+  string.const 254   ; codes.vader:85:61
+  string.const 255   ; codes.vader:85:81
+  struct.new 26   ; codes.vader:85:44
+  else   ; codes.vader:85:5
+  local.get 1   ; codes.vader:86:5
+  i32.const 9   ; codes.vader:86:5
+  u8.eq   ; codes.vader:86:5
+  if ref   ; codes.vader:86:5
+  string.const 256   ; codes.vader:86:61
+  string.const 257   ; codes.vader:86:81
+  struct.new 26   ; codes.vader:86:44
+  else   ; codes.vader:86:5
+  local.get 1   ; codes.vader:87:5
+  i32.const 10   ; codes.vader:87:5
+  u8.eq   ; codes.vader:87:5
+  if ref   ; codes.vader:87:5
+  string.const 258   ; codes.vader:87:61
+  string.const 259   ; codes.vader:87:81
+  struct.new 26   ; codes.vader:87:44
+  else   ; codes.vader:87:5
+  local.get 1   ; codes.vader:88:5
+  i32.const 11   ; codes.vader:88:5
+  u8.eq   ; codes.vader:88:5
+  if ref   ; codes.vader:88:5
+  string.const 260   ; codes.vader:88:61
+  string.const 261   ; codes.vader:88:81
+  struct.new 26   ; codes.vader:88:44
+  else   ; codes.vader:88:5
+  local.get 1   ; codes.vader:89:5
+  i32.const 12   ; codes.vader:89:5
+  u8.eq   ; codes.vader:89:5
+  if ref   ; codes.vader:89:5
+  string.const 262   ; codes.vader:89:61
+  string.const 263   ; codes.vader:89:81
+  struct.new 26   ; codes.vader:89:44
+  else   ; codes.vader:89:5
+  local.get 1   ; codes.vader:90:5
+  i32.const 13   ; codes.vader:90:5
+  u8.eq   ; codes.vader:90:5
+  if ref   ; codes.vader:90:5
+  string.const 264   ; codes.vader:90:61
+  string.const 265   ; codes.vader:90:81
+  struct.new 26   ; codes.vader:90:44
+  else   ; codes.vader:90:5
+  local.get 1   ; codes.vader:91:5
+  i32.const 14   ; codes.vader:91:5
+  u8.eq   ; codes.vader:91:5
+  if ref   ; codes.vader:91:5
+  string.const 266   ; codes.vader:91:61
+  string.const 267   ; codes.vader:91:81
+  struct.new 26   ; codes.vader:91:44
+  else   ; codes.vader:91:5
+  local.get 1   ; codes.vader:92:5
+  i32.const 15   ; codes.vader:92:5
+  u8.eq   ; codes.vader:92:5
+  if ref   ; codes.vader:92:5
+  string.const 268   ; codes.vader:92:61
+  string.const 269   ; codes.vader:92:81
+  struct.new 26   ; codes.vader:92:44
+  else   ; codes.vader:92:5
+  local.get 1   ; codes.vader:93:5
+  i32.const 16   ; codes.vader:93:5
+  u8.eq   ; codes.vader:93:5
+  if ref   ; codes.vader:93:5
+  string.const 270   ; codes.vader:93:61
+  string.const 271   ; codes.vader:93:81
+  struct.new 26   ; codes.vader:93:44
+  else   ; codes.vader:93:5
+  local.get 1   ; codes.vader:94:5
+  i32.const 17   ; codes.vader:94:5
+  u8.eq   ; codes.vader:94:5
+  if ref   ; codes.vader:94:5
+  string.const 272   ; codes.vader:94:61
+  string.const 273   ; codes.vader:94:81
+  struct.new 26   ; codes.vader:94:44
+  else   ; codes.vader:94:5
+  local.get 1   ; codes.vader:95:5
+  i32.const 18   ; codes.vader:95:5
+  u8.eq   ; codes.vader:95:5
+  if ref   ; codes.vader:95:5
+  string.const 274   ; codes.vader:95:61
+  string.const 275   ; codes.vader:95:81
+  struct.new 26   ; codes.vader:95:44
+  else   ; codes.vader:95:5
+  local.get 1   ; codes.vader:96:5
+  i32.const 19   ; codes.vader:96:5
+  u8.eq   ; codes.vader:96:5
+  if ref   ; codes.vader:96:5
+  string.const 276   ; codes.vader:96:61
+  string.const 277   ; codes.vader:96:81
+  struct.new 26   ; codes.vader:96:44
+  else   ; codes.vader:96:5
+  unreachable   ; codes.vader:76:36
+  end   ; codes.vader:96:5
+  end   ; codes.vader:95:5
+  end   ; codes.vader:94:5
+  end   ; codes.vader:93:5
+  end   ; codes.vader:92:5
+  end   ; codes.vader:91:5
+  end   ; codes.vader:90:5
+  end   ; codes.vader:89:5
+  end   ; codes.vader:88:5
+  end   ; codes.vader:87:5
+  end   ; codes.vader:86:5
+  end   ; codes.vader:85:5
+  end   ; codes.vader:84:5
+  end   ; codes.vader:83:5
+  end   ; codes.vader:82:5
+  end   ; codes.vader:81:5
+  end   ; codes.vader:80:5
+  end   ; codes.vader:79:5
+  end   ; codes.vader:78:5
+  end   ; codes.vader:77:5
+  return   ; codes.vader:76:36
 end

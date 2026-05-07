@@ -25,6 +25,31 @@ LexerCode :: enum(u8) {
     InterpolationExpressionExpected,        // L0010
 }
 
+// Mirror of `PARSER` in `src/diagnostics/codes.ts`. New codes are appended ;
+// once shipped, a code never changes meaning.
+ParserCode :: enum(u8) {
+    UnexpectedToken,                        // P1001
+    ExpectedToken,                          // P1002
+    ExpectedExpression,                     // P1003
+    ExpectedStatement,                      // P1004
+    ExpectedType,                           // P1005
+    ExpectedDeclaration,                    // P1006
+    ExpectedPattern,                        // P1007
+    ExpectedIdentifier,                     // P1008
+    TrailingCommaListEnded,                 // P1009
+    NonAssocChained,                        // P1010
+    StructLitInControlCondition,            // P1011
+    MissingFunctionBody,                    // P1012
+    ExecutableStatementAtTopLevel,          // P1013
+    UnknownDecoratorPlacement,              // P1014
+    DuplicateStructLitField,                // P1015
+    ExpectedGenericArgList,                 // P1016
+    MissingNewlineBetweenDecls,             // P1017
+    TypeParamMustBePrefixedWithDollar,      // P1018
+    TypeBoundRedundant,                     // P1019
+    ExprBodiedFnExplicitReturnType,         // P1020
+}
+
 // `(id, message)` for a code, in one shot. The wire ID stays aligned with
 // `src/diagnostics/codes.ts`; the message is the canonical human wording.
 // (`private` would be ideal here, but Vader's "module = single file"
@@ -48,6 +73,32 @@ info :: fn(c: LexerCode) = match c {
     .InterpolationExpressionExpected -> CodeInfo { .id = "L0010", .message = "interpolation expression must follow `\${`" }
 }
 
-// `DiagCode` widens to every phase's code enum as new phases land. For now
-// the lexer is the only emitter; parser/resolver/... will extend the union.
-DiagCode :: type LexerCode
+parser_info :: fn(c: ParserCode) = match c {
+    .UnexpectedToken                    -> CodeInfo { .id = "P1001", .message = "unexpected token" }
+    .ExpectedToken                      -> CodeInfo { .id = "P1002", .message = "expected token" }
+    .ExpectedExpression                 -> CodeInfo { .id = "P1003", .message = "expected an expression" }
+    .ExpectedStatement                  -> CodeInfo { .id = "P1004", .message = "expected a statement" }
+    .ExpectedType                       -> CodeInfo { .id = "P1005", .message = "expected a type" }
+    .ExpectedDeclaration                -> CodeInfo { .id = "P1006", .message = "expected a declaration" }
+    .ExpectedPattern                    -> CodeInfo { .id = "P1007", .message = "expected a pattern" }
+    .ExpectedIdentifier                 -> CodeInfo { .id = "P1008", .message = "expected an identifier" }
+    .TrailingCommaListEnded             -> CodeInfo { .id = "P1009", .message = "trailing comma allowed but list ended unexpectedly" }
+    .NonAssocChained                    -> CodeInfo { .id = "P1010", .message = "non-associative operator chained" }
+    .StructLitInControlCondition        -> CodeInfo { .id = "P1011", .message = "struct literal not allowed at the top level of a control-flow condition" }
+    .MissingFunctionBody                -> CodeInfo { .id = "P1012", .message = "missing function body" }
+    .ExecutableStatementAtTopLevel      -> CodeInfo { .id = "P1013", .message = "executable statement at top level (only declarations allowed)" }
+    .UnknownDecoratorPlacement          -> CodeInfo { .id = "P1014", .message = "unknown decorator placement" }
+    .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
+    .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
+    .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }
+    .TypeParamMustBePrefixedWithDollar  -> CodeInfo { .id = "P1018", .message = "type parameter must be prefixed with `$`" }
+    .TypeBoundRedundant                 -> CodeInfo { .id = "P1019", .message = "`: type` bound is redundant; write `\$T` instead" }
+    .ExprBodiedFnExplicitReturnType     -> CodeInfo { .id = "P1020", .message = "expression-bodied function cannot also declare an explicit return type" }
+}
+
+// Note : `DiagCode` was previously a union of every phase's code enum, but
+// the runtime's `match { is EnumType -> }` dispatch on a union-of-enums
+// doesn't pick the right variant. Instead, `Diagnostic.code` now carries a
+// resolved `CodeInfo` ; each phase exposes a typed `error(MyCode, ...)`
+// helper that calls `info(...)` / `parser_info(...)` to stamp the wire
+// `(id, message)` at construction time.

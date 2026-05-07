@@ -11,6 +11,7 @@
 import "std/io" { println, eprintln, read_file }
 import "std/string" { len, slice, starts_with }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
+import "vader/parser" { parse_source, dump_program }
 
 private VERSION :: "0.0.0-pre-mvp"
 
@@ -261,9 +262,12 @@ private cmd_dump :: fn(args: [string]) -> i32 {
     if stage == "lexer" {
         return file.run_lexer_stage()
     }
+    if stage == "ast" {
+        return file.run_parser_stage()
+    }
 
     // Recognised TS stages — we know about them but can't run them yet.
-    if stage == "ast" || stage == "resolved-ast" || stage == "typed-ast" ||
+    if stage == "resolved-ast" || stage == "typed-ast" ||
        stage == "evaluated-ast" || stage == "lowered-ast" || stage == "dced-ast" ||
        stage == "bytecode" || stage == "c" || stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
@@ -292,6 +296,26 @@ private run_lexer_stage :: fn(file: string) -> i32 {
     println(l.dump_tokens())
     if l.errors.len() > 0 {
         println(l.errors.dump_diagnostics())
+    }
+    return 0
+}
+
+// Parser dump : `# AST\n` + 2-space-indented JSON to stdout, plus the same
+// `# Diagnostics` block on stdout for parity with TS `formatProgram`.
+private run_parser_stage :: fn(file: string) -> i32 {
+    src_or_err :: file.read_file()
+    src: string = ""
+    match src_or_err {
+        is string -> { src = src_or_err }
+        is Error  -> {
+            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
+            return 1
+        }
+    }
+    parsed :: parse_source(src, file)
+    println(dump_program(parsed.program))
+    if parsed.errors.len() > 0 {
+        println(parsed.errors.dump_diagnostics())
     }
     return 0
 }

@@ -1792,9 +1792,49 @@ test_addition :: fn() {
 
 ### Debugging
 
-- **WASM**: DWARF emission, debuggable in Chrome DevTools / wasmtime.
-- **Native**: `#line` directives in emitted C, gdb / lldb on the binary.
-- No Vader-specific debugger tool in MVP.
+Both IDE integrations (VS Code, IntelliJ) target full step-by-step debugging with variable inspection. The strategy has two phases.
+
+#### Protocol: DAP (Debug Adapter Protocol)
+
+DAP is the standard (same role as LSP, but for debuggers). A single Debug Adapter implementation serves both VS Code and IntelliJ (IntelliJ supports DAP natively since 2022 via `com.intellij.xdebugger`). The adapter communicates with the IDE over JSON-RPC (stdin/stdout or TCP) and drives the Vader runtime.
+
+```
+IDE (VS Code / IntelliJ)
+    ↕  JSON-RPC
+Debug Adapter
+    ↕
+Vader runtime (VM or native binary)
+```
+
+#### Short term — native backend via lldb-dap
+
+The C emitter already outputs `#line` directives that map every instruction back to the originating `.vader` file and line. This is sufficient to drive `lldb-dap` (LLVM's official DAP adapter, shipped with clang) or an equivalent GDB wrapper without writing any custom adapter code.
+
+What this requires:
+
+- Verify that `#line` directives carry both file and column (not just line) for precise cursor placement.
+- Provide a launch configuration for VS Code (`launch.json`) and IntelliJ that invokes `vader build` then hands the binary to `lldb-dap`.
+- Document the workflow in the editor plugins.
+
+Limitations: local variable names may appear mangled (e.g. `fibonacci$n` instead of `n`), and Vader-level types are not visible — the debugger sees the C representation. The experience works but is not polished.
+
+#### Medium term — VM debugger with native DAP server
+
+Once the VM is stable (or self-hosting is underway), a Vader-native Debug Adapter is added to the interpreter. `vader run --debug [--port=N]` starts the VM in debug mode and exposes a DAP server.
+
+What the VM must expose:
+
+- **Source map**: every bytecode instruction carries a `(file, line, col)` span. This information is already available in the compiler (every node has a `Span`); the bytecode emitter must forward it into the emitted instructions.
+- **Pause / continue / step_in / step_over / step_out**: the VM event loop checks a debug flag before each instruction dispatch.
+- **Breakpoints**: a table of `(file, line) → instruction offset` populated from the source map; the VM pauses when the program counter hits a registered offset.
+- **Frame inspection**: on `stopped`, the adapter walks the current call frame and serialises local bindings as `(name: string, value: VaderValue)` pairs. Structured values (structs, arrays) are serialised as DAP `Variable` trees.
+- **DAP events**: `stopped` (reason: breakpoint / step / exception), `continued`, `terminated`, `output` (for `println` in debug session).
+
+This approach gives source-level debugging entirely in Vader terms (original variable names, Vader types) and works before the native backend is complete. It also serves as the debug runtime for WASM targets where lldb is not available.
+
+#### WASM
+
+DWARF emission, debuggable in Chrome DevTools / wasmtime. The VM DAP server (medium-term) is the preferred path for WASM debugging once available.
 
 ### Diagnostics
 

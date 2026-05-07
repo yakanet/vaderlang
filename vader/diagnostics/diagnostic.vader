@@ -4,7 +4,7 @@
 // emits the same JSON schema as the TS compiler.
 
 import "std/string" { len }
-import "vader/diagnostics/codes" { DiagCode, LexerCode, info, CodeInfo }
+import "vader/diagnostics/codes" { LexerCode, ParserCode, info, parser_info, CodeInfo }
 
 Severity :: enum {
     Error,
@@ -31,22 +31,26 @@ Span :: struct {
 
 Diagnostic :: struct {
     severity: Severity
-    code: DiagCode
+    // Resolved at construction time so the renderer doesn't need to dispatch
+    // on a union-of-enums (which the runtime can't pattern-match cleanly).
+    code:     CodeInfo
     // Optional detail appended to the canonical message at render time.
-    detail: string
-    primary: Span
-    // Notes / fixes / secondary spans are deferred — the lexer doesn't need
-    // them today and the LSP can synthesise them later.
+    detail:   string
+    primary:  Span
 }
 
-// Build a diagnostic. The canonical message is recovered from `code` at
-// render time, so callers stay terse: just pass the code variant + an
-// optional `detail` (the offending text, an unknown name, ...).
-make :: fn(severity: Severity, code: DiagCode, primary: Span, detail: string) =
+// Generic constructor — most callers will use the typed `error` /
+// `parser_error` shortcuts below.
+make :: fn(severity: Severity, code: CodeInfo, primary: Span, detail: string) =
     Diagnostic { .severity = severity, .code = code, .detail = detail, .primary = primary }
 
-error :: fn(code: DiagCode, primary: Span, detail: string) =
-    make(.Error, code, primary, detail)
+// Lexer-side shortcut : `error(.UnexpectedCharacter, span, "x")`.
+error :: fn(code: LexerCode, primary: Span, detail: string) =
+    make(.Error, info(code), primary, detail)
+
+// Parser-side shortcut : `parser_error(.ExpectedToken, span, "...")`.
+parser_error :: fn(code: ParserCode, primary: Span, detail: string) =
+    make(.Error, parser_info(code), primary, detail)
 
 // Render a diagnostic as a single-line `error[CODE]: message at file:line:col`.
 // Used for terminal output today; the LSP will go via the JSON shape directly
@@ -58,13 +62,10 @@ render :: fn(d: Diagnostic) -> string {
         .Info    -> "info"
         .Hint    -> "hint"
     }
-    // `info` will become a `match` on `DiagCode` once the union widens to
-    // `LexerCode | ParserCode | ...` ; today the alias makes a direct call fine.
-    ci :: d.code.info()
     p :: d.primary.start
     detail: string = ""
     if d.detail.len() > 0 {
         detail = ": ${d.detail}"
     }
-    return "${severity}[${ci.id}]: ${ci.message}${detail} at ${p.file}:${p.line}:${p.column}"
+    return "${severity}[${d.code.id}]: ${d.code.message}${detail} at ${p.file}:${p.line}:${p.column}"
 }

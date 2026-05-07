@@ -476,11 +476,27 @@ Stand up a `vader` binary written in Vader so each ported phase can compare its 
 
 - [ ] **Snapshot parity with the TS lexer** — once the Vader CLI lands (§2.0), run both lexers over `tests/snippets/*` and compare the `# Tokens` blocks. Any mismatch is either a Vader-lexer port bug or a missing feature ; fix and re-snapshot.
 
-#### Parser (`vader/parser/`) — pending
+#### Parser (`vader/parser/`) — substantial progress (2026-05-07)
 
-- [ ] Port AST representation to Vader (struct + union types). Surface : `Decl`, `FnDecl`, `StructDecl`, `EnumDecl`, `TraitDecl`, `ImplDecl`, `TypeAliasDecl`, `ConstDecl`, `ImportDecl`, plus the expression and statement nodes. Use `parser_codes.vader` for `ParserCode` codes mirroring the TS `PARSER` table.
-- [ ] Port parser body to Vader — recursive-descent for declarations / statements / types, Pratt for expressions (binding-power table). Reuse the lexer's `Token` stream verbatim.
-- [ ] Snapshot-test parity : TS parser and Vader parser must produce identical AST dumps for every sample.
+- [x] **AST representation** (`vader/parser/ast.vader`) — every node ported as a Vader struct, every TS sum-type as a `:: type` discriminated union. Field-name caveat : `type` is a Vader keyword, so `StructField.type` / `FnParam.type` / `ConstDecl.type` etc. are renamed `ty` (the dumper still emits `"type"` as the JSON key for snapshot parity).
+- [x] **`ParserCode` enum + `parser_info()` lookup** added to `vader/diagnostics/codes.vader` (P1001..P1020 mirroring `src/diagnostics/codes.ts:PARSER`). `Diagnostic.code` was simplified from `LexerCode | ParserCode` to a resolved `CodeInfo` because the runtime can't dispatch `match { is EnumA -> ... is EnumB -> ... }` over a union of two enum-types — each phase now stamps the wire `(id, message)` at construction via typed `error(LexerCode, ...)` / `parser_error(ParserCode, ...)` shortcuts.
+- [x] **Parser body** (`vader/parser/parser.vader`, ~2200 lines) — recursive-descent for declarations / statements / types, Pratt for expressions (binding-power table mirroring `src/parser/passes/expr.ts:25-53`). Token-stream helpers (`peek`, `peek_at`, `check`, `match_kind`, `advance`, `expect`, `skip_newlines`) on a `Parser` struct.
+- [x] **AST → JSON dumper** (`vader/parser/dump.vader`) — byte-for-byte parity with `tests/snapshot.ts:formatProgram`. 2-space indent, span-stripping, BigInts as `"<n>n"`, JSON-escaped strings.
+- [x] **CLI integration** — `vader dump --stage=ast <file>` runs the Vader parser through the same dispatcher as `--stage=lexer`.
+- [x] **Parity test rig** : `tests/parser_parity.test.ts` runs `./build/vaderc dump --stage=ast` over every `tests/snippets/*` and diffs against the existing `parser.snapshot`. **65 / 105 snippets pass byte-for-byte today** ; the rest are listed in `KNOWN_FAILURES` and tracked below.
+
+##### Open Vader-language / runtime issues uncovered while porting (fix to unlock the remaining 40 snippets)
+
+- [ ] **`as <name>` binding in match arms traps at runtime.** Reproducer : `match a { is null -> ... is P as p -> println("${p.x}") }` over `a: P | Q | null` triggers `vm: reached unreachable` even though the value's tag matches `P`. Workaround used in the parser/dumper : drop `as` and bind the whole expression to a local before the match (since match-narrowing on a plain ident works). Touches the bytecode-emitter's pattern-binding op.
+- [ ] **Match dispatch on primitive-only union (`i64 | f64 | u32 | string | null`) misfires.** Calling `match t.value { is i64 -> ... is f64 -> ... is u32 -> ... is string -> ... is null -> ... }` on a `Token.value` of type `i64 | f64 | u32 | string | null` traps. Workaround : bind to local + use a single `is X` arm + `_` wildcard (the wildcard arm is the catch-all). Likely in the runtime's primitive-tag table.
+- [ ] **Match on union of enums (`LexerCode | ParserCode`) doesn't dispatch.** Even with explicit `is LexerCode -> ... is ParserCode -> ...` arms, the runtime hits unreachable. Worked around by collapsing `Diagnostic.code` to a resolved `CodeInfo` value (see above) instead of carrying the tagged code.
+- [ ] **`match X.field { is Y as t -> ... }` doesn't narrow on field accesses, AND the `as` form is buggy.** Have to bind the field to a local first. The Vader parser/dumper has ~25 such hand-rolled rebinds.
+- [ ] **`if !bool_var { ... }` traps in some bytecode positions.** Repro in `parse_struct_type_param_list` for `struct($X) { ... }` — `if !first { p.expect(.Comma, ...) }` traps even with `first=true` (so the body should be skipped). Workaround : avoid the `!` op by computing presence via `out.len() > 0` instead of a `first` flag.
+- [ ] **`enum_basic` family (4 snippets) traps in `parse_enum_decl`** very early (instr +18). Bisect needed — likely the `repr: TypeExpr | null = null` initializer in combination with the `if match_kind(.LParen).matched` branch. Once fixed, enum_basic / enum_match / enum_typed / enum_bad_repr should clear together.
+- [ ] **Trait/impl-heavy snippets (sam_impl, trait_impl, trait_dispatch_struct, primitive_impl, vm_trait_dispatch, trait_virtual_dispatch) diverge or trap** — likely one or two specific code paths in `parse_impl_decl` / `parse_fn_decl_inside_trait`. Inspect each individually.
+- [ ] **Other diverging snippets** (decorators_ok, comptime_const, format_helpers, json_basics, std_string, std_collections, fn_value_*, gc_array_survive, expr_bodied_*, regex_helpers, std_math, path_basics, iter_combinators, errors_*, sam_impl_bad, square_call, simple_arith, fn_decl, interp_string_comptime, unknown_decorator, match_union, non_exhaustive_match, for_in, self_ref_struct, std_string_builder, selfhost_lexer_basic) — each likely a small parser bug. Tackle in batches once the underlying runtime issues above are resolved.
+
+- [ ] Snapshot-test parity : 65 / 105 today, target 100 % once the runtime traps above are fixed.
 
 ### 2.2 Port the C emitter
 

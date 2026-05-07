@@ -46,7 +46,7 @@ Lexer :: struct {
     interp_stack: [InterpFrame]
 }
 
-new_lexer :: fn(source: string, file: string) = Lexer {
+private new_lexer :: fn(source: string, file: string) = Lexer {
     .src = source,
     .file = file,
     .pos = 0,
@@ -61,14 +61,14 @@ new_lexer :: fn(source: string, file: string) = Lexer {
 
 // ---- predicates -----------------------------------------------------------
 
-is_ident_start :: fn(c: char) =
+private is_ident_start :: fn(c: char) =
     (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
 
-is_ident_continue :: fn(c: char) = c.is_ident_start() || c.is_digit()
+private is_ident_continue :: fn(c: char) = c.is_ident_start() || c.is_digit()
 
 // SPEC §3 newline-suppression set — operators / separators after which a
 // physical newline is NOT a statement terminator.
-suppresses_newline_after :: fn(k: TokenKind) = match k {
+private suppresses_newline_after :: fn(k: TokenKind) = match k {
     .Plus      -> true
     .Minus     -> true
     .Star      -> true
@@ -99,16 +99,16 @@ suppresses_newline_after :: fn(k: TokenKind) = match k {
 
 // ---- cursor helpers -------------------------------------------------------
 
-at_end :: fn(l: Lexer) = l.pos >= l.src.len()
+private at_end :: fn(l: Lexer) = l.pos >= l.src.len()
 
-peek :: fn(l: Lexer) -> char {
+private peek :: fn(l: Lexer) -> char {
     if l.pos >= l.src.len() {
         return '\0'
     }
     return l.src.char_at(l.pos)
 }
 
-peek_at :: fn(l: Lexer, n: i32) -> char {
+private peek_at :: fn(l: Lexer, n: i32) -> char {
     p := l.pos + n
     if p >= l.src.len() {
         return '\0'
@@ -116,10 +116,10 @@ peek_at :: fn(l: Lexer, n: i32) -> char {
     return l.src.char_at(p)
 }
 
-position_here :: fn(l: Lexer) =
+private position_here :: fn(l: Lexer) =
     Position { .file = l.file, .offset = l.pos, .line = l.line, .column = l.col }
 
-advance :: fn(l: Lexer, n: i32) -> void {
+private advance :: fn(l: Lexer, n: i32) -> void {
     i := 0
     for i < n {
         if l.pos >= l.src.len() {
@@ -139,28 +139,28 @@ advance :: fn(l: Lexer, n: i32) -> void {
 
 // ---- token emission -------------------------------------------------------
 
-emit :: fn(l: Lexer, t: Token) -> void {
+private emit :: fn(l: Lexer, t: Token) -> void {
     l.tokens.push(t)
     l.last_kind = t.kind
 }
 
-push_simple :: fn(l: Lexer, kind: TokenKind, text: string, start: Position) -> void {
+private push_simple :: fn(l: Lexer, kind: TokenKind, text: string, start: Position) -> void {
     span := Span { .start = start, .end = l.position_here() }
     l.emit(make_token(kind, text, span))
 }
 
-push_error :: fn(l: Lexer, code: LexerCode, span: Span, detail: string) -> void {
+private push_error :: fn(l: Lexer, code: LexerCode, span: Span, detail: string) -> void {
     l.errors.push(error(code, span, detail))
 }
 
 // Convenience: most lexer errors take a single-token span anchored at `start`
 // up to the current position.
-error_span :: fn(l: Lexer, start: Position) =
+private error_span :: fn(l: Lexer, start: Position) =
     Span { .start = start, .end = l.position_here() }
 
 // ---- whitespace + comments -----------------------------------------------
 
-skip_horizontal :: fn(l: Lexer) -> void {
+private skip_horizontal :: fn(l: Lexer) -> void {
     in_interp :: l.interp_stack.len() > 0
     for !l.at_end() {
         c := l.peek()
@@ -176,7 +176,7 @@ skip_horizontal :: fn(l: Lexer) -> void {
     }
 }
 
-lex_block_comment :: fn(l: Lexer) -> void {
+private lex_block_comment :: fn(l: Lexer) -> void {
     start := l.position_here()
     l.advance(2)  // consume `/*`
     depth := 1
@@ -200,7 +200,7 @@ lex_block_comment :: fn(l: Lexer) -> void {
 
 // ---- newlines -------------------------------------------------------------
 
-handle_newline :: fn(l: Lexer) -> void {
+private handle_newline :: fn(l: Lexer) -> void {
     // Consume the line terminator (CRLF or LF or lone CR).
     if l.peek() == '\r' {
         l.advance(1)
@@ -219,7 +219,7 @@ handle_newline :: fn(l: Lexer) -> void {
 
 // ---- identifiers ----------------------------------------------------------
 
-lex_ident :: fn(l: Lexer) -> void {
+private lex_ident :: fn(l: Lexer) -> void {
     start := l.position_here()
     for !l.at_end() && l.peek().is_ident_continue() {
         l.advance(1)
@@ -233,7 +233,7 @@ lex_ident :: fn(l: Lexer) -> void {
 
 // Read trailing identifier-shaped text after a digit run. Returns "" if no
 // suffix is present. Accepts both forms `42i32` and `42_i32`.
-read_numeric_suffix :: fn(l: Lexer) -> string {
+private read_numeric_suffix :: fn(l: Lexer) -> string {
     start := l.pos
     if l.peek() == '_' && l.peek_at(1).is_ident_start() {
         l.advance(1)
@@ -256,7 +256,7 @@ read_numeric_suffix :: fn(l: Lexer) -> string {
 // underscores don't appear consecutively or trail. `start_anchor` is for
 // diagnostic spans. Returns void — callers detecting "no digits after base
 // prefix" should compare `l.pos` before and after the call.
-consume_digits :: fn(l: Lexer, base: i32, start_anchor: Position) -> void {
+private consume_digits :: fn(l: Lexer, base: i32, start_anchor: Position) -> void {
     last_was_underscore := false
     first := true
     for !l.at_end() {
@@ -289,7 +289,7 @@ consume_digits :: fn(l: Lexer, base: i32, start_anchor: Position) -> void {
     }
 }
 
-lex_number :: fn(l: Lexer) -> void {
+private lex_number :: fn(l: Lexer) -> void {
     start := l.position_here()
     is_float := false
 
@@ -397,7 +397,7 @@ private strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> str
 
 // Decode an integer literal's text → `i64`. Defers digit parsing to
 // `std/numbers.parse_int_in_base` after stripping prefix/suffix/underscores.
-decode_int_literal :: fn(text: string, base: i32, suffix: string) -> i64 {
+private decode_int_literal :: fn(text: string, base: i32, suffix: string) -> i64 {
     parsed :: parse_int_in_base(strip_numeric_text(text, base, suffix), base)
     return match parsed {
         is i64 -> parsed
@@ -407,7 +407,7 @@ decode_int_literal :: fn(text: string, base: i32, suffix: string) -> i64 {
 
 // Decode a float literal's text → `f64`. Underscores and suffix are stripped
 // here ; digit parsing defers to `std/string.parse_float`.
-decode_float_literal :: fn(text: string, suffix: string) -> f64 {
+private decode_float_literal :: fn(text: string, suffix: string) -> f64 {
     parsed :: strip_numeric_text(text, 10, suffix).parse_float()
     return match parsed {
         is f64 -> parsed
@@ -419,7 +419,7 @@ decode_float_literal :: fn(text: string, suffix: string) -> f64 {
 
 // Decode `\X`. Caller must have positioned the cursor at the leading `\`.
 // Returns the decoded codepoint. Emits L0004 / L0009 on malformed input.
-lex_escape :: fn(l: Lexer) -> u32 {
+private lex_escape :: fn(l: Lexer) -> u32 {
     esc_start :: l.position_here()
     l.advance(1)  // consume `\`
     if l.at_end() {
@@ -443,7 +443,7 @@ lex_escape :: fn(l: Lexer) -> u32 {
 
 // Decode `\u{HEX}` — caller has already consumed `\u`. Up to 6 hex digits,
 // codepoint must fit in U+10FFFF.
-lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
+private lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     if l.peek() != '{' {
         l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start), "expected '{' after \\u")
         return u32(0)
@@ -512,7 +512,7 @@ private append_codepoint :: fn(sb: StringBuilder, cp: u32) -> void {
 
 // ---- char literals --------------------------------------------------------
 
-lex_char :: fn(l: Lexer) -> void {
+private lex_char :: fn(l: Lexer) -> void {
     start :: l.position_here()
     l.advance(1)  // consume opening `'`
 
@@ -564,14 +564,14 @@ lex_char :: fn(l: Lexer) -> void {
 // ---- string literals ------------------------------------------------------
 
 // Top of the interp stack, or null when not currently inside an interpolation.
-top_interp :: fn(l: Lexer) -> InterpFrame | null {
+private top_interp :: fn(l: Lexer) -> InterpFrame | null {
     n :: l.interp_stack.len()
     if n == 0 { return null }
     return l.interp_stack[n - 1]
 }
 
 // Drop the current top frame (called at `}` matching depth 0).
-pop_interp :: fn(l: Lexer) -> void {
+private pop_interp :: fn(l: Lexer) -> void {
     n :: l.interp_stack.len()
     if n == 0 { return }
     l.interp_stack = l.interp_stack.slice_array(0, n - 1) // FIXME: use `pop`
@@ -580,7 +580,7 @@ pop_interp :: fn(l: Lexer) -> void {
 // Open a `"` / `r"` / `"""` / `r"""` literal. Emits StringBegin, then drives
 // the body. Caller must have already verified the leading `"` (and optional
 // `r` prefix) via `lex_one`.
-lex_string :: fn(l: Lexer, raw: bool) -> void {
+private lex_string :: fn(l: Lexer, raw: bool) -> void {
     start :: l.position_here()
     if raw {
         l.advance(1)  // consume `r`
@@ -621,7 +621,7 @@ private flush_string_part :: fn(l: Lexer, sb: StringBuilder, part_start: Positio
 // emits StringPart / InterpOpen / StringEnd as needed. When the body opens
 // an interpolation we push onto `interp_stack` and return — `lex_one` will
 // resume the body when the matching `}` closes the interp.
-lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
+private lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
     part_start := l.position_here()
     sb := new_builder()
     has_part := false
@@ -718,7 +718,7 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
 
 // Return true if dispatched. The dispatch order matters: 3-char ops first,
 // then 2-char, then 1-char.
-try_lex_operator :: fn(l: Lexer) -> bool {
+private try_lex_operator :: fn(l: Lexer) -> bool {
     c := l.peek()
     c2 := l.peek_at(1)
 
@@ -832,7 +832,7 @@ private emit_and_advance :: fn(l: Lexer, kind: TokenKind, text: string) -> bool 
 
 // ---- main loop ------------------------------------------------------------
 
-lex_one :: fn(l: Lexer) -> void {
+private lex_one :: fn(l: Lexer) -> void {
     l.skip_horizontal()
     if l.at_end() { return }
 

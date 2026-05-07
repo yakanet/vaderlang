@@ -13,7 +13,7 @@
 // std/string and the StringBuilder surface ; we only need the extras here.
 import "std/string" { pad_start, pad_end }
 import "std/numbers" { to_hex }
-import "vader/diagnostics/codes" { info }
+// Diagnostic info is now resolved at construction time — see vader/diagnostics.
 
 dump_tokens :: fn(l: Lexer) -> string {
     sb := new_builder()
@@ -131,8 +131,10 @@ private quote_simple :: fn(s: string) -> string {
 }
 
 // TokenKind → the snake_case name that matches `src/lexer/token.ts` so the
-// dump output stays byte-identical with the TS reference.
-private kind_name :: fn(k: TokenKind) = match k {
+// dump output stays byte-identical with the TS reference. Public so the
+// parser's `describe_token` can reuse it (folder-modules ignore `private`
+// across files but the explicit visibility documents intent).
+kind_name :: fn(k: TokenKind) = match k {
     .Ident       -> "ident"
     .IntLit      -> "int_literal"
     .FloatLit    -> "float_literal"
@@ -221,11 +223,10 @@ private format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic) -> void {
         .Info    -> "info"
         .Hint    -> "hint"
     }
-    ci :: d.code.info()
     p :: d.primary.start
     detail: string = ""
     if d.detail.len() > 0 {
         detail = ": ${d.detail}"
     }
-    sb.append("[${p.line}:${p.column}] ${sev}[${ci.id}] ${ci.message}${detail}")
+    sb.append("[${p.line}:${p.column}] ${sev}[${d.code.id}] ${d.code.message}${detail}")
 }
