@@ -11,7 +11,7 @@
     "Programming Languages"
   ],
   "scripts": {
-    "sync": "cp ../common/vader.tmLanguage.json syntaxes/vader.tmLanguage.json && cp ../common/language-configuration.json language-configuration.json",
+    "sync": "node sync.js",
     "vscode:prepublish": "npm run sync"
   },
   "contributes": {
@@ -25,7 +25,25 @@
         "extensions": [
           ".vader"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/vader.svg",
+          "dark": "./icons/vader.svg"
+        }
+      },
+      {
+        "id": "vir",
+        "aliases": [
+          "Vader IR",
+          "vir"
+        ],
+        "extensions": [
+          ".vir"
+        ],
+        "icon": {
+          "light": "./icons/vir.svg",
+          "dark": "./icons/vir.svg"
+        }
       }
     ],
     "grammars": [

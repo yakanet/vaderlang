@@ -1,3 +1,5 @@
 /syntaxes/vader.tmLanguage.json
 /language-configuration.json
+/icons/vader.svg
+/icons/vir.svg
 *.vsix

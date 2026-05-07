@@ -13,5 +13,6 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <textmate.bundleProvider implementation="dev.vaderlang.intellij.VaderBundleProvider"/>
+        <fileIconProvider implementation="dev.vaderlang.intellij.VaderFileIconProvider"/>
     </extensions>
 </idea-plugin>
