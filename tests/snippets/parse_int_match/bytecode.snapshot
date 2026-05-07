@@ -31,6 +31,14 @@ import 18 to_lower std_string$to_lower (string) -> string
 import 19 parse_int std_string$parse_int (string) -> ref
 import 20 parse_float std_string$parse_float (string) -> ref
 import 21 concat_all std_string_builder$concat_all (ref) -> string
+import 22 sqrt std_math$sqrt (f64) -> f64
+import 23 pow std_math$pow (f64,f64) -> f64
+import 24 floor std_math$floor (f64) -> f64
+import 25 ceil std_math$ceil (f64) -> f64
+import 26 round std_math$round (f64) -> f64
+import 27 sin std_math$sin (f64) -> f64
+import 28 cos std_math$cos (f64) -> f64
+import 29 tan std_math$tan (f64) -> f64
 
 fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
   local __scrut_0 ref

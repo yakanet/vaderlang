@@ -53,7 +53,7 @@
   fn               public   sin 
   fn               public   sqrt 
   fn               public   tan 
-  refs: idents=15 types=29 params=17 locals=0 typeParams=0 fields=0
+  refs: idents=26 types=37 params=22 locals=0 typeParams=0 fields=0
 
 ## tests/snippets/std_math/_main.vader
   import-binding   private  ceil → ceil

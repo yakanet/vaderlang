@@ -38,11 +38,32 @@
   fn               public   write_file 
   refs: idents=1 types=22 params=9 locals=0 typeParams=0 fields=0
 
+## std/math
+  fn               public   abs 
+  fn               public   ceil 
+  fn               public   cos 
+  const            public   e 
+  fn               public   floor 
+  fn               public   lerp 
+  fn               public   max 
+  fn               public   min 
+  const            public   pi 
+  fn               public   pow 
+  fn               public   round 
+  fn               public   sin 
+  fn               public   sqrt 
+  fn               public   tan 
+  refs: idents=26 types=37 params=22 locals=0 typeParams=0 fields=0
+
 ## tests/snippets/overload_first_param/_main.vader
+  import-binding   private  abs → abs
   struct           public   Bag 
   struct           public   Box 
   fn               public   describe 
   fn               public   main 
+  import-binding   private  max → max
+  import-binding   private  min → min
   import-binding   private  println → println
   import std/io → ok
-  refs: idents=12 types=9 params=2 locals=2 typeParams=0 fields=0
+  import std/math → ok
+  refs: idents=22 types=9 params=2 locals=2 typeParams=0 fields=0

@@ -42,6 +42,14 @@ import 18 to_lower std_string$to_lower (string) -> string
 import 19 parse_int std_string$parse_int (string) -> ref
 import 20 parse_float std_string$parse_float (string) -> ref
 import 21 concat_all std_string_builder$concat_all (ref) -> string
+import 22 sqrt std_math$sqrt (f64) -> f64
+import 23 pow std_math$pow (f64,f64) -> f64
+import 24 floor std_math$floor (f64) -> f64
+import 25 ceil std_math$ceil (f64) -> f64
+import 26 round std_math$round (f64) -> f64
+import 27 sin std_math$sin (f64) -> f64
+import 28 cos std_math$cos (f64) -> f64
+import 29 tan std_math$tan (f64) -> f64
 
 fn 0 tests_snippets_std_sort__main_vader$i32_lt (i32,i32) -> bool
   local.get 0   ; _main.vader:5:47
@@ -900,62 +908,57 @@ fn 13 std_string$compare_ascending (string,string) -> bool
   local i i32
   local ca char
   local cb char
-  local.get 0   ; string.vader:28:11
-  call.import 9   ; string.vader:28:11
-  local.set 2   ; string.vader:28:5
-  local.get 1   ; string.vader:29:11
+  local.get 0   ; string.vader:29:11
   call.import 9   ; string.vader:29:11
-  local.set 3   ; string.vader:29:5
-  local.get 2   ; string.vader:30:13
-  local.get 3   ; string.vader:30:18
-  i32.lt   ; string.vader:30:13
-  if i32   ; string.vader:30:10
-  local.get 2   ; string.vader:30:23
-  else   ; string.vader:30:10
-  local.get 3   ; string.vader:30:35
-  end   ; string.vader:30:10
-  local.set 4   ; string.vader:30:5
-  i32.const 0   ; string.vader:31:10
-  local.set 5   ; string.vader:31:5
-  block void   ; string.vader:32:5
-  loop void   ; string.vader:32:5
-  local.get 5   ; string.vader:32:9
-  local.get 4   ; string.vader:32:13
-  i32.ge   ; string.vader:32:9
-  br_if 1   ; string.vader:32:9
-  local.get 0   ; string.vader:33:15
-  local.get 5   ; string.vader:33:25
-  call.import 14   ; string.vader:33:15
-  local.set 6   ; string.vader:33:9
-  local.get 1   ; string.vader:34:15
+  local.set 2   ; string.vader:29:5
+  local.get 1   ; string.vader:30:11
+  call.import 9   ; string.vader:30:11
+  local.set 3   ; string.vader:30:5
+  local.get 2   ; string.vader:31:14
+  local.get 3   ; string.vader:31:18
+  call 16   ; string.vader:31:10
+  local.set 4   ; string.vader:31:5
+  i32.const 0   ; string.vader:32:10
+  local.set 5   ; string.vader:32:5
+  block void   ; string.vader:33:5
+  loop void   ; string.vader:33:5
+  local.get 5   ; string.vader:33:9
+  local.get 4   ; string.vader:33:13
+  i32.ge   ; string.vader:33:9
+  br_if 1   ; string.vader:33:9
+  local.get 0   ; string.vader:34:15
   local.get 5   ; string.vader:34:25
   call.import 14   ; string.vader:34:15
-  local.set 7   ; string.vader:34:9
-  local.get 6   ; string.vader:35:12
-  local.get 7   ; string.vader:35:17
-  char.lt   ; string.vader:35:12
-  if void   ; string.vader:35:9
-  bool.const true   ; string.vader:35:29
-  return   ; string.vader:35:22
-  end   ; string.vader:35:9
+  local.set 6   ; string.vader:34:9
+  local.get 1   ; string.vader:35:15
+  local.get 5   ; string.vader:35:25
+  call.import 14   ; string.vader:35:15
+  local.set 7   ; string.vader:35:9
   local.get 6   ; string.vader:36:12
   local.get 7   ; string.vader:36:17
-  char.gt   ; string.vader:36:12
+  char.lt   ; string.vader:36:12
   if void   ; string.vader:36:9
-  bool.const false   ; string.vader:36:29
+  bool.const true   ; string.vader:36:29
   return   ; string.vader:36:22
   end   ; string.vader:36:9
-  local.get 5   ; string.vader:37:13
-  i32.const 1   ; string.vader:37:17
-  i32.add   ; string.vader:37:13
-  local.set 5   ; string.vader:37:9
-  br 0   ; string.vader:32:5
-  end   ; string.vader:32:5
-  end   ; string.vader:32:5
-  local.get 2   ; string.vader:39:12
-  local.get 3   ; string.vader:39:17
-  i32.lt   ; string.vader:39:12
-  return   ; string.vader:39:5
+  local.get 6   ; string.vader:37:12
+  local.get 7   ; string.vader:37:17
+  char.gt   ; string.vader:37:12
+  if void   ; string.vader:37:9
+  bool.const false   ; string.vader:37:29
+  return   ; string.vader:37:22
+  end   ; string.vader:37:9
+  local.get 5   ; string.vader:38:13
+  i32.const 1   ; string.vader:38:17
+  i32.add   ; string.vader:38:13
+  local.set 5   ; string.vader:38:9
+  br 0   ; string.vader:33:5
+  end   ; string.vader:33:5
+  end   ; string.vader:33:5
+  local.get 2   ; string.vader:40:12
+  local.get 3   ; string.vader:40:17
+  i32.lt   ; string.vader:40:12
+  return   ; string.vader:40:5
 end
 
 fn 14 std_iter$std_iter$slice__i32 (ref,i32,i32) -> ref
@@ -1088,4 +1091,16 @@ fn 15 std_iter$std_iter$slice__string (ref,i32,i32) -> ref
   end   ; iter.vader:111:5
   local.get 3   ; iter.vader:115:12
   return   ; iter.vader:115:5
+end
+
+fn 16 std_math$min_1 (i32,i32) -> i32
+  local.get 0   ; math.vader:27:8
+  local.get 1   ; math.vader:27:12
+  i32.lt   ; math.vader:27:8
+  if void   ; math.vader:27:5
+  local.get 0   ; math.vader:27:23
+  return   ; math.vader:27:16
+  end   ; math.vader:27:5
+  local.get 1   ; math.vader:28:12
+  return   ; math.vader:28:5
 end

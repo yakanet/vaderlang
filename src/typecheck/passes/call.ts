@@ -39,7 +39,10 @@ export function inferCall(
     if (sym !== undefined && sym.kind === "fn") {
       const overloads = fnOverloadsForSymbol(sym, t);
       if (overloads.length > 1 && expr.args.length > 0) {
-        const firstArgTy = checkExpr(expr.args[0]!.value, null, t, impls, diags, fn);
+        // Default free numeric literals to their canonical type (i32 / f64)
+        // before ranking — otherwise `abs(-7)` matches both `abs(i32)` and
+        // `abs(f64)` and silently picks the first declared overload.
+        const firstArgTy = defaultIfFree(checkExpr(expr.args[0]!.value, null, t, impls, diags, fn));
         const chosen = pickDirectCallOverload(overloads, firstArgTy, t);
         if (chosen !== null && chosen !== sym) {
           t.directCallOverloads.set(expr, chosen);

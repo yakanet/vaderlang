@@ -5,6 +5,7 @@
 // codepoints — accurate for ASCII, approximate for non-ASCII content.
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
+import "std/math" { min }
 
 // Length in bytes.
 export len :: fn(s: string) -> i32
@@ -27,7 +28,7 @@ export char_at :: fn(s: string, i: i32) -> char
 export compare_ascending :: fn(a: string, b: string) -> bool {
     la :: a.len()
     lb :: b.len()
-    n :: if la < lb { la } else { lb }
+    n :: min(la, lb)
     i := 0
     for i < n {
         ca :: a.char_at(i)

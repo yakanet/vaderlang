@@ -106,6 +106,14 @@ import 18 to_lower std_string$to_lower (string) -> string
 import 19 parse_int std_string$parse_int (string) -> ref
 import 20 parse_float std_string$parse_float (string) -> ref
 import 21 concat_all std_string_builder$concat_all (ref) -> string
+import 22 sqrt std_math$sqrt (f64) -> f64
+import 23 pow std_math$pow (f64,f64) -> f64
+import 24 floor std_math$floor (f64) -> f64
+import 25 ceil std_math$ceil (f64) -> f64
+import 26 round std_math$round (f64) -> f64
+import 27 sin std_math$sin (f64) -> f64
+import 28 cos std_math$cos (f64) -> f64
+import 29 tan std_math$tan (f64) -> f64
 
 fn 0 tests_snippets_json_basics__main_vader$show (string,string) -> void
   local parsed ref
@@ -2007,41 +2015,41 @@ fn 30 std_string$pad_start (string,i32,char) -> string
   local n i32
   local sb ref
   local i i32
-  local.get 0   ; string.vader:77:10
-  call.import 9   ; string.vader:77:10
-  local.tee 3   ; string.vader:77:5
-  local.get 1   ; string.vader:78:13
-  i32.ge   ; string.vader:78:8
-  if void   ; string.vader:78:5
-  local.get 0   ; string.vader:79:16
-  return   ; string.vader:79:9
-  end   ; string.vader:78:5
-  call 31   ; string.vader:81:11
-  local.set 4   ; string.vader:81:5
-  local.get 3   ; string.vader:82:10
-  local.set 5   ; string.vader:82:5
-  block void   ; string.vader:83:5
-  loop void   ; string.vader:83:5
-  local.get 5   ; string.vader:83:9
-  local.get 1   ; string.vader:83:13
-  i32.ge   ; string.vader:83:9
-  br_if 1   ; string.vader:83:9
-  local.get 4   ; string.vader:84:9
-  local.get 2   ; string.vader:84:24
-  call 33   ; string.vader:84:9
-  local.get 5   ; string.vader:85:13
-  i32.const 1   ; string.vader:85:17
-  i32.add   ; string.vader:85:13
-  local.set 5   ; string.vader:85:9
-  br 0   ; string.vader:83:5
-  end   ; string.vader:83:5
-  end   ; string.vader:83:5
-  local.get 4   ; string.vader:87:5
-  local.get 0   ; string.vader:87:15
-  call 32   ; string.vader:87:5
-  local.get 4   ; string.vader:88:12
-  call 34   ; string.vader:88:12
-  return   ; string.vader:88:5
+  local.get 0   ; string.vader:78:10
+  call.import 9   ; string.vader:78:10
+  local.tee 3   ; string.vader:78:5
+  local.get 1   ; string.vader:79:13
+  i32.ge   ; string.vader:79:8
+  if void   ; string.vader:79:5
+  local.get 0   ; string.vader:80:16
+  return   ; string.vader:80:9
+  end   ; string.vader:79:5
+  call 31   ; string.vader:82:11
+  local.set 4   ; string.vader:82:5
+  local.get 3   ; string.vader:83:10
+  local.set 5   ; string.vader:83:5
+  block void   ; string.vader:84:5
+  loop void   ; string.vader:84:5
+  local.get 5   ; string.vader:84:9
+  local.get 1   ; string.vader:84:13
+  i32.ge   ; string.vader:84:9
+  br_if 1   ; string.vader:84:9
+  local.get 4   ; string.vader:85:9
+  local.get 2   ; string.vader:85:24
+  call 33   ; string.vader:85:9
+  local.get 5   ; string.vader:86:13
+  i32.const 1   ; string.vader:86:17
+  i32.add   ; string.vader:86:13
+  local.set 5   ; string.vader:86:9
+  br 0   ; string.vader:84:5
+  end   ; string.vader:84:5
+  end   ; string.vader:84:5
+  local.get 4   ; string.vader:88:5
+  local.get 0   ; string.vader:88:15
+  call 32   ; string.vader:88:5
+  local.get 4   ; string.vader:89:12
+  call 34   ; string.vader:89:12
+  return   ; string.vader:89:5
 end
 
 fn 31 std_string_builder$new_builder () -> ref

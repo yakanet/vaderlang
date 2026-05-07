@@ -415,12 +415,13 @@ Sub-tasks discovered while implementing collections:
 
 Lift `R2004` for free functions whose names collide if their **first parameter** types differ. Required so that `get(MutableList, usize)` and `get(MutableMap, K)` (and similar) coexist in user code without forcing aliasing on every import.
 
-- [ ] **Resolver** (`src/resolver/collect.ts` + symbol table) : a module-level name maps to a *list of overload candidates* instead of a single `Symbol`. R2004 fires only on truly ambiguous declarations (same first-param type).
-- [ ] **Typechecker** (`src/typecheck/passes/call.ts` `inferField` + UFCS dispatch) : at call resolution, pick the candidate whose first parameter type matches the receiver. Generic candidates (`fn(self: $T, ...)`) act as wildcards and conflict with concrete-receiver overloads of the same name.
-- [ ] **Direct-call resolution** (`inferCall` for `f(x, ...)`) : pick the overload whose first parameter accepts `x`'s type. Same wildcard rule.
-- [ ] **Diagnostic** : new code (e.g. `T3024`) for ambiguous overload resolution.
-- [ ] **Tests** : `tests/snippets/overload_first_param/` — list `get(MutableList, usize)` and `get(MutableMap, K)` and call both via UFCS in the same module.
-- [ ] **Stdlib cleanup** : remove the `len` / `is_empty` / `iter` workaround names in `std/map.vader`, `std/set.vader` once overloading lands. Same for the `MutableMap` `len` (vs `size` field) workaround.
+- [x] **Resolver** (`src/resolver/collect.ts:addFnSymbol`) — `fnOverloads: Map<string, Symbol[]>` collects all sibling fns under the same name ; `Module.symbols` keeps the first decl as the primary entry. True conflicts (same first-param type) are caught downstream by the typechecker.
+- [x] **Typechecker UFCS dispatch** (`src/typecheck/passes/call.ts:rankOverloadsByFirstParam` + `inferUfcsFreeBound`) — buckets candidates as `concrete > symMatch > wildcard` and picks the best match. Ambiguous concrete pairs surface as `T3032`.
+- [x] **Direct-call resolution** (`inferCall` for `f(x, ...)`) — `pickDirectCallOverload` runs the same ranking. Free numeric literals default to their canonical type (i32 / f64) before ranking, so `abs(-7)` picks `abs(i32)` instead of silently choosing the first declared overload (fixed 2026-05-07 in `inferCall`).
+- [x] **Diagnostic** : `T3032` ("ambiguous overload resolution") covers both UFCS and direct-call sites.
+- [x] **Tests** : `tests/snippets/overload_first_param/` covers user-defined direct + UFCS dispatch and the stdlib `min`/`max`/`abs` i32+f64 overloads.
+- [x] **Stdlib `min`/`max`/`abs` i32+f64 overloads** added in `std/math.vader` (2026-05-07). `std/string.compare_ascending` now uses `min(la, lb)` instead of an inline `if`.
+- [ ] **Stdlib cleanup remaining** : remove the `len` / `is_empty` / `iter` workaround names in `std/collections.vader` once their generic-bound dispatch issues are sorted. Same for the `MutableMap` `len` (vs `size` field) workaround. Tracked separately under §1.13.
 
 ### 1.18 Built-in type aliases
 

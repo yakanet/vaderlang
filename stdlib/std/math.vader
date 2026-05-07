@@ -16,10 +16,14 @@ export sin :: fn(x: f64) -> f64
 export cos :: fn(x: f64) -> f64
 export tan :: fn(x: f64) -> f64
 
-// Comparison + helpers — pure Vader, f64. Integer variants will arrive once
-// function overloading by first-param type lands (TODO §1.18c) so `min(i32,
-// i32)` and `min(f64, f64)` can coexist.
+// Comparison + helpers. `min` / `max` / `abs` come in i32 + f64 flavours,
+// dispatched via first-param-type overloading (§1.18c).
 export min :: fn(a: f64, b: f64) -> f64 {
+    if a < b { return a }
+    return b
+}
+
+export min :: fn(a: i32, b: i32) -> i32 {
     if a < b { return a }
     return b
 }
@@ -29,8 +33,18 @@ export max :: fn(a: f64, b: f64) -> f64 {
     return b
 }
 
+export max :: fn(a: i32, b: i32) -> i32 {
+    if a > b { return a }
+    return b
+}
+
 export abs :: fn(x: f64) -> f64 {
     if x < 0.0 { return -x }
+    return x
+}
+
+export abs :: fn(x: i32) -> i32 {
+    if x < 0 { return -x }
     return x
 }
 

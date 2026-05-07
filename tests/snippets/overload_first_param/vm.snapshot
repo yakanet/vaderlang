@@ -3,5 +3,10 @@ box 42
 bag hi
 box 42
 bag hi
+min(3, 5)     = 3
+min(3.5, 5.0) = 3.5
+max(-2, 8)    = 8
+abs(-7)       = 7
+abs(-7.5)     = 7.5
 # exit
 0

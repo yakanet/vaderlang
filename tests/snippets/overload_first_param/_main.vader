@@ -1,7 +1,11 @@
-// Function overloading by first-param type. Two free fns share the name
-// `describe` but dispatch on the receiver, both via direct call and UFCS.
+// Function overloading by first-param type (TODO §1.18c). Two free fns
+// share the name `describe` and dispatch on the receiver, both via direct
+// call and UFCS. Also covers stdlib `min` / `max` / `abs` which now ship
+// i32 + f64 overloads — free integer literals default to i32 so the
+// integer overload wins on `abs(-7)` etc.
 
 import "std/io" { println }
+import "std/math" { min, max, abs }
 
 export Box :: struct { v: i32 }
 export Bag :: struct { v: string }
@@ -18,5 +22,13 @@ main :: fn() -> i32 {
     // UFCS — the same dispatch policy applies via `inferUfcsFreeBound`.
     println(a.describe())
     println(b.describe())
+
+    // Stdlib min / max / abs : i32 vs f64 overloads. Integer literals
+    // default to i32 so the i32 overload wins on `abs(-7)`.
+    println("min(3, 5)     = ${min(3, 5)}")
+    println("min(3.5, 5.0) = ${min(3.5, 5.0)}")
+    println("max(-2, 8)    = ${max(-2, 8)}")
+    println("abs(-7)       = ${abs(-7)}")
+    println("abs(-7.5)     = ${abs(-7.5)}")
     return 0
 }
