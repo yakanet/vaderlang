@@ -8,13 +8,13 @@ import "std/string_builder" { StringBuilder, new_builder, append_char, to_string
 
 // ParseError — raised by every fallible parser in this module. The shape
 // mirrors `std/string.ParseError` so callers can match on either as `Error`.
-ParseError :: struct { msg: string }
+export ParseError :: struct { msg: string }
 ParseError implements Error {
     fn message(self) -> string { return self.msg }
 }
 
 // 0..15 for an ASCII hex digit, -1 otherwise.
-hex_digit_value :: fn(c: char) -> i32 {
+export hex_digit_value :: fn(c: char) -> i32 {
     if c >= '0' && c <= '9' { return i32(u32(c) - u32('0')) }
     if c >= 'a' && c <= 'f' { return i32(u32(c) - u32('a') + u32(10)) }
     if c >= 'A' && c <= 'F' { return i32(u32(c) - u32('A') + u32(10)) }
@@ -25,7 +25,7 @@ hex_digit_value :: fn(c: char) -> i32 {
 // pure digits in that base — no `0x`/`0b`/`0o` prefix, no `_` separators,
 // no leading sign. Empty input or any non-digit character yields an error.
 // Caller is responsible for stripping syntactic decoration.
-parse_int_in_base :: fn(s: string, base: i32) -> i64! {
+export parse_int_in_base :: fn(s: string, base: i32) -> i64! {
     n := s.len()
     if n == 0 {
         return ParseError { .msg = "empty input" }
@@ -44,7 +44,7 @@ parse_int_in_base :: fn(s: string, base: i32) -> i64! {
     return acc
 }
 
-private hex_digit :: fn(n: u64) -> char {
+hex_digit :: fn(n: u64) -> char {
     if n <= u64(9) {
         return char(u32('0') + u32(n))
     }
@@ -53,7 +53,7 @@ private hex_digit :: fn(n: u64) -> char {
 
 // Hexadecimal stringification of a u64 — lowercase, no `0x` prefix, no leading
 // zeros. Caller pads via `std/string.pad_start` if a fixed width is needed.
-to_hex :: fn(self: u64) -> string {
+export to_hex :: fn(self: u64) -> string {
     if self == 0 {
         return "0"
     }
@@ -76,7 +76,7 @@ to_hex :: fn(self: u64) -> string {
 }
 
 // Binary stringification of a u64 — no prefix, no leading zeros.
-to_bin :: fn(self: u64) -> string {
+export to_bin :: fn(self: u64) -> string {
     if self == 0 {
         return "0"
     }

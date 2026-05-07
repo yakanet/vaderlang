@@ -11,4 +11,4 @@
     return BOOM#1 :i32
 
 # Diagnostics
-[2:9] error[C4005] comptime division by zero
+[2:16] error[C4005] comptime division by zero

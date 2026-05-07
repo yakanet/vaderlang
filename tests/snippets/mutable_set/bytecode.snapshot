@@ -125,7 +125,7 @@ end
 
 fn 3 std_collections$bucket_index (u64) -> i32
   local.get 0   ; collections.vader:54:16
-  i32.const 16   ; collections.vader:35:25
+  i32.const 16   ; collections.vader:35:17
   i32.to_u64   ; collections.vader:54:20
   u64.rem   ; collections.vader:54:16
   u64.to_i32   ; collections.vader:54:12
@@ -152,7 +152,7 @@ fn 4 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
   block void   ; collections.vader:64:9
   loop void   ; collections.vader:64:9
   local.get 3   ; collections.vader:64:13
-  i32.const 16   ; collections.vader:35:25
+  i32.const 16   ; collections.vader:35:17
   i32.ge   ; collections.vader:64:13
   br_if 1   ; collections.vader:64:13
   local.get 0   ; collections.vader:65:13
@@ -340,8 +340,8 @@ fn 7 std_collections$std_collections$contains__i32 (ref,i32) -> bool
 end
 
 fn 8 std_collections$std_collections$len__i32 (ref) -> usize
-  local.get 0   ; collections.vader:228:51
-  struct.get 8 0   ; collections.vader:228:51
-  struct.get 5 1   ; collections.vader:228:51
-  return   ; collections.vader:228:44
+  local.get 0   ; collections.vader:228:58
+  struct.get 8 0   ; collections.vader:228:58
+  struct.get 5 1   ; collections.vader:228:58
+  return   ; collections.vader:228:51
 end

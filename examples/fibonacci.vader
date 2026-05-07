@@ -3,7 +3,7 @@ import "std/io" { println }
 /**
  * Simple implementation of fibonacci numbers
  */
-fibonacci :: fn(n: i32) -> u64 {
+export fibonacci :: fn(n: i32) -> u64 {
     a := 0_u64
     b := 1_u64
     for i in 0..<n {

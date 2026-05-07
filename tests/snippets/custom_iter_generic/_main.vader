@@ -1,7 +1,7 @@
 import "std/io" { println }
 
 // A generic "repeat" iterator: yields the same value `count` times.
-Repeat :: struct($T) {
+export Repeat :: struct($T) {
     value:     T
     remaining: i32
 }

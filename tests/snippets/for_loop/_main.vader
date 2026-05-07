@@ -1,4 +1,4 @@
-mixed_loops :: fn(start: i32) -> i32 {
+export mixed_loops :: fn(start: i32) -> i32 {
     n := 0
 
     // while-style: skip odd values via continue

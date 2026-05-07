@@ -1,7 +1,7 @@
 // Trait-method dispatch on a bounded type param: `x: $T where T: Hash`.
 // `x.hash()` resolves at mono time to the concrete type's `hash` impl.
 
-hash_twice :: fn(x: $T) -> u64 where T: Hash {
+export hash_twice :: fn(x: $T) -> u64 where T: Hash {
     return x.hash() + x.hash()
 }
 

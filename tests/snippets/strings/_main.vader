@@ -1,7 +1,7 @@
-plain :: "hello"
-escaped :: "a\nb\tc"
-raw :: r"C:\Users\path"
-multi :: """
+export plain :: "hello"
+export escaped :: "a\nb\tc"
+export raw :: r"C:\Users\path"
+export multi :: """
 line one
 line two
 """

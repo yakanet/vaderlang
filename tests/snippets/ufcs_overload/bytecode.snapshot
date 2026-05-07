@@ -13,19 +13,19 @@ import 7 write_file std_io$write_file (string,string) -> ref
 import 8 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_ufcs_overload__main_vader$inc (ref) -> i32
-  local.get 0   ; _main.vader:11:36
-  struct.get 0 0   ; _main.vader:11:36
-  i32.const 1   ; _main.vader:11:45
-  i32.add   ; _main.vader:11:36
-  return   ; _main.vader:11:29
+  local.get 0   ; _main.vader:11:43
+  struct.get 0 0   ; _main.vader:11:43
+  i32.const 1   ; _main.vader:11:52
+  i32.add   ; _main.vader:11:43
+  return   ; _main.vader:11:36
 end
 
 fn 1 tests_snippets_ufcs_overload__main_vader$inc_1 (ref) -> i32
-  local.get 0   ; _main.vader:12:36
-  struct.get 2 0   ; _main.vader:12:36
-  i32.const 100   ; _main.vader:12:45
-  i32.add   ; _main.vader:12:36
-  return   ; _main.vader:12:29
+  local.get 0   ; _main.vader:12:43
+  struct.get 2 0   ; _main.vader:12:43
+  i32.const 100   ; _main.vader:12:52
+  i32.add   ; _main.vader:12:43
+  return   ; _main.vader:12:36
 end
 
 fn 2 tests_snippets_ufcs_overload__main_vader$main () -> i32

@@ -1,7 +1,7 @@
 import "std/io" { println }
 
 // A simple countdown iterator: yields n-1, n-2, ..., 0 then Done.
-Countdown :: struct {
+export Countdown :: struct {
     current: i32
 }
 

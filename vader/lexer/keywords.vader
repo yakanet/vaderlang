@@ -9,7 +9,7 @@
 // whether the lookup hit. Returning a `TokenKind | null` would be cleaner
 // but every call site already needs the fallback `Ident`, so this saves
 // the unwrap.
-lookup_keyword :: fn(text: string) -> TokenKind {
+export lookup_keyword :: fn(text: string) -> TokenKind {
     if text == "fn"         { return .KwFn }
     if text == "struct"     { return .KwStruct }
     if text == "trait"      { return .KwTrait }
@@ -28,7 +28,7 @@ lookup_keyword :: fn(text: string) -> TokenKind {
     if text == "continue"   { return .KwContinue }
     if text == "import"     { return .KwImport }
     if text == "as"         { return .KwAs }
-    if text == "private"    { return .KwPrivate }
+    if text == "export"     { return .KwExport }
     if text == "true"       { return .KwTrue }
     if text == "false"      { return .KwFalse }
     if text == "null"       { return .KwNull }
@@ -38,8 +38,8 @@ lookup_keyword :: fn(text: string) -> TokenKind {
     return .Ident
 }
 
-is_int_suffix :: fn(s: string) =
+export is_int_suffix :: fn(s: string) =
     s == "i8" || s == "i16" || s == "i32" || s == "i64" ||
     s == "u8" || s == "u16" || s == "u32" || s == "u64"
 
-is_float_suffix :: fn(s: string) = s == "f32" || s == "f64"
+export is_float_suffix :: fn(s: string) = s == "f32" || s == "f64"

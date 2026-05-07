@@ -7,21 +7,21 @@
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
 
 // Length in bytes.
-len :: fn(s: string) -> i32
+export len :: fn(s: string) -> i32
 
 // Substring extraction (bytes-based, exclusive end).
-slice :: fn(s: string, start: i32, end: i32) -> string
+export slice :: fn(s: string, start: i32, end: i32) -> string
 
 // Predicates.
-contains    :: fn(s: string, sub: string) -> bool
-starts_with :: fn(s: string, prefix: string) -> bool
-ends_with   :: fn(s: string, suffix: string) -> bool
+export contains    :: fn(s: string, sub: string) -> bool
+export starts_with :: fn(s: string, prefix: string) -> bool
+export ends_with   :: fn(s: string, suffix: string) -> bool
 
 // Character access (byte index → Unicode codepoint).
-char_at :: fn(s: string, i: i32) -> char
+export char_at :: fn(s: string, i: i32) -> char
 
 // Last byte-index of `c` at or after `min_index`, or -1 if not found.
-last_index_of :: fn(s: string, c: char, min_index: i32) -> i32 {
+export last_index_of :: fn(s: string, c: char, min_index: i32) -> i32 {
     i := s.len() - 1
     for i >= min_index {
         if s.char_at(i) == c {
@@ -33,15 +33,15 @@ last_index_of :: fn(s: string, c: char, min_index: i32) -> i32 {
 }
 
 // Splitting and trimming.
-split :: fn(s: string, sep: string) -> [string]
-trim  :: fn(s: string) -> string
+export split :: fn(s: string, sep: string) -> [string]
+export trim  :: fn(s: string) -> string
 
 // Case conversion.
-to_upper :: fn(s: string) -> string
-to_lower :: fn(s: string) -> string
+export to_upper :: fn(s: string) -> string
+export to_lower :: fn(s: string) -> string
 
 // Parsing.
-ParseError :: struct {
+export ParseError :: struct {
     msg: string
 }
 
@@ -49,12 +49,12 @@ ParseError implements Error {
     fn message(self) -> string { return self.msg }
 }
 
-parse_int   :: fn(s: string) -> i32!
-parse_float :: fn(s: string) -> f64!
+export parse_int   :: fn(s: string) -> i32!
+export parse_float :: fn(s: string) -> f64!
 
 // Pad `s` on the left with `fill` until its byte length reaches `width`.
 // Returns `s` unchanged when it's already at least `width` bytes.
-pad_start :: fn(s: string, width: i32, fill: char) -> string {
+export pad_start :: fn(s: string, width: i32, fill: char) -> string {
     n := s.len()
     if n >= width {
         return s
@@ -70,7 +70,7 @@ pad_start :: fn(s: string, width: i32, fill: char) -> string {
 }
 
 // Pad `s` on the right with `fill` until its byte length reaches `width`.
-pad_end :: fn(s: string, width: i32, fill: char) -> string {
+export pad_end :: fn(s: string, width: i32, fill: char) -> string {
     n := s.len()
     if n >= width {
         return s
@@ -86,18 +86,18 @@ pad_end :: fn(s: string, width: i32, fill: char) -> string {
 }
 
 // True for ASCII whitespace: space, tab, newline, carriage return.
-is_whitechar :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
+export is_whitechar :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
 // True for ASCII decimal digit `0..9`.
-is_digit :: fn(c: char) = c >= '0' && c <= '9'
+export is_digit :: fn(c: char) = c >= '0' && c <= '9'
 
 // True for ASCII hex digit `0..9 a..f A..F`.
-is_hex_digit :: fn(c: char) =
+export is_hex_digit :: fn(c: char) =
     c.is_digit() || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 
 // True for any digit in `base` (2 / 8 / 10 / 16). Caller is expected to
 // pass a supported base ; unsupported bases fall through to base-10.
-is_digit_in_base :: fn(c: char, base: i32) -> bool {
+export is_digit_in_base :: fn(c: char, base: i32) -> bool {
     if base == 2 { return c == '0' || c == '1' }
     if base == 8 { return c >= '0' && c <= '7' }
     if base == 16 { return c.is_hex_digit() }
@@ -105,7 +105,7 @@ is_digit_in_base :: fn(c: char, base: i32) -> bool {
 }
 
 // Strip a `suffix` if `s` ends with it; otherwise return `s` unchanged.
-trim_suffix :: fn(s: string, suffix: string) -> string {
+export trim_suffix :: fn(s: string, suffix: string) -> string {
     if s.ends_with(suffix) {
         return s.slice(0, s.len() - suffix.len())
     }
@@ -113,7 +113,7 @@ trim_suffix :: fn(s: string, suffix: string) -> string {
 }
 
 // Strip a `prefix` if `s` starts with it; otherwise return `s` unchanged.
-trim_prefix :: fn(s: string, prefix: string) -> string {
+export trim_prefix :: fn(s: string, prefix: string) -> string {
     if s.starts_with(prefix) {
         return s.slice(prefix.len(), s.len())
     }
@@ -122,7 +122,7 @@ trim_prefix :: fn(s: string, prefix: string) -> string {
 
 // Replace every char that satisfies `pred` with `replacement`. Subsumes
 // the regex pattern `replace(/[<class>]/g, "<replacement>")`.
-replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
+export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
     sb := new_builder()
     n := s.len()
     i := 0
@@ -139,7 +139,7 @@ replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string
 }
 
 // Split on runs of whitespace, dropping empty segments.
-split_whitespace :: fn(s: string) -> [string] {
+export split_whitespace :: fn(s: string) -> [string] {
     out: [string] = []
     sb := new_builder()
     has_pending := false

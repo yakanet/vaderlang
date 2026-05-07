@@ -1,6 +1,6 @@
 import "std/io" { println }
 
-add :: fn(a: usize, b: usize) -> usize {
+export add :: fn(a: usize, b: usize) -> usize {
     return a + b
 }
 

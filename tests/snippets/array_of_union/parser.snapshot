@@ -34,7 +34,7 @@
             "kind": "NamedType",
             "name": "T"
           },
-          "visibility": "public"
+          "visibility": "private"
         },
         {
           "name": "next",
@@ -60,7 +60,7 @@
               }
             ]
           },
-          "visibility": "public"
+          "visibility": "private"
         }
       ],
       "whereClauses": [],
@@ -69,7 +69,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {

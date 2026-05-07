@@ -6,7 +6,7 @@ import "std/path" {
     join, starts_with, ends_with, normalize,
 }
 
-show_path :: fn(label: string, p: Path) -> void {
+export show_path :: fn(label: string, p: Path) -> void {
     println("${label}=${p.as_string()}")
 }
 

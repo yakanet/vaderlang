@@ -1,0 +1,12 @@
+# Comptime
+
+## tests/snippets/non_exported_violation/_main.vader
+
+## tests/snippets/non_exported_violation/lib
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[1:18] error[R2008] symbol is not exported from its module: `secret_helper` is not exported from `./lib`
+[4:5] error[R2006] unresolved identifier: `public_helper`

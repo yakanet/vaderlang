@@ -37,7 +37,7 @@
               "name": "T"
             }
           },
-          "visibility": "public"
+          "visibility": "private"
         },
         {
           "name": "size",
@@ -45,7 +45,7 @@
             "kind": "NamedType",
             "name": "i32"
           },
-          "visibility": "public"
+          "visibility": "private"
         }
       ],
       "whereClauses": [],
@@ -66,7 +66,7 @@
         {
           "kind": "FnDecl",
           "name": "push",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -96,7 +96,7 @@
         {
           "kind": "FnDecl",
           "name": "pop",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -117,7 +117,7 @@
         {
           "kind": "FnDecl",
           "name": "len",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -138,7 +138,7 @@
         {
           "kind": "FnDecl",
           "name": "is_empty",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -185,7 +185,7 @@
         {
           "kind": "FnDecl",
           "name": "push",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -276,7 +276,7 @@
         {
           "kind": "FnDecl",
           "name": "pop",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -352,7 +352,7 @@
         {
           "kind": "FnDecl",
           "name": "len",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -389,7 +389,7 @@
         {
           "kind": "FnDecl",
           "name": "is_empty",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -438,7 +438,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {

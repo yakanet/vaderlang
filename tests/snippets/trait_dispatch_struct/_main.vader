@@ -1,7 +1,7 @@
 // User-declared trait + impl + generic fn dispatching via where-clause.
 // Verifies non-stdlib traits flow through the same machinery as built-ins.
 
-Tagger :: trait {
+export Tagger :: trait {
     fn tag(self) -> i32
 }
 
@@ -9,7 +9,7 @@ i32 implements Tagger {
     fn tag(self) -> i32 { return self * 10 }
 }
 
-apply_tag :: fn(x: $T) -> i32 where T: Tagger {
+export apply_tag :: fn(x: $T) -> i32 where T: Tagger {
     return x.tag() + x.tag()
 }
 

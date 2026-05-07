@@ -7,13 +7,13 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         max                  :: fn(f64, f64) -> f64
   FnDecl         square               :: fn(i32) -> i32
-  expr 13:19    BinaryExpr     :: i32
-  expr 13:19    CallExpr       :: i32
-  expr 13:19    IdentExpr      :: fn(i32) -> i32
-  expr 13:21    IdentExpr      :: i32
-  expr 14:19    BinaryExpr     :: i32
-  expr 14:19    IdentExpr      :: i32
-  expr 17:19    IdentExpr      :: $T
+  expr 13:26    BinaryExpr     :: i32
+  expr 13:26    CallExpr       :: i32
+  expr 13:26    IdentExpr      :: fn(i32) -> i32
+  expr 13:28    IdentExpr      :: i32
+  expr 14:26    BinaryExpr     :: i32
+  expr 14:26    IdentExpr      :: i32
+  expr 17:26    IdentExpr      :: $T
   expr 20:13    StringLitExpr  :: string
   expr 20:16    CallExpr       :: i32
   expr 20:16    IdentExpr      :: fn(i32) -> i32
@@ -49,12 +49,12 @@
   expr 26:16    StringLitExpr  :: string
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(string) -> void
-  expr 7:24     BinaryExpr     :: i32
-  expr 7:24     IdentExpr      :: i32
-  expr 7:28     IdentExpr      :: i32
-  expr 9:29     IfExpr         :: f64
-  expr 9:32     BinaryExpr     :: bool
-  expr 9:32     IdentExpr      :: f64
-  expr 9:36     IdentExpr      :: f64
-  expr 9:40     IdentExpr      :: f64
-  expr 9:51     IdentExpr      :: f64
+  expr 7:31     BinaryExpr     :: i32
+  expr 7:31     IdentExpr      :: i32
+  expr 7:35     IdentExpr      :: i32
+  expr 9:36     IfExpr         :: f64
+  expr 9:39     BinaryExpr     :: bool
+  expr 9:39     IdentExpr      :: f64
+  expr 9:43     IdentExpr      :: f64
+  expr 9:47     IdentExpr      :: f64
+  expr 9:58     IdentExpr      :: f64

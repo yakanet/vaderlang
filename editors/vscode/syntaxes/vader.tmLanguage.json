@@ -195,7 +195,7 @@
         },
         {
           "name": "storage.modifier.vader",
-          "match": "\\b(private)\\b"
+          "match": "\\b(export)\\b"
         },
         {
           "name": "variable.language.self.vader",

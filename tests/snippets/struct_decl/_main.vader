@@ -1,13 +1,13 @@
-Point :: struct {
+export Point :: struct {
     x: f64
     y: f64
 }
 
-List :: struct($T) {
+export List :: struct($T) {
     items: [T]
     len: u32
 }
 
-Buffer :: struct($N: i32) {
+export Buffer :: struct($N: i32) {
     data: [u8]
 }

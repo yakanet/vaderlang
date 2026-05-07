@@ -44,7 +44,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {
@@ -72,4 +72,4 @@
 }
 
 # Diagnostics
-[4:29] error[P1020] expression-bodied function cannot also declare an explicit return type
+[4:36] error[P1020] expression-bodied function cannot also declare an explicit return type

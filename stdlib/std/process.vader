@@ -7,10 +7,10 @@
 
 // Sentinels mirror the negative codes returned by `vader_spawn_run` — kept
 // in sync with `runtime/c/vader.h`'s VADER_SPAWN_* macros.
-private LAUNCH_FAIL :: -1
-private SIGNALED    :: -2
+LAUNCH_FAIL :: -1
+SIGNALED    :: -2
 
-ProcessError :: struct {
+export ProcessError :: struct {
     msg: string
 }
 
@@ -18,19 +18,19 @@ ProcessError implements Error {
     fn message(self) -> string { return self.msg }
 }
 
-ProcessResult :: struct {
+export ProcessResult :: struct {
     exit:   i32
     stdout: string
     stderr: string
 }
 
-private spawn_run         :: fn(argv: [string]) -> i32
-private spawn_last_stdout :: fn() -> string
-private spawn_last_stderr :: fn() -> string
+spawn_run         :: fn(argv: [string]) -> i32
+spawn_last_stdout :: fn() -> string
+spawn_last_stderr :: fn() -> string
 
 // spawn — run `argv[0]` with `argv[1..]` as arguments, block until exit,
 // return the exit code plus captured stdout/stderr.
-spawn :: fn(argv: [string]) -> ProcessResult! {
+export spawn :: fn(argv: [string]) -> ProcessResult! {
     if argv.len() == 0 {
         return ProcessError { .msg = "spawn: empty argv" }
     }

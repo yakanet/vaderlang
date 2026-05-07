@@ -6,4 +6,4 @@
   Yielded(i32)
 
 # Diagnostics
-[2:1] error[C4009] comptime evaluation depends on itself: A → B → A
+[2:8] error[C4009] comptime evaluation depends on itself: A → B → A

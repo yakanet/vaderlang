@@ -92,7 +92,7 @@ export class Parser {
   /** Tokens that mark the boundary of a top-level item — used for recovery. */
   atTopLevelStart(): boolean {
     const t = this.peek();
-    if (t.kind === "kw_import" || t.kind === "kw_private") return true;
+    if (t.kind === "kw_import" || t.kind === "kw_export") return true;
     // `name ::` or `Type implements …` patterns: detect by checking later tokens.
     if (t.kind === "ident") {
       const next = this.peek(1);

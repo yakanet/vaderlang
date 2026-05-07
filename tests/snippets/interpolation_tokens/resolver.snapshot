@@ -33,6 +33,6 @@
   refs: idents=0 types=0 params=0 locals=0 typeParams=0 fields=0
 
 # Diagnostics
-[1:19] error[R2006] unresolved identifier: `name`
-[2:20] error[R2006] unresolved identifier: `x`
-[3:29] error[R2006] unresolved identifier: `y`
+[1:26] error[R2006] unresolved identifier: `name`
+[2:27] error[R2006] unresolved identifier: `x`
+[3:36] error[R2006] unresolved identifier: `y`

@@ -7,7 +7,7 @@
 
 import "vader/diagnostics/diagnostic" { Position, Span }
 
-TokenKind :: enum(u8) {
+export TokenKind :: enum(u8) {
     // Layout
     Eof,
     Newline,
@@ -30,7 +30,7 @@ TokenKind :: enum(u8) {
     KwFn, KwStruct, KwTrait, KwImplements, KwImpl, KwEnum,
     KwIf, KwElse, KwMatch, KwIs, KwFor, KwIn,
     KwReturn, KwDefer, KwBreak, KwContinue,
-    KwImport, KwAs, KwPrivate,
+    KwImport, KwAs, KwExport,
     KwTrue, KwFalse, KwNull,
     KwType, KwWhere, KwSelf,
 
@@ -62,7 +62,7 @@ TokenKind :: enum(u8) {
 // `FloatLit`, the codepoint for `CharLit`, the decoded text for `StringPart`,
 // and `null` for everything else (keywords, ops, punctuation). `numeric_suffix`
 // is independent — it coexists with `value` on numeric literals.
-Token :: struct {
+export Token :: struct {
     kind: TokenKind
     text: string
     span: Span
@@ -70,12 +70,12 @@ Token :: struct {
     numeric_suffix: string
 }
 
-empty_span :: fn(file: string) -> Span {
+export empty_span :: fn(file: string) -> Span {
     p := Position { .file = file, .offset = 0, .line = 1, .column = 1 }
     return Span { .start = p, .end = p }
 }
 
-make_token :: fn(kind: TokenKind, text: string, span: Span) = Token {
+export make_token :: fn(kind: TokenKind, text: string, span: Span) = Token {
     .kind = kind,
     .text = text,
     .span = span,

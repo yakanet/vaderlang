@@ -1,8 +1,9 @@
 # Tokens
-[4:1-4:7    ] ident          "TwoFns"
-[4:8-4:10   ] decl_const     "::"
-[4:11-4:16  ] kw_trait       "trait"
-[4:17-4:18  ] lbrace         "{"
+[4:1-4:7    ] kw_export      "export"
+[4:8-4:14   ] ident          "TwoFns"
+[4:15-4:17  ] decl_const     "::"
+[4:18-4:23  ] kw_trait       "trait"
+[4:24-4:25  ] lbrace         "{"
 [5:1-5:1    ] newline        "\n"
 [5:5-5:7    ] kw_fn          "fn"
 [5:8-5:13   ] ident          "first"

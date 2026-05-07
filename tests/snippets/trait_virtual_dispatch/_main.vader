@@ -4,8 +4,8 @@
 
 import "std/io" { println }
 
-ParseErr :: struct { msg: string }
-NetErr   :: struct { reason: string }
+export ParseErr :: struct { msg: string }
+export NetErr   :: struct { reason: string }
 
 ParseErr implements Error {
     fn message(self) -> string { return "parse: ${self.msg}" }
@@ -14,7 +14,7 @@ NetErr implements Error {
     fn message(self) -> string { return "net: ${self.reason}" }
 }
 
-report :: fn(e: Error) -> string {
+export report :: fn(e: Error) -> string {
     return e.message()
 }
 

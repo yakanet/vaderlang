@@ -27,7 +27,7 @@
               "name": "i32"
             }
           },
-          "visibility": "public"
+          "visibility": "private"
         }
       ],
       "whereClauses": [],
@@ -89,7 +89,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {

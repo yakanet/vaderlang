@@ -1,10 +1,10 @@
-add :: fn(a: i32, b: i32) -> i32 {
+export add :: fn(a: i32, b: i32) -> i32 {
     return a + b
 }
 
-greet :: fn(name: string, prefix: string = "Hello") -> string {
+export greet :: fn(name: string, prefix: string = "Hello") -> string {
     return prefix
 }
 
 @extern
-map :: fn(items: [$T], f: fn(T) -> $U) -> [U]
+export map :: fn(items: [$T], f: fn(T) -> $U) -> [U]

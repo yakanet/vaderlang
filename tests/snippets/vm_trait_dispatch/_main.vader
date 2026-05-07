@@ -2,15 +2,15 @@
 // that implement a trait (via `T implements Trait { … }`), including generic
 // monomorphised structs.  This exercises the VM impl-table path.
 
-Printable :: trait {
+export Printable :: trait {
     fn label(self) -> string
 }
 
-Dog :: struct {
+export Dog :: struct {
     name: string
 }
 
-Cat :: struct {
+export Cat :: struct {
     name: string
 }
 
@@ -20,7 +20,7 @@ Dog implements Printable {
 }
 
 // Generic struct whose monomorphisation also implements the trait.
-Wrapper :: struct($T) {
+export Wrapper :: struct($T) {
     inner: $T
 }
 
@@ -28,14 +28,14 @@ Wrapper(i32) implements Printable {
     fn label(self) -> string { return "wrapped" }
 }
 
-describe :: fn(items: Dog | Cat) -> i32 {
+export describe :: fn(items: Dog | Cat) -> i32 {
     match items {
         is Printable -> 1
         _ -> 0
     }
 }
 
-describe_wrapper :: fn(w: Wrapper(i32) | Cat) -> i32 {
+export describe_wrapper :: fn(w: Wrapper(i32) | Cat) -> i32 {
     match w {
         is Printable -> 1
         _ -> 0

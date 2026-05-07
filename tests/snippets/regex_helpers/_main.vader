@@ -3,7 +3,7 @@ import "std/string" {
     trim_suffix, trim_prefix, replace_chars_where, split_whitespace,
 }
 
-is_non_id :: fn(c: char) -> bool {
+export is_non_id :: fn(c: char) -> bool {
     if c >= '0' && c <= '9' { return false }
     if c >= 'a' && c <= 'z' { return false }
     if c >= 'A' && c <= 'Z' { return false }

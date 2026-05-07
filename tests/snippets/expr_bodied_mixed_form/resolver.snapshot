@@ -32,4 +32,4 @@
   refs: idents=2 types=3 params=1 locals=0 typeParams=0 fields=0
 
 # Diagnostics
-[4:29] error[P1020] expression-bodied function cannot also declare an explicit return type
+[4:36] error[P1020] expression-bodied function cannot also declare an explicit return type

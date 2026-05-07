@@ -15,7 +15,7 @@ import "std/string" { pad_start, pad_end }
 import "std/numbers" { to_hex }
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
 
-dump_tokens :: fn(l: Lexer) -> string {
+export dump_tokens :: fn(l: Lexer) -> string {
     sb := new_builder()
     sb.append("# Tokens")
     n :: l.tokens.len()
@@ -28,7 +28,7 @@ dump_tokens :: fn(l: Lexer) -> string {
     return sb.to_string()
 }
 
-dump_diagnostics :: fn(diags: [Diagnostic]) -> string {
+export dump_diagnostics :: fn(diags: [Diagnostic]) -> string {
     sb := new_builder()
     sb.append("\n# Diagnostics")
     n :: diags.len()
@@ -41,7 +41,7 @@ dump_diagnostics :: fn(diags: [Diagnostic]) -> string {
     return sb.to_string()
 }
 
-private format_token :: fn(sb: StringBuilder, t: Token) -> void {
+format_token :: fn(sb: StringBuilder, t: Token) -> void {
     span :: "${t.span.start.line}:${t.span.start.column}-${t.span.end.line}:${t.span.end.column}"
     sb.append_char('[')
     sb.append(span.pad_end(11, ' '))
@@ -52,7 +52,7 @@ private format_token :: fn(sb: StringBuilder, t: Token) -> void {
     sb.append_token_detail(t)
 }
 
-private append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
+append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
     // The `_ -> "?"` arms below are defensive : the kind/value type pairing
     // is contractually guaranteed by `lex_number` / `lex_char` / etc., but
     // Vader's type system can't narrow the `value` union on `t.kind`, so
@@ -111,7 +111,7 @@ private append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
 // in `tests/snapshot.ts`. Other bytes (incl. multi-byte UTF-8 and non-ASCII
 // control bytes) pass through ; the TS reference does the same so the
 // dumps stay byte-identical.
-private quote_simple :: fn(s: string) -> string {
+quote_simple :: fn(s: string) -> string {
     sb := new_builder()
     sb.append_char('"')
     n :: s.len()
@@ -134,7 +134,7 @@ private quote_simple :: fn(s: string) -> string {
 // dump output stays byte-identical with the TS reference. Public so the
 // parser's `describe_token` can reuse it (folder-modules ignore `private`
 // across files but the explicit visibility documents intent).
-kind_name :: fn(k: TokenKind) = match k {
+export kind_name :: fn(k: TokenKind) = match k {
     .Ident       -> "ident"
     .IntLit      -> "int_literal"
     .FloatLit    -> "float_literal"
@@ -163,7 +163,7 @@ kind_name :: fn(k: TokenKind) = match k {
     .KwContinue   -> "kw_continue"
     .KwImport     -> "kw_import"
     .KwAs         -> "kw_as"
-    .KwPrivate    -> "kw_private"
+    .KwExport     -> "kw_export"
     .KwTrue       -> "kw_true"
     .KwFalse      -> "kw_false"
     .KwNull       -> "kw_null"
@@ -216,7 +216,7 @@ kind_name :: fn(k: TokenKind) = match k {
     .Eof     -> "eof"
 }
 
-private format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic) -> void {
+format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic) -> void {
     sev :: match d.severity {
         .Error   -> "error"
         .Warning -> "warning"

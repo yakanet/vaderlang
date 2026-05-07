@@ -11,7 +11,7 @@
 //     Callers can bridge with `collect(it)` to materialise an array first.
 
 // count — total number of items the iterator yields.
-count :: fn(it: Iterator($T)) -> i32 {
+export count :: fn(it: Iterator($T)) -> i32 {
     n := 0
     for x in it {
         n = n + 1
@@ -20,7 +20,7 @@ count :: fn(it: Iterator($T)) -> i32 {
 }
 
 // collect — drain the iterator into a freshly-allocated array.
-collect :: fn(it: Iterator($T)) -> [T] {
+export collect :: fn(it: Iterator($T)) -> [T] {
     out: [T] = []
     for x in it {
         out.push(x)
@@ -29,7 +29,7 @@ collect :: fn(it: Iterator($T)) -> [T] {
 }
 
 // map — apply `f` to every element, returning a fresh array of the results.
-map :: fn(arr: [$T], f: fn(T) -> $U) -> [U] {
+export map :: fn(arr: [$T], f: fn(T) -> $U) -> [U] {
     out: [U] = []
     for x in arr {
         out.push(f(x))
@@ -38,7 +38,7 @@ map :: fn(arr: [$T], f: fn(T) -> $U) -> [U] {
 }
 
 // filter — keep only the elements for which `pred` returns true.
-filter :: fn(arr: [$T], pred: fn(T) -> bool) -> [T] {
+export filter :: fn(arr: [$T], pred: fn(T) -> bool) -> [T] {
     out: [T] = []
     for x in arr {
         if pred(x) {
@@ -49,7 +49,7 @@ filter :: fn(arr: [$T], pred: fn(T) -> bool) -> [T] {
 }
 
 // fold — left-reduce the array with seed `init`.
-fold :: fn(arr: [$T], init: $U, f: fn(U, T) -> U) -> U {
+export fold :: fn(arr: [$T], init: $U, f: fn(U, T) -> U) -> U {
     acc := init
     for x in arr {
         acc = f(acc, x)
@@ -60,7 +60,7 @@ fold :: fn(arr: [$T], init: $U, f: fn(U, T) -> U) -> U {
 // sum — sum the elements of an `[i32]`. A generic Sum-trait variant is
 // deferred until either trait-method dispatch on `$T : Add + Default` works
 // or we expose a `T()` zero-init form.
-sum :: fn(arr: [i32]) -> i32 {
+export sum :: fn(arr: [i32]) -> i32 {
     s := 0
     for x in arr {
         s = s + x
@@ -69,7 +69,7 @@ sum :: fn(arr: [i32]) -> i32 {
 }
 
 // take — copy at most `n` items from the array into a fresh array.
-take :: fn(arr: [$T], n: i32) -> [T] {
+export take :: fn(arr: [$T], n: i32) -> [T] {
     out: [T] = []
     i := 0
     for x in arr {
@@ -83,7 +83,7 @@ take :: fn(arr: [$T], n: i32) -> [T] {
 }
 
 // skip — drop the first `n` items, return the remaining ones as an array.
-skip :: fn(arr: [$T], n: i32) -> [T] {
+export skip :: fn(arr: [$T], n: i32) -> [T] {
     out: [T] = []
     i := 0
     for x in arr {
@@ -98,7 +98,7 @@ skip :: fn(arr: [$T], n: i32) -> [T] {
 // slice — copy `arr[start..<end]` into a fresh array. Bounds are clamped
 // (start to [0, len], end to [start, len]), so out-of-range indices yield a
 // shorter result rather than panicking. Negative indices are not supported.
-slice :: fn(arr: [$T], start: i32, end: i32) -> [T] {
+export slice :: fn(arr: [$T], start: i32, end: i32) -> [T] {
     out: [T] = []
     len := arr.len()
     lo := start

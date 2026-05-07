@@ -12,7 +12,7 @@
 // shape can carry a code from any phase without losing the per-phase
 // exhaustiveness.
 
-LexerCode :: enum(u8) {
+export LexerCode :: enum(u8) {
     UnexpectedCharacter,                    // L0001
     UnterminatedStringLiteral,              // L0002
     UnterminatedBlockComment,               // L0003
@@ -27,7 +27,7 @@ LexerCode :: enum(u8) {
 
 // Mirror of `PARSER` in `src/diagnostics/codes.ts`. New codes are appended ;
 // once shipped, a code never changes meaning.
-ParserCode :: enum(u8) {
+export ParserCode :: enum(u8) {
     UnexpectedToken,                        // P1001
     ExpectedToken,                          // P1002
     ExpectedExpression,                     // P1003
@@ -55,12 +55,12 @@ ParserCode :: enum(u8) {
 // (`private` would be ideal here, but Vader's "module = single file"
 // resolution makes `codes.vader` and `diagnostic.vader` separate modules ;
 // move both to a folder-module if we want to hide these.)
-CodeInfo :: struct {
+export CodeInfo :: struct {
     id: string
     message: string
 }
 
-info :: fn(c: LexerCode) = match c {
+export info :: fn(c: LexerCode) = match c {
     .UnexpectedCharacter             -> CodeInfo { .id = "L0001", .message = "unexpected character" }
     .UnterminatedStringLiteral       -> CodeInfo { .id = "L0002", .message = "unterminated string literal" }
     .UnterminatedBlockComment        -> CodeInfo { .id = "L0003", .message = "unterminated block comment" }
@@ -73,7 +73,7 @@ info :: fn(c: LexerCode) = match c {
     .InterpolationExpressionExpected -> CodeInfo { .id = "L0010", .message = "interpolation expression must follow `\${`" }
 }
 
-parser_info :: fn(c: ParserCode) = match c {
+export parser_info :: fn(c: ParserCode) = match c {
     .UnexpectedToken                    -> CodeInfo { .id = "P1001", .message = "unexpected token" }
     .ExpectedToken                      -> CodeInfo { .id = "P1002", .message = "expected token" }
     .ExpectedExpression                 -> CodeInfo { .id = "P1003", .message = "expected an expression" }

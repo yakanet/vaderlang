@@ -1,4 +1,4 @@
-bad :: fn() {
+export bad :: fn() {
     a == b == c
     x = 1 + +
 }

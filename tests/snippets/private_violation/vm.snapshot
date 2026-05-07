@@ -1,3 +1,0 @@
-# compile errors
-[R2008] private symbol cannot be accessed across module boundaries: `secret_helper` is private to `./lib`
-[R2006] unresolved identifier: `public_helper`

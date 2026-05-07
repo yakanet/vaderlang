@@ -57,6 +57,6 @@
           __sb_0#-3 :?
 
 # Diagnostics
-[1:19] error[R2006] unresolved identifier: `name`
-[2:20] error[R2006] unresolved identifier: `x`
-[3:29] error[R2006] unresolved identifier: `y`
+[1:26] error[R2006] unresolved identifier: `name`
+[2:27] error[R2006] unresolved identifier: `x`
+[3:36] error[R2006] unresolved identifier: `y`

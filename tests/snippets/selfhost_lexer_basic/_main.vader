@@ -8,7 +8,7 @@ import "vader/diagnostics/diagnostic" { render }
 
 // Subset of TokenKind names we expect to print. Anything else falls through
 // to "??" so the snapshot makes the gap visible if it ever fires.
-kind_name :: fn(k: TokenKind) -> string {
+export kind_name :: fn(k: TokenKind) -> string {
     match k {
         .Ident      -> "ident"
         .IntLit     -> "int"
@@ -44,7 +44,7 @@ kind_name :: fn(k: TokenKind) -> string {
     }
 }
 
-show :: fn(label: string, source: string) -> void {
+export show :: fn(label: string, source: string) -> void {
     println("# ${label}")
     l := tokenize(source, "t.v")
     n := l.tokens.len()

@@ -4,8 +4,8 @@
   ConstDecl      A                    :: ?
   ConstDecl      B                    :: ?
   FnDecl         main                 :: fn() -> i32
-  expr 2:6      BinaryExpr     :: ?
-  expr 2:6      IdentExpr      :: ?
-  expr 5:6      BinaryExpr     :: ?
-  expr 5:6      IdentExpr      :: ?
+  expr 2:13     BinaryExpr     :: ?
+  expr 2:13     IdentExpr      :: ?
+  expr 5:13     BinaryExpr     :: ?
+  expr 5:13     IdentExpr      :: ?
   expr 8:12     IdentExpr      :: ?

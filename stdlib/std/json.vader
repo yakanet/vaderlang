@@ -18,18 +18,18 @@ import "std/numbers" { to_hex }
 
 // ---- value tree -----------------------------------------------------------
 
-JsonValue :: type JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
+export JsonValue :: type JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
 
-JsonString :: struct { value: string }
-JsonNumber :: struct { value: f64 }
-JsonBool   :: struct { value: bool }
-JsonNull   :: struct {}
-JsonArray  :: struct { items: [JsonValue] }
-JsonObject :: struct { entries: MutableMap(string, JsonValue) }
+export JsonString :: struct { value: string }
+export JsonNumber :: struct { value: f64 }
+export JsonBool   :: struct { value: bool }
+export JsonNull   :: struct {}
+export JsonArray  :: struct { items: [JsonValue] }
+export JsonObject :: struct { entries: MutableMap(string, JsonValue) }
 
 // ---- error ----------------------------------------------------------------
 
-JsonError :: struct {
+export JsonError :: struct {
     msg: string
     pos: i32
 }
@@ -40,32 +40,32 @@ JsonError implements Error {
 
 // ---- parser ---------------------------------------------------------------
 
-private Parser :: struct {
+Parser :: struct {
     src: string
     pos: i32
     eof: i32
 }
 
-private new_parser :: fn(s: string) -> Parser {
+new_parser :: fn(s: string) -> Parser {
     return Parser { .src = s, .pos = 0, .eof = s.len() }
 }
 
-private at_end :: fn(p: Parser) -> bool {
+at_end :: fn(p: Parser) -> bool {
     return p.pos >= p.eof
 }
 
-private peek_byte :: fn(p: Parser) -> char {
+peek_byte :: fn(p: Parser) -> char {
     if p.pos >= p.eof {
         return '\0'
     }
     return p.src.char_at(p.pos)
 }
 
-private advance :: fn(p: Parser) -> void {
+advance :: fn(p: Parser) -> void {
     p.pos = p.pos + 1
 }
 
-private skip_ws :: fn(p: Parser) -> void {
+skip_ws :: fn(p: Parser) -> void {
     for !at_end(p) {
         c := peek_byte(p)
         if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
@@ -76,11 +76,11 @@ private skip_ws :: fn(p: Parser) -> void {
     }
 }
 
-private fail :: fn(p: Parser, msg: string) -> JsonError {
+fail :: fn(p: Parser, msg: string) -> JsonError {
     return JsonError { .msg = msg, .pos = p.pos }
 }
 
-private expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
+expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
     if at_end(p) {
         return fail(p, "unexpected end of input")
     }
@@ -91,7 +91,7 @@ private expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
     return null
 }
 
-private match_keyword :: fn(p: Parser, kw: string) -> bool {
+match_keyword :: fn(p: Parser, kw: string) -> bool {
     n := kw.len()
     if p.pos + n > p.eof {
         return false
@@ -109,7 +109,7 @@ private match_keyword :: fn(p: Parser, kw: string) -> bool {
 
 // ---- parse value dispatch -------------------------------------------------
 
-private parse_value :: fn(p: Parser) -> JsonValue | JsonError {
+parse_value :: fn(p: Parser) -> JsonValue | JsonError {
     skip_ws(p)
     if at_end(p) {
         return fail(p, "unexpected end of input")
@@ -139,14 +139,14 @@ private parse_value :: fn(p: Parser) -> JsonValue | JsonError {
 
 // ---- literal-keyword parsers ---------------------------------------------
 
-private parse_null :: fn(p: Parser) -> JsonNull | JsonError {
+parse_null :: fn(p: Parser) -> JsonNull | JsonError {
     if !match_keyword(p, "null") {
         return fail(p, "expected `null`")
     }
     return JsonNull {}
 }
 
-private parse_bool :: fn(p: Parser) -> JsonBool | JsonError {
+parse_bool :: fn(p: Parser) -> JsonBool | JsonError {
     if match_keyword(p, "true") {
         return JsonBool { .value = true }
     }
@@ -158,11 +158,11 @@ private parse_bool :: fn(p: Parser) -> JsonBool | JsonError {
 
 // ---- number parser --------------------------------------------------------
 
-private is_digit :: fn(c: char) -> bool {
+is_digit :: fn(c: char) -> bool {
     return c >= '0' && c <= '9'
 }
 
-private parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
+parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
     start := p.pos
     if peek_byte(p) == '-' {
         advance(p)
@@ -210,7 +210,7 @@ private parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
 
 // ---- string parser --------------------------------------------------------
 
-private parse_hex_digit :: fn(c: char) -> i32 {
+parse_hex_digit :: fn(c: char) -> i32 {
     if c >= '0' && c <= '9' {
         return i32(u32(c) - u32('0'))
     }
@@ -224,7 +224,7 @@ private parse_hex_digit :: fn(c: char) -> i32 {
 }
 
 // Append the UTF-8 bytes of a codepoint into the builder (manual encoder).
-private append_codepoint :: fn(sb: StringBuilder, cp: i32) -> void {
+append_codepoint :: fn(sb: StringBuilder, cp: i32) -> void {
     if cp < 0x80 {
         sb.append_char(char(u32(cp)))
         return
@@ -246,7 +246,7 @@ private append_codepoint :: fn(sb: StringBuilder, cp: i32) -> void {
     sb.append_char(char(u32(0x80) | (u32(cp) & u32(0x3F))))
 }
 
-private parse_string :: fn(p: Parser) -> string | JsonError {
+parse_string :: fn(p: Parser) -> string | JsonError {
     expect_byte(p, '"')?
     sb := new_builder()
     for !at_end(p) {
@@ -307,7 +307,7 @@ private parse_string :: fn(p: Parser) -> string | JsonError {
 
 // ---- array parser ---------------------------------------------------------
 
-private parse_array :: fn(p: Parser) -> JsonArray | JsonError {
+parse_array :: fn(p: Parser) -> JsonArray | JsonError {
     expect_byte(p, '[')?
     items: [JsonValue] = []
     skip_ws(p)
@@ -339,7 +339,7 @@ private parse_array :: fn(p: Parser) -> JsonArray | JsonError {
 
 // ---- object parser --------------------------------------------------------
 
-private parse_object :: fn(p: Parser) -> JsonObject | JsonError {
+parse_object :: fn(p: Parser) -> JsonObject | JsonError {
     expect_byte(p, '{')?
     entries := MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
     skip_ws(p)
@@ -374,7 +374,7 @@ private parse_object :: fn(p: Parser) -> JsonObject | JsonError {
 
 // ---- public parse ---------------------------------------------------------
 
-parse :: fn(input: string) -> JsonValue | JsonError {
+export parse :: fn(input: string) -> JsonValue | JsonError {
     p := new_parser(input)
     v := parse_value(p)?
     skip_ws(p)
@@ -386,7 +386,7 @@ parse :: fn(input: string) -> JsonValue | JsonError {
 
 // ---- stringify ------------------------------------------------------------
 
-private write_string :: fn(sb: StringBuilder, s: string) -> void {
+write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
     n := s.len()
     i := 0
@@ -409,11 +409,11 @@ private write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
 }
 
-private write_number :: fn(sb: StringBuilder, v: f64) -> void {
+write_number :: fn(sb: StringBuilder, v: f64) -> void {
     sb.append("${v}")
 }
 
-private write_value :: fn(sb: StringBuilder, v: JsonValue, indent: i32, depth: i32) -> void {
+write_value :: fn(sb: StringBuilder, v: JsonValue, indent: i32, depth: i32) -> void {
     match v {
         is JsonNull   -> { sb.append("null") }
         is JsonBool   -> {
@@ -430,7 +430,7 @@ private write_value :: fn(sb: StringBuilder, v: JsonValue, indent: i32, depth: i
     }
 }
 
-private write_indent :: fn(sb: StringBuilder, indent: i32, depth: i32) -> void {
+write_indent :: fn(sb: StringBuilder, indent: i32, depth: i32) -> void {
     if indent <= 0 {
         return
     }
@@ -443,7 +443,7 @@ private write_indent :: fn(sb: StringBuilder, indent: i32, depth: i32) -> void {
     }
 }
 
-private write_array :: fn(sb: StringBuilder, a: JsonArray, indent: i32, depth: i32) -> void {
+write_array :: fn(sb: StringBuilder, a: JsonArray, indent: i32, depth: i32) -> void {
     if a.items.len() == 0 {
         sb.append("[]")
         return
@@ -463,7 +463,7 @@ private write_array :: fn(sb: StringBuilder, a: JsonArray, indent: i32, depth: i
     sb.append_char(']')
 }
 
-private write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) -> void {
+write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) -> void {
     if o.entries.len() == 0 {
         sb.append("{}")
         return
@@ -492,13 +492,13 @@ private write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth:
     sb.append_char('}')
 }
 
-stringify :: fn(v: JsonValue) -> string {
+export stringify :: fn(v: JsonValue) -> string {
     sb := new_builder()
     write_value(sb, v, 0, 0)
     return sb.to_string()
 }
 
-stringify_pretty :: fn(v: JsonValue, indent: i32) -> string {
+export stringify_pretty :: fn(v: JsonValue, indent: i32) -> string {
     sb := new_builder()
     write_value(sb, v, indent, 0)
     return sb.to_string()

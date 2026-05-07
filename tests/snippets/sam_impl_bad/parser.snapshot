@@ -11,7 +11,7 @@
         {
           "kind": "FnDecl",
           "name": "first",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -32,7 +32,7 @@
         {
           "kind": "FnDecl",
           "name": "second",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -128,7 +128,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {

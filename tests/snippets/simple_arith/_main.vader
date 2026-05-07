@@ -1,5 +1,5 @@
 @comptime
-ANSWER :: (40 + 2) * 1
+export ANSWER :: (40 + 2) * 1
 
 main :: fn() -> i32 {
     return ANSWER

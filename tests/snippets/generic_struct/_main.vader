@@ -1,11 +1,11 @@
 import "std/io" { println }
 
-Stack :: struct($T) {
+export Stack :: struct($T) {
     data: [T]
     size: i32
 }
 
-Stackable :: trait($T) {
+export Stackable :: trait($T) {
     fn push(self, value: T) -> void
     fn pop(self) -> T
     fn len(self) -> i32

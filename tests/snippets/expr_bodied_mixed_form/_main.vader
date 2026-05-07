@@ -1,7 +1,7 @@
 // Mixing `-> T` with `= expr` is rejected at parse time (P1020). The two
 // forms are mutually exclusive: `= expr` infers; `-> T { ... }` annotates.
 
-square :: fn(x: i32) -> i32 = x * x
+export square :: fn(x: i32) -> i32 = x * x
 
 main :: fn() -> i32 {
     return 0

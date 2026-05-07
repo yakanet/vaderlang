@@ -49,8 +49,8 @@ export function wireImports(
       }
       if (exported.visibility === "private") {
         err(diags, "R2008", sym.definedAt ?? decl.span,
-          `\`${named}\` is private to \`${decl.path}\``,
-          exported.definedAt !== null ? [{ span: exported.definedAt, label: "declared private here" }] : undefined);
+          `\`${named}\` is not exported from \`${decl.path}\``,
+          exported.definedAt !== null ? [{ span: exported.definedAt, label: "declared here without `export`" }] : undefined);
         out.set(sym.id, { kind: "missing" });
         continue;
       }

@@ -9,6 +9,6 @@ fn 0 tests_snippets_square_call__main_vader$square (i32) -> i32
 end
 
 fn 1 tests_snippets_square_call__main_vader$main () -> i32
-  i32.const 9   ; _main.vader:6:1
+  i32.const 9   ; _main.vader:6:8
   return   ; _main.vader:9:5
 end

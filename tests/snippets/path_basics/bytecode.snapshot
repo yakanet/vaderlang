@@ -350,7 +350,7 @@ fn 6 std_path$is_absolute (ref) -> bool
   struct.get 0 0   ; path.vader:44:12
   i32.const 0   ; path.vader:44:30
   call.import 14   ; path.vader:44:12
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:44:12
   return   ; path.vader:44:5
 end
@@ -359,7 +359,7 @@ fn 7 std_path$parent (ref) -> ref
   local idx i32
   local.get 0   ; path.vader:51:12
   struct.get 0 0   ; path.vader:51:12
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   i32.const 0   ; path.vader:51:41
   call 15   ; path.vader:51:12
   local.tee 1   ; path.vader:51:5
@@ -374,7 +374,7 @@ fn 7 std_path$parent (ref) -> ref
   i32.const 0   ; path.vader:55:15
   i32.eq   ; path.vader:55:8
   if void   ; path.vader:55:5
-  string.const 44   ; path.vader:14:12
+  string.const 44   ; path.vader:14:19
   struct.new 0   ; path.vader:57:16
   return   ; path.vader:57:9
   end   ; path.vader:55:5
@@ -391,7 +391,7 @@ fn 8 std_path$filename (ref) -> string
   local idx i32
   local.get 0   ; path.vader:64:12
   struct.get 0 0   ; path.vader:64:12
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   i32.const 0   ; path.vader:64:41
   call 15   ; path.vader:64:12
   local.tee 1   ; path.vader:64:5
@@ -475,7 +475,7 @@ fn 11 std_path$join (ref,string) -> ref
   local.get 1   ; path.vader:101:8
   i32.const 0   ; path.vader:101:22
   call.import 14   ; path.vader:101:8
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:101:8
   if void   ; path.vader:101:5
   local.get 1   ; path.vader:102:31
@@ -500,7 +500,7 @@ fn 11 std_path$join (ref,string) -> ref
   i32.const 1   ; path.vader:107:44
   i32.sub   ; path.vader:107:26
   call.import 14   ; path.vader:107:8
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:107:8
   if void   ; path.vader:107:5
   local.get 0   ; path.vader:108:31
@@ -512,7 +512,7 @@ fn 11 std_path$join (ref,string) -> ref
   end   ; path.vader:107:5
   local.get 0   ; path.vader:110:27
   struct.get 0 0   ; path.vader:110:27
-  string.const 44   ; path.vader:14:12
+  string.const 44   ; path.vader:14:19
   string.concat   ; path.vader:110:27
   local.get 1   ; path.vader:110:49
   string.concat   ; path.vader:110:27
@@ -556,7 +556,7 @@ fn 12 std_path$starts_with (ref,ref) -> bool
   i32.const 1   ; path.vader:126:73
   i32.sub   ; path.vader:126:53
   call.import 14   ; path.vader:126:33
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:126:33
   else   ; path.vader:126:8
   bool.const false   ; path.vader:126:8
@@ -571,7 +571,7 @@ fn 12 std_path$starts_with (ref,ref) -> bool
   struct.get 0 0   ; path.vader:129:30
   call.import 9   ; path.vader:129:30
   call.import 14   ; path.vader:129:12
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:129:12
   return   ; path.vader:129:5
 end
@@ -617,7 +617,7 @@ fn 13 std_path$ends_with (ref,ref) -> bool
   struct.get 0 0   ; path.vader:141:33
   i32.const 0   ; path.vader:141:53
   call.import 14   ; path.vader:141:33
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:141:33
   else   ; path.vader:141:8
   bool.const false   ; path.vader:141:8
@@ -632,7 +632,7 @@ fn 13 std_path$ends_with (ref,ref) -> bool
   i32.const 1   ; path.vader:144:36
   i32.sub   ; path.vader:144:30
   call.import 14   ; path.vader:144:12
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:144:12
   return   ; path.vader:144:5
 end
@@ -695,7 +695,7 @@ fn 14 std_path$normalize (ref) -> ref
   struct.get 0 0   ; path.vader:167:30
   local.get 5   ; path.vader:167:48
   call.import 14   ; path.vader:167:30
-  char.const 47   ; path.vader:13:8
+  char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:167:30
   else   ; path.vader:167:19
   bool.const false   ; path.vader:167:19
@@ -812,7 +812,7 @@ fn 14 std_path$normalize (ref) -> ref
   local.get 1   ; path.vader:197:8
   if void   ; path.vader:197:5
   local.get 11   ; path.vader:198:9
-  string.const 44   ; path.vader:14:12
+  string.const 44   ; path.vader:14:19
   call 17   ; path.vader:198:9
   end   ; path.vader:197:5
   i32.const 0   ; path.vader:200:10
@@ -828,7 +828,7 @@ fn 14 std_path$normalize (ref) -> ref
   i32.gt   ; path.vader:202:12
   if void   ; path.vader:202:9
   local.get 11   ; path.vader:203:13
-  string.const 44   ; path.vader:14:12
+  string.const 44   ; path.vader:14:19
   call 17   ; path.vader:203:13
   end   ; path.vader:202:9
   local.get 11   ; path.vader:205:9

@@ -18,32 +18,32 @@ import 8 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_overload_first_param__main_vader$describe (ref) -> string
   local __sb_0 any
-  intrinsic builder.new   ; _main.vader:9:43
-  local.tee 1   ; _main.vader:9:43
-  string.const 0   ; _main.vader:9:44
-  intrinsic builder.append_str   ; _main.vader:9:44
-  local.get 1   ; _main.vader:9:48
-  local.get 0   ; _main.vader:9:50
-  struct.get 0 0   ; _main.vader:9:50
-  intrinsic builder.append_display   ; _main.vader:9:48
-  local.get 1   ; _main.vader:9:43
-  intrinsic builder.finish   ; _main.vader:9:43
-  return   ; _main.vader:9:36
+  intrinsic builder.new   ; _main.vader:9:50
+  local.tee 1   ; _main.vader:9:50
+  string.const 0   ; _main.vader:9:51
+  intrinsic builder.append_str   ; _main.vader:9:51
+  local.get 1   ; _main.vader:9:55
+  local.get 0   ; _main.vader:9:57
+  struct.get 0 0   ; _main.vader:9:57
+  intrinsic builder.append_display   ; _main.vader:9:55
+  local.get 1   ; _main.vader:9:50
+  intrinsic builder.finish   ; _main.vader:9:50
+  return   ; _main.vader:9:43
 end
 
 fn 1 tests_snippets_overload_first_param__main_vader$describe_1 (ref) -> string
   local __sb_0 any
-  intrinsic builder.new   ; _main.vader:10:43
-  local.tee 1   ; _main.vader:10:43
-  string.const 1   ; _main.vader:10:44
-  intrinsic builder.append_str   ; _main.vader:10:44
-  local.get 1   ; _main.vader:10:48
-  local.get 0   ; _main.vader:10:50
-  struct.get 2 0   ; _main.vader:10:50
-  intrinsic builder.append_display   ; _main.vader:10:48
-  local.get 1   ; _main.vader:10:43
-  intrinsic builder.finish   ; _main.vader:10:43
-  return   ; _main.vader:10:36
+  intrinsic builder.new   ; _main.vader:10:50
+  local.tee 1   ; _main.vader:10:50
+  string.const 1   ; _main.vader:10:51
+  intrinsic builder.append_str   ; _main.vader:10:51
+  local.get 1   ; _main.vader:10:55
+  local.get 0   ; _main.vader:10:57
+  struct.get 2 0   ; _main.vader:10:57
+  intrinsic builder.append_display   ; _main.vader:10:55
+  local.get 1   ; _main.vader:10:50
+  intrinsic builder.finish   ; _main.vader:10:50
+  return   ; _main.vader:10:43
 end
 
 fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32

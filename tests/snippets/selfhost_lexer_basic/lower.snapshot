@@ -2238,7 +2238,7 @@
                                                                                                                                                                                     int(29) :u8
                                                                                                                                                                               then:
                                                                                                                                                                                 ~>
-                                                                                                                                                                                  "kw_private" :string
+                                                                                                                                                                                  "kw_export" :string
                                                                                                                                                                               else:
                                                                                                                                                                                 ~>
                                                                                                                                                                                   if :string
@@ -3118,7 +3118,7 @@
           l:
             text#311 :string
           r:
-            "private" :string
+            "export" :string
       then:
         return int(29) :u8
     if :void

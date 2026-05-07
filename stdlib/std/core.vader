@@ -6,51 +6,51 @@
 // And the base Error type used by !T sugar.
 
 // Display — for compile-time string interpolation and println().
-Display :: trait {
+export Display :: trait {
     fn show(self) -> string
 }
 
 // Eq — for == and !=.
-Eq :: trait {
+export Eq :: trait {
     fn equals(self, other: Self) -> bool
 }
 
 // Ord — for <, <=, >, >=.
-Ord :: trait {
+export Ord :: trait {
     fn compare(self, other: Self) -> i32
 }
 
 // Hash — for Map / Set keys.
-Hash :: trait {
+export Hash :: trait {
     fn hash(self) -> u64
 }
 
 // Clone — explicit deep copy. Free function `clone(x)` calls into this.
-Clone :: trait {
+export Clone :: trait {
     fn clone(self) -> Self
 }
 
 // Arithmetic operator traits.
-Add :: trait { fn add(self, other: Self) -> Self }
-Sub :: trait { fn sub(self, other: Self) -> Self }
-Mul :: trait { fn mul(self, other: Self) -> Self }
-Div :: trait { fn div(self, other: Self) -> Self }
+export Add :: trait { fn add(self, other: Self) -> Self }
+export Sub :: trait { fn sub(self, other: Self) -> Self }
+export Mul :: trait { fn mul(self, other: Self) -> Self }
+export Div :: trait { fn div(self, other: Self) -> Self }
 
 // Iterator step result. `Done` signals end-of-iteration; `Yielded(T)` carries
 // the next value. Sum-type discriminator avoids the sentinel collision that
 // `T | null` would have for lists whose element type itself includes `null`.
-Done    :: struct {}
-Yielded :: struct($T) { value: T }
+export Done    :: struct {}
+export Yielded :: struct($T) { value: T }
 
 // Iterator — pull-based. The lowerer dispatches `for x in iter` through the
 // impl table; users never call `step` directly.
-Iterator :: trait($T) {
+export Iterator :: trait($T) {
     fn step(self) -> Done | Yielded(T)
 }
 
 // Range — produced by `0..<n` / `0..=n`. `cursor` advances each iteration
 // via implicit struct-ref mutation inside `step`.
-Range :: struct {
+export Range :: struct {
     start:     i32
     end:       i32
     inclusive: bool
@@ -59,7 +59,7 @@ Range :: struct {
 
 // Contains — `x in coll` desugars to `coll.contains(x)`. `x !in coll` desugars
 // to `!coll.contains(x)`.
-Contains :: trait($T) {
+export Contains :: trait($T) {
     fn contains(self, value: T) -> bool
 }
 
@@ -95,7 +95,7 @@ Range implements Iterator(i32) {
 // flowing into `for x in arr`, so callers rarely need to construct one. The
 // `length` field is pre-computed at construction time so `step` can avoid
 // calling a generic `len(arr)` (generic-fn dispatch is still deferred).
-ArrayIter :: struct($T) {
+export ArrayIter :: struct($T) {
     arr:    [T]
     cursor: i32
     length: i32
@@ -113,7 +113,7 @@ ArrayIter($T) implements Iterator(T) {
 }
 
 // Error — base trait for any value usable in !T returns and the `?` operator.
-Error :: trait {
+export Error :: trait {
     fn message(self) -> string
 }
 
@@ -127,7 +127,7 @@ u32   implements Hash -> u64(self)
 usize implements Hash -> u64(self)
 
 // String Hash — FNV-1a over the UTF-8 bytes; intrinsic provided by the host.
-hash_string :: fn(s: string) -> u64
+export hash_string :: fn(s: string) -> u64
 
 string implements Hash -> hash_string(self)
 
@@ -143,10 +143,10 @@ string implements Eq -> self == other
 // values. Generic collections that need to dispatch hashing/equality on a
 // type-param `$K` accept these as struct fields (workaround for
 // trait-method dispatch on bounded type parameters, post-MVP).
-hash_i32   :: fn(x: i32)   -> u64  { return u64(x) }
-hash_u32   :: fn(x: u32)   -> u64  { return u64(x) }
-hash_usize :: fn(x: usize) -> u64  { return u64(x) }
+export hash_i32   :: fn(x: i32)   -> u64  { return u64(x) }
+export hash_u32   :: fn(x: u32)   -> u64  { return u64(x) }
+export hash_usize :: fn(x: usize) -> u64  { return u64(x) }
 
-eq_i32   :: fn(a: i32,   b: i32)   -> bool { return a == b }
-eq_u32   :: fn(a: u32,   b: u32)   -> bool { return a == b }
-eq_usize :: fn(a: usize, b: usize) -> bool { return a == b }
+export eq_i32   :: fn(a: i32,   b: i32)   -> bool { return a == b }
+export eq_u32   :: fn(a: u32,   b: u32)   -> bool { return a == b }
+export eq_usize :: fn(a: usize, b: usize) -> bool { return a == b }

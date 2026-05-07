@@ -1,13 +1,13 @@
 import "std/io" { println }
 
-Direction :: enum {
+export Direction :: enum {
     North,
     South,
     East,
     West,
 }
 
-describe :: fn(d: Direction) -> string {
+export describe :: fn(d: Direction) -> string {
     match d {
         .North -> "north"
         .South -> "south"

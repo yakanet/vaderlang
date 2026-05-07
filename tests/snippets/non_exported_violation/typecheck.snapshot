@@ -1,18 +1,18 @@
 # Typecheck
 
-## tests/snippets/private_violation/_main.vader
+## tests/snippets/non_exported_violation/_main.vader
   FnDecl         main                 :: fn() -> i32
   expr 4:5      CallExpr       :: ?
   expr 4:5      IdentExpr      :: ?
   expr 5:5      CallExpr       :: ?
   expr 5:5      IdentExpr      :: ?
 
-## tests/snippets/private_violation/lib
+## tests/snippets/non_exported_violation/lib
   FnDecl         public_helper        :: fn() -> i32
   FnDecl         secret_helper        :: fn() -> i32
   expr 6:12     CallExpr       :: i32
   expr 6:12     IdentExpr      :: fn() -> i32
 
 # Diagnostics
-[1:18] error[R2008] private symbol cannot be accessed across module boundaries: `secret_helper` is private to `./lib`
+[1:18] error[R2008] symbol is not exported from its module: `secret_helper` is not exported from `./lib`
 [4:5] error[R2006] unresolved identifier: `public_helper`

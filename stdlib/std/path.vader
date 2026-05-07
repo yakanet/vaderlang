@@ -10,34 +10,34 @@ import "std/string" {
 }
 import "std/string_builder" { StringBuilder, new_builder, append, to_string }
 
-SEP :: '/'
-SEP_STR :: "/"
+export SEP :: '/'
+export SEP_STR :: "/"
 
-Path :: struct {
+export Path :: struct {
     repr: string
 }
 
 // ---- constructors ---------------------------------------------------------
 
-to_path :: fn(s: string) -> Path {
+export to_path :: fn(s: string) -> Path {
     return Path { .repr = s }
 }
 
-empty_path :: fn() -> Path {
+export empty_path :: fn() -> Path {
     return Path { .repr = "" }
 }
 
 // ---- accessors ------------------------------------------------------------
 
-as_string :: fn(self: Path) -> string {
+export as_string :: fn(self: Path) -> string {
     return self.repr
 }
 
-is_empty :: fn(self: Path) -> bool {
+export is_empty :: fn(self: Path) -> bool {
     return self.repr.len() == 0
 }
 
-is_absolute :: fn(self: Path) -> bool {
+export is_absolute :: fn(self: Path) -> bool {
     if self.repr.len() == 0 {
         return false
     }
@@ -47,7 +47,7 @@ is_absolute :: fn(self: Path) -> bool {
 
 // Parent directory — everything before the last separator. Returns the empty
 // path when there's no separator.
-parent :: fn(self: Path) -> Path {
+export parent :: fn(self: Path) -> Path {
     idx := self.repr.last_index_of(SEP, 0)
     if idx < 0 {
         return Path { .repr = "" }
@@ -60,7 +60,7 @@ parent :: fn(self: Path) -> Path {
 }
 
 // Last segment (filename or directory name).
-filename :: fn(self: Path) -> string {
+export filename :: fn(self: Path) -> string {
     idx := self.repr.last_index_of(SEP, 0)
     if idx < 0 {
         return self.repr
@@ -70,7 +70,7 @@ filename :: fn(self: Path) -> string {
 
 // File extension without the leading dot, or empty when there's no extension.
 // A leading-dot name (e.g. `.gitignore`) has no extension — `min_index = 1`.
-extension :: fn(self: Path) -> string {
+export extension :: fn(self: Path) -> string {
     name := self.filename()
     idx := name.last_index_of('.', 1)
     if idx < 0 {
@@ -81,7 +81,7 @@ extension :: fn(self: Path) -> string {
 
 // Filename without the extension. For names without an extension, returns
 // the filename as-is.
-stem :: fn(self: Path) -> string {
+export stem :: fn(self: Path) -> string {
     name := self.filename()
     idx := name.last_index_of('.', 1)
     if idx < 0 {
@@ -94,7 +94,7 @@ stem :: fn(self: Path) -> string {
 
 // Append a sub-path. Adds a separator between segments unless one is already
 // present. If `other` is absolute, it replaces `self` (Java-style resolve).
-join :: fn(self: Path, other: string) -> Path {
+export join :: fn(self: Path, other: string) -> Path {
     if other.len() == 0 {
         return self
     }
@@ -114,7 +114,7 @@ join :: fn(self: Path, other: string) -> Path {
 
 // True when `self` starts with `prefix` on a segment boundary (so `/foo`
 // starts with `/foo` but `/foobar` does not).
-starts_with :: fn(self: Path, prefix: Path) -> bool {
+export starts_with :: fn(self: Path, prefix: Path) -> bool {
     if !self.repr.str_starts_with(prefix.repr) {
         return false
     }
@@ -130,7 +130,7 @@ starts_with :: fn(self: Path, prefix: Path) -> bool {
 }
 
 // True when `self` ends with `suffix` on a segment boundary.
-ends_with :: fn(self: Path, suffix: Path) -> bool {
+export ends_with :: fn(self: Path, suffix: Path) -> bool {
     if !self.repr.str_ends_with(suffix.repr) {
         return false
     }
@@ -152,7 +152,7 @@ ends_with :: fn(self: Path, suffix: Path) -> bool {
 // Maintains the kept-segments stack via an explicit `count` cursor and
 // overwrites `segments[count]` in place — avoids the O(N²) of rebuilding
 // a fresh array on every `..` collapse.
-normalize :: fn(self: Path) -> Path {
+export normalize :: fn(self: Path) -> Path {
     if self.repr.len() == 0 {
         return self
     }

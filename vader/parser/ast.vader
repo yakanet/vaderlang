@@ -12,33 +12,33 @@ import "vader/diagnostics/diagnostic" { Span }
 // Type aliases (declared first — see header)
 // ============================================================================
 
-Decl :: type ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl
+export Decl :: type ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl
 
-ImportBinding :: type NamespaceImport | AliasImport | DestructureImport
+export ImportBinding :: type NamespaceImport | AliasImport | DestructureImport
 
-Stmt :: type LetStmt | AssignStmt | ExprStmt | ReturnStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
+export Stmt :: type LetStmt | AssignStmt | ExprStmt | ReturnStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
 
-ForForm :: type InfiniteFor | WhileFor | InFor
+export ForForm :: type InfiniteFor | WhileFor | InFor
 
-DeferBody :: type DeferStmtBody | DeferBlockBody
+export DeferBody :: type DeferStmtBody | DeferBlockBody
 
-Expr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | ArrayLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr
+export Expr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | ArrayLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr
 
-StringLitPart :: type StringLitText | StringLitInterp
+export StringLitPart :: type StringLitText | StringLitInterp
 
-IfElse :: type IfElseIf | IfElseBlock
+export IfElse :: type IfElseIf | IfElseBlock
 
-Pattern :: type IsPattern | StructPattern | WildcardPattern | BindingPattern | EnumVariantPattern
+export Pattern :: type IsPattern | StructPattern | WildcardPattern | BindingPattern | EnumVariantPattern
 
-PatternFieldValue :: type PatternBinding | PatternLiteral
+export PatternFieldValue :: type PatternBinding | PatternLiteral
 
-TypeExpr :: type NamedType | UnionType | FnTypeExpr | ArrayTypeExpr | GenericInstType | TypeParamType
+export TypeExpr :: type NamedType | UnionType | FnTypeExpr | ArrayTypeExpr | GenericInstType | TypeParamType
 
 // ============================================================================
 // Visibility / shared shapes
 // ============================================================================
 
-Visibility :: enum(u8) {
+export Visibility :: enum(u8) {
     Public,
     Private,
 }
@@ -47,7 +47,7 @@ Visibility :: enum(u8) {
 // Top-level
 // ============================================================================
 
-Program :: struct {
+export Program :: struct {
     file:  string
     span:  Span
     decls: [Decl]
@@ -57,20 +57,20 @@ Program :: struct {
 // Generics / Decorators
 // ============================================================================
 
-TypeParam :: struct {
+export TypeParam :: struct {
     span:               Span
     name:               string
     bound:              TypeExpr | null
     is_comptime_value:  bool
 }
 
-WhereClause :: struct {
+export WhereClause :: struct {
     span:        Span
     type_name:   string
     trait_name:  string
 }
 
-Decorator :: struct {
+export Decorator :: struct {
     span: Span
     name: string
     args: [Expr]
@@ -82,18 +82,18 @@ Decorator :: struct {
 
 // ---- Import ---------------------------------------------------------------
 
-ImportDecl :: struct {
+export ImportDecl :: struct {
     span:       Span
     path:       string
     binding:    ImportBinding
     decorators: [Decorator]
 }
 
-NamespaceImport  :: struct {}
-AliasImport      :: struct { alias: string }
-DestructureImport :: struct { names: [ImportName] }
+export NamespaceImport  :: struct {}
+export AliasImport      :: struct { alias: string }
+export DestructureImport :: struct { names: [ImportName] }
 
-ImportName :: struct {
+export ImportName :: struct {
     name:  string
     alias: string | null
     span:  Span
@@ -104,7 +104,7 @@ ImportName :: struct {
 // `sam_synthetic` and `is_expression_bodied` are `bool` (defaults `false`)
 // rather than `bool | null` — Vader has no optional fields. The dumper emits
 // them only when `true` to match the TS shape.
-FnDecl :: struct {
+export FnDecl :: struct {
     span:                  Span
     name:                  string
     name_span:             Span
@@ -119,7 +119,7 @@ FnDecl :: struct {
     is_expression_bodied:  bool
 }
 
-FnParam :: struct {
+export FnParam :: struct {
     span:          Span
     name:          string
     // Optional in lambdas.
@@ -130,7 +130,7 @@ FnParam :: struct {
 
 // ---- Struct ---------------------------------------------------------------
 
-StructDecl :: struct {
+export StructDecl :: struct {
     span:          Span
     name:          string
     name_span:     Span
@@ -141,7 +141,7 @@ StructDecl :: struct {
     decorators:    [Decorator]
 }
 
-StructField :: struct {
+export StructField :: struct {
     span:       Span
     name:       string
     ty:         TypeExpr
@@ -150,7 +150,7 @@ StructField :: struct {
 
 // ---- Enum -----------------------------------------------------------------
 
-EnumDecl :: struct {
+export EnumDecl :: struct {
     span:       Span
     name:       string
     name_span:  Span
@@ -161,7 +161,7 @@ EnumDecl :: struct {
     decorators: [Decorator]
 }
 
-EnumVariant :: struct {
+export EnumVariant :: struct {
     span:        Span
     name:        string
     // `null` means "previous + 1" (or 0 for the first variant). Stored as i64
@@ -173,7 +173,7 @@ EnumVariant :: struct {
 
 // ---- Trait ----------------------------------------------------------------
 
-TraitDecl :: struct {
+export TraitDecl :: struct {
     span:        Span
     name:        string
     name_span:   Span
@@ -185,7 +185,7 @@ TraitDecl :: struct {
 
 // ---- Impl -----------------------------------------------------------------
 
-ImplDecl :: struct {
+export ImplDecl :: struct {
     span:             Span
     for_type:         TypeExpr
     trait_name:       string
@@ -197,7 +197,7 @@ ImplDecl :: struct {
 
 // ---- TypeAlias ------------------------------------------------------------
 
-TypeAliasDecl :: struct {
+export TypeAliasDecl :: struct {
     span:        Span
     name:        string
     name_span:   Span
@@ -209,7 +209,7 @@ TypeAliasDecl :: struct {
 
 // ---- Const ----------------------------------------------------------------
 
-ConstDecl :: struct {
+export ConstDecl :: struct {
     span:       Span
     name:       string
     name_span:  Span
@@ -223,7 +223,7 @@ ConstDecl :: struct {
 // Statements
 // ============================================================================
 
-LetStmt :: struct {
+export LetStmt :: struct {
     span:      Span
     mutable:   bool
     name:      string
@@ -232,54 +232,54 @@ LetStmt :: struct {
     value:     Expr
 }
 
-AssignStmt :: struct {
+export AssignStmt :: struct {
     span:   Span
     target: Expr
     value:  Expr
 }
 
-ExprStmt :: struct {
+export ExprStmt :: struct {
     span: Span
     expr: Expr
 }
 
-ReturnStmt :: struct {
+export ReturnStmt :: struct {
     span:  Span
     value: Expr | null
 }
 
-ForStmt :: struct {
+export ForStmt :: struct {
     span:  Span
     label: string | null
     form:  ForForm
     body:  BlockExpr
 }
 
-InfiniteFor :: struct {}
-WhileFor    :: struct { cond: Expr }
-InFor       :: struct {
+export InfiniteFor :: struct {}
+export WhileFor    :: struct { cond: Expr }
+export InFor       :: struct {
     binding:      string
     binding_span: Span
     iter:         Expr
 }
 
-BreakStmt :: struct {
+export BreakStmt :: struct {
     span:  Span
     label: string | null
 }
 
-ContinueStmt :: struct {
+export ContinueStmt :: struct {
     span:  Span
     label: string | null
 }
 
-DeferStmt :: struct {
+export DeferStmt :: struct {
     span: Span
     body: DeferBody
 }
 
-DeferStmtBody  :: struct { stmt: Stmt }
-DeferBlockBody :: struct { block: BlockExpr }
+export DeferStmtBody  :: struct { stmt: Stmt }
+export DeferBlockBody :: struct { block: BlockExpr }
 
 // ============================================================================
 // Expressions
@@ -287,7 +287,7 @@ DeferBlockBody :: struct { block: BlockExpr }
 
 // ---- literals -------------------------------------------------------------
 
-IntLitExpr :: struct {
+export IntLitExpr :: struct {
     span:   Span
     // i64 carries every parsed literal up to 9.2e18 ; u64 literals beyond
     // that lose top bits (matches the TS BigInt mapping inside the snapshot
@@ -296,62 +296,62 @@ IntLitExpr :: struct {
     suffix: string | null
 }
 
-FloatLitExpr :: struct {
+export FloatLitExpr :: struct {
     span:   Span
     value:  f64
     suffix: string | null
 }
 
-BoolLitExpr :: struct {
+export BoolLitExpr :: struct {
     span:  Span
     value: bool
 }
 
-NullLitExpr :: struct {
+export NullLitExpr :: struct {
     span: Span
 }
 
-CharLitExpr :: struct {
+export CharLitExpr :: struct {
     span:  Span
     value: u32
 }
 
-StringLitExpr :: struct {
+export StringLitExpr :: struct {
     span:  Span
     parts: [StringLitPart]
 }
 
-StringLitText   :: struct { value: string, span: Span }
-StringLitInterp :: struct { expr:  Expr,   span: Span }
+export StringLitText   :: struct { value: string, span: Span }
+export StringLitInterp :: struct { expr:  Expr,   span: Span }
 
 // ---- naming / access ------------------------------------------------------
 
-IdentExpr :: struct {
+export IdentExpr :: struct {
     span: Span
     name: string
 }
 
-CallExpr :: struct {
+export CallExpr :: struct {
     span:   Span
     callee: Expr
     args:   [CallArg]
 }
 
-CallArg :: struct {
+export CallArg :: struct {
     span:   Span
     name:   string | null
     value:  Expr
     spread: bool
 }
 
-FieldExpr :: struct {
+export FieldExpr :: struct {
     span:       Span
     target:     Expr
     field:      string
     field_span: Span
 }
 
-IndexExpr :: struct {
+export IndexExpr :: struct {
     span:   Span
     target: Expr
     index:  Expr
@@ -359,19 +359,19 @@ IndexExpr :: struct {
 
 // ---- operators ------------------------------------------------------------
 
-UnaryOp :: enum(u8) {
+export UnaryOp :: enum(u8) {
     Neg,
     Not,
     BitNot,
 }
 
-UnaryExpr :: struct {
+export UnaryExpr :: struct {
     span:    Span
     op:      UnaryOp
     operand: Expr
 }
 
-BinaryOp :: enum(u8) {
+export BinaryOp :: enum(u8) {
     Add, Sub, Mul, Div, Mod,
     Shl, Shr, BitAnd, BitOr, BitXor,
     And, Or,
@@ -379,7 +379,7 @@ BinaryOp :: enum(u8) {
     Is, In, NotIn,
 }
 
-BinaryExpr :: struct {
+export BinaryExpr :: struct {
     span:  Span
     op:    BinaryOp
     left:  Expr
@@ -388,30 +388,30 @@ BinaryExpr :: struct {
 
 // ---- control-flow expressions --------------------------------------------
 
-IfExpr :: struct {
+export IfExpr :: struct {
     span:        Span
     cond:        Expr
     then_block:  BlockExpr
     else_branch: IfElse | null
 }
 
-IfElseIf    :: struct { branch: IfExpr }
-IfElseBlock :: struct { block:  BlockExpr }
+export IfElseIf    :: struct { branch: IfExpr }
+export IfElseBlock :: struct { block:  BlockExpr }
 
-MatchExpr :: struct {
+export MatchExpr :: struct {
     span:      Span
     scrutinee: Expr
     arms:      [MatchArm]
 }
 
-MatchArm :: struct {
+export MatchArm :: struct {
     span:    Span
     pattern: Pattern
     guard:   Expr | null
     body:    Expr
 }
 
-BlockExpr :: struct {
+export BlockExpr :: struct {
     span:     Span
     stmts:    [Stmt]
     trailing: Expr | null
@@ -419,32 +419,32 @@ BlockExpr :: struct {
 
 // ---- lambdas / literals --------------------------------------------------
 
-LambdaExpr :: struct {
+export LambdaExpr :: struct {
     span:        Span
     params:      [FnParam]
     return_type: TypeExpr | null
     body:        BlockExpr
 }
 
-StructLitExpr :: struct {
+export StructLitExpr :: struct {
     span:      Span
     type_name: TypeExpr
     fields:    [StructLitField]
 }
 
-StructLitField :: struct {
+export StructLitField :: struct {
     span:      Span
     name:      string
     name_span: Span
     value:     Expr
 }
 
-ArrayLitExpr :: struct {
+export ArrayLitExpr :: struct {
     span:     Span
     elements: [Expr]
 }
 
-RangeExpr :: struct {
+export RangeExpr :: struct {
     span:      Span
     inclusive: bool
     lower:     Expr
@@ -453,24 +453,24 @@ RangeExpr :: struct {
 
 // ---- error / cast / generic / variant -----------------------------------
 
-TryExpr :: struct {
+export TryExpr :: struct {
     span:  Span
     inner: Expr
 }
 
-CastExpr :: struct {
+export CastExpr :: struct {
     span:   Span
     target: TypeExpr
     value:  Expr
 }
 
-GenericInstExpr :: struct {
+export GenericInstExpr :: struct {
     span:      Span
     callee:    Expr
     type_args: [TypeExpr]
 }
 
-DotVariantExpr :: struct {
+export DotVariantExpr :: struct {
     span:         Span
     variant:      string
     variant_span: Span
@@ -480,36 +480,36 @@ DotVariantExpr :: struct {
 // Patterns (for `match`)
 // ============================================================================
 
-IsPattern :: struct {
+export IsPattern :: struct {
     span:    Span
     ty:      TypeExpr
     inner:   Pattern | null
     bind_as: string | null
 }
 
-StructPattern :: struct {
+export StructPattern :: struct {
     span:   Span
     fields: [StructPatternField]
 }
 
-StructPatternField :: struct {
+export StructPatternField :: struct {
     span:      Span
     name:      string
     name_span: Span
     value:     PatternFieldValue
 }
 
-PatternBinding :: struct { name: string, span: Span }
-PatternLiteral :: struct { value: Expr }
+export PatternBinding :: struct { name: string, span: Span }
+export PatternLiteral :: struct { value: Expr }
 
-WildcardPattern :: struct { span: Span }
+export WildcardPattern :: struct { span: Span }
 
-BindingPattern :: struct {
+export BindingPattern :: struct {
     span: Span
     name: string
 }
 
-EnumVariantPattern :: struct {
+export EnumVariantPattern :: struct {
     span:    Span
     variant: string
 }
@@ -518,34 +518,34 @@ EnumVariantPattern :: struct {
 // Type expressions
 // ============================================================================
 
-NamedType :: struct {
+export NamedType :: struct {
     span: Span
     name: string
 }
 
-UnionType :: struct {
+export UnionType :: struct {
     span:     Span
     variants: [TypeExpr]
 }
 
-FnTypeExpr :: struct {
+export FnTypeExpr :: struct {
     span:        Span
     params:      [TypeExpr]
     return_type: TypeExpr | null
 }
 
-ArrayTypeExpr :: struct {
+export ArrayTypeExpr :: struct {
     span:    Span
     element: TypeExpr
 }
 
-GenericInstType :: struct {
+export GenericInstType :: struct {
     span: Span
     base: NamedType
     args: [TypeExpr]
 }
 
-TypeParamType :: struct {
+export TypeParamType :: struct {
     span: Span
     name: string
 }

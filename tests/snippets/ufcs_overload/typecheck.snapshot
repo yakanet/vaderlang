@@ -6,12 +6,12 @@
   FnDecl         inc                  :: fn(A) -> i32
   FnDecl         inc                  :: fn(B) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 11:36    BinaryExpr     :: i32
-  expr 11:36    FieldExpr      :: i32
-  expr 11:36    IdentExpr      :: A
-  expr 12:36    BinaryExpr     :: i32
-  expr 12:36    FieldExpr      :: i32
-  expr 12:36    IdentExpr      :: B
+  expr 11:43    BinaryExpr     :: i32
+  expr 11:43    FieldExpr      :: i32
+  expr 11:43    IdentExpr      :: A
+  expr 12:43    BinaryExpr     :: i32
+  expr 12:43    FieldExpr      :: i32
+  expr 12:43    IdentExpr      :: B
   expr 15:10    StructLitExpr  :: A
   expr 16:10    StructLitExpr  :: B
   expr 17:13    StringLitExpr  :: string

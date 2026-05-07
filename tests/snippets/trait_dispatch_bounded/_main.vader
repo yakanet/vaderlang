@@ -4,7 +4,7 @@
 
 import "std/io" { println }
 
-count_matching :: fn(items: [$T], target: T) -> i32 where T: Hash + Eq {
+export count_matching :: fn(items: [$T], target: T) -> i32 where T: Hash + Eq {
     n := 0
     for x in items {
         if x.hash() == target.hash() && x.equals(target) {

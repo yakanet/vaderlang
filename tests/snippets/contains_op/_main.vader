@@ -1,7 +1,7 @@
 import "std/io" { println }
 
 // Custom Contains impl on a user struct.
-DigitSet :: struct {
+export DigitSet :: struct {
     bits: i32   // bit i = digit i present
 }
 

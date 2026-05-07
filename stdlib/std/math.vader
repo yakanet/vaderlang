@@ -1,41 +1,41 @@
 // std/math — basic numeric operations and constants.
 
 // Constants.
-pi :: 3.141592653589793
-e  :: 2.718281828459045
+export pi :: 3.141592653589793
+export e  :: 2.718281828459045
 
 // Float operations.
-sqrt  :: fn(x: f64) -> f64
-pow   :: fn(x: f64, n: f64) -> f64
-floor :: fn(x: f64) -> f64
-ceil  :: fn(x: f64) -> f64
-round :: fn(x: f64) -> f64
+export sqrt  :: fn(x: f64) -> f64
+export pow   :: fn(x: f64, n: f64) -> f64
+export floor :: fn(x: f64) -> f64
+export ceil  :: fn(x: f64) -> f64
+export round :: fn(x: f64) -> f64
 
 // Trigonometry.
-sin :: fn(x: f64) -> f64
-cos :: fn(x: f64) -> f64
-tan :: fn(x: f64) -> f64
+export sin :: fn(x: f64) -> f64
+export cos :: fn(x: f64) -> f64
+export tan :: fn(x: f64) -> f64
 
 // Comparison + helpers — pure Vader, f64. Integer variants will arrive once
 // function overloading by first-param type lands (TODO §1.18c) so `min(i32,
 // i32)` and `min(f64, f64)` can coexist.
-min :: fn(a: f64, b: f64) -> f64 {
+export min :: fn(a: f64, b: f64) -> f64 {
     if a < b { return a }
     return b
 }
 
-max :: fn(a: f64, b: f64) -> f64 {
+export max :: fn(a: f64, b: f64) -> f64 {
     if a > b { return a }
     return b
 }
 
-abs :: fn(x: f64) -> f64 {
+export abs :: fn(x: f64) -> f64 {
     if x < 0.0 { return -x }
     return x
 }
 
 // lerp — linear interpolation. `t = 0` returns `a`, `t = 1` returns `b`;
 // values outside `[0, 1]` extrapolate.
-lerp :: fn(a: f64, b: f64, t: f64) -> f64 {
+export lerp :: fn(a: f64, b: f64, t: f64) -> f64 {
     return a + (b - a) * t
 }

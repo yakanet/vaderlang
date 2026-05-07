@@ -21,12 +21,12 @@
           "value": "300n",
           "valueSpan": {
             "start": {
-              "offset": 91,
+              "offset": 98,
               "line": 4,
               "column": 9
             },
             "end": {
-              "offset": 94,
+              "offset": 101,
               "line": 4,
               "column": 12
             }
@@ -46,12 +46,12 @@
           "value": "1n",
           "valueSpan": {
             "start": {
-              "offset": 148,
+              "offset": 162,
               "line": 8,
               "column": 9
             },
             "end": {
-              "offset": 149,
+              "offset": 163,
               "line": 8,
               "column": 10
             }
@@ -62,12 +62,12 @@
           "value": "2n",
           "valueSpan": {
             "start": {
-              "offset": 158,
+              "offset": 172,
               "line": 9,
               "column": 9
             },
             "end": {
-              "offset": 159,
+              "offset": 173,
               "line": 9,
               "column": 10
             }
@@ -78,12 +78,12 @@
           "value": "1n",
           "valueSpan": {
             "start": {
-              "offset": 168,
+              "offset": 182,
               "line": 10,
               "column": 9
             },
             "end": {
-              "offset": 169,
+              "offset": 183,
               "line": 10,
               "column": 10
             }

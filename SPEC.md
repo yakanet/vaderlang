@@ -165,7 +165,7 @@ Nested block comments follow the Rust convention. The lexer tracks nesting depth
 fn struct trait implements impl enum
 if else match is for in return defer break continue
 import as
-private
+export
 true false null
 where
 self
@@ -966,14 +966,22 @@ Rules :
 
 ### Visibility
 
-- **`public` by default** (Java-style).
-- **`private`** to hide a symbol outside its **module** (= folder).
+- **Private by default** (TypeScript-style). Top-level decls are visible only inside their **module** (= folder) unless explicitly exported.
+- **`export`** prefix to make a symbol visible across module boundaries.
+- The top-level `main` function is exported implicitly — the runtime resolves it as the program entrypoint regardless of the `export` keyword.
 
 ```vader
-private helper :: fn(x: i32) -> i32 {
-    // visible to other files in the same module, not outside
+helper :: fn(x: i32) -> i32 {
+    // visible to other files in the same module, invisible outside
+}
+
+export api :: fn(x: i32) -> i32 {
+    // visible everywhere a consumer imports this module
 }
 ```
+
+Note: the `export` keyword (visibility) is distinct from the `@export` decorator
+(ABI exposure to the host — see §12). A function may be both.
 
 ---
 
@@ -1247,7 +1255,7 @@ match r {
 
 ### Granularity
 
-**One folder = one module.** All `.vader` files in a folder share a common namespace. Files see each other (including `private` symbols).
+**One folder = one module.** All `.vader` files in a folder share a common namespace. Files see each other (including non-exported symbols).
 
 ### Imports
 
@@ -1286,8 +1294,9 @@ Manifest is **optional** — `vader build single_file.vader` also works as long 
 
 ### Visibility
 
-- `public` (default): visible everywhere.
-- `private`: visible **within the module** (other files in the same folder OK), invisible outside the module.
+- **Default (no keyword)**: visible only **within the module** (other files in the same folder OK), invisible outside.
+- **`export`**: visible everywhere a consumer imports this module.
+- The `main` function is implicitly visible to the runtime, no `export` required.
 
 ### Forbidden import cycles
 
@@ -1295,7 +1304,7 @@ A → B → A is a compile-time error.
 
 ### Entry point
 
-Always a `main` function. No overloaded conventions.
+Always a `main` function. No overloaded conventions. Implicitly exposed to the runtime — write it without the `export` keyword.
 
 ```vader
 main :: fn() -> i32 {

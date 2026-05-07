@@ -60,7 +60,7 @@ export const RESOLVER = {
   R2005: "import cycle detected",
   R2006: "unresolved identifier",
   R2007: "unresolved type name",
-  R2008: "private symbol cannot be accessed across module boundaries",
+  R2008: "symbol is not exported from its module",
   R2009: "trait name does not refer to a trait",
   R2010: "decorator unknown to the compiler",
   R2011: "duplicate import binding",

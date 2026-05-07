@@ -30,12 +30,12 @@
           "value": "1n",
           "valueSpan": {
             "start": {
-              "offset": 65,
+              "offset": 72,
               "line": 4,
               "column": 13
             },
             "end": {
-              "offset": 66,
+              "offset": 73,
               "line": 4,
               "column": 14
             }
@@ -46,12 +46,12 @@
           "value": "2n",
           "valueSpan": {
             "start": {
-              "offset": 79,
+              "offset": 86,
               "line": 5,
               "column": 13
             },
             "end": {
-              "offset": 80,
+              "offset": 87,
               "line": 5,
               "column": 14
             }
@@ -62,12 +62,12 @@
           "value": "4n",
           "valueSpan": {
             "start": {
-              "offset": 93,
+              "offset": 100,
               "line": 6,
               "column": 13
             },
             "end": {
-              "offset": 94,
+              "offset": 101,
               "line": 6,
               "column": 14
             }
@@ -78,12 +78,12 @@
           "value": "8n",
           "valueSpan": {
             "start": {
-              "offset": 107,
+              "offset": 114,
               "line": 7,
               "column": 13
             },
             "end": {
-              "offset": 108,
+              "offset": 115,
               "line": 7,
               "column": 14
             }
@@ -111,12 +111,12 @@
           "value": "100n",
           "valueSpan": {
             "start": {
-              "offset": 150,
+              "offset": 164,
               "line": 12,
               "column": 12
             },
             "end": {
-              "offset": 153,
+              "offset": 167,
               "line": 12,
               "column": 15
             }
@@ -243,7 +243,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {
@@ -279,12 +279,12 @@
                           "variant": "North",
                           "variantSpan": {
                             "start": {
-                              "offset": 376,
+                              "offset": 397,
                               "line": 27,
                               "column": 23
                             },
                             "end": {
-                              "offset": 381,
+                              "offset": 402,
                               "line": 27,
                               "column": 28
                             }
@@ -324,12 +324,12 @@
                           "variant": "West",
                           "variantSpan": {
                             "start": {
-                              "offset": 406,
+                              "offset": 427,
                               "line": 28,
                               "column": 23
                             },
                             "end": {
-                              "offset": 410,
+                              "offset": 431,
                               "line": 28,
                               "column": 27
                             }
@@ -357,12 +357,12 @@
               "variant": "Pop",
               "variantSpan": {
                 "start": {
-                  "offset": 428,
+                  "offset": 449,
                   "line": 30,
                   "column": 15
                 },
                 "end": {
-                  "offset": 431,
+                  "offset": 452,
                   "line": 30,
                   "column": 18
                 }

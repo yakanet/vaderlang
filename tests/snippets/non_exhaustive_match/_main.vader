@@ -1,4 +1,4 @@
-classify :: fn(x: i32 | string) -> string {
+export classify :: fn(x: i32 | string) -> string {
     return match x {
         is i32 -> "int"
     }

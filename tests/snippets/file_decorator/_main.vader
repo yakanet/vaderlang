@@ -1,5 +1,5 @@
 @file("data.txt")
-GREETING :: ""
+export GREETING :: ""
 
 main :: fn() -> i32 {
     return 0

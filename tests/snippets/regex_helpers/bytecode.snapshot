@@ -160,31 +160,31 @@ fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
 end
 
 fn 2 std_string$is_whitechar (char) -> bool
-  local.get 0   ; string.vader:89:31
-  char.const 32   ; string.vader:89:36
-  char.eq   ; string.vader:89:31
-  if bool   ; string.vader:89:31
-  bool.const true   ; string.vader:89:31
-  else   ; string.vader:89:31
-  local.get 0   ; string.vader:89:43
-  char.const 9   ; string.vader:89:48
-  char.eq   ; string.vader:89:43
-  end   ; string.vader:89:31
-  if bool   ; string.vader:89:31
-  bool.const true   ; string.vader:89:31
-  else   ; string.vader:89:31
-  local.get 0   ; string.vader:89:56
-  char.const 10   ; string.vader:89:61
-  char.eq   ; string.vader:89:56
-  end   ; string.vader:89:31
-  if bool   ; string.vader:89:31
-  bool.const true   ; string.vader:89:31
-  else   ; string.vader:89:31
-  local.get 0   ; string.vader:89:69
-  char.const 13   ; string.vader:89:74
-  char.eq   ; string.vader:89:69
-  end   ; string.vader:89:31
-  return   ; string.vader:89:31
+  local.get 0   ; string.vader:89:38
+  char.const 32   ; string.vader:89:43
+  char.eq   ; string.vader:89:38
+  if bool   ; string.vader:89:38
+  bool.const true   ; string.vader:89:38
+  else   ; string.vader:89:38
+  local.get 0   ; string.vader:89:50
+  char.const 9   ; string.vader:89:55
+  char.eq   ; string.vader:89:50
+  end   ; string.vader:89:38
+  if bool   ; string.vader:89:38
+  bool.const true   ; string.vader:89:38
+  else   ; string.vader:89:38
+  local.get 0   ; string.vader:89:63
+  char.const 10   ; string.vader:89:68
+  char.eq   ; string.vader:89:63
+  end   ; string.vader:89:38
+  if bool   ; string.vader:89:38
+  bool.const true   ; string.vader:89:38
+  else   ; string.vader:89:38
+  local.get 0   ; string.vader:89:76
+  char.const 13   ; string.vader:89:81
+  char.eq   ; string.vader:89:76
+  end   ; string.vader:89:38
+  return   ; string.vader:89:38
 end
 
 fn 3 std_string$trim_suffix (string,string) -> string

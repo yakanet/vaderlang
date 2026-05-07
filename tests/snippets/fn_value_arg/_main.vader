@@ -1,8 +1,8 @@
-apply :: fn(g: fn(i32) -> i32, x: i32) -> i32 {
+export apply :: fn(g: fn(i32) -> i32, x: i32) -> i32 {
     return g(x)
 }
 
-inc :: fn(x: i32) -> i32 {
+export inc :: fn(x: i32) -> i32 {
     return x + 1
 }
 

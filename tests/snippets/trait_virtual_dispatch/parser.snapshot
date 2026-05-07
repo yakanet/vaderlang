@@ -28,7 +28,7 @@
             "kind": "NamedType",
             "name": "string"
           },
-          "visibility": "public"
+          "visibility": "private"
         }
       ],
       "whereClauses": [],
@@ -46,7 +46,7 @@
             "kind": "NamedType",
             "name": "string"
           },
-          "visibility": "public"
+          "visibility": "private"
         }
       ],
       "whereClauses": [],
@@ -64,7 +64,7 @@
         {
           "kind": "FnDecl",
           "name": "message",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -125,7 +125,7 @@
         {
           "kind": "FnDecl",
           "name": "message",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -221,7 +221,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {

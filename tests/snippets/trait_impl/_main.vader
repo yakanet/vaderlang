@@ -1,8 +1,8 @@
-Display :: trait {
+export Display :: trait {
     fn show(self) -> string
 }
 
-Point :: struct {
+export Point :: struct {
     x: f64
     y: f64
 }

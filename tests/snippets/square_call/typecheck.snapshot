@@ -7,6 +7,6 @@
   expr 2:12     BinaryExpr     :: i32
   expr 2:12     IdentExpr      :: i32
   expr 2:16     IdentExpr      :: i32
-  expr 6:9      CallExpr       :: i32
-  expr 6:9      IdentExpr      :: fn(i32) -> i32
+  expr 6:16     CallExpr       :: i32
+  expr 6:16     IdentExpr      :: fn(i32) -> i32
   expr 9:12     IdentExpr      :: i32

@@ -5,7 +5,7 @@
   ConstDecl      multi                :: string
   ConstDecl      plain                :: string
   ConstDecl      raw                  :: string
-  expr 1:10     StringLitExpr  :: string
-  expr 2:12     StringLitExpr  :: string
-  expr 3:8      StringLitExpr  :: string
-  expr 4:10     StringLitExpr  :: string
+  expr 1:17     StringLitExpr  :: string
+  expr 2:19     StringLitExpr  :: string
+  expr 3:15     StringLitExpr  :: string
+  expr 4:17     StringLitExpr  :: string

@@ -4,17 +4,17 @@
 
 import "std/io" { println }
 
-square :: fn(x: i32) = x * x
+export square :: fn(x: i32) = x * x
 
-max :: fn(a: f64, b: f64) = if a > b { a } else { b }
+export max :: fn(a: f64, b: f64) = if a > b { a } else { b }
 
 // Forward reference: `b` calls `a` declared after it. The fixpoint
 // inference resolves them in dependency order.
-b :: fn(x: i32) = a(x) + 1
-a :: fn(x: i32) = x * 10
+export b :: fn(x: i32) = a(x) + 1
+export a :: fn(x: i32) = x * 10
 
 // Generic one-liner.
-id :: fn(x: $T) = x
+export id :: fn(x: $T) = x
 
 main :: fn() -> i32 {
     println("${square(7)}")

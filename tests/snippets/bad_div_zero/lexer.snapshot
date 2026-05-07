@@ -2,11 +2,12 @@
 [1:1-1:2    ] at             "@"
 [1:2-1:10   ] ident          "comptime"
 [2:1-2:1    ] newline        "\n"
-[2:1-2:5    ] ident          "BOOM"
-[2:6-2:8    ] decl_const     "::"
-[2:9-2:11   ] int_literal    "10" =10n
-[2:12-2:13  ] slash          "/"
-[2:14-2:15  ] int_literal    "0" =0n
+[2:1-2:7    ] kw_export      "export"
+[2:8-2:12   ] ident          "BOOM"
+[2:13-2:15  ] decl_const     "::"
+[2:16-2:18  ] int_literal    "10" =10n
+[2:19-2:20  ] slash          "/"
+[2:21-2:22  ] int_literal    "0" =0n
 [3:1-3:1    ] newline        "\n"
 [4:1-4:5    ] ident          "main"
 [4:6-4:8    ] decl_const     "::"

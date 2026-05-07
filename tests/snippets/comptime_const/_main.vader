@@ -2,10 +2,10 @@
 // IR as literals. The arith below never runs at runtime.
 
 @comptime
-ANSWER :: (40 + 2) * 1
+export ANSWER :: (40 + 2) * 1
 
 @comptime
-GREETING :: "hello, " + "world"
+export GREETING :: "hello, " + "world"
 
 main :: fn() -> i32 {
     return ANSWER

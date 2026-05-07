@@ -11,7 +11,7 @@
         {
           "kind": "FnDecl",
           "name": "tag",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -44,7 +44,7 @@
         {
           "kind": "FnDecl",
           "name": "tag",
-          "visibility": "public",
+          "visibility": "private",
           "typeParams": [],
           "params": [
             {
@@ -160,7 +160,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {

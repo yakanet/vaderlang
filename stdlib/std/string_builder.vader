@@ -11,25 +11,25 @@
 //   sb.append_char('!')
 //   result := sb.to_string()  // "Hello!"
 
-StringBuilder :: struct {
+export StringBuilder :: struct {
     parts: [string]
 }
 
-new_builder :: fn() -> StringBuilder {
+export new_builder :: fn() -> StringBuilder {
     return StringBuilder { .parts = [] }
 }
 
-append :: fn(self: StringBuilder, s: string) -> void {
+export append :: fn(self: StringBuilder, s: string) -> void {
     self.parts.push(s)
 }
 
-append_char :: fn(self: StringBuilder, c: char) -> void {
+export append_char :: fn(self: StringBuilder, c: char) -> void {
     self.parts.push("${c}")
 }
 
 // Host intrinsic: flatten a [string] into one string in a single allocation.
-concat_all :: fn(parts: [string]) -> string
+export concat_all :: fn(parts: [string]) -> string
 
-to_string :: fn(self: StringBuilder) -> string {
+export to_string :: fn(self: StringBuilder) -> string {
     return concat_all(self.parts)
 }

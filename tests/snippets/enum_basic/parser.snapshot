@@ -148,7 +148,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": null,
@@ -169,12 +169,12 @@
               "variant": "East",
               "variantSpan": {
                 "start": {
-                  "offset": 295,
+                  "offset": 309,
                   "line": 20,
                   "column": 21
                 },
                 "end": {
-                  "offset": 299,
+                  "offset": 313,
                   "line": 20,
                   "column": 25
                 }
@@ -267,12 +267,12 @@
                   "variant": "East",
                   "variantSpan": {
                     "start": {
-                      "offset": 377,
+                      "offset": 391,
                       "line": 23,
                       "column": 14
                     },
                     "end": {
-                      "offset": 381,
+                      "offset": 395,
                       "line": 23,
                       "column": 18
                     }
@@ -324,12 +324,12 @@
                   "variant": "West",
                   "variantSpan": {
                     "start": {
-                      "offset": 420,
+                      "offset": 434,
                       "line": 24,
                       "column": 14
                     },
                     "end": {
-                      "offset": 424,
+                      "offset": 438,
                       "line": 24,
                       "column": 18
                     }
@@ -397,12 +397,12 @@
                             "variant": "East",
                             "variantSpan": {
                               "start": {
-                                "offset": 480,
+                                "offset": 494,
                                 "line": 25,
                                 "column": 31
                               },
                               "end": {
-                                "offset": 484,
+                                "offset": 498,
                                 "line": 25,
                                 "column": 35
                               }
@@ -448,12 +448,12 @@
                         "variant": "West",
                         "variantSpan": {
                           "start": {
-                            "offset": 518,
+                            "offset": 532,
                             "line": 26,
                             "column": 31
                           },
                           "end": {
-                            "offset": 522,
+                            "offset": 536,
                             "line": 26,
                             "column": 35
                           }

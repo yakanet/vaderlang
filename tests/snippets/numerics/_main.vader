@@ -1,12 +1,12 @@
-a :: 42
-b :: 1_000_000
-c :: 0xFF
-d :: 0xFF_FF
-e :: 0b1010
-f :: 0o755
-g :: 42i64
-h :: 100_u32
-i :: 3.14
-j :: 1.5e-10
-k :: 3.14f32
-l :: 0.5_f64
+export a :: 42
+export b :: 1_000_000
+export c :: 0xFF
+export d :: 0xFF_FF
+export e :: 0b1010
+export f :: 0o755
+export g :: 42i64
+export h :: 100_u32
+export i :: 3.14
+export j :: 1.5e-10
+export k :: 3.14f32
+export l :: 0.5_f64

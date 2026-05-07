@@ -4,7 +4,7 @@ import "std/json" {
     JsonError, parse, stringify, stringify_pretty,
 }
 
-show :: fn(label: string, src: string) -> void {
+export show :: fn(label: string, src: string) -> void {
     parsed := parse(src)
     match parsed {
         is JsonError -> { println("${label}: error: ${parsed.msg}") }

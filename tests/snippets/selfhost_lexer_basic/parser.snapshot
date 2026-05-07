@@ -775,12 +775,12 @@
                         "variant": "Newline",
                         "variantSpan": {
                           "start": {
-                            "offset": 1711,
+                            "offset": 1725,
                             "line": 54,
                             "column": 23
                           },
                           "end": {
-                            "offset": 1718,
+                            "offset": 1732,
                             "line": 54,
                             "column": 30
                           }
@@ -1072,7 +1072,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {

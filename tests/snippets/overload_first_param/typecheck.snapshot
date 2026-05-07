@@ -6,9 +6,9 @@
   FnDecl         describe             :: fn(Box) -> string
   FnDecl         describe             :: fn(Bag) -> string
   FnDecl         main                 :: fn() -> i32
-  expr 10:43    StringLitExpr  :: string
-  expr 10:50    FieldExpr      :: string
-  expr 10:50    IdentExpr      :: Bag
+  expr 10:50    StringLitExpr  :: string
+  expr 10:57    FieldExpr      :: string
+  expr 10:57    IdentExpr      :: Bag
   expr 13:10    StructLitExpr  :: Box
   expr 14:10    StructLitExpr  :: Bag
   expr 14:21    StringLitExpr  :: string
@@ -32,6 +32,6 @@
   expr 20:13    IdentExpr      :: Bag
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(string) -> void
-  expr 9:43     StringLitExpr  :: string
-  expr 9:50     FieldExpr      :: i32
-  expr 9:50     IdentExpr      :: Box
+  expr 9:50     StringLitExpr  :: string
+  expr 9:57     FieldExpr      :: i32
+  expr 9:57     IdentExpr      :: Box

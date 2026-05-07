@@ -1,8 +1,8 @@
 @comptime
-A :: B + 1
+export A :: B + 1
 
 @comptime
-B :: A + 1
+export B :: A + 1
 
 main :: fn() -> i32 {
     return A

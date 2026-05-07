@@ -115,12 +115,12 @@
                       "variant": "Error",
                       "variantSpan": {
                         "start": {
-                          "offset": 191,
+                          "offset": 212,
                           "line": 9,
                           "column": 24
                         },
                         "end": {
-                          "offset": 196,
+                          "offset": 217,
                           "line": 9,
                           "column": 29
                         }
@@ -160,12 +160,12 @@
                       "variant": "Warning",
                       "variantSpan": {
                         "start": {
-                          "offset": 223,
+                          "offset": 244,
                           "line": 10,
                           "column": 25
                         },
                         "end": {
-                          "offset": 230,
+                          "offset": 251,
                           "line": 10,
                           "column": 32
                         }
@@ -185,12 +185,12 @@
               "variant": "Info",
               "variantSpan": {
                 "start": {
-                  "offset": 245,
+                  "offset": 266,
                   "line": 11,
                   "column": 13
                 },
                 "end": {
-                  "offset": 249,
+                  "offset": 270,
                   "line": 11,
                   "column": 17
                 }
@@ -337,7 +337,7 @@
     {
       "kind": "FnDecl",
       "name": "main",
-      "visibility": "public",
+      "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {
@@ -361,12 +361,12 @@
               "variant": "Green",
               "variantSpan": {
                 "start": {
-                  "offset": 598,
+                  "offset": 633,
                   "line": 30,
                   "column": 17
                 },
                 "end": {
-                  "offset": 603,
+                  "offset": 638,
                   "line": 30,
                   "column": 22
                 }
@@ -431,12 +431,12 @@
                           "variant": "Red",
                           "variantSpan": {
                             "start": {
-                              "offset": 645,
+                              "offset": 680,
                               "line": 32,
                               "column": 20
                             },
                             "end": {
-                              "offset": 648,
+                              "offset": 683,
                               "line": 32,
                               "column": 23
                             }
@@ -476,12 +476,12 @@
                           "variant": "Blue",
                           "variantSpan": {
                             "start": {
-                              "offset": 670,
+                              "offset": 705,
                               "line": 33,
                               "column": 20
                             },
                             "end": {
-                              "offset": 674,
+                              "offset": 709,
                               "line": 33,
                               "column": 24
                             }
@@ -526,12 +526,12 @@
                                 "variant": "Red",
                                 "variantSpan": {
                                   "start": {
-                                    "offset": 721,
+                                    "offset": 756,
                                     "line": 36,
                                     "column": 28
                                   },
                                   "end": {
-                                    "offset": 724,
+                                    "offset": 759,
                                     "line": 36,
                                     "column": 31
                                   }
@@ -546,12 +546,12 @@
                                 "variant": "Red",
                                 "variantSpan": {
                                   "start": {
-                                    "offset": 727,
+                                    "offset": 762,
                                     "line": 36,
                                     "column": 34
                                   },
                                   "end": {
-                                    "offset": 730,
+                                    "offset": 765,
                                     "line": 36,
                                     "column": 37
                                   }
@@ -599,12 +599,12 @@
                                 "variant": "Red",
                                 "variantSpan": {
                                   "start": {
-                                    "offset": 762,
+                                    "offset": 797,
                                     "line": 37,
                                     "column": 28
                                   },
                                   "end": {
-                                    "offset": 765,
+                                    "offset": 800,
                                     "line": 37,
                                     "column": 31
                                   }
@@ -619,12 +619,12 @@
                                 "variant": "Blue",
                                 "variantSpan": {
                                   "start": {
-                                    "offset": 768,
+                                    "offset": 803,
                                     "line": 37,
                                     "column": 34
                                   },
                                   "end": {
-                                    "offset": 772,
+                                    "offset": 807,
                                     "line": 37,
                                     "column": 38
                                   }
@@ -670,12 +670,12 @@
                             "variant": "Red",
                             "variantSpan": {
                               "start": {
-                                "offset": 818,
+                                "offset": 853,
                                 "line": 40,
                                 "column": 22
                               },
                               "end": {
-                                "offset": 821,
+                                "offset": 856,
                                 "line": 40,
                                 "column": 25
                               }
@@ -718,12 +718,12 @@
                             "variant": "Green",
                             "variantSpan": {
                               "start": {
-                                "offset": 846,
+                                "offset": 881,
                                 "line": 41,
                                 "column": 22
                               },
                               "end": {
-                                "offset": 851,
+                                "offset": 886,
                                 "line": 41,
                                 "column": 27
                               }

@@ -3,11 +3,11 @@
 
 import "std/io" { println }
 
-Box :: struct { v: i32 }
-Bag :: struct { v: string }
+export Box :: struct { v: i32 }
+export Bag :: struct { v: string }
 
-describe :: fn(b: Box) -> string { return "box ${b.v}" }
-describe :: fn(b: Bag) -> string { return "bag ${b.v}" }
+export describe :: fn(b: Box) -> string { return "box ${b.v}" }
+export describe :: fn(b: Bag) -> string { return "bag ${b.v}" }
 
 main :: fn() -> i32 {
     a := Box { .v = 42 }

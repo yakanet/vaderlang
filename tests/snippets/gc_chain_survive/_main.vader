@@ -1,7 +1,7 @@
 import "std/io" { println }
 import "std/gc" { collect, collections }
 
-Node :: struct {
+export Node :: struct {
     value: i32
     next:  Node | null
 }

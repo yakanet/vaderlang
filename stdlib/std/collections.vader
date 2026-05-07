@@ -32,29 +32,29 @@
 // first put so the struct-literal constructor stays simple.
 // ===========================================================================
 
-private BUCKET_COUNT :: 16
+BUCKET_COUNT :: 16
 
-private Entry :: struct($K, $V) {
+Entry :: struct($K, $V) {
     key:   K
     value: V
     next:  Entry(K, V) | null
 }
 
-Map :: struct($K, $V) {
+export Map :: struct($K, $V) {
     buckets: [Entry(K, V) | null]
     size:    usize
 }
 
-MutableMap :: struct($K, $V) {
+export MutableMap :: struct($K, $V) {
     buckets: [Entry(K, V) | null]
     size:    usize
 }
 
-private bucket_index :: fn(h: u64) -> i32 {
+bucket_index :: fn(h: u64) -> i32 {
     return i32(h % u64(BUCKET_COUNT))
 }
 
-put :: fn(self: MutableMap($K, $V), key: K, value: V) -> void where K: Hash + Eq {
+export put :: fn(self: MutableMap($K, $V), key: K, value: V) -> void where K: Hash + Eq {
     // Lazy bucket init — inlined here because nested generic calls aren't
     // observed by the comptime InstanceRegistry yet (transitive
     // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
@@ -97,7 +97,7 @@ put :: fn(self: MutableMap($K, $V), key: K, value: V) -> void where K: Hash + Eq
     self.size = self.size + 1
 }
 
-get :: fn(self: MutableMap($K, $V), key: K) -> V | null where K: Hash + Eq {
+export get :: fn(self: MutableMap($K, $V), key: K) -> V | null where K: Hash + Eq {
     if self.buckets.len() == 0 {
         return null
     }
@@ -122,7 +122,7 @@ get :: fn(self: MutableMap($K, $V), key: K) -> V | null where K: Hash + Eq {
     return result
 }
 
-contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool where K: Hash + Eq {
+export contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool where K: Hash + Eq {
     if self.buckets.len() == 0 {
         return false
     }
@@ -147,13 +147,13 @@ contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool where K: Hash + Eq 
     return found
 }
 
-len :: fn(self: MutableMap($K, $V)) -> usize { return self.size }
+export len :: fn(self: MutableMap($K, $V)) -> usize { return self.size }
 
-is_empty :: fn(self: MutableMap($K, $V)) -> bool { return self.size == 0 }
+export is_empty :: fn(self: MutableMap($K, $V)) -> bool { return self.size == 0 }
 
 // Snapshot of every key in insertion-independent order (bucket-walk order).
 // Calls allocate a fresh `[K]`. Suitable for stringification / iteration.
-keys :: fn(self: MutableMap($K, $V)) -> [K] {
+export keys :: fn(self: MutableMap($K, $V)) -> [K] {
     out: [K] = []
     if self.buckets.len() == 0 {
         return out
@@ -177,7 +177,7 @@ keys :: fn(self: MutableMap($K, $V)) -> [K] {
 }
 
 // Snapshot of every value matching `keys()` order.
-values :: fn(self: MutableMap($K, $V)) -> [V] {
+export values :: fn(self: MutableMap($K, $V)) -> [V] {
     out: [V] = []
     if self.buckets.len() == 0 {
         return out
@@ -206,25 +206,25 @@ values :: fn(self: MutableMap($K, $V)) -> [V] {
 // from MutableMap. `where T: Hash + Eq` mirrors MutableMap's own bound.
 // ===========================================================================
 
-Set :: struct($T) {
+export Set :: struct($T) {
     inner: MutableMap(T, bool)
 }
 
-MutableSet :: struct($T) {
+export MutableSet :: struct($T) {
     inner: MutableMap(T, bool)
 }
 
 // Returns true if the value was newly added, false if it was already present.
-add :: fn(self: MutableSet($T), value: T) -> bool where T: Hash + Eq {
+export add :: fn(self: MutableSet($T), value: T) -> bool where T: Hash + Eq {
     if self.inner.contains_key(value) { return false }
     self.inner.put(value, true)
     return true
 }
 
-contains :: fn(self: MutableSet($T), value: T) -> bool where T: Hash + Eq {
+export contains :: fn(self: MutableSet($T), value: T) -> bool where T: Hash + Eq {
     return self.inner.contains_key(value)
 }
 
-len :: fn(self: MutableSet($T)) -> usize { return self.inner.size }
+export len :: fn(self: MutableSet($T)) -> usize { return self.inner.size }
 
-is_empty :: fn(self: MutableSet($T)) -> bool { return self.inner.size == 0 }
+export is_empty :: fn(self: MutableSet($T)) -> bool { return self.inner.size == 0 }

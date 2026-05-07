@@ -12,4 +12,4 @@
     return int(0) :i32
 
 # Diagnostics
-[4:29] error[P1020] expression-bodied function cannot also declare an explicit return type
+[4:36] error[P1020] expression-bodied function cannot also declare an explicit return type

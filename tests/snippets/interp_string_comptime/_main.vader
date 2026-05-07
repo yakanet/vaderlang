@@ -1,7 +1,7 @@
 @comptime
-GREETING :: "Hello, ${name()}!"
+export GREETING :: "Hello, ${name()}!"
 
-name :: fn() -> string {
+export name :: fn() -> string {
     return "Vader"
 }
 

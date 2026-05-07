@@ -1,7 +1,7 @@
 // Multi-method trait : la forme courte (arrow ou bloc anonyme) ne s'applique
 // pas — il faut décliner toutes les méthodes via la forme classique.
 
-TwoFns :: trait {
+export TwoFns :: trait {
     fn first(self) -> i32
     fn second(self) -> i32
 }

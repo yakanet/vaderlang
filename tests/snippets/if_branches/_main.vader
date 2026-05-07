@@ -1,4 +1,4 @@
-classify :: fn(n: i32) -> string {
+export classify :: fn(n: i32) -> string {
     return if (n > 0) {
         "positive"
     } else if (n < 0) {

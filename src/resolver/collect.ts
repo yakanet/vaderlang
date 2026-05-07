@@ -77,9 +77,13 @@ function addFnSymbol(
   input: CollectInput,
   decl: A.FnDecl,
 ): void {
+  // `main` is the program entry point and is always treated as exported,
+  // so consumers (runtime, embedders, cross-module references) can reach it
+  // without a redundant `export` keyword.
+  const visibility = decl.name === "main" ? "public" : decl.visibility;
   const sym = input.factory.make({
     kind: "fn", name: decl.name, module: input.moduleId,
-    visibility: decl.visibility, definedAt: decl.nameSpan,
+    visibility, definedAt: decl.nameSpan,
     source: { kind: "fn", decl },
   });
   const bucket = fnOverloads.get(decl.name);

@@ -15,7 +15,7 @@ import { parseType } from "./type.ts";
 
 export function parseDecl(p: Parser): A.Decl | null {
   const decorators = parseDecorators(p);
-  const visibility: A.Visibility = p.match("kw_private") !== null ? "private" : "public";
+  const visibility: A.Visibility = p.match("kw_export") !== null ? "public" : "private";
 
   if (p.check("kw_import")) {
     return parseImportDecl(p, decorators);
@@ -332,7 +332,7 @@ function parseFnBodyTail(
 /** Same fn syntax used in trait member lists and impl bodies — body optional. */
 function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
   const decorators = parseDecorators(p);
-  const visibility: A.Visibility = p.match("kw_private") !== null ? "private" : "public";
+  const visibility: A.Visibility = p.match("kw_export") !== null ? "public" : "private";
   if (!p.check("kw_fn")) {
     const t = p.peek();
     p.error("P1006", t.span, `expected a function inside trait/impl (got ${describeToken(t)})`);
@@ -459,7 +459,7 @@ function parseStructDecl(
   p.skipNewlines();
   const fields: A.StructField[] = [];
   while (!p.check("rbrace") && !p.check("eof")) {
-    const fieldVisibility: A.Visibility = p.match("kw_private") !== null ? "private" : "public";
+    const fieldVisibility: A.Visibility = p.match("kw_export") !== null ? "public" : "private";
     const start = p.peek();
     const fname = p.expect("ident", "field name");
     p.expect("colon", "`:` after field name");

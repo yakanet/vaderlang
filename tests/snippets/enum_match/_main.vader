@@ -1,18 +1,18 @@
 import "std/io" { println }
 
-Color :: enum { Red, Green, Blue }
+export Color :: enum { Red, Green, Blue }
 
-Severity :: enum { Info, Warning, Error }
+export Severity :: enum { Info, Warning, Error }
 
 // enum as return type
-classify :: fn(n: i32) -> Severity {
+export classify :: fn(n: i32) -> Severity {
     if n < 0 { return .Error }
     if n == 0 { return .Warning }
     return .Info
 }
 
 // enum as parameter with dot-shorthand
-label :: fn(c: Color) -> string {
+export label :: fn(c: Color) -> string {
     match c {
         .Red   -> "red"
         .Green -> "green"
@@ -21,7 +21,7 @@ label :: fn(c: Color) -> string {
 }
 
 // enum equality (== and !=)
-same_color :: fn(a: Color, b: Color) -> bool {
+export same_color :: fn(a: Color, b: Color) -> bool {
     a == b
 }
 

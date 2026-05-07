@@ -14,7 +14,7 @@
             "kind": "NamedType",
             "name": "f64"
           },
-          "visibility": "public"
+          "visibility": "private"
         },
         {
           "name": "y",
@@ -22,7 +22,7 @@
             "kind": "NamedType",
             "name": "f64"
           },
-          "visibility": "public"
+          "visibility": "private"
         }
       ],
       "whereClauses": [],

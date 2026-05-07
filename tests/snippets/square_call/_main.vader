@@ -1,9 +1,9 @@
-square :: fn(x: i32) -> i32 {
+export square :: fn(x: i32) -> i32 {
     return x * x
 }
 
 @comptime
-NINE :: square(3)
+export NINE :: square(3)
 
 main :: fn() -> i32 {
     return NINE

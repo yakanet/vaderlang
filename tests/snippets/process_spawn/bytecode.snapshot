@@ -138,8 +138,8 @@ fn 3 std_process$spawn (ref) -> ref
   call.import 11   ; process.vader:39:13
   local.set 3   ; process.vader:39:5
   local.get 1   ; process.vader:40:8
-  i32.const 1   ; process.vader:10:25
-  i32.neg   ; process.vader:10:24
+  i32.const 1   ; process.vader:10:17
+  i32.neg   ; process.vader:10:16
   i32.eq   ; process.vader:40:8
   if void   ; process.vader:40:5
   intrinsic builder.new   ; process.vader:41:38
@@ -161,8 +161,8 @@ fn 3 std_process$spawn (ref) -> ref
   return   ; process.vader:41:9
   end   ; process.vader:40:5
   local.get 1   ; process.vader:43:8
-  i32.const 2   ; process.vader:11:25
-  i32.neg   ; process.vader:11:24
+  i32.const 2   ; process.vader:11:17
+  i32.neg   ; process.vader:11:16
   i32.eq   ; process.vader:43:8
   if void   ; process.vader:43:5
   intrinsic builder.new   ; process.vader:44:38

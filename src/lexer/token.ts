@@ -23,7 +23,7 @@ export type TokenKind =
   | "kw_fn" | "kw_struct" | "kw_trait" | "kw_implements" | "kw_impl" | "kw_enum"
   | "kw_if" | "kw_else" | "kw_match" | "kw_is" | "kw_for" | "kw_in"
   | "kw_return" | "kw_defer" | "kw_break" | "kw_continue"
-  | "kw_import" | "kw_as" | "kw_private"
+  | "kw_import" | "kw_as" | "kw_export"
   | "kw_true" | "kw_false" | "kw_null"
   | "kw_type" | "kw_where" | "kw_self"
 

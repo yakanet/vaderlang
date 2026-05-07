@@ -1,6 +1,6 @@
 import "std/io" { println }
 
-square :: fn(n: i32) -> i32 {
+export square :: fn(n: i32) -> i32 {
     return n * n
 }
 

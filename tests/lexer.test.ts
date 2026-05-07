@@ -56,7 +56,7 @@ describe("lexer — identifiers and keywords", () => {
       ["continue", "kw_continue"],
       ["import", "kw_import"],
       ["as", "kw_as"],
-      ["private", "kw_private"],
+      ["export", "kw_export"],
       ["true", "kw_true"],
       ["false", "kw_false"],
       ["null", "kw_null"],

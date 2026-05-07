@@ -1,6 +1,6 @@
 import "std/io" { println }
 
-Node :: struct($T) {
+export Node :: struct($T) {
     value: T
     next:  Node(T) | null
 }

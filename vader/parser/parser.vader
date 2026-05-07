@@ -14,13 +14,13 @@ import "vader/diagnostics/codes" { ParserCode }
 // Public entry
 // ============================================================================
 
-ParsedSource :: struct {
+export ParsedSource :: struct {
     program: Program
     tokens:  [Token]
     errors:  [Diagnostic]
 }
 
-parse_source :: fn(source: string, file: string) -> ParsedSource {
+export parse_source :: fn(source: string, file: string) -> ParsedSource {
     l :: tokenize(source, file)
     p := new_parser(l.tokens, file)
     // Carry lexer diagnostics through so the snapshot shows both phases.
@@ -37,7 +37,7 @@ parse_source :: fn(source: string, file: string) -> ParsedSource {
 // Parser state
 // ============================================================================
 
-Parser :: struct {
+export Parser :: struct {
     tokens: [Token]
     file:   string
     pos:    i32
@@ -46,7 +46,7 @@ Parser :: struct {
     allow_struct_lit: bool
 }
 
-private new_parser :: fn(tokens: [Token], file: string) = Parser {
+new_parser :: fn(tokens: [Token], file: string) = Parser {
     .tokens           = tokens,
     .file             = file,
     .pos              = 0,
@@ -56,13 +56,13 @@ private new_parser :: fn(tokens: [Token], file: string) = Parser {
 
 // ----------------------------------------------------------- token helpers
 
-private peek :: fn(p: Parser) -> Token {
+peek :: fn(p: Parser) -> Token {
     n :: p.tokens.len()
     if p.pos < n { return p.tokens[p.pos] }
     return p.tokens[n - 1]
 }
 
-private peek_at :: fn(p: Parser, offset: i32) -> Token {
+peek_at :: fn(p: Parser, offset: i32) -> Token {
     n :: p.tokens.len()
     i :: p.pos + offset
     if i < 0 { return p.tokens[0] }
@@ -70,15 +70,15 @@ private peek_at :: fn(p: Parser, offset: i32) -> Token {
     return p.tokens[n - 1]
 }
 
-private check :: fn(p: Parser, kind: TokenKind) -> bool {
+check :: fn(p: Parser, kind: TokenKind) -> bool {
     return p.peek().kind == kind
 }
 
-private check_at :: fn(p: Parser, kind: TokenKind, offset: i32) -> bool {
+check_at :: fn(p: Parser, kind: TokenKind, offset: i32) -> bool {
     return p.peek_at(offset).kind == kind
 }
 
-private advance :: fn(p: Parser) -> Token {
+advance :: fn(p: Parser) -> Token {
     t :: p.peek()
     if p.pos < p.tokens.len() - 1 {
         p.pos = p.pos + 1
@@ -88,12 +88,12 @@ private advance :: fn(p: Parser) -> Token {
 
 // Consume if matches ; return the token (or a synthetic eof one) and a bool.
 // Vader has no nullable Token return without a wrapper, so we use a result struct.
-private MatchResult :: struct {
+MatchResult :: struct {
     matched: bool
     token:   Token
 }
 
-private match_kind :: fn(p: Parser, kind: TokenKind) -> MatchResult {
+match_kind :: fn(p: Parser, kind: TokenKind) -> MatchResult {
     if p.check(kind) {
         t :: p.advance()
         return MatchResult { .matched = true, .token = t }
@@ -102,21 +102,21 @@ private match_kind :: fn(p: Parser, kind: TokenKind) -> MatchResult {
 }
 
 // `expect` emits a diagnostic on mismatch but does NOT advance ; mirrors TS.
-private expect :: fn(p: Parser, kind: TokenKind, what: string) -> Token {
+expect :: fn(p: Parser, kind: TokenKind, what: string) -> Token {
     if p.check(kind) { return p.advance() }
     t :: p.peek()
     p.error(.ExpectedToken, t.span, "expected ${what} (got ${describe_token(t)})")
     return t
 }
 
-private skip_newlines :: fn(p: Parser) -> void {
+skip_newlines :: fn(p: Parser) -> void {
     for p.check(.Newline) { p.pos = p.pos + 1 }
 }
 
 // Tokens that mark the boundary of a top-level item — used for recovery.
-private at_top_level_start :: fn(p: Parser) -> bool {
+at_top_level_start :: fn(p: Parser) -> bool {
     t :: p.peek()
-    if t.kind == .KwImport || t.kind == .KwPrivate { return true }
+    if t.kind == .KwImport || t.kind == .KwExport { return true }
     if t.kind == .Ident {
         next :: p.peek_at(1)
         if next.kind == .DeclConst || next.kind == .KwImplements { return true }
@@ -125,7 +125,7 @@ private at_top_level_start :: fn(p: Parser) -> bool {
     return false
 }
 
-private sync_to_top_level :: fn(p: Parser) -> void {
+sync_to_top_level :: fn(p: Parser) -> void {
     for p.peek().kind != .Eof && !p.at_top_level_start() {
         p.advance()
     }
@@ -133,17 +133,17 @@ private sync_to_top_level :: fn(p: Parser) -> void {
 
 // -------------------------------------------------------- error reporting
 
-private error :: fn(p: Parser, code: ParserCode, span: Span, detail: string) -> void {
+error :: fn(p: Parser, code: ParserCode, span: Span, detail: string) -> void {
     p.errors.push(parser_error(code, span, detail))
 }
 
-private span_of :: fn(p: Parser, start: Token, end: Token) -> Span {
+span_of :: fn(p: Parser, start: Token, end: Token) -> Span {
     return Span { .start = start.span.start, .end = end.span.end }
 }
 
 // ----------------------------------------------------------- describe_token
 
-describe_token :: fn(t: Token) -> string {
+export describe_token :: fn(t: Token) -> string {
     if t.kind == .Ident { return "`${t.text}`" }
     if t.kind == .IntLit || t.kind == .FloatLit { return t.text }
     if t.kind == .Newline { return "newline" }
@@ -156,7 +156,7 @@ describe_token :: fn(t: Token) -> string {
 // Program
 // ============================================================================
 
-private parse_program :: fn(p: Parser) -> Program {
+parse_program :: fn(p: Parser) -> Program {
     start_tok :: p.peek()
     decls: [Decl] = []
     p.skip_newlines()
@@ -187,11 +187,11 @@ private parse_program :: fn(p: Parser) -> Program {
 // Declarations
 // ============================================================================
 
-private parse_decl :: fn(p: Parser) -> Decl | null {
+parse_decl :: fn(p: Parser) -> Decl | null {
     decorators :: p.parse_decorators()
-    visibility: Visibility = .Public
-    if p.match_kind(.KwPrivate).matched {
-        visibility = .Private
+    visibility: Visibility = .Private
+    if p.match_kind(.KwExport).matched {
+        visibility = .Public
     }
 
     if p.check(.KwImport) {
@@ -209,7 +209,7 @@ private parse_decl :: fn(p: Parser) -> Decl | null {
     return null
 }
 
-private parse_decorators :: fn(p: Parser) -> [Decorator] {
+parse_decorators :: fn(p: Parser) -> [Decorator] {
     out: [Decorator] = []
     for p.check(.At) {
         at :: p.advance()
@@ -239,7 +239,7 @@ private parse_decorators :: fn(p: Parser) -> [Decorator] {
     return out
 }
 
-private parse_import_decl :: fn(p: Parser, decorators: [Decorator]) -> ImportDecl {
+parse_import_decl :: fn(p: Parser, decorators: [Decorator]) -> ImportDecl {
     start :: p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
     binding: ImportBinding = NamespaceImport {}
@@ -284,9 +284,9 @@ private parse_import_decl :: fn(p: Parser, decorators: [Decorator]) -> ImportDec
     }
 }
 
-private StringLitInfo :: struct { text: string, span: Span }
+StringLitInfo :: struct { text: string, span: Span }
 
-private expect_string_literal :: fn(p: Parser, what: string) -> StringLitInfo {
+expect_string_literal :: fn(p: Parser, what: string) -> StringLitInfo {
     if !p.check(.StringBegin) {
         t :: p.peek()
         p.error(.ExpectedToken, t.span, "expected ${what} (got ${describe_token(t)})")
@@ -317,7 +317,7 @@ private expect_string_literal :: fn(p: Parser, what: string) -> StringLitInfo {
     return StringLitInfo { .text = sb.to_string(), .span = p.span_of(begin, end_tok) }
 }
 
-private is_impl_decl :: fn(p: Parser) -> bool {
+is_impl_decl :: fn(p: Parser) -> bool {
     i := p.pos
     depth := 0
     n :: p.tokens.len()
@@ -333,7 +333,7 @@ private is_impl_decl :: fn(p: Parser) -> bool {
     return false
 }
 
-private parse_impl_decl :: fn(p: Parser, decorators: [Decorator]) -> ImplDecl {
+parse_impl_decl :: fn(p: Parser, decorators: [Decorator]) -> ImplDecl {
     start_tok :: p.peek()
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
@@ -390,13 +390,13 @@ private parse_impl_decl :: fn(p: Parser, decorators: [Decorator]) -> ImplDecl {
     }
 }
 
-private peek_is_classic_impl_body :: fn(p: Parser) -> bool {
+peek_is_classic_impl_body :: fn(p: Parser) -> bool {
     i := 1
     for p.peek_at(i).kind == .Newline { i = i + 1 }
     return p.peek_at(i).kind == .KwFn
 }
 
-private parse_sam_arrow_member :: fn(p: Parser) -> FnDecl {
+parse_sam_arrow_member :: fn(p: Parser) -> FnDecl {
     arrow_tok :: p.expect(.Arrow, "`->` to introduce a SAM impl body")
     expr :: p.parse_expr(0)
     span :: p.span_of(arrow_tok, p.peek_at(-1))
@@ -421,7 +421,7 @@ private parse_sam_arrow_member :: fn(p: Parser) -> FnDecl {
     }
 }
 
-private parse_sam_block_member :: fn(p: Parser) -> FnDecl {
+parse_sam_block_member :: fn(p: Parser) -> FnDecl {
     block :: p.parse_block()
     return FnDecl {
         .span                 = block.span,
@@ -439,7 +439,7 @@ private parse_sam_block_member :: fn(p: Parser) -> FnDecl {
     }
 }
 
-private parse_named_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility) -> Decl {
+parse_named_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility) -> Decl {
     name_tok :: p.advance()  // ident
     p.advance()              // `::`
 
@@ -451,7 +451,7 @@ private parse_named_decl :: fn(p: Parser, decorators: [Decorator], visibility: V
     return p.parse_const_decl(decorators, visibility, name_tok)
 }
 
-private parse_fn_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> FnDecl {
+parse_fn_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> FnDecl {
     p.advance()  // `fn`
     sig :: p.parse_fn_signature_params()
     return_type: TypeExpr | null = null
@@ -474,12 +474,12 @@ private parse_fn_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visi
     }
 }
 
-private FnBodyTail :: struct {
+FnBodyTail :: struct {
     body:                 BlockExpr | null
     is_expression_bodied: bool
 }
 
-private parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnBodyTail {
+parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnBodyTail {
     has_return_type :: match return_type {
         is null            -> false
         is NamedType       -> true
@@ -508,10 +508,10 @@ private parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnB
     return FnBodyTail { .body = null, .is_expression_bodied = false }
 }
 
-private parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
+parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     decorators :: p.parse_decorators()
-    visibility: Visibility = .Public
-    if p.match_kind(.KwPrivate).matched { visibility = .Private }
+    visibility: Visibility = .Private
+    if p.match_kind(.KwExport).matched { visibility = .Public }
     if !p.check(.KwFn) {
         t :: p.peek()
         p.error(.ExpectedDeclaration, t.span, "expected a function inside trait/impl (got ${describe_token(t)})")
@@ -541,12 +541,12 @@ private parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     }
 }
 
-private FnSignature :: struct {
+FnSignature :: struct {
     params:      [FnParam]
     type_params: [TypeParam]
 }
 
-private parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
+parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
     type_params: [TypeParam] = []
     params:      [FnParam]   = []
     p.expect(.LParen, "`(` after function name")
@@ -618,9 +618,9 @@ private parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
     return FnSignature { .params = params, .type_params = type_params }
 }
 
-private empty_token :: fn() = make_token(.Eof, "", empty_span(""))
+empty_token :: fn() = make_token(.Eof, "", empty_span(""))
 
-private parse_where_clauses :: fn(p: Parser) -> [WhereClause] {
+parse_where_clauses :: fn(p: Parser) -> [WhereClause] {
     if !p.match_kind(.KwWhere).matched { return [] }
     out: [WhereClause] = []
     for {
@@ -641,7 +641,7 @@ private parse_where_clauses :: fn(p: Parser) -> [WhereClause] {
     return out
 }
 
-private parse_struct_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> StructDecl {
+parse_struct_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> StructDecl {
     p.advance()  // `struct`
     type_params :: p.parse_struct_type_param_list()
     where_clauses :: p.parse_where_clauses()
@@ -649,8 +649,8 @@ private parse_struct_decl :: fn(p: Parser, decorators: [Decorator], visibility: 
     p.skip_newlines()
     fields: [StructField] = []
     for !p.check(.RBrace) && !p.check(.Eof) {
-        field_visibility: Visibility = .Public
-        if p.match_kind(.KwPrivate).matched { field_visibility = .Private }
+        field_visibility: Visibility = .Private
+        if p.match_kind(.KwExport).matched { field_visibility = .Public }
         start :: p.peek()
         fname :: p.expect(.Ident, "field name")
         p.expect(.Colon, "`:` after field name")
@@ -679,7 +679,7 @@ private parse_struct_decl :: fn(p: Parser, decorators: [Decorator], visibility: 
     }
 }
 
-private parse_struct_type_param_list :: fn(p: Parser) -> [TypeParam] {
+parse_struct_type_param_list :: fn(p: Parser) -> [TypeParam] {
     if !p.match_kind(.LParen).matched { return [] }
     out: [TypeParam] = []
     p.skip_newlines()
@@ -751,7 +751,7 @@ private parse_struct_type_param_list :: fn(p: Parser) -> [TypeParam] {
     return out
 }
 
-private parse_trait_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> TraitDecl {
+parse_trait_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> TraitDecl {
     p.advance()  // `trait`
     type_params :: p.parse_struct_type_param_list()
     p.expect(.LBrace, "`{` to open trait body")
@@ -777,7 +777,7 @@ private parse_trait_decl :: fn(p: Parser, decorators: [Decorator], visibility: V
     }
 }
 
-private parse_enum_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> EnumDecl {
+parse_enum_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> EnumDecl {
     p.advance()  // `enum`
     repr: TypeExpr | null = null
     parens :: p.match_kind(.LParen)
@@ -822,7 +822,7 @@ private parse_enum_decl :: fn(p: Parser, decorators: [Decorator], visibility: Vi
     }
 }
 
-private parse_type_alias_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> TypeAliasDecl {
+parse_type_alias_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> TypeAliasDecl {
     p.advance()  // `type`
     type_params :: p.parse_struct_type_param_list()
     aliased :: p.parse_type()
@@ -837,7 +837,7 @@ private parse_type_alias_decl :: fn(p: Parser, decorators: [Decorator], visibili
     }
 }
 
-private parse_const_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> ConstDecl {
+parse_const_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> ConstDecl {
     ty: TypeExpr | null = null
     if p.match_kind(.Colon).matched { ty = p.parse_type() }
     value :: p.parse_expr(0)
@@ -856,7 +856,7 @@ private parse_const_decl :: fn(p: Parser, decorators: [Decorator], visibility: V
 // Type expressions
 // ============================================================================
 
-private parse_type :: fn(p: Parser) -> TypeExpr {
+parse_type :: fn(p: Parser) -> TypeExpr {
     head := p.parse_type_primary()
     // `T!` desugars to `T | Error` (or `null | Error` for `void!`).
     if p.match_kind(.Bang).matched {
@@ -898,7 +898,7 @@ private parse_type :: fn(p: Parser) -> TypeExpr {
     return head
 }
 
-private parse_type_primary :: fn(p: Parser) -> TypeExpr {
+parse_type_primary :: fn(p: Parser) -> TypeExpr {
     t :: p.peek()
     if t.kind == .Dollar {
         p.advance()
@@ -958,7 +958,7 @@ private parse_type_primary :: fn(p: Parser) -> TypeExpr {
     return NamedType { .span = t.span, .name = "?" }
 }
 
-private parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
+parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
     start :: p.advance()  // `fn`
     p.expect(.LParen, "`(` after `fn` in function type")
     params: [TypeExpr] = []
@@ -983,7 +983,7 @@ private parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
 }
 
 // Walk a type and collect any inline `$T` introductions.
-private collect_type_params :: fn(t: TypeExpr, out: [TypeParam]) -> void {
+collect_type_params :: fn(t: TypeExpr, out: [TypeParam]) -> void {
     match t {
         is TypeParamType -> {
             // Dedupe by name.
@@ -1032,7 +1032,7 @@ private collect_type_params :: fn(t: TypeExpr, out: [TypeParam]) -> void {
 }
 
 // Helper : extract span from any TypeExpr variant.
-private type_span :: fn(t: TypeExpr) = match t {
+type_span :: fn(t: TypeExpr) = match t {
     is NamedType       -> t.span
     is UnionType       -> t.span
     is FnTypeExpr      -> t.span
@@ -1042,7 +1042,7 @@ private type_span :: fn(t: TypeExpr) = match t {
 }
 
 // Helper : extract span from any Expr variant.
-private expr_span :: fn(e: Expr) = match e {
+expr_span :: fn(e: Expr) = match e {
     is IntLitExpr      -> e.span
     is FloatLitExpr    -> e.span
     is BoolLitExpr     -> e.span
@@ -1069,7 +1069,7 @@ private expr_span :: fn(e: Expr) = match e {
 }
 
 // Helper : extract span from any Stmt variant.
-private stmt_span :: fn(s: Stmt) = match s {
+stmt_span :: fn(s: Stmt) = match s {
     is LetStmt      -> s.span
     is AssignStmt   -> s.span
     is ExprStmt     -> s.span
@@ -1084,7 +1084,7 @@ private stmt_span :: fn(s: Stmt) = match s {
 // Statements / blocks
 // ============================================================================
 
-private parse_block :: fn(p: Parser) -> BlockExpr {
+parse_block :: fn(p: Parser) -> BlockExpr {
     lb :: p.expect(.LBrace, "`{` to open block")
     p.skip_newlines()
     raw: [Stmt] = []
@@ -1168,7 +1168,7 @@ private parse_block :: fn(p: Parser) -> BlockExpr {
     }
 }
 
-private parse_stmt :: fn(p: Parser) -> Stmt | null {
+parse_stmt :: fn(p: Parser) -> Stmt | null {
     if p.check(.KwReturn)   { return p.parse_return() }
     if p.check(.KwFor)      { return p.parse_for(null) }
     if p.check(.KwBreak)    { return p.parse_break() }
@@ -1202,7 +1202,7 @@ private parse_stmt :: fn(p: Parser) -> Stmt | null {
     return ExprStmt { .span = expr_span(expr), .expr = expr }
 }
 
-private parse_typed_let :: fn(p: Parser) -> LetStmt {
+parse_typed_let :: fn(p: Parser) -> LetStmt {
     name_tok :: p.advance()  // ident
     p.advance()              // `:`
     ty :: p.parse_type()
@@ -1218,7 +1218,7 @@ private parse_typed_let :: fn(p: Parser) -> LetStmt {
     }
 }
 
-private parse_let :: fn(p: Parser) -> LetStmt {
+parse_let :: fn(p: Parser) -> LetStmt {
     name_tok :: p.advance()
     decl_tok :: p.advance()  // `::` or `:=`
     mutable :: decl_tok.kind == .DeclVar
@@ -1233,7 +1233,7 @@ private parse_let :: fn(p: Parser) -> LetStmt {
     }
 }
 
-private parse_return :: fn(p: Parser) -> ReturnStmt {
+parse_return :: fn(p: Parser) -> ReturnStmt {
     start :: p.advance()  // `return`
     value: Expr | null = null
     if !p.check(.Newline) && !p.check(.RBrace) && !p.check(.Eof) {
@@ -1245,7 +1245,7 @@ private parse_return :: fn(p: Parser) -> ReturnStmt {
     }
 }
 
-private parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
+parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
     start :: p.advance()  // `for`
 
     if p.check(.LBrace) {
@@ -1286,7 +1286,7 @@ private parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
     }
 }
 
-private parse_break :: fn(p: Parser) -> BreakStmt {
+parse_break :: fn(p: Parser) -> BreakStmt {
     start :: p.advance()
     label: string | null = null
     if p.check(.Ident) {
@@ -1298,7 +1298,7 @@ private parse_break :: fn(p: Parser) -> BreakStmt {
     }
 }
 
-private parse_continue :: fn(p: Parser) -> ContinueStmt {
+parse_continue :: fn(p: Parser) -> ContinueStmt {
     start :: p.advance()
     label: string | null = null
     if p.check(.Ident) {
@@ -1310,7 +1310,7 @@ private parse_continue :: fn(p: Parser) -> ContinueStmt {
     }
 }
 
-private parse_defer :: fn(p: Parser) -> DeferStmt {
+parse_defer :: fn(p: Parser) -> DeferStmt {
     start :: p.advance()
     body: DeferBody = DeferStmtBody { .stmt = ExprStmt { .span = start.span, .expr = NullLitExpr { .span = start.span } } }
     if p.check(.LBrace) {
@@ -1353,7 +1353,7 @@ private parse_defer :: fn(p: Parser) -> DeferStmt {
 //   mul     : 90
 //   postfix : 100
 
-private InfixOpDescr :: struct {
+InfixOpDescr :: struct {
     has:        bool
     left_bp:    i32
     right_bp:   i32
@@ -1361,11 +1361,11 @@ private InfixOpDescr :: struct {
     non_assoc:  bool
 }
 
-private no_infix :: fn() = InfixOpDescr { .has = false, .left_bp = 0, .right_bp = 0, .op = .Add, .non_assoc = false }
+no_infix :: fn() = InfixOpDescr { .has = false, .left_bp = 0, .right_bp = 0, .op = .Add, .non_assoc = false }
 
 // Range expressions don't fit BinaryOp ; we surface them via `op = Lt|Lte` on
 // the descriptor and let the caller swap to a RangeExpr at the right kind.
-private infix_for :: fn(k: TokenKind) = match k {
+infix_for :: fn(k: TokenKind) = match k {
     .OrOr      -> InfixOpDescr { .has = true, .left_bp = 10, .right_bp = 11, .op = .Or,     .non_assoc = false }
     .AndAnd    -> InfixOpDescr { .has = true, .left_bp = 12, .right_bp = 13, .op = .And,    .non_assoc = false }
     .Eq        -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .Eq,     .non_assoc = true  }
@@ -1434,7 +1434,7 @@ private infix_for :: fn(k: TokenKind) = match k {
     .KwContinue   -> no_infix()
     .KwImport     -> no_infix()
     .KwAs         -> no_infix()
-    .KwPrivate    -> no_infix()
+    .KwExport     -> no_infix()
     .KwTrue       -> no_infix()
     .KwFalse      -> no_infix()
     .KwNull       -> no_infix()
@@ -1444,7 +1444,7 @@ private infix_for :: fn(k: TokenKind) = match k {
 }
 
 // Postfix BP : `?` / `(` / `[` / `.` all bind at 100.
-private postfix_bp :: fn(k: TokenKind) = match k {
+postfix_bp :: fn(k: TokenKind) = match k {
     .Question -> 100
     .LParen   -> 100
     .LBracket -> 100
@@ -1513,7 +1513,7 @@ private postfix_bp :: fn(k: TokenKind) = match k {
     .KwContinue   -> -1
     .KwImport     -> -1
     .KwAs         -> -1
-    .KwPrivate    -> -1
+    .KwExport     -> -1
     .KwTrue       -> -1
     .KwFalse      -> -1
     .KwNull       -> -1
@@ -1522,7 +1522,7 @@ private postfix_bp :: fn(k: TokenKind) = match k {
     .KwSelf       -> -1
 }
 
-private parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
+parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
     left := p.parse_prefix()
     last_non_assoc_level := -1
 
@@ -1588,7 +1588,7 @@ private parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
     return left
 }
 
-private parse_prefix :: fn(p: Parser) -> Expr {
+parse_prefix :: fn(p: Parser) -> Expr {
     t :: p.peek()
     if t.kind == .IntLit {
         p.advance()
@@ -1672,7 +1672,7 @@ private parse_prefix :: fn(p: Parser) -> Expr {
     return NullLitExpr { .span = t.span }
 }
 
-private parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
+parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     if t.kind == .Question {
         p.advance()
         return TryExpr {
@@ -1711,7 +1711,7 @@ private parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     }
 }
 
-private parse_call_args :: fn(p: Parser) -> [CallArg] {
+parse_call_args :: fn(p: Parser) -> [CallArg] {
     out: [CallArg] = []
     p.skip_newlines()
     if p.check(.RParen) { return out }
@@ -1744,7 +1744,7 @@ private parse_call_args :: fn(p: Parser) -> [CallArg] {
     return out
 }
 
-private parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
+parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
     t :: p.advance()
     // Generic struct literal `Foo(T) { .field = ... }`.
     if p.allow_struct_lit && p.peek_is_generic_struct_lit() {
@@ -1789,7 +1789,7 @@ private parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
 }
 
 // Lookahead : `( <bal> ) {` followed by a `.<field>` struct-lit body?
-private peek_is_generic_struct_lit :: fn(p: Parser) -> bool {
+peek_is_generic_struct_lit :: fn(p: Parser) -> bool {
     n :: p.tokens.len()
     if p.pos >= n { return false }
     if p.tokens[p.pos].kind != .LParen { return false }
@@ -1816,7 +1816,7 @@ private peek_is_generic_struct_lit :: fn(p: Parser) -> bool {
     return looks_like_struct_lit_body(p.tokens, k)
 }
 
-private looks_like_struct_lit_body :: fn(tokens: [Token], pos_at_lbrace: i32) -> bool {
+looks_like_struct_lit_body :: fn(tokens: [Token], pos_at_lbrace: i32) -> bool {
     n :: tokens.len()
     i := pos_at_lbrace + 1
     for i < n {
@@ -1830,7 +1830,7 @@ private looks_like_struct_lit_body :: fn(tokens: [Token], pos_at_lbrace: i32) ->
     return false
 }
 
-private parse_struct_lit_fields :: fn(p: Parser) -> [StructLitField] {
+parse_struct_lit_fields :: fn(p: Parser) -> [StructLitField] {
     out: [StructLitField] = []
     p.skip_newlines()
     for !p.check(.RBrace) && !p.check(.Eof) {
@@ -1853,7 +1853,7 @@ private parse_struct_lit_fields :: fn(p: Parser) -> [StructLitField] {
     return out
 }
 
-private parse_paren :: fn(p: Parser) -> Expr {
+parse_paren :: fn(p: Parser) -> Expr {
     p.advance()  // `(`
     p.skip_newlines()
     saved_allow :: p.allow_struct_lit
@@ -1865,7 +1865,7 @@ private parse_paren :: fn(p: Parser) -> Expr {
     return expr
 }
 
-private parse_array_lit :: fn(p: Parser) -> ArrayLitExpr {
+parse_array_lit :: fn(p: Parser) -> ArrayLitExpr {
     lb :: p.advance()
     elements: [Expr] = []
     p.skip_newlines()
@@ -1886,7 +1886,7 @@ private parse_array_lit :: fn(p: Parser) -> ArrayLitExpr {
     }
 }
 
-private parse_string_lit :: fn(p: Parser) -> StringLitExpr {
+parse_string_lit :: fn(p: Parser) -> StringLitExpr {
     begin :: p.advance()  // string_begin
     parts: [StringLitPart] = []
     for !p.check(.StringEnd) && !p.check(.Eof) {
@@ -1924,7 +1924,7 @@ private parse_string_lit :: fn(p: Parser) -> StringLitExpr {
     }
 }
 
-private parse_if_expr :: fn(p: Parser) -> IfExpr {
+parse_if_expr :: fn(p: Parser) -> IfExpr {
     start :: p.advance()  // `if`
     saved_allow :: p.allow_struct_lit
     p.allow_struct_lit = false
@@ -1963,7 +1963,7 @@ private parse_if_expr :: fn(p: Parser) -> IfExpr {
     }
 }
 
-private parse_match_expr :: fn(p: Parser) -> MatchExpr {
+parse_match_expr :: fn(p: Parser) -> MatchExpr {
     start :: p.advance()  // `match`
     saved_allow :: p.allow_struct_lit
     p.allow_struct_lit = false
@@ -1986,7 +1986,7 @@ private parse_match_expr :: fn(p: Parser) -> MatchExpr {
     }
 }
 
-private parse_match_arm :: fn(p: Parser) -> MatchArm {
+parse_match_arm :: fn(p: Parser) -> MatchArm {
     start :: p.peek()
     pattern :: p.parse_pattern()
     guard: Expr | null = null
@@ -2006,7 +2006,7 @@ private parse_match_arm :: fn(p: Parser) -> MatchArm {
     }
 }
 
-private parse_lambda :: fn(p: Parser) -> LambdaExpr {
+parse_lambda :: fn(p: Parser) -> LambdaExpr {
     start :: p.advance()  // `fn`
     sig :: p.parse_fn_signature_params()
     return_type: TypeExpr | null = null
@@ -2024,7 +2024,7 @@ private parse_lambda :: fn(p: Parser) -> LambdaExpr {
 // Patterns
 // ============================================================================
 
-private parse_pattern :: fn(p: Parser) -> Pattern {
+parse_pattern :: fn(p: Parser) -> Pattern {
     t :: p.peek()
     if t.kind == .Dot {
         p.advance()
@@ -2065,7 +2065,7 @@ private parse_pattern :: fn(p: Parser) -> Pattern {
     return WildcardPattern { .span = t.span }
 }
 
-private parse_struct_pattern :: fn(p: Parser) -> StructPattern {
+parse_struct_pattern :: fn(p: Parser) -> StructPattern {
     start :: p.expect(.LBrace, "`{` to open struct pattern")
     p.skip_newlines()
     fields: [StructPatternField] = []
@@ -2099,6 +2099,6 @@ private parse_struct_pattern :: fn(p: Parser) -> StructPattern {
     }
 }
 
-private is_literal_start :: fn(t: Token) -> bool {
+is_literal_start :: fn(t: Token) -> bool {
     return (t.kind == .IntLit) || (t.kind == .FloatLit) || (t.kind == .CharLit) || (t.kind == .StringBegin) || (t.kind == .KwTrue) || (t.kind == .KwFalse) || (t.kind == .KwNull) || (t.kind == .Minus)
 }

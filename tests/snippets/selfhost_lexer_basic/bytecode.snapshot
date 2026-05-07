@@ -121,7 +121,7 @@ string 88 "kw_break"
 string 89 "kw_continue"
 string 90 "kw_import"
 string 91 "kw_as"
-string 92 "kw_private"
+string 92 "kw_export"
 string 93 "kw_false"
 string 94 "kw_null"
 string 95 "kw_type"
@@ -170,7 +170,7 @@ string 137 "break"
 string 138 "continue"
 string 139 "import"
 string 140 "as"
-string 141 "private"
+string 141 "export"
 string 142 "true"
 string 143 "false"
 string 144 "null"
@@ -1092,8 +1092,8 @@ end
 
 fn 8 vader_lexer$kind_name (u8) -> string
   local __scrut_0 u8
-  local.get 0   ; dump.vader:137:39
-  local.tee 1   ; dump.vader:137:39
+  local.get 0   ; dump.vader:137:46
+  local.tee 1   ; dump.vader:137:46
   i32.const 2   ; dump.vader:138:5
   u8.eq   ; dump.vader:138:5
   if string   ; dump.vader:138:5
@@ -1543,7 +1543,7 @@ fn 8 vader_lexer$kind_name (u8) -> string
   if string   ; dump.vader:216:5
   string.const 29   ; dump.vader:216:17
   else   ; dump.vader:216:5
-  unreachable   ; dump.vader:137:33
+  unreachable   ; dump.vader:137:40
   end   ; dump.vader:216:5
   end   ; dump.vader:215:5
   end   ; dump.vader:213:5
@@ -1619,7 +1619,7 @@ fn 8 vader_lexer$kind_name (u8) -> string
   end   ; dump.vader:140:5
   end   ; dump.vader:139:5
   end   ; dump.vader:138:5
-  return   ; dump.vader:137:33
+  return   ; dump.vader:137:40
 end
 
 fn 9 vader_lexer$format_diagnostic (ref,ref) -> void
@@ -1968,17 +1968,17 @@ fn 11 vader_lexer$is_int_suffix (string) -> bool
 end
 
 fn 12 vader_lexer$is_float_suffix (string) -> bool
-  local.get 0   ; keywords.vader:45:36
-  string.const 156   ; keywords.vader:45:41
-  string.eq   ; keywords.vader:45:36
-  if bool   ; keywords.vader:45:36
-  bool.const true   ; keywords.vader:45:36
-  else   ; keywords.vader:45:36
-  local.get 0   ; keywords.vader:45:50
-  string.const 157   ; keywords.vader:45:55
-  string.eq   ; keywords.vader:45:50
-  end   ; keywords.vader:45:36
-  return   ; keywords.vader:45:36
+  local.get 0   ; keywords.vader:45:43
+  string.const 156   ; keywords.vader:45:48
+  string.eq   ; keywords.vader:45:43
+  if bool   ; keywords.vader:45:43
+  bool.const true   ; keywords.vader:45:43
+  else   ; keywords.vader:45:43
+  local.get 0   ; keywords.vader:45:57
+  string.const 157   ; keywords.vader:45:62
+  string.eq   ; keywords.vader:45:57
+  end   ; keywords.vader:45:43
+  return   ; keywords.vader:45:43
 end
 
 fn 13 vader_lexer$new_lexer (string,string) -> ref
@@ -1992,8 +1992,8 @@ fn 13 vader_lexer$new_lexer (string,string) -> ref
   array.new 6 0   ; lexer.vader:57:15
   array.new 8 0   ; lexer.vader:58:15
   array.new 10 0   ; lexer.vader:59:21
-  struct.new 3   ; lexer.vader:49:57
-  return   ; lexer.vader:49:57
+  struct.new 3   ; lexer.vader:49:49
+  return   ; lexer.vader:49:49
 end
 
 fn 14 vader_lexer$is_ident_start (char) -> bool
@@ -2032,21 +2032,21 @@ fn 14 vader_lexer$is_ident_start (char) -> bool
 end
 
 fn 15 vader_lexer$is_ident_continue (char) -> bool
-  local.get 0   ; lexer.vader:67:44
-  call 14   ; lexer.vader:67:44
-  if bool   ; lexer.vader:67:44
-  bool.const true   ; lexer.vader:67:44
-  else   ; lexer.vader:67:44
-  local.get 0   ; lexer.vader:67:66
-  call 57   ; lexer.vader:67:66
-  end   ; lexer.vader:67:44
-  return   ; lexer.vader:67:44
+  local.get 0   ; lexer.vader:67:36
+  call 14   ; lexer.vader:67:36
+  if bool   ; lexer.vader:67:36
+  bool.const true   ; lexer.vader:67:36
+  else   ; lexer.vader:67:36
+  local.get 0   ; lexer.vader:67:58
+  call 57   ; lexer.vader:67:58
+  end   ; lexer.vader:67:36
+  return   ; lexer.vader:67:36
 end
 
 fn 16 vader_lexer$suppresses_newline_after (u8) -> bool
   local __scrut_0 u8
-  local.get 0   ; lexer.vader:71:62
-  local.tee 1   ; lexer.vader:71:62
+  local.get 0   ; lexer.vader:71:54
+  local.tee 1   ; lexer.vader:71:54
   i32.const 36   ; lexer.vader:72:5
   u8.eq   ; lexer.vader:72:5
   if bool   ; lexer.vader:72:5
@@ -2222,17 +2222,17 @@ fn 16 vader_lexer$suppresses_newline_after (u8) -> bool
   end   ; lexer.vader:74:5
   end   ; lexer.vader:73:5
   end   ; lexer.vader:72:5
-  return   ; lexer.vader:71:56
+  return   ; lexer.vader:71:48
 end
 
 fn 17 vader_lexer$at_end (ref) -> bool
-  local.get 0   ; lexer.vader:102:34
-  struct.get 3 2   ; lexer.vader:102:34
-  local.get 0   ; lexer.vader:102:43
-  struct.get 3 0   ; lexer.vader:102:43
-  call.import 9   ; lexer.vader:102:43
-  i32.ge   ; lexer.vader:102:34
-  return   ; lexer.vader:102:34
+  local.get 0   ; lexer.vader:102:26
+  struct.get 3 2   ; lexer.vader:102:26
+  local.get 0   ; lexer.vader:102:35
+  struct.get 3 0   ; lexer.vader:102:35
+  call.import 9   ; lexer.vader:102:35
+  i32.ge   ; lexer.vader:102:26
+  return   ; lexer.vader:102:26
 end
 
 fn 18 vader_lexer$peek (ref) -> char
@@ -5389,8 +5389,8 @@ fn 50 vader_lexer$make_token (u8,string,ref) -> ref
   local.get 2   ; token.vader:81:13
   null.const   ; token.vader:82:14
   string.const 120   ; token.vader:83:23
-  struct.new 11   ; token.vader:78:63
-  return   ; token.vader:78:63
+  struct.new 11   ; token.vader:78:70
+  return   ; token.vader:78:70
 end
 
 fn 51 vader_diagnostics_diagnostic_vader$make (i32,ref,ref,string) -> ref
@@ -5616,17 +5616,17 @@ fn 56 std_string$pad_end (string,i32,char) -> string
 end
 
 fn 57 std_string$is_digit (char) -> bool
-  local.get 0   ; string.vader:92:27
-  char.const 48   ; string.vader:92:32
-  char.ge   ; string.vader:92:27
-  if bool   ; string.vader:92:27
-  local.get 0   ; string.vader:92:39
-  char.const 57   ; string.vader:92:44
-  char.le   ; string.vader:92:39
-  else   ; string.vader:92:27
-  bool.const false   ; string.vader:92:27
-  end   ; string.vader:92:27
-  return   ; string.vader:92:27
+  local.get 0   ; string.vader:92:34
+  char.const 48   ; string.vader:92:39
+  char.ge   ; string.vader:92:34
+  if bool   ; string.vader:92:34
+  local.get 0   ; string.vader:92:46
+  char.const 57   ; string.vader:92:51
+  char.le   ; string.vader:92:46
+  else   ; string.vader:92:34
+  bool.const false   ; string.vader:92:34
+  end   ; string.vader:92:34
+  return   ; string.vader:92:34
 end
 
 fn 58 std_string$is_hex_digit (char) -> bool
@@ -6040,8 +6040,8 @@ end
 
 fn 69 vader_diagnostics_codes_vader$info (u8) -> ref
   local __scrut_0 u8
-  local.get 0   ; codes.vader:63:34
-  local.tee 1   ; codes.vader:63:34
+  local.get 0   ; codes.vader:63:41
+  local.tee 1   ; codes.vader:63:41
   i32.const 0   ; codes.vader:64:5
   u8.eq   ; codes.vader:64:5
   if ref   ; codes.vader:64:5
@@ -6121,7 +6121,7 @@ fn 69 vader_diagnostics_codes_vader$info (u8) -> ref
   string.const 237   ; codes.vader:73:78
   struct.new 26   ; codes.vader:73:41
   else   ; codes.vader:73:5
-  unreachable   ; codes.vader:63:28
+  unreachable   ; codes.vader:63:35
   end   ; codes.vader:73:5
   end   ; codes.vader:72:5
   end   ; codes.vader:71:5
@@ -6132,13 +6132,13 @@ fn 69 vader_diagnostics_codes_vader$info (u8) -> ref
   end   ; codes.vader:66:5
   end   ; codes.vader:65:5
   end   ; codes.vader:64:5
-  return   ; codes.vader:63:28
+  return   ; codes.vader:63:35
 end
 
 fn 70 vader_diagnostics_codes_vader$parser_info (u8) -> ref
   local __scrut_0 u8
-  local.get 0   ; codes.vader:76:42
-  local.tee 1   ; codes.vader:76:42
+  local.get 0   ; codes.vader:76:49
+  local.tee 1   ; codes.vader:76:49
   i32.const 0   ; codes.vader:77:5
   u8.eq   ; codes.vader:77:5
   if ref   ; codes.vader:77:5
@@ -6298,7 +6298,7 @@ fn 70 vader_diagnostics_codes_vader$parser_info (u8) -> ref
   string.const 277   ; codes.vader:96:81
   struct.new 26   ; codes.vader:96:44
   else   ; codes.vader:96:5
-  unreachable   ; codes.vader:76:36
+  unreachable   ; codes.vader:76:43
   end   ; codes.vader:96:5
   end   ; codes.vader:95:5
   end   ; codes.vader:94:5
@@ -6319,5 +6319,5 @@ fn 70 vader_diagnostics_codes_vader$parser_info (u8) -> ref
   end   ; codes.vader:79:5
   end   ; codes.vader:78:5
   end   ; codes.vader:77:5
-  return   ; codes.vader:76:36
+  return   ; codes.vader:76:43
 end
