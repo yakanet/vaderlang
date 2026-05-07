@@ -10,6 +10,10 @@
   "categories": [
     "Programming Languages"
   ],
+  "scripts": {
+    "sync": "cp ../common/vader.tmLanguage.json syntaxes/vader.tmLanguage.json && cp ../common/language-configuration.json language-configuration.json",
+    "vscode:prepublish": "npm run sync"
+  },
   "contributes": {
     "languages": [
       {

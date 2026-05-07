@@ -1,0 +1,24 @@
+{
+  "name": "vader",
+  "displayName": "Vader",
+  "version": "0.1.0",
+  "publisher": "vaderlang",
+  "engines": { "vscode": "^1.75.0" },
+  "contributes": {
+    "languages": [
+      {
+        "id": "vader",
+        "aliases": ["Vader", "vader"],
+        "extensions": [".vader"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vader",
+        "scopeName": "source.vader",
+        "path": "./syntaxes/vader.tmLanguage.json"
+      }
+    ]
+  }
+}

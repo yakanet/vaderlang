@@ -1,0 +1,17 @@
+<idea-plugin>
+    <id>dev.vaderlang.vader</id>
+    <name>Vader</name>
+    <vendor email="mbroutin@sedona.fr" url="https://github.com/vaderlang">vaderlang</vendor>
+
+    <description><![CDATA[
+        Syntax highlighting for the <a href="https://github.com/vaderlang">Vader</a> programming language.<br>
+        Powered by the bundled TextMate plugin — the grammar is shared with the official VS Code extension.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.plugins.textmate</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <textmate.bundleProvider implementation="dev.vaderlang.intellij.VaderBundleProvider"/>
+    </extensions>
+</idea-plugin>
