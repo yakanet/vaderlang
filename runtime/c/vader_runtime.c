@@ -628,8 +628,10 @@ vader_string_t vader_string_concat_all(vader_array_t* parts) {
 
 /* ----------------------------------------------------------------- I/O */
 
-void vader_print(vader_string_t s)   { fwrite(s.ptr, 1, s.len, stdout); fflush(stdout); }
-void vader_println(vader_string_t s) { fwrite(s.ptr, 1, s.len, stdout); fputc('\n', stdout); fflush(stdout); }
+void vader_print(vader_string_t s)    { fwrite(s.ptr, 1, s.len, stdout); fflush(stdout); }
+void vader_println(vader_string_t s)  { fwrite(s.ptr, 1, s.len, stdout); fputc('\n', stdout); fflush(stdout); }
+void vader_eprint(vader_string_t s)   { fwrite(s.ptr, 1, s.len, stderr); fflush(stderr); }
+void vader_eprintln(vader_string_t s) { fwrite(s.ptr, 1, s.len, stderr); fputc('\n', stderr); fflush(stderr); }
 
 /* Tag-aware variants — the emitter passes the BcType indices for the success
  * and error variants. Caller-side boxing keeps the runtime tag-agnostic. */

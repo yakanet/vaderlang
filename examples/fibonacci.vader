@@ -3,19 +3,19 @@ import "std/io" { println }
 /**
  * Simple implementation of fibonacci numbers
  */
-fibonacci :: fn(n: u64) -> u64 {
-     a := 0u64
-     b := 1u64
-     for i in 0..<n {
-         c :: a + b
-         a = b
-         b = c
-     }
-     return a
+fibonacci :: fn(n: i32) -> u64 {
+    a := 0_u64
+    b := 1_u64
+    for i in 0..<n {
+        c :: a + b
+        a = b
+        b = c
+    }
+    return a
 }
 
 main :: fn() -> i32 {
-    n :: 50u64
+    n :: 50
     defer println("Fibonacci numbers: $n")
     println("fibonacci($n): ${fibonacci(n)}")
     return 0

@@ -264,6 +264,8 @@ vader_string_t   vader_builder_finish(vader_builder_t* b);
 
 void           vader_print(vader_string_t s);
 void           vader_println(vader_string_t s);
+void           vader_eprint(vader_string_t s);
+void           vader_eprintln(vader_string_t s);
 vader_box_t    vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_tag);
 vader_box_t    vader_write_file(vader_string_t path, vader_string_t content,
                                 uint32_t ok_tag, uint32_t err_tag);

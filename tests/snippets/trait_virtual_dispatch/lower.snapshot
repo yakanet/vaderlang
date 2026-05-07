@@ -14,7 +14,7 @@
         @builder.append_display <for string> :void
           __sb_0#-1 :?
           .msg :string
-            self#58 :ParseErr
+            self#60 :ParseErr
         ~>
           @builder.finish :string
             __sb_0#-1 :?
@@ -29,14 +29,14 @@
         @builder.append_display <for string> :void
           __sb_0#-2 :?
           .reason :string
-            self#59 :NetErr
+            self#61 :NetErr
         ~>
           @builder.finish :string
             __sb_0#-2 :?
   fn tests_snippets_trait_virtual_dispatch__main_vader$report(e: Error) -> string
     return
       block :string
-        let __vdisp_0#-3: Error = e#60 :Error
+        let __vdisp_0#-3: Error = e#62 :Error
         ~>
           if :string
             cond:

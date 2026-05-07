@@ -18,23 +18,25 @@ string 9 "count="
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 print std_io$print (string) -> void
 import 2 println std_io$println (string) -> void
-import 3 read_line std_io$read_line () -> ref
-import 4 read_file std_io$read_file (string) -> ref
-import 5 write_file std_io$write_file (string,string) -> ref
-import 6 exists std_io$exists (string) -> bool
-import 7 len std_string$len (string) -> i32
-import 8 slice std_string$slice (string,i32,i32) -> string
-import 9 contains std_string$contains (string,string) -> bool
-import 10 starts_with std_string$starts_with (string,string) -> bool
-import 11 ends_with std_string$ends_with (string,string) -> bool
-import 12 char_at std_string$char_at (string,i32) -> char
-import 13 split std_string$split (string,string) -> ref
-import 14 trim std_string$trim (string) -> string
-import 15 to_upper std_string$to_upper (string) -> string
-import 16 to_lower std_string$to_lower (string) -> string
-import 17 parse_int std_string$parse_int (string) -> ref
-import 18 parse_float std_string$parse_float (string) -> ref
-import 19 concat_all std_string_builder$concat_all (ref) -> string
+import 3 eprint std_io$eprint (string) -> void
+import 4 eprintln std_io$eprintln (string) -> void
+import 5 read_line std_io$read_line () -> ref
+import 6 read_file std_io$read_file (string) -> ref
+import 7 write_file std_io$write_file (string,string) -> ref
+import 8 exists std_io$exists (string) -> bool
+import 9 len std_string$len (string) -> i32
+import 10 slice std_string$slice (string,i32,i32) -> string
+import 11 contains std_string$contains (string,string) -> bool
+import 12 starts_with std_string$starts_with (string,string) -> bool
+import 13 ends_with std_string$ends_with (string,string) -> bool
+import 14 char_at std_string$char_at (string,i32) -> char
+import 15 split std_string$split (string,string) -> ref
+import 16 trim std_string$trim (string) -> string
+import 17 to_upper std_string$to_upper (string) -> string
+import 18 to_lower std_string$to_lower (string) -> string
+import 19 parse_int std_string$parse_int (string) -> ref
+import 20 parse_float std_string$parse_float (string) -> ref
+import 21 concat_all std_string_builder$concat_all (ref) -> string
 
 fn 0 tests_snippets_regex_helpers__main_vader$is_non_id (char) -> bool
   local.get 0   ; _main.vader:7:8
@@ -188,16 +190,16 @@ end
 fn 3 std_string$trim_suffix (string,string) -> string
   local.get 0   ; string.vader:109:8
   local.get 1   ; string.vader:109:20
-  call.import 11   ; string.vader:109:8
+  call.import 13   ; string.vader:109:8
   if void   ; string.vader:109:5
   local.get 0   ; string.vader:110:16
   i32.const 0   ; string.vader:110:24
   local.get 0   ; string.vader:110:27
-  call.import 7   ; string.vader:110:27
+  call.import 9   ; string.vader:110:27
   local.get 1   ; string.vader:110:37
-  call.import 7   ; string.vader:110:37
+  call.import 9   ; string.vader:110:37
   i32.sub   ; string.vader:110:27
-  call.import 8   ; string.vader:110:16
+  call.import 10   ; string.vader:110:16
   return   ; string.vader:110:9
   end   ; string.vader:109:5
   local.get 0   ; string.vader:112:12
@@ -207,14 +209,14 @@ end
 fn 4 std_string$trim_prefix (string,string) -> string
   local.get 0   ; string.vader:117:8
   local.get 1   ; string.vader:117:22
-  call.import 10   ; string.vader:117:8
+  call.import 12   ; string.vader:117:8
   if void   ; string.vader:117:5
   local.get 0   ; string.vader:118:16
   local.get 1   ; string.vader:118:24
-  call.import 7   ; string.vader:118:24
+  call.import 9   ; string.vader:118:24
   local.get 0   ; string.vader:118:38
-  call.import 7   ; string.vader:118:38
-  call.import 8   ; string.vader:118:16
+  call.import 9   ; string.vader:118:38
+  call.import 10   ; string.vader:118:16
   return   ; string.vader:118:9
   end   ; string.vader:117:5
   local.get 0   ; string.vader:120:12
@@ -229,7 +231,7 @@ fn 5 std_string$replace_chars_where (string,ref,string) -> string
   call 7   ; string.vader:126:11
   local.set 3   ; string.vader:126:5
   local.get 0   ; string.vader:127:10
-  call.import 7   ; string.vader:127:10
+  call.import 9   ; string.vader:127:10
   local.set 4   ; string.vader:127:5
   i32.const 0   ; string.vader:128:10
   local.set 5   ; string.vader:128:5
@@ -241,7 +243,7 @@ fn 5 std_string$replace_chars_where (string,ref,string) -> string
   br_if 1   ; string.vader:129:9
   local.get 0   ; string.vader:130:14
   local.get 5   ; string.vader:130:24
-  call.import 12   ; string.vader:130:14
+  call.import 14   ; string.vader:130:14
   local.tee 6   ; string.vader:130:9
   local.get 1   ; string.vader:131:12
   call.indirect 3   ; string.vader:131:12
@@ -280,7 +282,7 @@ fn 6 std_string$split_whitespace (string) -> ref
   bool.const false   ; string.vader:145:20
   local.set 3   ; string.vader:145:5
   local.get 0   ; string.vader:146:10
-  call.import 7   ; string.vader:146:10
+  call.import 9   ; string.vader:146:10
   local.set 4   ; string.vader:146:5
   i32.const 0   ; string.vader:147:10
   local.set 5   ; string.vader:147:5
@@ -292,7 +294,7 @@ fn 6 std_string$split_whitespace (string) -> ref
   br_if 1   ; string.vader:148:9
   local.get 0   ; string.vader:149:14
   local.get 5   ; string.vader:149:24
-  call.import 12   ; string.vader:149:14
+  call.import 14   ; string.vader:149:14
   local.tee 6   ; string.vader:149:9
   call 2   ; string.vader:150:12
   if void   ; string.vader:150:9
@@ -361,6 +363,6 @@ end
 fn 10 std_string_builder$to_string (ref) -> string
   local.get 0   ; string_builder.vader:34:23
   struct.get 0 0   ; string_builder.vader:34:23
-  call.import 19   ; string_builder.vader:34:12
+  call.import 21   ; string_builder.vader:34:12
   return   ; string_builder.vader:34:5
 end

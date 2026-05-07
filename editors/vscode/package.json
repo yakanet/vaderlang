@@ -1,0 +1,35 @@
+{
+  "name": "vader",
+  "displayName": "Vader",
+  "description": "Syntax highlighting for the Vader programming language",
+  "version": "0.1.0",
+  "publisher": "vaderlang",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "vader",
+        "aliases": [
+          "Vader",
+          "vader"
+        ],
+        "extensions": [
+          ".vader"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vader",
+        "scopeName": "source.vader",
+        "path": "./syntaxes/vader.tmLanguage.json"
+      }
+    ]
+  }
+}

@@ -157,6 +157,27 @@ Snapshot tests live under `tests/snapshots/<phase>/<scenario>/` — each scenari
 
 ---
 
+## Editor support
+
+A minimal VS Code extension lives under [`editors/vscode/`](./editors/vscode/) — syntax highlighting for `.vader`, comment toggling, bracket matching. Install it locally from the repo:
+
+```sh
+# Symlink into VS Code's extensions folder, then reload the window
+ln -s "$PWD/editors/vscode" ~/.vscode/extensions/vader-0.1.0
+```
+
+Or package it as a `.vsix` with [`vsce`](https://github.com/microsoft/vscode-vsce):
+
+```sh
+npm install -g @vscode/vsce
+cd editors/vscode && vsce package
+code --install-extension vader-0.1.0.vsix
+```
+
+After install, reload the window (`Cmd+Shift+P` → *Developer: Reload Window*). See [`editors/vscode/README.md`](./editors/vscode/README.md) for details.
+
+---
+
 ## Contributing
 
 This is a personal hobby project for now (single-author, exploratory). The codebase follows a few conventions worth knowing if you read or contribute:

@@ -270,23 +270,25 @@ string 237 "interpolation expression must follow `${`"
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 print std_io$print (string) -> void
 import 2 println std_io$println (string) -> void
-import 3 read_line std_io$read_line () -> ref
-import 4 read_file std_io$read_file (string) -> ref
-import 5 write_file std_io$write_file (string,string) -> ref
-import 6 exists std_io$exists (string) -> bool
-import 7 len std_string$len (string) -> i32
-import 8 slice std_string$slice (string,i32,i32) -> string
-import 9 contains std_string$contains (string,string) -> bool
-import 10 starts_with std_string$starts_with (string,string) -> bool
-import 11 ends_with std_string$ends_with (string,string) -> bool
-import 12 char_at std_string$char_at (string,i32) -> char
-import 13 split std_string$split (string,string) -> ref
-import 14 trim std_string$trim (string) -> string
-import 15 to_upper std_string$to_upper (string) -> string
-import 16 to_lower std_string$to_lower (string) -> string
-import 17 parse_int std_string$parse_int (string) -> ref
-import 18 parse_float std_string$parse_float (string) -> ref
-import 19 concat_all std_string_builder$concat_all (ref) -> string
+import 3 eprint std_io$eprint (string) -> void
+import 4 eprintln std_io$eprintln (string) -> void
+import 5 read_line std_io$read_line () -> ref
+import 6 read_file std_io$read_file (string) -> ref
+import 7 write_file std_io$write_file (string,string) -> ref
+import 8 exists std_io$exists (string) -> bool
+import 9 len std_string$len (string) -> i32
+import 10 slice std_string$slice (string,i32,i32) -> string
+import 11 contains std_string$contains (string,string) -> bool
+import 12 starts_with std_string$starts_with (string,string) -> bool
+import 13 ends_with std_string$ends_with (string,string) -> bool
+import 14 char_at std_string$char_at (string,i32) -> char
+import 15 split std_string$split (string,string) -> ref
+import 16 trim std_string$trim (string) -> string
+import 17 to_upper std_string$to_upper (string) -> string
+import 18 to_lower std_string$to_lower (string) -> string
+import 19 parse_int std_string$parse_int (string) -> ref
+import 20 parse_float std_string$parse_float (string) -> ref
+import 21 concat_all std_string_builder$concat_all (ref) -> string
 
 fn 0 tests_snippets_selfhost_lexer_basic__main_vader$kind_name (u8) -> string
   local __scrut_0 u8
@@ -852,7 +854,7 @@ fn 6 vader_lexer$append_token_detail (ref,ref) -> void
   call 66   ; dump.vader:68:13
   local.get 1   ; dump.vader:69:16
   struct.get 11 4   ; dump.vader:69:16
-  call.import 7   ; dump.vader:69:16
+  call.import 9   ; dump.vader:69:16
   i32.const 0   ; dump.vader:69:41
   i32.gt   ; dump.vader:69:16
   if void   ; dump.vader:69:13
@@ -894,7 +896,7 @@ fn 6 vader_lexer$append_token_detail (ref,ref) -> void
   end   ; dump.vader:78:17
   local.get 1   ; dump.vader:81:16
   struct.get 11 4   ; dump.vader:81:16
-  call.import 7   ; dump.vader:81:16
+  call.import 9   ; dump.vader:81:16
   i32.const 0   ; dump.vader:81:41
   i32.gt   ; dump.vader:81:16
   if void   ; dump.vader:81:13
@@ -972,7 +974,7 @@ fn 7 vader_lexer$quote_simple (string) -> string
   char.const 34   ; dump.vader:116:20
   call 66   ; dump.vader:116:5
   local.get 0   ; dump.vader:117:10
-  call.import 7   ; dump.vader:117:10
+  call.import 9   ; dump.vader:117:10
   local.set 2   ; dump.vader:117:5
   i32.const 0   ; dump.vader:118:10
   local.set 3   ; dump.vader:118:5
@@ -984,7 +986,7 @@ fn 7 vader_lexer$quote_simple (string) -> string
   br_if 1   ; dump.vader:119:9
   local.get 0   ; dump.vader:120:14
   local.get 3   ; dump.vader:120:24
-  call.import 12   ; dump.vader:120:14
+  call.import 14   ; dump.vader:120:14
   local.tee 4   ; dump.vader:120:9
   char.const 34   ; dump.vader:121:17
   char.eq   ; dump.vader:121:12
@@ -1632,7 +1634,7 @@ fn 9 vader_lexer$format_diagnostic (ref,ref) -> void
   local.set 6   ; dump.vader:226:5
   local.get 1   ; dump.vader:227:8
   struct.get 20 2   ; dump.vader:227:8
-  call.import 7   ; dump.vader:227:8
+  call.import 9   ; dump.vader:227:8
   i32.const 0   ; dump.vader:227:25
   i32.gt   ; dump.vader:227:8
   if void   ; dump.vader:227:5
@@ -2191,7 +2193,7 @@ fn 17 vader_lexer$at_end (ref) -> bool
   struct.get 3 2   ; lexer.vader:102:26
   local.get 0   ; lexer.vader:102:35
   struct.get 3 0   ; lexer.vader:102:35
-  call.import 7   ; lexer.vader:102:35
+  call.import 9   ; lexer.vader:102:35
   i32.ge   ; lexer.vader:102:26
   return   ; lexer.vader:102:26
 end
@@ -2201,7 +2203,7 @@ fn 18 vader_lexer$peek (ref) -> char
   struct.get 3 2   ; lexer.vader:105:8
   local.get 0   ; lexer.vader:105:17
   struct.get 3 0   ; lexer.vader:105:17
-  call.import 7   ; lexer.vader:105:17
+  call.import 9   ; lexer.vader:105:17
   i32.ge   ; lexer.vader:105:8
   if void   ; lexer.vader:105:5
   char.const 0   ; lexer.vader:106:16
@@ -2211,7 +2213,7 @@ fn 18 vader_lexer$peek (ref) -> char
   struct.get 3 0   ; lexer.vader:108:12
   local.get 0   ; lexer.vader:108:26
   struct.get 3 2   ; lexer.vader:108:26
-  call.import 12   ; lexer.vader:108:12
+  call.import 14   ; lexer.vader:108:12
   return   ; lexer.vader:108:5
 end
 
@@ -2224,7 +2226,7 @@ fn 19 vader_lexer$peek_at (ref,i32) -> char
   local.tee 2   ; lexer.vader:112:5
   local.get 0   ; lexer.vader:113:13
   struct.get 3 0   ; lexer.vader:113:13
-  call.import 7   ; lexer.vader:113:13
+  call.import 9   ; lexer.vader:113:13
   i32.ge   ; lexer.vader:113:8
   if void   ; lexer.vader:113:5
   char.const 0   ; lexer.vader:114:16
@@ -2233,7 +2235,7 @@ fn 19 vader_lexer$peek_at (ref,i32) -> char
   local.get 0   ; lexer.vader:116:12
   struct.get 3 0   ; lexer.vader:116:12
   local.get 2   ; lexer.vader:116:26
-  call.import 12   ; lexer.vader:116:12
+  call.import 14   ; lexer.vader:116:12
   return   ; lexer.vader:116:5
 end
 
@@ -2265,7 +2267,7 @@ fn 21 vader_lexer$advance (ref,i32) -> void
   struct.get 3 2   ; lexer.vader:125:12
   local.get 0   ; lexer.vader:125:21
   struct.get 3 0   ; lexer.vader:125:21
-  call.import 7   ; lexer.vader:125:21
+  call.import 9   ; lexer.vader:125:21
   i32.ge   ; lexer.vader:125:12
   if void   ; lexer.vader:125:9
   return   ; lexer.vader:126:13
@@ -2274,7 +2276,7 @@ fn 21 vader_lexer$advance (ref,i32) -> void
   struct.get 3 0   ; lexer.vader:128:14
   local.get 0   ; lexer.vader:128:28
   struct.get 3 2   ; lexer.vader:128:28
-  call.import 12   ; lexer.vader:128:14
+  call.import 14   ; lexer.vader:128:14
   local.tee 3   ; lexer.vader:128:9
   char.const 10   ; lexer.vader:129:17
   char.eq   ; lexer.vader:129:12
@@ -2593,7 +2595,7 @@ fn 29 vader_lexer$lex_ident (ref) -> void
   struct.get 18 1   ; lexer.vader:227:25
   local.get 0   ; lexer.vader:227:39
   struct.get 3 2   ; lexer.vader:227:39
-  call.import 8   ; lexer.vader:227:13
+  call.import 10   ; lexer.vader:227:13
   local.tee 2   ; lexer.vader:227:5
   call 10   ; lexer.vader:228:11
   local.set 3   ; lexer.vader:228:5
@@ -2654,7 +2656,7 @@ fn 30 vader_lexer$read_numeric_suffix (ref) -> string
   local.get 2   ; lexer.vader:244:28
   local.get 0   ; lexer.vader:244:40
   struct.get 3 2   ; lexer.vader:244:40
-  call.import 8   ; lexer.vader:244:16
+  call.import 10   ; lexer.vader:244:16
   return   ; lexer.vader:244:9
   end   ; lexer.vader:238:5
   local.get 0   ; lexer.vader:246:8
@@ -2686,7 +2688,7 @@ fn 30 vader_lexer$read_numeric_suffix (ref) -> string
   local.get 1   ; lexer.vader:250:28
   local.get 0   ; lexer.vader:250:35
   struct.get 3 2   ; lexer.vader:250:35
-  call.import 8   ; lexer.vader:250:16
+  call.import 10   ; lexer.vader:250:16
   return   ; lexer.vader:250:9
   end   ; lexer.vader:246:5
   string.const 120   ; lexer.vader:252:12
@@ -2965,7 +2967,7 @@ fn 32 vader_lexer$lex_number (ref) -> void
   local.get 0   ; lexer.vader:338:15
   call 30   ; lexer.vader:338:15
   local.tee 6   ; lexer.vader:338:5
-  call.import 7   ; lexer.vader:339:19
+  call.import 9   ; lexer.vader:339:19
   i32.const 0   ; lexer.vader:339:34
   i32.gt   ; lexer.vader:339:19
   local.tee 7   ; lexer.vader:339:5
@@ -3052,7 +3054,7 @@ fn 32 vader_lexer$lex_number (ref) -> void
   struct.get 18 1   ; lexer.vader:351:25
   local.get 0   ; lexer.vader:351:39
   struct.get 3 2   ; lexer.vader:351:39
-  call.import 8   ; lexer.vader:351:13
+  call.import 10   ; lexer.vader:351:13
   local.set 10   ; lexer.vader:351:5
   local.get 1   ; lexer.vader:352:29
   local.get 0   ; lexer.vader:352:43
@@ -3115,14 +3117,14 @@ fn 33 vader_lexer$strip_numeric_text (string,i32,string) -> string
   end   ; lexer.vader:375:14
   local.set 3   ; lexer.vader:375:5
   local.get 2   ; lexer.vader:376:19
-  call.import 7   ; lexer.vader:376:19
+  call.import 9   ; lexer.vader:376:19
   i32.const 0   ; lexer.vader:376:34
   i32.gt   ; lexer.vader:376:19
   local.set 4   ; lexer.vader:376:5
   local.get 0   ; lexer.vader:377:22
-  call.import 7   ; lexer.vader:377:22
+  call.import 9   ; lexer.vader:377:22
   local.get 2   ; lexer.vader:377:35
-  call.import 7   ; lexer.vader:377:35
+  call.import 9   ; lexer.vader:377:35
   i32.sub   ; lexer.vader:377:22
   local.set 5   ; lexer.vader:377:5
   local.get 4   ; lexer.vader:378:15
@@ -3138,7 +3140,7 @@ fn 33 vader_lexer$strip_numeric_text (string,i32,string) -> string
   local.get 5   ; lexer.vader:378:67
   i32.const 1   ; lexer.vader:378:83
   i32.sub   ; lexer.vader:378:67
-  call.import 12   ; lexer.vader:378:54
+  call.import 14   ; lexer.vader:378:54
   char.const 95   ; lexer.vader:378:89
   char.eq   ; lexer.vader:378:54
   else   ; lexer.vader:378:15
@@ -3158,7 +3160,7 @@ fn 33 vader_lexer$strip_numeric_text (string,i32,string) -> string
   if bool   ; lexer.vader:385:8
   local.get 6   ; lexer.vader:385:22
   local.get 0   ; lexer.vader:385:29
-  call.import 7   ; lexer.vader:385:29
+  call.import 9   ; lexer.vader:385:29
   i32.eq   ; lexer.vader:385:22
   else   ; lexer.vader:385:8
   bool.const false   ; lexer.vader:385:8
@@ -3166,7 +3168,7 @@ fn 33 vader_lexer$strip_numeric_text (string,i32,string) -> string
   if bool   ; lexer.vader:385:8
   local.get 0   ; lexer.vader:385:44
   string.const 166   ; lexer.vader:385:58
-  call.import 9   ; lexer.vader:385:44
+  call.import 11   ; lexer.vader:385:44
   bool.not   ; lexer.vader:385:43
   else   ; lexer.vader:385:8
   bool.const false   ; lexer.vader:385:8
@@ -3187,7 +3189,7 @@ fn 33 vader_lexer$strip_numeric_text (string,i32,string) -> string
   br_if 1   ; lexer.vader:390:9
   local.get 0   ; lexer.vader:391:14
   local.get 8   ; lexer.vader:391:27
-  call.import 12   ; lexer.vader:391:14
+  call.import 14   ; lexer.vader:391:14
   local.tee 9   ; lexer.vader:391:9
   char.const 95   ; lexer.vader:392:17
   char.ne   ; lexer.vader:392:12
@@ -3243,7 +3245,7 @@ fn 35 vader_lexer$decode_float_literal (string,string) -> f64
   i32.const 10   ; lexer.vader:411:40
   local.get 1   ; lexer.vader:411:44
   call 33   ; lexer.vader:411:15
-  call.import 18   ; lexer.vader:411:15
+  call.import 20   ; lexer.vader:411:15
   local.tee 2   ; lexer.vader:411:5
   local.tee 3   ; lexer.vader:412:18
   type_check 14   ; lexer.vader:413:9
@@ -3530,7 +3532,7 @@ fn 37 vader_lexer$lex_unicode_escape (ref,ref) -> u32
   local.get 2   ; lexer.vader:477:44
   local.get 5   ; lexer.vader:477:56
   i32.add   ; lexer.vader:477:44
-  call.import 12   ; lexer.vader:477:30
+  call.import 14   ; lexer.vader:477:30
   call 59   ; lexer.vader:477:14
   local.set 6   ; lexer.vader:477:9
   local.get 4   ; lexer.vader:478:14
@@ -3731,7 +3733,7 @@ fn 39 vader_lexer$lex_char (ref) -> void
   struct.get 18 1   ; lexer.vader:522:29
   local.get 0   ; lexer.vader:522:43
   struct.get 3 2   ; lexer.vader:522:43
-  call.import 8   ; lexer.vader:522:17
+  call.import 10   ; lexer.vader:522:17
   local.set 2   ; lexer.vader:522:9
   i32.const 5   ; lexer.vader:523:25
   local.get 2   ; lexer.vader:523:35
@@ -3784,7 +3786,7 @@ fn 39 vader_lexer$lex_char (ref) -> void
   struct.get 18 1   ; lexer.vader:534:29
   local.get 0   ; lexer.vader:534:43
   struct.get 3 2   ; lexer.vader:534:43
-  call.import 8   ; lexer.vader:534:17
+  call.import 10   ; lexer.vader:534:17
   local.set 5   ; lexer.vader:534:9
   i32.const 5   ; lexer.vader:535:25
   local.get 5   ; lexer.vader:535:35
@@ -3871,7 +3873,7 @@ fn 39 vader_lexer$lex_char (ref) -> void
   struct.get 18 1   ; lexer.vader:558:25
   local.get 0   ; lexer.vader:558:39
   struct.get 3 2   ; lexer.vader:558:39
-  call.import 8   ; lexer.vader:558:13
+  call.import 10   ; lexer.vader:558:13
   local.set 7   ; lexer.vader:558:5
   i32.const 5   ; lexer.vader:559:21
   local.get 7   ; lexer.vader:559:31
@@ -4003,7 +4005,7 @@ fn 42 vader_lexer$lex_string (ref,bool) -> void
   struct.get 18 1   ; lexer.vader:603:25
   local.get 0   ; lexer.vader:603:39
   struct.get 3 2   ; lexer.vader:603:39
-  call.import 8   ; lexer.vader:603:13
+  call.import 10   ; lexer.vader:603:13
   local.set 4   ; lexer.vader:603:5
   local.get 2   ; lexer.vader:604:29
   local.get 0   ; lexer.vader:604:43
@@ -4995,7 +4997,7 @@ fn 46 vader_lexer$emit_and_advance (ref,u8,string) -> bool
   local.set 3   ; lexer.vader:827:5
   local.get 0   ; lexer.vader:828:5
   local.get 2   ; lexer.vader:828:15
-  call.import 7   ; lexer.vader:828:15
+  call.import 9   ; lexer.vader:828:15
   call 21   ; lexer.vader:828:5
   local.get 0   ; lexer.vader:829:5
   local.get 1   ; lexer.vader:829:19
@@ -5217,14 +5219,14 @@ fn 48 vader_lexer$tokenize (string,string) -> ref
   call 13   ; lexer.vader:911:10
   local.tee 2   ; lexer.vader:911:5
   struct.get 3 0   ; lexer.vader:913:8
-  call.import 7   ; lexer.vader:913:8
+  call.import 9   ; lexer.vader:913:8
   i32.const 3   ; lexer.vader:913:23
   i32.ge   ; lexer.vader:913:8
   if bool   ; lexer.vader:913:8
   local.get 2   ; lexer.vader:914:9
   struct.get 3 0   ; lexer.vader:914:9
   i32.const 0   ; lexer.vader:914:23
-  call.import 12   ; lexer.vader:914:9
+  call.import 14   ; lexer.vader:914:9
   i32.const 239   ; lexer.vader:914:38
   i32.to_u32   ; lexer.vader:914:34
   u32.to_char   ; lexer.vader:914:29
@@ -5236,7 +5238,7 @@ fn 48 vader_lexer$tokenize (string,string) -> ref
   local.get 2   ; lexer.vader:915:9
   struct.get 3 0   ; lexer.vader:915:9
   i32.const 1   ; lexer.vader:915:23
-  call.import 12   ; lexer.vader:915:9
+  call.import 14   ; lexer.vader:915:9
   i32.const 187   ; lexer.vader:915:38
   i32.to_u32   ; lexer.vader:915:34
   u32.to_char   ; lexer.vader:915:29
@@ -5248,7 +5250,7 @@ fn 48 vader_lexer$tokenize (string,string) -> ref
   local.get 2   ; lexer.vader:916:9
   struct.get 3 0   ; lexer.vader:916:9
   i32.const 2   ; lexer.vader:916:23
-  call.import 12   ; lexer.vader:916:9
+  call.import 14   ; lexer.vader:916:9
   i32.const 191   ; lexer.vader:916:38
   i32.to_u32   ; lexer.vader:916:34
   u32.to_char   ; lexer.vader:916:29
@@ -5424,7 +5426,7 @@ fn 53 vader_diagnostics_diagnostic_vader$render (ref) -> string
   local.set 5   ; diagnostic.vader:65:5
   local.get 0   ; diagnostic.vader:66:8
   struct.get 20 2   ; diagnostic.vader:66:8
-  call.import 7   ; diagnostic.vader:66:8
+  call.import 9   ; diagnostic.vader:66:8
   i32.const 0   ; diagnostic.vader:66:25
   i32.gt   ; diagnostic.vader:66:8
   if void   ; diagnostic.vader:66:5
@@ -5492,7 +5494,7 @@ fn 54 std_string$pad_start (string,i32,char) -> string
   local sb ref
   local i i32
   local.get 0   ; string.vader:58:10
-  call.import 7   ; string.vader:58:10
+  call.import 9   ; string.vader:58:10
   local.tee 3   ; string.vader:58:5
   local.get 1   ; string.vader:59:13
   i32.ge   ; string.vader:59:8
@@ -5533,7 +5535,7 @@ fn 55 std_string$pad_end (string,i32,char) -> string
   local sb ref
   local i i32
   local.get 0   ; string.vader:74:10
-  call.import 7   ; string.vader:74:10
+  call.import 9   ; string.vader:74:10
   local.tee 3   ; string.vader:74:5
   local.get 1   ; string.vader:75:13
   i32.ge   ; string.vader:75:8
@@ -5738,7 +5740,7 @@ fn 60 std_numbers$parse_int_in_base (string,i32) -> ref
   local i i32
   local d i32
   local.get 0   ; numbers.vader:29:10
-  call.import 7   ; numbers.vader:29:10
+  call.import 9   ; numbers.vader:29:10
   local.tee 2   ; numbers.vader:29:5
   i32.const 0   ; numbers.vader:30:13
   i32.eq   ; numbers.vader:30:8
@@ -5763,7 +5765,7 @@ fn 60 std_numbers$parse_int_in_base (string,i32) -> ref
   br_if 1   ; numbers.vader:36:9
   local.get 0   ; numbers.vader:37:30
   local.get 5   ; numbers.vader:37:40
-  call.import 12   ; numbers.vader:37:30
+  call.import 14   ; numbers.vader:37:30
   call 59   ; numbers.vader:37:14
   local.tee 6   ; numbers.vader:37:9
   i32.const 0   ; numbers.vader:38:16
@@ -6019,7 +6021,7 @@ end
 fn 67 std_string_builder$to_string (ref) -> string
   local.get 0   ; string_builder.vader:34:23
   struct.get 25 0   ; string_builder.vader:34:23
-  call.import 19   ; string_builder.vader:34:12
+  call.import 21   ; string_builder.vader:34:12
   return   ; string_builder.vader:34:5
 end
 

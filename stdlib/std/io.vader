@@ -16,6 +16,10 @@ IOError implements Error {
 print   :: fn(msg: string) -> void
 println :: fn(msg: string) -> void
 
+// eprint / eprintln — write to stderr.
+eprint   :: fn(msg: string) -> void
+eprintln :: fn(msg: string) -> void
+
 // read_line — block on stdin until newline.
 read_line :: fn() -> string!
 

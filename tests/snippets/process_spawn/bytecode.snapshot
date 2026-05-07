@@ -19,13 +19,15 @@ string 9 "\" terminated by signal"
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 print std_io$print (string) -> void
 import 2 println std_io$println (string) -> void
-import 3 read_line std_io$read_line () -> ref
-import 4 read_file std_io$read_file (string) -> ref
-import 5 write_file std_io$write_file (string,string) -> ref
-import 6 exists std_io$exists (string) -> bool
-import 7 spawn_run std_process$spawn_run (ref) -> i32
-import 8 spawn_last_stdout std_process$spawn_last_stdout () -> string
-import 9 spawn_last_stderr std_process$spawn_last_stderr () -> string
+import 3 eprint std_io$eprint (string) -> void
+import 4 eprintln std_io$eprintln (string) -> void
+import 5 read_line std_io$read_line () -> ref
+import 6 read_file std_io$read_file (string) -> ref
+import 7 write_file std_io$write_file (string,string) -> ref
+import 8 exists std_io$exists (string) -> bool
+import 9 spawn_run std_process$spawn_run (ref) -> i32
+import 10 spawn_last_stdout std_process$spawn_last_stdout () -> string
+import 11 spawn_last_stderr std_process$spawn_last_stderr () -> string
 
 fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
   local r ref
@@ -129,11 +131,11 @@ fn 3 std_process$spawn (ref) -> ref
   return   ; process.vader:35:9
   end   ; process.vader:34:5
   local.get 0   ; process.vader:37:23
-  call.import 7   ; process.vader:37:13
+  call.import 9   ; process.vader:37:13
   local.set 1   ; process.vader:37:5
-  call.import 8   ; process.vader:38:13
+  call.import 10   ; process.vader:38:13
   local.set 2   ; process.vader:38:5
-  call.import 9   ; process.vader:39:13
+  call.import 11   ; process.vader:39:13
   local.set 3   ; process.vader:39:5
   local.get 1   ; process.vader:40:8
   i32.const 1   ; process.vader:10:25

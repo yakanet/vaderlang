@@ -14,7 +14,7 @@
         @builder.append_display <for i32> :void
           __sb_0#-1 :?
           .v :i32
-            b#59 :Box
+            b#61 :Box
         ~>
           @builder.finish :string
             __sb_0#-1 :?
@@ -29,16 +29,16 @@
         @builder.append_display <for string> :void
           __sb_0#-2 :?
           .v :string
-            b#60 :Bag
+            b#62 :Bag
         ~>
           @builder.finish :string
             __sb_0#-2 :?
   fn tests_snippets_overload_first_param__main_vader$main() -> i32
-    let a#61: Box =
+    let a#63: Box =
       Box {
         v: int(42) :i32
       }
-    let b#62: Bag =
+    let b#64: Bag =
       Bag {
         v: "hi" :string
       }
@@ -50,7 +50,7 @@
           callee:
             describe#4 :fn(Box) -> string
           arg0:
-            a#61 :Box
+            a#63 :Box
     call :void
       callee:
         println#32 :fn(string) -> void
@@ -59,7 +59,7 @@
           callee:
             describe#5 :string
           arg0:
-            b#62 :Bag
+            b#64 :Bag
     call :void
       callee:
         println#32 :fn(string) -> void
@@ -68,7 +68,7 @@
           callee:
             describe#4 :string
           arg0:
-            a#61 :Box
+            a#63 :Box
     call :void
       callee:
         println#32 :fn(string) -> void
@@ -77,5 +77,5 @@
           callee:
             describe#5 :string
           arg0:
-            b#62 :Bag
+            b#64 :Bag
     return int(0) :i32

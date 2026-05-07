@@ -3,10 +3,12 @@ string 0 "hello"
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 print std_io$print (string) -> void
 import 2 println std_io$println (string) -> void
-import 3 read_line std_io$read_line () -> ref
-import 4 read_file std_io$read_file (string) -> ref
-import 5 write_file std_io$write_file (string,string) -> ref
-import 6 exists std_io$exists (string) -> bool
+import 3 eprint std_io$eprint (string) -> void
+import 4 eprintln std_io$eprintln (string) -> void
+import 5 read_line std_io$read_line () -> ref
+import 6 read_file std_io$read_file (string) -> ref
+import 7 write_file std_io$write_file (string,string) -> ref
+import 8 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_expr_bodied_fn__main_vader$square (i32) -> i32
   local.get 0   ; _main.vader:7:24

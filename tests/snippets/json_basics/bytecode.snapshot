@@ -87,23 +87,25 @@ string 57 "0"
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 print std_io$print (string) -> void
 import 2 println std_io$println (string) -> void
-import 3 read_line std_io$read_line () -> ref
-import 4 read_file std_io$read_file (string) -> ref
-import 5 write_file std_io$write_file (string,string) -> ref
-import 6 exists std_io$exists (string) -> bool
-import 7 len std_string$len (string) -> i32
-import 8 slice std_string$slice (string,i32,i32) -> string
-import 9 contains std_string$contains (string,string) -> bool
-import 10 starts_with std_string$starts_with (string,string) -> bool
-import 11 ends_with std_string$ends_with (string,string) -> bool
-import 12 char_at std_string$char_at (string,i32) -> char
-import 13 split std_string$split (string,string) -> ref
-import 14 trim std_string$trim (string) -> string
-import 15 to_upper std_string$to_upper (string) -> string
-import 16 to_lower std_string$to_lower (string) -> string
-import 17 parse_int std_string$parse_int (string) -> ref
-import 18 parse_float std_string$parse_float (string) -> ref
-import 19 concat_all std_string_builder$concat_all (ref) -> string
+import 3 eprint std_io$eprint (string) -> void
+import 4 eprintln std_io$eprintln (string) -> void
+import 5 read_line std_io$read_line () -> ref
+import 6 read_file std_io$read_file (string) -> ref
+import 7 write_file std_io$write_file (string,string) -> ref
+import 8 exists std_io$exists (string) -> bool
+import 9 len std_string$len (string) -> i32
+import 10 slice std_string$slice (string,i32,i32) -> string
+import 11 contains std_string$contains (string,string) -> bool
+import 12 starts_with std_string$starts_with (string,string) -> bool
+import 13 ends_with std_string$ends_with (string,string) -> bool
+import 14 char_at std_string$char_at (string,i32) -> char
+import 15 split std_string$split (string,string) -> ref
+import 16 trim std_string$trim (string) -> string
+import 17 to_upper std_string$to_upper (string) -> string
+import 18 to_lower std_string$to_lower (string) -> string
+import 19 parse_int std_string$parse_int (string) -> ref
+import 20 parse_float std_string$parse_float (string) -> ref
+import 21 concat_all std_string_builder$concat_all (ref) -> string
 
 fn 0 tests_snippets_json_basics__main_vader$show (string,string) -> void
   local parsed ref
@@ -321,7 +323,7 @@ fn 4 std_json$new_parser (string) -> ref
   local.get 0   ; json.vader:50:28
   i32.const 0   ; json.vader:50:38
   local.get 0   ; json.vader:50:48
-  call.import 7   ; json.vader:50:48
+  call.import 9   ; json.vader:50:48
   struct.new 15   ; json.vader:50:12
   return   ; json.vader:50:5
 end
@@ -349,7 +351,7 @@ fn 6 std_json$peek_byte (ref) -> char
   struct.get 15 0   ; json.vader:61:12
   local.get 0   ; json.vader:61:26
   struct.get 15 1   ; json.vader:61:26
-  call.import 12   ; json.vader:61:12
+  call.import 14   ; json.vader:61:12
   return   ; json.vader:61:5
 end
 
@@ -443,7 +445,7 @@ fn 11 std_json$match_keyword (ref,string) -> bool
   local n i32
   local i i32
   local.get 1   ; json.vader:95:10
-  call.import 7   ; json.vader:95:10
+  call.import 9   ; json.vader:95:10
   local.set 2   ; json.vader:95:5
   local.get 0   ; json.vader:96:8
   struct.get 15 1   ; json.vader:96:8
@@ -470,10 +472,10 @@ fn 11 std_json$match_keyword (ref,string) -> bool
   struct.get 15 1   ; json.vader:101:26
   local.get 3   ; json.vader:101:34
   i32.add   ; json.vader:101:26
-  call.import 12   ; json.vader:101:12
+  call.import 14   ; json.vader:101:12
   local.get 1   ; json.vader:101:40
   local.get 3   ; json.vader:101:51
-  call.import 12   ; json.vader:101:40
+  call.import 14   ; json.vader:101:40
   char.ne   ; json.vader:101:12
   if void   ; json.vader:101:9
   bool.const false   ; json.vader:102:20
@@ -883,9 +885,9 @@ fn 16 std_json$parse_number (ref) -> ref
   local.get 1   ; json.vader:197:24
   local.get 0   ; json.vader:197:31
   struct.get 15 1   ; json.vader:197:31
-  call.import 8   ; json.vader:197:12
+  call.import 10   ; json.vader:197:12
   local.tee 2   ; json.vader:197:5
-  call.import 18   ; json.vader:198:15
+  call.import 20   ; json.vader:198:15
   local.tee 3   ; json.vader:198:5
   local.tee 4   ; json.vader:199:11
   type_check 3   ; json.vader:200:9
@@ -1270,7 +1272,7 @@ fn 19 std_json$parse_string (ref) -> ref
   struct.get 15 1   ; json.vader:288:56
   local.get 6   ; json.vader:288:64
   i32.add   ; json.vader:288:56
-  call.import 12   ; json.vader:288:42
+  call.import 14   ; json.vader:288:42
   call 17   ; json.vader:288:26
   local.tee 7   ; json.vader:288:21
   i32.const 0   ; json.vader:289:28
@@ -1617,7 +1619,7 @@ fn 23 std_json$write_string (ref,string) -> void
   char.const 34   ; json.vader:390:20
   call 33   ; json.vader:390:5
   local.get 1   ; json.vader:391:10
-  call.import 7   ; json.vader:391:10
+  call.import 9   ; json.vader:391:10
   local.set 2   ; json.vader:391:5
   i32.const 0   ; json.vader:392:10
   local.set 3   ; json.vader:392:5
@@ -1629,7 +1631,7 @@ fn 23 std_json$write_string (ref,string) -> void
   br_if 1   ; json.vader:393:9
   local.get 1   ; json.vader:394:14
   local.get 3   ; json.vader:394:24
-  call.import 12   ; json.vader:394:14
+  call.import 14   ; json.vader:394:14
   local.tee 4   ; json.vader:394:9
   char.to_u32   ; json.vader:395:19
   u32.to_i32   ; json.vader:395:15
@@ -2006,7 +2008,7 @@ fn 30 std_string$pad_start (string,i32,char) -> string
   local sb ref
   local i i32
   local.get 0   ; string.vader:58:10
-  call.import 7   ; string.vader:58:10
+  call.import 9   ; string.vader:58:10
   local.tee 3   ; string.vader:58:5
   local.get 1   ; string.vader:59:13
   i32.ge   ; string.vader:59:8
@@ -2071,7 +2073,7 @@ end
 fn 34 std_string_builder$to_string (ref) -> string
   local.get 0   ; string_builder.vader:34:23
   struct.get 16 0   ; string_builder.vader:34:23
-  call.import 19   ; string_builder.vader:34:12
+  call.import 21   ; string_builder.vader:34:12
   return   ; string_builder.vader:34:5
 end
 

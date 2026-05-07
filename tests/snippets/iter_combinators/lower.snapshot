@@ -2,7 +2,7 @@
 
 ## tests/snippets/iter_combinators/_main.vader
   fn tests_snippets_iter_combinators__main_vader$main() -> i32
-    let nums#71: [i32] =
+    let nums#73: [i32] =
       array :[i32]
         int(1) :i32
         int(2) :i32
@@ -14,7 +14,7 @@
         int(8) :i32
         int(9) :i32
         int(10) :i32
-    let squares#73: [i32] =
+    let squares#75: [i32] =
       call :[i32]
         callee:
           map#1000013 :[i32]
@@ -27,27 +27,27 @@
             int(5) :i32
         arg1:
           LoweredMakeClosure
-    let s1#74: i32 =
+    let s1#76: i32 =
       call :i32
         callee:
-          sum#45 :fn([i32]) -> i32
+          sum#47 :fn([i32]) -> i32
         arg0:
-          squares#73 :[i32]
-    let evens#76: [i32] =
+          squares#75 :[i32]
+    let evens#78: [i32] =
       call :[i32]
         callee:
           filter#1000014 :[i32]
         arg0:
-          nums#71 :[i32]
+          nums#73 :[i32]
         arg1:
           LoweredMakeClosure
-    let s2#77: i32 =
+    let s2#79: i32 =
       call :i32
         callee:
-          sum#45 :fn([i32]) -> i32
+          sum#47 :fn([i32]) -> i32
         arg0:
-          evens#76 :[i32]
-    let p#80: i32 =
+          evens#78 :[i32]
+    let p#82: i32 =
       call :i32
         callee:
           fold#1000015 :i32
@@ -62,34 +62,34 @@
           int(1) :i32
         arg2:
           LoweredMakeClosure
-    let first#81: [i32] =
+    let first#83: [i32] =
       call :[i32]
         callee:
           take#1000016 :[i32]
         arg0:
-          nums#71 :[i32]
+          nums#73 :[i32]
         arg1:
           int(3) :i32
-    let s3#82: i32 =
+    let s3#84: i32 =
       call :i32
         callee:
-          sum#45 :fn([i32]) -> i32
+          sum#47 :fn([i32]) -> i32
         arg0:
-          first#81 :[i32]
-    let rest#83: [i32] =
+          first#83 :[i32]
+    let rest#85: [i32] =
       call :[i32]
         callee:
           skip#1000017 :[i32]
         arg0:
-          nums#71 :[i32]
+          nums#73 :[i32]
         arg1:
           int(7) :i32
-    let s4#84: i32 =
+    let s4#86: i32 =
       call :i32
         callee:
-          sum#45 :fn([i32]) -> i32
+          sum#47 :fn([i32]) -> i32
         arg0:
-          rest#83 :[i32]
+          rest#85 :[i32]
     call :void
       callee:
         println#35 :fn(string) -> void
@@ -147,23 +147,23 @@
                 l:
                   add :i32
                     l:
-                      s1#74 :i32
+                      s1#76 :i32
                     r:
-                      s2#77 :i32
+                      s2#79 :i32
                 r:
-                  p#80 :i32
+                  p#82 :i32
             r:
-              s3#82 :i32
+              s3#84 :i32
         r:
-          s4#84 :i32
+          s4#86 :i32
   struct __lambda_env_2 {  }
   fn __lambda_1(__env_0: __lambda_env_2, x: i32) -> i32
     return
       mul :i32
         l:
-          x#72 :i32
+          x#74 :i32
         r:
-          x#72 :i32
+          x#74 :i32
   struct __lambda_env_5 {  }
   fn __lambda_4(__env_1: __lambda_env_5, x: i32) -> bool
     return
@@ -171,7 +171,7 @@
         l:
           mod :i32
             l:
-              x#75 :i32
+              x#77 :i32
             r:
               int(2) :i32
         r:
@@ -181,6 +181,6 @@
     return
       mul :i32
         l:
-          acc#78 :i32
+          acc#80 :i32
         r:
-          x#79 :i32
+          x#81 :i32

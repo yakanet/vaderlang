@@ -1,47 +1,290 @@
 // vader/cli/main — entry point of the Vader-in-Vader CLI.
 //
-// Today scope : `vader-cli dump --stage=lexer <file>`. The dump format
-// itself lives next to the producer in `vader/lexer/dump.vader` ; this file
-// only handles argv parsing, file reading, and stage dispatch. New stages
-// plug in here as the parser / typechecker / lowerer get ported (§2.1+).
+// Mirrors `src/cli.ts` : the TS host CLI is the spec for command surface,
+// flag set, help text, and error wording. Self-hosted commands stub out
+// with the same messages so users see identical output regardless of
+// whether they invoked `bun src/index.ts ...` or `./build/vaderc ...`.
+// The only command that actually runs in self-hosted today is
+// `dump --stage=lexer` ; everything else exits 2 with a TS-identical
+// "not yet implemented" message.
 
-import "std/io" { println, read_file }
+import "std/io" { println, eprintln, read_file }
 import "std/string" { len, slice, starts_with }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 
-main :: fn(argv: [string]) -> i32 {
-    // argv[0] is the binary path ; meaningful args start at index 1.
-    if argv.len() < 4 {
-        println("vader: expected `vader dump --stage=<stage> <file>`")
-        return 1
-    }
-    cmd :: argv[1]
-    if cmd != "dump" {
-        println("vader: unknown command `${cmd}` (only `dump` is implemented)")
-        return 1
-    }
-    stage_arg :: argv[2]
-    file :: argv[3]
-    stage_prefix :: "--stage="
-    if !stage_arg.starts_with(stage_prefix) {
-        println("vader: missing --stage=<stage> argument")
-        return 1
-    }
-    stage :: stage_arg.slice(stage_prefix.len(), stage_arg.len())
-    if stage != "lexer" {
-        println("vader: stage `${stage}` not yet implemented (only `lexer` so far)")
-        return 1
-    }
-    return file.run_lexer_stage()
+private VERSION :: "0.0.0-pre-mvp"
+
+// Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
+// the newline immediately after the opening `"""`, so the body starts at
+// `vader —` ; the closing `"""` sits on its own line so the string ends
+// with a single trailing newline (matching the TS template literal).
+private HELP :: """vader — the Vader compiler
+
+USAGE:
+  vader [global-options] <command> [options] [args]
+
+COMMANDS:
+  run [file]                       Interpret a Vader file (no args → REPL)
+  build [file] [--target=native|wasm|ir|c] [--manifest]
+                                   Compile to a binary (--target=ir → .vir, --target=c → .c next to the source)
+  fmt [path]                       Format Vader sources in place
+  test [path]                      Run @test functions
+  dump --stage=<stage> <file>      Dump an IR stage as JSON/text
+                                   Stages: ast, resolved-ast, typed-ast, evaluated-ast,
+                                           lowered-ast, bytecode, c, wasm
+
+GLOBAL OPTIONS:
+  --diagnostics=text|json          Output diagnostics in plain text (default) or JSON for tooling
+  --allow-env                      Permit @comptime to read process env
+  --no-bytecode-opt                Disable bytecode peephole optimisations (debug)
+  --help, -h                       Show this message
+  --version, -v                    Show the compiler version
+"""
+
+// Reused for every dump-stage error path so the wording stays in sync.
+private STAGES_LIST :: "stages: ast, resolved-ast, typed-ast, evaluated-ast, lowered-ast, dced-ast, bytecode, c, wasm"
+
+// Mirrors `GlobalOpts` in `src/cli/options.ts`. Parsed but unused today —
+// the only stage that runs (lexer) doesn't consume any of these.
+GlobalOpts :: struct {
+    diagnostics:  string
+    allow_env:    bool
+    bytecode_opt: bool
 }
 
+ParseGlobalsResult :: struct {
+    opts:   GlobalOpts
+    rest:   [string]
+    errors: [string]
+}
+
+// `[T]` arrays don't expose `slice` at MVP (cf. stdlib/std/collections doc),
+// so we copy by hand. Used twice below : drop argv[0], then drop the
+// command from the post-globals `rest`.
+private slice_args :: fn(arr: [string], start: i32) -> [string] {
+    out: [string] = []
+    i := start
+    for i < arr.len() {
+        out.push(arr[i])
+        i = i + 1
+    }
+    return out
+}
+
+// One-pass parser : recognises the three TS global flags, accumulates
+// everything else into `rest`. Mirror of `parseGlobalOpts` in
+// `src/cli/options.ts`.
+private parse_global_opts :: fn(args: [string]) -> ParseGlobalsResult {
+    diagnostics := "text"
+    allow_env := false
+    bytecode_opt := true
+    rest:   [string] = []
+    errors: [string] = []
+    diag_prefix :: "--diagnostics="
+
+    for a in args {
+        if a.starts_with(diag_prefix) {
+            v :: a.slice(diag_prefix.len(), a.len())
+            if v == "text" || v == "json" {
+                diagnostics = v
+            } else {
+                errors.push("unknown --diagnostics format \"${v}\" (expected: text, json)")
+            }
+            continue
+        }
+        if a == "--allow-env" {
+            allow_env = true
+            continue
+        }
+        if a == "--no-bytecode-opt" {
+            bytecode_opt = false
+            continue
+        }
+        rest.push(a)
+    }
+    return ParseGlobalsResult {
+        .opts   = GlobalOpts { .diagnostics = diagnostics, .allow_env = allow_env, .bytecode_opt = bytecode_opt },
+        .rest   = rest,
+        .errors = errors,
+    }
+}
+
+main :: fn(argv: [string]) -> i32 {
+    // argv[0] is the binary path ; meaningful args start at index 1.
+    args :: slice_args(argv, 1)
+    if args.len() == 0 { return cmd_repl() }
+
+    r :: parse_global_opts(args)
+    if r.errors.len() > 0 {
+        for e in r.errors { eprintln("vader: ${e}") }
+        return 1
+    }
+    rest :: r.rest
+    if rest.len() == 0 { return cmd_repl() }
+
+    cmd :: rest[0]
+    cmd_args :: slice_args(rest, 1)
+
+    if cmd == "--help" || cmd == "-h" || cmd == "help" {
+        println(HELP)
+        return 0
+    }
+    if cmd == "--version" || cmd == "-v" || cmd == "version" {
+        println(VERSION)
+        return 0
+    }
+    if cmd == "run"   { return cmd_run(cmd_args) }
+    if cmd == "build" { return cmd_build(cmd_args) }
+    if cmd == "fmt"   { return cmd_fmt(cmd_args) }
+    if cmd == "test"  { return cmd_test(cmd_args) }
+    if cmd == "dump"  { return cmd_dump(cmd_args) }
+
+    eprintln("vader: unknown command \"${cmd}\"")
+    eprintln("run \"vader --help\" for usage")
+    return 1
+}
+
+// ----------------------------------------------------------- REPL / run / fmt / test
+
+private cmd_repl :: fn() -> i32 {
+    eprintln("vader REPL: not yet implemented")
+    return 2
+}
+
+private cmd_run :: fn(args: [string]) -> i32 {
+    if args.len() == 0 {
+        eprintln("vader run: expected a file argument")
+        return 1
+    }
+    // TS implements `run` ; self-hosted can't yet (no comptime/VM in Vader).
+    eprintln("vader run: not yet implemented")
+    return 2
+}
+
+private cmd_fmt :: fn(args: [string]) -> i32 {
+    path :: if args.len() > 0 { args[0] } else { "." }
+    eprintln("vader fmt: not yet implemented (would format ${path})")
+    return 2
+}
+
+private cmd_test :: fn(args: [string]) -> i32 {
+    path :: if args.len() > 0 { args[0] } else { "." }
+    eprintln("vader test: not yet implemented (would scan ${path} for @test)")
+    return 2
+}
+
+// ----------------------------------------------------------- build
+
+private cmd_build :: fn(args: [string]) -> i32 {
+    target := "native"
+    use_manifest := false
+    file := ""
+    has_file := false
+    target_prefix :: "--target="
+    out_prefix    :: "--out="
+
+    for a in args {
+        if a.starts_with(target_prefix) {
+            target = a.slice(target_prefix.len(), a.len())
+            continue
+        }
+        if a == "--manifest" {
+            use_manifest = true
+            continue
+        }
+        if a.starts_with(out_prefix) {
+            // Recognised so it doesn't slip into the positional bucket ;
+            // self-hosted has nothing to write yet.
+            continue
+        }
+        if !a.starts_with("--") && !has_file {
+            file = a
+            has_file = true
+        }
+    }
+
+    if target != "native" && target != "wasm" && target != "ir" && target != "c" {
+        eprintln("vader build: unknown target \"${target}\"")
+        eprintln("targets: native, wasm, ir, c")
+        return 1
+    }
+
+    if !has_file && !use_manifest {
+        eprintln("vader build: expected either a file or --manifest (vader.json)")
+        return 1
+    }
+
+    if target == "wasm" {
+        file_repr :: if has_file { file } else { "(manifest)" }
+        eprintln("vader build: not yet implemented (target=wasm, file=${file_repr})")
+        return 2
+    }
+
+    if use_manifest {
+        eprintln("vader build --target=${target}: --manifest mode not yet implemented")
+        return 2
+    }
+
+    // target ∈ {native, ir, c} with a file : TS implements this. Self-hosted
+    // can't compile yet, so we surface the same wording as the other stubs.
+    eprintln("vader build --target=${target}: not yet implemented")
+    return 2
+}
+
+// ----------------------------------------------------------- dump
+
+private cmd_dump :: fn(args: [string]) -> i32 {
+    stage_prefix :: "--stage="
+    has_stage := false
+    stage := ""
+    file := ""
+    has_file := false
+
+    for a in args {
+        if a.starts_with(stage_prefix) {
+            stage = a.slice(stage_prefix.len(), a.len())
+            has_stage = true
+            continue
+        }
+        if !a.starts_with("--") && !has_file {
+            file = a
+            has_file = true
+        }
+    }
+
+    if !has_stage || !has_file {
+        eprintln("vader dump: expected --stage=<stage> <file>")
+        eprintln(STAGES_LIST)
+        return 1
+    }
+
+    if stage == "lexer" {
+        return file.run_lexer_stage()
+    }
+
+    // Recognised TS stages — we know about them but can't run them yet.
+    if stage == "ast" || stage == "resolved-ast" || stage == "typed-ast" ||
+       stage == "evaluated-ast" || stage == "lowered-ast" || stage == "dced-ast" ||
+       stage == "bytecode" || stage == "c" || stage == "wasm" {
+        eprintln("vader dump: stage \"${stage}\" not yet implemented")
+        return 2
+    }
+
+    eprintln("vader dump: unknown stage \"${stage}\"")
+    eprintln(STAGES_LIST)
+    return 1
+}
+
+// Token + diagnostic dump go to stdout — the parity test
+// (`tests/parity.test.ts`) snapshots stdout only, so this stays unchanged.
+// Only the file-read failure path moves to stderr, matching TS.
 private run_lexer_stage :: fn(file: string) -> i32 {
     src_or_err :: file.read_file()
     src: string = ""
     match src_or_err {
         is string -> { src = src_or_err }
         is Error  -> {
-            println("vader: cannot read `${file}`: ${src_or_err.message()}")
+            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
             return 1
         }
     }

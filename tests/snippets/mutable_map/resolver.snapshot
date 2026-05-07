@@ -46,6 +46,8 @@
   refs: idents=52 types=86 params=45 locals=3 typeParams=4 fields=0
 
 ## std/io
+  fn               public   eprint 
+  fn               public   eprintln 
   fn               public   exists 
   struct           public   IOError 
   fn               public   print 
@@ -53,7 +55,7 @@
   fn               public   read_file 
   fn               public   read_line 
   fn               public   write_file 
-  refs: idents=1 types=18 params=7 locals=0 typeParams=0 fields=0
+  refs: idents=1 types=22 params=9 locals=0 typeParams=0 fields=0
 
 ## tests/snippets/mutable_map/_main.vader
   import-binding   private  contains_key → contains_key

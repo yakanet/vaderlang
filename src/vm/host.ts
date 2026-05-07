@@ -64,6 +64,8 @@ export function stdIoBindings(io: HostIO): Record<string, HostFn> {
   return {
     std_io$print:      (args) => { io.write(stringArg(args, 0));        return VOID; },
     std_io$println:    (args) => { io.write(stringArg(args, 0) + "\n"); return VOID; },
+    std_io$eprint:     (args) => { io.writeError(stringArg(args, 0));        return VOID; },
+    std_io$eprintln:   (args) => { io.writeError(stringArg(args, 0) + "\n"); return VOID; },
     std_io$read_line:  ()     => {
       const line = io.readLine();
       return line === null ? err("EOF") : str(line);

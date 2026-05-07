@@ -2,16 +2,16 @@
 
 ## tests/snippets/process_spawn/_main.vader
   fn tests_snippets_process_spawn__main_vader$main() -> i32
-    let r#65: Error | ProcessResult =
+    let r#67: Error | ProcessResult =
       call :Error | ProcessResult
         callee:
-          spawn#42 :fn([string]) -> Error | ProcessResult
+          spawn#44 :fn([string]) -> Error | ProcessResult
         arg0:
           array :[string]
             "/bin/echo" :string
             "ok" :string
     block :void
-      let __scrut_0#-1: Error | ProcessResult = r#65 :Error | ProcessResult
+      let __scrut_0#-1: Error | ProcessResult = r#67 :Error | ProcessResult
       ~>
         if :void
           cond:
@@ -34,7 +34,7 @@
                         __sb_3#-4 :?
                         .exit :i32
                           cast → ProcessResult
-                            r#65 :Error | ProcessResult
+                            r#67 :Error | ProcessResult
                       ~>
                         @builder.finish :string
                           __sb_3#-4 :?
@@ -53,7 +53,7 @@
                           __sb_4#-5 :?
                           .stdout :string
                             cast → ProcessResult
-                              r#65 :Error | ProcessResult
+                              r#67 :Error | ProcessResult
                         ~>
                           @builder.finish :string
                             __sb_4#-5 :?
@@ -80,7 +80,7 @@
                             block :string
                               let __vdisp_2#-3: Error =
                                 cast → Error
-                                  r#65 :Error | ProcessResult
+                                  r#67 :Error | ProcessResult
                               ~>
                                 if :string
                                   cond:
