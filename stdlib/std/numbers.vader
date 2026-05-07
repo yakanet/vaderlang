@@ -48,7 +48,7 @@ private hex_digit :: fn(n: u64) -> char {
     if n <= u64(9) {
         return char(u32('0') + u32(n))
     }
-    return char(u32('a') + u32(n) - u32(10))
+    return char(u32('A') + u32(n) - u32(10))
 }
 
 // Hexadecimal stringification of a u64 — lowercase, no `0x` prefix, no leading

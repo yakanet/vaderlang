@@ -447,7 +447,7 @@ function tokenDetail(t: Token): string {
     return ` =${formatFloat(t.floatValue)}${suffix}`;
   }
   if (t.charValue !== undefined) {
-    return ` =U+${t.charValue.toString(16).padStart(4, "0")}`;
+    return ` =U+${t.charValue.toString(16).toUpperCase().padStart(4, "0")}`;
   }
   if (t.stringValue !== undefined) {
     return ` =${quoteSimple(t.stringValue)}`;

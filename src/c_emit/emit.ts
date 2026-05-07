@@ -123,11 +123,13 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
   out.push(``);
 
   // String literals as named constants — C string literals embed null bytes
-  // safely if we declare with `static const char[]`.
+  // safely if we declare with `static const char[]`. Length is the UTF-8
+  // byte count (matches vader_string_t.len), not the JS UTF-16 unit count.
   for (let i = 0; i < ctx.module.strings.length; i++) {
     const s = ctx.module.strings[i]!;
-    out.push(`static const char vader_str_${i}_data[] = ${cStringLit(s)};`);
-    out.push(`static const size_t vader_str_${i}_len = ${s.length};`);
+    const bytes = new TextEncoder().encode(s);
+    out.push(`static const char vader_str_${i}_data[] = ${cStringLitFromBytes(bytes)};`);
+    out.push(`static const size_t vader_str_${i}_len = ${bytes.length};`);
   }
   out.push(``);
 }
@@ -946,8 +948,9 @@ function emitStructNew(s: FnState, op: Extract<Op, { kind: "struct.new" }>): voi
   line(s, `vader_obj_header_init(${tmp}_obj, ${op.typeIndex}u);`);
   for (let i = 0; i < t.fields.length; i++) {
     const f = t.fields[i]!;
-    const fty = cTypeFor(s.ctx, s.ctx.module.types[f.typeIndex]!);
-    line(s, `${tmp}_obj->f_${sanitise(f.name)} = (${fty}) ${fieldVals[i]!.name};`);
+    const fval = valTypeOfField(s.ctx, f.typeIndex);
+    const v = fieldVals[i]!;
+    line(s, `${tmp}_obj->f_${sanitise(f.name)} = ${coerce(s, v.name, v.val, fval)};`);
   }
   // Always emit struct values as boxed vader_box_t so they flow uniformly
   // through `ref` slots and across fn boundaries. struct.get unboxes via
@@ -973,7 +976,8 @@ function emitStructSet(s: FnState, op: Extract<Op, { kind: "struct.set" }>): voi
   const value = pop(s);
   const obj = pop(s);
   const f = t.fields[op.fieldIndex]!;
-  line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${value.name};`);
+  const fval = valTypeOfField(s.ctx, f.typeIndex);
+  line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${coerce(s, value.name, value.val, fval)};`);
 }
 
 /** Coerce a stack value holding a heap reference to a `void*`. Boxed values
@@ -1391,19 +1395,34 @@ function sanitise(raw: string): string {
 }
 
 function cStringLit(s: string): string {
+  return cStringLitFromBytes(new TextEncoder().encode(s));
+}
+
+function cStringLitFromBytes(bytes: Uint8Array): string {
   let out = '"';
-  for (const ch of s) {
-    const cp = ch.codePointAt(0)!;
-    if (ch === "\\") out += "\\\\";
-    else if (ch === "\"") out += "\\\"";
-    else if (ch === "\n") out += "\\n";
-    else if (ch === "\r") out += "\\r";
-    else if (ch === "\t") out += "\\t";
-    else if (cp < 32 || cp >= 127) out += `\\x${cp.toString(16).padStart(2, "0")}`;
-    else out += ch;
+  for (let i = 0; i < bytes.length; i++) {
+    const b = bytes[i]!;
+    if (b === 0x5c) out += "\\\\";
+    else if (b === 0x22) out += "\\\"";
+    else if (b === 0x0a) out += "\\n";
+    else if (b === 0x0d) out += "\\r";
+    else if (b === 0x09) out += "\\t";
+    else if (b < 0x20 || b >= 0x7f) {
+      // C `\x` escapes are unbounded — they consume every following hex digit
+      // until the first non-hex character. If the next byte happens to be a
+      // hex digit (or a continuation byte from a multi-byte UTF-8 codepoint),
+      // close the escape with `""` so the digits start a fresh literal piece.
+      out += `\\x${b.toString(16).padStart(2, "0")}`;
+      const next = bytes[i + 1];
+      if (next !== undefined && isCHexDigit(next)) out += '""';
+    } else out += String.fromCharCode(b);
   }
   out += '"';
   return out;
+}
+
+function isCHexDigit(b: number): boolean {
+  return (b >= 0x30 && b <= 0x39) || (b >= 0x41 && b <= 0x46) || (b >= 0x61 && b <= 0x66);
 }
 
 function escapeC(s: string): string {

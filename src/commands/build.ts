@@ -71,7 +71,10 @@ async function buildNative(opts: GlobalOpts, file: string, outPath: string | und
 
   // Emit the .c next to the binary so it's inspectable. Naming: `<out>.c` so
   // `vader build foo.vader --target=native` produces both `foo` and `foo.c`.
-  const out = outPath ?? file.replace(/\.vader$/, "");
+  // On Windows append `.exe` if no extension was provided so MSVC/MinGW link
+  // produces a runnable binary; non-Windows platforms keep the bare path.
+  let out = outPath ?? file.replace(/\.vader$/, "");
+  if (process.platform === "win32" && !/\.[A-Za-z0-9]+$/.test(out)) out += ".exe";
   const cFile = `${out}.c`;
   await Bun.write(cFile, emitC(r.bytecode));
 

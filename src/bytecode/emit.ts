@@ -625,6 +625,7 @@ function internType(ctx: EmitterCtx, t: Type): number {
 function bcTypeOf(t: Type, ctx: EmitterCtx): BcType {
   switch (t.kind) {
     case "Primitive": return { kind: "primitive", val: primitiveToVal(t.name) };
+    case "Enum":      return { kind: "primitive", val: primitiveToVal(t.repr) };
     case "Struct": {
       // Pass 1 keys interned structs by displayType — same key we'd use here.
       // If it's not present, this is an opaque struct (foreign module / no body).

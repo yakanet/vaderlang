@@ -2356,7 +2356,7 @@ fn 39 std_numbers$hex_digit (u64) -> char
   u32.to_char   ; numbers.vader:49:16
   return   ; numbers.vader:49:9
   end   ; numbers.vader:48:5
-  char.const 97   ; numbers.vader:51:21
+  char.const 65   ; numbers.vader:51:21
   char.to_u32   ; numbers.vader:51:17
   local.get 0   ; numbers.vader:51:32
   u64.to_u32   ; numbers.vader:51:28

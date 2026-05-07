@@ -2,9 +2,9 @@
 [00042]
 [42...]
 [hello]
-hex=ff
+hex=FF
 bin=11111111
-hex_padded=00ff
+hex_padded=00FF
 zero_bin=0
 ws_space=true
 ws_a=false

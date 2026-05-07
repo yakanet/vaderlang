@@ -10,10 +10,50 @@
 // Eventually (post-bootstrap) the snapshot producer flips to the Vader CLI
 // and this test collapses into `tests/snapshot.test.ts`.
 
-import { test, expect } from "bun:test";
+import { test, expect, beforeAll } from "bun:test";
+import { existsSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 
 import { listSnippets } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
+
+const CLI_BIN = `build/vaderc${process.platform === "win32" ? ".exe" : ""}`;
+
+// Walk every Vader source the CLI links against and every TS file driving the
+// compiler, returning the newest mtime. If the binary's mtime is older the
+// `beforeAll` rebuilds it. Cheap enough to run unconditionally.
+function newestSourceMtime(): number {
+  let max = 0;
+  const exts = [".vader", ".ts"];
+  const walk = (dir: string): void => {
+    for (const ent of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, ent.name);
+      if (ent.isDirectory()) walk(p);
+      else if (exts.some((e) => ent.name.endsWith(e))) {
+        const m = statSync(p).mtimeMs;
+        if (m > max) max = m;
+      }
+    }
+  };
+  walk("vader");
+  walk("stdlib");
+  walk("src");
+  return max;
+}
+
+beforeAll(async () => {
+  const stale = !existsSync(CLI_BIN) || statSync(CLI_BIN).mtimeMs < newestSourceMtime();
+  if (!stale) return;
+  const proc = Bun.spawn(
+    ["bun", "src/index.ts", "build", "vader/cli/main.vader", "--target=native", `--out=${CLI_BIN}`],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+  const code = await proc.exited;
+  if (code !== 0) {
+    const err = await new Response(proc.stderr).text();
+    throw new Error(`vaderc build failed (exit ${code}):\n${err}`);
+  }
+});
 
 // Snippets whose source has non-ASCII chars hit the `std/string.char_at`
 // byte-indexing limitation differently between the two lexers (TS reads
@@ -41,10 +81,8 @@ for (const s of scenarios) {
     let expected: string;
     try { expected = await Bun.file(snapPath).text(); } catch { return; }
 
-    // Drive the Vader CLI through the TS compiler's `vader run` ; once we
-    // ship a native `vader-cli` binary, swap this for a direct invocation.
     const proc = Bun.spawn(
-      ["bun", "src/index.ts", "run", "vader/cli/main.vader", "dump", "--stage=lexer", s.mainPath],
+      [CLI_BIN, "dump", "--stage=lexer", s.mainPath],
       { stdout: "pipe", stderr: "pipe" },
     );
     const stdout = await new Response(proc.stdout).text();

@@ -9,6 +9,7 @@
     "test": "bun test",
     "test:update": "UPDATE_SNAPSHOTS=1 bun test --update-snapshots",
     "build": "bun build src/index.ts --target=bun --outdir=dist",
+    "build:cli": "bun src/index.ts build vader/cli/main.vader --target=native --out=build/vaderc",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

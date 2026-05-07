@@ -543,14 +543,32 @@ void vader_builder_append_display_i32(vader_builder_t* b, vader_i32_t v) { build
 void vader_builder_append_display_i64(vader_builder_t* b, vader_i64_t v) { builder_append_fmt(b, "%" PRId64, v); }
 void vader_builder_append_display_u32(vader_builder_t* b, vader_u32_t v) { builder_append_fmt(b, "%" PRIu32, v); }
 void vader_builder_append_display_u64(vader_builder_t* b, vader_u64_t v) { builder_append_fmt(b, "%" PRIu64, v); }
+/* Format a finite non-integer float as the shortest decimal that round-trips
+ * back to the same double. Mirrors JS `Number.prototype.toString()` (and thus
+ * the VM's `displayValue`) so VM and native produce identical output. */
+static void append_shortest_double(vader_builder_t* b, double v) {
+    char buf[64];
+    int n = 0;
+    for (int p = 1; p <= 17; p++) {
+        n = snprintf(buf, sizeof buf, "%.*g", p, v);
+        if (strtod(buf, NULL) == v) break;
+    }
+    if (n < 0) n = 0;
+    if ((size_t) n >= sizeof buf) n = (int) sizeof buf - 1;
+    builder_reserve(b, (size_t) n);
+    memcpy(b->buf + b->len, buf, (size_t) n);
+    b->len += (size_t) n;
+}
 void vader_builder_append_display_f32(vader_builder_t* b, vader_f32_t v) {
     double d = (double) v;
     if (isfinite(d) && d == floor(d)) builder_append_fmt(b, "%.1f", d);
-    else                              builder_append_fmt(b, "%g",   d);
+    else if (!isfinite(d))            builder_append_fmt(b, "%g",   d);
+    else                              append_shortest_double(b, d);
 }
 void vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v) {
     if (isfinite(v) && v == floor(v)) builder_append_fmt(b, "%.1f", v);
-    else                              builder_append_fmt(b, "%g",   v);
+    else if (!isfinite(v))            builder_append_fmt(b, "%g",   v);
+    else                              append_shortest_double(b, v);
 }
 void vader_builder_append_display_bool(vader_builder_t* b, vader_bool_t v) {
     vader_string_t s = v ? vader_string_new("true", 4) : vader_string_new("false", 5);
