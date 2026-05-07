@@ -314,6 +314,7 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [x] `std/iter` — `count(it: Iterator($T))` + `collect(it: Iterator($T))` driven by `for x in it`; closure-driven combinators `map`/`filter`/`fold`/`sum`/`take`/`skip` operate on `[T]` directly (eager — return arrays or single values). Snapshot : `tests/snippets/iter_combinators/`.
 - [ ] **`std/iter` lazy / iterator-driven combinators** — `map(it: Iterator($T), f: fn(T) -> $U) -> Iterator(U)` and friends require trait-method dispatch on a bounded type parameter (`$T : Iterator`) so combinators can call `inner.step()` directly. Today user code can only iterate via `for x in it` (compiler-internal magic). Bridge for now : `collect(it)` then operate on the array.
 - [x] `std/gc` — `collect()`, `collections()`, `bytes_used()`, `bytes_copied()` (was `std/runtime`, renamed for clarity ; `gc_` prefix dropped from fn names since the module name disambiguates).
+- [x] `std/sort` — `sort(arr: [$T], less: fn(T, T) -> bool) -> [T]`. Stable, O(n log n), non-mutating ; top-down merge sort with insertion-sort cutoff at 16 (mirrors Java TimSort). Returns a new array — input is never mutated. A `sort_by_ord(arr)` convenience is deferred until trait-method dispatch on bounded type parameters lands (TODO §1.18b). Snapshot : `tests/snippets/std_sort/`. First user : `vader/lexer/dump.vader:dump_diagnostics` swapped its inline insertion-sort + bubble-back hack for `sort(diags, diag_less)`.
 
 ### 1.13b Self-hosting prerequisites (pre-bootstrap stdlib additions)
 

@@ -1,9 +1,0 @@
-# Comptime
-
-## tests/snippets/unknown_decorator/_main.vader
-
-## generic instances
-  Yielded(i32)
-
-# Diagnostics
-[1:1] error[R2010] decorator unknown to the compiler: `@bogus`

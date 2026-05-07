@@ -1,0 +1,88 @@
+// std/sort — comparator-based sort on `[T]` arrays.
+//
+// Stable, O(n log n). Returns a freshly-allocated sorted copy ; the input
+// array is never mutated. Internally a top-down merge sort with an
+// insertion-sort cutoff for sub-ranges of length ≤ 16 (avoids the merge
+// overhead — same cutoff Java's TimSort uses by default).
+//
+// Why not trait-driven (`Ord(T)`) ? Direct trait-method dispatch on a
+// bounded type parameter (`$T : Ord`) isn't yet wired in the lowerer
+// (TODO §1.18b). Once it lands we'll add `sort_by_ord(arr)` that calls
+// `Ord::compare` internally.
+
+import "std/iter" { slice }
+
+// sort — return a new array containing `arr`'s elements in sorted order.
+// `compare(a, b)` returns true iff `a` should come strictly before `b` in
+// the result ; equal elements keep their input order so the sort is stable.
+export sort :: fn(arr: [$T], compare: fn(T, T) -> bool) -> [T] {
+    n :: arr.len()
+    out :: slice(arr, 0, n)
+    if n < 2 { return out }
+    // Scratch buffer pre-sized to n. Every merge overwrites these slots
+    // before reading them, so the initial values are placeholders solely to
+    // make `buf[i] = …` land in-bounds.
+    buf :: slice(arr, 0, n)
+    merge_sort_range(out, buf, 0, n, compare)
+    return out
+}
+
+INSERTION_CUTOFF :: 16
+
+// Recursive top-down merge sort over `arr[lo..hi)`. Below INSERTION_CUTOFF
+// we hand off to insertion_sort_range — the constant factor of merge sort
+// loses on tiny sub-arrays.
+merge_sort_range :: fn(arr: [$T], buf: [T], lo: i32, hi: i32, compare: fn(T, T) -> bool) -> void {
+    n :: hi - lo
+    if n < 2 { return }
+    if n <= INSERTION_CUTOFF {
+        insertion_sort_range(arr, lo, hi, compare)
+        return
+    }
+    mid :: lo + n / 2
+    merge_sort_range(arr, buf, lo, mid, compare)
+    merge_sort_range(arr, buf, mid, hi, compare)
+    // Mirror arr[lo..hi) into buf, then merge back into arr[lo..hi). The
+    // two halves are already sorted within themselves.
+    i := lo
+    for i < hi {
+        buf[i] = arr[i]
+        i = i + 1
+    }
+    a := lo
+    b := mid
+    k := lo
+    for k < hi {
+        if a >= mid {
+            arr[k] = buf[b]
+            b = b + 1
+        } else if b >= hi {
+            arr[k] = buf[a]
+            a = a + 1
+        } else if compare(buf[b], buf[a]) {
+            // strict ordering : equal elements keep their original order, so
+            // we only take from the right half when it strictly precedes the
+            // left half — this is what makes the sort stable.
+            arr[k] = buf[b]
+            b = b + 1
+        } else {
+            arr[k] = buf[a]
+            a = a + 1
+        }
+        k = k + 1
+    }
+}
+
+insertion_sort_range :: fn(arr: [$T], lo: i32, hi: i32, compare: fn(T, T) -> bool) -> void {
+    i := lo + 1
+    for i < hi {
+        x :: arr[i]
+        j := i
+        for j > lo && compare(x, arr[j - 1]) {
+            arr[j] = arr[j - 1]
+            j = j - 1
+        }
+        arr[j] = x
+        i = i + 1
+    }
+}

@@ -1,9 +1,0 @@
-# Comptime
-
-## tests/snippets/unknown_field/_main.vader
-
-## generic instances
-  Yielded(i32)
-
-# Diagnostics
-[7:14] error[T3009] field does not exist on this type: `z` on Point

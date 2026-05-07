@@ -20,6 +20,25 @@ export ends_with   :: fn(s: string, suffix: string) -> bool
 // Character access (byte index → Unicode codepoint).
 export char_at :: fn(s: string, i: i32) -> char
 
+// Comparator suitable for `sort(arr, compare_ascending)` : returns true when
+// `a` lexicographically precedes `b` (byte-wise). Mirrors JS `s1 < s2`.
+// Will become `Ord(string)::less` once trait-method dispatch on bounded type
+// parameters lands (TODO §1.18b).
+export compare_ascending :: fn(a: string, b: string) -> bool {
+    la :: a.len()
+    lb :: b.len()
+    n :: if la < lb { la } else { lb }
+    i := 0
+    for i < n {
+        ca :: a.char_at(i)
+        cb :: b.char_at(i)
+        if ca < cb { return true }
+        if ca > cb { return false }
+        i = i + 1
+    }
+    return la < lb
+}
+
 // Last byte-index of `c` at or after `min_index`, or -1 if not found.
 export last_index_of :: fn(s: string, c: char, min_index: i32) -> i32 {
     i := s.len() - 1

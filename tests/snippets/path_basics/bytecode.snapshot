@@ -868,36 +868,36 @@ end
 
 fn 15 std_string$last_index_of (string,char,i32) -> i32
   local i i32
-  local.get 0   ; string.vader:25:10
-  call.import 9   ; string.vader:25:10
-  i32.const 1   ; string.vader:25:20
-  i32.sub   ; string.vader:25:10
-  local.set 3   ; string.vader:25:5
-  block void   ; string.vader:26:5
-  loop void   ; string.vader:26:5
-  local.get 3   ; string.vader:26:9
-  local.get 2   ; string.vader:26:14
-  i32.lt   ; string.vader:26:9
-  br_if 1   ; string.vader:26:9
-  local.get 0   ; string.vader:27:12
-  local.get 3   ; string.vader:27:22
-  call.import 14   ; string.vader:27:12
-  local.get 1   ; string.vader:27:28
-  char.eq   ; string.vader:27:12
-  if void   ; string.vader:27:9
-  local.get 3   ; string.vader:28:20
-  return   ; string.vader:28:13
-  end   ; string.vader:27:9
-  local.get 3   ; string.vader:30:13
-  i32.const 1   ; string.vader:30:17
-  i32.sub   ; string.vader:30:13
-  local.set 3   ; string.vader:30:9
-  br 0   ; string.vader:26:5
-  end   ; string.vader:26:5
-  end   ; string.vader:26:5
-  i32.const 1   ; string.vader:32:13
-  i32.neg   ; string.vader:32:12
-  return   ; string.vader:32:5
+  local.get 0   ; string.vader:44:10
+  call.import 9   ; string.vader:44:10
+  i32.const 1   ; string.vader:44:20
+  i32.sub   ; string.vader:44:10
+  local.set 3   ; string.vader:44:5
+  block void   ; string.vader:45:5
+  loop void   ; string.vader:45:5
+  local.get 3   ; string.vader:45:9
+  local.get 2   ; string.vader:45:14
+  i32.lt   ; string.vader:45:9
+  br_if 1   ; string.vader:45:9
+  local.get 0   ; string.vader:46:12
+  local.get 3   ; string.vader:46:22
+  call.import 14   ; string.vader:46:12
+  local.get 1   ; string.vader:46:28
+  char.eq   ; string.vader:46:12
+  if void   ; string.vader:46:9
+  local.get 3   ; string.vader:47:20
+  return   ; string.vader:47:13
+  end   ; string.vader:46:9
+  local.get 3   ; string.vader:49:13
+  i32.const 1   ; string.vader:49:17
+  i32.sub   ; string.vader:49:13
+  local.set 3   ; string.vader:49:9
+  br 0   ; string.vader:45:5
+  end   ; string.vader:45:5
+  end   ; string.vader:45:5
+  i32.const 1   ; string.vader:51:13
+  i32.neg   ; string.vader:51:12
+  return   ; string.vader:51:5
 end
 
 fn 16 std_string_builder$new_builder () -> ref

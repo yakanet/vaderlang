@@ -1,0 +1,65 @@
+import "std/io" { println }
+import "std/sort" { sort }
+import "std/string" { compare_ascending as str_lt }
+
+i32_lt :: fn(a: i32, b: i32) -> bool { return a < b }
+i32_gt :: fn(a: i32, b: i32) -> bool { return a > b }
+
+print_ints :: fn(arr: [i32]) -> void {
+    sb := ""
+    i := 0
+    for x in arr {
+        if i > 0 { sb = "${sb}, " }
+        sb = "${sb}${x}"
+        i = i + 1
+    }
+    println(sb)
+}
+
+print_strings :: fn(arr: [string]) -> void {
+    sb := ""
+    i := 0
+    for s in arr {
+        if i > 0 { sb = "${sb}, " }
+        sb = "${sb}${s}"
+        i = i + 1
+    }
+    println(sb)
+}
+
+main :: fn() -> i32 {
+    // Single-element array.
+    one :: sort([42], i32_lt)
+    print_ints(one)
+
+    // Already-sorted, reverse, and random.
+    asc :: sort([1, 2, 3, 4, 5], i32_lt)
+    print_ints(asc)
+    desc :: sort([5, 4, 3, 2, 1], i32_lt)
+    print_ints(desc)
+    rand :: sort([3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5], i32_lt)
+    print_ints(rand)
+
+    // Custom comparator: descending order.
+    descending :: sort([1, 2, 3, 4, 5], i32_gt)
+    print_ints(descending)
+
+    // Larger array — exceeds the insertion cutoff, exercises merge.
+    big :: sort(
+        [10, 20, 5, 15, 25, 1, 30, 8, 12, 18, 3, 27, 22, 7, 14, 11, 19, 6, 24, 16, 9, 21, 13, 4, 26, 2, 17, 23, 28, 29],
+        i32_lt,
+    )
+    print_ints(big)
+
+    // Strings.
+    strs :: sort(["banana", "apple", "cherry", "date"], str_lt)
+    print_strings(strs)
+
+    // Input array is not mutated.
+    input := [3, 1, 2]
+    out :: sort(input, i32_lt)
+    print_ints(input)
+    print_ints(out)
+
+    return 0
+}

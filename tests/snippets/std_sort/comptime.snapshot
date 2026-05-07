@@ -1,0 +1,18 @@
+# Comptime
+
+## tests/snippets/std_sort/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Yielded(string)
+  ArrayIter($T)
+  ArrayIter(i32)
+  ArrayIter(string)
+  sort(i32)
+  sort(string)
+  merge_sort_range(i32)
+  merge_sort_range(string)
+  insertion_sort_range(i32)
+  insertion_sort_range(string)
+  slice(i32)
+  slice(string)

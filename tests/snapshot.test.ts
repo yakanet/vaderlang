@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import {
   MAIN_FILE, dumpBytecode, dumpComptime, dumpLexer, dumpLower, dumpParser,
-  dumpResolver, dumpTypecheck, errMsg, listSnippets, snapshotEquals,
+  dumpResolver, dumpTypecheck, errMsg, listSnippets, loadConfig, snapshotEquals,
 } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
@@ -29,7 +29,9 @@ test("snippets: at least one discovered", () => {
 });
 
 for (const s of scenarios) {
-  for (const p of PHASES) {
+  const config = loadConfig(s.dir);
+  const activePhases = config.phases ? PHASES.filter((p) => config.phases!.includes(p.name)) : PHASES;
+  for (const p of activePhases) {
     test(`${p.name}: ${s.name}`, () => {
       const file = p.usePath ? s.mainPath : MAIN_FILE;
       let actual: string;

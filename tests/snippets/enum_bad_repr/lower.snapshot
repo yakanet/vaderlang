@@ -1,6 +1,0 @@
-# Lower
-
-# Diagnostics
-[4:9] error[T3030] enum variant value out of range for backing type: 300 not in [0, 255] for `u8`
-[10:9] error[T3031] duplicate enum variant value: value 1 already used by `X`
-[13:23] error[T3029] enum backing type must be a primitive integer: got string

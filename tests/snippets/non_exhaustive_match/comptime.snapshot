@@ -1,9 +1,0 @@
-# Comptime
-
-## tests/snippets/non_exhaustive_match/_main.vader
-
-## generic instances
-  Yielded(i32)
-
-# Diagnostics
-[2:12] error[T3013] non-exhaustive match: variant string of i32 | string is not covered

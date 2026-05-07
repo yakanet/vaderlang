@@ -1,9 +1,0 @@
-# Typecheck
-
-## tests/snippets/unknown_import/_main.vader
-  FnDecl         main                 :: fn() -> i32
-  expr 4:5      CallExpr       :: ?
-  expr 4:5      IdentExpr      :: ?
-
-# Diagnostics
-[1:1] error[R2001] module not found: `std/nonexistent`

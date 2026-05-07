@@ -38,6 +38,27 @@
   fn               public   write_file 
   refs: idents=1 types=22 params=9 locals=0 typeParams=0 fields=0
 
+## std/iter
+  fn               public   collect 
+  fn               public   count 
+  fn               public   filter 
+  fn               public   fold 
+  fn               public   map 
+  fn               public   skip 
+  fn               public   slice 
+  fn               public   sum 
+  fn               public   take 
+  refs: idents=74 types=28 params=17 locals=15 typeParams=10 fields=0
+
+## std/sort
+  const            private  INSERTION_CUTOFF 
+  fn               private  insertion_sort_range 
+  fn               private  merge_sort_range 
+  import-binding   private  slice → slice
+  fn               public   sort 
+  import std/iter → ok
+  refs: idents=111 types=17 params=11 locals=12 typeParams=3 fields=0
+
 ## std/string
   import-binding   private  append → append
   import-binding   private  append_char → append_char
@@ -81,11 +102,16 @@
   fn               public   to_string 
   refs: idents=6 types=13 params=6 locals=0 typeParams=0 fields=0
 
-## tests/snippets/parse_int_match/_main.vader
+## tests/snippets/std_sort/_main.vader
+  fn               private  i32_gt 
+  fn               private  i32_lt 
   fn               public   main 
-  import-binding   private  parse_float → parse_float
-  import-binding   private  parse_int → parse_int
+  fn               private  print_ints 
+  fn               private  print_strings 
   import-binding   private  println → println
+  import-binding   private  sort → sort
+  import-binding   private  str_lt → compare_ascending
   import std/io → ok
+  import std/sort → ok
   import std/string → ok
-  refs: idents=12 types=9 params=0 locals=0 typeParams=0 fields=0
+  refs: idents=61 types=11 params=6 locals=13 typeParams=0 fields=0

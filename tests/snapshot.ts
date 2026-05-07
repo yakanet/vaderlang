@@ -19,8 +19,25 @@ import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
 export const MAIN_FILE = "_main.vader";
+export const CONFIG_FILE = "_config.json";
 
 export const VM_ERROR_PREFIXES = ["# pipeline error", "# compile errors", "# no main function", "# runtime error"] as const;
+
+export type PhaseName = "lexer" | "parser" | "resolver" | "typecheck" | "comptime" | "lower" | "bytecode";
+
+export interface TestConfig {
+  readonly phases?: readonly PhaseName[];
+}
+
+export function loadConfig(dir: string): TestConfig {
+  const configPath = join(dir, CONFIG_FILE);
+  if (!existsSync(configPath)) return {};
+  try {
+    return JSON.parse(readFileSync(configPath, "utf8")) as TestConfig;
+  } catch {
+    return {};
+  }
+}
 
 export interface Scenario {
   readonly name: string;
