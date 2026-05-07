@@ -83,7 +83,7 @@
           ~>
             @builder.finish :string
               __sb_2#-3 :?
-    let n#128: u64 = int(255) :u64
+    let n#130: u64 = int(255) :u64
     call :void
       callee:
         println#33 :fn(string) -> void
@@ -100,7 +100,7 @@
               callee:
                 to_hex#81 :string
               arg0:
-                n#128 :u64
+                n#130 :u64
           ~>
             @builder.finish :string
               __sb_3#-4 :?
@@ -120,7 +120,7 @@
               callee:
                 to_bin#82 :string
               arg0:
-                n#128 :u64
+                n#130 :u64
           ~>
             @builder.finish :string
               __sb_4#-5 :?
@@ -144,7 +144,7 @@
                   callee:
                     to_hex#81 :string
                   arg0:
-                    n#128 :u64
+                    n#130 :u64
               arg1:
                 int(4) :i32
               arg2:
@@ -152,7 +152,7 @@
           ~>
             @builder.finish :string
               __sb_5#-6 :?
-    let zero#129: u64 = int(0) :u64
+    let zero#131: u64 = int(0) :u64
     call :void
       callee:
         println#33 :fn(string) -> void
@@ -169,7 +169,7 @@
               callee:
                 to_bin#82 :string
               arg0:
-                zero#129 :u64
+                zero#131 :u64
           ~>
             @builder.finish :string
               __sb_6#-7 :?

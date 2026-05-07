@@ -5,7 +5,7 @@
 // integer overload wins on `abs(-7)` etc.
 
 import "std/io" { println }
-import "std/math" { min, max, abs }
+import "std/math" { min, max, abs, clamp }
 
 export Box :: struct { v: i32 }
 export Bag :: struct { v: string }
@@ -30,5 +30,7 @@ main :: fn() -> i32 {
     println("max(-2, 8)    = ${max(-2, 8)}")
     println("abs(-7)       = ${abs(-7)}")
     println("abs(-7.5)     = ${abs(-7.5)}")
+    println("clamp(15, 0, 10)      = ${clamp(15, 0, 10)}")
+    println("clamp(1.5, 0.0, 1.0)  = ${clamp(1.5, 0.0, 1.0)}")
     return 0
 }

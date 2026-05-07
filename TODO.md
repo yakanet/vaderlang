@@ -304,10 +304,9 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [ ] `std/core` — finalise traits and base `Error`
 - [ ] `std/io` — implement `print`, `println`, `read_file`, `write_file`, `read_line`, `exists`
 - [ ] `std/string` — finalise all listed operations
-- [x] `std/collections` — `MutableMap(K, V)` chaining HashMap (string keys via FNV-1a hash). `MutableSet(T)` linear-search. `keys()` / `values()` snapshot helpers. Stub immutable `Map`/`Set`.
-- [ ] **Promote `MutableSet` to hash-backed** once trait-method dispatch on bounded type parameters is implemented (so `key.hash()` / `key.equals(other)` work inside generic bodies).
-- [ ] **Implement immutable `Map`/`Set` ops + `to_immutable` conversion** (currently struct stubs only).
-- [ ] **Iterator impls for `MutableMap` / `MutableSet`** — yield `Entry(K, V)` / `T`. Skipped at MVP because writing them in a generic body needs the trait-dispatch fix above to be ergonomic.
+- [x] `std/collections` — `MutableMap(K, V)` chaining HashMap (string keys via FNV-1a hash, hash-backed via the same map for `MutableSet(T)`). `keys()` / `values()` snapshot helpers. `len` / `is_empty` / `put` / `get` / `contains_key` / `add` / `contains` shared via first-param overloading (§1.18c). Dead `Map` / `Set` immutable struct stubs removed 2026-05-07.
+- [ ] **Implement immutable `Map`/`Set` ops + `to_immutable` conversion** when there's a real read-only-view design. Re-add `Map` / `Set` struct decls at that point.
+- [ ] **Iterator impls for `MutableMap` / `MutableSet`** — yield `Entry(K, V)` / `T`. Skipped at MVP because writing them in a generic body needs trait-method dispatch on bounded type params (§1.18b deferred).
 - [ ] **Restore `MutableList(T)` once immutable `List<T>` lands**. Today raw `[T]` arrays already provide `push`/`len`/indexing/`for x in arr`, so `MutableList` was a wrapper with no extra value and was dropped (was previously `MutableList(T) { data: [T], size: usize }` — `size` field was redundant with `data.len()`). Re-introduce when there's an immutable `List<T>` to pair with.
 - [ ] `std/math` — constants and float operations (use `@extern` to libm where useful on native, intrinsics on WASM)
 - [x] `std/string_builder` — `StringBuilder` (was `std/builder`, renamed for clarity).
@@ -421,7 +420,7 @@ Lift `R2004` for free functions whose names collide if their **first parameter**
 - [x] **Diagnostic** : `T3032` ("ambiguous overload resolution") covers both UFCS and direct-call sites.
 - [x] **Tests** : `tests/snippets/overload_first_param/` covers user-defined direct + UFCS dispatch and the stdlib `min`/`max`/`abs` i32+f64 overloads.
 - [x] **Stdlib `min`/`max`/`abs` i32+f64 overloads** added in `std/math.vader` (2026-05-07). `std/string.compare_ascending` now uses `min(la, lb)` instead of an inline `if`.
-- [ ] **Stdlib cleanup remaining** : remove the `len` / `is_empty` / `iter` workaround names in `std/collections.vader` once their generic-bound dispatch issues are sorted. Same for the `MutableMap` `len` (vs `size` field) workaround. Tracked separately under §1.13.
+- [x] **Stdlib cleanup** done 2026-05-07 : `len` / `is_empty` / `put` / `get` / `add` / `contains` are shared between `MutableMap` and `MutableSet` via first-param overloading. Dead immutable `Map` / `Set` struct stubs deleted from `std/collections.vader`. No `len_map` / `len_set` workaround names remain.
 
 ### 1.18 Built-in type aliases
 

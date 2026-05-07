@@ -40,11 +40,6 @@ Entry :: struct($K, $V) {
     next:  Entry(K, V) | null
 }
 
-export Map :: struct($K, $V) {
-    buckets: [Entry(K, V) | null]
-    size:    usize
-}
-
 export MutableMap :: struct($K, $V) {
     buckets: [Entry(K, V) | null]
     size:    usize
@@ -205,10 +200,6 @@ export values :: fn(self: MutableMap($K, $V)) -> [V] {
 // as a (T → true) entry, so lookups inherit the chained-bucket O(1) behaviour
 // from MutableMap. `where T: Hash + Eq` mirrors MutableMap's own bound.
 // ===========================================================================
-
-export Set :: struct($T) {
-    inner: MutableMap(T, bool)
-}
 
 export MutableSet :: struct($T) {
     inner: MutableMap(T, bool)

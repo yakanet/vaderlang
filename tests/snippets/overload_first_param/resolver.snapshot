@@ -41,6 +41,7 @@
 ## std/math
   fn               public   abs 
   fn               public   ceil 
+  fn               public   clamp 
   fn               public   cos 
   const            public   e 
   fn               public   floor 
@@ -53,12 +54,13 @@
   fn               public   sin 
   fn               public   sqrt 
   fn               public   tan 
-  refs: idents=26 types=37 params=22 locals=0 typeParams=0 fields=0
+  refs: idents=37 types=36 params=28 locals=0 typeParams=0 fields=0
 
 ## tests/snippets/overload_first_param/_main.vader
   import-binding   private  abs → abs
   struct           public   Bag 
   struct           public   Box 
+  import-binding   private  clamp → clamp
   fn               public   describe 
   fn               public   main 
   import-binding   private  max → max
@@ -66,4 +68,4 @@
   import-binding   private  println → println
   import std/io → ok
   import std/math → ok
-  refs: idents=22 types=9 params=2 locals=2 typeParams=0 fields=0
+  refs: idents=26 types=9 params=2 locals=2 typeParams=0 fields=0

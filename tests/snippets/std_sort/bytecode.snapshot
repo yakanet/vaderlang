@@ -1094,13 +1094,13 @@ fn 15 std_iter$std_iter$slice__string (ref,i32,i32) -> ref
 end
 
 fn 16 std_math$min_1 (i32,i32) -> i32
-  local.get 0   ; math.vader:27:8
-  local.get 1   ; math.vader:27:12
-  i32.lt   ; math.vader:27:8
-  if void   ; math.vader:27:5
-  local.get 0   ; math.vader:27:23
-  return   ; math.vader:27:16
-  end   ; math.vader:27:5
-  local.get 1   ; math.vader:28:12
-  return   ; math.vader:28:5
+  local.get 0   ; math.vader:22:39
+  local.get 1   ; math.vader:22:43
+  i32.lt   ; math.vader:22:39
+  if i32   ; math.vader:22:36
+  local.get 0   ; math.vader:22:47
+  else   ; math.vader:22:36
+  local.get 1   ; math.vader:22:58
+  end   ; math.vader:22:36
+  return   ; math.vader:22:36
 end
