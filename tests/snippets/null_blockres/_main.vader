@@ -1,0 +1,20 @@
+import "std/io" { println }
+
+// Regression: when an if/else block has type `null`, the C emitter must
+// declare `blockres_X` as `vader_box_t`, not `void` (which would produce
+// invalid `void blockres_X = ...`).
+pick :: fn(c: bool) -> string | null {
+    x :: if c { null } else { null }
+    if x == null {
+        return "got null"
+    }
+    return null
+}
+
+main :: fn() -> i32 {
+    match pick(true) {
+        is string -> println("got string")
+        is null -> println("nothing")
+    }
+    return 0
+}

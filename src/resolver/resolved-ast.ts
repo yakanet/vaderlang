@@ -32,6 +32,14 @@ export interface ResolvedProgram {
    *  typechecker / lowerer can resolve `x` from the form alone. */
   readonly forIns: ReadonlyMap<A.ForStmt, Symbol>;
 
+  /** Symbols introduced by match-arm bindings. Keyed by the AST node that
+   *  *introduces* the binding (`BindingPattern`, `IsPattern` with `bindAs`,
+   *  or a `StructPatternField` whose value is `binding`). The lowerer reads
+   *  this map so its `LoweredLet` uses the same Symbol id that the body's
+   *  `IdentExpr` resolves to via `idents` — without it, the binding's slot
+   *  would be unreachable from the body. */
+  readonly patternBindings: ReadonlyMap<A.IsPattern | A.BindingPattern | A.StructPatternField, Symbol>;
+
   /** Symbols introduced by `$T` heads on struct/trait declarations. */
   readonly typeParams: ReadonlyMap<A.TypeParam, Symbol>;
 

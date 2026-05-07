@@ -55,19 +55,11 @@ beforeAll(async () => {
 // (`reached unreachable`) or diverges in detail. Tracked in TODO §2.1 ;
 // remove an entry once the underlying fix lands.
 const KNOWN_FAILURES = new Set([
-  // Snippets that trap or diverge today — see TODO §2.1.
-  "bad_div_zero", "comptime_const", "cross_decl", "cycle", "decorators_ok",
-  "enum_bad_repr", "enum_basic", "enum_match", "enum_typed", "errors_lexer",
-  "errors_parser",
-  "expr_bodied_fn", "expr_bodied_recursive_fn", "expr_bodied_mixed_form",
-  "fn_decl", "fn_value_array", "fn_value_basic", "for_in", "format_helpers",
-  "gc_array_survive", "interp_string_comptime", "iter_combinators",
-  "json_basics", "match_union", "non_exhaustive_match", "path_basics",
-  "primitive_impl", "regex_helpers", "sam_impl", "sam_impl_bad",
-  "selfhost_lexer_basic", "self_ref_struct", "simple_arith", "square_call",
-  "std_collections", "std_math", "std_string", "std_string_builder",
-  "trait_dispatch_struct", "trait_impl", "trait_virtual_dispatch",
-  "unknown_decorator", "vm_trait_dispatch",
+  // CJK / multi-byte UTF-8 fixtures. The Vader-side parser corrupts
+  // multi-byte codepoints because `std/string.char_at` is byte-indexed
+  // rather than codepoint-indexed. Tracked as a stdlib limitation, not a
+  // parser bug — see TODO §1.13.
+  "std_string", "std_string_builder",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

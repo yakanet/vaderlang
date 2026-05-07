@@ -47,6 +47,7 @@ interface MutableProgram {
   typeParamTypes: Map<A.TypeParamType, Symbol>;
   fields: Map<A.FieldExpr, Symbol>;
   ufcsFreeResolutions: Map<A.FieldExpr, Symbol>;
+  patternBindings: Map<A.IsPattern | A.BindingPattern | A.StructPatternField, Symbol>;
 }
 
 interface Scope {
@@ -92,6 +93,7 @@ export function resolveModule(input: ResolveModuleInput): ResolvedProgram[] {
       typeParamTypes: new Map(),
       fields: new Map(),
       ufcsFreeResolutions: new Map(),
+      patternBindings: new Map(),
     };
     for (const decl of file.program.decls) {
       resolveDecl(decl, root, program, input);
@@ -596,22 +598,26 @@ function bindPattern(pat: A.Pattern, scope: Scope, p: MutableProgram, input: Res
     case "IsPattern":
       resolveType(pat.type, scope, p, input);
       if (pat.bindAs !== null) {
-        bindBinding(pat.bindAs, pat.span, { kind: "is-pattern", pattern: pat }, scope, input);
+        const sym = bindBinding(pat.bindAs, pat.span, { kind: "is-pattern", pattern: pat }, scope, input);
+        p.patternBindings.set(pat, sym);
       }
       if (pat.inner !== null) bindPattern(pat.inner, scope, p, input);
       return;
     case "StructPattern":
       for (const f of pat.fields) {
         if (f.value.kind === "binding") {
-          bindBinding(f.value.name, f.value.span, { kind: "struct-pattern", field: f }, scope, input);
+          const sym = bindBinding(f.value.name, f.value.span, { kind: "struct-pattern", field: f }, scope, input);
+          p.patternBindings.set(f, sym);
         } else {
           resolveExpr(f.value.value, scope, p, input);
         }
       }
       return;
-    case "BindingPattern":
-      bindBinding(pat.name, pat.span, { kind: "binding-pattern", pattern: pat }, scope, input);
+    case "BindingPattern": {
+      const sym = bindBinding(pat.name, pat.span, { kind: "binding-pattern", pattern: pat }, scope, input);
+      p.patternBindings.set(pat, sym);
       return;
+    }
     case "WildcardPattern":
       return;
     case "EnumVariantPattern":

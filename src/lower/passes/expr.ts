@@ -14,7 +14,7 @@ import { err } from "../diag.ts";
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
 import { lookupImplEntry, lookupImplFor, lowerRangeExpr } from "./for-in.ts";
-import { applySubst, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
+import { applySubst, blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
 import { lowerMatch } from "./match.ts";
 import { lowerStringLit } from "./string-interp.ts";
@@ -452,6 +452,17 @@ export function lowerIf(ctx: FnLowerCtx, expr: A.IfExpr, exprType: Type): Lowere
     elseBlock = expr.else.kind === "BlockExpr"
       ? lowerBlock(ctx, expr.else, false, false)
       : wrapAsBlock(lowerIf(ctx, expr.else, exprType), expr.else.span);
+  }
+  // No-else `if` : the body's value is unobservable (the typechecker widens
+  // to `T | void`, but `void` has no representation), so force the if to
+  // type `void` and discard the then-block's trailing. Without this, the
+  // bytecode emitter would synthesise `else; unreachable` and crash on
+  // every false branch.
+  if (expr.else === null) {
+    const thenVoid: LoweredBlock = {
+      ...then, stmts: blockStmtsWithTrailing(then), trailing: null, type: TY.void,
+    };
+    return { kind: "LoweredIf", span: expr.span, type: TY.void, cond, then: thenVoid, else: null };
   }
   return { kind: "LoweredIf", span: expr.span, type: exprType, cond, then, else: elseBlock };
 }

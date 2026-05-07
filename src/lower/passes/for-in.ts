@@ -17,7 +17,7 @@ import type { LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait, findCoreType, unionOfDoneYielded } from "./core.ts";
 import { lowerExpr } from "./expr.ts";
-import { freshSyntheticSymbol, wrapStmts } from "./helpers.ts";
+import { blockStmtsWithTrailing, freshSyntheticSymbol, wrapStmts } from "./helpers.ts";
 
 /** Desugar `RangeExpr` (`a..<b` / `a..=b`) into a `Range` struct literal so
  *  `for-in` can dispatch through the standard Iterator impl rather than a
@@ -147,9 +147,7 @@ export function lowerForIn(ctx: FnLowerCtx, stmt: A.ForStmt): LoweredStmt {
       then: { kind: "LoweredBlock", span, type: TY.void, stmts: [breakStmt], trailing: null },
       else: {
         kind: "LoweredBlock", span, type: TY.void,
-        stmts: [bindLet, ...userBody.stmts, ...(userBody.trailing !== null
-          ? [{ kind: "LoweredExprStmt", span: userBody.trailing.span, expr: userBody.trailing } as LoweredStmt]
-          : [])],
+        stmts: [bindLet, ...blockStmtsWithTrailing(userBody)],
         trailing: null,
       },
     },

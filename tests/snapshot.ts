@@ -416,7 +416,8 @@ export function dumpResolver(_source: string, entryPath: string): string {
 }
 
 const SPAN_KEYS = new Set<string>([
-  "span", "fieldSpan", "nameSpan", "bindingSpan", "traitNameSpan", "file",
+  "span", "fieldSpan", "nameSpan", "bindingSpan", "traitNameSpan",
+  "variantSpan", "valueSpan", "file",
 ]);
 
 function formatProgram(program: unknown): string {

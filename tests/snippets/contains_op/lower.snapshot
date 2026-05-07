@@ -53,12 +53,11 @@
           arg1:
             int(5) :i32
       then:
-        ~>
-          call :void
-            callee:
-              println#29 :fn(string) -> void
-            arg0:
-              "range yes" :string
+        call :void
+          callee:
+            println#29 :fn(string) -> void
+          arg0:
+            "range yes" :string
     if :void
       cond:
         not :bool
@@ -75,12 +74,11 @@
             arg1:
               int(10) :i32
       then:
-        ~>
-          call :void
-            callee:
-              println#29 :fn(string) -> void
-            arg0:
-              "range !in yes" :string
+        call :void
+          callee:
+            println#29 :fn(string) -> void
+          arg0:
+            "range !in yes" :string
     if :void
       cond:
         call :bool
@@ -96,12 +94,11 @@
           arg1:
             int(10) :i32
       then:
-        ~>
-          call :void
-            callee:
-              println#29 :fn(string) -> void
-            arg0:
-              "range incl yes" :string
+        call :void
+          callee:
+            println#29 :fn(string) -> void
+          arg0:
+            "range incl yes" :string
     let s#61: DigitSet =
       DigitSet {
         bits:
@@ -137,12 +134,11 @@
           arg1:
             int(4) :i32
       then:
-        ~>
-          call :void
-            callee:
-              println#29 :fn(string) -> void
-            arg0:
-              "set has 4" :string
+        call :void
+          callee:
+            println#29 :fn(string) -> void
+          arg0:
+            "set has 4" :string
     if :void
       cond:
         not :bool
@@ -154,12 +150,11 @@
             arg1:
               int(5) :i32
       then:
-        ~>
-          call :void
-            callee:
-              println#29 :fn(string) -> void
-            arg0:
-              "set lacks 5" :string
+        call :void
+          callee:
+            println#29 :fn(string) -> void
+          arg0:
+            "set lacks 5" :string
     if :void
       cond:
         call :bool
@@ -170,10 +165,9 @@
           arg1:
             int(7) :i32
       then:
-        ~>
-          call :void
-            callee:
-              println#29 :fn(string) -> void
-            arg0:
-              "set has 7" :string
+        call :void
+          callee:
+            println#29 :fn(string) -> void
+          arg0:
+            "set has 7" :string
     return int(0) :i32

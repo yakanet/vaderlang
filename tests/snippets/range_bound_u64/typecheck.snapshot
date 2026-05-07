@@ -1,0 +1,9 @@
+# Typecheck
+
+## tests/snippets/range_bound_u64/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 3:14     RangeExpr      :: Range
+  expr 3:18     IdentExpr      :: u64
+
+# Diagnostics
+[3:18] error[T3001] type mismatch: range bounds must be `i32`, got u64

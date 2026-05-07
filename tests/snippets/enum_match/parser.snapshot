@@ -24,18 +24,15 @@
       "variants": [
         {
           "name": "Red",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "Green",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "Blue",
-          "value": null,
-          "valueSpan": null
+          "value": null
         }
       ],
       "decorators": []
@@ -48,18 +45,15 @@
       "variants": [
         {
           "name": "Info",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "Warning",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "Error",
-          "value": null,
-          "valueSpan": null
+          "value": null
         }
       ],
       "decorators": []
@@ -112,19 +106,7 @@
                     "kind": "ReturnStmt",
                     "value": {
                       "kind": "DotVariantExpr",
-                      "variant": "Error",
-                      "variantSpan": {
-                        "start": {
-                          "offset": 212,
-                          "line": 9,
-                          "column": 24
-                        },
-                        "end": {
-                          "offset": 217,
-                          "line": 9,
-                          "column": 29
-                        }
-                      }
+                      "variant": "Error"
                     }
                   }
                 ],
@@ -157,19 +139,7 @@
                     "kind": "ReturnStmt",
                     "value": {
                       "kind": "DotVariantExpr",
-                      "variant": "Warning",
-                      "variantSpan": {
-                        "start": {
-                          "offset": 244,
-                          "line": 10,
-                          "column": 25
-                        },
-                        "end": {
-                          "offset": 251,
-                          "line": 10,
-                          "column": 32
-                        }
-                      }
+                      "variant": "Warning"
                     }
                   }
                 ],
@@ -182,19 +152,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "DotVariantExpr",
-              "variant": "Info",
-              "variantSpan": {
-                "start": {
-                  "offset": 266,
-                  "line": 11,
-                  "column": 13
-                },
-                "end": {
-                  "offset": 270,
-                  "line": 11,
-                  "column": 17
-                }
-              }
+              "variant": "Info"
             }
           }
         ],
@@ -358,19 +316,7 @@
             },
             "value": {
               "kind": "DotVariantExpr",
-              "variant": "Green",
-              "variantSpan": {
-                "start": {
-                  "offset": 633,
-                  "line": 30,
-                  "column": 17
-                },
-                "end": {
-                  "offset": 638,
-                  "line": 30,
-                  "column": 22
-                }
-              }
+              "variant": "Green"
             }
           },
           {
@@ -428,19 +374,7 @@
                         "name": null,
                         "value": {
                           "kind": "DotVariantExpr",
-                          "variant": "Red",
-                          "variantSpan": {
-                            "start": {
-                              "offset": 680,
-                              "line": 32,
-                              "column": 20
-                            },
-                            "end": {
-                              "offset": 683,
-                              "line": 32,
-                              "column": 23
-                            }
-                          }
+                          "variant": "Red"
                         },
                         "spread": false
                       }
@@ -473,19 +407,7 @@
                         "name": null,
                         "value": {
                           "kind": "DotVariantExpr",
-                          "variant": "Blue",
-                          "variantSpan": {
-                            "start": {
-                              "offset": 705,
-                              "line": 33,
-                              "column": 20
-                            },
-                            "end": {
-                              "offset": 709,
-                              "line": 33,
-                              "column": 24
-                            }
-                          }
+                          "variant": "Blue"
                         },
                         "spread": false
                       }
@@ -523,19 +445,7 @@
                               "name": null,
                               "value": {
                                 "kind": "DotVariantExpr",
-                                "variant": "Red",
-                                "variantSpan": {
-                                  "start": {
-                                    "offset": 756,
-                                    "line": 36,
-                                    "column": 28
-                                  },
-                                  "end": {
-                                    "offset": 759,
-                                    "line": 36,
-                                    "column": 31
-                                  }
-                                }
+                                "variant": "Red"
                               },
                               "spread": false
                             },
@@ -543,19 +453,7 @@
                               "name": null,
                               "value": {
                                 "kind": "DotVariantExpr",
-                                "variant": "Red",
-                                "variantSpan": {
-                                  "start": {
-                                    "offset": 762,
-                                    "line": 36,
-                                    "column": 34
-                                  },
-                                  "end": {
-                                    "offset": 765,
-                                    "line": 36,
-                                    "column": 37
-                                  }
-                                }
+                                "variant": "Red"
                               },
                               "spread": false
                             }
@@ -596,19 +494,7 @@
                               "name": null,
                               "value": {
                                 "kind": "DotVariantExpr",
-                                "variant": "Red",
-                                "variantSpan": {
-                                  "start": {
-                                    "offset": 797,
-                                    "line": 37,
-                                    "column": 28
-                                  },
-                                  "end": {
-                                    "offset": 800,
-                                    "line": 37,
-                                    "column": 31
-                                  }
-                                }
+                                "variant": "Red"
                               },
                               "spread": false
                             },
@@ -616,19 +502,7 @@
                               "name": null,
                               "value": {
                                 "kind": "DotVariantExpr",
-                                "variant": "Blue",
-                                "variantSpan": {
-                                  "start": {
-                                    "offset": 803,
-                                    "line": 37,
-                                    "column": 34
-                                  },
-                                  "end": {
-                                    "offset": 807,
-                                    "line": 37,
-                                    "column": 38
-                                  }
-                                }
+                                "variant": "Blue"
                               },
                               "spread": false
                             }
@@ -667,19 +541,7 @@
                           },
                           "right": {
                             "kind": "DotVariantExpr",
-                            "variant": "Red",
-                            "variantSpan": {
-                              "start": {
-                                "offset": 853,
-                                "line": 40,
-                                "column": 22
-                              },
-                              "end": {
-                                "offset": 856,
-                                "line": 40,
-                                "column": 25
-                              }
-                            }
+                            "variant": "Red"
                           }
                         }
                       }
@@ -715,19 +577,7 @@
                           },
                           "right": {
                             "kind": "DotVariantExpr",
-                            "variant": "Green",
-                            "variantSpan": {
-                              "start": {
-                                "offset": 881,
-                                "line": 41,
-                                "column": 22
-                              },
-                              "end": {
-                                "offset": 886,
-                                "line": 41,
-                                "column": 27
-                              }
-                            }
+                            "variant": "Green"
                           }
                         }
                       }

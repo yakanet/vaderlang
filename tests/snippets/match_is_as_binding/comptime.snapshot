@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/match_is_as_binding/_main.vader
+
+## generic instances
+  Yielded(i32)

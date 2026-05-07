@@ -119,28 +119,40 @@ function introducePatternBindings(
 ): void {
   const scrutRef = (): LoweredExpr =>
     ({ kind: "LoweredIdent", span, type: scrutType, symbol: scrutSym });
+  // Pattern bindings reuse the resolver-side Symbol via `patternBindings`
+  // — the body's `IdentExpr` resolves to that same Symbol, so the
+  // `LoweredLet`'s slot is the one the body reads. Falling back to a fresh
+  // synthetic would leave the body unable to find the slot.
+  const bindingSym = (key: A.IsPattern | A.BindingPattern | A.StructPatternField, hint: string): Symbol =>
+    ctx.typed.resolved.patternBindings.get(key) ?? freshSyntheticSymbol(ctx, hint);
   switch (pattern.kind) {
     case "BindingPattern": {
-      const sym = freshSyntheticSymbol(ctx, pattern.name);
+      const sym = bindingSym(pattern, pattern.name);
       out.push({ kind: "LoweredLet", span, name: pattern.name, symbol: sym,
                  type: scrutType, value: scrutRef() });
       return;
     }
     case "IsPattern": {
-      if (pattern.bindAs === null) return;
-      const targetType = applySubst(
-        ctx.typed.typeExprTypes.get(pattern.type) ?? TY.unresolved, ctx.subst);
-      const sym = freshSyntheticSymbol(ctx, pattern.bindAs);
-      out.push({
-        kind: "LoweredLet", span, name: pattern.bindAs, symbol: sym, type: targetType,
-        value: { kind: "LoweredCast", span, type: targetType, value: scrutRef() },
-      });
+      if (pattern.bindAs !== null) {
+        const targetType = applySubst(
+          ctx.typed.typeExprTypes.get(pattern.type) ?? TY.unresolved, ctx.subst);
+        const sym = bindingSym(pattern, pattern.bindAs);
+        out.push({
+          kind: "LoweredLet", span, name: pattern.bindAs, symbol: sym, type: targetType,
+          value: { kind: "LoweredCast", span, type: targetType, value: scrutRef() },
+        });
+      }
+      // `is T { ... }` — recurse so nested StructPattern bindings land in
+      // the same arm scope (the resolver already binds them).
+      if (pattern.inner !== null) {
+        introducePatternBindings(ctx, pattern.inner, scrutSym, scrutType, out, span);
+      }
       return;
     }
     case "StructPattern":
       for (const f of pattern.fields) {
         if (f.value.kind !== "binding") continue;
-        const sym = freshSyntheticSymbol(ctx, f.value.name);
+        const sym = bindingSym(f, f.value.name);
         out.push({
           kind: "LoweredLet", span: f.span, name: f.value.name, symbol: sym, type: TY.unresolved,
           value: {

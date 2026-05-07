@@ -772,19 +772,7 @@
                       },
                       "right": {
                         "kind": "DotVariantExpr",
-                        "variant": "Newline",
-                        "variantSpan": {
-                          "start": {
-                            "offset": 1725,
-                            "line": 54,
-                            "column": 23
-                          },
-                          "end": {
-                            "offset": 1732,
-                            "line": 54,
-                            "column": 30
-                          }
-                        }
+                        "variant": "Newline"
                       }
                     },
                     "then": {

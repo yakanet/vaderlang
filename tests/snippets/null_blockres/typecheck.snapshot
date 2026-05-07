@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/null_blockres/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pick                 :: fn(bool) -> null | string
+  expr 15:11    CallExpr       :: null | string
+  expr 15:11    IdentExpr      :: fn(bool) -> null | string
+  expr 15:5     MatchExpr      :: void
+  expr 16:22    CallExpr       :: void
+  expr 16:22    IdentExpr      :: fn(string) -> void
+  expr 16:30    StringLitExpr  :: string
+  expr 17:20    CallExpr       :: void
+  expr 17:20    IdentExpr      :: fn(string) -> void
+  expr 17:28    StringLitExpr  :: string
+  expr 7:10     IfExpr         :: null
+  expr 7:13     IdentExpr      :: bool
+  expr 8:5      IfExpr         :: void
+  expr 8:8      BinaryExpr     :: bool
+  expr 8:8      IdentExpr      :: null
+  expr 9:16     StringLitExpr  :: string

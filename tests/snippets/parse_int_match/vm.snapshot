@@ -1,0 +1,7 @@
+# stdout
+int ok
+int err
+float ok
+float err
+# exit
+0

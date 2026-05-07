@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/null_blockres/_main.vader
+
+## generic instances
+  Yielded(i32)

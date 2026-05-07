@@ -98,6 +98,7 @@ function mergeFilePrograms(programs: readonly ResolvedProgram[]): ResolvedProgra
     typeParamTypes: merge(programs.map((p) => p.typeParamTypes)),
     fields: merge(programs.map((p) => p.fields)),
     ufcsFreeResolutions: merge(programs.map((p) => p.ufcsFreeResolutions)),
+    patternBindings: merge(programs.map((p) => p.patternBindings)),
   };
 }
 

@@ -1,0 +1,31 @@
+# Typecheck
+
+## tests/snippets/match_is_as_binding/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     P                    :: P
+  StructDecl     Q                    :: Q
+  FnDecl         show                 :: fn(null | P | Q) -> string
+  expr 12:12    MatchExpr      :: string
+  expr 12:18    IdentExpr      :: null | P | Q
+  expr 13:20    StringLitExpr  :: string
+  expr 14:22    StringLitExpr  :: string
+  expr 14:31    FieldExpr      :: i32
+  expr 14:31    IdentExpr      :: P
+  expr 15:22    StringLitExpr  :: string
+  expr 15:31    FieldExpr      :: string
+  expr 15:31    IdentExpr      :: Q
+  expr 20:13    CallExpr       :: string
+  expr 20:13    IdentExpr      :: fn(null | P | Q) -> string
+  expr 20:18    StructLitExpr  :: P
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 21:13    CallExpr       :: string
+  expr 21:13    IdentExpr      :: fn(null | P | Q) -> string
+  expr 21:18    StructLitExpr  :: Q
+  expr 21:27    StringLitExpr  :: string
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 22:13    CallExpr       :: string
+  expr 22:13    IdentExpr      :: fn(null | P | Q) -> string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(string) -> void

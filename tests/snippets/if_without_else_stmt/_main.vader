@@ -1,0 +1,24 @@
+import "std/io" { println }
+
+// Regression: an `if cond { body }` without else used to lower to bytecode
+// `if <body's-result>` plus an `else; unreachable` synthesised by the
+// emitter — taking the false branch crashed at runtime. The body's trailing
+// value is now discarded and the if has type `void`, so the false branch
+// becomes a plain fall-through. Repro extracted from the self-hosted
+// parser's `parse_enum_decl` (the `if parens.matched { ... }` block).
+expect_lparen :: fn(s: string) -> string {
+    return "ok: ${s}"
+}
+
+main :: fn() -> i32 {
+    matched := false
+    if matched {
+        // body's trailing expression returns a value, but the if is used as
+        // a statement so that value is discarded.
+        expect_lparen(")")
+    }
+    if !matched {
+        println("not matched")
+    }
+    return 0
+}

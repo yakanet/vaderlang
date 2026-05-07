@@ -161,6 +161,7 @@
   import-binding   private  contains → contains
   fn               private  decode_float_literal 
   fn               private  decode_int_literal 
+  fn               private  diag_less 
   import-binding   private  Diagnostic → Diagnostic
   fn               public   dump_diagnostics 
   fn               public   dump_tokens 
@@ -215,7 +216,9 @@
   fn               private  skip_horizontal 
   import-binding   private  slice → slice
   import-binding   private  slice_array → slice
+  fn               private  sort_diagnostics 
   import-binding   private  Span → Span
+  fn               private  string_less 
   import-binding   private  StringBuilder → StringBuilder
   fn               private  strip_numeric_text 
   fn               private  suppresses_newline_after 
@@ -235,4 +238,4 @@
   import vader/diagnostics/diagnostic → ok
   import vader/diagnostics/codes → ok
   import vader/diagnostics/diagnostic → ok
-  refs: idents=1004 types=183 params=82 locals=116 typeParams=0 fields=0
+  refs: idents=1065 types=192 params=87 locals=130 typeParams=0 fields=0

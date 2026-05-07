@@ -83,12 +83,11 @@
           r:
             int(2) :i32
       then:
-        ~>
-          call :void
-            callee:
-              println#30 :fn(string) -> void
-            arg0:
-              "d is East" :string
+        call :void
+          callee:
+            println#30 :fn(string) -> void
+          arg0:
+            "d is East" :string
     if :void
       cond:
         eq :bool
@@ -97,12 +96,11 @@
           r:
             int(3) :i32
       then:
-        ~>
-          call :void
-            callee:
-              println#30 :fn(string) -> void
-            arg0:
-              "d is West" :string
+        call :void
+          callee:
+            println#30 :fn(string) -> void
+          arg0:
+            "d is West" :string
     call :void
       callee:
         println#30 :fn(string) -> void

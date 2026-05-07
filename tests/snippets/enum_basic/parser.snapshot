@@ -24,23 +24,19 @@
       "variants": [
         {
           "name": "North",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "South",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "East",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "West",
-          "value": null,
-          "valueSpan": null
+          "value": null
         }
       ],
       "decorators": []
@@ -166,19 +162,7 @@
             },
             "value": {
               "kind": "DotVariantExpr",
-              "variant": "East",
-              "variantSpan": {
-                "start": {
-                  "offset": 309,
-                  "line": 20,
-                  "column": 21
-                },
-                "end": {
-                  "offset": 313,
-                  "line": 20,
-                  "column": 25
-                }
-              }
+              "variant": "East"
             }
           },
           {
@@ -264,19 +248,7 @@
                 },
                 "right": {
                   "kind": "DotVariantExpr",
-                  "variant": "East",
-                  "variantSpan": {
-                    "start": {
-                      "offset": 391,
-                      "line": 23,
-                      "column": 14
-                    },
-                    "end": {
-                      "offset": 395,
-                      "line": 23,
-                      "column": 18
-                    }
-                  }
+                  "variant": "East"
                 }
               },
               "then": {
@@ -321,19 +293,7 @@
                 },
                 "right": {
                   "kind": "DotVariantExpr",
-                  "variant": "West",
-                  "variantSpan": {
-                    "start": {
-                      "offset": 434,
-                      "line": 24,
-                      "column": 14
-                    },
-                    "end": {
-                      "offset": 438,
-                      "line": 24,
-                      "column": 18
-                    }
-                  }
+                  "variant": "West"
                 }
               },
               "then": {
@@ -394,19 +354,7 @@
                           },
                           "right": {
                             "kind": "DotVariantExpr",
-                            "variant": "East",
-                            "variantSpan": {
-                              "start": {
-                                "offset": 494,
-                                "line": 25,
-                                "column": 31
-                              },
-                              "end": {
-                                "offset": 498,
-                                "line": 25,
-                                "column": 35
-                              }
-                            }
+                            "variant": "East"
                           }
                         }
                       }
@@ -445,19 +393,7 @@
                       },
                       "right": {
                         "kind": "DotVariantExpr",
-                        "variant": "West",
-                        "variantSpan": {
-                          "start": {
-                            "offset": 532,
-                            "line": 26,
-                            "column": 31
-                          },
-                          "end": {
-                            "offset": 536,
-                            "line": 26,
-                            "column": 35
-                          }
-                        }
+                        "variant": "West"
                       }
                     }
                   }

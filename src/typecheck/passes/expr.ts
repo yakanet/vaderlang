@@ -241,8 +241,17 @@ function inferRange(
   expr: A.RangeExpr, t: MutableTyped, impls: ImplRegistry,
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
-  checkExpr(expr.lower, TY.i32, t, impls, diags, fn);
-  checkExpr(expr.upper, TY.i32, t, impls, diags, fn);
+  // Range is hard-coded as Range(i32) in std/core; reject non-i32 bounds at
+  // compile time instead of letting them slip through and trap in the VM.
+  // (Generic Range($T) is tracked in TODO §1.18b.)
+  const lower = checkExpr(expr.lower, TY.i32, t, impls, diags, fn);
+  const upper = checkExpr(expr.upper, TY.i32, t, impls, diags, fn);
+  if (!isAssignable(lower, TY.i32, impls)) {
+    err(diags, "T3001", expr.lower.span, `range bounds must be \`i32\`, got ${displayType(lower)}`);
+  }
+  if (!isAssignable(upper, TY.i32, impls)) {
+    err(diags, "T3001", expr.upper.span, `range bounds must be \`i32\`, got ${displayType(upper)}`);
+  }
   const rangeSym = t.globals.coreSymbols?.get(CORE_STRUCTS.Range);
   if (rangeSym === undefined || rangeSym.kind !== "struct") return TY.unresolved;
   return { kind: "Struct", symbol: rangeSym, args: [] };

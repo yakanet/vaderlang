@@ -1,0 +1,16 @@
+import "std/io" { println }
+
+// Regression: `is P { x: 10, y }` introduces `y` as a binding for the field
+// of P. The lowerer used to skip nested StructPattern bindings inside an
+// IsPattern and emit no LoweredLet — the body's reference to `y` would
+// trap. Now the IsPattern lowering recurses into `pattern.inner`.
+P :: struct { x: i32, name: string }
+
+main :: fn() -> i32 {
+    p :: P { .x = 10, .name = "alice" }
+    match p {
+        is P { x: 10, name } -> println("ten alice=${name}")
+        _ -> println("other")
+    }
+    return 0
+}

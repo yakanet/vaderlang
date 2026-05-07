@@ -7,7 +7,7 @@
 // stable when the same value is parsed by the TS BigInt-based parser. The
 // helpers below walk every variant explicitly — no reflection.
 
-import "std/string" { len, char_at, pad_start }
+import "std/string" { len, char_at, pad_start, ends_with }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
 import "std/numbers" { to_hex }
 
@@ -65,8 +65,15 @@ write_bigint :: fn(sb: StringBuilder, v: i64) -> void {
     sb.append("\"${v}n\"")
 }
 
+// Match JS `JSON.stringify` : integer-valued floats serialise without `.0`
+// (`10.0` → `"10"`), so the parity rig stays byte-aligned with the TS dumper.
 write_f64 :: fn(sb: StringBuilder, v: f64) -> void {
-    sb.append("${v}")
+    s :: "${v}"
+    if s.ends_with(".0") {
+        sb.append(s.slice(0, s.len() - 2))
+    } else {
+        sb.append(s)
+    }
 }
 
 write_null :: fn(sb: StringBuilder) -> void { sb.append("null") }

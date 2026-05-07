@@ -42,11 +42,16 @@ export function inferMatch(
     const prev: Type | undefined = scrutSym !== null && narrowed !== null
       ? pushNarrowing(t, scrutSym.id, narrowed)
       : undefined;
+    // Pattern-binding narrowing: without it, references to `p` in the arm
+    // body see `Unresolved` and the lowerer can't resolve fields on it.
+    const bind = bindingNarrowing(t, arm.pattern, scrut, narrowed);
+    const bindPrev = bind !== null ? pushNarrowing(t, bind.sym.id, bind.type) : undefined;
     if (arm.guard !== null) {
       const g = checkExpr(arm.guard, TY.bool, t, impls, diags, fn);
       if (!isAssignable(g, TY.bool)) err(diags, "T3019", arm.guard.span);
     }
     armTypes.push(checkExpr(arm.body, expected, t, impls, diags, fn));
+    if (bind !== null) popNarrowing(t, bind.sym.id, bindPrev);
     if (scrutSym !== null && narrowed !== null) popNarrowing(t, scrutSym.id, prev);
   }
 
@@ -99,4 +104,21 @@ function pushNarrowing(t: MutableTyped, symId: number, narrow: Type): Type | und
 function popNarrowing(t: MutableTyped, symId: number, prev: Type | undefined): void {
   if (prev === undefined) t.narrowed.delete(symId);
   else t.narrowed.set(symId, prev);
+}
+
+/** Narrowing target for a single arm's binding (`is T as p` ⇒ `T`,
+ *  `BindingPattern x` ⇒ scrut). Struct-pattern field bindings stay untyped
+ *  pending per-field substitution (see TODO §1.4 deferred). */
+function bindingNarrowing(
+  t: MutableTyped, pattern: A.Pattern, scrut: Type, isNarrowed: Type | null,
+): { sym: Symbol; type: Type } | null {
+  if (pattern.kind === "IsPattern" && pattern.bindAs !== null && isNarrowed !== null) {
+    const sym = t.resolved.patternBindings.get(pattern);
+    return sym !== undefined ? { sym, type: isNarrowed } : null;
+  }
+  if (pattern.kind === "BindingPattern") {
+    const sym = t.resolved.patternBindings.get(pattern);
+    return sym !== undefined ? { sym, type: scrut } : null;
+  }
+  return null;
 }

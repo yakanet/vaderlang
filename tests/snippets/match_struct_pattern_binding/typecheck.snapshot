@@ -1,0 +1,16 @@
+# Typecheck
+
+## tests/snippets/match_struct_pattern_binding/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     P                    :: P
+  expr 10:10    StructLitExpr  :: P
+  expr 10:31    StringLitExpr  :: string
+  expr 11:11    IdentExpr      :: P
+  expr 11:5     MatchExpr      :: void
+  expr 12:33    CallExpr       :: void
+  expr 12:33    IdentExpr      :: fn(string) -> void
+  expr 12:41    StringLitExpr  :: string
+  expr 12:54    IdentExpr      :: ?
+  expr 13:14    CallExpr       :: void
+  expr 13:14    IdentExpr      :: fn(string) -> void
+  expr 13:22    StringLitExpr  :: string

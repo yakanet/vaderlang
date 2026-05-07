@@ -44,6 +44,14 @@ export function wrapAsBlock(e: LoweredExpr, span: Span): LoweredBlock {
   return { kind: "LoweredBlock", span, type: e.type, stmts: [], trailing: e };
 }
 
+/** Flatten a block's trailing expression into its stmts list. Useful when a
+ *  block needs to be re-typed to `void` (no-else `if`, for-in body) and any
+ *  trailing value should be evaluated then discarded. */
+export function blockStmtsWithTrailing(block: LoweredBlock): readonly LoweredStmt[] {
+  if (block.trailing === null) return block.stmts;
+  return [...block.stmts, { kind: "LoweredExprStmt", span: block.trailing.span, expr: block.trailing }];
+}
+
 /** `.Variant` / `Enum.Variant` / arm pattern → integer literal of the variant's
  *  resolved index, typed as the enum's backing repr. The type-checker has
  *  already validated `name` against `enumType` (T3027) and populated `indices`

@@ -13,24 +13,11 @@
       "variants": [
         {
           "name": "A",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "B",
-          "value": "300n",
-          "valueSpan": {
-            "start": {
-              "offset": 98,
-              "line": 4,
-              "column": 9
-            },
-            "end": {
-              "offset": 101,
-              "line": 4,
-              "column": 12
-            }
-          }
+          "value": "300n"
         }
       ],
       "decorators": []
@@ -43,51 +30,15 @@
       "variants": [
         {
           "name": "X",
-          "value": "1n",
-          "valueSpan": {
-            "start": {
-              "offset": 162,
-              "line": 8,
-              "column": 9
-            },
-            "end": {
-              "offset": 163,
-              "line": 8,
-              "column": 10
-            }
-          }
+          "value": "1n"
         },
         {
           "name": "Y",
-          "value": "2n",
-          "valueSpan": {
-            "start": {
-              "offset": 172,
-              "line": 9,
-              "column": 9
-            },
-            "end": {
-              "offset": 173,
-              "line": 9,
-              "column": 10
-            }
-          }
+          "value": "2n"
         },
         {
           "name": "Z",
-          "value": "1n",
-          "valueSpan": {
-            "start": {
-              "offset": 182,
-              "line": 10,
-              "column": 9
-            },
-            "end": {
-              "offset": 183,
-              "line": 10,
-              "column": 10
-            }
-          }
+          "value": "1n"
         }
       ],
       "decorators": []
@@ -103,8 +54,7 @@
       "variants": [
         {
           "name": "A",
-          "value": null,
-          "valueSpan": null
+          "value": null
         }
       ],
       "decorators": []

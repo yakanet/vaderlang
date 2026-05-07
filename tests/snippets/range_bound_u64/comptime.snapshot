@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/range_bound_u64/_main.vader
+
+## generic instances
+  Yielded(i32)
+
+# Diagnostics
+[3:18] error[T3001] type mismatch: range bounds must be `i32`, got u64

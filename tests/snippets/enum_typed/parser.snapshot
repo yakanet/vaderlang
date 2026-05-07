@@ -27,67 +27,19 @@
       "variants": [
         {
           "name": "North",
-          "value": "1n",
-          "valueSpan": {
-            "start": {
-              "offset": 72,
-              "line": 4,
-              "column": 13
-            },
-            "end": {
-              "offset": 73,
-              "line": 4,
-              "column": 14
-            }
-          }
+          "value": "1n"
         },
         {
           "name": "South",
-          "value": "2n",
-          "valueSpan": {
-            "start": {
-              "offset": 86,
-              "line": 5,
-              "column": 13
-            },
-            "end": {
-              "offset": 87,
-              "line": 5,
-              "column": 14
-            }
-          }
+          "value": "2n"
         },
         {
           "name": "East",
-          "value": "4n",
-          "valueSpan": {
-            "start": {
-              "offset": 100,
-              "line": 6,
-              "column": 13
-            },
-            "end": {
-              "offset": 101,
-              "line": 6,
-              "column": 14
-            }
-          }
+          "value": "4n"
         },
         {
           "name": "West",
-          "value": "8n",
-          "valueSpan": {
-            "start": {
-              "offset": 114,
-              "line": 7,
-              "column": 13
-            },
-            "end": {
-              "offset": 115,
-              "line": 7,
-              "column": 14
-            }
-          }
+          "value": "8n"
         }
       ],
       "decorators": []
@@ -103,34 +55,19 @@
       "variants": [
         {
           "name": "Halt",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "Push",
-          "value": "100n",
-          "valueSpan": {
-            "start": {
-              "offset": 164,
-              "line": 12,
-              "column": 12
-            },
-            "end": {
-              "offset": 167,
-              "line": 12,
-              "column": 15
-            }
-          }
+          "value": "100n"
         },
         {
           "name": "Pop",
-          "value": null,
-          "valueSpan": null
+          "value": null
         },
         {
           "name": "Add",
-          "value": null,
-          "valueSpan": null
+          "value": null
         }
       ],
       "decorators": []
@@ -276,19 +213,7 @@
                         "name": null,
                         "value": {
                           "kind": "DotVariantExpr",
-                          "variant": "North",
-                          "variantSpan": {
-                            "start": {
-                              "offset": 397,
-                              "line": 27,
-                              "column": 23
-                            },
-                            "end": {
-                              "offset": 402,
-                              "line": 27,
-                              "column": 28
-                            }
-                          }
+                          "variant": "North"
                         },
                         "spread": false
                       }
@@ -321,19 +246,7 @@
                         "name": null,
                         "value": {
                           "kind": "DotVariantExpr",
-                          "variant": "West",
-                          "variantSpan": {
-                            "start": {
-                              "offset": 427,
-                              "line": 28,
-                              "column": 23
-                            },
-                            "end": {
-                              "offset": 431,
-                              "line": 28,
-                              "column": 27
-                            }
-                          }
+                          "variant": "West"
                         },
                         "spread": false
                       }
@@ -354,19 +267,7 @@
             },
             "value": {
               "kind": "DotVariantExpr",
-              "variant": "Pop",
-              "variantSpan": {
-                "start": {
-                  "offset": 449,
-                  "line": 30,
-                  "column": 15
-                },
-                "end": {
-                  "offset": 452,
-                  "line": 30,
-                  "column": 18
-                }
-              }
+              "variant": "Pop"
             }
           },
           {

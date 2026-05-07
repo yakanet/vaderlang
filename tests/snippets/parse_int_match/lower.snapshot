@@ -1,0 +1,145 @@
+# Lower
+
+## tests/snippets/parse_int_match/_main.vader
+  fn tests_snippets_parse_int_match__main_vader$main() -> i32
+    block :void
+      let __scrut_0#-1: Error | i32 =
+        call :Error | i32
+          callee:
+            parse_int#54 :fn(string) -> Error | i32
+          arg0:
+            "42" :string
+      ~>
+        if :void
+          cond:
+            is i32 :bool
+              __scrut_0#-1 :Error | i32
+          then:
+            ~>
+              call :void
+                callee:
+                  println#30 :fn(string) -> void
+                arg0:
+                  "int ok" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  is Error :bool
+                    __scrut_0#-1 :Error | i32
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#30 :fn(string) -> void
+                      arg0:
+                        "int err" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    block :void
+      let __scrut_1#-2: Error | i32 =
+        call :Error | i32
+          callee:
+            parse_int#54 :fn(string) -> Error | i32
+          arg0:
+            "nope" :string
+      ~>
+        if :void
+          cond:
+            is i32 :bool
+              __scrut_1#-2 :Error | i32
+          then:
+            ~>
+              call :void
+                callee:
+                  println#30 :fn(string) -> void
+                arg0:
+                  "int ok" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  is Error :bool
+                    __scrut_1#-2 :Error | i32
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#30 :fn(string) -> void
+                      arg0:
+                        "int err" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    block :void
+      let __scrut_2#-3: Error | f64 =
+        call :Error | f64
+          callee:
+            parse_float#55 :fn(string) -> Error | f64
+          arg0:
+            "3.14" :string
+      ~>
+        if :void
+          cond:
+            is f64 :bool
+              __scrut_2#-3 :Error | f64
+          then:
+            ~>
+              call :void
+                callee:
+                  println#30 :fn(string) -> void
+                arg0:
+                  "float ok" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  is Error :bool
+                    __scrut_2#-3 :Error | f64
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#30 :fn(string) -> void
+                      arg0:
+                        "float err" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    block :void
+      let __scrut_3#-4: Error | f64 =
+        call :Error | f64
+          callee:
+            parse_float#55 :fn(string) -> Error | f64
+          arg0:
+            "nope" :string
+      ~>
+        if :void
+          cond:
+            is f64 :bool
+              __scrut_3#-4 :Error | f64
+          then:
+            ~>
+              call :void
+                callee:
+                  println#30 :fn(string) -> void
+                arg0:
+                  "float ok" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  is Error :bool
+                    __scrut_3#-4 :Error | f64
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println#30 :fn(string) -> void
+                      arg0:
+                        "float err" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    return int(0) :i32
