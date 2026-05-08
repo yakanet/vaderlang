@@ -250,7 +250,10 @@ Membership   : in   (sugar for `right.contains(left)`)
 Type test    : is Type   (used in match arms)
 Logical      : && || !
 Assignment   : =
-Declaration  : :: (immutable)  := (mutable)
+Declaration  : x :: value           (immutable, type inferred)
+               x := value           (mutable,   type inferred)
+               x: T : value         (immutable, typed)
+               x: T = value         (mutable,   typed)
 Range        : 0..<10 (exclusive)  0..=10 (inclusive)
 Postfix      : ? (try, propagates the error)
 Cast         : Type(expr) (Go-style; numeric ↔ numeric, char ↔ integer)
@@ -589,6 +592,30 @@ match value {
 - Wildcard `_`
 - **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_`). For non-union scrutinees a wildcard arm is required, since the compiler cannot enumerate all values of, say, `i32`.
 
+### Variable bindings
+
+Local bindings come in four shapes that share a single `LetStmt` AST node ; the syntax is symmetric on the mutability axis (`::` ↔ `:`, `:=` ↔ `=`).
+
+| Form                  | Mutability | Type        | Example                       |
+|-----------------------|------------|-------------|-------------------------------|
+| `name :: value`       | immutable  | inferred    | `pi :: 3.14`                  |
+| `name := value`       | mutable    | inferred    | `total := 0`                  |
+| `name: T : value`     | immutable  | typed       | `cap: usize : 1024`           |
+| `name: T = value`     | mutable    | typed       | `count: u64 = 0`              |
+
+The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `[T]` → `Iterator(T)`, see §11).
+
+Reassignment uses `=` and is only valid on mutable bindings :
+
+```vader
+n := 0          // mutable, inferred i32
+n = n + 1       // OK
+k :: 0          // immutable
+k = 1           // T3017 — cannot reassign immutable binding
+```
+
+Top-level constants follow the same pattern but are restricted to compile-time expressions (`PI :: 3.14`, `MAX: u64 : 1_000_000`).
+
 ### Type inference
 
 **Bidirectional**, TS/Swift-style:
@@ -709,7 +736,7 @@ report :: fn(e: Error) -> string {
 }
 ```
 
-The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that's in scope. Generic-struct impls are skipped (their concrete instance args aren't recoverable from the trait-typed receiver alone), so virtual dispatch covers non-generic impls and primitives that share a Display/Hash trait. Dynamic-dispatch on generic structs is post-MVP.
+The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each ; generic impls (`Foo($T) implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo(i32)`, `is Foo(string)`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator(i32); it.step()` returns `Done | Yielded(i32)` — not the unsubstituted `Done | Yielded($T)`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
 
 Inside a generic body, `key.method()` where `key: $T` and `T: Trait` resolves at typecheck and is monomorphised statically — each call site gets a direct call to the concrete impl member after substitution. No runtime dispatch.
 
@@ -1049,6 +1076,17 @@ The iteration form `for x in expr` accepts three shapes for `expr`:
 3. A value implementing `Iterable(T)` — `expr.iter()` is auto-called and the result drives the loop.
 
 Raw `[T]` arrays are auto-wrapped in `ArrayIter(T)`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable(T)` so `for x in coll { ... }` works without an explicit `coll.iter()`.
+
+The same auto-wrap fires at any *concrete* `Iterator(T)` slot — function arguments, `return` expressions, and typed `let` bindings — so `[T]` flows transparently :
+
+```vader
+walk :: fn(it: Iterator(i32)) -> i32 { ... }
+walk([10, 20, 30])                            // call-arg coercion
+fold :: fn() -> Iterator(i32) { return [1, 2, 3] }   // return coercion
+buf: Iterator(i32) : [4, 5, 6]                // typed-let coercion
+```
+
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator` ; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator($T)` parameter — type-arg inference can't bind `T` from a `[T]` argument across the widening, so combinators that take `Iterator($T)` still need an explicit `ArrayIter(T) { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator(i32)`, `Iterator(string)`, …) are unaffected.
 
 ```vader
 Iterable :: trait($T) {
@@ -1461,7 +1499,7 @@ Contains :: trait($T) {
 // out of the box. User types opt in by implementing the trait.
 ```
 
-Free helpers for primitive `Hash`/`Eq` dispatch (`hash_i32`, `eq_i32`, …) — workaround for trait-method dispatch on bounded type params (post-MVP). String hashing is FNV-1a over the UTF-8 bytes (intrinsic, exposed via `string implements Hash`).
+Trait-method dispatch on a bounded type param (`fn f(x: $T) where T: Hash { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (intrinsic `hash_string`, exposed via `string implements Hash`).
 
 ### `std/io`
 
@@ -1554,13 +1592,19 @@ fn is_empty (self: MutableSet(T)) -> bool
 ### `std/math`
 
 ```vader
-// Comparison + helpers — f64-only in MVP. Generic `Ord`-driven variants land
-// once trait-method dispatch on bounded type params can construct a `min`
-// returning the receiver type (post-MVP).
+// Comparison + helpers — overloaded on `i32` and `f64`. A generic
+// `Ord`-driven variant (one fn body for any `T: Ord`) is post-MVP : the
+// body needs to default-init a slot of type `T` before threading it through
+// `compare`, which is gated on `Default(T)` / a `zero<T>()` intrinsic.
+fn min(a: i32, b: i32) -> i32
 fn min(a: f64, b: f64) -> f64
+fn max(a: i32, b: i32) -> i32
 fn max(a: f64, b: f64) -> f64
+fn abs(x: i32) -> i32
 fn abs(x: f64) -> f64
-fn lerp(a: f64, b: f64, t: f64) -> f64    // a + (b - a) * t
+fn clamp(x: i32, lo: i32, hi: i32) -> i32
+fn clamp(x: f64, lo: f64, hi: f64) -> f64
+fn lerp(a: f64, b: f64, t: f64) -> f64    // a + (b - a) * clamp(t, 0.0, 1.0)
 
 // Float intrinsics — wired to libm on native, JS Math on the VM.
 fn sqrt(x: f64) -> f64
@@ -1605,9 +1649,9 @@ Iterator(T) :: trait {
 `std/iter` provides combinators on top of it. Two flavours coexist :
 
 ```vader
-// Iterator-driven (require trait dispatch through `for x in it`):
-fn count(it: Iterator($T))   -> i32
-fn collect(it: Iterator($T)) -> [T]
+// Iterator-driven, concrete trait instance — `it.step()` dispatches via the
+// virtual chain over each materialised impl :
+fn walk(it: Iterator(i32)) -> i32
 
 // Array-driven (closure-friendly; eager — return `[T]` or a single value):
 fn map(arr: [$T], f: fn(T) -> $U)        -> [U]
@@ -1619,11 +1663,11 @@ fn skip(arr: [$T], n: i32) -> [T]
 fn slice(arr: [$T], start: i32, end: i32) -> [T]    // bounds clamped, end exclusive
 ```
 
-The closure-driven combinators take a concrete `[T]` rather than `Iterator($T)` because direct trait-method dispatch on a generic `$T : Iterator` parameter is post-MVP (the `for x in it` form has compiler-internal dispatch but user code can't `it.step()` directly). Bridging from an iterator goes through `collect(it)` first; once trait dispatch on bounded type params lands the two flavours converge.
+Stdlib combinators today take a concrete `[T]` rather than `Iterator($T)` because the inference engine can't bind a free type-param across the `[T]` → `Iterator(T)` widening : `count_it(arr)` would need to unify `[i32]` against `Iterator($T)` to set `T = i32`, and that path isn't wired. Combinators specialised for a concrete element type (`fn walk(it: Iterator(i32))`) work end-to-end ; bridging from an iterator to the array-driven family goes through `collect(it)`. Lifting the inference gap is tracked separately and would let the two flavours converge.
 
-### `std/gc`
+### `std/runtime`
 
-Garbage-collector introspection and controls. Mostly a debug/test surface :
+Runtime introspection and controls — currently GC-only, named `runtime` (Go-style) since Vader has no compiler-private visibility tier today. Mostly a debug/test surface :
 
 ```vader
 fn collect()       -> void   // force a Cheney cycle

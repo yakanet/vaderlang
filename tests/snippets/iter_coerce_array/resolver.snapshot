@@ -38,4 +38,4 @@
   import-binding   private  println → println
   fn               private  walk 
   import std/io → ok
-  refs: idents=17 types=11 params=1 locals=7 typeParams=0 fields=0
+  refs: idents=19 types=13 params=1 locals=8 typeParams=0 fields=0

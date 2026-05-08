@@ -21,17 +21,22 @@
   expr 31:10    CallExpr       :: i32
   expr 31:10    IdentExpr      :: fn(Iterator(i32)) -> i32
   expr 31:15    ArrayLitExpr   :: [i32]
-  expr 34:33    ArrayLitExpr   :: [i32]
-  expr 35:10    CallExpr       :: i32
-  expr 35:10    IdentExpr      :: fn(Iterator(i32)) -> i32
-  expr 35:15    IdentExpr      :: Iterator(i32)
-  expr 38:10    CallExpr       :: i32
-  expr 38:10    IdentExpr      :: fn(Iterator(i32)) -> i32
-  expr 38:15    CallExpr       :: Iterator(i32)
-  expr 38:15    IdentExpr      :: fn() -> Iterator(i32)
-  expr 40:13    StringLitExpr  :: string
-  expr 40:18    IdentExpr      :: i32
-  expr 40:25    IdentExpr      :: i32
-  expr 40:32    IdentExpr      :: i32
-  expr 40:5     CallExpr       :: void
-  expr 40:5     IdentExpr      :: fn(string) -> void
+  expr 34:37    ArrayLitExpr   :: [i32]
+  expr 35:39    ArrayLitExpr   :: [i32]
+  expr 36:10    BinaryExpr     :: i32
+  expr 36:10    CallExpr       :: i32
+  expr 36:10    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 36:15    IdentExpr      :: Iterator(i32)
+  expr 36:33    CallExpr       :: i32
+  expr 36:33    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 36:38    IdentExpr      :: Iterator(i32)
+  expr 39:10    CallExpr       :: i32
+  expr 39:10    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 39:15    CallExpr       :: Iterator(i32)
+  expr 39:15    IdentExpr      :: fn() -> Iterator(i32)
+  expr 41:13    StringLitExpr  :: string
+  expr 41:18    IdentExpr      :: i32
+  expr 41:25    IdentExpr      :: i32
+  expr 41:32    IdentExpr      :: i32
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(string) -> void

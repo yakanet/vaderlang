@@ -95,10 +95,12 @@ fn 2 tests_snippets_iter_coerce_array__main_vader$main () -> i32
   local __arr_0 ref
   local a i32
   local __arr_1 ref
-  local typed_iter ref
+  local typed_iter_mut ref
+  local __arr_2 ref
+  local typed_iter_immut ref
   local b i32
   local c i32
-  local __sb_2 any
+  local __sb_3 any
   i32.const 10   ; _main.vader:31:16
   i32.const 20   ; _main.vader:31:20
   i32.const 30   ; _main.vader:31:24
@@ -110,46 +112,60 @@ fn 2 tests_snippets_iter_coerce_array__main_vader$main () -> i32
   struct.new 5   ; _main.vader:31:15
   call 0   ; _main.vader:31:10
   local.set 1   ; _main.vader:31:5
-  i32.const 1   ; _main.vader:34:34
-  i32.const 2   ; _main.vader:34:37
-  i32.const 3   ; _main.vader:34:40
-  i32.const 4   ; _main.vader:34:43
-  array.new 6 4   ; _main.vader:34:33
-  local.tee 2   ; _main.vader:34:33
-  i32.const 0   ; _main.vader:34:33
-  local.get 2   ; _main.vader:34:33
-  array.len   ; _main.vader:34:33
-  struct.new 5   ; _main.vader:34:33
-  local.tee 3   ; _main.vader:34:5
-  call 0   ; _main.vader:35:10
-  local.set 4   ; _main.vader:35:5
-  call 1   ; _main.vader:38:15
-  call 0   ; _main.vader:38:10
-  local.set 5   ; _main.vader:38:5
-  intrinsic builder.new   ; _main.vader:40:13
-  local.tee 6   ; _main.vader:40:13
-  string.const 0   ; _main.vader:40:14
-  intrinsic builder.append_str   ; _main.vader:40:14
-  local.get 6   ; _main.vader:40:16
-  local.get 1   ; _main.vader:40:18
-  intrinsic builder.append_display   ; _main.vader:40:16
-  local.get 6   ; _main.vader:40:20
-  string.const 1   ; _main.vader:40:20
-  intrinsic builder.append_str   ; _main.vader:40:20
-  local.get 6   ; _main.vader:40:23
-  local.get 4   ; _main.vader:40:25
-  intrinsic builder.append_display   ; _main.vader:40:23
-  local.get 6   ; _main.vader:40:27
-  string.const 2   ; _main.vader:40:27
-  intrinsic builder.append_str   ; _main.vader:40:27
-  local.get 6   ; _main.vader:40:30
-  local.get 5   ; _main.vader:40:32
-  intrinsic builder.append_display   ; _main.vader:40:30
-  local.get 6   ; _main.vader:40:13
-  intrinsic builder.finish   ; _main.vader:40:13
-  call.import 2   ; _main.vader:40:5
-  i32.const 0   ; _main.vader:41:12
-  return   ; _main.vader:41:5
+  i32.const 1   ; _main.vader:34:38
+  i32.const 2   ; _main.vader:34:41
+  i32.const 3   ; _main.vader:34:44
+  i32.const 4   ; _main.vader:34:47
+  array.new 6 4   ; _main.vader:34:37
+  local.tee 2   ; _main.vader:34:37
+  i32.const 0   ; _main.vader:34:37
+  local.get 2   ; _main.vader:34:37
+  array.len   ; _main.vader:34:37
+  struct.new 5   ; _main.vader:34:37
+  local.set 3   ; _main.vader:34:5
+  i32.const 5   ; _main.vader:35:40
+  i32.const 6   ; _main.vader:35:43
+  i32.const 7   ; _main.vader:35:46
+  array.new 6 3   ; _main.vader:35:39
+  local.tee 4   ; _main.vader:35:39
+  i32.const 0   ; _main.vader:35:39
+  local.get 4   ; _main.vader:35:39
+  array.len   ; _main.vader:35:39
+  struct.new 5   ; _main.vader:35:39
+  local.set 5   ; _main.vader:35:5
+  local.get 3   ; _main.vader:36:15
+  call 0   ; _main.vader:36:10
+  local.get 5   ; _main.vader:36:38
+  call 0   ; _main.vader:36:33
+  i32.add   ; _main.vader:36:10
+  local.set 6   ; _main.vader:36:5
+  call 1   ; _main.vader:39:15
+  call 0   ; _main.vader:39:10
+  local.set 7   ; _main.vader:39:5
+  intrinsic builder.new   ; _main.vader:41:13
+  local.tee 8   ; _main.vader:41:13
+  string.const 0   ; _main.vader:41:14
+  intrinsic builder.append_str   ; _main.vader:41:14
+  local.get 8   ; _main.vader:41:16
+  local.get 1   ; _main.vader:41:18
+  intrinsic builder.append_display   ; _main.vader:41:16
+  local.get 8   ; _main.vader:41:20
+  string.const 1   ; _main.vader:41:20
+  intrinsic builder.append_str   ; _main.vader:41:20
+  local.get 8   ; _main.vader:41:23
+  local.get 6   ; _main.vader:41:25
+  intrinsic builder.append_display   ; _main.vader:41:23
+  local.get 8   ; _main.vader:41:27
+  string.const 2   ; _main.vader:41:27
+  intrinsic builder.append_str   ; _main.vader:41:27
+  local.get 8   ; _main.vader:41:30
+  local.get 7   ; _main.vader:41:32
+  intrinsic builder.append_display   ; _main.vader:41:30
+  local.get 8   ; _main.vader:41:13
+  intrinsic builder.finish   ; _main.vader:41:13
+  call.import 2   ; _main.vader:41:5
+  i32.const 0   ; _main.vader:42:12
+  return   ; _main.vader:42:5
 end
 
 fn 3 std_core$Range$Iterator$step (ref) -> ref

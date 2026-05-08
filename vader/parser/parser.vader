@@ -1206,11 +1206,20 @@ parse_typed_let :: fn(p: Parser) -> LetStmt {
     name_tok :: p.advance()  // ident
     p.advance()              // `:`
     ty :: p.parse_type()
-    p.expect(.Assign, "`=` after type annotation")
+    // `=` → mutable binding ; `:` → immutable binding (echoes the second `:`
+    // of the untyped `::` form, with `:=` ↔ `=` on the mutable side).
+    sep :: p.peek()
+    mutable := true
+    if sep.kind == .Colon {
+        p.advance()
+        mutable = false
+    } else {
+        p.expect(.Assign, "`=` or `:` after type annotation")
+    }
     value :: p.parse_expr(0)
     return LetStmt {
         .span      = p.span_of(name_tok, p.peek_at(-1)),
-        .mutable   = true,
+        .mutable   = mutable,
         .name      = name_tok.text,
         .name_span = name_tok.span,
         .ty        = ty,

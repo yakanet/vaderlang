@@ -310,7 +310,7 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "typed_iter",
+            "name": "typed_iter_mut",
             "type": {
               "kind": "GenericInstType",
               "base": {
@@ -352,25 +352,84 @@
           },
           {
             "kind": "LetStmt",
+            "mutable": false,
+            "name": "typed_iter_immut",
+            "type": {
+              "kind": "GenericInstType",
+              "base": {
+                "kind": "NamedType",
+                "name": "Iterator"
+              },
+              "args": [
+                {
+                  "kind": "NamedType",
+                  "name": "i32"
+                }
+              ]
+            },
+            "value": {
+              "kind": "ArrayLitExpr",
+              "elements": [
+                {
+                  "kind": "IntLitExpr",
+                  "value": "5n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "6n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "7n",
+                  "suffix": null
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
             "mutable": true,
             "name": "b",
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "walk"
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "walk"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "typed_iter_mut"
+                    },
+                    "spread": false
+                  }
+                ]
               },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "typed_iter"
-                  },
-                  "spread": false
-                }
-              ]
+              "right": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "walk"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "typed_iter_immut"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
             }
           },
           {

@@ -30,9 +30,10 @@ main :: fn() -> i32 {
     // Call-arg coercion: [i32] flows into Iterator(i32) param.
     a := walk([10, 20, 30])
 
-    // Let coercion: [i32] flows into Iterator(i32)-typed local.
-    typed_iter: Iterator(i32) = [1, 2, 3, 4]
-    b := walk(typed_iter)
+    // Let coercion — both binding forms : `:` (immutable) and `=` (mutable).
+    typed_iter_mut: Iterator(i32) = [1, 2, 3, 4]
+    typed_iter_immut: Iterator(i32) : [5, 6, 7]
+    b := walk(typed_iter_mut) + walk(typed_iter_immut)
 
     // Return coercion: make_iter wraps its inner array on the way out.
     c := walk(make_iter())

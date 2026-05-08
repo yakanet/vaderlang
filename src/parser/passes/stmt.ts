@@ -57,12 +57,18 @@ function parseTypedLet(p: Parser): A.LetStmt {
   const nameTok = p.advance(); // ident
   p.advance(); // colon
   const type = parseType(p);
-  p.expect("assign", "`=` after type annotation");
+  // `=` → mutable binding ; `:` → immutable binding (echoes the second `:`
+  // of the untyped `::` form, with `:=` ↔ `=` on the mutable side).
+  const sep = p.peek();
+  let mutable: boolean;
+  if (sep.kind === "assign") { p.advance(); mutable = true; }
+  else if (sep.kind === "colon") { p.advance(); mutable = false; }
+  else { p.expect("assign", "`=` or `:` after type annotation"); mutable = true; }
   const value = parseExpr(p, 0);
   return {
     kind: "LetStmt",
     span: p.spanOf(nameTok, p.peek(-1)),
-    mutable: true,
+    mutable,
     name: nameTok.text,
     nameSpan: nameTok.span,
     type,
