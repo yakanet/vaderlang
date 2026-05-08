@@ -7,7 +7,7 @@
 // stable when the same value is parsed by the TS BigInt-based parser. The
 // helpers below walk every variant explicitly — no reflection.
 
-import "std/string" { len, pad_start }
+import "std/string" { byte_len, is_empty, pad_start }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated, to_string }
 import "std/numbers" { to_hex, to_compact_str }
 
@@ -34,7 +34,7 @@ indent :: fn(sb: StringBuilder, level: i32) -> void {
 
 write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
-    n :: s.len()
+    n :: s.byte_len()
     i := 0
     for i < n {
         c :: s[i]

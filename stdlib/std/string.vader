@@ -6,9 +6,21 @@
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
 import "std/math" { min }
+import "std/utf8" { codepoint_byte_len }
 
-// Length in bytes.
-export len :: fn(s: string) -> i32
+// Length in bytes — see `count_chars` for the codepoint count.
+//
+// The string API is intentionally byte-indexed (`slice`, `char_at`, `contains`
+// all operate on byte offsets), so the natural pairing is `byte_len` rather
+// than `len`. Naming it `byte_len` forces the reader to acknowledge what
+// they're getting and pick `count_chars` deliberately when they wanted the
+// codepoint count instead.
+export byte_len :: fn(s: string) -> i32
+
+// True for the empty string. Equivalent to `s.byte_len() == 0` but reads
+// cleanly at call sites where the byte/codepoint distinction is irrelevant
+// — emptiness is the same in both views.
+export is_empty :: fn(s: string) = s.byte_len() == 0
 
 // Substring extraction (bytes-based, exclusive end).
 export slice :: fn(s: string, start: i32, end: i32) -> string
@@ -21,13 +33,135 @@ export ends_with   :: fn(s: string, suffix: string) -> bool
 // Character access (byte index → Unicode codepoint).
 export char_at :: fn(s: string, i: i32) -> char
 
+// Raw byte at offset `i`. For UTF-8-aware iteration, prefer `chars()` —
+// `byte_at` is the right tool for ASCII fast paths and binary-format
+// scanning where the underlying bytes matter (BOM detection, magic bytes).
+export byte_at :: fn(s: string, i: i32) -> u8
+
+/**
+ * Iterator yielding raw bytes — the UTF-8 byte sequence as-is. Use for
+ * ASCII data, binary protocols carried in strings, or when computing a
+ * byte-level digest. For codepoint iteration use `chars()` instead.
+ */
+export StringBytes :: struct {
+    s:      string
+    cursor: i32
+    length: i32
+}
+
+StringBytes implements Iterator(u8) {
+    fn step(self) -> Done | Yielded(u8) {
+        if (self.cursor >= self.length) {
+            return Done {}
+        }
+        b :: self.s.byte_at(self.cursor)
+        self.cursor = self.cursor + 1
+        return Yielded(u8) { .value = b }
+    }
+}
+
+/**
+ * Iterate `s` byte-by-byte. Pair with `for b in s.bytes()` for raw byte
+ * processing.
+ *
+ * Example :
+ *   sum: u32 = u32(0)
+ *   for b in "vader".bytes() {
+ *       sum = sum + u32(b)
+ *   }
+ */
+export bytes :: fn(s: string) -> StringBytes {
+    return StringBytes { .s = s, .cursor = 0, .length = s.byte_len() }
+}
+
+/**
+ * Iterator yielding Unicode codepoints — one per UTF-8 sequence, regardless
+ * of whether the codepoint is encoded in 1, 2, 3, or 4 bytes. Cursor moves
+ * in bytes ; `length` is the byte length of the source string, captured at
+ * construction so `step` doesn't recompute it.
+ */
+export StringChars :: struct {
+    s:      string
+    cursor: i32
+    length: i32
+}
+
+StringChars implements Iterator(char) {
+    fn step(self) -> Done | Yielded(char) {
+        if (self.cursor >= self.length) {
+            return Done {}
+        }
+        c :: self.s[self.cursor]
+        self.cursor = self.cursor + codepoint_byte_len(c)
+        return Yielded(char) { .value = c }
+    }
+}
+
+/**
+ * Iterate `s` codepoint-by-codepoint. Pair with `for c in s.chars()` to
+ * get a true Unicode loop ; using `s[i]` in a byte-indexed loop returns
+ * U+FFFD on continuation bytes for non-ASCII content.
+ *
+ * Example :
+ *   for c in "héllo".chars() {
+ *       println("${c}")
+ *   }
+ */
+export chars :: fn(s: string) -> StringChars {
+    return StringChars { .s = s, .cursor = 0, .length = s.byte_len() }
+}
+
+/**
+ * Decode the UTF-8 sequence at byte offset `i` into a codepoint and its
+ * encoded byte length. Returns `[c, n]` where `c` is the codepoint and `n`
+ * is the number of bytes consumed (1 to 4) — advance the caller's cursor
+ * by `n` to land on the next leading byte.
+ *
+ * Caller is expected to ensure `i` points at a leading byte (cursor invariant
+ * preserved by always advancing in `n`-byte steps from 0). For an offset
+ * landing on a continuation byte, `s[i]` returns U+FFFD and `n = 3` —
+ * incorrect for resync, so callers must not feed arbitrary offsets.
+ *
+ * Bounds aren't checked : `i` must satisfy `0 <= i < s.byte_len()`.
+ *
+ * Example :
+ *   [c, n] := decode_codepoint("héllo", 1)   // c = 'é', n = 2
+ */
+export decode_codepoint :: fn(s: string, i: i32) -> [char, i32] {
+    c :: s[i]
+    return [c, codepoint_byte_len(c)]
+}
+
+/**
+ * Count the Unicode codepoints in `s` — what `byte_len()` would return in
+ * a codepoint-indexed language. Walks the UTF-8 byte sequence directly via
+ * leading-byte widths ; cheaper than `s.chars().count()` because it avoids
+ * the per-step `Yielded(char)` heap allocation the iterator does.
+ *
+ * Example :
+ *   count_chars("héllo")    // 5    (byte_len() would return 6)
+ *   count_chars("你好")     // 2    (byte_len() would return 6)
+ *   count_chars("")         // 0
+ */
+export count_chars :: fn(s: string) -> i32 {
+    n := 0
+    i := 0
+    bytes :: s.byte_len()
+    for i < bytes {
+        c :: s[i]
+        i = i + codepoint_byte_len(c)
+        n = n + 1
+    }
+    return n
+}
+
 // Comparator suitable for `sort(arr, compare_ascending)` : returns true when
 // `a` lexicographically precedes `b` (byte-wise). Mirrors JS `s1 < s2`.
 // Will become `Ord(string)::less` once trait-method dispatch on bounded type
 // parameters lands (TODO §1.18b).
 export compare_ascending :: fn(a: string, b: string) -> bool {
-    la :: a.len()
-    lb :: b.len()
+    la :: a.byte_len()
+    lb :: b.byte_len()
     n :: min(la, lb)
     i := 0
     for i < n {
@@ -42,7 +176,7 @@ export compare_ascending :: fn(a: string, b: string) -> bool {
 
 // Last byte-index of `c` at or after `min_index`, or -1 if not found.
 export last_index_of :: fn(s: string, c: char, min_index: i32) -> i32 {
-    i := s.len() - 1
+    i := s.byte_len() - 1
     for i >= min_index {
         if s[i] == c {
             return i
@@ -75,7 +209,7 @@ export parse_float :: fn(s: string) -> f64!
 // Pad `s` on the left with `fill` until its byte length reaches `width`.
 // Returns `s` unchanged when it's already at least `width` bytes.
 export pad_start :: fn(s: string, width: i32, fill: char) -> string {
-    n := s.len()
+    n := s.byte_len()
     if n >= width {
         return s
     }
@@ -91,7 +225,7 @@ export pad_start :: fn(s: string, width: i32, fill: char) -> string {
 
 // Pad `s` on the right with `fill` until its byte length reaches `width`.
 export pad_end :: fn(s: string, width: i32, fill: char) -> string {
-    n := s.len()
+    n := s.byte_len()
     if n >= width {
         return s
     }
@@ -139,7 +273,7 @@ export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
 // Strip a `suffix` if `s` ends with it; otherwise return `s` unchanged.
 export trim_suffix :: fn(s: string, suffix: string) -> string {
     if s.ends_with(suffix) {
-        return s.slice(0, s.len() - suffix.len())
+        return s.slice(0, s.byte_len() - suffix.byte_len())
     }
     return s
 }
@@ -147,7 +281,7 @@ export trim_suffix :: fn(s: string, suffix: string) -> string {
 // Strip a `prefix` if `s` starts with it; otherwise return `s` unchanged.
 export trim_prefix :: fn(s: string, prefix: string) -> string {
     if s.starts_with(prefix) {
-        return s.slice(prefix.len(), s.len())
+        return s.slice(prefix.byte_len(), s.byte_len())
     }
     return s
 }
@@ -156,7 +290,7 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
 // the regex pattern `replace(/[<class>]/g, "<replacement>")`.
 export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
     sb := new_builder()
-    n := s.len()
+    n := s.byte_len()
     i := 0
     for i < n {
         c := s[i]
@@ -186,7 +320,7 @@ export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
     out: string[] = []
     sb := new_builder()
     has_pending := false
-    n := s.len()
+    n := s.byte_len()
     i := 0
     for i < n {
         c := s[i]

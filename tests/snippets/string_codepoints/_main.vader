@@ -1,0 +1,30 @@
+import "std/io" { println }
+import "std/string" { byte_len, count_chars, decode_codepoint }
+import "std/utf8" { codepoint_byte_len }
+
+main :: fn() -> i32 {
+    // count_chars vs byte_len: codepoints, not bytes.
+    println("ascii  cp=${count_chars("vader")} bytes=${byte_len("vader")}")
+    println("mixed  cp=${count_chars("héllo")} bytes=${byte_len("héllo")}")
+    println("cjk    cp=${count_chars("你好嗎？")} bytes=${byte_len("你好嗎？")}")
+    println("emoji  cp=${count_chars("a\u{1F600}b")} bytes=${byte_len("a\u{1F600}b")}")
+    println("empty  cp=${count_chars("")} bytes=${byte_len("")}")
+
+    // decode_codepoint walks one sequence at a time. Manual iteration mimics
+    // what `chars()` does internally, demonstrating the [char, i32] return.
+    s := "你好"
+    i := 0
+    n := byte_len(s)
+    for i < n {
+        [c, w] := decode_codepoint(s, i)
+        println("at ${i}: '${c}' (${w} bytes)")
+        i = i + w
+    }
+
+    // codepoint_byte_len is callable directly when only the width is needed.
+    println("'a' width=${codepoint_byte_len('a')}")
+    println("'é' width=${codepoint_byte_len('é')}")
+    println("'你' width=${codepoint_byte_len('你')}")
+    println("emoji width=${codepoint_byte_len('\u{1F600}')}")
+    return 0
+}

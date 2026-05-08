@@ -1,28 +1,5 @@
-# stdout
-path=src/parser/expr.ts
-filename=expr.ts
-stem=expr
-extension=ts
-parent=src/parser
-grand=src
-abs is_absolute=true
-abs.parent=/usr/local/bin
-abs.filename=vader
-abs.parent.parent=/usr/local
-empty.is_empty=true
-p.is_empty=false
-join=/etc/hosts
-join with sep=/etc/hosts
-join absolute=/var/log
-join empty base=foo
-a/b/c starts_with a/b: true
-a/bc starts_with a/b: false
-a/b/c ends_with b/c: true
-a/b/c ends_with /c: true
-norm a/./b/../c=a/c
-norm /a/b/../c=/a/c
-norm ..=..
-norm ./.=.
-norm /a//b=/a/b
-# exit
-0
+# compile errors
+[R2004] duplicate top-level symbol in module: `is_empty` already declared in this module
+[R2008] symbol is not exported from its module: `is_empty` is not exported from `std/path`
+[T3009] field does not exist on this type: `is_empty` on Path
+[T3009] field does not exist on this type: `is_empty` on Path

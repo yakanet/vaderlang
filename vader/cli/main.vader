@@ -9,7 +9,7 @@
 // "not yet implemented" message.
 
 import "std/io" { println, eprintln, read_file }
-import "std/string" { len, slice, starts_with }
+import "std/string" { byte_len, slice, starts_with }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 import "vader/parser" { parse_source, dump_program }
 
@@ -85,7 +85,7 @@ parse_global_opts :: fn(args: string[]) -> ParseGlobalsResult {
 
     for a in args {
         if a.starts_with(diag_prefix) {
-            v :: a.slice(diag_prefix.len(), a.len())
+            v :: a.slice(diag_prefix.byte_len(), a.byte_len())
             if v == "text" || v == "json" {
                 diagnostics = v
             } else {
@@ -186,7 +186,7 @@ cmd_build :: fn(args: string[]) -> i32 {
 
     for a in args {
         if a.starts_with(target_prefix) {
-            target = a.slice(target_prefix.len(), a.len())
+            target = a.slice(target_prefix.byte_len(), a.byte_len())
             continue
         }
         if a == "--manifest" {
@@ -243,7 +243,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
 
     for a in args {
         if a.starts_with(stage_prefix) {
-            stage = a.slice(stage_prefix.len(), a.len())
+            stage = a.slice(stage_prefix.byte_len(), a.byte_len())
             has_stage = true
             continue
         }

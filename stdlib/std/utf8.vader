@@ -1,9 +1,10 @@
 // std/utf8 — UTF-8 encoding helpers.
 //
-// Currently exposes a single codepoint encoder used by the JSON parser and
-// any code that decodes `\uXXXX` / `\u{...}` escapes into UTF-8 bytes.
-// Future additions : `decode_codepoint`, `count_chars` (codepoint count
-// rather than byte length), iteration helpers.
+// Exposes a codepoint encoder used by the JSON parser and any code that
+// decodes `\uXXXX` / `\u{...}` escapes into UTF-8 bytes, plus the
+// `codepoint_byte_len` width helper used by `std/string.chars()` and the
+// allocation-free `count_chars` / `decode_codepoint` walkers (those live
+// in `std/string` next to `len`, which they depend on).
 
 import "std/string_builder" { StringBuilder, append_char }
 
@@ -45,4 +46,26 @@ export append_codepoint :: fn(sb: StringBuilder, cp: u32) -> void {
     sb.append_char(char(u32(0x80) | ((cp >> u32(12)) & u32(0x3F))))
     sb.append_char(char(u32(0x80) | ((cp >> u32(6)) & u32(0x3F))))
     sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
+}
+
+/**
+ * UTF-8 byte length of a Unicode codepoint — 1 to 4 bytes.
+ *
+ * Mirrors the encoding bands from `append_codepoint` :
+ *   - U+0000..U+007F     → 1
+ *   - U+0080..U+07FF     → 2
+ *   - U+0800..U+FFFF     → 3
+ *   - U+10000..U+10FFFF  → 4
+ *
+ * Used by `std/string.chars()` to step a byte cursor over a UTF-8 sequence
+ * after decoding the codepoint at the current position. Codepoints above
+ * U+10FFFF are clamped to a 4-byte length — `append_codepoint` will produce
+ * a malformed sequence for those, so the input is invalid either way.
+ */
+export codepoint_byte_len :: fn(c: char) -> i32 {
+    cp :: u32(c)
+    if cp < u32(0x80)    { return 1 }
+    if cp < u32(0x800)   { return 2 }
+    if cp < u32(0x10000) { return 3 }
+    return 4
 }

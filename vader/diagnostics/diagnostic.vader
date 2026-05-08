@@ -3,7 +3,7 @@
 // shapes (Severity / Position / Span / Diagnostic) so a Vader-driven LSP
 // emits the same JSON schema as the TS compiler.
 
-import "std/string" { len }
+import "std/string" { is_empty }
 import "vader/diagnostics/codes" { LexerCode, ParserCode, info, parser_info, CodeInfo }
 
 export Severity :: enum {
@@ -64,7 +64,7 @@ export render :: fn(d: Diagnostic) -> string {
     }
     p :: d.primary.start
     detail: string = ""
-    if d.detail.len() > 0 {
+    if !d.detail.is_empty() {
         detail = ": ${d.detail}"
     }
     return "${severity}[${d.code.id}]: ${d.code.message}${detail} at ${p.file}:${p.line}:${p.column}"

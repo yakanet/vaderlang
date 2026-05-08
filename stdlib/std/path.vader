@@ -5,7 +5,7 @@
 // support deferred (will replace the constant with a runtime-determined value).
 
 import "std/string" {
-    len, slice, last_index_of,
+    byte_len, is_empty, slice, last_index_of,
     starts_with as str_starts_with, ends_with as str_ends_with,
 }
 import "std/string_builder" { StringBuilder, new_builder, append, to_string }
@@ -34,11 +34,11 @@ export as_string :: fn(self: Path) -> string {
 }
 
 export is_empty :: fn(self: Path) -> bool {
-    return self.repr.len() == 0
+    return self.repr.is_empty()
 }
 
 export is_absolute :: fn(self: Path) -> bool {
-    if self.repr.len() == 0 {
+    if self.repr.is_empty() {
         return false
     }
     return self.repr[0] == SEP
@@ -65,7 +65,7 @@ export filename :: fn(self: Path) -> string {
     if idx < 0 {
         return self.repr
     }
-    return self.repr.slice(idx + 1, self.repr.len())
+    return self.repr.slice(idx + 1, self.repr.byte_len())
 }
 
 // File extension without the leading dot, or empty when there's no extension.
@@ -76,7 +76,7 @@ export extension :: fn(self: Path) -> string {
     if idx < 0 {
         return ""
     }
-    return name.slice(idx + 1, name.len())
+    return name.slice(idx + 1, name.byte_len())
 }
 
 // Filename without the extension. For names without an extension, returns
@@ -95,16 +95,16 @@ export stem :: fn(self: Path) -> string {
 // Append a sub-path. Adds a separator between segments unless one is already
 // present. If `other` is absolute, it replaces `self` (Java-style resolve).
 export join :: fn(self: Path, other: string) -> Path {
-    if other.len() == 0 {
+    if other.is_empty() {
         return self
     }
     if other[0] == SEP {
         return Path { .repr = other }
     }
-    if self.repr.len() == 0 {
+    if self.repr.is_empty() {
         return Path { .repr = other }
     }
-    if self.repr[self.repr.len() - 1] == SEP {
+    if self.repr[self.repr.byte_len() - 1] == SEP {
         return Path { .repr = self.repr + other }
     }
     return Path { .repr = self.repr + SEP_STR + other }
@@ -118,15 +118,15 @@ export starts_with :: fn(self: Path, prefix: Path) -> bool {
     if !self.repr.str_starts_with(prefix.repr) {
         return false
     }
-    if self.repr.len() == prefix.repr.len() {
+    if self.repr.byte_len() == prefix.repr.byte_len() {
         return true
     }
     // Boundary check: next char in self must be a separator, or prefix must
     // itself end on one.
-    if prefix.repr.len() > 0 && prefix.repr[prefix.repr.len() - 1] == SEP {
+    if !prefix.repr.is_empty() && prefix.repr[prefix.repr.byte_len() - 1] == SEP {
         return true
     }
-    return self.repr[prefix.repr.len()] == SEP
+    return self.repr[prefix.repr.byte_len()] == SEP
 }
 
 // True when `self` ends with `suffix` on a segment boundary.
@@ -134,11 +134,11 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
     if !self.repr.str_ends_with(suffix.repr) {
         return false
     }
-    if self.repr.len() == suffix.repr.len() {
+    if self.repr.byte_len() == suffix.repr.byte_len() {
         return true
     }
-    cut := self.repr.len() - suffix.repr.len()
-    if suffix.repr.len() > 0 && suffix.repr[0] == SEP {
+    cut := self.repr.byte_len() - suffix.repr.byte_len()
+    if !suffix.repr.is_empty() && suffix.repr[0] == SEP {
         return true
     }
     return self.repr[cut - 1] == SEP
@@ -153,13 +153,13 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
 // overwrites `segments[count]` in place — avoids the O(N²) of rebuilding
 // a fresh array on every `..` collapse.
 export normalize :: fn(self: Path) -> Path {
-    if self.repr.len() == 0 {
+    if self.repr.is_empty() {
         return self
     }
     abs := self.is_absolute()
     segments: string[] = []
     count := 0
-    n := self.repr.len()
+    n := self.repr.byte_len()
     i := if abs { 1 } else { 0 }
     seg_start := i
     for i <= n {
@@ -167,7 +167,7 @@ export normalize :: fn(self: Path) -> Path {
         is_sep := !at_end && self.repr[i] == SEP
         if is_sep || at_end {
             seg := self.repr.slice(seg_start, i)
-            if seg.len() == 0 || seg == "." {
+            if seg.is_empty() || seg == "." {
                 // skip
             } else if seg == ".." {
                 can_pop := count > 0 && segments[count - 1] != ".."
@@ -206,7 +206,7 @@ export normalize :: fn(self: Path) -> Path {
         j = j + 1
     }
     out := sb.to_string()
-    if out.len() == 0 && !abs {
+    if out.is_empty() && !abs {
         return Path { .repr = "." }
     }
     return Path { .repr = out }

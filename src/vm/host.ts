@@ -95,7 +95,7 @@ function fnv1a64(s: string): bigint {
 
 export function stdStringBindings(): Record<string, HostFn> {
   return {
-    std_string$len:         (args) => num("i32", UTF8_ENC.encode(stringArg(args, 0)).length),
+    std_string$byte_len:    (args) => num("i32", UTF8_ENC.encode(stringArg(args, 0)).length),
     std_string$slice:       (args) => {
       const s = stringArg(args, 0);
       const bytes = UTF8_ENC.encode(s);
@@ -114,6 +114,12 @@ export function stdStringBindings(): Record<string, HostFn> {
       const i = numArg(args, 1);
       if (i < 0 || i >= bytes.length) return ch(0);
       return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
+    },
+    std_string$byte_at: (args) => {
+      const bytes = UTF8_ENC.encode(stringArg(args, 0));
+      const i = numArg(args, 1);
+      if (i < 0 || i >= bytes.length) return num("u8", 0);
+      return num("u8", bytes[i]!);
     },
     // `string implements Index(i32, char)` is `@intrinsic`-impl in std/core,
     // so the host provides the body under the impl-method mangled name.

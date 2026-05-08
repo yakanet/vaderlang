@@ -1,0 +1,49 @@
+# Typecheck
+
+## tests/snippets/string_chars/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 12:13    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(string) -> void
+  expr 13:14    CallExpr       :: StringChars
+  expr 13:14    FieldExpr      :: fn() -> StringChars
+  expr 13:14    StringLitExpr  :: string
+  expr 14:17    StringLitExpr  :: string
+  expr 14:20    IdentExpr      :: ?
+  expr 14:9     CallExpr       :: void
+  expr 14:9     IdentExpr      :: fn(string) -> void
+  expr 19:14    CallExpr       :: StringChars
+  expr 19:14    FieldExpr      :: fn() -> StringChars
+  expr 19:14    StringLitExpr  :: string
+  expr 20:13    BinaryExpr     :: i32
+  expr 20:13    IdentExpr      :: i32
+  expr 20:9     IdentExpr      :: i32
+  expr 22:13    StringLitExpr  :: string
+  expr 22:27    IdentExpr      :: i32
+  expr 22:38    CallExpr       :: i32
+  expr 22:38    IdentExpr      :: fn(string) -> i32
+  expr 22:47    StringLitExpr  :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 25:13    StringLitExpr  :: string
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 26:14    CallExpr       :: StringChars
+  expr 26:14    FieldExpr      :: fn() -> StringChars
+  expr 26:14    StringLitExpr  :: string
+  expr 27:17    StringLitExpr  :: string
+  expr 27:9     CallExpr       :: void
+  expr 27:9     IdentExpr      :: fn(string) -> void
+  expr 29:13    StringLitExpr  :: string
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(string) -> void
+  expr 6:13     StringLitExpr  :: string
+  expr 6:5      CallExpr       :: void
+  expr 6:5      IdentExpr      :: fn(string) -> void
+  expr 7:14     CallExpr       :: StringChars
+  expr 7:14     FieldExpr      :: fn() -> StringChars
+  expr 7:14     StringLitExpr  :: string
+  expr 8:17     StringLitExpr  :: string
+  expr 8:20     IdentExpr      :: ?
+  expr 8:9      CallExpr       :: void
+  expr 8:9      IdentExpr      :: fn(string) -> void

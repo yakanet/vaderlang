@@ -68,7 +68,7 @@
   expr 6:13     StringLitExpr  :: string
   expr 6:16     CallExpr       :: i32
   expr 6:16     IdentExpr      :: fn(string) -> i32
-  expr 6:20     IdentExpr      :: string
+  expr 6:25     IdentExpr      :: string
   expr 6:5      CallExpr       :: void
   expr 6:5      IdentExpr      :: fn(string) -> void
   expr 7:13     CallExpr       :: string

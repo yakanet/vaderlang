@@ -3,8 +3,10 @@
 ## tests/snippets/std_sort/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Yielded(string)
+  Yielded(u8)
   ArrayIter($T)
   ArrayIter(i32)
   ArrayIter(string)

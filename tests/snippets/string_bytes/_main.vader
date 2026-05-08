@@ -1,0 +1,34 @@
+import "std/io" { println }
+import "std/string" { bytes, byte_at, byte_len }
+
+main :: fn() -> i32 {
+    // ASCII path : each codepoint is one byte, sum == codepoint sum.
+    println("-- ascii --")
+    sum: u32 = u32(0)
+    for b in "vader".bytes() {
+        sum = sum + u32(b)
+    }
+    println("sum=${sum}")
+
+    // Multi-byte UTF-8 : surface the raw bytes (3 bytes per CJK glyph).
+    println("-- multibyte --")
+    for b in "你".bytes() {
+        println("${b}")
+    }
+
+    // Pinpoint access (BOM detection style — first 3 bytes of a BOM-prefixed
+    // string match 0xEF 0xBB 0xBF).
+    bom :: "\u{FEFF}data"
+    println("-- bom --")
+    println("b0=${bom.byte_at(0)} b1=${bom.byte_at(1)} b2=${bom.byte_at(2)}")
+    println("after bom: ${bom.byte_at(3)}=${"d".byte_at(0)}")
+
+    // Empty string : zero iterations.
+    println("-- empty --")
+    for b in "".bytes() {
+        println("never")
+    }
+    println("done bytes=${byte_len("")}")
+
+    return 0
+}

@@ -1,0 +1,14 @@
+# stdout
+ascii  cp=5 bytes=5
+mixed  cp=5 bytes=6
+cjk    cp=4 bytes=12
+emoji  cp=3 bytes=6
+empty  cp=0 bytes=0
+at 0: '你' (3 bytes)
+at 3: '好' (3 bytes)
+'a' width=1
+'é' width=2
+'你' width=3
+emoji width=4
+# exit
+0

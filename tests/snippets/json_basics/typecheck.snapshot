@@ -116,7 +116,3 @@
   expr 8:21     IdentExpr      :: string
   expr 9:11     IdentExpr      :: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
   expr 9:5      MatchExpr      :: void
-
-# Diagnostics
-[17:64] error[R2011] duplicate import binding: `len`
-[440:18] error[T3009] field does not exist on this type: `len` on MutableMap(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)

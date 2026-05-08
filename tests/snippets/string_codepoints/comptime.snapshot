@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/string_codepoints/_main.vader
+
+## generic instances
+  Yielded(char)
+  Yielded(i32)
+  Yielded(u8)

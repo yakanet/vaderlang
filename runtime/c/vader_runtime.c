@@ -373,7 +373,7 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
 
 /* ----------------------------------------------------------------- std/string */
 
-vader_i32_t vader_string_len(vader_string_t s) {
+vader_i32_t vader_string_byte_len(vader_string_t s) {
     return (vader_i32_t) s.len;
 }
 
@@ -474,6 +474,11 @@ vader_char_t vader_string_char_at(vader_string_t s, vader_i32_t i) {
     }
     if (rem < 4) return 0;
     return (vader_char_t)(((b & 0x07u) << 18) | ((p[1] & 0x3Fu) << 12) | ((p[2] & 0x3Fu) << 6) | (p[3] & 0x3Fu));
+}
+
+vader_u8_t vader_string_byte_at(vader_string_t s, vader_i32_t i) {
+    if (i < 0 || (size_t)i >= s.len) vader_trap("string index out of bounds");
+    return (vader_u8_t)(uint8_t) s.ptr[i];
 }
 
 /* Box the host argv into a `[string]` Vader array. Called from emitted main

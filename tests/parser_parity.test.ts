@@ -59,7 +59,7 @@ const KNOWN_FAILURES = new Set([
   // multi-byte codepoints because `std/string.char_at` is byte-indexed
   // rather than codepoint-indexed. Tracked as a stdlib limitation, not a
   // parser bug — see TODO §1.13.
-  "std_string", "std_string_builder",
+  "std_string", "std_string_builder", "string_bytes", "string_chars", "string_codepoints",
 ]);
 
 const SKIP_ALL = false;

@@ -382,8 +382,11 @@ There is **no implicit coercion between sized numeric types**. `i32 → i64` req
 
 - Internals: **fat value** `(ptr: rawptr, len: u32)` — 16 bytes copied on assignment, no shared reference.
 - Immutable. Concatenation allocates.
-- `len()` returns the number of UTF-8 **bytes**.
-- `chars()` or `codepoints()` returns an iterator of `char`.
+- `byte_len()` returns the number of UTF-8 **bytes**. The byte vs. codepoint distinction is forced into the name : there is no plain `len()` on strings, callers pick `byte_len()` for byte arithmetic or `count_chars()` for codepoint arithmetic.
+- `count_chars()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths).
+- `chars()` returns an iterator of `char` (`StringChars implements Iterator(char)`) ; pair with `for c in s.chars()` for a true Unicode loop.
+- `bytes()` returns an iterator of `u8` (`StringBytes implements Iterator(u8)`) ; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
+- `is_empty()` — sugar for `byte_len() == 0` (codepoint count and byte count agree on emptiness).
 - **Subscript** `s[i]` returns the Unicode codepoint at *byte* offset `i` (via `string implements Index(i32, char)` in `std/core`). Indexing into the middle of a multi-byte codepoint returns garbage — for codepoint-safe iteration use `chars()`. There is no `IndexSet` impl ; strings are immutable.
 - Literals stored in the binary's data section.
 
@@ -1589,7 +1592,7 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 
 ```vader
 // Core access (intrinsics — no body in Vader).
-fn len(s: string) -> i32                       // bytes
+fn byte_len(s: string) -> i32                  // UTF-8 bytes ; pair with count_chars() for codepoints
 fn slice(s: string, start: i32, end: i32) -> string
 fn char_at(s: string, i: i32) -> char          // also reachable via `s[i]` (Index impl in std/core)
 fn contains(s: string, sub: string) -> bool
@@ -1601,6 +1604,16 @@ fn to_upper(s: string) -> string
 fn to_lower(s: string) -> string
 fn parse_int(s: string) -> i32!
 fn parse_float(s: string) -> f64!
+
+// Codepoint walkers.
+fn is_empty(s: string) -> bool                 // sugar for byte_len() == 0
+fn count_chars(s: string) -> i32               // codepoint count, allocation-free
+fn chars(s: string) -> StringChars             // StringChars implements Iterator(char)
+fn decode_codepoint(s: string, i: i32) -> [char, i32]   // (codepoint, byte width)
+
+// Byte walkers (raw UTF-8 — for ASCII / binary protocols / BOM detection).
+fn byte_at(s: string, i: i32) -> u8
+fn bytes(s: string) -> StringBytes             // StringBytes implements Iterator(u8)
 
 // Indexing helpers.
 fn last_index_of(s: string, c: char, min_index: i32) -> i32
@@ -1645,11 +1658,13 @@ Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
 
 ### `std/utf8`
 
-UTF-8 encoding helpers — currently exposes a single codepoint encoder used
-by JSON parsing and any code that decodes `\uXXXX` / `\u{...}` escapes.
+UTF-8 encoding helpers — codepoint encoder used by JSON parsing and any
+code that decodes `\uXXXX` / `\u{...}` escapes, plus the byte-width helper
+that powers `std/string.chars()` and `count_chars`.
 
 ```vader
 fn append_codepoint(self: StringBuilder, cp: u32) -> void
+fn codepoint_byte_len(c: char) -> i32          // 1..4 — UTF-8 width of a codepoint
 ```
 
 ### `std/string_builder`

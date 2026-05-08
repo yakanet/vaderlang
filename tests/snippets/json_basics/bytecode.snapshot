@@ -95,27 +95,28 @@ import 7 read_line std_io$read_line () -> ref
 import 8 read_file std_io$read_file (string) -> ref
 import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
-import 11 len std_string$len (string) -> i32
+import 11 byte_len std_string$byte_len (string) -> i32
 import 12 slice std_string$slice (string,i32,i32) -> string
 import 13 contains std_string$contains (string,string) -> bool
 import 14 starts_with std_string$starts_with (string,string) -> bool
 import 15 ends_with std_string$ends_with (string,string) -> bool
 import 16 char_at std_string$char_at (string,i32) -> char
-import 17 split std_string$split (string,string) -> ref
-import 18 trim std_string$trim (string) -> string
-import 19 to_upper std_string$to_upper (string) -> string
-import 20 to_lower std_string$to_lower (string) -> string
-import 21 parse_int std_string$parse_int (string) -> ref
-import 22 parse_float std_string$parse_float (string) -> ref
-import 23 concat_all std_string_builder$concat_all (ref) -> string
-import 24 sqrt std_math$sqrt (f64) -> f64
-import 25 pow std_math$pow (f64,f64) -> f64
-import 26 floor std_math$floor (f64) -> f64
-import 27 ceil std_math$ceil (f64) -> f64
-import 28 round std_math$round (f64) -> f64
-import 29 sin std_math$sin (f64) -> f64
-import 30 cos std_math$cos (f64) -> f64
-import 31 tan std_math$tan (f64) -> f64
+import 17 byte_at std_string$byte_at (string,i32) -> u8
+import 18 split std_string$split (string,string) -> ref
+import 19 trim std_string$trim (string) -> string
+import 20 to_upper std_string$to_upper (string) -> string
+import 21 to_lower std_string$to_lower (string) -> string
+import 22 parse_int std_string$parse_int (string) -> ref
+import 23 parse_float std_string$parse_float (string) -> ref
+import 24 concat_all std_string_builder$concat_all (ref) -> string
+import 25 sqrt std_math$sqrt (f64) -> f64
+import 26 pow std_math$pow (f64,f64) -> f64
+import 27 floor std_math$floor (f64) -> f64
+import 28 ceil std_math$ceil (f64) -> f64
+import 29 round std_math$round (f64) -> f64
+import 30 sin std_math$sin (f64) -> f64
+import 31 cos std_math$cos (f64) -> f64
+import 32 tan std_math$tan (f64) -> f64
 
 fn 0 tests_snippets_json_basics__main_vader$show (string,string) -> void
   local parsed ref
@@ -891,7 +892,7 @@ fn 15 std_json$parse_number (ref) -> ref
   struct.get 15 1   ; json.vader:198:31
   call.import 12   ; json.vader:198:12
   local.tee 2   ; json.vader:198:5
-  call.import 22   ; json.vader:199:15
+  call.import 23   ; json.vader:199:15
   local.tee 3   ; json.vader:199:5
   local.tee 4   ; json.vader:200:11
   type_check 3   ; json.vader:201:9
@@ -1563,7 +1564,7 @@ fn 21 std_json$write_string (ref,string) -> void
   local.get 0   ; json.vader:381:13
   local.get 5   ; json.vader:381:27
   i32.to_u64   ; json.vader:381:23
-  call 40   ; json.vader:381:23
+  call 41   ; json.vader:381:23
   i32.const 4   ; json.vader:381:50
   char.const 48   ; json.vader:381:53
   call 28   ; json.vader:381:23
@@ -1762,9 +1763,11 @@ fn 26 std_json$write_object (ref,ref,i32,i32) -> void
   local vs ref
   local n i32
   local i i32
-  unreachable   ; json.vader:440:8
-  i32.const 0   ; json.vader:440:27
-  ref.eq   ; json.vader:440:8
+  local.get 1   ; json.vader:440:8
+  struct.get 11 0   ; json.vader:440:8
+  call 37   ; json.vader:440:8
+  i64.const 0   ; json.vader:440:27
+  usize.eq   ; json.vader:440:8
   if void   ; json.vader:440:5
   local.get 0   ; json.vader:441:9
   string.const 55   ; json.vader:441:19
@@ -1776,11 +1779,11 @@ fn 26 std_json$write_object (ref,ref,i32,i32) -> void
   call 31   ; json.vader:444:5
   local.get 1   ; json.vader:447:11
   struct.get 11 0   ; json.vader:447:11
-  call 37   ; json.vader:447:11
+  call 38   ; json.vader:447:11
   local.set 4   ; json.vader:447:5
   local.get 1   ; json.vader:448:11
   struct.get 11 0   ; json.vader:448:11
-  call 38   ; json.vader:448:11
+  call 39   ; json.vader:448:11
   local.set 5   ; json.vader:448:5
   local.get 4   ; json.vader:449:10
   array.len   ; json.vader:449:10
@@ -1866,41 +1869,41 @@ fn 28 std_string$pad_start (string,i32,char) -> string
   local n i32
   local sb ref
   local i i32
-  local.get 0   ; string.vader:78:10
-  call.import 11   ; string.vader:78:10
-  local.tee 3   ; string.vader:78:5
-  local.get 1   ; string.vader:79:13
-  i32.ge   ; string.vader:79:8
-  if void   ; string.vader:79:5
-  local.get 0   ; string.vader:80:16
-  return   ; string.vader:80:9
-  end   ; string.vader:79:5
-  call 29   ; string.vader:82:11
-  local.set 4   ; string.vader:82:5
-  local.get 3   ; string.vader:83:10
-  local.set 5   ; string.vader:83:5
-  block void   ; string.vader:84:5
-  loop void   ; string.vader:84:5
-  local.get 5   ; string.vader:84:9
-  local.get 1   ; string.vader:84:13
-  i32.ge   ; string.vader:84:9
-  br_if 1   ; string.vader:84:9
-  local.get 4   ; string.vader:85:9
-  local.get 2   ; string.vader:85:24
-  call 31   ; string.vader:85:9
-  local.get 5   ; string.vader:86:13
-  i32.const 1   ; string.vader:86:17
-  i32.add   ; string.vader:86:13
-  local.set 5   ; string.vader:86:9
-  br 0   ; string.vader:84:5
-  end   ; string.vader:84:5
-  end   ; string.vader:84:5
-  local.get 4   ; string.vader:88:5
-  local.get 0   ; string.vader:88:15
-  call 30   ; string.vader:88:5
-  local.get 4   ; string.vader:89:12
-  call 33   ; string.vader:89:12
-  return   ; string.vader:89:5
+  local.get 0   ; string.vader:212:10
+  call.import 11   ; string.vader:212:10
+  local.tee 3   ; string.vader:212:5
+  local.get 1   ; string.vader:213:13
+  i32.ge   ; string.vader:213:8
+  if void   ; string.vader:213:5
+  local.get 0   ; string.vader:214:16
+  return   ; string.vader:214:9
+  end   ; string.vader:213:5
+  call 29   ; string.vader:216:11
+  local.set 4   ; string.vader:216:5
+  local.get 3   ; string.vader:217:10
+  local.set 5   ; string.vader:217:5
+  block void   ; string.vader:218:5
+  loop void   ; string.vader:218:5
+  local.get 5   ; string.vader:218:9
+  local.get 1   ; string.vader:218:13
+  i32.ge   ; string.vader:218:9
+  br_if 1   ; string.vader:218:9
+  local.get 4   ; string.vader:219:9
+  local.get 2   ; string.vader:219:24
+  call 31   ; string.vader:219:9
+  local.get 5   ; string.vader:220:13
+  i32.const 1   ; string.vader:220:17
+  i32.add   ; string.vader:220:13
+  local.set 5   ; string.vader:220:9
+  br 0   ; string.vader:218:5
+  end   ; string.vader:218:5
+  end   ; string.vader:218:5
+  local.get 4   ; string.vader:222:5
+  local.get 0   ; string.vader:222:15
+  call 30   ; string.vader:222:5
+  local.get 4   ; string.vader:223:12
+  call 33   ; string.vader:223:12
+  return   ; string.vader:223:5
 end
 
 fn 29 std_string_builder$new_builder () -> ref
@@ -1954,109 +1957,96 @@ end
 fn 33 std_string_builder$to_string (ref) -> string
   local.get 0   ; string_builder.vader:55:23
   struct.get 16 0   ; string_builder.vader:55:23
-  call.import 23   ; string_builder.vader:55:12
+  call.import 24   ; string_builder.vader:55:12
   return   ; string_builder.vader:55:5
 end
 
 fn 34 std_utf8$append_codepoint (ref,u32) -> void
-  local.get 1   ; utf8.vader:29:8
-  i32.const 128   ; utf8.vader:29:17
-  i32.to_u32   ; utf8.vader:29:13
-  u32.lt   ; utf8.vader:29:8
-  if void   ; utf8.vader:29:5
-  local.get 0   ; utf8.vader:30:9
-  local.get 1   ; utf8.vader:30:29
-  u32.to_char   ; utf8.vader:30:24
-  call 31   ; utf8.vader:30:9
-  return   ; utf8.vader:31:9
-  end   ; utf8.vader:29:5
-  local.get 1   ; utf8.vader:33:8
-  i32.const 2048   ; utf8.vader:33:17
-  i32.to_u32   ; utf8.vader:33:13
-  u32.lt   ; utf8.vader:33:8
-  if void   ; utf8.vader:33:5
-  local.get 0   ; utf8.vader:34:9
-  i32.const 192   ; utf8.vader:34:33
-  i32.to_u32   ; utf8.vader:34:29
-  local.get 1   ; utf8.vader:34:42
-  i32.const 6   ; utf8.vader:34:52
-  i32.to_u32   ; utf8.vader:34:48
-  u32.shr   ; utf8.vader:34:42
-  u32.bitor   ; utf8.vader:34:29
-  u32.to_char   ; utf8.vader:34:24
-  call 31   ; utf8.vader:34:9
+  local.get 1   ; utf8.vader:30:8
+  i32.const 128   ; utf8.vader:30:17
+  i32.to_u32   ; utf8.vader:30:13
+  u32.lt   ; utf8.vader:30:8
+  if void   ; utf8.vader:30:5
+  local.get 0   ; utf8.vader:31:9
+  local.get 1   ; utf8.vader:31:29
+  u32.to_char   ; utf8.vader:31:24
+  call 31   ; utf8.vader:31:9
+  return   ; utf8.vader:32:9
+  end   ; utf8.vader:30:5
+  local.get 1   ; utf8.vader:34:8
+  i32.const 2048   ; utf8.vader:34:17
+  i32.to_u32   ; utf8.vader:34:13
+  u32.lt   ; utf8.vader:34:8
+  if void   ; utf8.vader:34:5
   local.get 0   ; utf8.vader:35:9
-  i32.const 128   ; utf8.vader:35:33
+  i32.const 192   ; utf8.vader:35:33
   i32.to_u32   ; utf8.vader:35:29
   local.get 1   ; utf8.vader:35:42
-  i32.const 63   ; utf8.vader:35:51
-  i32.to_u32   ; utf8.vader:35:47
-  u32.bitand   ; utf8.vader:35:42
+  i32.const 6   ; utf8.vader:35:52
+  i32.to_u32   ; utf8.vader:35:48
+  u32.shr   ; utf8.vader:35:42
   u32.bitor   ; utf8.vader:35:29
   u32.to_char   ; utf8.vader:35:24
   call 31   ; utf8.vader:35:9
-  return   ; utf8.vader:36:9
-  end   ; utf8.vader:33:5
-  local.get 1   ; utf8.vader:38:8
-  i32.const 65536   ; utf8.vader:38:17
-  i32.to_u32   ; utf8.vader:38:13
-  u32.lt   ; utf8.vader:38:8
-  if void   ; utf8.vader:38:5
-  local.get 0   ; utf8.vader:39:9
-  i32.const 224   ; utf8.vader:39:33
-  i32.to_u32   ; utf8.vader:39:29
-  local.get 1   ; utf8.vader:39:42
-  i32.const 12   ; utf8.vader:39:52
-  i32.to_u32   ; utf8.vader:39:48
-  u32.shr   ; utf8.vader:39:42
-  u32.bitor   ; utf8.vader:39:29
-  u32.to_char   ; utf8.vader:39:24
-  call 31   ; utf8.vader:39:9
+  local.get 0   ; utf8.vader:36:9
+  i32.const 128   ; utf8.vader:36:33
+  i32.to_u32   ; utf8.vader:36:29
+  local.get 1   ; utf8.vader:36:42
+  i32.const 63   ; utf8.vader:36:51
+  i32.to_u32   ; utf8.vader:36:47
+  u32.bitand   ; utf8.vader:36:42
+  u32.bitor   ; utf8.vader:36:29
+  u32.to_char   ; utf8.vader:36:24
+  call 31   ; utf8.vader:36:9
+  return   ; utf8.vader:37:9
+  end   ; utf8.vader:34:5
+  local.get 1   ; utf8.vader:39:8
+  i32.const 65536   ; utf8.vader:39:17
+  i32.to_u32   ; utf8.vader:39:13
+  u32.lt   ; utf8.vader:39:8
+  if void   ; utf8.vader:39:5
   local.get 0   ; utf8.vader:40:9
-  i32.const 128   ; utf8.vader:40:33
+  i32.const 224   ; utf8.vader:40:33
   i32.to_u32   ; utf8.vader:40:29
-  local.get 1   ; utf8.vader:40:43
-  i32.const 6   ; utf8.vader:40:53
-  i32.to_u32   ; utf8.vader:40:49
-  u32.shr   ; utf8.vader:40:43
-  i32.const 63   ; utf8.vader:40:63
-  i32.to_u32   ; utf8.vader:40:59
-  u32.bitand   ; utf8.vader:40:43
+  local.get 1   ; utf8.vader:40:42
+  i32.const 12   ; utf8.vader:40:52
+  i32.to_u32   ; utf8.vader:40:48
+  u32.shr   ; utf8.vader:40:42
   u32.bitor   ; utf8.vader:40:29
   u32.to_char   ; utf8.vader:40:24
   call 31   ; utf8.vader:40:9
   local.get 0   ; utf8.vader:41:9
   i32.const 128   ; utf8.vader:41:33
   i32.to_u32   ; utf8.vader:41:29
-  local.get 1   ; utf8.vader:41:42
-  i32.const 63   ; utf8.vader:41:51
-  i32.to_u32   ; utf8.vader:41:47
-  u32.bitand   ; utf8.vader:41:42
+  local.get 1   ; utf8.vader:41:43
+  i32.const 6   ; utf8.vader:41:53
+  i32.to_u32   ; utf8.vader:41:49
+  u32.shr   ; utf8.vader:41:43
+  i32.const 63   ; utf8.vader:41:63
+  i32.to_u32   ; utf8.vader:41:59
+  u32.bitand   ; utf8.vader:41:43
   u32.bitor   ; utf8.vader:41:29
   u32.to_char   ; utf8.vader:41:24
   call 31   ; utf8.vader:41:9
-  return   ; utf8.vader:42:9
-  end   ; utf8.vader:38:5
-  local.get 0   ; utf8.vader:44:5
-  i32.const 240   ; utf8.vader:44:29
-  i32.to_u32   ; utf8.vader:44:25
-  local.get 1   ; utf8.vader:44:38
-  i32.const 18   ; utf8.vader:44:48
-  i32.to_u32   ; utf8.vader:44:44
-  u32.shr   ; utf8.vader:44:38
-  u32.bitor   ; utf8.vader:44:25
-  u32.to_char   ; utf8.vader:44:20
-  call 31   ; utf8.vader:44:5
+  local.get 0   ; utf8.vader:42:9
+  i32.const 128   ; utf8.vader:42:33
+  i32.to_u32   ; utf8.vader:42:29
+  local.get 1   ; utf8.vader:42:42
+  i32.const 63   ; utf8.vader:42:51
+  i32.to_u32   ; utf8.vader:42:47
+  u32.bitand   ; utf8.vader:42:42
+  u32.bitor   ; utf8.vader:42:29
+  u32.to_char   ; utf8.vader:42:24
+  call 31   ; utf8.vader:42:9
+  return   ; utf8.vader:43:9
+  end   ; utf8.vader:39:5
   local.get 0   ; utf8.vader:45:5
-  i32.const 128   ; utf8.vader:45:29
+  i32.const 240   ; utf8.vader:45:29
   i32.to_u32   ; utf8.vader:45:25
-  local.get 1   ; utf8.vader:45:39
-  i32.const 12   ; utf8.vader:45:49
-  i32.to_u32   ; utf8.vader:45:45
-  u32.shr   ; utf8.vader:45:39
-  i32.const 63   ; utf8.vader:45:60
-  i32.to_u32   ; utf8.vader:45:56
-  u32.bitand   ; utf8.vader:45:39
+  local.get 1   ; utf8.vader:45:38
+  i32.const 18   ; utf8.vader:45:48
+  i32.to_u32   ; utf8.vader:45:44
+  u32.shr   ; utf8.vader:45:38
   u32.bitor   ; utf8.vader:45:25
   u32.to_char   ; utf8.vader:45:20
   call 31   ; utf8.vader:45:5
@@ -2064,11 +2054,11 @@ fn 34 std_utf8$append_codepoint (ref,u32) -> void
   i32.const 128   ; utf8.vader:46:29
   i32.to_u32   ; utf8.vader:46:25
   local.get 1   ; utf8.vader:46:39
-  i32.const 6   ; utf8.vader:46:49
+  i32.const 12   ; utf8.vader:46:49
   i32.to_u32   ; utf8.vader:46:45
   u32.shr   ; utf8.vader:46:39
-  i32.const 63   ; utf8.vader:46:59
-  i32.to_u32   ; utf8.vader:46:55
+  i32.const 63   ; utf8.vader:46:60
+  i32.to_u32   ; utf8.vader:46:56
   u32.bitand   ; utf8.vader:46:39
   u32.bitor   ; utf8.vader:46:25
   u32.to_char   ; utf8.vader:46:20
@@ -2076,13 +2066,26 @@ fn 34 std_utf8$append_codepoint (ref,u32) -> void
   local.get 0   ; utf8.vader:47:5
   i32.const 128   ; utf8.vader:47:29
   i32.to_u32   ; utf8.vader:47:25
-  local.get 1   ; utf8.vader:47:38
-  i32.const 63   ; utf8.vader:47:47
-  i32.to_u32   ; utf8.vader:47:43
-  u32.bitand   ; utf8.vader:47:38
+  local.get 1   ; utf8.vader:47:39
+  i32.const 6   ; utf8.vader:47:49
+  i32.to_u32   ; utf8.vader:47:45
+  u32.shr   ; utf8.vader:47:39
+  i32.const 63   ; utf8.vader:47:59
+  i32.to_u32   ; utf8.vader:47:55
+  u32.bitand   ; utf8.vader:47:39
   u32.bitor   ; utf8.vader:47:25
   u32.to_char   ; utf8.vader:47:20
   call 31   ; utf8.vader:47:5
+  local.get 0   ; utf8.vader:48:5
+  i32.const 128   ; utf8.vader:48:29
+  i32.to_u32   ; utf8.vader:48:25
+  local.get 1   ; utf8.vader:48:38
+  i32.const 63   ; utf8.vader:48:47
+  i32.to_u32   ; utf8.vader:48:43
+  u32.bitand   ; utf8.vader:48:38
+  u32.bitor   ; utf8.vader:48:25
+  u32.to_char   ; utf8.vader:48:20
+  call 31   ; utf8.vader:48:5
 end
 
 fn 35 std_collections$bucket_index (u64) -> i32
@@ -2206,7 +2209,13 @@ fn 36 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
   struct.set 21 1   ; collections.vader:92:5
 end
 
-fn 37 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
+fn 37 std_collections$std_collections$len__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> usize
+  local.get 0   ; collections.vader:145:62
+  struct.get 21 1   ; collections.vader:145:62
+  return   ; collections.vader:145:55
+end
+
+fn 38 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
   local out ref
   local bi i32
   local cur ref
@@ -2279,7 +2288,7 @@ fn 37 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
   return   ; collections.vader:171:5
 end
 
-fn 38 std_collections$std_collections$values__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
+fn 39 std_collections$std_collections$values__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
   local out ref
   local bi i32
   local cur ref
@@ -2352,7 +2361,7 @@ fn 38 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
   return   ; collections.vader:195:5
 end
 
-fn 39 std_numbers$hex_digit (u64) -> char
+fn 40 std_numbers$hex_digit (u64) -> char
   local.get 0   ; numbers.vader:48:8
   i32.const 9   ; numbers.vader:48:17
   i32.to_u64   ; numbers.vader:48:13
@@ -2378,7 +2387,7 @@ fn 39 std_numbers$hex_digit (u64) -> char
   return   ; numbers.vader:51:5
 end
 
-fn 40 std_numbers$to_hex (u64) -> string
+fn 41 std_numbers$to_hex (u64) -> string
   local rev ref
   local base u64
   local x u64
@@ -2407,7 +2416,7 @@ fn 40 std_numbers$to_hex (u64) -> string
   local.get 3   ; numbers.vader:66:28
   local.get 2   ; numbers.vader:66:32
   u64.rem   ; numbers.vader:66:28
-  call 39   ; numbers.vader:66:18
+  call 40   ; numbers.vader:66:18
   array.push 26   ; numbers.vader:66:9
   local.get 3   ; numbers.vader:67:13
   local.get 2   ; numbers.vader:67:17
@@ -2446,7 +2455,3 @@ fn 40 std_numbers$to_hex (u64) -> string
   call 33   ; numbers.vader:75:12
   return   ; numbers.vader:75:5
 end
-
-# Diagnostics
-[17:64] error[R2011] duplicate import binding: `len`
-[440:18] error[T3009] field does not exist on this type: `len` on MutableMap(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)

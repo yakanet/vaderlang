@@ -9,7 +9,7 @@
 // for the post-MVP compile-time-generated parser à la kotlinx-serialization.
 
 import "std/string" {
-    len, slice, contains as str_contains,
+    byte_len, slice, contains as str_contains,
     starts_with as str_starts_with, parse_float, pad_start,
 }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated, to_string }
@@ -48,7 +48,7 @@ Parser :: struct {
 }
 
 new_parser :: fn(s: string) -> Parser {
-    return Parser { .src = s, .pos = 0, .eof = s.len() }
+    return Parser { .src = s, .pos = 0, .eof = s.byte_len() }
 }
 
 at_end :: fn(p: Parser) -> bool {
@@ -93,7 +93,7 @@ expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
 }
 
 match_keyword :: fn(p: Parser, kw: string) -> bool {
-    n := kw.len()
+    n := kw.byte_len()
     if p.pos + n > p.eof {
         return false
     }
@@ -366,7 +366,7 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 
 write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
-    n := s.len()
+    n := s.byte_len()
     i := 0
     for i < n {
         c := s[i]

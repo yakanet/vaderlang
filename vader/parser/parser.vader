@@ -148,7 +148,7 @@ export describe_token :: fn(t: Token) -> string {
     if t.kind == .IntLit || t.kind == .FloatLit { return t.text }
     if t.kind == .Newline { return "newline" }
     if t.kind == .Eof { return "end of file" }
-    if t.text.len() > 0 { return "`${t.text}`" }
+    if !t.text.is_empty() { return "`${t.text}`" }
     return kind_name(t.kind)
 }
 
@@ -1823,7 +1823,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
             is i64 -> { v = val }
             _      -> {}
         }
-        suffix: string | null = if t.numeric_suffix.len() > 0 { t.numeric_suffix } else { null }
+        suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }
         return IntLitExpr { .span = t.span, .value = v, .suffix = suffix }
     }
     if t.kind == .FloatLit {
@@ -1834,7 +1834,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
             is f64 -> { v = val }
             _      -> {}
         }
-        suffix: string | null = if t.numeric_suffix.len() > 0 { t.numeric_suffix } else { null }
+        suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }
         return FloatLitExpr { .span = t.span, .value = v, .suffix = suffix }
     }
     if t.kind == .CharLit {

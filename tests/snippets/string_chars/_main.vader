@@ -1,0 +1,32 @@
+import "std/io" { println }
+import "std/string" { chars, byte_len }
+
+main :: fn() -> i32 {
+    // ASCII path : 5 codepoints, 5 bytes.
+    println("-- ascii --")
+    for c in "vader".chars() {
+        println("${c}")
+    }
+
+    // Mixed-width UTF-8 : "你好嗎？" = 4 codepoints, 12 bytes (3 bytes each).
+    println("-- multibyte --")
+    for c in "你好嗎？".chars() {
+        println("${c}")
+    }
+
+    // Counting codepoints vs bytes via the iterator.
+    n := 0
+    for c in "héllo".chars() {
+        n = n + 1
+    }
+    println("codepoints=${n} bytes=${byte_len("héllo")}")
+
+    // Empty string : zero iterations.
+    println("-- empty --")
+    for c in "".chars() {
+        println("never")
+    }
+    println("done")
+
+    return 0
+}

@@ -3,4 +3,6 @@
 ## tests/snippets/parse_int_match/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
+  Yielded(u8)

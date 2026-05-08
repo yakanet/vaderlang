@@ -1,9 +1,9 @@
 import "std/io" { println }
-import "std/string" { len, trim, to_upper, to_lower, contains, starts_with, ends_with, slice, split }
+import "std/string" { byte_len, trim, to_upper, to_lower, contains, starts_with, ends_with, slice, split }
 
 main :: fn() -> i32 {
     s := "  Hello, World!  "
-    println("${len(s)}")
+    println("${byte_len(s)}")
     println(s.trim())
     println("hello".to_upper())
     println("VADER".to_lower())

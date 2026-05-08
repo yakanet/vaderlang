@@ -1,0 +1,131 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  trait            public   Index 
+  trait            public   IndexSet 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Rem 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=38 types=83 params=46 locals=3 typeParams=8 fields=0
+
+## std/io
+  fn               public   eprint 
+  fn               public   eprintln 
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=22 params=9 locals=0 typeParams=0 fields=0
+
+## std/math
+  fn               public   abs 
+  fn               public   ceil 
+  fn               public   clamp 
+  fn               public   cos 
+  const            public   e 
+  fn               public   floor 
+  fn               public   lerp 
+  fn               public   max 
+  fn               public   min 
+  const            public   pi 
+  fn               public   pow 
+  fn               public   round 
+  fn               public   sin 
+  fn               public   sqrt 
+  fn               public   tan 
+  refs: idents=37 types=36 params=28 locals=0 typeParams=0 fields=0
+
+## std/string
+  import-binding   private  append → append
+  import-binding   private  append_char → append_char
+  fn               public   byte_at 
+  fn               public   byte_len 
+  fn               public   bytes 
+  fn               public   char_at 
+  fn               public   chars 
+  import-binding   private  codepoint_byte_len → codepoint_byte_len
+  fn               public   compare_ascending 
+  fn               public   contains 
+  fn               public   count_chars 
+  fn               public   decode_codepoint 
+  fn               public   ends_with 
+  fn               public   is_alnum 
+  fn               public   is_alpha 
+  fn               public   is_digit 
+  fn               public   is_digit_in_base 
+  fn               public   is_empty 
+  fn               public   is_hex_digit 
+  fn               public   is_white_char 
+  fn               public   last_index_of 
+  import-binding   private  min → min
+  import-binding   private  new_builder → new_builder
+  fn               public   pad_end 
+  fn               public   pad_start 
+  fn               public   parse_float 
+  fn               public   parse_int 
+  struct           public   ParseError 
+  fn               public   replace_chars_where 
+  fn               public   slice 
+  fn               public   split 
+  fn               public   split_where 
+  fn               public   starts_with 
+  import-binding   private  StringBuilder → StringBuilder
+  struct           public   StringBytes 
+  struct           public   StringChars 
+  fn               public   to_lower 
+  import-binding   private  to_string → to_string
+  fn               public   to_upper 
+  fn               public   trim 
+  fn               public   trim_prefix 
+  fn               public   trim_suffix 
+  import std/string_builder → ok
+  import std/math → ok
+  import std/utf8 → ok
+  refs: idents=173 types=113 params=57 locals=30 typeParams=0 fields=0
+
+## std/string_builder
+  fn               public   append 
+  fn               public   append_char 
+  fn               public   append_repeated 
+  fn               public   concat_all 
+  fn               public   new_builder 
+  struct           public   StringBuilder 
+  fn               public   to_string 
+  refs: idents=12 types=17 params=9 locals=1 typeParams=0 fields=0
+
+## std/utf8
+  import-binding   private  append_char → append_char
+  fn               public   append_codepoint 
+  fn               public   codepoint_byte_len 
+  import-binding   private  StringBuilder → StringBuilder
+  import std/string_builder → ok
+  refs: idents=65 types=5 params=3 locals=1 typeParams=0 fields=0
+
+## tests/snippets/string_codepoints/_main.vader
+  import-binding   private  byte_len → byte_len
+  import-binding   private  codepoint_byte_len → codepoint_byte_len
+  import-binding   private  count_chars → count_chars
+  import-binding   private  decode_codepoint → decode_codepoint
+  fn               public   main 
+  import-binding   private  println → println
+  import std/io → ok
+  import std/string → ok
+  import std/utf8 → ok
+  refs: idents=37 types=1 params=0 locals=5 typeParams=0 fields=0

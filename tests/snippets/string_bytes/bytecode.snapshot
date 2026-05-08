@@ -1,0 +1,272 @@
+module _main
+type 0 struct std_core$Done {  }
+type 1 struct std_core$Yielded__char { value:2 }
+type 2 primitive char
+type 3 struct std_core$Yielded__i32 { value:4 }
+type 4 primitive i32
+type 5 struct std_core$Yielded__u8 { value:6 }
+type 6 primitive u8
+type 7 struct std_string$StringBytes { s:8,cursor:4,length:4 }
+type 8 primitive string
+type 9 primitive u32
+string 0 "-- ascii --"
+string 1 "vader"
+string 2 "sum="
+string 3 "-- multibyte --"
+string 4 "你"
+string 5 "﻿data"
+string 6 "-- bom --"
+string 7 "b0="
+string 8 " b1="
+string 9 " b2="
+string 10 "after bom: "
+string 11 "="
+string 12 "d"
+string 13 "-- empty --"
+string 14 ""
+string 15 "never"
+string 16 "done bytes="
+import 0 add std_core$string$Add$add (string,string) -> string
+import 1 hash std_core$string$Hash$hash (string) -> u64
+import 2 at std_core$string$Index$at (string,i32) -> char
+import 3 print std_io$print (string) -> void
+import 4 println std_io$println (string) -> void
+import 5 eprint std_io$eprint (string) -> void
+import 6 eprintln std_io$eprintln (string) -> void
+import 7 read_line std_io$read_line () -> ref
+import 8 read_file std_io$read_file (string) -> ref
+import 9 write_file std_io$write_file (string,string) -> ref
+import 10 exists std_io$exists (string) -> bool
+import 11 byte_len std_string$byte_len (string) -> i32
+import 12 slice std_string$slice (string,i32,i32) -> string
+import 13 contains std_string$contains (string,string) -> bool
+import 14 starts_with std_string$starts_with (string,string) -> bool
+import 15 ends_with std_string$ends_with (string,string) -> bool
+import 16 char_at std_string$char_at (string,i32) -> char
+import 17 byte_at std_string$byte_at (string,i32) -> u8
+import 18 split std_string$split (string,string) -> ref
+import 19 trim std_string$trim (string) -> string
+import 20 to_upper std_string$to_upper (string) -> string
+import 21 to_lower std_string$to_lower (string) -> string
+import 22 parse_int std_string$parse_int (string) -> ref
+import 23 parse_float std_string$parse_float (string) -> ref
+import 24 concat_all std_string_builder$concat_all (ref) -> string
+import 25 sqrt std_math$sqrt (f64) -> f64
+import 26 pow std_math$pow (f64,f64) -> f64
+import 27 floor std_math$floor (f64) -> f64
+import 28 ceil std_math$ceil (f64) -> f64
+import 29 round std_math$round (f64) -> f64
+import 30 sin std_math$sin (f64) -> f64
+import 31 cos std_math$cos (f64) -> f64
+import 32 tan std_math$tan (f64) -> f64
+
+fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
+  local sum u32
+  local __iter_0 ref
+  local __step_1 ref
+  local b u8
+  local __sb_2 any
+  local __iter_3 ref
+  local __step_4 ref
+  local b u8
+  local __sb_5 any
+  local bom string
+  local __sb_6 any
+  local __sb_7 any
+  local __iter_8 ref
+  local __step_9 ref
+  local b u8
+  local __sb_10 any
+  string.const 0   ; _main.vader:6:13
+  call.import 4   ; _main.vader:6:5
+  i32.const 0   ; _main.vader:7:20
+  i32.to_u32   ; _main.vader:7:16
+  local.set 0   ; _main.vader:7:5
+  string.const 1   ; _main.vader:8:14
+  call 2   ; _main.vader:8:14
+  local.set 1   ; _main.vader:8:5
+  block void   ; _main.vader:8:5
+  loop void   ; _main.vader:8:5
+  local.get 1   ; _main.vader:8:5
+  call 1   ; _main.vader:8:5
+  local.tee 2   ; _main.vader:8:5
+  type_check 0   ; _main.vader:8:5
+  if void   ; _main.vader:8:5
+  br 2   ; _main.vader:8:5
+  else   ; _main.vader:8:5
+  local.get 2   ; _main.vader:8:5
+  struct.get 5 0   ; _main.vader:8:5
+  local.set 3   ; _main.vader:8:5
+  local.get 0   ; _main.vader:9:15
+  local.get 3   ; _main.vader:9:25
+  ref.cast 9   ; _main.vader:9:21
+  u32.add   ; _main.vader:9:15
+  local.set 0   ; _main.vader:9:9
+  end   ; _main.vader:8:5
+  br 0   ; _main.vader:8:5
+  end   ; _main.vader:8:5
+  end   ; _main.vader:8:5
+  intrinsic builder.new   ; _main.vader:11:13
+  local.tee 4   ; _main.vader:11:13
+  string.const 2   ; _main.vader:11:14
+  intrinsic builder.append_str   ; _main.vader:11:14
+  local.get 4   ; _main.vader:11:18
+  local.get 0   ; _main.vader:11:20
+  intrinsic builder.append_display   ; _main.vader:11:18
+  local.get 4   ; _main.vader:11:13
+  intrinsic builder.finish   ; _main.vader:11:13
+  call.import 4   ; _main.vader:11:5
+  string.const 3   ; _main.vader:14:13
+  call.import 4   ; _main.vader:14:5
+  string.const 4   ; _main.vader:15:14
+  call 2   ; _main.vader:15:14
+  local.set 5   ; _main.vader:15:5
+  block void   ; _main.vader:15:5
+  loop void   ; _main.vader:15:5
+  local.get 5   ; _main.vader:15:5
+  call 1   ; _main.vader:15:5
+  local.tee 6   ; _main.vader:15:5
+  type_check 0   ; _main.vader:15:5
+  if void   ; _main.vader:15:5
+  br 2   ; _main.vader:15:5
+  else   ; _main.vader:15:5
+  local.get 6   ; _main.vader:15:5
+  struct.get 5 0   ; _main.vader:15:5
+  local.set 7   ; _main.vader:15:5
+  intrinsic builder.new   ; _main.vader:16:17
+  local.tee 8   ; _main.vader:16:17
+  local.get 7   ; _main.vader:16:20
+  intrinsic builder.append_display   ; _main.vader:16:18
+  local.get 8   ; _main.vader:16:17
+  intrinsic builder.finish   ; _main.vader:16:17
+  call.import 4   ; _main.vader:16:9
+  end   ; _main.vader:15:5
+  br 0   ; _main.vader:15:5
+  end   ; _main.vader:15:5
+  end   ; _main.vader:15:5
+  string.const 5   ; _main.vader:21:12
+  local.set 9   ; _main.vader:21:5
+  string.const 6   ; _main.vader:22:13
+  call.import 4   ; _main.vader:22:5
+  intrinsic builder.new   ; _main.vader:23:13
+  local.tee 10   ; _main.vader:23:13
+  string.const 7   ; _main.vader:23:14
+  intrinsic builder.append_str   ; _main.vader:23:14
+  local.get 10   ; _main.vader:23:17
+  local.get 9   ; _main.vader:23:19
+  i32.const 0   ; _main.vader:23:31
+  call.import 17   ; _main.vader:23:19
+  intrinsic builder.append_display   ; _main.vader:23:17
+  local.get 10   ; _main.vader:23:34
+  string.const 8   ; _main.vader:23:34
+  intrinsic builder.append_str   ; _main.vader:23:34
+  local.get 10   ; _main.vader:23:38
+  local.get 9   ; _main.vader:23:40
+  i32.const 1   ; _main.vader:23:52
+  call.import 17   ; _main.vader:23:40
+  intrinsic builder.append_display   ; _main.vader:23:38
+  local.get 10   ; _main.vader:23:55
+  string.const 9   ; _main.vader:23:55
+  intrinsic builder.append_str   ; _main.vader:23:55
+  local.get 10   ; _main.vader:23:59
+  local.get 9   ; _main.vader:23:61
+  i32.const 2   ; _main.vader:23:73
+  call.import 17   ; _main.vader:23:61
+  intrinsic builder.append_display   ; _main.vader:23:59
+  local.get 10   ; _main.vader:23:13
+  intrinsic builder.finish   ; _main.vader:23:13
+  call.import 4   ; _main.vader:23:5
+  intrinsic builder.new   ; _main.vader:24:13
+  local.tee 11   ; _main.vader:24:13
+  string.const 10   ; _main.vader:24:14
+  intrinsic builder.append_str   ; _main.vader:24:14
+  local.get 11   ; _main.vader:24:25
+  local.get 9   ; _main.vader:24:27
+  i32.const 3   ; _main.vader:24:39
+  call.import 17   ; _main.vader:24:27
+  intrinsic builder.append_display   ; _main.vader:24:25
+  local.get 11   ; _main.vader:24:42
+  string.const 11   ; _main.vader:24:42
+  intrinsic builder.append_str   ; _main.vader:24:42
+  local.get 11   ; _main.vader:24:43
+  string.const 12   ; _main.vader:24:45
+  i32.const 0   ; _main.vader:24:57
+  call.import 17   ; _main.vader:24:45
+  intrinsic builder.append_display   ; _main.vader:24:43
+  local.get 11   ; _main.vader:24:13
+  intrinsic builder.finish   ; _main.vader:24:13
+  call.import 4   ; _main.vader:24:5
+  string.const 13   ; _main.vader:27:13
+  call.import 4   ; _main.vader:27:5
+  string.const 14   ; _main.vader:28:14
+  call 2   ; _main.vader:28:14
+  local.set 12   ; _main.vader:28:5
+  block void   ; _main.vader:28:5
+  loop void   ; _main.vader:28:5
+  local.get 12   ; _main.vader:28:5
+  call 1   ; _main.vader:28:5
+  local.tee 13   ; _main.vader:28:5
+  type_check 0   ; _main.vader:28:5
+  if void   ; _main.vader:28:5
+  br 2   ; _main.vader:28:5
+  else   ; _main.vader:28:5
+  local.get 13   ; _main.vader:28:5
+  struct.get 5 0   ; _main.vader:28:5
+  local.set 14   ; _main.vader:28:5
+  string.const 15   ; _main.vader:29:17
+  call.import 4   ; _main.vader:29:9
+  end   ; _main.vader:28:5
+  br 0   ; _main.vader:28:5
+  end   ; _main.vader:28:5
+  end   ; _main.vader:28:5
+  intrinsic builder.new   ; _main.vader:31:13
+  local.tee 15   ; _main.vader:31:13
+  string.const 16   ; _main.vader:31:14
+  intrinsic builder.append_str   ; _main.vader:31:14
+  local.get 15   ; _main.vader:31:25
+  string.const 14   ; _main.vader:31:36
+  call.import 11   ; _main.vader:31:27
+  intrinsic builder.append_display   ; _main.vader:31:25
+  local.get 15   ; _main.vader:31:13
+  intrinsic builder.finish   ; _main.vader:31:13
+  call.import 4   ; _main.vader:31:5
+  i32.const 0   ; _main.vader:33:12
+  return   ; _main.vader:33:5
+end
+
+fn 1 std_string$StringBytes$Iterator$step (ref) -> ref
+  local b u8
+  local.get 0   ; string.vader:54:13
+  struct.get 7 1   ; string.vader:54:13
+  local.get 0   ; string.vader:54:28
+  struct.get 7 2   ; string.vader:54:28
+  i32.ge   ; string.vader:54:13
+  if void   ; string.vader:54:9
+  struct.new 0   ; string.vader:55:20
+  return   ; string.vader:55:13
+  end   ; string.vader:54:9
+  local.get 0   ; string.vader:57:14
+  struct.get 7 0   ; string.vader:57:14
+  local.get 0   ; string.vader:57:29
+  struct.get 7 1   ; string.vader:57:29
+  call.import 17   ; string.vader:57:14
+  local.set 1   ; string.vader:57:9
+  local.get 0   ; string.vader:58:9
+  local.get 0   ; string.vader:58:23
+  struct.get 7 1   ; string.vader:58:23
+  i32.const 1   ; string.vader:58:37
+  i32.add   ; string.vader:58:23
+  struct.set 7 1   ; string.vader:58:9
+  local.get 1   ; string.vader:59:39
+  struct.new 5   ; string.vader:59:16
+  return   ; string.vader:59:9
+end
+
+fn 2 std_string$bytes (string) -> ref
+  local.get 0   ; string.vader:74:31
+  i32.const 0   ; string.vader:74:44
+  local.get 0   ; string.vader:74:57
+  call.import 11   ; string.vader:74:57
+  struct.new 7   ; string.vader:74:12
+  return   ; string.vader:74:5
+end

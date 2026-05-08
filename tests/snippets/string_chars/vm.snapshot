@@ -1,0 +1,17 @@
+# stdout
+-- ascii --
+v
+a
+d
+e
+r
+-- multibyte --
+你
+好
+嗎
+？
+codepoints=5 bytes=6
+-- empty --
+done
+# exit
+0

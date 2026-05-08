@@ -23,7 +23,7 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "len",
+            "name": "byte_len",
             "alias": null
           },
           {
@@ -114,7 +114,7 @@
                           "kind": "CallExpr",
                           "callee": {
                             "kind": "IdentExpr",
-                            "name": "len"
+                            "name": "byte_len"
                           },
                           "args": [
                             {

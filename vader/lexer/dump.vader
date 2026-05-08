@@ -9,7 +9,7 @@
 // table belongs next to the enum it indexes, and the dump is a primitive
 // other front-ends (LSP, formatter, future tools) will want to reuse.
 
-// `lexer.vader` (same module) already imports `len, slice, char_at` from
+// `lexer.vader` (same module) already imports `byte_len, slice` from
 // std/string and the StringBuilder surface ; we only need the extras here.
 import "std/string" { pad_start, pad_end, compare_ascending as string_less }
 import "std/numbers" { to_hex }
@@ -80,7 +80,7 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
                 _      -> { sb.append("?") }
             }
             sb.append_char('n')
-            if t.numeric_suffix.len() > 0 {
+            if !t.numeric_suffix.is_empty() {
                 sb.append(" :")
                 sb.append(t.numeric_suffix)
             }
@@ -92,7 +92,7 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
                 is f64 -> { sb.append("${v}") }
                 _      -> { sb.append("?") }
             }
-            if t.numeric_suffix.len() > 0 {
+            if !t.numeric_suffix.is_empty() {
                 sb.append(" :")
                 sb.append(t.numeric_suffix)
             }
@@ -128,7 +128,7 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
 quote_simple :: fn(s: string) -> string {
     sb := new_builder()
     sb.append_char('"')
-    n :: s.len()
+    n :: s.byte_len()
     i := 0
     for i < n {
         c :: s[i]
@@ -244,7 +244,7 @@ format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic) -> void {
     }
     p :: d.primary.start
     detail: string = ""
-    if d.detail.len() > 0 {
+    if !d.detail.is_empty() {
         detail = ": ${d.detail}"
     }
     sb.append("[${p.line}:${p.column}] ${sev}[${d.code.id}] ${d.code.message}${detail}")

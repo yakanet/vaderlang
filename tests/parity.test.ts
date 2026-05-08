@@ -63,6 +63,9 @@ beforeAll(async () => {
 const UTF8_KNOWN_DIVERGENT = new Set([
   "std_string",
   "std_string_builder",
+  "string_bytes",
+  "string_chars",
+  "string_codepoints",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

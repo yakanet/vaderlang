@@ -187,6 +187,10 @@
     "leakedNodes": 3,
     "leakedBytes": 240
   },
+  "json_basics": {
+    "leakedNodes": 177,
+    "leakedBytes": 12736
+  },
   "loop": {
     "leakedNodes": 1,
     "leakedBytes": 80
@@ -231,10 +235,6 @@
     "leakedNodes": 11,
     "leakedBytes": 880
   },
-  "path_basics": {
-    "leakedNodes": 32,
-    "leakedBytes": 2144
-  },
   "primitive_hash_eq": {
     "leakedNodes": 4,
     "leakedBytes": 320
@@ -267,6 +267,10 @@
     "leakedNodes": 73,
     "leakedBytes": 5712
   },
+  "seq_lit_inference": {
+    "leakedNodes": 5,
+    "leakedBytes": 400
+  },
   "squares": {
     "leakedNodes": 3,
     "leakedBytes": 240
@@ -287,6 +291,18 @@
     "leakedNodes": 9,
     "leakedBytes": 496
   },
+  "string_bytes": {
+    "leakedNodes": 7,
+    "leakedBytes": 560
+  },
+  "string_chars": {
+    "leakedNodes": 10,
+    "leakedBytes": 800
+  },
+  "string_codepoints": {
+    "leakedNodes": 11,
+    "leakedBytes": 880
+  },
   "trait_dispatch_bounded": {
     "leakedNodes": 2,
     "leakedBytes": 160
@@ -306,6 +322,34 @@
   "try_op": {
     "leakedNodes": 1,
     "leakedBytes": 32
+  },
+  "tuple_destructure_let": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "tuple_destructure_nested": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "tuple_destructure_wildcard": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "tuple_in_array": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "tuple_match_nested": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "tuple_match_pattern": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "tuple_pair_return": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
   },
   "type_aliases": {
     "leakedNodes": 3,

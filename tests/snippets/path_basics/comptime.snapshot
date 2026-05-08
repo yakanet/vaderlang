@@ -3,4 +3,12 @@
 ## tests/snippets/path_basics/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
+  Yielded(u8)
+
+# Diagnostics
+[36:8] error[R2004] duplicate top-level symbol in module: `is_empty` already declared in this module
+[4:16] error[R2008] symbol is not exported from its module: `is_empty` is not exported from `std/path`
+[28:44] error[T3009] field does not exist on this type: `is_empty` on Path
+[29:29] error[T3009] field does not exist on this type: `is_empty` on Path

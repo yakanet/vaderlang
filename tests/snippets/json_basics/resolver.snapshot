@@ -58,6 +58,7 @@
   import-binding   private  append_codepoint → append_codepoint
   import-binding   private  append_repeated → append_repeated
   fn               private  at_end 
+  import-binding   private  byte_len → byte_len
   import-binding   private  contains_key → contains_key
   fn               private  expect_byte 
   fn               private  fail 
@@ -134,12 +135,12 @@
 
 ## std/numbers
   import-binding   private  append_char → append_char
+  import-binding   private  byte_len → byte_len
   import-binding   private  ends_with → ends_with
   fn               private  hex_digit 
   fn               public   hex_digit_value 
   fn               public   is_float_suffix 
   fn               public   is_int_suffix 
-  import-binding   private  len → len
   import-binding   private  new_builder → new_builder
   fn               public   parse_int_in_base 
   struct           public   ParseError 
@@ -156,18 +157,25 @@
 ## std/string
   import-binding   private  append → append
   import-binding   private  append_char → append_char
+  fn               public   byte_at 
+  fn               public   byte_len 
+  fn               public   bytes 
   fn               public   char_at 
+  fn               public   chars 
+  import-binding   private  codepoint_byte_len → codepoint_byte_len
   fn               public   compare_ascending 
   fn               public   contains 
+  fn               public   count_chars 
+  fn               public   decode_codepoint 
   fn               public   ends_with 
   fn               public   is_alnum 
   fn               public   is_alpha 
   fn               public   is_digit 
   fn               public   is_digit_in_base 
+  fn               public   is_empty 
   fn               public   is_hex_digit 
   fn               public   is_white_char 
   fn               public   last_index_of 
-  fn               public   len 
   import-binding   private  min → min
   import-binding   private  new_builder → new_builder
   fn               public   pad_end 
@@ -181,6 +189,8 @@
   fn               public   split_where 
   fn               public   starts_with 
   import-binding   private  StringBuilder → StringBuilder
+  struct           public   StringBytes 
+  struct           public   StringChars 
   fn               public   to_lower 
   import-binding   private  to_string → to_string
   fn               public   to_upper 
@@ -189,7 +199,8 @@
   fn               public   trim_suffix 
   import std/string_builder → ok
   import std/math → ok
-  refs: idents=135 types=75 params=47 locals=23 typeParams=0 fields=0
+  import std/utf8 → ok
+  refs: idents=173 types=113 params=57 locals=30 typeParams=0 fields=0
 
 ## std/string_builder
   fn               public   append 
@@ -204,9 +215,10 @@
 ## std/utf8
   import-binding   private  append_char → append_char
   fn               public   append_codepoint 
+  fn               public   codepoint_byte_len 
   import-binding   private  StringBuilder → StringBuilder
   import std/string_builder → ok
-  refs: idents=57 types=3 params=2 locals=0 typeParams=0 fields=0
+  refs: idents=65 types=5 params=3 locals=1 typeParams=0 fields=0
 
 ## tests/snippets/json_basics/_main.vader
   import-binding   private  JsonArray → JsonArray
@@ -226,6 +238,3 @@
   import std/io → ok
   import std/json → ok
   refs: idents=45 types=11 params=2 locals=1 typeParams=0 fields=0
-
-# Diagnostics
-[17:64] error[R2011] duplicate import binding: `len`

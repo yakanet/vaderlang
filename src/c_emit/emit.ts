@@ -335,7 +335,7 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_io$read_line":
       return `${head} { return vader_read_line(${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
 
-    case "std_string$len":         return `${head} { return vader_string_len(a0); }`;
+    case "std_string$byte_len":    return `${head} { return vader_string_byte_len(a0); }`;
     case "std_string$slice":       return `${head} { return vader_string_slice(a0, a1, a2); }`;
     case "std_string$contains":    return `${head} { return vader_string_contains(a0, a1); }`;
     case "std_string$starts_with": return `${head} { return vader_string_starts_with(a0, a1); }`;
@@ -349,6 +349,8 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     // so the host provides the body under the impl-method mangled name.
     case "std_core$string$Index$at":
       return `${head} { return vader_string_char_at(a0, a1); }`;
+    case "std_string$byte_at":
+      return `${head} { return vader_string_byte_at(a0, a1); }`;
     case "std_string$split": {
       const strIdx = ctx.stringTagIndex;
       if (strIdx < 0) return `${head} { vader_trap("split: no string type"); }`;

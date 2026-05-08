@@ -1,0 +1,298 @@
+# Lower
+
+## tests/snippets/string_codepoints/_main.vader
+  fn tests_snippets_string_codepoints__main_vader$main() -> i32
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0#-1 :?
+            "ascii  cp=" :string
+          @builder.append_display <for i32> :void
+            __sb_0#-1 :?
+            call :i32
+              callee:
+                count_chars#55 :fn(string) -> i32
+              arg0:
+                "vader" :string
+          @builder.append_str :void
+            __sb_0#-1 :?
+            " bytes=" :string
+          @builder.append_display <for i32> :void
+            __sb_0#-1 :?
+            call :i32
+              callee:
+                byte_len#42 :fn(string) -> i32
+              arg0:
+                "vader" :string
+          ~>
+            @builder.finish :string
+              __sb_0#-1 :?
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1#-2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1#-2 :?
+            "mixed  cp=" :string
+          @builder.append_display <for i32> :void
+            __sb_1#-2 :?
+            call :i32
+              callee:
+                count_chars#55 :fn(string) -> i32
+              arg0:
+                "héllo" :string
+          @builder.append_str :void
+            __sb_1#-2 :?
+            " bytes=" :string
+          @builder.append_display <for i32> :void
+            __sb_1#-2 :?
+            call :i32
+              callee:
+                byte_len#42 :fn(string) -> i32
+              arg0:
+                "héllo" :string
+          ~>
+            @builder.finish :string
+              __sb_1#-2 :?
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2#-3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2#-3 :?
+            "cjk    cp=" :string
+          @builder.append_display <for i32> :void
+            __sb_2#-3 :?
+            call :i32
+              callee:
+                count_chars#55 :fn(string) -> i32
+              arg0:
+                "你好嗎？" :string
+          @builder.append_str :void
+            __sb_2#-3 :?
+            " bytes=" :string
+          @builder.append_display <for i32> :void
+            __sb_2#-3 :?
+            call :i32
+              callee:
+                byte_len#42 :fn(string) -> i32
+              arg0:
+                "你好嗎？" :string
+          ~>
+            @builder.finish :string
+              __sb_2#-3 :?
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3#-4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3#-4 :?
+            "emoji  cp=" :string
+          @builder.append_display <for i32> :void
+            __sb_3#-4 :?
+            call :i32
+              callee:
+                count_chars#55 :fn(string) -> i32
+              arg0:
+                "a😀b" :string
+          @builder.append_str :void
+            __sb_3#-4 :?
+            " bytes=" :string
+          @builder.append_display <for i32> :void
+            __sb_3#-4 :?
+            call :i32
+              callee:
+                byte_len#42 :fn(string) -> i32
+              arg0:
+                "a😀b" :string
+          ~>
+            @builder.finish :string
+              __sb_3#-4 :?
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_4#-5: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_4#-5 :?
+            "empty  cp=" :string
+          @builder.append_display <for i32> :void
+            __sb_4#-5 :?
+            call :i32
+              callee:
+                count_chars#55 :fn(string) -> i32
+              arg0:
+                "" :string
+          @builder.append_str :void
+            __sb_4#-5 :?
+            " bytes=" :string
+          @builder.append_display <for i32> :void
+            __sb_4#-5 :?
+            call :i32
+              callee:
+                byte_len#42 :fn(string) -> i32
+              arg0:
+                "" :string
+          ~>
+            @builder.finish :string
+              __sb_4#-5 :?
+    let s#129: string = "你好" :string
+    let i#130: i32 = int(0) :i32
+    let n#131: i32 =
+      call :i32
+        callee:
+          byte_len#42 :fn(string) -> i32
+        arg0:
+          s#129 :string
+    loop while (<…>)
+      let __tup_5#-6: [char, i32] =
+        call :[char, i32]
+          callee:
+            decode_codepoint#54 :fn(string, i32) -> [char, i32]
+          arg0:
+            s#129 :string
+          arg1:
+            i#130 :i32
+      let c#132: char =
+        ._0 :char
+          __tup_5#-6 :[char, i32]
+      let w#133: i32 =
+        ._1 :i32
+          __tup_5#-6 :[char, i32]
+      call :void
+        callee:
+          println#28 :fn(string) -> void
+        arg0:
+          block :string
+            let __sb_6#-7: ? =
+              @builder.new :?
+            @builder.append_str :void
+              __sb_6#-7 :?
+              "at " :string
+            @builder.append_display <for i32> :void
+              __sb_6#-7 :?
+              i#130 :i32
+            @builder.append_str :void
+              __sb_6#-7 :?
+              ": '" :string
+            @builder.append_display <for char> :void
+              __sb_6#-7 :?
+              c#132 :char
+            @builder.append_str :void
+              __sb_6#-7 :?
+              "' (" :string
+            @builder.append_display <for i32> :void
+              __sb_6#-7 :?
+              w#133 :i32
+            @builder.append_str :void
+              __sb_6#-7 :?
+              " bytes)" :string
+            ~>
+              @builder.finish :string
+                __sb_6#-7 :?
+      assign
+        target:
+          i#130 :i32
+        value:
+          add :i32
+            l:
+              i#130 :i32
+            r:
+              w#133 :i32
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_7#-8: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_7#-8 :?
+            "'a' width=" :string
+          @builder.append_display <for i32> :void
+            __sb_7#-8 :?
+            call :i32
+              callee:
+                codepoint_byte_len#80 :fn(char) -> i32
+              arg0:
+                char(0x61)
+          ~>
+            @builder.finish :string
+              __sb_7#-8 :?
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_8#-9: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_8#-9 :?
+            "'é' width=" :string
+          @builder.append_display <for i32> :void
+            __sb_8#-9 :?
+            call :i32
+              callee:
+                codepoint_byte_len#80 :fn(char) -> i32
+              arg0:
+                char(0xe9)
+          ~>
+            @builder.finish :string
+              __sb_8#-9 :?
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_9#-10: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_9#-10 :?
+            "'你' width=" :string
+          @builder.append_display <for i32> :void
+            __sb_9#-10 :?
+            call :i32
+              callee:
+                codepoint_byte_len#80 :fn(char) -> i32
+              arg0:
+                char(0x4f60)
+          ~>
+            @builder.finish :string
+              __sb_9#-10 :?
+    call :void
+      callee:
+        println#28 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_10#-11: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_10#-11 :?
+            "emoji width=" :string
+          @builder.append_display <for i32> :void
+            __sb_10#-11 :?
+            call :i32
+              callee:
+                codepoint_byte_len#80 :fn(char) -> i32
+              arg0:
+                char(0x1f600)
+          ~>
+            @builder.finish :string
+              __sb_10#-11 :?
+    return int(0) :i32
