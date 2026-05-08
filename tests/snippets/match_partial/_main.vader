@@ -1,0 +1,25 @@
+import "std/io" { println }
+
+Day :: enum { Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
+
+// `@partial match` opts out of exhaustiveness — handle only the cases
+// you care about, no `_ -> {}` placeholder needed. Inputs outside the
+// listed arms reach the lowerer's "non-exhaustive" trap, so the user
+// is responsible for narrowing the input set first.
+weekend_only :: fn(d: Day) -> string {
+    return @partial match d {
+        .Saturday -> "weekend"
+        .Sunday   -> "weekend"
+        .Monday   -> "weekday"
+        .Tuesday  -> "weekday"
+        .Wednesday -> "weekday"
+        .Thursday -> "weekday"
+        .Friday   -> "weekday"
+    }
+}
+
+main :: fn() -> i32 {
+    println(weekend_only(.Saturday))
+    println(weekend_only(.Wednesday))
+    return 0
+}

@@ -485,6 +485,10 @@ export interface MatchExpr {
   readonly span: Span;
   readonly scrutinee: Expr;
   readonly arms: readonly MatchArm[];
+  /** `@partial match x { … }` opts out of exhaustiveness checking — no
+   *  T3013 fires for missing variants. Optional so the regular form
+   *  dumps as before (the field is absent rather than `false`). */
+  readonly partial?: true;
 }
 
 export interface MatchArm {

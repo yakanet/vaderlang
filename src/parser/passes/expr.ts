@@ -185,7 +185,22 @@ function parsePrefix(p: Parser): A.Expr {
     case "kw_if":
       return parseIfExpr(p);
     case "kw_match":
-      return parseMatchExpr(p);
+      return parseMatchExpr(p, /*partial*/ false);
+    case "at": {
+      // `@partial match x { ... }` — opt-out of exhaustiveness for one
+      // match expression. No other `@`-prefixed expression-position
+      // forms today, so reject anything else with P1014.
+      const atTok = p.advance();
+      const nameTok = p.expect("ident", "decorator name after `@`");
+      if (nameTok.text !== "partial") {
+        p.error("P1014", { start: atTok.span.start, end: nameTok.span.end },
+          `\`@${nameTok.text}\` is not allowed in expression position`);
+      }
+      if (!p.check("kw_match")) {
+        p.error("P1014", nameTok.span, `\`@${nameTok.text}\` must precede a \`match\` expression`);
+      }
+      return parseMatchExpr(p, /*partial*/ true);
+    }
     case "kw_fn":
       return parseLambda(p);
     case "kw_self":
@@ -513,7 +528,7 @@ function parseIfExpr(p: Parser): A.IfExpr {
   };
 }
 
-function parseMatchExpr(p: Parser): A.MatchExpr {
+function parseMatchExpr(p: Parser, partial: boolean): A.MatchExpr {
   const start = p.advance(); // match
   const savedAllow = p.allowStructLit;
   p.allowStructLit = false;
@@ -534,6 +549,7 @@ function parseMatchExpr(p: Parser): A.MatchExpr {
     span: { start: start.span.start, end: end.span.end },
     scrutinee,
     arms,
+    partial: partial ? true : undefined,
   };
 }
 

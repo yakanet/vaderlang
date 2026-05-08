@@ -61,7 +61,9 @@ export function inferMatch(
     if (scrutSym !== null && narrowed !== null) popNarrowing(t, scrutSym.id, prev);
   }
 
-  if (!hasWildcard) {
+  // `@partial match` opts out of exhaustiveness — the user has explicitly
+  // declared they only care about a subset of variants. No T3013 fires.
+  if (!hasWildcard && !expr.partial) {
     if (scrut.kind === "Union") {
       for (const v of scrut.variants) {
         if (!coveredVariants.has(displayType(v))) {

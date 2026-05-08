@@ -79,6 +79,10 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
+  "match_partial": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
   "match_union": {
     "leakedNodes": 0,
     "leakedBytes": 0
