@@ -253,9 +253,10 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
   const start = p.advance(); // for
 
   // Forms:
-  //   for { ... }              infinite
-  //   for cond { ... }         while-style
-  //   for x in iter { ... }    iteration
+  //   for { ... }                infinite
+  //   for cond { ... }           while-style
+  //   for x in iter { ... }      iteration with single binding
+  //   for [a, b] in iter { ... } iteration with tuple destructure
   if (p.check("lbrace")) {
     const body = parseBlock(p);
     return {
@@ -286,6 +287,38 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
     };
   }
 
+  // Tuple destructure : `for [a, b] in iter { body }`. We bracket-match the
+  // opening `[` ; if the matching `]` is followed by `in`, we're committed to
+  // a destructure for-in. We desugar at parse time by introducing a synthetic
+  // binding name and prepending a `let <pattern> := <synth>` to the body —
+  // resolver / typechecker / lowerer / self-host parser see a regular
+  // single-binding for-in and don't need to learn about destructure forms.
+  if (looksLikeForDestructure(p)) {
+    const binding = parseLetBinding(p);
+    p.expect("kw_in", "`in` after for-loop binding");
+    const iter = parseExpr(p, 0);
+    p.allowStructLit = savedAllow;
+    const body = parseBlock(p);
+    const synth = `__for_${start.span.start.offset}`;
+    const synthSpan = binding.span;
+    const synthIdent: A.IdentExpr = { kind: "IdentExpr", span: synthSpan, name: synth };
+    const desugared: A.LetStmt = {
+      kind: "LetStmt", span: synthSpan, mutable: false,
+      binding, type: null, value: synthIdent,
+    };
+    const wrappedBody: A.BlockExpr = {
+      ...body,
+      stmts: [desugared, ...body.stmts],
+    };
+    return {
+      kind: "ForStmt",
+      span: { start: start.span.start, end: body.span.end },
+      label,
+      form: { kind: "in", binding: synth, bindingSpan: synthSpan, iter },
+      body: wrappedBody,
+    };
+  }
+
   const cond = parseExpr(p, 0);
   p.allowStructLit = savedAllow;
   const body = parseBlock(p);
@@ -296,6 +329,26 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
     form: { kind: "while", cond },
     body,
   };
+}
+
+/** Lookahead : `[ ... ]` followed by `in`. Bracket-aware so nested `[a, [b, c]]`
+ *  patterns are detected correctly. Bounded to keep pathological inputs from
+ *  scanning the whole token stream. */
+function looksLikeForDestructure(p: Parser): boolean {
+  if (!p.check("lbracket")) return false;
+  let depth = 0;
+  let i = 0;
+  for (;;) {
+    if (i > 256) return false;
+    const t = p.peek(i);
+    if (t.kind === "eof") return false;
+    if (t.kind === "lbracket") depth++;
+    else if (t.kind === "rbracket") {
+      depth--;
+      if (depth === 0) return p.check("kw_in", i + 1);
+    }
+    i++;
+  }
 }
 
 function parseBreakContinue(p: Parser, which: "break" | "continue"): A.BreakStmt | A.ContinueStmt {

@@ -1,0 +1,13 @@
+import "std/io" { println }
+
+// `for [k, v] in pairs` destructures each tuple element bound by the loop.
+// Parser desugar : the binding is replaced by a synthetic ident, with a
+// `let [k, v] := <synth>` prepended to the body. Resolver / lowerer don't
+// need to learn about destructure forms.
+main :: fn() -> i32 {
+    pairs: [string, i32][] = [["a", 1], ["b", 2], ["c", 3]]
+    for [k, v] in pairs {
+        println("${k}=${v}")
+    }
+    return 0
+}

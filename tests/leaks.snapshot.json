@@ -189,7 +189,7 @@
   },
   "json_basics": {
     "leakedNodes": 177,
-    "leakedBytes": 12736
+    "leakedBytes": 12720
   },
   "loop": {
     "leakedNodes": 1,
@@ -335,6 +335,14 @@
     "leakedNodes": 2,
     "leakedBytes": 160
   },
+  "tuple_for_destructure": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "tuple_generic_swap": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
   "tuple_in_array": {
     "leakedNodes": 3,
     "leakedBytes": 240
@@ -344,6 +352,10 @@
     "leakedBytes": 80
   },
   "tuple_match_pattern": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "tuple_match_union": {
     "leakedNodes": 1,
     "leakedBytes": 80
   },

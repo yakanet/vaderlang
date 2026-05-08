@@ -1,0 +1,26 @@
+import "std/io" { println }
+
+// `[i32, string] | null` carries a tuple variant alongside null. Matching
+// the tuple shape `[n, s]` narrows the union to the tuple variant before
+// reading the slot fields — without the narrowing the lowerer would emit a
+// bare field access on the union value and trap.
+lookup :: fn(key: string) -> [i32, string] | null {
+    if key == "found" {
+        return [42, "match"]
+    }
+    return null
+}
+
+main :: fn() -> i32 {
+    a :: lookup("found")
+    match a {
+        is null -> println("no result")
+        [n, s] -> println("n=${n} s=${s}")
+    }
+    b :: lookup("missing")
+    match b {
+        is null -> println("no result")
+        [n, s] -> println("n=${n} s=${s}")
+    }
+    return 0
+}

@@ -629,6 +629,7 @@ function typeContainsTypeParam(t: Type): boolean {
   switch (t.kind) {
     case "TypeParam": return true;
     case "Array":     return typeContainsTypeParam(t.element);
+    case "Tuple":     return t.elements.some(typeContainsTypeParam);
     case "Struct":
     case "Trait":     return t.args.some(typeContainsTypeParam);
     case "Fn":        return t.params.some(typeContainsTypeParam) || typeContainsTypeParam(t.returnType);
@@ -647,6 +648,13 @@ function unifyTypeParam(paramType: Type, argType: Type, out: Map<number, Type>):
   }
   if (paramType.kind === "Array" && argType.kind === "Array") {
     unifyTypeParam(paramType.element, argType.element, out);
+    return;
+  }
+  if (paramType.kind === "Tuple" && argType.kind === "Tuple"
+      && paramType.elements.length === argType.elements.length) {
+    for (let i = 0; i < paramType.elements.length; i++) {
+      unifyTypeParam(paramType.elements[i]!, argType.elements[i]!, out);
+    }
     return;
   }
   if ((paramType.kind === "Struct" || paramType.kind === "Trait")

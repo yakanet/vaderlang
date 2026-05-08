@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/tuple_for_destructure/_main.vader
+
+## generic instances
+  Yielded([string, i32])
+  Yielded(i32)
+  ArrayIter([string, i32])

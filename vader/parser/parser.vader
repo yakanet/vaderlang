@@ -1490,6 +1490,43 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         }
     }
 
+    // Tuple destructure : `for [a, b] in iter { body }`. Bracket-match the
+    // opening `[` ; if the matching `]` is followed by `in`, parse a let
+    // binding, then desugar by introducing a synthetic name and prepending a
+    // `let <pattern> := <synth>` to the body — downstream passes see a
+    // regular single-binding for-in.
+    if p.looks_like_for_destructure() {
+        binding :: p.parse_let_binding()
+        binding_span :: let_binding_span(binding)
+        p.expect(.KwIn, "`in` after for-loop binding")
+        iter :: p.parse_expr(0)
+        p.allow_struct_lit = saved_allow
+        body :: p.parse_block()
+        synth :: "__for_${start.span.start.offset}"
+        synth_ident :: IdentExpr { .span = binding_span, .name = synth }
+        desugared :: LetStmt {
+            .span    = binding_span,
+            .mutable = false,
+            .binding = binding,
+            .ty      = null,
+            .value   = synth_ident,
+        }
+        new_stmts: Stmt[] = []
+        new_stmts.push(desugared)
+        for s in body.stmts { new_stmts.push(s) }
+        wrapped_body :: BlockExpr {
+            .span     = body.span,
+            .stmts    = new_stmts,
+            .trailing = body.trailing,
+        }
+        return ForStmt {
+            .span  = Span { .start = start.span.start, .end = body.span.end },
+            .label = label,
+            .form  = InFor { .binding = synth, .binding_span = binding_span, .iter = iter },
+            .body  = wrapped_body,
+        }
+    }
+
     cond :: p.parse_expr(0)
     p.allow_struct_lit = saved_allow
     body :: p.parse_block()
@@ -1499,6 +1536,38 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         .form  = WhileFor { .cond = cond },
         .body  = body,
     }
+}
+
+// Span of a `LetBinding`. Vader's typechecker doesn't auto-narrow a union
+// to a common field, so we destructure here once and reuse the span at
+// every emission site.
+let_binding_span :: fn(b: LetBinding) = match b {
+    is SimpleBinding   -> b.span
+    is TupleBinding    -> b.span
+    is WildcardBinding -> b.span
+}
+
+// Lookahead : `[ ... ]` followed by `in`. Bracket-aware so nested patterns
+// (`[a, [b, c]]`) are detected correctly. Bounded to keep pathological
+// inputs from scanning the whole token stream.
+looks_like_for_destructure :: fn(p: Parser) -> bool {
+    if !p.check(.LBracket) { return false }
+    depth := 0
+    i := 0
+    for {
+        if i > 256 { return false }
+        t :: p.peek_at(i)
+        if t.kind == .Eof { return false }
+        if t.kind == .LBracket { depth = depth + 1 }
+        else if t.kind == .RBracket {
+            depth = depth - 1
+            if depth == 0 {
+                return p.check_at(.KwIn, i + 1)
+            }
+        }
+        i = i + 1
+    }
+    return false
 }
 
 parse_break :: fn(p: Parser) -> BreakStmt {

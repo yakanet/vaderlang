@@ -81,6 +81,29 @@ function armPredicate(
   return { kind: "LoweredBinary", span: arm.span, type: TY.bool, op: "and", left: core, right: guard };
 }
 
+/** When `targetType` is a union containing a Tuple variant of the requested
+ *  arity, narrow the runtime target to that variant : returns the cast
+ *  expression to use as the field-access base, the narrowed type, and the
+ *  type-check predicate that gates the narrowing. Otherwise returns the
+ *  inputs unchanged with a null check.
+ *
+ *  Used by `TuplePattern` lowering so `match a { is null -> … ; [n, s] -> … }`
+ *  on a `[i32, string] | null` scrutinee narrows the `[n, s]` arm to the
+ *  tuple variant before reading `_0` / `_1`. */
+function narrowToTupleVariant(
+  targetType: Type, target: LoweredExpr, arity: number, span: Span,
+): { type: Type; target: LoweredExpr; check: LoweredExpr | null } {
+  if (targetType.kind !== "Union") return { type: targetType, target, check: null };
+  const variant = targetType.variants.find(
+    (v) => v.kind === "Tuple" && v.elements.length === arity);
+  if (variant === undefined) return { type: targetType, target, check: null };
+  return {
+    type: variant,
+    target: { kind: "LoweredCast", span, type: variant, value: target },
+    check: { kind: "LoweredTypeCheck", span, type: TY.bool, value: target, checkType: variant },
+  };
+}
+
 /** Build the boolean predicate that decides whether `pattern` matches the
  *  value of `target` at runtime. Returns `null` when the predicate is
  *  trivially true (binding or wildcard). Recurses for tuple patterns. */
@@ -104,17 +127,20 @@ function patternPredicate(
       return { kind: "LoweredBinary", span, type: TY.bool, op: "eq", left: target, right: variantLit };
     }
     case "TuplePattern": {
-      // Tuple types are static — arity is guaranteed by typecheck. The
-      // predicate is the AND of element-pattern predicates over `target._N`.
-      let acc: LoweredExpr | null = null;
+      // Tuple types are static — arity is guaranteed by typecheck. When the
+      // scrutinee is a union, narrow it to the matching tuple variant so the
+      // field reads land on the right struct ; the type check on the variant
+      // becomes part of the AND chain so the arm only fires on that shape.
+      const narrowed = narrowToTupleVariant(targetType, target, pattern.elements.length, span);
+      let acc: LoweredExpr | null = narrowed.check;
       for (let i = 0; i < pattern.elements.length; i++) {
         const elem = pattern.elements[i]!;
-        const elemType = targetType.kind === "Tuple"
-          ? ctx.types.apply(targetType.elements[i] ?? TY.unresolved)
+        const elemType = narrowed.type.kind === "Tuple"
+          ? ctx.types.apply(narrowed.type.elements[i] ?? TY.unresolved)
           : TY.unresolved;
         const elemTarget: LoweredExpr = {
           kind: "LoweredFieldAccess", span: elem.span, type: elemType,
-          target, field: `_${i}`,
+          target: narrowed.target, field: `_${i}`,
         };
         const sub = patternPredicate(ctx, elem, elemTarget, elemType, elem.span);
         if (sub === null) continue;
@@ -208,14 +234,17 @@ function walkPatternBindings(
       return;
     }
     case "TuplePattern": {
+      // Mirror the predicate side : if the scrutinee type is a union, narrow
+      // to the matching tuple variant before reading the slot fields.
+      const narrowed = narrowToTupleVariant(targetType, target, pattern.elements.length, span);
       for (let i = 0; i < pattern.elements.length; i++) {
         const elem = pattern.elements[i]!;
-        const elemType = targetType.kind === "Tuple"
-          ? ctx.types.apply(targetType.elements[i] ?? TY.unresolved)
+        const elemType = narrowed.type.kind === "Tuple"
+          ? ctx.types.apply(narrowed.type.elements[i] ?? TY.unresolved)
           : TY.unresolved;
         const elemTarget: LoweredExpr = {
           kind: "LoweredFieldAccess", span: elem.span, type: elemType,
-          target, field: `_${i}`,
+          target: narrowed.target, field: `_${i}`,
         };
         walkPatternBindings(ctx, elem, elemTarget, elemType, out, elem.span);
       }

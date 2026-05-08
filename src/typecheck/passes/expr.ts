@@ -290,8 +290,21 @@ function inferSeqLit(
   // Contextual disambiguation between array and tuple :
   //   - expected is `Tuple([T0..Tn-1])`  → tuple, element-wise (arity must match)
   //   - expected is `Array(T)`           → array, all elements check against T
+  //   - expected is a union              → pick a Tuple variant whose arity
+  //                                        matches the literal, else an Array
+  //                                        variant ; recurse with that
   //   - no useful expected type          → array-first when elements unify under
   //                                        unionOf to a single type, otherwise tuple
+  if (expected?.kind === "Union") {
+    const tupleVariant = expected.variants.find(
+      (v) => v.kind === "Tuple" && v.elements.length === expr.elements.length);
+    const arrayVariant = expected.variants.find((v) => v.kind === "Array");
+    const picked = tupleVariant ?? arrayVariant ?? null;
+    if (picked !== null) {
+      return inferSeqLit(expr, picked, t, impls, diags, fn);
+    }
+    // No tuple/array variant in the union — fall through to default inference.
+  }
   if (expected?.kind === "Tuple") {
     if (expected.elements.length !== expr.elements.length) {
       err(diags, "T3001", expr.span,
