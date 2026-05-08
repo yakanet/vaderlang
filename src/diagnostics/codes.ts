@@ -132,6 +132,7 @@ export const COMPTIME = {
   C4012: "@file expects a single string-literal argument",
   C4013: "decorator arguments must be string literals at comptime",
   C4014: "generic instance discovery did not converge",
+  C4015: "compile-time assertion failed",
 } as const;
 
 export type ComptimeCode = keyof typeof COMPTIME;

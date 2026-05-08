@@ -54,7 +54,12 @@ beforeAll(async () => {
 // Snippets where the Vader parser today either traps at runtime
 // (`reached unreachable`) or diverges in detail. Tracked in TODO §2.1 ;
 // remove an entry once the underlying fix lands.
-const KNOWN_FAILURES = new Set<string>([]);
+const KNOWN_FAILURES = new Set<string>([
+  // `@assert(cond)` is recognised by the TS parser as a standalone
+  // AssertDecl ; the Vader self-host parser still treats `@assert` as a
+  // regular decorator and attaches it to the next decl. Port pending.
+  "decorator_assert",
+]);
 
 const SKIP_ALL = false;
 

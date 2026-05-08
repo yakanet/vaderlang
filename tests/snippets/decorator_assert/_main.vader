@@ -1,0 +1,15 @@
+// `@assert(cond)` — top-level compile-time assertion. The condition runs
+// through the comptime VM ; the build only succeeds if it evaluates to
+// `true`. Useful for build-config sanity, generic-instance invariants,
+// and anything else that should be enforced before the program ever runs.
+
+@assert(2 + 2 == 4)
+@assert(40 + 2 == 42)
+
+DOUBLE :: fn(x: i32) -> i32 { return x * 2 }
+
+@assert(DOUBLE(21) == 42)
+
+main :: fn() -> i32 {
+    return 0
+}

@@ -70,6 +70,36 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     if (value !== null) { comptimeByDecl.set(decl, value); comptimeOwner.set(decl, program); }
   }
 
+  // `@assert(cond)` decls — evaluate each condition through the same
+  // comptime VM by wrapping it in a synthetic ConstDecl, then surface
+  // C4015 on a `false` result. Cycles aren't possible (asserts can't
+  // reference each other and the user can't take the address of one), so
+  // we skip the topo-sort and run them in source order.
+  let assertSeq = 0;
+  for (const typed of project.modules.values()) {
+    for (const decl of typed.resolved.source.decls) {
+      if (decl.kind !== "AssertDecl") continue;
+      const fake: A.ConstDecl = {
+        kind: "ConstDecl",
+        span: decl.span,
+        name: `__assert_${assertSeq++}`,
+        nameSpan: decl.span,
+        visibility: "private",
+        type: null,
+        value: decl.condition,
+        decorators: [],
+      };
+      const value = runComptimeDecl({
+        decl: fake, project, callerProgram: typed, evaluated: comptimeByDecl,
+        callerFile: typed.resolved.source.file, diags: opts.diags, sandbox: opts.sandbox,
+        liveEvaluated, projectImpls,
+      });
+      if (value !== null && value.kind === "bool" && value.value === false) {
+        err(opts.diags, "C4015", decl.span, "condition evaluated to `false`");
+      }
+    }
+  }
+
   // Group per-module overlays.
   const modules = new Map<string, EvaluatedProgram>();
   for (const [id, typed] of project.modules) {

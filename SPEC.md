@@ -1441,6 +1441,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@file` | string literal | Embeds file contents at compile time |
 | `@test` | fn | Marks as a test, executed by `vader test` |
 | `@deprecated("reason")` | any decl | Emits a `W0001` warning at every reference — code still compiles |
+| `@assert(condition)` | top-level | Compile-time assertion ; condition must evaluate to `true` at comptime, otherwise build fails with `C4015` |
 
 `@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI ; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `print`, `collect`, the methods of `string implements Add / Hash / Index`). The decorator is informational today — the compiler doesn't yet validate that every `@intrinsic` has a host wiring, but the marker enables that check and distinguishes intentional host-bridging from accidentally-bodyless declarations.
 

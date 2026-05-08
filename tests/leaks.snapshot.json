@@ -31,6 +31,10 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
+  "decorator_assert": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
   "defer_block": {
     "leakedNodes": 0,
     "leakedBytes": 0

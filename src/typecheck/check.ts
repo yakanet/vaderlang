@@ -115,6 +115,17 @@ export function checkProgram(
         }
         break;
       }
+      case "AssertDecl": {
+        // The condition is type-checked here (must be `bool`) ; the
+        // comptime evaluation that decides whether the assert holds runs
+        // in the comptime stage, where C4015 fires on a `false` result.
+        const got = checkExpr(decl.condition, TY.bool, t, impls, diags, /*fn*/ null);
+        if (!isAssignable(got, TY.bool, impls)) {
+          err(diags, "T3001", decl.condition.span,
+            `\`@assert\` condition must be \`bool\`, got ${displayType(got)}`);
+        }
+        break;
+      }
     }
   }
 

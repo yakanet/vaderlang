@@ -134,6 +134,11 @@ function resolveDecl(decl: A.Decl, scope: Scope, p: MutableProgram, input: Resol
     case "EnumDecl":
       if (decl.repr !== null) resolveType(decl.repr, scope, p, input);
       return;
+    case "AssertDecl":
+      // `@assert(cond)` only needs the condition expression resolved ;
+      // there's no name to bind.
+      resolveExpr(decl.condition, scope, p, input);
+      return;
   }
 }
 

@@ -17,6 +17,25 @@ export function parseDecl(p: Parser): A.Decl | null {
   const decorators = parseDecorators(p);
   const visibility: A.Visibility = p.match("kw_export") !== null ? "public" : "private";
 
+  // `@assert(condition)` is a "decorator-statement" — it stands on its own
+  // at the top level rather than annotating a following decl. Detect it
+  // before we look for the usual named-decl forms ; only emit the special
+  // form when no other decorator co-occurs (a stack like `@comptime
+  // @assert(...)` would be ambiguous).
+  if (decorators.length === 1 && decorators[0]!.name === "assert") {
+    const dec = decorators[0]!;
+    if (dec.args.length !== 1) {
+      p.error("P1014", dec.span, "`@assert` expects exactly one expression argument");
+      return null;
+    }
+    return {
+      kind: "AssertDecl",
+      span: dec.span,
+      condition: dec.args[0]!,
+      decorators: [],
+    };
+  }
+
   if (p.check("kw_import")) {
     return parseImportDecl(p, decorators);
   }

@@ -31,6 +31,10 @@ export function declareType(decl: A.Decl, t: MutableTyped, diags: DiagnosticColl
       return;
     case "ImportDecl":
       return;
+    case "AssertDecl":
+      // `@assert` doesn't introduce a type ; the body's type-check happens
+      // in `check.ts` alongside the comptime evaluation hook.
+      return;
   }
 }
 

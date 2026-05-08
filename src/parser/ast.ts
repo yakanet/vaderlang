@@ -23,7 +23,8 @@ export type Decl =
   | TraitDecl
   | ImplDecl
   | TypeAliasDecl
-  | ConstDecl;
+  | ConstDecl
+  | AssertDecl;
 
 export interface ImportDecl {
   readonly kind: "ImportDecl";
@@ -159,6 +160,19 @@ export interface ConstDecl {
   readonly visibility: Visibility;
   readonly type: TypeExpr | null;
   readonly value: Expr;
+  readonly decorators: readonly Decorator[];
+}
+
+/** `@assert(cond)` — top-level compile-time assertion. The condition is
+ *  evaluated by the comptime VM ; the build fails with C4015 if the result
+ *  is `false`. No runtime emission ; nothing left after the comptime stage.
+ *  `decorators` is always empty (the `@assert` itself is not stored as a
+ *  decorator on the resulting decl) but the field is present for uniform
+ *  iteration with the rest of the `Decl` variants. */
+export interface AssertDecl {
+  readonly kind: "AssertDecl";
+  readonly span: Span;
+  readonly condition: Expr;
   readonly decorators: readonly Decorator[];
 }
 

@@ -1,0 +1,12 @@
+# Lower
+
+## tests/snippets/decorator_assert/_main.vader
+  fn tests_snippets_decorator_assert__main_vader$DOUBLE(x: i32) -> i32
+    return
+      mul :i32
+        l:
+          x#44 :i32
+        r:
+          int(2) :i32
+  fn tests_snippets_decorator_assert__main_vader$main() -> i32
+    return int(0) :i32

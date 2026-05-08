@@ -59,6 +59,10 @@ export function collectModuleSymbols(input: CollectInput): CollectResult {
           // Impl blocks contribute methods to a type, not new top-level names.
           // Their wiring (forType, traitName) is the resolver's wiring pass concern.
           break;
+        case "AssertDecl":
+          // `@assert` doesn't introduce a name ; it's evaluated standalone
+          // at the comptime stage.
+          break;
       }
     }
   }
