@@ -34,7 +34,8 @@ const SUPPRESS_AFTER: ReadonlySet<TokenKind> = new Set<TokenKind>([
   "eq", "neq", "lt", "lte", "gt", "gte",
   "and_and", "or_or",
   "range_excl", "range_incl",
-  "assign", "colon", "arrow", "fat_arrow",
+  "assign", "plus_assign", "minus_assign", "star_assign", "slash_assign", "percent_assign",
+  "colon", "arrow", "fat_arrow",
   "comma",
 ]);
 
@@ -42,6 +43,8 @@ const TWO_CHAR_OPS: ReadonlyMap<string, TokenKind> = new Map([
   ["==", "eq"], ["!=", "neq"], ["<=", "lte"], [">=", "gte"],
   ["&&", "and_and"], ["||", "or_or"], ["<<", "shl"], [">>", "shr"],
   ["->", "arrow"], ["=>", "fat_arrow"], ["::", "decl_const"], [":=", "decl_var"],
+  ["+=", "plus_assign"], ["-=", "minus_assign"], ["*=", "star_assign"],
+  ["/=", "slash_assign"], ["%=", "percent_assign"],
 ]);
 
 const ONE_CHAR_OPS: ReadonlyMap<string, TokenKind> = new Map([

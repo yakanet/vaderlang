@@ -1,5 +1,6 @@
 module _main
 import 0 hash_string std_core$hash_string (string) -> u64
+import 1 string_concat std_core$string_concat (string,string) -> string
 
 fn 0 tests_snippets_square_call__main_vader$square (i32) -> i32
   local.get 0   ; _main.vader:2:12

@@ -793,12 +793,23 @@ Built-in operators dispatch through stdlib traits when the operand types are not
 
 Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch.
 
-Resolution rule for arithmetic and comparison operators :
+Resolution rule for **arithmetic** operators (`+ - * / %`) :
 1. If both operands are primitive numerics, use the built-in op (current behaviour).
-2. Otherwise, look up the trait `impl` for the left operand's type. The right operand must be assignable to the trait's expected `Self` (or its parameter for `Index`/`IndexSet`/`Contains`).
-3. If no impl matches, error.
+2. `string + string` is a built-in op (`string.concat`) ; `string implements Add` exists for SPEC completeness and is also reachable via UFCS — the compiler routes both paths to the same op (see §12 op-level intrinsics).
+3. Otherwise, look up the matching `Add`/`Sub`/`Mul`/`Div`/`Rem` impl on the left operand's type ; the right operand must be assignable to the trait's expected `Self`.
+4. If no impl matches, T3017.
 
-Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch.
+Resolution rule for **equality** (`==` / `!=`) :
+1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
+2. User-struct operands of the same type look up the `Eq` impl and dispatch through `equals` when one exists ; without an impl they fall back to **reference identity** (Java-style — SPEC §4 memory model). No error.
+3. Mismatched types are T3017.
+
+Resolution rule for **ordering** (`< <= > >=`) :
+1. Primitive numerics, strings, and chars use the built-in comparison ops.
+2. User-struct operands look up the `Ord` impl ; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
+3. If no impl matches, T3017.
+
+Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch through `Index($I, $T)::at` / `Contains($T)::contains`. Index assignment (`a[i] = v`) dispatches through `IndexSet($I, $T)::set_at`.
 
 ### Nullability
 
@@ -1382,12 +1393,15 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
 | `@comptime` | fn / value | Forces compile-time evaluation |
-| `@extern("module", "name")` | fn (no body) | Declares an import (WASM) or external symbol (C) |
+| `@extern("module", "name")` | fn (no body) | Declares an import (WASM) or external symbol (C) — user-controlled FFI |
+| `@intrinsic` | fn (no body) | Marks a stdlib function as host-provided ; the runtime (VM / C / WASM) wires the implementation by mangled name |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
 | `@file` | string literal | Embeds file contents at compile time |
 | `@test` | fn | Marks as a test, executed by `vader test` |
 
-The v1 `@intrinsic` is **replaced by `@extern`** to unify the mechanism.
+`@extern` and `@intrinsic` are siblings : both target signature-only fns. `@extern` is for **user code** crossing into FFI ; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `hash_string`, `string_concat`, `print`, `collect`). The decorator is informational today — the compiler doesn't yet validate that every `@intrinsic` has a host wiring, but the marker enables that check, makes the documentation surface explicit, and distinguishes intentional host-bridging from accidentally-bodyless declarations.
+
+A handful of `@intrinsic` fns are also **op-level** intrinsics : the bytecode emitter recognises calls to specific mangled names (`std_core$string_concat`) and emits a dedicated op (`string.concat`) instead of a regular `call.import`, so `s1 + s2` and `"a".add("b")` share a single zero-overhead path.
 
 The v1 `@load` is **replaced by `import`**.
 

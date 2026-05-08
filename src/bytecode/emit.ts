@@ -21,6 +21,14 @@ import { runPeepholes } from "./peephole.ts";
 import type { BcType, ValType } from "./types.ts";
 import { isIntegerVal, isNumericVal } from "./types.ts";
 
+/** Stdlib `@intrinsic` fns that map to a dedicated bytecode op rather than
+ *  to a host-provided import. Keyed by mangled name so the lookup happens
+ *  after name-mangling and skips the `call.import` indirection — `s1 + s2`
+ *  and `"a".add("b")` end up emitting the same `string.concat` op. */
+const OP_INTRINSIC_BY_MANGLED: ReadonlyMap<string, () => Op> = new Map([
+  ["std_core$string_concat", () => ({ kind: "string.concat" })],
+]);
+
 /** Knobs for the bytecode emitter. Today this only toggles the peephole
  *  pass; future codegen-time options (e.g. inline-thresholds, bound checks)
  *  belong here. */
@@ -455,13 +463,25 @@ function emitIdent(fn: FnEmitCtx, e: L.LoweredIdent): void {
 function emitCall(fn: FnEmitCtx, e: L.LoweredCall): void {
   if (e.callee.kind === "LoweredIdent") {
     const sym = e.callee.symbol;
+    // Op-level intrinsics — short-circuit before fn / import dispatch so
+    // `string_concat(a, b)` reaches the dedicated `string.concat` op without
+    // an import indirection. Same fast-path as the `+` operator.
+    const importIdx = fn.project.importIndexBySymId.get(sym.id);
+    if (importIdx !== undefined) {
+      const mangled = fn.project.imports[importIdx]!.mangledName;
+      const opIntrinsic = OP_INTRINSIC_BY_MANGLED.get(mangled);
+      if (opIntrinsic !== undefined) {
+        for (const a of e.args) emitExpr(fn, a);
+        pushOp(fn, opIntrinsic(), e.span);
+        return;
+      }
+    }
     const fnIdx = fn.project.fnIndexBySymId.get(sym.id);
     if (fnIdx !== undefined) {
       for (const a of e.args) emitExpr(fn, a);
       pushOp(fn, { kind: "call", fnIndex: fnIdx }, e.span);
       return;
     }
-    const importIdx = fn.project.importIndexBySymId.get(sym.id);
     if (importIdx !== undefined) {
       for (const a of e.args) emitExpr(fn, a);
       pushOp(fn, { kind: "call.import", importIndex: importIdx }, e.span);

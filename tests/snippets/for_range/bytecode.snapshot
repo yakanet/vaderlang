@@ -8,14 +8,15 @@ string 0 "0..<5 -> "
 string 1 "1..=4 -> "
 string 2 "5..<3 iters -> "
 import 0 hash_string std_core$hash_string (string) -> u64
-import 1 print std_io$print (string) -> void
-import 2 println std_io$println (string) -> void
-import 3 eprint std_io$eprint (string) -> void
-import 4 eprintln std_io$eprintln (string) -> void
-import 5 read_line std_io$read_line () -> ref
-import 6 read_file std_io$read_file (string) -> ref
-import 7 write_file std_io$write_file (string,string) -> ref
-import 8 exists std_io$exists (string) -> bool
+import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 print std_io$print (string) -> void
+import 3 println std_io$println (string) -> void
+import 4 eprint std_io$eprint (string) -> void
+import 5 eprintln std_io$eprintln (string) -> void
+import 6 read_line std_io$read_line () -> ref
+import 7 read_file std_io$read_file (string) -> ref
+import 8 write_file std_io$write_file (string,string) -> ref
+import 9 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_for_range__main_vader$main () -> i32
   local sum i32
@@ -70,7 +71,7 @@ fn 0 tests_snippets_for_range__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:8:23
   local.get 4   ; _main.vader:8:13
   intrinsic builder.finish   ; _main.vader:8:13
-  call.import 2   ; _main.vader:8:5
+  call.import 3   ; _main.vader:8:5
   i32.const 0   ; _main.vader:10:14
   local.set 5   ; _main.vader:10:5
   i32.const 1   ; _main.vader:11:14
@@ -108,7 +109,7 @@ fn 0 tests_snippets_for_range__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:14:23
   local.get 9   ; _main.vader:14:13
   intrinsic builder.finish   ; _main.vader:14:13
-  call.import 2   ; _main.vader:14:5
+  call.import 3   ; _main.vader:14:5
   i32.const 0   ; _main.vader:17:10
   local.set 10   ; _main.vader:17:5
   i32.const 5   ; _main.vader:18:14
@@ -146,7 +147,7 @@ fn 0 tests_snippets_for_range__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:21:29
   local.get 14   ; _main.vader:21:13
   intrinsic builder.finish   ; _main.vader:21:13
-  call.import 2   ; _main.vader:21:5
+  call.import 3   ; _main.vader:21:5
   i32.const 0   ; _main.vader:22:12
   return   ; _main.vader:22:5
 end
@@ -154,36 +155,36 @@ end
 fn 1 std_core$Range$Iterator$step (ref) -> ref
   local done bool
   local v i32
-  local.get 0   ; core.vader:80:21
-  struct.get 1 2   ; core.vader:80:21
-  if bool   ; core.vader:80:17
-  local.get 0   ; core.vader:81:13
-  struct.get 1 3   ; core.vader:81:13
-  local.get 0   ; core.vader:81:27
-  struct.get 1 1   ; core.vader:81:27
-  i32.gt   ; core.vader:81:13
-  else   ; core.vader:80:17
-  local.get 0   ; core.vader:83:13
-  struct.get 1 3   ; core.vader:83:13
-  local.get 0   ; core.vader:83:28
-  struct.get 1 1   ; core.vader:83:28
-  i32.ge   ; core.vader:83:13
-  end   ; core.vader:80:17
-  local.tee 1   ; core.vader:80:9
-  if void   ; core.vader:85:9
-  struct.new 0   ; core.vader:86:20
-  return   ; core.vader:86:13
-  end   ; core.vader:85:9
-  local.get 0   ; core.vader:88:14
-  struct.get 1 3   ; core.vader:88:14
-  local.set 2   ; core.vader:88:9
-  local.get 0   ; core.vader:89:9
-  local.get 0   ; core.vader:89:23
-  struct.get 1 3   ; core.vader:89:23
-  i32.const 1   ; core.vader:89:37
-  i32.add   ; core.vader:89:23
-  struct.set 1 3   ; core.vader:89:9
-  local.get 2   ; core.vader:90:40
-  struct.new 4   ; core.vader:90:16
-  return   ; core.vader:90:9
+  local.get 0   ; core.vader:92:21
+  struct.get 1 2   ; core.vader:92:21
+  if bool   ; core.vader:92:17
+  local.get 0   ; core.vader:93:13
+  struct.get 1 3   ; core.vader:93:13
+  local.get 0   ; core.vader:93:27
+  struct.get 1 1   ; core.vader:93:27
+  i32.gt   ; core.vader:93:13
+  else   ; core.vader:92:17
+  local.get 0   ; core.vader:95:13
+  struct.get 1 3   ; core.vader:95:13
+  local.get 0   ; core.vader:95:28
+  struct.get 1 1   ; core.vader:95:28
+  i32.ge   ; core.vader:95:13
+  end   ; core.vader:92:17
+  local.tee 1   ; core.vader:92:9
+  if void   ; core.vader:97:9
+  struct.new 0   ; core.vader:98:20
+  return   ; core.vader:98:13
+  end   ; core.vader:97:9
+  local.get 0   ; core.vader:100:14
+  struct.get 1 3   ; core.vader:100:14
+  local.set 2   ; core.vader:100:9
+  local.get 0   ; core.vader:101:9
+  local.get 0   ; core.vader:101:23
+  struct.get 1 3   ; core.vader:101:23
+  i32.const 1   ; core.vader:101:37
+  i32.add   ; core.vader:101:23
+  struct.set 1 3   ; core.vader:101:9
+  local.get 2   ; core.vader:102:40
+  struct.new 4   ; core.vader:102:16
+  return   ; core.vader:102:9
 end

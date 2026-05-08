@@ -5,14 +5,15 @@ type 2 primitive string
 type 3 primitive void
 string 0 "aliased"
 import 0 hash_string std_core$hash_string (string) -> u64
-import 1 print std_io$print (string) -> void
-import 2 println std_io$println (string) -> void
-import 3 eprint std_io$eprint (string) -> void
-import 4 eprintln std_io$eprintln (string) -> void
-import 5 read_line std_io$read_line () -> ref
-import 6 read_file std_io$read_file (string) -> ref
-import 7 write_file std_io$write_file (string,string) -> ref
-import 8 exists std_io$exists (string) -> bool
+import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 print std_io$print (string) -> void
+import 3 println std_io$println (string) -> void
+import 4 eprint std_io$eprint (string) -> void
+import 5 eprintln std_io$eprintln (string) -> void
+import 6 read_line std_io$read_line () -> ref
+import 7 read_file std_io$read_file (string) -> ref
+import 8 write_file std_io$write_file (string,string) -> ref
+import 9 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_alias_import__main_vader$main () -> i32
   string.const 0   ; _main.vader:4:16

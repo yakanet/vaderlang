@@ -12,13 +12,17 @@
   trait            public   Error 
   trait            public   Hash 
   fn               public   hash_string 
+  trait            public   Index 
+  trait            public   IndexSet 
   trait            public   Iterator 
   trait            public   Mul 
   trait            public   Ord 
   struct           public   Range 
+  trait            public   Rem 
+  fn               public   string_concat 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=40 types=71 params=36 locals=3 typeParams=4 fields=0
+  refs: idents=43 types=83 params=47 locals=3 typeParams=8 fields=0
 
 ## tests/snippets/trait_dispatch_param/_main.vader
   fn               public   hash_twice 

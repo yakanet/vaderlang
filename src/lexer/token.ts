@@ -33,6 +33,11 @@ export type TokenKind =
   | "eq" | "neq" | "lt" | "lte" | "gt" | "gte"
   | "and_and" | "or_or" | "bang"
   | "assign"        // =
+  | "plus_assign"   // +=
+  | "minus_assign"  // -=
+  | "star_assign"   // *=
+  | "slash_assign"  // /=
+  | "percent_assign"// %=
   | "decl_const"    // ::
   | "decl_var"      // :=
   | "range_excl"    // ..<

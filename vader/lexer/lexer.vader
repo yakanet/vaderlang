@@ -89,7 +89,12 @@ suppresses_newline_after :: fn(k: TokenKind) = match k {
     .OrOr      -> true
     .RangeExcl -> true
     .RangeIncl -> true
-    .Assign    -> true
+    .Assign        -> true
+    .PlusAssign    -> true
+    .MinusAssign   -> true
+    .StarAssign    -> true
+    .SlashAssign   -> true
+    .PercentAssign -> true
     .Colon     -> true
     .Arrow     -> true
     .FatArrow  -> true
@@ -742,6 +747,11 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     if c == '=' && c2 == '>' { return l.emit_and_advance(.FatArrow, "=>") }
     if c == ':' && c2 == ':' { return l.emit_and_advance(.DeclConst, "::") }
     if c == ':' && c2 == '=' { return l.emit_and_advance(.DeclVar, ":=") }
+    if c == '+' && c2 == '=' { return l.emit_and_advance(.PlusAssign, "+=") }
+    if c == '-' && c2 == '=' { return l.emit_and_advance(.MinusAssign, "-=") }
+    if c == '*' && c2 == '=' { return l.emit_and_advance(.StarAssign, "*=") }
+    if c == '/' && c2 == '=' { return l.emit_and_advance(.SlashAssign, "/=") }
+    if c == '%' && c2 == '=' { return l.emit_and_advance(.PercentAssign, "%=") }
 
     // One-char ops.
     if c == '+' { return l.emit_and_advance(.Plus, "+") }

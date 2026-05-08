@@ -6,13 +6,17 @@
 // and stress tests ; user programs should rarely need to call these.
 
 // collect — force a Cheney semi-space collection cycle now.
+@intrinsic
 export collect :: fn() -> void
 
 // collections — total number of GC cycles run since process start.
+@intrinsic
 export collections :: fn() -> i32
 
 // bytes_used — bytes currently allocated in the from-space arena.
+@intrinsic
 export bytes_used :: fn() -> i32
 
 // bytes_copied — cumulative bytes copied across all collections.
+@intrinsic
 export bytes_copied :: fn() -> i32

@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/op_overload_eq_ord/_main.vader
+
+## generic instances
+  Yielded(i32)

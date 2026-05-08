@@ -1,0 +1,113 @@
+module _main
+type 0 struct tests_snippets_op_overload_compound__main_vader$Vec { x:1,y:1 }
+type 1 primitive i32
+string 0 "n="
+string 1 "  v=("
+string 2 ","
+string 3 ")"
+import 0 hash_string std_core$hash_string (string) -> u64
+import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 print std_io$print (string) -> void
+import 3 println std_io$println (string) -> void
+import 4 eprint std_io$eprint (string) -> void
+import 5 eprintln std_io$eprintln (string) -> void
+import 6 read_line std_io$read_line () -> ref
+import 7 read_file std_io$read_file (string) -> ref
+import 8 write_file std_io$write_file (string,string) -> ref
+import 9 exists std_io$exists (string) -> bool
+
+fn 0 tests_snippets_op_overload_compound__main_vader$Vec$Add$add (ref,ref) -> ref
+  local.get 0   ; _main.vader:9:74
+  struct.get 0 0   ; _main.vader:9:74
+  local.get 1   ; _main.vader:9:83
+  struct.get 0 0   ; _main.vader:9:83
+  i32.add   ; _main.vader:9:74
+  local.get 0   ; _main.vader:9:97
+  struct.get 0 1   ; _main.vader:9:97
+  local.get 1   ; _main.vader:9:106
+  struct.get 0 1   ; _main.vader:9:106
+  i32.add   ; _main.vader:9:97
+  struct.new 0   ; _main.vader:9:63
+  return   ; _main.vader:9:56
+end
+
+fn 1 tests_snippets_op_overload_compound__main_vader$Vec$Sub$sub (ref,ref) -> ref
+  local.get 0   ; _main.vader:10:74
+  struct.get 0 0   ; _main.vader:10:74
+  local.get 1   ; _main.vader:10:83
+  struct.get 0 0   ; _main.vader:10:83
+  i32.sub   ; _main.vader:10:74
+  local.get 0   ; _main.vader:10:97
+  struct.get 0 1   ; _main.vader:10:97
+  local.get 1   ; _main.vader:10:106
+  struct.get 0 1   ; _main.vader:10:106
+  i32.sub   ; _main.vader:10:97
+  struct.new 0   ; _main.vader:10:63
+  return   ; _main.vader:10:56
+end
+
+fn 2 tests_snippets_op_overload_compound__main_vader$main () -> i32
+  local n i32
+  local v ref
+  local __sb_0 any
+  i32.const 5   ; _main.vader:14:10
+  local.tee 0   ; _main.vader:14:5
+  i32.const 3   ; _main.vader:15:10
+  i32.add   ; _main.vader:15:5
+  local.tee 0   ; _main.vader:15:5
+  i32.const 1   ; _main.vader:16:10
+  i32.sub   ; _main.vader:16:5
+  local.tee 0   ; _main.vader:16:5
+  i32.const 2   ; _main.vader:17:10
+  i32.mul   ; _main.vader:17:5
+  local.tee 0   ; _main.vader:17:5
+  i32.const 2   ; _main.vader:18:10
+  i32.div   ; _main.vader:18:5
+  local.tee 0   ; _main.vader:18:5
+  i32.const 5   ; _main.vader:19:10
+  i32.rem   ; _main.vader:19:5
+  local.set 0   ; _main.vader:19:5
+  i32.const 1   ; _main.vader:22:21
+  i32.const 2   ; _main.vader:22:29
+  struct.new 0   ; _main.vader:22:10
+  local.tee 1   ; _main.vader:22:5
+  i32.const 10   ; _main.vader:23:21
+  i32.const 20   ; _main.vader:23:30
+  struct.new 0   ; _main.vader:23:10
+  call 0   ; _main.vader:23:5
+  local.tee 1   ; _main.vader:23:5
+  i32.const 1   ; _main.vader:24:21
+  i32.const 1   ; _main.vader:24:30
+  struct.new 0   ; _main.vader:24:10
+  call 1   ; _main.vader:24:5
+  local.set 1   ; _main.vader:24:5
+  intrinsic builder.new   ; _main.vader:26:13
+  local.tee 2   ; _main.vader:26:13
+  string.const 0   ; _main.vader:26:14
+  intrinsic builder.append_str   ; _main.vader:26:14
+  local.get 2   ; _main.vader:26:16
+  local.get 0   ; _main.vader:26:18
+  intrinsic builder.append_display   ; _main.vader:26:16
+  local.get 2   ; _main.vader:26:20
+  string.const 1   ; _main.vader:26:20
+  intrinsic builder.append_str   ; _main.vader:26:20
+  local.get 2   ; _main.vader:26:25
+  local.get 1   ; _main.vader:26:27
+  struct.get 0 0   ; _main.vader:26:27
+  intrinsic builder.append_display   ; _main.vader:26:25
+  local.get 2   ; _main.vader:26:31
+  string.const 2   ; _main.vader:26:31
+  intrinsic builder.append_str   ; _main.vader:26:31
+  local.get 2   ; _main.vader:26:32
+  local.get 1   ; _main.vader:26:34
+  struct.get 0 1   ; _main.vader:26:34
+  intrinsic builder.append_display   ; _main.vader:26:32
+  local.get 2   ; _main.vader:26:38
+  string.const 3   ; _main.vader:26:38
+  intrinsic builder.append_str   ; _main.vader:26:38
+  local.get 2   ; _main.vader:26:13
+  intrinsic builder.finish   ; _main.vader:26:13
+  call.import 3   ; _main.vader:26:5
+  i32.const 0   ; _main.vader:27:12
+  return   ; _main.vader:27:5
+end

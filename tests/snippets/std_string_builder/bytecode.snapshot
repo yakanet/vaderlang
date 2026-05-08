@@ -12,15 +12,16 @@ string 6 "empty='"
 string 7 "'"
 string 8 "n="
 import 0 hash_string std_core$hash_string (string) -> u64
-import 1 print std_io$print (string) -> void
-import 2 println std_io$println (string) -> void
-import 3 eprint std_io$eprint (string) -> void
-import 4 eprintln std_io$eprintln (string) -> void
-import 5 read_line std_io$read_line () -> ref
-import 6 read_file std_io$read_file (string) -> ref
-import 7 write_file std_io$write_file (string,string) -> ref
-import 8 exists std_io$exists (string) -> bool
-import 9 concat_all std_string_builder$concat_all (ref) -> string
+import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 print std_io$print (string) -> void
+import 3 println std_io$println (string) -> void
+import 4 eprint std_io$eprint (string) -> void
+import 5 eprintln std_io$eprintln (string) -> void
+import 6 read_line std_io$read_line () -> ref
+import 7 read_file std_io$read_file (string) -> ref
+import 8 write_file std_io$write_file (string,string) -> ref
+import 9 exists std_io$exists (string) -> bool
+import 10 concat_all std_string_builder$concat_all (ref) -> string
 
 fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
   local sb ref
@@ -46,7 +47,7 @@ fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
   call 3   ; _main.vader:10:5
   local.get 0   ; _main.vader:11:13
   call 4   ; _main.vader:11:13
-  call.import 2   ; _main.vader:11:5
+  call.import 3   ; _main.vader:11:5
   call 1   ; _main.vader:14:12
   local.tee 1   ; _main.vader:14:5
   string.const 3   ; _main.vader:15:16
@@ -59,7 +60,7 @@ fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
   call 2   ; _main.vader:17:5
   local.get 1   ; _main.vader:18:13
   call 4   ; _main.vader:18:13
-  call.import 2   ; _main.vader:18:5
+  call.import 3   ; _main.vader:18:5
   call 1   ; _main.vader:21:12
   local.set 2   ; _main.vader:21:5
   intrinsic builder.new   ; _main.vader:22:13
@@ -75,7 +76,7 @@ fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:22:39
   local.get 3   ; _main.vader:22:13
   intrinsic builder.finish   ; _main.vader:22:13
-  call.import 2   ; _main.vader:22:5
+  call.import 3   ; _main.vader:22:5
   call 1   ; _main.vader:25:12
   local.tee 4   ; _main.vader:25:5
   char.const 8364   ; _main.vader:26:21
@@ -85,7 +86,7 @@ fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
   call 3   ; _main.vader:27:5
   local.get 4   ; _main.vader:28:13
   call 4   ; _main.vader:28:13
-  call.import 2   ; _main.vader:28:5
+  call.import 3   ; _main.vader:28:5
   i32.const 42   ; _main.vader:31:10
   local.set 5   ; _main.vader:31:5
   call 1   ; _main.vader:32:12
@@ -102,7 +103,7 @@ fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
   call 2   ; _main.vader:34:5
   local.get 6   ; _main.vader:35:13
   call 4   ; _main.vader:35:13
-  call.import 2   ; _main.vader:35:5
+  call.import 3   ; _main.vader:35:5
   i32.const 0   ; _main.vader:37:12
   return   ; _main.vader:37:5
 end
@@ -136,6 +137,6 @@ end
 fn 4 std_string_builder$to_string (ref) -> string
   local.get 0   ; string_builder.vader:34:23
   struct.get 0 0   ; string_builder.vader:34:23
-  call.import 9   ; string_builder.vader:34:12
+  call.import 10   ; string_builder.vader:34:12
   return   ; string_builder.vader:34:5
 end

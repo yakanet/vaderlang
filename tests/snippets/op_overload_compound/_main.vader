@@ -1,0 +1,28 @@
+// Compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`) — desugared by the
+// parser into `lhs = lhs <op> rhs` so user-type operator overload dispatch
+// is reused without a parallel code path.
+
+import "std/io" { println }
+
+Vec :: struct { x: i32, y: i32 }
+
+Vec implements Add { fn add(self, other: Vec) -> Vec { return Vec { .x = self.x + other.x, .y = self.y + other.y } } }
+Vec implements Sub { fn sub(self, other: Vec) -> Vec { return Vec { .x = self.x - other.x, .y = self.y - other.y } } }
+
+main :: fn() -> i32 {
+    // Primitive numerics — built-in path.
+    n := 5
+    n += 3
+    n -= 1
+    n *= 2
+    n /= 2
+    n %= 5
+
+    // User type — desugar routes through the Add / Sub impls above.
+    v := Vec { .x = 1, .y = 2 }
+    v += Vec { .x = 10, .y = 20 }
+    v -= Vec { .x = 1,  .y = 1  }
+
+    println("n=${n}  v=(${v.x},${v.y})")
+    return 0
+}

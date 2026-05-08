@@ -1,0 +1,61 @@
+# Typecheck
+
+## tests/snippets/op_overload_index/_main.vader
+  StructDecl     Cell                 :: Cell
+  FnDecl         main                 :: fn() -> i32
+  expr 14:18    FieldExpr      :: [string]
+  expr 14:18    IdentExpr      :: Cell
+  expr 15:13    IfExpr         :: void
+  expr 15:16    BinaryExpr     :: bool
+  expr 15:16    IdentExpr      :: string
+  expr 15:21    IdentExpr      :: string
+  expr 15:34    FieldExpr      :: [i32]
+  expr 15:34    IdentExpr      :: Cell
+  expr 15:34    IndexExpr      :: i32
+  expr 15:44    IdentExpr      :: i32
+  expr 16:13    BinaryExpr     :: i32
+  expr 16:13    IdentExpr      :: i32
+  expr 25:18    FieldExpr      :: [string]
+  expr 25:18    IdentExpr      :: Cell
+  expr 26:13    IfExpr         :: void
+  expr 26:16    BinaryExpr     :: bool
+  expr 26:16    IdentExpr      :: string
+  expr 26:21    IdentExpr      :: string
+  expr 27:17    FieldExpr      :: [i32]
+  expr 27:17    IdentExpr      :: Cell
+  expr 27:17    IndexExpr      :: i32
+  expr 27:27    IdentExpr      :: i32
+  expr 27:32    IdentExpr      :: i32
+  expr 30:13    BinaryExpr     :: i32
+  expr 30:13    IdentExpr      :: i32
+  expr 32:24    IdentExpr      :: string
+  expr 32:9     CallExpr       :: void
+  expr 32:9     FieldExpr      :: [string]
+  expr 32:9     FieldExpr      :: fn(string) -> void
+  expr 32:9     IdentExpr      :: Cell
+  expr 33:24    IdentExpr      :: i32
+  expr 33:9     CallExpr       :: void
+  expr 33:9     FieldExpr      :: [i32]
+  expr 33:9     FieldExpr      :: fn(i32) -> void
+  expr 33:9     IdentExpr      :: Cell
+  expr 38:10    StructLitExpr  :: Cell
+  expr 38:25    ArrayLitExpr   :: [string]
+  expr 38:37    ArrayLitExpr   :: [i32]
+  expr 39:5     IdentExpr      :: Cell
+  expr 39:7     StringLitExpr  :: string
+  expr 40:5     IdentExpr      :: Cell
+  expr 40:7     StringLitExpr  :: string
+  expr 41:5     IdentExpr      :: Cell
+  expr 41:7     StringLitExpr  :: string
+  expr 42:13    StringLitExpr  :: string
+  expr 42:18    IdentExpr      :: Cell
+  expr 42:18    IndexExpr      :: i32
+  expr 42:20    StringLitExpr  :: string
+  expr 42:30    IdentExpr      :: Cell
+  expr 42:30    IndexExpr      :: i32
+  expr 42:32    StringLitExpr  :: string
+  expr 42:42    IdentExpr      :: Cell
+  expr 42:42    IndexExpr      :: i32
+  expr 42:44    StringLitExpr  :: string
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(string) -> void

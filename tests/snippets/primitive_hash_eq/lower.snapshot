@@ -2,12 +2,12 @@
 
 ## tests/snippets/primitive_hash_eq/_main.vader
   fn tests_snippets_primitive_hash_eq__main_vader$main() -> i32
-    let a#51: i32 = int(42) :i32
-    let b#52: i32 = int(42) :i32
-    let c#53: i32 = int(7) :i32
+    let a#55: i32 = int(42) :i32
+    let b#56: i32 = int(42) :i32
+    let c#57: i32 = int(7) :i32
     call :void
       callee:
-        println#22 :fn(string) -> void
+        println#26 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -21,13 +21,13 @@
               callee:
                 hash#1000002 :u64
               arg0:
-                a#51 :i32
+                a#55 :i32
           ~>
             @builder.finish :string
               __sb_0#-1 :?
     call :void
       callee:
-        println#22 :fn(string) -> void
+        println#26 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -39,17 +39,17 @@
             __sb_1#-2 :?
             call :bool
               callee:
-                equals#1000006 :bool
+                equals#1000007 :bool
               arg0:
-                a#51 :i32
+                a#55 :i32
               arg1:
-                b#52 :i32
+                b#56 :i32
           ~>
             @builder.finish :string
               __sb_1#-2 :?
     call :void
       callee:
-        println#22 :fn(string) -> void
+        println#26 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -61,18 +61,18 @@
             __sb_2#-3 :?
             call :bool
               callee:
-                equals#1000006 :bool
+                equals#1000007 :bool
               arg0:
-                a#51 :i32
+                a#55 :i32
               arg1:
-                c#53 :i32
+                c#57 :i32
           ~>
             @builder.finish :string
               __sb_2#-3 :?
-    let n#54: usize = int(100) :usize
+    let n#58: usize = int(100) :usize
     call :void
       callee:
-        println#22 :fn(string) -> void
+        println#26 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-4: ? =
@@ -86,7 +86,7 @@
               callee:
                 hash#1000004 :u64
               arg0:
-                n#54 :usize
+                n#58 :usize
           ~>
             @builder.finish :string
               __sb_3#-4 :?

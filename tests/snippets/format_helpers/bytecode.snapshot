@@ -17,35 +17,36 @@ string 9 "ws_a="
 string 10 "ws_tab="
 string 11 "0"
 import 0 hash_string std_core$hash_string (string) -> u64
-import 1 print std_io$print (string) -> void
-import 2 println std_io$println (string) -> void
-import 3 eprint std_io$eprint (string) -> void
-import 4 eprintln std_io$eprintln (string) -> void
-import 5 read_line std_io$read_line () -> ref
-import 6 read_file std_io$read_file (string) -> ref
-import 7 write_file std_io$write_file (string,string) -> ref
-import 8 exists std_io$exists (string) -> bool
-import 9 len std_string$len (string) -> i32
-import 10 slice std_string$slice (string,i32,i32) -> string
-import 11 contains std_string$contains (string,string) -> bool
-import 12 starts_with std_string$starts_with (string,string) -> bool
-import 13 ends_with std_string$ends_with (string,string) -> bool
-import 14 char_at std_string$char_at (string,i32) -> char
-import 15 split std_string$split (string,string) -> ref
-import 16 trim std_string$trim (string) -> string
-import 17 to_upper std_string$to_upper (string) -> string
-import 18 to_lower std_string$to_lower (string) -> string
-import 19 parse_int std_string$parse_int (string) -> ref
-import 20 parse_float std_string$parse_float (string) -> ref
-import 21 concat_all std_string_builder$concat_all (ref) -> string
-import 22 sqrt std_math$sqrt (f64) -> f64
-import 23 pow std_math$pow (f64,f64) -> f64
-import 24 floor std_math$floor (f64) -> f64
-import 25 ceil std_math$ceil (f64) -> f64
-import 26 round std_math$round (f64) -> f64
-import 27 sin std_math$sin (f64) -> f64
-import 28 cos std_math$cos (f64) -> f64
-import 29 tan std_math$tan (f64) -> f64
+import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 print std_io$print (string) -> void
+import 3 println std_io$println (string) -> void
+import 4 eprint std_io$eprint (string) -> void
+import 5 eprintln std_io$eprintln (string) -> void
+import 6 read_line std_io$read_line () -> ref
+import 7 read_file std_io$read_file (string) -> ref
+import 8 write_file std_io$write_file (string,string) -> ref
+import 9 exists std_io$exists (string) -> bool
+import 10 len std_string$len (string) -> i32
+import 11 slice std_string$slice (string,i32,i32) -> string
+import 12 contains std_string$contains (string,string) -> bool
+import 13 starts_with std_string$starts_with (string,string) -> bool
+import 14 ends_with std_string$ends_with (string,string) -> bool
+import 15 char_at std_string$char_at (string,i32) -> char
+import 16 split std_string$split (string,string) -> ref
+import 17 trim std_string$trim (string) -> string
+import 18 to_upper std_string$to_upper (string) -> string
+import 19 to_lower std_string$to_lower (string) -> string
+import 20 parse_int std_string$parse_int (string) -> ref
+import 21 parse_float std_string$parse_float (string) -> ref
+import 22 concat_all std_string_builder$concat_all (ref) -> string
+import 23 sqrt std_math$sqrt (f64) -> f64
+import 24 pow std_math$pow (f64,f64) -> f64
+import 25 floor std_math$floor (f64) -> f64
+import 26 ceil std_math$ceil (f64) -> f64
+import 27 round std_math$round (f64) -> f64
+import 28 sin std_math$sin (f64) -> f64
+import 29 cos std_math$cos (f64) -> f64
+import 30 tan std_math$tan (f64) -> f64
 
 fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   local __sb_0 any
@@ -75,7 +76,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:6:40
   local.get 0   ; _main.vader:6:13
   intrinsic builder.finish   ; _main.vader:6:13
-  call.import 2   ; _main.vader:6:5
+  call.import 3   ; _main.vader:6:5
   intrinsic builder.new   ; _main.vader:7:13
   local.tee 1   ; _main.vader:7:13
   string.const 0   ; _main.vader:7:14
@@ -91,7 +92,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:7:38
   local.get 1   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 2   ; _main.vader:7:5
+  call.import 3   ; _main.vader:7:5
   intrinsic builder.new   ; _main.vader:8:13
   local.tee 2   ; _main.vader:8:13
   string.const 0   ; _main.vader:8:14
@@ -107,7 +108,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:8:43
   local.get 2   ; _main.vader:8:13
   intrinsic builder.finish   ; _main.vader:8:13
-  call.import 2   ; _main.vader:8:5
+  call.import 3   ; _main.vader:8:5
   i64.const 255   ; _main.vader:10:14
   local.set 3   ; _main.vader:10:5
   intrinsic builder.new   ; _main.vader:11:13
@@ -120,7 +121,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:11:18
   local.get 4   ; _main.vader:11:13
   intrinsic builder.finish   ; _main.vader:11:13
-  call.import 2   ; _main.vader:11:5
+  call.import 3   ; _main.vader:11:5
   intrinsic builder.new   ; _main.vader:12:13
   local.tee 5   ; _main.vader:12:13
   string.const 5   ; _main.vader:12:14
@@ -131,7 +132,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:12:18
   local.get 5   ; _main.vader:12:13
   intrinsic builder.finish   ; _main.vader:12:13
-  call.import 2   ; _main.vader:12:5
+  call.import 3   ; _main.vader:12:5
   intrinsic builder.new   ; _main.vader:13:13
   local.tee 6   ; _main.vader:13:13
   string.const 6   ; _main.vader:13:14
@@ -145,7 +146,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:13:25
   local.get 6   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
-  call.import 2   ; _main.vader:13:5
+  call.import 3   ; _main.vader:13:5
   i64.const 0   ; _main.vader:15:17
   local.set 7   ; _main.vader:15:5
   intrinsic builder.new   ; _main.vader:16:13
@@ -158,7 +159,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:16:23
   local.get 8   ; _main.vader:16:13
   intrinsic builder.finish   ; _main.vader:16:13
-  call.import 2   ; _main.vader:16:5
+  call.import 3   ; _main.vader:16:5
   intrinsic builder.new   ; _main.vader:18:13
   local.tee 9   ; _main.vader:18:13
   string.const 8   ; _main.vader:18:14
@@ -169,7 +170,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:18:23
   local.get 9   ; _main.vader:18:13
   intrinsic builder.finish   ; _main.vader:18:13
-  call.import 2   ; _main.vader:18:5
+  call.import 3   ; _main.vader:18:5
   intrinsic builder.new   ; _main.vader:19:13
   local.tee 10   ; _main.vader:19:13
   string.const 9   ; _main.vader:19:14
@@ -180,7 +181,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:19:19
   local.get 10   ; _main.vader:19:13
   intrinsic builder.finish   ; _main.vader:19:13
-  call.import 2   ; _main.vader:19:5
+  call.import 3   ; _main.vader:19:5
   intrinsic builder.new   ; _main.vader:20:13
   local.tee 11   ; _main.vader:20:13
   string.const 10   ; _main.vader:20:14
@@ -191,7 +192,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:20:21
   local.get 11   ; _main.vader:20:13
   intrinsic builder.finish   ; _main.vader:20:13
-  call.import 2   ; _main.vader:20:5
+  call.import 3   ; _main.vader:20:5
   i32.const 0   ; _main.vader:22:12
   return   ; _main.vader:22:5
 end
@@ -201,7 +202,7 @@ fn 1 std_string$pad_start (string,i32,char) -> string
   local sb ref
   local i i32
   local.get 0   ; string.vader:78:10
-  call.import 9   ; string.vader:78:10
+  call.import 10   ; string.vader:78:10
   local.tee 3   ; string.vader:78:5
   local.get 1   ; string.vader:79:13
   i32.ge   ; string.vader:79:8
@@ -242,7 +243,7 @@ fn 2 std_string$pad_end (string,i32,char) -> string
   local sb ref
   local i i32
   local.get 0   ; string.vader:94:10
-  call.import 9   ; string.vader:94:10
+  call.import 10   ; string.vader:94:10
   local.tee 3   ; string.vader:94:5
   local.get 1   ; string.vader:95:13
   i32.ge   ; string.vader:95:8
@@ -506,6 +507,6 @@ end
 fn 10 std_string_builder$to_string (ref) -> string
   local.get 0   ; string_builder.vader:34:23
   struct.get 0 0   ; string_builder.vader:34:23
-  call.import 21   ; string_builder.vader:34:12
+  call.import 22   ; string_builder.vader:34:12
   return   ; string_builder.vader:34:5
 end

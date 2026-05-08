@@ -2,48 +2,48 @@
 
 ## tests/snippets/gc_array_survive/_main.vader
   fn tests_snippets_gc_array_survive__main_vader$main() -> i32
-    let list#57: [i32] =
+    let list#61: [i32] =
       array :[i32]
-    let i#58: i32 = int(0) :i32
+    let i#62: i32 = int(0) :i32
     loop while (<…>)
       LoweredArrayPush
       assign
         target:
-          i#58 :i32
+          i#62 :i32
         value:
           add :i32
             l:
-              i#58 :i32
+              i#62 :i32
             r:
               int(1) :i32
-    let before#59: i32 =
+    let before#63: i32 =
       call :i32
         callee:
-          collections#32 :fn() -> i32
+          collections#36 :fn() -> i32
     call :void
       callee:
-        collect#31 :fn() -> void
-    let after#60: i32 =
+        collect#35 :fn() -> void
+    let after#64: i32 =
       call :i32
         callee:
-          collections#32 :fn() -> i32
-    let diff#61: i32 =
+          collections#36 :fn() -> i32
+    let diff#65: i32 =
       sub :i32
         l:
-          after#60 :i32
+          after#64 :i32
         r:
-          before#59 :i32
+          before#63 :i32
     if :void
       cond:
         neq :bool
           l:
-            diff#61 :i32
+            diff#65 :i32
           r:
             int(1) :i32
       then:
         call :void
           callee:
-            println#24 :fn(string) -> void
+            println#28 :fn(string) -> void
           arg0:
             block :string
               let __sb_0#-1: ? =
@@ -53,37 +53,37 @@
                 "expected 1 collection, got " :string
               @builder.append_display <for i32> :void
                 __sb_0#-1 :?
-                diff#61 :i32
+                diff#65 :i32
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?
         return int(1) :i32
-    let sum#62: i32 = int(0) :i32
-    let j#63: i32 = int(0) :i32
+    let sum#66: i32 = int(0) :i32
+    let j#67: i32 = int(0) :i32
     loop while (<…>)
       assign
         target:
-          sum#62 :i32
+          sum#66 :i32
         value:
           add :i32
             l:
-              sum#62 :i32
+              sum#66 :i32
             r:
               index :i32
                 on:
-                  list#57 :[i32]
+                  list#61 :[i32]
                 ix:
-                  j#63 :i32
+                  j#67 :i32
       assign
         target:
-          j#63 :i32
+          j#67 :i32
         value:
           add :i32
             l:
-              j#63 :i32
+              j#67 :i32
             r:
               int(1) :i32
-    let expected#64: i32 =
+    let expected#68: i32 =
       div :{integer}
         l:
           mul :{integer}
@@ -97,13 +97,13 @@
       cond:
         neq :bool
           l:
-            sum#62 :i32
+            sum#66 :i32
           r:
-            expected#64 :i32
+            expected#68 :i32
       then:
         call :void
           callee:
-            println#24 :fn(string) -> void
+            println#28 :fn(string) -> void
           arg0:
             block :string
               let __sb_1#-2: ? =
@@ -113,20 +113,20 @@
                 "sum mismatch: got " :string
               @builder.append_display <for i32> :void
                 __sb_1#-2 :?
-                sum#62 :i32
+                sum#66 :i32
               @builder.append_str :void
                 __sb_1#-2 :?
                 ", expected " :string
               @builder.append_display <for i32> :void
                 __sb_1#-2 :?
-                expected#64 :i32
+                expected#68 :i32
               ~>
                 @builder.finish :string
                   __sb_1#-2 :?
         return int(2) :i32
     call :void
       callee:
-        println#24 :fn(string) -> void
+        println#28 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -136,7 +136,7 @@
             "ok: 200 array elements survived GC; sum=" :string
           @builder.append_display <for i32> :void
             __sb_2#-3 :?
-            sum#62 :i32
+            sum#66 :i32
           ~>
             @builder.finish :string
               __sb_2#-3 :?

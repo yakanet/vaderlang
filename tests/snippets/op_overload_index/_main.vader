@@ -1,0 +1,44 @@
+// Index / IndexSet trait dispatch for `a[i]` (read) and `a[i] = v` (write).
+// `Cell` is a tiny key-value pair store ; the typechecker resolves the
+// index/assign through the matching Index($I, $T) / IndexSet($I, $T) impl
+// and substitutes the trait's type-parameters from the impl's declared
+// `traitArgs`. The lowerer rewrites both forms into direct calls.
+
+import "std/io" { println }
+
+Cell :: struct { keys: [string], vals: [i32] }
+
+Cell implements Index(string, i32) {
+    fn at(self, key: string) -> i32 {
+        i := 0
+        for k in self.keys {
+            if k == key { return self.vals[i] }
+            i += 1
+        }
+        return 0
+    }
+}
+
+Cell implements IndexSet(string, i32) {
+    fn set_at(self, key: string, v: i32) {
+        i := 0
+        for k in self.keys {
+            if k == key {
+                self.vals[i] = v
+                return
+            }
+            i += 1
+        }
+        self.keys.push(key)
+        self.vals.push(v)
+    }
+}
+
+main :: fn() -> i32 {
+    c := Cell { .keys = [], .vals = [] }
+    c["a"] = 10
+    c["b"] = 20
+    c["a"] = 100   // overwrite
+    println("a=${c["a"]} b=${c["b"]} c=${c["c"]}")
+    return 0
+}

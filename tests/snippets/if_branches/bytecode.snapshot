@@ -3,6 +3,7 @@ string 0 "positive"
 string 1 "negative"
 string 2 "zero"
 import 0 hash_string std_core$hash_string (string) -> u64
+import 1 string_concat std_core$string_concat (string,string) -> string
 
 fn 0 tests_snippets_if_branches__main_vader$classify (i32) -> string
   local.get 0   ; _main.vader:2:16

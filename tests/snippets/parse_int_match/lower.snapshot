@@ -6,7 +6,7 @@
       let __scrut_0#-1: Error | i32 =
         call :Error | i32
           callee:
-            parse_int#50 :fn(string) -> Error | i32
+            parse_int#54 :fn(string) -> Error | i32
           arg0:
             "42" :string
       ~>
@@ -18,7 +18,7 @@
             ~>
               call :void
                 callee:
-                  println#24 :fn(string) -> void
+                  println#28 :fn(string) -> void
                 arg0:
                   "int ok" :string
           else:
@@ -31,7 +31,7 @@
                   ~>
                     call :void
                       callee:
-                        println#24 :fn(string) -> void
+                        println#28 :fn(string) -> void
                       arg0:
                         "int err" :string
                 else:
@@ -41,7 +41,7 @@
       let __scrut_1#-2: Error | i32 =
         call :Error | i32
           callee:
-            parse_int#50 :fn(string) -> Error | i32
+            parse_int#54 :fn(string) -> Error | i32
           arg0:
             "nope" :string
       ~>
@@ -53,7 +53,7 @@
             ~>
               call :void
                 callee:
-                  println#24 :fn(string) -> void
+                  println#28 :fn(string) -> void
                 arg0:
                   "int ok" :string
           else:
@@ -66,7 +66,7 @@
                   ~>
                     call :void
                       callee:
-                        println#24 :fn(string) -> void
+                        println#28 :fn(string) -> void
                       arg0:
                         "int err" :string
                 else:
@@ -76,7 +76,7 @@
       let __scrut_2#-3: Error | f64 =
         call :Error | f64
           callee:
-            parse_float#51 :fn(string) -> Error | f64
+            parse_float#55 :fn(string) -> Error | f64
           arg0:
             "3.14" :string
       ~>
@@ -88,7 +88,7 @@
             ~>
               call :void
                 callee:
-                  println#24 :fn(string) -> void
+                  println#28 :fn(string) -> void
                 arg0:
                   "float ok" :string
           else:
@@ -101,7 +101,7 @@
                   ~>
                     call :void
                       callee:
-                        println#24 :fn(string) -> void
+                        println#28 :fn(string) -> void
                       arg0:
                         "float err" :string
                 else:
@@ -111,7 +111,7 @@
       let __scrut_3#-4: Error | f64 =
         call :Error | f64
           callee:
-            parse_float#51 :fn(string) -> Error | f64
+            parse_float#55 :fn(string) -> Error | f64
           arg0:
             "nope" :string
       ~>
@@ -123,7 +123,7 @@
             ~>
               call :void
                 callee:
-                  println#24 :fn(string) -> void
+                  println#28 :fn(string) -> void
                 arg0:
                   "float ok" :string
           else:
@@ -136,7 +136,7 @@
                   ~>
                     call :void
                       callee:
-                        println#24 :fn(string) -> void
+                        println#28 :fn(string) -> void
                       arg0:
                         "float err" :string
                 else:

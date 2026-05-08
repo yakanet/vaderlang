@@ -12,7 +12,7 @@ import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute }
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { recordIterCoercion } from "./call.ts";
-import { checkExpr } from "./expr.ts";
+import { checkExpr, resolveIndexTrait } from "./expr.ts";
 import { lowerTypeExpr } from "./type-expr.ts";
 
 export function checkFnBody(
@@ -85,6 +85,25 @@ function checkStmt(
       return;
     }
     case "AssignStmt": {
+      // `a[i] = v` on a non-array target dispatches through `IndexSet($I, $T)`.
+      // The trait's `set_at` consumes the value's type as `T` ; we resolve the
+      // impl on the target's static type and surface the value's expected type
+      // before checking the RHS.
+      if (stmt.target.kind === "IndexExpr") {
+        const indexed = stmt.target;
+        const target = checkExpr(indexed.target, null, t, impls, diags, fn);
+        const indexTy = checkExpr(indexed.index, null, t, impls, diags, fn);
+        if (target.kind === "Struct") {
+          const result = resolveIndexTrait(
+            indexed, target, indexTy, CORE_TRAITS.IndexSet, "set_at", t, impls, diags,
+          );
+          if (result !== null) {
+            t.indexSetResolutions.set(indexed, result.resolution);
+            checkExpr(stmt.value, result.elementType, t, impls, diags, fn);
+            return;
+          }
+        }
+      }
       const targetType = checkExpr(stmt.target, null, t, impls, diags, fn);
       // Pass the target's type as expected so free numeric literals adopt it
       // (e.g. `v: u64; v = 5` → `5: u64`, not `5: i32`).

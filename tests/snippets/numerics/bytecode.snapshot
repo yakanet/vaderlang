@@ -1,2 +1,3 @@
 module _main
 import 0 hash_string std_core$hash_string (string) -> u64
+import 1 string_concat std_core$string_concat (string,string) -> string

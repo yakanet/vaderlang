@@ -86,6 +86,12 @@ export interface MutableTyped {
   readonly directCallOverloads: Map<A.CallExpr, Symbol>;
   /** `[T]` → `Iterator(T)` coercion sites. See `TypedProgram.arrayIterCoercions`. */
   readonly arrayIterCoercions: Map<A.Expr, Type>;
+  /** Operator-overload dispatch sites. See `TypedProgram.binaryOpResolutions`. */
+  readonly binaryOpResolutions: Map<A.BinaryExpr, import("./typed-ast.ts").BinaryOpResolution>;
+  /** Index trait dispatch sites for `a[i]` reads. */
+  readonly indexResolutions: Map<A.IndexExpr, import("./typed-ast.ts").IndexResolution>;
+  /** IndexSet trait dispatch sites for `a[i] = v` writes. */
+  readonly indexSetResolutions: Map<A.IndexExpr, import("./typed-ast.ts").IndexResolution>;
 }
 
 /** Find the std/core module's exported symbol map. Used by the impl registry

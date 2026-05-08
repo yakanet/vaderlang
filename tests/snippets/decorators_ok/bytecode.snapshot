@@ -1,6 +1,7 @@
 module _main
 import 0 log tests_snippets_decorators_ok__main_vader$log (i32,i32) -> void
 import 1 hash_string std_core$hash_string (string) -> u64
+import 2 string_concat std_core$string_concat (string,string) -> string
 
 fn 0 tests_snippets_decorators_ok__main_vader$test_log () -> void
   i32.const 0   ; _main.vader:6:9

@@ -1,5 +1,6 @@
 module _main
 import 0 hash_string std_core$hash_string (string) -> u64
+import 1 string_concat std_core$string_concat (string,string) -> string
 
 fn 0 tests_snippets_file_decorator__main_vader$main () -> i32
   i32.const 0   ; _main.vader:5:12

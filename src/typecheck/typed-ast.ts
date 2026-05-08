@@ -45,6 +45,32 @@ export interface TraitVirtualResolution {
   readonly member: A.FnDecl;
 }
 
+/** Operator overloading resolution. Recorded by the typechecker on every
+ *  `BinaryExpr` whose operands aren't handled by the primitive built-in
+ *  paths (numeric arith, primitive equality, primitive comparison, string
+ *  concat). The lowerer rewrites the binary into a call against the impl's
+ *  specialised method.
+ *
+ *  - `kind: "direct"` — `+ - * / %` ; the result type is the method's
+ *    return type (`Self`).
+ *  - `kind: "eq"` — `==` / `!=` ; the lowerer wraps with `bool.not` for `!=`.
+ *  - `kind: "ord"` — `< <= > >=` ; the lowerer rewrites to
+ *    `compare(a, b) <op> 0` against the recorded primitive op.
+ */
+export type BinaryOpResolution =
+  | { readonly kind: "direct"; readonly trait: Symbol; readonly member: A.FnDecl; readonly receiverType: Type }
+  | { readonly kind: "eq"; readonly negate: boolean;     readonly trait: Symbol; readonly member: A.FnDecl; readonly receiverType: Type }
+  | { readonly kind: "ord"; readonly cmp: "lt" | "lte" | "gt" | "gte"; readonly trait: Symbol; readonly member: A.FnDecl; readonly receiverType: Type };
+
+/** Index dispatch on `a[i]` (read) and `a[i] = v` (write) when `a` is not a
+ *  built-in array. Recorded by the typechecker so the lowerer can rewrite to
+ *  `at(self, i)` / `set_at(self, i, v)` of the matched impl. */
+export interface IndexResolution {
+  readonly trait: Symbol;
+  readonly member: A.FnDecl;
+  readonly receiverType: Type;
+}
+
 export interface TypedProgram {
   readonly resolved: ResolvedProgram;
 
@@ -91,6 +117,14 @@ export interface TypedProgram {
    *  `inferCall` / `checkLet` / `checkReturn` whenever the typecheck observes
    *  an array flowing into an `Iterator(T)` slot. */
   readonly arrayIterCoercions: ReadonlyMap<A.Expr, Type>;
+  /** Operator overload resolutions. See `BinaryOpResolution`. */
+  readonly binaryOpResolutions: ReadonlyMap<A.BinaryExpr, BinaryOpResolution>;
+  /** `a[i]` read dispatch through `Index($I, $T)::at` when `a` isn't a
+   *  built-in array. */
+  readonly indexResolutions: ReadonlyMap<A.IndexExpr, IndexResolution>;
+  /** `a[i] = v` write dispatch through `IndexSet($I, $T)::set_at`. Keyed by
+   *  the LHS `IndexExpr` (which lives inside an `AssignStmt.target`). */
+  readonly indexSetResolutions: ReadonlyMap<A.IndexExpr, IndexResolution>;
 }
 
 export interface TypedProject {

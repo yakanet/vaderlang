@@ -6,14 +6,15 @@ string 3 "info"
 string 4 "warning"
 string 5 "error"
 import 0 hash_string std_core$hash_string (string) -> u64
-import 1 print std_io$print (string) -> void
-import 2 println std_io$println (string) -> void
-import 3 eprint std_io$eprint (string) -> void
-import 4 eprintln std_io$eprintln (string) -> void
-import 5 read_line std_io$read_line () -> ref
-import 6 read_file std_io$read_file (string) -> ref
-import 7 write_file std_io$write_file (string,string) -> ref
-import 8 exists std_io$exists (string) -> bool
+import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 print std_io$print (string) -> void
+import 3 println std_io$println (string) -> void
+import 4 eprint std_io$eprint (string) -> void
+import 5 eprintln std_io$eprintln (string) -> void
+import 6 read_line std_io$read_line () -> ref
+import 7 read_file std_io$read_file (string) -> ref
+import 8 write_file std_io$write_file (string,string) -> ref
+import 9 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_enum_match__main_vader$classify (i32) -> i32
   local.get 0   ; _main.vader:9:8
@@ -84,13 +85,13 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   i32.const 1   ; _main.vader:30:16
   local.tee 0   ; _main.vader:30:5
   call 1   ; _main.vader:31:13
-  call.import 2   ; _main.vader:31:5
+  call.import 3   ; _main.vader:31:5
   i32.const 0   ; _main.vader:32:19
   call 1   ; _main.vader:32:13
-  call.import 2   ; _main.vader:32:5
+  call.import 3   ; _main.vader:32:5
   i32.const 2   ; _main.vader:33:19
   call 1   ; _main.vader:33:13
-  call.import 2   ; _main.vader:33:5
+  call.import 3   ; _main.vader:33:5
   intrinsic builder.new   ; _main.vader:36:13
   local.tee 1   ; _main.vader:36:13
   i32.const 0   ; _main.vader:36:27
@@ -99,7 +100,7 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:36:14
   local.get 1   ; _main.vader:36:13
   intrinsic builder.finish   ; _main.vader:36:13
-  call.import 2   ; _main.vader:36:5
+  call.import 3   ; _main.vader:36:5
   intrinsic builder.new   ; _main.vader:37:13
   local.tee 2   ; _main.vader:37:13
   i32.const 0   ; _main.vader:37:27
@@ -108,7 +109,7 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:37:14
   local.get 2   ; _main.vader:37:13
   intrinsic builder.finish   ; _main.vader:37:13
-  call.import 2   ; _main.vader:37:5
+  call.import 3   ; _main.vader:37:5
   intrinsic builder.new   ; _main.vader:40:13
   local.tee 3   ; _main.vader:40:13
   local.get 0   ; _main.vader:40:16
@@ -117,7 +118,7 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:40:14
   local.get 3   ; _main.vader:40:13
   intrinsic builder.finish   ; _main.vader:40:13
-  call.import 2   ; _main.vader:40:5
+  call.import 3   ; _main.vader:40:5
   intrinsic builder.new   ; _main.vader:41:13
   local.tee 4   ; _main.vader:41:13
   local.get 0   ; _main.vader:41:16
@@ -126,7 +127,7 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:41:14
   local.get 4   ; _main.vader:41:13
   intrinsic builder.finish   ; _main.vader:41:13
-  call.import 2   ; _main.vader:41:5
+  call.import 3   ; _main.vader:41:5
   i32.const 5   ; _main.vader:44:20
   i32.neg   ; _main.vader:44:19
   call 0   ; _main.vader:44:10
@@ -136,21 +137,21 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   i32.eq   ; _main.vader:46:9
   if void   ; _main.vader:46:9
   string.const 3   ; _main.vader:46:29
-  call.import 2   ; _main.vader:46:21
+  call.import 3   ; _main.vader:46:21
   else   ; _main.vader:46:9
   local.get 6   ; _main.vader:47:9
   i32.const 1   ; _main.vader:47:9
   i32.eq   ; _main.vader:47:9
   if void   ; _main.vader:47:9
   string.const 4   ; _main.vader:47:29
-  call.import 2   ; _main.vader:47:21
+  call.import 3   ; _main.vader:47:21
   else   ; _main.vader:47:9
   local.get 6   ; _main.vader:48:9
   i32.const 2   ; _main.vader:48:9
   i32.eq   ; _main.vader:48:9
   if void   ; _main.vader:48:9
   string.const 5   ; _main.vader:48:29
-  call.import 2   ; _main.vader:48:21
+  call.import 3   ; _main.vader:48:21
   else   ; _main.vader:48:9
   unreachable   ; _main.vader:45:5
   end   ; _main.vader:48:9
@@ -164,21 +165,21 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   i32.eq   ; _main.vader:53:9
   if void   ; _main.vader:53:9
   string.const 3   ; _main.vader:53:29
-  call.import 2   ; _main.vader:53:21
+  call.import 3   ; _main.vader:53:21
   else   ; _main.vader:53:9
   local.get 8   ; _main.vader:54:9
   i32.const 1   ; _main.vader:54:9
   i32.eq   ; _main.vader:54:9
   if void   ; _main.vader:54:9
   string.const 4   ; _main.vader:54:29
-  call.import 2   ; _main.vader:54:21
+  call.import 3   ; _main.vader:54:21
   else   ; _main.vader:54:9
   local.get 8   ; _main.vader:55:9
   i32.const 2   ; _main.vader:55:9
   i32.eq   ; _main.vader:55:9
   if void   ; _main.vader:55:9
   string.const 5   ; _main.vader:55:29
-  call.import 2   ; _main.vader:55:21
+  call.import 3   ; _main.vader:55:21
   else   ; _main.vader:55:9
   unreachable   ; _main.vader:52:5
   end   ; _main.vader:55:9
@@ -192,21 +193,21 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   i32.eq   ; _main.vader:60:9
   if void   ; _main.vader:60:9
   string.const 3   ; _main.vader:60:29
-  call.import 2   ; _main.vader:60:21
+  call.import 3   ; _main.vader:60:21
   else   ; _main.vader:60:9
   local.get 10   ; _main.vader:61:9
   i32.const 1   ; _main.vader:61:9
   i32.eq   ; _main.vader:61:9
   if void   ; _main.vader:61:9
   string.const 4   ; _main.vader:61:29
-  call.import 2   ; _main.vader:61:21
+  call.import 3   ; _main.vader:61:21
   else   ; _main.vader:61:9
   local.get 10   ; _main.vader:62:9
   i32.const 2   ; _main.vader:62:9
   i32.eq   ; _main.vader:62:9
   if void   ; _main.vader:62:9
   string.const 5   ; _main.vader:62:29
-  call.import 2   ; _main.vader:62:21
+  call.import 3   ; _main.vader:62:21
   else   ; _main.vader:62:9
   unreachable   ; _main.vader:59:5
   end   ; _main.vader:62:9

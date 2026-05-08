@@ -8,7 +8,7 @@ import { TY, defaultIfFree } from "../../typecheck/types.ts";
 import type { BlockCtx, FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 
-import { lowerExpr } from "./expr.ts";
+import { lowerExpr, lowerIndexTraitCall } from "./expr.ts";
 import { lowerForIn } from "./for-in.ts";
 import { applySubst, freshSyntheticSymbol, wrapStmts } from "./helpers.ts";
 
@@ -102,6 +102,16 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
       return { kind: "LoweredLet", span: stmt.span, name: stmt.name, symbol: sym, type, value };
     }
     case "AssignStmt": {
+      // `a[i] = v` on a non-array target — typecheck recorded an IndexSet
+      // dispatch ; rewrite into a `set_at(self, i, v)` call.
+      if (stmt.target.kind === "IndexExpr") {
+        const indexSet = ctx.typed.indexSetResolutions.get(stmt.target);
+        if (indexSet !== undefined) {
+          const value = lowerExpr(ctx, stmt.value);
+          const call = lowerIndexTraitCall(ctx, stmt.target, TY.void, indexSet, [value]);
+          return { kind: "LoweredExprStmt", span: stmt.span, expr: call };
+        }
+      }
       // Reassignment to a captured local: write into its cell rather than
       // overwriting the slot. Other targets (struct fields, indexed elements,
       // non-captured locals) keep the regular LoweredAssign path.

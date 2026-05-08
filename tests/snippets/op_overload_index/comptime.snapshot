@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/op_overload_index/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Yielded(string)
+  ArrayIter(string)

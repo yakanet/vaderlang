@@ -4,6 +4,7 @@
 // `parseBlock` promotes a trailing `ExprStmt` into the implicit return value
 // of the block — the type-checker then treats the block as having that type.
 
+import type { TokenKind } from "../../lexer/token.ts";
 import type * as A from "../ast.ts";
 import type { Parser } from "../parser.ts";
 
@@ -46,12 +47,37 @@ export function parseStmt(p: Parser): A.Stmt | null {
       value,
     };
   }
+  // Compound assignment — `lhs += rhs` desugars to `lhs = lhs <op> rhs` so
+  // user-type operator-overload dispatch is reused without a parallel path.
+  // Note : the parser shares the parsed `expr` AST node between the new
+  // BinaryExpr's `left` and the AssignStmt's `target`. For non-idempotent
+  // LHS (e.g. `cell["k"] += 1` with Index/IndexSet), the lowerer evaluates
+  // the receiver and index twice — matches Python/JS semantics, not C/Rust.
+  const compoundOp = COMPOUND_OPS[p.peek().kind];
+  if (compoundOp !== undefined) {
+    p.advance();
+    const rhs = parseExpr(p, 0);
+    const span = p.spanOf(start, p.peek(-1));
+    const desugared: A.BinaryExpr = {
+      kind: "BinaryExpr", span, op: compoundOp, left: expr, right: rhs,
+    };
+    return { kind: "AssignStmt", span, target: expr, value: desugared };
+  }
   return {
     kind: "ExprStmt",
     span: expr.span,
     expr,
   };
 }
+
+/** Compound-assignment tokens mapped to their underlying `BinaryExpr.op`. */
+const COMPOUND_OPS: Partial<Record<TokenKind, A.BinaryExpr["op"]>> = {
+  plus_assign:    "add",
+  minus_assign:   "sub",
+  star_assign:    "mul",
+  slash_assign:   "div",
+  percent_assign: "mod",
+};
 
 function parseTypedLet(p: Parser): A.LetStmt {
   const nameTok = p.advance(); // ident

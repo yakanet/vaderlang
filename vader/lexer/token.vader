@@ -40,6 +40,11 @@ export TokenKind :: enum(u8) {
     Eq, Neq, Lt, Lte, Gt, Gte,
     AndAnd, OrOr, Bang,
     Assign,        // =
+    PlusAssign,    // +=
+    MinusAssign,   // -=
+    StarAssign,    // *=
+    SlashAssign,   // /=
+    PercentAssign, // %=
     DeclConst,     // ::
     DeclVar,       // :=
     RangeExcl,     // ..<

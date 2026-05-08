@@ -1,5 +1,6 @@
 module _main
 import 0 hash_string std_core$hash_string (string) -> u64
+import 1 string_concat std_core$string_concat (string,string) -> string
 
 fn 0 tests_snippets_expr_bodied_recursive_fn__main_vader$fact (i32) -> any
   local.get 0   ; _main.vader:6:32

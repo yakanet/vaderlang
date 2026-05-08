@@ -10,35 +10,36 @@ string 4 "3.14"
 string 5 "float ok"
 string 6 "float err"
 import 0 hash_string std_core$hash_string (string) -> u64
-import 1 print std_io$print (string) -> void
-import 2 println std_io$println (string) -> void
-import 3 eprint std_io$eprint (string) -> void
-import 4 eprintln std_io$eprintln (string) -> void
-import 5 read_line std_io$read_line () -> ref
-import 6 read_file std_io$read_file (string) -> ref
-import 7 write_file std_io$write_file (string,string) -> ref
-import 8 exists std_io$exists (string) -> bool
-import 9 len std_string$len (string) -> i32
-import 10 slice std_string$slice (string,i32,i32) -> string
-import 11 contains std_string$contains (string,string) -> bool
-import 12 starts_with std_string$starts_with (string,string) -> bool
-import 13 ends_with std_string$ends_with (string,string) -> bool
-import 14 char_at std_string$char_at (string,i32) -> char
-import 15 split std_string$split (string,string) -> ref
-import 16 trim std_string$trim (string) -> string
-import 17 to_upper std_string$to_upper (string) -> string
-import 18 to_lower std_string$to_lower (string) -> string
-import 19 parse_int std_string$parse_int (string) -> ref
-import 20 parse_float std_string$parse_float (string) -> ref
-import 21 concat_all std_string_builder$concat_all (ref) -> string
-import 22 sqrt std_math$sqrt (f64) -> f64
-import 23 pow std_math$pow (f64,f64) -> f64
-import 24 floor std_math$floor (f64) -> f64
-import 25 ceil std_math$ceil (f64) -> f64
-import 26 round std_math$round (f64) -> f64
-import 27 sin std_math$sin (f64) -> f64
-import 28 cos std_math$cos (f64) -> f64
-import 29 tan std_math$tan (f64) -> f64
+import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 print std_io$print (string) -> void
+import 3 println std_io$println (string) -> void
+import 4 eprint std_io$eprint (string) -> void
+import 5 eprintln std_io$eprintln (string) -> void
+import 6 read_line std_io$read_line () -> ref
+import 7 read_file std_io$read_file (string) -> ref
+import 8 write_file std_io$write_file (string,string) -> ref
+import 9 exists std_io$exists (string) -> bool
+import 10 len std_string$len (string) -> i32
+import 11 slice std_string$slice (string,i32,i32) -> string
+import 12 contains std_string$contains (string,string) -> bool
+import 13 starts_with std_string$starts_with (string,string) -> bool
+import 14 ends_with std_string$ends_with (string,string) -> bool
+import 15 char_at std_string$char_at (string,i32) -> char
+import 16 split std_string$split (string,string) -> ref
+import 17 trim std_string$trim (string) -> string
+import 18 to_upper std_string$to_upper (string) -> string
+import 19 to_lower std_string$to_lower (string) -> string
+import 20 parse_int std_string$parse_int (string) -> ref
+import 21 parse_float std_string$parse_float (string) -> ref
+import 22 concat_all std_string_builder$concat_all (ref) -> string
+import 23 sqrt std_math$sqrt (f64) -> f64
+import 24 pow std_math$pow (f64,f64) -> f64
+import 25 floor std_math$floor (f64) -> f64
+import 26 ceil std_math$ceil (f64) -> f64
+import 27 round std_math$round (f64) -> f64
+import 28 sin std_math$sin (f64) -> f64
+import 29 cos std_math$cos (f64) -> f64
+import 30 tan std_math$tan (f64) -> f64
 
 fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
   local __scrut_0 ref
@@ -46,69 +47,69 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
   local __scrut_2 ref
   local __scrut_3 ref
   string.const 0   ; _main.vader:9:21
-  call.import 19   ; _main.vader:9:11
+  call.import 20   ; _main.vader:9:11
   local.tee 0   ; _main.vader:9:11
   type_check 0   ; _main.vader:10:9
   if void   ; _main.vader:10:9
   string.const 1   ; _main.vader:10:27
-  call.import 2   ; _main.vader:10:19
+  call.import 3   ; _main.vader:10:19
   else   ; _main.vader:10:9
   local.get 0   ; _main.vader:11:9
   type_check 1   ; _main.vader:11:9
   if void   ; _main.vader:11:9
   string.const 2   ; _main.vader:11:29
-  call.import 2   ; _main.vader:11:21
+  call.import 3   ; _main.vader:11:21
   else   ; _main.vader:11:9
   unreachable   ; _main.vader:9:5
   end   ; _main.vader:11:9
   end   ; _main.vader:10:9
   string.const 3   ; _main.vader:13:21
-  call.import 19   ; _main.vader:13:11
+  call.import 20   ; _main.vader:13:11
   local.tee 1   ; _main.vader:13:11
   type_check 0   ; _main.vader:14:9
   if void   ; _main.vader:14:9
   string.const 1   ; _main.vader:14:27
-  call.import 2   ; _main.vader:14:19
+  call.import 3   ; _main.vader:14:19
   else   ; _main.vader:14:9
   local.get 1   ; _main.vader:15:9
   type_check 1   ; _main.vader:15:9
   if void   ; _main.vader:15:9
   string.const 2   ; _main.vader:15:29
-  call.import 2   ; _main.vader:15:21
+  call.import 3   ; _main.vader:15:21
   else   ; _main.vader:15:9
   unreachable   ; _main.vader:13:5
   end   ; _main.vader:15:9
   end   ; _main.vader:14:9
   string.const 4   ; _main.vader:17:23
-  call.import 20   ; _main.vader:17:11
+  call.import 21   ; _main.vader:17:11
   local.tee 2   ; _main.vader:17:11
   type_check 2   ; _main.vader:18:9
   if void   ; _main.vader:18:9
   string.const 5   ; _main.vader:18:27
-  call.import 2   ; _main.vader:18:19
+  call.import 3   ; _main.vader:18:19
   else   ; _main.vader:18:9
   local.get 2   ; _main.vader:19:9
   type_check 1   ; _main.vader:19:9
   if void   ; _main.vader:19:9
   string.const 6   ; _main.vader:19:29
-  call.import 2   ; _main.vader:19:21
+  call.import 3   ; _main.vader:19:21
   else   ; _main.vader:19:9
   unreachable   ; _main.vader:17:5
   end   ; _main.vader:19:9
   end   ; _main.vader:18:9
   string.const 3   ; _main.vader:21:23
-  call.import 20   ; _main.vader:21:11
+  call.import 21   ; _main.vader:21:11
   local.tee 3   ; _main.vader:21:11
   type_check 2   ; _main.vader:22:9
   if void   ; _main.vader:22:9
   string.const 5   ; _main.vader:22:27
-  call.import 2   ; _main.vader:22:19
+  call.import 3   ; _main.vader:22:19
   else   ; _main.vader:22:9
   local.get 3   ; _main.vader:23:9
   type_check 1   ; _main.vader:23:9
   if void   ; _main.vader:23:9
   string.const 6   ; _main.vader:23:29
-  call.import 2   ; _main.vader:23:21
+  call.import 3   ; _main.vader:23:21
   else   ; _main.vader:23:9
   unreachable   ; _main.vader:21:5
   end   ; _main.vader:23:9

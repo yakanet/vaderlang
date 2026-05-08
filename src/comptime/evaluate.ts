@@ -205,14 +205,20 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry): vo
     // specialised impl members; the lowerer can't add to the registry
     // because it runs after mono.
     if (arrayIterSymbol !== null) {
+      const onForIn = (iter: A.Expr): void => {
+        const iterType = typed.exprTypes.get(iter);
+        if (iterType !== undefined && iterType.kind === "Array") {
+          registry.add(arrayIterSymbol!, [iterType.element]);
+        }
+      };
       for (const decl of typed.resolved.source.decls) {
-        if (decl.kind !== "FnDecl" || decl.body === null) continue;
-        walkBlock(decl.body, { forInIter: (iter) => {
-          const iterType = typed.exprTypes.get(iter);
-          if (iterType !== undefined && iterType.kind === "Array") {
-            registry.add(arrayIterSymbol!, [iterType.element]);
+        if (decl.kind === "FnDecl" && decl.body !== null) {
+          walkBlock(decl.body, { forInIter: onForIn });
+        } else if (decl.kind === "ImplDecl") {
+          for (const member of decl.members) {
+            if (member.body !== null) walkBlock(member.body, { forInIter: onForIn });
           }
-        } });
+        }
       }
     }
     // Each `[T]` → `Iterator(T)` coercion site needs an `ArrayIter(T)`

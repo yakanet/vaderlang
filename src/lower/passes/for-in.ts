@@ -191,14 +191,13 @@ function findIteratorStepImpl(ctx: FnLowerCtx, iterType: Type): StepImpl | null 
   return { fnSymbol: monoEntry.symbol, elementType };
 }
 
-/** O(1) lookup of an impl entry by `(forType, traitSym)`. Returns null when
- *  no matching impl exists. */
+/** Thin alias kept so for-in callers don't reach into `ctx.impls` directly.
+ *  Identity is `ImplRegistry.findFor` ; the wrapper is here to absorb the
+ *  `LowerProjectCtx` indirection at call sites. */
 export function lookupImplFor(
   ctx: LowerProjectCtx, forType: Type, traitSym: Symbol,
 ): ImplEntry | null {
-  if (forType.kind === "Struct") return ctx.impls.findUser(forType.symbol, traitSym);
-  if (forType.kind === "Primitive") return ctx.impls.forPrimitive(forType.name, traitSym);
-  return null;
+  return ctx.impls.findFor(forType, traitSym);
 }
 
 export function lookupImplEntry(ctx: FnLowerCtx, member: A.FnDecl, args: readonly Type[]): MonoEntry | null {

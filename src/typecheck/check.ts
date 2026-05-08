@@ -49,6 +49,9 @@ export function declareModule(
     traitVirtualResolutions: new Map(),
     directCallOverloads: new Map(),
     arrayIterCoercions: new Map(),
+    binaryOpResolutions: new Map(),
+    indexResolutions: new Map(),
+    indexSetResolutions: new Map(),
   };
   for (const decl of program.source.decls) {
     if (phase === "enums" && decl.kind !== "EnumDecl") continue;
@@ -71,6 +74,9 @@ export function checkProgram(
     traitVirtualResolutions: new Map(),
     directCallOverloads: new Map(),
     arrayIterCoercions: new Map(),
+    binaryOpResolutions: new Map(),
+    indexResolutions: new Map(),
+    indexSetResolutions: new Map(),
   };
 
   for (const decl of program.source.decls) {
@@ -123,6 +129,9 @@ export function checkProgram(
     traitVirtualResolutions: t.traitVirtualResolutions,
     directCallOverloads: t.directCallOverloads,
     arrayIterCoercions: t.arrayIterCoercions,
+    binaryOpResolutions: t.binaryOpResolutions,
+    indexResolutions: t.indexResolutions,
+    indexSetResolutions: t.indexSetResolutions,
   };
 }
 

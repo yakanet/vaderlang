@@ -13,17 +13,25 @@ IOError implements Error {
 }
 
 // print / println — write to stdout.
+@intrinsic
 export print   :: fn(msg: string) -> void
+@intrinsic
 export println :: fn(msg: string) -> void
 
 // eprint / eprintln — write to stderr.
+@intrinsic
 export eprint   :: fn(msg: string) -> void
+@intrinsic
 export eprintln :: fn(msg: string) -> void
 
 // read_line — block on stdin until newline.
+@intrinsic
 export read_line :: fn() -> string!
 
 // File operations.
+@intrinsic
 export read_file  :: fn(path: string) -> string!
+@intrinsic
 export write_file :: fn(path: string, content: string) -> void!
+@intrinsic
 export exists     :: fn(path: string) -> bool

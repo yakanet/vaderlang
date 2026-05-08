@@ -30,11 +30,23 @@ export Clone :: trait {
     fn clone(self) -> Self
 }
 
-// Arithmetic operator traits.
+// Arithmetic operator traits. `+` `-` `*` `/` `%` dispatch through these
+// when the operands aren't primitive numerics (numerics use the built-in
+// bytecode ops directly).
 export Add :: trait { fn add(self, other: Self) -> Self }
 export Sub :: trait { fn sub(self, other: Self) -> Self }
 export Mul :: trait { fn mul(self, other: Self) -> Self }
 export Div :: trait { fn div(self, other: Self) -> Self }
+export Rem :: trait { fn rem(self, other: Self) -> Self }
+
+// Index / IndexSet — dispatch for `a[i]` (read) and `a[i] = v` (write) when
+// `a` isn't a built-in array. `I` is the index type, `T` the element type.
+export Index :: trait($I, $T) {
+    fn at(self, i: I) -> T
+}
+export IndexSet :: trait($I, $T) {
+    fn set_at(self, i: I, v: T)
+}
 
 // Iterator step result. `Done` signals end-of-iteration; `Yielded(T)` carries
 // the next value. Sum-type discriminator avoids the sentinel collision that
@@ -127,7 +139,18 @@ u32   implements Hash -> u64(self)
 usize implements Hash -> u64(self)
 
 // String Hash — FNV-1a over the UTF-8 bytes; intrinsic provided by the host.
+@intrinsic
 export hash_string :: fn(s: string) -> u64
+
+// String concatenation — host-provided. The bytecode emitter recognises
+// calls to `string_concat` and emits the dedicated `string.concat` op (no
+// import indirection), so `s1 + s2` and `"a".add("b")` share a single
+// runtime path. The `string implements Add` impl below makes the trait
+// dispatch surface uniform.
+@intrinsic
+export string_concat :: fn(a: string, b: string) -> string
+
+string implements Add -> string_concat(self, other)
 
 string implements Hash -> hash_string(self)
 

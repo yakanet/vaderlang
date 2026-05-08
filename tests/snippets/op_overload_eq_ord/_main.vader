@@ -1,0 +1,33 @@
+// Equality and ordering overloading via Eq / Ord.
+//
+// `==` / `!=` route to `Eq::equals` when both operands share a user-struct
+// type and an Eq impl exists ; without an impl they fall back to reference
+// identity (Java-style — SPEC §4 memory model).
+//
+// `<` / `<=` / `>` / `>=` route to `Ord::compare` ; the lowerer rewrites
+// the comparison into `compare(a, b) <op> 0` using primitive i32 ops.
+
+import "std/io" { println }
+
+Money :: struct { amount: i32 }
+
+Money implements Eq -> self.amount == other.amount
+Money implements Ord {
+    fn compare(self, other: Money) -> i32 {
+        if self.amount < other.amount { return -1 }
+        if self.amount > other.amount { return 1 }
+        return 0
+    }
+}
+
+main :: fn() -> i32 {
+    a :: Money { .amount = 100 }
+    b :: Money { .amount = 100 }
+    c :: Money { .amount = 200 }
+
+    // Eq via trait dispatch — structural equality.
+    println("a==b ${a == b}  a!=c ${a != c}")
+    // Ord via compare-and-zero ; covers all four primitive comparisons.
+    println("a<c ${a < c}  c>a ${c > a}  a>=b ${a >= b}  c<=c ${c <= c}")
+    return 0
+}

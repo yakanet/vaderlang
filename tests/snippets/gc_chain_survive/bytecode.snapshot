@@ -8,18 +8,19 @@ string 1 "sum mismatch: got "
 string 2 ", expected "
 string 3 "ok: 200 nodes survived GC; sum="
 import 0 hash_string std_core$hash_string (string) -> u64
-import 1 print std_io$print (string) -> void
-import 2 println std_io$println (string) -> void
-import 3 eprint std_io$eprint (string) -> void
-import 4 eprintln std_io$eprintln (string) -> void
-import 5 read_line std_io$read_line () -> ref
-import 6 read_file std_io$read_file (string) -> ref
-import 7 write_file std_io$write_file (string,string) -> ref
-import 8 exists std_io$exists (string) -> bool
-import 9 collect std_runtime$collect () -> void
-import 10 collections std_runtime$collections () -> i32
-import 11 bytes_used std_runtime$bytes_used () -> i32
-import 12 bytes_copied std_runtime$bytes_copied () -> i32
+import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 print std_io$print (string) -> void
+import 3 println std_io$println (string) -> void
+import 4 eprint std_io$eprint (string) -> void
+import 5 eprintln std_io$eprintln (string) -> void
+import 6 read_line std_io$read_line () -> ref
+import 7 read_file std_io$read_file (string) -> ref
+import 8 write_file std_io$write_file (string,string) -> ref
+import 9 exists std_io$exists (string) -> bool
+import 10 collect std_runtime$collect () -> void
+import 11 collections std_runtime$collections () -> i32
+import 12 bytes_used std_runtime$bytes_used () -> i32
+import 13 bytes_copied std_runtime$bytes_copied () -> i32
 
 fn 0 tests_snippets_gc_chain_survive__main_vader$main () -> i32
   local head ref
@@ -58,10 +59,10 @@ fn 0 tests_snippets_gc_chain_survive__main_vader$main () -> i32
   br 0   ; _main.vader:12:5
   end   ; _main.vader:12:5
   end   ; _main.vader:12:5
-  call.import 10   ; _main.vader:17:15
+  call.import 11   ; _main.vader:17:15
   local.set 2   ; _main.vader:17:5
-  call.import 9   ; _main.vader:18:5
-  call.import 10   ; _main.vader:19:14
+  call.import 10   ; _main.vader:18:5
+  call.import 11   ; _main.vader:19:14
   local.tee 3   ; _main.vader:19:5
   local.get 2   ; _main.vader:21:21
   i32.sub   ; _main.vader:21:13
@@ -78,7 +79,7 @@ fn 0 tests_snippets_gc_chain_survive__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:23:45
   local.get 5   ; _main.vader:23:17
   intrinsic builder.finish   ; _main.vader:23:17
-  call.import 2   ; _main.vader:23:9
+  call.import 3   ; _main.vader:23:9
   i32.const 1   ; _main.vader:24:16
   return   ; _main.vader:24:9
   end   ; _main.vader:22:5
@@ -142,7 +143,7 @@ fn 0 tests_snippets_gc_chain_survive__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:42:53
   local.get 11   ; _main.vader:42:17
   intrinsic builder.finish   ; _main.vader:42:17
-  call.import 2   ; _main.vader:42:9
+  call.import 3   ; _main.vader:42:9
   i32.const 2   ; _main.vader:43:16
   return   ; _main.vader:43:9
   end   ; _main.vader:41:5
@@ -155,7 +156,7 @@ fn 0 tests_snippets_gc_chain_survive__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:46:45
   local.get 12   ; _main.vader:46:13
   intrinsic builder.finish   ; _main.vader:46:13
-  call.import 2   ; _main.vader:46:5
+  call.import 3   ; _main.vader:46:5
   i32.const 0   ; _main.vader:47:12
   return   ; _main.vader:47:5
 end

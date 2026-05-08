@@ -1188,7 +1188,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
     if p.check(.Ident) && p.check_at(.Colon, 1) {
         return p.parse_typed_let()
     }
-    // Expression statement (with optional `=` assignment).
+    // Expression statement (with optional `=` or compound assignment).
     start :: p.peek()
     expr :: p.parse_expr(0)
     if p.match_kind(.Assign).matched {
@@ -1199,7 +1199,32 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
             .value  = value,
         }
     }
+    // Compound assignment — `lhs += rhs` desugars to `lhs = lhs <op> rhs`.
+    compound :: p.peek().kind.compound_op()
+    if compound.matched {
+        p.advance()
+        rhs :: p.parse_expr(0)
+        sp  :: p.span_of(start, p.peek_at(-1))
+        return AssignStmt {
+            .span   = sp,
+            .target = expr,
+            .value  = BinaryExpr { .span = sp, .op = compound.op, .left = expr, .right = rhs },
+        }
+    }
     return ExprStmt { .span = expr_span(expr), .expr = expr }
+}
+
+/** Maps a `*Assign` token kind to the underlying `BinaryOp` ; returns
+ *  `{ matched = false }` when the kind isn't a compound assignment. */
+CompoundOpResult :: struct { matched: bool, op: BinaryOp }
+
+compound_op :: fn(k: TokenKind) = match k {
+    .PlusAssign    -> CompoundOpResult { .matched = true, .op = .Add }
+    .MinusAssign   -> CompoundOpResult { .matched = true, .op = .Sub }
+    .StarAssign    -> CompoundOpResult { .matched = true, .op = .Mul }
+    .SlashAssign   -> CompoundOpResult { .matched = true, .op = .Div }
+    .PercentAssign -> CompoundOpResult { .matched = true, .op = .Mod }
+    _              -> CompoundOpResult { .matched = false, .op = .Add }
 }
 
 parse_typed_let :: fn(p: Parser) -> LetStmt {
@@ -1411,6 +1436,11 @@ infix_for :: fn(k: TokenKind) = match k {
     .Tilde        -> no_infix()
     .Bang         -> no_infix()
     .Assign       -> no_infix()
+    .PlusAssign   -> no_infix()
+    .MinusAssign  -> no_infix()
+    .StarAssign   -> no_infix()
+    .SlashAssign  -> no_infix()
+    .PercentAssign -> no_infix()
     .DeclConst    -> no_infix()
     .DeclVar      -> no_infix()
     .Question     -> no_infix()
@@ -1490,6 +1520,11 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .OrOr         -> -1
     .Bang         -> -1
     .Assign       -> -1
+    .PlusAssign   -> -1
+    .MinusAssign  -> -1
+    .StarAssign   -> -1
+    .SlashAssign  -> -1
+    .PercentAssign -> -1
     .DeclConst    -> -1
     .DeclVar      -> -1
     .RangeExcl    -> -1

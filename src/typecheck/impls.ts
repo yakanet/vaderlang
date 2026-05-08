@@ -7,6 +7,7 @@ import type { Module } from "../resolver/index.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import { findCoreSymbols } from "./ctx.ts";
+import type { Type } from "./types.ts";
 
 export interface ImplEntry {
   readonly decl: A.ImplDecl;
@@ -46,6 +47,15 @@ export class ImplRegistry {
       if (e.forSymbol !== null) continue;
       if (e.decl.forType.kind === "NamedType" && e.decl.forType.name === name) return e;
     }
+    return null;
+  }
+
+  /** Resolve `(forType, trait)` regardless of whether `forType` is a struct
+   *  or a primitive. Other shapes (Array, Trait, TypeParam, …) have no impl
+   *  by construction. */
+  findFor(forType: Type, traitSymbol: Symbol): ImplEntry | null {
+    if (forType.kind === "Struct") return this.findUser(forType.symbol, traitSymbol);
+    if (forType.kind === "Primitive") return this.forPrimitive(forType.name, traitSymbol);
     return null;
   }
 

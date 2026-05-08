@@ -13,8 +13,10 @@ import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Type } from "../types.ts";
 import {
-  CORE_STRUCTS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, substitute, unionOf,
+  CORE_STRUCTS, CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, substitute, unionOf,
 } from "../types.ts";
+import { buildStructSubst } from "../ctx.ts";
+import type { ImplEntry } from "../impls.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { inferBinary } from "./binary.ts";
@@ -25,7 +27,7 @@ import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
 import { lowerTypeExpr, primitiveFromName } from "./type-expr.ts";
-import { implementsDisplay } from "./traits.ts";
+import { findGlobalTrait, implementsDisplay } from "./traits.ts";
 
 export function checkExpr(
   expr: A.Expr, expected: Type | null,
@@ -157,10 +159,56 @@ function inferIndex(
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   const target = checkExpr(expr.target, null, t, impls, diags, fn);
-  checkExpr(expr.index, null, t, impls, diags, fn);
+  const indexTy = checkExpr(expr.index, null, t, impls, diags, fn);
   if (target.kind === "Array") return target.element;
+  // Trait dispatch via `Index($I, $T)` when the target isn't a built-in array.
+  if (target.kind === "Struct") {
+    const result = resolveIndexTrait(expr, target, indexTy, CORE_TRAITS.Index, "at", t, impls, diags);
+    if (result !== null) {
+      t.indexResolutions.set(expr, result.resolution);
+      return result.elementType;
+    }
+  }
   if (target.kind !== "Unresolved") err(diags, "T3008", expr.target.span, displayType(target));
   return TY.unresolved;
+}
+
+/** Look up an `Index($I, $T)` or `IndexSet($I, $T)` impl on `target` and
+ *  build the substitution that pins the trait's `I` and `T` parameters to
+ *  the impl's declared trait args. Returns the resolution + the element
+ *  type at the use site. */
+export function resolveIndexTrait(
+  expr: A.Expr, target: Extract<Type, { kind: "Struct" }>, indexTy: Type,
+  traitName: string, methodName: string,
+  t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector,
+): { resolution: import("../typed-ast.ts").IndexResolution; elementType: Type } | null {
+  const trait = findGlobalTrait(t, traitName);
+  if (trait === null) return null;
+  const entry: ImplEntry | null = impls.findUser(target.symbol, trait);
+  if (entry === null) return null;
+  const member = entry.decl.members.find((m) => m.name === methodName);
+  if (member === undefined) return null;
+  // Element type comes from the impl's trait args (`Index(K, V)` → at returns V).
+  const traitArgs: Type[] = entry.decl.traitArgs.map(
+    (ta) => t.globals.typeExprTypes.get(ta) ?? TY.unresolved,
+  );
+  if (traitArgs.length < 2) return null;
+  // Substitute the struct's typeParams using the receiver's concrete args so
+  // generic containers resolve correctly (e.g. `Cell(T)::at` indexed by string).
+  const decl = target.symbol.source.kind === "struct" ? target.symbol.source.decl : null;
+  const subst = decl !== null
+    ? buildStructSubst(decl.typeParams, target.args, t.globals.typeParamSymbols)
+    : { typeParams: new Map() };
+  const expectedIndex = substitute(traitArgs[0]!, subst);
+  const elementType  = substitute(traitArgs[1]!, subst);
+  if (!isAssignable(indexTy, expectedIndex, impls)) {
+    err(diags, "T3017", expr.span,
+      `${traitName} on ${displayType(target)} expects index ${displayType(expectedIndex)}, got ${displayType(indexTy)}`);
+  }
+  return {
+    resolution: { trait, member, receiverType: target },
+    elementType,
+  };
 }
 
 function inferUnary(

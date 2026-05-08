@@ -1,0 +1,27 @@
+// Operator overloading for `+ - * / %` via Add / Sub / Mul / Div / Rem.
+// Each impl returns `Self`. The typechecker falls back to trait dispatch
+// when neither operand is a primitive numeric (`binary.ts`), records the
+// resolution in `binaryOpResolutions`, and the lowerer rewrites the
+// `LoweredBinary` into a direct call against the impl member.
+
+import "std/io" { println }
+
+Vec :: struct { x: i32, y: i32 }
+
+Vec implements Add { fn add(self, other: Vec) -> Vec { return Vec { .x = self.x + other.x, .y = self.y + other.y } } }
+Vec implements Sub { fn sub(self, other: Vec) -> Vec { return Vec { .x = self.x - other.x, .y = self.y - other.y } } }
+Vec implements Mul { fn mul(self, other: Vec) -> Vec { return Vec { .x = self.x * other.x, .y = self.y * other.y } } }
+Vec implements Div { fn div(self, other: Vec) -> Vec { return Vec { .x = self.x / other.x, .y = self.y / other.y } } }
+Vec implements Rem { fn rem(self, other: Vec) -> Vec { return Vec { .x = self.x % other.x, .y = self.y % other.y } } }
+
+main :: fn() -> i32 {
+    a :: Vec { .x = 10, .y = 20 }
+    b :: Vec { .x = 3,  .y = 4  }
+    s :: a + b
+    d :: a - b
+    m :: a * b
+    q :: a / b
+    r :: a % b
+    println("s=(${s.x},${s.y}) d=(${d.x},${d.y}) m=(${m.x},${m.y}) q=(${q.x},${q.y}) r=(${r.x},${r.y})")
+    return 0
+}

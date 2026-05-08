@@ -3,6 +3,7 @@ string 0 "Hello, "
 string 1 "! You are "
 string 2 " years old."
 import 0 hash_string std_core$hash_string (string) -> u64
+import 1 string_concat std_core$string_concat (string,string) -> string
 
 fn 0 tests_snippets_interp_string__main_vader$greet (string,i32) -> string
   local __sb_0 any

@@ -195,12 +195,17 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         target: lowerExpr(ctx, expr.target), field: expr.field,
       };
     }
-    case "IndexExpr":
+    case "IndexExpr": {
+      const indexRes = ctx.typed.indexResolutions.get(expr);
+      if (indexRes !== undefined) {
+        return lowerIndexTraitCall(ctx, expr, exprType, indexRes, /*extraArgs*/ []);
+      }
       return {
         kind: "LoweredIndex", span: expr.span, type: exprType,
         target: lowerExpr(ctx, expr.target),
         index: lowerExpr(ctx, expr.index),
       };
+    }
     case "UnaryExpr":
       return {
         kind: "LoweredUnary", span: expr.span, type: exprType,
@@ -309,11 +314,72 @@ function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): Lower
   if (expr.op === "in" || expr.op === "not_in") {
     return lowerInOp(ctx, expr);
   }
+  const opRes = ctx.typed.binaryOpResolutions.get(expr);
+  if (opRes !== undefined) {
+    return lowerOverloadedBinary(ctx, expr, exprType, opRes);
+  }
   return {
     kind: "LoweredBinary", span: expr.span, type: exprType,
     op: expr.op,
     left: lowerExpr(ctx, expr.left),
     right: lowerExpr(ctx, expr.right),
+  };
+}
+
+/** Rewrite `a[i]` (or `a[i] = v`) into a direct call against the matched
+ *  `Index($I, $T)::at` (or `IndexSet::set_at`) impl member. `extraArgs` is
+ *  empty for reads ; for writes it carries the lowered RHS value. */
+export function lowerIndexTraitCall(
+  ctx: FnLowerCtx, expr: A.IndexExpr, exprType: Type,
+  res: import("../../typecheck/typed-ast.ts").IndexResolution,
+  extraArgs: readonly LoweredExpr[],
+): LoweredExpr {
+  const recv = applySubst(res.receiverType, ctx.subst);
+  const structArgs = recv.kind === "Struct" ? recv.args : [];
+  const entry = lookupImplEntry(ctx, res.member, structArgs);
+  if (entry === null || entry.symbol === null) {
+    return { kind: "LoweredUnreachable", span: expr.span, type: exprType,
+             reason: "unmaterialised Index/IndexSet impl member" };
+  }
+  return {
+    kind: "LoweredCall", span: expr.span, type: exprType,
+    callee: { kind: "LoweredIdent", span: expr.span, type: exprType, symbol: entry.symbol },
+    args: [lowerExpr(ctx, expr.target), lowerExpr(ctx, expr.index), ...extraArgs],
+  };
+}
+
+/** Rewrite `a <op> b` into a direct call against the impl member resolved by
+ *  the typechecker. Eq/neq wrap with `bool.not` ; ord wraps with a primitive
+ *  comparison against zero against `compare`'s i32 result. */
+function lowerOverloadedBinary(
+  ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type,
+  res: import("../../typecheck/typed-ast.ts").BinaryOpResolution,
+): LoweredExpr {
+  const recv = applySubst(res.receiverType, ctx.subst);
+  const structArgs = recv.kind === "Struct" ? recv.args : [];
+  const entry = lookupImplEntry(ctx, res.member, structArgs);
+  if (entry === null || entry.symbol === null) {
+    return { kind: "LoweredUnreachable", span: expr.span, type: exprType,
+             reason: `unmaterialised ${res.kind} impl member` };
+  }
+  const left = lowerExpr(ctx, expr.left);
+  const right = lowerExpr(ctx, expr.right);
+  const callType = res.kind === "ord" ? TY.i32 : res.kind === "eq" ? TY.bool : exprType;
+  const call: LoweredExpr = {
+    kind: "LoweredCall", span: expr.span, type: callType,
+    callee: { kind: "LoweredIdent", span: expr.span, type: callType, symbol: entry.symbol },
+    args: [left, right],
+  };
+  if (res.kind === "direct") return call;
+  if (res.kind === "eq") {
+    if (!res.negate) return call;
+    return { kind: "LoweredUnary", span: expr.span, type: TY.bool, op: "not", operand: call };
+  }
+  // ord : `compare(a, b) <op> 0`
+  return {
+    kind: "LoweredBinary", span: expr.span, type: TY.bool, op: res.cmp,
+    left: call,
+    right: { kind: "LoweredIntLit", span: expr.span, type: TY.i32, value: 0n },
   };
 }
 

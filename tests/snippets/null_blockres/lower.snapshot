@@ -2,10 +2,10 @@
 
 ## tests/snippets/null_blockres/_main.vader
   fn tests_snippets_null_blockres__main_vader$pick(c: bool) -> null | string
-    let x#53: null =
+    let x#57: null =
       if :null
         cond:
-          c#52 :bool
+          c#56 :bool
         then:
           ~>
             null
@@ -16,7 +16,7 @@
       cond:
         eq :bool
           l:
-            x#53 :null
+            x#57 :null
           r:
             null
       then:
@@ -39,7 +39,7 @@
             ~>
               call :void
                 callee:
-                  println#23 :fn(string) -> void
+                  println#27 :fn(string) -> void
                 arg0:
                   "got string" :string
           else:
@@ -52,7 +52,7 @@
                   ~>
                     call :void
                       callee:
-                        println#23 :fn(string) -> void
+                        println#27 :fn(string) -> void
                       arg0:
                         "nothing" :string
                 else:

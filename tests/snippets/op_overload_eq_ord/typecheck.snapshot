@@ -1,0 +1,50 @@
+# Typecheck
+
+## tests/snippets/op_overload_eq_ord/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Money                :: Money
+  expr 14:24    BinaryExpr     :: bool
+  expr 14:24    FieldExpr      :: i32
+  expr 14:24    IdentExpr      :: Money
+  expr 14:39    FieldExpr      :: i32
+  expr 14:39    IdentExpr      :: Money
+  expr 17:12    BinaryExpr     :: bool
+  expr 17:12    FieldExpr      :: i32
+  expr 17:12    IdentExpr      :: Money
+  expr 17:26    FieldExpr      :: i32
+  expr 17:26    IdentExpr      :: Money
+  expr 17:48    UnaryExpr      :: i32
+  expr 17:9     IfExpr         :: void
+  expr 18:12    BinaryExpr     :: bool
+  expr 18:12    FieldExpr      :: i32
+  expr 18:12    IdentExpr      :: Money
+  expr 18:26    FieldExpr      :: i32
+  expr 18:26    IdentExpr      :: Money
+  expr 18:9     IfExpr         :: void
+  expr 24:10    StructLitExpr  :: Money
+  expr 25:10    StructLitExpr  :: Money
+  expr 26:10    StructLitExpr  :: Money
+  expr 29:13    StringLitExpr  :: string
+  expr 29:21    BinaryExpr     :: bool
+  expr 29:21    IdentExpr      :: Money
+  expr 29:26    IdentExpr      :: Money
+  expr 29:37    BinaryExpr     :: bool
+  expr 29:37    IdentExpr      :: Money
+  expr 29:42    IdentExpr      :: Money
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(string) -> void
+  expr 31:13    StringLitExpr  :: string
+  expr 31:20    BinaryExpr     :: bool
+  expr 31:20    IdentExpr      :: Money
+  expr 31:24    IdentExpr      :: Money
+  expr 31:34    BinaryExpr     :: bool
+  expr 31:34    IdentExpr      :: Money
+  expr 31:38    IdentExpr      :: Money
+  expr 31:49    BinaryExpr     :: bool
+  expr 31:49    IdentExpr      :: Money
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(string) -> void
+  expr 31:54    IdentExpr      :: Money
+  expr 31:65    BinaryExpr     :: bool
+  expr 31:65    IdentExpr      :: Money
+  expr 31:70    IdentExpr      :: Money
