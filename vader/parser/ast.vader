@@ -12,7 +12,7 @@ import "vader/diagnostics/diagnostic" { Span }
 // Type aliases (declared first — see header)
 // ============================================================================
 
-export Decl :: type ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl
+export Decl :: type ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl | AssertDecl
 
 export ImportBinding :: type NamespaceImport | AliasImport | DestructureImport
 
@@ -221,6 +221,15 @@ export ConstDecl :: struct {
     decorators: Decorator[]
 }
 
+// `@assert(cond)` — top-level compile-time assertion. The condition
+// is evaluated by the comptime VM ; the build fails with C4015 if
+// the result is `false`. No runtime emission.
+export AssertDecl :: struct {
+    span:       Span
+    condition:  Expr
+    decorators: Decorator[]
+}
+
 // ============================================================================
 // Statements
 // ============================================================================
@@ -424,6 +433,11 @@ export MatchExpr :: struct {
     span:      Span
     scrutinee: Expr
     arms:      MatchArm[]
+    // `@partial match x { … }` opts out of exhaustiveness — no T3013
+    // fires for missing variants. Default `false` keeps the regular
+    // exhaustive-by-default behaviour ; the dump suppresses the field
+    // when `false` so old snapshots stay byte-identical.
+    partial:   bool
 }
 
 export MatchArm :: struct {
@@ -551,6 +565,11 @@ export EnumVariantPattern :: struct {
 export NamedType :: struct {
     span: Span
     name: string
+    // True when the source spelling was a leading-dot reference (`.Foo`).
+    // Resolution defers to the surrounding context (typically the match
+    // scrutinee) ; the dump emits `"implicitDot": true` only when set, so
+    // regular named-type snapshots stay byte-identical.
+    implicit_dot: bool
 }
 
 export UnionType :: struct {

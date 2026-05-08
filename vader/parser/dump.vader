@@ -147,6 +147,7 @@ write_decl :: fn(sb: StringBuilder, d: Decl, level: i32) -> void {
         is ImplDecl      -> { write_impl_decl(sb, d, level) }
         is TypeAliasDecl -> { write_type_alias_decl(sb, d, level) }
         is ConstDecl     -> { write_const_decl(sb, d, level) }
+        is AssertDecl    -> { write_assert_decl(sb, d, level) }
     }
 }
 
@@ -428,6 +429,16 @@ write_const_decl :: fn(sb: StringBuilder, d: ConstDecl, level: i32) -> void {
     close_obj(sb, level)
 }
 
+write_assert_decl :: fn(sb: StringBuilder, d: AssertDecl, level: i32) -> void {
+    open_obj(sb)
+    kind_entry(sb, level + 1, "AssertDecl")
+    entry(sb, false, level + 1, "condition")
+    write_expr(sb, d.condition, level + 1)
+    entry(sb, false, level + 1, "decorators")
+    write_decorators(sb, d.decorators, level + 1)
+    close_obj(sb, level)
+}
+
 write_fn_decls :: fn(sb: StringBuilder, ds: FnDecl[], level: i32) -> void {
     if ds.len() == 0 {
         close_arr_empty(sb)
@@ -566,6 +577,12 @@ write_type :: fn(sb: StringBuilder, t: TypeExpr, level: i32) -> void {
             kind_entry(sb, level + 1, "NamedType")
             entry(sb, false, level + 1, "name")
             write_string(sb, t.name)
+            // Mirror the TS dumper : `JSON.stringify` drops `undefined`,
+            // so the field is only emitted when set.
+            if t.implicit_dot {
+                entry(sb, false, level + 1, "implicitDot")
+                sb.append("true")
+            }
             close_obj(sb, level)
         }
         is UnionType -> {
@@ -941,6 +958,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr, level: i32) -> void {
             write_expr(sb, e.scrutinee, level + 1)
             entry(sb, false, level + 1, "arms")
             write_match_arms(sb, e.arms, level + 1)
+            if e.partial {
+                entry(sb, false, level + 1, "partial")
+                sb.append("true")
+            }
             close_obj(sb, level)
         }
         is BlockExpr -> { write_block_expr(sb, e, level) }

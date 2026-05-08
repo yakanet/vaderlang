@@ -54,20 +54,7 @@ beforeAll(async () => {
 // Snippets where the Vader parser today either traps at runtime
 // (`reached unreachable`) or diverges in detail. Tracked in TODO §2.1 ;
 // remove an entry once the underlying fix lands.
-const KNOWN_FAILURES = new Set<string>([
-  // `@assert(cond)` is recognised by the TS parser as a standalone
-  // AssertDecl ; the Vader self-host parser still treats `@assert` as a
-  // regular decorator and attaches it to the next decl. Port pending.
-  "decorator_assert",
-  // `is .Foo` resolves against the scrutinee (implicit-dot NamedType) on
-  // the TS side ; the self-host parser still calls `parse_type` after
-  // `is` and rejects the leading dot. Port pending.
-  "implicit_dot_variant",
-  // `@partial match` is recognised as a MatchExpr modifier on the TS
-  // side (`partial: true` in the AST dump) ; the self-host parser
-  // doesn't emit the `partial` field. Port pending.
-  "match_partial",
-]);
+const KNOWN_FAILURES = new Set<string>([]);
 
 const SKIP_ALL = false;
 

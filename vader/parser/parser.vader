@@ -172,6 +172,7 @@ parse_program :: fn(p: Parser) -> Program {
             is ImplDecl       -> { decls.push(d) }
             is TypeAliasDecl  -> { decls.push(d) }
             is ConstDecl      -> { decls.push(d) }
+            is AssertDecl     -> { decls.push(d) }
         }
         p.skip_newlines()
     }
@@ -192,6 +193,24 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     visibility: Visibility = .Private
     if p.match_kind(.KwExport).matched {
         visibility = .Public
+    }
+
+    // `@assert(condition)` is a "decorator-statement" that stands on its
+    // own at the top level rather than annotating a following decl. Mirrors
+    // `src/parser/passes/decl.ts::parseDecl` ; only the lone-decorator form
+    // promotes — mixing `@comptime @assert(...)` would be ambiguous.
+    if decorators.len() == 1 && decorators[0].name == "assert" {
+        dec :: decorators[0]
+        if dec.args.len() != 1 {
+            p.error(.UnknownDecoratorPlacement, dec.span,
+                "`@assert` expects exactly one expression argument")
+            return null
+        }
+        return AssertDecl {
+            .span       = dec.span,
+            .condition  = dec.args[0],
+            .decorators = [],
+        }
     }
 
     if p.check(.KwImport) {
@@ -867,7 +886,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
         head_span :: type_span(head)
         success: TypeExpr = match head {
             is NamedType -> {
-                if head.name == "void" { NamedType { .span = head_span, .name = "null" } }
+                if head.name == "void" { NamedType { .span = head_span, .name = "null", .implicit_dot = false } }
                 else { head }
             }
             is UnionType       -> head
@@ -880,6 +899,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
         error_named :: NamedType {
             .span = Span { .start = bang_end, .end = bang_end },
             .name = "Error",
+            .implicit_dot = false,
         }
         head = UnionType {
             .span     = Span { .start = head_span.start, .end = bang_end },
@@ -976,15 +996,15 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     }
     if t.kind == .KwNull {
         p.advance()
-        return NamedType { .span = t.span, .name = "null" }
+        return NamedType { .span = t.span, .name = "null", .implicit_dot = false }
     }
     if t.kind == .KwType {
         p.advance()
-        return NamedType { .span = t.span, .name = "type" }
+        return NamedType { .span = t.span, .name = "type", .implicit_dot = false }
     }
     if t.kind == .Ident {
         name :: p.advance()
-        named :: NamedType { .span = name.span, .name = name.text }
+        named :: NamedType { .span = name.span, .name = name.text, .implicit_dot = false }
         if p.check(.LParen) {
             p.advance()
             args: TypeExpr[] = []
@@ -1009,7 +1029,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     }
     p.error(.ExpectedType, t.span, "got ${describe_token(t)}")
     p.advance()
-    return NamedType { .span = t.span, .name = "?" }
+    return NamedType { .span = t.span, .name = "?", .implicit_dot = false }
 }
 
 parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
@@ -1936,11 +1956,28 @@ parse_prefix :: fn(p: Parser) -> Expr {
         }
     }
     if t.kind == .KwIf    { return p.parse_if_expr() }
-    if t.kind == .KwMatch { return p.parse_match_expr() }
+    if t.kind == .KwMatch { return p.parse_match_expr(false) }
     if t.kind == .KwFn    { return p.parse_lambda() }
     if t.kind == .KwSelf {
         p.advance()
         return IdentExpr { .span = t.span, .name = "self" }
+    }
+    // `@partial match ...` — opt-out of exhaustiveness for one match.
+    // Other `@<ident>` heads in expression position are rejected as
+    // P1014 (mirrors the TS parser).
+    if t.kind == .At {
+        at_tok :: p.advance()
+        name_tok :: p.expect(.Ident, "decorator name after `@`")
+        if name_tok.text != "partial" {
+            p.error(.UnknownDecoratorPlacement,
+                p.span_of(at_tok, name_tok),
+                "`@${name_tok.text}` is not allowed in expression position")
+        }
+        if !p.check(.KwMatch) {
+            p.error(.UnknownDecoratorPlacement, name_tok.span,
+                "`@${name_tok.text}` must precede a `match` expression")
+        }
+        return p.parse_match_expr(true)
     }
     if t.kind == .Dot {
         p.advance()
@@ -2065,7 +2102,7 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
             .span      = p.span_of(t, rb),
             .type_name = GenericInstType {
                 .span = p.span_of(t, rp),
-                .base = NamedType { .span = t.span, .name = t.text },
+                .base = NamedType { .span = t.span, .name = t.text, .implicit_dot = false },
                 .args = args,
             },
             .fields    = fields,
@@ -2078,7 +2115,7 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         rb :: p.expect(.RBrace, "`}` to close struct literal")
         return StructLitExpr {
             .span      = p.span_of(t, rb),
-            .type_name = NamedType { .span = t.span, .name = t.text },
+            .type_name = NamedType { .span = t.span, .name = t.text, .implicit_dot = false },
             .fields    = fields,
         }
     }
@@ -2260,7 +2297,7 @@ parse_if_expr :: fn(p: Parser) -> IfExpr {
     }
 }
 
-parse_match_expr :: fn(p: Parser) -> MatchExpr {
+parse_match_expr :: fn(p: Parser, partial: bool) -> MatchExpr {
     start :: p.advance()  // `match`
     saved_allow :: p.allow_struct_lit
     p.allow_struct_lit = false
@@ -2280,6 +2317,7 @@ parse_match_expr :: fn(p: Parser) -> MatchExpr {
         .span      = Span { .start = start.span.start, .end = end.span.end },
         .scrutinee = scrutinee,
         .arms      = arms,
+        .partial   = partial,
     }
 }
 
@@ -2333,7 +2371,21 @@ parse_pattern :: fn(p: Parser) -> Pattern {
     }
     if t.kind == .KwIs {
         p.advance()
-        ty :: p.parse_type()
+        ty: TypeExpr = if p.check(.Dot) {
+            // `is .Foo` — implicit-dot variant, resolved against the
+            // match scrutinee at typecheck. Plain `parse_type` would
+            // reject the leading dot, so we synthesise a flagged
+            // `NamedType` directly.
+            dot_tok :: p.advance()
+            v_tok :: p.expect(.Ident, "variant name after `.`")
+            NamedType {
+                .span         = p.span_of(dot_tok, v_tok),
+                .name         = v_tok.text,
+                .implicit_dot = true,
+            }
+        } else {
+            p.parse_type()
+        }
         inner: Pattern | null = null
         if p.check(.LBrace) {
             inner = p.parse_struct_pattern()
