@@ -4,9 +4,10 @@
 // tests/native.test.ts does, then run it under macOS `leaks --atExit` and
 // collect a per-snippet leak summary. Run with: bun tests/leaks_check.ts
 
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { VM_ERROR_PREFIXES, formatRun, listSnippets } from "./snapshot.ts";
+import { VM_ERROR_PREFIXES, listSnippets } from "./snapshot.ts";
 import { pipelineBytecode } from "../src/pipeline.ts";
 import { emitC } from "../src/c_emit/emit.ts";
 
@@ -23,27 +24,30 @@ interface Result {
   detail?: string;
 }
 
+const sizeToBytes = (n: number, unit: string | undefined): number => {
+  switch (unit ?? "B") {
+    case "B": return Math.round(n);
+    case "KB": return Math.round(n * 1024);
+    case "MB": return Math.round(n * 1024 * 1024);
+    case "GB": return Math.round(n * 1024 * 1024 * 1024);
+    default: return Math.round(n);
+  }
+};
+
 function parseLeaksOutput(text: string): { nodes: number; bytes: number; leakedNodes: number; leakedBytes: number } | null {
   // Looks like:
   //   Process N: 187 nodes malloced for 11 KB
   //   Process N: 0 leaks for 0 total leaked bytes.
-  const malloced = text.match(/(\d+)\s+nodes\s+malloced\s+for\s+([\d.]+)\s*(B|KB|MB|GB)/);
-  const leaked = text.match(/(\d+)\s+leaks?\s+for\s+([\d.]+)\s+total\s+leaked\s+bytes/);
+  // Fragmented allocations report the leaked side with a unit (`1.2 KB`); we
+  // sizeToBytes both sides so a `1.2` doesn't get truncated to `1`.
+  const malloced = text.match(/(\d+)\s+nodes\s+malloced\s+for\s+([\d.]+)\s*(B|KB|MB|GB)?/);
+  const leaked = text.match(/(\d+)\s+leaks?\s+for\s+([\d.]+)\s*(B|KB|MB|GB)?\s+total\s+leaked\s+bytes/);
   if (!malloced || !leaked) return null;
-  const sizeToBytes = (n: number, unit: string): number => {
-    switch (unit) {
-      case "B": return n;
-      case "KB": return Math.round(n * 1024);
-      case "MB": return Math.round(n * 1024 * 1024);
-      case "GB": return Math.round(n * 1024 * 1024 * 1024);
-      default: return n;
-    }
-  };
   return {
     nodes: parseInt(malloced[1]!, 10),
-    bytes: sizeToBytes(parseFloat(malloced[2]!), malloced[3]!),
+    bytes: sizeToBytes(parseFloat(malloced[2]!), malloced[3]),
     leakedNodes: parseInt(leaked[1]!, 10),
-    leakedBytes: parseInt(leaked[2]!, 10),
+    leakedBytes: sizeToBytes(parseFloat(leaked[2]!), leaked[3]),
   };
 }
 
@@ -74,40 +78,56 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
     return { name: s.name, status: "skipped", detail: "vm.snapshot is an error snapshot" };
   }
 
+  // `--quiet` is intentionally NOT passed — it suppresses the
+  // `Process N: X nodes malloced` summary line our parser depends on.
   const env = { ...process.env, MallocStackLogging: "1" };
-  const proc = Bun.spawn(
-    ["leaks", "--atExit", "--quiet", "--", binFile],
-    { cwd: process.cwd(), env, stdout: "pipe", stderr: "pipe" },
-  );
-  const stdout = await new Response(proc.stdout).text();
-  const stderr = await new Response(proc.stderr).text();
-  const exit = await proc.exited;
+  try {
+    const proc = Bun.spawn(
+      ["leaks", "--atExit", "--", binFile],
+      { cwd: process.cwd(), env, stdout: "pipe", stderr: "pipe" },
+    );
+    const stdout = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    const exit = await proc.exited;
 
-  // leaks exit codes: 0 = no leaks, 1 = leaks found, other = error.
-  if (exit !== 0 && exit !== 1) {
-    return { name: s.name, status: "leaks_fail", detail: `exit=${exit} ${stderr.slice(0, 200)}` };
+    // leaks exit codes: 0 = no leaks, 1 = leaks found, other = error.
+    if (exit !== 0 && exit !== 1) {
+      return { name: s.name, status: "leaks_fail", detail: `exit=${exit} ${stderr.slice(0, 200)}` };
+    }
+
+    const parsed = parseLeaksOutput(stdout);
+    if (!parsed) {
+      return { name: s.name, status: "leaks_fail", detail: `unparseable output: ${stdout.slice(0, 200)}` };
+    }
+
+    const baseRes: Result = {
+      name: s.name, status: "clean",
+      nodes: parsed.nodes, bytes: parsed.bytes,
+      leakedNodes: parsed.leakedNodes, leakedBytes: parsed.leakedBytes,
+    };
+    if (parsed.leakedNodes > 0) baseRes.status = "leak";
+    return baseRes;
+  } finally {
+    // The native binary, its source, and dsymutil's debug bundle are pure
+    // build artefacts of this audit run — remove them so they don't pile up
+    // in the working tree (the test suite generates and cleans the same
+    // files separately for parity tests).
+    rmSync(binFile, { force: true });
+    rmSync(cFile, { force: true });
+    rmSync(`${binFile}.dSYM`, { force: true, recursive: true });
   }
+}
 
-  const parsed = parseLeaksOutput(stdout);
-  if (!parsed) {
-    return { name: s.name, status: "leaks_fail", detail: `unparseable output: ${stdout.slice(0, 200)}` };
-  }
+const UPDATE_BASELINE = process.argv.includes("--update");
+const BASELINE_PATH = resolve(import.meta.dir, "leaks.snapshot.json");
 
-  if (expected) {
-    // Strip leaks-injected diagnostics from stdout to get only the program's stdout.
-    // leaks adds its summary lines after the binary exits; we approximate by removing
-    // every line containing "leaks(" or "Process " or "MallocStackLogging".
-    const programOut = stdout
-      .split("\n")
-      .filter((l) => !/^(leaks\(|Process \d+|MallocStackLogging|\s*$|\d+ leaks?\b|\s+Process|.*Process \d+: \d+ nodes)/.test(l))
-      .join("\n");
-    // Don't fail on mismatch — leaks' output mixing makes this unreliable. Just record.
-    void programOut;
-  }
+interface BaselineEntry { leakedNodes: number; leakedBytes: number }
+type Baseline = Record<string, BaselineEntry>;
 
-  const baseRes: Result = { name: s.name, status: "clean", nodes: parsed.nodes, bytes: parsed.bytes, leakedNodes: parsed.leakedNodes, leakedBytes: parsed.leakedBytes };
-  if (parsed.leakedNodes > 0) baseRes.status = "leak";
-  return baseRes;
+function loadBaseline(): Baseline | null {
+  if (!existsSync(BASELINE_PATH)) return null;
+  try { return JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline; }
+  catch { return null; }
 }
 
 const CC_AVAILABLE = await (async () => {
@@ -125,6 +145,12 @@ const LEAKS_AVAILABLE = await (async () => {
   } catch { return false; }
 })();
 
+// Linux / Windows: `leaks` only ships with macOS. Skip gracefully so the
+// `test:leak` script in package.json doesn't break cross-platform CI.
+if (process.platform !== "darwin") {
+  console.log("leaks_check: skipped (macOS only — `leaks(1)` not available on this platform)");
+  process.exit(0);
+}
 if (!CC_AVAILABLE) { console.error("cc not available — aborting"); process.exit(1); }
 if (!LEAKS_AVAILABLE) { console.error("leaks not available — aborting (macOS only)"); process.exit(1); }
 
@@ -178,4 +204,44 @@ if (failed.length > 0) {
   }
 }
 
-process.exit(leaks.length > 0 ? 2 : 0);
+// Baseline mode: by-design string-buffer leaks are part of the budget, so a
+// raw "any leak fails CI" rule fires forever. Compare against
+// `tests/leaks.snapshot.json` — exit non-zero only on regressions.
+if (UPDATE_BASELINE) {
+  const baseline: Baseline = {};
+  for (const r of [...clean, ...leaks]) {
+    if (r.leakedNodes !== undefined && r.leakedBytes !== undefined) {
+      baseline[r.name] = { leakedNodes: r.leakedNodes, leakedBytes: r.leakedBytes };
+    }
+  }
+  writeFileSync(BASELINE_PATH, JSON.stringify(baseline, null, 2) + "\n");
+  console.log(`\nbaseline written: ${BASELINE_PATH} (${Object.keys(baseline).length} entries)`);
+  process.exit(0);
+}
+
+const baseline = loadBaseline();
+if (baseline === null) {
+  console.log("\nno baseline at tests/leaks.snapshot.json — run with --update to write one");
+  process.exit(leaks.length > 0 ? 2 : 0);
+}
+
+const regressions: string[] = [];
+for (const r of leaks) {
+  const prev = baseline[r.name];
+  if (prev === undefined) {
+    regressions.push(`  NEW LEAK ${r.name}: ${r.leakedNodes} leaks, ${r.leakedBytes} B`);
+    continue;
+  }
+  if (r.leakedBytes! > prev.leakedBytes || r.leakedNodes! > prev.leakedNodes) {
+    regressions.push(
+      `  REGRESS  ${r.name}: ${r.leakedNodes}/${r.leakedBytes}B (was ${prev.leakedNodes}/${prev.leakedBytes}B)`,
+    );
+  }
+}
+if (regressions.length > 0) {
+  console.log("\n--- regressions vs baseline ---");
+  for (const line of regressions) console.log(line);
+  process.exit(2);
+}
+console.log("\nleaks within baseline budget");
+process.exit(0);

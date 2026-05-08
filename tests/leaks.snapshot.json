@@ -1,0 +1,326 @@
+{
+  "arith": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "closure_callback": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "closure_counter": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "closure_shared": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "closure_simple": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "comptime_const": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "contains_op": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "cross_decl": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "defer_block": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "enum_typed": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "file_decorator": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "fn_value_arg": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "fn_value_array": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "fn_value_local": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "fn_value_struct": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "hello": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "if_without_else_stmt": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "interp_string_comptime": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "match_union": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "parse_int_match": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "simple_arith": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "square_call": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "trait_dispatch_eq": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "trait_dispatch_param": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "trait_dispatch_struct": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "u32_bitops": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "vm_trait_dispatch": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "array_iter": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "array_of_union": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "cast_test": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "closure_pattern_binding": {
+    "leakedNodes": 4,
+    "leakedBytes": 320
+  },
+  "custom_iter": {
+    "leakedNodes": 5,
+    "leakedBytes": 400
+  },
+  "custom_iter_generic": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "enum_match": {
+    "leakedNodes": 4,
+    "leakedBytes": 320
+  },
+  "expr_bodied_fn": {
+    "leakedNodes": 6,
+    "leakedBytes": 480
+  },
+  "for_range": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "format_helpers": {
+    "leakedNodes": 36,
+    "leakedBytes": 2496
+  },
+  "gc_array_survive": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "gc_chain_survive": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "gc_multi_collect": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "generic_eq": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "generic_fn": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "generic_struct": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "interpolation": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "io_roundtrip": {
+    "leakedNodes": 3,
+    "leakedBytes": 192
+  },
+  "iter_coerce_array": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "iter_combinators": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "loop": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "match_is_as_binding": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "multiline_string": {
+    "leakedNodes": 2,
+    "leakedBytes": 112
+  },
+  "mutable_map": {
+    "leakedNodes": 6,
+    "leakedBytes": 480
+  },
+  "mutable_map_string": {
+    "leakedNodes": 7,
+    "leakedBytes": 560
+  },
+  "mutable_set": {
+    "leakedNodes": 6,
+    "leakedBytes": 480
+  },
+  "op_overload_arith": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "op_overload_compound": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "op_overload_eq_ord": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "op_overload_index": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "overload_first_param": {
+    "leakedNodes": 11,
+    "leakedBytes": 880
+  },
+  "path_basics": {
+    "leakedNodes": 32,
+    "leakedBytes": 2144
+  },
+  "primitive_hash_eq": {
+    "leakedNodes": 4,
+    "leakedBytes": 320
+  },
+  "primitive_impl": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "process_spawn": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "regex_helpers": {
+    "leakedNodes": 32,
+    "leakedBytes": 2256
+  },
+  "runtime_argv": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "sam_impl": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "self_ref_struct": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "selfhost_lexer_basic": {
+    "leakedNodes": 73,
+    "leakedBytes": 5712
+  },
+  "squares": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "std_math": {
+    "leakedNodes": 5,
+    "leakedBytes": 400
+  },
+  "std_sort": {
+    "leakedNodes": 125,
+    "leakedBytes": 11840
+  },
+  "std_string": {
+    "leakedNodes": 10,
+    "leakedBytes": 672
+  },
+  "std_string_builder": {
+    "leakedNodes": 9,
+    "leakedBytes": 496
+  },
+  "trait_dispatch_bounded": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "trait_dispatch_generic_iter": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "trait_virtual_dispatch": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "transitive_mono": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "try_op": {
+    "leakedNodes": 1,
+    "leakedBytes": 32
+  },
+  "type_aliases": {
+    "leakedNodes": 3,
+    "leakedBytes": 240
+  },
+  "ufcs_overload": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "usize_arith": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "usize_basic": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  }
+}

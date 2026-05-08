@@ -231,9 +231,16 @@ vader_gc_stats_t vader_gc_get_stats(void) {
 /* String char buffer allocator — strings are immutable value types {ptr,len}
  * passed by copy. Tracking those copies through the moving GC would require a
  * lookup from char-ptr to header on every scan; the MVP picks the pragmatic
- * trade-off and leaks string buffers outside the arena. */
+ * trade-off and leaks string buffers outside the arena.
+ *
+ * Zero-length requests return a process-lifetime sentinel rather than a
+ * fresh 1-byte allocation: the caller never writes (every write site is a
+ * `memcpy` of `bytes` bytes, which is a no-op for zero) so const aliasing
+ * is safe, and we save one malloc per empty-string operation. */
+static char vader_string_empty_sentinel[1] = { 0 };
 static void* vader_string_alloc(size_t bytes) {
-    void* p = malloc(bytes == 0 ? 1 : bytes);
+    if (bytes == 0) return vader_string_empty_sentinel;
+    void* p = malloc(bytes);
     if (p == NULL) vader_trap("vader_string_alloc: malloc failed");
     return p;
 }
@@ -537,18 +544,22 @@ static void builder_reserve(vader_builder_t* b, size_t extra) {
     while (cap < b->len + extra) cap *= 2;
     /* The buf is handed out as a vader_string_t by `vader_builder_finish`, so
      * it must live off the GC arena (same constraint as `vader_string_alloc`
-     * callers). Copy + leak the previous buffer. */
+     * callers). The previous buf is private until finish — no aliases — so we
+     * `free` it after copying the contents to the fresh allocation. */
     char* fresh = (char*) vader_string_alloc(cap);
     if (b->len > 0) memcpy(fresh, b->buf, b->len);
+    free(b->buf);
     b->buf = fresh;
     b->cap = cap;
 }
 
 vader_builder_t* vader_builder_new(void) {
-    /* The builder struct itself is short-lived (allocated, used, then the
-     * resulting string outlives it). Using malloc keeps it off the GC arena
-     * so a collection can't relocate the struct mid-build. */
-    vader_builder_t* b = (vader_builder_t*) vader_string_alloc(sizeof(vader_builder_t));
+    /* The builder struct is purely transient — allocated, populated, then
+     * `vader_builder_finish` lends out the payload buf and the struct itself
+     * goes unused. Using `malloc` (not `vader_string_alloc`) lets us `free`
+     * it at finish without leaking the 24-byte header. */
+    vader_builder_t* b = (vader_builder_t*) malloc(sizeof(vader_builder_t));
+    if (b == NULL) vader_trap("vader_builder_new: malloc failed");
     b->buf = NULL; b->len = 0; b->cap = 0;
     return b;
 }
@@ -652,9 +663,12 @@ void vader_builder_append_display_string(vader_builder_t* b, vader_string_t v) {
 }
 
 vader_string_t vader_builder_finish(vader_builder_t* b) {
-    /* The buffer is already big enough; just expose its current view. The
-     * builder itself isn't reused after finish so the buffer is safe to lend. */
-    return vader_string_new(b->buf, b->len);
+    /* Lend the buffer (still owned by the string-arena leak budget — see
+     * `vader_string_alloc`'s comment) and free the builder struct itself,
+     * which has no other use after finish. */
+    vader_string_t out = vader_string_new(b->buf, b->len);
+    free(b);
+    return out;
 }
 
 /* Flatten an array of strings into a single string in one allocation. Used
@@ -902,11 +916,16 @@ fail_free_cargv:
 }
 
 vader_string_t vader_spawn_last_stdout(void) {
-    return vader_string_new(g_spawn_stdout_buf, g_spawn_stdout_len);
+    /* Before any spawn ran, both buf and len are 0 — hand back the empty
+     * sentinel so callers can safely `memcpy` / `fwrite` zero bytes from
+     * `.ptr` without dereferencing NULL. */
+    return vader_string_new(g_spawn_stdout_buf != NULL ? g_spawn_stdout_buf : "",
+                            g_spawn_stdout_len);
 }
 
 vader_string_t vader_spawn_last_stderr(void) {
-    return vader_string_new(g_spawn_stderr_buf, g_spawn_stderr_len);
+    return vader_string_new(g_spawn_stderr_buf != NULL ? g_spawn_stderr_buf : "",
+                            g_spawn_stderr_len);
 }
 
 /* ----------------------------------------------------------------- traps */
