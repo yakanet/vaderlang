@@ -11,22 +11,20 @@
 // Per-concern logic lives in `./passes/*.ts`; this file is the orchestrator
 // + entry points consumed by `./index.ts`.
 
-import type { DiagnosticCollector } from "../diagnostics/collector.ts";
-import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
+import {DiagnosticCollector} from "../diagnostics/collector.ts";
+import type {ResolvedProgram} from "../resolver/resolved-ast.ts";
 
 import type * as A from "../parser/ast.ts";
+import {err} from "./diag.ts";
+import type {ImplRegistry} from "./impls.ts";
+import type {TypedProgram} from "./typed-ast.ts";
+import type {Type} from "./types.ts";
+import {defaultIfFree, displayType, isAssignable, isPrimitive, TY} from "./types.ts";
 
-import { DiagnosticCollector } from "../diagnostics/collector.ts";
-import { err } from "./diag.ts";
-import type { ImplRegistry } from "./impls.ts";
-import type { TypedProgram } from "./typed-ast.ts";
-import type { Type } from "./types.ts";
-import { TY, defaultIfFree, displayType, isAssignable, isPrimitive } from "./types.ts";
-
-import type { Globals, MutableTyped } from "./ctx.ts";
-import { checkExpr } from "./passes/expr.ts";
-import { checkBlock, checkFnBody } from "./passes/stmt.ts";
-import { declareType } from "./passes/decl.ts";
+import type {Globals, MutableTyped} from "./ctx.ts";
+import {checkExpr} from "./passes/expr.ts";
+import {checkBlock, checkFnBody} from "./passes/stmt.ts";
+import {declareType} from "./passes/decl.ts";
 
 export type { Globals } from "./ctx.ts";
 export { newGlobals } from "./ctx.ts";
@@ -162,8 +160,14 @@ export function inferExprBodiedReturns(
     }
   }
 
+  // Convergence is guaranteed in `pending.length` iterations: each iter either
+  // resolves a fn (shrinking `stuck`) or makes no progress and exits. The cap
+  // is a defensive guard.
+  const MAX_ITERS = pending.length + 8;
   let stuck = pending;
-  while (stuck.length > 0) {
+  let iter = 0;
+  while (stuck.length > 0 && iter < MAX_ITERS) {
+    iter++;
     const next: typeof stuck = [];
     for (const item of stuck) {
       const scratch = new DiagnosticCollector();
@@ -193,6 +197,11 @@ export function inferExprBodiedReturns(
       break;
     }
     stuck = next;
+  }
+  if (iter >= MAX_ITERS && stuck.length > 0) {
+    err(diags, "T3034", stuck[0]!.decl.span,
+        `expression-bodied return-type inference did not converge after ${MAX_ITERS} iterations ` +
+        `(${stuck.length} fn(s) still unresolved). This is unexpected — please file a bug.`);
   }
 
   // Whatever's left is part of a recursion cycle — typed-ast would otherwise

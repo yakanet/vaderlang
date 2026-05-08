@@ -1,0 +1,12 @@
+# stdout
+shr_high
+shr_top_bit
+shl_top
+shl_wrap
+and
+or
+xor
+not_zero
+not_top
+# exit
+0

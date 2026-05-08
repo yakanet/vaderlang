@@ -222,14 +222,13 @@ function walkExprForLambdas(
     case "MatchExpr":
       walkExprForLambdas(expr.scrutinee, scope, program, captured, lambdaCaptures);
       for (const arm of expr.arms) {
-        // Patterns can bind names — for simplicity we assume the typechecker
-        // wires the binding into resolved.idents at use-site time. We don't
-        // pre-extend `scope` with pattern bindings here; if a body refers to
-        // such a binding, the IdentExpr's symbol will resolve to a "binding"
-        // kind whose definition site is the pattern, and it will appear in
-        // the lambda's owned scope when we walk for captures.
+        // Arm pattern bindings are local to the arm. Push them onto the
+        // mutable scope, recurse, then pop only the ids we added — avoids
+        // a fresh `new Set(scope)` per arm.
+        const added = pushPatternBindings(arm.pattern, program, scope);
         if (arm.guard !== null) walkExprForLambdas(arm.guard, scope, program, captured, lambdaCaptures);
         walkExprForLambdas(arm.body, scope, program, captured, lambdaCaptures);
+        for (const id of added) scope.delete(id);
       }
       return;
     case "BlockExpr":
@@ -404,8 +403,12 @@ function collectCapturesInExpr(
     case "MatchExpr":
       collectCapturesInExpr(expr.scrutinee, scope, captures, seen, program, lambdaCaptures);
       for (const arm of expr.arms) {
+        // Arm pattern bindings are part of the arm's scope — push then pop
+        // to avoid cloning a fresh Set per arm.
+        const added = pushPatternBindings(arm.pattern, program, scope);
         if (arm.guard !== null) collectCapturesInExpr(arm.guard, scope, captures, seen, program, lambdaCaptures);
         collectCapturesInExpr(arm.body, scope, captures, seen, program, lambdaCaptures);
+        for (const id of added) scope.delete(id);
       }
       return;
     case "BlockExpr":
@@ -484,4 +487,37 @@ function typeOfCapturedSymbol(sym: Symbol, identExpr: A.IdentExpr, program: Type
 function addLocalToScope(stmt: A.LetStmt, scope: Set<number>, resolved: ResolvedProgram): void {
   const sym = resolved.locals.get(stmt);
   if (sym !== undefined) scope.add(sym.id);
+}
+
+/** Add the pattern's bindings to `scope` and return the list of ids actually
+ *  added (i.e. not already present). Caller is expected to `scope.delete(id)`
+ *  for each returned id once the arm is processed — preserves outer scope
+ *  intact while avoiding a fresh `new Set(scope)` per arm. */
+function pushPatternBindings(
+  pat: A.Pattern, program: TypedProgram, scope: Set<number>,
+): readonly number[] {
+  const added: number[] = [];
+  const push = (sym: A.IsPattern | A.BindingPattern | A.StructPatternField): void => {
+    const s = program.resolved.patternBindings.get(sym);
+    if (s !== undefined && !scope.has(s.id)) { scope.add(s.id); added.push(s.id); }
+  };
+  const walk = (p: A.Pattern): void => {
+    switch (p.kind) {
+      case "IsPattern":
+        if (p.bindAs !== null) push(p);
+        if (p.inner !== null) walk(p.inner);
+        return;
+      case "StructPattern":
+        for (const f of p.fields) if (f.value.kind === "binding") push(f);
+        return;
+      case "BindingPattern":
+        push(p);
+        return;
+      case "WildcardPattern":
+      case "EnumVariantPattern":
+        return;
+    }
+  };
+  walk(pat);
+  return added;
 }

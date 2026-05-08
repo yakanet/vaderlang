@@ -10,7 +10,7 @@ import type { LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 
 import { lowerExpr, lowerIndexTraitCall } from "./expr.ts";
 import { lowerForIn } from "./for-in.ts";
-import { applySubst, freshSyntheticSymbol, wrapStmts } from "./helpers.ts";
+import { applySubst, freshSyntheticSymbol, lowerCellInit, wrapStmts } from "./helpers.ts";
 
 export function lowerBlock(
   ctx: FnLowerCtx, block: A.BlockExpr, isFnRoot: boolean, isLoopBody: boolean,
@@ -89,17 +89,9 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
       const type = applySubst(ctx.typed.localTypes.get(stmt) ?? defaultIfFree(value.type), ctx.subst);
       const sym = ctx.typed.resolved.locals.get(stmt);
       if (sym === undefined) return null;
-      // Captured local: heap-promote into a closure cell. The local slot now
-      // holds a *cell ref* (always boxed) instead of the original value, so
-      // the slot's lowered type widens to opaque ref. CellGet/CellSet drive
-      // the actual value access.
-      if (ctx.project.closures.capturedSymbols.has(sym.id)) {
-        const cellInit: LoweredExpr = {
-          kind: "LoweredCellNew", span: stmt.span, type: TY.unresolved, value, valueType: type,
-        };
-        return { kind: "LoweredLet", span: stmt.span, name: stmt.name, symbol: sym, type: TY.unresolved, value: cellInit };
-      }
-      return { kind: "LoweredLet", span: stmt.span, name: stmt.name, symbol: sym, type, value };
+      const init = lowerCellInit(ctx, sym, value, type, stmt.span);
+      return { kind: "LoweredLet", span: stmt.span, name: stmt.name, symbol: sym,
+               type: init.slotType, value: init.value };
     }
     case "AssignStmt": {
       // `a[i] = v` on a non-array target — typecheck recorded an IndexSet

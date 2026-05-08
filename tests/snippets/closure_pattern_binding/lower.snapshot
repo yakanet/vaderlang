@@ -1,0 +1,119 @@
+# Lower
+
+## tests/snippets/closure_pattern_binding/_main.vader
+  struct tests_snippets_closure_pattern_binding__main_vader$P { name: string }
+  fn tests_snippets_closure_pattern_binding__main_vader$greet(v: i32 | P) -> void
+    ~>
+      block :void
+        let __scrut_0#-1: i32 | P = v#57 :i32 | P
+        ~>
+          if :void
+            cond:
+              is P :bool
+                __scrut_0#-1 :i32 | P
+            then:
+              let p#58: ? =
+                LoweredCellNew
+              ~>
+                block :void
+                  let shout#59: fn() -> string =
+                    LoweredMakeClosure
+                  call :void
+                    callee:
+                      println#28 :fn(string) -> void
+                    arg0:
+                      call :string
+                        callee:
+                          shout#59 :fn() -> string
+                  ~>
+                    call :void
+                      callee:
+                        println#28 :fn(string) -> void
+                      arg0:
+                        block :string
+                          let __sb_4#-10: ? =
+                            @builder.new :?
+                          @builder.append_str :void
+                            __sb_4#-10 :?
+                            "again " :string
+                          @builder.append_display <for string> :void
+                            __sb_4#-10 :?
+                            call :string
+                              callee:
+                                shout#59 :fn() -> string
+                          ~>
+                            @builder.finish :string
+                              __sb_4#-10 :?
+            else:
+              ~>
+                if :void
+                  cond:
+                    is i32 :bool
+                      __scrut_0#-1 :i32 | P
+                  then:
+                    let n#60: ? =
+                      LoweredCellNew
+                    ~>
+                      block :void
+                        let doubled#61: fn() -> i32 =
+                          LoweredMakeClosure
+                        ~>
+                          call :void
+                            callee:
+                              println#28 :fn(string) -> void
+                            arg0:
+                              block :string
+                                let __sb_2#-5: ? =
+                                  @builder.new :?
+                                @builder.append_str :void
+                                  __sb_2#-5 :?
+                                  "twice = " :string
+                                @builder.append_display <for i32> :void
+                                  __sb_2#-5 :?
+                                  call :i32
+                                    callee:
+                                      doubled#61 :fn() -> i32
+                                ~>
+                                  @builder.finish :string
+                                    __sb_2#-5 :?
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :void
+  fn tests_snippets_closure_pattern_binding__main_vader$main() -> i32
+    call :void
+      callee:
+        greet#3 :fn(i32 | P) -> void
+      arg0:
+        P {
+          name: "world" :string
+        }
+    call :void
+      callee:
+        greet#3 :fn(i32 | P) -> void
+      arg0:
+        int(21) :i32 | P
+    return int(0) :i32
+  struct __lambda_env_3 { cap_0: ? }
+  fn __lambda_2(__env_1: __lambda_env_3) -> i32
+    ~>
+      add :i32
+        l:
+          LoweredCellGet
+        r:
+          LoweredCellGet
+  struct __lambda_env_7 { cap_0: ? }
+  fn __lambda_6(__env_3: __lambda_env_7) -> string
+    ~>
+      block :string
+        let __sb_0#-9: ? =
+          @builder.new :?
+        @builder.append_str :void
+          __sb_0#-9 :?
+          "HELLO " :string
+        @builder.append_display <for string> :void
+          __sb_0#-9 :?
+          .name :string
+            LoweredCellGet
+        ~>
+          @builder.finish :string
+            __sb_0#-9 :?

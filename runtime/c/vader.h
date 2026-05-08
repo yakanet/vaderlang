@@ -229,6 +229,16 @@ typedef struct vader_gc_frame {
 
 extern vader_gc_frame_t* vader_gc_top;
 
+/* Push a one-slot shadow-stack frame around a `vader_box_t` on the C stack.
+ * Used by runtime helpers that allocate (and thus may collect) after binding
+ * a fresh ref. Pair with `VADER_GC_POP()` on every return path. The block
+ * scopes `__roots`/`__frame` so multiple pushes nest cleanly. */
+#define VADER_GC_PUSH1(box_lvalue)                                               \
+    vader_box_t* __roots[1] = { &(box_lvalue) };                                 \
+    vader_gc_frame_t __frame = { vader_gc_top, 1u, 0u, __roots };                \
+    vader_gc_top = &__frame
+#define VADER_GC_POP() (vader_gc_top = __frame.prev)
+
 /* ----------------------------------------------------------------- fn */
 
 /* Function value — fat pointer `{ code, env }`. Pushed by `fn.ref`, consumed

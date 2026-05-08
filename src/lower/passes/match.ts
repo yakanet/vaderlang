@@ -12,7 +12,7 @@ import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt } from "../lowered-ast.ts";
 
 import { lowerExpr } from "./expr.ts";
-import { applySubst, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
+import { applySubst, freshSyntheticSymbol, loweredEnumVariant, lowerCellInit, wrapAsBlock } from "./helpers.ts";
 
 export function lowerMatch(ctx: FnLowerCtx, expr: A.MatchExpr, exprType: Type): LoweredExpr {
   const scrutType = applySubst(ctx.typed.exprTypes.get(expr.scrutinee) ?? TY.unresolved, ctx.subst);
@@ -128,8 +128,9 @@ function introducePatternBindings(
   switch (pattern.kind) {
     case "BindingPattern": {
       const sym = bindingSym(pattern, pattern.name);
+      const init = lowerCellInit(ctx, sym, scrutRef(), scrutType, span);
       out.push({ kind: "LoweredLet", span, name: pattern.name, symbol: sym,
-                 type: scrutType, value: scrutRef() });
+                 type: init.slotType, value: init.value });
       return;
     }
     case "IsPattern": {
@@ -137,9 +138,11 @@ function introducePatternBindings(
         const targetType = applySubst(
           ctx.typed.typeExprTypes.get(pattern.type) ?? TY.unresolved, ctx.subst);
         const sym = bindingSym(pattern, pattern.bindAs);
+        const cast: LoweredExpr = { kind: "LoweredCast", span, type: targetType, value: scrutRef() };
+        const init = lowerCellInit(ctx, sym, cast, targetType, span);
         out.push({
-          kind: "LoweredLet", span, name: pattern.bindAs, symbol: sym, type: targetType,
-          value: { kind: "LoweredCast", span, type: targetType, value: scrutRef() },
+          kind: "LoweredLet", span, name: pattern.bindAs, symbol: sym,
+          type: init.slotType, value: init.value,
         });
       }
       // `is T { ... }` — recurse so nested StructPattern bindings land in
@@ -153,13 +156,15 @@ function introducePatternBindings(
       for (const f of pattern.fields) {
         if (f.value.kind !== "binding") continue;
         const sym = bindingSym(f, f.value.name);
+        const fieldAccess: LoweredExpr = {
+          kind: "LoweredFieldAccess", span: f.span, type: TY.unresolved,
+          target: { kind: "LoweredIdent", span: f.span, type: scrutType, symbol: scrutSym },
+          field: f.name,
+        };
+        const init = lowerCellInit(ctx, sym, fieldAccess, TY.unresolved, f.span);
         out.push({
-          kind: "LoweredLet", span: f.span, name: f.value.name, symbol: sym, type: TY.unresolved,
-          value: {
-            kind: "LoweredFieldAccess", span: f.span, type: TY.unresolved,
-            target: { kind: "LoweredIdent", span: f.span, type: scrutType, symbol: scrutSym },
-            field: f.name,
-          },
+          kind: "LoweredLet", span: f.span, name: f.value.name, symbol: sym,
+          type: init.slotType, value: init.value,
         });
       }
       return;

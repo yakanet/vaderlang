@@ -80,3 +80,19 @@ export function orAll(span: Span, parts: readonly LoweredExpr[]): LoweredExpr {
   }
   return acc;
 }
+
+/** When `sym` is captured by an inner lambda, wrap a binding's initialiser in
+ *  `LoweredCellNew` so the slot stores a cell ref. The slot type widens to
+ *  unresolved (opaque ref) so reads must go through `LoweredCellGet`. Used by
+ *  the `LetStmt` lowering and by `introducePatternBindings`. */
+export function lowerCellInit(
+  ctx: FnLowerCtx, sym: Symbol, value: LoweredExpr, valueType: Type, span: Span,
+): { value: LoweredExpr; slotType: Type } {
+  if (!ctx.project.closures.capturedSymbols.has(sym.id)) {
+    return { value, slotType: valueType };
+  }
+  return {
+    value: { kind: "LoweredCellNew", span, type: TY.unresolved, value, valueType },
+    slotType: TY.unresolved,
+  };
+}

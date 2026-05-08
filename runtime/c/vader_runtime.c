@@ -452,43 +452,55 @@ vader_char_t vader_string_char_at(vader_string_t s, vader_i32_t i) {
 /* Box the host argv into a `[string]` Vader array. Called from emitted main
  * when the user's `main` takes an `[string]` parameter. The caller passes the
  * BcType indices for the array type and the string element type (the emitter
- * knows them at codegen time). */
+ * knows them at codegen time).
+ *
+ * Each `vader_array_push` may collect; the shadow-stack frame keeps `arr_box`
+ * reachable so its `payload.obj` tracks the array across moves. */
 vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint32_t str_type) {
-    vader_array_t* arr = vader_array_new(arr_type, 0);
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0));
+    VADER_GC_PUSH1(arr_box);
     for (int i = 0; i < argc; i++) {
         const char* a = argv[i];
         size_t len = strlen(a);
-        vader_array_push(arr, vader_box_string(str_type, vader_string_new(a, len)));
+        vader_array_push((vader_array_t*) arr_box.payload.obj,
+                         vader_box_string(str_type, vader_string_new(a, len)));
     }
-    return arr;
+    vader_array_t* result = (vader_array_t*) arr_box.payload.obj;
+    VADER_GC_POP();
+    return result;
 }
 
 vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
                                   uint32_t arr_type, uint32_t str_type) {
-    vader_array_t* arr = vader_array_new(arr_type, 0);
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0));
+    VADER_GC_PUSH1(arr_box);
     if (sep.len == 0) {
         for (size_t i = 0; i < s.len; i++) {
-            vader_array_push(arr, vader_box_string(str_type, vader_string_new(s.ptr + i, 1)));
+            vader_array_push((vader_array_t*) arr_box.payload.obj,
+                             vader_box_string(str_type, vader_string_new(s.ptr + i, 1)));
         }
-        return arr;
-    }
-    const char* p   = s.ptr;
-    const char* end = s.ptr + s.len;
-    for (;;) {
-        const char* found = NULL;
-        if (sep.len == 1) {
-            found = (const char*)memchr(p, (unsigned char)sep.ptr[0], (size_t)(end - p));
-        } else {
-            for (const char* q = p; q + sep.len <= end; q++) {
-                if (memcmp(q, sep.ptr, sep.len) == 0) { found = q; break; }
+    } else {
+        const char* p   = s.ptr;
+        const char* end = s.ptr + s.len;
+        for (;;) {
+            const char* found = NULL;
+            if (sep.len == 1) {
+                found = (const char*)memchr(p, (unsigned char)sep.ptr[0], (size_t)(end - p));
+            } else {
+                for (const char* q = p; q + sep.len <= end; q++) {
+                    if (memcmp(q, sep.ptr, sep.len) == 0) { found = q; break; }
+                }
             }
+            size_t piece_len = found ? (size_t)(found - p) : (size_t)(end - p);
+            vader_array_push((vader_array_t*) arr_box.payload.obj,
+                             vader_box_string(str_type, vader_string_new(p, piece_len)));
+            if (found == NULL) break;
+            p = found + sep.len;
         }
-        size_t piece_len = found ? (size_t)(found - p) : (size_t)(end - p);
-        vader_array_push(arr, vader_box_string(str_type, vader_string_new(p, piece_len)));
-        if (found == NULL) break;
-        p = found + sep.len;
     }
-    return arr;
+    vader_array_t* result = (vader_array_t*) arr_box.payload.obj;
+    VADER_GC_POP();
+    return result;
 }
 
 /* ----------------------------------------------------------------- builder */
@@ -777,15 +789,15 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
 
     int out_pipe[2] = {-1, -1};
     int err_pipe[2] = {-1, -1};
-    if (pipe(out_pipe) != 0 || pipe(err_pipe) != 0) {
-        for (size_t j = 0; j < n; j++) free(cargv[j]);
-        free(cargv);
-        if (out_pipe[0] >= 0) { close(out_pipe[0]); close(out_pipe[1]); }
-        return VADER_SPAWN_LAUNCH_FAIL;
-    }
+    /* Open the pipes independently — short-circuiting `||` would leak
+     * `out_pipe`'s ends if `err_pipe` is the failing call. */
+    if (pipe(out_pipe) != 0) goto fail_free_cargv;
+    if (pipe(err_pipe) != 0) goto fail_close_out;
 
     posix_spawn_file_actions_t fa;
-    posix_spawn_file_actions_init(&fa);
+    /* `posix_spawn_file_actions_init` can fail (e.g. ENOMEM) — using an
+     * uninitialised actions struct is undefined. */
+    if (posix_spawn_file_actions_init(&fa) != 0) goto fail_close_both;
     posix_spawn_file_actions_addclose(&fa, out_pipe[0]);
     posix_spawn_file_actions_addclose(&fa, err_pipe[0]);
     posix_spawn_file_actions_adddup2 (&fa, out_pipe[1], STDOUT_FILENO);
@@ -828,6 +840,15 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
 
     if (WIFEXITED(status))   return (vader_i32_t) WEXITSTATUS(status);
     if (WIFSIGNALED(status)) return VADER_SPAWN_SIGNALED;
+    return VADER_SPAWN_LAUNCH_FAIL;
+
+fail_close_both:
+    close(err_pipe[0]); close(err_pipe[1]);
+fail_close_out:
+    close(out_pipe[0]); close(out_pipe[1]);
+fail_free_cargv:
+    for (size_t j = 0; j < n; j++) free(cargv[j]);
+    free(cargv);
     return VADER_SPAWN_LAUNCH_FAIL;
 }
 

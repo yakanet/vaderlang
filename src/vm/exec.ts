@@ -399,6 +399,14 @@ function isBigTag(t: ValType): t is "i64" | "u64" | "usize" {
   return t === "i64" || t === "u64" || t === "usize";
 }
 
+/** Coerce a JS number to the host-tag's integer range. u32 needs Uint32
+ *  coercion (`>>> 0`) to preserve the high bit; everything else fits the
+ *  Int32 path (`| 0`). u8/u16 values never set bit 31 so the same path is
+ *  correct for them too. */
+function intCoerce(t: ValType, n: number): number {
+  return t === "u32" ? n >>> 0 : n | 0;
+}
+
 function applyTyped(f: Frame, t: ValType, verb: ArithVerb): void {
   if (verb === "neg") {
     const v = f.stack.pop()!;
@@ -409,7 +417,7 @@ function applyTyped(f: Frame, t: ValType, verb: ArithVerb): void {
   if (verb === "bitnot") {
     const v = f.stack.pop()!;
     if (isBigTag(t)) f.stack.push(i64(t, ~asBig(v)));
-    else f.stack.push(num(t as NumTag, (~Math.trunc(asNum(v))) | 0));
+    else f.stack.push(num(t as NumTag, intCoerce(t, ~Math.trunc(asNum(v)))));
     return;
   }
 
@@ -457,11 +465,14 @@ function applyTyped(f: Frame, t: ValType, verb: ArithVerb): void {
       f.stack.push(num(tag, m));
       return;
     }
-    case "bitand": f.stack.push(num(tag, (l & r) | 0)); return;
-    case "bitor":  f.stack.push(num(tag, (l | r) | 0)); return;
-    case "bitxor": f.stack.push(num(tag, (l ^ r) | 0)); return;
-    case "shl":    f.stack.push(num(tag, (l << r) | 0)); return;
-    case "shr":    f.stack.push(num(tag, (l >> r) | 0)); return;
+    // u32: `>>` would sign-extend and `| 0` would Int32-coerce — both flip
+    // the high bit. `intCoerce` picks `>>> 0` for u32 and `| 0` otherwise;
+    // `shr` also picks `>>>` over `>>` for u32 to zero-fill.
+    case "bitand": f.stack.push(num(tag, intCoerce(t, l & r))); return;
+    case "bitor":  f.stack.push(num(tag, intCoerce(t, l | r))); return;
+    case "bitxor": f.stack.push(num(tag, intCoerce(t, l ^ r))); return;
+    case "shl":    f.stack.push(num(tag, intCoerce(t, l << r))); return;
+    case "shr":    f.stack.push(num(tag, t === "u32" ? l >>> r : (l >> r) | 0)); return;
     case "eq": f.stack.push(bool(l === r)); return;
     case "ne": f.stack.push(bool(l !== r)); return;
     case "lt": f.stack.push(bool(l <  r)); return;

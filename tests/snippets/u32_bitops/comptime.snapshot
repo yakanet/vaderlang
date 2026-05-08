@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/u32_bitops/_main.vader
+
+## generic instances
+  Yielded(i32)

@@ -1,0 +1,35 @@
+import "std/io" { println }
+
+// Regression: VM and C backend must agree on unsigned 32-bit shifts and
+// bit-ops. The VM used to Int32-coerce results via `| 0`, which turned
+// `0xFFFFFFFF` into `-1` on read-back; the C backend operates directly on
+// `uint32_t` and stays correct. Native-parity (VM == C) is what asserts
+// the fix.
+
+check :: fn(name: string, ok: bool) -> void {
+    if ok { println(name) } else { println("BAD") }
+}
+
+main :: fn() -> i32 {
+    a: u32 = 0xFFFFFFFF_u32
+    b: u32 = 0x80000000_u32
+
+    // shr — must zero-fill, not sign-extend.
+    check("shr_high",    a >> 1_u32 == 0x7FFFFFFF_u32)
+    check("shr_top_bit", b >> 31_u32 == 1_u32)
+
+    // shl — must wrap modulo 2^32, not sign-flip.
+    check("shl_top",  1_u32 << 31_u32 == b)
+    check("shl_wrap", b << 1_u32 == 0_u32)
+
+    // bitand / bitor / bitxor — high-bit values must round-trip.
+    check("and", a & a == a)
+    check("or",  b | 1_u32 == 0x80000001_u32)
+    check("xor", a ^ b == 0x7FFFFFFF_u32)
+
+    // bitnot — `~0u32` must equal 0xFFFFFFFF (not -1).
+    check("not_zero", ~0_u32 == a)
+    check("not_top",  ~b == 0x7FFFFFFF_u32)
+
+    return 0
+}

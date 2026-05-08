@@ -3,6 +3,7 @@
 // (file reads happen outside the VM since they're decorator-only).
 
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
+import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as A from "../parser/ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
@@ -30,7 +31,7 @@ export interface EvaluateOptions {
 
 export function evaluateProject(project: TypedProject, opts: EvaluateOptions): EvaluatedProject {
   const instances = new InstanceRegistry();
-  collectInstances(project, instances);
+  collectInstances(project, instances, opts.diags);
 
   // 1. Walk every module to bake @file decorators (synchronous, no deps).
   // 2. Plan @comptime evaluation order (topological sort + cycle detection).
@@ -181,7 +182,7 @@ function walkExpr(expr: A.Expr, v: BlockVisitor): void {
 
 // ----------------------------------------------------- instance walker
 
-function collectInstances(project: TypedProject, registry: InstanceRegistry): void {
+function collectInstances(project: TypedProject, registry: InstanceRegistry, diags: DiagnosticCollector): void {
   // Locate `std/core::ArrayIter` once so the for-in walker below can register
   // an `ArrayIter(T)` instance whenever user code iterates a `[T]` array.
   let arrayIterSymbol: Symbol | null = null;
@@ -255,7 +256,7 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry): vo
   // contains `for x in items` (items: [T]) and inner generic call sites — both
   // need their substituted types/instances observed to materialise the right
   // mono entries downstream.
-  closeOverGenericImpls(project, registry, arrayIterSymbol);
+  closeOverGenericImpls(project, registry, arrayIterSymbol, diags);
 }
 
 interface ImplSite {
@@ -266,6 +267,7 @@ interface ImplSite {
 
 function closeOverGenericImpls(
   project: TypedProject, registry: InstanceRegistry, arrayIterSymbol: Symbol | null,
+  diags: DiagnosticCollector,
 ): void {
   // Index generic impls by the symbol id of their target struct.
   const implsByStructId = new Map<number, ImplSite[]>();
@@ -293,16 +295,15 @@ function closeOverGenericImpls(
     }
   }
 
-  // Bound at 64 — recursive generic fn bodies (e.g. user-defined linked types)
-  // could in principle grow the registry per iteration ; the cap turns a
-  // pathological infinite loop into a deterministic stop without needing
-  // heuristic pruning.
+  // Bound at 64 — recursive generic fn bodies could otherwise grow the
+  // registry indefinitely. On cap-exhaustion we emit C4014 so downstream
+  // codegen doesn't surface an unhelpful "unreachable".
   const MAX_ITERS = 64;
   let prev = -1;
-  for (let iter = 0; iter < MAX_ITERS && registry.size() !== prev; iter++) {
+  let iter = 0;
+  for (; iter < MAX_ITERS && registry.size() !== prev; iter++) {
     prev = registry.size();
-    // Snapshot once per iteration — `entries()` allocates + sorts a fresh
-    // array, so calling it inside the inner loop would amplify cost.
+    // `entries()` allocates+sorts; snapshot once per iteration.
     const snapshot = registry.entries();
     for (const inst of snapshot) {
       const sites = implsByStructId.get(inst.symbol.id);
@@ -317,6 +318,31 @@ function closeOverGenericImpls(
       }
     }
   }
+  if (iter === MAX_ITERS && registry.size() !== prev) {
+    err(diags, "C4014", pickAnchorSpan(genericFnsBySymId, implsByStructId, project),
+        `generic instance discovery did not converge after ${MAX_ITERS} iterations (registry size: ${registry.size()}). ` +
+        `A generic fn or impl is recursively expanding into new instances; ` +
+        `consider breaking the recursion or specialising manually.`);
+  }
+}
+
+/** Pick a user-visible anchor for a project-wide diagnostic: prefer a generic
+ *  fn decl, fall back to an impl decl, then synthesise a span at the first
+ *  module's file. */
+function pickAnchorSpan(
+  genericFns: Map<number, { fn: A.FnDecl; program: ResolvedProgram }>,
+  implsByStructId: Map<number, ImplSite[]>,
+  project: TypedProject,
+): Span {
+  const fn = genericFns.values().next().value;
+  if (fn !== undefined) return fn.fn.span;
+  for (const list of implsByStructId.values()) {
+    if (list[0] !== undefined) return list[0].impl.span;
+  }
+  const firstModule = project.modules.values().next().value;
+  const file = firstModule?.resolved.source.file ?? "<unknown>";
+  const pos = { file, offset: 0, line: 1, column: 1 };
+  return { start: pos, end: pos };
 }
 
 function observeImplMembers(

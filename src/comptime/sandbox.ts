@@ -2,12 +2,12 @@
 //
 //   ✅ compute (pure functions)
 //   ✅ allocate / manipulate structures
-//   ✅ read project files (@file)
+//   ✅ read project files (@file) — confined to `projectRoot`
 //   ⚠️ ENV / args — opt-in via --allow-env
 //   ❌ network / exec / stdout
 
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, isAbsolute, resolve } from "node:path";
+import { dirname, isAbsolute, resolve, sep } from "node:path";
 
 import type { ComptimeValue } from "./value.ts";
 import { stringVal } from "./value.ts";
@@ -21,6 +21,9 @@ export type ComptimeBuiltinName = typeof COMPTIME_BUILTIN[keyof typeof COMPTIME_
 
 export interface SandboxOptions {
   readonly allowEnv: boolean;
+  /** Absolute path. `@file` is rejected for any target outside this root.
+   *  When undefined, containment is disabled (legacy / repl callers). */
+  readonly projectRoot?: string;
 }
 
 export interface BuiltinCall {
@@ -40,18 +43,32 @@ export type BuiltinResult =
  */
 export function callBuiltin(call: BuiltinCall, opts: SandboxOptions): BuiltinResult | null {
   switch (call.fnName) {
-    case COMPTIME_BUILTIN.file: return file(call);
+    case COMPTIME_BUILTIN.file: return file(call, opts);
     case COMPTIME_BUILTIN.env:  return env(call, opts);
     default: return null;
   }
 }
 
-function file(call: BuiltinCall): BuiltinResult {
+function file(call: BuiltinCall, opts: SandboxOptions): BuiltinResult {
   const arg = call.args[0];
   if (call.args.length !== 1 || arg === undefined || arg.kind !== "string") {
     return { ok: false, code: "C4011", message: "@file expects exactly one string argument" };
   }
   const target = isAbsolute(arg.value) ? arg.value : resolve(dirname(call.callerFile), arg.value);
+  // Containment: a malicious or careless `@file "../../etc/passwd"` (or an
+  // absolute path) reads outside the project. The pipeline plumbs an absolute
+  // `projectRoot` (the dir containing `vader.json`, or the entry file's dir
+  // as a fallback). Targets must live under it.
+  if (opts.projectRoot !== undefined) {
+    const root = opts.projectRoot.endsWith(sep) ? opts.projectRoot : opts.projectRoot + sep;
+    const isInside = target === opts.projectRoot || target.startsWith(root);
+    if (!isInside) {
+      return {
+        ok: false, code: "C4011",
+        message: `@file path escapes project root: \`${arg.value}\` (resolved to \`${target}\`, root \`${opts.projectRoot}\`)`,
+      };
+    }
+  }
   if (!existsSync(target)) {
     return { ok: false, code: "C4006", message: `\`${arg.value}\` (resolved to \`${target}\`)` };
   }

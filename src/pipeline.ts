@@ -3,11 +3,12 @@
 // DiagnosticCollector. Use this from CLI commands so they all see the same
 // staged outputs without re-implementing the wiring.
 
-import { basename } from "node:path";
+import { basename, dirname, resolve as resolvePath } from "node:path";
 
 import { DiagnosticCollector } from "./diagnostics/collector.ts";
 import { parseSource } from "./parser/pipeline.ts";
 import type { Program } from "./parser/ast.ts";
+import { findManifestRoot } from "./resolver/module.ts";
 import { resolveProject } from "./resolver/index.ts";
 import type { ResolvedProject } from "./resolver/resolved-ast.ts";
 import { checkProject } from "./typecheck/index.ts";
@@ -96,7 +97,12 @@ export async function pipelineEvaluated(
   const r = await pipelineTyped(file);
   const evaluated = evaluateProject(r.typed, {
     diags: r.diagnostics,
-    sandbox: { allowEnv: opts?.allowEnv ?? false },
+    sandbox: {
+      allowEnv: opts?.allowEnv ?? false,
+      // `@file` containment: anchor at the project root (vader.json's dir)
+      // and fall back to the entry file's dir if no manifest is found.
+      projectRoot: findManifestRoot(file) ?? resolvePath(dirname(file)),
+    },
   });
   return { ...r, evaluated };
 }

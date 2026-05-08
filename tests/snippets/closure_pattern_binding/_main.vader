@@ -1,0 +1,30 @@
+import "std/io" { println }
+
+P :: struct { name: string }
+
+// Regression: a lambda inside a match arm body that captures the arm's
+// pattern binding (`is P as p`, `is i32 as n`) used to crash — closure
+// analysis correctly added the binding to `capturedSymbols` but the
+// lowerer's `introducePatternBindings` emitted a plain `LoweredLet` with
+// the raw value instead of wrapping it in `LoweredCellNew`. The closure
+// body's `LoweredCellGet` then read garbage out of the slot (VM:
+// type-assert fail; C: segfault).
+greet :: fn(v: P | i32) -> void {
+    match v {
+        is P as p -> {
+            shout :: fn() -> string { "HELLO ${p.name}" }
+            println(shout())
+            println("again ${shout()}")
+        }
+        is i32 as n -> {
+            doubled :: fn() -> i32 { n + n }
+            println("twice = ${doubled()}")
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    greet(P { .name = "world" })
+    greet(21)
+    return 0
+}

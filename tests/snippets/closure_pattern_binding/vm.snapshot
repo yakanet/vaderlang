@@ -1,0 +1,6 @@
+# stdout
+HELLO world
+again HELLO world
+twice = 42
+# exit
+0
