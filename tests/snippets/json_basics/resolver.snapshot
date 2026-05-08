@@ -98,6 +98,7 @@
   import-binding   private  StringBuilder → StringBuilder
   fn               public   stringify 
   fn               public   stringify_pretty 
+  import-binding   private  to_compact_str → to_compact_str
   import-binding   private  to_hex → to_hex
   import-binding   private  to_string → to_string
   import-binding   private  values → values

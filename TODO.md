@@ -570,6 +570,7 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [ ] `std/time` — instants, durations, formatting
 - [ ] `std/random` — PRNG (deterministic seeds)
 - [ ] `std/crypto` — at least hashes (SHA, MD5)
+- [ ] **`std/bignum` — `BigInteger` / `BigDecimal`** — arbitrary-precision integer and decimal arithmetic. Pure-Vader implementations (digit array + carry/borrow loops, Newton-Raphson for division) so the WASM target stays viable. Use cases : (a) JSON parsing without precision loss past 2^53 — currently `JsonNumber` stores f64 (cf. `std/json` v2 in §3.4) ; (b) money / financial DSLs where binary float rounding is unacceptable ; (c) crypto bignums (RSA, ECC) before `std/crypto` lands. Estimate ~600-1000 LoC each. `BigInteger` first since `BigDecimal` reuses its arithmetic.
 
 ### 3.5 Performance
 

@@ -14,7 +14,7 @@ import "std/string" {
 }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated, to_string }
 import "std/collections" { MutableMap, put, get, contains_key, len, keys, values }
-import "std/numbers" { to_hex }
+import "std/numbers" { to_hex, to_compact_str }
 
 // ---- value tree -----------------------------------------------------------
 
@@ -386,8 +386,13 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
 }
 
+// Strip the trailing `.0` from integer-valued floats so `42.0` round-trips
+// as `42`. Vader stores every JsonNumber as `f64` (the parser doesn't keep
+// an int/float distinction), so preserving `.0` would carry no information
+// — emit the canonical short form, matching JS `JSON.stringify`, Go
+// `encoding/json`, and RFC 8785 (JCS).
 write_number :: fn(sb: StringBuilder, v: f64) -> void {
-    sb.append("${v}")
+    sb.append(v.to_compact_str())
 }
 
 write_value :: fn(sb: StringBuilder, v: JsonValue, indent: i32, depth: i32) -> void {
