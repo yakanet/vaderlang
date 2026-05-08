@@ -16,7 +16,7 @@ import type * as L from "../lower/lowered-ast.ts";
 import type { MonoEntry } from "../monomorphize/index.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Type } from "../typecheck/types.ts";
-import { isPrimitive } from "../typecheck/types.ts";
+import { equalsType, isPrimitive } from "../typecheck/types.ts";
 
 import type {
   BasicBlock, BlockId, CFGFunction, CFGLocal, CFGModule, CFGParam,
@@ -398,7 +398,20 @@ function buildIdent(fn: FnCtx, e: L.LoweredIdent): LocalId | null {
   // Local symbol — return its slot directly. Assignments mutate this slot
   // in place, so reads stay live.
   const slot = fn.localBySymId.get(e.symbol.id);
-  if (slot !== undefined) return slot;
+  if (slot !== undefined) {
+    // For binding-kind symbols (for-in, match arms), the lowerer stamps
+    // the narrowed variant on the LoweredIdent's type but doesn't wrap in
+    // a LoweredCast — declaredTypeOfSymbol returns null for bindings. The
+    // FieldGet/Call emit reads the local's declared (Union) type, not the
+    // expr's, so without an explicit Cast it errors out as `unreachable`.
+    const slotType = fn.locals[slot]?.type;
+    if (slotType !== undefined && slotType.kind === "Union" && !equalsType(slotType, e.type)) {
+      const dst = freshTmp(fn, "narrow", e.type);
+      emit(fn, { kind: "Cast", dst, value: slot, type: e.type, span: e.span });
+      return dst;
+    }
+    return slot;
+  }
 
   // Const decl — inline the const's value at the read site, matching the
   // bytecode emit's policy.

@@ -132,7 +132,8 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredS
                 type: ctx.liftedContext.envType, symbol: ctx.liftedContext.envSymbol,
               };
               const cellRef: LoweredExpr = {
-                kind: "LoweredFieldAccess", span: stmt.target.span, type: valueType,
+                // FieldAccess yields the cell ref, not the value — see lowerIdent.
+                kind: "LoweredFieldAccess", span: stmt.target.span, type: TY.unresolved,
                 target: envIdent, field: fieldName,
               };
               return {

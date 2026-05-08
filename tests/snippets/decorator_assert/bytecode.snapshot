@@ -4,8 +4,11 @@ import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_decorator_assert__main_vader$DOUBLE (i32) -> i32
-  local.get 0   ; _main.vader:9:38
+  local "$k_1#3" i32
   i32.const 2   ; _main.vader:9:42
+  local.set 1   ; _main.vader:9:42
+  local.get 0   ; _main.vader:9:38
+  local.get 1   ; _main.vader:9:38
   i32.mul   ; _main.vader:9:38
   return   ; _main.vader:9:31
 end

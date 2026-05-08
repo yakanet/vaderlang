@@ -100,9 +100,12 @@ function toSSAFn(fn: CFGFunction): CFGFunction {
   const stacks = new Map<LocalId, LocalId[]>();
   for (let i = 0; i < locals.length; i++) stacks.set(i, [i]);   // every original local gets its own stack
 
-  const allocFresh = (origin: LocalId): LocalId => {
+  const allocFresh = (origin: LocalId, source = "unknown"): LocalId => {
     const id = locals.length;
-    const orig = locals[origin]!;
+    const orig = locals[origin];
+    if (orig === undefined) {
+      throw new Error(`allocFresh: origin=${origin} (source=${source}) out of range (locals.length=${locals.length}) in fn ${fn.mangled}`);
+    }
     locals.push({ name: `${orig.name}#${id}`, type: orig.type, symbol: orig.symbol });
     stacks.get(origin)!.push(id);
     if (!stacks.has(id)) stacks.set(id, [id]);
@@ -130,7 +133,7 @@ function toSSAFn(fn: CFGFunction): CFGFunction {
     // pick them up via the stack.
     for (const phi of block.phis) {
       const orig = phi.dst;
-      const fresh = allocFresh(orig);
+      const fresh = allocFresh(orig, "phi");
       pushed.push(orig);
       (phi as { dst: LocalId }).dst = fresh;
     }

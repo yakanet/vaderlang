@@ -14,49 +14,78 @@ import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_match_partial__main_vader$weekend_only (i32) -> string
-  local __scrut_0 i32
+  local "__scrut_0#23" i32
+  local "$k_2#24" i32
+  local "$k_6#27" i32
+  local "$k_10#30" i32
+  local "$k_14#33" i32
+  local "$k_18#36" i32
+  local "$k_22#39" i32
+  local "$k_26#42" i32
   local.get 0   ; _main.vader:10:27
-  local.tee 1   ; _main.vader:10:27
+  local.set 1   ; _main.vader:10:27
   i32.const 5   ; _main.vader:11:9
+  local.set 2   ; _main.vader:11:9
+  local.get 1   ; _main.vader:11:9
+  local.get 2   ; _main.vader:11:9
   i32.eq   ; _main.vader:11:9
-  if string   ; _main.vader:11:9
+  if void   ; _main.vader:11:9
   string.const 0   ; _main.vader:11:22
+  return   ; _main.vader:10:5
   else   ; _main.vader:11:9
-  local.get 1   ; _main.vader:12:9
   i32.const 6   ; _main.vader:12:9
+  local.set 3   ; _main.vader:12:9
+  local.get 1   ; _main.vader:12:9
+  local.get 3   ; _main.vader:12:9
   i32.eq   ; _main.vader:12:9
-  if string   ; _main.vader:12:9
+  if void   ; _main.vader:12:9
   string.const 0   ; _main.vader:12:22
+  return   ; _main.vader:10:5
   else   ; _main.vader:12:9
-  local.get 1   ; _main.vader:13:9
   i32.const 0   ; _main.vader:13:9
+  local.set 4   ; _main.vader:13:9
+  local.get 1   ; _main.vader:13:9
+  local.get 4   ; _main.vader:13:9
   i32.eq   ; _main.vader:13:9
-  if string   ; _main.vader:13:9
+  if void   ; _main.vader:13:9
   string.const 1   ; _main.vader:13:22
+  return   ; _main.vader:10:5
   else   ; _main.vader:13:9
-  local.get 1   ; _main.vader:14:9
   i32.const 1   ; _main.vader:14:9
+  local.set 5   ; _main.vader:14:9
+  local.get 1   ; _main.vader:14:9
+  local.get 5   ; _main.vader:14:9
   i32.eq   ; _main.vader:14:9
-  if string   ; _main.vader:14:9
+  if void   ; _main.vader:14:9
   string.const 1   ; _main.vader:14:22
+  return   ; _main.vader:10:5
   else   ; _main.vader:14:9
-  local.get 1   ; _main.vader:15:9
   i32.const 2   ; _main.vader:15:9
+  local.set 6   ; _main.vader:15:9
+  local.get 1   ; _main.vader:15:9
+  local.get 6   ; _main.vader:15:9
   i32.eq   ; _main.vader:15:9
-  if string   ; _main.vader:15:9
+  if void   ; _main.vader:15:9
   string.const 1   ; _main.vader:15:23
+  return   ; _main.vader:10:5
   else   ; _main.vader:15:9
-  local.get 1   ; _main.vader:16:9
   i32.const 3   ; _main.vader:16:9
+  local.set 7   ; _main.vader:16:9
+  local.get 1   ; _main.vader:16:9
+  local.get 7   ; _main.vader:16:9
   i32.eq   ; _main.vader:16:9
-  if string   ; _main.vader:16:9
+  if void   ; _main.vader:16:9
   string.const 1   ; _main.vader:16:22
+  return   ; _main.vader:10:5
   else   ; _main.vader:16:9
-  local.get 1   ; _main.vader:17:9
   i32.const 4   ; _main.vader:17:9
+  local.set 8   ; _main.vader:17:9
+  local.get 1   ; _main.vader:17:9
+  local.get 8   ; _main.vader:17:9
   i32.eq   ; _main.vader:17:9
-  if string   ; _main.vader:17:9
+  if void   ; _main.vader:17:9
   string.const 1   ; _main.vader:17:22
+  return   ; _main.vader:10:5
   else   ; _main.vader:17:9
   unreachable   ; _main.vader:10:21
   end   ; _main.vader:17:9
@@ -66,7 +95,6 @@ fn 0 tests_snippets_match_partial__main_vader$weekend_only (i32) -> string
   end   ; _main.vader:13:9
   end   ; _main.vader:12:9
   end   ; _main.vader:11:9
-  return   ; _main.vader:10:5
 end
 
 fn 1 tests_snippets_match_partial__main_vader$main () -> i32

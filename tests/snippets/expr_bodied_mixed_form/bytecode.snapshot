@@ -5,7 +5,7 @@ import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_expr_bodied_mixed_form__main_vader$square (i32) -> i32
   local.get 0   ; _main.vader:6:38
-  local.get 0   ; _main.vader:6:42
+  local.get 0   ; _main.vader:6:38
   i32.mul   ; _main.vader:6:38
   return   ; _main.vader:6:38
 end

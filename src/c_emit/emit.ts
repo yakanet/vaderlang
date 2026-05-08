@@ -1357,7 +1357,7 @@ function boxExpr(_ctx: EmitCtx, name: string, val: ValType, typeIndex: number): 
     case "bool": return `vader_box_bool(${typeIndex}u, ${name})`;
     case "char": return `vader_box_i32(${typeIndex}u, (int32_t) ${name})`;
     case "string": return `vader_box_string(${typeIndex}u, ${name})`;
-    case "null":   return `vader_box_null()`;
+    case "null":   return name;     // keep source tag — vader_box_null() has tag=0, collides with type-table[0]
     case "void":   return `vader_box_null()`;
     case "ref": case "any": return name;
   }
@@ -1382,7 +1382,7 @@ function unboxExpr(name: string, target: ValType): string {
       return `((${cTypeForValBare(target)}) ${name}.payload.f)`;
     case "bool":   return `${name}.payload.b`;
     case "string": return `${name}.payload.s`;
-    case "null":   return `vader_box_null()`;
+    case "null":   return name;     // see boxExpr
     case "void":   return `((void) 0)`;
     case "ref": case "any": return name;
   }

@@ -14,13 +14,17 @@ import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_primitive_impl__main_vader$i32$Display$show (i32) -> string
-  local __sb_0 any
+  local "__sb_0#6" any
+  local "$k_3#7" string
   intrinsic builder.new   ; _main.vader:5:16
-  local.tee 1   ; _main.vader:5:16
+  local.set 1   ; _main.vader:5:16
   string.const 0   ; _main.vader:5:17
+  local.set 2   ; _main.vader:5:17
+  local.get 1   ; _main.vader:5:17
+  local.get 2   ; _main.vader:5:17
   intrinsic builder.append_str   ; _main.vader:5:17
   local.get 1   ; _main.vader:5:31
-  local.get 0   ; _main.vader:5:33
+  local.get 0   ; _main.vader:5:31
   intrinsic builder.append_display   ; _main.vader:5:31
   local.get 1   ; _main.vader:5:16
   intrinsic builder.finish   ; _main.vader:5:16

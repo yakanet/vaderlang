@@ -86,7 +86,6 @@ export function emitBytecodeFromCFG(
         body: [],
         debug: [],
         slotBySymbolId: new Map(),
-        labelStack: [],
       };
 
       emitCFGFunctionBody(cfgFn, fn, ctx, stringIndexMap);
@@ -556,8 +555,12 @@ function emitCast(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Cast" }>): 
   const toVal = valTypeOf(ins.type);
   emitFirstOperand(ctx, ins, ins.value, ins.span);
   if (fromVal !== toVal) {
-    const op = convertOp(fromVal, toVal);
-    if (op !== null) pushOp(ctx.emit, op, ins.span);
+    if (fromVal === "ref" || fromVal === "any" || toVal === "ref" || toVal === "any") {
+      pushOp(ctx.emit, { kind: "ref.cast", typeIndex: internType(ctx.project, ins.type) }, ins.span);
+    } else {
+      const op = convertOp(fromVal, toVal);
+      if (op !== null) pushOp(ctx.emit, op, ins.span);
+    }
   }
   emitInstrResult(ctx, ins, ins.dst, ins.span);
 }

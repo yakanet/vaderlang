@@ -4,19 +4,32 @@ import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_expr_bodied_recursive_fn__main_vader$fact (i32) -> any
-  local.get 0   ; _main.vader:6:32
+  local "$k_1#7" i32
+  local "$k_5#10" i32
+  local "$call_7#12" any
+  local "if_res#14" any
   i32.const 1   ; _main.vader:6:37
+  local.set 1   ; _main.vader:6:37
+  local.get 0   ; _main.vader:6:32
+  local.get 1   ; _main.vader:6:32
   i32.le   ; _main.vader:6:32
-  if any   ; _main.vader:6:29
+  if void   ; _main.vader:6:29
   i32.const 1   ; _main.vader:6:41
+  local.set 4   ; _main.vader:6:41
   else   ; _main.vader:6:29
-  local.get 0   ; _main.vader:6:52
-  local.get 0   ; _main.vader:6:61
   i32.const 1   ; _main.vader:6:65
+  local.set 2   ; _main.vader:6:65
+  local.get 0   ; _main.vader:6:61
+  local.get 2   ; _main.vader:6:61
   i32.sub   ; _main.vader:6:61
   call 0   ; _main.vader:6:56
+  local.set 3   ; _main.vader:6:56
+  local.get 0   ; _main.vader:6:52
+  local.get 3   ; _main.vader:6:52
   i32.mul   ; _main.vader:6:52
+  local.set 4   ; _main.vader:6:52
   end   ; _main.vader:6:29
+  local.get 4   ; _main.vader:6:29
   return   ; _main.vader:6:29
 end
 

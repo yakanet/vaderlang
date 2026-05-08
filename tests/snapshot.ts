@@ -13,11 +13,11 @@ import type {
   LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
 } from "../src/lower/index.ts";
 import { eliminateDeadCode } from "../src/dce/index.ts";
-import { emitBytecode } from "../src/bytecode/index.ts";
 import { writeVir, parseVir } from "../src/bytecode/text.ts";
 import { buildCFGProject } from "../src/midir/build.ts";
 import { eliminateDeadCFG } from "../src/midir/dce.ts";
 import { dumpCFGProject } from "../src/midir/dump.ts";
+import { emitBytecodeFromCFG } from "../src/midir/emit.ts";
 import { annotateEscape } from "../src/midir/escape.ts";
 import { fromSSA, toSSA } from "../src/midir/ssa.ts";
 import type { Token } from "../src/lexer/token.ts";
@@ -173,7 +173,9 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   const lowered = lowerProject(evaled, diags);
   const dced = eliminateDeadCode(lowered);
   const moduleName = (entryPath.split("/").pop() ?? entryPath).replace(/\.vader$/, "");
-  const bc = emitBytecode(dced, moduleName);
+  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(dced)));
+  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
+  const bc = emitBytecodeFromCFG(dced, cfg, moduleName);
 
   const text1 = writeVir(bc);
   let roundTripBanner = "";

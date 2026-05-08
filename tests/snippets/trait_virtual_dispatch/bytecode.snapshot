@@ -20,14 +20,21 @@ import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (ref) -> string
-  local __sb_0 any
+  local "__sb_0#7" any
+  local "$k_3#8" string
+  local "$field_4#9" string
   intrinsic builder.new   ; _main.vader:11:41
-  local.tee 1   ; _main.vader:11:41
+  local.set 1   ; _main.vader:11:41
   string.const 0   ; _main.vader:11:42
+  local.set 2   ; _main.vader:11:42
+  local.get 1   ; _main.vader:11:42
+  local.get 2   ; _main.vader:11:42
   intrinsic builder.append_str   ; _main.vader:11:42
-  local.get 1   ; _main.vader:11:49
   local.get 0   ; _main.vader:11:51
   struct.get 0 0   ; _main.vader:11:51
+  local.set 3   ; _main.vader:11:51
+  local.get 1   ; _main.vader:11:49
+  local.get 3   ; _main.vader:11:49
   intrinsic builder.append_display   ; _main.vader:11:49
   local.get 1   ; _main.vader:11:41
   intrinsic builder.finish   ; _main.vader:11:41
@@ -35,14 +42,21 @@ fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (r
 end
 
 fn 1 tests_snippets_trait_virtual_dispatch__main_vader$NetErr$Error$message (ref) -> string
-  local __sb_0 any
+  local "__sb_0#7" any
+  local "$k_3#8" string
+  local "$field_4#9" string
   intrinsic builder.new   ; _main.vader:14:41
-  local.tee 1   ; _main.vader:14:41
+  local.set 1   ; _main.vader:14:41
   string.const 1   ; _main.vader:14:42
+  local.set 2   ; _main.vader:14:42
+  local.get 1   ; _main.vader:14:42
+  local.get 2   ; _main.vader:14:42
   intrinsic builder.append_str   ; _main.vader:14:42
-  local.get 1   ; _main.vader:14:47
   local.get 0   ; _main.vader:14:49
   struct.get 2 0   ; _main.vader:14:49
+  local.set 3   ; _main.vader:14:49
+  local.get 1   ; _main.vader:14:47
+  local.get 3   ; _main.vader:14:47
   intrinsic builder.append_display   ; _main.vader:14:47
   local.get 1   ; _main.vader:14:41
   intrinsic builder.finish   ; _main.vader:14:41

@@ -229,12 +229,17 @@ function compactLocals(fn: CFGFunction): CFGFunction {
     name: p.name, symbol: p.symbol, type: p.type, local: remap[p.local]!,
   }));
 
-  const newBlocks: BasicBlock[] = fn.blocks.map((b) => ({
-    id: b.id,
-    instructions: b.instructions.map((ins) => remapInstr(ins, remap)),
-    terminator: remapTerminator(b.terminator, remap),
-    span: b.span,
-  }));
+  // Drop instructions remapped to dst=-1: liveness over-approximates around
+  // back-edges through dead-end blocks; SSA's allocFresh would crash on these.
+  const newBlocks: BasicBlock[] = fn.blocks.map((b) => {
+    const out: Instruction[] = [];
+    for (const ins of b.instructions) {
+      const d = dstOf(ins);
+      if (d !== null && remap[d] === -1 && !instructionHasSideEffect(ins)) continue;
+      out.push(remapInstr(ins, remap));
+    }
+    return { id: b.id, instructions: out, terminator: remapTerminator(b.terminator, remap), span: b.span };
+  });
 
   return {
     mangled: fn.mangled,

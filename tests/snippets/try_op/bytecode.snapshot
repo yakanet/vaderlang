@@ -17,23 +17,23 @@ import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_try_op__main_vader$read_or_default (string) -> ref
-  local __try_0 ref
-  local.get 0   ; _main.vader:6:22
+  local "__try_0#6" ref
+  local.get 0   ; _main.vader:6:12
   call.import 8   ; _main.vader:6:12
   local.tee 1   ; _main.vader:6:12
   type_check 0   ; _main.vader:6:12
-  if string   ; _main.vader:6:12
+  if void   ; _main.vader:6:12
   local.get 1   ; _main.vader:6:12
   return   ; _main.vader:6:12
   else   ; _main.vader:6:12
   local.get 1   ; _main.vader:6:12
   ref.cast 1   ; _main.vader:6:12
-  end   ; _main.vader:6:12
   return   ; _main.vader:6:5
+  end   ; _main.vader:6:12
 end
 
 fn 1 tests_snippets_try_op__main_vader$show (ref) -> void
-  local __scrut_0 ref
+  local "__scrut_0#6" ref
   local.get 0   ; _main.vader:10:11
   local.tee 1   ; _main.vader:10:11
   type_check 1   ; _main.vader:11:9
@@ -41,12 +41,14 @@ fn 1 tests_snippets_try_op__main_vader$show (ref) -> void
   local.get 0   ; _main.vader:11:30
   ref.cast 1   ; _main.vader:11:30
   call.import 4   ; _main.vader:11:22
+  return   ; _main.vader:9:48
   else   ; _main.vader:11:9
   local.get 1   ; _main.vader:12:9
   type_check 0   ; _main.vader:12:9
   if void   ; _main.vader:12:9
   string.const 0   ; _main.vader:12:30
   call.import 4   ; _main.vader:12:22
+  return   ; _main.vader:9:48
   else   ; _main.vader:12:9
   unreachable   ; _main.vader:10:5
   end   ; _main.vader:12:9

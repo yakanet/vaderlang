@@ -5,12 +5,12 @@ import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_fn_decl__main_vader$add (i32,i32) -> i32
   local.get 0   ; _main.vader:2:12
-  local.get 1   ; _main.vader:2:16
+  local.get 1   ; _main.vader:2:12
   i32.add   ; _main.vader:2:12
   return   ; _main.vader:2:5
 end
 
 fn 1 tests_snippets_fn_decl__main_vader$greet (string,string) -> string
-  local.get 1   ; _main.vader:6:12
+  local.get 1   ; _main.vader:6:5
   return   ; _main.vader:6:5
 end

@@ -1,41 +1,71 @@
 module _main
-type 0 array 1
-type 1 fn (2) -> 2
-type 2 primitive i32
+type 0 fn (1) -> 1
+type 1 primitive i32
+type 2 array 0
 import 0 add std_core$string$Add$add (string,string) -> string
 import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_fn_value_array__main_vader$inc (i32) -> i32
-  local.get 0   ; _main.vader:2:12
+  local "$k_1#3" i32
   i32.const 1   ; _main.vader:2:16
+  local.set 1   ; _main.vader:2:16
+  local.get 0   ; _main.vader:2:12
+  local.get 1   ; _main.vader:2:12
   i32.add   ; _main.vader:2:12
   return   ; _main.vader:2:5
 end
 
 fn 1 tests_snippets_fn_value_array__main_vader$double (i32) -> i32
-  local.get 0   ; _main.vader:6:12
+  local "$k_1#3" i32
   i32.const 2   ; _main.vader:6:16
+  local.set 1   ; _main.vader:6:16
+  local.get 0   ; _main.vader:6:12
+  local.get 1   ; _main.vader:6:12
   i32.mul   ; _main.vader:6:12
   return   ; _main.vader:6:5
 end
 
 fn 2 tests_snippets_fn_value_array__main_vader$main () -> i32
-  local fs ref
-  fn.ref 0 1   ; _main.vader:10:12
-  fn.ref 1 1   ; _main.vader:10:17
-  array.new 0 2   ; _main.vader:10:11
-  local.set 0   ; _main.vader:10:5
-  i32.const 7   ; _main.vader:11:18
-  local.get 0   ; _main.vader:11:12
+  local "$fn_ref_0#12" ref
+  local "$fn_ref_1#13" ref
+  local "fs#14" ref
+  local "$k_4#15" i32
+  local "$idx_5#16" ref
+  local "$call_ind_7#18" i32
+  local "$k_8#19" i32
+  local "$idx_9#20" ref
+  local "$call_ind_11#22" i32
+  fn.ref 0 0   ; _main.vader:10:12
+  local.set 0   ; _main.vader:10:12
+  fn.ref 1 0   ; _main.vader:10:17
+  local.set 1   ; _main.vader:10:17
+  local.get 0   ; _main.vader:10:11
+  local.get 1   ; _main.vader:10:11
+  array.new 2 2   ; _main.vader:10:11
+  local.set 2   ; _main.vader:10:11
   i32.const 0   ; _main.vader:11:15
-  array.get 0   ; _main.vader:11:12
-  call.indirect 1   ; _main.vader:11:12
-  i32.const 3   ; _main.vader:11:29
-  local.get 0   ; _main.vader:11:23
+  local.set 3   ; _main.vader:11:15
+  local.get 2   ; _main.vader:11:12
+  local.get 3   ; _main.vader:11:12
+  array.get 2   ; _main.vader:11:12
+  local.set 4   ; _main.vader:11:12
+  i32.const 7   ; _main.vader:11:18
+  local.get 4   ; _main.vader:11:12
+  call.indirect 0   ; _main.vader:11:12
+  local.set 5   ; _main.vader:11:12
   i32.const 1   ; _main.vader:11:26
-  array.get 0   ; _main.vader:11:23
-  call.indirect 1   ; _main.vader:11:23
+  local.set 6   ; _main.vader:11:26
+  local.get 2   ; _main.vader:11:23
+  local.get 6   ; _main.vader:11:23
+  array.get 2   ; _main.vader:11:23
+  local.set 7   ; _main.vader:11:23
+  i32.const 3   ; _main.vader:11:29
+  local.get 7   ; _main.vader:11:23
+  call.indirect 0   ; _main.vader:11:23
+  local.set 8   ; _main.vader:11:23
+  local.get 5   ; _main.vader:11:12
+  local.get 8   ; _main.vader:11:12
   i32.add   ; _main.vader:11:12
   return   ; _main.vader:11:5
 end

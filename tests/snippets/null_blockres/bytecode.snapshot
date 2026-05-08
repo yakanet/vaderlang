@@ -17,24 +17,35 @@ import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
-  local.get 0   ; _main.vader:7:13
-  if null   ; _main.vader:7:10
+  local "if_res#9" null
+  local "x#10" null
+  local "$k_5#11" null
+  local.get 0   ; _main.vader:7:10
+  if void   ; _main.vader:7:10
   null.const   ; _main.vader:7:17
+  local.set 1   ; _main.vader:7:17
   else   ; _main.vader:7:10
   null.const   ; _main.vader:7:31
+  local.set 1   ; _main.vader:7:31
   end   ; _main.vader:7:10
+  local.get 1   ; _main.vader:7:5
+  local.set 2   ; _main.vader:7:5
   null.const   ; _main.vader:8:13
+  local.set 3   ; _main.vader:8:13
+  local.get 2   ; _main.vader:8:8
+  local.get 3   ; _main.vader:8:8
   ref.eq   ; _main.vader:8:8
   if void   ; _main.vader:8:5
   string.const 0   ; _main.vader:9:16
   return   ; _main.vader:9:9
-  end   ; _main.vader:8:5
+  else   ; _main.vader:8:5
   null.const   ; _main.vader:11:12
   return   ; _main.vader:11:5
+  end   ; _main.vader:8:5
 end
 
 fn 1 tests_snippets_null_blockres__main_vader$main () -> i32
-  local __scrut_0 ref
+  local "__scrut_0#10" ref
   bool.const true   ; _main.vader:15:16
   call 0   ; _main.vader:15:11
   local.tee 0   ; _main.vader:15:11
@@ -42,16 +53,18 @@ fn 1 tests_snippets_null_blockres__main_vader$main () -> i32
   if void   ; _main.vader:16:9
   string.const 1   ; _main.vader:16:30
   call.import 4   ; _main.vader:16:22
+  i32.const 0   ; _main.vader:19:12
+  return   ; _main.vader:19:5
   else   ; _main.vader:16:9
   local.get 0   ; _main.vader:17:9
   type_check 1   ; _main.vader:17:9
   if void   ; _main.vader:17:9
   string.const 2   ; _main.vader:17:28
   call.import 4   ; _main.vader:17:20
+  i32.const 0   ; _main.vader:19:12
+  return   ; _main.vader:19:5
   else   ; _main.vader:17:9
   unreachable   ; _main.vader:15:5
   end   ; _main.vader:17:9
   end   ; _main.vader:16:9
-  i32.const 0   ; _main.vader:19:12
-  return   ; _main.vader:19:5
 end

@@ -69,7 +69,7 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
 async function buildNative(
   opts: GlobalOpts, file: string, outPath: string | undefined, release: boolean,
 ): Promise<number> {
-  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt, midIr: opts.midIr });
+  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   if (!flushDiagnostics(r, opts, file)) return 1;
 
   // Emit the .c next to the binary so it's inspectable. Naming: `<out>.c` so
@@ -115,7 +115,7 @@ async function buildNative(
 }
 
 async function buildC(opts: GlobalOpts, file: string, outPath: string | undefined): Promise<number> {
-  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt, midIr: opts.midIr });
+  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   if (!flushDiagnostics(r, opts, file)) return 1;
   const out = outPath ?? file.replace(/\.vader$/, ".c");
   await Bun.write(out, emitC(r.bytecode));
@@ -133,7 +133,7 @@ function flushDiagnostics(r: BytecodeResult, opts: GlobalOpts, file: string): bo
 }
 
 async function buildIr(opts: GlobalOpts, file: string, outPath: string | undefined): Promise<number> {
-  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt, midIr: opts.midIr });
+  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   const sorted = r.diagnostics.sorted();
   if (sorted.length > 0) {
     console.error(opts.diagnostics === "json"

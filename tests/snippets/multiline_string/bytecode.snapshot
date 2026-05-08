@@ -18,21 +18,30 @@ import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_multiline_string__main_vader$main () -> i32
-  local n i32
-  local __sb_0 any
+  local "n#14" i32
+  local "__sb_0#16" any
+  local "$k_6#17" string
+  local "$k_7#18" string
+  local "prefix#22" string
+  local "$k_14#23" string
   string.const 0   ; _main.vader:5:10
   call.import 3   ; _main.vader:9:5
   i32.const 42   ; _main.vader:12:10
-  local.set 0   ; _main.vader:12:5
+  local.set 0   ; _main.vader:12:10
   intrinsic builder.new   ; _main.vader:13:12
-  local.tee 1   ; _main.vader:13:12
+  local.set 1   ; _main.vader:13:12
   string.const 1   ; _main.vader:14:1
+  local.set 2   ; _main.vader:14:1
+  local.get 1   ; _main.vader:14:1
+  local.get 2   ; _main.vader:14:1
   intrinsic builder.append_str   ; _main.vader:14:1
   local.get 1   ; _main.vader:14:8
-  local.get 0   ; _main.vader:14:10
+  local.get 0   ; _main.vader:14:8
   intrinsic builder.append_display   ; _main.vader:14:8
-  local.get 1   ; _main.vader:14:12
   string.const 2   ; _main.vader:14:12
+  local.set 3   ; _main.vader:14:12
+  local.get 1   ; _main.vader:14:12
+  local.get 3   ; _main.vader:14:12
   intrinsic builder.append_str   ; _main.vader:14:12
   local.get 1   ; _main.vader:13:12
   intrinsic builder.finish   ; _main.vader:13:12
@@ -40,7 +49,11 @@ fn 0 tests_snippets_multiline_string__main_vader$main () -> i32
   string.const 3   ; _main.vader:20:16
   call.import 3   ; _main.vader:23:5
   string.const 4   ; _main.vader:26:15
+  local.set 4   ; _main.vader:26:15
   string.const 5   ; _main.vader:27:26
+  local.set 5   ; _main.vader:27:26
+  local.get 4   ; _main.vader:27:17
+  local.get 5   ; _main.vader:27:17
   string.concat   ; _main.vader:27:17
   call.import 4   ; _main.vader:30:5
   i32.const 0   ; _main.vader:32:12

@@ -32,62 +32,91 @@ import 12 spawn_last_stdout std_process$spawn_last_stdout () -> string
 import 13 spawn_last_stderr std_process$spawn_last_stderr () -> string
 
 fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
-  local r ref
-  local __scrut_0 ref
-  local __sb_2 any
-  local __sb_3 any
-  local __sb_1 any
+  local "$k_0#27" string
+  local "$k_1#28" string
+  local "r#31" ref
+  local "__scrut_0#32" ref
+  local "__sb_2#35" any
+  local "$k_9#36" string
+  local "$field_11#38" i32
+  local "__sb_3#41" any
+  local "$k_15#42" string
+  local "$field_17#44" string
+  local "__sb_1#48" any
+  local "$k_22#49" string
+  local "$vcall_24#51" string
   string.const 0   ; _main.vader:9:17
+  local.set 0   ; _main.vader:9:17
   string.const 1   ; _main.vader:9:30
+  local.set 1   ; _main.vader:9:30
+  local.get 0   ; _main.vader:9:16
+  local.get 1   ; _main.vader:9:16
   array.new 5 2   ; _main.vader:9:16
   call 3   ; _main.vader:9:10
-  local.tee 0   ; _main.vader:9:5
-  local.tee 1   ; _main.vader:10:11
+  local.tee 2   ; _main.vader:9:5
+  local.tee 3   ; _main.vader:10:11
   type_check 3   ; _main.vader:11:9
   if void   ; _main.vader:11:9
   intrinsic builder.new   ; _main.vader:12:21
-  local.tee 2   ; _main.vader:12:21
+  local.set 4   ; _main.vader:12:21
   string.const 2   ; _main.vader:12:22
+  local.set 5   ; _main.vader:12:22
+  local.get 4   ; _main.vader:12:22
+  local.get 5   ; _main.vader:12:22
   intrinsic builder.append_str   ; _main.vader:12:22
-  local.get 2   ; _main.vader:12:27
-  local.get 0   ; _main.vader:12:29
+  local.get 2   ; _main.vader:12:29
   struct.get 3 0   ; _main.vader:12:29
+  local.set 6   ; _main.vader:12:29
+  local.get 4   ; _main.vader:12:27
+  local.get 6   ; _main.vader:12:27
   intrinsic builder.append_display   ; _main.vader:12:27
-  local.get 2   ; _main.vader:12:21
+  local.get 4   ; _main.vader:12:21
   intrinsic builder.finish   ; _main.vader:12:21
   call.import 4   ; _main.vader:12:13
   intrinsic builder.new   ; _main.vader:13:21
-  local.tee 3   ; _main.vader:13:21
+  local.set 7   ; _main.vader:13:21
   string.const 3   ; _main.vader:13:22
+  local.set 8   ; _main.vader:13:22
+  local.get 7   ; _main.vader:13:22
+  local.get 8   ; _main.vader:13:22
   intrinsic builder.append_str   ; _main.vader:13:22
-  local.get 3   ; _main.vader:13:26
-  local.get 0   ; _main.vader:13:28
+  local.get 2   ; _main.vader:13:28
   struct.get 3 1   ; _main.vader:13:28
+  local.set 9   ; _main.vader:13:28
+  local.get 7   ; _main.vader:13:26
+  local.get 9   ; _main.vader:13:26
   intrinsic builder.append_display   ; _main.vader:13:26
-  local.get 3   ; _main.vader:13:21
+  local.get 7   ; _main.vader:13:21
   intrinsic builder.finish   ; _main.vader:13:21
   call.import 4   ; _main.vader:13:13
+  i32.const 0   ; _main.vader:17:12
+  return   ; _main.vader:17:5
   else   ; _main.vader:11:9
-  local.get 1   ; _main.vader:15:9
+  local.get 3   ; _main.vader:15:9
   type_check 6   ; _main.vader:15:9
   if void   ; _main.vader:15:9
   intrinsic builder.new   ; _main.vader:15:29
-  local.tee 4   ; _main.vader:15:29
+  local.set 10   ; _main.vader:15:29
   string.const 4   ; _main.vader:15:30
+  local.set 11   ; _main.vader:15:30
+  local.get 10   ; _main.vader:15:30
+  local.get 11   ; _main.vader:15:30
   intrinsic builder.append_str   ; _main.vader:15:30
-  local.get 4   ; _main.vader:15:35
-  local.get 0   ; _main.vader:15:37
+  local.get 2   ; _main.vader:15:37
   virtual.call 1 Error.message   ; _main.vader:15:37
+  local.set 12   ; _main.vader:15:37
+  local.get 10   ; _main.vader:15:35
+  local.get 12   ; _main.vader:15:35
   intrinsic builder.append_display   ; _main.vader:15:35
-  local.get 4   ; _main.vader:15:29
+  local.get 10   ; _main.vader:15:29
   intrinsic builder.finish   ; _main.vader:15:29
   call.import 4   ; _main.vader:15:21
+  i32.const 0   ; _main.vader:17:12
+  return   ; _main.vader:17:5
   else   ; _main.vader:15:9
   unreachable   ; _main.vader:10:5
   end   ; _main.vader:15:9
   end   ; _main.vader:11:9
-  i32.const 0   ; _main.vader:17:12
-  return   ; _main.vader:17:5
 end
 
 fn 1 std_io$IOError$Error$message (ref) -> string
@@ -103,76 +132,117 @@ fn 2 std_process$ProcessError$Error$message (ref) -> string
 end
 
 fn 3 std_process$spawn (ref) -> ref
-  local code i32
-  local out string
-  local err string
-  local __sb_0 any
-  local __sb_1 any
+  local "$len_1#35" i32
+  local "$k_2#36" i32
+  local "code#41" i32
+  local "out#43" string
+  local "err#45" string
+  local "$neg_13#47" i32
+  local "__sb_0#50" any
+  local "$k_17#51" string
+  local "$k_18#52" i32
+  local "$idx_19#53" string
+  local "$k_20#54" string
+  local "$neg_24#58" i32
+  local "__sb_1#61" any
+  local "$k_28#62" string
+  local "$k_29#63" i32
+  local "$idx_30#64" string
+  local "$k_31#65" string
   local.get 0   ; process.vader:34:8
   array.len   ; process.vader:34:8
+  local.set 1   ; process.vader:34:8
   i32.const 0   ; process.vader:34:22
+  local.set 2   ; process.vader:34:22
+  local.get 1   ; process.vader:34:8
+  local.get 2   ; process.vader:34:8
   i32.eq   ; process.vader:34:8
   if void   ; process.vader:34:5
   string.const 5   ; process.vader:35:38
   struct.new 2   ; process.vader:35:16
   return   ; process.vader:35:9
-  end   ; process.vader:34:5
-  local.get 0   ; process.vader:37:23
+  else   ; process.vader:34:5
+  local.get 0   ; process.vader:37:13
   call.import 11   ; process.vader:37:13
-  local.set 1   ; process.vader:37:5
+  local.set 3   ; process.vader:37:5
   call.import 12   ; process.vader:38:13
-  local.set 2   ; process.vader:38:5
+  local.set 4   ; process.vader:38:5
   call.import 13   ; process.vader:39:13
-  local.set 3   ; process.vader:39:5
-  local.get 1   ; process.vader:40:8
+  local.set 5   ; process.vader:39:5
   i32.const 1   ; process.vader:10:17
   i32.neg   ; process.vader:10:16
+  local.set 6   ; process.vader:10:16
+  local.get 3   ; process.vader:40:8
+  local.get 6   ; process.vader:40:8
   i32.eq   ; process.vader:40:8
   if void   ; process.vader:40:5
   intrinsic builder.new   ; process.vader:41:38
-  local.tee 4   ; process.vader:41:38
+  local.set 7   ; process.vader:41:38
   string.const 6   ; process.vader:41:39
+  local.set 8   ; process.vader:41:39
+  local.get 7   ; process.vader:41:39
+  local.get 8   ; process.vader:41:39
   intrinsic builder.append_str   ; process.vader:41:39
-  local.get 4   ; process.vader:41:65
-  local.get 0   ; process.vader:41:67
   i32.const 0   ; process.vader:41:72
+  local.set 9   ; process.vader:41:72
+  local.get 0   ; process.vader:41:67
+  local.get 9   ; process.vader:41:67
   array.get 5   ; process.vader:41:67
   ref.cast 1   ; process.vader:41:67
+  local.set 10   ; process.vader:41:67
+  local.get 7   ; process.vader:41:65
+  local.get 10   ; process.vader:41:65
   intrinsic builder.append_display   ; process.vader:41:65
-  local.get 4   ; process.vader:41:75
   string.const 7   ; process.vader:41:75
+  local.set 11   ; process.vader:41:75
+  local.get 7   ; process.vader:41:75
+  local.get 11   ; process.vader:41:75
   intrinsic builder.append_str   ; process.vader:41:75
-  local.get 4   ; process.vader:41:38
+  local.get 7   ; process.vader:41:38
   intrinsic builder.finish   ; process.vader:41:38
   struct.new 2   ; process.vader:41:16
   return   ; process.vader:41:9
-  end   ; process.vader:40:5
-  local.get 1   ; process.vader:43:8
+  else   ; process.vader:40:5
   i32.const 2   ; process.vader:11:17
   i32.neg   ; process.vader:11:16
+  local.set 12   ; process.vader:11:16
+  local.get 3   ; process.vader:43:8
+  local.get 12   ; process.vader:43:8
   i32.eq   ; process.vader:43:8
   if void   ; process.vader:43:5
   intrinsic builder.new   ; process.vader:44:38
-  local.tee 5   ; process.vader:44:38
+  local.set 13   ; process.vader:44:38
   string.const 8   ; process.vader:44:39
+  local.set 14   ; process.vader:44:39
+  local.get 13   ; process.vader:44:39
+  local.get 14   ; process.vader:44:39
   intrinsic builder.append_str   ; process.vader:44:39
-  local.get 5   ; process.vader:44:48
-  local.get 0   ; process.vader:44:50
   i32.const 0   ; process.vader:44:55
+  local.set 15   ; process.vader:44:55
+  local.get 0   ; process.vader:44:50
+  local.get 15   ; process.vader:44:50
   array.get 5   ; process.vader:44:50
   ref.cast 1   ; process.vader:44:50
+  local.set 16   ; process.vader:44:50
+  local.get 13   ; process.vader:44:48
+  local.get 16   ; process.vader:44:48
   intrinsic builder.append_display   ; process.vader:44:48
-  local.get 5   ; process.vader:44:58
   string.const 9   ; process.vader:44:58
+  local.set 17   ; process.vader:44:58
+  local.get 13   ; process.vader:44:58
+  local.get 17   ; process.vader:44:58
   intrinsic builder.append_str   ; process.vader:44:58
-  local.get 5   ; process.vader:44:38
+  local.get 13   ; process.vader:44:38
   intrinsic builder.finish   ; process.vader:44:38
   struct.new 2   ; process.vader:44:16
   return   ; process.vader:44:9
-  end   ; process.vader:43:5
-  local.get 1   ; process.vader:46:36
-  local.get 2   ; process.vader:46:52
-  local.get 3   ; process.vader:46:67
+  else   ; process.vader:43:5
+  local.get 3   ; process.vader:46:12
+  local.get 4   ; process.vader:46:12
+  local.get 5   ; process.vader:46:12
   struct.new 3   ; process.vader:46:12
   return   ; process.vader:46:5
+  end   ; process.vader:43:5
+  end   ; process.vader:40:5
+  end   ; process.vader:34:5
 end

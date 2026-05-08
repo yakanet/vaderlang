@@ -31,7 +31,11 @@ import type { MonoEntry, MonoProject } from "../monomorphize/index.ts";
 import { mangle } from "../monomorphize/index.ts";
 
 import type { BytecodeModule } from "../bytecode/module.ts";
-import { emitBytecode } from "../bytecode/emit.ts";
+import { emitBytecodeFromCFG } from "../midir/emit.ts";
+import { buildCFGProject } from "../midir/build.ts";
+import { eliminateDeadCFG } from "../midir/dce.ts";
+import { fromSSA, toSSA } from "../midir/ssa.ts";
+import { annotateEscape } from "../midir/escape.ts";
 
 import type { EvaluatedProject } from "./evaluated-ast.ts";
 import type { ComptimeValue } from "./value.ts";
@@ -91,7 +95,9 @@ export function lowerComptimeDecl(input: CompileInput): CompileOutput | null {
   if (reachable === null) return null;
 
   const project = bundleProject(input, callerProgram.resolved.module.id, mainFnDecl, reachable);
-  const bytecodeModule = emitBytecode(project, "__comptime__", {
+  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(project)));
+  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
+  const bytecodeModule = emitBytecodeFromCFG(project, cfg, "__comptime__", {
     optimize: true, implRegistry: projectCtx.impls,
   });
   const mainFnIndex = bytecodeModule.functions.findIndex((f) => f.name === SYNTH_MAIN_NAME);

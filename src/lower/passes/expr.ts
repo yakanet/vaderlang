@@ -313,8 +313,9 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
         kind: "LoweredIdent", span: expr.span, type: ctx.liftedContext.envType,
         symbol: ctx.liftedContext.envSymbol,
       };
+      // FieldAccess yields the cell ref, not the value — env fields are Unresolved.
       const cellRef: LoweredExpr = {
-        kind: "LoweredFieldAccess", span: expr.span, type,
+        kind: "LoweredFieldAccess", span: expr.span, type: TY.unresolved,
         target: envIdent, field: fieldName,
       };
       return { kind: "LoweredCellGet", span: expr.span, type, target: cellRef, valueType: type };

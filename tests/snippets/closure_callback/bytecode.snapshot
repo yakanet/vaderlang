@@ -9,27 +9,36 @@ import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_closure_callback__main_vader$apply (ref,i32) -> i32
-  local.get 1   ; _main.vader:2:14
+  local.get 1   ; _main.vader:2:12
   local.get 0   ; _main.vader:2:12
   call.indirect 2   ; _main.vader:2:12
   return   ; _main.vader:2:5
 end
 
 fn 1 tests_snippets_closure_callback__main_vader$main () -> i32
+  local "biased#9" ref
+  local "$k_6#10" i32
   i32.const 100   ; _main.vader:6:13
   struct.new 4   ; _main.vader:6:5
   struct.new 0   ; _main.vader:7:15
   make_closure 2 2   ; _main.vader:7:15
+  local.set 0   ; _main.vader:7:15
   i32.const 23   ; _main.vader:10:26
+  local.set 1   ; _main.vader:10:26
+  local.get 0   ; _main.vader:10:12
+  local.get 1   ; _main.vader:10:12
   call 0   ; _main.vader:10:12
   return   ; _main.vader:10:5
 end
 
 fn 2 __lambda_1 (ref,i32) -> i32
-  local.get 1   ; _main.vader:8:16
+  local "$cell_get_3#6" i32
   local.get 0   ; _main.vader:8:20
   struct.get 0 0   ; _main.vader:8:20
   struct.get 4 0   ; _main.vader:8:20
+  local.set 2   ; _main.vader:8:20
+  local.get 1   ; _main.vader:8:16
+  local.get 2   ; _main.vader:8:16
   i32.add   ; _main.vader:8:16
   return   ; _main.vader:8:9
 end

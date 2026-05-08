@@ -20,7 +20,6 @@ import type { EvaluatedProject } from "./comptime/index.ts";
 import { lowerProject } from "./lower/index.ts";
 import type { LoweredProject } from "./lower/index.ts";
 import { eliminateDeadCode } from "./dce/index.ts";
-import { emitBytecode } from "./bytecode/index.ts";
 import type { BytecodeModule } from "./bytecode/index.ts";
 import { buildImplRegistry } from "./typecheck/impls.ts";
 import { buildCFGProject } from "./midir/build.ts";
@@ -148,19 +147,14 @@ export async function pipelineCfg(
 }
 
 export async function pipelineBytecode(
-  file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean; midIr?: boolean },
+  file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean },
 ): Promise<BytecodeResult> {
   const r = await pipelineDced(file, opts);
   const implRegistry = buildImplRegistry(r.evaluated.typed.resolved);
   const emitOpts = { optimize: opts?.bytecodeOpt ?? true, implRegistry };
-  let bytecode: BytecodeModule;
-  if (opts?.midIr) {
-    const ssa = toSSA(eliminateDeadCFG(buildCFGProject(r.dced)));
-    const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
-    bytecode = emitBytecodeFromCFG(r.dced, cfg, moduleNameFromFile(file), emitOpts);
-  } else {
-    bytecode = emitBytecode(r.dced, moduleNameFromFile(file), emitOpts);
-  }
+  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(r.dced)));
+  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
+  const bytecode = emitBytecodeFromCFG(r.dced, cfg, moduleNameFromFile(file), emitOpts);
   return { ...r, bytecode };
 }
 

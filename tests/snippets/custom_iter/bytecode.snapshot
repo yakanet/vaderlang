@@ -16,37 +16,53 @@ import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_custom_iter__main_vader$Countdown$Iterator$step (ref) -> ref
-  local v i32
+  local "$field_1#10" i32
+  local "$k_2#11" i32
+  local "v#14" i32
+  local "$field_7#15" i32
+  local "$k_8#16" i32
+  local "$sub_9#17" i32
   local.get 0   ; _main.vader:10:13
   struct.get 0 0   ; _main.vader:10:13
+  local.set 1   ; _main.vader:10:13
   i32.const 0   ; _main.vader:10:29
+  local.set 2   ; _main.vader:10:29
+  local.get 1   ; _main.vader:10:13
+  local.get 2   ; _main.vader:10:13
   i32.le   ; _main.vader:10:13
   if void   ; _main.vader:10:9
   struct.new 2   ; _main.vader:11:20
   return   ; _main.vader:11:13
-  end   ; _main.vader:10:9
+  else   ; _main.vader:10:9
   local.get 0   ; _main.vader:13:14
   struct.get 0 0   ; _main.vader:13:14
-  local.set 1   ; _main.vader:13:9
-  local.get 0   ; _main.vader:14:9
+  local.set 3   ; _main.vader:13:14
   local.get 0   ; _main.vader:14:24
   struct.get 0 0   ; _main.vader:14:24
+  local.set 4   ; _main.vader:14:24
   i32.const 1   ; _main.vader:14:39
+  local.set 5   ; _main.vader:14:39
+  local.get 4   ; _main.vader:14:24
+  local.get 5   ; _main.vader:14:24
   i32.sub   ; _main.vader:14:24
+  local.set 6   ; _main.vader:14:24
+  local.get 0   ; _main.vader:14:9
+  local.get 6   ; _main.vader:14:9
   struct.set 0 0   ; _main.vader:14:9
-  local.get 1   ; _main.vader:15:40
+  local.get 3   ; _main.vader:15:16
   struct.new 3   ; _main.vader:15:16
   return   ; _main.vader:15:9
+  end   ; _main.vader:10:9
 end
 
 fn 1 tests_snippets_custom_iter__main_vader$main () -> i32
-  local __iter_0 ref
-  local __step_1 ref
-  local x i32
-  local __sb_2 any
+  local "__iter_0#12" ref
+  local "__step_1#14" ref
+  local "x#18" i32
+  local "__sb_2#20" any
   i32.const 5   ; _main.vader:20:34
   struct.new 0   ; _main.vader:20:11
-  local.set 0   ; _main.vader:21:5
+  local.set 0   ; _main.vader:20:11
   block void   ; _main.vader:21:5
   loop void   ; _main.vader:21:5
   local.get 0   ; _main.vader:21:5
@@ -54,20 +70,19 @@ fn 1 tests_snippets_custom_iter__main_vader$main () -> i32
   local.tee 1   ; _main.vader:21:5
   type_check 2   ; _main.vader:21:5
   if void   ; _main.vader:21:5
-  br 2   ; _main.vader:21:5
   else   ; _main.vader:21:5
   local.get 1   ; _main.vader:21:5
   struct.get 3 0   ; _main.vader:21:5
   local.set 2   ; _main.vader:21:5
   intrinsic builder.new   ; _main.vader:22:17
   local.tee 3   ; _main.vader:22:17
-  local.get 2   ; _main.vader:22:20
+  local.get 2   ; _main.vader:22:18
   intrinsic builder.append_display   ; _main.vader:22:18
   local.get 3   ; _main.vader:22:17
   intrinsic builder.finish   ; _main.vader:22:17
   call.import 4   ; _main.vader:22:9
+  br 1   ; _main.vader:21:5
   end   ; _main.vader:21:5
-  br 0   ; _main.vader:21:5
   end   ; _main.vader:21:5
   end   ; _main.vader:21:5
   i32.const 0   ; _main.vader:24:12

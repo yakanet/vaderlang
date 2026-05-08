@@ -173,7 +173,7 @@ the structuring approach.
 | **4** | Pruned SSA conversion (`src/midir/ssa.ts`) : Cytron et al. with liveness-pruned phi placement, dom-tree-walk renaming. Out-of-SSA materialises phis as `Move` in predecessors. Wired as `toSSA → fromSSA` round-trip in the pipeline ; behaviour-preserving (145/145 parity). Sets up SSA infrastructure for phase 5. | 2-3 d | ✅ done |
 | **5a** | Escape analysis on SSA (`src/midir/escape.ts`) — annotates `StructNew`/`ArrayNew` with `stack: true` when the value can't be observed past the fn's return. Stack-promotes ~17% of allocations across the snippet corpus (60/358) ; 100% on tuple-temporary patterns (`tuple_comptime`). | 1-2 d | ✅ done |
 | **5b** | Stack-allocation codegen — bytecode op variant + VM/C-emit support to actually stack-allocate flagged structs. | 2-3 d | |
-| **6** | Drop the legacy LoweredAST → bytecode path. CFG becomes the single substrate. | 1 d | |
+| **6** | Drop the legacy LoweredAST → bytecode path. CFG becomes the single substrate. Surfaced 6 latent runtime bugs in the lower / midir / C-emit pipeline that the legacy AST-walker dodged by coincidence (closure capture types, cell-set target types, vader_box_null tag-0 collision, dead-Move dst=-1, missing ref.cast on box↔primitive, missing match-arm narrowing cast in the converter — all fixed). 1725/1725 tests green. | 1 d | ✅ done |
 
 Total: ~2 weeks of focused work after this commit. Each phase is shippable
 on its own (behind the flag from phase 2).

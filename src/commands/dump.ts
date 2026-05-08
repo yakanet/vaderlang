@@ -107,7 +107,7 @@ async function runEvaluatedAst(file: string, opts: GlobalOpts) {
 }
 
 async function runBytecodeStage(opts: GlobalOpts, file: string): Promise<number> {
-  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt, midIr: opts.midIr });
+  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   const sorted = r.diagnostics.sorted();
   if (sorted.length > 0) {
     console.error(opts.diagnostics === "json"
