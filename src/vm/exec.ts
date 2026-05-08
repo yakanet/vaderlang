@@ -307,7 +307,7 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       // up the impl fn in the per-(trait, method) vtable. Then call as a
       // regular fn with [receiver, ...args].
       const receiver = f.stack.pop()!;
-      const tag = receiverTypeIndex(receiver);
+      const tag = receiverTypeIndex(receiver, ctx.module);
       const table = ctx.module.vtables.get(op.vtableKey);
       if (table === undefined) {
         throw new VmError(`vm: no vtable for ${op.vtableKey}`, debugOf(f.fn, f.ip));
@@ -580,11 +580,15 @@ function refEq(a: Value, b: Value): boolean {
 }
 
 /** Extract the type-table index of a runtime value's static type — keys
- *  vtable lookups for virtual dispatch. Returns null for values whose
- *  representation doesn't carry a typeIndex (primitives etc.); the caller
- *  treats null as "no impl". */
-function receiverTypeIndex(v: Value): number | null {
+ *  vtable lookups for virtual dispatch. Structs / arrays carry their type
+ *  index inline. For primitives (and string), scan the module's type table
+ *  for a matching `BcPrimitive`. Returns null when no entry matches. */
+function receiverTypeIndex(v: Value, m: BytecodeModule): number | null {
   if (v.tag === "struct" || v.tag === "array") return v.typeIndex;
+  for (let i = 0; i < m.types.length; i++) {
+    const t = m.types[i]!;
+    if (t.kind === "primitive" && t.val === v.tag) return i;
+  }
   return null;
 }
 

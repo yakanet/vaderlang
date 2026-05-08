@@ -1,0 +1,52 @@
+// Trait-object boxing — generic fns whose param is a trait type now infer
+// the trait's `$T` from any concrete arg by walking the impl table. Several
+// call shapes covered :
+//   - `Iterator($T)` from a `Range`              → `0..<5`
+//   - `Iterator($T)` from a raw array            → `[10, 20, 30]`
+//   - user `Greeter($T)` from a user struct       → `Hello {}`
+//   - user `Doubler($T)` from a primitive (i32)   → `7`
+// Each case dispatches `step` / `greet` / `doubled` through the per-(trait,
+// method) vtable populated from `mono.implMethodEntries`.
+
+count :: fn(it: Iterator($T)) -> i32 {
+    n := 0
+    cont := true
+    for cont {
+        match it.step() {
+            is Done -> { cont = false }
+            is Yielded(T) -> { n = n + 1 }
+        }
+    }
+    return n
+}
+
+Greeter :: trait($T) {
+    fn greet(self) -> T
+}
+Hello :: struct {}
+Hello implements Greeter(i32) {
+    fn greet(self) -> i32 { return 100 }
+}
+
+Doubler :: trait($T) {
+    fn doubled(self) -> T
+}
+i32 implements Doubler(i32) {
+    fn doubled(self) -> i32 { return self + self }
+}
+
+invoke :: fn(g: Greeter($T)) -> T {
+    return g.greet()
+}
+
+twice :: fn(x: Doubler($T)) -> T {
+    return x.doubled()
+}
+
+main :: fn() -> i32 {
+    a := count(0..<5)
+    b := count([10, 20, 30])
+    c := invoke(Hello {})
+    d := twice(7)
+    return a + b + c + d
+}

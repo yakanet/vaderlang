@@ -1,4 +1,6 @@
 module _main
+type 0 primitive i32
+type 1 primitive usize
 string 0 "hash(a) = "
 string 1 "a == b : "
 string 2 "a == c : "

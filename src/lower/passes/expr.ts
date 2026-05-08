@@ -465,7 +465,11 @@ function lowerVirtualDispatch(
   // (which will error informatively or compile to `unreachable`).
   let hasAny = false;
   for (const impl of ctx.project.impls.forTrait(traitSym)) {
-    if (impl.forSymbol === null || impl.forSymbol.source.kind !== "struct") continue;
+    // Accept struct impls (forSymbol of source kind "struct") and primitive
+    // impls (forSymbol === null with NamedType forType — `i32 implements …`).
+    // Type-aliases and other shapes don't dispatch through the vtable.
+    if (impl.forSymbol !== null && impl.forSymbol.source.kind !== "struct") continue;
+    if (impl.forSymbol === null && impl.decl.forType.kind !== "NamedType") continue;
     const member = impl.decl.members.find((m) => m.name === methodName);
     if (member === undefined) continue;
     const perArgs = ctx.project.mono.implMethodEntries.get(member);

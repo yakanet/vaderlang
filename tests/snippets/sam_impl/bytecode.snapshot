@@ -1,4 +1,6 @@
 module _main
+type 0 primitive i32
+type 1 primitive i64
 string 0 "the answer is "
 string 1 "i64="
 import 0 add std_core$string$Add$add (string,string) -> string

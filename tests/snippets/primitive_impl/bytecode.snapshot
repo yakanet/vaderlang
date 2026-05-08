@@ -1,4 +1,5 @@
 module _main
+type 0 primitive i32
 string 0 "the answer is "
 import 0 add std_core$string$Add$add (string,string) -> string
 import 1 hash std_core$string$Hash$hash (string) -> u64

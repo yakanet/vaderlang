@@ -331,12 +331,16 @@ export function isAssignable(from: Type, to: Type, impls?: TraitOracle): boolean
   if (from.kind === "Never") return true;
   if (equalsType(from, to)) return true;
 
-  if (from.kind === "FreeInt") return to.kind === "Primitive" && (NUMERICS as readonly string[]).includes(to.name);
-  if (from.kind === "FreeFloat") return to.kind === "Primitive" && (FLOATS as readonly string[]).includes(to.name);
+  if (from.kind === "FreeInt" && to.kind === "Primitive") return (NUMERICS as readonly string[]).includes(to.name);
+  if (from.kind === "FreeFloat" && to.kind === "Primitive") return (FLOATS as readonly string[]).includes(to.name);
 
   if (impls !== undefined && to.kind === "Trait") {
     if (from.kind === "Struct") return impls.hasUser(from.symbol, to.symbol);
     if (from.kind === "Primitive") return impls.forPrimitive(from.name, to.symbol) !== null;
+    // Free numeric literals: default to canonical (i32 / f64) and re-check.
+    // Lets `7` flow into `Doubler($T)` via `i32 implements Doubler(i32)`.
+    if (from.kind === "FreeInt") return isAssignable(TY.i32, to, impls);
+    if (from.kind === "FreeFloat") return isAssignable(TY.f64, to, impls);
     if (from.kind === "Union") return from.variants.every((v) => isAssignable(v, to, impls));
     // `T[]` → `Iterator(T)` widening — paired with the lower-time auto-wrap
     // into `ArrayIter(T)`. Gated on symbol identity so a user-defined trait

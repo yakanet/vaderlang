@@ -1,0 +1,13 @@
+# Comptime
+
+## tests/snippets/trait_box_range_iter/_main.vader
+
+## generic instances
+  count(i32)
+  Greeter(i32)
+  Yielded(i32)
+  Iterator(i32)
+  ArrayIter(i32)
+  Doubler(i32)
+  invoke(i32)
+  twice(i32)

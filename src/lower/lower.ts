@@ -14,6 +14,7 @@ import type { Symbol } from "../resolver/symbol.ts";
 import {buildImplRegistry, ImplRegistry} from "../typecheck/impls.ts";
 import type { Type } from "../typecheck/types.ts";
 import { TY, defaultIfFree } from "../typecheck/types.ts";
+import { primitiveFromName } from "../typecheck/passes/type-expr.ts";
 
 import type {MonoEntry, MonoProject} from "../monomorphize/index.ts";
 import { monomorphizeProject } from "../monomorphize/index.ts";
@@ -95,7 +96,8 @@ function collectVtableEntries(
   const out: VtableEntry[] = [];
   for (const impl of impls.entries()) {
     if (impl.traitSymbol === null) continue;
-    if (impl.forSymbol === null || impl.forSymbol.source.kind !== "struct") continue;
+    const recvType = vtableReceiverType(impl);
+    if (recvType === null) continue;
     for (const member of impl.decl.members) {
       const perArgs = mono.implMethodEntries.get(member);
       if (perArgs === undefined) continue;
@@ -104,13 +106,30 @@ function collectVtableEntries(
         out.push({
           traitName: impl.traitSymbol.name,
           methodName: member.name,
-          structType: { kind: "Struct", symbol: impl.forSymbol, args: entry.typeArgs },
+          structType: impl.forSymbol !== null
+            ? { kind: "Struct", symbol: impl.forSymbol, args: entry.typeArgs }
+            : recvType,
           fnSymbol: entry.symbol,
         });
       }
     }
   }
   return out;
+}
+
+/** Receiver type for a vtable entry. Returns the impl's target as a `Type`
+ *  so the bytecode emitter can intern it and key the vtable by its type index.
+ *  Supports struct impls (with optional generic args filled in per entry) and
+ *  primitive impls (`i32 implements Doubler(i32)`). Returns null for shapes
+ *  we can't dispatch through (type aliases of non-struct things, etc.). */
+function vtableReceiverType(impl: { forSymbol: Symbol | null; decl: A.ImplDecl }): Type | null {
+  if (impl.forSymbol !== null) {
+    if (impl.forSymbol.source.kind !== "struct") return null;
+    return { kind: "Struct", symbol: impl.forSymbol, args: [] };
+  }
+  if (impl.decl.forType.kind !== "NamedType") return null;
+  const prim = primitiveFromName(impl.decl.forType.name);
+  return prim;
 }
 
 function lowerEntry(entry: MonoEntry, ctx: LowerProjectCtx): LoweredDecl | null {
