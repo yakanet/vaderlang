@@ -45,6 +45,13 @@ export interface Module {
    *  `collect` pass. */
   readonly fnOverloads: ReadonlyMap<string, readonly Symbol[]>;
   readonly imports: readonly ImportEntry[];
+  /** Hex SHA-256 of `(displayPath + sorted file contents + sorted dep
+   *  fingerprints)`. Same source + same deps → same fingerprint, so a
+   *  future caching layer can skip re-typecheck/re-lower when this hasn't
+   *  changed. Computed by the loader in topological order; the empty
+   *  string is a "not yet computed" sentinel that should never be
+   *  observed by downstream passes. */
+  readonly fingerprint: string;
 }
 
 export interface ImportEntry {

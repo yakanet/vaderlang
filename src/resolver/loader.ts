@@ -8,6 +8,7 @@ import type { Span } from "../diagnostics/diagnostic.ts";
 
 import { collectModuleSymbols } from "./collect.ts";
 import { err } from "./diag.ts";
+import { computeModuleFingerprints } from "./fingerprint.ts";
 import {
   findManifestRoot, loadModuleSourceFiles, moduleIdFromRoot, pathKind,
   readManifest, resolveImportPath, resolveStdlibRoot,
@@ -76,6 +77,7 @@ export function loadProject(opts: LoadOptions): LoadedProject {
       symbols: collected.symbols,
       fnOverloads: collected.fnOverloads,
       imports: collected.imports,
+      fingerprint: "",     // populated by computeModuleFingerprints below
     });
 
     for (const imp of collected.imports) {
@@ -86,6 +88,10 @@ export function loadProject(opts: LoadOptions): LoadedProject {
   }
 
   detectCycles(modules, opts.diags);
+  // Compute fingerprints in topological order so each module's hash sees
+  // its dependencies' final fingerprints. Phase 1 only exposes the value;
+  // phase 2 wires it into the parser cache.
+  computeModuleFingerprints(modules);
 
   return { layout, modules, factory };
 }
