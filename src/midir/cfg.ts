@@ -74,6 +74,8 @@ export type Instruction =
   | InstrBinOp
   | InstrUnOp
   | InstrCall
+  | InstrCallIndirect
+  | InstrFnRef
   | InstrVirtualCall
   | InstrFieldGet
   | InstrFieldSet
@@ -121,13 +123,37 @@ export interface InstrUnOp extends InstrBase {
   readonly type: Type;
 }
 
-/** Direct call — the callee is a known fn symbol. */
+/** Direct call — the callee is a known fn symbol. The bytecode emit decides
+ *  whether to route as `call <fn>` or `call.import <imp>` (and whether to
+ *  apply the OP_INTRINSIC fast path for stdlib hot calls like
+ *  `string.concat`) based on which side-table the symbol lives in. */
 export interface InstrCall extends InstrBase {
   readonly kind: "Call";
   readonly dst: LocalId | null;       // null when the call returns void
   readonly callee: Symbol;
   readonly args: readonly LocalId[];
   readonly type: Type;
+}
+
+/** Indirect call — the callee is a fn-typed local (e.g. a closure or a
+ *  fn-ref read out of a struct field). Emits `call.indirect <typeIdx>`. */
+export interface InstrCallIndirect extends InstrBase {
+  readonly kind: "CallIndirect";
+  readonly dst: LocalId | null;
+  readonly callee: LocalId;
+  readonly args: readonly LocalId[];
+  readonly fnType: Type;              // for type-table interning at emit time
+  readonly type: Type;                // result type
+}
+
+/** Materialise a fn value (a fat pointer `{ code, env }` with `env = null`
+ *  for non-capturing globals). The CFG uses this when a fn name is read in
+ *  a non-call position. */
+export interface InstrFnRef extends InstrBase {
+  readonly kind: "FnRef";
+  readonly dst: LocalId;
+  readonly fnSymbol: Symbol;
+  readonly type: Type;                // the fn type
 }
 
 /** Trait-method virtual dispatch. Lowers to bytecode `virtual.call`. */
@@ -327,6 +353,10 @@ export interface CFGProject {
   /** Same vtable entries the LoweredProject carries — Phase 2's bytecode
    *  emit reuses them as-is. */
   readonly vtableEntries: readonly L.VtableEntry[];
+  /** Project-level string pool. The converter interns each `LoweredStringLit`
+   *  here ; `InstrConst` of kind "string" stores the index. The emitter
+   *  reuses this pool verbatim as `BcModule.strings`. */
+  readonly strings: readonly string[];
 }
 
 export interface CFGModule {

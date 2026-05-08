@@ -2,13 +2,14 @@ import type { GlobalOpts } from "../cli/options.ts";
 import { renderAllJson, renderAllTextSingle } from "../diagnostics/render.ts";
 import { displayType } from "../typecheck/index.ts";
 import { displayValue } from "../comptime/index.ts";
-import { pipelineAst, pipelineBytecode, pipelineDced, pipelineEvaluated, pipelineLowered, pipelineResolved, pipelineTyped } from "../pipeline.ts";
+import { pipelineAst, pipelineBytecode, pipelineCfg, pipelineDced, pipelineEvaluated, pipelineLowered, pipelineResolved, pipelineTyped } from "../pipeline.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { LoweredDecl, LoweredProject } from "../lower/index.ts";
 import { writeVir } from "../bytecode/text.ts";
+import { dumpCFGProject } from "../midir/dump.ts";
 
 /** Stages the frontend pipeline can produce today. Mirrors `PipelineStage`. */
-const IMPLEMENTED_STAGES = ["ast", "resolved-ast", "typed-ast", "evaluated-ast", "lowered-ast", "dced-ast", "bytecode"] as const;
+const IMPLEMENTED_STAGES = ["ast", "resolved-ast", "typed-ast", "evaluated-ast", "lowered-ast", "dced-ast", "cfg", "bytecode"] as const;
 /** Stages reserved for future codegen work — accepted by the CLI for help-text honesty. */
 const FUTURE_STAGES = ["c", "wasm"] as const;
 const STAGES = [...IMPLEMENTED_STAGES, ...FUTURE_STAGES];
@@ -43,6 +44,7 @@ export async function cmdDump(opts: GlobalOpts, args: string[]): Promise<number>
     case "evaluated-ast": return runStage(opts, file, (f) => runEvaluatedAst(f, opts));
     case "lowered-ast":   return runStage(opts, file, (f) => runLoweredAst(f, opts));
     case "dced-ast":      return runStage(opts, file, (f) => runDcedAst(f, opts));
+    case "cfg":           return runCfgStage(opts, file);
     case "bytecode":      return runBytecodeStage(opts, file);
     default:
       console.error(`vader dump: stage "${stage}" not yet implemented`);
@@ -105,7 +107,7 @@ async function runEvaluatedAst(file: string, opts: GlobalOpts) {
 }
 
 async function runBytecodeStage(opts: GlobalOpts, file: string): Promise<number> {
-  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
+  const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt, midIr: opts.midIr });
   const sorted = r.diagnostics.sorted();
   if (sorted.length > 0) {
     console.error(opts.diagnostics === "json"
@@ -113,6 +115,18 @@ async function runBytecodeStage(opts: GlobalOpts, file: string): Promise<number>
       : renderAllTextSingle(sorted, file, r.source));
   }
   process.stdout.write(writeVir(r.bytecode));
+  return sorted.some((d) => d.severity === "error") ? 1 : 0;
+}
+
+async function runCfgStage(opts: GlobalOpts, file: string): Promise<number> {
+  const r = await pipelineCfg(file, { allowEnv: opts.allowEnv });
+  const sorted = r.diagnostics.sorted();
+  if (sorted.length > 0) {
+    console.error(opts.diagnostics === "json"
+      ? renderAllJson(sorted)
+      : renderAllTextSingle(sorted, file, r.source));
+  }
+  process.stdout.write(dumpCFGProject(r.cfg));
   return sorted.some((d) => d.severity === "error") ? 1 : 0;
 }
 

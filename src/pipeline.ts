@@ -23,10 +23,13 @@ import { eliminateDeadCode } from "./dce/index.ts";
 import { emitBytecode } from "./bytecode/index.ts";
 import type { BytecodeModule } from "./bytecode/index.ts";
 import { buildImplRegistry } from "./typecheck/impls.ts";
+import { buildCFGProject } from "./midir/build.ts";
+import type { CFGProject } from "./midir/cfg.ts";
+import { emitBytecodeFromCFG } from "./midir/emit.ts";
 
 export type PipelineStage =
   | "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast"
-  | "lowered-ast" | "dced-ast" | "bytecode";
+  | "lowered-ast" | "dced-ast" | "cfg" | "bytecode";
 
 export interface AstResult {
   readonly file: string;
@@ -54,6 +57,10 @@ export interface LoweredResult extends EvaluatedResult {
 
 export interface DcedResult extends LoweredResult {
   readonly dced: LoweredProject;
+}
+
+export interface CfgResult extends DcedResult {
+  readonly cfg: CFGProject;
 }
 
 export interface BytecodeResult extends DcedResult {
@@ -121,15 +128,27 @@ export async function pipelineDced(
   return { ...r, dced };
 }
 
+export async function pipelineCfg(
+  file: string, opts?: { allowEnv?: boolean },
+): Promise<CfgResult> {
+  const r = await pipelineDced(file, opts);
+  const cfg = buildCFGProject(r.dced);
+  return { ...r, cfg };
+}
+
 export async function pipelineBytecode(
-  file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean },
+  file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean; midIr?: boolean },
 ): Promise<BytecodeResult> {
   const r = await pipelineDced(file, opts);
   const implRegistry = buildImplRegistry(r.evaluated.typed.resolved);
-  const bytecode = emitBytecode(r.dced, moduleNameFromFile(file), {
-    optimize: opts?.bytecodeOpt ?? true,
-    implRegistry,
-  });
+  const emitOpts = { optimize: opts?.bytecodeOpt ?? true, implRegistry };
+  let bytecode: BytecodeModule;
+  if (opts?.midIr) {
+    const cfg = buildCFGProject(r.dced);
+    bytecode = emitBytecodeFromCFG(r.dced, cfg, moduleNameFromFile(file), emitOpts);
+  } else {
+    bytecode = emitBytecode(r.dced, moduleNameFromFile(file), emitOpts);
+  }
   return { ...r, bytecode };
 }
 

@@ -26,7 +26,7 @@ import { isIntegerVal, isNumericVal } from "./types.ts";
  *  name (`<module>$<type>$<trait>$<method>`) so the lookup happens after
  *  name-mangling and skips the `call.import` indirection — `s1 + s2` and
  *  `"a".add("b")` both emit the same `string.concat` op. */
-const OP_INTRINSIC_BY_MANGLED: ReadonlyMap<string, () => Op> = new Map([
+export const OP_INTRINSIC_BY_MANGLED: ReadonlyMap<string, () => Op> = new Map([
   ["std_core$string$Add$add", () => ({ kind: "string.concat" })],
 ]);
 
@@ -53,19 +53,6 @@ export function emitBytecode(
   for (const m of project.modules.values()) {
     for (const d of m.decls) emitDecl(d, ctx);
   }
-  // Build the per-(trait, method) vtables now that every struct type and impl
-  // fn has its index. The lowerer pre-flattened the entries; we just translate
-  // (structType → typeIdx) and (fnSymbol → fnIdx).
-  const vtables = new Map<string, Map<number, number>>();
-  for (const e of project.vtableEntries) {
-    const fnIdx = ctx.fnIndexBySymId.get(e.fnSymbol.id);
-    if (fnIdx === undefined) continue;
-    const typeIdx = internType(ctx, e.structType);
-    const key = `${e.traitName}.${e.methodName}`;
-    let table = vtables.get(key);
-    if (table === undefined) { table = new Map(); vtables.set(key, table); }
-    table.set(typeIdx, fnIdx);
-  }
   return {
     name,
     types:     ctx.types,
@@ -74,11 +61,30 @@ export function emitBytecode(
     imports:   ctx.imports,
     exports:   ctx.exports,
     implTable: ctx.implTable,
-    vtables,
+    vtables:   buildVtables(ctx, project.vtableEntries),
   };
 }
 
-interface EmitterCtx {
+/** Translate the lowerer's pre-flattened vtable entries into per-(trait,
+ *  method) tables keyed by the receiver's type index. Shared between the
+ *  legacy `LoweredAST → bytecode` path and the CFG-based emitter. */
+export function buildVtables(
+  ctx: EmitterCtx, entries: readonly L.VtableEntry[],
+): Map<string, Map<number, number>> {
+  const vtables = new Map<string, Map<number, number>>();
+  for (const e of entries) {
+    const fnIdx = ctx.fnIndexBySymId.get(e.fnSymbol.id);
+    if (fnIdx === undefined) continue;
+    const typeIdx = internType(ctx, e.structType);
+    const key = `${e.traitName}.${e.methodName}`;
+    let table = vtables.get(key);
+    if (table === undefined) { table = new Map(); vtables.set(key, table); }
+    table.set(typeIdx, fnIdx);
+  }
+  return vtables;
+}
+
+export interface EmitterCtx {
   readonly types: BcType[];
   readonly typeKey: Map<string, number>;          // displayType(t) → index
   readonly strings: string[];
@@ -108,7 +114,7 @@ interface MutableFn {
   debug: (DebugPos | null)[];
 }
 
-function newEmitterCtx(optimize: boolean, implRegistry: ImplRegistry | null): EmitterCtx {
+export function newEmitterCtx(optimize: boolean, implRegistry: ImplRegistry | null): EmitterCtx {
   const traitsBySymbolId = new Map<number, string[]>();
   if (implRegistry !== null) {
     for (const entry of implRegistry.entries()) {
@@ -133,7 +139,7 @@ function newEmitterCtx(optimize: boolean, implRegistry: ImplRegistry | null): Em
 
 // ----------------------------------------------------------- pass 1: reserve
 
-function reserveDecl(d: L.LoweredDecl, ctx: EmitterCtx): void {
+export function reserveDecl(d: L.LoweredDecl, ctx: EmitterCtx): void {
   switch (d.kind) {
     case "LoweredFnDecl":   reserveFn(d, ctx); return;
     case "LoweredStructDecl": internStructDecl(d, ctx); return;
@@ -203,7 +209,7 @@ function emitDecl(d: L.LoweredDecl, ctx: EmitterCtx): void {
 
 // ----------------------------------------------------------- per-fn state
 
-interface FnEmitCtx {
+export interface FnEmitCtx {
   readonly project: EmitterCtx;
   readonly signature: BcSignature;
   readonly locals: BcLocal[];
@@ -219,14 +225,14 @@ interface Label {
   readonly isContinueTarget?: boolean;
 }
 
-function pushOp(fn: FnEmitCtx, op: Op, span?: Span): void {
+export function pushOp(fn: FnEmitCtx, op: Op, span?: Span): void {
   fn.body.push(op);
   fn.debug.push(span === undefined ? null : {
     file: span.start.file, line: span.start.line, column: span.start.column,
   });
 }
 
-function declareLocal(fn: FnEmitCtx, name: string, val: ValType): number {
+export function declareLocal(fn: FnEmitCtx, name: string, val: ValType): number {
   const slot = fn.signature.params.length + fn.locals.length;
   fn.locals.push({ name, val });
   return slot;
@@ -582,27 +588,7 @@ function emitBinary(fn: FnEmitCtx, e: L.LoweredBinary): void {
   if (e.op === "and" || e.op === "or") { emitShortCircuit(fn, e); return; }
   emitExpr(fn, e.left);
   emitExpr(fn, e.right);
-  const lt = valTypeOf(e.left.type);
-  switch (e.op) {
-    case "add": case "sub": case "mul": case "div":
-      if (lt === "string") { pushOp(fn, { kind: "string.concat" }, e.span); return; }
-      pushOp(fn, { kind: `${asNumeric(lt)}.${e.op}` as ArithOpKind }, e.span);
-      return;
-    case "mod":
-      pushOp(fn, { kind: `${asNumeric(lt)}.rem` as ArithOpKind }, e.span);
-      return;
-    case "shl": case "shr":
-    case "bitand": case "bitor": case "bitxor":
-      pushOp(fn, { kind: `${asInt(lt)}.${e.op}` as BitOpKind }, e.span);
-      return;
-    case "eq": case "neq": case "lt": case "lte": case "gt": case "gte":
-      pushOp(fn, { kind: cmpKind(lt, normaliseCmp(e.op)) }, e.span);
-      return;
-  }
-}
-
-function normaliseCmp(op: "eq" | "neq" | "lt" | "lte" | "gt" | "gte"): "eq" | "ne" | "lt" | "le" | "gt" | "ge" {
-  return op === "neq" ? "ne" : op === "lte" ? "le" : op === "gte" ? "ge" : op;
+  pushOp(fn, binaryOpFor(e.op, valTypeOf(e.left.type)), e.span);
 }
 
 function emitShortCircuit(fn: FnEmitCtx, e: L.LoweredBinary): void {
@@ -659,7 +645,7 @@ function emitCast(fn: FnEmitCtx, e: L.LoweredCast): void {
 
 // ----------------------------------------------------------- interning
 
-function internType(ctx: EmitterCtx, t: Type): number {
+export function internType(ctx: EmitterCtx, t: Type): number {
   const key = displayType(t);
   const cached = ctx.typeKey.get(key);
   if (cached !== undefined) return cached;
@@ -710,7 +696,7 @@ function bcTypeOf(t: Type, ctx: EmitterCtx, slotIdx: number): BcType {
  *  distinct slot type — kept distinct from user structs by the `$Cell_…`
  *  name prefix. The C emit treats it like any other struct (it gets a
  *  type-info entry, the GC scans the slot if it's a ref). */
-function internCellType(ctx: EmitterCtx, slotType: Type): number {
+export function internCellType(ctx: EmitterCtx, slotType: Type): number {
   const slotIdx = internType(ctx, slotType);
   const key = `$Cell<${displayType(slotType)}>`;
   const cached = ctx.typeKey.get(key);
@@ -756,7 +742,7 @@ function primitiveToVal(name: PrimitiveName): ValType {
   return name;
 }
 
-function internString(ctx: EmitterCtx, s: string): number {
+export function internString(ctx: EmitterCtx, s: string): number {
   const cached = ctx.stringKey.get(s);
   if (cached !== undefined) return cached;
   const idx = ctx.strings.length;
@@ -767,7 +753,7 @@ function internString(ctx: EmitterCtx, s: string): number {
 
 // ----------------------------------------------------------- Type → ValType
 
-function valTypeOf(t: Type): ValType {
+export function valTypeOf(t: Type): ValType {
   switch (t.kind) {
     case "Primitive": return primitiveToVal(t.name);
     case "Never":     return "void";
@@ -791,15 +777,42 @@ function valTypeOf(t: Type): ValType {
 /** Coerce to a numeric ValType, defaulting to i32 when the input isn't typed
  *  numerically (e.g. `Unresolved` after recovered errors). Lets the emitter
  *  produce a balanced op stream even when typecheck didn't fully resolve. */
-function asNumeric(t: ValType): ValType {
+export function asNumeric(t: ValType): ValType {
   return isNumericVal(t) ? t : "i32";
 }
 
-function asInt(t: ValType): ValType {
+export function asInt(t: ValType): ValType {
   return isIntegerVal(t) ? t : "i32";
 }
 
-function cmpKind(lt: ValType, op: "eq" | "ne" | "lt" | "le" | "gt" | "ge"): CmpOpKind {
+/** Pick the bytecode op for a `LoweredBinaryOp` over operands of `lhsVal`.
+ *  Excludes `and` / `or` (those need short-circuit control flow, not a single
+ *  op). Shared between the legacy LoweredAST → bytecode emit and the CFG
+ *  emit ; the converter lowers `and`/`or` into if/else explicitly so this fn
+ *  never sees them. */
+export function binaryOpFor(op: L.LoweredBinaryOp, lhsVal: ValType): Op {
+  switch (op) {
+    case "add": case "sub": case "mul": case "div":
+      if (op === "add" && lhsVal === "string") return { kind: "string.concat" };
+      return { kind: `${asNumeric(lhsVal)}.${op}` as ArithOpKind };
+    case "mod":    return { kind: `${asNumeric(lhsVal)}.rem` as ArithOpKind };
+    case "shl":
+    case "shr":    return { kind: `${asInt(lhsVal)}.${op}` as BitOpKind };
+    case "bitand":
+    case "bitor":
+    case "bitxor": return { kind: `${asInt(lhsVal)}.${op}` as BitOpKind };
+    case "and":    return { kind: "bool.and" };
+    case "or":     return { kind: "bool.or" };
+    case "eq":     return { kind: cmpKind(lhsVal, "eq") };
+    case "neq":    return { kind: cmpKind(lhsVal, "ne") };
+    case "lt":     return { kind: cmpKind(lhsVal, "lt") };
+    case "lte":    return { kind: cmpKind(lhsVal, "le") };
+    case "gt":     return { kind: cmpKind(lhsVal, "gt") };
+    case "gte":    return { kind: cmpKind(lhsVal, "ge") };
+  }
+}
+
+export function cmpKind(lt: ValType, op: "eq" | "ne" | "lt" | "le" | "gt" | "ge"): CmpOpKind {
   if (isNumericVal(lt)) return `${lt}.${op}` as CmpOpKind;
   if (op === "eq" || op === "ne") {
     if (lt === "bool")   return `bool.${op}`;
@@ -811,7 +824,7 @@ function cmpKind(lt: ValType, op: "eq" | "ne" | "lt" | "le" | "gt" | "ge"): CmpO
   return `${asNumeric(lt)}.${op}` as CmpOpKind;
 }
 
-function emitIntConst(fn: FnEmitCtx, value: bigint, t: ValType, span: Span): void {
+export function emitIntConst(fn: FnEmitCtx, value: bigint, t: ValType, span: Span): void {
   if (t === "i64" || t === "u64" || t === "usize") {
     pushOp(fn, { kind: "i64.const", value }, span);
   } else {
@@ -819,7 +832,7 @@ function emitIntConst(fn: FnEmitCtx, value: bigint, t: ValType, span: Span): voi
   }
 }
 
-function emitFloatConst(fn: FnEmitCtx, value: number, t: ValType, span: Span): void {
+export function emitFloatConst(fn: FnEmitCtx, value: number, t: ValType, span: Span): void {
   pushOp(fn, { kind: t === "f32" ? "f32.const" : "f64.const", value }, span);
 }
 
