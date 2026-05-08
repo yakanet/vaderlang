@@ -40,6 +40,7 @@ import {
   computeDominators, dominates, intersectDomTree,
   predecessorsOf, reversePostorder, successorsOf,
 } from "./analyses.ts";
+import { NO_HINTS, scheduleStack, type ScheduleHints } from "./scheduler.ts";
 
 // ============================================================================
 // Project-level entry point
@@ -140,6 +141,11 @@ interface FnEmitCfg {
    *  emitRange revisits an already-wrapped header (e.g. emitting the loop
    *  body), we skip re-wrapping and emit the header as a regular block. */
   readonly wrappedLoopHeaders: Set<BlockId>;
+  /** Hints from the stack scheduler — which instructions can leave their
+   *  result on the operand stack instead of materialising it via local.set,
+   *  and which can read their first operand from the stack instead of
+   *  local.get. Cuts the C-emit bloat the 3-address form introduces. */
+  readonly hints: ScheduleHints;
 }
 
 /** Active structured scope. `target` is the BlockId that `br <depth-of-this-frame>`
@@ -180,6 +186,7 @@ function emitCFGFunctionBody(
     localToSlot, preds, idom, ipostdom, loopExit,
     scopes: [],
     wrappedLoopHeaders: new Set(),
+    hints: scheduleStack(cfgFn),
   };
 
   // Single-shot emit from the entry block. `until=null` because the function
@@ -235,7 +242,9 @@ function emitBlockContents(
   const t = block.terminator;
   switch (t.kind) {
     case "Return": {
-      if (t.value !== null) emitGet(ctx, t.value, t.span);
+      if (t.value !== null && !ctx.hints.skipTerminatorGet.has(blockId)) {
+        emitGet(ctx, t.value, t.span);
+      }
       pushOp(ctx.emit, { kind: "return" }, t.span);
       return null;
     }
@@ -254,7 +263,7 @@ function emitBlockContents(
     }
     case "CondBranch": {
       const merge = condBranchMerge(ctx, blockId, until);
-      emitGet(ctx, t.cond, t.span);
+      if (!ctx.hints.skipTerminatorGet.has(blockId)) emitGet(ctx, t.cond, t.span);
       pushOp(ctx.emit, { kind: "if", result: "void" }, t.span);
       ctx.scopes.push({ kind: "if", target: merge ?? -1 });
       if (merge === null || t.then !== merge) emitRange(ctx, t.then, merge);
@@ -329,6 +338,8 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
 }
 
 function emitConstInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Const" }>): void {
+  // No operands : `Const` always pushes onto the stack ; only the result
+  // emit needs to consult the scheduler.
   const v = ins.value;
   switch (v.kind) {
     case "int":    emitIntConst(ctx.emit, v.value, valTypeOf(ins.type), ins.span); break;
@@ -338,7 +349,7 @@ function emitConstInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Const
     case "string": pushOp(ctx.emit, { kind: "string.const", index: stringIndex(ctx, v) }, ins.span); break;
     case "null":   pushOp(ctx.emit, { kind: "null.const" }, ins.span); break;
   }
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function stringIndex(ctx: FnEmitCfg, v: { kind: "string"; index: number }): number {
@@ -346,19 +357,19 @@ function stringIndex(ctx: FnEmitCfg, v: { kind: "string"; index: number }): numb
 }
 
 function emitMove(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Move" }>): void {
-  emitGet(ctx, ins.src, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitFirstOperand(ctx, ins, ins.src, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitBinOp(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "BinOp" }>): void {
-  emitGet(ctx, ins.lhs, ins.span);
+  emitFirstOperand(ctx, ins, ins.lhs, ins.span);
   emitGet(ctx, ins.rhs, ins.span);
   pushOp(ctx.emit, binaryOpFor(ins.op, valTypeOf(typeOfLocal(ctx, ins.lhs))), ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitUnOp(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "UnOp" }>): void {
-  emitGet(ctx, ins.operand, ins.span);
+  emitFirstOperand(ctx, ins, ins.operand, ins.span);
   const opVal = valTypeOf(typeOfLocal(ctx, ins.operand));
   switch (ins.op) {
     case "neg":
@@ -371,7 +382,7 @@ function emitUnOp(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "UnOp" }>): 
       else pushOp(ctx.emit, { kind: "unreachable" }, ins.span);
       break;
   }
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitCallInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Call" }>): void {
@@ -380,23 +391,23 @@ function emitCallInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Call" 
     const imp = ctx.project.imports[importIdx]!;
     const opIntrinsic = OP_INTRINSIC_BY_MANGLED.get(imp.mangledName);
     if (opIntrinsic !== undefined) {
-      for (const a of ins.args) emitGet(ctx, a, ins.span);
+      emitArgs(ctx, ins, ins.args);
       pushOp(ctx.emit, opIntrinsic(), ins.span);
-      if (ins.dst !== null) emitSet(ctx, ins.dst, ins.span);
+      emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
       return;
     }
   }
   const fnIdx = ctx.project.fnIndexBySymId.get(ins.callee.id);
   if (fnIdx !== undefined) {
-    for (const a of ins.args) emitGet(ctx, a, ins.span);
+    emitArgs(ctx, ins, ins.args);
     pushOp(ctx.emit, { kind: "call", fnIndex: fnIdx }, ins.span);
-    if (ins.dst !== null) emitSet(ctx, ins.dst, ins.span);
+    emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
     return;
   }
   if (importIdx !== undefined) {
-    for (const a of ins.args) emitGet(ctx, a, ins.span);
+    emitArgs(ctx, ins, ins.args);
     pushOp(ctx.emit, { kind: "call.import", importIndex: importIdx }, ins.span);
-    if (ins.dst !== null) emitSet(ctx, ins.dst, ins.span);
+    emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
     return;
   }
   // Fall-through : same `unreachable` policy as the legacy emit.
@@ -405,11 +416,12 @@ function emitCallInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Call" 
 }
 
 function emitCallIndirect(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "CallIndirect" }>): void {
-  for (const a of ins.args) emitGet(ctx, a, ins.span);
-  emitGet(ctx, ins.callee, ins.span);
+  if (ins.args.length > 0) emitArgs(ctx, ins, ins.args);
+  if (ins.args.length > 0) emitGet(ctx, ins.callee, ins.span);
+  else emitFirstOperand(ctx, ins, ins.callee, ins.span);
   const typeIndex = internType(ctx.project, ins.fnType);
   pushOp(ctx.emit, { kind: "call.indirect", typeIndex }, ins.span);
-  if (ins.dst !== null) emitSet(ctx, ins.dst, ins.span);
+  emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
 }
 
 function emitFnRef(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FnRef" }>): void {
@@ -420,18 +432,19 @@ function emitFnRef(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FnRef" }>)
   }
   const typeIndex = internType(ctx.project, ins.type);
   pushOp(ctx.emit, { kind: "fn.ref", fnIndex: fnIdx, typeIndex }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitVirtualCall(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "VirtualCall" }>): void {
-  for (const a of ins.args) emitGet(ctx, a, ins.span);
-  emitGet(ctx, ins.receiver, ins.span);
+  if (ins.args.length > 0) emitArgs(ctx, ins, ins.args);
+  if (ins.args.length > 0) emitGet(ctx, ins.receiver, ins.span);
+  else emitFirstOperand(ctx, ins, ins.receiver, ins.span);
   pushOp(ctx.emit, {
     kind: "virtual.call",
     vtableKey: `${ins.traitName}.${ins.method}`,
     paramCount: ins.args.length + 1,
   }, ins.span);
-  if (ins.dst !== null) emitSet(ctx, ins.dst, ins.span);
+  emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
 }
 
 function emitFieldGet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FieldGet" }>): void {
@@ -439,21 +452,21 @@ function emitFieldGet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FieldGe
   const typeIndex = internType(ctx.project, targetType);
   const struct = ctx.project.types[typeIndex];
   if (struct?.kind !== "struct") {
-    emitGet(ctx, ins.target, ins.span);
+    emitFirstOperand(ctx, ins, ins.target, ins.span);
     pushOp(ctx.emit, { kind: "drop" }, ins.span);
     pushOp(ctx.emit, { kind: "unreachable" }, ins.span);
     return;
   }
   const fieldIndex = struct.fields.findIndex((f) => f.name === ins.field);
   if (fieldIndex < 0) {
-    emitGet(ctx, ins.target, ins.span);
+    emitFirstOperand(ctx, ins, ins.target, ins.span);
     pushOp(ctx.emit, { kind: "drop" }, ins.span);
     pushOp(ctx.emit, { kind: "unreachable" }, ins.span);
     return;
   }
-  emitGet(ctx, ins.target, ins.span);
+  emitFirstOperand(ctx, ins, ins.target, ins.span);
   pushOp(ctx.emit, { kind: "struct.get", typeIndex, fieldIndex }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitFieldSet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FieldSet" }>): void {
@@ -461,17 +474,21 @@ function emitFieldSet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FieldSe
   const typeIndex = internType(ctx.project, targetType);
   const struct = ctx.project.types[typeIndex];
   if (struct?.kind !== "struct") {
+    emitFirstOperand(ctx, ins, ins.target, ins.span);
+    pushOp(ctx.emit, { kind: "drop" }, ins.span);
     emitGet(ctx, ins.value, ins.span);
     pushOp(ctx.emit, { kind: "drop" }, ins.span);
     return;
   }
   const fieldIndex = struct.fields.findIndex((f) => f.name === ins.field);
   if (fieldIndex < 0) {
+    emitFirstOperand(ctx, ins, ins.target, ins.span);
+    pushOp(ctx.emit, { kind: "drop" }, ins.span);
     emitGet(ctx, ins.value, ins.span);
     pushOp(ctx.emit, { kind: "drop" }, ins.span);
     return;
   }
-  emitGet(ctx, ins.target, ins.span);
+  emitFirstOperand(ctx, ins, ins.target, ins.span);
   emitGet(ctx, ins.value, ins.span);
   pushOp(ctx.emit, { kind: "struct.set", typeIndex, fieldIndex }, ins.span);
 }
@@ -479,7 +496,7 @@ function emitFieldSet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FieldSe
 function emitArrayGet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayGet" }>): void {
   const targetType = typeOfLocal(ctx, ins.target);
   const typeIndex = internType(ctx.project, targetType);
-  emitGet(ctx, ins.target, ins.span);
+  emitFirstOperand(ctx, ins, ins.target, ins.span);
   emitGet(ctx, ins.index, ins.span);
   pushOp(ctx.emit, { kind: "array.get", typeIndex }, ins.span);
   // Mirror the legacy emit's element-type cast for primitives.
@@ -487,87 +504,87 @@ function emitArrayGet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayGe
   if (elemVal !== "ref" && elemVal !== "any" && elemVal !== "void") {
     pushOp(ctx.emit, { kind: "ref.cast", typeIndex: internType(ctx.project, ins.type) }, ins.span);
   }
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitArraySet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArraySet" }>): void {
   const targetType = typeOfLocal(ctx, ins.target);
   const typeIndex = internType(ctx.project, targetType);
-  emitGet(ctx, ins.target, ins.span);
+  emitFirstOperand(ctx, ins, ins.target, ins.span);
   emitGet(ctx, ins.index, ins.span);
   emitGet(ctx, ins.value, ins.span);
   pushOp(ctx.emit, { kind: "array.set", typeIndex }, ins.span);
 }
 
 function emitArrayLen(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayLen" }>): void {
-  emitGet(ctx, ins.target, ins.span);
+  emitFirstOperand(ctx, ins, ins.target, ins.span);
   pushOp(ctx.emit, { kind: "array.len" }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitArrayPush(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayPush" }>): void {
   const valueType = typeOfLocal(ctx, ins.value);
-  emitGet(ctx, ins.target, ins.span);
+  emitFirstOperand(ctx, ins, ins.target, ins.span);
   emitGet(ctx, ins.value, ins.span);
   pushOp(ctx.emit, { kind: "array.push", typeIndex: internType(ctx.project, valueType) }, ins.span);
 }
 
 function emitStructNew(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "StructNew" }>): void {
   const typeIndex = internType(ctx.project, ins.type);
-  for (const f of ins.fields) emitGet(ctx, f, ins.span);
+  emitArgs(ctx, ins, ins.fields);
   pushOp(ctx.emit, { kind: "struct.new", typeIndex }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitArrayNew(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayNew" }>): void {
   const typeIndex = internType(ctx.project, ins.type);
-  for (const elt of ins.elements) emitGet(ctx, elt, ins.span);
+  emitArgs(ctx, ins, ins.elements);
   pushOp(ctx.emit, { kind: "array.new", typeIndex, length: ins.length }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitTypeCheck(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "TypeCheck" }>): void {
-  emitGet(ctx, ins.value, ins.span);
+  emitFirstOperand(ctx, ins, ins.value, ins.span);
   const typeIndex = internType(ctx.project, ins.checkType);
   pushOp(ctx.emit, { kind: "type_check", typeIndex }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitCast(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Cast" }>): void {
   const fromType = typeOfLocal(ctx, ins.value);
   const fromVal = valTypeOf(fromType);
   const toVal = valTypeOf(ins.type);
-  emitGet(ctx, ins.value, ins.span);
+  emitFirstOperand(ctx, ins, ins.value, ins.span);
   if (fromVal !== toVal) {
     const op = convertOp(fromVal, toVal);
     if (op !== null) pushOp(ctx.emit, op, ins.span);
   }
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitCellNew(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "CellNew" }>): void {
   const cellTypeIdx = internCellType(ctx.project, ins.valueType);
-  emitGet(ctx, ins.value, ins.span);
+  emitFirstOperand(ctx, ins, ins.value, ins.span);
   pushOp(ctx.emit, { kind: "struct.new", typeIndex: cellTypeIdx }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitCellGet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "CellGet" }>): void {
   const cellTypeIdx = internCellType(ctx.project, ins.valueType);
-  emitGet(ctx, ins.cell, ins.span);
+  emitFirstOperand(ctx, ins, ins.cell, ins.span);
   pushOp(ctx.emit, { kind: "struct.get", typeIndex: cellTypeIdx, fieldIndex: 0 }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitCellSet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "CellSet" }>): void {
   const cellTypeIdx = internCellType(ctx.project, ins.valueType);
-  emitGet(ctx, ins.cell, ins.span);
+  emitFirstOperand(ctx, ins, ins.cell, ins.span);
   emitGet(ctx, ins.value, ins.span);
   pushOp(ctx.emit, { kind: "struct.set", typeIndex: cellTypeIdx, fieldIndex: 0 }, ins.span);
 }
 
 function emitMakeClosureInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "MakeClosure" }>): void {
-  emitGet(ctx, ins.env, ins.span);
+  emitFirstOperand(ctx, ins, ins.env, ins.span);
   const fnIdx = ctx.project.fnIndexBySymId.get(ins.fnSymbol.id);
   if (fnIdx === undefined) {
     pushOp(ctx.emit, { kind: "unreachable" }, ins.span);
@@ -575,18 +592,29 @@ function emitMakeClosureInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: 
   }
   const typeIndex = internType(ctx.project, ins.type);
   pushOp(ctx.emit, { kind: "make_closure", fnIndex: fnIdx, typeIndex }, ins.span);
-  emitSet(ctx, ins.dst, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitIntrinsicInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Intrinsic" }>): void {
-  for (const a of ins.args) emitGet(ctx, a, ins.span);
+  emitArgs(ctx, ins, ins.args);
   const id = intrinsicIdByName(ins.name);
   if (id === null) {
     pushOp(ctx.emit, { kind: "unreachable" }, ins.span);
     return;
   }
   pushOp(ctx.emit, { kind: "intrinsic", id: id as IntrinsicId }, ins.span);
-  if (ins.dst !== null) emitSet(ctx, ins.dst, ins.span);
+  emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
+}
+
+/** Emit a positional arg list, treating the very first arg (if any) as the
+ *  candidate for stack-pass-through. Used by Call / VirtualCall / Intrinsic /
+ *  StructNew / ArrayNew. */
+function emitArgs(ctx: FnEmitCfg, ins: Instruction, args: readonly LocalId[]): void {
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (i === 0) emitFirstOperand(ctx, ins, a, ins.span);
+    else emitGet(ctx, a, ins.span);
+  }
 }
 
 // ============================================================================
@@ -599,6 +627,29 @@ function emitGet(ctx: FnEmitCfg, local: LocalId, span: Span): void {
 
 function emitSet(ctx: FnEmitCfg, local: LocalId, span: Span): void {
   pushOp(ctx.emit, { kind: "local.set", slot: ctx.localToSlot[local]! }, span);
+}
+
+/** Read the first stack-pushed operand of `ins`. When the stack scheduler
+ *  decided this read can come straight from the stack (the previous
+ *  instruction's result is sitting there), we emit nothing. */
+function emitFirstOperand(ctx: FnEmitCfg, ins: Instruction, local: LocalId, span: Span): void {
+  if (ctx.hints.skipFirstGet.has(ins)) return;
+  emitGet(ctx, local, span);
+}
+
+/** Write the result of `ins` to its `dst` slot. When the scheduler hinted
+ *  the value should pass through the stack to the next op, leave the value
+ *  on the stack instead of materialising it. */
+function emitInstrResult(ctx: FnEmitCfg, ins: Instruction, dst: LocalId, span: Span): void {
+  if (ctx.hints.skipSet.has(ins)) return;
+  emitSet(ctx, dst, span);
+}
+
+/** Same as `emitInstrResult` but for instructions whose `dst` may be null
+ *  (Call/CallIndirect/VirtualCall/Intrinsic with void return). */
+function emitInstrResultIfAny(ctx: FnEmitCfg, ins: Instruction, dst: LocalId | null, span: Span): void {
+  if (dst === null) return;
+  emitInstrResult(ctx, ins, dst, span);
 }
 
 function typeOfLocal(ctx: FnEmitCfg, local: LocalId): Type {
