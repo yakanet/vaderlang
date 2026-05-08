@@ -16,7 +16,7 @@
 //   tag-aware ones (read_file, read_line, write_file) receive the BcType
 //   indices for the `string` and `Error` variants resolved per module.
 
-import type { BytecodeModule, BcFunction, BcImport } from "../bytecode/module.ts";
+import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";

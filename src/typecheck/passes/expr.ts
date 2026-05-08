@@ -28,6 +28,7 @@ import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
 import { lowerTypeExpr, primitiveFromName } from "./type-expr.ts";
 import { findGlobalTrait, implementsDisplay } from "./traits.ts";
+import type {IndexResolution} from "../typed-ast.ts";
 
 export function checkExpr(
   expr: A.Expr, expected: Type | null,
@@ -181,7 +182,7 @@ export function resolveIndexTrait(
   expr: A.Expr, target: Extract<Type, { kind: "Struct" }>, indexTy: Type,
   traitName: string, methodName: string,
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector,
-): { resolution: import("../typed-ast.ts").IndexResolution; elementType: Type } | null {
+): { resolution: IndexResolution; elementType: Type } | null {
   const trait = findGlobalTrait(t, traitName);
   if (trait === null) return null;
   const entry: ImplEntry | null = impls.findUser(target.symbol, trait);

@@ -11,17 +11,17 @@ import type { ComptimeValue } from "../comptime/value.ts";
 import { analyzeClosures } from "../closures/analyze.ts";
 import type { ClosureAnalysis } from "../closures/analyze.ts";
 import type { Symbol } from "../resolver/symbol.ts";
-import { buildImplRegistry } from "../typecheck/impls.ts";
+import {buildImplRegistry, ImplRegistry} from "../typecheck/impls.ts";
 import type { Type } from "../typecheck/types.ts";
 import { TY, defaultIfFree } from "../typecheck/types.ts";
 
-import type { MonoEntry } from "../monomorphize/index.ts";
+import type {MonoEntry, MonoProject} from "../monomorphize/index.ts";
 import { monomorphizeProject } from "../monomorphize/index.ts";
 
 import type { LowerProjectCtx } from "./ctx.ts";
 import { makeEntryTypes } from "./entry-types.ts";
 import type {
-  LoweredDecl, LoweredExpr, LoweredFnDecl, LoweredModule, LoweredParam, LoweredProject,
+  LoweredDecl, LoweredExpr, LoweredFnDecl, LoweredModule, LoweredParam, LoweredProject, VtableEntry,
 } from "./lowered-ast.ts";
 
 import { lowerBlock } from "./passes/block.ts";
@@ -89,10 +89,10 @@ export function lowerProject(
  *  the result to populate `BytecodeModule.vtables` once both type-table and
  *  fn-table indices are known. */
 function collectVtableEntries(
-  impls: import("../typecheck/impls.ts").ImplRegistry,
+  impls: ImplRegistry,
   mono: MonoProject,
-): import("./lowered-ast.ts").VtableEntry[] {
-  const out: import("./lowered-ast.ts").VtableEntry[] = [];
+): VtableEntry[] {
+  const out: VtableEntry[] = [];
   for (const impl of impls.entries()) {
     if (impl.traitSymbol === null) continue;
     if (impl.forSymbol === null || impl.forSymbol.source.kind !== "struct") continue;

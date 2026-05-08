@@ -3,7 +3,7 @@
 // in reverse order.
 
 import type * as A from "../../parser/ast.ts";
-import { TY, defaultIfFree } from "../../typecheck/types.ts";
+import {TY, defaultIfFree, type Type} from "../../typecheck/types.ts";
 
 import type { BlockCtx, FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
@@ -11,6 +11,7 @@ import type { LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 import { lowerExpr, lowerIndexTraitCall } from "./expr.ts";
 import { lowerForIn } from "./for-in.ts";
 import { freshSyntheticSymbol, lowerCellInit, wrapStmts } from "./helpers.ts";
+import type {Span} from "../../diagnostics/diagnostic.ts";
 
 export function lowerBlock(
   ctx: FnLowerCtx, block: A.BlockExpr, isFnRoot: boolean, isLoopBody: boolean,
@@ -233,7 +234,7 @@ function lowerLetDestructure(
 
 function emitLetBindingLeaves(
   ctx: FnLowerCtx, binding: A.LetBinding, target: LoweredExpr,
-  targetType: import("../../typecheck/types.ts").Type, span: import("../../diagnostics/diagnostic.ts").Span,
+  targetType: Type, span: Span,
   out: LoweredStmt[],
 ): void {
   if (binding.kind !== "TupleBinding") {

@@ -12,7 +12,7 @@ import { declOf, sourceStructDecl, sourceTraitDecl } from "../../resolver/symbol
 
 import { err } from "../diag.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
-import type { MethodResolution } from "../typed-ast.ts";
+import type {MethodResolution, TraitMethodResolution} from "../typed-ast.ts";
 import type { Substitution, Type } from "../types.ts";
 import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isNumeric, isPrimitive, substitute } from "../types.ts";
 
@@ -342,7 +342,7 @@ function findTraitMethodOnParam(
   param: Extract<Type, { kind: "TypeParam" }>,
   name: string,
   t: MutableTyped,
-): import("../typed-ast.ts").TraitMethodResolution | null {
+): TraitMethodResolution | null {
   const traitBounds = t.globals.typeParamBounds.get(param.symbol.id);
   if (traitBounds === undefined) return null;
   for (const traitSym of traitBounds) {
@@ -360,7 +360,7 @@ function findTraitMethodOnParam(
  *  with `Self` substituted by the TypeParam at the call site; we drop the
  *  receiver param to mirror UFCS bound-method shape. */
 function traitMethodBoundFnType(
-  resolution: import("../typed-ast.ts").TraitMethodResolution,
+  resolution: TraitMethodResolution,
   receiverParam: Type,
   t: MutableTyped,
 ): Type {

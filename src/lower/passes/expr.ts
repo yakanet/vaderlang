@@ -344,7 +344,7 @@ function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): Lower
  *  empty for reads ; for writes it carries the lowered RHS value. */
 export function lowerIndexTraitCall(
   ctx: FnLowerCtx, expr: A.IndexExpr, exprType: Type,
-  res: import("../../typecheck/typed-ast.ts").IndexResolution,
+  res: IndexResolution,
   extraArgs: readonly LoweredExpr[],
 ): LoweredExpr {
   const recv = ctx.types.apply(res.receiverType);
@@ -366,7 +366,7 @@ export function lowerIndexTraitCall(
  *  comparison against zero against `compare`'s i32 result. */
 function lowerOverloadedBinary(
   ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type,
-  res: import("../../typecheck/typed-ast.ts").BinaryOpResolution,
+  res: BinaryOpResolution,
 ): LoweredExpr {
   const recv = ctx.types.apply(res.receiverType);
   const structArgs = recv.kind === "Struct" ? recv.args : [];
@@ -430,6 +430,7 @@ function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {
 }
 
 import type { MonoEntry } from "../../monomorphize/mono-ast.ts";
+import type {BinaryOpResolution, IndexResolution} from "../../typecheck/typed-ast.ts";
 
 function lookupFnInstance(ctx: FnLowerCtx, fnDecl: A.FnDecl, typeArgs: readonly Type[]): MonoEntry | null {
   const key = typeArgs.map((ta) => displayType(ctx.types.apply(ta))).join(",");

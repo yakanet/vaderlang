@@ -21,6 +21,7 @@ import { lowerBlock } from "./block.ts";
 import type {
   LoweredExpr, LoweredFnDecl, LoweredParam, LoweredStructDecl,
 } from "../lowered-ast.ts";
+import type {MonoEntry} from "../../monomorphize";
 
 export function lowerLambda(ctx: FnLowerCtx, lambda: A.LambdaExpr): LoweredExpr {
   const captures = ctx.project.closures.lambdaCaptures.get(lambda) ?? [];
@@ -181,7 +182,7 @@ function freshLiftedEnvSymbol(ctx: FnLowerCtx): Symbol {
 
 function synthMonoEntry(
   ctx: FnLowerCtx, symbol: Symbol, kind: "fn" | "struct",
-): import("../../monomorphize/index.ts").MonoEntry {
+): MonoEntry {
   // Synth entries borrow the outer entry's module for identity but supply a
   // stub AST decl with no decorators so the bytecode emit's reserve passes
   // skip the @extern / @export branches cleanly.

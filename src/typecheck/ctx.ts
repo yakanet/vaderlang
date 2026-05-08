@@ -10,7 +10,13 @@ import type * as A from "../parser/ast.ts";
 import type { Module } from "../resolver/module.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { ModuleId, Symbol } from "../resolver/symbol.ts";
-import type { MethodResolution, TraitMethodResolution, TraitVirtualResolution } from "./typed-ast.ts";
+import type {
+  BinaryOpResolution,
+  IndexResolution,
+  MethodResolution,
+  TraitMethodResolution,
+  TraitVirtualResolution
+} from "./typed-ast.ts";
 import type { Substitution, Type } from "./types.ts";
 
 /** Tables shared across modules — populated by declareTypes, consumed by check bodies. */
@@ -87,11 +93,11 @@ export interface MutableTyped {
   /** `[T]` → `Iterator(T)` coercion sites. See `TypedProgram.arrayIterCoercions`. */
   readonly arrayIterCoercions: Map<A.Expr, Type>;
   /** Operator-overload dispatch sites. See `TypedProgram.binaryOpResolutions`. */
-  readonly binaryOpResolutions: Map<A.BinaryExpr, import("./typed-ast.ts").BinaryOpResolution>;
+  readonly binaryOpResolutions: Map<A.BinaryExpr, BinaryOpResolution>;
   /** Index trait dispatch sites for `a[i]` reads. */
-  readonly indexResolutions: Map<A.IndexExpr, import("./typed-ast.ts").IndexResolution>;
+  readonly indexResolutions: Map<A.IndexExpr, IndexResolution>;
   /** IndexSet trait dispatch sites for `a[i] = v` writes. */
-  readonly indexSetResolutions: Map<A.IndexExpr, import("./typed-ast.ts").IndexResolution>;
+  readonly indexSetResolutions: Map<A.IndexExpr, IndexResolution>;
 }
 
 /** Find the std/core module's exported symbol map. Used by the impl registry

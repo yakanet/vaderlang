@@ -15,6 +15,7 @@ import type { ImplRegistry } from "../typecheck/impls.ts";
 import type { Substitution, Type } from "../typecheck/types.ts";
 import type { MonoEntry, MonoProject } from "../monomorphize/index.ts";
 import type { EntryTypes } from "./entry-types.ts";
+import type {LoweredDecl} from "./lowered-ast.ts";
 
 export interface LowerProjectCtx {
   readonly evaluated: EvaluatedProject;
@@ -31,7 +32,7 @@ export interface LowerProjectCtx {
    *  fns and their env structs spawned by lambda lifting. Appended to the
    *  result project under `synthModuleId` so the bytecode emit picks them up
    *  alongside user decls. */
-  readonly synthDecls: import("./lowered-ast.ts").LoweredDecl[];
+  readonly synthDecls: LoweredDecl[];
   nextSyntheticId: number;
   readonly diags: DiagnosticCollector;
 }
