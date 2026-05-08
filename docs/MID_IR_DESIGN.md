@@ -165,14 +165,14 @@ the structuring approach.
 
 ## Phase plan
 
-| Phase | Scope | Effort |
-|-------|-------|--------|
-| **1 (this commit)** | Design doc + data types in `src/midir/cfg.ts`. No converter. No emitter. No tests. | 2 h |
-| **2** | LoweredAST → CFG converter for full expr/stmt set. Round-trip CFG → bytecode (structuring algorithm). Parity: native binaries from CFG path identical to direct path. Behind a feature flag. | 3-5 d |
-| **3** | DCE moves to CFG layer. New: per-store liveness, dead local elimination. | 1-2 d |
-| **4** | SSA conversion (rename locals to value names; insert phi nodes at join blocks). | 2-3 d |
-| **5** | Escape analysis on SSA: stack-allocate non-escaping structs. | 2-3 d |
-| **6** | Drop the legacy LoweredAST → bytecode path. CFG becomes the single substrate. | 1 d |
+| Phase | Scope | Effort | Status |
+|-------|-------|--------|--------|
+| **1** | Design doc + data types in `src/midir/cfg.ts`. No converter. No emitter. No tests. | 2 h | ✅ done |
+| **2** | LoweredAST → CFG converter (`src/midir/build.ts`) + structurer + CFG → bytecode emitter (`src/midir/emit.ts`) behind `--midir`. Behavioural parity (`tests/midir_parity.test.ts`) on every snippet. | 3-5 d | ✅ done |
+| **3** | DCE on the CFG (`src/midir/dce.ts`) : copy folding, per-store liveness + dead instruction elim, dead local elim. -11% to -36% instructions on representative snippets. | 1-2 d | ✅ done |
+| **4** | SSA conversion (rename locals to value names; insert phi nodes at join blocks). | 2-3 d | |
+| **5** | Escape analysis on SSA: stack-allocate non-escaping structs. | 2-3 d | |
+| **6** | Drop the legacy LoweredAST → bytecode path. CFG becomes the single substrate. | 1 d | |
 
 Total: ~2 weeks of focused work after this commit. Each phase is shippable
 on its own (behind the flag from phase 2).

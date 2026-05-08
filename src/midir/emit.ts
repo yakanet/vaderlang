@@ -33,9 +33,10 @@ import { runPeepholes } from "../bytecode/peephole.ts";
 import { isIntegerVal, isNumericVal, type ValType } from "../bytecode/types.ts";
 
 import type {
-  BasicBlock, BlockId, CFGFunction, CFGProject,
+  BlockId, CFGFunction, CFGProject,
   Instruction, LocalId,
 } from "./cfg.ts";
+import { predecessorsOf, successorsOf } from "./analyses.ts";
 
 // ============================================================================
 // Project-level entry point
@@ -619,25 +620,9 @@ function convertOp(from: ValType, to: ValType): Op | null {
 }
 
 // ============================================================================
-// CFG analyses — predecessors, dominators, post-dominators, loop exits
+// CFG analyses — dominators, post-dominators, loop exits
+// (predecessors / successors live in `analyses.ts`)
 // ============================================================================
-
-function predecessorsOf(fn: CFGFunction): readonly (readonly BlockId[])[] {
-  const out: BlockId[][] = fn.blocks.map(() => []);
-  for (const b of fn.blocks) {
-    for (const succ of successorsOf(b)) out[succ]!.push(b.id);
-  }
-  return out;
-}
-
-function successorsOf(b: BasicBlock): readonly BlockId[] {
-  switch (b.terminator.kind) {
-    case "Branch":      return [b.terminator.target];
-    case "CondBranch":  return [b.terminator.then, b.terminator.else];
-    case "Return":
-    case "Unreachable": return [];
-  }
-}
 
 /** Dominator computation (Cooper, Harvey, Kennedy). Returns idom[b] = the
  *  immediate dominator of `b` ; `entry`'s idom is itself, unreachable

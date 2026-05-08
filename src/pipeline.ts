@@ -25,6 +25,7 @@ import type { BytecodeModule } from "./bytecode/index.ts";
 import { buildImplRegistry } from "./typecheck/impls.ts";
 import { buildCFGProject } from "./midir/build.ts";
 import type { CFGProject } from "./midir/cfg.ts";
+import { eliminateDeadCFG } from "./midir/dce.ts";
 import { emitBytecodeFromCFG } from "./midir/emit.ts";
 
 export type PipelineStage =
@@ -132,7 +133,7 @@ export async function pipelineCfg(
   file: string, opts?: { allowEnv?: boolean },
 ): Promise<CfgResult> {
   const r = await pipelineDced(file, opts);
-  const cfg = buildCFGProject(r.dced);
+  const cfg = eliminateDeadCFG(buildCFGProject(r.dced));
   return { ...r, cfg };
 }
 
@@ -144,7 +145,7 @@ export async function pipelineBytecode(
   const emitOpts = { optimize: opts?.bytecodeOpt ?? true, implRegistry };
   let bytecode: BytecodeModule;
   if (opts?.midIr) {
-    const cfg = buildCFGProject(r.dced);
+    const cfg = eliminateDeadCFG(buildCFGProject(r.dced));
     bytecode = emitBytecodeFromCFG(r.dced, cfg, moduleNameFromFile(file), emitOpts);
   } else {
     bytecode = emitBytecode(r.dced, moduleNameFromFile(file), emitOpts);
