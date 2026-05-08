@@ -82,7 +82,36 @@ export function lowerProject(
       decls,
     });
   }
-  return { modules };
+  return { modules, vtableEntries: collectVtableEntries(impls, mono) };
+}
+
+/** Flatten the impl registry × mono entries into one entry per
+ *  `(trait, method, struct instance, impl fn)`. The bytecode emitter walks
+ *  the result to populate `BytecodeModule.vtables` once both type-table and
+ *  fn-table indices are known. */
+function collectVtableEntries(
+  impls: import("../typecheck/impls.ts").ImplRegistry,
+  mono: MonoProject,
+): import("./lowered-ast.ts").VtableEntry[] {
+  const out: import("./lowered-ast.ts").VtableEntry[] = [];
+  for (const impl of impls.entries()) {
+    if (impl.traitSymbol === null) continue;
+    if (impl.forSymbol === null || impl.forSymbol.source.kind !== "struct") continue;
+    for (const member of impl.decl.members) {
+      const perArgs = mono.implMethodEntries.get(member);
+      if (perArgs === undefined) continue;
+      for (const entry of perArgs.values()) {
+        if (entry.symbol === null) continue;
+        out.push({
+          traitName: impl.traitSymbol.name,
+          methodName: member.name,
+          structType: { kind: "Struct", symbol: impl.forSymbol, args: entry.typeArgs },
+          fnSymbol: entry.symbol,
+        });
+      }
+    }
+  }
+  return out;
 }
 
 function lowerEntry(entry: MonoEntry, ctx: LowerProjectCtx): LoweredDecl | null {

@@ -302,6 +302,32 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       if (callee.signature.result !== "void") f.stack.push(result);
       f.ip++; return;
     }
+    case "virtual.call": {
+      // Receiver is on top of the stack; pop it, read its type tag, and look
+      // up the impl fn in the per-(trait, method) vtable. Then call as a
+      // regular fn with [receiver, ...args].
+      const receiver = f.stack.pop()!;
+      const tag = receiverTypeIndex(receiver);
+      const table = ctx.module.vtables.get(op.vtableKey);
+      if (table === undefined) {
+        throw new VmError(`vm: no vtable for ${op.vtableKey}`, debugOf(f.fn, f.ip));
+      }
+      const fnIdx = tag !== null ? table.get(tag) : undefined;
+      if (fnIdx === undefined) {
+        throw new VmError(
+          `vm: no impl in ${op.vtableKey} vtable for receiver tag ${tag}`,
+          debugOf(f.fn, f.ip),
+        );
+      }
+      const callee = ctx.module.functions[fnIdx];
+      if (callee === undefined) {
+        throw new VmError(`vm: bad fn index ${fnIdx} in vtable`, debugOf(f.fn, f.ip));
+      }
+      const explicitArgs = popArgs(f, op.paramCount - 1);
+      const result = invoke(ctx, fnIdx, [receiver, ...explicitArgs], opts);
+      if (callee.signature.result !== "void") f.stack.push(result);
+      f.ip++; return;
+    }
     case "intrinsic":
       runIntrinsic(f, op.id);
       f.ip++; return;
@@ -551,6 +577,15 @@ function refEq(a: Value, b: Value): boolean {
   if (a.tag === "i64" || a.tag === "u64") return a.n === (b as { n: bigint }).n;
   if (a.tag === "error") return a.message === (b as { message: string }).message;
   return a.n === (b as { n: typeof a.n }).n;
+}
+
+/** Extract the type-table index of a runtime value's static type — keys
+ *  vtable lookups for virtual dispatch. Returns null for values whose
+ *  representation doesn't carry a typeIndex (primitives etc.); the caller
+ *  treats null as "no impl". */
+function receiverTypeIndex(v: Value): number | null {
+  if (v.tag === "struct" || v.tag === "array") return v.typeIndex;
+  return null;
 }
 
 function typeMatches(m: BytecodeModule, v: Value, typeIndex: number): boolean {

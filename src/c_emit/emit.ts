@@ -38,7 +38,9 @@ export function emitC(m: BytecodeModule): string {
   emitFnTrampolines(ctx, out);
   emitTypeInfoTable(ctx, out);
   emitImportShims(ctx, out);
+  emitVtableForwardDecls(ctx, out);
   emitFunctions(ctx, out);
+  emitVtableDispatchers(ctx, out);
   emitMain(ctx, out);
 
   return out.join("\n") + "\n";
@@ -663,6 +665,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "call":         return emitCall(s, op);
     case "call.import":  return emitCallImport(s, op);
     case "call.indirect":return emitCallIndirect(s, op);
+    case "virtual.call": return emitVirtualCall(s, op);
     case "fn.ref":       return emitFnRef(s, op);
     case "make_closure": return emitMakeClosure(s, op);
     case "intrinsic":    return emitIntrinsic(s, op);
@@ -844,6 +847,112 @@ function emitCallImport(s: FnState, op: Extract<Op, { kind: "call.import" }>): v
 function emitFnRef(s: FnState, op: Extract<Op, { kind: "fn.ref" }>): void {
   const tmp = newTmp(s, "ref");
   line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, &vader_fn_static_${op.fnIndex});`);
+}
+
+function emitVirtualCall(s: FnState, op: Extract<Op, { kind: "virtual.call" }>): void {
+  // Stack at entry: …args, receiver. Pop receiver first, then args (reverse
+  // order); the dispatch helper takes (receiver, ...args) in source order.
+  const recv = pop(s);
+  const recvBoxed = coerce(s, recv.name, recv.val, "any");
+  const tailCount = op.paramCount - 1;
+  const args: string[] = [];
+  for (let i = 0; i < tailCount; i++) args.push(pop(s).name);
+  args.reverse();
+
+  const helper = vtableHelperName(op.vtableKey);
+  const sig = vtableSignatures(s.ctx).get(op.vtableKey);
+  if (sig === undefined) {
+    line(s, `vader_unreachable("no vtable for ${escapeC(op.vtableKey)}");`);
+    return;
+  }
+  if (sig.result === "void") {
+    line(s, `${helper}(${[recvBoxed, ...args].join(", ")});`);
+    return;
+  }
+  const tmp = newTmp(s, sig.result);
+  line(s, `${decl(s, sig.result, tmp)} = ${helper}(${[recvBoxed, ...args].join(", ")});`);
+}
+
+function vtableHelperName(key: string): string {
+  return `vader_vt_${sanitise(key.replace(".", "__"))}`;
+}
+
+/** Per-vtable canonical signature, derived from the first impl fn in each
+ *  table. All impls of a given trait method share their non-receiver param
+ *  types (the receiver is taken as `any`/`vader_box_t` in the dispatcher). */
+function vtableSignatures(ctx: EmitCtx): ReadonlyMap<string, BcSignature> {
+  const out = new Map<string, BcSignature>();
+  for (const [key, table] of ctx.module.vtables) {
+    const firstFnIdx = table.values().next().value;
+    if (firstFnIdx === undefined) continue;
+    const fn = ctx.module.functions[firstFnIdx];
+    if (fn === undefined) continue;
+    out.set(key, fn.signature);
+  }
+  return out;
+}
+
+/** Forward-declare every vtable dispatcher up front so user fns that call
+ *  them compile before the dispatcher bodies are emitted. */
+function emitVtableForwardDecls(ctx: EmitCtx, out: string[]): void {
+  if (ctx.module.vtables.size === 0) return;
+  out.push(``);
+  out.push(`/* ----------------------------------------------- vtable forwards */`);
+  for (const [key, table] of ctx.module.vtables) {
+    const firstFnIdx = table.values().next().value;
+    if (firstFnIdx === undefined) continue;
+    const sig = ctx.module.functions[firstFnIdx]!.signature;
+    const tailParams = sig.params.slice(1);
+    const formal = tailParams.length > 0
+      ? `vader_box_t recv, ${tailParams.map((t, i) => `${cTypeForVal(ctx, t)} a${i}`).join(", ")}`
+      : `vader_box_t recv`;
+    out.push(`static ${cTypeForVal(ctx, sig.result)} ${vtableHelperName(key)}(${formal});`);
+  }
+}
+
+/** Emit one dispatch helper per (trait, method) entry: `static <ret>
+ *  vader_vt_<key>(vader_box_t recv, <args>)` whose body switches on
+ *  `recv.tag` and forwards to the matching impl fn. The unbox-and-cast
+ *  per case mirrors what the cascade used to do inline at every call site,
+ *  but consolidated to one fn per vtable key. */
+function emitVtableDispatchers(ctx: EmitCtx, out: string[]): void {
+  if (ctx.module.vtables.size === 0) return;
+  out.push(``);
+  out.push(`/* ----------------------------------------------- vtable dispatchers */`);
+  for (const [key, table] of ctx.module.vtables) {
+    const firstFnIdx = table.values().next().value;
+    if (firstFnIdx === undefined) continue;
+    const sig = ctx.module.functions[firstFnIdx]!.signature;
+    const helper = vtableHelperName(key);
+    const tailParams = sig.params.slice(1);
+    const tailParamDecls = tailParams.map((t, i) => `${cTypeForVal(ctx, t)} a${i}`).join(", ");
+    const formal = tailParams.length > 0
+      ? `vader_box_t recv, ${tailParamDecls}`
+      : `vader_box_t recv`;
+    const cret = cTypeForVal(ctx, sig.result);
+    out.push(`static ${cret} ${helper}(${formal}) {`);
+    out.push(`    switch (recv.tag) {`);
+    for (const [tag, fnIdx] of table) {
+      const calleeName = ctx.fnNames[fnIdx]!;
+      const calleeSig = ctx.module.functions[fnIdx]!.signature;
+      const recvParam = calleeSig.params[0]!;
+      const recvCArg = coerceExpr(ctx, "recv", "any", recvParam);
+      const allArgs = [recvCArg, ...tailParams.map((_, i) => `a${i}`)].join(", ");
+      if (sig.result === "void") {
+        out.push(`        case ${tag}u: ${calleeName}(${allArgs}); return;`);
+      } else {
+        out.push(`        case ${tag}u: return ${calleeName}(${allArgs});`);
+      }
+    }
+    out.push(`        default: vader_unreachable("vtable miss in ${escapeC(key)}");`);
+    out.push(`    }`);
+    if (sig.result !== "void") {
+      // Defensive: every path in the switch returns or traps, but C wants a
+      // post-switch return for non-void. `vader_unreachable` is noreturn.
+      out.push(`    vader_unreachable("vtable miss in ${escapeC(key)}");`);
+    }
+    out.push(`}`);
+  }
 }
 
 function emitMakeClosure(s: FnState, op: Extract<Op, { kind: "make_closure" }>): void {
@@ -1212,15 +1321,22 @@ function scopeForEnd(s: FnState, endIp: number): OpenLabel | null {
 // ------------------------------------------------------------- coercions
 
 function coerce(s: FnState, name: string, from: ValType, to: ValType): string {
+  return coerceExpr(s.ctx, name, from, to);
+}
+
+/** Pure-expression coerce — no FnState, no `line(s, ...)` side effects.
+ *  Used by the per-vtable dispatchers emitted at module scope where there
+ *  is no enclosing fn state. */
+function coerceExpr(ctx: EmitCtx, name: string, from: ValType, to: ValType): string {
   if (from === to) return name;
   if ((to === "ref" || to === "any") && (from === "ref" || from === "any")) return name;
   if (to === "ref" || to === "any") {
-    return boxExprUnknown(s.ctx, name, from);
+    return boxExprUnknown(ctx, name, from);
   }
   if (from === "ref" || from === "any") {
     return unboxExpr(name, to);
   }
-  return `(${cTypeForVal(s.ctx, to)}) ${name}`;
+  return `(${cTypeForVal(ctx, to)}) ${name}`;
 }
 
 function boxExpr(_ctx: EmitCtx, name: string, val: ValType, typeIndex: number): string {

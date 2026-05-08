@@ -19,6 +19,10 @@ export interface BytecodeModule {
    *  `T implements Trait { … }` declarations; consumed by `match val { is Trait }`
    *  in the VM and the C emitter. */
   readonly implTable: ReadonlyMap<number, readonly string[]>;
+  /** Per-`(traitName, methodName)` virtual-dispatch table. Each entry maps a
+   *  receiver type-index to the fn-index of the impl method. The `virtual.call`
+   *  op indexes this in O(1) — no cascade. Key format: `${traitName}.${methodName}`. */
+  readonly vtables: ReadonlyMap<string, ReadonlyMap<number, number>>;
 }
 
 export interface BcFunction {

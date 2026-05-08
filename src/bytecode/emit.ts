@@ -52,6 +52,19 @@ export function emitBytecode(
   for (const m of project.modules.values()) {
     for (const d of m.decls) emitDecl(d, ctx);
   }
+  // Build the per-(trait, method) vtables now that every struct type and impl
+  // fn has its index. The lowerer pre-flattened the entries; we just translate
+  // (structType → typeIdx) and (fnSymbol → fnIdx).
+  const vtables = new Map<string, Map<number, number>>();
+  for (const e of project.vtableEntries) {
+    const fnIdx = ctx.fnIndexBySymId.get(e.fnSymbol.id);
+    if (fnIdx === undefined) continue;
+    const typeIdx = internType(ctx, e.structType);
+    const key = `${e.traitName}.${e.methodName}`;
+    let table = vtables.get(key);
+    if (table === undefined) { table = new Map(); vtables.set(key, table); }
+    table.set(typeIdx, fnIdx);
+  }
   return {
     name,
     types:     ctx.types,
@@ -60,6 +73,7 @@ export function emitBytecode(
     imports:   ctx.imports,
     exports:   ctx.exports,
     implTable: ctx.implTable,
+    vtables,
   };
 }
 
@@ -351,6 +365,7 @@ function emitExpr(fn: FnEmitCtx, e: L.LoweredExpr): void {
       return;
     case "LoweredIdent":         emitIdent(fn, e); return;
     case "LoweredCall":          emitCall(fn, e); return;
+    case "LoweredVirtualCall":   emitVirtualCall(fn, e); return;
     case "LoweredFieldAccess":   emitFieldAccess(fn, e); return;
     case "LoweredIndex": {
       const typeIndex = internType(fn.project, e.target.type);
@@ -502,6 +517,19 @@ function emitCall(fn: FnEmitCtx, e: L.LoweredCall): void {
   // Truly unresolved callee (non-Fn type) — surface as unreachable.
   for (const a of e.args) emitExpr(fn, a);
   pushOp(fn, { kind: "unreachable" }, e.span);
+}
+
+function emitVirtualCall(fn: FnEmitCtx, e: L.LoweredVirtualCall): void {
+  // Stack at entry to `virtual.call`: …args, receiver. The runtime pops the
+  // receiver, reads its type tag, looks up the (vtableKey, tag) entry, then
+  // calls the impl fn with [receiver-cast-to-impl-type, ...args].
+  for (const a of e.args) emitExpr(fn, a);
+  emitExpr(fn, e.receiver);
+  pushOp(fn, {
+    kind: "virtual.call",
+    vtableKey: `${e.traitName}.${e.method}`,
+    paramCount: e.args.length + 1,
+  }, e.span);
 }
 
 function emitFieldAccess(fn: FnEmitCtx, e: L.LoweredFieldAccess): void {

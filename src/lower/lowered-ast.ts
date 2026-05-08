@@ -7,6 +7,18 @@ import type { MonoEntry } from "../monomorphize/index.ts";
 
 export interface LoweredProject {
   readonly modules: ReadonlyMap<string, LoweredModule>;
+  /** Pre-flattened virtual-dispatch table source — one entry per
+   *  `(trait, method, concrete struct, impl fn)`. The bytecode emitter walks
+   *  these to populate `BytecodeModule.vtables`, translating `structType` to
+   *  its type-table index and `fnSymbol` to its fn-table index. */
+  readonly vtableEntries: readonly VtableEntry[];
+}
+
+export interface VtableEntry {
+  readonly traitName: string;
+  readonly methodName: string;
+  readonly structType: Type;
+  readonly fnSymbol: Symbol;
 }
 
 export interface LoweredModule {
@@ -144,6 +156,7 @@ export type LoweredExpr =
   | LoweredStringLit
   | LoweredIdent
   | LoweredCall
+  | LoweredVirtualCall
   | LoweredFieldAccess
   | LoweredIndex
   | LoweredUnary
@@ -211,6 +224,21 @@ export interface LoweredCall {
   readonly span: Span;
   readonly type: Type;
   readonly callee: LoweredExpr;
+  readonly args: readonly LoweredExpr[];
+}
+
+/** Virtual dispatch on a trait-typed receiver — the runtime indexes a
+ *  per-(trait, method) vtable by the receiver's type tag to pick the impl
+ *  fn. The bytecode emitter materialises the vtable from the impl registry
+ *  + monomorphisation entries; the cascade-of-`is` pre-Sprint-3.12 form is
+ *  gone. `traitName` and `method` together key the vtable. */
+export interface LoweredVirtualCall {
+  readonly kind: "LoweredVirtualCall";
+  readonly span: Span;
+  readonly type: Type;
+  readonly traitName: string;
+  readonly method: string;
+  readonly receiver: LoweredExpr;
   readonly args: readonly LoweredExpr[];
 }
 

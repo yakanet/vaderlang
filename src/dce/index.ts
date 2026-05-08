@@ -44,19 +44,39 @@ export function eliminateDeadCode(project: LoweredProject): LoweredProject {
     }
   }
 
+  // Group vtable entries by `(trait, method)` so a `LoweredVirtualCall`
+  // resolves to the full impl set in one lookup. Without this, DCE would
+  // delete the impl methods (call sites only carry the trait/method
+  // strings, not the impl symbols).
+  const implsByVtableKey = new Map<string, number[]>();
+  for (const e of project.vtableEntries) {
+    const key = `${e.traitName}|${e.methodName}`;
+    let bucket = implsByVtableKey.get(key);
+    if (bucket === undefined) { bucket = []; implsByVtableKey.set(key, bucket); }
+    bucket.push(e.fnSymbol.id);
+  }
+
   const visit = (id: number) => {
     if (reachable.has(id)) return;
     reachable.add(id);
     const decl = bySymbolId.get(id);
     if (decl !== undefined) worklist.push(decl);
   };
-  while (worklist.length > 0) forEachReference(worklist.pop()!, visit);
+  const visitVirtual = (trait: string, method: string) => {
+    const ids = implsByVtableKey.get(`${trait}|${method}`);
+    if (ids !== undefined) for (const id of ids) visit(id);
+  };
+  while (worklist.length > 0) forEachReference(worklist.pop()!, visit, visitVirtual);
 
   const modules = new Map<string, LoweredModule>();
   for (const [id, m] of project.modules) {
     modules.set(id, filterModule(m, reachable));
   }
-  return { modules };
+  // Vtable entries reference impl fns by Symbol id — DCE only filters decls
+  // by reachability, so we keep them all here; the bytecode emit's vtable
+  // builder will skip entries whose fn symbol didn't make it into the
+  // (DCE'd) project naturally.
+  return { modules, vtableEntries: project.vtableEntries };
 }
 
 function filterModule(m: LoweredModule, reachable: ReadonlySet<number>): LoweredModule {

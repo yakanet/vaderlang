@@ -171,7 +171,8 @@ function bundleProject(
       decls: list,
     });
   }
-  return { modules };
+  // Comptime virtual dispatch isn't yet supported — emit an empty vtable list.
+  return { modules, vtableEntries: [] };
 }
 
 function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {

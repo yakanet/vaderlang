@@ -94,6 +94,7 @@ function formatOp(op: Op): string {
     case "call":         return `call ${op.fnIndex}`;
     case "call.import":  return `call.import ${op.importIndex}`;
     case "call.indirect": return `call.indirect ${op.typeIndex}`;
+    case "virtual.call": return `virtual.call ${op.paramCount} ${op.vtableKey}`;
     case "fn.ref":       return `fn.ref ${op.fnIndex} ${op.typeIndex}`;
     case "make_closure": return `make_closure ${op.fnIndex} ${op.typeIndex}`;
     case "intrinsic":    return `intrinsic ${intrinsicNameById(op.id) ?? op.id}`;
@@ -159,6 +160,7 @@ function finalizeModule(m: MutableModule): BytecodeModule {
     name: m.name, types: m.types, strings: m.strings,
     functions: m.functions, imports: m.imports, exports: m.exports,
     implTable: new Map(),
+    vtables: new Map(),
   };
 }
 
@@ -353,6 +355,13 @@ function parseOp(text: string): Op {
     case "call":         return { kind: "call",  fnIndex: Number(tail) };
     case "call.import":  return { kind: "call.import", importIndex: Number(tail) };
     case "call.indirect": return { kind: "call.indirect", typeIndex: Number(tail) };
+    case "virtual.call": {
+      const sp = tail.indexOf(" ");
+      if (sp < 0) throw new Error(`vir parse: virtual.call needs paramCount and key`);
+      return { kind: "virtual.call",
+               paramCount: Number(tail.slice(0, sp)),
+               vtableKey: tail.slice(sp + 1) };
+    }
     case "fn.ref": {
       const [fnIdxStr, typeIdxStr] = tail.split(/\s+/);
       return { kind: "fn.ref", fnIndex: Number(fnIdxStr), typeIndex: Number(typeIdxStr) };

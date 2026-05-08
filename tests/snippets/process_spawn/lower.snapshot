@@ -25,38 +25,38 @@
                     println#28 :fn(string) -> void
                   arg0:
                     block :string
-                      let __sb_3#-4: ? =
+                      let __sb_2#-3: ? =
                         @builder.new :?
                       @builder.append_str :void
-                        __sb_3#-4 :?
+                        __sb_2#-3 :?
                         "exit=" :string
                       @builder.append_display <for i32> :void
-                        __sb_3#-4 :?
+                        __sb_2#-3 :?
                         .exit :i32
                           cast → ProcessResult
                             r#65 :Error | ProcessResult
                       ~>
                         @builder.finish :string
-                          __sb_3#-4 :?
+                          __sb_2#-3 :?
                 ~>
                   call :void
                     callee:
                       println#28 :fn(string) -> void
                     arg0:
                       block :string
-                        let __sb_4#-5: ? =
+                        let __sb_3#-4: ? =
                           @builder.new :?
                         @builder.append_str :void
-                          __sb_4#-5 :?
+                          __sb_3#-4 :?
                           "out=" :string
                         @builder.append_display <for string> :void
-                          __sb_4#-5 :?
+                          __sb_3#-4 :?
                           .stdout :string
                             cast → ProcessResult
                               r#65 :Error | ProcessResult
                         ~>
                           @builder.finish :string
-                            __sb_4#-5 :?
+                            __sb_3#-4 :?
           else:
             ~>
               if :void
@@ -77,40 +77,10 @@
                             "err: " :string
                           @builder.append_display <for string> :void
                             __sb_1#-2 :?
-                            block :string
-                              let __vdisp_2#-3: Error =
+                            vcall Error.message :string
+                              recv:
                                 cast → Error
                                   r#65 :Error | ProcessResult
-                              ~>
-                                if :string
-                                  cond:
-                                    is IOError :bool
-                                      __vdisp_2#-3 :Error
-                                  then:
-                                    ~>
-                                      call :string
-                                        callee:
-                                          message#1000011 :string
-                                        arg0:
-                                          cast → IOError
-                                            __vdisp_2#-3 :Error
-                                  else:
-                                    ~>
-                                      if :string
-                                        cond:
-                                          is ProcessError :bool
-                                            __vdisp_2#-3 :Error
-                                        then:
-                                          ~>
-                                            call :string
-                                              callee:
-                                                message#1000012 :string
-                                              arg0:
-                                                cast → ProcessError
-                                                  __vdisp_2#-3 :Error
-                                        else:
-                                          ~>
-                                            unreachable("no matching impl for virtual trait dispatch") :string
                           ~>
                             @builder.finish :string
                               __sb_1#-2 :?

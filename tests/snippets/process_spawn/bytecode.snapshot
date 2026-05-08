@@ -33,10 +33,9 @@ import 12 spawn_last_stderr std_process$spawn_last_stderr () -> string
 fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
   local r ref
   local __scrut_0 ref
+  local __sb_2 any
   local __sb_3 any
-  local __sb_4 any
   local __sb_1 any
-  local __vdisp_2 ref
   string.const 0   ; _main.vader:9:17
   string.const 1   ; _main.vader:9:30
   array.new 5 2   ; _main.vader:9:16
@@ -77,21 +76,7 @@ fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:15:30
   local.get 4   ; _main.vader:15:35
   local.get 0   ; _main.vader:15:37
-  local.tee 5   ; _main.vader:15:37
-  type_check 0   ; _main.vader:15:37
-  if string   ; _main.vader:15:37
-  local.get 5   ; _main.vader:15:37
-  call 1   ; _main.vader:15:37
-  else   ; _main.vader:15:37
-  local.get 5   ; _main.vader:15:37
-  type_check 2   ; _main.vader:15:37
-  if string   ; _main.vader:15:37
-  local.get 5   ; _main.vader:15:37
-  call 2   ; _main.vader:15:37
-  else   ; _main.vader:15:37
-  unreachable   ; _main.vader:15:37
-  end   ; _main.vader:15:37
-  end   ; _main.vader:15:37
+  virtual.call 1 Error.message   ; _main.vader:15:37
   intrinsic builder.append_display   ; _main.vader:15:35
   local.get 4   ; _main.vader:15:29
   intrinsic builder.finish   ; _main.vader:15:29

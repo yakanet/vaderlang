@@ -289,6 +289,15 @@ function emitExpr(lines: string[], e: LoweredExpr, indent: string): void {
         emitExpr(lines, e.args[i]!, indent + "    ");
       }
       return;
+    case "LoweredVirtualCall":
+      lines.push(`${indent}vcall ${e.traitName}.${e.method} :${displayType(e.type)}`);
+      lines.push(`${indent}  recv:`);
+      emitExpr(lines, e.receiver, indent + "    ");
+      for (let i = 0; i < e.args.length; i++) {
+        lines.push(`${indent}  arg${i}:`);
+        emitExpr(lines, e.args[i]!, indent + "    ");
+      }
+      return;
     case "LoweredFieldAccess":
       lines.push(`${indent}.${e.field} :${displayType(e.type)}`);
       emitExpr(lines, e.target, indent + "  ");

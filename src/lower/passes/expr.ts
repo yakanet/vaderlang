@@ -433,90 +433,39 @@ function lowerUfcsCall(
   };
 }
 
-/** Synthesise a tag-keyed dispatch for `recv.method(args)` where `recv` has a
- *  trait type. Returns null when no impl in scope can handle the call (caller
- *  falls back to the existing error path). */
+/** Lower `recv.method(args)` where `recv` has a trait type into a single
+ *  `LoweredVirtualCall`. The bytecode emit walks `impls.forTrait` + the mono
+ *  registry to populate the per-(trait, method) vtable; the VM and C emit
+ *  dispatch in O(1) via tag lookup. Returns null when no impl in scope
+ *  could ever satisfy the call (caller falls back to the error path). */
 function lowerVirtualDispatch(
   ctx: FnLowerCtx, expr: A.CallExpr, callee: A.FieldExpr, exprType: Type,
   traitSym: Symbol, methodName: string,
 ): LoweredExpr | null {
-  type Cand = { forType: Type; memberSym: Symbol };
-  const candidates: Cand[] = [];
+  // Probe: is there at least one struct impl of this method in scope? If not,
+  // signal null so the caller can fall through to the regular call lowering
+  // (which will error informatively or compile to `unreachable`).
+  let hasAny = false;
   for (const impl of ctx.project.impls.forTrait(traitSym)) {
+    if (impl.forSymbol === null || impl.forSymbol.source.kind !== "struct") continue;
     const member = impl.decl.members.find((m) => m.name === methodName);
     if (member === undefined) continue;
-    // Skip primitive impls : they carry a per-primitive box tag but the
-    // dispatch chain is structured around `is Struct` checks.
-    if (impl.forSymbol === null || impl.forSymbol.source.kind !== "struct") continue;
-    // Each monomorphised `(member, struct args)` pair is a runtime-observable
-    // tag we can dispatch on. Non-generic impls have a single entry keyed
-    // by empty args ; generic impls have one entry per concrete instance.
     const perArgs = ctx.project.mono.implMethodEntries.get(member);
-    if (perArgs === undefined) continue;
-    for (const entry of perArgs.values()) {
-      if (entry.symbol === null) continue;
-      candidates.push({
-        forType: { kind: "Struct", symbol: impl.forSymbol, args: entry.typeArgs },
-        memberSym: entry.symbol,
-      });
-    }
+    if (perArgs === undefined || perArgs.size === 0) continue;
+    hasAny = true;
+    break;
   }
-  if (candidates.length === 0) return null;
+  if (!hasAny) return null;
 
-  const span = expr.span;
-  const recvSym = freshSyntheticSymbol(ctx, "vdisp");
-  const recvType = ctx.types.exprType(callee.target);
-  const recvLet: LoweredExpr = {
-    kind: "LoweredBlock", span, type: exprType, stmts: [
-      {
-        kind: "LoweredLet", span, name: recvSym.name, symbol: recvSym,
-        type: recvType, value: lowerExpr(ctx, callee.target),
-      },
-    ],
-    trailing: buildDispatchChain(ctx, candidates, expr, exprType, recvSym, recvType),
+  return {
+    kind: "LoweredVirtualCall",
+    span: expr.span,
+    type: exprType,
+    traitName: traitSym.name,
+    method: methodName,
+    receiver: lowerExpr(ctx, callee.target),
+    args: expr.args.map((a) => lowerExpr(ctx, a.value)),
   };
-  return recvLet;
-}
-
-function buildDispatchChain(
-  ctx: FnLowerCtx,
-  candidates: ReadonlyArray<{ forType: Type; memberSym: Symbol }>,
-  expr: A.CallExpr, exprType: Type,
-  recvSym: Symbol, recvType: Type,
-): LoweredExpr {
-  const span = expr.span;
-  const tailArgs = expr.args.map((a) => lowerExpr(ctx, a.value));
-
-  let chain: LoweredExpr = {
-    kind: "LoweredUnreachable", span, type: exprType,
-    reason: "no matching impl for virtual trait dispatch",
-  };
-  for (let i = candidates.length - 1; i >= 0; i--) {
-    const c = candidates[i]!;
-    const recvIdent: LoweredExpr = {
-      kind: "LoweredIdent", span, type: recvType, symbol: recvSym,
-    };
-    const cond: LoweredExpr = {
-      kind: "LoweredTypeCheck", span, type: TY.bool,
-      value: recvIdent, checkType: c.forType,
-    };
-    const cast: LoweredExpr = {
-      kind: "LoweredCast", span, type: c.forType,
-      value: { kind: "LoweredIdent", span, type: recvType, symbol: recvSym },
-    };
-    const call: LoweredExpr = {
-      kind: "LoweredCall", span, type: exprType,
-      callee: { kind: "LoweredIdent", span, type: exprType, symbol: c.memberSym },
-      args: [cast, ...tailArgs],
-    };
-    chain = {
-      kind: "LoweredIf", span, type: exprType,
-      cond,
-      then: wrapAsBlock(call, span),
-      else: wrapAsBlock(chain, span),
-    };
-  }
-  return chain;
 }
 
 export function lowerIf(ctx: FnLowerCtx, expr: A.IfExpr, exprType: Type): LoweredIf {

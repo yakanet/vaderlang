@@ -8,52 +8,9 @@
       ~>
         block :void
           let __scrut_0#-1: Done | Yielded(i32) =
-            block :Done | Yielded(i32)
-              let __vdisp_1#-2: Iterator(i32) = it#63 :Iterator(i32)
-              ~>
-                if :Done | Yielded(i32)
-                  cond:
-                    is Repeat(i32) :bool
-                      __vdisp_1#-2 :Iterator(i32)
-                  then:
-                    ~>
-                      call :Done | Yielded(i32)
-                        callee:
-                          step#1000012 :Done | Yielded(i32)
-                        arg0:
-                          cast → Repeat(i32)
-                            __vdisp_1#-2 :Iterator(i32)
-                  else:
-                    ~>
-                      if :Done | Yielded(i32)
-                        cond:
-                          is Once(i32) :bool
-                            __vdisp_1#-2 :Iterator(i32)
-                        then:
-                          ~>
-                            call :Done | Yielded(i32)
-                              callee:
-                                step#1000013 :Done | Yielded(i32)
-                              arg0:
-                                cast → Once(i32)
-                                  __vdisp_1#-2 :Iterator(i32)
-                        else:
-                          ~>
-                            if :Done | Yielded(i32)
-                              cond:
-                                is Range :bool
-                                  __vdisp_1#-2 :Iterator(i32)
-                              then:
-                                ~>
-                                  call :Done | Yielded(i32)
-                                    callee:
-                                      step#1000001 :Done | Yielded(i32)
-                                    arg0:
-                                      cast → Range
-                                        __vdisp_1#-2 :Iterator(i32)
-                              else:
-                                ~>
-                                  unreachable("no matching impl for virtual trait dispatch") :Done | Yielded(i32)
+            vcall Iterator.step :Done | Yielded(i32)
+              recv:
+                it#63 :Iterator(i32)
           ~>
             if :void
               cond:
@@ -109,13 +66,13 @@
         println#29 :fn(string) -> void
       arg0:
         block :string
-          let __sb_0#-3: ? =
+          let __sb_0#-2: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_0#-3 :?
+            __sb_0#-2 :?
             "repeat=" :string
           @builder.append_display <for i32> :void
-            __sb_0#-3 :?
+            __sb_0#-2 :?
             call :i32
               callee:
                 walk#4 :fn(Iterator(i32)) -> i32
@@ -123,19 +80,19 @@
                 r#67 :Repeat(i32)
           ~>
             @builder.finish :string
-              __sb_0#-3 :?
+              __sb_0#-2 :?
     call :void
       callee:
         println#29 :fn(string) -> void
       arg0:
         block :string
-          let __sb_1#-4: ? =
+          let __sb_1#-3: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_1#-4 :?
+            __sb_1#-3 :?
             "once=" :string
           @builder.append_display <for i32> :void
-            __sb_1#-4 :?
+            __sb_1#-3 :?
             call :i32
               callee:
                 walk#4 :fn(Iterator(i32)) -> i32
@@ -143,7 +100,7 @@
                 o#68 :Once(i32)
           ~>
             @builder.finish :string
-              __sb_1#-4 :?
+              __sb_1#-3 :?
     return int(0) :i32
   struct tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat__i32 { value: i32, remaining: i32 }
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$step__i32(self: Repeat(i32)) -> Done | Yielded(i32)

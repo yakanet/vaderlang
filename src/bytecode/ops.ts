@@ -80,6 +80,11 @@ export type Op =
   | { readonly kind: "fn.ref"; readonly fnIndex: number; readonly typeIndex: number }  // ⇒ fn ref
   | { readonly kind: "make_closure"; readonly fnIndex: number; readonly typeIndex: number }   // env ⇒ closure (fn ref + env)
   | { readonly kind: "intrinsic";   readonly id: IntrinsicId }
+  /** Virtual dispatch through the module's vtable. Stack: …args, receiver ⇒ result.
+   *  `vtableKey` keys `BytecodeModule.vtables`; the runtime indexes by the
+   *  receiver's type tag to pick the impl fn. `paramCount` includes the
+   *  receiver — matches the impl fn's arity. */
+  | { readonly kind: "virtual.call"; readonly vtableKey: string; readonly paramCount: number }
 
   // -- Struct (GC-style) --------------------------------------------------
   | { readonly kind: "struct.new"; readonly typeIndex: number }

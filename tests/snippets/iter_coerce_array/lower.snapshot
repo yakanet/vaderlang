@@ -8,38 +8,9 @@
       ~>
         block :void
           let __scrut_0#-1: Done | Yielded(i32) =
-            block :Done | Yielded(i32)
-              let __vdisp_1#-2: Iterator(i32) = it#57 :Iterator(i32)
-              ~>
-                if :Done | Yielded(i32)
-                  cond:
-                    is Range :bool
-                      __vdisp_1#-2 :Iterator(i32)
-                  then:
-                    ~>
-                      call :Done | Yielded(i32)
-                        callee:
-                          step#1000001 :Done | Yielded(i32)
-                        arg0:
-                          cast → Range
-                            __vdisp_1#-2 :Iterator(i32)
-                  else:
-                    ~>
-                      if :Done | Yielded(i32)
-                        cond:
-                          is ArrayIter(i32) :bool
-                            __vdisp_1#-2 :Iterator(i32)
-                        then:
-                          ~>
-                            call :Done | Yielded(i32)
-                              callee:
-                                step#1000012 :Done | Yielded(i32)
-                              arg0:
-                                cast → ArrayIter(i32)
-                                  __vdisp_1#-2 :Iterator(i32)
-                        else:
-                          ~>
-                            unreachable("no matching impl for virtual trait dispatch") :Done | Yielded(i32)
+            vcall Iterator.step :Done | Yielded(i32)
+              recv:
+                it#57 :Iterator(i32)
           ~>
             if :void
               cond:
@@ -99,21 +70,21 @@
           walk#2 :fn(Iterator(i32)) -> i32
         arg0:
           block :ArrayIter(i32)
-            let __arr_0#-3: [i32] =
+            let __arr_0#-2: [i32] =
               array :[i32]
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
             ~>
               ArrayIter(i32) {
-                arr: __arr_0#-3 :[i32]
+                arr: __arr_0#-2 :[i32]
                 cursor: int(0) :i32
                 length:
                   LoweredArrayLen
               }
     let typed_iter_mut#63: Iterator(i32) =
       block :ArrayIter(i32)
-        let __arr_1#-4: [i32] =
+        let __arr_1#-3: [i32] =
           array :[i32]
             int(1) :i32
             int(2) :i32
@@ -121,21 +92,21 @@
             int(4) :i32
         ~>
           ArrayIter(i32) {
-            arr: __arr_1#-4 :[i32]
+            arr: __arr_1#-3 :[i32]
             cursor: int(0) :i32
             length:
               LoweredArrayLen
           }
     let typed_iter_immut#64: Iterator(i32) =
       block :ArrayIter(i32)
-        let __arr_2#-5: [i32] =
+        let __arr_2#-4: [i32] =
           array :[i32]
             int(5) :i32
             int(6) :i32
             int(7) :i32
         ~>
           ArrayIter(i32) {
-            arr: __arr_2#-5 :[i32]
+            arr: __arr_2#-4 :[i32]
             cursor: int(0) :i32
             length:
               LoweredArrayLen
@@ -167,27 +138,27 @@
         println#28 :fn(string) -> void
       arg0:
         block :string
-          let __sb_3#-6: ? =
+          let __sb_3#-5: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_3#-6 :?
+            __sb_3#-5 :?
             "a=" :string
           @builder.append_display <for i32> :void
-            __sb_3#-6 :?
+            __sb_3#-5 :?
             a#62 :i32
           @builder.append_str :void
-            __sb_3#-6 :?
+            __sb_3#-5 :?
             " b=" :string
           @builder.append_display <for i32> :void
-            __sb_3#-6 :?
+            __sb_3#-5 :?
             b#65 :i32
           @builder.append_str :void
-            __sb_3#-6 :?
+            __sb_3#-5 :?
             " c=" :string
           @builder.append_display <for i32> :void
-            __sb_3#-6 :?
+            __sb_3#-5 :?
             c#66 :i32
           ~>
             @builder.finish :string
-              __sb_3#-6 :?
+              __sb_3#-5 :?
     return int(0) :i32

@@ -23,7 +23,6 @@ import 9 exists std_io$exists (string) -> bool
 fn 0 tests_snippets_iter_coerce_array__main_vader$walk (ref) -> i32
   local sum i32
   local cont bool
-  local __vdisp_1 ref
   local __scrut_0 ref
   local y ref
   i32.const 0   ; _main.vader:13:12
@@ -36,34 +35,20 @@ fn 0 tests_snippets_iter_coerce_array__main_vader$walk (ref) -> i32
   bool.not   ; _main.vader:15:9
   br_if 1   ; _main.vader:15:9
   local.get 0   ; _main.vader:16:15
+  virtual.call 1 Iterator.step   ; _main.vader:16:15
   local.tee 3   ; _main.vader:16:15
-  type_check 1   ; _main.vader:16:15
-  if ref   ; _main.vader:16:15
-  local.get 3   ; _main.vader:16:15
-  call 3   ; _main.vader:16:15
-  else   ; _main.vader:16:15
-  local.get 3   ; _main.vader:16:15
-  type_check 5   ; _main.vader:16:15
-  if ref   ; _main.vader:16:15
-  local.get 3   ; _main.vader:16:15
-  call 4   ; _main.vader:16:15
-  else   ; _main.vader:16:15
-  unreachable   ; _main.vader:16:15
-  end   ; _main.vader:16:15
-  end   ; _main.vader:16:15
-  local.tee 4   ; _main.vader:16:15
   type_check 0   ; _main.vader:17:13
   if void   ; _main.vader:17:13
   bool.const false   ; _main.vader:17:33
   local.set 2   ; _main.vader:17:26
   else   ; _main.vader:17:13
-  local.get 4   ; _main.vader:18:13
+  local.get 3   ; _main.vader:18:13
   type_check 4   ; _main.vader:18:13
   if void   ; _main.vader:18:13
-  local.get 4   ; _main.vader:18:13
-  local.set 5   ; _main.vader:18:13
+  local.get 3   ; _main.vader:18:13
+  local.set 4   ; _main.vader:18:13
   local.get 1   ; _main.vader:18:45
-  local.get 5   ; _main.vader:18:51
+  local.get 4   ; _main.vader:18:51
   struct.get 4 0   ; _main.vader:18:51
   i32.add   ; _main.vader:18:45
   local.set 1   ; _main.vader:18:39
