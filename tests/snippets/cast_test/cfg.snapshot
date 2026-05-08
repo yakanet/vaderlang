@@ -1,0 +1,22 @@
+# CFG
+
+## tests/snippets/cast_test/_main.vader
+
+fn tests_snippets_cast_test__main_vader$main() -> i32
+  locals:
+    %0 n#6: i32 (local n)
+    %1 m#7: u64 (local m)
+    %2 $intrinsic_4#8: ?
+    %3 __sb_0#9: ? (synthetic __sb_0)
+    %4 $intrinsic_6#10: string
+    %5 $k_7#11: i32
+  bb0:
+    %0 = const int(42) :i32
+    %1 = cast %0 :u64
+    %2 = intrinsic builder.new()
+    %3 = move %2
+    intrinsic builder.append_display(%3, %1)
+    %4 = intrinsic builder.finish(%3)
+    call println(%4) :void
+    %5 = const int(0) :i32
+    return %5

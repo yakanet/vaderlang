@@ -61,7 +61,6 @@ fn 1 tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__
   local n i32
   local __iter_0 ref
   local __step_1 ref
-  local x i32
   i32.const 0   ; _main.vader:9:10
   local.set 1   ; _main.vader:9:5
   local.get 0   ; _main.vader:10:14
@@ -81,7 +80,7 @@ fn 1 tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__
   else   ; _main.vader:10:5
   local.get 3   ; _main.vader:10:5
   struct.get 1 0   ; _main.vader:10:5
-  local.set 4   ; _main.vader:10:5
+  drop   ; _main.vader:10:5
   local.get 1   ; _main.vader:11:13
   i32.const 1   ; _main.vader:11:17
   i32.add   ; _main.vader:11:13
@@ -98,7 +97,6 @@ fn 2 tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__
   local n i32
   local __iter_0 ref
   local __step_1 ref
-  local x string
   i32.const 0   ; _main.vader:9:10
   local.set 1   ; _main.vader:9:5
   local.get 0   ; _main.vader:10:14
@@ -118,7 +116,7 @@ fn 2 tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__
   else   ; _main.vader:10:5
   local.get 3   ; _main.vader:10:5
   struct.get 3 0   ; _main.vader:10:5
-  local.set 4   ; _main.vader:10:5
+  drop   ; _main.vader:10:5
   local.get 1   ; _main.vader:11:13
   i32.const 1   ; _main.vader:11:17
   i32.add   ; _main.vader:11:13

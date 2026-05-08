@@ -4,8 +4,7 @@
   fn tests_snippets_namespace_import__main_vader$main() -> i32
     call :void
       callee:
-        .println :fn(string) -> void
-          io#1 :?
+        println#24 :void
       arg0:
         "hi" :string
     return int(0) :i32

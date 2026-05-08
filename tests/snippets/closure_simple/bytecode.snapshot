@@ -9,16 +9,14 @@ import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_closure_simple__main_vader$main () -> i32
-  local x any
   local add_x ref
   i32.const 10   ; _main.vader:2:10
   struct.new 3   ; _main.vader:2:5
-  local.tee 0   ; _main.vader:2:5
   struct.new 0   ; _main.vader:3:14
   make_closure 1 4   ; _main.vader:3:14
-  local.set 1   ; _main.vader:3:5
+  local.set 0   ; _main.vader:3:5
   i32.const 5   ; _main.vader:6:18
-  local.get 1   ; _main.vader:6:12
+  local.get 0   ; _main.vader:6:12
   call.indirect 4   ; _main.vader:6:12
   return   ; _main.vader:6:5
 end

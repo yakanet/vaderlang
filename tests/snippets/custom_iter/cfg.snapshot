@@ -1,0 +1,73 @@
+# CFG
+
+## tests/snippets/custom_iter/_main.vader
+
+fn tests_snippets_custom_iter__main_vader$Countdown$Iterator$step(%0: Countdown) -> Done | Yielded(i32)
+  locals:
+    %0 self: Countdown (param self)
+    %1 $field_1#10: i32
+    %2 $k_2#11: i32
+    %3 $lte_3#12: bool
+    %4 $struct_4#13: Done
+    %5 v#14: i32 (local v)
+    %6 $field_7#15: i32
+    %7 $k_8#16: i32
+    %8 $sub_9#17: i32
+    %9 $struct_10#18: Yielded(i32)
+  bb0:
+    %1 = field_get %0.current :i32
+    %2 = const int(0) :i32
+    %3 = binop lte %1 %2 :bool
+    cond_branch %3 ? bb1 : bb2
+  bb1:
+    %4 = struct_new Done()
+    return %4
+  bb2:
+    %5 = field_get %0.current :i32
+    %6 = field_get %0.current :i32
+    %7 = const int(1) :i32
+    %8 = binop sub %6 %7 :i32
+    field_set %0.current = %8
+    %9 = struct_new Yielded(i32)(%5)
+    return %9
+
+fn tests_snippets_custom_iter__main_vader$main() -> i32
+  locals:
+    %0 $k_0#11: i32
+    %1 __iter_0#12: Countdown (synthetic __iter_0)
+    %2 $call_4#13: Done | Yielded(i32)
+    %3 __step_1#14: Done | Yielded(i32) (synthetic __step_1)
+    %4 $type_check_6#15: bool
+    %5 $k_13#16: i32
+    %6 $cast_7#17: Yielded(i32)
+    %7 x#18: i32 (binding x)
+    %8 $intrinsic_10#19: ?
+    %9 __sb_2#20: ? (synthetic __sb_2)
+    %10 $intrinsic_12#21: string
+  bb0:
+    %0 = const int(5) :i32
+    %1 = struct_new Countdown(%0)
+    branch -> bb1
+  bb1:
+    branch -> bb2
+  bb2:
+    %2 = call step(%1) :Done | Yielded(i32)
+    %3 = move %2
+    %4 = type_check %3 is Done
+    cond_branch %4 ? bb4 : bb5
+  bb3:
+    %5 = const int(0) :i32
+    return %5
+  bb4:
+    branch -> bb3
+  bb5:
+    %6 = cast %3 :Yielded(i32)
+    %7 = field_get %6.value :i32
+    %8 = intrinsic builder.new()
+    %9 = move %8
+    intrinsic builder.append_display(%9, %7)
+    %10 = intrinsic builder.finish(%9)
+    call println(%10) :void
+    branch -> bb6
+  bb6:
+    branch -> bb1

@@ -1,0 +1,35 @@
+# CFG
+
+## tests/snippets/if_branches/_main.vader
+
+fn tests_snippets_if_branches__main_vader$classify(%0: i32) -> string
+  locals:
+    %0 n: i32 (param n)
+    %1 $k_1#7: i32
+    %2 $gt_2#8: bool
+    %3 $k_5#10: i32
+    %4 $lt_6#11: bool
+    %5 if_res#14: string
+    %6 if_res#16: string
+  bb0:
+    %1 = const int(0) :i32
+    %2 = binop gt %0 %1 :bool
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %6 = const string(#0) :string
+    branch -> bb3
+  bb2:
+    %3 = const int(0) :i32
+    %4 = binop lt %0 %3 :bool
+    cond_branch %4 ? bb4 : bb5
+  bb3:
+    return %6
+  bb4:
+    %5 = const string(#1) :string
+    branch -> bb6
+  bb5:
+    %5 = const string(#2) :string
+    branch -> bb6
+  bb6:
+    %6 = move %5
+    branch -> bb3

@@ -1,0 +1,57 @@
+# CFG
+
+## tests/snippets/squares/_main.vader
+
+fn tests_snippets_squares__main_vader$square(%0: i32) -> i32
+  locals:
+    %0 n: i32 (param n)
+    %1 $mul_1#2: i32
+  bb0:
+    %1 = binop mul %0 %0 :i32
+    return %1
+
+fn tests_snippets_squares__main_vader$main() -> i32
+  locals:
+    %0 $k_0#17: string
+    %1 $intrinsic_1#18: ?
+    %2 __sb_0#19: ? (synthetic __sb_0)
+    %3 $k_3#20: i32
+    %4 $call_4#21: i32
+    %5 $intrinsic_5#22: string
+    %6 $intrinsic_6#23: ?
+    %7 __sb_1#24: ? (synthetic __sb_1)
+    %8 $k_8#25: i32
+    %9 $call_9#26: i32
+    %10 $intrinsic_10#27: string
+    %11 $intrinsic_11#28: ?
+    %12 __sb_2#29: ? (synthetic __sb_2)
+    %13 $k_13#30: i32
+    %14 $call_14#31: i32
+    %15 $intrinsic_15#32: string
+    %16 $k_16#33: i32
+  bb0:
+    %0 = const string(#0) :string
+    call println(%0) :void
+    %1 = intrinsic builder.new()
+    %2 = move %1
+    %3 = const int(0) :i32
+    %4 = call square(%3) :i32
+    intrinsic builder.append_display(%2, %4)
+    %5 = intrinsic builder.finish(%2)
+    call println(%5) :void
+    %6 = intrinsic builder.new()
+    %7 = move %6
+    %8 = const int(3) :i32
+    %9 = call square(%8) :i32
+    intrinsic builder.append_display(%7, %9)
+    %10 = intrinsic builder.finish(%7)
+    call println(%10) :void
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = const int(7) :i32
+    %14 = call square(%13) :i32
+    intrinsic builder.append_display(%12, %14)
+    %15 = intrinsic builder.finish(%12)
+    call println(%15) :void
+    %16 = const int(0) :i32
+    return %16

@@ -1,0 +1,35 @@
+# CFG
+
+## tests/snippets/tuple_match_pattern/_main.vader
+
+fn tests_snippets_tuple_match_pattern__main_vader$main() -> i32
+  locals:
+    %0 $k_0#11: i32
+    %1 $k_1#12: string
+    %2 __scrut_0#13: [i32, string] (synthetic __scrut_0)
+    %3 n#14: i32 (binding n)
+    %4 s#15: string (binding s)
+    %5 $intrinsic_9#16: ?
+    %6 __sb_1#17: ? (synthetic __sb_1)
+    %7 $k_11#18: string
+    %8 $k_12#19: string
+    %9 $intrinsic_13#20: string
+    %10 $k_14#21: i32
+  bb0:
+    %0 = const int(3) :i32
+    %1 = const string(#0) :string
+    %2 = struct_new [i32, string](%0, %1)
+    %3 = field_get %2._0 :i32
+    %4 = field_get %2._1 :string
+    %5 = intrinsic builder.new()
+    %6 = move %5
+    %7 = const string(#1) :string
+    intrinsic builder.append_str(%6, %7)
+    intrinsic builder.append_display(%6, %3)
+    %8 = const string(#2) :string
+    intrinsic builder.append_str(%6, %8)
+    intrinsic builder.append_display(%6, %4)
+    %9 = intrinsic builder.finish(%6)
+    call println(%9) :void
+    %10 = const int(0) :i32
+    return %10

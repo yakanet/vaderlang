@@ -1,0 +1,27 @@
+# CFG
+
+## tests/snippets/interp_string/_main.vader
+
+fn tests_snippets_interp_string__main_vader$greet(%0: string, %1: i32) -> string
+  locals:
+    %0 name: string (param name)
+    %1 age: i32 (param age)
+    %2 $intrinsic_2#8: ?
+    %3 __sb_0#9: ? (synthetic __sb_0)
+    %4 $k_4#10: string
+    %5 $k_5#11: string
+    %6 $k_6#12: string
+    %7 $intrinsic_7#13: string
+  bb0:
+    %2 = intrinsic builder.new()
+    %3 = move %2
+    %4 = const string(#0) :string
+    intrinsic builder.append_str(%3, %4)
+    intrinsic builder.append_display(%3, %0)
+    %5 = const string(#1) :string
+    intrinsic builder.append_str(%3, %5)
+    intrinsic builder.append_display(%3, %1)
+    %6 = const string(#2) :string
+    intrinsic builder.append_str(%3, %6)
+    %7 = intrinsic builder.finish(%3)
+    return %7

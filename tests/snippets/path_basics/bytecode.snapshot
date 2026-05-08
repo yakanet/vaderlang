@@ -637,9 +637,7 @@ fn 13 std_path$normalize (ref) -> ref
   local i i32
   local seg_start i32
   local at_end bool
-  local is_sep bool
   local seg string
-  local can_pop bool
   local sb ref
   local j i32
   local out string
@@ -690,7 +688,6 @@ fn 13 std_path$normalize (ref) -> ref
   else   ; path.vader:167:19
   bool.const false   ; path.vader:167:19
   end   ; path.vader:167:19
-  local.tee 8   ; path.vader:167:9
   if bool   ; path.vader:168:12
   bool.const true   ; path.vader:168:12
   else   ; path.vader:168:12
@@ -702,18 +699,18 @@ fn 13 std_path$normalize (ref) -> ref
   local.get 6   ; path.vader:169:36
   local.get 5   ; path.vader:169:47
   call.import 12   ; path.vader:169:20
-  local.tee 9   ; path.vader:169:13
+  local.tee 8   ; path.vader:169:13
   call 14   ; path.vader:170:16
   if bool   ; path.vader:170:16
   bool.const true   ; path.vader:170:16
   else   ; path.vader:170:16
-  local.get 9   ; path.vader:170:34
+  local.get 8   ; path.vader:170:34
   string.const 45   ; path.vader:170:41
   string.eq   ; path.vader:170:34
   end   ; path.vader:170:16
   if void   ; path.vader:170:13
   else   ; path.vader:170:13
-  local.get 9   ; path.vader:172:23
+  local.get 8   ; path.vader:172:23
   string.const 38   ; path.vader:172:30
   string.eq   ; path.vader:172:23
   if void   ; path.vader:172:20
@@ -732,7 +729,6 @@ fn 13 std_path$normalize (ref) -> ref
   else   ; path.vader:173:28
   bool.const false   ; path.vader:173:28
   end   ; path.vader:173:28
-  local.tee 10   ; path.vader:173:17
   if void   ; path.vader:174:17
   local.get 3   ; path.vader:175:29
   i32.const 1   ; path.vader:175:37
@@ -749,11 +745,11 @@ fn 13 std_path$normalize (ref) -> ref
   if void   ; path.vader:177:21
   local.get 2   ; path.vader:178:25
   local.get 3   ; path.vader:178:34
-  local.get 9   ; path.vader:178:43
+  local.get 8   ; path.vader:178:43
   array.set 3   ; path.vader:178:25
   else   ; path.vader:177:21
   local.get 2   ; path.vader:180:25
-  local.get 9   ; path.vader:180:39
+  local.get 8   ; path.vader:180:39
   array.push 1   ; path.vader:180:25
   end   ; path.vader:177:21
   local.get 3   ; path.vader:182:29
@@ -770,11 +766,11 @@ fn 13 std_path$normalize (ref) -> ref
   if void   ; path.vader:185:17
   local.get 2   ; path.vader:186:21
   local.get 3   ; path.vader:186:30
-  local.get 9   ; path.vader:186:39
+  local.get 8   ; path.vader:186:39
   array.set 3   ; path.vader:186:21
   else   ; path.vader:185:17
   local.get 2   ; path.vader:188:21
-  local.get 9   ; path.vader:188:35
+  local.get 8   ; path.vader:188:35
   array.push 1   ; path.vader:188:21
   end   ; path.vader:185:17
   local.get 3   ; path.vader:190:25
@@ -796,45 +792,45 @@ fn 13 std_path$normalize (ref) -> ref
   end   ; path.vader:165:5
   end   ; path.vader:165:5
   call 16   ; path.vader:196:11
-  local.set 11   ; path.vader:196:5
+  local.set 9   ; path.vader:196:5
   local.get 1   ; path.vader:197:8
   if void   ; path.vader:197:5
-  local.get 11   ; path.vader:198:9
+  local.get 9   ; path.vader:198:9
   string.const 44   ; path.vader:14:19
   call 17   ; path.vader:198:9
   end   ; path.vader:197:5
   i32.const 0   ; path.vader:200:10
-  local.set 12   ; path.vader:200:5
+  local.set 10   ; path.vader:200:5
   block void   ; path.vader:201:5
   loop void   ; path.vader:201:5
-  local.get 12   ; path.vader:201:9
+  local.get 10   ; path.vader:201:9
   local.get 3   ; path.vader:201:13
   i32.ge   ; path.vader:201:9
   br_if 1   ; path.vader:201:9
-  local.get 12   ; path.vader:202:12
+  local.get 10   ; path.vader:202:12
   i32.const 0   ; path.vader:202:16
   i32.gt   ; path.vader:202:12
   if void   ; path.vader:202:9
-  local.get 11   ; path.vader:203:13
+  local.get 9   ; path.vader:203:13
   string.const 44   ; path.vader:14:19
   call 17   ; path.vader:203:13
   end   ; path.vader:202:9
-  local.get 11   ; path.vader:205:9
+  local.get 9   ; path.vader:205:9
   local.get 2   ; path.vader:205:19
-  local.get 12   ; path.vader:205:28
+  local.get 10   ; path.vader:205:28
   array.get 3   ; path.vader:205:19
   ref.cast 1   ; path.vader:205:19
   call 17   ; path.vader:205:9
-  local.get 12   ; path.vader:206:13
+  local.get 10   ; path.vader:206:13
   i32.const 1   ; path.vader:206:17
   i32.add   ; path.vader:206:13
-  local.set 12   ; path.vader:206:9
+  local.set 10   ; path.vader:206:9
   br 0   ; path.vader:201:5
   end   ; path.vader:201:5
   end   ; path.vader:201:5
-  local.get 11   ; path.vader:208:12
+  local.get 9   ; path.vader:208:12
   call 18   ; path.vader:208:12
-  local.tee 13   ; path.vader:208:5
+  local.tee 11   ; path.vader:208:5
   call 14   ; path.vader:209:8
   if bool   ; path.vader:209:8
   local.get 1   ; path.vader:209:27
@@ -847,7 +843,7 @@ fn 13 std_path$normalize (ref) -> ref
   struct.new 0   ; path.vader:210:16
   return   ; path.vader:210:9
   end   ; path.vader:209:5
-  local.get 13   ; path.vader:212:27
+  local.get 11   ; path.vader:212:27
   struct.new 0   ; path.vader:212:12
   return   ; path.vader:212:5
 end

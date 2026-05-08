@@ -115,7 +115,6 @@ fn 5 tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_ra
 end
 
 fn 6 std_core$Range$Iterator$step (ref) -> ref
-  local done bool
   local v i32
   local.get 0   ; core.vader:92:21
   struct.get 2 2   ; core.vader:92:21
@@ -132,21 +131,20 @@ fn 6 std_core$Range$Iterator$step (ref) -> ref
   struct.get 2 1   ; core.vader:95:28
   i32.ge   ; core.vader:95:13
   end   ; core.vader:92:17
-  local.tee 1   ; core.vader:92:9
   if void   ; core.vader:97:9
   struct.new 1   ; core.vader:98:20
   return   ; core.vader:98:13
   end   ; core.vader:97:9
   local.get 0   ; core.vader:100:14
   struct.get 2 3   ; core.vader:100:14
-  local.set 2   ; core.vader:100:9
+  local.set 1   ; core.vader:100:9
   local.get 0   ; core.vader:101:9
   local.get 0   ; core.vader:101:23
   struct.get 2 3   ; core.vader:101:23
   i32.const 1   ; core.vader:101:37
   i32.add   ; core.vader:101:23
   struct.set 2 3   ; core.vader:101:9
-  local.get 2   ; core.vader:102:40
+  local.get 1   ; core.vader:102:40
   struct.new 5   ; core.vader:102:16
   return   ; core.vader:102:9
 end

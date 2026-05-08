@@ -1,0 +1,106 @@
+# CFG
+
+## tests/snippets/mutable_set/_main.vader
+
+fn tests_snippets_mutable_set__main_vader$main() -> i32
+  locals:
+    %0 $arr_0#40: Entry(i32, bool) | null[]
+    %1 $k_1#41: usize
+    %2 $struct_2#42: MutableMap(i32, bool)
+    %3 s#43: MutableSet(i32) (local s)
+    %4 $intrinsic_5#44: ?
+    %5 __sb_0#45: ? (synthetic __sb_0)
+    %6 $k_7#46: string
+    %7 $k_8#47: i32
+    %8 $call_9#48: bool
+    %9 $intrinsic_10#49: string
+    %10 $intrinsic_11#50: ?
+    %11 __sb_1#51: ? (synthetic __sb_1)
+    %12 $k_13#52: string
+    %13 $k_14#53: i32
+    %14 $call_15#54: bool
+    %15 $intrinsic_16#55: string
+    %16 $intrinsic_17#56: ?
+    %17 __sb_2#57: ? (synthetic __sb_2)
+    %18 $k_19#58: string
+    %19 $k_20#59: i32
+    %20 $call_21#60: bool
+    %21 $intrinsic_22#61: string
+    %22 $intrinsic_23#62: ?
+    %23 __sb_3#63: ? (synthetic __sb_3)
+    %24 $k_25#64: string
+    %25 $call_26#65: usize
+    %26 $intrinsic_27#66: string
+    %27 $intrinsic_28#67: ?
+    %28 __sb_4#68: ? (synthetic __sb_4)
+    %29 $k_30#69: string
+    %30 $k_31#70: i32
+    %31 $call_32#71: bool
+    %32 $intrinsic_33#72: string
+    %33 $intrinsic_34#73: ?
+    %34 __sb_5#74: ? (synthetic __sb_5)
+    %35 $k_36#75: string
+    %36 $k_37#76: i32
+    %37 $call_38#77: bool
+    %38 $intrinsic_39#78: string
+    %39 $k_40#79: i32
+  bb0:
+    %0 = array_new Entry(i32, bool) | null[][0]()
+    %1 = const int(0) :usize
+    %2 = struct_new MutableMap(i32, bool)(%0, %1)
+    %3 = struct_new MutableSet(i32)(%2)
+    %4 = intrinsic builder.new()
+    %5 = move %4
+    %6 = const string(#0) :string
+    intrinsic builder.append_str(%5, %6)
+    %7 = const int(10) :i32
+    %8 = call add(%3, %7) :bool
+    intrinsic builder.append_display(%5, %8)
+    %9 = intrinsic builder.finish(%5)
+    call println(%9) :void
+    %10 = intrinsic builder.new()
+    %11 = move %10
+    %12 = const string(#0) :string
+    intrinsic builder.append_str(%11, %12)
+    %13 = const int(20) :i32
+    %14 = call add(%3, %13) :bool
+    intrinsic builder.append_display(%11, %14)
+    %15 = intrinsic builder.finish(%11)
+    call println(%15) :void
+    %16 = intrinsic builder.new()
+    %17 = move %16
+    %18 = const string(#0) :string
+    intrinsic builder.append_str(%17, %18)
+    %19 = const int(10) :i32
+    %20 = call add(%3, %19) :bool
+    intrinsic builder.append_display(%17, %20)
+    %21 = intrinsic builder.finish(%17)
+    call println(%21) :void
+    %22 = intrinsic builder.new()
+    %23 = move %22
+    %24 = const string(#1) :string
+    intrinsic builder.append_str(%23, %24)
+    %25 = call len(%3) :usize
+    intrinsic builder.append_display(%23, %25)
+    %26 = intrinsic builder.finish(%23)
+    call println(%26) :void
+    %27 = intrinsic builder.new()
+    %28 = move %27
+    %29 = const string(#2) :string
+    intrinsic builder.append_str(%28, %29)
+    %30 = const int(10) :i32
+    %31 = call contains(%3, %30) :bool
+    intrinsic builder.append_display(%28, %31)
+    %32 = intrinsic builder.finish(%28)
+    call println(%32) :void
+    %33 = intrinsic builder.new()
+    %34 = move %33
+    %35 = const string(#3) :string
+    intrinsic builder.append_str(%34, %35)
+    %36 = const int(30) :i32
+    %37 = call contains(%3, %36) :bool
+    intrinsic builder.append_display(%34, %37)
+    %38 = intrinsic builder.finish(%34)
+    call println(%38) :void
+    %39 = const int(0) :i32
+    return %39

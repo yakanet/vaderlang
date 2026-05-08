@@ -1,0 +1,55 @@
+# CFG
+
+## tests/snippets/array_push/_main.vader
+
+fn tests_snippets_array_push__main_vader$main() -> i32
+  locals:
+    %0 arr#19: ?[] (local arr)
+    %1 $k_2#20: ?
+    %2 $k_3#21: ?
+    %3 $k_4#22: ?
+    %4 $intrinsic_5#23: ?
+    %5 __sb_0#24: ? (synthetic __sb_0)
+    %6 $len_7#25: i32
+    %7 $intrinsic_8#26: string
+    %8 $intrinsic_9#27: ?
+    %9 __sb_1#28: ? (synthetic __sb_1)
+    %10 $k_11#29: i32
+    %11 $idx_12#30: ?
+    %12 $intrinsic_13#31: string
+    %13 $intrinsic_14#32: ?
+    %14 __sb_2#33: ? (synthetic __sb_2)
+    %15 $k_16#34: i32
+    %16 $idx_17#35: ?
+    %17 $intrinsic_18#36: string
+    %18 $k_19#37: i32
+  bb0:
+    %0 = array_new ?[][0]()
+    %1 = const int(1) :?
+    array_push %0, %1
+    %2 = const int(2) :?
+    array_push %0, %2
+    %3 = const int(3) :?
+    array_push %0, %3
+    %4 = intrinsic builder.new()
+    %5 = move %4
+    %6 = array_len %0
+    intrinsic builder.append_display(%5, %6)
+    %7 = intrinsic builder.finish(%5)
+    call println(%7) :void
+    %8 = intrinsic builder.new()
+    %9 = move %8
+    %10 = const int(0) :i32
+    %11 = array_get %0[%10] :?
+    intrinsic builder.append_display(%9, %11)
+    %12 = intrinsic builder.finish(%9)
+    call println(%12) :void
+    %13 = intrinsic builder.new()
+    %14 = move %13
+    %15 = const int(2) :i32
+    %16 = array_get %0[%15] :?
+    intrinsic builder.append_display(%14, %16)
+    %17 = intrinsic builder.finish(%14)
+    call println(%17) :void
+    %18 = const int(0) :i32
+    return %18

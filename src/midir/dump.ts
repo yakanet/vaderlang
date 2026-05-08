@@ -13,10 +13,23 @@ import type {
   Terminator,
 } from "./cfg.ts";
 
-export function dumpCFGProject(p: CFGProject): string {
+export interface DumpCFGOptions {
+  /** When provided, modules whose `displayPath` returns false are skipped.
+   *  Snapshot tests use this to elide stdlib so the captured output stays
+   *  focused on the user snippet. */
+  readonly includeModule?: (displayPath: string) => boolean;
+  /** When false, the project-level string pool is not appended. Snapshots
+   *  for user code typically don't care about which stdlib strings got
+   *  interned — set to false to keep the snapshot diff signal-rich. */
+  readonly includeStrings?: boolean;
+}
+
+export function dumpCFGProject(p: CFGProject, opts: DumpCFGOptions = {}): string {
+  const includeModule = opts.includeModule ?? (() => true);
   const lines: string[] = [];
   lines.push("# CFG");
   for (const m of p.modules.values()) {
+    if (!includeModule(m.displayPath)) continue;
     if (m.functions.length === 0 && m.otherDecls.length === 0) continue;
     lines.push("");
     lines.push(`## ${m.displayPath}`);
@@ -25,7 +38,7 @@ export function dumpCFGProject(p: CFGProject): string {
       dumpFunction(fn, lines);
     }
   }
-  if (p.strings.length > 0) {
+  if (opts.includeStrings !== false && p.strings.length > 0) {
     lines.push("");
     lines.push("## strings");
     for (let i = 0; i < p.strings.length; i++) {
@@ -64,6 +77,7 @@ function dumpInstr(ins: Instruction): string {
     case "Const":     return `%${ins.dst} = const ${dumpConst(ins.value)} :${displayType(ins.type)}`;
     case "BinOp":     return `%${ins.dst} = binop ${ins.op} %${ins.lhs} %${ins.rhs} :${displayType(ins.type)}`;
     case "UnOp":      return `%${ins.dst} = unop ${ins.op} %${ins.operand} :${displayType(ins.type)}`;
+    case "Phi":       return `%${ins.dst} = phi ${ins.sources.map((s) => `bb${s.block}:%${s.value}`).join(", ")} :${displayType(ins.type)}`;
     case "Call":      return `${dst(ins.dst)}call ${ins.callee.name}(${args(ins.args)}) :${displayType(ins.type)}`;
     case "CallIndirect": return `${dst(ins.dst)}call_indirect %${ins.callee}(${args(ins.args)}) :${displayType(ins.type)}`;
     case "FnRef":     return `%${ins.dst} = fn_ref ${ins.fnSymbol.name} :${displayType(ins.type)}`;

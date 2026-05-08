@@ -1,0 +1,89 @@
+# CFG
+
+## tests/snippets/seq_lit_inference/_main.vader
+
+fn tests_snippets_seq_lit_inference__main_vader$main() -> i32
+  locals:
+    %0 $k_0#30: i32
+    %1 $k_1#31: i32
+    %2 $k_2#32: i32
+    %3 scores#33: i32[] (local scores)
+    %4 $k_5#34: i32
+    %5 $len_6#35: i32
+    %6 __iter_0#36: ArrayIter(i32) (synthetic __iter_0)
+    %7 $call_9#37: Done | Yielded(i32)
+    %8 __step_1#38: Done | Yielded(i32) (synthetic __step_1)
+    %9 $type_check_11#39: bool
+    %10 $k_19#40: i32
+    %11 $k_20#41: string
+    %12 entry#42: [i32, string] (local entry)
+    %13 $intrinsic_23#43: ?
+    %14 __sb_3#44: ? (synthetic __sb_3)
+    %15 $k_25#45: string
+    %16 $field_26#46: i32
+    %17 $intrinsic_27#47: string
+    %18 $intrinsic_28#48: ?
+    %19 __sb_4#49: ? (synthetic __sb_4)
+    %20 $k_30#50: string
+    %21 $field_31#51: string
+    %22 $intrinsic_32#52: string
+    %23 $k_33#53: i32
+    %24 $cast_12#54: Yielded(i32)
+    %25 s#55: i32 (binding s)
+    %26 $intrinsic_15#56: ?
+    %27 __sb_2#57: ? (synthetic __sb_2)
+    %28 $k_17#58: string
+    %29 $intrinsic_18#59: string
+  bb0:
+    %0 = const int(10) :i32
+    %1 = const int(20) :i32
+    %2 = const int(30) :i32
+    %3 = array_new i32[][3](%0, %1, %2)
+    %4 = const int(0) :i32
+    %5 = array_len %3
+    %6 = struct_new ArrayIter(i32)(%3, %4, %5)
+    branch -> bb1
+  bb1:
+    branch -> bb2
+  bb2:
+    %7 = call step(%6) :Done | Yielded(i32)
+    %8 = move %7
+    %9 = type_check %8 is Done
+    cond_branch %9 ? bb4 : bb5
+  bb3:
+    %10 = const int(42) :i32
+    %11 = const string(#1) :string
+    %12 = struct_new [i32, string](%10, %11)
+    %13 = intrinsic builder.new()
+    %14 = move %13
+    %15 = const string(#2) :string
+    intrinsic builder.append_str(%14, %15)
+    %16 = field_get %12._0 :i32
+    intrinsic builder.append_display(%14, %16)
+    %17 = intrinsic builder.finish(%14)
+    call println(%17) :void
+    %18 = intrinsic builder.new()
+    %19 = move %18
+    %20 = const string(#3) :string
+    intrinsic builder.append_str(%19, %20)
+    %21 = field_get %12._1 :string
+    intrinsic builder.append_display(%19, %21)
+    %22 = intrinsic builder.finish(%19)
+    call println(%22) :void
+    %23 = const int(0) :i32
+    return %23
+  bb4:
+    branch -> bb3
+  bb5:
+    %24 = cast %8 :Yielded(i32)
+    %25 = field_get %24.value :i32
+    %26 = intrinsic builder.new()
+    %27 = move %26
+    %28 = const string(#0) :string
+    intrinsic builder.append_str(%27, %28)
+    intrinsic builder.append_display(%27, %25)
+    %29 = intrinsic builder.finish(%27)
+    call println(%29) :void
+    branch -> bb6
+  bb6:
+    branch -> bb1

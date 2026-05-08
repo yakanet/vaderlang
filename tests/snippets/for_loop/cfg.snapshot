@@ -1,0 +1,68 @@
+# CFG
+
+## tests/snippets/for_loop/_main.vader
+
+fn tests_snippets_for_loop__main_vader$mixed_loops(%0: i32) -> i32
+  locals:
+    %0 start: i32 (param start)
+    %1 n#18: i32 (local n)
+    %2 i#19: i32 (local i)
+    %3 $k_4#20: i32
+    %4 $lt_5#21: bool
+    %5 $k_6#22: i32
+    %6 i#23: i32 (local i)
+    %7 $k_8#24: i32
+    %8 $mod_9#25: i32
+    %9 $k_10#26: i32
+    %10 $neq_11#27: bool
+    %11 $k_12#28: i32
+    %12 n#31: i32 (local n)
+    %13 j#32: i32 (local j)
+    %14 $k_16#33: i32
+    %15 $gte_17#34: bool
+    %16 $k_18#35: i32
+    %17 $k_20#37: i32
+  bb0:
+    %1 = const int(0) :i32
+    %2 = move %0
+    branch -> bb1
+  bb1:
+    %3 = const int(10) :i32
+    %4 = binop lt %2 %3 :bool
+    cond_branch %4 ? bb2 : bb3
+  bb2:
+    %5 = const int(1) :i32
+    %6 = binop add %2 %5 :i32
+    %7 = const int(2) :i32
+    %8 = binop mod %6 %7 :i32
+    %9 = const int(0) :i32
+    %10 = binop neq %8 %9 :bool
+    cond_branch %10 ? bb4 : bb5
+  bb3:
+    %13 = const int(0) :i32
+    %12 = move %1
+    branch -> bb6
+  bb4:
+    %2 = move %6
+    branch -> bb1
+  bb5:
+    %11 = const int(1) :i32
+    %1 = binop add %1 %11 :i32
+    %2 = move %6
+    branch -> bb1
+  bb6:
+    branch -> bb7
+  bb7:
+    %14 = const int(5) :i32
+    %15 = binop gte %13 %14 :bool
+    cond_branch %15 ? bb9 : bb10
+  bb8:
+    return %12
+  bb9:
+    branch -> bb8
+  bb10:
+    %16 = const int(1) :i32
+    %13 = binop add %13 %16 :i32
+    %17 = const int(1) :i32
+    %12 = binop add %12 %17 :i32
+    branch -> bb6

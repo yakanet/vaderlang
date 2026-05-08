@@ -30,7 +30,6 @@ fn 0 tests_snippets_op_overload_index__main_vader$Cell$Index$at (ref,string) -> 
   local i i32
   local __iter_0 ref
   local __step_1 ref
-  local k string
   i32.const 0   ; _main.vader:13:14
   local.set 2   ; _main.vader:13:9
   local.get 0   ; _main.vader:14:18
@@ -52,7 +51,6 @@ fn 0 tests_snippets_op_overload_index__main_vader$Cell$Index$at (ref,string) -> 
   else   ; _main.vader:14:9
   local.get 4   ; _main.vader:14:9
   struct.get 7 0   ; _main.vader:14:9
-  local.tee 5   ; _main.vader:14:9
   local.get 1   ; _main.vader:15:21
   string.eq   ; _main.vader:15:16
   if void   ; _main.vader:15:13
@@ -79,7 +77,6 @@ fn 1 tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at (ref,stri
   local i i32
   local __iter_0 ref
   local __step_1 ref
-  local k string
   i32.const 0   ; _main.vader:24:14
   local.set 3   ; _main.vader:24:9
   local.get 0   ; _main.vader:25:18
@@ -101,7 +98,6 @@ fn 1 tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at (ref,stri
   else   ; _main.vader:25:9
   local.get 5   ; _main.vader:25:9
   struct.get 7 0   ; _main.vader:25:9
-  local.tee 6   ; _main.vader:25:9
   local.get 1   ; _main.vader:26:21
   string.eq   ; _main.vader:26:16
   if void   ; _main.vader:26:13

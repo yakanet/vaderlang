@@ -1,0 +1,22 @@
+# CFG
+
+## tests/snippets/defer_block/_main.vader
+
+fn tests_snippets_defer_block__main_vader$main() -> i32
+  locals:
+    %0 $k_0#5: string
+    %1 $k_1#6: string
+    %2 $k_3#7: string
+    %3 $k_4#8: string
+    %4 $k_5#9: i32
+  bb0:
+    %0 = const string(#0) :string
+    call println(%0) :void
+    %1 = const string(#1) :string
+    call println(%1) :void
+    %2 = const string(#2) :string
+    call println(%2) :void
+    %3 = const string(#3) :string
+    call println(%3) :void
+    %4 = const int(0) :i32
+    return %4

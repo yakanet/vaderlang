@@ -1,0 +1,32 @@
+# CFG
+
+## tests/snippets/interpolation/_main.vader
+
+fn tests_snippets_interpolation__main_vader$main() -> i32
+  locals:
+    %0 name#9: string (local name)
+    %1 age#10: i32 (local age)
+    %2 $intrinsic_4#11: ?
+    %3 __sb_0#12: ? (synthetic __sb_0)
+    %4 $k_6#13: string
+    %5 $k_7#14: string
+    %6 $k_8#15: string
+    %7 $intrinsic_9#16: string
+    %8 $k_10#17: i32
+  bb0:
+    %0 = const string(#0) :string
+    %1 = const int(1) :i32
+    %2 = intrinsic builder.new()
+    %3 = move %2
+    %4 = const string(#1) :string
+    intrinsic builder.append_str(%3, %4)
+    intrinsic builder.append_display(%3, %0)
+    %5 = const string(#2) :string
+    intrinsic builder.append_str(%3, %5)
+    intrinsic builder.append_display(%3, %1)
+    %6 = const string(#3) :string
+    intrinsic builder.append_str(%3, %6)
+    %7 = intrinsic builder.finish(%3)
+    call println(%7) :void
+    %8 = const int(0) :i32
+    return %8

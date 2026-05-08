@@ -1,0 +1,13 @@
+# CFG
+
+## tests/snippets/decorators_ok/_main.vader
+
+fn tests_snippets_decorators_ok__main_vader$test_log() -> void
+  locals:
+    %0 $k_0#2: i32
+    %1 $k_1#3: i32
+  bb0:
+    %0 = const int(0) :i32
+    %1 = const int(0) :i32
+    call log(%0, %1) :void
+    return

@@ -9,29 +9,27 @@ import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_closure_counter__main_vader$main () -> i32
-  local n any
   local inc ref
   local a i32
   local b i32
   local c i32
   i32.const 0   ; _main.vader:2:10
   struct.new 3   ; _main.vader:2:5
-  local.tee 0   ; _main.vader:2:5
   struct.new 0   ; _main.vader:3:12
   make_closure 1 4   ; _main.vader:3:12
-  local.tee 1   ; _main.vader:3:5
+  local.tee 0   ; _main.vader:3:5
   call.indirect 4   ; _main.vader:7:10
-  local.set 2   ; _main.vader:7:5
-  local.get 1   ; _main.vader:8:10
+  local.set 1   ; _main.vader:7:5
+  local.get 0   ; _main.vader:8:10
   call.indirect 4   ; _main.vader:8:10
-  local.set 3   ; _main.vader:8:5
-  local.get 1   ; _main.vader:9:10
+  local.set 2   ; _main.vader:8:5
+  local.get 0   ; _main.vader:9:10
   call.indirect 4   ; _main.vader:9:10
-  local.set 4   ; _main.vader:9:5
-  local.get 2   ; _main.vader:10:12
-  local.get 3   ; _main.vader:10:16
+  local.set 3   ; _main.vader:9:5
+  local.get 1   ; _main.vader:10:12
+  local.get 2   ; _main.vader:10:16
   i32.add   ; _main.vader:10:12
-  local.get 4   ; _main.vader:10:20
+  local.get 3   ; _main.vader:10:20
   i32.add   ; _main.vader:10:12
   return   ; _main.vader:10:5
 end

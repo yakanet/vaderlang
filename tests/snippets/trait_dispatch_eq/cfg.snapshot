@@ -1,0 +1,85 @@
+# CFG
+
+## tests/snippets/trait_dispatch_eq/_main.vader
+
+fn tests_snippets_trait_dispatch_eq__main_vader$main() -> i32
+  locals:
+    %0 $k_0#17: i32
+    %1 $k_1#18: i32
+    %2 $k_2#19: i32
+    %3 $call_3#20: i32
+    %4 n1#21: i32 (local n1)
+    %5 $k_5#22: i32
+    %6 $k_6#23: i32
+    %7 $k_7#24: i32
+    %8 $call_8#25: i32
+    %9 n2#26: i32 (local n2)
+    %10 $k_10#27: i32
+    %11 $k_11#28: i32
+    %12 $k_12#29: i32
+    %13 $call_13#30: i32
+    %14 n3#31: i32 (local n3)
+    %15 $add_15#32: i32
+    %16 $add_16#33: i32
+  bb0:
+    %0 = const int(1) :i32
+    %1 = const int(1) :i32
+    %2 = const int(2) :i32
+    %3 = call both_equal(%0, %1, %2) :i32
+    %4 = move %3
+    %5 = const int(5) :i32
+    %6 = const int(5) :i32
+    %7 = const int(5) :i32
+    %8 = call both_equal(%5, %6, %7) :i32
+    %9 = move %8
+    %10 = const int(100) :i32
+    %11 = const int(200) :i32
+    %12 = const int(100) :i32
+    %13 = call both_equal(%10, %11, %12) :i32
+    %14 = move %13
+    %15 = binop add %4 %9 :i32
+    %16 = binop add %15 %14 :i32
+    return %16
+
+fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32(%0: i32, %1: i32, %2: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 c: i32 (param c)
+    %3 n#10: i32 (local n)
+    %4 $call_5#11: bool
+    %5 $k_6#12: i32
+    %6 n#14: i32 (local n)
+    %7 $call_8#15: bool
+    %8 $k_9#16: i32
+    %9 n#18: i32 (local n)
+    %10 $call_11#19: bool
+    %11 $k_12#20: i32
+    %12 n#22: i32 (local n)
+  bb0:
+    %3 = const int(0) :i32
+    %4 = call equals(%0, %1) :bool
+    %6 = move %3
+    cond_branch %4 ? bb1 : bb2
+  bb1:
+    %5 = const int(1) :i32
+    %6 = binop add %3 %5 :i32
+    branch -> bb2
+  bb2:
+    %7 = call equals(%0, %2) :bool
+    %9 = move %6
+    cond_branch %7 ? bb3 : bb4
+  bb3:
+    %8 = const int(10) :i32
+    %9 = binop add %6 %8 :i32
+    branch -> bb4
+  bb4:
+    %10 = call equals(%1, %2) :bool
+    %12 = move %9
+    cond_branch %10 ? bb5 : bb6
+  bb5:
+    %11 = const int(100) :i32
+    %12 = binop add %9 %11 :i32
+    branch -> bb6
+  bb6:
+    return %12

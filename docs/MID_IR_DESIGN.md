@@ -170,7 +170,7 @@ the structuring approach.
 | **1** | Design doc + data types in `src/midir/cfg.ts`. No converter. No emitter. No tests. | 2 h | ✅ done |
 | **2** | LoweredAST → CFG converter (`src/midir/build.ts`) + structurer + CFG → bytecode emitter (`src/midir/emit.ts`) behind `--midir`. Behavioural parity (`tests/midir_parity.test.ts`) on every snippet. | 3-5 d | ✅ done |
 | **3** | DCE on the CFG (`src/midir/dce.ts`) : copy folding, per-store liveness + dead instruction elim, dead local elim. -11% to -36% instructions on representative snippets. | 1-2 d | ✅ done |
-| **4** | SSA conversion (rename locals to value names; insert phi nodes at join blocks). | 2-3 d | |
+| **4** | Pruned SSA conversion (`src/midir/ssa.ts`) : Cytron et al. with liveness-pruned phi placement, dom-tree-walk renaming. Out-of-SSA materialises phis as `Move` in predecessors. Wired as `toSSA → fromSSA` round-trip in the pipeline ; behaviour-preserving (145/145 parity). Sets up SSA infrastructure for phase 5. | 2-3 d | ✅ done |
 | **5** | Escape analysis on SSA: stack-allocate non-escaping structs. | 2-3 d | |
 | **6** | Drop the legacy LoweredAST → bytecode path. CFG becomes the single substrate. | 1 d | |
 

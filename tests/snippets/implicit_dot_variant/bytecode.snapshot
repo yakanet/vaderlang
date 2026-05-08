@@ -54,11 +54,9 @@ fn 0 tests_snippets_implicit_dot_variant__main_vader$show_day (i32) -> string
 end
 
 fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
-  local a i32
   local days ref
   local __iter_0 ref
   local __step_1 ref
-  local d i32
   local m ref
   local __scrut_2 ref
   local __sb_3 any
@@ -66,30 +64,28 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   local __scrut_4 ref
   local __sb_5 any
   i32.const 0   ; _main.vader:26:14
-  local.tee 0   ; _main.vader:26:5
   call 0   ; _main.vader:27:13
   call.import 4   ; _main.vader:27:5
   i32.const 0   ; _main.vader:30:20
   i32.const 2   ; _main.vader:30:29
   array.new 8 2   ; _main.vader:30:19
-  local.tee 1   ; _main.vader:30:5
+  local.tee 0   ; _main.vader:30:5
   i32.const 0   ; _main.vader:31:5
-  local.get 1   ; _main.vader:31:14
+  local.get 0   ; _main.vader:31:14
   array.len   ; _main.vader:31:5
   struct.new 7   ; _main.vader:31:14
-  local.set 2   ; _main.vader:31:5
+  local.set 1   ; _main.vader:31:5
   block void   ; _main.vader:31:5
   loop void   ; _main.vader:31:5
-  local.get 2   ; _main.vader:31:5
+  local.get 1   ; _main.vader:31:5
   call 2   ; _main.vader:31:5
-  local.tee 3   ; _main.vader:31:5
+  local.tee 2   ; _main.vader:31:5
   type_check 3   ; _main.vader:31:5
   if void   ; _main.vader:31:5
   br 2   ; _main.vader:31:5
   else   ; _main.vader:31:5
-  local.get 3   ; _main.vader:31:5
+  local.get 2   ; _main.vader:31:5
   struct.get 4 0   ; _main.vader:31:5
-  local.tee 4   ; _main.vader:31:5
   call 0   ; _main.vader:31:29
   call.import 4   ; _main.vader:31:21
   end   ; _main.vader:31:5
@@ -98,23 +94,23 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   end   ; _main.vader:31:5
   i32.const 42   ; _main.vader:34:32
   struct.new 0   ; _main.vader:34:16
-  local.tee 5   ; _main.vader:34:5
-  local.tee 6   ; _main.vader:35:11
+  local.tee 3   ; _main.vader:34:5
+  local.tee 4   ; _main.vader:35:11
   type_check 0   ; _main.vader:36:9
   if void   ; _main.vader:36:9
   intrinsic builder.new   ; _main.vader:36:29
-  local.tee 7   ; _main.vader:36:29
+  local.tee 5   ; _main.vader:36:29
   string.const 3   ; _main.vader:36:30
   intrinsic builder.append_str   ; _main.vader:36:30
-  local.get 7   ; _main.vader:36:34
-  local.get 5   ; _main.vader:36:36
+  local.get 5   ; _main.vader:36:34
+  local.get 3   ; _main.vader:36:36
   struct.get 0 0   ; _main.vader:36:36
   intrinsic builder.append_display   ; _main.vader:36:34
-  local.get 7   ; _main.vader:36:29
+  local.get 5   ; _main.vader:36:29
   intrinsic builder.finish   ; _main.vader:36:29
   call.import 4   ; _main.vader:36:21
   else   ; _main.vader:36:9
-  local.get 6   ; _main.vader:37:9
+  local.get 4   ; _main.vader:37:9
   type_check 2   ; _main.vader:37:9
   if void   ; _main.vader:37:9
   string.const 4   ; _main.vader:37:29
@@ -124,23 +120,23 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   end   ; _main.vader:37:9
   end   ; _main.vader:36:9
   struct.new 2   ; _main.vader:39:16
-  local.tee 8   ; _main.vader:39:5
-  local.tee 9   ; _main.vader:40:11
+  local.tee 6   ; _main.vader:39:5
+  local.tee 7   ; _main.vader:40:11
   type_check 0   ; _main.vader:41:9
   if void   ; _main.vader:41:9
   intrinsic builder.new   ; _main.vader:41:29
-  local.tee 10   ; _main.vader:41:29
+  local.tee 8   ; _main.vader:41:29
   string.const 3   ; _main.vader:41:30
   intrinsic builder.append_str   ; _main.vader:41:30
-  local.get 10   ; _main.vader:41:34
-  local.get 8   ; _main.vader:41:36
+  local.get 8   ; _main.vader:41:34
+  local.get 6   ; _main.vader:41:36
   struct.get 0 0   ; _main.vader:41:36
   intrinsic builder.append_display   ; _main.vader:41:34
-  local.get 10   ; _main.vader:41:29
+  local.get 8   ; _main.vader:41:29
   intrinsic builder.finish   ; _main.vader:41:29
   call.import 4   ; _main.vader:41:21
   else   ; _main.vader:41:9
-  local.get 9   ; _main.vader:42:9
+  local.get 7   ; _main.vader:42:9
   type_check 2   ; _main.vader:42:9
   if void   ; _main.vader:42:9
   string.const 4   ; _main.vader:42:29

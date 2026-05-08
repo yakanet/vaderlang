@@ -1,0 +1,68 @@
+# CFG
+
+## tests/snippets/match_expr/_main.vader
+
+fn tests_snippets_match_expr__main_vader$classify(%0: i32 | null | string) -> string
+  locals:
+    %0 x: i32 | null | string (param x)
+    %1 __scrut_0#13: i32 | null | string (synthetic __scrut_0)
+    %2 $type_check_2#14: bool
+    %3 $cast_4#15: i32
+    %4 $k_5#16: i32
+    %5 and_res#19: bool
+    %6 $type_check_10#21: bool
+    %7 $type_check_13#23: bool
+    %8 $type_check_16#25: bool
+    %9 if_res#28: string
+    %10 if_res#30: string
+    %11 if_res#32: string
+    %12 if_res#34: string
+  bb0:
+    %1 = move %0
+    %2 = type_check %1 is i32
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %3 = cast %0 :i32
+    %4 = const int(0) :i32
+    %5 = binop gt %3 %4 :bool
+    branch -> bb3
+  bb2:
+    %5 = const bool(false) :bool
+    branch -> bb3
+  bb3:
+    cond_branch %5 ? bb4 : bb5
+  bb4:
+    %12 = const string(#0) :string
+    branch -> bb6
+  bb5:
+    %6 = type_check %1 is i32
+    cond_branch %6 ? bb7 : bb8
+  bb6:
+    return %12
+  bb7:
+    %11 = const string(#1) :string
+    branch -> bb9
+  bb8:
+    %7 = type_check %1 is string
+    cond_branch %7 ? bb10 : bb11
+  bb9:
+    %12 = move %11
+    branch -> bb6
+  bb10:
+    %10 = cast %0 :string
+    branch -> bb12
+  bb11:
+    %8 = type_check %1 is null
+    cond_branch %8 ? bb13 : bb14
+  bb12:
+    %11 = move %10
+    branch -> bb9
+  bb13:
+    %9 = const string(#2) :string
+    branch -> bb15
+  bb14:
+    %9 = const string(#3) :string
+    branch -> bb15
+  bb15:
+    %10 = move %9
+    branch -> bb12

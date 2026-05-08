@@ -210,20 +210,12 @@ fn 3 tests_snippets_std_sort__main_vader$print_strings (ref) -> void
 end
 
 fn 4 tests_snippets_std_sort__main_vader$main () -> i32
-  local one ref
-  local asc ref
-  local desc ref
-  local rand ref
-  local descending ref
-  local big ref
-  local strs ref
   local input ref
   local out ref
   i32.const 42   ; _main.vader:32:18
   array.new 16 1   ; _main.vader:32:17
   fn.ref 0 19   ; _main.vader:32:23
   call 7   ; _main.vader:32:12
-  local.tee 0   ; _main.vader:32:5
   call 2   ; _main.vader:33:5
   i32.const 1   ; _main.vader:36:18
   i32.const 2   ; _main.vader:36:21
@@ -233,7 +225,6 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   array.new 16 5   ; _main.vader:36:17
   fn.ref 0 19   ; _main.vader:36:34
   call 7   ; _main.vader:36:12
-  local.tee 1   ; _main.vader:36:5
   call 2   ; _main.vader:37:5
   i32.const 5   ; _main.vader:38:19
   i32.const 4   ; _main.vader:38:22
@@ -243,7 +234,6 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   array.new 16 5   ; _main.vader:38:18
   fn.ref 0 19   ; _main.vader:38:35
   call 7   ; _main.vader:38:13
-  local.tee 2   ; _main.vader:38:5
   call 2   ; _main.vader:39:5
   i32.const 3   ; _main.vader:40:19
   i32.const 1   ; _main.vader:40:22
@@ -259,7 +249,6 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   array.new 16 11   ; _main.vader:40:18
   fn.ref 0 19   ; _main.vader:40:53
   call 7   ; _main.vader:40:13
-  local.tee 3   ; _main.vader:40:5
   call 2   ; _main.vader:41:5
   i32.const 1   ; _main.vader:44:25
   i32.const 2   ; _main.vader:44:28
@@ -269,7 +258,6 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   array.new 16 5   ; _main.vader:44:24
   fn.ref 1 19   ; _main.vader:44:41
   call 7   ; _main.vader:44:19
-  local.tee 4   ; _main.vader:44:5
   call 2   ; _main.vader:45:5
   i32.const 10   ; _main.vader:49:10
   i32.const 20   ; _main.vader:49:14
@@ -304,7 +292,6 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   array.new 16 30   ; _main.vader:49:9
   fn.ref 0 19   ; _main.vader:50:9
   call 7   ; _main.vader:48:12
-  local.tee 5   ; _main.vader:48:5
   call 2   ; _main.vader:52:5
   string.const 2   ; _main.vader:55:19
   string.const 3   ; _main.vader:55:29
@@ -313,19 +300,18 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   array.new 18 4   ; _main.vader:55:18
   fn.ref 13 21   ; _main.vader:55:57
   call 8   ; _main.vader:55:13
-  local.tee 6   ; _main.vader:55:5
   call 3   ; _main.vader:56:5
   i32.const 3   ; _main.vader:59:15
   i32.const 1   ; _main.vader:59:18
   i32.const 2   ; _main.vader:59:21
   array.new 16 3   ; _main.vader:59:14
-  local.tee 7   ; _main.vader:59:5
+  local.tee 0   ; _main.vader:59:5
   fn.ref 0 19   ; _main.vader:60:24
   call 7   ; _main.vader:60:12
-  local.set 8   ; _main.vader:60:5
-  local.get 7   ; _main.vader:61:16
+  local.set 1   ; _main.vader:60:5
+  local.get 0   ; _main.vader:61:16
   call 2   ; _main.vader:61:5
-  local.get 8   ; _main.vader:62:16
+  local.get 1   ; _main.vader:62:16
   call 2   ; _main.vader:62:5
   i32.const 0   ; _main.vader:64:12
   return   ; _main.vader:64:5

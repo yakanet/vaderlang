@@ -20,8 +20,8 @@ import type {
   CFGProject, Instruction, LocalId, Terminator,
 } from "./cfg.ts";
 import {
-  dstOf, forEachReadInTerminator, forEachReadLocal,
-  instructionHasSideEffect, successorsOf,
+  computeLiveness, dstOf, forEachReadInTerminator, forEachReadLocal,
+  instructionHasSideEffect,
 } from "./analyses.ts";
 
 export function eliminateDeadCFG(p: CFGProject): CFGProject {
@@ -149,7 +149,7 @@ function withDst(ins: Instruction, dst: LocalId): Instruction {
 // =============================================================================
 
 function dieOnce(fn: CFGFunction): CFGFunction {
-  const liveOut = computeLiveOut(fn);
+  const { liveOut } = computeLiveness(fn);
   let mutated = false;
   const newBlocks: BasicBlock[] = fn.blocks.map((b) => {
     const kept = pruneBlock(b, liveOut[b.id]!);
@@ -187,53 +187,6 @@ function pruneBlock(
     if (keep[i]) out.push(b.instructions[i]!);
   }
   return out;
-}
-
-/** Standard backward dataflow : iterate per-block use/def until live_in /
- *  live_out converge. Returns `liveOut[b]` for each block. */
-function computeLiveOut(fn: CFGFunction): readonly ReadonlySet<LocalId>[] {
-  const n = fn.blocks.length;
-  const use: Set<LocalId>[] = new Array(n);
-  const def: Set<LocalId>[] = new Array(n);
-  for (let i = 0; i < n; i++) {
-    const b = fn.blocks[i]!;
-    const u = new Set<LocalId>();
-    const d = new Set<LocalId>();
-    for (const ins of b.instructions) {
-      forEachReadLocal(ins, (l) => { if (!d.has(l)) u.add(l); });
-      const dst = dstOf(ins);
-      if (dst !== null) d.add(dst);
-    }
-    forEachReadInTerminator(b.terminator, (l) => { if (!d.has(l)) u.add(l); });
-    use[i] = u;
-    def[i] = d;
-  }
-
-  const succs = fn.blocks.map((b) => successorsOf(b));
-  const liveIn: Set<LocalId>[] = fn.blocks.map(() => new Set());
-  const liveOut: Set<LocalId>[] = fn.blocks.map(() => new Set());
-
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (let i = n - 1; i >= 0; i--) {
-      const out = new Set<LocalId>();
-      for (const s of succs[i]!) for (const l of liveIn[s]!) out.add(l);
-
-      const inSet = new Set(use[i]);
-      for (const l of out) if (!def[i]!.has(l)) inSet.add(l);
-
-      if (!setsEqual(out, liveOut[i]!)) { liveOut[i] = out; changed = true; }
-      if (!setsEqual(inSet, liveIn[i]!)) { liveIn[i] = inSet; changed = true; }
-    }
-  }
-  return liveOut;
-}
-
-function setsEqual(a: ReadonlySet<LocalId>, b: ReadonlySet<LocalId>): boolean {
-  if (a.size !== b.size) return false;
-  for (const x of a) if (!b.has(x)) return false;
-  return true;
 }
 
 // =============================================================================
@@ -304,6 +257,10 @@ function remapInstr(ins: Instruction, m: readonly LocalId[]): Instruction {
     case "Move":          return { ...ins, dst: r(m, ins.dst), src: r(m, ins.src) };
     case "BinOp":         return { ...ins, dst: r(m, ins.dst), lhs: r(m, ins.lhs), rhs: r(m, ins.rhs) };
     case "UnOp":          return { ...ins, dst: r(m, ins.dst), operand: r(m, ins.operand) };
+    case "Phi":           return {
+      ...ins, dst: r(m, ins.dst),
+      sources: ins.sources.map((s) => ({ block: s.block, value: r(m, s.value) })),
+    };
     case "Call":          return {
       ...ins, dst: ins.dst === null ? null : r(m, ins.dst), args: ins.args.map((a) => r(m, a)),
     };

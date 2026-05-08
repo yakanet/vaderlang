@@ -15,6 +15,10 @@ import type {
 import { eliminateDeadCode } from "../src/dce/index.ts";
 import { emitBytecode } from "../src/bytecode/index.ts";
 import { writeVir, parseVir } from "../src/bytecode/text.ts";
+import { buildCFGProject } from "../src/midir/build.ts";
+import { eliminateDeadCFG } from "../src/midir/dce.ts";
+import { dumpCFGProject } from "../src/midir/dump.ts";
+import { fromSSA, toSSA } from "../src/midir/ssa.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
@@ -23,7 +27,7 @@ export const CONFIG_FILE = "_config.json";
 
 export const VM_ERROR_PREFIXES = ["# pipeline error", "# compile errors", "# no main function", "# runtime error"] as const;
 
-export type PhaseName = "lexer" | "parser" | "resolver" | "typecheck" | "comptime" | "lower" | "bytecode";
+export type PhaseName = "lexer" | "parser" | "resolver" | "typecheck" | "comptime" | "lower" | "cfg" | "bytecode";
 
 export interface TestConfig {
   readonly phases?: readonly PhaseName[];
@@ -182,6 +186,28 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   // Strip absolute paths from debug annotations so snapshots are portable.
   const portable = text1.replace(/; [^:\n]*\/(?=[^/]+\.vader:)/g, "; ");
   return portable + roundTripBanner + formatDiagnostics(diags.sorted());
+}
+
+/** Mid-IR CFG dump: post-DCE + SSA round-trip + DCE form, what the
+ *  `--midir` codegen path consumes right before the structurer. Stdlib
+ *  modules are filtered out (matching `dumpLower`) so the snapshot stays
+ *  focused on user code. Strings pool is omitted — it's a project-level
+ *  side-table that tracks every interned literal across stdlib + user
+ *  code, which makes the snapshot noisy without adding signal. */
+export function dumpCfg(_source: string, entryPath: string): string {
+  const diags = new DiagnosticCollector();
+  const project = resolveProject({ entryPath, diags });
+  const typed = checkProject(project, diags);
+  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false, projectRoot: defaultProjectRoot(entryPath) } });
+  const lowered = lowerProject(evaled, diags);
+  const dced = eliminateDeadCode(lowered);
+  const cfg = eliminateDeadCFG(fromSSA(toSSA(eliminateDeadCFG(buildCFGProject(dced)))));
+
+  const text = dumpCFGProject(cfg, {
+    includeModule: (path) => !isStdlibModule(path),
+    includeStrings: false,
+  });
+  return text + formatDiagnostics(diags.sorted());
 }
 
 /** Lowerer dump: per-module lowered decls in a compact tree form + diagnostics. */

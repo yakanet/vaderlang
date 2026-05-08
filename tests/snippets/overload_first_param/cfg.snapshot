@@ -1,0 +1,191 @@
+# CFG
+
+## tests/snippets/overload_first_param/_main.vader
+
+fn tests_snippets_overload_first_param__main_vader$describe(%0: Box) -> string
+  locals:
+    %0 b: Box (param b)
+    %1 $intrinsic_1#6: ?
+    %2 __sb_0#7: ? (synthetic __sb_0)
+    %3 $k_3#8: string
+    %4 $field_4#9: i32
+    %5 $intrinsic_5#10: string
+  bb0:
+    %1 = intrinsic builder.new()
+    %2 = move %1
+    %3 = const string(#0) :string
+    intrinsic builder.append_str(%2, %3)
+    %4 = field_get %0.v :i32
+    intrinsic builder.append_display(%2, %4)
+    %5 = intrinsic builder.finish(%2)
+    return %5
+
+fn tests_snippets_overload_first_param__main_vader$describe_1(%0: Bag) -> string
+  locals:
+    %0 b: Bag (param b)
+    %1 $intrinsic_1#6: ?
+    %2 __sb_0#7: ? (synthetic __sb_0)
+    %3 $k_3#8: string
+    %4 $field_4#9: string
+    %5 $intrinsic_5#10: string
+  bb0:
+    %1 = intrinsic builder.new()
+    %2 = move %1
+    %3 = const string(#1) :string
+    intrinsic builder.append_str(%2, %3)
+    %4 = field_get %0.v :string
+    intrinsic builder.append_display(%2, %4)
+    %5 = intrinsic builder.finish(%2)
+    return %5
+
+fn tests_snippets_overload_first_param__main_vader$main() -> i32
+  locals:
+    %0 $k_0#61: i32
+    %1 a#62: Box (local a)
+    %2 $k_3#63: string
+    %3 b#64: Bag (local b)
+    %4 $call_6#65: string
+    %5 $call_7#66: string
+    %6 $call_8#67: string
+    %7 $call_9#68: string
+    %8 $intrinsic_10#69: ?
+    %9 __sb_0#70: ? (synthetic __sb_0)
+    %10 $k_12#71: string
+    %11 $k_13#72: i32
+    %12 $k_14#73: i32
+    %13 $call_15#74: i32
+    %14 $intrinsic_16#75: string
+    %15 $intrinsic_17#76: ?
+    %16 __sb_1#77: ? (synthetic __sb_1)
+    %17 $k_19#78: string
+    %18 $k_20#79: f64
+    %19 $k_21#80: f64
+    %20 $call_22#81: f64
+    %21 $intrinsic_23#82: string
+    %22 $intrinsic_24#83: ?
+    %23 __sb_2#84: ? (synthetic __sb_2)
+    %24 $k_26#85: string
+    %25 $k_27#86: i32
+    %26 $neg_28#87: i32
+    %27 $k_29#88: i32
+    %28 $call_30#89: i32
+    %29 $intrinsic_31#90: string
+    %30 $intrinsic_32#91: ?
+    %31 __sb_3#92: ? (synthetic __sb_3)
+    %32 $k_34#93: string
+    %33 $k_35#94: i32
+    %34 $neg_36#95: i32
+    %35 $call_37#96: i32
+    %36 $intrinsic_38#97: string
+    %37 $intrinsic_39#98: ?
+    %38 __sb_4#99: ? (synthetic __sb_4)
+    %39 $k_41#100: string
+    %40 $k_42#101: f64
+    %41 $neg_43#102: f64
+    %42 $call_44#103: f64
+    %43 $intrinsic_45#104: string
+    %44 $intrinsic_46#105: ?
+    %45 __sb_5#106: ? (synthetic __sb_5)
+    %46 $k_48#107: string
+    %47 $k_49#108: i32
+    %48 $k_50#109: i32
+    %49 $k_51#110: i32
+    %50 $call_52#111: i32
+    %51 $intrinsic_53#112: string
+    %52 $intrinsic_54#113: ?
+    %53 __sb_6#114: ? (synthetic __sb_6)
+    %54 $k_56#115: string
+    %55 $k_57#116: f64
+    %56 $k_58#117: f64
+    %57 $k_59#118: f64
+    %58 $call_60#119: f64
+    %59 $intrinsic_61#120: string
+    %60 $k_62#121: i32
+  bb0:
+    %0 = const int(42) :i32
+    %1 = struct_new Box(%0)
+    %2 = const string(#2) :string
+    %3 = struct_new Bag(%2)
+    %4 = call describe(%1) :string
+    call println(%4) :void
+    %5 = call describe(%3) :string
+    call println(%5) :void
+    %6 = call describe(%1) :string
+    call println(%6) :void
+    %7 = call describe(%3) :string
+    call println(%7) :void
+    %8 = intrinsic builder.new()
+    %9 = move %8
+    %10 = const string(#3) :string
+    intrinsic builder.append_str(%9, %10)
+    %11 = const int(3) :i32
+    %12 = const int(5) :i32
+    %13 = call min(%11, %12) :i32
+    intrinsic builder.append_display(%9, %13)
+    %14 = intrinsic builder.finish(%9)
+    call println(%14) :void
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    %17 = const string(#4) :string
+    intrinsic builder.append_str(%16, %17)
+    %18 = const float(3.5) :f64
+    %19 = const float(5) :f64
+    %20 = call min(%18, %19) :f64
+    intrinsic builder.append_display(%16, %20)
+    %21 = intrinsic builder.finish(%16)
+    call println(%21) :void
+    %22 = intrinsic builder.new()
+    %23 = move %22
+    %24 = const string(#5) :string
+    intrinsic builder.append_str(%23, %24)
+    %25 = const int(2) :i32
+    %26 = unop neg %25 :i32
+    %27 = const int(8) :i32
+    %28 = call max(%26, %27) :i32
+    intrinsic builder.append_display(%23, %28)
+    %29 = intrinsic builder.finish(%23)
+    call println(%29) :void
+    %30 = intrinsic builder.new()
+    %31 = move %30
+    %32 = const string(#6) :string
+    intrinsic builder.append_str(%31, %32)
+    %33 = const int(7) :i32
+    %34 = unop neg %33 :i32
+    %35 = call abs(%34) :i32
+    intrinsic builder.append_display(%31, %35)
+    %36 = intrinsic builder.finish(%31)
+    call println(%36) :void
+    %37 = intrinsic builder.new()
+    %38 = move %37
+    %39 = const string(#7) :string
+    intrinsic builder.append_str(%38, %39)
+    %40 = const float(7.5) :f64
+    %41 = unop neg %40 :f64
+    %42 = call abs(%41) :f64
+    intrinsic builder.append_display(%38, %42)
+    %43 = intrinsic builder.finish(%38)
+    call println(%43) :void
+    %44 = intrinsic builder.new()
+    %45 = move %44
+    %46 = const string(#8) :string
+    intrinsic builder.append_str(%45, %46)
+    %47 = const int(15) :i32
+    %48 = const int(0) :i32
+    %49 = const int(10) :i32
+    %50 = call clamp(%47, %48, %49) :i32
+    intrinsic builder.append_display(%45, %50)
+    %51 = intrinsic builder.finish(%45)
+    call println(%51) :void
+    %52 = intrinsic builder.new()
+    %53 = move %52
+    %54 = const string(#9) :string
+    intrinsic builder.append_str(%53, %54)
+    %55 = const float(1.5) :f64
+    %56 = const float(0) :f64
+    %57 = const float(1) :f64
+    %58 = call clamp(%55, %56, %57) :f64
+    intrinsic builder.append_display(%53, %58)
+    %59 = intrinsic builder.finish(%53)
+    call println(%59) :void
+    %60 = const int(0) :i32
+    return %60

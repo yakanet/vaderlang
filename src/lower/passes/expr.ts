@@ -113,6 +113,32 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       // fn with the receiver as the first argument. For generic impls, the
       // right specialisation is keyed by the receiver's struct args.
       if (expr.callee.kind === "FieldExpr") {
+        // Module-namespace call — `fs.println(...)` after `import "..." as fs`.
+        // The resolver wired the FieldExpr to the exported symbol ; we lower
+        // straight to a direct call against that symbol, same as a regular
+        // top-level call. Without this the FieldExpr falls through to the
+        // generic LoweredFieldAccess path and the bytecode emit crashes
+        // looking for a struct.
+        const exported = ctx.typed.resolved.fields.get(expr.callee);
+        if (exported !== undefined && exported.kind === "fn") {
+          const typeArgs = ctx.typed.genericFnCalls.get(expr);
+          const fnDecl = declOf(exported);
+          if (typeArgs !== undefined && fnDecl !== null && fnDecl.kind === "FnDecl") {
+            const entry = lookupFnInstance(ctx, fnDecl, typeArgs);
+            if (entry !== null) {
+              return {
+                kind: "LoweredCall", span: expr.span, type: exprType,
+                callee: { kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: entry.symbol! },
+                args: expr.args.map((a) => lowerExpr(ctx, a.value)),
+              };
+            }
+          }
+          return {
+            kind: "LoweredCall", span: expr.span, type: exprType,
+            callee: { kind: "LoweredIdent", span: expr.callee.span, type: exprType, symbol: exported },
+            args: expr.args.map((a) => lowerExpr(ctx, a.value)),
+          };
+        }
         const arrayOp = ctx.typed.arrayOps.get(expr.callee);
         if (arrayOp === "len") {
           return {
@@ -184,6 +210,13 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       };
     }
     case "FieldExpr": {
+      // Module-namespace member used as a value (rare — most are calls,
+      // which the CallExpr branch above intercepts). Lower to the exported
+      // symbol's identifier directly.
+      const exported = ctx.typed.resolved.fields.get(expr);
+      if (exported !== undefined) {
+        return { kind: "LoweredIdent", span: expr.span, type: exprType, symbol: exported };
+      }
       // Disambiguate `Enum.Variant` from `b.field_of_enum_type` on the TARGET
       // — both leave `exprType` as the enum.
       const targetType = ctx.types.exprType(expr.target);

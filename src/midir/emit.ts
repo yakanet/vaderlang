@@ -36,7 +36,10 @@ import type {
   BlockId, CFGFunction, CFGProject,
   Instruction, LocalId,
 } from "./cfg.ts";
-import { predecessorsOf, successorsOf } from "./analyses.ts";
+import {
+  computeDominators, dominates, intersectDomTree,
+  predecessorsOf, reversePostorder, successorsOf,
+} from "./analyses.ts";
 
 // ============================================================================
 // Project-level entry point
@@ -288,17 +291,6 @@ function condBranchMerge(
   return post;
 }
 
-function dominates(idom: readonly number[], a: BlockId, b: BlockId): boolean {
-  let cur = b;
-  while (cur !== -1) {
-    if (cur === a) return true;
-    const next = idom[cur]!;
-    if (next === cur) return cur === a;       // entry's idom is itself
-    cur = next;
-  }
-  return false;
-}
-
 // ============================================================================
 // Instruction emission — mirrors `src/bytecode/emit.ts`'s `emitExpr`/`emitStmt`
 // but reads operands from CFG locals instead of recursing on AST nodes.
@@ -329,6 +321,10 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
     case "CellSet":         return emitCellSet(ctx, ins);
     case "MakeClosure":     return emitMakeClosureInstr(ctx, ins);
     case "Intrinsic":       return emitIntrinsicInstr(ctx, ins);
+    case "Phi":
+      // Phis must be lowered by `fromSSA` before reaching the structurer.
+      // Reaching this branch means a pipeline wiring bug.
+      throw new Error(`midir/emit: unexpected Phi at emit time (block ${ins.span.start.line})`);
   }
 }
 
@@ -624,58 +620,6 @@ function convertOp(from: ValType, to: ValType): Op | null {
 // (predecessors / successors live in `analyses.ts`)
 // ============================================================================
 
-/** Dominator computation (Cooper, Harvey, Kennedy). Returns idom[b] = the
- *  immediate dominator of `b` ; `entry`'s idom is itself, unreachable
- *  blocks get -1 (interpreted as "no known idom"). */
-function computeDominators(fn: CFGFunction, preds: readonly (readonly BlockId[])[]): readonly number[] {
-  const n = fn.blocks.length;
-  const idom = new Array<number>(n).fill(-1);
-  idom[fn.entry] = fn.entry;
-  const rpo = reversePostorder(fn);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const b of rpo) {
-      if (b === fn.entry) continue;
-      let newIdom = -1;
-      for (const p of preds[b]!) {
-        if (idom[p] === -1) continue;
-        newIdom = newIdom === -1 ? p : intersect(p, newIdom, idom);
-      }
-      if (newIdom !== -1 && idom[b] !== newIdom) {
-        idom[b] = newIdom;
-        changed = true;
-      }
-    }
-  }
-  return idom;
-}
-
-/** Lowest-common-ancestor in a (post-)dominator tree. Walks `a`'s ancestor
- *  chain into a set, then walks `b`'s chain until hitting a known ancestor.
- *  Cooper et al.'s tighter "walk up the lower-numbered side" trick assumes a
- *  consistent block-ID order matching the dom-tree depth ; we don't have
- *  that invariant after CFG construction (block IDs reflect creation order
- *  in the converter, not RPO), so we fall back to the LCA walk. */
-function intersect(a: BlockId, b: BlockId, idom: readonly number[]): BlockId {
-  const seen = new Set<number>();
-  let x = a;
-  while (x !== -1 && !seen.has(x)) {
-    seen.add(x);
-    const next = idom[x]!;
-    if (next === x) break;
-    x = next;
-  }
-  let y = b;
-  while (y !== -1) {
-    if (seen.has(y)) return y;
-    const next = idom[y]!;
-    if (next === y) break;
-    y = next;
-  }
-  return -1;
-}
-
 /** Post-dominator computation : same algorithm, but on the reverse CFG.
  *  We build a synthetic exit predecessor (any block with `Return` /
  *  `Unreachable` / no successors becomes an exit). The result maps each
@@ -722,7 +666,7 @@ function computePostDominators(fn: CFGFunction): readonly number[] {
       let newPdom = -1;
       for (const s of fakeSuccs[b]!) {
         if (ipdom[s] === -1) continue;
-        newPdom = newPdom === -1 ? s : intersect(s, newPdom, ipdom);
+        newPdom = newPdom === -1 ? s : intersectDomTree(s, newPdom, ipdom);
       }
       if (newPdom !== -1 && ipdom[b] !== newPdom) {
         ipdom[b] = newPdom;
@@ -734,20 +678,6 @@ function computePostDominators(fn: CFGFunction): readonly number[] {
   const out = new Array<number>(n);
   for (let i = 0; i < n; i++) out[i] = ipdom[i] === SE ? -1 : ipdom[i]!;
   return out;
-}
-
-function reversePostorder(fn: CFGFunction): BlockId[] {
-  const order: BlockId[] = [];
-  const visited = new Array<boolean>(fn.blocks.length).fill(false);
-  function walk(b: BlockId): void {
-    if (visited[b]) return;
-    visited[b] = true;
-    for (const s of successorsOf(fn.blocks[b]!)) walk(s);
-    order.push(b);
-  }
-  walk(fn.entry);
-  order.reverse();
-  return order;
 }
 
 /** For each loop header H, the unique exit block — the first block reachable

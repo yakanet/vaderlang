@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
 import {
-  MAIN_FILE, dumpBytecode, dumpComptime, dumpLexer, dumpLower, dumpParser,
-  dumpResolver, dumpTypecheck, errMsg, listSnippets, loadConfig, snapshotEquals,
+  MAIN_FILE, dumpBytecode, dumpCfg, dumpComptime, dumpLexer, dumpLower,
+  dumpParser, dumpResolver, dumpTypecheck, errMsg, listSnippets, loadConfig,
+  snapshotEquals,
 } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
@@ -19,6 +20,7 @@ const PHASES = [
   { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheck, usePath: true  },
   { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptime,  usePath: true  },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLower,     usePath: true  },
+  { name: "cfg",       snap: "cfg.snapshot",       dump: dumpCfg,       usePath: true  },
   { name: "bytecode",  snap: "bytecode.snapshot",  dump: dumpBytecode,  usePath: true  },
 ] as const;
 

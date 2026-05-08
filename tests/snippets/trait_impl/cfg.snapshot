@@ -1,0 +1,11 @@
+# CFG
+
+## tests/snippets/trait_impl/_main.vader
+
+fn tests_snippets_trait_impl__main_vader$Point$Display$show(%0: Point) -> string
+  locals:
+    %0 self: Point (param self)
+    %1 $k_1#2: string
+  bb0:
+    %1 = const string(#0) :string
+    return %1

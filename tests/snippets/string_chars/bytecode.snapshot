@@ -65,11 +65,9 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
   local n i32
   local __iter_6 ref
   local __step_7 ref
-  local c char
   local __sb_8 any
   local __iter_9 ref
   local __step_10 ref
-  local c char
   string.const 0   ; _main.vader:6:13
   call.import 4   ; _main.vader:6:5
   string.const 1   ; _main.vader:7:14
@@ -142,7 +140,7 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
   else   ; _main.vader:19:5
   local.get 10   ; _main.vader:19:5
   struct.get 1 0   ; _main.vader:19:5
-  local.set 11   ; _main.vader:19:5
+  drop   ; _main.vader:19:5
   local.get 8   ; _main.vader:20:13
   i32.const 1   ; _main.vader:20:17
   i32.add   ; _main.vader:20:13
@@ -152,39 +150,39 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
   end   ; _main.vader:19:5
   end   ; _main.vader:19:5
   intrinsic builder.new   ; _main.vader:22:13
-  local.tee 12   ; _main.vader:22:13
+  local.tee 11   ; _main.vader:22:13
   string.const 5   ; _main.vader:22:14
   intrinsic builder.append_str   ; _main.vader:22:14
-  local.get 12   ; _main.vader:22:25
+  local.get 11   ; _main.vader:22:25
   local.get 8   ; _main.vader:22:27
   intrinsic builder.append_display   ; _main.vader:22:25
-  local.get 12   ; _main.vader:22:29
+  local.get 11   ; _main.vader:22:29
   string.const 6   ; _main.vader:22:29
   intrinsic builder.append_str   ; _main.vader:22:29
-  local.get 12   ; _main.vader:22:36
+  local.get 11   ; _main.vader:22:36
   string.const 4   ; _main.vader:22:47
   call.import 11   ; _main.vader:22:38
   intrinsic builder.append_display   ; _main.vader:22:36
-  local.get 12   ; _main.vader:22:13
+  local.get 11   ; _main.vader:22:13
   intrinsic builder.finish   ; _main.vader:22:13
   call.import 4   ; _main.vader:22:5
   string.const 7   ; _main.vader:25:13
   call.import 4   ; _main.vader:25:5
   string.const 8   ; _main.vader:26:14
   call 2   ; _main.vader:26:14
-  local.set 13   ; _main.vader:26:5
+  local.set 12   ; _main.vader:26:5
   block void   ; _main.vader:26:5
   loop void   ; _main.vader:26:5
-  local.get 13   ; _main.vader:26:5
+  local.get 12   ; _main.vader:26:5
   call 1   ; _main.vader:26:5
-  local.tee 14   ; _main.vader:26:5
+  local.tee 13   ; _main.vader:26:5
   type_check 0   ; _main.vader:26:5
   if void   ; _main.vader:26:5
   br 2   ; _main.vader:26:5
   else   ; _main.vader:26:5
-  local.get 14   ; _main.vader:26:5
+  local.get 13   ; _main.vader:26:5
   struct.get 1 0   ; _main.vader:26:5
-  local.set 15   ; _main.vader:26:5
+  drop   ; _main.vader:26:5
   string.const 9   ; _main.vader:27:17
   call.import 4   ; _main.vader:27:9
   end   ; _main.vader:26:5

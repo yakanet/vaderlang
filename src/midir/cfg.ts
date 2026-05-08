@@ -73,6 +73,7 @@ export type Instruction =
   | InstrConst
   | InstrBinOp
   | InstrUnOp
+  | InstrPhi
   | InstrCall
   | InstrCallIndirect
   | InstrFnRef
@@ -120,6 +121,20 @@ export interface InstrUnOp extends InstrBase {
   readonly dst: LocalId;
   readonly op: L.LoweredUnaryOp;
   readonly operand: LocalId;
+  readonly type: Type;
+}
+
+/** SSA phi — selects a value based on which predecessor block control came
+ *  from. Phis live at the start of a block (before any other instruction)
+ *  and "execute in parallel" — every phi reads its sources from predecessor
+ *  state before any phi assignment takes effect. Sources must cover every
+ *  predecessor of the containing block. The CFG is in SSA form when phis
+ *  are present ; the out-of-SSA pass replaces them with `Move` instructions
+ *  in the predecessors before the structurer runs. */
+export interface InstrPhi extends InstrBase {
+  readonly kind: "Phi";
+  readonly dst: LocalId;
+  readonly sources: readonly { readonly block: BlockId; readonly value: LocalId }[];
   readonly type: Type;
 }
 

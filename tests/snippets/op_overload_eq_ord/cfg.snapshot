@@ -1,0 +1,138 @@
+# CFG
+
+## tests/snippets/op_overload_eq_ord/_main.vader
+
+fn tests_snippets_op_overload_eq_ord__main_vader$Money$Eq$equals(%0: Money, %1: Money) -> bool
+  locals:
+    %0 self: Money (param self)
+    %1 other: Money (param other)
+    %2 $field_2#5: i32
+    %3 $field_3#6: i32
+    %4 $eq_4#7: bool
+  bb0:
+    %2 = field_get %0.amount :i32
+    %3 = field_get %1.amount :i32
+    %4 = binop eq %2 %3 :bool
+    return %4
+
+fn tests_snippets_op_overload_eq_ord__main_vader$Money$Ord$compare(%0: Money, %1: Money) -> i32
+  locals:
+    %0 self: Money (param self)
+    %1 other: Money (param other)
+    %2 $field_2#12: i32
+    %3 $field_3#13: i32
+    %4 $lt_4#14: bool
+    %5 $k_5#15: i32
+    %6 $neg_6#16: i32
+    %7 $field_7#17: i32
+    %8 $field_8#18: i32
+    %9 $gt_9#19: bool
+    %10 $k_10#20: i32
+    %11 $k_11#21: i32
+  bb0:
+    %2 = field_get %0.amount :i32
+    %3 = field_get %1.amount :i32
+    %4 = binop lt %2 %3 :bool
+    cond_branch %4 ? bb1 : bb2
+  bb1:
+    %5 = const int(1) :i32
+    %6 = unop neg %5 :i32
+    return %6
+  bb2:
+    %7 = field_get %0.amount :i32
+    %8 = field_get %1.amount :i32
+    %9 = binop gt %7 %8 :bool
+    cond_branch %9 ? bb3 : bb4
+  bb3:
+    %10 = const int(1) :i32
+    return %10
+  bb4:
+    %11 = const int(0) :i32
+    return %11
+
+fn tests_snippets_op_overload_eq_ord__main_vader$main() -> i32
+  locals:
+    %0 $k_0#34: i32
+    %1 a#35: Money (local a)
+    %2 $k_3#36: i32
+    %3 b#37: Money (local b)
+    %4 $k_6#38: i32
+    %5 c#39: Money (local c)
+    %6 $intrinsic_9#40: ?
+    %7 __sb_0#41: ? (synthetic __sb_0)
+    %8 $k_11#42: string
+    %9 $call_12#43: bool
+    %10 $k_13#44: string
+    %11 $call_14#45: bool
+    %12 $not_15#46: bool
+    %13 $intrinsic_16#47: string
+    %14 $intrinsic_17#48: ?
+    %15 __sb_1#49: ? (synthetic __sb_1)
+    %16 $k_19#50: string
+    %17 $call_20#51: i32
+    %18 $k_21#52: i32
+    %19 $lt_22#53: bool
+    %20 $k_23#54: string
+    %21 $call_24#55: i32
+    %22 $k_25#56: i32
+    %23 $gt_26#57: bool
+    %24 $k_27#58: string
+    %25 $call_28#59: i32
+    %26 $k_29#60: i32
+    %27 $gte_30#61: bool
+    %28 $k_31#62: string
+    %29 $call_32#63: i32
+    %30 $k_33#64: i32
+    %31 $lte_34#65: bool
+    %32 $intrinsic_35#66: string
+    %33 $k_36#67: i32
+  bb0:
+    %0 = const int(100) :i32
+    %1 = struct_new Money(%0)
+    %2 = const int(100) :i32
+    %3 = struct_new Money(%2)
+    %4 = const int(200) :i32
+    %5 = struct_new Money(%4)
+    %6 = intrinsic builder.new()
+    %7 = move %6
+    %8 = const string(#0) :string
+    intrinsic builder.append_str(%7, %8)
+    %9 = call equals(%1, %3) :bool
+    intrinsic builder.append_display(%7, %9)
+    %10 = const string(#1) :string
+    intrinsic builder.append_str(%7, %10)
+    %11 = call equals(%1, %5) :bool
+    %12 = unop not %11 :bool
+    intrinsic builder.append_display(%7, %12)
+    %13 = intrinsic builder.finish(%7)
+    call println(%13) :void
+    %14 = intrinsic builder.new()
+    %15 = move %14
+    %16 = const string(#2) :string
+    intrinsic builder.append_str(%15, %16)
+    %17 = call compare(%1, %5) :i32
+    %18 = const int(0) :i32
+    %19 = binop lt %17 %18 :bool
+    intrinsic builder.append_display(%15, %19)
+    %20 = const string(#3) :string
+    intrinsic builder.append_str(%15, %20)
+    %21 = call compare(%5, %1) :i32
+    %22 = const int(0) :i32
+    %23 = binop gt %21 %22 :bool
+    intrinsic builder.append_display(%15, %23)
+    %24 = const string(#4) :string
+    intrinsic builder.append_str(%15, %24)
+    %25 = call compare(%1, %3) :i32
+    %26 = const int(0) :i32
+    %27 = binop gte %25 %26 :bool
+    intrinsic builder.append_display(%15, %27)
+    %28 = const string(#5) :string
+    intrinsic builder.append_str(%15, %28)
+    %29 = call compare(%5, %5) :i32
+    %30 = const int(0) :i32
+    %31 = binop lte %29 %30 :bool
+    intrinsic builder.append_display(%15, %31)
+    %32 = intrinsic builder.finish(%15)
+    call println(%32) :void
+    %33 = const int(0) :i32
+    return %33

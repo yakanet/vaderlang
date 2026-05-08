@@ -1,0 +1,10 @@
+# CFG
+
+## tests/snippets/comptime_const/_main.vader
+
+fn tests_snippets_comptime_const__main_vader$main() -> i32
+  locals:
+    %0 $k_0#1: i32
+  bb0:
+    %0 = const int(42) :i32
+    return %0

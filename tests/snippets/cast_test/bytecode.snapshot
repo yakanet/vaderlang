@@ -12,18 +12,16 @@ import 9 write_file std_io$write_file (string,string) -> ref
 import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_cast_test__main_vader$main () -> i32
-  local n i32
   local m u64
   local __sb_0 any
   i32.const 42   ; _main.vader:4:14
-  local.tee 0   ; _main.vader:4:5
   i32.to_u64   ; _main.vader:5:14
-  local.set 1   ; _main.vader:5:5
+  local.set 0   ; _main.vader:5:5
   intrinsic builder.new   ; _main.vader:6:13
-  local.tee 2   ; _main.vader:6:13
-  local.get 1   ; _main.vader:6:16
+  local.tee 1   ; _main.vader:6:13
+  local.get 0   ; _main.vader:6:16
   intrinsic builder.append_display   ; _main.vader:6:14
-  local.get 2   ; _main.vader:6:13
+  local.get 1   ; _main.vader:6:13
   intrinsic builder.finish   ; _main.vader:6:13
   call.import 4   ; _main.vader:6:5
   i32.const 0   ; _main.vader:7:12

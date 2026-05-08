@@ -1,0 +1,49 @@
+# CFG
+
+## tests/snippets/tuple_struct_field/_main.vader
+
+fn tests_snippets_tuple_struct_field__main_vader$main() -> i32
+  locals:
+    %0 $k_0#17: i32
+    %1 $k_1#18: f64
+    %2 $k_2#19: f64
+    %3 $struct_3#20: [f64, f64]
+    %4 e#21: Entry (local e)
+    %5 $intrinsic_6#22: ?
+    %6 __sb_0#23: ? (synthetic __sb_0)
+    %7 $k_8#24: string
+    %8 $field_9#25: i32
+    %9 $k_10#26: string
+    %10 $field_11#27: [f64, f64]
+    %11 $field_12#28: f64
+    %12 $k_13#29: string
+    %13 $field_14#30: [f64, f64]
+    %14 $field_15#31: f64
+    %15 $intrinsic_16#32: string
+    %16 $k_17#33: i32
+  bb0:
+    %0 = const int(1) :i32
+    %1 = const float(3.5) :f64
+    %2 = const float(7.25) :f64
+    %3 = struct_new [f64, f64](%1, %2)
+    %4 = struct_new Entry(%0, %3)
+    %5 = intrinsic builder.new()
+    %6 = move %5
+    %7 = const string(#0) :string
+    intrinsic builder.append_str(%6, %7)
+    %8 = field_get %4.id :i32
+    intrinsic builder.append_display(%6, %8)
+    %9 = const string(#1) :string
+    intrinsic builder.append_str(%6, %9)
+    %10 = field_get %4.coord :[f64, f64]
+    %11 = field_get %10._0 :f64
+    intrinsic builder.append_display(%6, %11)
+    %12 = const string(#2) :string
+    intrinsic builder.append_str(%6, %12)
+    %13 = field_get %4.coord :[f64, f64]
+    %14 = field_get %13._1 :f64
+    intrinsic builder.append_display(%6, %14)
+    %15 = intrinsic builder.finish(%6)
+    call println(%15) :void
+    %16 = const int(0) :i32
+    return %16
