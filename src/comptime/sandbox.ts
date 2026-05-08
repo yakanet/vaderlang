@@ -30,8 +30,10 @@ export const COMPTIME_IMPORT = {
 export interface SandboxOptions {
   readonly allowEnv: boolean;
   /** Absolute path. `@file` is rejected for any target outside this root.
-   *  When undefined, containment is disabled (legacy / repl callers). */
-  readonly projectRoot?: string;
+   *  Required — callers without a meaningful project root must opt out
+   *  explicitly by passing the root they intend to expose (e.g.
+   *  `process.cwd()`). */
+  readonly projectRoot: string;
 }
 
 export interface BuiltinCall {
@@ -64,18 +66,16 @@ function file(call: BuiltinCall, opts: SandboxOptions): BuiltinResult {
   }
   const target = isAbsolute(arg.value) ? arg.value : resolve(dirname(call.callerFile), arg.value);
   // Containment: a malicious or careless `@file "../../etc/passwd"` (or an
-  // absolute path) reads outside the project. The pipeline plumbs an absolute
-  // `projectRoot` (the dir containing `vader.json`, or the entry file's dir
-  // as a fallback). Targets must live under it.
-  if (opts.projectRoot !== undefined) {
-    const root = opts.projectRoot.endsWith(sep) ? opts.projectRoot : opts.projectRoot + sep;
-    const isInside = target === opts.projectRoot || target.startsWith(root);
-    if (!isInside) {
-      return {
-        ok: false, code: "C4011",
-        message: `@file path escapes project root: \`${arg.value}\` (resolved to \`${target}\`, root \`${opts.projectRoot}\`)`,
-      };
-    }
+  // absolute path) reads outside the project. Targets must live under
+  // `projectRoot` (the dir containing `vader.json`, or whatever the caller
+  // declared as the trust boundary).
+  const root = opts.projectRoot.endsWith(sep) ? opts.projectRoot : opts.projectRoot + sep;
+  const isInside = target === opts.projectRoot || target.startsWith(root);
+  if (!isInside) {
+    return {
+      ok: false, code: "C4011",
+      message: `@file path escapes project root: \`${arg.value}\` (resolved to \`${target}\`, root \`${opts.projectRoot}\`)`,
+    };
   }
   if (!existsSync(target)) {
     return { ok: false, code: "C4006", message: `\`${arg.value}\` (resolved to \`${target}\`)` };

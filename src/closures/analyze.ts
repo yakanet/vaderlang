@@ -13,6 +13,7 @@
 // Otherwise the outer would have no way to pass them to the inner closure.
 
 import type * as A from "../parser/ast.ts";
+import { forEachPatternBindingKey } from "../parser/ast.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Type } from "../typecheck/types.ts";
@@ -67,9 +68,11 @@ function analyzeFnBody(
   lambdaCaptures: Map<A.LambdaExpr, Capture[]>,
 ): void {
   // Top-level fns / impl members: their body's lambdas capture from the fn's
-  // own param + local scope. We recurse into nested LambdaExprs from here.
+  // own param + local scope. We pass `outCaptures = null` so the walker only
+  // discovers nested lambdas (it doesn't have an enclosing capture set to
+  // collect into — top-level fns don't capture).
   const ownedFnScope = collectOwnedScopeForFn(fn, program.resolved);
-  walkForLambdas(fn.body!, ownedFnScope, program, captured, lambdaCaptures);
+  walkBody(fn.body!, ownedFnScope, null, null, { program, captured, lambdaCaptures });
 }
 
 // ---------------------------------------------------------------- owned scope
@@ -93,168 +96,150 @@ function collectOwnedScopeForLambda(lambda: A.LambdaExpr, resolved: ResolvedProg
 }
 
 // ---------------------------------------------------------------- traversal
-// We use two passes per lambda body:
-//   1. `walkForLambdas` discovers and processes inner LambdaExprs (post-order),
-//      computing their capture sets.
-//   2. `walkForCaptures` collects this lambda's own captures by walking its
-//      body for IdentExprs and folding inner-lambda captures.
-//
-// The two-pass split lets captures bubble outward correctly without needing
-// fixpoint iteration — by the time we collect `L`'s captures, every lambda
-// nested inside `L` already has its captures recorded.
+// Single fused walker: visits each AST node once, optionally collecting
+// captures for the current lambda. `outCaptures === null` means we're
+// walking the top-level fn body (no captures to collect — just descend
+// into nested lambdas). The captures of nested lambdas are computed
+// recursively (post-order), then folded into the enclosing lambda's
+// captures by skipping any symbol already in the enclosing scope.
 
-function walkForLambdas(
-  body: A.BlockExpr,
-  outerOwned: Set<number>,
-  program: TypedProgram,
-  captured: Set<number>,
-  lambdaCaptures: Map<A.LambdaExpr, Capture[]>,
-): void {
-  walkBlockForLambdas(body, outerOwned, program, captured, lambdaCaptures);
+interface WalkCtx {
+  readonly program: TypedProgram;
+  readonly captured: Set<number>;
+  readonly lambdaCaptures: Map<A.LambdaExpr, Capture[]>;
 }
 
-function walkBlockForLambdas(
-  block: A.BlockExpr,
-  owned: Set<number>,
-  program: TypedProgram,
-  captured: Set<number>,
-  lambdaCaptures: Map<A.LambdaExpr, Capture[]>,
+function walkBody(
+  body: A.BlockExpr, scope: Set<number>,
+  outCaptures: Capture[] | null, outSeen: Set<number> | null,
+  ctx: WalkCtx,
 ): void {
-  // Mutable scope as we descend through `let`s declared in this block.
-  const scope = new Set(owned);
-  for (const stmt of block.stmts) {
-    walkStmtForLambdas(stmt, scope, program, captured, lambdaCaptures);
-  }
-  if (block.trailing !== null) walkExprForLambdas(block.trailing, scope, program, captured, lambdaCaptures);
+  for (const stmt of body.stmts) walkStmt(stmt, scope, outCaptures, outSeen, ctx);
+  if (body.trailing !== null) walkExpr(body.trailing, scope, outCaptures, outSeen, ctx);
 }
 
-function walkStmtForLambdas(
-  stmt: A.Stmt,
-  scope: Set<number>,
-  program: TypedProgram,
-  captured: Set<number>,
-  lambdaCaptures: Map<A.LambdaExpr, Capture[]>,
+function walkStmt(
+  stmt: A.Stmt, scope: Set<number>,
+  outCaptures: Capture[] | null, outSeen: Set<number> | null,
+  ctx: WalkCtx,
 ): void {
   switch (stmt.kind) {
     case "LetStmt":
-      walkExprForLambdas(stmt.value, scope, program, captured, lambdaCaptures);
-      addLocalToScope(stmt, scope, program.resolved);
+      walkExpr(stmt.value, scope, outCaptures, outSeen, ctx);
+      addLocalToScope(stmt, scope, ctx.program.resolved);
       return;
     case "AssignStmt":
-      walkExprForLambdas(stmt.target, scope, program, captured, lambdaCaptures);
-      walkExprForLambdas(stmt.value, scope, program, captured, lambdaCaptures);
+      walkExpr(stmt.target, scope, outCaptures, outSeen, ctx);
+      walkExpr(stmt.value,  scope, outCaptures, outSeen, ctx);
       return;
     case "ExprStmt":
-      walkExprForLambdas(stmt.expr, scope, program, captured, lambdaCaptures);
+      walkExpr(stmt.expr, scope, outCaptures, outSeen, ctx);
       return;
     case "ReturnStmt":
-      if (stmt.value !== null) walkExprForLambdas(stmt.value, scope, program, captured, lambdaCaptures);
+      if (stmt.value !== null) walkExpr(stmt.value, scope, outCaptures, outSeen, ctx);
       return;
     case "ForStmt": {
-      // The body opens a fresh scope; for-in adds the binding into it.
       const inner = new Set(scope);
       if (stmt.form.kind === "while") {
-        walkExprForLambdas(stmt.form.cond, inner, program, captured, lambdaCaptures);
+        walkExpr(stmt.form.cond, inner, outCaptures, outSeen, ctx);
       } else if (stmt.form.kind === "in") {
-        walkExprForLambdas(stmt.form.iter, inner, program, captured, lambdaCaptures);
-        const bindingSym = program.resolved.forIns.get(stmt);
+        walkExpr(stmt.form.iter, inner, outCaptures, outSeen, ctx);
+        const bindingSym = ctx.program.resolved.forIns.get(stmt);
         if (bindingSym !== undefined) inner.add(bindingSym.id);
       }
-      walkBlockForLambdas(stmt.body, inner, program, captured, lambdaCaptures);
+      walkBody(stmt.body, inner, outCaptures, outSeen, ctx);
       return;
     }
     case "BreakStmt":
     case "ContinueStmt":
       return;
     case "DeferStmt":
-      if (stmt.body.kind === "BlockExpr") {
-        walkBlockForLambdas(stmt.body, scope, program, captured, lambdaCaptures);
-      } else {
-        walkStmtForLambdas(stmt.body, scope, program, captured, lambdaCaptures);
-      }
+      if (stmt.body.kind === "BlockExpr") walkBody(stmt.body, new Set(scope), outCaptures, outSeen, ctx);
+      else walkStmt(stmt.body, scope, outCaptures, outSeen, ctx);
       return;
   }
 }
 
-function walkExprForLambdas(
-  expr: A.Expr,
-  scope: Set<number>,
-  program: TypedProgram,
-  captured: Set<number>,
-  lambdaCaptures: Map<A.LambdaExpr, Capture[]>,
+function walkExpr(
+  expr: A.Expr, scope: Set<number>,
+  outCaptures: Capture[] | null, outSeen: Set<number> | null,
+  ctx: WalkCtx,
 ): void {
   switch (expr.kind) {
     case "IntLitExpr": case "FloatLitExpr": case "BoolLitExpr":
     case "NullLitExpr": case "CharLitExpr": case "DotVariantExpr":
-    case "IdentExpr":
       return;
+    case "IdentExpr": {
+      if (outCaptures === null || outSeen === null) return;
+      const sym = ctx.program.resolved.idents.get(expr);
+      if (sym === undefined || !isCapturable(sym) || scope.has(sym.id)) return;
+      addCapture(sym, expr, outCaptures, outSeen, ctx.program);
+      return;
+    }
     case "StringLitExpr":
       for (const part of expr.parts) {
-        if (part.kind === "interp") walkExprForLambdas(part.expr, scope, program, captured, lambdaCaptures);
+        if (part.kind === "interp") walkExpr(part.expr, scope, outCaptures, outSeen, ctx);
       }
       return;
     case "CallExpr":
-      walkExprForLambdas(expr.callee, scope, program, captured, lambdaCaptures);
-      for (const a of expr.args) walkExprForLambdas(a.value, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.callee, scope, outCaptures, outSeen, ctx);
+      for (const a of expr.args) walkExpr(a.value, scope, outCaptures, outSeen, ctx);
       return;
     case "FieldExpr":
-      walkExprForLambdas(expr.target, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.target, scope, outCaptures, outSeen, ctx);
       return;
     case "IndexExpr":
-      walkExprForLambdas(expr.target, scope, program, captured, lambdaCaptures);
-      walkExprForLambdas(expr.index, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.target, scope, outCaptures, outSeen, ctx);
+      walkExpr(expr.index,  scope, outCaptures, outSeen, ctx);
       return;
     case "UnaryExpr":
-      walkExprForLambdas(expr.operand, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.operand, scope, outCaptures, outSeen, ctx);
       return;
     case "BinaryExpr":
-      walkExprForLambdas(expr.left,  scope, program, captured, lambdaCaptures);
-      walkExprForLambdas(expr.right, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.left,  scope, outCaptures, outSeen, ctx);
+      walkExpr(expr.right, scope, outCaptures, outSeen, ctx);
       return;
     case "IfExpr":
-      walkExprForLambdas(expr.cond, scope, program, captured, lambdaCaptures);
-      walkBlockForLambdas(expr.then, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.cond, scope, outCaptures, outSeen, ctx);
+      walkBody(expr.then, new Set(scope), outCaptures, outSeen, ctx);
       if (expr.else !== null) {
-        if (expr.else.kind === "BlockExpr") walkBlockForLambdas(expr.else, scope, program, captured, lambdaCaptures);
-        else walkExprForLambdas(expr.else, scope, program, captured, lambdaCaptures);
+        if (expr.else.kind === "BlockExpr") walkBody(expr.else, new Set(scope), outCaptures, outSeen, ctx);
+        else walkExpr(expr.else, scope, outCaptures, outSeen, ctx);
       }
       return;
     case "MatchExpr":
-      walkExprForLambdas(expr.scrutinee, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.scrutinee, scope, outCaptures, outSeen, ctx);
       for (const arm of expr.arms) {
-        // Arm pattern bindings are local to the arm. Push them onto the
-        // mutable scope, recurse, then pop only the ids we added — avoids
-        // a fresh `new Set(scope)` per arm.
-        const added = pushPatternBindings(arm.pattern, program, scope);
-        if (arm.guard !== null) walkExprForLambdas(arm.guard, scope, program, captured, lambdaCaptures);
-        walkExprForLambdas(arm.body, scope, program, captured, lambdaCaptures);
+        const added = pushPatternBindings(arm.pattern, ctx.program, scope);
+        if (arm.guard !== null) walkExpr(arm.guard, scope, outCaptures, outSeen, ctx);
+        walkExpr(arm.body, scope, outCaptures, outSeen, ctx);
         for (const id of added) scope.delete(id);
       }
       return;
     case "BlockExpr":
-      walkBlockForLambdas(expr, scope, program, captured, lambdaCaptures);
+      walkBody(expr, new Set(scope), outCaptures, outSeen, ctx);
       return;
     case "LambdaExpr":
-      processLambda(expr, scope, program, captured, lambdaCaptures);
+      processLambda(expr, scope, outCaptures, outSeen, ctx);
       return;
     case "StructLitExpr":
-      for (const f of expr.fields) walkExprForLambdas(f.value, scope, program, captured, lambdaCaptures);
+      for (const f of expr.fields) walkExpr(f.value, scope, outCaptures, outSeen, ctx);
       return;
     case "ArrayLitExpr":
-      for (const e of expr.elements) walkExprForLambdas(e, scope, program, captured, lambdaCaptures);
+      for (const e of expr.elements) walkExpr(e, scope, outCaptures, outSeen, ctx);
       return;
     case "RangeExpr":
-      walkExprForLambdas(expr.lower, scope, program, captured, lambdaCaptures);
-      walkExprForLambdas(expr.upper, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.lower, scope, outCaptures, outSeen, ctx);
+      walkExpr(expr.upper, scope, outCaptures, outSeen, ctx);
       return;
     case "TryExpr":
-      walkExprForLambdas(expr.inner, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.inner, scope, outCaptures, outSeen, ctx);
       return;
     case "CastExpr":
-      walkExprForLambdas(expr.value, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.value, scope, outCaptures, outSeen, ctx);
       return;
     case "GenericInstExpr":
-      walkExprForLambdas(expr.callee, scope, program, captured, lambdaCaptures);
+      walkExpr(expr.callee, scope, outCaptures, outSeen, ctx);
       return;
   }
 }
@@ -262,188 +247,28 @@ function walkExprForLambdas(
 // ---------------------------------------------------------------- per-lambda
 
 function processLambda(
-  lambda: A.LambdaExpr,
-  _outerScope: Set<number>,
-  program: TypedProgram,
-  captured: Set<number>,
-  lambdaCaptures: Map<A.LambdaExpr, Capture[]>,
+  lambda: A.LambdaExpr, outerScope: Set<number>,
+  outCaptures: Capture[] | null, outSeen: Set<number> | null,
+  ctx: WalkCtx,
 ): void {
-  // Recurse into nested lambdas first so their captures are recorded before
-  // we fold them into ours.
-  const ownScope = collectOwnedScopeForLambda(lambda, program.resolved);
-  walkBlockForLambdas(lambda.body, ownScope, program, captured, lambdaCaptures);
-
-  // Compute THIS lambda's captures — each entry refers, by construction, to
-  // a symbol defined outside the lambda's own scope (param/local/binding).
+  // Recurse into the lambda's body with its own scope, computing its captures
+  // in a single pass (free-vars are detected at IdentExprs; nested lambdas
+  // recurse and fold). Post-order: by the time we return, every nested
+  // lambda already has its captures recorded in `lambdaCaptures`.
+  const ownScope = collectOwnedScopeForLambda(lambda, ctx.program.resolved);
   const captures: Capture[] = [];
   const seen = new Set<number>();
-  collectCapturesInBlock(lambda.body, ownScope, captures, seen, program, lambdaCaptures);
+  walkBody(lambda.body, ownScope, captures, seen, ctx);
 
-  for (const c of captures) captured.add(c.symbol.id);
-  lambdaCaptures.set(lambda, captures);
-}
+  for (const c of captures) ctx.captured.add(c.symbol.id);
+  ctx.lambdaCaptures.set(lambda, captures);
 
-function collectCapturesInBlock(
-  block: A.BlockExpr,
-  ownScope: Set<number>,
-  captures: Capture[],
-  seen: Set<number>,
-  program: TypedProgram,
-  lambdaCaptures: ReadonlyMap<A.LambdaExpr, readonly Capture[]>,
-): void {
-  const scope = new Set(ownScope);
-  for (const stmt of block.stmts) {
-    collectCapturesInStmt(stmt, scope, captures, seen, program, lambdaCaptures);
-  }
-  if (block.trailing !== null) {
-    collectCapturesInExpr(block.trailing, scope, captures, seen, program, lambdaCaptures);
-  }
-}
-
-function collectCapturesInStmt(
-  stmt: A.Stmt,
-  scope: Set<number>,
-  captures: Capture[],
-  seen: Set<number>,
-  program: TypedProgram,
-  lambdaCaptures: ReadonlyMap<A.LambdaExpr, readonly Capture[]>,
-): void {
-  switch (stmt.kind) {
-    case "LetStmt":
-      collectCapturesInExpr(stmt.value, scope, captures, seen, program, lambdaCaptures);
-      addLocalToScope(stmt, scope, program.resolved);
-      return;
-    case "AssignStmt":
-      collectCapturesInExpr(stmt.target, scope, captures, seen, program, lambdaCaptures);
-      collectCapturesInExpr(stmt.value,  scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "ExprStmt":
-      collectCapturesInExpr(stmt.expr, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "ReturnStmt":
-      if (stmt.value !== null) collectCapturesInExpr(stmt.value, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "ForStmt": {
-      const inner = new Set(scope);
-      if (stmt.form.kind === "while") {
-        collectCapturesInExpr(stmt.form.cond, inner, captures, seen, program, lambdaCaptures);
-      } else if (stmt.form.kind === "in") {
-        collectCapturesInExpr(stmt.form.iter, inner, captures, seen, program, lambdaCaptures);
-        const bindingSym = program.resolved.forIns.get(stmt);
-        if (bindingSym !== undefined) inner.add(bindingSym.id);
-      }
-      collectCapturesInBlock(stmt.body, inner, captures, seen, program, lambdaCaptures);
-      return;
+  // Fold this lambda's captures into the enclosing lambda's, skipping any
+  // symbol already defined in the enclosing scope (i.e. shared with us).
+  if (outCaptures !== null && outSeen !== null) {
+    for (const c of captures) {
+      if (!outerScope.has(c.symbol.id)) addCaptureValue(c, outCaptures, outSeen);
     }
-    case "BreakStmt":
-    case "ContinueStmt":
-      return;
-    case "DeferStmt":
-      if (stmt.body.kind === "BlockExpr") {
-        collectCapturesInBlock(stmt.body, scope, captures, seen, program, lambdaCaptures);
-      } else {
-        collectCapturesInStmt(stmt.body, scope, captures, seen, program, lambdaCaptures);
-      }
-      return;
-  }
-}
-
-function collectCapturesInExpr(
-  expr: A.Expr,
-  scope: Set<number>,
-  captures: Capture[],
-  seen: Set<number>,
-  program: TypedProgram,
-  lambdaCaptures: ReadonlyMap<A.LambdaExpr, readonly Capture[]>,
-): void {
-  switch (expr.kind) {
-    case "IntLitExpr": case "FloatLitExpr": case "BoolLitExpr":
-    case "NullLitExpr": case "CharLitExpr": case "DotVariantExpr":
-      return;
-    case "IdentExpr": {
-      const sym = program.resolved.idents.get(expr);
-      if (sym === undefined) return;
-      if (!isCapturable(sym)) return;
-      if (scope.has(sym.id)) return;
-      // Out-of-scope local/param/binding → captured.
-      addCapture(sym, expr, captures, seen, program);
-      return;
-    }
-    case "StringLitExpr":
-      for (const part of expr.parts) {
-        if (part.kind === "interp") collectCapturesInExpr(part.expr, scope, captures, seen, program, lambdaCaptures);
-      }
-      return;
-    case "CallExpr":
-      collectCapturesInExpr(expr.callee, scope, captures, seen, program, lambdaCaptures);
-      for (const a of expr.args) collectCapturesInExpr(a.value, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "FieldExpr":
-      collectCapturesInExpr(expr.target, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "IndexExpr":
-      collectCapturesInExpr(expr.target, scope, captures, seen, program, lambdaCaptures);
-      collectCapturesInExpr(expr.index,  scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "UnaryExpr":
-      collectCapturesInExpr(expr.operand, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "BinaryExpr":
-      collectCapturesInExpr(expr.left,  scope, captures, seen, program, lambdaCaptures);
-      collectCapturesInExpr(expr.right, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "IfExpr":
-      collectCapturesInExpr(expr.cond, scope, captures, seen, program, lambdaCaptures);
-      collectCapturesInBlock(expr.then, scope, captures, seen, program, lambdaCaptures);
-      if (expr.else !== null) {
-        if (expr.else.kind === "BlockExpr") collectCapturesInBlock(expr.else, scope, captures, seen, program, lambdaCaptures);
-        else collectCapturesInExpr(expr.else, scope, captures, seen, program, lambdaCaptures);
-      }
-      return;
-    case "MatchExpr":
-      collectCapturesInExpr(expr.scrutinee, scope, captures, seen, program, lambdaCaptures);
-      for (const arm of expr.arms) {
-        // Arm pattern bindings are part of the arm's scope — push then pop
-        // to avoid cloning a fresh Set per arm.
-        const added = pushPatternBindings(arm.pattern, program, scope);
-        if (arm.guard !== null) collectCapturesInExpr(arm.guard, scope, captures, seen, program, lambdaCaptures);
-        collectCapturesInExpr(arm.body, scope, captures, seen, program, lambdaCaptures);
-        for (const id of added) scope.delete(id);
-      }
-      return;
-    case "BlockExpr":
-      collectCapturesInBlock(expr, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "LambdaExpr": {
-      // For an inner lambda, fold its captures into ours — minus any symbol
-      // that's already in our own scope (i.e. defined inside us).
-      const innerCaps = lambdaCaptures.get(expr);
-      if (innerCaps !== undefined) {
-        for (const c of innerCaps) {
-          if (!scope.has(c.symbol.id)) addCaptureValue(c, captures, seen);
-        }
-      }
-      return;
-    }
-    case "StructLitExpr":
-      for (const f of expr.fields) collectCapturesInExpr(f.value, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "ArrayLitExpr":
-      for (const e of expr.elements) collectCapturesInExpr(e, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "RangeExpr":
-      collectCapturesInExpr(expr.lower, scope, captures, seen, program, lambdaCaptures);
-      collectCapturesInExpr(expr.upper, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "TryExpr":
-      collectCapturesInExpr(expr.inner, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "CastExpr":
-      collectCapturesInExpr(expr.value, scope, captures, seen, program, lambdaCaptures);
-      return;
-    case "GenericInstExpr":
-      collectCapturesInExpr(expr.callee, scope, captures, seen, program, lambdaCaptures);
-      return;
   }
 }
 
@@ -497,27 +322,9 @@ function pushPatternBindings(
   pat: A.Pattern, program: TypedProgram, scope: Set<number>,
 ): readonly number[] {
   const added: number[] = [];
-  const push = (sym: A.IsPattern | A.BindingPattern | A.StructPatternField): void => {
-    const s = program.resolved.patternBindings.get(sym);
+  forEachPatternBindingKey(pat, (key) => {
+    const s = program.resolved.patternBindings.get(key);
     if (s !== undefined && !scope.has(s.id)) { scope.add(s.id); added.push(s.id); }
-  };
-  const walk = (p: A.Pattern): void => {
-    switch (p.kind) {
-      case "IsPattern":
-        if (p.bindAs !== null) push(p);
-        if (p.inner !== null) walk(p.inner);
-        return;
-      case "StructPattern":
-        for (const f of p.fields) if (f.value.kind === "binding") push(f);
-        return;
-      case "BindingPattern":
-        push(p);
-        return;
-      case "WildcardPattern":
-      case "EnumVariantPattern":
-        return;
-    }
-  };
-  walk(pat);
+  });
   return added;
 }

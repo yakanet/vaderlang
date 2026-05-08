@@ -16,7 +16,7 @@ import type { Capture } from "../../closures/analyze.ts";
 import type { FnLowerCtx } from "../ctx.ts";
 import type { Substitution, Type } from "../../typecheck/types.ts";
 import { TY } from "../../typecheck/types.ts";
-import { applySubst, freshSyntheticSymbol } from "./helpers.ts";
+import { freshSyntheticSymbol } from "./helpers.ts";
 import { lowerBlock } from "./block.ts";
 import type {
   LoweredExpr, LoweredFnDecl, LoweredParam, LoweredStructDecl,
@@ -65,7 +65,7 @@ export function lowerLambda(ctx: FnLowerCtx, lambda: A.LambdaExpr): LoweredExpr 
   for (const p of lambda.params) {
     const sym = ctx.typed.resolved.params.get(p);
     if (sym === undefined) continue;
-    const t = applySubst(ctx.typed.paramTypes.get(p) ?? TY.unresolved, ctx.subst);
+    const t = ctx.types.paramType(p);
     liftedParams.push({ name: p.name, symbol: sym, type: t });
     lambdaParamSyms.push(sym);
   }
@@ -77,14 +77,15 @@ export function lowerLambda(ctx: FnLowerCtx, lambda: A.LambdaExpr): LoweredExpr 
     ?? TY.void;
   const liftedReturnType = (() => {
     const fnT = ctx.typed.exprTypes.get(lambda);
-    if (fnT?.kind === "Fn") return applySubst(fnT.returnType, ctx.subst);
-    return applySubst(lambdaReturnType, ctx.subst);
+    if (fnT?.kind === "Fn") return ctx.types.apply(fnT.returnType);
+    return ctx.types.apply(lambdaReturnType);
   })();
   const liftedFnCtx: FnLowerCtx = {
     project: ctx.project,
     entry: ctx.entry,             // borrow outer entry for module identity
     typed: ctx.typed,
     subst: ctx.subst,
+    types: ctx.types,
     returnType: liftedReturnType,
     selfType: null,
     blocks: [],
@@ -123,7 +124,7 @@ export function lowerLambda(ctx: FnLowerCtx, lambda: A.LambdaExpr): LoweredExpr 
   const closureType = ctx.typed.exprTypes.get(lambda) ?? TY.unresolved;
   return {
     kind: "LoweredMakeClosure", span: lambda.span,
-    type: applySubst(closureType, ctx.subst),
+    type: ctx.types.apply(closureType),
     fnSymbol: liftedFnSymbol,
     env: envExpr,
   };

@@ -605,8 +605,8 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       return;
     }
 
-    case "i32.const":    return pushLit(s, "i32", `INT32_C(${op.value})`);
-    case "i64.const":    return pushLit(s, "i64", `INT64_C(${op.value.toString()})`);
+    case "i32.const":    return pushLit(s, "i32", i32LitC(op.value));
+    case "i64.const":    return pushLit(s, "i64", i64LitC(op.value));
     case "f32.const":    return pushLit(s, "f32", floatLit(op.value, "f"));
     case "f64.const":    return pushLit(s, "f64", floatLit(op.value, ""));
     case "bool.const":   return pushLit(s, "bool", op.value ? "true" : "false");
@@ -1440,4 +1440,26 @@ function floatLit(v: number, suffix: string): string {
   }
   const s = v.toString();
   return s.includes(".") || s.includes("e") ? s + suffix : `${s}.0${suffix}`;
+}
+
+const I32_MIN = -2147483648;
+const I32_MAX =  2147483647;
+const I64_MIN_BIG = -(1n << 63n);
+const I64_MAX_BIG =  (1n << 63n) - 1n;
+
+/** C source for an i32 literal. Values outside the signed range round-trip
+ *  through `(int32_t)UINT32_C(N)` to silence -Wconstant-conversion: the
+ *  literal is born unsigned, then reinterpreted via two's complement. */
+function i32LitC(value: number): string {
+  if (value >= I32_MIN && value <= I32_MAX) return `INT32_C(${value})`;
+  return `(int32_t)UINT32_C(${value >>> 0})`;
+}
+
+/** C source for an i64 literal. Same logic as `i32LitC` but for the 64-bit
+ *  range. The bigint stays exact so unsigned values up to 2^64-1 round-trip
+ *  through `(int64_t)UINT64_C(N)`. */
+function i64LitC(value: bigint): string {
+  if (value >= I64_MIN_BIG && value <= I64_MAX_BIG) return `INT64_C(${value.toString()})`;
+  const u = value & ((1n << 64n) - 1n);
+  return `(int64_t)UINT64_C(${u.toString()})`;
 }

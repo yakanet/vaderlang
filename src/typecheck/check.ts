@@ -178,6 +178,10 @@ export function inferExprBodiedReturns(
         genericFnCalls: new Map(), traitMethodResolutions: new Map(),
         traitVirtualResolutions: new Map(),
         directCallOverloads: new Map(),
+        arrayIterCoercions: new Map(),
+        binaryOpResolutions: new Map(),
+        indexResolutions: new Map(),
+        indexSetResolutions: new Map(),
       };
       const inferred = checkBlock(item.decl.body!, null, t, impls, scratch,
         { returnType: TY.unresolved, selfType: null, loopDepth: 0 });

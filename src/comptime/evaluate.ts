@@ -320,33 +320,41 @@ function closeOverGenericImpls(
     }
   }
 
-  // Bound at 64 — recursive generic fn bodies could otherwise grow the
-  // registry indefinitely. On cap-exhaustion we emit C4014 so downstream
-  // codegen doesn't surface an unhelpful "unreachable".
-  const MAX_ITERS = 64;
-  let prev = -1;
-  let iter = 0;
-  for (; iter < MAX_ITERS && registry.size() !== prev; iter++) {
-    prev = registry.size();
-    // `entries()` allocates+sorts; snapshot once per iteration.
-    const snapshot = registry.entries();
-    for (const inst of snapshot) {
-      const sites = implsByStructId.get(inst.symbol.id);
-      if (sites !== undefined) {
-        for (const site of sites) observeImplMembers(project, registry, inst, site);
-      }
-      if (inst.symbol.kind === "fn") {
-        const entry = genericFnsBySymId.get(inst.symbol.id);
-        if (entry !== undefined) {
-          observeFnBody(project, registry, inst, entry.fn, entry.program, arrayIterSymbol);
-        }
+  // Worklist-driven discovery: each instance is processed exactly once. New
+  // instances added by `observe...` helpers (via the registry's listener) are
+  // pushed onto the worklist and drained in turn. Convergence is O(reachable
+  // instances) — no fixpoint, no per-iteration snapshot.
+  //
+  // The `MAX_INSTANCES` cap is the safety net for the pathological case where
+  // a generic decl strictly grows the type at each instantiation (e.g. a
+  // `wrap<T>` that recurses into `wrap<List(T)>`); without the cap the
+  // registry would grow unboundedly. C4014 surfaces the bug.
+  const MAX_INSTANCES = 4096;
+  const worklist: { symbol: Symbol; args: readonly Type[] }[] = [];
+  worklist.push(...registry.entries());
+  const unsubscribe = registry.onNewInstance((inst) => {
+    if (registry.size() <= MAX_INSTANCES) worklist.push(inst);
+  });
+
+  while (worklist.length > 0 && registry.size() <= MAX_INSTANCES) {
+    const inst = worklist.pop()!;
+    const sites = implsByStructId.get(inst.symbol.id);
+    if (sites !== undefined) {
+      for (const site of sites) observeImplMembers(project, registry, inst, site);
+    }
+    if (inst.symbol.kind === "fn") {
+      const entry = genericFnsBySymId.get(inst.symbol.id);
+      if (entry !== undefined) {
+        observeFnBody(project, registry, inst, entry.fn, entry.program, arrayIterSymbol);
       }
     }
   }
-  if (iter === MAX_ITERS && registry.size() !== prev) {
+  unsubscribe();
+
+  if (registry.size() > MAX_INSTANCES) {
     err(diags, "C4014", pickAnchorSpan(genericFnsBySymId, implsByStructId, project),
-        `generic instance discovery did not converge after ${MAX_ITERS} iterations (registry size: ${registry.size()}). ` +
-        `A generic fn or impl is recursively expanding into new instances; ` +
+        `generic instance discovery exceeded ${MAX_INSTANCES} instances. ` +
+        `A generic fn or impl is recursively expanding into ever-larger types; ` +
         `consider breaking the recursion or specialising manually.`);
   }
 }

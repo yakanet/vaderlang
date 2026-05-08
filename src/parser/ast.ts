@@ -560,6 +560,38 @@ export interface EnumVariantPattern {
   readonly variant: string;
 }
 
+/** AST nodes that carry a pattern binding — the resolver maps each to a
+ *  `Symbol` in `ResolvedProgram.patternBindings`, and downstream passes
+ *  iterate the same set via `forEachPatternBindingKey`. */
+export type PatternBindingKey = IsPattern | BindingPattern | StructPatternField;
+
+/** Visit every binding-introducing site in a pattern, in source order.
+ *  `IsPattern` participates only when its `bindAs` is set; `StructPattern`
+ *  participates per-field (only for `binding` field shapes); nested
+ *  `IsPattern.inner` recurses. Wildcard / EnumVariant patterns introduce no
+ *  bindings and are skipped. */
+export function forEachPatternBindingKey(
+  pat: Pattern, visit: (key: PatternBindingKey) => void,
+): void {
+  switch (pat.kind) {
+    case "IsPattern":
+      if (pat.bindAs !== null) visit(pat);
+      if (pat.inner !== null) forEachPatternBindingKey(pat.inner, visit);
+      return;
+    case "StructPattern":
+      for (const f of pat.fields) {
+        if (f.value.kind === "binding") visit(f);
+      }
+      return;
+    case "BindingPattern":
+      visit(pat);
+      return;
+    case "WildcardPattern":
+    case "EnumVariantPattern":
+      return;
+  }
+}
+
 // ============================================================================
 // Type expressions
 // ============================================================================

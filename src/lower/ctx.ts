@@ -14,6 +14,7 @@ import type { TypedProgram } from "../typecheck/typed-ast.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
 import type { Substitution, Type } from "../typecheck/types.ts";
 import type { MonoEntry, MonoProject } from "../monomorphize/index.ts";
+import type { EntryTypes } from "./entry-types.ts";
 
 export interface LowerProjectCtx {
   readonly evaluated: EvaluatedProject;
@@ -47,6 +48,9 @@ export interface FnLowerCtx {
   readonly entry: MonoEntry;
   readonly typed: TypedProgram;
   readonly subst: Substitution;
+  /** Typed-AST view with `subst` already applied at every read. Lower passes
+   *  consume this instead of reaching into `typed`/`subst` directly. */
+  readonly types: EntryTypes;
   readonly returnType: Type;
   readonly selfType: Type | null;
   readonly blocks: BlockCtx[];

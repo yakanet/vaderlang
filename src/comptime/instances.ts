@@ -16,6 +16,18 @@ export interface GenericInstance {
 
 export class InstanceRegistry {
   private readonly byKey = new Map<string, GenericInstance>();
+  private readonly listeners: ((inst: GenericInstance) => void)[] = [];
+
+  /** Subscribe a callback that fires once per newly-added (deduplicated)
+   *  instance. Used by `closeOverGenericImpls` to drive a worklist instead
+   *  of a fixpoint. Returns an unsubscribe function. */
+  onNewInstance(cb: (inst: GenericInstance) => void): () => void {
+    this.listeners.push(cb);
+    return () => {
+      const idx = this.listeners.indexOf(cb);
+      if (idx >= 0) this.listeners.splice(idx, 1);
+    };
+  }
 
   add(symbol: Symbol, args: readonly Type[]): GenericInstance {
     const displayKey = `${symbol.id}(${args.map(displayType).join(",")})`;
@@ -23,6 +35,7 @@ export class InstanceRegistry {
     if (existing !== undefined) return existing;
     const inst: GenericInstance = { symbol, args, displayKey };
     this.byKey.set(displayKey, inst);
+    for (const cb of this.listeners) cb(inst);
     return inst;
   }
 

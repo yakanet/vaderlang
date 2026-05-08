@@ -19,6 +19,7 @@ import type { MonoEntry } from "../monomorphize/index.ts";
 import { monomorphizeProject } from "../monomorphize/index.ts";
 
 import type { LowerProjectCtx } from "./ctx.ts";
+import { makeEntryTypes } from "./entry-types.ts";
 import type {
   LoweredDecl, LoweredExpr, LoweredFnDecl, LoweredModule, LoweredParam, LoweredProject,
 } from "./lowered-ast.ts";
@@ -112,7 +113,9 @@ export function lowerFnEntry(
   const returnType = fnType?.kind === "Fn" ? applySubst(fnType.returnType, subst) : TY.unresolved;
 
   const body = fn.body === null ? null : lowerBlock({
-    project: ctx, entry, typed, subst, returnType, selfType, blocks: [], uniq: 0,
+    project: ctx, entry, typed, subst,
+    types: makeEntryTypes(typed, subst),
+    returnType, selfType, blocks: [], uniq: 0,
     liftedContext: null,
   }, fn.body, /*isFnRoot*/ true, /*isLoopBody*/ false);
 
@@ -152,6 +155,7 @@ export function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerP
     ? comptimeValueToLowered(baked, defaultIfFree(type), decl.span)
     : lowerExpr({
         project: ctx, entry, typed, subst: entry.subst,
+        types: makeEntryTypes(typed, entry.subst),
         returnType: type, selfType: null, blocks: [], uniq: 0,
         liftedContext: null,
       }, decl.value);

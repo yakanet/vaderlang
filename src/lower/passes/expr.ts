@@ -14,7 +14,7 @@ import { err } from "../diag.ts";
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
 import { lookupImplEntry, lookupImplFor, lowerRangeExpr, wrapArrayAsIter } from "./for-in.ts";
-import { applySubst, blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
+import { blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
 import { lowerMatch } from "./match.ts";
 import { lowerStringLit } from "./string-interp.ts";
@@ -24,14 +24,14 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
   const lowered = lowerExprInner(ctx, expr);
   const coerceElement = ctx.typed.arrayIterCoercions.get(expr);
   if (coerceElement !== undefined) {
-    const wrapped = wrapArrayAsIter(ctx, lowered, applySubst(coerceElement, ctx.subst), expr.span);
+    const wrapped = wrapArrayAsIter(ctx, lowered, ctx.types.apply(coerceElement), expr.span);
     if (wrapped !== null) return wrapped;
   }
   return lowered;
 }
 
 function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
-  const exprType = applySubst(ctx.typed.exprTypes.get(expr) ?? TY.unresolved, ctx.subst);
+  const exprType = ctx.types.exprType(expr);
   switch (expr.kind) {
     case "IntLitExpr":
       return { kind: "LoweredIntLit", span: expr.span, type: defaultIfFree(exprType), value: expr.value };
@@ -96,9 +96,7 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         if (innerSym !== undefined) {
           const fnDecl = declOf(innerSym);
           if (fnDecl !== null && fnDecl.kind === "FnDecl" && fnDecl.typeParams.length > 0) {
-            const typeArgs = expr.callee.typeArgs.map((ta) =>
-              applySubst(ctx.typed.typeExprTypes.get(ta) ?? TY.unresolved, ctx.subst),
-            );
+            const typeArgs = expr.callee.typeArgs.map((ta) => ctx.types.typeExprType(ta));
             const entry = lookupFnInstance(ctx, fnDecl, typeArgs);
             if (entry !== null) {
               return {
@@ -144,7 +142,7 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         // resolve the impl member just like a regular method call.
         const traitMethod = ctx.typed.traitMethodResolutions.get(expr.callee);
         if (traitMethod !== undefined) {
-          const concreteRecv = applySubst(traitMethod.receiverParam, ctx.subst);
+          const concreteRecv = ctx.types.apply(traitMethod.receiverParam);
           const impl = lookupImplFor(ctx.project, concreteRecv, traitMethod.trait);
           if (impl !== null) {
             const member = impl.decl.members.find((m) => m.name === traitMethod.member.name);
@@ -188,7 +186,7 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
     case "FieldExpr": {
       // Disambiguate `Enum.Variant` from `b.field_of_enum_type` on the TARGET
       // — both leave `exprType` as the enum.
-      const targetType = applySubst(ctx.typed.exprTypes.get(expr.target) ?? TY.unresolved, ctx.subst);
+      const targetType = ctx.types.exprType(expr.target);
       if (targetType.kind === "Enum") return loweredEnumVariant(targetType, expr.field, expr.span);
       return {
         kind: "LoweredFieldAccess", span: expr.span, type: exprType,
@@ -293,19 +291,17 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
 
 function declaredTypeOfSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {
   if (sym.kind === "param" && sym.source.kind === "param") {
-    const t = ctx.typed.paramTypes.get(sym.source.param);
-    return t !== undefined ? applySubst(t, ctx.subst) : null;
+    return ctx.typed.paramTypes.has(sym.source.param) ? ctx.types.paramType(sym.source.param) : null;
   }
   if (sym.kind === "local" && sym.source.kind === "local") {
-    const t = ctx.typed.localTypes.get(sym.source.stmt);
-    return t !== undefined ? applySubst(t, ctx.subst) : null;
+    return ctx.typed.localTypes.has(sym.source.stmt) ? ctx.types.localType(sym.source.stmt) : null;
   }
   return null;
 }
 
 function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): LoweredExpr {
   if (expr.op === "is") {
-    const checkType = applySubst(ctx.typed.exprTypes.get(expr.right) ?? TY.unresolved, ctx.subst);
+    const checkType = ctx.types.exprType(expr.right);
     return {
       kind: "LoweredTypeCheck", span: expr.span, type: TY.bool,
       value: lowerExpr(ctx, expr.left), checkType,
@@ -334,7 +330,7 @@ export function lowerIndexTraitCall(
   res: import("../../typecheck/typed-ast.ts").IndexResolution,
   extraArgs: readonly LoweredExpr[],
 ): LoweredExpr {
-  const recv = applySubst(res.receiverType, ctx.subst);
+  const recv = ctx.types.apply(res.receiverType);
   const structArgs = recv.kind === "Struct" ? recv.args : [];
   const entry = lookupImplEntry(ctx, res.member, structArgs);
   if (entry === null || entry.symbol === null) {
@@ -355,7 +351,7 @@ function lowerOverloadedBinary(
   ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type,
   res: import("../../typecheck/typed-ast.ts").BinaryOpResolution,
 ): LoweredExpr {
-  const recv = applySubst(res.receiverType, ctx.subst);
+  const recv = ctx.types.apply(res.receiverType);
   const structArgs = recv.kind === "Struct" ? recv.args : [];
   const entry = lookupImplEntry(ctx, res.member, structArgs);
   if (entry === null || entry.symbol === null) {
@@ -387,7 +383,7 @@ function lowerOverloadedBinary(
  *  Resolves the `Contains($T)::contains` impl on `coll`'s static type and emits a
  *  direct call to the monomorphised symbol. */
 function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {
-  const collType = applySubst(ctx.typed.exprTypes.get(expr.right) ?? TY.unresolved, ctx.subst);
+  const collType = ctx.types.exprType(expr.right);
   const fail = (msg: string): LoweredExpr => {
     err(ctx.project.diags, "B5001", expr.span, msg);
     return { kind: "LoweredBoolLit", span: expr.span, type: TY.bool, value: false };
@@ -419,7 +415,7 @@ function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {
 import type { MonoEntry } from "../../monomorphize/mono-ast.ts";
 
 function lookupFnInstance(ctx: FnLowerCtx, fnDecl: A.FnDecl, typeArgs: readonly Type[]): MonoEntry | null {
-  const key = typeArgs.map((ta) => displayType(applySubst(ta, ctx.subst))).join(",");
+  const key = typeArgs.map((ta) => displayType(ctx.types.apply(ta))).join(",");
   const entry = ctx.project.mono.fnInstanceEntries.get(fnDecl)?.get(key) ?? null;
   return entry !== null && entry.symbol !== null ? entry : null;
 }
@@ -469,7 +465,7 @@ function lowerVirtualDispatch(
 
   const span = expr.span;
   const recvSym = freshSyntheticSymbol(ctx, "vdisp");
-  const recvType = applySubst(ctx.typed.exprTypes.get(callee.target) ?? TY.unresolved, ctx.subst);
+  const recvType = ctx.types.exprType(callee.target);
   const recvLet: LoweredExpr = {
     kind: "LoweredBlock", span, type: exprType, stmts: [
       {

@@ -3,6 +3,7 @@
 // binding scoping.
 
 import type * as A from "../../parser/ast.ts";
+import { forEachPatternBindingKey } from "../../parser/ast.ts";
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
@@ -12,10 +13,10 @@ import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt } from "../lowered-ast.ts";
 
 import { lowerExpr } from "./expr.ts";
-import { applySubst, freshSyntheticSymbol, loweredEnumVariant, lowerCellInit, wrapAsBlock } from "./helpers.ts";
+import { freshSyntheticSymbol, loweredEnumVariant, lowerCellInit, wrapAsBlock } from "./helpers.ts";
 
 export function lowerMatch(ctx: FnLowerCtx, expr: A.MatchExpr, exprType: Type): LoweredExpr {
-  const scrutType = applySubst(ctx.typed.exprTypes.get(expr.scrutinee) ?? TY.unresolved, ctx.subst);
+  const scrutType = ctx.types.exprType(expr.scrutinee);
   const scrutSym = freshSyntheticSymbol(ctx, "scrut");
 
   const stmts: LoweredStmt[] = [{
@@ -77,7 +78,7 @@ function armPredicate(
       core = {
         kind: "LoweredTypeCheck", span, type: TY.bool,
         value: ident(),
-        checkType: applySubst(ctx.typed.typeExprTypes.get(arm.pattern.type) ?? TY.unresolved, ctx.subst),
+        checkType: ctx.types.typeExprType(arm.pattern.type),
       };
       break;
     case "StructPattern":
@@ -119,57 +120,45 @@ function introducePatternBindings(
 ): void {
   const scrutRef = (): LoweredExpr =>
     ({ kind: "LoweredIdent", span, type: scrutType, symbol: scrutSym });
-  // Pattern bindings reuse the resolver-side Symbol via `patternBindings`
-  // — the body's `IdentExpr` resolves to that same Symbol, so the
-  // `LoweredLet`'s slot is the one the body reads. Falling back to a fresh
-  // synthetic would leave the body unable to find the slot.
-  const bindingSym = (key: A.IsPattern | A.BindingPattern | A.StructPatternField, hint: string): Symbol =>
-    ctx.typed.resolved.patternBindings.get(key) ?? freshSyntheticSymbol(ctx, hint);
-  switch (pattern.kind) {
-    case "BindingPattern": {
-      const sym = bindingSym(pattern, pattern.name);
-      const init = lowerCellInit(ctx, sym, scrutRef(), scrutType, span);
-      out.push({ kind: "LoweredLet", span, name: pattern.name, symbol: sym,
-                 type: init.slotType, value: init.value });
-      return;
-    }
-    case "IsPattern": {
-      if (pattern.bindAs !== null) {
-        const targetType = applySubst(
-          ctx.typed.typeExprTypes.get(pattern.type) ?? TY.unresolved, ctx.subst);
-        const sym = bindingSym(pattern, pattern.bindAs);
-        const cast: LoweredExpr = { kind: "LoweredCast", span, type: targetType, value: scrutRef() };
-        const init = lowerCellInit(ctx, sym, cast, targetType, span);
-        out.push({
-          kind: "LoweredLet", span, name: pattern.bindAs, symbol: sym,
-          type: init.slotType, value: init.value,
-        });
-      }
-      // `is T { ... }` — recurse so nested StructPattern bindings land in
-      // the same arm scope (the resolver already binds them).
-      if (pattern.inner !== null) {
-        introducePatternBindings(ctx, pattern.inner, scrutSym, scrutType, out, span);
-      }
-      return;
-    }
-    case "StructPattern":
-      for (const f of pattern.fields) {
-        if (f.value.kind !== "binding") continue;
-        const sym = bindingSym(f, f.value.name);
-        const fieldAccess: LoweredExpr = {
-          kind: "LoweredFieldAccess", span: f.span, type: TY.unresolved,
-          target: { kind: "LoweredIdent", span: f.span, type: scrutType, symbol: scrutSym },
-          field: f.name,
-        };
-        const init = lowerCellInit(ctx, sym, fieldAccess, TY.unresolved, f.span);
-        out.push({
-          kind: "LoweredLet", span: f.span, name: f.value.name, symbol: sym,
-          type: init.slotType, value: init.value,
-        });
-      }
-      return;
-    case "EnumVariantPattern":
-    case "WildcardPattern":
-      return;
+  forEachPatternBindingKey(pattern, (key) => {
+    // Pattern bindings reuse the resolver-side Symbol via `patternBindings`
+    // so the body's `IdentExpr` resolves to the same slot we declare here.
+    const initInfo = bindingInit(ctx, key, scrutType, scrutSym, scrutRef, span);
+    const sym = ctx.typed.resolved.patternBindings.get(key)
+      ?? freshSyntheticSymbol(ctx, initInfo.name);
+    const init = lowerCellInit(ctx, sym, initInfo.value, initInfo.valueType, initInfo.span);
+    out.push({
+      kind: "LoweredLet", span: initInfo.span, name: initInfo.name, symbol: sym,
+      type: init.slotType, value: init.value,
+    });
+  });
+}
+
+function bindingInit(
+  ctx: FnLowerCtx, key: A.PatternBindingKey, scrutType: Type, scrutSym: Symbol,
+  scrutRef: () => LoweredExpr, armSpan: Span,
+): { name: string; span: Span; value: LoweredExpr; valueType: Type } {
+  // `StructPatternField` has no `kind` discriminator; the others do.
+  if (!("kind" in key)) {
+    // value.kind === "binding" — guaranteed by `forEachPatternBindingKey`.
+    const fieldName = (key.value as { kind: "binding"; name: string }).name;
+    return {
+      name: fieldName, span: key.span, valueType: TY.unresolved,
+      value: {
+        kind: "LoweredFieldAccess", span: key.span, type: TY.unresolved,
+        target: { kind: "LoweredIdent", span: key.span, type: scrutType, symbol: scrutSym },
+        field: key.name,
+      },
+    };
   }
+  if (key.kind === "BindingPattern") {
+    return { name: key.name, span: armSpan, value: scrutRef(), valueType: scrutType };
+  }
+  // IsPattern — `bindAs` is non-null here: `forEachPatternBindingKey` only
+  // yields IsPattern when its `bindAs` is set.
+  const targetType = ctx.types.typeExprType(key.type);
+  return {
+    name: key.bindAs!, span: armSpan, valueType: targetType,
+    value: { kind: "LoweredCast", span: armSpan, type: targetType, value: scrutRef() },
+  };
 }

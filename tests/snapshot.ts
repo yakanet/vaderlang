@@ -5,7 +5,7 @@ import { tokenize } from "../src/lexer/lexer.ts";
 import { parseSource } from "../src/parser/pipeline.ts";
 import { DiagnosticCollector } from "../src/diagnostics/collector.ts";
 import { resolveProject } from "../src/resolver/index.ts";
-import { isStdlibModule } from "../src/resolver/module.ts";
+import { defaultProjectRoot, isStdlibModule } from "../src/resolver/module.ts";
 import { checkProject, displayType } from "../src/typecheck/index.ts";
 import { evaluateProject, displayValue } from "../src/comptime/index.ts";
 import { lowerProject } from "../src/lower/index.ts";
@@ -129,7 +129,7 @@ export function dumpComptime(_source: string, entryPath: string): string {
   const diags = new DiagnosticCollector();
   const project = resolveProject({ entryPath, diags });
   const typed = checkProject(project, diags);
-  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
+  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false, projectRoot: defaultProjectRoot(entryPath) } });
 
   const lines: string[] = ["# Comptime"];
   for (const id of [...evaled.modules.keys()].sort()) {
@@ -164,7 +164,7 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   const diags = new DiagnosticCollector();
   const project = resolveProject({ entryPath, diags });
   const typed = checkProject(project, diags);
-  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
+  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false, projectRoot: defaultProjectRoot(entryPath) } });
   const lowered = lowerProject(evaled, diags);
   const dced = eliminateDeadCode(lowered);
   const moduleName = (entryPath.split("/").pop() ?? entryPath).replace(/\.vader$/, "");
@@ -189,7 +189,7 @@ export function dumpLower(_source: string, entryPath: string): string {
   const diags = new DiagnosticCollector();
   const project = resolveProject({ entryPath, diags });
   const typed = checkProject(project, diags);
-  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false } });
+  const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false, projectRoot: defaultProjectRoot(entryPath) } });
   const lowered = lowerProject(evaled, diags);
 
   const lines: string[] = ["# Lower"];

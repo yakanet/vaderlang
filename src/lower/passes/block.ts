@@ -10,7 +10,7 @@ import type { LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 
 import { lowerExpr, lowerIndexTraitCall } from "./expr.ts";
 import { lowerForIn } from "./for-in.ts";
-import { applySubst, freshSyntheticSymbol, lowerCellInit, wrapStmts } from "./helpers.ts";
+import { freshSyntheticSymbol, lowerCellInit, wrapStmts } from "./helpers.ts";
 
 export function lowerBlock(
   ctx: FnLowerCtx, block: A.BlockExpr, isFnRoot: boolean, isLoopBody: boolean,
@@ -86,7 +86,9 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
   switch (stmt.kind) {
     case "LetStmt": {
       const value = lowerExpr(ctx, stmt.value);
-      const type = applySubst(ctx.typed.localTypes.get(stmt) ?? defaultIfFree(value.type), ctx.subst);
+      // Custom fallback (`defaultIfFree(value.type)`) — keep inline rather
+      // than widening `EntryTypes.localType` to take a fallback param.
+      const type = ctx.types.apply(ctx.typed.localTypes.get(stmt) ?? defaultIfFree(value.type));
       const sym = ctx.typed.resolved.locals.get(stmt);
       if (sym === undefined) return null;
       const init = lowerCellInit(ctx, sym, value, type, stmt.span);
@@ -110,10 +112,7 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
       if (stmt.target.kind === "IdentExpr") {
         const targetSym = ctx.typed.resolved.idents.get(stmt.target);
         if (targetSym !== undefined) {
-          const valueType = applySubst(
-            ctx.typed.exprTypes.get(stmt.target) ?? TY.unresolved,
-            ctx.subst,
-          );
+          const valueType = ctx.types.exprType(stmt.target);
           // Inside a lifted fn: outer captured symbol → cell ref via env.cap_X.
           if (ctx.liftedContext !== null) {
             const fieldName = ctx.liftedContext.captureFields.get(targetSym.id);
@@ -196,7 +195,7 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
 function rawIdentTarget(ctx: FnLowerCtx, expr: A.IdentExpr): LoweredExpr {
   const sym = ctx.typed.resolved.idents.get(expr);
   if (sym === undefined) return lowerExpr(ctx, expr);
-  const type = applySubst(ctx.typed.exprTypes.get(expr) ?? TY.unresolved, ctx.subst);
+  const type = ctx.types.exprType(expr);
   return { kind: "LoweredIdent", span: expr.span, type, symbol: sym };
 }
 

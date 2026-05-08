@@ -88,6 +88,13 @@ export function findManifestRoot(start: string): string | null {
   }
 }
 
+/** Trust boundary anchor for the comptime sandbox's `@file` containment.
+ *  Prefers the nearest `vader.json` directory; falls back to the entry
+ *  file's dir when no manifest exists (e.g. ad-hoc snippets, tests). */
+export function defaultProjectRoot(entryFile: string): string {
+  return findManifestRoot(entryFile) ?? resolvePath(dirname(entryFile));
+}
+
 export function readManifest(projectRoot: string): VaderManifest | null {
   const manifestPath = join(projectRoot, "vader.json");
   if (!existsSync(manifestPath)) return null;

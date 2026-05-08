@@ -23,6 +23,7 @@ import type {
   LoweredProject, LoweredStmt,
 } from "../lower/lowered-ast.ts";
 import type { FnLowerCtx, LowerProjectCtx } from "../lower/ctx.ts";
+import { makeEntryTypes } from "../lower/entry-types.ts";
 import { lowerExpr } from "../lower/passes/expr.ts";
 import { lowerConstEntry, lowerFnEntry } from "../lower/lower.ts";
 
@@ -73,6 +74,7 @@ export function lowerComptimeDecl(input: CompileInput): CompileOutput | null {
   const mainEntry = makeMonoEntry(SYNTH_MAIN_NAME, synthFn, synthSym, callerProgram);
   const fnCtx: FnLowerCtx = {
     project: projectCtx, entry: mainEntry, typed: callerProgram, subst: EMPTY_SUBST,
+    types: makeEntryTypes(callerProgram, EMPTY_SUBST),
     returnType: defaultIfFree(resultType), selfType: null,
     blocks: [], uniq: 0, liftedContext: null,
   };
