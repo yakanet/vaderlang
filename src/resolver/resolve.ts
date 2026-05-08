@@ -446,6 +446,10 @@ function resolveWhereClause(w: A.WhereClause, scope: Scope, p: MutableProgram, i
 function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {
   switch (t.kind) {
     case "NamedType": {
+      // Implicit-dot named types (`is .Foo`) skip global lookup ; the
+      // typecheck pass resolves them against the surrounding context
+      // (scrutinee union variant, expected type, …).
+      if (t.implicitDot === true) return;
       const sym = lookup(scope, t.name);
       if (sym === null) err(input.diags, "R2007", t.span, `\`${t.name}\``);
       else p.types.set(t, resolveImportRedirect(sym, input));

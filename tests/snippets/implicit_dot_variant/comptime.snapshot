@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/implicit_dot_variant/_main.vader
+
+## generic instances
+  Yielded(Day)
+  Yielded(i32)
+  ArrayIter(Day)

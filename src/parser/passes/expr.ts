@@ -585,7 +585,22 @@ function parsePattern(p: Parser): A.Pattern {
   }
   if (t.kind === "kw_is") {
     p.advance();
-    const type = parseType(p);
+    let type: A.TypeExpr;
+    if (p.check("dot")) {
+      // `is .Foo` — implicit-dot variant, resolved against the match
+      // scrutinee at typecheck time. Plain `parseType` would reject the
+      // leading dot, so we synthesise a flagged `NamedType` directly.
+      const dotTok = p.advance();
+      const variantTok = p.expect("ident", "variant name after `.`");
+      type = {
+        kind: "NamedType",
+        span: { start: dotTok.span.start, end: variantTok.span.end },
+        name: variantTok.text,
+        implicitDot: true,
+      };
+    } else {
+      type = parseType(p);
+    }
     let inner: A.Pattern | null = null;
     if (p.check("lbrace")) {
       inner = parseStructPattern(p);

@@ -1,0 +1,45 @@
+import "std/io" { println }
+
+// `.Variant` shorthand triggers when the expected type at the call site
+// supplies the variant set : enum literals, tagged-union match arms, and
+// array elements all resolve the leading-dot name without a fully
+// qualified prefix. Plain global lookup is bypassed (R2007 is suppressed
+// in the resolver for `implicitDot` named types) — the typechecker
+// resolves them against the scrutinee / expected type instead.
+
+Day :: enum { Monday, Tuesday, Wednesday }
+
+Some :: struct { value: i32 }
+None :: struct {}
+Maybe :: type Some | None
+
+show_day :: fn(d: Day) -> string {
+    return match d {
+        .Monday    -> "Mon"
+        .Tuesday   -> "Tue"
+        .Wednesday -> "Wed"
+    }
+}
+
+main :: fn() -> i32 {
+    // Direct assignment to enum-typed variable.
+    a: Day = .Monday
+    println(show_day(a))
+
+    // Array literal of `Day` — every element uses the leading-dot form.
+    days: Day[] = [.Monday, .Wednesday]
+    for d in days { println(show_day(d)) }
+
+    // Tagged union : `is .Some` / `is .None` resolves against `Maybe`.
+    m: Maybe = Some { .value = 42 }
+    match m {
+        is .Some -> println("got=${m.value}")
+        is .None -> println("nothing")
+    }
+    n: Maybe = None {}
+    match n {
+        is .Some -> println("got=${n.value}")
+        is .None -> println("nothing")
+    }
+    return 0
+}

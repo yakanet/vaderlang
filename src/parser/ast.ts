@@ -684,6 +684,13 @@ export interface NamedType {
   readonly kind: "NamedType";
   readonly span: Span;
   readonly name: string;
+  /** Set when the source spelling was a leading-dot reference (`.Foo`)
+   *  rather than a fully-qualified name. Resolution of such names
+   *  defers to the surrounding context (typically the scrutinee of a
+   *  `match` arm or the expected type of an expression).  Plain global
+   *  symbol lookup is skipped — the resolver leaves the type unresolved
+   *  and the typechecker walks the contextual variant set instead. */
+  readonly implicitDot?: boolean;
 }
 
 export interface UnionType {

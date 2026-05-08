@@ -35,7 +35,9 @@ export function inferMatch(
     if (arm.pattern.kind === "TuplePattern" && isIrrefutableTuple(arm.pattern)) hasWildcard = true;
     let narrowed: Type | null = null;
     if (arm.pattern.kind === "IsPattern") {
-      const variantTy = lowerTypeExpr(arm.pattern.type, t, diags);
+      const variantTy = arm.pattern.type.kind === "NamedType" && arm.pattern.type.implicitDot === true
+        ? resolveImplicitDotVariant(arm.pattern.type, scrut, t, diags)
+        : lowerTypeExpr(arm.pattern.type, t, diags);
       coveredVariants.add(displayType(variantTy));
       narrowed = variantTy;
     }
@@ -86,6 +88,31 @@ export function inferMatch(
   }
 
   return armTypes.length === 0 ? TY.never : unionOf(armTypes);
+}
+
+/** Resolve `is .Foo` against the match scrutinee. Walks the scrutinee's
+ *  union variants for a struct/enum/trait whose name matches the dot
+ *  reference. Falls back to `Unresolved` (with a T3007 diagnostic) when
+ *  the variant isn't found ; downstream coverage checks still run on
+ *  whatever was emitted so cascading errors stay minimal. */
+function resolveImplicitDotVariant(
+  type: A.NamedType, scrut: Type, t: MutableTyped, diags: DiagnosticCollector,
+): Type {
+  if (scrut.kind === "Union") {
+    for (const v of scrut.variants) {
+      if (v.kind === "Struct" && v.symbol.name === type.name) {
+        t.globals.typeExprTypes.set(type, v);
+        return v;
+      }
+      if (v.kind === "Enum" && v.symbol.name === type.name) {
+        t.globals.typeExprTypes.set(type, v);
+        return v;
+      }
+    }
+  }
+  err(diags, "R2007", type.span,
+    `\`.${type.name}\` (no variant named \`${type.name}\` on ${displayType(scrut)})`);
+  return TY.unresolved;
 }
 
 /** A TuplePattern is irrefutable when every element is itself irrefutable

@@ -179,6 +179,10 @@
     "leakedNodes": 3,
     "leakedBytes": 240
   },
+  "implicit_dot_variant": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
   "interpolation": {
     "leakedNodes": 1,
     "leakedBytes": 80

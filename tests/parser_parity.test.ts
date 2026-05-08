@@ -59,6 +59,10 @@ const KNOWN_FAILURES = new Set<string>([
   // AssertDecl ; the Vader self-host parser still treats `@assert` as a
   // regular decorator and attaches it to the next decl. Port pending.
   "decorator_assert",
+  // `is .Foo` resolves against the scrutinee (implicit-dot NamedType) on
+  // the TS side ; the self-host parser still calls `parse_type` after
+  // `is` and rejects the leading dot. Port pending.
+  "implicit_dot_variant",
 ]);
 
 const SKIP_ALL = false;
