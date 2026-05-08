@@ -666,11 +666,11 @@ function internType(ctx: EmitterCtx, t: Type): number {
   const idx = ctx.types.length;
   ctx.types.push({ kind: "ref", traitName: null });
   ctx.typeKey.set(key, idx);
-  ctx.types[idx] = bcTypeOf(t, ctx);
+  ctx.types[idx] = bcTypeOf(t, ctx, idx);
   return idx;
 }
 
-function bcTypeOf(t: Type, ctx: EmitterCtx): BcType {
+function bcTypeOf(t: Type, ctx: EmitterCtx, slotIdx: number): BcType {
   switch (t.kind) {
     case "Primitive": return { kind: "primitive", val: primitiveToVal(t.name) };
     case "Enum":      return { kind: "primitive", val: primitiveToVal(t.repr) };
@@ -684,12 +684,15 @@ function bcTypeOf(t: Type, ctx: EmitterCtx): BcType {
     case "Tuple": {
       // Synthesise an anonymous struct with fields `_0`, `_1`, ... in element
       // order. The C-emit treats it like any other struct ; the GC scan walks
-      // ref-typed slots via the per-type pointer map.
+      // ref-typed slots via the per-type pointer map. The mangled name uses
+      // the slot index so two distinct tuple shapes never share a C struct
+      // (`[i32, string]` and `[bool, string]` both have arity 2 but emit
+      // different `__Tuple_<idx>` types).
       const fields = t.elements.map((e, i) => ({
         name: `_${i}`,
         typeIndex: internType(ctx, e),
       }));
-      return { kind: "struct", name: `__Tuple_${t.elements.length}`, fields };
+      return { kind: "struct", name: `__Tuple_${slotIdx}`, fields };
     }
     case "Union": return { kind: "union", variants: t.variants.map((v) => internType(ctx, v)) };
     case "Fn":    return {

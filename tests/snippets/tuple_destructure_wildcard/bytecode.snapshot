@@ -1,5 +1,5 @@
 module _main
-type 0 struct __Tuple_3 { _0:1,_1:2,_2:3 }
+type 0 struct __Tuple_0 { _0:1,_1:2,_2:3 }
 type 1 primitive i32
 type 2 primitive string
 type 3 primitive bool

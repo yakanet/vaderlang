@@ -62,13 +62,7 @@ const KNOWN_FAILURES = new Set([
   "std_string", "std_string_builder",
 ]);
 
-// Vader-side parser is currently out of sync with the new AST shape introduced
-// by the array→tuple migration (LetBinding, SeqLitExpr, TupleTypeExpr,
-// TuplePattern, postfix `T[]`). The TS parser produces the new shape ; the
-// Vader self-host parser still emits the old one. Skipping the entire suite
-// until the Vader-side parser is brought up to date — tracked as a follow-up
-// in the migration plan.
-const SKIP_ALL = true;
+const SKIP_ALL = false;
 
 const scenarios = listSnippets("tests/snippets");
 

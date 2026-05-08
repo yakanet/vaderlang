@@ -1,5 +1,5 @@
 module _main
-type 0 struct __Tuple_2 { _0:1,_1:2 }
+type 0 struct __Tuple_0 { _0:1,_1:2 }
 type 1 primitive i32
 type 2 primitive string
 string 0 "answer"

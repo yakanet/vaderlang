@@ -486,6 +486,7 @@ parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnBodyTail 
         is UnionType       -> true
         is FnTypeExpr      -> true
         is ArrayTypeExpr   -> true
+        is TupleTypeExpr   -> true
         is GenericInstType -> true
         is TypeParamType   -> true
     }
@@ -601,6 +602,7 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
                 is UnionType       -> { collect_type_params(ty, type_params) }
                 is FnTypeExpr      -> { collect_type_params(ty, type_params) }
                 is ArrayTypeExpr   -> { collect_type_params(ty, type_params) }
+                is TupleTypeExpr   -> { collect_type_params(ty, type_params) }
                 is GenericInstType -> { collect_type_params(ty, type_params) }
                 is TypeParamType   -> { collect_type_params(ty, type_params) }
             }
@@ -708,6 +710,7 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
                     is UnionType       -> "`${name.text}` must be prefixed with `\$`"
                     is FnTypeExpr      -> "`${name.text}` must be prefixed with `\$`"
                     is ArrayTypeExpr   -> "`${name.text}` must be prefixed with `\$`"
+                    is TupleTypeExpr   -> "`${name.text}` must be prefixed with `\$`"
                     is GenericInstType -> "`${name.text}` must be prefixed with `\$`"
                     is TypeParamType   -> "`${name.text}` must be prefixed with `\$`"
                 }
@@ -737,6 +740,7 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
                 is UnionType       -> true
                 is FnTypeExpr      -> true
                 is ArrayTypeExpr   -> true
+                is TupleTypeExpr   -> true
                 is GenericInstType -> true
                 is TypeParamType   -> true
             }
@@ -858,6 +862,18 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 
 parse_type :: fn(p: Parser) -> TypeExpr {
     head := p.parse_type_primary()
+    // Postfix `T[]` loop : `T[]`, `T[][]`, ... wraps `head` into an
+    // ArrayTypeExpr. Two-token lookahead `[ ]` keeps us from consuming a `[`
+    // that belongs to something else.
+    for p.check(.LBracket) && p.check_at(.RBracket, 1) {
+        p.advance()              // [
+        rb :: p.advance()        // ]
+        head_span :: type_span(head)
+        head = ArrayTypeExpr {
+            .span    = Span { .start = head_span.start, .end = rb.span.end },
+            .element = head,
+        }
+    }
     // `T!` desugars to `T | Error` (or `null | Error` for `void!`).
     if p.match_kind(.Bang).matched {
         bang_end :: p.peek_at(-1).span.end
@@ -870,6 +886,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
             is UnionType       -> head
             is FnTypeExpr      -> head
             is ArrayTypeExpr   -> head
+            is TupleTypeExpr   -> head
             is GenericInstType -> head
             is TypeParamType   -> head
         }
@@ -911,13 +928,63 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     if t.kind == .KwFn {
         return p.parse_fn_type()
     }
-    if t.kind == .LBracket {
-        start :: p.advance()
+    // Parenthesised type — used for grouping when postfix precedence would
+    // otherwise bind too tightly. e.g. `(T | U)[]` to mean "array of union".
+    if t.kind == .LParen {
+        p.advance()
+        p.skip_newlines()
         inner :: p.parse_type()
-        end :: p.expect(.RBracket, "`]` to close array type")
-        return ArrayTypeExpr {
-            .span    = p.span_of(start, end),
-            .element = inner,
+        p.skip_newlines()
+        p.expect(.RParen, "`)` to close parenthesised type")
+        return inner
+    }
+    if t.kind == .LBracket {
+        // Bracketed type form. Three readings :
+        //   `[T1, T2, ...]`  → tuple type (≥ 2 elements)
+        //   `[T,]`           → 1-tuple — forbidden (P1021)
+        //   `[T]`            → legacy array alias, hard-cut (P1024).
+        start :: p.advance()
+        elements: TypeExpr[] = []
+        p.skip_newlines()
+        if p.check(.RBracket) {
+            p.error(.ExpectedType, t.span, "empty `[]` is not a valid type")
+            end :: p.advance()
+            return TupleTypeExpr {
+                .span     = p.span_of(start, end),
+                .elements = elements,
+            }
+        }
+        elements.push(p.parse_type())
+        p.skip_newlines()
+        had_trailing_comma := false
+        for p.match_kind(.Comma).matched {
+            p.skip_newlines()
+            if p.check(.RBracket) {
+                had_trailing_comma = true
+                break
+            }
+            elements.push(p.parse_type())
+            p.skip_newlines()
+        }
+        end :: p.expect(.RBracket, "`]` to close bracketed type")
+        if elements.len() == 1 && !had_trailing_comma {
+            // Legacy `[T]` — array alias, retired.
+            p.error(.LegacyArrayType, p.span_of(start, end),
+                "use postfix `T[]` for array types ; `[T]` is now reserved for tuples (≥ 2 elements)")
+            // Best-effort recovery as ArrayTypeExpr so downstream phases get a
+            // usable shape.
+            return ArrayTypeExpr {
+                .span    = p.span_of(start, end),
+                .element = elements[0],
+            }
+        }
+        if elements.len() == 1 && had_trailing_comma {
+            p.error(.OneTupleNotAllowed, p.span_of(start, end),
+                "use a struct or a plain value instead")
+        }
+        return TupleTypeExpr {
+            .span     = p.span_of(start, end),
+            .elements = elements,
         }
     }
     if t.kind == .KwNull {
@@ -1019,11 +1086,15 @@ collect_type_params :: fn(t: TypeExpr, out: TypeParam[]) -> void {
                 is UnionType -> { collect_type_params(return_type, out) }
                 is FnTypeExpr -> { collect_type_params(return_type, out) }
                 is ArrayTypeExpr -> { collect_type_params(return_type, out) }
+                is TupleTypeExpr -> { collect_type_params(return_type, out) }
                 is GenericInstType -> { collect_type_params(return_type, out) }
                 is TypeParamType -> { collect_type_params(return_type, out) }
             }
         }
         is ArrayTypeExpr  -> { collect_type_params(t.element, out) }
+        is TupleTypeExpr  -> {
+            for e in t.elements { collect_type_params(e, out) }
+        }
         is GenericInstType -> {
             for a in t.args { collect_type_params(a, out) }
         }
@@ -1037,6 +1108,7 @@ type_span :: fn(t: TypeExpr) = match t {
     is UnionType       -> t.span
     is FnTypeExpr      -> t.span
     is ArrayTypeExpr   -> t.span
+    is TupleTypeExpr   -> t.span
     is GenericInstType -> t.span
     is TypeParamType   -> t.span
 }
@@ -1060,7 +1132,7 @@ expr_span :: fn(e: Expr) = match e {
     is BlockExpr       -> e.span
     is LambdaExpr      -> e.span
     is StructLitExpr   -> e.span
-    is ArrayLitExpr    -> e.span
+    is SeqLitExpr      -> e.span
     is RangeExpr       -> e.span
     is TryExpr         -> e.span
     is CastExpr        -> e.span
@@ -1152,7 +1224,7 @@ parse_block :: fn(p: Parser) -> BlockExpr {
             is BlockExpr         -> { trailing = last_expr }
             is LambdaExpr        -> { trailing = last_expr }
             is StructLitExpr     -> { trailing = last_expr }
-            is ArrayLitExpr      -> { trailing = last_expr }
+            is SeqLitExpr        -> { trailing = last_expr }
             is RangeExpr         -> { trailing = last_expr }
             is TryExpr           -> { trailing = last_expr }
             is CastExpr          -> { trailing = last_expr }
@@ -1179,6 +1251,12 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
         label_tok :: p.advance()
         p.advance()  // `:`
         return p.parse_for(label_tok.text)
+    }
+    // Tuple-destructure let : `[a, b] := expr`, `[a, b] :: expr`, or
+    // `[a, b]: [int, string] = expr`. Detected by the `[` whose matching `]`
+    // is followed by `:=`, `::`, or `:` (typed form).
+    if p.check(.LBracket) && p.peek_tuple_let_start() {
+        return p.parse_tuple_let()
     }
     // `name :: expr` or `name := expr`
     if p.check(.Ident) && (p.check_at(.DeclConst, 1) || p.check_at(.DeclVar, 1)) {
@@ -1242,13 +1320,17 @@ parse_typed_let :: fn(p: Parser) -> LetStmt {
         p.expect(.Assign, "`=` or `:` after type annotation")
     }
     value :: p.parse_expr(0)
-    return LetStmt {
-        .span      = p.span_of(name_tok, p.peek_at(-1)),
-        .mutable   = mutable,
+    binding :: SimpleBinding {
+        .span      = name_tok.span,
         .name      = name_tok.text,
         .name_span = name_tok.span,
-        .ty        = ty,
-        .value     = value,
+    }
+    return LetStmt {
+        .span    = p.span_of(name_tok, p.peek_at(-1)),
+        .mutable = mutable,
+        .binding = binding,
+        .ty      = ty,
+        .value   = value,
     }
 }
 
@@ -1257,13 +1339,112 @@ parse_let :: fn(p: Parser) -> LetStmt {
     decl_tok :: p.advance()  // `::` or `:=`
     mutable :: decl_tok.kind == .DeclVar
     value :: p.parse_expr(0)
-    return LetStmt {
-        .span      = p.span_of(name_tok, p.peek_at(-1)),
-        .mutable   = mutable,
+    binding :: SimpleBinding {
+        .span      = name_tok.span,
         .name      = name_tok.text,
         .name_span = name_tok.span,
-        .ty        = null,
-        .value     = value,
+    }
+    return LetStmt {
+        .span    = p.span_of(name_tok, p.peek_at(-1)),
+        .mutable = mutable,
+        .binding = binding,
+        .ty      = null,
+        .value   = value,
+    }
+}
+
+// Lookahead : after the leading `[`, scan past the matching `]` and check
+// whether the next significant token starts a let-destructure (`::`, `:=`, or
+// `:` for the typed form). Returns false otherwise.
+peek_tuple_let_start :: fn(p: Parser) -> bool {
+    depth := 1
+    j := p.pos + 1
+    n :: p.tokens.len()
+    for j < n && depth > 0 {
+        k :: p.tokens[j].kind
+        if k == .Eof { return false }
+        if k == .LBracket { depth = depth + 1 }
+        else if k == .RBracket {
+            depth = depth - 1
+            if depth == 0 { break }
+        }
+        j = j + 1
+    }
+    if depth != 0 { return false }
+    i := j + 1
+    for i < n && p.tokens[i].kind == .Newline { i = i + 1 }
+    if i >= n { return false }
+    next :: p.tokens[i].kind
+    return next == .DeclConst || next == .DeclVar || next == .Colon
+}
+
+parse_tuple_let :: fn(p: Parser) -> LetStmt {
+    start :: p.peek()
+    binding :: p.parse_let_binding()
+    ty: TypeExpr | null = null
+    mutable := true
+    if p.check(.Colon) {
+        p.advance()
+        ty = p.parse_type()
+        sep :: p.peek()
+        if sep.kind == .Colon {
+            p.advance()
+            mutable = false
+        } else {
+            p.expect(.Assign, "`=` or `:` after type annotation")
+        }
+    } else {
+        decl_tok :: p.peek()
+        if decl_tok.kind == .DeclConst || decl_tok.kind == .DeclVar {
+            p.advance()
+            mutable = decl_tok.kind == .DeclVar
+        } else {
+            p.expect(.DeclVar, "`:=`, `::`, or `:` after destructure pattern")
+        }
+    }
+    value :: p.parse_expr(0)
+    return LetStmt {
+        .span    = p.span_of(start, p.peek_at(-1)),
+        .mutable = mutable,
+        .binding = binding,
+        .ty      = ty,
+        .value   = value,
+    }
+}
+
+parse_let_binding :: fn(p: Parser) -> LetBinding {
+    if p.check(.LBracket) {
+        start :: p.advance()
+        p.skip_newlines()
+        elements: LetBinding[] = []
+        if !p.check(.RBracket) {
+            for {
+                p.skip_newlines()
+                if p.check(.RBracket) { break }
+                elements.push(p.parse_let_binding())
+                p.skip_newlines()
+                if !p.match_kind(.Comma).matched { break }
+                p.skip_newlines()
+            }
+        }
+        end :: p.expect(.RBracket, "`]` to close destructure pattern")
+        if elements.len() < 2 {
+            p.error(.LetDestructureRequiresTwoElements, p.span_of(start, end), "")
+        }
+        return TupleBinding {
+            .span     = p.span_of(start, end),
+            .elements = elements,
+        }
+    }
+    if p.check(.Ident) && p.peek().text == "_" {
+        tok :: p.advance()
+        return WildcardBinding { .span = tok.span }
+    }
+    tok :: p.expect(.Ident, "binding name in destructure pattern")
+    return SimpleBinding {
+        .span      = tok.span,
+        .name      = tok.text,
+        .name_span = tok.span,
     }
 }
 
@@ -1681,7 +1862,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     if t.kind == .StringBegin { return p.parse_string_lit() }
     if t.kind == .Ident       { return p.parse_ident_or_struct_lit() }
     if t.kind == .LParen      { return p.parse_paren() }
-    if t.kind == .LBracket    { return p.parse_array_lit() }
+    if t.kind == .LBracket    { return p.parse_seq_lit() }
     if t.kind == .LBrace      { return p.parse_block() }
     if t.kind == .Minus || t.kind == .Bang || t.kind == .Tilde {
         p.advance()
@@ -1726,12 +1907,25 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     }
     if t.kind == .Dot {
         p.advance()
+        // Numeric tuple-index access `t.0`, `t.1`, ... — the lowerer rewrites
+        // these to synthetic field names `_0`, `_1`, ...
+        if p.check(.IntLit) {
+            num_tok :: p.advance()
+            return FieldExpr {
+                .span       = Span { .start = expr_span(left).start, .end = num_tok.span.end },
+                .target     = left,
+                .field      = num_tok.text,
+                .field_span = num_tok.span,
+                .is_numeric = true,
+            }
+        }
         name :: p.expect(.Ident, "field name after `.`")
         return FieldExpr {
             .span       = Span { .start = expr_span(left).start, .end = name.span.end },
             .target     = left,
             .field      = name.text,
             .field_span = name.span,
+            .is_numeric = false,
         }
     }
     if t.kind == .LParen {
@@ -1909,7 +2103,7 @@ parse_paren :: fn(p: Parser) -> Expr {
     return expr
 }
 
-parse_array_lit :: fn(p: Parser) -> ArrayLitExpr {
+parse_seq_lit :: fn(p: Parser) -> SeqLitExpr {
     lb :: p.advance()
     elements: Expr[] = []
     p.skip_newlines()
@@ -1923,8 +2117,8 @@ parse_array_lit :: fn(p: Parser) -> ArrayLitExpr {
             p.skip_newlines()
         }
     }
-    rb :: p.expect(.RBracket, "`]` to close array literal")
-    return ArrayLitExpr {
+    rb :: p.expect(.RBracket, "`]` to close seq literal")
+    return SeqLitExpr {
         .span     = p.span_of(lb, rb),
         .elements = elements,
     }
@@ -2104,9 +2298,36 @@ parse_pattern :: fn(p: Parser) -> Pattern {
         p.advance()
         return BindingPattern { .span = t.span, .name = t.text }
     }
+    if t.kind == .LBracket {
+        return p.parse_tuple_pattern()
+    }
     p.error(.ExpectedPattern, t.span, "got ${describe_token(t)}")
     p.advance()
     return WildcardPattern { .span = t.span }
+}
+
+parse_tuple_pattern :: fn(p: Parser) -> TuplePattern {
+    start :: p.advance()  // `[`
+    p.skip_newlines()
+    elements: Pattern[] = []
+    if !p.check(.RBracket) {
+        for {
+            p.skip_newlines()
+            if p.check(.RBracket) { break }
+            elements.push(p.parse_pattern())
+            p.skip_newlines()
+            if !p.match_kind(.Comma).matched { break }
+            p.skip_newlines()
+        }
+    }
+    end :: p.expect(.RBracket, "`]` to close tuple pattern")
+    if elements.len() < 2 {
+        p.error(.TuplePatternRequiresTwoElements, p.span_of(start, end), "")
+    }
+    return TuplePattern {
+        .span     = p.span_of(start, end),
+        .elements = elements,
+    }
 }
 
 parse_struct_pattern :: fn(p: Parser) -> StructPattern {

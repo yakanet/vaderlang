@@ -1,0 +1,29 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_string 
+  trait            public   Index 
+  trait            public   IndexSet 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Rem 
+  fn               public   string_concat 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=43 types=83 params=47 locals=3 typeParams=8 fields=0
+
+## tests/snippets/seq_lit_arity_err/_main.vader
+  fn               public   main 
+  refs: idents=0 types=3 params=0 locals=1 typeParams=0 fields=0

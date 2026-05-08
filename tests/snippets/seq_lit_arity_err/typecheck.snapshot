@@ -1,0 +1,10 @@
+# Typecheck
+
+## tests/snippets/seq_lit_arity_err/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 4:27     SeqLitExpr     :: [i32, string, bool]
+  expr 4:31     StringLitExpr  :: string
+
+# Diagnostics
+[4:5] error[T3001] type mismatch: expected [i32, string], got [i32, string, bool]
+[4:27] error[T3001] type mismatch: expected [i32, string] (2 element(s)), got 3

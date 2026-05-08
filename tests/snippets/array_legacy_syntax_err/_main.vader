@@ -1,0 +1,7 @@
+// Legacy prefix `[T]` array syntax was hard-cut → P1024. The modern form is
+// postfix `T[]`. The bracketed `[T1, T2, ...]` shape is reserved for tuples.
+
+main :: fn() -> i32 {
+    items: [i32] = [1, 2, 3]
+    return 0
+}

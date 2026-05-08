@@ -48,6 +48,10 @@ export ParserCode :: enum(u8) {
     TypeParamMustBePrefixedWithDollar,      // P1018
     TypeBoundRedundant,                     // P1019
     ExprBodiedFnExplicitReturnType,         // P1020
+    OneTupleNotAllowed,                     // P1021
+    TuplePatternRequiresTwoElements,        // P1022
+    LetDestructureRequiresTwoElements,      // P1023
+    LegacyArrayType,                        // P1024
 }
 
 // `(id, message)` for a code, in one shot. The wire ID stays aligned with
@@ -94,6 +98,10 @@ export parser_info :: fn(c: ParserCode) = match c {
     .TypeParamMustBePrefixedWithDollar  -> CodeInfo { .id = "P1018", .message = "type parameter must be prefixed with `$`" }
     .TypeBoundRedundant                 -> CodeInfo { .id = "P1019", .message = "`: type` bound is redundant; write `\$T` instead" }
     .ExprBodiedFnExplicitReturnType     -> CodeInfo { .id = "P1020", .message = "expression-bodied function cannot also declare an explicit return type" }
+    .OneTupleNotAllowed                 -> CodeInfo { .id = "P1021", .message = "1-tuple types are not allowed" }
+    .TuplePatternRequiresTwoElements    -> CodeInfo { .id = "P1022", .message = "tuple pattern requires at least 2 elements" }
+    .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
+    .LegacyArrayType                    -> CodeInfo { .id = "P1024", .message = "legacy array type `[T]` is no longer accepted" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

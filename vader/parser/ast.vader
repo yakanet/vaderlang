@@ -22,17 +22,19 @@ export ForForm :: type InfiniteFor | WhileFor | InFor
 
 export DeferBody :: type DeferStmtBody | DeferBlockBody
 
-export Expr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | ArrayLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr
+export Expr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr
 
 export StringLitPart :: type StringLitText | StringLitInterp
 
 export IfElse :: type IfElseIf | IfElseBlock
 
-export Pattern :: type IsPattern | StructPattern | WildcardPattern | BindingPattern | EnumVariantPattern
+export Pattern :: type IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern
+
+export LetBinding :: type SimpleBinding | TupleBinding | WildcardBinding
 
 export PatternFieldValue :: type PatternBinding | PatternLiteral
 
-export TypeExpr :: type NamedType | UnionType | FnTypeExpr | ArrayTypeExpr | GenericInstType | TypeParamType
+export TypeExpr :: type NamedType | UnionType | FnTypeExpr | ArrayTypeExpr | TupleTypeExpr | GenericInstType | TypeParamType
 
 // ============================================================================
 // Visibility / shared shapes
@@ -224,12 +226,29 @@ export ConstDecl :: struct {
 // ============================================================================
 
 export LetStmt :: struct {
+    span:    Span
+    mutable: bool
+    binding: LetBinding
+    ty:      TypeExpr | null
+    value:   Expr
+}
+
+// Recursive let-binding tree. Leaves are `SimpleBinding` (introduces a name)
+// or `WildcardBinding` (ignores the slot). `TupleBinding` matches tuple-typed
+// values element-wise.
+export SimpleBinding :: struct {
     span:      Span
-    mutable:   bool
     name:      string
     name_span: Span
-    ty:        TypeExpr | null
-    value:     Expr
+}
+
+export TupleBinding :: struct {
+    span:     Span
+    elements: LetBinding[]
+}
+
+export WildcardBinding :: struct {
+    span: Span
 }
 
 export AssignStmt :: struct {
@@ -349,6 +368,9 @@ export FieldExpr :: struct {
     target:     Expr
     field:      string
     field_span: Span
+    // True when the field was written as an integer literal (`t.0`). Used by
+    // the lowerer to map onto synthetic tuple fields `_0`, `_1`, ...
+    is_numeric: bool
 }
 
 export IndexExpr :: struct {
@@ -439,7 +461,9 @@ export StructLitField :: struct {
     value:     Expr
 }
 
-export ArrayLitExpr :: struct {
+// Bracketed literal `[e1, e2, ...]`. The parser does not commit to "array"
+// vs "tuple" — the typechecker decides via contextual disambiguation.
+export SeqLitExpr :: struct {
     span:     Span
     elements: Expr[]
 }
@@ -492,6 +516,12 @@ export StructPattern :: struct {
     fields: StructPatternField[]
 }
 
+// Tuple destructure pattern `[p1, p2, ...]`. Element-wise sub-patterns.
+export TuplePattern :: struct {
+    span:     Span
+    elements: Pattern[]
+}
+
 export StructPatternField :: struct {
     span:      Span
     name:      string
@@ -537,6 +567,12 @@ export FnTypeExpr :: struct {
 export ArrayTypeExpr :: struct {
     span:    Span
     element: TypeExpr
+}
+
+// Tuple type `[T1, T2, ...]`. Always ≥ 2 elements (1-tuples are forbidden).
+export TupleTypeExpr :: struct {
+    span:     Span
+    elements: TypeExpr[]
 }
 
 export GenericInstType :: struct {

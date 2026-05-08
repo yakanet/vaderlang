@@ -1,0 +1,3 @@
+# compile errors
+[T3001] type mismatch: expected [i32, string], got [i32, string, bool]
+[T3001] type mismatch: expected [i32, string] (2 element(s)), got 3

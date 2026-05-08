@@ -1,0 +1,2 @@
+# compile errors
+[P1024] legacy array type `[T]` is no longer accepted: use postfix `T[]` for array types ; `[T]` is now reserved for tuples (≥ 2 elements)

@@ -1,0 +1,9 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    record: [[i32, string], bool] = [[42, "answer"], true]
+    match record {
+        [[id, label], active] -> println("id=${id} label=${label} active=${active}")
+    }
+    return 0
+}

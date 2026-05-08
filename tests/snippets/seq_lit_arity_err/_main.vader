@@ -1,0 +1,6 @@
+// Annotated tuple with mismatched arity → T3001.
+
+main :: fn() -> i32 {
+    pair: [i32, string] = [1, "x", true]
+    return 0
+}

@@ -1,0 +1,15 @@
+# Typecheck
+
+## tests/snippets/tuple_match_nested/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 4:37     SeqLitExpr     :: [[i32, string], bool]
+  expr 4:38     SeqLitExpr     :: [i32, string]
+  expr 4:43     StringLitExpr  :: string
+  expr 5:11     IdentExpr      :: [[i32, string], bool]
+  expr 5:5      MatchExpr      :: void
+  expr 6:34     CallExpr       :: void
+  expr 6:34     IdentExpr      :: fn(string) -> void
+  expr 6:42     StringLitExpr  :: string
+  expr 6:48     IdentExpr      :: ?
+  expr 6:60     IdentExpr      :: ?
+  expr 6:76     IdentExpr      :: ?

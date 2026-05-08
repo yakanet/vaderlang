@@ -558,6 +558,7 @@ write_optional_type :: fn(sb: StringBuilder, t: TypeExpr | null, level: i32) -> 
         is UnionType       -> { write_type(sb, t, level) }
         is FnTypeExpr      -> { write_type(sb, t, level) }
         is ArrayTypeExpr   -> { write_type(sb, t, level) }
+        is TupleTypeExpr   -> { write_type(sb, t, level) }
         is GenericInstType -> { write_type(sb, t, level) }
         is TypeParamType   -> { write_type(sb, t, level) }
     }
@@ -593,6 +594,13 @@ write_type :: fn(sb: StringBuilder, t: TypeExpr, level: i32) -> void {
             kind_entry(sb, level + 1, "ArrayTypeExpr")
             entry(sb, false, level + 1, "element")
             write_type(sb, t.element, level + 1)
+            close_obj(sb, level)
+        }
+        is TupleTypeExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "TupleTypeExpr")
+            entry(sb, false, level + 1, "elements")
+            write_types(sb, t.elements, level + 1)
             close_obj(sb, level)
         }
         is GenericInstType -> {
@@ -642,8 +650,8 @@ write_stmt :: fn(sb: StringBuilder, s: Stmt, level: i32) -> void {
             kind_entry(sb, level + 1, "LetStmt")
             entry(sb, false, level + 1, "mutable")
             write_bool(sb, s.mutable)
-            entry(sb, false, level + 1, "name")
-            write_string(sb, s.name)
+            entry(sb, false, level + 1, "binding")
+            write_let_binding(sb, s.binding, level + 1)
             entry(sb, false, level + 1, "type")
             write_optional_type(sb, s.ty, level + 1)
             entry(sb, false, level + 1, "value")
@@ -772,7 +780,7 @@ write_optional_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void
         is BlockExpr -> { write_expr(sb, e, level) }
         is LambdaExpr -> { write_expr(sb, e, level) }
         is StructLitExpr -> { write_expr(sb, e, level) }
-        is ArrayLitExpr -> { write_expr(sb, e, level) }
+        is SeqLitExpr -> { write_expr(sb, e, level) }
         is RangeExpr -> { write_expr(sb, e, level) }
         is TryExpr -> { write_expr(sb, e, level) }
         is CastExpr -> { write_expr(sb, e, level) }
@@ -877,6 +885,12 @@ write_expr :: fn(sb: StringBuilder, e: Expr, level: i32) -> void {
             write_expr(sb, e.target, level + 1)
             entry(sb, false, level + 1, "field")
             write_string(sb, e.field)
+            // Mirror TS : `isNumeric` is emitted only when true (TS treats it
+            // as an optional that's undefined-by-default).
+            if e.is_numeric {
+                entry(sb, false, level + 1, "isNumeric")
+                write_bool(sb, true)
+            }
             close_obj(sb, level)
         }
         is IndexExpr -> {
@@ -955,9 +969,9 @@ write_expr :: fn(sb: StringBuilder, e: Expr, level: i32) -> void {
             write_struct_lit_fields(sb, e.fields, level + 1)
             close_obj(sb, level)
         }
-        is ArrayLitExpr -> {
+        is SeqLitExpr -> {
             open_obj(sb)
-            kind_entry(sb, level + 1, "ArrayLitExpr")
+            kind_entry(sb, level + 1, "SeqLitExpr")
             entry(sb, false, level + 1, "elements")
             write_exprs(sb, e.elements, level + 1)
             close_obj(sb, level)
@@ -1123,6 +1137,64 @@ write_match_arms :: fn(sb: StringBuilder, arms: MatchArm[], level: i32) -> void 
     close_arr(sb, level)
 }
 
+write_let_binding :: fn(sb: StringBuilder, b: LetBinding, level: i32) -> void {
+    match b {
+        is SimpleBinding -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "SimpleBinding")
+            entry(sb, false, level + 1, "name")
+            write_string(sb, b.name)
+            close_obj(sb, level)
+        }
+        is TupleBinding -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "TupleBinding")
+            entry(sb, false, level + 1, "elements")
+            write_let_bindings(sb, b.elements, level + 1)
+            close_obj(sb, level)
+        }
+        is WildcardBinding -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "WildcardBinding")
+            close_obj(sb, level)
+        }
+    }
+}
+
+write_let_bindings :: fn(sb: StringBuilder, bs: LetBinding[], level: i32) -> void {
+    if bs.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for b in bs {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        write_let_binding(sb, b, level + 1)
+    }
+    close_arr(sb, level)
+}
+
+write_patterns :: fn(sb: StringBuilder, ps: Pattern[], level: i32) -> void {
+    if ps.len() == 0 {
+        close_arr_empty(sb)
+        return
+    }
+    open_arr(sb)
+    first := true
+    for p in ps {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        indent(sb, level + 1)
+        write_pattern(sb, p, level + 1)
+    }
+    close_arr(sb, level)
+}
+
 write_pattern :: fn(sb: StringBuilder, p: Pattern, level: i32) -> void {
     match p {
         is IsPattern -> {
@@ -1137,6 +1209,7 @@ write_pattern :: fn(sb: StringBuilder, p: Pattern, level: i32) -> void {
                 is null                  -> { write_null(sb) }
                 is IsPattern -> { write_pattern(sb, inner, level + 1) }
                 is StructPattern -> { write_pattern(sb, inner, level + 1) }
+                is TuplePattern -> { write_pattern(sb, inner, level + 1) }
                 is WildcardPattern -> { write_pattern(sb, inner, level + 1) }
                 is BindingPattern -> { write_pattern(sb, inner, level + 1) }
                 is EnumVariantPattern -> { write_pattern(sb, inner, level + 1) }
@@ -1155,6 +1228,13 @@ write_pattern :: fn(sb: StringBuilder, p: Pattern, level: i32) -> void {
             kind_entry(sb, level + 1, "StructPattern")
             entry(sb, false, level + 1, "fields")
             write_struct_pattern_fields(sb, p.fields, level + 1)
+            close_obj(sb, level)
+        }
+        is TuplePattern -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "TuplePattern")
+            entry(sb, false, level + 1, "elements")
+            write_patterns(sb, p.elements, level + 1)
             close_obj(sb, level)
         }
         is WildcardPattern -> {

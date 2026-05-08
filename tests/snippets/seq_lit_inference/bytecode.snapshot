@@ -4,7 +4,7 @@ type 1 struct std_core$Yielded__i32 { value:2 }
 type 2 primitive i32
 type 3 struct std_core$ArrayIter__i32 { arr:4,cursor:2,length:2 }
 type 4 array 2
-type 5 struct __Tuple_2 { _0:2,_1:6 }
+type 5 struct __Tuple_5 { _0:2,_1:6 }
 type 6 primitive string
 string 0 "score="
 string 1 "answer"
