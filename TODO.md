@@ -608,6 +608,25 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [ ] **Function overloading by full signature** (post-MVP elevation of the pre-MVP receiver-type-only overloading) : pick the candidate whose all parameter types match the call site, not just the first. Subsumes pre-MVP behaviour ; requires generalising the resolver's overload table and the typechecker's call resolution.
 - [x] **Expression-bodied functions with explicit return type** (2026-05-08). The earlier P1020 restriction (`fn(...) -> T = expr` was rejected) is lifted on both the TS parser and the Vader self-host parser ; `declareFn` honours the annotation and `inferExprBodiedReturns` skips already-typed expression bodies. The double-`->` SAM-style alternative (`fn double(x: i32) -> i32 -> x * 2`) is not introduced — visual overload outweighs the savings. Snippet : `tests/snippets/expr_bodied_recursive_typed/`.
 - [ ] **Struct spread / functional update** : `MyStruct { ...other, .field = v }` — copy every field of `other`, override `.field`. The TS compiler relies massively on `{ ...r, typed }` style updates ; without this, the Vader port of the pipeline drivers (`src/pipeline.ts`) explodes from ~5 lines to ~80 lines per stage. Touches : parser (struct-literal grammar), typecheck (validate `other`'s type matches the struct), lowerer (expand to per-field copies).
+- [ ] **Struct field default values** : let a field declaration carry an initialiser used when the literal omits it.
+
+  ```vader
+  export NamedType :: struct {
+      span:         Span
+      name:         string
+      implicit_dot: bool = false
+  }
+
+  // call sites
+  v1 :: NamedType { .name = "x", .span = sp }                    // implicit_dot defaults to false
+  v2 :: NamedType { .name = "x", .span = sp, .implicit_dot = true }
+  ```
+
+  Required for new fields to land without a global rewrite of every existing literal — the port of `@partial`, `is .Foo`, etc. into the self-host parser had to update every `NamedType { … }` and `MatchExpr { … }` literal in `vader/parser/parser.vader` to set the new flag explicitly. With defaults, future struct evolution is back to a one-line change.
+
+  Touches : parser (struct-decl grammar accepts `field: T = expr`), resolver (resolve the default expression in the struct's scope, treat it as a comptime expression so it composes with `@comptime`), typecheck (validate the default's type matches the field, fold it in as the missing-field source for struct literals), lowerer (emit the default at struct-lit-emission time when a field is unset). Defaults must be comptime-evaluable to keep the literal allocation-free at runtime.
+
+  Estimate ~250 lines + tests. Compose nicely with the future struct-spread (`...other`) — both are about "fill in the unset fields", just with different sources.
 - [x] **Tuple types and destructuring** (2026-05-08). Bracketed type form `[T1, T2, ...]` (≥ 2 elements) introduces heterogeneous tuples ; the array form moved to postfix `T[]`. Disambiguation of seq literals is contextual (TS-style) : `[1, 2]` is an array, `[1, "x"]` is a tuple, annotations win. Field access via `t.0`, `t.1`. Destructuring works in `let` (`[a, b] := pair()` ; nested + wildcards supported) and in match arms (`[a, b] -> ...`). Tuples lower to anonymous structs with synthetic fields `_0`, `_1`, ... keyed by BC type slot index (`__Tuple_${slotIdx}`) so distinct shapes don't collide in C-emit — no new BC ops or runtime types. Hard cut on the legacy `[T]` form (P1024). Vader self-host parser synced (`vader/parser/{ast,parser,dump}.vader` + `vader/diagnostics/codes.vader`) so `parser_parity` runs at 128/130 again.
 - [ ] **Comptime tuple (and struct, array) values** — `@comptime DIM :: [10, 20]` typed as a tuple still fails with `C4011: comptime <kind> value not yet convertible`. The comptime `valueToComptime` (`src/comptime/run.ts:137-143`) bails on `struct`/`array`/`builder`/`fn` VM values without reading their fields. To unblock tuples specifically : (a) extend `ComptimeValue` (`src/comptime/value.ts`) with a `tuple` variant (or repurpose `struct` since tuples lower to anonymous structs and the back-emit can synthesise a struct lit), (b) read VM struct fields `_0`, `_1`, ... and recursively convert each, (c) re-emit the comptime tuple as a `LoweredStructLit` in `src/comptime/lower-decl.ts` so the inlined value compiles back. Scope estimate ~150 lines + tests. Also unblocks comptime structs / arrays since the same conversion path is shared. Today's workaround : keep comptime values primitive ; pass tuples via runtime-evaluated `:=`.
 - [ ] **Spread destructuring** : `let [first, ...rest] = arr`. TS uses this in CLI parsing and pipeline glue. Workaround : index manually (`arr[0]`, `arr.slice(1)`). Low-priority but ergonomic.
