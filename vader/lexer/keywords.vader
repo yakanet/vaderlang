@@ -38,8 +38,3 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
     return .Ident
 }
 
-export is_int_suffix :: fn(s: string) =
-    s == "i8" || s == "i16" || s == "i32" || s == "i64" ||
-    s == "u8" || s == "u16" || s == "u32" || s == "u64"
-
-export is_float_suffix :: fn(s: string) = s == "f32" || s == "f64"

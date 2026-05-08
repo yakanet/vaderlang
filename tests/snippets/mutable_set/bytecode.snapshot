@@ -14,14 +14,15 @@ string 2 "has 10? "
 string 3 "has 30? "
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 print std_io$print (string) -> void
-import 3 println std_io$println (string) -> void
-import 4 eprint std_io$eprint (string) -> void
-import 5 eprintln std_io$eprintln (string) -> void
-import 6 read_line std_io$read_line () -> ref
-import 7 read_file std_io$read_file (string) -> ref
-import 8 write_file std_io$write_file (string,string) -> ref
-import 9 exists std_io$exists (string) -> bool
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 3 print std_io$print (string) -> void
+import 4 println std_io$println (string) -> void
+import 5 eprint std_io$eprint (string) -> void
+import 6 eprintln std_io$eprintln (string) -> void
+import 7 read_line std_io$read_line () -> ref
+import 8 read_file std_io$read_file (string) -> ref
+import 9 write_file std_io$write_file (string,string) -> ref
+import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   local s ref
@@ -47,7 +48,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:6:19
   local.get 1   ; _main.vader:6:13
   intrinsic builder.finish   ; _main.vader:6:13
-  call.import 3   ; _main.vader:6:5
+  call.import 4   ; _main.vader:6:5
   intrinsic builder.new   ; _main.vader:7:13
   local.tee 2   ; _main.vader:7:13
   string.const 0   ; _main.vader:7:14
@@ -59,7 +60,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:7:19
   local.get 2   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 3   ; _main.vader:7:5
+  call.import 4   ; _main.vader:7:5
   intrinsic builder.new   ; _main.vader:8:13
   local.tee 3   ; _main.vader:8:13
   string.const 0   ; _main.vader:8:14
@@ -71,7 +72,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:8:19
   local.get 3   ; _main.vader:8:13
   intrinsic builder.finish   ; _main.vader:8:13
-  call.import 3   ; _main.vader:8:5
+  call.import 4   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
   local.tee 4   ; _main.vader:9:13
   string.const 1   ; _main.vader:9:14
@@ -82,7 +83,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:9:20
   local.get 4   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
-  call.import 3   ; _main.vader:9:5
+  call.import 4   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:10:13
   local.tee 5   ; _main.vader:10:13
   string.const 2   ; _main.vader:10:14
@@ -94,7 +95,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:10:22
   local.get 5   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
-  call.import 3   ; _main.vader:10:5
+  call.import 4   ; _main.vader:10:5
   intrinsic builder.new   ; _main.vader:11:13
   local.tee 6   ; _main.vader:11:13
   string.const 3   ; _main.vader:11:14
@@ -106,7 +107,7 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:11:22
   local.get 6   ; _main.vader:11:13
   intrinsic builder.finish   ; _main.vader:11:13
-  call.import 3   ; _main.vader:11:5
+  call.import 4   ; _main.vader:11:5
   i32.const 0   ; _main.vader:12:12
   return   ; _main.vader:12:5
 end
@@ -118,10 +119,10 @@ fn 1 std_core$i32$Hash$hash (i32) -> u64
 end
 
 fn 2 std_core$i32$Eq$equals (i32,i32) -> bool
-  local.get 0   ; core.vader:160:25
-  local.get 1   ; core.vader:160:33
-  i32.eq   ; core.vader:160:25
-  return   ; core.vader:160:25
+  local.get 0   ; core.vader:171:25
+  local.get 1   ; core.vader:171:33
+  i32.eq   ; core.vader:171:25
+  return   ; core.vader:171:25
 end
 
 fn 3 std_collections$bucket_index (u64) -> i32

@@ -7,9 +7,9 @@
 // stable when the same value is parsed by the TS BigInt-based parser. The
 // helpers below walk every variant explicitly — no reflection.
 
-import "std/string" { len, char_at, pad_start, ends_with }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
-import "std/numbers" { to_hex }
+import "std/string" { len, pad_start }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated, to_string }
+import "std/numbers" { to_hex, to_compact_str }
 
 export dump_program :: fn(prog: Program) -> string {
     sb := new_builder()
@@ -25,13 +25,11 @@ export dump_program :: fn(prog: Program) -> string {
 // JSON primitives (raw strings, indentation, key-value helpers)
 // ============================================================================
 
+// Local indentation helper — wraps `append_repeated` so existing call sites
+// that pass `level` (rather than the absolute space count) don't have to
+// multiply themselves. The 2-space stride matches the TS dumper.
 indent :: fn(sb: StringBuilder, level: i32) -> void {
-    i := 0
-    n :: level * 2
-    for i < n {
-        sb.append_char(' ')
-        i = i + 1
-    }
+    sb.append_repeated(' ', level * 2)
 }
 
 write_string :: fn(sb: StringBuilder, s: string) -> void {
@@ -39,7 +37,7 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
     n :: s.len()
     i := 0
     for i < n {
-        c :: s.char_at(i)
+        c :: s[i]
         if c == '"'  { sb.append("\\\"") }
         else if c == '\\' { sb.append("\\\\") }
         else if c == '\n' { sb.append("\\n") }
@@ -66,14 +64,9 @@ write_bigint :: fn(sb: StringBuilder, v: i64) -> void {
 }
 
 // Match JS `JSON.stringify` : integer-valued floats serialise without `.0`
-// (`10.0` → `"10"`), so the parity rig stays byte-aligned with the TS dumper.
+// (`10.0` → `"10"`). Delegates to `f64.to_compact_str` from std/numbers.
 write_f64 :: fn(sb: StringBuilder, v: f64) -> void {
-    s :: "${v}"
-    if s.ends_with(".0") {
-        sb.append(s.slice(0, s.len() - 2))
-    } else {
-        sb.append(s)
-    }
+    sb.append(v.to_compact_str())
 }
 
 write_null :: fn(sb: StringBuilder) -> void { sb.append("null") }
@@ -158,35 +151,35 @@ write_decl :: fn(sb: StringBuilder, d: Decl, level: i32) -> void {
 // ---- ImportDecl -----------------------------------------------------------
 
 write_import_decl :: fn(sb: StringBuilder, d: ImportDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "ImportDecl")
-    entry(sb, false, level + 1, "path")
-    write_string(sb, d.path)
-    entry(sb, false, level + 1, "binding")
-    write_import_binding(sb, d.binding, level + 1)
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.kind_entry(level + 1, "ImportDecl")
+    sb.entry(false, level + 1, "path")
+    sb.write_string(d.path)
+    sb.entry(false, level + 1, "binding")
+    sb.write_import_binding(d.binding, level + 1)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
+    sb.close_obj(level)
 }
 
 write_import_binding :: fn(sb: StringBuilder, b: ImportBinding, level: i32) -> void {
     open_obj(sb)
     match b {
         is NamespaceImport -> {
-            kind_entry(sb, level + 1, "namespace")
+            sb.kind_entry(level + 1, "namespace")
         }
         is AliasImport -> {
-            kind_entry(sb, level + 1, "alias")
-            entry(sb, false, level + 1, "alias")
-            write_string(sb, b.alias)
+            sb.kind_entry(level + 1, "alias")
+            sb.entry(false, level + 1, "alias")
+            sb.write_string(b.alias)
         }
         is DestructureImport -> {
-            kind_entry(sb, level + 1, "destructure")
-            entry(sb, false, level + 1, "names")
-            write_import_names(sb, b.names, level + 1)
+            sb.kind_entry(level + 1, "destructure")
+            sb.entry(false, level + 1, "names")
+            sb.write_import_names(b.names, level + 1)
         }
     }
-    close_obj(sb, level)
+    sb.close_obj(level)
 }
 
 write_import_names :: fn(sb: StringBuilder, names: ImportName[], level: i32) -> void {

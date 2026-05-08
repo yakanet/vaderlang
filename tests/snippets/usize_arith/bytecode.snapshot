@@ -1,14 +1,15 @@
 module _main
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 print std_io$print (string) -> void
-import 3 println std_io$println (string) -> void
-import 4 eprint std_io$eprint (string) -> void
-import 5 eprintln std_io$eprintln (string) -> void
-import 6 read_line std_io$read_line () -> ref
-import 7 read_file std_io$read_file (string) -> ref
-import 8 write_file std_io$write_file (string,string) -> ref
-import 9 exists std_io$exists (string) -> bool
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 3 print std_io$print (string) -> void
+import 4 println std_io$println (string) -> void
+import 5 eprint std_io$eprint (string) -> void
+import 6 eprintln std_io$eprintln (string) -> void
+import 7 read_line std_io$read_line () -> ref
+import 8 read_file std_io$read_file (string) -> ref
+import 9 write_file std_io$write_file (string,string) -> ref
+import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_usize_arith__main_vader$main () -> i32
   local n usize
@@ -25,7 +26,7 @@ fn 0 tests_snippets_usize_arith__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:6:14
   local.get 2   ; _main.vader:6:13
   intrinsic builder.finish   ; _main.vader:6:13
-  call.import 3   ; _main.vader:6:5
+  call.import 4   ; _main.vader:6:5
   i32.const 0   ; _main.vader:7:12
   return   ; _main.vader:7:5
 end

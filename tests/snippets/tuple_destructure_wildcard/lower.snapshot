@@ -13,15 +13,15 @@
       call :[i32, string, bool]
         callee:
           triple#2 :fn() -> [i32, string, bool]
-    let a#56: i32 =
+    let a#57: i32 =
       ._0 :i32
         __tup_0#-1 :[i32, string, bool]
-    let c#57: bool =
+    let c#58: bool =
       ._2 :bool
         __tup_0#-1 :[i32, string, bool]
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#28 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -31,13 +31,13 @@
             "a = " :string
           @builder.append_display <for i32> :void
             __sb_1#-2 :?
-            a#56 :i32
+            a#57 :i32
           ~>
             @builder.finish :string
               __sb_1#-2 :?
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#28 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -47,7 +47,7 @@
             "c = " :string
           @builder.append_display <for bool> :void
             __sb_2#-3 :?
-            c#57 :bool
+            c#58 :bool
           ~>
             @builder.finish :string
               __sb_2#-3 :?

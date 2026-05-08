@@ -19,10 +19,11 @@
   trait            public   Ord 
   struct           public   Range 
   trait            public   Rem 
+  fn               private  string_char_at 
   fn               public   string_concat 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=43 types=83 params=47 locals=3 typeParams=8 fields=0
+  refs: idents=46 types=91 params=51 locals=3 typeParams=8 fields=0
 
 ## std/io
   fn               public   eprint 
@@ -61,10 +62,12 @@
   fn               public   compare_ascending 
   fn               public   contains 
   fn               public   ends_with 
+  fn               public   is_alnum 
+  fn               public   is_alpha 
   fn               public   is_digit 
   fn               public   is_digit_in_base 
   fn               public   is_hex_digit 
-  fn               public   is_whitechar 
+  fn               public   is_white_char 
   fn               public   last_index_of 
   fn               public   len 
   import-binding   private  min → min
@@ -77,7 +80,7 @@
   fn               public   replace_chars_where 
   fn               public   slice 
   fn               public   split 
-  fn               public   split_whitespace 
+  fn               public   split_where 
   fn               public   starts_with 
   import-binding   private  StringBuilder → StringBuilder
   fn               public   to_lower 
@@ -88,25 +91,27 @@
   fn               public   trim_suffix 
   import std/string_builder → ok
   import std/math → ok
-  refs: idents=128 types=71 params=44 locals=23 typeParams=0 fields=0
+  refs: idents=135 types=75 params=47 locals=23 typeParams=0 fields=0
 
 ## std/string_builder
   fn               public   append 
   fn               public   append_char 
+  fn               public   append_repeated 
   fn               public   concat_all 
   fn               public   new_builder 
   struct           public   StringBuilder 
   fn               public   to_string 
-  refs: idents=6 types=13 params=6 locals=0 typeParams=0 fields=0
+  refs: idents=12 types=17 params=9 locals=1 typeParams=0 fields=0
 
 ## tests/snippets/regex_helpers/_main.vader
   fn               public   is_non_id 
+  import-binding   private  is_white_char → is_white_char
   fn               public   main 
   import-binding   private  println → println
   import-binding   private  replace_chars_where → replace_chars_where
-  import-binding   private  split_whitespace → split_whitespace
+  import-binding   private  split_where → split_where
   import-binding   private  trim_prefix → trim_prefix
   import-binding   private  trim_suffix → trim_suffix
   import std/io → ok
   import std/string → ok
-  refs: idents=29 types=3 params=1 locals=3 typeParams=0 fields=0
+  refs: idents=30 types=3 params=1 locals=3 typeParams=0 fields=0

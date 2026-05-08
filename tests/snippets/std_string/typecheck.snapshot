@@ -29,26 +29,22 @@
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(string) -> void
   expr 14:13    StringLitExpr  :: string
-  expr 14:16    CallExpr       :: char
-  expr 14:16    FieldExpr      :: fn(i32) -> char
+  expr 14:16    IndexExpr      :: char
   expr 14:16    StringLitExpr  :: string
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(string) -> void
   expr 15:13    StringLitExpr  :: string
-  expr 15:16    CallExpr       :: char
-  expr 15:16    FieldExpr      :: fn(i32) -> char
+  expr 15:16    IndexExpr      :: char
   expr 15:16    StringLitExpr  :: string
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(string) -> void
   expr 16:13    StringLitExpr  :: string
-  expr 16:16    CallExpr       :: char
-  expr 16:16    FieldExpr      :: fn(i32) -> char
+  expr 16:16    IndexExpr      :: char
   expr 16:16    StringLitExpr  :: string
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(string) -> void
   expr 17:13    StringLitExpr  :: string
-  expr 17:16    CallExpr       :: char
-  expr 17:16    FieldExpr      :: fn(i32) -> char
+  expr 17:16    IndexExpr      :: char
   expr 17:16    StringLitExpr  :: string
   expr 17:5     CallExpr       :: void
   expr 17:5     IdentExpr      :: fn(string) -> void

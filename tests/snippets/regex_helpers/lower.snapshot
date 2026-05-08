@@ -8,13 +8,13 @@
           l:
             gte :bool
               l:
-                c#116 :char
+                c#121 :char
               r:
                 char(0x30)
           r:
             lte :bool
               l:
-                c#116 :char
+                c#121 :char
               r:
                 char(0x39)
       then:
@@ -25,13 +25,13 @@
           l:
             gte :bool
               l:
-                c#116 :char
+                c#121 :char
               r:
                 char(0x61)
           r:
             lte :bool
               l:
-                c#116 :char
+                c#121 :char
               r:
                 char(0x7a)
       then:
@@ -42,13 +42,13 @@
           l:
             gte :bool
               l:
-                c#116 :char
+                c#121 :char
               r:
                 char(0x41)
           r:
             lte :bool
               l:
-                c#116 :char
+                c#121 :char
               r:
                 char(0x5a)
       then:
@@ -57,7 +57,7 @@
       cond:
         eq :bool
           l:
-            c#116 :char
+            c#121 :char
           r:
             char(0x5f)
       then:
@@ -66,70 +66,72 @@
   fn tests_snippets_regex_helpers__main_vader$main() -> i32
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#33 :fn(string) -> void
       arg0:
         call :string
           callee:
-            trim_suffix#65 :fn(string, string) -> string
+            trim_suffix#69 :fn(string, string) -> string
           arg0:
             "foo.vader" :string
           arg1:
             ".vader" :string
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#33 :fn(string) -> void
       arg0:
         call :string
           callee:
-            trim_suffix#65 :fn(string, string) -> string
+            trim_suffix#69 :fn(string, string) -> string
           arg0:
             "foo.bar" :string
           arg1:
             ".vader" :string
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#33 :fn(string) -> void
       arg0:
         call :string
           callee:
-            trim_prefix#66 :fn(string, string) -> string
+            trim_prefix#70 :fn(string, string) -> string
           arg0:
             "std/io" :string
           arg1:
             "std/" :string
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#33 :fn(string) -> void
       arg0:
         call :string
           callee:
-            trim_prefix#66 :fn(string, string) -> string
+            trim_prefix#70 :fn(string, string) -> string
           arg0:
             "foo" :string
           arg1:
             "std/" :string
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#33 :fn(string) -> void
       arg0:
         call :string
           callee:
-            replace_chars_where#67 :fn(string, fn(char) -> bool, string) -> string
+            replace_chars_where#71 :fn(string, fn(char) -> bool, string) -> string
           arg0:
             "std::io.print!" :string
           arg1:
-            is_non_id#6 :fn(char) -> bool
+            is_non_id#7 :fn(char) -> bool
           arg2:
             "_" :string
-    let parts#117: string[] =
+    let parts#122: string[] =
       call :string[]
         callee:
-          split_whitespace#68 :fn(string) -> string[]
+          split_where#72 :fn(string, fn(char) -> bool) -> string[]
         arg0:
           "  hello  world\tfoo\n bar  " :string
+        arg1:
+          is_white_char#63 :fn(char) -> bool
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#33 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -143,26 +145,26 @@
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let n#118: i32 =
+    let n#123: i32 =
       LoweredArrayLen
-    let i#119: i32 = int(0) :i32
+    let i#124: i32 = int(0) :i32
     loop while (<…>)
       call :void
         callee:
-          println#31 :fn(string) -> void
+          println#33 :fn(string) -> void
         arg0:
           index :string
             on:
-              parts#117 :string[]
+              parts#122 :string[]
             ix:
-              i#119 :i32
+              i#124 :i32
       assign
         target:
-          i#119 :i32
+          i#124 :i32
         value:
           add :i32
             l:
-              i#119 :i32
+              i#124 :i32
             r:
               int(1) :i32
     return int(0) :i32

@@ -2,7 +2,7 @@
 
 ## tests/snippets/for_range/_main.vader
   fn tests_snippets_for_range__main_vader$main() -> i32
-    let sum#55: i32 = int(0) :i32
+    let sum#56: i32 = int(0) :i32
     block :void
       let __iter_0#-1: Range =
         Range {
@@ -25,22 +25,22 @@
           then:
             break
           else:
-            let i#56: i32 =
+            let i#57: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_1#-2 :Done | Yielded(i32)
             assign
               target:
-                sum#55 :i32
+                sum#56 :i32
               value:
                 add :i32
                   l:
-                    sum#55 :i32
+                    sum#56 :i32
                   r:
-                    i#56 :i32
+                    i#57 :i32
     call :void
       callee:
-        println#26 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -50,11 +50,11 @@
             "0..<5 -> " :string
           @builder.append_display <for i32> :void
             __sb_2#-3 :?
-            sum#55 :i32
+            sum#56 :i32
           ~>
             @builder.finish :string
               __sb_2#-3 :?
-    let total#57: i32 = int(0) :i32
+    let total#58: i32 = int(0) :i32
     block :void
       let __iter_3#-4: Range =
         Range {
@@ -77,22 +77,22 @@
           then:
             break
           else:
-            let j#58: i32 =
+            let j#59: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_4#-5 :Done | Yielded(i32)
             assign
               target:
-                total#57 :i32
+                total#58 :i32
               value:
                 add :i32
                   l:
-                    total#57 :i32
+                    total#58 :i32
                   r:
-                    j#58 :i32
+                    j#59 :i32
     call :void
       callee:
-        println#26 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         block :string
           let __sb_5#-6: ? =
@@ -102,11 +102,11 @@
             "1..=4 -> " :string
           @builder.append_display <for i32> :void
             __sb_5#-6 :?
-            total#57 :i32
+            total#58 :i32
           ~>
             @builder.finish :string
               __sb_5#-6 :?
-    let n#59: i32 = int(0) :i32
+    let n#60: i32 = int(0) :i32
     block :void
       let __iter_6#-7: Range =
         Range {
@@ -129,22 +129,22 @@
           then:
             break
           else:
-            let k#60: i32 =
+            let k#61: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_7#-8 :Done | Yielded(i32)
             assign
               target:
-                n#59 :i32
+                n#60 :i32
               value:
                 add :i32
                   l:
-                    n#59 :i32
+                    n#60 :i32
                   r:
                     int(1) :i32
     call :void
       callee:
-        println#26 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         block :string
           let __sb_8#-9: ? =
@@ -154,7 +154,7 @@
             "5..<3 iters -> " :string
           @builder.append_display <for i32> :void
             __sb_8#-9 :?
-            n#59 :i32
+            n#60 :i32
           ~>
             @builder.finish :string
               __sb_8#-9 :?

@@ -35,7 +35,11 @@
             "alias": null
           },
           {
-            "name": "split_whitespace",
+            "name": "split_where",
+            "alias": null
+          },
+          {
+            "name": "is_white_char",
             "alias": null
           }
         ]
@@ -543,7 +547,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "split_whitespace"
+                "name": "split_where"
               },
               "args": [
                 {
@@ -556,6 +560,14 @@
                         "value": "  hello  world\tfoo\n bar  "
                       }
                     ]
+                  },
+                  "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "is_white_char"
                   },
                   "spread": false
                 }

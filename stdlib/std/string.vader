@@ -31,8 +31,8 @@ export compare_ascending :: fn(a: string, b: string) -> bool {
     n :: min(la, lb)
     i := 0
     for i < n {
-        ca :: a.char_at(i)
-        cb :: b.char_at(i)
+        ca :: a[i]
+        cb :: b[i]
         if ca < cb { return true }
         if ca > cb { return false }
         i = i + 1
@@ -44,7 +44,7 @@ export compare_ascending :: fn(a: string, b: string) -> bool {
 export last_index_of :: fn(s: string, c: char, min_index: i32) -> i32 {
     i := s.len() - 1
     for i >= min_index {
-        if s.char_at(i) == c {
+        if s[i] == c {
             return i
         }
         i = i - 1
@@ -106,7 +106,7 @@ export pad_end :: fn(s: string, width: i32, fill: char) -> string {
 }
 
 // True for ASCII whitespace: space, tab, newline, carriage return.
-export is_whitechar :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
+export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
 // True for ASCII decimal digit `0..9`.
 export is_digit :: fn(c: char) = c >= '0' && c <= '9'
@@ -123,6 +123,18 @@ export is_digit_in_base :: fn(c: char, base: i32) -> bool {
     if base == 16 { return c.is_hex_digit() }
     return c.is_digit()
 }
+
+/**
+ * True for an ASCII letter — `a..z` or `A..Z`. Locale-independent ; Unicode
+ * letters are not recognised in MVP.
+ */
+export is_alpha :: fn(c: char) = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+
+/**
+ * True for an ASCII letter or decimal digit — `a..z`, `A..Z`, or `0..9`.
+ * Composes `is_alpha` and `is_digit`.
+ */
+export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
 
 // Strip a `suffix` if `s` ends with it; otherwise return `s` unchanged.
 export trim_suffix :: fn(s: string, suffix: string) -> string {
@@ -147,7 +159,7 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
     n := s.len()
     i := 0
     for i < n {
-        c := s.char_at(i)
+        c := s[i]
         if pred(c) {
             sb.append(replacement)
         } else {
@@ -158,16 +170,27 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
     return sb.to_string()
 }
 
-// Split on runs of whitespace, dropping empty segments.
-export split_whitespace :: fn(s: string) -> string[] {
+/**
+ * Split `s` on runs of characters matching `pred`, dropping empty segments.
+ *
+ * Mirrors `replace_chars_where(s, pred, ...)` — same predicate convention,
+ * same pair-with-`is_*` ergonomics. For whitespace splitting, pass
+ * `is_white_char` ; for word-boundary splitting (alphanumeric runs),
+ * pass `c => !c.is_alnum()`. Empty inputs return an empty array.
+ *
+ * Examples :
+ *   "  hello\tworld  ".split_where(is_white_char)   // ["hello", "world"]
+ *   "a,b,,c".split_where(c => c == ',')              // ["a", "b", "c"]
+ */
+export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
     out: string[] = []
     sb := new_builder()
     has_pending := false
     n := s.len()
     i := 0
     for i < n {
-        c := s.char_at(i)
-        if c.is_whitechar() {
+        c := s[i]
+        if pred(c) {
             if has_pending {
                 out.push(sb.to_string())
                 sb = new_builder()

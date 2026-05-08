@@ -4,6 +4,7 @@ type 1 fn (2,2) -> 2
 type 2 primitive i32
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
 
 fn 0 tests_snippets_fn_value_struct__main_vader$mul (i32,i32) -> i32
   local.get 0   ; _main.vader:6:12

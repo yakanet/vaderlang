@@ -13,10 +13,11 @@
 //   - char literals + escape sequences
 //   - string literals, raw strings, triple strings, interpolation
 
-import "std/string" { len, slice, char_at, parse_float, is_digit, is_hex_digit, is_digit_in_base, contains }
+import "std/string" { len, slice, parse_float, is_alpha, is_alnum, is_digit, is_hex_digit, is_digit_in_base, contains }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
 import "std/iter" { slice as slice_array }
-import "std/numbers" { hex_digit_value, parse_int_in_base }
+import "std/numbers" { hex_digit_value, parse_int_in_base, is_int_suffix, is_float_suffix }
+import "std/utf8" { append_codepoint }
 import "vader/diagnostics/diagnostic" { Diagnostic, error }
 import "vader/diagnostics/codes" { LexerCode }
 // Position/Span are re-imported transparently via token.vader (same module);
@@ -61,10 +62,12 @@ new_lexer :: fn(source: string, file: string) = Lexer {
 
 // ---- predicates -----------------------------------------------------------
 
-is_ident_start :: fn(c: char) =
-    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+// Local helpers : "identifier start" is letter or underscore, "continue"
+// extends with digits. Layered on top of the universal `is_alpha`/`is_alnum`
+// from std/string.
+is_ident_start :: fn(c: char) = c.is_alpha() || c == '_'
 
-is_ident_continue :: fn(c: char) = c.is_ident_start() || c.is_digit()
+is_ident_continue :: fn(c: char) = c.is_alnum() || c == '_'
 
 // SPEC §3 newline-suppression set — operators / separators after which a
 // physical newline is NOT a statement terminator.
@@ -110,7 +113,7 @@ peek :: fn(l: Lexer) -> char {
     if l.pos >= l.src.len() {
         return '\0'
     }
-    return l.src.char_at(l.pos)
+    return l.src[l.pos]
 }
 
 peek_at :: fn(l: Lexer, n: i32) -> char {
@@ -118,7 +121,7 @@ peek_at :: fn(l: Lexer, n: i32) -> char {
     if p >= l.src.len() {
         return '\0'
     }
-    return l.src.char_at(p)
+    return l.src[p]
 }
 
 position_here :: fn(l: Lexer) =
@@ -130,7 +133,7 @@ advance :: fn(l: Lexer, n: i32) -> void {
         if l.pos >= l.src.len() {
             return
         }
-        c := l.src.char_at(l.pos)
+        c := l.src[l.pos]
         if c == '\n' {
             l.line = l.line + 1
             l.col = 1
@@ -380,7 +383,7 @@ strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> string {
     start :: if base == 10 { 0 } else { 2 }
     has_suffix :: suffix.len() > 0
     end_no_suffix :: text.len() - suffix.len()
-    end :: if has_suffix && end_no_suffix > start && text.char_at(end_no_suffix - 1) == '_' {
+    end :: if has_suffix && end_no_suffix > start && text[end_no_suffix - 1] == '_' {
         end_no_suffix - 1
     } else {
         end_no_suffix
@@ -393,7 +396,7 @@ strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> string {
     sb := new_builder()
     i := start
     for i < end {
-        c :: text.char_at(i)
+        c :: text[i]
         if c != '_' { sb.append_char(c) }
         i = i + 1
     }
@@ -479,7 +482,7 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     cp: u32 = u32(0)
     i := 0
     for i < hex_len {
-        d :: hex_digit_value(l.src.char_at(hex_start + i))
+        d :: hex_digit_value(l.src[hex_start + i])
         cp = cp * u32(16) + u32(d)
         i = i + 1
     }
@@ -489,30 +492,6 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
         return u32(0)
     }
     return cp
-}
-
-// Append the UTF-8 encoding of `cp` to `sb`. Mirrors `append_codepoint` in
-// std/json — kept private here so the lexer module is self-contained.
-append_codepoint :: fn(sb: StringBuilder, cp: u32) -> void {
-    if cp < u32(0x80) {
-        sb.append_char(char(cp))
-        return
-    }
-    if cp < u32(0x800) {
-        sb.append_char(char(u32(0xC0) | (cp >> u32(6))))
-        sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
-        return
-    }
-    if cp < u32(0x10000) {
-        sb.append_char(char(u32(0xE0) | (cp >> u32(12))))
-        sb.append_char(char(u32(0x80) | ((cp >> u32(6)) & u32(0x3F))))
-        sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
-        return
-    }
-    sb.append_char(char(u32(0xF0) | (cp >> u32(18))))
-    sb.append_char(char(u32(0x80) | ((cp >> u32(12)) & u32(0x3F))))
-    sb.append_char(char(u32(0x80) | ((cp >> u32(6)) & u32(0x3F))))
-    sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
 }
 
 // ---- char literals --------------------------------------------------------
@@ -921,9 +900,9 @@ export tokenize :: fn(source: string, file: string) -> Lexer {
     l := new_lexer(source, file)
     // UTF-8 BOM (EF BB BF) — if present, must be the very first thing.
     if l.src.len() >= 3 &&
-        l.src.char_at(0) == char(u32(0xEF)) &&
-        l.src.char_at(1) == char(u32(0xBB)) &&
-        l.src.char_at(2) == char(u32(0xBF)) {
+        l.src[0] == char(u32(0xEF)) &&
+        l.src[1] == char(u32(0xBB)) &&
+        l.src[2] == char(u32(0xBF)) {
         l.advance(3)
     }
     // Shebang: only allowed on line 1 and silently dropped.

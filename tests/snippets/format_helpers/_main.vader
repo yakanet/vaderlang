@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/string" { pad_start, pad_end, is_whitechar }
+import "std/string" { pad_start, pad_end, is_white_char }
 import "std/numbers" { to_hex, to_bin }
 
 main :: fn() -> i32 {
@@ -15,9 +15,9 @@ main :: fn() -> i32 {
     zero: u64 = 0
     println("zero_bin=${zero.to_bin()}")
 
-    println("ws_space=${' '.is_whitechar()}")
-    println("ws_a=${'a'.is_whitechar()}")
-    println("ws_tab=${'\t'.is_whitechar()}")
+    println("ws_space=${' '.is_white_char()}")
+    println("ws_a=${'a'.is_white_char()}")
+    println("ws_tab=${'\t'.is_white_char()}")
 
     return 0
 }

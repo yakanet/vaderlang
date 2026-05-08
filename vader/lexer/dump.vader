@@ -131,7 +131,7 @@ quote_simple :: fn(s: string) -> string {
     n :: s.len()
     i := 0
     for i < n {
-        c :: s.char_at(i)
+        c :: s[i]
         if c == '"'  { sb.append("\\\"") }
         else if c == '\\' { sb.append("\\\\") }
         else if c == '\n' { sb.append("\\n") }

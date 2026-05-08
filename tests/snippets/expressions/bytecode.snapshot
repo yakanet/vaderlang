@@ -5,6 +5,7 @@ type 2 primitive bool
 type 3 array 1
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
 
 fn 0 tests_snippets_expressions__main_vader$add (i32,i32) -> i32
   local.get 0   ; _main.vader:2:12

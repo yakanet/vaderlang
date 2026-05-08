@@ -11,13 +11,13 @@
           "Hello, " :string
         @builder.append_display <for string> :void
           __sb_0#-1 :?
-          name#45 :string
+          name#46 :string
         @builder.append_str :void
           __sb_0#-1 :?
           "! You are " :string
         @builder.append_display <for i32> :void
           __sb_0#-1 :?
-          age#46 :i32
+          age#47 :i32
         @builder.append_str :void
           __sb_0#-1 :?
           " years old." :string

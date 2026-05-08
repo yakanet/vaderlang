@@ -5,24 +5,24 @@
     ~>
       mul :i32
         l:
-          x#60 :i32
+          x#61 :i32
         r:
-          x#60 :i32
+          x#61 :i32
   fn tests_snippets_expr_bodied_fn__main_vader$max(a: f64, b: f64) -> f64
     ~>
       if :f64
         cond:
           gt :bool
             l:
-              a#61 :f64
+              a#62 :f64
             r:
-              b#62 :f64
+              b#63 :f64
         then:
           ~>
-            a#61 :f64
+            a#62 :f64
         else:
           ~>
-            b#62 :f64
+            b#63 :f64
   fn tests_snippets_expr_bodied_fn__main_vader$b(x: i32) -> i32
     ~>
       add :i32
@@ -31,20 +31,20 @@
             callee:
               a#5 :fn(i32) -> i32
             arg0:
-              x#63 :i32
+              x#64 :i32
         r:
           int(1) :i32
   fn tests_snippets_expr_bodied_fn__main_vader$a(x: i32) -> i32
     ~>
       mul :i32
         l:
-          x#64 :i32
+          x#65 :i32
         r:
           int(10) :i32
   fn tests_snippets_expr_bodied_fn__main_vader$main() -> i32
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#32 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -61,7 +61,7 @@
               __sb_0#-1 :?
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#32 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -80,7 +80,7 @@
               __sb_1#-2 :?
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#32 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -99,7 +99,7 @@
               __sb_2#-3 :?
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#32 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-4: ? =
@@ -116,7 +116,7 @@
               __sb_3#-4 :?
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#32 :fn(string) -> void
       arg0:
         block :string
           let __sb_4#-5: ? =
@@ -125,7 +125,7 @@
             __sb_4#-5 :?
             call :i32
               callee:
-                id#1000013 :i32
+                id#1000014 :i32
               arg0:
                 int(42) :i32
           ~>
@@ -133,7 +133,7 @@
               __sb_4#-5 :?
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#32 :fn(string) -> void
       arg0:
         block :string
           let __sb_5#-6: ? =
@@ -142,7 +142,7 @@
             __sb_5#-6 :?
             call :f64
               callee:
-                id#1000012 :f64
+                id#1000013 :f64
               arg0:
                 float(7.5) :f64
           ~>
@@ -150,20 +150,20 @@
               __sb_5#-6 :?
     call :void
       callee:
-        println#31 :fn(string) -> void
+        println#32 :fn(string) -> void
       arg0:
         call :string
           callee:
-            id#1000014 :string
+            id#1000015 :string
           arg0:
             "hello" :string
     return int(0) :i32
   fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__f64(x: f64) -> f64
     ~>
-      x#66 :f64
+      x#67 :f64
   fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__i32(x: i32) -> i32
     ~>
-      x#66 :i32
+      x#67 :i32
   fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__string(x: string) -> string
     ~>
-      x#66 :string
+      x#67 :string

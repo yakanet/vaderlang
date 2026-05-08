@@ -6,19 +6,20 @@ string 1 "./tests/snippets/try_op/data.txt"
 string 2 "./does_not_exist.txt"
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 print std_io$print (string) -> void
-import 3 println std_io$println (string) -> void
-import 4 eprint std_io$eprint (string) -> void
-import 5 eprintln std_io$eprintln (string) -> void
-import 6 read_line std_io$read_line () -> ref
-import 7 read_file std_io$read_file (string) -> ref
-import 8 write_file std_io$write_file (string,string) -> ref
-import 9 exists std_io$exists (string) -> bool
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 3 print std_io$print (string) -> void
+import 4 println std_io$println (string) -> void
+import 5 eprint std_io$eprint (string) -> void
+import 6 eprintln std_io$eprintln (string) -> void
+import 7 read_line std_io$read_line () -> ref
+import 8 read_file std_io$read_file (string) -> ref
+import 9 write_file std_io$write_file (string,string) -> ref
+import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_try_op__main_vader$read_or_default (string) -> ref
   local __try_0 ref
   local.get 0   ; _main.vader:6:22
-  call.import 7   ; _main.vader:6:12
+  call.import 8   ; _main.vader:6:12
   local.tee 1   ; _main.vader:6:12
   type_check 0   ; _main.vader:6:12
   if string   ; _main.vader:6:12
@@ -39,13 +40,13 @@ fn 1 tests_snippets_try_op__main_vader$show (ref) -> void
   if void   ; _main.vader:11:9
   local.get 0   ; _main.vader:11:30
   ref.cast 1   ; _main.vader:11:30
-  call.import 3   ; _main.vader:11:22
+  call.import 4   ; _main.vader:11:22
   else   ; _main.vader:11:9
   local.get 1   ; _main.vader:12:9
   type_check 0   ; _main.vader:12:9
   if void   ; _main.vader:12:9
   string.const 0   ; _main.vader:12:30
-  call.import 3   ; _main.vader:12:22
+  call.import 4   ; _main.vader:12:22
   else   ; _main.vader:12:9
   unreachable   ; _main.vader:10:5
   end   ; _main.vader:12:9

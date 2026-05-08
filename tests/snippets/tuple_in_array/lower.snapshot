@@ -2,7 +2,7 @@
 
 ## tests/snippets/tuple_in_array/_main.vader
   fn tests_snippets_tuple_in_array__main_vader$main() -> i32
-    let rows#55: [i32, string][] =
+    let rows#56: [i32, string][] =
       array :[i32, string][]
         [i32, string] {
           _0: int(1) :i32
@@ -19,7 +19,7 @@
     block :void
       let __iter_0#-1: ArrayIter([i32, string]) =
         ArrayIter([i32, string]) {
-          arr: rows#55 :[i32, string][]
+          arr: rows#56 :[i32, string][]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -28,7 +28,7 @@
         let __step_1#-2: Done | Yielded([i32, string]) =
           call :Done | Yielded([i32, string])
             callee:
-              step#1000012 :?
+              step#1000013 :?
             arg0:
               __iter_0#-1 :ArrayIter([i32, string])
         if :void
@@ -38,13 +38,13 @@
           then:
             break
           else:
-            let row#56: [i32, string] =
+            let row#57: [i32, string] =
               .value :[i32, string]
                 cast → Yielded([i32, string])
                   __step_1#-2 :Done | Yielded([i32, string])
             call :void
               callee:
-                println#26 :fn(string) -> void
+                println#27 :fn(string) -> void
               arg0:
                 block :string
                   let __sb_2#-3: ? =
@@ -52,14 +52,14 @@
                   @builder.append_display <for i32> :void
                     __sb_2#-3 :?
                     ._0 :i32
-                      row#56 :[i32, string]
+                      row#57 :[i32, string]
                   @builder.append_str :void
                     __sb_2#-3 :?
                     " -> " :string
                   @builder.append_display <for string> :void
                     __sb_2#-3 :?
                     ._1 :string
-                      row#56 :[i32, string]
+                      row#57 :[i32, string]
                   ~>
                     @builder.finish :string
                       __sb_2#-3 :?

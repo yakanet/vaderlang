@@ -2,6 +2,7 @@ module _main
 string 0 "Vader"
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
 
 fn 0 tests_snippets_interp_string_comptime__main_vader$name () -> string
   string.const 0   ; _main.vader:5:12

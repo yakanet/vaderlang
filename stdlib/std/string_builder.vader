@@ -27,7 +27,28 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
     self.parts.push("${c}")
 }
 
+/**
+ * Append `count` copies of `c` to the builder. Generalises pretty-printer
+ * indentation, table padding, divider lines, and any other "write N copies"
+ * pattern — symmetric with `std/string.pad_end(s, width, fill)` but writes
+ * directly into the builder without an intermediate string allocation.
+ *
+ * Negative counts are a no-op.
+ *
+ * Examples :
+ *   sb.append_repeated(' ', level * 2)   // indentation
+ *   sb.append_repeated('-', 40)           // divider line
+ */
+export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
+    i := 0
+    for i < count {
+        self.append_char(c)
+        i = i + 1
+    }
+}
+
 // Host intrinsic: flatten a [string] into one string in a single allocation.
+@intrinsic
 export concat_all :: fn(parts: string[]) -> string
 
 export to_string :: fn(self: StringBuilder) -> string {

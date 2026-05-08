@@ -16,14 +16,15 @@ string 1 "bar"
 string 2 "baz"
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 print std_io$print (string) -> void
-import 3 println std_io$println (string) -> void
-import 4 eprint std_io$eprint (string) -> void
-import 5 eprintln std_io$eprintln (string) -> void
-import 6 read_line std_io$read_line () -> ref
-import 7 read_file std_io$read_file (string) -> ref
-import 8 write_file std_io$write_file (string,string) -> ref
-import 9 exists std_io$exists (string) -> bool
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 3 print std_io$print (string) -> void
+import 4 println std_io$println (string) -> void
+import 5 eprint std_io$eprint (string) -> void
+import 6 eprintln std_io$eprintln (string) -> void
+import 7 read_line std_io$read_line () -> ref
+import 8 read_file std_io$read_file (string) -> ref
+import 9 write_file std_io$write_file (string,string) -> ref
+import 10 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_trait_dispatch_bounded__main_vader$main () -> i32
   local nums ref
@@ -46,7 +47,7 @@ fn 0 tests_snippets_trait_dispatch_bounded__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:19:14
   local.get 1   ; _main.vader:19:13
   intrinsic builder.finish   ; _main.vader:19:13
-  call.import 3   ; _main.vader:19:5
+  call.import 4   ; _main.vader:19:5
   string.const 0   ; _main.vader:21:15
   string.const 1   ; _main.vader:21:22
   string.const 0   ; _main.vader:21:29
@@ -62,7 +63,7 @@ fn 0 tests_snippets_trait_dispatch_bounded__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:22:14
   local.get 3   ; _main.vader:22:13
   intrinsic builder.finish   ; _main.vader:22:13
-  call.import 3   ; _main.vader:22:5
+  call.import 4   ; _main.vader:22:5
   i32.const 0   ; _main.vader:23:12
   return   ; _main.vader:23:5
 end
@@ -180,17 +181,17 @@ fn 4 std_core$string$Hash$hash (string) -> u64
 end
 
 fn 5 std_core$i32$Eq$equals (i32,i32) -> bool
-  local.get 0   ; core.vader:160:25
-  local.get 1   ; core.vader:160:33
-  i32.eq   ; core.vader:160:25
-  return   ; core.vader:160:25
+  local.get 0   ; core.vader:171:25
+  local.get 1   ; core.vader:171:33
+  i32.eq   ; core.vader:171:25
+  return   ; core.vader:171:25
 end
 
 fn 6 std_core$string$Eq$equals (string,string) -> bool
-  local.get 0   ; core.vader:163:25
-  local.get 1   ; core.vader:163:33
-  string.eq   ; core.vader:163:25
-  return   ; core.vader:163:25
+  local.get 0   ; core.vader:174:25
+  local.get 1   ; core.vader:174:33
+  string.eq   ; core.vader:174:25
+  return   ; core.vader:174:25
 end
 
 fn 7 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref

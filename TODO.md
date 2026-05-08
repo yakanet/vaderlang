@@ -485,7 +485,7 @@ Stand up a `vader` binary written in Vader so each ported phase can compare its 
 - [x] **Parser body** (`vader/parser/parser.vader`, ~2200 lines) — recursive-descent for declarations / statements / types, Pratt for expressions (binding-power table mirroring `src/parser/passes/expr.ts:25-53`). Token-stream helpers (`peek`, `peek_at`, `check`, `match_kind`, `advance`, `expect`, `skip_newlines`) on a `Parser` struct.
 - [x] **AST → JSON dumper** (`vader/parser/dump.vader`) — byte-for-byte parity with `tests/snapshot.ts:formatProgram`. 2-space indent, span-stripping, BigInts as `"<n>n"`, JSON-escaped strings.
 - [x] **CLI integration** — `vader dump --stage=ast <file>` runs the Vader parser through the same dispatcher as `--stage=lexer`.
-- [x] **Parity test rig** : `tests/parser_parity.test.ts` runs `./build/vaderc dump --stage=ast` over every `tests/snippets/*` and diffs against the existing `parser.snapshot`. **128 / 130 snippets pass byte-for-byte today** ; the 2 remaining skips are CJK/multi-byte (see §1.13).
+- [x] **Parity test rig** : `tests/parser_parity.test.ts` runs `./build/vader dump --stage=ast` over every `tests/snippets/*` and diffs against the existing `parser.snapshot`. **128 / 130 snippets pass byte-for-byte today** ; the 2 remaining skips are CJK/multi-byte (see §1.13).
 
 ##### Open Vader-language / runtime issues uncovered while porting (fix to unlock the remaining 40 snippets)
 

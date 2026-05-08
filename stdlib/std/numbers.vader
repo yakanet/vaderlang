@@ -3,7 +3,7 @@
 // Lives outside std/core so we can use std/builder for efficient construction.
 // UFCS-callable as `n.to_hex()` once `import "std/numbers"` is in scope.
 
-import "std/string" { len, char_at }
+import "std/string" { len, ends_with, slice }
 import "std/string_builder" { StringBuilder, new_builder, append_char, to_string }
 
 // ParseError — raised by every fallible parser in this module. The shape
@@ -34,7 +34,7 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64! {
     b: i64 = i64(base)
     i := 0
     for i < n {
-        d := hex_digit_value(s.char_at(i))
+        d := hex_digit_value(s[i])
         if d < 0 || d >= base {
             return ParseError { .msg = "invalid digit" }
         }
@@ -99,3 +99,36 @@ export to_bin :: fn(self: u64) -> string {
     }
     return sb.to_string()
 }
+
+/**
+ * Format a float in the most compact decimal form — strips a trailing `.0`
+ * from integer-valued floats so `10.0` becomes `"10"`. Otherwise behaves
+ * like the default `Display` impl on `f64`.
+ *
+ * Matches `JSON.stringify` semantics ; useful for snapshot-style output and
+ * any wire format that wants `42` rather than `42.0` for whole numbers.
+ *
+ * Examples :
+ *   (10.0).to_compact_str()    // "10"
+ *   (3.14).to_compact_str()    // "3.14"
+ *   (0.5).to_compact_str()     // "0.5"
+ */
+export to_compact_str :: fn(self: f64) -> string {
+    s :: "${self}"
+    if s.ends_with(".0") { return s.slice(0, s.len() - 2) }
+    return s
+}
+
+/**
+ * True when `s` names one of Vader's integer types — `i8`, `i16`, `i32`,
+ * `i64`, `u8`, `u16`, `u32`, `u64`. Useful for DSLs that recognise typed
+ * numeric literals (e.g. `42i32`).
+ */
+export is_int_suffix :: fn(s: string) =
+    s == "i8" || s == "i16" || s == "i32" || s == "i64" ||
+    s == "u8" || s == "u16" || s == "u32" || s == "u64"
+
+/**
+ * True when `s` names one of Vader's float types — `f32` or `f64`.
+ */
+export is_float_suffix :: fn(s: string) = s == "f32" || s == "f64"

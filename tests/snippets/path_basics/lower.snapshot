@@ -5,14 +5,14 @@
     ~>
       call :void
         callee:
-          println#41 :fn(string) -> void
+          println#42 :fn(string) -> void
         arg0:
           block :string
             let __sb_0#-1: ? =
               @builder.new :?
             @builder.append_display <for string> :void
               __sb_0#-1 :?
-              label#152 :string
+              label#155 :string
             @builder.append_str :void
               __sb_0#-1 :?
               "=" :string
@@ -22,12 +22,12 @@
                 callee:
                   as_string#63 :string
                 arg0:
-                  p#153 :Path
+                  p#156 :Path
             ~>
               @builder.finish :string
                 __sb_0#-1 :?
   fn tests_snippets_path_basics__main_vader$main() -> i32
-    let p#154: Path =
+    let p#157: Path =
       call :Path
         callee:
           to_path#61 :Path
@@ -39,10 +39,10 @@
       arg0:
         "path" :string
       arg1:
-        p#154 :Path
+        p#157 :Path
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-2: ? =
@@ -56,13 +56,13 @@
               callee:
                 filename#67 :string
               arg0:
-                p#154 :Path
+                p#157 :Path
           ~>
             @builder.finish :string
               __sb_0#-2 :?
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-3: ? =
@@ -76,13 +76,13 @@
               callee:
                 stem#69 :string
               arg0:
-                p#154 :Path
+                p#157 :Path
           ~>
             @builder.finish :string
               __sb_1#-3 :?
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-4: ? =
@@ -96,7 +96,7 @@
               callee:
                 extension#68 :string
               arg0:
-                p#154 :Path
+                p#157 :Path
           ~>
             @builder.finish :string
               __sb_2#-4 :?
@@ -110,7 +110,7 @@
           callee:
             parent#66 :Path
           arg0:
-            p#154 :Path
+            p#157 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -125,8 +125,8 @@
               callee:
                 parent#66 :Path
               arg0:
-                p#154 :Path
-    let abs#155: Path =
+                p#157 :Path
+    let abs#158: Path =
       call :Path
         callee:
           to_path#61 :Path
@@ -134,7 +134,7 @@
           "/usr/local/bin/vader" :string
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-5: ? =
@@ -148,7 +148,7 @@
               callee:
                 is_absolute#65 :bool
               arg0:
-                abs#155 :Path
+                abs#158 :Path
           ~>
             @builder.finish :string
               __sb_3#-5 :?
@@ -162,7 +162,7 @@
           callee:
             parent#66 :Path
           arg0:
-            abs#155 :Path
+            abs#158 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -177,7 +177,7 @@
               callee:
                 filename#67 :string
               arg0:
-                abs#155 :Path
+                abs#158 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -192,10 +192,10 @@
               callee:
                 parent#66 :Path
               arg0:
-                abs#155 :Path
+                abs#158 :Path
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_4#-6: ? =
@@ -217,7 +217,7 @@
               __sb_4#-6 :?
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_5#-7: ? =
@@ -231,7 +231,7 @@
               callee:
                 is_empty#64 :bool
               arg0:
-                p#154 :Path
+                p#157 :Path
           ~>
             @builder.finish :string
               __sb_5#-7 :?
@@ -303,7 +303,7 @@
             "foo" :string
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_6#-8: ? =
@@ -333,7 +333,7 @@
               __sb_6#-8 :?
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_7#-9: ? =
@@ -363,7 +363,7 @@
               __sb_7#-9 :?
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_8#-10: ? =
@@ -393,7 +393,7 @@
               __sb_8#-10 :?
     call :void
       callee:
-        println#41 :fn(string) -> void
+        println#42 :fn(string) -> void
       arg0:
         block :string
           let __sb_9#-11: ? =

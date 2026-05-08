@@ -3,60 +3,60 @@
 ## tests/snippets/gc_multi_collect/_main.vader
   struct tests_snippets_gc_multi_collect__main_vader$Pair { left: i32, right: null | Pair }
   fn tests_snippets_gc_multi_collect__main_vader$main() -> i32
-    let head#62: null | Pair = null
-    let i#63: i32 = int(0) :i32
+    let head#63: null | Pair = null
+    let i#64: i32 = int(0) :i32
     loop while (<…>)
       assign
         target:
-          head#62 :null | Pair
+          head#63 :null | Pair
         value:
           Pair {
-            left: i#63 :i32
-            right: head#62 :null | Pair
+            left: i#64 :i32
+            right: head#63 :null | Pair
           }
       assign
         target:
-          i#63 :i32
+          i#64 :i32
         value:
           add :i32
             l:
-              i#63 :i32
+              i#64 :i32
             r:
               int(1) :i32
-    let c1#64: i32 =
+    let c1#65: i32 =
       call :i32
         callee:
-          collections#37 :fn() -> i32
+          collections#38 :fn() -> i32
     call :void
       callee:
-        collect#36 :fn() -> void
+        collect#37 :fn() -> void
     call :void
       callee:
-        collect#36 :fn() -> void
+        collect#37 :fn() -> void
     call :void
       callee:
-        collect#36 :fn() -> void
-    let c2#65: i32 =
+        collect#37 :fn() -> void
+    let c2#66: i32 =
       call :i32
         callee:
-          collections#37 :fn() -> i32
-    let diff#66: i32 =
+          collections#38 :fn() -> i32
+    let diff#67: i32 =
       sub :i32
         l:
-          c2#65 :i32
+          c2#66 :i32
         r:
-          c1#64 :i32
+          c1#65 :i32
     if :void
       cond:
         neq :bool
           l:
-            diff#66 :i32
+            diff#67 :i32
           r:
             int(3) :i32
       then:
         call :void
           callee:
-            println#29 :fn(string) -> void
+            println#30 :fn(string) -> void
           arg0:
             block :string
               let __sb_0#-1: ? =
@@ -66,18 +66,18 @@
                 "expected 3 collections, got " :string
               @builder.append_display <for i32> :void
                 __sb_0#-1 :?
-                diff#66 :i32
+                diff#67 :i32
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?
         return int(1) :i32
-    let sum#67: i32 = int(0) :i32
-    let cur#68: null | Pair = head#62 :null | Pair
-    let done#69: bool = false
+    let sum#68: i32 = int(0) :i32
+    let cur#69: null | Pair = head#63 :null | Pair
+    let done#70: bool = false
     loop while (<…>)
       ~>
         block :void
-          let __scrut_1#-2: null | Pair = cur#68 :null | Pair
+          let __scrut_1#-2: null | Pair = cur#69 :null | Pair
           ~>
             if :void
               cond:
@@ -88,7 +88,7 @@
                   block :void
                     assign
                       target:
-                        done#69 :bool
+                        done#70 :bool
                       value:
                         true
               else:
@@ -102,26 +102,26 @@
                         block :void
                           assign
                             target:
-                              sum#67 :i32
+                              sum#68 :i32
                             value:
                               add :i32
                                 l:
-                                  sum#67 :i32
+                                  sum#68 :i32
                                 r:
                                   .left :i32
                                     cast → Pair
-                                      cur#68 :null | Pair
+                                      cur#69 :null | Pair
                           assign
                             target:
-                              cur#68 :Pair
+                              cur#69 :Pair
                             value:
                               .right :null | Pair
                                 cast → Pair
-                                  cur#68 :null | Pair
+                                  cur#69 :null | Pair
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let expected#70: i32 =
+    let expected#71: i32 =
       div :{integer}
         l:
           mul :{integer}
@@ -135,13 +135,13 @@
       cond:
         neq :bool
           l:
-            sum#67 :i32
+            sum#68 :i32
           r:
-            expected#70 :i32
+            expected#71 :i32
       then:
         call :void
           callee:
-            println#29 :fn(string) -> void
+            println#30 :fn(string) -> void
           arg0:
             block :string
               let __sb_2#-3: ? =
@@ -151,20 +151,20 @@
                 "sum mismatch after 3 collections: " :string
               @builder.append_display <for i32> :void
                 __sb_2#-3 :?
-                sum#67 :i32
+                sum#68 :i32
               @builder.append_str :void
                 __sb_2#-3 :?
                 " vs " :string
               @builder.append_display <for i32> :void
                 __sb_2#-3 :?
-                expected#70 :i32
+                expected#71 :i32
               ~>
                 @builder.finish :string
                   __sb_2#-3 :?
         return int(2) :i32
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#30 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-4: ? =
@@ -174,7 +174,7 @@
             "ok: 50 nodes survived 3 collections; sum=" :string
           @builder.append_display <for i32> :void
             __sb_3#-4 :?
-            sum#67 :i32
+            sum#68 :i32
           ~>
             @builder.finish :string
               __sb_3#-4 :?

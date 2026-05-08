@@ -51,35 +51,36 @@ string 44 "/"
 string 45 "."
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 print std_io$print (string) -> void
-import 3 println std_io$println (string) -> void
-import 4 eprint std_io$eprint (string) -> void
-import 5 eprintln std_io$eprintln (string) -> void
-import 6 read_line std_io$read_line () -> ref
-import 7 read_file std_io$read_file (string) -> ref
-import 8 write_file std_io$write_file (string,string) -> ref
-import 9 exists std_io$exists (string) -> bool
-import 10 len std_string$len (string) -> i32
-import 11 slice std_string$slice (string,i32,i32) -> string
-import 12 contains std_string$contains (string,string) -> bool
-import 13 starts_with std_string$starts_with (string,string) -> bool
-import 14 ends_with std_string$ends_with (string,string) -> bool
-import 15 char_at std_string$char_at (string,i32) -> char
-import 16 split std_string$split (string,string) -> ref
-import 17 trim std_string$trim (string) -> string
-import 18 to_upper std_string$to_upper (string) -> string
-import 19 to_lower std_string$to_lower (string) -> string
-import 20 parse_int std_string$parse_int (string) -> ref
-import 21 parse_float std_string$parse_float (string) -> ref
-import 22 concat_all std_string_builder$concat_all (ref) -> string
-import 23 sqrt std_math$sqrt (f64) -> f64
-import 24 pow std_math$pow (f64,f64) -> f64
-import 25 floor std_math$floor (f64) -> f64
-import 26 ceil std_math$ceil (f64) -> f64
-import 27 round std_math$round (f64) -> f64
-import 28 sin std_math$sin (f64) -> f64
-import 29 cos std_math$cos (f64) -> f64
-import 30 tan std_math$tan (f64) -> f64
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 3 print std_io$print (string) -> void
+import 4 println std_io$println (string) -> void
+import 5 eprint std_io$eprint (string) -> void
+import 6 eprintln std_io$eprintln (string) -> void
+import 7 read_line std_io$read_line () -> ref
+import 8 read_file std_io$read_file (string) -> ref
+import 9 write_file std_io$write_file (string,string) -> ref
+import 10 exists std_io$exists (string) -> bool
+import 11 len std_string$len (string) -> i32
+import 12 slice std_string$slice (string,i32,i32) -> string
+import 13 contains std_string$contains (string,string) -> bool
+import 14 starts_with std_string$starts_with (string,string) -> bool
+import 15 ends_with std_string$ends_with (string,string) -> bool
+import 16 char_at std_string$char_at (string,i32) -> char
+import 17 split std_string$split (string,string) -> ref
+import 18 trim std_string$trim (string) -> string
+import 19 to_upper std_string$to_upper (string) -> string
+import 20 to_lower std_string$to_lower (string) -> string
+import 21 parse_int std_string$parse_int (string) -> ref
+import 22 parse_float std_string$parse_float (string) -> ref
+import 23 concat_all std_string_builder$concat_all (ref) -> string
+import 24 sqrt std_math$sqrt (f64) -> f64
+import 25 pow std_math$pow (f64,f64) -> f64
+import 26 floor std_math$floor (f64) -> f64
+import 27 ceil std_math$ceil (f64) -> f64
+import 28 round std_math$round (f64) -> f64
+import 29 sin std_math$sin (f64) -> f64
+import 30 cos std_math$cos (f64) -> f64
+import 31 tan std_math$tan (f64) -> f64
 
 fn 0 tests_snippets_path_basics__main_vader$show_path (string,ref) -> void
   local __sb_0 any
@@ -92,11 +93,11 @@ fn 0 tests_snippets_path_basics__main_vader$show_path (string,ref) -> void
   intrinsic builder.append_str   ; _main.vader:10:22
   local.get 2   ; _main.vader:10:23
   local.get 1   ; _main.vader:10:25
-  call 4   ; _main.vader:10:25
+  call 5   ; _main.vader:10:25
   intrinsic builder.append_display   ; _main.vader:10:23
   local.get 2   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
-  call.import 3   ; _main.vader:10:5
+  call.import 4   ; _main.vader:10:5
 end
 
 fn 1 tests_snippets_path_basics__main_vader$main () -> i32
@@ -113,7 +114,7 @@ fn 1 tests_snippets_path_basics__main_vader$main () -> i32
   local __sb_8 any
   local __sb_9 any
   string.const 1   ; _main.vader:14:10
-  call 2   ; _main.vader:14:10
+  call 3   ; _main.vader:14:10
   local.set 0   ; _main.vader:14:5
   string.const 2   ; _main.vader:15:15
   local.get 0   ; _main.vader:15:23
@@ -124,44 +125,44 @@ fn 1 tests_snippets_path_basics__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:16:14
   local.get 1   ; _main.vader:16:23
   local.get 0   ; _main.vader:16:25
-  call 8   ; _main.vader:16:25
+  call 9   ; _main.vader:16:25
   intrinsic builder.append_display   ; _main.vader:16:23
   local.get 1   ; _main.vader:16:13
   intrinsic builder.finish   ; _main.vader:16:13
-  call.import 3   ; _main.vader:16:5
+  call.import 4   ; _main.vader:16:5
   intrinsic builder.new   ; _main.vader:17:13
   local.tee 2   ; _main.vader:17:13
   string.const 4   ; _main.vader:17:14
   intrinsic builder.append_str   ; _main.vader:17:14
   local.get 2   ; _main.vader:17:19
   local.get 0   ; _main.vader:17:21
-  call 10   ; _main.vader:17:21
+  call 11   ; _main.vader:17:21
   intrinsic builder.append_display   ; _main.vader:17:19
   local.get 2   ; _main.vader:17:13
   intrinsic builder.finish   ; _main.vader:17:13
-  call.import 3   ; _main.vader:17:5
+  call.import 4   ; _main.vader:17:5
   intrinsic builder.new   ; _main.vader:18:13
   local.tee 3   ; _main.vader:18:13
   string.const 5   ; _main.vader:18:14
   intrinsic builder.append_str   ; _main.vader:18:14
   local.get 3   ; _main.vader:18:24
   local.get 0   ; _main.vader:18:26
-  call 9   ; _main.vader:18:26
+  call 10   ; _main.vader:18:26
   intrinsic builder.append_display   ; _main.vader:18:24
   local.get 3   ; _main.vader:18:13
   intrinsic builder.finish   ; _main.vader:18:13
-  call.import 3   ; _main.vader:18:5
+  call.import 4   ; _main.vader:18:5
   string.const 6   ; _main.vader:19:15
   local.get 0   ; _main.vader:19:25
-  call 7   ; _main.vader:19:25
+  call 8   ; _main.vader:19:25
   call 0   ; _main.vader:19:5
   string.const 7   ; _main.vader:20:15
   local.get 0   ; _main.vader:20:24
-  call 7   ; _main.vader:20:24
-  call 7   ; _main.vader:20:24
+  call 8   ; _main.vader:20:24
+  call 8   ; _main.vader:20:24
   call 0   ; _main.vader:20:5
   string.const 8   ; _main.vader:22:12
-  call 2   ; _main.vader:22:12
+  call 3   ; _main.vader:22:12
   local.set 4   ; _main.vader:22:5
   intrinsic builder.new   ; _main.vader:23:13
   local.tee 5   ; _main.vader:23:13
@@ -169,69 +170,69 @@ fn 1 tests_snippets_path_basics__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:23:14
   local.get 5   ; _main.vader:23:30
   local.get 4   ; _main.vader:23:32
-  call 6   ; _main.vader:23:32
+  call 7   ; _main.vader:23:32
   intrinsic builder.append_display   ; _main.vader:23:30
   local.get 5   ; _main.vader:23:13
   intrinsic builder.finish   ; _main.vader:23:13
-  call.import 3   ; _main.vader:23:5
+  call.import 4   ; _main.vader:23:5
   string.const 10   ; _main.vader:24:15
   local.get 4   ; _main.vader:24:29
-  call 7   ; _main.vader:24:29
+  call 8   ; _main.vader:24:29
   call 0   ; _main.vader:24:5
   string.const 11   ; _main.vader:25:15
   local.get 4   ; _main.vader:25:39
-  call 8   ; _main.vader:25:39
-  call 2   ; _main.vader:25:31
+  call 9   ; _main.vader:25:39
+  call 3   ; _main.vader:25:31
   call 0   ; _main.vader:25:5
   string.const 12   ; _main.vader:26:15
   local.get 4   ; _main.vader:26:36
-  call 7   ; _main.vader:26:36
-  call 7   ; _main.vader:26:36
+  call 8   ; _main.vader:26:36
+  call 8   ; _main.vader:26:36
   call 0   ; _main.vader:26:5
   intrinsic builder.new   ; _main.vader:28:13
   local.tee 6   ; _main.vader:28:13
   string.const 13   ; _main.vader:28:14
   intrinsic builder.append_str   ; _main.vader:28:14
   local.get 6   ; _main.vader:28:29
-  call 3   ; _main.vader:28:31
-  call 5   ; _main.vader:28:31
+  call 4   ; _main.vader:28:31
+  call 6   ; _main.vader:28:31
   intrinsic builder.append_display   ; _main.vader:28:29
   local.get 6   ; _main.vader:28:13
   intrinsic builder.finish   ; _main.vader:28:13
-  call.import 3   ; _main.vader:28:5
+  call.import 4   ; _main.vader:28:5
   intrinsic builder.new   ; _main.vader:29:13
   local.tee 7   ; _main.vader:29:13
   string.const 14   ; _main.vader:29:14
   intrinsic builder.append_str   ; _main.vader:29:14
   local.get 7   ; _main.vader:29:25
   local.get 0   ; _main.vader:29:27
-  call 5   ; _main.vader:29:27
+  call 6   ; _main.vader:29:27
   intrinsic builder.append_display   ; _main.vader:29:25
   local.get 7   ; _main.vader:29:13
   intrinsic builder.finish   ; _main.vader:29:13
-  call.import 3   ; _main.vader:29:5
+  call.import 4   ; _main.vader:29:5
   string.const 15   ; _main.vader:31:15
   string.const 16   ; _main.vader:31:23
-  call 2   ; _main.vader:31:23
+  call 3   ; _main.vader:31:23
   string.const 17   ; _main.vader:31:45
-  call 11   ; _main.vader:31:23
+  call 12   ; _main.vader:31:23
   call 0   ; _main.vader:31:5
   string.const 18   ; _main.vader:32:15
   string.const 19   ; _main.vader:32:32
-  call 2   ; _main.vader:32:32
+  call 3   ; _main.vader:32:32
   string.const 17   ; _main.vader:32:55
-  call 11   ; _main.vader:32:32
+  call 12   ; _main.vader:32:32
   call 0   ; _main.vader:32:5
   string.const 20   ; _main.vader:33:15
   string.const 16   ; _main.vader:33:32
-  call 2   ; _main.vader:33:32
+  call 3   ; _main.vader:33:32
   string.const 21   ; _main.vader:33:54
-  call 11   ; _main.vader:33:32
+  call 12   ; _main.vader:33:32
   call 0   ; _main.vader:33:5
   string.const 22   ; _main.vader:34:15
-  call 3   ; _main.vader:34:34
+  call 4   ; _main.vader:34:34
   string.const 23   ; _main.vader:34:52
-  call 11   ; _main.vader:34:34
+  call 12   ; _main.vader:34:34
   call 0   ; _main.vader:34:5
   intrinsic builder.new   ; _main.vader:36:13
   local.tee 8   ; _main.vader:36:13
@@ -239,116 +240,123 @@ fn 1 tests_snippets_path_basics__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:36:14
   local.get 8   ; _main.vader:36:37
   string.const 25   ; _main.vader:36:39
-  call 2   ; _main.vader:36:39
+  call 3   ; _main.vader:36:39
   string.const 26   ; _main.vader:36:69
-  call 2   ; _main.vader:36:69
-  call 12   ; _main.vader:36:39
+  call 3   ; _main.vader:36:69
+  call 13   ; _main.vader:36:39
   intrinsic builder.append_display   ; _main.vader:36:37
   local.get 8   ; _main.vader:36:13
   intrinsic builder.finish   ; _main.vader:36:13
-  call.import 3   ; _main.vader:36:5
+  call.import 4   ; _main.vader:36:5
   intrinsic builder.new   ; _main.vader:37:13
   local.tee 9   ; _main.vader:37:13
   string.const 27   ; _main.vader:37:14
   intrinsic builder.append_str   ; _main.vader:37:14
   local.get 9   ; _main.vader:37:36
   string.const 28   ; _main.vader:37:38
-  call 2   ; _main.vader:37:38
+  call 3   ; _main.vader:37:38
   string.const 26   ; _main.vader:37:67
-  call 2   ; _main.vader:37:67
-  call 12   ; _main.vader:37:38
+  call 3   ; _main.vader:37:67
+  call 13   ; _main.vader:37:38
   intrinsic builder.append_display   ; _main.vader:37:36
   local.get 9   ; _main.vader:37:13
   intrinsic builder.finish   ; _main.vader:37:13
-  call.import 3   ; _main.vader:37:5
+  call.import 4   ; _main.vader:37:5
   intrinsic builder.new   ; _main.vader:38:13
   local.tee 10   ; _main.vader:38:13
   string.const 29   ; _main.vader:38:14
   intrinsic builder.append_str   ; _main.vader:38:14
   local.get 10   ; _main.vader:38:35
   string.const 25   ; _main.vader:38:37
-  call 2   ; _main.vader:38:37
+  call 3   ; _main.vader:38:37
   string.const 30   ; _main.vader:38:65
-  call 2   ; _main.vader:38:65
-  call 13   ; _main.vader:38:37
+  call 3   ; _main.vader:38:65
+  call 14   ; _main.vader:38:37
   intrinsic builder.append_display   ; _main.vader:38:35
   local.get 10   ; _main.vader:38:13
   intrinsic builder.finish   ; _main.vader:38:13
-  call.import 3   ; _main.vader:38:5
+  call.import 4   ; _main.vader:38:5
   intrinsic builder.new   ; _main.vader:39:13
   local.tee 11   ; _main.vader:39:13
   string.const 31   ; _main.vader:39:14
   intrinsic builder.append_str   ; _main.vader:39:14
   local.get 11   ; _main.vader:39:34
   string.const 25   ; _main.vader:39:36
-  call 2   ; _main.vader:39:36
+  call 3   ; _main.vader:39:36
   string.const 32   ; _main.vader:39:64
-  call 2   ; _main.vader:39:64
-  call 13   ; _main.vader:39:36
+  call 3   ; _main.vader:39:64
+  call 14   ; _main.vader:39:36
   intrinsic builder.append_display   ; _main.vader:39:34
   local.get 11   ; _main.vader:39:13
   intrinsic builder.finish   ; _main.vader:39:13
-  call.import 3   ; _main.vader:39:5
+  call.import 4   ; _main.vader:39:5
   string.const 33   ; _main.vader:41:15
   string.const 34   ; _main.vader:41:34
-  call 2   ; _main.vader:41:34
-  call 14   ; _main.vader:41:34
+  call 3   ; _main.vader:41:34
+  call 15   ; _main.vader:41:34
   call 0   ; _main.vader:41:5
   string.const 35   ; _main.vader:42:15
   string.const 36   ; _main.vader:42:33
-  call 2   ; _main.vader:42:33
-  call 14   ; _main.vader:42:33
+  call 3   ; _main.vader:42:33
+  call 15   ; _main.vader:42:33
   call 0   ; _main.vader:42:5
   string.const 37   ; _main.vader:43:15
   string.const 38   ; _main.vader:43:26
-  call 2   ; _main.vader:43:26
-  call 14   ; _main.vader:43:26
+  call 3   ; _main.vader:43:26
+  call 15   ; _main.vader:43:26
   call 0   ; _main.vader:43:5
   string.const 39   ; _main.vader:44:15
   string.const 40   ; _main.vader:44:27
-  call 2   ; _main.vader:44:27
-  call 14   ; _main.vader:44:27
+  call 3   ; _main.vader:44:27
+  call 15   ; _main.vader:44:27
   call 0   ; _main.vader:44:5
   string.const 41   ; _main.vader:45:15
   string.const 42   ; _main.vader:45:29
-  call 2   ; _main.vader:45:29
-  call 14   ; _main.vader:45:29
+  call 3   ; _main.vader:45:29
+  call 15   ; _main.vader:45:29
   call 0   ; _main.vader:45:5
   i32.const 0   ; _main.vader:46:12
   return   ; _main.vader:46:5
 end
 
-fn 2 std_path$to_path (string) -> ref
+fn 2 std_core$string$Index$at (string,i32) -> char
+  local.get 0   ; core.vader:166:54
+  local.get 1   ; core.vader:166:60
+  call.import 2   ; core.vader:166:39
+  return   ; core.vader:166:39
+end
+
+fn 3 std_path$to_path (string) -> ref
   local.get 0   ; path.vader:23:27
   struct.new 0   ; path.vader:23:12
   return   ; path.vader:23:5
 end
 
-fn 3 std_path$empty_path () -> ref
+fn 4 std_path$empty_path () -> ref
   string.const 43   ; path.vader:27:27
   struct.new 0   ; path.vader:27:12
   return   ; path.vader:27:5
 end
 
-fn 4 std_path$as_string (ref) -> string
+fn 5 std_path$as_string (ref) -> string
   local.get 0   ; path.vader:33:12
   struct.get 0 0   ; path.vader:33:12
   return   ; path.vader:33:5
 end
 
-fn 5 std_path$is_empty (ref) -> bool
+fn 6 std_path$is_empty (ref) -> bool
   local.get 0   ; path.vader:37:12
   struct.get 0 0   ; path.vader:37:12
-  call.import 10   ; path.vader:37:12
+  call.import 11   ; path.vader:37:12
   i32.const 0   ; path.vader:37:31
   i32.eq   ; path.vader:37:12
   return   ; path.vader:37:5
 end
 
-fn 6 std_path$is_absolute (ref) -> bool
+fn 7 std_path$is_absolute (ref) -> bool
   local.get 0   ; path.vader:41:8
   struct.get 0 0   ; path.vader:41:8
-  call.import 10   ; path.vader:41:8
+  call.import 11   ; path.vader:41:8
   i32.const 0   ; path.vader:41:27
   i32.eq   ; path.vader:41:8
   if void   ; path.vader:41:5
@@ -357,20 +365,20 @@ fn 6 std_path$is_absolute (ref) -> bool
   end   ; path.vader:41:5
   local.get 0   ; path.vader:44:12
   struct.get 0 0   ; path.vader:44:12
-  i32.const 0   ; path.vader:44:30
-  call.import 15   ; path.vader:44:12
+  i32.const 0   ; path.vader:44:22
+  call 2   ; path.vader:44:12
   char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:44:12
   return   ; path.vader:44:5
 end
 
-fn 7 std_path$parent (ref) -> ref
+fn 8 std_path$parent (ref) -> ref
   local idx i32
   local.get 0   ; path.vader:51:12
   struct.get 0 0   ; path.vader:51:12
   char.const 47   ; path.vader:13:15
   i32.const 0   ; path.vader:51:41
-  call 15   ; path.vader:51:12
+  call 16   ; path.vader:51:12
   local.tee 1   ; path.vader:51:5
   i32.const 0   ; path.vader:52:14
   i32.lt   ; path.vader:52:8
@@ -391,18 +399,18 @@ fn 7 std_path$parent (ref) -> ref
   struct.get 0 0   ; path.vader:59:27
   i32.const 0   ; path.vader:59:43
   local.get 1   ; path.vader:59:46
-  call.import 11   ; path.vader:59:27
+  call.import 12   ; path.vader:59:27
   struct.new 0   ; path.vader:59:12
   return   ; path.vader:59:5
 end
 
-fn 8 std_path$filename (ref) -> string
+fn 9 std_path$filename (ref) -> string
   local idx i32
   local.get 0   ; path.vader:64:12
   struct.get 0 0   ; path.vader:64:12
   char.const 47   ; path.vader:13:15
   i32.const 0   ; path.vader:64:41
-  call 15   ; path.vader:64:12
+  call 16   ; path.vader:64:12
   local.tee 1   ; path.vader:64:5
   i32.const 0   ; path.vader:65:14
   i32.lt   ; path.vader:65:8
@@ -418,20 +426,20 @@ fn 8 std_path$filename (ref) -> string
   i32.add   ; path.vader:68:28
   local.get 0   ; path.vader:68:37
   struct.get 0 0   ; path.vader:68:37
-  call.import 10   ; path.vader:68:37
-  call.import 11   ; path.vader:68:12
+  call.import 11   ; path.vader:68:37
+  call.import 12   ; path.vader:68:12
   return   ; path.vader:68:5
 end
 
-fn 9 std_path$extension (ref) -> string
+fn 10 std_path$extension (ref) -> string
   local name string
   local idx i32
   local.get 0   ; path.vader:74:13
-  call 8   ; path.vader:74:13
+  call 9   ; path.vader:74:13
   local.tee 1   ; path.vader:74:5
   char.const 46   ; path.vader:75:31
   i32.const 1   ; path.vader:75:36
-  call 15   ; path.vader:75:12
+  call 16   ; path.vader:75:12
   local.tee 2   ; path.vader:75:5
   i32.const 0   ; path.vader:76:14
   i32.lt   ; path.vader:76:8
@@ -444,20 +452,20 @@ fn 9 std_path$extension (ref) -> string
   i32.const 1   ; path.vader:79:29
   i32.add   ; path.vader:79:23
   local.get 1   ; path.vader:79:32
-  call.import 10   ; path.vader:79:32
-  call.import 11   ; path.vader:79:12
+  call.import 11   ; path.vader:79:32
+  call.import 12   ; path.vader:79:12
   return   ; path.vader:79:5
 end
 
-fn 10 std_path$stem (ref) -> string
+fn 11 std_path$stem (ref) -> string
   local name string
   local idx i32
   local.get 0   ; path.vader:85:13
-  call 8   ; path.vader:85:13
+  call 9   ; path.vader:85:13
   local.tee 1   ; path.vader:85:5
   char.const 46   ; path.vader:86:31
   i32.const 1   ; path.vader:86:36
-  call 15   ; path.vader:86:12
+  call 16   ; path.vader:86:12
   local.tee 2   ; path.vader:86:5
   i32.const 0   ; path.vader:87:14
   i32.lt   ; path.vader:87:8
@@ -468,13 +476,13 @@ fn 10 std_path$stem (ref) -> string
   local.get 1   ; path.vader:90:12
   i32.const 0   ; path.vader:90:23
   local.get 2   ; path.vader:90:26
-  call.import 11   ; path.vader:90:12
+  call.import 12   ; path.vader:90:12
   return   ; path.vader:90:5
 end
 
-fn 11 std_path$join (ref,string) -> ref
+fn 12 std_path$join (ref,string) -> ref
   local.get 1   ; path.vader:98:8
-  call.import 10   ; path.vader:98:8
+  call.import 11   ; path.vader:98:8
   i32.const 0   ; path.vader:98:23
   i32.eq   ; path.vader:98:8
   if void   ; path.vader:98:5
@@ -482,8 +490,8 @@ fn 11 std_path$join (ref,string) -> ref
   return   ; path.vader:99:9
   end   ; path.vader:98:5
   local.get 1   ; path.vader:101:8
-  i32.const 0   ; path.vader:101:22
-  call.import 15   ; path.vader:101:8
+  i32.const 0   ; path.vader:101:14
+  call 2   ; path.vader:101:8
   char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:101:8
   if void   ; path.vader:101:5
@@ -493,7 +501,7 @@ fn 11 std_path$join (ref,string) -> ref
   end   ; path.vader:101:5
   local.get 0   ; path.vader:104:8
   struct.get 0 0   ; path.vader:104:8
-  call.import 10   ; path.vader:104:8
+  call.import 11   ; path.vader:104:8
   i32.const 0   ; path.vader:104:27
   i32.eq   ; path.vader:104:8
   if void   ; path.vader:104:5
@@ -503,12 +511,12 @@ fn 11 std_path$join (ref,string) -> ref
   end   ; path.vader:104:5
   local.get 0   ; path.vader:107:8
   struct.get 0 0   ; path.vader:107:8
-  local.get 0   ; path.vader:107:26
-  struct.get 0 0   ; path.vader:107:26
-  call.import 10   ; path.vader:107:26
-  i32.const 1   ; path.vader:107:44
-  i32.sub   ; path.vader:107:26
-  call.import 15   ; path.vader:107:8
+  local.get 0   ; path.vader:107:18
+  struct.get 0 0   ; path.vader:107:18
+  call.import 11   ; path.vader:107:18
+  i32.const 1   ; path.vader:107:36
+  i32.sub   ; path.vader:107:18
+  call 2   ; path.vader:107:8
   char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:107:8
   if void   ; path.vader:107:5
@@ -529,12 +537,12 @@ fn 11 std_path$join (ref,string) -> ref
   return   ; path.vader:110:5
 end
 
-fn 12 std_path$starts_with (ref,ref) -> bool
+fn 13 std_path$starts_with (ref,ref) -> bool
   local.get 0   ; path.vader:118:9
   struct.get 0 0   ; path.vader:118:9
   local.get 1   ; path.vader:118:35
   struct.get 0 0   ; path.vader:118:35
-  call.import 13   ; path.vader:118:9
+  call.import 14   ; path.vader:118:9
   bool.not   ; path.vader:118:8
   if void   ; path.vader:118:5
   bool.const false   ; path.vader:119:16
@@ -542,10 +550,10 @@ fn 12 std_path$starts_with (ref,ref) -> bool
   end   ; path.vader:118:5
   local.get 0   ; path.vader:121:8
   struct.get 0 0   ; path.vader:121:8
-  call.import 10   ; path.vader:121:8
+  call.import 11   ; path.vader:121:8
   local.get 1   ; path.vader:121:27
   struct.get 0 0   ; path.vader:121:27
-  call.import 10   ; path.vader:121:27
+  call.import 11   ; path.vader:121:27
   i32.eq   ; path.vader:121:8
   if void   ; path.vader:121:5
   bool.const true   ; path.vader:122:16
@@ -553,18 +561,18 @@ fn 12 std_path$starts_with (ref,ref) -> bool
   end   ; path.vader:121:5
   local.get 1   ; path.vader:126:8
   struct.get 0 0   ; path.vader:126:8
-  call.import 10   ; path.vader:126:8
+  call.import 11   ; path.vader:126:8
   i32.const 0   ; path.vader:126:28
   i32.gt   ; path.vader:126:8
   if bool   ; path.vader:126:8
   local.get 1   ; path.vader:126:33
   struct.get 0 0   ; path.vader:126:33
-  local.get 1   ; path.vader:126:53
-  struct.get 0 0   ; path.vader:126:53
-  call.import 10   ; path.vader:126:53
-  i32.const 1   ; path.vader:126:73
-  i32.sub   ; path.vader:126:53
-  call.import 15   ; path.vader:126:33
+  local.get 1   ; path.vader:126:45
+  struct.get 0 0   ; path.vader:126:45
+  call.import 11   ; path.vader:126:45
+  i32.const 1   ; path.vader:126:65
+  i32.sub   ; path.vader:126:45
+  call 2   ; path.vader:126:33
   char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:126:33
   else   ; path.vader:126:8
@@ -576,22 +584,22 @@ fn 12 std_path$starts_with (ref,ref) -> bool
   end   ; path.vader:126:5
   local.get 0   ; path.vader:129:12
   struct.get 0 0   ; path.vader:129:12
-  local.get 1   ; path.vader:129:30
-  struct.get 0 0   ; path.vader:129:30
-  call.import 10   ; path.vader:129:30
-  call.import 15   ; path.vader:129:12
+  local.get 1   ; path.vader:129:22
+  struct.get 0 0   ; path.vader:129:22
+  call.import 11   ; path.vader:129:22
+  call 2   ; path.vader:129:12
   char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:129:12
   return   ; path.vader:129:5
 end
 
-fn 13 std_path$ends_with (ref,ref) -> bool
+fn 14 std_path$ends_with (ref,ref) -> bool
   local cut i32
   local.get 0   ; path.vader:134:9
   struct.get 0 0   ; path.vader:134:9
   local.get 1   ; path.vader:134:33
   struct.get 0 0   ; path.vader:134:33
-  call.import 14   ; path.vader:134:9
+  call.import 15   ; path.vader:134:9
   bool.not   ; path.vader:134:8
   if void   ; path.vader:134:5
   bool.const false   ; path.vader:135:16
@@ -599,10 +607,10 @@ fn 13 std_path$ends_with (ref,ref) -> bool
   end   ; path.vader:134:5
   local.get 0   ; path.vader:137:8
   struct.get 0 0   ; path.vader:137:8
-  call.import 10   ; path.vader:137:8
+  call.import 11   ; path.vader:137:8
   local.get 1   ; path.vader:137:27
   struct.get 0 0   ; path.vader:137:27
-  call.import 10   ; path.vader:137:27
+  call.import 11   ; path.vader:137:27
   i32.eq   ; path.vader:137:8
   if void   ; path.vader:137:5
   bool.const true   ; path.vader:138:16
@@ -610,22 +618,22 @@ fn 13 std_path$ends_with (ref,ref) -> bool
   end   ; path.vader:137:5
   local.get 0   ; path.vader:140:12
   struct.get 0 0   ; path.vader:140:12
-  call.import 10   ; path.vader:140:12
+  call.import 11   ; path.vader:140:12
   local.get 1   ; path.vader:140:30
   struct.get 0 0   ; path.vader:140:30
-  call.import 10   ; path.vader:140:30
+  call.import 11   ; path.vader:140:30
   i32.sub   ; path.vader:140:12
   local.set 2   ; path.vader:140:5
   local.get 1   ; path.vader:141:8
   struct.get 0 0   ; path.vader:141:8
-  call.import 10   ; path.vader:141:8
+  call.import 11   ; path.vader:141:8
   i32.const 0   ; path.vader:141:28
   i32.gt   ; path.vader:141:8
   if bool   ; path.vader:141:8
   local.get 1   ; path.vader:141:33
   struct.get 0 0   ; path.vader:141:33
-  i32.const 0   ; path.vader:141:53
-  call.import 15   ; path.vader:141:33
+  i32.const 0   ; path.vader:141:45
+  call 2   ; path.vader:141:33
   char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:141:33
   else   ; path.vader:141:8
@@ -637,16 +645,16 @@ fn 13 std_path$ends_with (ref,ref) -> bool
   end   ; path.vader:141:5
   local.get 0   ; path.vader:144:12
   struct.get 0 0   ; path.vader:144:12
-  local.get 2   ; path.vader:144:30
-  i32.const 1   ; path.vader:144:36
-  i32.sub   ; path.vader:144:30
-  call.import 15   ; path.vader:144:12
+  local.get 2   ; path.vader:144:22
+  i32.const 1   ; path.vader:144:28
+  i32.sub   ; path.vader:144:22
+  call 2   ; path.vader:144:12
   char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:144:12
   return   ; path.vader:144:5
 end
 
-fn 14 std_path$normalize (ref) -> ref
+fn 15 std_path$normalize (ref) -> ref
   local abs bool
   local segments ref
   local count i32
@@ -662,7 +670,7 @@ fn 14 std_path$normalize (ref) -> ref
   local out string
   local.get 0   ; path.vader:156:8
   struct.get 0 0   ; path.vader:156:8
-  call.import 10   ; path.vader:156:8
+  call.import 11   ; path.vader:156:8
   i32.const 0   ; path.vader:156:27
   i32.eq   ; path.vader:156:8
   if void   ; path.vader:156:5
@@ -670,7 +678,7 @@ fn 14 std_path$normalize (ref) -> ref
   return   ; path.vader:157:9
   end   ; path.vader:156:5
   local.get 0   ; path.vader:159:12
-  call 6   ; path.vader:159:12
+  call 7   ; path.vader:159:12
   local.set 1   ; path.vader:159:5
   array.new 3 0   ; path.vader:160:26
   local.set 2   ; path.vader:160:5
@@ -678,7 +686,7 @@ fn 14 std_path$normalize (ref) -> ref
   local.set 3   ; path.vader:161:5
   local.get 0   ; path.vader:162:10
   struct.get 0 0   ; path.vader:162:10
-  call.import 10   ; path.vader:162:10
+  call.import 11   ; path.vader:162:10
   local.set 4   ; path.vader:162:5
   local.get 1   ; path.vader:163:13
   if i32   ; path.vader:163:10
@@ -702,8 +710,8 @@ fn 14 std_path$normalize (ref) -> ref
   if bool   ; path.vader:167:19
   local.get 0   ; path.vader:167:30
   struct.get 0 0   ; path.vader:167:30
-  local.get 5   ; path.vader:167:48
-  call.import 15   ; path.vader:167:30
+  local.get 5   ; path.vader:167:40
+  call 2   ; path.vader:167:30
   char.const 47   ; path.vader:13:15
   char.eq   ; path.vader:167:30
   else   ; path.vader:167:19
@@ -720,9 +728,9 @@ fn 14 std_path$normalize (ref) -> ref
   struct.get 0 0   ; path.vader:169:20
   local.get 6   ; path.vader:169:36
   local.get 5   ; path.vader:169:47
-  call.import 11   ; path.vader:169:20
+  call.import 12   ; path.vader:169:20
   local.tee 9   ; path.vader:169:13
-  call.import 10   ; path.vader:170:16
+  call.import 11   ; path.vader:170:16
   i32.const 0   ; path.vader:170:29
   i32.eq   ; path.vader:170:16
   if bool   ; path.vader:170:16
@@ -816,13 +824,13 @@ fn 14 std_path$normalize (ref) -> ref
   br 0   ; path.vader:165:5
   end   ; path.vader:165:5
   end   ; path.vader:165:5
-  call 16   ; path.vader:196:11
+  call 17   ; path.vader:196:11
   local.set 11   ; path.vader:196:5
   local.get 1   ; path.vader:197:8
   if void   ; path.vader:197:5
   local.get 11   ; path.vader:198:9
   string.const 44   ; path.vader:14:19
-  call 17   ; path.vader:198:9
+  call 18   ; path.vader:198:9
   end   ; path.vader:197:5
   i32.const 0   ; path.vader:200:10
   local.set 12   ; path.vader:200:5
@@ -838,14 +846,14 @@ fn 14 std_path$normalize (ref) -> ref
   if void   ; path.vader:202:9
   local.get 11   ; path.vader:203:13
   string.const 44   ; path.vader:14:19
-  call 17   ; path.vader:203:13
+  call 18   ; path.vader:203:13
   end   ; path.vader:202:9
   local.get 11   ; path.vader:205:9
   local.get 2   ; path.vader:205:19
   local.get 12   ; path.vader:205:28
   array.get 3   ; path.vader:205:19
   ref.cast 1   ; path.vader:205:19
-  call 17   ; path.vader:205:9
+  call 18   ; path.vader:205:9
   local.get 12   ; path.vader:206:13
   i32.const 1   ; path.vader:206:17
   i32.add   ; path.vader:206:13
@@ -854,9 +862,9 @@ fn 14 std_path$normalize (ref) -> ref
   end   ; path.vader:201:5
   end   ; path.vader:201:5
   local.get 11   ; path.vader:208:12
-  call 18   ; path.vader:208:12
+  call 19   ; path.vader:208:12
   local.tee 13   ; path.vader:208:5
-  call.import 10   ; path.vader:209:8
+  call.import 11   ; path.vader:209:8
   i32.const 0   ; path.vader:209:21
   i32.eq   ; path.vader:209:8
   if bool   ; path.vader:209:8
@@ -875,10 +883,10 @@ fn 14 std_path$normalize (ref) -> ref
   return   ; path.vader:212:5
 end
 
-fn 15 std_string$last_index_of (string,char,i32) -> i32
+fn 16 std_string$last_index_of (string,char,i32) -> i32
   local i i32
   local.get 0   ; string.vader:45:10
-  call.import 10   ; string.vader:45:10
+  call.import 11   ; string.vader:45:10
   i32.const 1   ; string.vader:45:20
   i32.sub   ; string.vader:45:10
   local.set 3   ; string.vader:45:5
@@ -889,9 +897,9 @@ fn 15 std_string$last_index_of (string,char,i32) -> i32
   i32.lt   ; string.vader:46:9
   br_if 1   ; string.vader:46:9
   local.get 0   ; string.vader:47:12
-  local.get 3   ; string.vader:47:22
-  call.import 15   ; string.vader:47:12
-  local.get 1   ; string.vader:47:28
+  local.get 3   ; string.vader:47:14
+  call 2   ; string.vader:47:12
+  local.get 1   ; string.vader:47:20
   char.eq   ; string.vader:47:12
   if void   ; string.vader:47:9
   local.get 3   ; string.vader:48:20
@@ -909,22 +917,22 @@ fn 15 std_string$last_index_of (string,char,i32) -> i32
   return   ; string.vader:52:5
 end
 
-fn 16 std_string_builder$new_builder () -> ref
+fn 17 std_string_builder$new_builder () -> ref
   array.new 3 0   ; string_builder.vader:19:37
   struct.new 2   ; string_builder.vader:19:12
   return   ; string_builder.vader:19:5
 end
 
-fn 17 std_string_builder$append (ref,string) -> void
+fn 18 std_string_builder$append (ref,string) -> void
   local.get 0   ; string_builder.vader:23:5
   struct.get 2 0   ; string_builder.vader:23:5
   local.get 1   ; string_builder.vader:23:21
   array.push 1   ; string_builder.vader:23:5
 end
 
-fn 18 std_string_builder$to_string (ref) -> string
-  local.get 0   ; string_builder.vader:34:23
-  struct.get 2 0   ; string_builder.vader:34:23
-  call.import 22   ; string_builder.vader:34:12
-  return   ; string_builder.vader:34:5
+fn 19 std_string_builder$to_string (ref) -> string
+  local.get 0   ; string_builder.vader:55:23
+  struct.get 2 0   ; string_builder.vader:55:23
+  call.import 23   ; string_builder.vader:55:12
+  return   ; string_builder.vader:55:5
 end

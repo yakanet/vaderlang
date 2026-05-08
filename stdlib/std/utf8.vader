@@ -1,0 +1,48 @@
+// std/utf8 — UTF-8 encoding helpers.
+//
+// Currently exposes a single codepoint encoder used by the JSON parser and
+// any code that decodes `\uXXXX` / `\u{...}` escapes into UTF-8 bytes.
+// Future additions : `decode_codepoint`, `count_chars` (codepoint count
+// rather than byte length), iteration helpers.
+
+import "std/string_builder" { StringBuilder, append_char }
+
+/**
+ * Append the UTF-8 encoding of a Unicode codepoint to a builder.
+ *
+ * Encodes `cp` as 1 to 4 bytes per the standard UTF-8 scheme :
+ *   - U+0000..U+007F     → 1 byte  (ASCII passthrough)
+ *   - U+0080..U+07FF     → 2 bytes
+ *   - U+0800..U+FFFF     → 3 bytes
+ *   - U+10000..U+10FFFF  → 4 bytes
+ *
+ * Codepoints above U+10FFFF (Unicode max) produce a malformed sequence ;
+ * callers are expected to validate input before calling. Surrogate halves
+ * (U+D800..U+DFFF) are accepted and encoded literally — caller's
+ * responsibility to reject them when strict-Unicode output is required.
+ *
+ * Example :
+ *   sb := new_builder()
+ *   sb.append_codepoint(u32(0x1F600))   // → "😀"
+ */
+export append_codepoint :: fn(sb: StringBuilder, cp: u32) -> void {
+    if cp < u32(0x80) {
+        sb.append_char(char(cp))
+        return
+    }
+    if cp < u32(0x800) {
+        sb.append_char(char(u32(0xC0) | (cp >> u32(6))))
+        sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
+        return
+    }
+    if cp < u32(0x10000) {
+        sb.append_char(char(u32(0xE0) | (cp >> u32(12))))
+        sb.append_char(char(u32(0x80) | ((cp >> u32(6)) & u32(0x3F))))
+        sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
+        return
+    }
+    sb.append_char(char(u32(0xF0) | (cp >> u32(18))))
+    sb.append_char(char(u32(0x80) | ((cp >> u32(12)) & u32(0x3F))))
+    sb.append_char(char(u32(0x80) | ((cp >> u32(6)) & u32(0x3F))))
+    sb.append_char(char(u32(0x80) | (cp & u32(0x3F))))
+}

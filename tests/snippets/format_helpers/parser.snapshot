@@ -31,7 +31,7 @@
             "alias": null
           },
           {
-            "name": "is_whitechar",
+            "name": "is_white_char",
             "alias": null
           }
         ]
@@ -519,7 +519,7 @@
                               "kind": "CharLitExpr",
                               "value": 32
                             },
-                            "field": "is_whitechar"
+                            "field": "is_white_char"
                           },
                           "args": []
                         }
@@ -559,7 +559,7 @@
                               "kind": "CharLitExpr",
                               "value": 97
                             },
-                            "field": "is_whitechar"
+                            "field": "is_white_char"
                           },
                           "args": []
                         }
@@ -599,7 +599,7 @@
                               "kind": "CharLitExpr",
                               "value": 9
                             },
-                            "field": "is_whitechar"
+                            "field": "is_white_char"
                           },
                           "args": []
                         }

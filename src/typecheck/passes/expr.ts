@@ -163,7 +163,10 @@ function inferIndex(
   const indexTy = checkExpr(expr.index, null, t, impls, diags, fn);
   if (target.kind === "Array") return target.element;
   // Trait dispatch via `Index($I, $T)` when the target isn't a built-in array.
-  if (target.kind === "Struct") {
+  // Both struct receivers and primitive receivers (e.g. `string implements
+  // Index(i32, char)`) flow through the same path ; `resolveIndexTrait`
+  // handles both shapes.
+  if (target.kind === "Struct" || target.kind === "Primitive") {
     const result = resolveIndexTrait(expr, target, indexTy, CORE_TRAITS.Index, "at", t, impls, diags);
     if (result !== null) {
       t.indexResolutions.set(expr, result.resolution);
@@ -174,18 +177,22 @@ function inferIndex(
   return TY.unresolved;
 }
 
+
+
 /** Look up an `Index($I, $T)` or `IndexSet($I, $T)` impl on `target` and
  *  build the substitution that pins the trait's `I` and `T` parameters to
  *  the impl's declared trait args. Returns the resolution + the element
- *  type at the use site. */
+ *  type at the use site. Accepts struct receivers and primitive receivers
+ *  (the `string implements Index(i32, char)` shape) ; for primitives there
+ *  is no struct-typeParam substitution to apply. */
 export function resolveIndexTrait(
-  expr: A.Expr, target: Extract<Type, { kind: "Struct" }>, indexTy: Type,
+  expr: A.Expr, target: Type, indexTy: Type,
   traitName: string, methodName: string,
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector,
 ): { resolution: IndexResolution; elementType: Type } | null {
   const trait = findGlobalTrait(t, traitName);
   if (trait === null) return null;
-  const entry: ImplEntry | null = impls.findUser(target.symbol, trait);
+  const entry: ImplEntry | null = impls.findFor(target, trait);
   if (entry === null) return null;
   const member = entry.decl.members.find((m) => m.name === methodName);
   if (member === undefined) return null;
@@ -196,9 +203,9 @@ export function resolveIndexTrait(
   if (traitArgs.length < 2) return null;
   // Substitute the struct's typeParams using the receiver's concrete args so
   // generic containers resolve correctly (e.g. `Cell(T)::at` indexed by string).
-  const decl = target.symbol.source.kind === "struct" ? target.symbol.source.decl : null;
-  const subst = decl !== null
-    ? buildStructSubst(decl.typeParams, target.args, t.globals.typeParamSymbols)
+  // Primitives carry no typeParams ; the substitution is identity.
+  const subst = target.kind === "Struct" && target.symbol.source.kind === "struct"
+    ? buildStructSubst(target.symbol.source.decl.typeParams, target.args, t.globals.typeParamSymbols)
     : { typeParams: new Map() };
   const expectedIndex = substitute(traitArgs[0]!, subst);
   const elementType  = substitute(traitArgs[1]!, subst);

@@ -11,5 +11,5 @@
   Yielded(i32)
 
 # Diagnostics
-[16:64] error[R2011] duplicate import binding: `len`
-[467:18] error[T3009] field does not exist on this type: `len` on MutableMap(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+[17:64] error[R2011] duplicate import binding: `len`
+[440:18] error[T3009] field does not exist on this type: `len` on MutableMap(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)

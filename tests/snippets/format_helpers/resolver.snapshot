@@ -19,10 +19,11 @@
   trait            public   Ord 
   struct           public   Range 
   trait            public   Rem 
+  fn               private  string_char_at 
   fn               public   string_concat 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=43 types=83 params=47 locals=3 typeParams=8 fields=0
+  refs: idents=46 types=91 params=51 locals=3 typeParams=8 fields=0
 
 ## std/io
   fn               public   eprint 
@@ -56,20 +57,24 @@
 
 ## std/numbers
   import-binding   private  append_char → append_char
-  import-binding   private  char_at → char_at
+  import-binding   private  ends_with → ends_with
   fn               private  hex_digit 
   fn               public   hex_digit_value 
+  fn               public   is_float_suffix 
+  fn               public   is_int_suffix 
   import-binding   private  len → len
   import-binding   private  new_builder → new_builder
   fn               public   parse_int_in_base 
   struct           public   ParseError 
+  import-binding   private  slice → slice
   import-binding   private  StringBuilder → StringBuilder
   fn               public   to_bin 
+  fn               public   to_compact_str 
   fn               public   to_hex 
   import-binding   private  to_string → to_string
   import std/string → ok
   import std/string_builder → ok
-  refs: idents=91 types=23 params=7 locals=15 typeParams=0 fields=0
+  refs: idents=106 types=27 params=10 locals=16 typeParams=0 fields=0
 
 ## std/string
   import-binding   private  append → append
@@ -78,10 +83,12 @@
   fn               public   compare_ascending 
   fn               public   contains 
   fn               public   ends_with 
+  fn               public   is_alnum 
+  fn               public   is_alpha 
   fn               public   is_digit 
   fn               public   is_digit_in_base 
   fn               public   is_hex_digit 
-  fn               public   is_whitechar 
+  fn               public   is_white_char 
   fn               public   last_index_of 
   fn               public   len 
   import-binding   private  min → min
@@ -94,7 +101,7 @@
   fn               public   replace_chars_where 
   fn               public   slice 
   fn               public   split 
-  fn               public   split_whitespace 
+  fn               public   split_where 
   fn               public   starts_with 
   import-binding   private  StringBuilder → StringBuilder
   fn               public   to_lower 
@@ -105,19 +112,20 @@
   fn               public   trim_suffix 
   import std/string_builder → ok
   import std/math → ok
-  refs: idents=128 types=71 params=44 locals=23 typeParams=0 fields=0
+  refs: idents=135 types=75 params=47 locals=23 typeParams=0 fields=0
 
 ## std/string_builder
   fn               public   append 
   fn               public   append_char 
+  fn               public   append_repeated 
   fn               public   concat_all 
   fn               public   new_builder 
   struct           public   StringBuilder 
   fn               public   to_string 
-  refs: idents=6 types=13 params=6 locals=0 typeParams=0 fields=0
+  refs: idents=12 types=17 params=9 locals=1 typeParams=0 fields=0
 
 ## tests/snippets/format_helpers/_main.vader
-  import-binding   private  is_whitechar → is_whitechar
+  import-binding   private  is_white_char → is_white_char
   fn               public   main 
   import-binding   private  pad_end → pad_end
   import-binding   private  pad_start → pad_start

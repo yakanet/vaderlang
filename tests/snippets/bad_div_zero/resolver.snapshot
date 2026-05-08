@@ -19,10 +19,11 @@
   trait            public   Ord 
   struct           public   Range 
   trait            public   Rem 
+  fn               private  string_char_at 
   fn               public   string_concat 
   trait            public   Sub 
   struct           public   Yielded 
-  refs: idents=43 types=83 params=47 locals=3 typeParams=8 fields=0
+  refs: idents=46 types=91 params=51 locals=3 typeParams=8 fields=0
 
 ## tests/snippets/bad_div_zero/_main.vader
   const            public   BOOM 

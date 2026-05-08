@@ -154,6 +154,17 @@ string implements Add -> string_concat(self, other)
 
 string implements Hash -> hash_string(self)
 
+// String byte-indexed read — host-provided. The runtime returns the Unicode
+// codepoint at byte offset `i`. Wired in std/core (rather than std/string)
+// so the `Index` impl below auto-registers in every program — strings are a
+// primitive, the subscript syntax shouldn't depend on importing std/string.
+@intrinsic
+string_char_at :: fn(s: string, i: i32) -> char
+
+// Subscript dispatch — lets callers write `s[i]` instead of `s.char_at(i)`.
+// Strings are immutable, so there's no `IndexSet` impl to pair with this.
+string implements Index(i32, char) -> string_char_at(self, i)
+
 // Number formatting (`to_hex`, `to_bin`) lives in `std/numbers` so it can use
 // std/string_builder.
 

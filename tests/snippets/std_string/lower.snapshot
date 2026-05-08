@@ -2,7 +2,7 @@
 
 ## tests/snippets/std_string/_main.vader
   fn tests_snippets_std_string__main_vader$main() -> i32
-    let s#121: string = "  Hello, World!  " :string
+    let s#124: string = "  Hello, World!  " :string
     call :void
       callee:
         println#36 :fn(string) -> void
@@ -16,7 +16,7 @@
               callee:
                 len#49 :fn(string) -> i32
               arg0:
-                s#121 :string
+                s#124 :string
           ~>
             @builder.finish :string
               __sb_0#-1 :?
@@ -28,7 +28,7 @@
           callee:
             trim#58 :string
           arg0:
-            s#121 :string
+            s#124 :string
     call :void
       callee:
         println#36 :fn(string) -> void
@@ -128,7 +128,7 @@
             __sb_4#-5 :?
             call :char
               callee:
-                char_at#54 :char
+                at#1000007 :char
               arg0:
                 "hello" :string
               arg1:
@@ -147,7 +147,7 @@
             __sb_5#-6 :?
             call :char
               callee:
-                char_at#54 :char
+                at#1000007 :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -166,7 +166,7 @@
             __sb_6#-7 :?
             call :char
               callee:
-                char_at#54 :char
+                at#1000007 :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -185,7 +185,7 @@
             __sb_7#-8 :?
             call :char
               callee:
-                char_at#54 :char
+                at#1000007 :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -193,7 +193,7 @@
           ~>
             @builder.finish :string
               __sb_7#-8 :?
-    let parts#122: string[] =
+    let parts#125: string[] =
       call :string[]
         callee:
           split#57 :string[]
@@ -207,7 +207,7 @@
       arg0:
         index :string
           on:
-            parts#122 :string[]
+            parts#125 :string[]
           ix:
             int(0) :i32
     call :void
@@ -216,7 +216,7 @@
       arg0:
         index :string
           on:
-            parts#122 :string[]
+            parts#125 :string[]
           ix:
             int(1) :i32
     call :void
@@ -225,7 +225,7 @@
       arg0:
         index :string
           on:
-            parts#122 :string[]
+            parts#125 :string[]
           ix:
             int(2) :i32
     return int(0) :i32

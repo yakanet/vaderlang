@@ -1,6 +1,6 @@
 import "std/io" { println }
 import "std/string" {
-    trim_suffix, trim_prefix, replace_chars_where, split_whitespace,
+    trim_suffix, trim_prefix, replace_chars_where, split_where, is_white_char,
 }
 
 export is_non_id :: fn(c: char) -> bool {
@@ -19,7 +19,7 @@ main :: fn() -> i32 {
 
     println(replace_chars_where("std::io.print!", is_non_id, "_"))
 
-    parts := split_whitespace("  hello  world\tfoo\n bar  ")
+    parts := split_where("  hello  world\tfoo\n bar  ", is_white_char)
     println("count=${parts.len()}")
     n := parts.len()
     i := 0

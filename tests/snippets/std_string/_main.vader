@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/string" { len, trim, to_upper, to_lower, contains, starts_with, ends_with, slice, char_at, split }
+import "std/string" { len, trim, to_upper, to_lower, contains, starts_with, ends_with, slice, split }
 
 main :: fn() -> i32 {
     s := "  Hello, World!  "
@@ -11,10 +11,10 @@ main :: fn() -> i32 {
     println("${"foobar".starts_with("foo")}")
     println("${"foobar".ends_with("bar")}")
     println("hello world".slice(6, 11))
-    println("${"hello".char_at(1)}")
-    println("${"你好嗎？".char_at(0)}")
-    println("${"你好嗎？".char_at(1)}")
-    println("${"你好嗎？".char_at(3)}")
+    println("${"hello"[1]}")
+    println("${"你好嗎？"[0]}")
+    println("${"你好嗎？"[1]}")
+    println("${"你好嗎？"[3]}")
     parts := "a,b,c".split(",")
     println(parts[0])
     println(parts[1])

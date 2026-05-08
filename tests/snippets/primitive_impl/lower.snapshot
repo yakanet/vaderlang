@@ -11,19 +11,19 @@
           "the answer is " :string
         @builder.append_display <for i32> :void
           __sb_0#-1 :?
-          self#55 :i32
+          self#56 :i32
         ~>
           @builder.finish :string
             __sb_0#-1 :?
   fn tests_snippets_primitive_impl__main_vader$main() -> i32
-    let x#56: i32 = int(42) :i32
+    let x#57: i32 = int(42) :i32
     call :void
       callee:
-        println#26 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         call :string
           callee:
             show#1000000 :string
           arg0:
-            x#56 :i32
+            x#57 :i32
     return int(0) :i32

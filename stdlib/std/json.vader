@@ -9,10 +9,11 @@
 // for the post-MVP compile-time-generated parser à la kotlinx-serialization.
 
 import "std/string" {
-    len, slice, char_at, contains as str_contains,
+    len, slice, contains as str_contains,
     starts_with as str_starts_with, parse_float, pad_start,
 }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated, to_string }
+import "std/utf8" { append_codepoint }
 import "std/collections" { MutableMap, put, get, contains_key, len, keys, values }
 import "std/numbers" { to_hex }
 
@@ -58,7 +59,7 @@ peek_byte :: fn(p: Parser) -> char {
     if p.pos >= p.eof {
         return '\0'
     }
-    return p.src.char_at(p.pos)
+    return p.src[p.pos]
 }
 
 advance :: fn(p: Parser) -> void {
@@ -98,7 +99,7 @@ match_keyword :: fn(p: Parser, kw: string) -> bool {
     }
     i := 0
     for i < n {
-        if p.src.char_at(p.pos + i) != kw.char_at(i) {
+        if p.src[p.pos + i] != kw[i] {
             return false
         }
         i = i + 1
@@ -223,29 +224,6 @@ parse_hex_digit :: fn(c: char) -> i32 {
     return -1
 }
 
-// Append the UTF-8 bytes of a codepoint into the builder (manual encoder).
-append_codepoint :: fn(sb: StringBuilder, cp: i32) -> void {
-    if cp < 0x80 {
-        sb.append_char(char(u32(cp)))
-        return
-    }
-    if cp < 0x800 {
-        sb.append_char(char(u32(0xC0) | (u32(cp) >> 6)))
-        sb.append_char(char(u32(0x80) | (u32(cp) & u32(0x3F))))
-        return
-    }
-    if cp < 0x10000 {
-        sb.append_char(char(u32(0xE0) | (u32(cp) >> 12)))
-        sb.append_char(char(u32(0x80) | ((u32(cp) >> 6) & u32(0x3F))))
-        sb.append_char(char(u32(0x80) | (u32(cp) & u32(0x3F))))
-        return
-    }
-    sb.append_char(char(u32(0xF0) | (u32(cp) >> 18)))
-    sb.append_char(char(u32(0x80) | ((u32(cp) >> 12) & u32(0x3F))))
-    sb.append_char(char(u32(0x80) | ((u32(cp) >> 6) & u32(0x3F))))
-    sb.append_char(char(u32(0x80) | (u32(cp) & u32(0x3F))))
-}
-
 parse_string :: fn(p: Parser) -> string | JsonError {
     expect_byte(p, '"')?
     sb := new_builder()
@@ -285,7 +263,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
                 cp := 0
                 k := 0
                 for k < 4 {
-                    d := parse_hex_digit(p.src.char_at(p.pos + k))
+                    d := parse_hex_digit(p.src[p.pos + k])
                     if d < 0 {
                         return fail(p, "invalid hex digit in \\u escape")
                     }
@@ -293,7 +271,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
                     k = k + 1
                 }
                 p.pos = p.pos + 4
-                append_codepoint(sb, cp)
+                sb.append_codepoint(u32(cp))
             } else {
                 return fail(p, "unknown escape")
             }
@@ -391,7 +369,7 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
     n := s.len()
     i := 0
     for i < n {
-        c := s.char_at(i)
+        c := s[i]
         cp := i32(u32(c))
         if c == '"' { sb.append("\\\"") } else
         if c == '\\' { sb.append("\\\\") } else
@@ -435,12 +413,7 @@ write_indent :: fn(sb: StringBuilder, indent: i32, depth: i32) -> void {
         return
     }
     sb.append_char('\n')
-    total := indent * depth
-    i := 0
-    for i < total {
-        sb.append_char(' ')
-        i = i + 1
-    }
+    sb.append_repeated(' ', indent * depth)
 }
 
 write_array :: fn(sb: StringBuilder, a: JsonArray, indent: i32, depth: i32) -> void {

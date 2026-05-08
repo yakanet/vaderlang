@@ -55,10 +55,6 @@
             "alias": null
           },
           {
-            "name": "char_at",
-            "alias": null
-          },
-          {
             "name": "split",
             "alias": null
           }
@@ -467,31 +463,21 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "hello"
-                                }
-                              ]
-                            },
-                            "field": "char_at"
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "hello"
+                              }
+                            ]
                           },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "IntLitExpr",
-                                "value": "1n",
-                                "suffix": null
-                              },
-                              "spread": false
-                            }
-                          ]
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "1n",
+                            "suffix": null
+                          }
                         }
                       }
                     ]
@@ -518,31 +504,21 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "你好嗎？"
-                                }
-                              ]
-                            },
-                            "field": "char_at"
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "你好嗎？"
+                              }
+                            ]
                           },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "IntLitExpr",
-                                "value": "0n",
-                                "suffix": null
-                              },
-                              "spread": false
-                            }
-                          ]
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n",
+                            "suffix": null
+                          }
                         }
                       }
                     ]
@@ -569,31 +545,21 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "你好嗎？"
-                                }
-                              ]
-                            },
-                            "field": "char_at"
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "你好嗎？"
+                              }
+                            ]
                           },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "IntLitExpr",
-                                "value": "1n",
-                                "suffix": null
-                              },
-                              "spread": false
-                            }
-                          ]
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "1n",
+                            "suffix": null
+                          }
                         }
                       }
                     ]
@@ -620,31 +586,21 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "你好嗎？"
-                                }
-                              ]
-                            },
-                            "field": "char_at"
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "你好嗎？"
+                              }
+                            ]
                           },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "IntLitExpr",
-                                "value": "3n",
-                                "suffix": null
-                              },
-                              "spread": false
-                            }
-                          ]
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "3n",
+                            "suffix": null
+                          }
                         }
                       }
                     ]

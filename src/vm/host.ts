@@ -115,6 +115,14 @@ export function stdStringBindings(): Record<string, HostFn> {
       if (i < 0 || i >= bytes.length) return ch(0);
       return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
     },
+    // Same as `std_string$char_at`, exposed under `std/core` so the `Index`
+    // impl on `string` is reachable without importing `std/string`.
+    std_core$string_char_at: (args) => {
+      const bytes = UTF8_ENC.encode(stringArg(args, 0));
+      const i = numArg(args, 1);
+      if (i < 0 || i >= bytes.length) return ch(0);
+      return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
+    },
     std_string$split: (args) => {
       const s = stringArg(args, 0);
       const sep = stringArg(args, 1);

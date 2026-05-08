@@ -345,6 +345,10 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_string$to_lower":    return `${head} { return vader_string_to_lower(a0); }`;
     case "std_string$char_at":
       return `${head} { return vader_string_char_at(a0, a1); }`;
+    // Same as std_string$char_at — exposed under std/core so the `Index`
+    // impl on `string` doesn't require an `import "std/string"`.
+    case "std_core$string_char_at":
+      return `${head} { return vader_string_char_at(a0, a1); }`;
     case "std_string$split": {
       const strIdx = ctx.stringTagIndex;
       if (strIdx < 0) return `${head} { vader_trap("split: no string type"); }`;

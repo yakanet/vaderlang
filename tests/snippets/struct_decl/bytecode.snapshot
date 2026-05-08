@@ -3,3 +3,4 @@ type 0 struct tests_snippets_struct_decl__main_vader$Point { x:1,y:1 }
 type 1 primitive f64
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 string_char_at std_core$string_char_at (string,i32) -> char

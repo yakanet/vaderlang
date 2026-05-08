@@ -9,6 +9,7 @@ type 6 primitive void
 type 7 fn () -> 3
 import 0 hash_string std_core$hash_string (string) -> u64
 import 1 string_concat std_core$string_concat (string,string) -> string
+import 2 string_char_at std_core$string_char_at (string,i32) -> char
 
 fn 0 tests_snippets_closure_shared__main_vader$main () -> i32
   local n any
