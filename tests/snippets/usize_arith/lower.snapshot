@@ -2,23 +2,23 @@
 
 ## tests/snippets/usize_arith/_main.vader
   fn tests_snippets_usize_arith__main_vader$main() -> i32
-    let n#56: usize = int(10) :usize
-    let m#57: usize =
+    let n#53: usize = int(10) :usize
+    let m#54: usize =
       add :usize
         l:
-          n#56 :usize
+          n#53 :usize
         r:
           int(1) :usize
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#24 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
             @builder.new :?
           @builder.append_display <for usize> :void
             __sb_0#-1 :?
-            m#57 :usize
+            m#54 :usize
           ~>
             @builder.finish :string
               __sb_0#-1 :?

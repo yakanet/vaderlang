@@ -2,7 +2,7 @@
 
 ## tests/snippets/seq_lit_inference/_main.vader
   fn tests_snippets_seq_lit_inference__main_vader$main() -> i32
-    let scores#56: i32[] =
+    let scores#53: i32[] =
       array :i32[]
         int(10) :i32
         int(20) :i32
@@ -10,7 +10,7 @@
     block :void
       let __iter_0#-1: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: scores#56 :i32[]
+          arr: scores#53 :i32[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -29,13 +29,13 @@
           then:
             break
           else:
-            let s#57: i32 =
+            let s#54: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_1#-2 :Done | Yielded(i32)
             call :void
               callee:
-                println#27 :fn(string) -> void
+                println#24 :fn(string) -> void
               arg0:
                 block :string
                   let __sb_2#-3: ? =
@@ -45,18 +45,18 @@
                     "score=" :string
                   @builder.append_display <for i32> :void
                     __sb_2#-3 :?
-                    s#57 :i32
+                    s#54 :i32
                   ~>
                     @builder.finish :string
                       __sb_2#-3 :?
-    let entry#58: [i32, string] =
+    let entry#55: [i32, string] =
       [i32, string] {
         _0: int(42) :i32
         _1: "answer" :string
       }
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#24 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-4: ? =
@@ -67,13 +67,13 @@
           @builder.append_display <for i32> :void
             __sb_3#-4 :?
             ._0 :i32
-              entry#58 :[i32, string]
+              entry#55 :[i32, string]
           ~>
             @builder.finish :string
               __sb_3#-4 :?
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#24 :fn(string) -> void
       arg0:
         block :string
           let __sb_4#-5: ? =
@@ -84,7 +84,7 @@
           @builder.append_display <for string> :void
             __sb_4#-5 :?
             ._1 :string
-              entry#58 :[i32, string]
+              entry#55 :[i32, string]
           ~>
             @builder.finish :string
               __sb_4#-5 :?

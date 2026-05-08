@@ -345,9 +345,9 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_string$to_lower":    return `${head} { return vader_string_to_lower(a0); }`;
     case "std_string$char_at":
       return `${head} { return vader_string_char_at(a0, a1); }`;
-    // Same as std_string$char_at — exposed under std/core so the `Index`
-    // impl on `string` doesn't require an `import "std/string"`.
-    case "std_core$string_char_at":
+    // `string implements Index(i32, char)` is `@intrinsic`-impl in std/core,
+    // so the host provides the body under the impl-method mangled name.
+    case "std_core$string$Index$at":
       return `${head} { return vader_string_char_at(a0, a1); }`;
     case "std_string$split": {
       const strIdx = ctx.stringTagIndex;
@@ -360,7 +360,7 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_string_parse_int(a0, ${primTagOrTrap(ctx, "i32")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_string$parse_float":
       return `${head} { return vader_string_parse_float(a0, ${primTagOrTrap(ctx, "f64")}, ${tagOrTrap(ctx, "error")}); }`;
-    case "std_core$hash_string":
+    case "std_core$string$Hash$hash":
       return `${head} { return vader_string_hash(a0); }`;
     case "std_string_builder$concat_all":
       return `${head} { return vader_string_concat_all((vader_array_t*) a0.payload.obj); }`;

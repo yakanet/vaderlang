@@ -5,14 +5,14 @@
     ~>
       call :void
         callee:
-          println#42 :fn(string) -> void
+          println#39 :fn(string) -> void
         arg0:
           block :string
             let __sb_0#-1: ? =
               @builder.new :?
             @builder.append_display <for string> :void
               __sb_0#-1 :?
-              label#155 :string
+              label#152 :string
             @builder.append_str :void
               __sb_0#-1 :?
               "=" :string
@@ -20,17 +20,17 @@
               __sb_0#-1 :?
               call :string
                 callee:
-                  as_string#63 :string
+                  as_string#60 :string
                 arg0:
-                  p#156 :Path
+                  p#153 :Path
             ~>
               @builder.finish :string
                 __sb_0#-1 :?
   fn tests_snippets_path_basics__main_vader$main() -> i32
-    let p#157: Path =
+    let p#154: Path =
       call :Path
         callee:
-          to_path#61 :Path
+          to_path#58 :Path
         arg0:
           "src/parser/expr.ts" :string
     call :void
@@ -39,10 +39,10 @@
       arg0:
         "path" :string
       arg1:
-        p#157 :Path
+        p#154 :Path
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-2: ? =
@@ -54,15 +54,15 @@
             __sb_0#-2 :?
             call :string
               callee:
-                filename#67 :string
+                filename#64 :string
               arg0:
-                p#157 :Path
+                p#154 :Path
           ~>
             @builder.finish :string
               __sb_0#-2 :?
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-3: ? =
@@ -74,15 +74,15 @@
             __sb_1#-3 :?
             call :string
               callee:
-                stem#69 :string
+                stem#66 :string
               arg0:
-                p#157 :Path
+                p#154 :Path
           ~>
             @builder.finish :string
               __sb_1#-3 :?
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-4: ? =
@@ -94,9 +94,9 @@
             __sb_2#-4 :?
             call :string
               callee:
-                extension#68 :string
+                extension#65 :string
               arg0:
-                p#157 :Path
+                p#154 :Path
           ~>
             @builder.finish :string
               __sb_2#-4 :?
@@ -108,9 +108,9 @@
       arg1:
         call :Path
           callee:
-            parent#66 :Path
+            parent#63 :Path
           arg0:
-            p#157 :Path
+            p#154 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -119,22 +119,22 @@
       arg1:
         call :Path
           callee:
-            parent#66 :Path
+            parent#63 :Path
           arg0:
             call :Path
               callee:
-                parent#66 :Path
+                parent#63 :Path
               arg0:
-                p#157 :Path
-    let abs#158: Path =
+                p#154 :Path
+    let abs#155: Path =
       call :Path
         callee:
-          to_path#61 :Path
+          to_path#58 :Path
         arg0:
           "/usr/local/bin/vader" :string
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-5: ? =
@@ -146,9 +146,9 @@
             __sb_3#-5 :?
             call :bool
               callee:
-                is_absolute#65 :bool
+                is_absolute#62 :bool
               arg0:
-                abs#158 :Path
+                abs#155 :Path
           ~>
             @builder.finish :string
               __sb_3#-5 :?
@@ -160,9 +160,9 @@
       arg1:
         call :Path
           callee:
-            parent#66 :Path
+            parent#63 :Path
           arg0:
-            abs#158 :Path
+            abs#155 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -171,13 +171,13 @@
       arg1:
         call :Path
           callee:
-            to_path#61 :fn(string) -> Path
+            to_path#58 :fn(string) -> Path
           arg0:
             call :string
               callee:
-                filename#67 :string
+                filename#64 :string
               arg0:
-                abs#158 :Path
+                abs#155 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -186,16 +186,16 @@
       arg1:
         call :Path
           callee:
-            parent#66 :Path
+            parent#63 :Path
           arg0:
             call :Path
               callee:
-                parent#66 :Path
+                parent#63 :Path
               arg0:
-                abs#158 :Path
+                abs#155 :Path
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_4#-6: ? =
@@ -207,17 +207,17 @@
             __sb_4#-6 :?
             call :bool
               callee:
-                is_empty#64 :bool
+                is_empty#61 :bool
               arg0:
                 call :Path
                   callee:
-                    empty_path#62 :fn() -> Path
+                    empty_path#59 :fn() -> Path
           ~>
             @builder.finish :string
               __sb_4#-6 :?
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_5#-7: ? =
@@ -229,9 +229,9 @@
             __sb_5#-7 :?
             call :bool
               callee:
-                is_empty#64 :bool
+                is_empty#61 :bool
               arg0:
-                p#157 :Path
+                p#154 :Path
           ~>
             @builder.finish :string
               __sb_5#-7 :?
@@ -243,11 +243,11 @@
       arg1:
         call :Path
           callee:
-            join#70 :Path
+            join#67 :Path
           arg0:
             call :Path
               callee:
-                to_path#61 :Path
+                to_path#58 :Path
               arg0:
                 "/etc" :string
           arg1:
@@ -260,11 +260,11 @@
       arg1:
         call :Path
           callee:
-            join#70 :Path
+            join#67 :Path
           arg0:
             call :Path
               callee:
-                to_path#61 :Path
+                to_path#58 :Path
               arg0:
                 "/etc/" :string
           arg1:
@@ -277,11 +277,11 @@
       arg1:
         call :Path
           callee:
-            join#70 :Path
+            join#67 :Path
           arg0:
             call :Path
               callee:
-                to_path#61 :Path
+                to_path#58 :Path
               arg0:
                 "/etc" :string
           arg1:
@@ -294,16 +294,16 @@
       arg1:
         call :Path
           callee:
-            join#70 :Path
+            join#67 :Path
           arg0:
             call :Path
               callee:
-                empty_path#62 :fn() -> Path
+                empty_path#59 :fn() -> Path
           arg1:
             "foo" :string
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_6#-8: ? =
@@ -315,17 +315,17 @@
             __sb_6#-8 :?
             call :bool
               callee:
-                starts_with#71 :bool
+                starts_with#68 :bool
               arg0:
                 call :Path
                   callee:
-                    to_path#61 :Path
+                    to_path#58 :Path
                   arg0:
                     "a/b/c" :string
               arg1:
                 call :Path
                   callee:
-                    to_path#61 :Path
+                    to_path#58 :Path
                   arg0:
                     "a/b" :string
           ~>
@@ -333,7 +333,7 @@
               __sb_6#-8 :?
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_7#-9: ? =
@@ -345,17 +345,17 @@
             __sb_7#-9 :?
             call :bool
               callee:
-                starts_with#71 :bool
+                starts_with#68 :bool
               arg0:
                 call :Path
                   callee:
-                    to_path#61 :Path
+                    to_path#58 :Path
                   arg0:
                     "a/bc" :string
               arg1:
                 call :Path
                   callee:
-                    to_path#61 :Path
+                    to_path#58 :Path
                   arg0:
                     "a/b" :string
           ~>
@@ -363,7 +363,7 @@
               __sb_7#-9 :?
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_8#-10: ? =
@@ -375,17 +375,17 @@
             __sb_8#-10 :?
             call :bool
               callee:
-                ends_with#72 :bool
+                ends_with#69 :bool
               arg0:
                 call :Path
                   callee:
-                    to_path#61 :Path
+                    to_path#58 :Path
                   arg0:
                     "a/b/c" :string
               arg1:
                 call :Path
                   callee:
-                    to_path#61 :Path
+                    to_path#58 :Path
                   arg0:
                     "b/c" :string
           ~>
@@ -393,7 +393,7 @@
               __sb_8#-10 :?
     call :void
       callee:
-        println#42 :fn(string) -> void
+        println#39 :fn(string) -> void
       arg0:
         block :string
           let __sb_9#-11: ? =
@@ -405,17 +405,17 @@
             __sb_9#-11 :?
             call :bool
               callee:
-                ends_with#72 :bool
+                ends_with#69 :bool
               arg0:
                 call :Path
                   callee:
-                    to_path#61 :Path
+                    to_path#58 :Path
                   arg0:
                     "a/b/c" :string
               arg1:
                 call :Path
                   callee:
-                    to_path#61 :Path
+                    to_path#58 :Path
                   arg0:
                     "/c" :string
           ~>
@@ -429,11 +429,11 @@
       arg1:
         call :Path
           callee:
-            normalize#73 :Path
+            normalize#70 :Path
           arg0:
             call :Path
               callee:
-                to_path#61 :Path
+                to_path#58 :Path
               arg0:
                 "a/./b/../c" :string
     call :void
@@ -444,11 +444,11 @@
       arg1:
         call :Path
           callee:
-            normalize#73 :Path
+            normalize#70 :Path
           arg0:
             call :Path
               callee:
-                to_path#61 :Path
+                to_path#58 :Path
               arg0:
                 "/a/b/../c" :string
     call :void
@@ -459,11 +459,11 @@
       arg1:
         call :Path
           callee:
-            normalize#73 :Path
+            normalize#70 :Path
           arg0:
             call :Path
               callee:
-                to_path#61 :Path
+                to_path#58 :Path
               arg0:
                 ".." :string
     call :void
@@ -474,11 +474,11 @@
       arg1:
         call :Path
           callee:
-            normalize#73 :Path
+            normalize#70 :Path
           arg0:
             call :Path
               callee:
-                to_path#61 :Path
+                to_path#58 :Path
               arg0:
                 "./." :string
     call :void
@@ -489,11 +489,11 @@
       arg1:
         call :Path
           callee:
-            normalize#73 :Path
+            normalize#70 :Path
           arg0:
             call :Path
               callee:
-                to_path#61 :Path
+                to_path#58 :Path
               arg0:
                 "/a//b" :string
     return int(0) :i32

@@ -5,9 +5,9 @@ type 2 primitive string
 string 0 "alice"
 string 1 "ten alice="
 string 2 "other"
-import 0 hash_string std_core$hash_string (string) -> u64
-import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 0 add std_core$string$Add$add (string,string) -> string
+import 1 hash std_core$string$Hash$hash (string) -> u64
+import 2 at std_core$string$Index$at (string,i32) -> char
 import 3 print std_io$print (string) -> void
 import 4 println std_io$println (string) -> void
 import 5 eprint std_io$eprint (string) -> void

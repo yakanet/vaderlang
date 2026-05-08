@@ -5,18 +5,18 @@
     return
       mul :i32
         l:
-          n#57 :i32
+          n#54 :i32
         r:
-          n#57 :i32
+          n#54 :i32
   fn tests_snippets_squares__main_vader$main() -> i32
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#25 :fn(string) -> void
       arg0:
         "squares:" :string
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#25 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -33,7 +33,7 @@
               __sb_0#-1 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#25 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -50,7 +50,7 @@
               __sb_1#-2 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#25 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =

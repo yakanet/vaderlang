@@ -162,15 +162,19 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
     p.expect("rparen", "`)` to close trait argument list");
   }
 
-  // Three impl shapes after the trait reference:
+  // Four impl shapes after the trait reference:
   //   `... -> expr`        → SAM arrow: synthesise a single FnDecl whose body
   //                          returns `expr`.
   //   `... { fn ... }`     → classic: one or more explicit fn members.
   //   `... { stmts }`      → SAM block: synthesise a single FnDecl whose body
   //                          is the parsed block.
+  //   `@intrinsic ...`     → host-provided impl with no source body. Members
+  //                          are synthesised by the resolver from the trait's
+  //                          methods, each marked `@intrinsic` (body=null).
   // Detection for the brace forms peeks past `{` and any newlines: if the
   // next significant token is `kw_fn`, classic; otherwise SAM block.
   const members: A.FnDecl[] = [];
+  const isIntrinsic = decorators.some((d) => d.name === "intrinsic");
   let endTok: Token;
   if (p.check("arrow")) {
     members.push(parseSamArrowMember(p));
@@ -186,6 +190,10 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
     endTok = p.expect("rbrace", "`}` to close impl body");
   } else if (p.check("lbrace")) {
     members.push(parseSamBlockMember(p));
+    endTok = p.peek(-1);
+  } else if (isIntrinsic) {
+    // `@intrinsic Type implements Trait` (no body) — resolver will fill in
+    // body-less members from the trait's method list.
     endTok = p.peek(-1);
   } else {
     const t = p.peek();

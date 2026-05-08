@@ -15,28 +15,34 @@ import { recordIterCoercion } from "./call.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
 import { lowerTypeExpr } from "./type-expr.ts";
 
+/** Substitute `Self` in this fn's param/return types now that we know the
+ *  surrounding impl's target type, and bind unannotated `self` parameters.
+ *  Shared between `checkFnBody` (impls with source bodies) and the body-less
+ *  intrinsic-impl path (no body to walk, but the signature still needs the
+ *  Self → forType substitution to flow through). */
+export function bindSelfTypes(fn: A.FnDecl, selfType: Type | null, t: MutableTyped): void {
+  if (selfType === null) return;
+  for (const p of fn.params) {
+    if (p.name === "self" && p.type === null) {
+      t.globals.paramTypes.set(p, selfType);
+    } else {
+      const declared = t.globals.paramTypes.get(p);
+      if (declared !== undefined) {
+        t.globals.paramTypes.set(p, substitute(declared, { self: selfType }));
+      }
+    }
+  }
+  const declaredFn = t.globals.declTypes.get(fn);
+  if (declaredFn !== undefined) {
+    t.globals.declTypes.set(fn, substitute(declaredFn, { self: selfType }));
+  }
+}
+
 export function checkFnBody(
   fn: A.FnDecl, body: A.BlockExpr, selfType: Type | null,
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector,
 ): void {
-  // Substitute `Self` in this fn's declared param/return types now that we know
-  // the surrounding impl's target type. Also bind unannotated `self` parameters.
-  if (selfType !== null) {
-    for (const p of fn.params) {
-      if (p.name === "self" && p.type === null) {
-        t.globals.paramTypes.set(p, selfType);
-      } else {
-        const declared = t.globals.paramTypes.get(p);
-        if (declared !== undefined) {
-          t.globals.paramTypes.set(p, substitute(declared, { self: selfType }));
-        }
-      }
-    }
-    const declaredFn = t.globals.declTypes.get(fn);
-    if (declaredFn !== undefined) {
-      t.globals.declTypes.set(fn, substitute(declaredFn, { self: selfType }));
-    }
-  }
+  bindSelfTypes(fn, selfType, t);
   const fnType = t.globals.declTypes.get(fn);
   const ctx: FnContext = {
     returnType: fnType?.kind === "Fn" ? fnType.returnType : TY.unresolved,

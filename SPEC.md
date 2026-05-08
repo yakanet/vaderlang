@@ -384,6 +384,7 @@ There is **no implicit coercion between sized numeric types**. `i32 → i64` req
 - Immutable. Concatenation allocates.
 - `len()` returns the number of UTF-8 **bytes**.
 - `chars()` or `codepoints()` returns an iterator of `char`.
+- **Subscript** `s[i]` returns the Unicode codepoint at *byte* offset `i` (via `string implements Index(i32, char)` in `std/core`). Indexing into the middle of a multi-byte codepoint returns garbage — for codepoint-safe iteration use `chars()`. There is no `IndexSet` impl ; strings are immutable.
 - Literals stored in the binary's data section.
 
 ### Arrays
@@ -796,7 +797,7 @@ string implements Hash {
     n: usize = self.length()
     i: usize = 0
     while i < n {
-        h = (h ^ u64(self.char_at(i))) * 1099511628211
+        h = (h ^ u64(self[i])) * 1099511628211
         i = i + 1
     }
     return h
@@ -847,7 +848,7 @@ Resolution rule for **ordering** (`< <= > >=`) :
 2. User-struct operands look up the `Ord` impl ; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
 3. If no impl matches, T3017.
 
-Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch through `Index($I, $T)::at` / `Contains($T)::contains`. Index assignment (`a[i] = v`) dispatches through `IndexSet($I, $T)::set_at`.
+Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch through `Index($I, $T)::at` / `Contains($T)::contains` — the trait path covers struct receivers AND primitives (`string implements Index(i32, char)` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet($I, $T)::set_at`.
 
 ### Nullability
 
@@ -1432,14 +1433,28 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 |-----------|--------|---------|
 | `@comptime` | fn / value | Forces compile-time evaluation |
 | `@extern("module", "name")` | fn (no body) | Declares an import (WASM) or external symbol (C) — user-controlled FFI |
-| `@intrinsic` | fn (no body) | Marks a stdlib function as host-provided ; the runtime (VM / C / WASM) wires the implementation by mangled name |
+| `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided ; the runtime (VM / C / WASM) wires each method by mangled name |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
 | `@file` | string literal | Embeds file contents at compile time |
 | `@test` | fn | Marks as a test, executed by `vader test` |
 
-`@extern` and `@intrinsic` are siblings : both target signature-only fns. `@extern` is for **user code** crossing into FFI ; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `hash_string`, `string_concat`, `print`, `collect`). The decorator is informational today — the compiler doesn't yet validate that every `@intrinsic` has a host wiring, but the marker enables that check, makes the documentation surface explicit, and distinguishes intentional host-bridging from accidentally-bodyless declarations.
+`@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI ; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `print`, `collect`, the methods of `string implements Add / Hash / Index`). The decorator is informational today — the compiler doesn't yet validate that every `@intrinsic` has a host wiring, but the marker enables that check and distinguishes intentional host-bridging from accidentally-bodyless declarations.
 
-A handful of `@intrinsic` fns are also **op-level** intrinsics : the bytecode emitter recognises calls to specific mangled names (`std_core$string_concat`) and emits a dedicated op (`string.concat`) instead of a regular `call.import`, so `s1 + s2` and `"a".add("b")` share a single zero-overhead path.
+`@intrinsic` accepts two shapes :
+
+```vader
+// Standalone fn — used for free-function host imports (I/O, GC, builders…).
+@intrinsic
+export print :: fn(msg: string) -> void
+
+// Trait impl — used when every method of the impl is host-provided. The
+// compiler synthesises one body-less FnDecl per trait method, each marked
+// `@intrinsic`, mangled as `<module>$<type>$<trait>$<method>`.
+@intrinsic
+string implements Add
+```
+
+A handful of `@intrinsic` impl methods are also **op-level** intrinsics : the bytecode emitter recognises calls to specific mangled names (`std_core$string$Add$add`) and emits a dedicated op (`string.concat`) instead of a regular `call.import`, so `s1 + s2` and `"a".add("b")` share a single zero-overhead path.
 
 The v1 `@load` is **replaced by `import`**.
 
@@ -1536,9 +1551,11 @@ The bootstrap compiler runs an **AST-walking interpreter** for `@comptime`, not 
 
 ### `std/core` (auto-imported)
 
-Traits : `Display`, `Eq`, `Ord`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Error`.
+Traits : `Display`, `Eq`, `Ord`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Index(I, T)`, `IndexSet(I, T)`, `Error`.
 
 Types : `Done`, `Yielded(T)`, `Range`, `ArrayIter(T)`.
+
+Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index(i32, char)` (powers `s[i]`), and `Eq`/`Hash` on the integer primitives. All marked `@intrinsic` — bodies are host-provided.
 
 The `Contains(T)` trait powers the `in` / `!in` operators :
 
@@ -1551,7 +1568,7 @@ Contains :: trait($T) {
 // out of the box. User types opt in by implementing the trait.
 ```
 
-Trait-method dispatch on a bounded type param (`fn f(x: $T) where T: Hash { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (intrinsic `hash_string`, exposed via `string implements Hash`).
+Trait-method dispatch on a bounded type param (`fn f(x: $T) where T: Hash { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
 
 ### `std/io`
 
@@ -1574,7 +1591,7 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 // Core access (intrinsics — no body in Vader).
 fn len(s: string) -> i32                       // bytes
 fn slice(s: string, start: i32, end: i32) -> string
-fn char_at(s: string, i: i32) -> char
+fn char_at(s: string, i: i32) -> char          // also reachable via `s[i]` (Index impl in std/core)
 fn contains(s: string, sub: string) -> bool
 fn starts_with(s: string, prefix: string) -> bool
 fn ends_with(s: string, suffix: string) -> bool
@@ -1591,25 +1608,66 @@ fn last_index_of(s: string, c: char, min_index: i32) -> i32
 // Format helpers (pure Vader).
 fn pad_start(s: string, width: i32, fill: char) -> string
 fn pad_end(s: string, width: i32, fill: char) -> string
-fn is_whitechar(c: char) -> bool
+
+// Char predicates (universal — useful for any DSL or text scanner).
+fn is_alpha(c: char) -> bool                   // a-z, A-Z
+fn is_alnum(c: char) -> bool                   // a-z, A-Z, 0-9
+fn is_digit(c: char) -> bool                   // 0-9
+fn is_hex_digit(c: char) -> bool               // 0-9, a-f, A-F
+fn is_white_char(c: char) -> bool              // space, tab, newline, CR
+fn is_digit_in_base(c: char, base: i32) -> bool
 
 // Pattern helpers (ad-hoc — no real regex engine in MVP).
 fn replace_chars_where(s: string, pred: fn(char) -> bool, replacement: string) -> string
 fn trim_suffix(s: string, suffix: string) -> string
 fn trim_prefix(s: string, prefix: string) -> string
-fn split_whitespace(s: string) -> string[]
+fn split_where(s: string, pred: fn(char) -> bool) -> string[]   // e.g. `s.split_where(is_white_char)`
 ```
 
 ### `std/numbers`
 
-UFCS-callable numeric formatting.
+UFCS-callable numeric formatting and parsing.
 
 ```vader
-fn to_hex(self: u64) -> string   // lowercase, no `0x`, no leading zeros
-fn to_bin(self: u64) -> string   // no prefix, no leading zeros
+fn to_hex(self: u64) -> string         // lowercase, no `0x`, no leading zeros
+fn to_bin(self: u64) -> string         // no prefix, no leading zeros
+fn to_compact_str(self: f64) -> string // strips trailing `.0` ; `(10.0).to_compact_str() = "10"`
+
+fn parse_int_in_base(s: string, base: i32) -> i64!
+fn hex_digit_value(c: char) -> i32     // -1 if not a hex digit
+
+// Numeric type-suffix predicates — for DSLs parsing typed literals.
+fn is_int_suffix(s: string) -> bool    // i8/i16/i32/i64/u8/u16/u32/u64
+fn is_float_suffix(s: string) -> bool  // f32/f64
 ```
 
 Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
+
+### `std/utf8`
+
+UTF-8 encoding helpers — currently exposes a single codepoint encoder used
+by JSON parsing and any code that decodes `\uXXXX` / `\u{...}` escapes.
+
+```vader
+fn append_codepoint(self: StringBuilder, cp: u32) -> void
+```
+
+### `std/string_builder`
+
+Efficient string construction.
+
+```vader
+StringBuilder :: struct { parts: string[] }
+
+fn new_builder() -> StringBuilder
+fn append      (self: StringBuilder, s: string) -> void
+fn append_char (self: StringBuilder, c: char) -> void
+fn append_repeated(self: StringBuilder, c: char, count: i32) -> void  // pretty-printer / padding helper
+fn to_string   (self: StringBuilder) -> string
+
+@intrinsic
+fn concat_all(parts: string[]) -> string  // single-allocation flatten
+```
 
 ### `std/collections`
 
@@ -1670,19 +1728,6 @@ fn tan(x: f64) -> f64
 
 const pi: f64
 const e:  f64
-```
-
-### `std/string_builder`
-
-Efficient string construction. `to_string` flushes via the `concat_all` runtime intrinsic — single allocation sized from the total length, avoids the O(N²) of repeated `+`.
-
-```vader
-StringBuilder :: struct { parts: string[] }
-
-fn new_builder()                                -> StringBuilder
-fn append      (self: StringBuilder, s: string) -> void
-fn append_char (self: StringBuilder, c: char)   -> void
-fn to_string   (self: StringBuilder)            -> string
 ```
 
 ### `std/iter`

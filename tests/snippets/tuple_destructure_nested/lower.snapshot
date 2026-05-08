@@ -16,20 +16,20 @@
       call :[[i32, string], bool]
         callee:
           make_record#2 :fn() -> [[i32, string], bool]
-    let id#57: i32 =
+    let id#54: i32 =
       ._0 :i32
         ._0 :[i32, string]
           __tup_0#-1 :[[i32, string], bool]
-    let label#58: string =
+    let label#55: string =
       ._1 :string
         ._0 :[i32, string]
           __tup_0#-1 :[[i32, string], bool]
-    let active#59: bool =
+    let active#56: bool =
       ._1 :bool
         __tup_0#-1 :[[i32, string], bool]
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#25 :fn(string) -> void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -39,13 +39,13 @@
             "id=" :string
           @builder.append_display <for i32> :void
             __sb_1#-2 :?
-            id#57 :i32
+            id#54 :i32
           ~>
             @builder.finish :string
               __sb_1#-2 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#25 :fn(string) -> void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -55,13 +55,13 @@
             "label=" :string
           @builder.append_display <for string> :void
             __sb_2#-3 :?
-            label#58 :string
+            label#55 :string
           ~>
             @builder.finish :string
               __sb_2#-3 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#25 :fn(string) -> void
       arg0:
         block :string
           let __sb_3#-4: ? =
@@ -71,7 +71,7 @@
             "active=" :string
           @builder.append_display <for bool> :void
             __sb_3#-4 :?
-            active#59 :bool
+            active#56 :bool
           ~>
             @builder.finish :string
               __sb_3#-4 :?

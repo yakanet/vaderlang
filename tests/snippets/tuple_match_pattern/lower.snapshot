@@ -2,23 +2,23 @@
 
 ## tests/snippets/tuple_match_pattern/_main.vader
   fn tests_snippets_tuple_match_pattern__main_vader$main() -> i32
-    let pair#56: [i32, string] =
+    let pair#53: [i32, string] =
       [i32, string] {
         _0: int(3) :i32
         _1: "match" :string
       }
     block :void
-      let __scrut_0#-1: [i32, string] = pair#56 :[i32, string]
-      let n#57: i32 =
+      let __scrut_0#-1: [i32, string] = pair#53 :[i32, string]
+      let n#54: i32 =
         ._0 :i32
           __scrut_0#-1 :[i32, string]
-      let s#58: string =
+      let s#55: string =
         ._1 :string
           __scrut_0#-1 :[i32, string]
       ~>
         call :void
           callee:
-            println#27 :fn(string) -> void
+            println#24 :fn(string) -> void
           arg0:
             block :string
               let __sb_1#-2: ? =
@@ -28,13 +28,13 @@
                 "n=" :string
               @builder.append_display <for ?> :void
                 __sb_1#-2 :?
-                n#57 :?
+                n#54 :?
               @builder.append_str :void
                 __sb_1#-2 :?
                 " s=" :string
               @builder.append_display <for ?> :void
                 __sb_1#-2 :?
-                s#58 :?
+                s#55 :?
               ~>
                 @builder.finish :string
                   __sb_1#-2 :?

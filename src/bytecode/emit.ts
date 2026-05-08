@@ -21,12 +21,13 @@ import { runPeepholes } from "./peephole.ts";
 import type { BcType, ValType } from "./types.ts";
 import { isIntegerVal, isNumericVal } from "./types.ts";
 
-/** Stdlib `@intrinsic` fns that map to a dedicated bytecode op rather than
- *  to a host-provided import. Keyed by mangled name so the lookup happens
- *  after name-mangling and skips the `call.import` indirection — `s1 + s2`
- *  and `"a".add("b")` end up emitting the same `string.concat` op. */
+/** Stdlib `@intrinsic` impl methods that map to a dedicated bytecode op
+ *  rather than to a host-provided import. Keyed by the impl-method mangled
+ *  name (`<module>$<type>$<trait>$<method>`) so the lookup happens after
+ *  name-mangling and skips the `call.import` indirection — `s1 + s2` and
+ *  `"a".add("b")` both emit the same `string.concat` op. */
 const OP_INTRINSIC_BY_MANGLED: ReadonlyMap<string, () => Op> = new Map([
-  ["std_core$string_concat", () => ({ kind: "string.concat" })],
+  ["std_core$string$Add$add", () => ({ kind: "string.concat" })],
 ]);
 
 /** Knobs for the bytecode emitter. Today this only toggles the peephole

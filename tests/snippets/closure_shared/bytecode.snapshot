@@ -7,9 +7,9 @@ type 4 struct $Cell_4 { value:3 }
 type 5 fn () -> 6
 type 6 primitive void
 type 7 fn () -> 3
-import 0 hash_string std_core$hash_string (string) -> u64
-import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 0 add std_core$string$Add$add (string,string) -> string
+import 1 hash std_core$string$Hash$hash (string) -> u64
+import 2 at std_core$string$Index$at (string,i32) -> char
 
 fn 0 tests_snippets_closure_shared__main_vader$main () -> i32
   local n any

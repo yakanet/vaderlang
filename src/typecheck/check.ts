@@ -23,7 +23,7 @@ import {defaultIfFree, displayType, isAssignable, isPrimitive, TY} from "./types
 
 import type {Globals, MutableTyped} from "./ctx.ts";
 import {checkExpr} from "./passes/expr.ts";
-import {checkBlock, checkFnBody} from "./passes/stmt.ts";
+import {bindSelfTypes, checkBlock, checkFnBody} from "./passes/stmt.ts";
 import {declareType} from "./passes/decl.ts";
 
 export type { Globals } from "./ctx.ts";
@@ -83,14 +83,20 @@ export function checkProgram(
         if (decl.body !== null) checkFnBody(decl, decl.body, null, t, impls, diags);
         if (decl.name === "main") checkMainSignature(decl, t, diags);
         break;
-      case "ImplDecl":
+      case "ImplDecl": {
+        const selfType = t.globals.typeExprTypes.get(decl.forType) ?? TY.unresolved;
         for (const member of decl.members) {
           if (member.body !== null) {
-            const selfType = t.globals.typeExprTypes.get(decl.forType) ?? TY.unresolved;
             checkFnBody(member, member.body, selfType, t, impls, diags);
+          } else {
+            // Body-less impl member (e.g. `@intrinsic` impl) — still needs the
+            // Self → forType substitution applied so downstream phases see
+            // the receiver typed as the concrete impl target.
+            bindSelfTypes(member, selfType, t);
           }
         }
         break;
+      }
       case "TraitDecl":
         // Trait member bodies are sketches; nothing to check yet.
         break;

@@ -115,9 +115,9 @@ export function stdStringBindings(): Record<string, HostFn> {
       if (i < 0 || i >= bytes.length) return ch(0);
       return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
     },
-    // Same as `std_string$char_at`, exposed under `std/core` so the `Index`
-    // impl on `string` is reachable without importing `std/string`.
-    std_core$string_char_at: (args) => {
+    // `string implements Index(i32, char)` is `@intrinsic`-impl in std/core,
+    // so the host provides the body under the impl-method mangled name.
+    "std_core$string$Index$at": (args) => {
       const bytes = UTF8_ENC.encode(stringArg(args, 0));
       const i = numArg(args, 1);
       if (i < 0 || i >= bytes.length) return ch(0);
@@ -141,7 +141,7 @@ export function stdStringBindings(): Record<string, HostFn> {
       if (s.trim() === "" || isNaN(n)) return err(`invalid float: "${s}"`);
       return num("f64", n);
     },
-    std_core$hash_string: (args) => i64("u64", fnv1a64(stringArg(args, 0))),
+    "std_core$string$Hash$hash": (args) => i64("u64", fnv1a64(stringArg(args, 0))),
     std_string_builder$concat_all: (args) => {
       const arr = args[0];
       if (arr === undefined || arr.tag !== "array") {

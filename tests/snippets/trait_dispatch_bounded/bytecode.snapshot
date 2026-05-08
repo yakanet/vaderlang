@@ -14,9 +14,9 @@ type 11 array 4
 string 0 "foo"
 string 1 "bar"
 string 2 "baz"
-import 0 hash_string std_core$hash_string (string) -> u64
-import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 0 add std_core$string$Add$add (string,string) -> string
+import 1 hash std_core$string$Hash$hash (string) -> u64
+import 2 at std_core$string$Index$at (string,i32) -> char
 import 3 print std_io$print (string) -> void
 import 4 println std_io$println (string) -> void
 import 5 eprint std_io$eprint (string) -> void
@@ -84,7 +84,7 @@ fn 1 tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_disp
   block void   ; _main.vader:9:5
   loop void   ; _main.vader:9:5
   local.get 3   ; _main.vader:9:5
-  call 7   ; _main.vader:9:5
+  call 6   ; _main.vader:9:5
   local.tee 4   ; _main.vader:9:5
   type_check 0   ; _main.vader:9:5
   if void   ; _main.vader:9:5
@@ -100,7 +100,7 @@ fn 1 tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_disp
   if bool   ; _main.vader:10:12
   local.get 5   ; _main.vader:10:41
   local.get 1   ; _main.vader:10:50
-  call 5   ; _main.vader:10:41
+  call 4   ; _main.vader:10:41
   else   ; _main.vader:10:12
   bool.const false   ; _main.vader:10:12
   end   ; _main.vader:10:12
@@ -134,7 +134,7 @@ fn 2 tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_disp
   block void   ; _main.vader:9:5
   loop void   ; _main.vader:9:5
   local.get 3   ; _main.vader:9:5
-  call 8   ; _main.vader:9:5
+  call 7   ; _main.vader:9:5
   local.tee 4   ; _main.vader:9:5
   type_check 0   ; _main.vader:9:5
   if void   ; _main.vader:9:5
@@ -143,14 +143,14 @@ fn 2 tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_disp
   local.get 4   ; _main.vader:9:5
   struct.get 3 0   ; _main.vader:9:5
   local.tee 5   ; _main.vader:9:5
-  call 4   ; _main.vader:10:12
+  call.import 1   ; _main.vader:10:12
   local.get 1   ; _main.vader:10:24
-  call 4   ; _main.vader:10:24
+  call.import 1   ; _main.vader:10:24
   u64.eq   ; _main.vader:10:12
   if bool   ; _main.vader:10:12
   local.get 5   ; _main.vader:10:41
   local.get 1   ; _main.vader:10:50
-  call 6   ; _main.vader:10:41
+  call 5   ; _main.vader:10:41
   else   ; _main.vader:10:12
   bool.const false   ; _main.vader:10:12
   end   ; _main.vader:10:12
@@ -174,27 +174,21 @@ fn 3 std_core$i32$Hash$hash (i32) -> u64
   return   ; core.vader:137:26
 end
 
-fn 4 std_core$string$Hash$hash (string) -> u64
-  local.get 0   ; core.vader:155:39
-  call.import 0   ; core.vader:155:27
-  return   ; core.vader:155:27
+fn 4 std_core$i32$Eq$equals (i32,i32) -> bool
+  local.get 0   ; core.vader:162:25
+  local.get 1   ; core.vader:162:33
+  i32.eq   ; core.vader:162:25
+  return   ; core.vader:162:25
 end
 
-fn 5 std_core$i32$Eq$equals (i32,i32) -> bool
-  local.get 0   ; core.vader:171:25
-  local.get 1   ; core.vader:171:33
-  i32.eq   ; core.vader:171:25
-  return   ; core.vader:171:25
+fn 5 std_core$string$Eq$equals (string,string) -> bool
+  local.get 0   ; core.vader:165:25
+  local.get 1   ; core.vader:165:33
+  string.eq   ; core.vader:165:25
+  return   ; core.vader:165:25
 end
 
-fn 6 std_core$string$Eq$equals (string,string) -> bool
-  local.get 0   ; core.vader:174:25
-  local.get 1   ; core.vader:174:33
-  string.eq   ; core.vader:174:25
-  return   ; core.vader:174:25
-end
-
-fn 7 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref
+fn 6 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref
   local v i32
   local.get 0   ; core.vader:118:13
   struct.get 8 1   ; core.vader:118:13
@@ -223,7 +217,7 @@ fn 7 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref
   return   ; core.vader:123:9
 end
 
-fn 8 std_core$ArrayIter$Iterator$step__string (ref) -> ref
+fn 7 std_core$ArrayIter$Iterator$step__string (ref) -> ref
   local v string
   local.get 0   ; core.vader:118:13
   struct.get 10 1   ; core.vader:118:13

@@ -196,9 +196,50 @@ function resolveImplDecl(decl: A.ImplDecl, parent: Scope, p: MutableProgram, inp
   // references in the body to resolve.
   if (traitSym !== null && traitSym.source.kind === "trait") {
     materializeSamMembers(decl, traitSym.source.decl, input);
+    materializeIntrinsicMembers(decl, traitSym.source.decl);
   }
 
   for (const member of decl.members) resolveFnDecl(member, scope, p, input);
+}
+
+/** When an impl is decorated with `@intrinsic` and has no source body, fill
+ *  in body-less members for every method declared on the trait. Each member
+ *  inherits the impl's `@intrinsic` decorator so downstream phases (lowerer,
+ *  emit, host) treat it as a host-provided fn. */
+function materializeIntrinsicMembers(decl: A.ImplDecl, trait: A.TraitDecl): void {
+  const isIntrinsic = decl.decorators.some((d) => d.name === "intrinsic");
+  if (!isIntrinsic || decl.members.length > 0) return;
+  const subst = new Map<string, A.TypeExpr>();
+  subst.set("Self", decl.forType);
+  for (let i = 0; i < trait.typeParams.length && i < decl.traitArgs.length; i++) {
+    subst.set(trait.typeParams[i]!.name, decl.traitArgs[i]!);
+  }
+  // Mutate through the readonly slot — the AST keeps `members` readonly to
+  // prevent accidental writes from typecheck/lower passes ; the resolver is
+  // the only writer.
+  const slot = decl.members as A.FnDecl[];
+  for (const method of trait.members) {
+    slot.push({
+      kind: "FnDecl",
+      span: decl.span,
+      name: method.name,
+      nameSpan: decl.traitNameSpan,
+      visibility: "public",
+      typeParams: [],
+      params: method.params.map((mp) => ({
+        span: decl.span,
+        name: mp.name,
+        type: mp.type !== null ? substituteTypeExpr(mp.type, subst) : null,
+        defaultValue: mp.defaultValue,
+        variadic: mp.variadic,
+      })),
+      returnType: method.returnType !== null
+        ? substituteTypeExpr(method.returnType, subst) : null,
+      whereClauses: [],
+      body: null,
+      decorators: [{ span: decl.span, name: "intrinsic", args: [] }],
+    });
+  }
 }
 
 /** Fill in `name`, `params`, and `returnType` on each SAM-synthetic member of

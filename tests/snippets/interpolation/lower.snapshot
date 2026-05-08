@@ -2,11 +2,11 @@
 
 ## tests/snippets/interpolation/_main.vader
   fn tests_snippets_interpolation__main_vader$main() -> i32
-    let name#56: string = "Vader" :string
-    let age#57: i32 = int(1) :i32
+    let name#53: string = "Vader" :string
+    let age#54: i32 = int(1) :i32
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#24 :fn(string) -> void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -16,13 +16,13 @@
             "Hello, " :string
           @builder.append_display <for string> :void
             __sb_0#-1 :?
-            name#56 :string
+            name#53 :string
           @builder.append_str :void
             __sb_0#-1 :?
             "! You are " :string
           @builder.append_display <for i32> :void
             __sb_0#-1 :?
-            age#57 :i32
+            age#54 :i32
           @builder.append_str :void
             __sb_0#-1 :?
             " year(s) old." :string

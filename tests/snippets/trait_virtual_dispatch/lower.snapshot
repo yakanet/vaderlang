@@ -14,7 +14,7 @@
         @builder.append_display <for string> :void
           __sb_0#-1 :?
           .msg :string
-            self#59 :ParseErr
+            self#56 :ParseErr
         ~>
           @builder.finish :string
             __sb_0#-1 :?
@@ -29,7 +29,7 @@
         @builder.append_display <for string> :void
           __sb_0#-2 :?
           .reason :string
-            self#60 :NetErr
+            self#57 :NetErr
         ~>
           @builder.finish :string
             __sb_0#-2 :?
@@ -37,11 +37,11 @@
     return
       vcall Error.message :string
         recv:
-          e#61 :Error
+          e#58 :Error
   fn tests_snippets_trait_virtual_dispatch__main_vader$main() -> i32
     call :void
       callee:
-        println#30 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         call :string
           callee:
@@ -52,7 +52,7 @@
             }
     call :void
       callee:
-        println#30 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         call :string
           callee:

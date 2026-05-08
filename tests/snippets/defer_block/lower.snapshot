@@ -4,19 +4,19 @@
   fn tests_snippets_defer_block__main_vader$main() -> i32
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#24 :fn(string) -> void
       arg0:
         "hi" :string
     block :void
       let __block_0#-1: void =
         call :void
           callee:
-            println#27 :fn(string) -> void
+            println#24 :fn(string) -> void
           arg0:
             "nested" :string
       call :void
         callee:
-          println#27 :fn(string) -> void
+          println#24 :fn(string) -> void
         arg0:
           "inner cleanup" :string
       ~>
@@ -24,7 +24,7 @@
     block :void
       call :void
         callee:
-          println#27 :fn(string) -> void
+          println#24 :fn(string) -> void
         arg0:
           "outer cleanup" :string
       return int(0) :i32

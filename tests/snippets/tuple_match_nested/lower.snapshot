@@ -2,7 +2,7 @@
 
 ## tests/snippets/tuple_match_nested/_main.vader
   fn tests_snippets_tuple_match_nested__main_vader$main() -> i32
-    let record#56: [[i32, string], bool] =
+    let record#53: [[i32, string], bool] =
       [[i32, string], bool] {
         _0:
           [i32, string] {
@@ -12,22 +12,22 @@
         _1: true
       }
     block :void
-      let __scrut_0#-1: [[i32, string], bool] = record#56 :[[i32, string], bool]
-      let id#57: i32 =
+      let __scrut_0#-1: [[i32, string], bool] = record#53 :[[i32, string], bool]
+      let id#54: i32 =
         ._0 :i32
           ._0 :[i32, string]
             __scrut_0#-1 :[[i32, string], bool]
-      let label#58: string =
+      let label#55: string =
         ._1 :string
           ._0 :[i32, string]
             __scrut_0#-1 :[[i32, string], bool]
-      let active#59: bool =
+      let active#56: bool =
         ._1 :bool
           __scrut_0#-1 :[[i32, string], bool]
       ~>
         call :void
           callee:
-            println#27 :fn(string) -> void
+            println#24 :fn(string) -> void
           arg0:
             block :string
               let __sb_1#-2: ? =
@@ -37,19 +37,19 @@
                 "id=" :string
               @builder.append_display <for ?> :void
                 __sb_1#-2 :?
-                id#57 :?
+                id#54 :?
               @builder.append_str :void
                 __sb_1#-2 :?
                 " label=" :string
               @builder.append_display <for ?> :void
                 __sb_1#-2 :?
-                label#58 :?
+                label#55 :?
               @builder.append_str :void
                 __sb_1#-2 :?
                 " active=" :string
               @builder.append_display <for ?> :void
                 __sb_1#-2 :?
-                active#59 :?
+                active#56 :?
               ~>
                 @builder.finish :string
                   __sb_1#-2 :?

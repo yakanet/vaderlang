@@ -6,7 +6,7 @@
   fn tests_snippets_match_is_as_binding__main_vader$show(a: null | P | Q) -> string
     return
       block :string
-        let __scrut_0#-1: null | P | Q = a#59 :null | P | Q
+        let __scrut_0#-1: null | P | Q = a#56 :null | P | Q
         ~>
           if :string
             cond:
@@ -22,7 +22,7 @@
                     is P :bool
                       __scrut_0#-1 :null | P | Q
                   then:
-                    let p#60: P =
+                    let p#57: P =
                       cast → P
                         __scrut_0#-1 :null | P | Q
                     ~>
@@ -35,7 +35,7 @@
                         @builder.append_display <for i32> :void
                           __sb_2#-3 :?
                           .x :i32
-                            p#60 :P
+                            p#57 :P
                         ~>
                           @builder.finish :string
                             __sb_2#-3 :?
@@ -46,7 +46,7 @@
                           is Q :bool
                             __scrut_0#-1 :null | P | Q
                         then:
-                          let q#61: Q =
+                          let q#58: Q =
                             cast → Q
                               __scrut_0#-1 :null | P | Q
                           ~>
@@ -59,7 +59,7 @@
                               @builder.append_display <for string> :void
                                 __sb_1#-2 :?
                                 .y :string
-                                  q#61 :Q
+                                  q#58 :Q
                               ~>
                                 @builder.finish :string
                                   __sb_1#-2 :?
@@ -69,7 +69,7 @@
   fn tests_snippets_match_is_as_binding__main_vader$main() -> i32
     call :void
       callee:
-        println#30 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         call :string
           callee:
@@ -80,7 +80,7 @@
             }
     call :void
       callee:
-        println#30 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         call :string
           callee:
@@ -91,7 +91,7 @@
             }
     call :void
       callee:
-        println#30 :fn(string) -> void
+        println#27 :fn(string) -> void
       arg0:
         call :string
           callee:

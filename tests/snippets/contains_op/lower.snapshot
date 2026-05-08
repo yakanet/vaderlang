@@ -9,32 +9,32 @@
           l:
             lt :bool
               l:
-                value#58 :i32
+                value#55 :i32
               r:
                 int(0) :i32
           r:
             gt :bool
               l:
-                value#58 :i32
+                value#55 :i32
               r:
                 int(9) :i32
       then:
         return false
-    let mask#59: i32 =
+    let mask#56: i32 =
       shl :i32
         l:
           int(1) :i32
         r:
-          value#58 :i32
+          value#55 :i32
     return
       neq :bool
         l:
           bitand :i32
             l:
               .bits :i32
-                self#57 :DigitSet
+                self#54 :DigitSet
             r:
-              mask#59 :i32
+              mask#56 :i32
         r:
           int(0) :i32
   fn tests_snippets_contains_op__main_vader$main() -> i32
@@ -55,7 +55,7 @@
       then:
         call :void
           callee:
-            println#28 :fn(string) -> void
+            println#25 :fn(string) -> void
           arg0:
             "range yes" :string
     if :void
@@ -76,7 +76,7 @@
       then:
         call :void
           callee:
-            println#28 :fn(string) -> void
+            println#25 :fn(string) -> void
           arg0:
             "range !in yes" :string
     if :void
@@ -96,10 +96,10 @@
       then:
         call :void
           callee:
-            println#28 :fn(string) -> void
+            println#25 :fn(string) -> void
           arg0:
             "range incl yes" :string
-    let s#60: DigitSet =
+    let s#57: DigitSet =
       DigitSet {
         bits:
           bitor :i32
@@ -130,13 +130,13 @@
           callee:
             contains#1000000 :bool
           arg0:
-            s#60 :DigitSet
+            s#57 :DigitSet
           arg1:
             int(4) :i32
       then:
         call :void
           callee:
-            println#28 :fn(string) -> void
+            println#25 :fn(string) -> void
           arg0:
             "set has 4" :string
     if :void
@@ -146,13 +146,13 @@
             callee:
               contains#1000000 :bool
             arg0:
-              s#60 :DigitSet
+              s#57 :DigitSet
             arg1:
               int(5) :i32
       then:
         call :void
           callee:
-            println#28 :fn(string) -> void
+            println#25 :fn(string) -> void
           arg0:
             "set lacks 5" :string
     if :void
@@ -161,13 +161,13 @@
           callee:
             contains#1000000 :bool
           arg0:
-            s#60 :DigitSet
+            s#57 :DigitSet
           arg1:
             int(7) :i32
       then:
         call :void
           callee:
-            println#28 :fn(string) -> void
+            println#25 :fn(string) -> void
           arg0:
             "set has 7" :string
     return int(0) :i32

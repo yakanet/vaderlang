@@ -12,9 +12,9 @@ string 0 "new? "
 string 1 "len = "
 string 2 "has 10? "
 string 3 "has 30? "
-import 0 hash_string std_core$hash_string (string) -> u64
-import 1 string_concat std_core$string_concat (string,string) -> string
-import 2 string_char_at std_core$string_char_at (string,i32) -> char
+import 0 add std_core$string$Add$add (string,string) -> string
+import 1 hash std_core$string$Hash$hash (string) -> u64
+import 2 at std_core$string$Index$at (string,i32) -> char
 import 3 print std_io$print (string) -> void
 import 4 println std_io$println (string) -> void
 import 5 eprint std_io$eprint (string) -> void
@@ -119,10 +119,10 @@ fn 1 std_core$i32$Hash$hash (i32) -> u64
 end
 
 fn 2 std_core$i32$Eq$equals (i32,i32) -> bool
-  local.get 0   ; core.vader:171:25
-  local.get 1   ; core.vader:171:33
-  i32.eq   ; core.vader:171:25
-  return   ; core.vader:171:25
+  local.get 0   ; core.vader:162:25
+  local.get 1   ; core.vader:162:33
+  i32.eq   ; core.vader:162:25
+  return   ; core.vader:162:25
 end
 
 fn 3 std_collections$bucket_index (u64) -> i32
