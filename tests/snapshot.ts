@@ -12,10 +12,9 @@ import { lowerProject } from "../src/lower/index.ts";
 import type {
   LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
 } from "../src/lower/index.ts";
-import { eliminateDeadCode } from "../src/dce/index.ts";
 import { writeVir, parseVir } from "../src/bytecode/text.ts";
 import { buildCFGProject } from "../src/midir/build.ts";
-import { eliminateDeadCFG } from "../src/midir/dce.ts";
+import { eliminateDeadCFG, pruneUnreachable } from "../src/midir/dce.ts";
 import { dumpCFGProject } from "../src/midir/dump.ts";
 import { emitBytecodeFromCFG } from "../src/midir/emit.ts";
 import { annotateEscape } from "../src/midir/escape.ts";
@@ -171,7 +170,7 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   const typed = checkProject(project, diags);
   const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false, projectRoot: defaultProjectRoot(entryPath) } });
   const lowered = lowerProject(evaled, diags);
-  const dced = eliminateDeadCode(lowered);
+  const dced = pruneUnreachable(lowered);
   const moduleName = (entryPath.split("/").pop() ?? entryPath).replace(/\.vader$/, "");
   const ssa = toSSA(eliminateDeadCFG(buildCFGProject(dced)));
   const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
@@ -203,7 +202,7 @@ export function dumpCfg(_source: string, entryPath: string): string {
   const typed = checkProject(project, diags);
   const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false, projectRoot: defaultProjectRoot(entryPath) } });
   const lowered = lowerProject(evaled, diags);
-  const dced = eliminateDeadCode(lowered);
+  const dced = pruneUnreachable(lowered);
   const ssa = toSSA(eliminateDeadCFG(buildCFGProject(dced)));
   const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
 

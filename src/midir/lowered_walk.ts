@@ -1,6 +1,6 @@
-// Walker that visits every symbol/type reference inside a LoweredDecl. The DCE
-// pass uses it to collect the symbols transitively reachable from a set of
-// roots. Kept separate from `index.ts` so it can be unit-tested in isolation.
+// Walker that visits every symbol/type reference inside a LoweredDecl. The
+// whole-program DCE in `dce.ts` uses it to walk struct/const decls (which the
+// CFG passes through unchanged) and to seed externs that aren't in the CFG.
 
 import { forEachType } from "../typecheck/types.ts";
 import type { Type } from "../typecheck/types.ts";

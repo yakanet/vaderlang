@@ -19,12 +19,11 @@ import { evaluateProject } from "./comptime/index.ts";
 import type { EvaluatedProject } from "./comptime/index.ts";
 import { lowerProject } from "./lower/index.ts";
 import type { LoweredProject } from "./lower/index.ts";
-import { eliminateDeadCode } from "./dce/index.ts";
 import type { BytecodeModule } from "./bytecode/index.ts";
 import { buildImplRegistry } from "./typecheck/impls.ts";
 import { buildCFGProject } from "./midir/build.ts";
 import type { CFGProject } from "./midir/cfg.ts";
-import { eliminateDeadCFG } from "./midir/dce.ts";
+import { eliminateDeadCFG, pruneUnreachable } from "./midir/dce.ts";
 import { emitBytecodeFromCFG } from "./midir/emit.ts";
 import { annotateEscape } from "./midir/escape.ts";
 import { fromSSA, toSSA } from "./midir/ssa.ts";
@@ -126,7 +125,7 @@ export async function pipelineDced(
   file: string, opts?: { allowEnv?: boolean },
 ): Promise<DcedResult> {
   const r = await pipelineLowered(file, opts);
-  const dced = eliminateDeadCode(r.lowered);
+  const dced = pruneUnreachable(r.lowered);
   return { ...r, dced };
 }
 
@@ -134,27 +133,21 @@ export async function pipelineCfg(
   file: string, opts?: { allowEnv?: boolean },
 ): Promise<CfgResult> {
   const r = await pipelineDced(file, opts);
-  // Build → DCE → SSA → escape analysis → fromSSA → DCE. The SSA round-trip
-  // is behaviour-neutral ; escape analysis runs on the SSA form to
-  // exploit single-def value tracking, and annotates StructNew/ArrayNew
-  // with `stack: true` when the value cannot be observed past the fn's
-  // return. Phase 5 ships the analysis only ; codegen for stack-allocated
-  // structs lands in a follow-up.
+  // SSA round-trip is behaviour-neutral; escape analysis runs on SSA to
+  // exploit single-def value tracking and annotates StructNew/ArrayNew with
+  // `stack: true` when the value can't be observed past the fn's return.
   const ssa = toSSA(eliminateDeadCFG(buildCFGProject(r.dced)));
-  const annotated = annotateEscape(ssa).project;
-  const cfg = eliminateDeadCFG(fromSSA(annotated));
+  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
   return { ...r, cfg };
 }
 
 export async function pipelineBytecode(
   file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean },
 ): Promise<BytecodeResult> {
-  const r = await pipelineDced(file, opts);
+  const r = await pipelineCfg(file, opts);
   const implRegistry = buildImplRegistry(r.evaluated.typed.resolved);
   const emitOpts = { optimize: opts?.bytecodeOpt ?? true, implRegistry };
-  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(r.dced)));
-  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
-  const bytecode = emitBytecodeFromCFG(r.dced, cfg, moduleNameFromFile(file), emitOpts);
+  const bytecode = emitBytecodeFromCFG(r.dced, r.cfg, moduleNameFromFile(file), emitOpts);
   return { ...r, bytecode };
 }
 

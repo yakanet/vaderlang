@@ -1,19 +1,29 @@
-// Intra-procedural DCE on the Mid-IR CFG. Two passes :
+// DCE on the Mid-IR CFG. Two layers :
 //
-//   1. Dead instruction elimination (DIE) : per-store liveness, then drop
-//      pure instructions whose result local is not live afterward. Repeated
-//      to a fixed point — eliminating one Move can make the producer of its
-//      source dead too.
+//   * Whole-program — `pruneUnreachable` walks the call graph from a set of
+//     roots (user code, `@export` / `@test` / `@extern` / `main` in stdlib,
+//     extern imports) and drops fns / structs / consts that nothing transitively
+//     references. Filters both the CFG and the surrounding LoweredProject so
+//     downstream emit sees a consistent picture.
 //
-//   2. Dead local elimination (DLE) : after DIE settles, locals never read
-//      and never written by a side-effecting instruction get dropped, and
-//      surviving locals are renumbered into a compact range. Params keep
-//      their leading slots so the bytecode emit's "params at 0..N-1"
-//      convention is preserved.
+//   * Intra-procedural — `eliminateDeadCFG` runs per fn :
+//
+//       1. Copy folding (move forwarding) — collapses the converter's
+//          `$tmp = expr ; B = move $tmp` chains into `B = expr`.
+//
+//       2. Dead instruction elimination (DIE) — per-store liveness, then drop
+//          pure instructions whose result local is not live afterward.
+//          Repeated to a fixed point — eliminating one Move can make the
+//          producer of its source dead too.
+//
+//       3. Dead local elimination (DLE) — after DIE settles, locals never read
+//          and never written by a side-effecting instruction get dropped, and
+//          surviving locals are renumbered into a compact range. Params keep
+//          their leading slots so the bytecode emit's "params at 0..N-1"
+//          convention is preserved.
 //
 // Functional throughout — returns new `CFGProject` / `CFGFunction` /
-// `BasicBlock` values without mutating the input. The pass runs after
-// `buildCFGProject` and before the structurer.
+// `BasicBlock` / `LoweredProject` values without mutating the input.
 
 import type {
   BasicBlock, BlockId, CFGFunction, CFGLocal, CFGModule, CFGParam,
@@ -23,6 +33,90 @@ import {
   computeLiveness, dstOf, forEachReadInTerminator, forEachReadLocal,
   instructionHasSideEffect,
 } from "./analyses.ts";
+import { forEachReference, type RefVisitor, type VirtualCallVisitor } from "./lowered_walk.ts";
+
+import type { LoweredDecl, LoweredModule, LoweredProject } from "../lower/index.ts";
+import { isMainMangled } from "../monomorphize/mono-ast.ts";
+import { isStdlibModule } from "../resolver/module.ts";
+import { DEC, hasDecorator } from "../parser/decorators.ts";
+import type { Decorator } from "../parser/ast.ts";
+
+const NO_DECORATORS: readonly Decorator[] = [];
+
+// =============================================================================
+// Whole-program DCE — drop LoweredDecls (fns, structs, consts) unreachable
+// from the program's roots. Runs *before* `buildCFGProject` so the CFG and
+// the bytecode emit's per-decl walks both see the same pruned LoweredProject.
+// =============================================================================
+
+export function pruneUnreachable(lp: LoweredProject): LoweredProject {
+  const bySymId = new Map<number, LoweredDecl>();
+  const reachable = new Set<number>();
+  const worklist: LoweredDecl[] = [];
+
+  for (const m of lp.modules.values()) {
+    const fromStdlib = isStdlibModule(m.displayPath);
+    for (const d of m.decls) {
+      const sym = d.origin.symbol;
+      if (sym !== null) bySymId.set(sym.id, d);
+      if (!isRoot(d, fromStdlib)) continue;
+      if (sym !== null) reachable.add(sym.id);
+      worklist.push(d);
+    }
+  }
+
+  // (trait, method) -> impl fn symbol ids. VirtualCall sites only carry the
+  // trait/method strings, so without this lookup DCE would drop the impl fns
+  // that satisfy the call.
+  const implsByVtableKey = new Map<string, number[]>();
+  for (const e of lp.vtableEntries) {
+    const key = `${e.traitName}|${e.methodName}`;
+    let bucket = implsByVtableKey.get(key);
+    if (bucket === undefined) { bucket = []; implsByVtableKey.set(key, bucket); }
+    bucket.push(e.fnSymbol.id);
+  }
+
+  const visit: RefVisitor = (id) => {
+    if (reachable.has(id)) return;
+    reachable.add(id);
+    const decl = bySymId.get(id);
+    if (decl !== undefined) worklist.push(decl);
+  };
+  const visitVirtual: VirtualCallVisitor = (trait, method) => {
+    const ids = implsByVtableKey.get(`${trait}|${method}`);
+    if (ids !== undefined) for (const id of ids) visit(id);
+  };
+  while (worklist.length > 0) forEachReference(worklist.pop()!, visit, visitVirtual);
+
+  const modules = new Map<string, LoweredModule>();
+  for (const [id, m] of lp.modules) {
+    const kept = m.decls.filter((d) => d.origin.symbol === null || reachable.has(d.origin.symbol.id));
+    modules.set(id, kept.length === m.decls.length ? m : {
+      moduleId: m.moduleId, displayPath: m.displayPath, decls: kept,
+    });
+  }
+  // vtableEntries are filtered transitively by the emit's lookup of fn symbol
+  // ids — no need to mirror the filter here.
+  return { modules, vtableEntries: lp.vtableEntries };
+}
+
+function isRoot(d: LoweredDecl, fromStdlib: boolean): boolean {
+  // User code is never DCE'd — keeps library targets and snapshot fixtures
+  // intact when there's no `main`.
+  if (!fromStdlib) return true;
+  if (d.kind === "LoweredFnDecl") {
+    if (d.body === null) return true;                    // @extern import
+    if (isMainMangled(d.mangled)) return true;
+  }
+  const decs = d.origin.decl.kind === "ImplDecl" ? NO_DECORATORS : d.origin.decl.decorators;
+  return hasDecorator(decs, DEC.export)
+      || hasDecorator(decs, DEC.test)
+      || hasDecorator(decs, DEC.extern);
+}
+
+// =============================================================================
+// Intra-procedural DCE — copy folding + DIE + DLE.
+// =============================================================================
 
 export function eliminateDeadCFG(p: CFGProject): CFGProject {
   const modules = new Map<string, CFGModule>();
