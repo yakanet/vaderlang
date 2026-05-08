@@ -52,7 +52,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "x",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "x"
+            },
             "type": null,
             "value": {
               "kind": "IfExpr",

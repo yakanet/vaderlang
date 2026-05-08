@@ -79,7 +79,7 @@
   expr 38:30    StringLitExpr  :: string
   expr 38:49    IdentExpr      :: i32
   expr 5:10     StructLitExpr  :: MutableMap(string, i32)
-  expr 5:47     ArrayLitExpr   :: [Entry(string, i32) | null]
+  expr 5:47     SeqLitExpr     :: Entry(string, i32) | null[]
   expr 7:11     StringLitExpr  :: string
   expr 7:5      CallExpr       :: void
   expr 7:5      FieldExpr      :: fn($K, $V) -> void

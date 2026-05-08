@@ -48,6 +48,10 @@ export const PARSER = {
   P1018: "type parameter must be prefixed with `$`",
   P1019: "`: type` bound is redundant; write `$T` instead",
   P1020: "expression-bodied function cannot also declare an explicit return type",
+  P1021: "1-tuple types are not allowed",
+  P1022: "tuple pattern requires at least 2 elements",
+  P1023: "let destructure requires at least 2 elements",
+  P1024: "legacy array type `[T]` is no longer accepted",
 } as const;
 
 export type ParserCode = keyof typeof PARSER;
@@ -69,6 +73,7 @@ export const RESOLVER = {
   R2014: "vader.json malformed or unreadable",
   R2015: "module folder is empty (no .vader files)",
   R2016: "short impl form requires a trait with exactly one method",
+  R2017: "feature not yet implemented",
 } as const;
 
 export type ResolverCode = keyof typeof RESOLVER;

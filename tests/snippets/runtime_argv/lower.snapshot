@@ -1,7 +1,7 @@
 # Lower
 
 ## tests/snippets/runtime_argv/_main.vader
-  fn tests_snippets_runtime_argv__main_vader$main(argv: [string]) -> i32
+  fn tests_snippets_runtime_argv__main_vader$main(argv: string[]) -> i32
     call :void
       callee:
         println#26 :fn(string) -> void
@@ -26,7 +26,7 @@
     block :void
       let __iter_1#-2: ArrayIter(string) =
         ArrayIter(string) {
-          arr: argv#55 :[string]
+          arr: argv#55 :string[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen

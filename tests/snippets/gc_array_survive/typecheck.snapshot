@@ -7,7 +7,7 @@
   expr 12:19    IdentExpr      :: i32
   expr 12:9     CallExpr       :: void
   expr 12:9     FieldExpr      :: fn(i32) -> void
-  expr 12:9     IdentExpr      :: [i32]
+  expr 12:9     IdentExpr      :: i32[]
   expr 13:13    BinaryExpr     :: i32
   expr 13:13    IdentExpr      :: i32
   expr 13:9     IdentExpr      :: i32
@@ -31,7 +31,7 @@
   expr 28:9     IdentExpr      :: i32
   expr 29:15    BinaryExpr     :: i32
   expr 29:15    IdentExpr      :: i32
-  expr 29:21    IdentExpr      :: [i32]
+  expr 29:21    IdentExpr      :: i32[]
   expr 29:21    IndexExpr      :: i32
   expr 29:26    IdentExpr      :: i32
   expr 29:9     IdentExpr      :: i32
@@ -53,4 +53,4 @@
   expr 39:5     CallExpr       :: void
   expr 39:5     IdentExpr      :: fn(string) -> void
   expr 39:56    IdentExpr      :: i32
-  expr 9:19     ArrayLitExpr   :: [i32]
+  expr 9:19     SeqLitExpr     :: i32[]

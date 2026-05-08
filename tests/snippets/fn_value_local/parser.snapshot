@@ -72,7 +72,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "f",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "f"
+            },
             "type": null,
             "value": {
               "kind": "IdentExpr",

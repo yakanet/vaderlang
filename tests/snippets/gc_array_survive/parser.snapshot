@@ -51,7 +51,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "list",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "list"
+            },
             "type": {
               "kind": "ArrayTypeExpr",
               "element": {
@@ -60,14 +63,17 @@
               }
             },
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": []
             }
           },
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "i",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "i"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -148,7 +154,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "before",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "before"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -173,7 +182,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "after",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "after"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -187,7 +199,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "diff",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "diff"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",
@@ -271,7 +286,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "sum",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sum"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -282,7 +300,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "j",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "j"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -365,7 +386,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "expected",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "expected"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",

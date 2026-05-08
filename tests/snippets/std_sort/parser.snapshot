@@ -180,7 +180,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "sb",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sb"
+            },
             "type": null,
             "value": {
               "kind": "StringLitExpr",
@@ -190,7 +193,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "i",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "i"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -362,7 +368,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "sb",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sb"
+            },
             "type": null,
             "value": {
               "kind": "StringLitExpr",
@@ -372,7 +381,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "i",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "i"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -531,7 +543,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "one",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "one"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -543,7 +558,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "IntLitExpr",
@@ -588,7 +603,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "asc",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "asc"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -600,7 +618,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "IntLitExpr",
@@ -665,7 +683,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "desc",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "desc"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -677,7 +698,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "IntLitExpr",
@@ -742,7 +763,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "rand",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "rand"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -754,7 +778,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "IntLitExpr",
@@ -849,7 +873,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "descending",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "descending"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -861,7 +888,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "IntLitExpr",
@@ -926,7 +953,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "big",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "big"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -938,7 +968,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "IntLitExpr",
@@ -1128,7 +1158,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "strs",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "strs"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -1140,7 +1173,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "StringLitExpr",
@@ -1216,10 +1249,13 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "input",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "input"
+            },
             "type": null,
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": [
                 {
                   "kind": "IntLitExpr",
@@ -1242,7 +1278,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "out",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "out"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

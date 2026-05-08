@@ -154,7 +154,10 @@
               {
                 "kind": "LetStmt",
                 "mutable": false,
-                "name": "v",
+                "binding": {
+                  "kind": "SimpleBinding",
+                  "name": "v"
+                },
                 "type": null,
                 "value": {
                   "kind": "FieldExpr",
@@ -446,7 +449,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "sum",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sum"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -457,7 +463,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "cont",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "cont"
+            },
             "type": null,
             "value": {
               "kind": "BoolLitExpr",
@@ -604,7 +613,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "r",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "r"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -644,7 +656,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "o",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "o"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",

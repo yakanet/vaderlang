@@ -2,8 +2,8 @@
 
 ## tests/snippets/trait_dispatch_bounded/_main.vader
   fn tests_snippets_trait_dispatch_bounded__main_vader$main() -> i32
-    let nums#61: [i32] =
-      array :[i32]
+    let nums#61: i32[] =
+      array :i32[]
         int(1) :i32
         int(2) :i32
         int(3) :i32
@@ -23,14 +23,14 @@
               callee:
                 count_matching#1000015 :i32
               arg0:
-                nums#61 :[i32]
+                nums#61 :i32[]
               arg1:
                 int(2) :i32
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let words#62: [string] =
-      array :[string]
+    let words#62: string[] =
+      array :string[]
         "foo" :string
         "bar" :string
         "foo" :string
@@ -49,19 +49,19 @@
               callee:
                 count_matching#1000016 :i32
               arg0:
-                words#62 :[string]
+                words#62 :string[]
               arg1:
                 "foo" :string
           ~>
             @builder.finish :string
               __sb_1#-2 :?
     return int(0) :i32
-  fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__i32(items: [i32], target: i32) -> i32
+  fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__i32(items: i32[], target: i32) -> i32
     let n#59: i32 = int(0) :i32
     block :void
       let __iter_0#-3: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: items#57 :[i32]
+          arr: items#57 :i32[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -120,12 +120,12 @@
                       r:
                         int(1) :i32
     return n#59 :i32
-  fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__string(items: [string], target: string) -> i32
+  fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__string(items: string[], target: string) -> i32
     let n#59: i32 = int(0) :i32
     block :void
       let __iter_0#-5: ArrayIter(string) =
         ArrayIter(string) {
-          arr: items#57 :[string]
+          arr: items#57 :string[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen

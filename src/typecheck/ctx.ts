@@ -51,7 +51,7 @@ export interface MutableTyped {
   readonly resolved: ResolvedProgram;
   readonly globals: Globals;
   readonly exprTypes: Map<A.Expr, Type>;
-  readonly localTypes: Map<A.LetStmt, Type>;
+  readonly localTypes: Map<A.SimpleBinding, Type>;
   /** Active narrowings keyed by symbol.id. Push/pop-managed by `inferMatch`
    *  so that references to a scrutinee symbol inside an `is T -> body` arm
    *  see `T` instead of the full union. Nested matches stack naturally. */

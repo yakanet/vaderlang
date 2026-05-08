@@ -41,7 +41,7 @@ Entry :: struct($K, $V) {
 }
 
 export MutableMap :: struct($K, $V) {
-    buckets: [Entry(K, V) | null]
+    buckets: (Entry(K, V) | null)[]
     size:    usize
 }
 
@@ -148,8 +148,8 @@ export is_empty :: fn(self: MutableMap($K, $V)) -> bool { return self.size == 0 
 
 // Snapshot of every key in insertion-independent order (bucket-walk order).
 // Calls allocate a fresh `[K]`. Suitable for stringification / iteration.
-export keys :: fn(self: MutableMap($K, $V)) -> [K] {
-    out: [K] = []
+export keys :: fn(self: MutableMap($K, $V)) -> K[] {
+    out: K[] = []
     if self.buckets.len() == 0 {
         return out
     }
@@ -172,8 +172,8 @@ export keys :: fn(self: MutableMap($K, $V)) -> [K] {
 }
 
 // Snapshot of every value matching `keys()` order.
-export values :: fn(self: MutableMap($K, $V)) -> [V] {
-    out: [V] = []
+export values :: fn(self: MutableMap($K, $V)) -> V[] {
+    out: V[] = []
     if self.buckets.len() == 0 {
         return out
     }

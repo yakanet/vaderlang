@@ -52,7 +52,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -208,7 +211,7 @@
                             {
                               "name": null,
                               "value": {
-                                "kind": "ArrayLitExpr",
+                                "kind": "SeqLitExpr",
                                 "elements": [
                                   {
                                     "kind": "IntLitExpr",
@@ -275,7 +278,7 @@
                             {
                               "name": null,
                               "value": {
-                                "kind": "ArrayLitExpr",
+                                "kind": "SeqLitExpr",
                                 "elements": [
                                   {
                                     "kind": "StringLitExpr",

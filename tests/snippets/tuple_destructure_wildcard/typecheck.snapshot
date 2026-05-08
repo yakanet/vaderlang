@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/tuple_destructure_wildcard/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         triple               :: fn() -> [i32, string, bool]
+  expr 10:13    StringLitExpr  :: string
+  expr 10:20    IdentExpr      :: bool
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(string) -> void
+  expr 4:12     SeqLitExpr     :: [i32, string, bool]
+  expr 4:16     StringLitExpr  :: string
+  expr 8:18     CallExpr       :: [i32, string, bool]
+  expr 8:18     IdentExpr      :: fn() -> [i32, string, bool]
+  expr 9:13     StringLitExpr  :: string
+  expr 9:20     IdentExpr      :: i32
+  expr 9:5      CallExpr       :: void
+  expr 9:5      IdentExpr      :: fn(string) -> void

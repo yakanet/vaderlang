@@ -1,0 +1,7 @@
+# Comptime
+
+## tests/snippets/seq_lit_inference/_main.vader
+
+## generic instances
+  Yielded(i32)
+  ArrayIter(i32)

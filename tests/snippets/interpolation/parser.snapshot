@@ -33,7 +33,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "name",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "name"
+            },
             "type": null,
             "value": {
               "kind": "StringLitExpr",
@@ -48,7 +51,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "age",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "age"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",

@@ -7,4 +7,4 @@ export greet :: fn(name: string, prefix: string = "Hello") -> string {
 }
 
 @extern
-export map :: fn(items: [$T], f: fn(T) -> $U) -> [U]
+export map :: fn(items: $T[], f: fn(T) -> $U) -> U[]

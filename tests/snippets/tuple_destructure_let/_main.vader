@@ -1,0 +1,12 @@
+import "std/io" { println }
+
+make_pair :: fn() -> [i32, string] {
+    return [10, "hello"]
+}
+
+main :: fn() -> i32 {
+    [n, s] := make_pair()
+    println("n = ${n}")
+    println("s = ${s}")
+    return 0
+}

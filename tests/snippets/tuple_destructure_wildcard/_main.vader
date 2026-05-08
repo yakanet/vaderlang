@@ -1,0 +1,12 @@
+import "std/io" { println }
+
+triple :: fn() -> [i32, string, bool] {
+    return [7, "ignored", true]
+}
+
+main :: fn() -> i32 {
+    [a, _, c] := triple()
+    println("a = ${a}")
+    println("c = ${c}")
+    return 0
+}

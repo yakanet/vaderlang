@@ -24,13 +24,13 @@ export ProcessResult :: struct {
     stderr: string
 }
 
-spawn_run         :: fn(argv: [string]) -> i32
+spawn_run         :: fn(argv: string[]) -> i32
 spawn_last_stdout :: fn() -> string
 spawn_last_stderr :: fn() -> string
 
 // spawn — run `argv[0]` with `argv[1..]` as arguments, block until exit,
 // return the exit code plus captured stdout/stderr.
-export spawn :: fn(argv: [string]) -> ProcessResult! {
+export spawn :: fn(argv: string[]) -> ProcessResult! {
     if argv.len() == 0 {
         return ProcessError { .msg = "spawn: empty argv" }
     }

@@ -19,7 +19,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "x",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "x"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -30,7 +33,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "add_x",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "add_x"
+            },
             "type": null,
             "value": {
               "kind": "LambdaExpr",

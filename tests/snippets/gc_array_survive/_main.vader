@@ -6,7 +6,7 @@ import "std/runtime" { collect, collections }
 // post-GC reads would observe garbage.
 
 main :: fn() -> i32 {
-    list: [i32] = []
+    list: i32[] = []
     i := 0
     for i < 200 {
         list.push(i)

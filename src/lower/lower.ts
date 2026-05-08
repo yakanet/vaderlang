@@ -26,7 +26,6 @@ import type {
 
 import { lowerBlock } from "./passes/block.ts";
 import { lowerExpr } from "./passes/expr.ts";
-import { applySubst } from "./passes/helpers.ts";
 
 const STD_CORE_PATH = "std/core";
 
@@ -129,21 +128,20 @@ export function lowerFnEntry(
   const typed = ctx.evaluated.typed.modules.get(entry.module.module.id);
   if (typed === undefined) return null;
   const subst = entry.subst;
+  const types = makeEntryTypes(typed, subst);
 
   const params: LoweredParam[] = [];
   for (const p of fn.params) {
-    const declared = typed.paramTypes.get(p) ?? TY.unresolved;
     const sym = typed.resolved.params.get(p);
     if (sym === undefined) continue;
-    params.push({ name: p.name, symbol: sym, type: applySubst(declared, subst) });
+    params.push({ name: p.name, symbol: sym, type: types.paramType(p) });
   }
 
   const fnType = typed.declTypes.get(fn);
-  const returnType = fnType?.kind === "Fn" ? applySubst(fnType.returnType, subst) : TY.unresolved;
+  const returnType = fnType?.kind === "Fn" ? types.apply(fnType.returnType) : TY.unresolved;
 
   const body = fn.body === null ? null : lowerBlock({
-    project: ctx, entry, typed, subst,
-    types: makeEntryTypes(typed, subst),
+    project: ctx, entry, typed, subst, types,
     returnType, selfType, blocks: [], uniq: 0,
     liftedContext: null,
   }, fn.body, /*isFnRoot*/ true, /*isLoopBody*/ false);
@@ -159,12 +157,13 @@ export function lowerFnEntry(
 function lowerStructEntry(entry: MonoEntry, struct: A.StructDecl, ctx: LowerProjectCtx): LoweredDecl | null {
   const typed = ctx.evaluated.typed.modules.get(entry.module.module.id);
   if (typed === undefined) return null;
+  const types = makeEntryTypes(typed, entry.subst);
   return {
     kind: "LoweredStructDecl",
     mangled: entry.mangled,
     fields: struct.fields.map((f) => ({
       name: f.name,
-      type: applySubst(typed.typeExprTypes.get(f.type) ?? TY.unresolved, entry.subst),
+      type: types.typeExprType(f.type),
     })),
     origin: entry,
   };
@@ -174,7 +173,8 @@ export function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerP
   const typed = ctx.evaluated.typed.modules.get(entry.module.module.id);
   const evaled = ctx.evaluated.modules.get(entry.module.module.id);
   if (typed === undefined) return null;
-  const type = applySubst(typed.exprTypes.get(decl.value) ?? TY.unresolved, entry.subst);
+  const types = makeEntryTypes(typed, entry.subst);
+  const type = types.exprType(decl.value);
 
   // @comptime / @file values were already baked by the comptime pass — emit
   // the literal directly so downstream phases see the materialized constant
@@ -183,8 +183,7 @@ export function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerP
   const value: LoweredExpr = baked !== undefined
     ? comptimeValueToLowered(baked, defaultIfFree(type), decl.span)
     : lowerExpr({
-        project: ctx, entry, typed, subst: entry.subst,
-        types: makeEntryTypes(typed, entry.subst),
+        project: ctx, entry, typed, subst: entry.subst, types,
         returnType: type, selfType: null, blocks: [], uniq: 0,
         liftedContext: null,
       }, decl.value);

@@ -1584,16 +1584,22 @@ const I64_MAX_BIG =  (1n << 63n) - 1n;
 
 /** C source for an i32 literal. Values outside the signed range round-trip
  *  through `(int32_t)UINT32_C(N)` to silence -Wconstant-conversion: the
- *  literal is born unsigned, then reinterpreted via two's complement. */
+ *  literal is born unsigned, then reinterpreted via two's complement.
+ *  `INT32_MIN` itself can't be written as `INT32_C(-2147483648)` — that
+ *  parses as unary minus applied to `2147483648`, which doesn't fit i32
+ *  and is UB on strict toolchains; emit `INT32_MIN` (a stdint.h macro). */
 function i32LitC(value: number): string {
+  if (value === I32_MIN) return `INT32_MIN`;
   if (value >= I32_MIN && value <= I32_MAX) return `INT32_C(${value})`;
   return `(int32_t)UINT32_C(${value >>> 0})`;
 }
 
 /** C source for an i64 literal. Same logic as `i32LitC` but for the 64-bit
  *  range. The bigint stays exact so unsigned values up to 2^64-1 round-trip
- *  through `(int64_t)UINT64_C(N)`. */
+ *  through `(int64_t)UINT64_C(N)`. `INT64_MIN` likewise needs the macro to
+ *  dodge the unary-minus / overflow trap. */
 function i64LitC(value: bigint): string {
+  if (value === I64_MIN_BIG) return `INT64_MIN`;
   if (value >= I64_MIN_BIG && value <= I64_MAX_BIG) return `INT64_C(${value.toString()})`;
   const u = value & ((1n << 64n) - 1n);
   return `(int64_t)UINT64_C(${u.toString()})`;

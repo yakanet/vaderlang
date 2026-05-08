@@ -51,7 +51,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "r",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "r"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -63,7 +66,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "StringLitExpr",

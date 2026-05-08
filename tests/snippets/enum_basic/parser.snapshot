@@ -155,7 +155,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "d",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "d"
+            },
             "type": {
               "kind": "NamedType",
               "name": "Direction"

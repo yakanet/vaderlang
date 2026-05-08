@@ -50,7 +50,7 @@ export Visibility :: enum(u8) {
 export Program :: struct {
     file:  string
     span:  Span
-    decls: [Decl]
+    decls: Decl[]
 }
 
 // ============================================================================
@@ -73,7 +73,7 @@ export WhereClause :: struct {
 export Decorator :: struct {
     span: Span
     name: string
-    args: [Expr]
+    args: Expr[]
 }
 
 // ============================================================================
@@ -86,12 +86,12 @@ export ImportDecl :: struct {
     span:       Span
     path:       string
     binding:    ImportBinding
-    decorators: [Decorator]
+    decorators: Decorator[]
 }
 
 export NamespaceImport  :: struct {}
 export AliasImport      :: struct { alias: string }
-export DestructureImport :: struct { names: [ImportName] }
+export DestructureImport :: struct { names: ImportName[] }
 
 export ImportName :: struct {
     name:  string
@@ -109,12 +109,12 @@ export FnDecl :: struct {
     name:                  string
     name_span:             Span
     visibility:            Visibility
-    type_params:           [TypeParam]
-    params:                [FnParam]
+    type_params:           TypeParam[]
+    params:                FnParam[]
     return_type:           TypeExpr | null
-    where_clauses:         [WhereClause]
+    where_clauses:         WhereClause[]
     body:                  BlockExpr | null
-    decorators:            [Decorator]
+    decorators:            Decorator[]
     sam_synthetic:         bool
     is_expression_bodied:  bool
 }
@@ -135,10 +135,10 @@ export StructDecl :: struct {
     name:          string
     name_span:     Span
     visibility:    Visibility
-    type_params:   [TypeParam]
-    fields:        [StructField]
-    where_clauses: [WhereClause]
-    decorators:    [Decorator]
+    type_params:   TypeParam[]
+    fields:        StructField[]
+    where_clauses: WhereClause[]
+    decorators:    Decorator[]
 }
 
 export StructField :: struct {
@@ -157,8 +157,8 @@ export EnumDecl :: struct {
     visibility: Visibility
     // `null` means default `i32` — typechecker resolves the backing type.
     repr:       TypeExpr | null
-    variants:   [EnumVariant]
-    decorators: [Decorator]
+    variants:   EnumVariant[]
+    decorators: Decorator[]
 }
 
 export EnumVariant :: struct {
@@ -178,9 +178,9 @@ export TraitDecl :: struct {
     name:        string
     name_span:   Span
     visibility:  Visibility
-    type_params: [TypeParam]
-    members:     [FnDecl]
-    decorators:  [Decorator]
+    type_params: TypeParam[]
+    members:     FnDecl[]
+    decorators:  Decorator[]
 }
 
 // ---- Impl -----------------------------------------------------------------
@@ -190,9 +190,9 @@ export ImplDecl :: struct {
     for_type:         TypeExpr
     trait_name:       string
     trait_name_span:  Span
-    trait_args:       [TypeExpr]
-    members:          [FnDecl]
-    decorators:       [Decorator]
+    trait_args:       TypeExpr[]
+    members:          FnDecl[]
+    decorators:       Decorator[]
 }
 
 // ---- TypeAlias ------------------------------------------------------------
@@ -202,9 +202,9 @@ export TypeAliasDecl :: struct {
     name:        string
     name_span:   Span
     visibility:  Visibility
-    type_params: [TypeParam]
+    type_params: TypeParam[]
     aliased:     TypeExpr
-    decorators:  [Decorator]
+    decorators:  Decorator[]
 }
 
 // ---- Const ----------------------------------------------------------------
@@ -216,7 +216,7 @@ export ConstDecl :: struct {
     visibility: Visibility
     ty:         TypeExpr | null
     value:      Expr
-    decorators: [Decorator]
+    decorators: Decorator[]
 }
 
 // ============================================================================
@@ -318,7 +318,7 @@ export CharLitExpr :: struct {
 
 export StringLitExpr :: struct {
     span:  Span
-    parts: [StringLitPart]
+    parts: StringLitPart[]
 }
 
 export StringLitText   :: struct { value: string, span: Span }
@@ -334,7 +334,7 @@ export IdentExpr :: struct {
 export CallExpr :: struct {
     span:   Span
     callee: Expr
-    args:   [CallArg]
+    args:   CallArg[]
 }
 
 export CallArg :: struct {
@@ -401,7 +401,7 @@ export IfElseBlock :: struct { block:  BlockExpr }
 export MatchExpr :: struct {
     span:      Span
     scrutinee: Expr
-    arms:      [MatchArm]
+    arms:      MatchArm[]
 }
 
 export MatchArm :: struct {
@@ -413,7 +413,7 @@ export MatchArm :: struct {
 
 export BlockExpr :: struct {
     span:     Span
-    stmts:    [Stmt]
+    stmts:    Stmt[]
     trailing: Expr | null
 }
 
@@ -421,7 +421,7 @@ export BlockExpr :: struct {
 
 export LambdaExpr :: struct {
     span:        Span
-    params:      [FnParam]
+    params:      FnParam[]
     return_type: TypeExpr | null
     body:        BlockExpr
 }
@@ -429,7 +429,7 @@ export LambdaExpr :: struct {
 export StructLitExpr :: struct {
     span:      Span
     type_name: TypeExpr
-    fields:    [StructLitField]
+    fields:    StructLitField[]
 }
 
 export StructLitField :: struct {
@@ -441,7 +441,7 @@ export StructLitField :: struct {
 
 export ArrayLitExpr :: struct {
     span:     Span
-    elements: [Expr]
+    elements: Expr[]
 }
 
 export RangeExpr :: struct {
@@ -467,7 +467,7 @@ export CastExpr :: struct {
 export GenericInstExpr :: struct {
     span:      Span
     callee:    Expr
-    type_args: [TypeExpr]
+    type_args: TypeExpr[]
 }
 
 export DotVariantExpr :: struct {
@@ -489,7 +489,7 @@ export IsPattern :: struct {
 
 export StructPattern :: struct {
     span:   Span
-    fields: [StructPatternField]
+    fields: StructPatternField[]
 }
 
 export StructPatternField :: struct {
@@ -525,12 +525,12 @@ export NamedType :: struct {
 
 export UnionType :: struct {
     span:     Span
-    variants: [TypeExpr]
+    variants: TypeExpr[]
 }
 
 export FnTypeExpr :: struct {
     span:        Span
-    params:      [TypeExpr]
+    params:      TypeExpr[]
     return_type: TypeExpr | null
 }
 
@@ -542,7 +542,7 @@ export ArrayTypeExpr :: struct {
 export GenericInstType :: struct {
     span: Span
     base: NamedType
-    args: [TypeExpr]
+    args: TypeExpr[]
 }
 
 export TypeParamType :: struct {

@@ -178,7 +178,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -229,10 +232,13 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "arr",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "arr"
+            },
             "type": null,
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": [
                 {
                   "kind": "IntLitExpr",
@@ -255,7 +261,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "v",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "v"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

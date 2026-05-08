@@ -171,7 +171,7 @@ function parsePrefix(p: Parser): A.Expr {
     case "lparen":
       return parseParenOrTuple(p);
     case "lbracket":
-      return parseArrayLit(p);
+      return parseSeqLit(p);
     case "lbrace":
       return parseBlock(p);
     case "minus":
@@ -223,6 +223,19 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
   }
   if (t.kind === "dot") {
     p.advance();
+    // `t.0`, `t.1`, ... — numeric tuple index access. The lowerer rewrites
+    // these to synthetic field names `_0`, `_1`, ... at desugar time.
+    if (p.check("int_literal")) {
+      const numTok = p.advance();
+      return {
+        kind: "FieldExpr",
+        span: { start: left.span.start, end: numTok.span.end },
+        target: left,
+        field: numTok.text,
+        fieldSpan: numTok.span,
+        isNumeric: true,
+      };
+    }
     const name = p.expect("ident", "field name after `.`");
     return {
       kind: "FieldExpr",
@@ -410,7 +423,7 @@ function parseParenOrTuple(p: Parser): A.Expr {
   return expr;
 }
 
-function parseArrayLit(p: Parser): A.ArrayLitExpr {
+function parseSeqLit(p: Parser): A.SeqLitExpr {
   const lb = p.advance();
   const elements: A.Expr[] = [];
   p.skipNewlines();
@@ -424,9 +437,9 @@ function parseArrayLit(p: Parser): A.ArrayLitExpr {
       p.skipNewlines();
     }
   }
-  const rb = p.expect("rbracket", "`]` to close array literal");
+  const rb = p.expect("rbracket", "`]` to close seq literal");
   return {
-    kind: "ArrayLitExpr",
+    kind: "SeqLitExpr",
     span: p.spanOf(lb, rb),
     elements,
   };
@@ -597,9 +610,37 @@ function parsePattern(p: Parser): A.Pattern {
     p.advance();
     return { kind: "BindingPattern", span: t.span, name: t.text };
   }
+  if (t.kind === "lbracket") {
+    return parseTuplePattern(p);
+  }
   p.error("P1007", t.span, `got ${describeToken(t)}`);
   p.advance();
   return { kind: "WildcardPattern", span: t.span };
+}
+
+function parseTuplePattern(p: Parser): A.TuplePattern {
+  const start = p.advance(); // [
+  p.skipNewlines();
+  const elements: A.Pattern[] = [];
+  if (!p.check("rbracket")) {
+    while (true) {
+      p.skipNewlines();
+      if (p.check("rbracket")) break;
+      elements.push(parsePattern(p));
+      p.skipNewlines();
+      if (p.match("comma") === null) break;
+      p.skipNewlines();
+    }
+  }
+  const end = p.expect("rbracket", "`]` to close tuple pattern");
+  if (elements.length < 2) {
+    p.error("P1022", p.spanOf(start, end));
+  }
+  return {
+    kind: "TuplePattern",
+    span: p.spanOf(start, end),
+    elements,
+  };
 }
 
 function parseStructPattern(p: Parser): A.StructPattern {

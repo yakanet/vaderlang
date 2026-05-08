@@ -95,7 +95,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "first",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "first"
+            },
             "type": null,
             "value": {
               "kind": "BoolLitExpr",

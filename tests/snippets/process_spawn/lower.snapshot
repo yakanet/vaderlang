@@ -5,9 +5,9 @@
     let r#65: Error | ProcessResult =
       call :Error | ProcessResult
         callee:
-          spawn#42 :fn([string]) -> Error | ProcessResult
+          spawn#42 :fn(string[]) -> Error | ProcessResult
         arg0:
-          array :[string]
+          array :string[]
             "/bin/echo" :string
             "ok" :string
     block :void

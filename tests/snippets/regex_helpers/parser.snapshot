@@ -534,7 +534,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "parts",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "parts"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -602,7 +605,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -620,7 +626,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "i",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "i"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",

@@ -154,7 +154,10 @@
               {
                 "kind": "LetStmt",
                 "mutable": false,
-                "name": "v",
+                "binding": {
+                  "kind": "SimpleBinding",
+                  "name": "v"
+                },
                 "type": null,
                 "value": {
                   "kind": "FieldExpr",
@@ -246,7 +249,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "it",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "it"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -286,7 +292,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "sum",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sum"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",

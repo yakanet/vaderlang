@@ -16,13 +16,13 @@
   expr 18:51    FieldExpr      :: i32
   expr 18:51    IdentExpr      :: Yielded(i32)
   expr 21:12    IdentExpr      :: i32
-  expr 25:12    ArrayLitExpr   :: [i32]
-  expr 26:12    IdentExpr      :: [i32]
+  expr 25:12    SeqLitExpr     :: i32[]
+  expr 26:12    IdentExpr      :: i32[]
   expr 31:10    CallExpr       :: i32
   expr 31:10    IdentExpr      :: fn(Iterator(i32)) -> i32
-  expr 31:15    ArrayLitExpr   :: [i32]
-  expr 34:37    ArrayLitExpr   :: [i32]
-  expr 35:39    ArrayLitExpr   :: [i32]
+  expr 31:15    SeqLitExpr     :: i32[]
+  expr 34:37    SeqLitExpr     :: i32[]
+  expr 35:39    SeqLitExpr     :: i32[]
   expr 36:10    BinaryExpr     :: i32
   expr 36:10    CallExpr       :: i32
   expr 36:10    IdentExpr      :: fn(Iterator(i32)) -> i32

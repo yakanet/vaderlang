@@ -5,7 +5,7 @@
     let s#69: Stack(i32) =
       Stack(i32) {
         data:
-          array :[i32]
+          array :i32[]
         size: int(0) :i32
       }
     call :void
@@ -90,7 +90,7 @@
             @builder.finish :string
               __sb_2#-3 :?
     return int(0) :i32
-  struct tests_snippets_generic_struct__main_vader$Stack__i32 { data: [i32], size: i32 }
+  struct tests_snippets_generic_struct__main_vader$Stack__i32 { data: i32[], size: i32 }
   fn tests_snippets_generic_struct__main_vader$Stack$Stackable$push__i32(self: Stack(i32), value: i32) -> void
     LoweredArrayPush
     assign
@@ -119,7 +119,7 @@
     return
       index :i32
         on:
-          .data :[i32]
+          .data :i32[]
             self#66 :Stack(i32)
         ix:
           .size :i32

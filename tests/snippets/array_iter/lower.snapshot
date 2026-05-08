@@ -2,8 +2,8 @@
 
 ## tests/snippets/array_iter/_main.vader
   fn tests_snippets_array_iter__main_vader$main() -> i32
-    let arr#55: [i32] =
-      array :[i32]
+    let arr#55: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
         int(30) :i32
@@ -12,7 +12,7 @@
     block :void
       let __iter_0#-1: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: arr#55 :[i32]
+          arr: arr#55 :i32[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -60,8 +60,8 @@
           ~>
             @builder.finish :string
               __sb_2#-3 :?
-    let empty#58: [i32] =
-      array :[i32]
+    let empty#58: i32[] =
+      array :i32[]
         int(0) :i32
         int(0) :i32
         int(0) :i32
@@ -69,7 +69,7 @@
     block :void
       let __iter_3#-4: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: empty#58 :[i32]
+          arr: empty#58 :i32[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen

@@ -260,7 +260,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "op",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "op"
+            },
             "type": {
               "kind": "NamedType",
               "name": "Op"

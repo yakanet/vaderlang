@@ -121,10 +121,10 @@
             is_non_id#6 :fn(char) -> bool
           arg2:
             "_" :string
-    let parts#117: [string] =
-      call :[string]
+    let parts#117: string[] =
+      call :string[]
         callee:
-          split_whitespace#68 :fn(string) -> [string]
+          split_whitespace#68 :fn(string) -> string[]
         arg0:
           "  hello  world\tfoo\n bar  " :string
     call :void
@@ -153,7 +153,7 @@
         arg0:
           index :string
             on:
-              parts#117 :[string]
+              parts#117 :string[]
             ix:
               i#119 :i32
       assign

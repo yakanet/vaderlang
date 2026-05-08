@@ -45,7 +45,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "path",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "path"
+            },
             "type": null,
             "value": {
               "kind": "StringLitExpr",
@@ -138,7 +141,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "contents",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "contents"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

@@ -103,7 +103,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "o",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "o"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",

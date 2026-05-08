@@ -82,7 +82,10 @@
               {
                 "kind": "LetStmt",
                 "mutable": true,
-                "name": "prefix",
+                "binding": {
+                  "kind": "SimpleBinding",
+                  "name": "prefix"
+                },
                 "type": {
                   "kind": "NamedType",
                   "name": "string"
@@ -189,7 +192,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "x",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "x"
+            },
             "type": {
               "kind": "NamedType",
               "name": "i32"
@@ -203,7 +209,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "y",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "y"
+            },
             "type": {
               "kind": "NamedType",
               "name": "i64"

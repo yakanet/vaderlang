@@ -24,7 +24,7 @@ export JsonString :: struct { value: string }
 export JsonNumber :: struct { value: f64 }
 export JsonBool   :: struct { value: bool }
 export JsonNull   :: struct {}
-export JsonArray  :: struct { items: [JsonValue] }
+export JsonArray  :: struct { items: JsonValue[] }
 export JsonObject :: struct { entries: MutableMap(string, JsonValue) }
 
 // ---- error ----------------------------------------------------------------
@@ -309,7 +309,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
 
 parse_array :: fn(p: Parser) -> JsonArray | JsonError {
     expect_byte(p, '[')?
-    items: [JsonValue] = []
+    items: JsonValue[] = []
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == ']' {
         advance(p)

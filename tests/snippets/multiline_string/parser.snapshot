@@ -37,7 +37,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "s",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s"
+            },
             "type": null,
             "value": {
               "kind": "StringLitExpr",
@@ -72,7 +75,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -83,7 +89,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "msg",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "msg"
+            },
             "type": null,
             "value": {
               "kind": "StringLitExpr",
@@ -129,7 +138,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "escaped",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "escaped"
+            },
             "type": null,
             "value": {
               "kind": "StringLitExpr",
@@ -164,7 +176,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "prefix",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "prefix"
+            },
             "type": null,
             "value": {
               "kind": "StringLitExpr",
@@ -179,7 +194,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "combined",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "combined"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",

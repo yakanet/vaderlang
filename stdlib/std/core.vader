@@ -108,7 +108,7 @@ Range implements Iterator(i32) {
 // `length` field is pre-computed at construction time so `step` can avoid
 // calling a generic `len(arr)` (generic-fn dispatch is still deferred).
 export ArrayIter :: struct($T) {
-    arr:    [T]
+    arr:    T[]
     cursor: i32
     length: i32
 }

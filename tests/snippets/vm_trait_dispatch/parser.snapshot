@@ -372,7 +372,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "d",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "d"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -399,7 +402,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "c",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "c"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -426,7 +432,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "w",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "w"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -458,7 +467,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "dog_result",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "dog_result"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -481,7 +493,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "cat_result",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "cat_result"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -504,7 +519,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "wc",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "wc"
+            },
             "type": {
               "kind": "UnionType",
               "variants": [
@@ -535,7 +553,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "wrap_result",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "wrap_result"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -558,7 +579,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "cc",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "cc"
+            },
             "type": {
               "kind": "UnionType",
               "variants": [
@@ -589,7 +613,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "cat_wrap_result",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "cat_wrap_result"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

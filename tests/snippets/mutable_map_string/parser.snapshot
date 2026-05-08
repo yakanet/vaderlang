@@ -63,7 +63,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "m",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "m"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -88,7 +91,7 @@
                 {
                   "name": "buckets",
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": []
                   }
                 },
@@ -260,7 +263,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "v1",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "v1"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -387,7 +393,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "v2",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "v2"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -514,7 +523,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "v3",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "v3"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -787,7 +799,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "v1b",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "v1b"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

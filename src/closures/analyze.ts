@@ -225,7 +225,7 @@ function walkExpr(
     case "StructLitExpr":
       for (const f of expr.fields) walkExpr(f.value, scope, outCaptures, outSeen, ctx);
       return;
-    case "ArrayLitExpr":
+    case "SeqLitExpr":
       for (const e of expr.elements) walkExpr(e, scope, outCaptures, outSeen, ctx);
       return;
     case "RangeExpr":
@@ -300,7 +300,7 @@ function typeOfCapturedSymbol(sym: Symbol, identExpr: A.IdentExpr, program: Type
   // the use-site narrowing). Falls back to the IdentExpr's exprType then
   // Unresolved.
   if (sym.source.kind === "local") {
-    const t = program.localTypes.get(sym.source.stmt);
+    const t = program.localTypes.get(sym.source.binding);
     if (t !== undefined) return t;
   } else if (sym.source.kind === "param") {
     const t = program.paramTypes.get(sym.source.param);
@@ -310,8 +310,21 @@ function typeOfCapturedSymbol(sym: Symbol, identExpr: A.IdentExpr, program: Type
 }
 
 function addLocalToScope(stmt: A.LetStmt, scope: Set<number>, resolved: ResolvedProgram): void {
-  const sym = resolved.locals.get(stmt);
-  if (sym !== undefined) scope.add(sym.id);
+  // Walk the let-binding tree so destructured leaves all join the scope.
+  visitLetLeaves(stmt.binding, (leaf) => {
+    const sym = resolved.locals.get(leaf);
+    if (sym !== undefined) scope.add(sym.id);
+  });
+}
+
+function visitLetLeaves(b: A.LetBinding, visit: (leaf: A.SimpleBinding) => void): void {
+  switch (b.kind) {
+    case "SimpleBinding": visit(b); return;
+    case "TupleBinding":
+      for (const e of b.elements) visitLetLeaves(e, visit);
+      return;
+    case "WildcardBinding": return;
+  }
 }
 
 /** Add the pattern's bindings to `scope` and return the list of ids actually

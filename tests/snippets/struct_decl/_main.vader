@@ -4,10 +4,10 @@ export Point :: struct {
 }
 
 export List :: struct($T) {
-    items: [T]
+    items: T[]
     len: u32
 }
 
 export Buffer :: struct($N: i32) {
-    data: [u8]
+    data: u8[]
 }

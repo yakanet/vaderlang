@@ -12,7 +12,7 @@
 //   result := sb.to_string()  // "Hello!"
 
 export StringBuilder :: struct {
-    parts: [string]
+    parts: string[]
 }
 
 export new_builder :: fn() -> StringBuilder {
@@ -28,7 +28,7 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
 }
 
 // Host intrinsic: flatten a [string] into one string in a single allocation.
-export concat_all :: fn(parts: [string]) -> string
+export concat_all :: fn(parts: string[]) -> string
 
 export to_string :: fn(self: StringBuilder) -> string {
     return concat_all(self.parts)

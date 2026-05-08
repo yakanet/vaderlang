@@ -193,10 +193,10 @@
           ~>
             @builder.finish :string
               __sb_7#-8 :?
-    let parts#122: [string] =
-      call :[string]
+    let parts#122: string[] =
+      call :string[]
         callee:
-          split#57 :[string]
+          split#57 :string[]
         arg0:
           "a,b,c" :string
         arg1:
@@ -207,7 +207,7 @@
       arg0:
         index :string
           on:
-            parts#122 :[string]
+            parts#122 :string[]
           ix:
             int(0) :i32
     call :void
@@ -216,7 +216,7 @@
       arg0:
         index :string
           on:
-            parts#122 :[string]
+            parts#122 :string[]
           ix:
             int(1) :i32
     call :void
@@ -225,7 +225,7 @@
       arg0:
         index :string
           on:
-            parts#122 :[string]
+            parts#122 :string[]
           ix:
             int(2) :i32
     return int(0) :i32

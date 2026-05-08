@@ -86,7 +86,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "bias",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "bias"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -97,7 +100,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "biased",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "biased"
+            },
             "type": null,
             "value": {
               "kind": "LambdaExpr",

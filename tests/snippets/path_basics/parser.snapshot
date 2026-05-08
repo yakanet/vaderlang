@@ -179,7 +179,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "p",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "p"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -445,7 +448,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "abs",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "abs"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

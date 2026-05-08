@@ -83,7 +83,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "arr",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "arr"
+            },
             "type": {
               "kind": "ArrayTypeExpr",
               "element": {
@@ -110,7 +113,7 @@
               }
             },
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": []
             }
           },
@@ -232,7 +235,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "cell",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "cell"
+            },
             "type": null,
             "value": {
               "kind": "IndexExpr",

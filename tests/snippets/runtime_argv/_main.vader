@@ -3,7 +3,7 @@ import "std/io" { println }
 // argv[0] is the program/script path — implementation-defined and differs
 // between VM and native, so we skip it for snapshot-stability and only
 // echo back the user args.
-main :: fn(argv: [string]) -> i32 {
+main :: fn(argv: string[]) -> i32 {
     println("argc=${argv.len() - 1}")
     first := true
     for s in argv {

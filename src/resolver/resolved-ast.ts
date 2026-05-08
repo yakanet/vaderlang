@@ -25,8 +25,10 @@ export interface ResolvedProgram {
   /** Symbols introduced for fn params (incl. lambda params). */
   readonly params: ReadonlyMap<A.FnParam, Symbol>;
 
-  /** Symbols introduced for `:=` / `::` locals. */
-  readonly locals: ReadonlyMap<A.LetStmt, Symbol>;
+  /** Symbols introduced for `:=` / `::` locals (one per leaf `SimpleBinding`,
+   *  so a destructured `[a, b] := …` produces two entries — one for `a`, one
+   *  for `b`). */
+  readonly locals: ReadonlyMap<A.SimpleBinding, Symbol>;
 
   /** Symbols introduced by `for x in iter` — keyed by the ForStmt so the
    *  typechecker / lowerer can resolve `x` from the form alone. */

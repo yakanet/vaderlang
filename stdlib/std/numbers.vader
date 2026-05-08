@@ -59,7 +59,7 @@ export to_hex :: fn(self: u64) -> string {
     }
     // Build digits LSB-first into the buffer, then walk it backwards into the
     // builder so the output reads MSB-first.
-    rev: [char] = []
+    rev: char[] = []
     base: u64 = 16
     x := self
     for x > 0 {
@@ -80,7 +80,7 @@ export to_bin :: fn(self: u64) -> string {
     if self == 0 {
         return "0"
     }
-    rev: [char] = []
+    rev: char[] = []
     two: u64 = 2
     x := self
     for x > 0 {

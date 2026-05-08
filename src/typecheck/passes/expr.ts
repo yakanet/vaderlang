@@ -69,7 +69,7 @@ function inferExpr(
     case "BlockExpr":     return checkBlock(expr, expected, t, impls, diags, fn);
     case "LambdaExpr":    return inferLambda(expr, expected, t, impls, diags, fn);
     case "StructLitExpr": return inferStructLit(expr, t, impls, diags, fn);
-    case "ArrayLitExpr":  return inferArrayLit(expr, expected, t, impls, diags, fn);
+    case "SeqLitExpr":    return inferSeqLit(expr, expected, t, impls, diags, fn);
     case "RangeExpr":     return inferRange(expr, t, impls, diags, fn);
     case "TryExpr":       return inferTry(expr, t, impls, diags, fn);
     case "CastExpr":      return inferCast(expr, t, impls, diags, fn);
@@ -134,7 +134,7 @@ export function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {
         : TY.unresolved;
     case "local":
       return sym.source.kind === "local"
-        ? t.localTypes.get(sym.source.stmt) ?? TY.unresolved
+        ? t.localTypes.get(sym.source.binding) ?? TY.unresolved
         : TY.unresolved;
     case "type-param":
       return { kind: "TypeParam", symbol: sym };
@@ -275,13 +275,47 @@ function inferLambda(
   return { kind: "Fn", params: paramTypes, returnType: expectedRet ?? bodyType };
 }
 
-function inferArrayLit(
-  expr: A.ArrayLitExpr, expected: Type | null,
+function inferSeqLit(
+  expr: A.SeqLitExpr, expected: Type | null,
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
+  // Contextual disambiguation between array and tuple :
+  //   - expected is `Tuple([T0..Tn-1])`  → tuple, element-wise (arity must match)
+  //   - expected is `Array(T)`           → array, all elements check against T
+  //   - no useful expected type          → array-first when elements unify under
+  //                                        unionOf to a single type, otherwise tuple
+  if (expected?.kind === "Tuple") {
+    if (expected.elements.length !== expr.elements.length) {
+      err(diags, "T3001", expr.span,
+        `expected ${displayType(expected)} (${expected.elements.length} element(s)), got ${expr.elements.length}`);
+      // Best-effort : check elements against their per-slot expected types
+      // up to the shorter length so cascading errors are minimised.
+      const n = Math.min(expected.elements.length, expr.elements.length);
+      const elemTypes: Type[] = [];
+      for (let i = 0; i < n; i++) {
+        elemTypes.push(checkExpr(expr.elements[i]!, expected.elements[i]!, t, impls, diags, fn));
+      }
+      for (let i = n; i < expr.elements.length; i++) {
+        elemTypes.push(checkExpr(expr.elements[i]!, null, t, impls, diags, fn));
+      }
+      return { kind: "Tuple", elements: elemTypes.map(defaultIfFree) };
+    }
+    const elemTypes = expr.elements.map((e, i) =>
+      checkExpr(e, expected.elements[i]!, t, impls, diags, fn));
+    return { kind: "Tuple", elements: elemTypes };
+  }
   const elemExpected = expected?.kind === "Array" ? expected.element : null;
   const elemTypes: Type[] = expr.elements.map((e) => checkExpr(e, elemExpected, t, impls, diags, fn));
   if (elemTypes.length === 0) return { kind: "Array", element: elemExpected ?? TY.unresolved };
+  // No explicit annotation : default to array when elements unify ; tuple
+  // when they don't. `unionOf` returns a non-Union result iff all variants
+  // are equal post-dedup (a single homogeneous type).
+  if (expected === null || expected.kind === "Unresolved") {
+    const widened = elemTypes.map(defaultIfFree);
+    const merged = unionOf(widened);
+    if (merged.kind !== "Union") return { kind: "Array", element: merged };
+    return { kind: "Tuple", elements: widened };
+  }
   return { kind: "Array", element: unionOf(elemTypes.map(defaultIfFree)) };
 }
 

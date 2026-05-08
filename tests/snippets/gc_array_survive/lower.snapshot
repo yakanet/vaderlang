@@ -2,8 +2,8 @@
 
 ## tests/snippets/gc_array_survive/_main.vader
   fn tests_snippets_gc_array_survive__main_vader$main() -> i32
-    let list#61: [i32] =
-      array :[i32]
+    let list#61: i32[] =
+      array :i32[]
     let i#62: i32 = int(0) :i32
     loop while (<…>)
       LoweredArrayPush
@@ -71,7 +71,7 @@
             r:
               index :i32
                 on:
-                  list#61 :[i32]
+                  list#61 :i32[]
                 ix:
                   j#67 :i32
       assign

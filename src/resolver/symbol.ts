@@ -51,7 +51,7 @@ export type SymbolSource =
   | { readonly kind: "import"; readonly decl: A.ImportDecl; readonly target: Symbol | null; readonly importedName: string | null }
   | { readonly kind: "param"; readonly param: A.FnParam; readonly fn: A.FnDecl | A.LambdaExpr }
   | { readonly kind: "type-param"; readonly param: A.TypeParam }
-  | { readonly kind: "local"; readonly stmt: A.LetStmt }
+  | { readonly kind: "local"; readonly stmt: A.LetStmt; readonly binding: A.SimpleBinding }
   | { readonly kind: "binding"; readonly origin: BindingOrigin }
   | { readonly kind: "builtin-type"; readonly typeName: string }
   | { readonly kind: "builtin-fn"; readonly fnName: string }

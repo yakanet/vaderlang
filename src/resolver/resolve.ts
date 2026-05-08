@@ -41,7 +41,10 @@ interface MutableProgram {
   idents: Map<A.IdentExpr, Symbol>;
   types: Map<A.NamedType, Symbol>;
   params: Map<A.FnParam, Symbol>;
-  locals: Map<A.LetStmt, Symbol>;
+  /** Symbol per leaf SimpleBinding. For a simple `x := expr` the LetStmt's
+   *  `binding` IS the SimpleBinding key ; for tuple destructure each leaf is
+   *  keyed individually. */
+  locals: Map<A.SimpleBinding, Symbol>;
   forIns: Map<A.ForStmt, Symbol>;
   typeParams: Map<A.TypeParam, Symbol>;
   typeParamTypes: Map<A.TypeParamType, Symbol>;
@@ -256,6 +259,9 @@ function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeE
     case "ArrayTypeExpr":
       return { kind: "ArrayTypeExpr", span: expr.span,
         element: substituteTypeExpr(expr.element, subst) };
+    case "TupleTypeExpr":
+      return { kind: "TupleTypeExpr", span: expr.span,
+        elements: expr.elements.map((e) => substituteTypeExpr(e, subst)) };
     case "GenericInstType":
       return { kind: "GenericInstType", span: expr.span,
         base: { kind: "NamedType", span: expr.base.span, name: expr.base.name },
@@ -317,18 +323,34 @@ function bindTypeParam(tp: A.TypeParam, scope: Scope, p: MutableProgram, input: 
   input.typeParamSymbols.set(tp, sym);
 }
 
-function bindLocal(stmt: A.LetStmt, scope: Scope, p: MutableProgram, input: ResolveModuleInput): Symbol {
-  const sym = input.factory.make({
-    kind: "local",
-    name: stmt.name,
-    module: input.module.id,
-    visibility: "private",
-    definedAt: stmt.nameSpan,
-    source: { kind: "local", stmt },
-  });
-  scope.bindings.set(stmt.name, sym);
-  p.locals.set(stmt, sym);
-  return sym;
+function bindLocal(stmt: A.LetStmt, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {
+  bindLetBinding(stmt, stmt.binding, scope, p, input);
+}
+
+function bindLetBinding(
+  stmt: A.LetStmt, b: A.LetBinding, scope: Scope,
+  p: MutableProgram, input: ResolveModuleInput,
+): void {
+  switch (b.kind) {
+    case "SimpleBinding": {
+      const sym = input.factory.make({
+        kind: "local",
+        name: b.name,
+        module: input.module.id,
+        visibility: "private",
+        definedAt: b.nameSpan,
+        source: { kind: "local", stmt, binding: b },
+      });
+      scope.bindings.set(b.name, sym);
+      p.locals.set(b, sym);
+      return;
+    }
+    case "TupleBinding":
+      for (const e of b.elements) bindLetBinding(stmt, e, scope, p, input);
+      return;
+    case "WildcardBinding":
+      return;
+  }
 }
 
 function bindBinding(
@@ -397,6 +419,9 @@ function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: Reso
       return;
     case "ArrayTypeExpr":
       resolveType(t.element, scope, p, input);
+      return;
+    case "TupleTypeExpr":
+      for (const e of t.elements) resolveType(e, scope, p, input);
       return;
     case "GenericInstType":
       resolveType(t.base, scope, p, input);
@@ -521,7 +546,7 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       resolveType(expr.typeName, scope, p, input);
       for (const f of expr.fields) resolveExpr(f.value, scope, p, input);
       return;
-    case "ArrayLitExpr":
+    case "SeqLitExpr":
       for (const el of expr.elements) resolveExpr(el, scope, p, input);
       return;
     case "RangeExpr":
@@ -618,6 +643,9 @@ function bindPattern(pat: A.Pattern, scope: Scope, p: MutableProgram, input: Res
       p.patternBindings.set(pat, sym);
       return;
     }
+    case "TuplePattern":
+      for (const e of pat.elements) bindPattern(e, scope, p, input);
+      return;
     case "WildcardPattern":
       return;
     case "EnumVariantPattern":

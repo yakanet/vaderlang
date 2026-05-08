@@ -41,6 +41,8 @@ function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: Diagnostic
       };
     case "ArrayTypeExpr":
       return { kind: "Array", element: lowerTypeExpr(expr.element, t, diags) };
+    case "TupleTypeExpr":
+      return { kind: "Tuple", elements: expr.elements.map((e) => lowerTypeExpr(e, t, diags)) };
     case "TypeParamType": {
       const sym = t.resolved.typeParamTypes.get(expr);
       if (sym !== undefined) return { kind: "TypeParam", symbol: sym };

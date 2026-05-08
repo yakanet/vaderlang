@@ -15,7 +15,7 @@
               callee:
                 outer#1000017 :i32
               arg0:
-                array :[i32]
+                array :i32[]
                   int(1) :i32
                   int(2) :i32
                   int(3) :i32
@@ -37,7 +37,7 @@
               callee:
                 outer#1000018 :i32
               arg0:
-                array :[string]
+                array :string[]
                   "a" :string
                   "b" :string
                   "c" :string
@@ -45,12 +45,12 @@
             @builder.finish :string
               __sb_1#-2 :?
     return int(0) :i32
-  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__i32(arr: [i32]) -> i32
+  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__i32(arr: i32[]) -> i32
     let n#59: i32 = int(0) :i32
     block :void
       let __iter_0#-3: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: arr#58 :[i32]
+          arr: arr#58 :i32[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -83,12 +83,12 @@
                   r:
                     int(1) :i32
     return n#59 :i32
-  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__string(arr: [string]) -> i32
+  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__string(arr: string[]) -> i32
     let n#59: i32 = int(0) :i32
     block :void
       let __iter_0#-5: ArrayIter(string) =
         ArrayIter(string) {
-          arr: arr#58 :[string]
+          arr: arr#58 :string[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -121,17 +121,17 @@
                   r:
                     int(1) :i32
     return n#59 :i32
-  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$outer__i32(arr: [i32]) -> i32
+  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$outer__i32(arr: i32[]) -> i32
     return
       call :i32
         callee:
           inner_count#1000015 :i32
         arg0:
-          arr#62 :[i32]
-  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$outer__string(arr: [string]) -> i32
+          arr#62 :i32[]
+  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$outer__string(arr: string[]) -> i32
     return
       call :i32
         callee:
           inner_count#1000016 :i32
         arg0:
-          arr#62 :[string]
+          arr#62 :string[]

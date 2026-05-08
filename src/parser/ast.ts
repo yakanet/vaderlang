@@ -218,10 +218,52 @@ export interface LetStmt {
   readonly kind: "LetStmt";
   readonly span: Span;
   readonly mutable: boolean;
-  readonly name: string;
-  readonly nameSpan: Span;
+  /** Binding pattern. For the simple case (`x := expr`) this is a single
+   *  `SimpleBinding`; for tuple destructuring (`[a, b] := expr`) this is a
+   *  `TupleBinding` whose leaves are `SimpleBinding`/`WildcardBinding`. */
+  readonly binding: LetBinding;
   readonly type: TypeExpr | null;
   readonly value: Expr;
+}
+
+/** Recursive let-binding tree. Leaves are `SimpleBinding` (introduces a name)
+ *  or `WildcardBinding` (ignores the slot). `TupleBinding` matches tuple-typed
+ *  values element-wise. */
+export type LetBinding = SimpleBinding | TupleBinding | WildcardBinding;
+
+export interface SimpleBinding {
+  readonly kind: "SimpleBinding";
+  readonly span: Span;
+  readonly name: string;
+  readonly nameSpan: Span;
+}
+
+export interface TupleBinding {
+  readonly kind: "TupleBinding";
+  readonly span: Span;
+  readonly elements: readonly LetBinding[];
+}
+
+export interface WildcardBinding {
+  readonly kind: "WildcardBinding";
+  readonly span: Span;
+}
+
+/** Walk a let-binding and visit every leaf that introduces a name. Mirrors
+ *  `forEachPatternBindingKey` for `match` patterns. */
+export function forEachLetBindingLeaf(
+  binding: LetBinding, visit: (leaf: SimpleBinding) => void,
+): void {
+  switch (binding.kind) {
+    case "SimpleBinding":
+      visit(binding);
+      return;
+    case "TupleBinding":
+      for (const e of binding.elements) forEachLetBindingLeaf(e, visit);
+      return;
+    case "WildcardBinding":
+      return;
+  }
 }
 
 export interface AssignStmt {
@@ -296,7 +338,7 @@ export type Expr =
   | BlockExpr
   | LambdaExpr
   | StructLitExpr
-  | ArrayLitExpr
+  | SeqLitExpr
   | RangeExpr
   | TryExpr
   | CastExpr
@@ -380,6 +422,9 @@ export interface FieldExpr {
   readonly target: Expr;
   readonly field: string;
   readonly fieldSpan: Span;
+  /** True when the field was written as an integer literal (e.g. `t.0`).
+   *  Used by the lowerer to map onto synthetic tuple fields `_0`, `_1`, ... */
+  readonly isNumeric?: boolean;
 }
 
 export interface IndexExpr {
@@ -464,8 +509,13 @@ export interface StructLitField {
   readonly value: Expr;
 }
 
-export interface ArrayLitExpr {
-  readonly kind: "ArrayLitExpr";
+/** Bracketed literal `[e1, e2, ...]`. The parser does not commit to "array"
+ *  vs "tuple" — the typechecker decides via contextual disambiguation:
+ *  when an annotation expects a tuple, it's a tuple ; when an annotation
+ *  expects an array, it's an array ; without annotation, all-same-type
+ *  unifies to an array, otherwise it's a tuple. */
+export interface SeqLitExpr {
+  readonly kind: "SeqLitExpr";
   readonly span: Span;
   readonly elements: readonly Expr[];
 }
@@ -513,6 +563,7 @@ export interface DotVariantExpr {
 export type Pattern =
   | IsPattern
   | StructPattern
+  | TuplePattern
   | WildcardPattern
   | BindingPattern
   | EnumVariantPattern;
@@ -529,6 +580,13 @@ export interface StructPattern {
   readonly kind: "StructPattern";
   readonly span: Span;
   readonly fields: readonly StructPatternField[];
+}
+
+/** Tuple destructure pattern `[p1, p2, ...]`. Element-wise sub-patterns. */
+export interface TuplePattern {
+  readonly kind: "TuplePattern";
+  readonly span: Span;
+  readonly elements: readonly Pattern[];
 }
 
 export interface StructPatternField {
@@ -583,6 +641,9 @@ export function forEachPatternBindingKey(
         if (f.value.kind === "binding") visit(f);
       }
       return;
+    case "TuplePattern":
+      for (const e of pat.elements) forEachPatternBindingKey(e, visit);
+      return;
     case "BindingPattern":
       visit(pat);
       return;
@@ -601,6 +662,7 @@ export type TypeExpr =
   | UnionType
   | FnTypeExpr
   | ArrayTypeExpr
+  | TupleTypeExpr
   | GenericInstType
   | TypeParamType;
 
@@ -627,6 +689,13 @@ export interface ArrayTypeExpr {
   readonly kind: "ArrayTypeExpr";
   readonly span: Span;
   readonly element: TypeExpr;
+}
+
+/** Tuple type `[T1, T2, ...]`. Always ≥ 2 elements (1-tuples are forbidden). */
+export interface TupleTypeExpr {
+  readonly kind: "TupleTypeExpr";
+  readonly span: Span;
+  readonly elements: readonly TypeExpr[];
 }
 
 export interface GenericInstType {

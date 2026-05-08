@@ -81,7 +81,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "matched",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "matched"
+            },
             "type": null,
             "value": {
               "kind": "BoolLitExpr",

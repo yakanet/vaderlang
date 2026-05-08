@@ -90,7 +90,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

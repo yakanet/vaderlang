@@ -584,7 +584,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "a",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -615,7 +618,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "b",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "b"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -646,7 +652,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "s",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",
@@ -664,7 +673,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "d",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "d"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",
@@ -682,7 +694,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "m",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "m"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",
@@ -700,7 +715,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "q",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "q"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",
@@ -718,7 +736,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "r",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "r"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",

@@ -3,7 +3,6 @@
 // binding scoping.
 
 import type * as A from "../../parser/ast.ts";
-import { forEachPatternBindingKey } from "../../parser/ast.ts";
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
@@ -46,6 +45,12 @@ export function lowerMatch(ctx: FnLowerCtx, expr: A.MatchExpr, exprType: Type): 
     }
   }
 
+  // Append the chain block's stmts so any bindings introduced by an
+  // irrefutable arm (binding/wildcard/all-binding-tuple) reach the body.
+  // Refutable arms wrap their stmts inside a LoweredBlock under the if's
+  // `then`, so this only fires when the predicate-less chain hoisted the
+  // arm block directly.
+  for (const s of chain.stmts) stmts.push(s);
   return {
     kind: "LoweredBlock", span: expr.span, type: exprType,
     stmts, trailing: chain.trailing,
@@ -65,36 +70,61 @@ function armPredicate(
   ctx: FnLowerCtx, arm: A.MatchArm, scrutSym: Symbol, scrutType: Type,
 ): LoweredExpr | null {
   const span = arm.pattern.span;
-  const ident = (): LoweredExpr =>
-    ({ kind: "LoweredIdent", span, type: scrutType, symbol: scrutSym });
+  const ident: LoweredExpr =
+    { kind: "LoweredIdent", span, type: scrutType, symbol: scrutSym };
 
-  let core: LoweredExpr | null;
-  switch (arm.pattern.kind) {
-    case "WildcardPattern":
-    case "BindingPattern":
-      core = null;
-      break;
-    case "IsPattern":
-      core = {
-        kind: "LoweredTypeCheck", span, type: TY.bool,
-        value: ident(),
-        checkType: ctx.types.typeExprType(arm.pattern.type),
-      };
-      break;
-    case "StructPattern":
-      core = lowerStructPattern(ctx, arm.pattern, ident(), span);
-      break;
-    case "EnumVariantPattern": {
-      const variantLit = loweredEnumVariant(scrutType, arm.pattern.variant, span);
-      core = { kind: "LoweredBinary", span, type: TY.bool, op: "eq", left: ident(), right: variantLit };
-      break;
-    }
-  }
+  const core = patternPredicate(ctx, arm.pattern, ident, scrutType, span);
 
   if (arm.guard === null) return core;
   const guard = lowerExpr(ctx, arm.guard);
   if (core === null) return guard;
   return { kind: "LoweredBinary", span: arm.span, type: TY.bool, op: "and", left: core, right: guard };
+}
+
+/** Build the boolean predicate that decides whether `pattern` matches the
+ *  value of `target` at runtime. Returns `null` when the predicate is
+ *  trivially true (binding or wildcard). Recurses for tuple patterns. */
+function patternPredicate(
+  ctx: FnLowerCtx, pattern: A.Pattern, target: LoweredExpr, targetType: Type, span: Span,
+): LoweredExpr | null {
+  switch (pattern.kind) {
+    case "WildcardPattern":
+    case "BindingPattern":
+      return null;
+    case "IsPattern":
+      return {
+        kind: "LoweredTypeCheck", span, type: TY.bool,
+        value: target,
+        checkType: ctx.types.typeExprType(pattern.type),
+      };
+    case "StructPattern":
+      return lowerStructPattern(ctx, pattern, target, span);
+    case "EnumVariantPattern": {
+      const variantLit = loweredEnumVariant(targetType, pattern.variant, span);
+      return { kind: "LoweredBinary", span, type: TY.bool, op: "eq", left: target, right: variantLit };
+    }
+    case "TuplePattern": {
+      // Tuple types are static — arity is guaranteed by typecheck. The
+      // predicate is the AND of element-pattern predicates over `target._N`.
+      let acc: LoweredExpr | null = null;
+      for (let i = 0; i < pattern.elements.length; i++) {
+        const elem = pattern.elements[i]!;
+        const elemType = targetType.kind === "Tuple"
+          ? ctx.types.apply(targetType.elements[i] ?? TY.unresolved)
+          : TY.unresolved;
+        const elemTarget: LoweredExpr = {
+          kind: "LoweredFieldAccess", span: elem.span, type: elemType,
+          target, field: `_${i}`,
+        };
+        const sub = patternPredicate(ctx, elem, elemTarget, elemType, elem.span);
+        if (sub === null) continue;
+        acc = acc === null
+          ? sub
+          : { kind: "LoweredBinary", span: elem.span, type: TY.bool, op: "and", left: acc, right: sub };
+      }
+      return acc;
+    }
+  }
 }
 
 function lowerStructPattern(
@@ -118,47 +148,82 @@ function introducePatternBindings(
   ctx: FnLowerCtx, pattern: A.Pattern, scrutSym: Symbol, scrutType: Type,
   out: LoweredStmt[], span: Span,
 ): void {
-  const scrutRef = (): LoweredExpr =>
-    ({ kind: "LoweredIdent", span, type: scrutType, symbol: scrutSym });
-  forEachPatternBindingKey(pattern, (key) => {
-    // Pattern bindings reuse the resolver-side Symbol via `patternBindings`
-    // so the body's `IdentExpr` resolves to the same slot we declare here.
-    const initInfo = bindingInit(ctx, key, scrutType, scrutSym, scrutRef, span);
-    const sym = ctx.typed.resolved.patternBindings.get(key)
-      ?? freshSyntheticSymbol(ctx, initInfo.name);
-    const init = lowerCellInit(ctx, sym, initInfo.value, initInfo.valueType, initInfo.span);
-    out.push({
-      kind: "LoweredLet", span: initInfo.span, name: initInfo.name, symbol: sym,
-      type: init.slotType, value: init.value,
-    });
-  });
+  const scrutRef: LoweredExpr =
+    { kind: "LoweredIdent", span, type: scrutType, symbol: scrutSym };
+  walkPatternBindings(ctx, pattern, scrutRef, scrutType, out, span);
 }
 
-function bindingInit(
-  ctx: FnLowerCtx, key: A.PatternBindingKey, scrutType: Type, scrutSym: Symbol,
-  scrutRef: () => LoweredExpr, armSpan: Span,
-): { name: string; span: Span; value: LoweredExpr; valueType: Type } {
-  // `StructPatternField` has no `kind` discriminator; the others do.
-  if (!("kind" in key)) {
-    // value.kind === "binding" — guaranteed by `forEachPatternBindingKey`.
-    const fieldName = (key.value as { kind: "binding"; name: string }).name;
-    return {
-      name: fieldName, span: key.span, valueType: TY.unresolved,
-      value: {
-        kind: "LoweredFieldAccess", span: key.span, type: TY.unresolved,
-        target: { kind: "LoweredIdent", span: key.span, type: scrutType, symbol: scrutSym },
-        field: key.name,
-      },
-    };
+/** Recursive variant of pattern-binding emission. Tracks the per-element
+ *  target so nested patterns (tuples currently) read from the right slot. */
+function walkPatternBindings(
+  ctx: FnLowerCtx, pattern: A.Pattern, target: LoweredExpr, targetType: Type,
+  out: LoweredStmt[], span: Span,
+): void {
+  switch (pattern.kind) {
+    case "BindingPattern": {
+      const sym = ctx.typed.resolved.patternBindings.get(pattern)
+        ?? freshSyntheticSymbol(ctx, pattern.name);
+      const init = lowerCellInit(ctx, sym, target, targetType, span);
+      out.push({
+        kind: "LoweredLet", span, name: pattern.name, symbol: sym,
+        type: init.slotType, value: init.value,
+      });
+      return;
+    }
+    case "IsPattern": {
+      if (pattern.bindAs !== null) {
+        const cast: LoweredExpr = {
+          kind: "LoweredCast", span,
+          type: ctx.types.typeExprType(pattern.type), value: target,
+        };
+        const sym = ctx.typed.resolved.patternBindings.get(pattern)
+          ?? freshSyntheticSymbol(ctx, pattern.bindAs);
+        const init = lowerCellInit(ctx, sym, cast, cast.type, span);
+        out.push({
+          kind: "LoweredLet", span, name: pattern.bindAs, symbol: sym,
+          type: init.slotType, value: init.value,
+        });
+      }
+      if (pattern.inner !== null) {
+        const innerType = ctx.types.typeExprType(pattern.type);
+        walkPatternBindings(ctx, pattern.inner, target, innerType, out, span);
+      }
+      return;
+    }
+    case "StructPattern": {
+      for (const f of pattern.fields) {
+        if (f.value.kind !== "binding") continue;
+        const fieldAccess: LoweredExpr = {
+          kind: "LoweredFieldAccess", span: f.span, type: TY.unresolved,
+          target, field: f.name,
+        };
+        const sym = ctx.typed.resolved.patternBindings.get(f)
+          ?? freshSyntheticSymbol(ctx, f.value.name);
+        const init = lowerCellInit(ctx, sym, fieldAccess, TY.unresolved, f.span);
+        out.push({
+          kind: "LoweredLet", span: f.span, name: f.value.name, symbol: sym,
+          type: init.slotType, value: init.value,
+        });
+      }
+      return;
+    }
+    case "TuplePattern": {
+      for (let i = 0; i < pattern.elements.length; i++) {
+        const elem = pattern.elements[i]!;
+        const elemType = targetType.kind === "Tuple"
+          ? ctx.types.apply(targetType.elements[i] ?? TY.unresolved)
+          : TY.unresolved;
+        const elemTarget: LoweredExpr = {
+          kind: "LoweredFieldAccess", span: elem.span, type: elemType,
+          target, field: `_${i}`,
+        };
+        walkPatternBindings(ctx, elem, elemTarget, elemType, out, elem.span);
+      }
+      return;
+    }
+    case "WildcardPattern":
+    case "EnumVariantPattern":
+      return;
   }
-  if (key.kind === "BindingPattern") {
-    return { name: key.name, span: armSpan, value: scrutRef(), valueType: scrutType };
-  }
-  // IsPattern — `bindAs` is non-null here: `forEachPatternBindingKey` only
-  // yields IsPattern when its `bindAs` is set.
-  const targetType = ctx.types.typeExprType(key.type);
-  return {
-    name: key.bindAs!, span: armSpan, valueType: targetType,
-    value: { kind: "LoweredCast", span: armSpan, type: targetType, value: scrutRef() },
-  };
 }
+

@@ -76,7 +76,7 @@ The pipeline is therefore **incremental**: to evaluate a `@comptime`, its depend
 
 Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List(i32)`, `Map(string, User)`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct(args)` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
 
-Registry collection is **transitive**: when `outer<i32>` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn<i32>`), every `for x in arr` over `[T]` (registers `ArrayIter(i32)`), and every substituted struct/trait reference inside the body (so e.g. `Yielded(string)` materialises when `step` is monomorphised over a `[string]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
+Registry collection is **transitive**: when `outer<i32>` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn<i32>`), every `for x in arr` over `T[]` (registers `ArrayIter(i32)`), and every substituted struct/trait reference inside the body (so e.g. `Yielded(string)` materialises when `step` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
 
 Lowering and every downstream phase therefore see only concrete types — they never have to invent dispatch logic for `$T`.
 
@@ -388,10 +388,48 @@ There is **no implicit coercion between sized numeric types**. `i32 → i64` req
 
 ### Arrays
 
-- `[T]` is a dynamic array (runtime length).
+- `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo(i32)[]`, ... `int[][]` is an array of int arrays.
 - **Implicit reference** semantics: `arr2 := arr` copies the reference; use `clone(arr)` (free function) for a real copy.
 - Indexing: `arr[i]`. Bounds-checked in debug (panic), elidable in release.
 - Slicing: `arr[0..<3]` (to validate in MVP, otherwise deferred).
+- Postfix `[]` binds tighter than `!` and `|` ; use parens to group : `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U", `int[]!` is `int[] | Error`.
+
+### Tuples
+
+Heterogeneous fixed-arity sequences. The bracketed form `[T1, T2, ...]` (≥ 2 elements ; **1-tuples are forbidden**) introduces a tuple type. Tuples lower to anonymous structs at compile time — no extra runtime cost.
+
+```vader
+divmod :: fn(a: i32, b: i32) -> [i32, i32] { return [a / b, a % b] }
+
+pair: [i32, string] = [42, "answer"]
+println(pair.0)      // 42
+println(pair.1)      // "answer"
+```
+
+- **Field access** : `t.0`, `t.1`, ... — numeric, in source order.
+- **Disambiguation of seq literals** is contextual (TS-style) :
+  - `[1, 2, 3]` → array (homogeneous, no annotation).
+  - `[1, "x"]` → tuple (heterogeneous, no annotation).
+  - With an annotation, the annotation wins : `let xs: int[] = [1, 2, 3]` is array ; `let p: [int, string] = [1, "x"]` is tuple.
+- **Tuples are not arrays** : `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
+
+### Destructuring
+
+Tuples can be destructured in `let` and in `match` arms. Nested patterns and `_` wildcards are supported.
+
+```vader
+[k, v] := key_value()                  // mutable bindings
+[k, v] :: key_value()                  // immutable bindings
+[a, _, c] := triple()                  // ignore middle slot
+[[x, y], z] := nested_pair()           // nested destructure
+
+match pair {
+    [0, name] -> println("zero, ${name}")
+    [n, _]    -> println("n = ${n}")
+}
+```
+
+A tuple pattern whose every leaf is a binding or `_` is *irrefutable* — the compiler treats it as covering the scrutinee, no wildcard arm needed.
 
 ### Structs
 
@@ -603,7 +641,7 @@ Local bindings come in four shapes that share a single `LetStmt` AST node ; the 
 | `name: T : value`     | immutable  | typed       | `cap: usize : 1024`           |
 | `name: T = value`     | mutable    | typed       | `count: u64 = 0`              |
 
-The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `[T]` → `Iterator(T)`, see §11).
+The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `T[]` → `Iterator(T)`, see §11).
 
 Reassignment uses `=` and is only valid on mutable bindings :
 
@@ -654,8 +692,8 @@ n: i32 | Error = parse_int("42")
 **Generic functions**: type parameter introduced inline with `$T`; subsequent uses without `$`.
 
 ```vader
-map :: fn(items: [$T], f: fn(T) -> $U) -> [U] {
-    result: [U] = []
+map :: fn(items: $T[], f: fn(T) -> $U) -> U[] {
+    result: U[] = []
     for x in items {
         result.push(f(x))
     }
@@ -667,7 +705,7 @@ map :: fn(items: [$T], f: fn(T) -> $U) -> [U] {
 
 ```vader
 List :: struct($T) {
-    items: [T]
+    items: T[]
     len: u32
 }
 
@@ -677,7 +715,7 @@ list := List(i32) { .items = [1, 2, 3], .len = 3 }
 **Constraints** via `where`. Multiple traits combined with `&` (intersection) — the same separator as type intersections:
 
 ```vader
-sort :: fn(items: [$T]) where T: Ord {
+sort :: fn(items: $T[]) where T: Ord {
     // ...
 }
 
@@ -853,7 +891,7 @@ To compare two structs structurally, implement `Eq` or call `equals(a, b)`.
 `::` freezes the binding, not the contents. If `p :: Point { ... }`, you cannot `p = otherPoint`, but `p.x = 5` is allowed.
 
 For deep immutability of collections, use **stdlib convention** :
-- raw `[T]` arrays are mutable (Java-style — `arr.push`, `arr[i] = v`)
+- raw `T[]` arrays are mutable (Java-style — `arr.push`, `arr[i] = v`)
 - read-only `List(T)` / `Map(K, V)` / `Set(T)` will pair with mutable variants when implemented (post-MVP — currently struct stubs in `std/collections`)
 
 ### Explicit type annotations
@@ -903,7 +941,7 @@ The program entry is a fn called `main` declared at module scope. It accepts exa
 
 ```vader
 main :: fn() -> i32                 // ignore argv
-main :: fn(argv: [string]) -> i32   // receive process args
+main :: fn(argv: string[]) -> i32   // receive process args
 ```
 
 `argv[0]` is implementation-defined : the script path under `vader run`, the binary path under a native build. User-supplied args start at `argv[1]`.
@@ -927,7 +965,7 @@ greet("Eve", prefix = "Hello")    // "Hello, Eve" (named parameter)
 ### Variadics
 
 ```vader
-sum :: fn(...nums: [i32]) -> i32 {
+sum :: fn(...nums: i32[]) -> i32 {
     total := 0
     for n in nums { total = total + n }
     return total
@@ -1082,13 +1120,13 @@ for {
 ```
 
 The iteration form `for x in expr` accepts three shapes for `expr`:
-1. A built-in array `[T]` — auto-wrapped in `ArrayIter(T)`.
+1. A built-in array `T[]` — auto-wrapped in `ArrayIter(T)`.
 2. A value of type `Iterator(T)` — used directly.
 3. A value implementing `Iterable(T)` — `expr.iter()` is auto-called and the result drives the loop.
 
-Raw `[T]` arrays are auto-wrapped in `ArrayIter(T)`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable(T)` so `for x in coll { ... }` works without an explicit `coll.iter()`.
+Raw `T[]` arrays are auto-wrapped in `ArrayIter(T)`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable(T)` so `for x in coll { ... }` works without an explicit `coll.iter()`.
 
-The same auto-wrap fires at any *concrete* `Iterator(T)` slot — function arguments, `return` expressions, and typed `let` bindings — so `[T]` flows transparently :
+The same auto-wrap fires at any *concrete* `Iterator(T)` slot — function arguments, `return` expressions, and typed `let` bindings — so `T[]` flows transparently :
 
 ```vader
 walk :: fn(it: Iterator(i32)) -> i32 { ... }
@@ -1097,7 +1135,7 @@ fold :: fn() -> Iterator(i32) { return [1, 2, 3] }   // return coercion
 buf: Iterator(i32) : [4, 5, 6]                // typed-let coercion
 ```
 
-The coercion is gated on **canonical symbol identity** of `std/core::Iterator` ; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator($T)` parameter — type-arg inference can't bind `T` from a `[T]` argument across the widening, so combinators that take `Iterator($T)` still need an explicit `ArrayIter(T) { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator(i32)`, `Iterator(string)`, …) are unaffected.
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator` ; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator($T)` parameter — type-arg inference can't bind `T` from a `T[]` argument across the widening, so combinators that take `Iterator($T)` still need an explicit `ArrayIter(T) { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator(i32)`, `Iterator(string)`, …) are unaffected.
 
 ```vader
 Iterable :: trait($T) {
@@ -1540,7 +1578,7 @@ fn char_at(s: string, i: i32) -> char
 fn contains(s: string, sub: string) -> bool
 fn starts_with(s: string, prefix: string) -> bool
 fn ends_with(s: string, suffix: string) -> bool
-fn split(s: string, sep: string) -> [string]
+fn split(s: string, sep: string) -> string[]
 fn trim(s: string) -> string
 fn to_upper(s: string) -> string
 fn to_lower(s: string) -> string
@@ -1559,7 +1597,7 @@ fn is_whitechar(c: char) -> bool
 fn replace_chars_where(s: string, pred: fn(char) -> bool, replacement: string) -> string
 fn trim_suffix(s: string, suffix: string) -> string
 fn trim_prefix(s: string, prefix: string) -> string
-fn split_whitespace(s: string) -> [string]
+fn split_whitespace(s: string) -> string[]
 ```
 
 ### `std/numbers`
@@ -1576,7 +1614,7 @@ Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
 ### `std/collections`
 
 All hash-based mutable collections live in a single module. Sequence
-collections use raw `[T]` arrays (which already support `push`, `len`,
+collections use raw `T[]` arrays (which already support `push`, `len`,
 indexed access, mutation, and `for x in arr`) — no `MutableList` wrapper
 in MVP. Immutable `List<T>` will pair with arrays once read-only views
 land (post-MVP).
@@ -1590,8 +1628,8 @@ fn get          (self: MutableMap(K, V), key: K) -> V | null
 fn contains_key (self: MutableMap(K, V), key: K) -> bool
 fn len          (self: MutableMap(K, V)) -> usize
 fn is_empty     (self: MutableMap(K, V)) -> bool
-fn keys         (self: MutableMap(K, V)) -> [K]
-fn values       (self: MutableMap(K, V)) -> [V]
+fn keys         (self: MutableMap(K, V)) -> K[]
+fn values       (self: MutableMap(K, V)) -> V[]
 
 // Hash set — wraps a `MutableMap(T, bool)` (Java HashSet pattern). Lookups
 // inherit the chained-bucket O(1) behaviour from the underlying map.
@@ -1639,7 +1677,7 @@ const e:  f64
 Efficient string construction. `to_string` flushes via the `concat_all` runtime intrinsic — single allocation sized from the total length, avoids the O(N²) of repeated `+`.
 
 ```vader
-StringBuilder :: struct { parts: [string] }
+StringBuilder :: struct { parts: string[] }
 
 fn new_builder()                                -> StringBuilder
 fn append      (self: StringBuilder, s: string) -> void
@@ -1667,17 +1705,17 @@ Iterator(T) :: trait {
 // virtual chain over each materialised impl :
 fn walk(it: Iterator(i32)) -> i32
 
-// Array-driven (closure-friendly; eager — return `[T]` or a single value):
-fn map(arr: [$T], f: fn(T) -> $U)        -> [U]
-fn filter(arr: [$T], pred: fn(T) -> bool) -> [T]
-fn fold(arr: [$T], init: $U, f: fn(U, T) -> U) -> U
-fn sum(arr: [i32]) -> i32
-fn take(arr: [$T], n: i32) -> [T]
-fn skip(arr: [$T], n: i32) -> [T]
-fn slice(arr: [$T], start: i32, end: i32) -> [T]    // bounds clamped, end exclusive
+// Array-driven (closure-friendly; eager — return `T[]` or a single value):
+fn map(arr: $T[], f: fn(T) -> $U)        -> U[]
+fn filter(arr: $T[], pred: fn(T) -> bool) -> T[]
+fn fold(arr: $T[], init: $U, f: fn(U, T) -> U) -> U
+fn sum(arr: i32[]) -> i32
+fn take(arr: $T[], n: i32) -> T[]
+fn skip(arr: $T[], n: i32) -> T[]
+fn slice(arr: $T[], start: i32, end: i32) -> T[]    // bounds clamped, end exclusive
 ```
 
-Stdlib combinators today take a concrete `[T]` rather than `Iterator($T)` because the inference engine can't bind a free type-param across the `[T]` → `Iterator(T)` widening : `count_it(arr)` would need to unify `[i32]` against `Iterator($T)` to set `T = i32`, and that path isn't wired. Combinators specialised for a concrete element type (`fn walk(it: Iterator(i32))`) work end-to-end ; bridging from an iterator to the array-driven family goes through `collect(it)`. Lifting the inference gap is tracked separately and would let the two flavours converge.
+Stdlib combinators today take a concrete `T[]` rather than `Iterator($T)` because the inference engine can't bind a free type-param across the `T[]` → `Iterator(T)` widening : `count_it(arr)` would need to unify `i32[]` against `Iterator($T)` to set `T = i32`, and that path isn't wired. Combinators specialised for a concrete element type (`fn walk(it: Iterator(i32))`) work end-to-end ; bridging from an iterator to the array-driven family goes through `collect(it)`. Lifting the inference gap is tracked separately and would let the two flavours converge.
 
 ### `std/runtime`
 
@@ -1727,7 +1765,7 @@ ProcessResult :: struct {
     stderr: string
 }
 
-fn spawn(argv: [string]) -> ProcessResult!
+fn spawn(argv: string[]) -> ProcessResult!
 ```
 
 `argv[0]` is the program name (resolved against `PATH`) ; `argv[1..]` are
@@ -2006,7 +2044,7 @@ main :: fn() -> i32 {
 import "std/io" { println }
 
 main :: fn() -> i32 {
-    list: [i32] = []
+    list: i32[] = []
     for i in 0..<5 {
         list.push(i * i)
     }

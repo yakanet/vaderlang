@@ -29,7 +29,7 @@ export dump_tokens :: fn(l: Lexer) -> string {
     return sb.to_string()
 }
 
-export dump_diagnostics :: fn(diags: [Diagnostic]) -> string {
+export dump_diagnostics :: fn(diags: Diagnostic[]) -> string {
     // Mirror `DiagnosticCollector.sorted()` in `src/diagnostics/collector.ts`
     // — order by (file, offset, code) so the parity rig stays byte-identical
     // when several diagnostics share a line:col.

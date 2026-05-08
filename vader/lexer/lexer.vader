@@ -41,9 +41,9 @@ export Lexer :: struct {
     col: i32
     paren_depth: i32          // unclosed `(` and `[` (NOT `{`)
     last_kind: TokenKind      // initialised to .Newline so first-token rules fire correctly
-    tokens: [Token]
-    errors: [Diagnostic]
-    interp_stack: [InterpFrame]
+    tokens: Token[]
+    errors: Diagnostic[]
+    interp_stack: InterpFrame[]
 }
 
 new_lexer :: fn(source: string, file: string) = Lexer {

@@ -3,7 +3,7 @@
 ## tests/snippets/fn_decl/_main.vader
   FnDecl         add                  :: fn(i32, i32) -> i32
   FnDecl         greet                :: fn(string, string) -> string
-  FnDecl         map                  :: fn([$T], fn($T) -> $U) -> [$U]
+  FnDecl         map                  :: fn($T[], fn($T) -> $U) -> $U[]
   expr 2:12     BinaryExpr     :: i32
   expr 2:12     IdentExpr      :: i32
   expr 2:16     IdentExpr      :: i32

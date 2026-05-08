@@ -29,7 +29,10 @@ export function lowerBlock(
     }
     if (diverged) continue;
     const lowered = lowerStmt(ctx, s);
-    if (lowered !== null) stmts.push(lowered);
+    if (lowered !== null) {
+      if (Array.isArray(lowered)) stmts.push(...lowered);
+      else stmts.push(lowered);
+    }
     if (s.kind === "ReturnStmt" || s.kind === "BreakStmt" || s.kind === "ContinueStmt") {
       diverged = true;
     }
@@ -78,22 +81,28 @@ function emitTrailingValueWithDefers(
 function emitDefersInto(ctx: FnLowerCtx, defers: readonly A.Stmt[], out: LoweredStmt[]): void {
   for (let i = defers.length - 1; i >= 0; i--) {
     const d = lowerStmt(ctx, defers[i]!);
-    if (d !== null) out.push(d);
+    if (d === null) continue;
+    if (Array.isArray(d)) out.push(...d);
+    else out.push(d);
   }
 }
 
-export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | null {
+export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredStmt[] | null {
   switch (stmt.kind) {
     case "LetStmt": {
       const value = lowerExpr(ctx, stmt.value);
-      // Custom fallback (`defaultIfFree(value.type)`) — keep inline rather
-      // than widening `EntryTypes.localType` to take a fallback param.
-      const type = ctx.types.apply(ctx.typed.localTypes.get(stmt) ?? defaultIfFree(value.type));
-      const sym = ctx.typed.resolved.locals.get(stmt);
-      if (sym === undefined) return null;
-      const init = lowerCellInit(ctx, sym, value, type, stmt.span);
-      return { kind: "LoweredLet", span: stmt.span, name: stmt.name, symbol: sym,
-               type: init.slotType, value: init.value };
+      if (stmt.binding.kind === "SimpleBinding") {
+        const leaf = stmt.binding;
+        const type = ctx.types.apply(ctx.typed.localTypes.get(leaf) ?? defaultIfFree(value.type));
+        const sym = ctx.typed.resolved.locals.get(leaf);
+        if (sym === undefined) return null;
+        const init = lowerCellInit(ctx, sym, value, type, stmt.span);
+        return { kind: "LoweredLet", span: stmt.span, name: leaf.name, symbol: sym,
+                 type: init.slotType, value: init.value };
+      }
+      // Tuple/wildcard destructure : evaluate the value once into a synthetic
+      // temp, then emit one LoweredLet per leaf reading `__tup._N`.
+      return lowerLetDestructure(ctx, stmt, stmt.binding, value);
     }
     case "AssignStmt": {
       // `a[i] = v` on a non-array target — typecheck recorded an IndexSet
@@ -197,6 +206,61 @@ function rawIdentTarget(ctx: FnLowerCtx, expr: A.IdentExpr): LoweredExpr {
   if (sym === undefined) return lowerExpr(ctx, expr);
   const type = ctx.types.exprType(expr);
   return { kind: "LoweredIdent", span: expr.span, type, symbol: sym };
+}
+
+/** Desugar `let [a, b, ...] := value` into a chain :
+ *    let __tup = value
+ *    let a    = __tup._0
+ *    let b    = __tup._1
+ *    ...
+ *  Recurses for nested tuple bindings ; skips emission for `WildcardBinding`. */
+function lowerLetDestructure(
+  ctx: FnLowerCtx, stmt: A.LetStmt, binding: A.LetBinding, value: LoweredExpr,
+): LoweredStmt[] {
+  const out: LoweredStmt[] = [];
+  const tupleType = value.type;
+  const tmpSym = freshSyntheticSymbol(ctx, "tup");
+  out.push({
+    kind: "LoweredLet", span: stmt.span, name: tmpSym.name, symbol: tmpSym,
+    type: tupleType, value,
+  });
+  const tmpRef: LoweredExpr = {
+    kind: "LoweredIdent", span: stmt.span, type: tupleType, symbol: tmpSym,
+  };
+  emitLetBindingLeaves(ctx, binding, tmpRef, tupleType, stmt.span, out);
+  return out;
+}
+
+function emitLetBindingLeaves(
+  ctx: FnLowerCtx, binding: A.LetBinding, target: LoweredExpr,
+  targetType: import("../../typecheck/types.ts").Type, span: import("../../diagnostics/diagnostic.ts").Span,
+  out: LoweredStmt[],
+): void {
+  if (binding.kind !== "TupleBinding") {
+    if (binding.kind === "SimpleBinding") {
+      const sym = ctx.typed.resolved.locals.get(binding);
+      if (sym === undefined) return;
+      const slotType = ctx.types.apply(ctx.typed.localTypes.get(binding) ?? targetType);
+      const init = lowerCellInit(ctx, sym, target, slotType, span);
+      out.push({
+        kind: "LoweredLet", span, name: binding.name, symbol: sym,
+        type: init.slotType, value: init.value,
+      });
+    }
+    return;
+  }
+  for (let i = 0; i < binding.elements.length; i++) {
+    const leaf = binding.elements[i]!;
+    if (leaf.kind === "WildcardBinding") continue;
+    const elemType = targetType.kind === "Tuple"
+      ? ctx.types.apply(targetType.elements[i] ?? TY.unresolved)
+      : TY.unresolved;
+    const access: LoweredExpr = {
+      kind: "LoweredFieldAccess", span: leaf.span, type: elemType,
+      target, field: `_${i}`,
+    };
+    emitLetBindingLeaves(ctx, leaf, access, elemType, leaf.span, out);
+  }
 }
 
 /** Collect defers from the current block out to either the fn root (for return)

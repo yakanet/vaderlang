@@ -681,6 +681,16 @@ function bcTypeOf(t: Type, ctx: EmitterCtx): BcType {
     }
     case "Trait": return { kind: "ref", traitName: t.symbol.name };
     case "Array": return { kind: "array", element: internType(ctx, t.element) };
+    case "Tuple": {
+      // Synthesise an anonymous struct with fields `_0`, `_1`, ... in element
+      // order. The C-emit treats it like any other struct ; the GC scan walks
+      // ref-typed slots via the per-type pointer map.
+      const fields = t.elements.map((e, i) => ({
+        name: `_${i}`,
+        typeIndex: internType(ctx, e),
+      }));
+      return { kind: "struct", name: `__Tuple_${t.elements.length}`, fields };
+    }
     case "Union": return { kind: "union", variants: t.variants.map((v) => internType(ctx, v)) };
     case "Fn":    return {
       kind: "fn",
@@ -765,6 +775,7 @@ function valTypeOf(t: Type): ValType {
     case "Struct":
     case "Trait":
     case "Array":
+    case "Tuple":
     case "Fn":
     case "TypeParam":
     case "TypeMeta":

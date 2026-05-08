@@ -274,7 +274,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": {
               "kind": "NamedType",
               "name": "u64"
@@ -434,7 +437,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "zero",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "zero"
+            },
             "type": {
               "kind": "NamedType",
               "name": "u64"

@@ -28,7 +28,7 @@ fn 0 tests_snippets_match_struct_pattern_binding__main_vader$main () -> i32
   local.tee 1   ; _main.vader:11:11
   type_check 0   ; _main.vader:12:9
   if void   ; _main.vader:12:9
-  local.get 1   ; _main.vader:12:23
+  local.get 1   ; _main.vader:12:9
   struct.get 0 1   ; _main.vader:12:23
   local.set 2   ; _main.vader:12:23
   intrinsic builder.new   ; _main.vader:12:41

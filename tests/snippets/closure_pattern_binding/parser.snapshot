@@ -91,7 +91,10 @@
                   {
                     "kind": "LetStmt",
                     "mutable": false,
-                    "name": "shout",
+                    "binding": {
+                      "kind": "SimpleBinding",
+                      "name": "shout"
+                    },
                     "type": null,
                     "value": {
                       "kind": "LambdaExpr",
@@ -203,7 +206,10 @@
                   {
                     "kind": "LetStmt",
                     "mutable": false,
-                    "name": "doubled",
+                    "binding": {
+                      "kind": "SimpleBinding",
+                      "name": "doubled"
+                    },
                     "type": null,
                     "value": {
                       "kind": "LambdaExpr",

@@ -33,10 +33,13 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "arr",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "arr"
+            },
             "type": null,
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": [
                 {
                   "kind": "IntLitExpr",
@@ -64,7 +67,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "sum",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sum"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -144,10 +150,13 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "empty",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "empty"
+            },
             "type": null,
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": [
                 {
                   "kind": "IntLitExpr",
@@ -170,7 +179,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",

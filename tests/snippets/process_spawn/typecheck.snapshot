@@ -21,7 +21,7 @@
   expr 15:37    FieldExpr      :: fn() -> string
   expr 15:37    IdentExpr      :: Error
   expr 9:10     CallExpr       :: Error | ProcessResult
-  expr 9:10     IdentExpr      :: fn([string]) -> Error | ProcessResult
-  expr 9:16     ArrayLitExpr   :: [string]
+  expr 9:10     IdentExpr      :: fn(string[]) -> Error | ProcessResult
+  expr 9:16     SeqLitExpr     :: string[]
   expr 9:17     StringLitExpr  :: string
   expr 9:30     StringLitExpr  :: string

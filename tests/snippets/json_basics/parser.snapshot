@@ -106,7 +106,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "parsed",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "parsed"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

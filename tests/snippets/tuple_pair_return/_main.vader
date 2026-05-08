@@ -1,0 +1,13 @@
+import "std/io" { println }
+
+// Functions can return tuples directly — heterogeneous fixed-arity.
+make_pair :: fn() -> [i32, string] {
+    return [42, "answer"]
+}
+
+main :: fn() -> i32 {
+    p := make_pair()
+    println("first  = ${p.0}")
+    println("second = ${p.1}")
+    return 0
+}

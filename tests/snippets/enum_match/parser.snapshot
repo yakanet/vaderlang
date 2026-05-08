@@ -309,7 +309,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "c",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "c"
+            },
             "type": {
               "kind": "NamedType",
               "name": "Color"
@@ -591,7 +594,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "s",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -718,7 +724,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "s2",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s2"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -841,7 +850,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "s3",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s3"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

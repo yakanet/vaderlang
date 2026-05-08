@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/tuple_pair_return/_main.vader
+
+## generic instances
+  Yielded(i32)

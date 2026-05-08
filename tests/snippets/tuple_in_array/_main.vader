@@ -1,0 +1,9 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    rows: [i32, string][] = [[1, "one"], [2, "two"], [3, "three"]]
+    for row in rows {
+        println("${row.0} -> ${row.1}")
+    }
+    return 0
+}

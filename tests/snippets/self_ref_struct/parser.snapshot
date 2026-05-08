@@ -83,7 +83,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "tail",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "tail"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -121,7 +124,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "mid",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "mid"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -160,7 +166,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "head",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "head"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",

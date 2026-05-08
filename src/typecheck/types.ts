@@ -12,6 +12,7 @@ export type Type =
   | UnionType
   | FnType
   | ArrayType
+  | TupleType
   | TypeParamType
   | TypeMetaType
   | SelfType
@@ -111,6 +112,13 @@ export interface ArrayType {
   readonly element: Type;
 }
 
+/** Tuple type — heterogeneous fixed-arity sequence (≥ 2 elements). Lowered
+ *  to an anonymous struct with synthetic fields `_0`, `_1`, ... */
+export interface TupleType {
+  readonly kind: "Tuple";
+  readonly elements: readonly Type[];
+}
+
 export interface TypeParamType {
   readonly kind: "TypeParam";
   readonly symbol: Symbol;
@@ -207,7 +215,8 @@ export function displayType(t: Type): string {
     case "Never":      return "never";
     case "FreeInt":    return "{integer}";
     case "FreeFloat":  return "{float}";
-    case "Array":      return `[${displayType(t.element)}]`;
+    case "Array":      return `${displayType(t.element)}[]`;
+    case "Tuple":      return `[${t.elements.map(displayType).join(", ")}]`;
     case "Fn": {
       const ps = t.params.map(displayType).join(", ");
       return `fn(${ps}) -> ${displayType(t.returnType)}`;
@@ -246,6 +255,10 @@ export function equalsType(a: Type, b: Type): boolean {
     }
     case "Array":
       return equalsType(a.element, (b as ArrayType).element);
+    case "Tuple": {
+      const o = b as TupleType;
+      return argListEquals(a.elements, o.elements);
+    }
     case "Fn": {
       const o = b as FnType;
       return argListEquals(a.params, o.params) && equalsType(a.returnType, o.returnType);
@@ -325,7 +338,7 @@ export function isAssignable(from: Type, to: Type, impls?: TraitOracle): boolean
     if (from.kind === "Struct") return impls.hasUser(from.symbol, to.symbol);
     if (from.kind === "Primitive") return impls.forPrimitive(from.name, to.symbol) !== null;
     if (from.kind === "Union") return from.variants.every((v) => isAssignable(v, to, impls));
-    // `[T]` → `Iterator(T)` widening — paired with the lower-time auto-wrap
+    // `T[]` → `Iterator(T)` widening — paired with the lower-time auto-wrap
     // into `ArrayIter(T)`. Gated on symbol identity so a user-defined trait
     // also named "Iterator" doesn't get the std/core-only coercion.
     if (from.kind === "Array" && to.args.length === 1) {
@@ -334,6 +347,17 @@ export function isAssignable(from: Type, to: Type, impls?: TraitOracle): boolean
         return equalsType(from.element, to.args[0]!);
       }
     }
+  }
+
+  // Tuple → Tuple : element-wise structural assignability with matching arity.
+  // No assignability between Tuple and Array even when elements coincide —
+  // the contextual disambiguation in `inferSeqLit` relies on the distinction.
+  if (from.kind === "Tuple" && to.kind === "Tuple") {
+    if (from.elements.length !== to.elements.length) return false;
+    for (let i = 0; i < from.elements.length; i++) {
+      if (!isAssignable(from.elements[i]!, to.elements[i]!, impls)) return false;
+    }
+    return true;
   }
 
   if (to.kind === "Union") {
@@ -355,6 +379,9 @@ export function forEachType(t: Type, visit: (t: Type) => void): void {
       return;
     case "Array":
       forEachType(t.element, visit);
+      return;
+    case "Tuple":
+      for (const e of t.elements) forEachType(e, visit);
       return;
     case "Fn":
       for (const p of t.params) forEachType(p, visit);
@@ -391,6 +418,8 @@ export function substitute(t: Type, subst: Substitution): Type {
     }
     case "Array":
       return { kind: "Array", element: substitute(t.element, subst) };
+    case "Tuple":
+      return { kind: "Tuple", elements: t.elements.map((e) => substitute(e, subst)) };
     case "Fn":
       return {
         kind: "Fn",

@@ -52,7 +52,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "sum",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sum"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -63,7 +66,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "cont",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "cont"
+            },
             "type": null,
             "value": {
               "kind": "BoolLitExpr",
@@ -219,10 +225,13 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "arr",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "arr"
+            },
             "type": null,
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": [
                 {
                   "kind": "IntLitExpr",
@@ -271,7 +280,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "a",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -283,7 +295,7 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": [
                       {
                         "kind": "IntLitExpr",
@@ -310,7 +322,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "typed_iter_mut",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "typed_iter_mut"
+            },
             "type": {
               "kind": "GenericInstType",
               "base": {
@@ -325,7 +340,7 @@
               ]
             },
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": [
                 {
                   "kind": "IntLitExpr",
@@ -353,7 +368,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "typed_iter_immut",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "typed_iter_immut"
+            },
             "type": {
               "kind": "GenericInstType",
               "base": {
@@ -368,7 +386,7 @@
               ]
             },
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": [
                 {
                   "kind": "IntLitExpr",
@@ -391,7 +409,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "b",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "b"
+            },
             "type": null,
             "value": {
               "kind": "BinaryExpr",
@@ -435,7 +456,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "c",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "c"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",

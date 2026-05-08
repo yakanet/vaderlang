@@ -7,7 +7,7 @@ import type * as A from "../../parser/ast.ts";
 
 import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
-import type { Type } from "../types.ts";
+import type { Type, TupleType } from "../types.ts";
 import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
@@ -73,15 +73,21 @@ function checkStmt(
 ): void {
   switch (stmt.kind) {
     case "LetStmt": {
-      const expected = stmt.type !== null ? lowerTypeExpr(stmt.type, t, diags) : null;
-      const got = checkExpr(stmt.value, expected, t, impls, diags, fn);
-      const declared = expected ?? defaultIfFree(got);
-      if (expected !== null && !isAssignable(got, expected, impls)) {
+      const expectedAnn = stmt.type !== null ? lowerTypeExpr(stmt.type, t, diags) : null;
+      // Hint for value inference : the annotation when present, otherwise a
+      // synthetic tuple shape derived from the binding tree (so `[a, b] := pair()`
+      // disambiguates a SeqLit RHS as a tuple of the right arity). The hint
+      // does NOT replace the inferred type at let-binding time — the *declared*
+      // type below uses the explicit annotation or `got` (inference) directly.
+      const valueHint = expectedAnn ?? expectedFromBinding(stmt.binding);
+      const got = checkExpr(stmt.value, valueHint, t, impls, diags, fn);
+      const declared = expectedAnn ?? defaultIfFree(got);
+      if (expectedAnn !== null && !isAssignable(got, expectedAnn, impls)) {
         err(diags, "T3001", stmt.span,
-          `expected ${displayType(expected)}, got ${displayType(got)}`);
+          `expected ${displayType(expectedAnn)}, got ${displayType(got)}`);
       }
-      if (expected !== null) recordIterCoercion(stmt.value, got, expected, t);
-      t.localTypes.set(stmt, declared);
+      if (expectedAnn !== null) recordIterCoercion(stmt.value, got, expectedAnn, t);
+      assignBindingTypes(stmt.binding, declared, t, diags);
       return;
     }
     case "AssignStmt": {
@@ -189,4 +195,56 @@ function forInElementType(iter: A.Expr, t: MutableTyped): Type | null {
   const iteratorSym = t.globals.coreSymbols?.get(CORE_TRAITS.Iterator);
   if (iteratorSym === undefined) return null;
   return null;     // user-defined iterators handled when we wire a richer trait lookup
+}
+
+/** When a let-binding is destructuring (TupleBinding), synthesise a TupleType
+ *  shape with `Unresolved` slots — the inferSeqLit / value-side check fills
+ *  them in. Returns null for SimpleBinding (let inferSeqLit infer freely)
+ *  and for fully-wildcard tuples. */
+function expectedFromBinding(b: A.LetBinding): TupleType | null {
+  if (b.kind !== "TupleBinding") return null;
+  const elements: Type[] = b.elements.map((e) => {
+    if (e.kind === "TupleBinding") return expectedFromBinding(e) ?? TY.unresolved;
+    return TY.unresolved;
+  });
+  return { kind: "Tuple", elements };
+}
+
+/** After inferring the value's type, walk the let-binding tree and record a
+ *  type for each leaf SimpleBinding so downstream phases (lower, c-emit) can
+ *  query `localTypes.get(binding)`. */
+function assignBindingTypes(
+  b: A.LetBinding, declared: Type, t: MutableTyped, diags: DiagnosticCollector,
+): void {
+  switch (b.kind) {
+    case "SimpleBinding":
+      t.localTypes.set(b, declared);
+      return;
+    case "WildcardBinding":
+      return;
+    case "TupleBinding": {
+      if (declared.kind === "Tuple") {
+        if (declared.elements.length !== b.elements.length) {
+          err(diags, "T3001", b.span,
+            `tuple destructure expects ${b.elements.length} element(s), got ${declared.elements.length}`);
+          // Best-effort : assign Unresolved to remaining leaves.
+          for (const leaf of b.elements) assignBindingTypes(leaf, TY.unresolved, t, diags);
+          return;
+        }
+        for (let i = 0; i < b.elements.length; i++) {
+          assignBindingTypes(b.elements[i]!, declared.elements[i]!, t, diags);
+        }
+        return;
+      }
+      if (declared.kind === "Unresolved") {
+        // Don't cascade — just propagate Unresolved to leaves.
+        for (const leaf of b.elements) assignBindingTypes(leaf, TY.unresolved, t, diags);
+        return;
+      }
+      err(diags, "T3001", b.span,
+        `cannot destructure ${displayType(declared)} as a tuple`);
+      for (const leaf of b.elements) assignBindingTypes(leaf, TY.unresolved, t, diags);
+      return;
+    }
+  }
 }

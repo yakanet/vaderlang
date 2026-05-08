@@ -1,7 +1,7 @@
 import "std/io" { println }
 
 export Stack :: struct($T) {
-    data: [T]
+    data: T[]
     size: i32
 }
 

@@ -33,10 +33,13 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "arr",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "arr"
+            },
             "type": null,
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": []
             }
           },

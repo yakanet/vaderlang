@@ -52,19 +52,19 @@
   expr 17:16    StringLitExpr  :: string
   expr 17:5     CallExpr       :: void
   expr 17:5     IdentExpr      :: fn(string) -> void
-  expr 18:14    CallExpr       :: [string]
-  expr 18:14    FieldExpr      :: fn(string) -> [string]
+  expr 18:14    CallExpr       :: string[]
+  expr 18:14    FieldExpr      :: fn(string) -> string[]
   expr 18:14    StringLitExpr  :: string
   expr 18:28    StringLitExpr  :: string
-  expr 19:13    IdentExpr      :: [string]
+  expr 19:13    IdentExpr      :: string[]
   expr 19:13    IndexExpr      :: string
   expr 19:5     CallExpr       :: void
   expr 19:5     IdentExpr      :: fn(string) -> void
-  expr 20:13    IdentExpr      :: [string]
+  expr 20:13    IdentExpr      :: string[]
   expr 20:13    IndexExpr      :: string
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(string) -> void
-  expr 21:13    IdentExpr      :: [string]
+  expr 21:13    IdentExpr      :: string[]
   expr 21:13    IndexExpr      :: string
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(string) -> void

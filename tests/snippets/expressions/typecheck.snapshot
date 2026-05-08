@@ -4,8 +4,8 @@
   FnDecl         add                  :: fn(i32, i32) -> i32
   FnDecl         demo                 :: fn() -> i32
   expr 10:10    RangeExpr      :: Range
-  expr 11:12    ArrayLitExpr   :: [i32]
-  expr 12:10    IdentExpr      :: [i32]
+  expr 11:12    SeqLitExpr     :: i32[]
+  expr 12:10    IdentExpr      :: i32[]
   expr 12:10    IndexExpr      :: i32
   expr 13:10    CallExpr       :: i32
   expr 13:10    IdentExpr      :: fn(i32, i32) -> i32

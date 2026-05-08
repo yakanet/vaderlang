@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/runtime_argv/_main.vader
-  FnDecl         main                 :: fn([string]) -> i32
+  FnDecl         main                 :: fn(string[]) -> i32
   expr 10:12    IdentExpr      :: bool
   expr 10:9     IfExpr         :: void
   expr 11:13    IdentExpr      :: bool
@@ -12,7 +12,7 @@
   expr 7:21     BinaryExpr     :: i32
   expr 7:21     CallExpr       :: i32
   expr 7:21     FieldExpr      :: fn() -> i32
-  expr 7:21     IdentExpr      :: [string]
+  expr 7:21     IdentExpr      :: string[]
   expr 7:5      CallExpr       :: void
   expr 7:5      IdentExpr      :: fn(string) -> void
-  expr 9:14     IdentExpr      :: [string]
+  expr 9:14     IdentExpr      :: string[]

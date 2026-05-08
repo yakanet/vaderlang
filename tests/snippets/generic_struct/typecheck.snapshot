@@ -6,7 +6,7 @@
   TraitDecl      Stackable            :: Stackable($T)
   expr 17:24    IdentExpr      :: $T
   expr 17:9     CallExpr       :: void
-  expr 17:9     FieldExpr      :: [$T]
+  expr 17:9     FieldExpr      :: $T[]
   expr 17:9     FieldExpr      :: fn($T) -> void
   expr 17:9     IdentExpr      :: Stack($T)
   expr 18:21    BinaryExpr     :: i32
@@ -19,7 +19,7 @@
   expr 21:21    IdentExpr      :: Stack($T)
   expr 21:9     FieldExpr      :: i32
   expr 21:9     IdentExpr      :: Stack($T)
-  expr 22:16    FieldExpr      :: [$T]
+  expr 22:16    FieldExpr      :: $T[]
   expr 22:16    IdentExpr      :: Stack($T)
   expr 22:16    IndexExpr      :: $T
   expr 22:26    FieldExpr      :: i32
@@ -30,7 +30,7 @@
   expr 28:16    FieldExpr      :: i32
   expr 28:16    IdentExpr      :: Stack($T)
   expr 33:10    StructLitExpr  :: Stack(i32)
-  expr 33:31    ArrayLitExpr   :: [i32]
+  expr 33:31    SeqLitExpr     :: i32[]
   expr 34:5     CallExpr       :: void
   expr 34:5     FieldExpr      :: fn(i32) -> void
   expr 34:5     IdentExpr      :: Stack(i32)

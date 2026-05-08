@@ -55,15 +55,15 @@ export GlobalOpts :: struct {
 
 export ParseGlobalsResult :: struct {
     opts:   GlobalOpts
-    rest:   [string]
-    errors: [string]
+    rest:   string[]
+    errors: string[]
 }
 
 // `[T]` arrays don't expose `slice` at MVP (cf. stdlib/std/collections doc),
 // so we copy by hand. Used twice below : drop argv[0], then drop the
 // command from the post-globals `rest`.
-slice_args :: fn(arr: [string], start: i32) -> [string] {
-    out: [string] = []
+slice_args :: fn(arr: string[], start: i32) -> string[] {
+    out: string[] = []
     i := start
     for i < arr.len() {
         out.push(arr[i])
@@ -75,12 +75,12 @@ slice_args :: fn(arr: [string], start: i32) -> [string] {
 // One-pass parser : recognises the three TS global flags, accumulates
 // everything else into `rest`. Mirror of `parseGlobalOpts` in
 // `src/cli/options.ts`.
-parse_global_opts :: fn(args: [string]) -> ParseGlobalsResult {
+parse_global_opts :: fn(args: string[]) -> ParseGlobalsResult {
     diagnostics := "text"
     allow_env := false
     bytecode_opt := true
-    rest:   [string] = []
-    errors: [string] = []
+    rest:   string[] = []
+    errors: string[] = []
     diag_prefix :: "--diagnostics="
 
     for a in args {
@@ -110,7 +110,7 @@ parse_global_opts :: fn(args: [string]) -> ParseGlobalsResult {
     }
 }
 
-main :: fn(argv: [string]) -> i32 {
+main :: fn(argv: string[]) -> i32 {
     // argv[0] is the binary path ; meaningful args start at index 1.
     args :: slice_args(argv, 1)
     if args.len() == 0 { return cmd_repl() }
@@ -152,7 +152,7 @@ cmd_repl :: fn() -> i32 {
     return 2
 }
 
-cmd_run :: fn(args: [string]) -> i32 {
+cmd_run :: fn(args: string[]) -> i32 {
     if args.len() == 0 {
         eprintln("vader run: expected a file argument")
         return 1
@@ -162,13 +162,13 @@ cmd_run :: fn(args: [string]) -> i32 {
     return 2
 }
 
-cmd_fmt :: fn(args: [string]) -> i32 {
+cmd_fmt :: fn(args: string[]) -> i32 {
     path :: if args.len() > 0 { args[0] } else { "." }
     eprintln("vader fmt: not yet implemented (would format ${path})")
     return 2
 }
 
-cmd_test :: fn(args: [string]) -> i32 {
+cmd_test :: fn(args: string[]) -> i32 {
     path :: if args.len() > 0 { args[0] } else { "." }
     eprintln("vader test: not yet implemented (would scan ${path} for @test)")
     return 2
@@ -176,7 +176,7 @@ cmd_test :: fn(args: [string]) -> i32 {
 
 // ----------------------------------------------------------- build
 
-cmd_build :: fn(args: [string]) -> i32 {
+cmd_build :: fn(args: string[]) -> i32 {
     target := "native"
     use_manifest := false
     file := ""
@@ -234,7 +234,7 @@ cmd_build :: fn(args: [string]) -> i32 {
 
 // ----------------------------------------------------------- dump
 
-cmd_dump :: fn(args: [string]) -> i32 {
+cmd_dump :: fn(args: string[]) -> i32 {
     stage_prefix :: "--stage="
     has_stage := false
     stage := ""

@@ -1,0 +1,19 @@
+import "std/io" { println }
+
+// Bracketed seq literals are disambiguated contextually :
+//   - homogeneous element types → array
+//   - heterogeneous element types → tuple
+// Annotations override the heuristic.
+
+main :: fn() -> i32 {
+    // No annotation, all i32 → inferred as i32[]
+    scores := [10, 20, 30]
+    for s in scores { println("score=${s}") }
+
+    // Heterogeneous, no annotation → inferred as tuple [i32, string]
+    entry := [42, "answer"]
+    println("id=${entry.0}")
+    println("label=${entry.1}")
+
+    return 0
+}

@@ -63,7 +63,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "s",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -106,7 +109,7 @@
                       {
                         "name": "buckets",
                         "value": {
-                          "kind": "ArrayLitExpr",
+                          "kind": "SeqLitExpr",
                           "elements": []
                         }
                       },

@@ -131,7 +131,10 @@
               {
                 "kind": "LetStmt",
                 "mutable": true,
-                "name": "mask",
+                "binding": {
+                  "kind": "SimpleBinding",
+                  "name": "mask"
+                },
                 "type": null,
                 "value": {
                   "kind": "BinaryExpr",
@@ -368,7 +371,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "s",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",

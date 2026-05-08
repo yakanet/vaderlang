@@ -6,7 +6,7 @@ export Node :: struct($T) {
 }
 
 main :: fn() -> i32 {
-    arr: [Node(i32) | null] = []
+    arr: (Node(i32) | null)[] = []
     arr.push(null)
     arr.push(Node(i32) { .value = 42, .next = null })
     println("len = ${arr.len()}")

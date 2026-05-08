@@ -647,7 +647,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "l",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "l"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -683,7 +686,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -705,7 +711,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "i",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "i"
+            },
             "type": null,
             "value": {
               "kind": "IntLitExpr",
@@ -737,7 +746,10 @@
                 {
                   "kind": "LetStmt",
                   "mutable": true,
-                  "name": "t",
+                  "binding": {
+                    "kind": "SimpleBinding",
+                    "name": "t"
+                  },
                   "type": null,
                   "value": {
                     "kind": "IndexExpr",
@@ -899,7 +911,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "en",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "en"
+            },
             "type": null,
             "value": {
               "kind": "CallExpr",
@@ -940,7 +955,10 @@
               {
                 "kind": "LetStmt",
                 "mutable": true,
-                "name": "j",
+                "binding": {
+                  "kind": "SimpleBinding",
+                  "name": "j"
+                },
                 "type": null,
                 "value": {
                   "kind": "IntLitExpr",

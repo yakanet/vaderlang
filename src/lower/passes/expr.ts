@@ -188,9 +188,12 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       // — both leave `exprType` as the enum.
       const targetType = ctx.types.exprType(expr.target);
       if (targetType.kind === "Enum") return loweredEnumVariant(targetType, expr.field, expr.span);
+      // Numeric tuple field access `t.0` → `_0` synthetic field on the
+      // anonymous struct that backs the tuple type.
+      const fieldName = expr.isNumeric === true ? `_${expr.field}` : expr.field;
       return {
         kind: "LoweredFieldAccess", span: expr.span, type: exprType,
-        target: lowerExpr(ctx, expr.target), field: expr.field,
+        target: lowerExpr(ctx, expr.target), field: fieldName,
       };
     }
     case "IndexExpr": {
@@ -226,7 +229,21 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
           name: f.name, value: lowerExpr(ctx, f.value),
         })),
       };
-    case "ArrayLitExpr":
+    case "SeqLitExpr":
+      // Branch on the typecheck'd type :
+      //   - Array(T) → LoweredArrayLit (existing path)
+      //   - Tuple([T0..Tn-1]) → LoweredStructLit with synthetic fields _0,_1...
+      // Tuples are lowered as anonymous structs ; the BC type table emits a
+      // `BcStruct{name="__Tuple_n", fields:_0/_1/...}` entry on first use.
+      if (exprType.kind === "Tuple") {
+        return {
+          kind: "LoweredStructLit", span: expr.span, type: exprType,
+          fields: expr.elements.map<LoweredStructLitField>((e, i) => ({
+            name: `_${i}`,
+            value: lowerExpr(ctx, e),
+          })),
+        };
+      }
       return {
         kind: "LoweredArrayLit", span: expr.span, type: exprType,
         elements: expr.elements.map((e) => lowerExpr(ctx, e)),
@@ -294,7 +311,7 @@ function declaredTypeOfSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {
     return ctx.typed.paramTypes.has(sym.source.param) ? ctx.types.paramType(sym.source.param) : null;
   }
   if (sym.kind === "local" && sym.source.kind === "local") {
-    return ctx.typed.localTypes.has(sym.source.stmt) ? ctx.types.localType(sym.source.stmt) : null;
+    return ctx.typed.localTypes.has(sym.source.binding) ? ctx.types.localType(sym.source.binding) : null;
   }
   return null;
 }

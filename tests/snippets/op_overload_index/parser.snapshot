@@ -99,7 +99,10 @@
               {
                 "kind": "LetStmt",
                 "mutable": true,
-                "name": "i",
+                "binding": {
+                  "kind": "SimpleBinding",
+                  "name": "i"
+                },
                 "type": null,
                 "value": {
                   "kind": "IntLitExpr",
@@ -265,7 +268,10 @@
               {
                 "kind": "LetStmt",
                 "mutable": true,
-                "name": "i",
+                "binding": {
+                  "kind": "SimpleBinding",
+                  "name": "i"
+                },
                 "type": null,
                 "value": {
                   "kind": "IntLitExpr",
@@ -443,7 +449,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "c",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "c"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",
@@ -455,14 +464,14 @@
                 {
                   "name": "keys",
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": []
                   }
                 },
                 {
                   "name": "vals",
                   "value": {
-                    "kind": "ArrayLitExpr",
+                    "kind": "SeqLitExpr",
                     "elements": []
                   }
                 }

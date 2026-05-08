@@ -1,14 +1,14 @@
 # Lower
 
 ## tests/snippets/op_overload_index/_main.vader
-  struct tests_snippets_op_overload_index__main_vader$Cell { keys: [string], vals: [i32] }
+  struct tests_snippets_op_overload_index__main_vader$Cell { keys: string[], vals: i32[] }
   fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(self: Cell, key: string) -> i32
     let i#58: i32 = int(0) :i32
     block :void
       let __iter_0#-1: ArrayIter(string) =
         ArrayIter(string) {
           arr:
-            .keys :[string]
+            .keys :string[]
               self#56 :Cell
           cursor: int(0) :i32
           length:
@@ -43,7 +43,7 @@
                 return
                   index :i32
                     on:
-                      .vals :[i32]
+                      .vals :i32[]
                         self#56 :Cell
                     ix:
                       i#58 :i32
@@ -63,7 +63,7 @@
       let __iter_0#-3: ArrayIter(string) =
         ArrayIter(string) {
           arr:
-            .keys :[string]
+            .keys :string[]
               self#60 :Cell
           cursor: int(0) :i32
           length:
@@ -99,7 +99,7 @@
                   target:
                     index :i32
                       on:
-                        .vals :[i32]
+                        .vals :i32[]
                           self#60 :Cell
                       ix:
                         i#63 :i32
@@ -122,9 +122,9 @@
     let c#65: Cell =
       Cell {
         keys:
-          array :[string]
+          array :string[]
         vals:
-          array :[i32]
+          array :i32[]
       }
     call :void
       callee:

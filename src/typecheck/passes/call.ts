@@ -236,6 +236,22 @@ export function inferField(
       return { kind: "Fn", params: [targetType.element], returnType: TY.void };
     }
   }
+  if (targetType.kind === "Tuple") {
+    // Numeric tuple-element access `t.0`, `t.1`, ... The parser sets
+    // `isNumeric = true` and stores the index as a decimal string in `field`.
+    if (expr.isNumeric === true) {
+      const idx = Number.parseInt(expr.field, 10);
+      if (Number.isFinite(idx) && idx >= 0 && idx < targetType.elements.length) {
+        return targetType.elements[idx]!;
+      }
+      err(diags, "T3001", expr.fieldSpan,
+        `tuple ${displayType(targetType)} has no element at index ${idx}`);
+      return TY.unresolved;
+    }
+    err(diags, "T3001", expr.fieldSpan,
+      `tuple ${displayType(targetType)} has no field \`${expr.field}\` (use numeric access \`.0\`, \`.1\`, ...)`);
+    return TY.unresolved;
+  }
   if (targetType.kind === "Enum" && targetType.indices.has(expr.field)) {
     // `Enum.Variant` form: target is the enum *type*. For an enum *value*
     // (`e.method`), fall through to UFCS so a free fn whose first param is

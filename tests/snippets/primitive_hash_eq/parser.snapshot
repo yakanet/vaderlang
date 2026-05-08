@@ -33,7 +33,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "a",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a"
+            },
             "type": {
               "kind": "NamedType",
               "name": "i32"
@@ -47,7 +50,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "b",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "b"
+            },
             "type": {
               "kind": "NamedType",
               "name": "i32"
@@ -61,7 +67,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "c",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "c"
+            },
             "type": {
               "kind": "NamedType",
               "name": "i32"
@@ -213,7 +222,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "n",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
             "type": {
               "kind": "NamedType",
               "name": "usize"

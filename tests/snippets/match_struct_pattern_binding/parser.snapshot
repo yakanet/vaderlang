@@ -59,7 +59,10 @@
           {
             "kind": "LetStmt",
             "mutable": false,
-            "name": "p",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "p"
+            },
             "type": null,
             "value": {
               "kind": "StructLitExpr",

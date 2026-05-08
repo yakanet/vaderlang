@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/tuple_destructure_wildcard/_main.vader
+
+## generic instances
+  Yielded(i32)

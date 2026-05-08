@@ -29,6 +29,10 @@ export function inferMatch(
   const coveredVariants = new Set<string>();
   for (const arm of expr.arms) {
     if (arm.pattern.kind === "WildcardPattern") hasWildcard = true;
+    // A TuplePattern whose every leaf is a binding/wildcard is exhaustive over
+    // its (statically-typed) tuple scrutinee : the pattern matches all tuples
+    // of that arity by construction.
+    if (arm.pattern.kind === "TuplePattern" && isIrrefutableTuple(arm.pattern)) hasWildcard = true;
     let narrowed: Type | null = null;
     if (arm.pattern.kind === "IsPattern") {
       const variantTy = lowerTypeExpr(arm.pattern.type, t, diags);
@@ -82,6 +86,18 @@ export function inferMatch(
   }
 
   return armTypes.length === 0 ? TY.never : unionOf(armTypes);
+}
+
+/** A TuplePattern is irrefutable when every element is itself irrefutable
+ *  (a wildcard / plain binding / nested-irrefutable-tuple). Used by
+ *  exhaustiveness to skip the wildcard requirement for tuple scrutinees. */
+function isIrrefutableTuple(pat: A.TuplePattern): boolean {
+  for (const e of pat.elements) {
+    if (e.kind === "WildcardPattern" || e.kind === "BindingPattern") continue;
+    if (e.kind === "TuplePattern" && isIrrefutableTuple(e)) continue;
+    return false;
+  }
+  return true;
 }
 
 /** Resolve the scrutinee to a symbol when it's a plain identifier referring

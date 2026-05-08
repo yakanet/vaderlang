@@ -109,10 +109,13 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "fs",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "fs"
+            },
             "type": null,
             "value": {
-              "kind": "ArrayLitExpr",
+              "kind": "SeqLitExpr",
               "elements": [
                 {
                   "kind": "IdentExpr",

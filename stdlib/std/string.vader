@@ -53,7 +53,7 @@ export last_index_of :: fn(s: string, c: char, min_index: i32) -> i32 {
 }
 
 // Splitting and trimming.
-export split :: fn(s: string, sep: string) -> [string]
+export split :: fn(s: string, sep: string) -> string[]
 export trim  :: fn(s: string) -> string
 
 // Case conversion.
@@ -159,8 +159,8 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
 }
 
 // Split on runs of whitespace, dropping empty segments.
-export split_whitespace :: fn(s: string) -> [string] {
-    out: [string] = []
+export split_whitespace :: fn(s: string) -> string[] {
+    out: string[] = []
     sb := new_builder()
     has_pending := false
     n := s.len()

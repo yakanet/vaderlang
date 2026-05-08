@@ -198,7 +198,7 @@ function walkExpr(expr: A.Expr, v: BlockVisitor): void {
         else walkExpr(expr.body, v);
       }
       return;
-    case "ArrayLitExpr":  for (const e of expr.elements) walkExpr(e, v); return;
+    case "SeqLitExpr":    for (const e of expr.elements) walkExpr(e, v); return;
     case "StructLitExpr": for (const f of expr.fields) walkExpr(f.value, v); return;
     case "GenericInstExpr": walkExpr(expr.callee, v); return;
     default: return;
@@ -336,20 +336,27 @@ function closeOverGenericImpls(
     if (registry.size() <= MAX_INSTANCES) worklist.push(inst);
   });
 
-  while (worklist.length > 0 && registry.size() <= MAX_INSTANCES) {
-    const inst = worklist.pop()!;
-    const sites = implsByStructId.get(inst.symbol.id);
-    if (sites !== undefined) {
-      for (const site of sites) observeImplMembers(project, registry, inst, site);
-    }
-    if (inst.symbol.kind === "fn") {
-      const entry = genericFnsBySymId.get(inst.symbol.id);
-      if (entry !== undefined) {
-        observeFnBody(project, registry, inst, entry.fn, entry.program, arrayIterSymbol);
+  // `try / finally` so a panicking `observe...` helper doesn't leave the
+  // listener registered on the (long-lived) `InstanceRegistry`. Without
+  // this, an LSP/watch host that reuses the registry would accumulate
+  // dead listeners across crash recovery and slow `add()` linearly.
+  try {
+    while (worklist.length > 0 && registry.size() <= MAX_INSTANCES) {
+      const inst = worklist.pop()!;
+      const sites = implsByStructId.get(inst.symbol.id);
+      if (sites !== undefined) {
+        for (const site of sites) observeImplMembers(project, registry, inst, site);
+      }
+      if (inst.symbol.kind === "fn") {
+        const entry = genericFnsBySymId.get(inst.symbol.id);
+        if (entry !== undefined) {
+          observeFnBody(project, registry, inst, entry.fn, entry.program, arrayIterSymbol);
+        }
       }
     }
+  } finally {
+    unsubscribe();
   }
-  unsubscribe();
 
   if (registry.size() > MAX_INSTANCES) {
     err(diags, "C4014", pickAnchorSpan(genericFnsBySymId, implsByStructId, project),

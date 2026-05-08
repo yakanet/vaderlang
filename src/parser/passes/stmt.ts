@@ -25,6 +25,13 @@ export function parseStmt(p: Parser): A.Stmt | null {
     return parseFor(p, labelTok.text);
   }
 
+  // Tuple-destructure let : `[a, b] := expr`, `[a, b] :: expr`, or
+  // `[a, b]: [int, string] = expr`. Detected by looking for a `[` whose
+  // matching `]` is followed by `:=`, `::`, or `:` (typed form).
+  if (p.check("lbracket") && peekTupleLetStart(p)) {
+    return parseTupleLet(p);
+  }
+
   // `name :: expr` or `name := expr`
   if (p.check("ident") && (p.check("decl_const", 1) || p.check("decl_var", 1))) {
     return parseLet(p);
@@ -91,12 +98,17 @@ function parseTypedLet(p: Parser): A.LetStmt {
   else if (sep.kind === "colon") { p.advance(); mutable = false; }
   else { p.expect("assign", "`=` or `:` after type annotation"); mutable = true; }
   const value = parseExpr(p, 0);
+  const binding: A.SimpleBinding = {
+    kind: "SimpleBinding",
+    span: nameTok.span,
+    name: nameTok.text,
+    nameSpan: nameTok.span,
+  };
   return {
     kind: "LetStmt",
     span: p.spanOf(nameTok, p.peek(-1)),
     mutable,
-    name: nameTok.text,
-    nameSpan: nameTok.span,
+    binding,
     type,
     value,
   };
@@ -112,14 +124,115 @@ function parseLet(p: Parser): A.LetStmt {
   const type: A.TypeExpr | null = null;
 
   const value = parseExpr(p, 0);
+  const binding: A.SimpleBinding = {
+    kind: "SimpleBinding",
+    span: nameTok.span,
+    name: nameTok.text,
+    nameSpan: nameTok.span,
+  };
   return {
     kind: "LetStmt",
     span: p.spanOf(nameTok, p.peek(-1)),
     mutable,
-    name: nameTok.text,
-    nameSpan: nameTok.span,
+    binding,
     type,
     value,
+  };
+}
+
+/** Lookahead : after the `[`, scan past the matched `]` and check whether the
+ *  next significant token starts a let-destructure (`::`, `:=`, or `:` for the
+ *  typed form). Returns false otherwise — the `[` then belongs to a regular
+ *  expression statement (a SeqLit at stmt position). */
+function peekTupleLetStart(p: Parser): boolean {
+  let depth = 1;
+  let j = p.pos + 1;
+  while (j < p.tokens.length && depth > 0) {
+    const k = p.tokens[j]!.kind;
+    if (k === "eof") return false;
+    if (k === "lbracket") depth++;
+    else if (k === "rbracket") {
+      depth--;
+      if (depth === 0) break;
+    }
+    j++;
+  }
+  if (depth !== 0) return false;
+  // Skip newlines after the matching `]`.
+  let i = j + 1;
+  while (i < p.tokens.length && p.tokens[i]!.kind === "newline") i++;
+  const next = p.tokens[i]?.kind;
+  return next === "decl_const" || next === "decl_var" || next === "colon";
+}
+
+function parseTupleLet(p: Parser): A.LetStmt {
+  const start = p.peek();
+  const binding = parseLetBinding(p);
+  let type: A.TypeExpr | null = null;
+  let mutable: boolean;
+  if (p.check("colon")) {
+    p.advance();
+    type = parseType(p);
+    const sep = p.peek();
+    if (sep.kind === "assign") { p.advance(); mutable = true; }
+    else if (sep.kind === "colon") { p.advance(); mutable = false; }
+    else { p.expect("assign", "`=` or `:` after type annotation"); mutable = true; }
+  } else {
+    const declTok = p.peek();
+    if (declTok.kind !== "decl_const" && declTok.kind !== "decl_var") {
+      p.expect("decl_var", "`:=`, `::`, or `:` after destructure pattern");
+      mutable = true;
+    } else {
+      p.advance();
+      mutable = declTok.kind === "decl_var";
+    }
+  }
+  const value = parseExpr(p, 0);
+  return {
+    kind: "LetStmt",
+    span: p.spanOf(start, p.peek(-1)),
+    mutable,
+    binding,
+    type,
+    value,
+  };
+}
+
+function parseLetBinding(p: Parser): A.LetBinding {
+  if (p.check("lbracket")) {
+    const start = p.advance();
+    p.skipNewlines();
+    const elements: A.LetBinding[] = [];
+    if (!p.check("rbracket")) {
+      while (true) {
+        p.skipNewlines();
+        if (p.check("rbracket")) break;
+        elements.push(parseLetBinding(p));
+        p.skipNewlines();
+        if (p.match("comma") === null) break;
+        p.skipNewlines();
+      }
+    }
+    const end = p.expect("rbracket", "`]` to close destructure pattern");
+    if (elements.length < 2) {
+      p.error("P1023", p.spanOf(start, end));
+    }
+    return {
+      kind: "TupleBinding",
+      span: p.spanOf(start, end),
+      elements,
+    };
+  }
+  if (p.check("ident") && p.peek().text === "_") {
+    const tok = p.advance();
+    return { kind: "WildcardBinding", span: tok.span };
+  }
+  const tok = p.expect("ident", "binding name in destructure pattern");
+  return {
+    kind: "SimpleBinding",
+    span: tok.span,
+    name: tok.text,
+    nameSpan: tok.span,
   };
 }
 

@@ -117,7 +117,7 @@ function walkExpr(expr: A.Expr, visit: (e: A.Expr) => void): void {
       if (expr.trailing !== null) walkExpr(expr.trailing, visit);
       return;
     case "StructLitExpr": for (const f of expr.fields) walkExpr(f.value, visit); return;
-    case "ArrayLitExpr":  for (const e of expr.elements) walkExpr(e, visit); return;
+    case "SeqLitExpr":    for (const e of expr.elements) walkExpr(e, visit); return;
     case "StringLitExpr": for (const p of expr.parts) if (p.kind === "interp") walkExpr(p.expr, visit); return;
     case "RangeExpr":  walkExpr(expr.lower, visit); walkExpr(expr.upper, visit); return;
     case "TryExpr":    walkExpr(expr.inner, visit); return;

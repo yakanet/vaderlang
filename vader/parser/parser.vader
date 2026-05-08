@@ -16,8 +16,8 @@ import "vader/diagnostics/codes" { ParserCode }
 
 export ParsedSource :: struct {
     program: Program
-    tokens:  [Token]
-    errors:  [Diagnostic]
+    tokens:  Token[]
+    errors:  Diagnostic[]
 }
 
 export parse_source :: fn(source: string, file: string) -> ParsedSource {
@@ -38,15 +38,15 @@ export parse_source :: fn(source: string, file: string) -> ParsedSource {
 // ============================================================================
 
 export Parser :: struct {
-    tokens: [Token]
+    tokens: Token[]
     file:   string
     pos:    i32
-    errors: [Diagnostic]
+    errors: Diagnostic[]
     // True except inside the immediate condition expression of if/for/match.
     allow_struct_lit: bool
 }
 
-new_parser :: fn(tokens: [Token], file: string) = Parser {
+new_parser :: fn(tokens: Token[], file: string) = Parser {
     .tokens           = tokens,
     .file             = file,
     .pos              = 0,
@@ -158,7 +158,7 @@ export describe_token :: fn(t: Token) -> string {
 
 parse_program :: fn(p: Parser) -> Program {
     start_tok :: p.peek()
-    decls: [Decl] = []
+    decls: Decl[] = []
     p.skip_newlines()
     for !p.check(.Eof) {
         d :: p.parse_decl()
@@ -209,12 +209,12 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     return null
 }
 
-parse_decorators :: fn(p: Parser) -> [Decorator] {
-    out: [Decorator] = []
+parse_decorators :: fn(p: Parser) -> Decorator[] {
+    out: Decorator[] = []
     for p.check(.At) {
         at :: p.advance()
         name_tok :: p.expect(.Ident, "decorator name after `@`")
-        args: [Expr] = []
+        args: Expr[] = []
         if p.match_kind(.LParen).matched {
             if !p.check(.RParen) {
                 first := true
@@ -239,7 +239,7 @@ parse_decorators :: fn(p: Parser) -> [Decorator] {
     return out
 }
 
-parse_import_decl :: fn(p: Parser, decorators: [Decorator]) -> ImportDecl {
+parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
     start :: p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
     binding: ImportBinding = NamespaceImport {}
@@ -248,7 +248,7 @@ parse_import_decl :: fn(p: Parser, decorators: [Decorator]) -> ImportDecl {
         alias :: p.expect(.Ident, "alias name after `as`")
         binding = AliasImport { .alias = alias.text }
     } else if p.match_kind(.LBrace).matched {
-        names: [ImportName] = []
+        names: ImportName[] = []
         p.skip_newlines()
         if !p.check(.RBrace) {
             first := true
@@ -333,13 +333,13 @@ is_impl_decl :: fn(p: Parser) -> bool {
     return false
 }
 
-parse_impl_decl :: fn(p: Parser, decorators: [Decorator]) -> ImplDecl {
+parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     start_tok :: p.peek()
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
     trait_tok :: p.expect(.Ident, "trait name")
 
-    trait_args: [TypeExpr] = []
+    trait_args: TypeExpr[] = []
     if p.match_kind(.LParen).matched {
         p.skip_newlines()
         if !p.check(.RParen) {
@@ -354,7 +354,7 @@ parse_impl_decl :: fn(p: Parser, decorators: [Decorator]) -> ImplDecl {
         p.expect(.RParen, "`)` to close trait argument list")
     }
 
-    members: [FnDecl] = []
+    members: FnDecl[] = []
     end_tok: Token = trait_tok
     if p.check(.Arrow) {
         members.push(p.parse_sam_arrow_member())
@@ -439,7 +439,7 @@ parse_sam_block_member :: fn(p: Parser) -> FnDecl {
     }
 }
 
-parse_named_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility) -> Decl {
+parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility) -> Decl {
     name_tok :: p.advance()  // ident
     p.advance()              // `::`
 
@@ -451,7 +451,7 @@ parse_named_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibilit
     return p.parse_const_decl(decorators, visibility, name_tok)
 }
 
-parse_fn_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> FnDecl {
+parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
     p.advance()  // `fn`
     sig :: p.parse_fn_signature_params()
     return_type: TypeExpr | null = null
@@ -542,13 +542,13 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
 }
 
 FnSignature :: struct {
-    params:      [FnParam]
-    type_params: [TypeParam]
+    params:      FnParam[]
+    type_params: TypeParam[]
 }
 
 parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
-    type_params: [TypeParam] = []
-    params:      [FnParam]   = []
+    type_params: TypeParam[] = []
+    params:      FnParam[]   = []
     p.expect(.LParen, "`(` after function name")
     p.skip_newlines()
     if !p.check(.RParen) {
@@ -620,9 +620,9 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
 
 empty_token :: fn() = make_token(.Eof, "", empty_span(""))
 
-parse_where_clauses :: fn(p: Parser) -> [WhereClause] {
+parse_where_clauses :: fn(p: Parser) -> WhereClause[] {
     if !p.match_kind(.KwWhere).matched { return [] }
-    out: [WhereClause] = []
+    out: WhereClause[] = []
     for {
         start :: p.peek()
         type_name :: p.expect(.Ident, "type parameter name in `where`")
@@ -641,13 +641,13 @@ parse_where_clauses :: fn(p: Parser) -> [WhereClause] {
     return out
 }
 
-parse_struct_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> StructDecl {
+parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
     p.advance()  // `struct`
     type_params :: p.parse_struct_type_param_list()
     where_clauses :: p.parse_where_clauses()
     p.expect(.LBrace, "`{` to open struct body")
     p.skip_newlines()
-    fields: [StructField] = []
+    fields: StructField[] = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         field_visibility: Visibility = .Private
         if p.match_kind(.KwExport).matched { field_visibility = .Public }
@@ -679,9 +679,9 @@ parse_struct_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibili
     }
 }
 
-parse_struct_type_param_list :: fn(p: Parser) -> [TypeParam] {
+parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
     if !p.match_kind(.LParen).matched { return [] }
-    out: [TypeParam] = []
+    out: TypeParam[] = []
     p.skip_newlines()
     for !p.check(.RParen) && !p.check(.Eof) {
         // Each iteration parses one (possibly $-prefixed) type-param. After
@@ -751,12 +751,12 @@ parse_struct_type_param_list :: fn(p: Parser) -> [TypeParam] {
     return out
 }
 
-parse_trait_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> TraitDecl {
+parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
     p.advance()  // `trait`
     type_params :: p.parse_struct_type_param_list()
     p.expect(.LBrace, "`{` to open trait body")
     p.skip_newlines()
-    members: [FnDecl] = []
+    members: FnDecl[] = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         fn_opt :: p.parse_fn_decl_inside_trait()
         match fn_opt {
@@ -777,7 +777,7 @@ parse_trait_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibilit
     }
 }
 
-parse_enum_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> EnumDecl {
+parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> EnumDecl {
     p.advance()  // `enum`
     repr: TypeExpr | null = null
     parens :: p.match_kind(.LParen)
@@ -787,7 +787,7 @@ parse_enum_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility
     }
     p.expect(.LBrace, "`{` to open enum body")
     p.skip_newlines()
-    variants: [EnumVariant] = []
+    variants: EnumVariant[] = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         v_tok :: p.expect(.Ident, "variant name")
         value: i64 | null = null
@@ -822,7 +822,7 @@ parse_enum_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility
     }
 }
 
-parse_type_alias_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> TypeAliasDecl {
+parse_type_alias_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TypeAliasDecl {
     p.advance()  // `type`
     type_params :: p.parse_struct_type_param_list()
     aliased :: p.parse_type()
@@ -837,7 +837,7 @@ parse_type_alias_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visi
     }
 }
 
-parse_const_decl :: fn(p: Parser, decorators: [Decorator], visibility: Visibility, name_tok: Token) -> ConstDecl {
+parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
     ty: TypeExpr | null = null
     if p.match_kind(.Colon).matched { ty = p.parse_type() }
     value :: p.parse_expr(0)
@@ -884,7 +884,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     }
     // `T | U | V` — flat union.
     if p.check(.Pipe) {
-        variants: [TypeExpr] = [head]
+        variants: TypeExpr[] = [head]
         for p.match_kind(.Pipe).matched {
             variants.push(p.parse_type_primary())
         }
@@ -933,7 +933,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
         named :: NamedType { .span = name.span, .name = name.text }
         if p.check(.LParen) {
             p.advance()
-            args: [TypeExpr] = []
+            args: TypeExpr[] = []
             p.skip_newlines()
             if !p.check(.RParen) {
                 for {
@@ -961,7 +961,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
 parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
     start :: p.advance()  // `fn`
     p.expect(.LParen, "`(` after `fn` in function type")
-    params: [TypeExpr] = []
+    params: TypeExpr[] = []
     p.skip_newlines()
     if !p.check(.RParen) {
         for {
@@ -983,7 +983,7 @@ parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
 }
 
 // Walk a type and collect any inline `$T` introductions.
-collect_type_params :: fn(t: TypeExpr, out: [TypeParam]) -> void {
+collect_type_params :: fn(t: TypeExpr, out: TypeParam[]) -> void {
     match t {
         is TypeParamType -> {
             // Dedupe by name.
@@ -1087,7 +1087,7 @@ stmt_span :: fn(s: Stmt) = match s {
 parse_block :: fn(p: Parser) -> BlockExpr {
     lb :: p.expect(.LBrace, "`{` to open block")
     p.skip_newlines()
-    raw: [Stmt] = []
+    raw: Stmt[] = []
     trailing: Expr | null = null
     for !p.check(.RBrace) && !p.check(.Eof) {
         s_opt :: p.parse_stmt()
@@ -1106,7 +1106,7 @@ parse_block :: fn(p: Parser) -> BlockExpr {
     }
     // Promote a trailing ExprStmt into the block's implicit return value
     // by rebuilding `stmts` without the last element (no `pop` on arrays).
-    stmts: [Stmt] = []
+    stmts: Stmt[] = []
     n :: raw.len()
     last_is_expr := false
     last_expr: Expr | null = null
@@ -1755,8 +1755,8 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     }
 }
 
-parse_call_args :: fn(p: Parser) -> [CallArg] {
-    out: [CallArg] = []
+parse_call_args :: fn(p: Parser) -> CallArg[] {
+    out: CallArg[] = []
     p.skip_newlines()
     if p.check(.RParen) { return out }
     for {
@@ -1793,7 +1793,7 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
     // Generic struct literal `Foo(T) { .field = ... }`.
     if p.allow_struct_lit && p.peek_is_generic_struct_lit() {
         p.advance()  // `(`
-        args: [TypeExpr] = []
+        args: TypeExpr[] = []
         p.skip_newlines()
         if !p.check(.RParen) {
             for {
@@ -1860,7 +1860,7 @@ peek_is_generic_struct_lit :: fn(p: Parser) -> bool {
     return looks_like_struct_lit_body(p.tokens, k)
 }
 
-looks_like_struct_lit_body :: fn(tokens: [Token], pos_at_lbrace: i32) -> bool {
+looks_like_struct_lit_body :: fn(tokens: Token[], pos_at_lbrace: i32) -> bool {
     n :: tokens.len()
     i := pos_at_lbrace + 1
     for i < n {
@@ -1874,8 +1874,8 @@ looks_like_struct_lit_body :: fn(tokens: [Token], pos_at_lbrace: i32) -> bool {
     return false
 }
 
-parse_struct_lit_fields :: fn(p: Parser) -> [StructLitField] {
-    out: [StructLitField] = []
+parse_struct_lit_fields :: fn(p: Parser) -> StructLitField[] {
+    out: StructLitField[] = []
     p.skip_newlines()
     for !p.check(.RBrace) && !p.check(.Eof) {
         p.expect(.Dot, "`.` before struct literal field name")
@@ -1911,7 +1911,7 @@ parse_paren :: fn(p: Parser) -> Expr {
 
 parse_array_lit :: fn(p: Parser) -> ArrayLitExpr {
     lb :: p.advance()
-    elements: [Expr] = []
+    elements: Expr[] = []
     p.skip_newlines()
     if !p.check(.RBracket) {
         for {
@@ -1932,7 +1932,7 @@ parse_array_lit :: fn(p: Parser) -> ArrayLitExpr {
 
 parse_string_lit :: fn(p: Parser) -> StringLitExpr {
     begin :: p.advance()  // string_begin
-    parts: [StringLitPart] = []
+    parts: StringLitPart[] = []
     for !p.check(.StringEnd) && !p.check(.Eof) {
         t :: p.peek()
         if t.kind == .StringPart {
@@ -2016,7 +2016,7 @@ parse_match_expr :: fn(p: Parser) -> MatchExpr {
 
     p.expect(.LBrace, "`{` to open match arms")
     p.skip_newlines()
-    arms: [MatchArm] = []
+    arms: MatchArm[] = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         arms.push(p.parse_match_arm())
         p.skip_newlines()
@@ -2112,7 +2112,7 @@ parse_pattern :: fn(p: Parser) -> Pattern {
 parse_struct_pattern :: fn(p: Parser) -> StructPattern {
     start :: p.expect(.LBrace, "`{` to open struct pattern")
     p.skip_newlines()
-    fields: [StructPatternField] = []
+    fields: StructPatternField[] = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         f_start :: p.peek()
         name :: p.expect(.Ident, "field name in struct pattern")

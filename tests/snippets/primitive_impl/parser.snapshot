@@ -90,7 +90,10 @@
           {
             "kind": "LetStmt",
             "mutable": true,
-            "name": "x",
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "x"
+            },
             "type": {
               "kind": "NamedType",
               "name": "i32"
