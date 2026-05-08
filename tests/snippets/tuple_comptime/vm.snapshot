@@ -1,0 +1,5 @@
+# stdout
+dim 10x20
+origin (0.0, 0.0) = origin
+# exit
+10

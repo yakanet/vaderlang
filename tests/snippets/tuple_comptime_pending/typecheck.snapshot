@@ -1,8 +1,0 @@
-# Typecheck
-
-## tests/snippets/tuple_comptime_pending/_main.vader
-  ConstDecl      DIM                  :: [i32, i32]
-  FnDecl         main                 :: fn() -> i32
-  expr 12:12    FieldExpr      :: i32
-  expr 12:12    IdentExpr      :: [i32, i32]
-  expr 9:21     SeqLitExpr     :: [i32, i32]

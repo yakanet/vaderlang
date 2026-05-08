@@ -48,6 +48,13 @@ export function parseDecl(p: Parser): A.Decl | null {
   if (p.check("ident") && p.check("decl_const", 1)) {
     return parseNamedDecl(p, decorators, visibility);
   }
+  // Odin-style typed top-level const : `name : Type : value`. The local
+  // form (`name : Type : value` immutable / `name : Type = value` mutable)
+  // is parsed in `stmt.ts::parseTypedLet` ; this is the top-level analogue,
+  // restricted to const-only since mutables aren't allowed at top level.
+  if (p.check("ident") && p.check("colon", 1)) {
+    return parseTypedConstDecl(p, decorators, visibility);
+  }
 
   const t = p.peek();
   p.error("P1006", t.span, `got ${describeToken(t)}`);
@@ -647,14 +654,40 @@ function parseTypeAliasDecl(
   };
 }
 
+/** `name :: value` — untyped top-level const. Type annotations live in the
+ *  separate `name : type : value` form parsed by `parseTypedConstDecl` ;
+ *  the old inline `name :: : type value` shape is rejected by `parseExpr`. */
 function parseConstDecl(
   p: Parser,
   decorators: readonly A.Decorator[],
   visibility: A.Visibility,
   nameTok: Token,
 ): A.ConstDecl {
-  let type: A.TypeExpr | null = null;
-  if (p.match("colon") !== null) type = parseType(p);
+  const value = parseExpr(p, 0);
+  return {
+    kind: "ConstDecl",
+    span: p.spanOf(nameTok, p.peek(-1)),
+    name: nameTok.text,
+    nameSpan: nameTok.span,
+    visibility,
+    type: null,
+    value,
+    decorators,
+  };
+}
+
+/** `name : type : value` — Odin-style typed top-level const. Mirrors the
+ *  `name : type : value` form for local immutable lets so the typed-const
+ *  surface is uniform between top-level and statement scopes. */
+function parseTypedConstDecl(
+  p: Parser,
+  decorators: readonly A.Decorator[],
+  visibility: A.Visibility,
+): A.ConstDecl {
+  const nameTok = p.advance(); // name
+  p.advance(); // first `:`
+  const type = parseType(p);
+  p.expect("colon", "`:` between type annotation and value");
   const value = parseExpr(p, 0);
   return {
     kind: "ConstDecl",

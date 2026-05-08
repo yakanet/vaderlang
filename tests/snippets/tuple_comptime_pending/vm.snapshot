@@ -1,2 +1,0 @@
-# compile errors
-[C4011] comptime feature not yet supported: comptime struct value not yet convertible (return type Tuple)

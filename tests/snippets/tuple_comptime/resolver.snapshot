@@ -22,7 +22,22 @@
   struct           public   Yielded 
   refs: idents=38 types=83 params=46 locals=3 typeParams=8 fields=0
 
-## tests/snippets/tuple_comptime_pending/_main.vader
+## std/io
+  fn               public   eprint 
+  fn               public   eprintln 
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=22 params=9 locals=0 typeParams=0 fields=0
+
+## tests/snippets/tuple_comptime/_main.vader
   const            private  DIM 
   fn               public   main 
-  refs: idents=1 types=3 params=0 locals=0 typeParams=0 fields=0
+  const            private  ORIGIN 
+  import-binding   private  println → println
+  import std/io → ok
+  refs: idents=8 types=6 params=0 locals=0 typeParams=0 fields=0

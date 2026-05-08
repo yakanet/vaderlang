@@ -222,6 +222,10 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     if p.check(.Ident) && p.check_at(.DeclConst, 1) {
         return p.parse_named_decl(decorators, visibility)
     }
+    // Odin-style typed top-level const : `name : Type : value`.
+    if p.check(.Ident) && p.check_at(.Colon, 1) {
+        return p.parse_typed_const_decl(decorators, visibility)
+    }
     t :: p.peek()
     p.error(.ExpectedDeclaration, t.span, "got ${describe_token(t)}")
     p.sync_to_top_level()
@@ -847,9 +851,28 @@ parse_type_alias_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visi
     }
 }
 
+// `name :: value` — untyped top-level const. The typed shape uses the
+// Odin-style `name : Type : value` form parsed by `parse_typed_const_decl`.
 parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
-    ty: TypeExpr | null = null
-    if p.match_kind(.Colon).matched { ty = p.parse_type() }
+    value :: p.parse_expr(0)
+    return ConstDecl {
+        .span       = p.span_of(name_tok, p.peek_at(-1)),
+        .name       = name_tok.text,
+        .name_span  = name_tok.span,
+        .visibility = visibility,
+        .ty         = null,
+        .value      = value,
+        .decorators = decorators,
+    }
+}
+
+// `name : Type : value` — typed top-level const, mirrors the local
+// `name : Type : value` immutable-let form for surface uniformity.
+parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility) -> ConstDecl {
+    name_tok :: p.advance()  // name
+    p.advance()  // first `:`
+    ty :: p.parse_type()
+    p.expect(.Colon, "`:` between type annotation and value")
     value :: p.parse_expr(0)
     return ConstDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),

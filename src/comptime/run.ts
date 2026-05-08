@@ -9,6 +9,8 @@ import type * as A from "../parser/ast.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
 import type { Type } from "../typecheck/types.ts";
+import { TY, displayType } from "../typecheck/types.ts";
+import { sourceStructDecl } from "../resolver/symbol.ts";
 
 import { runFn, VmError, type HostBindings, type HostFn, type Value } from "../vm/index.ts";
 
@@ -134,14 +136,74 @@ function valueToComptime(v: Value, expected: Type, input: RunComptimeInput): Com
     case "error":
       err(input.diags, "C4002", input.decl.value.span, v.message);
       return null;
-    case "struct":
-    case "array":
+    case "struct":  return structValueToComptime(v, expected, input);
+    case "array":   return arrayValueToComptime(v, expected, input);
     case "builder":
     case "fn":
       err(input.diags, "C4011", input.decl.value.span,
         `comptime ${v.tag} value not yet convertible (return type ${expected.kind})`);
       return null;
   }
+}
+
+/** Convert a VM struct value back to a `ComptimeValue.struct`. Tuples are
+ *  anonymous structs at runtime — when the expected type is `Tuple([T0…])`
+ *  the field names are synthesised as `_0`, `_1`, … in declaration order
+ *  (matching the lowerer's tuple field-naming). For nominal structs the
+ *  field names come from the source decl. Recurses for compound fields.
+ *
+ *  Returns null and emits `C4011` for shapes that don't have a sensible
+ *  back-emission today (struct value with `Unresolved` expected type, or a
+ *  generic struct whose source decl can't be located). */
+function structValueToComptime(
+  v: Extract<Value, { tag: "struct" }>, expected: Type, input: RunComptimeInput,
+): ComptimeValue | null {
+  if (expected.kind === "Tuple") {
+    const fields = new Map<string, ComptimeValue>();
+    for (let i = 0; i < v.fields.length; i++) {
+      const slotExpected = expected.elements[i] ?? TY.unresolved;
+      const child = valueToComptime(v.fields[i]!, slotExpected, input);
+      if (child === null) return null;
+      fields.set(`_${i}`, child);
+    }
+    return { kind: "struct", typeName: displayType(expected), fields };
+  }
+  if (expected.kind === "Struct") {
+    const decl = sourceStructDecl(expected.symbol);
+    if (decl !== null) {
+      const fields = new Map<string, ComptimeValue>();
+      for (let i = 0; i < decl.fields.length && i < v.fields.length; i++) {
+        // Field-typed substitution under generic instantiation isn't worth
+        // wiring just for the back-emission ; pass `Unresolved` and let the
+        // lowerer's `comptimeValueToLowered` propagate the typeHint.
+        const child = valueToComptime(v.fields[i]!, TY.unresolved, input);
+        if (child === null) return null;
+        fields.set(decl.fields[i]!.name, child);
+      }
+      return { kind: "struct", typeName: displayType(expected), fields };
+    }
+  }
+  err(input.diags, "C4011", input.decl.value.span,
+    `comptime struct value not yet convertible (return type ${expected.kind})`);
+  return null;
+}
+
+/** Convert a VM array value back to a `ComptimeValue.array`. The expected
+ *  type's element supplies the recursive type hint ; `Unresolved` is fine
+ *  for primitives, but loses some precision for nested arrays of structs
+ *  (the lowerer recovers it via `typeHint` propagation in
+ *  `comptimeValueToLowered`). */
+function arrayValueToComptime(
+  v: Extract<Value, { tag: "array" }>, expected: Type, input: RunComptimeInput,
+): ComptimeValue | null {
+  const elementType = expected.kind === "Array" ? expected.element : TY.unresolved;
+  const elements: ComptimeValue[] = [];
+  for (const e of v.elements) {
+    const child = valueToComptime(e, elementType, input);
+    if (child === null) return null;
+    elements.push(child);
+  }
+  return { kind: "array", elements, elementTypeName: displayType(elementType) };
 }
 
 function comptimeToValue(v: ComptimeValue): Value {

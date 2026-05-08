@@ -351,6 +351,10 @@
     "leakedNodes": 1,
     "leakedBytes": 32
   },
+  "tuple_comptime": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
   "tuple_destructure_let": {
     "leakedNodes": 2,
     "leakedBytes": 160
