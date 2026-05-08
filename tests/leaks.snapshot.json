@@ -187,6 +187,10 @@
     "leakedNodes": 3,
     "leakedBytes": 240
   },
+  "iter_zip_chain": {
+    "leakedNodes": 19,
+    "leakedBytes": 1520
+  },
   "json_basics": {
     "leakedNodes": 177,
     "leakedBytes": 12720
@@ -360,6 +364,14 @@
     "leakedBytes": 80
   },
   "tuple_pair_return": {
+    "leakedNodes": 2,
+    "leakedBytes": 160
+  },
+  "tuple_struct_field": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
+  "tuple_triple_quad": {
     "leakedNodes": 2,
     "leakedBytes": 160
   },

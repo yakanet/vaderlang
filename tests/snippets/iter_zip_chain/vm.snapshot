@@ -1,0 +1,22 @@
+# stdout
+count=3
+clone[0]=10
+a=1
+b=2
+c=3
+j=1
+j=2
+j=3
+j=4
+j=5
+0: apple
+1: banana
+2: cherry
+b=1
+b=10
+b=2
+b=20
+b=3
+b=30
+# exit
+0

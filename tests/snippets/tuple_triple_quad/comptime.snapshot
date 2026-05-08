@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/tuple_triple_quad/_main.vader
+
+## generic instances
+  Yielded(i32)

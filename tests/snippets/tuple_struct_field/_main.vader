@@ -1,0 +1,15 @@
+import "std/io" { println }
+
+// Tuple as a struct field — surface a coordinate-style record without
+// the extra ceremony of a nested struct. Field access chains through
+// `e.coord.0` (struct field, then tuple slot).
+Entry :: struct {
+    id:    i32
+    coord: [f64, f64]
+}
+
+main :: fn() -> i32 {
+    e :: Entry { .id = 1, .coord = [3.5, 7.25] }
+    println("id=${e.id} x=${e.coord.0} y=${e.coord.1}")
+    return 0
+}

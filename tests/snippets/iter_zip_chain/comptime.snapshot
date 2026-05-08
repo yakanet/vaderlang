@@ -1,0 +1,21 @@
+# Comptime
+
+## tests/snippets/iter_zip_chain/_main.vader
+
+## generic instances
+  Yielded([i32, string])
+  Yielded([string, i32])
+  Yielded(i32)
+  Yielded(string)
+  ArrayIter([i32, string])
+  ArrayIter([string, i32])
+  ArrayIter($T)
+  ArrayIter($U)
+  ArrayIter(i32)
+  ArrayIter(string)
+  count(i32)
+  collect(i32)
+  zip(string, i32)
+  chain(i32)
+  enumerate(string)
+  flat_map(i32, i32)

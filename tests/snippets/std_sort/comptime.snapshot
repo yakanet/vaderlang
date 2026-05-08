@@ -8,6 +8,7 @@
   Yielded(string)
   Yielded(u8)
   ArrayIter($T)
+  ArrayIter($U)
   ArrayIter(i32)
   ArrayIter(string)
   sort(i32)

@@ -27,7 +27,7 @@ fn 0 tests_snippets_tuple_for_destructure__main_vader$main () -> i32
   local pairs ref
   local __iter_0 ref
   local __step_1 ref
-  local __for_381 ref
+  local __for_9_5 ref
   local __tup_2 ref
   local k string
   local v i32

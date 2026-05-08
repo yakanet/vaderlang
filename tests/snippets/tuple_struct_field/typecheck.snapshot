@@ -1,0 +1,18 @@
+# Typecheck
+
+## tests/snippets/tuple_struct_field/_main.vader
+  StructDecl     Entry                :: Entry
+  FnDecl         main                 :: fn() -> i32
+  expr 12:10    StructLitExpr  :: Entry
+  expr 12:36    SeqLitExpr     :: [f64, f64]
+  expr 13:13    StringLitExpr  :: string
+  expr 13:19    FieldExpr      :: i32
+  expr 13:19    IdentExpr      :: Entry
+  expr 13:29    FieldExpr      :: [f64, f64]
+  expr 13:29    FieldExpr      :: f64
+  expr 13:29    IdentExpr      :: Entry
+  expr 13:44    FieldExpr      :: [f64, f64]
+  expr 13:44    FieldExpr      :: f64
+  expr 13:44    IdentExpr      :: Entry
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(string) -> void

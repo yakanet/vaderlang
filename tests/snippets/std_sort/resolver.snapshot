@@ -35,16 +35,20 @@
   refs: idents=1 types=22 params=9 locals=0 typeParams=0 fields=0
 
 ## std/iter
+  fn               public   chain 
   fn               public   collect 
   fn               public   count 
+  fn               public   enumerate 
   fn               public   filter 
+  fn               public   flat_map 
   fn               public   fold 
   fn               public   map 
   fn               public   skip 
   fn               public   slice 
   fn               public   sum 
   fn               public   take 
-  refs: idents=74 types=28 params=17 locals=15 typeParams=10 fields=0
+  fn               public   zip 
+  refs: idents=107 types=40 params=24 locals=23 typeParams=16 fields=0
 
 ## std/math
   fn               public   abs 

@@ -1502,7 +1502,10 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         iter :: p.parse_expr(0)
         p.allow_struct_lit = saved_allow
         body :: p.parse_block()
-        synth :: "__for_${start.span.start.offset}"
+        // Encoding-invariant synth name : line/column are codepoint-based
+        // on both lexers (TS / self-host), whereas `offset` diverges (UTF-16
+        // units vs UTF-8 bytes) — see stmt.ts comment for the parity reason.
+        synth :: "__for_${start.span.start.line}_${start.span.start.column}"
         synth_ident :: IdentExpr { .span = binding_span, .name = synth }
         desugared :: LetStmt {
             .span    = binding_span,

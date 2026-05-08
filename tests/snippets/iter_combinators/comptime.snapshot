@@ -5,6 +5,7 @@
 ## generic instances
   Yielded(i32)
   ArrayIter($T)
+  ArrayIter($U)
   ArrayIter(i32)
   map(i32, i32)
   filter(i32)

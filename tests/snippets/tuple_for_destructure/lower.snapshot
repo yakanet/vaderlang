@@ -38,11 +38,11 @@
           then:
             break
           else:
-            let __for_381#54: [string, i32] =
+            let __for_9_5#54: [string, i32] =
               .value :[string, i32]
                 cast → Yielded([string, i32])
                   __step_1#-2 :Done | Yielded([string, i32])
-            let __tup_2#-3: [string, i32] = __for_381#54 :[string, i32]
+            let __tup_2#-3: [string, i32] = __for_9_5#54 :[string, i32]
             let k#55: string =
               ._0 :string
                 __tup_2#-3 :[string, i32]

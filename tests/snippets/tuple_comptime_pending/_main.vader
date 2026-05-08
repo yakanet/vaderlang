@@ -1,0 +1,13 @@
+// Regression : comptime tuple values are not yet emitted back as
+// LoweredStructLit (`ComptimeValue` lacks a tuple variant and
+// `valueToComptime` bails on `struct` VM values). When this fixture
+// stops producing C4011 the TODO §3.8 entry should be marked done and
+// the snippet promoted to a positive test (drop `_err` suffix not
+// needed since we keep a descriptive name).
+
+@comptime
+DIM :: : [i32, i32] [10, 20]
+
+main :: fn() -> i32 {
+    return DIM.0
+}

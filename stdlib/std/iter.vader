@@ -1,28 +1,29 @@
-// std/iter — iterator combinators on top of `Iterator(T)` (defined in std/core).
+// std/iter — array-based combinators.
 //
-// MVP scope (this file):
-//   - Consumers : `count(it)`, `collect(it)` operate on Iterator($T) — the
-//     `for x in it` form is the lowerer's existing entry point for trait
-//     dispatch on the iterator's `step`.
-//   - Closure-driven combinators (`map`, `filter`, `fold`, `take`, `skip`,
-//     `sum`) operate on `[T]` directly. A generic `Iterator($T)` form is
-//     blocked on direct trait-method dispatch on a `$T : Iterator` type
-//     parameter, which the lowerer doesn't yet expose outside `for x in it`.
-//     Callers can bridge with `collect(it)` to materialise an array first.
+// All functions here take `T[]` as their primary input and return either a
+// fresh array or a folded value. They run eagerly — there's no lazy
+// pipeline yet — but `for x in arr` and `for i in 0..<n` keep iteration
+// idiomatic at the call site.
+//
+// Why no `Iterator($T)` parameter forms today : the lowerer can dispatch
+// `for x in it` through a static `step` impl when `it`'s static type is a
+// known struct (Range, ArrayIter, user iterators), but it can't yet box a
+// concrete iterator into a trait-object `Iterator(T)` value or call its
+// `step` through dynamic dispatch — both required to make a fn signature
+// `fn(it: Iterator($T))` actually work at runtime. Until trait-object
+// boxing + vtable dispatch land (TODO §3.5), keep one obvious shape.
 
-// count — total number of items the iterator yields.
-export count :: fn(it: Iterator($T)) -> i32 {
-    n := 0
-    for x in it {
-        n = n + 1
-    }
-    return n
+// count — number of items in the array.
+export count :: fn(arr: $T[]) -> i32 {
+    return arr.len()
 }
 
-// collect — drain the iterator into a freshly-allocated array.
-export collect :: fn(it: Iterator($T)) -> T[] {
+// collect — clone the array into a fresh allocation. Symmetric with the
+// future Iterator-driven form ; for arrays today it's a deep copy at the
+// element-reference level (elements aren't recursively cloned).
+export collect :: fn(arr: $T[]) -> T[] {
     out: T[] = []
-    for x in it {
+    for x in arr {
         out.push(x)
     }
     return out
@@ -111,6 +112,58 @@ export slice :: fn(arr: $T[], start: i32, end: i32) -> T[] {
     for i < hi {
         out.push(arr[i])
         i = i + 1
+    }
+    return out
+}
+
+// zip — pair elements of `a` and `b` into tuples, stopping at the shorter
+// of the two. Mirrors Python `zip` and JS `Array.prototype.entries`-style
+// pairing for parallel arrays (e.g. keys + values).
+export zip :: fn(a: $T[], b: $U[]) -> [T, U][] {
+    out: [T, U][] = []
+    n :: a.len()
+    m :: b.len()
+    k :: if n < m { n } else { m }
+    i := 0
+    for i < k {
+        out.push([a[i], b[i]])
+        i = i + 1
+    }
+    return out
+}
+
+// chain — concatenate `a` followed by `b` into a fresh array. Equivalent to
+// pushing every element of each in order ; useful when building a flat
+// stream out of two homogeneous sources.
+export chain :: fn(a: $T[], b: T[]) -> T[] {
+    out: T[] = []
+    for x in a { out.push(x) }
+    for x in b { out.push(x) }
+    return out
+}
+
+// enumerate — pair each element with its index, starting at 0. Returns
+// `[i32, T]` tuples so callers can `for [i, x] in arr.enumerate()` — pairs
+// nicely with the for-in destructure form.
+export enumerate :: fn(arr: $T[]) -> [i32, T][] {
+    out: [i32, T][] = []
+    i := 0
+    for x in arr {
+        out.push([i, x])
+        i = i + 1
+    }
+    return out
+}
+
+// flat_map — apply `f` to each element and concatenate the resulting
+// arrays. Useful when each input expands to zero-or-more outputs (parsing,
+// tree flattening).
+export flat_map :: fn(arr: $T[], f: fn(T) -> $U[]) -> U[] {
+    out: U[] = []
+    for x in arr {
+        for y in f(x) {
+            out.push(y)
+        }
     }
     return out
 }

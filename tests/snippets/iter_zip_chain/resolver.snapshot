@@ -50,16 +50,15 @@
   fn               public   zip 
   refs: idents=107 types=40 params=24 locals=23 typeParams=16 fields=0
 
-## tests/snippets/iter_combinators/_main.vader
-  import-binding   private  filter → filter
-  import-binding   private  fold → fold
+## tests/snippets/iter_zip_chain/_main.vader
+  import-binding   private  chain → chain
+  import-binding   private  collect → collect
+  import-binding   private  count → count
+  import-binding   private  enumerate → enumerate
+  import-binding   private  flat_map → flat_map
   fn               public   main 
-  import-binding   private  map → map
   import-binding   private  println → println
-  import-binding   private  skip → skip
-  import-binding   private  slice → slice
-  import-binding   private  sum → sum
-  import-binding   private  take → take
+  import-binding   private  zip → zip
   import std/io → ok
   import std/iter → ok
-  refs: idents=35 types=8 params=4 locals=10 typeParams=0 fields=0
+  refs: idents=32 types=3 params=1 locals=14 typeParams=0 fields=0

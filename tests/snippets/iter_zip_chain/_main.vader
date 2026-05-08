@@ -1,0 +1,40 @@
+import "std/io" { println }
+import "std/iter" { count, collect, zip, chain, enumerate, flat_map }
+
+main :: fn() -> i32 {
+    // count + collect on arrays — eager forms, no laziness yet.
+    nums :: [10, 20, 30]
+    println("count=${count(nums)}")
+    cloned :: collect(nums)
+    println("clone[0]=${cloned[0]}")
+
+    // zip — parallel arrays paired into tuples, stops at shorter length.
+    keys :: ["a", "b", "c", "d"]
+    vals :: [1, 2, 3]
+    pairs :: zip(keys, vals)
+    for [k, v] in pairs {
+        println("${k}=${v}")
+    }
+
+    // chain — concatenate two arrays.
+    head :: [1, 2, 3]
+    tail :: [4, 5]
+    joined :: chain(head, tail)
+    for x in joined {
+        println("j=${x}")
+    }
+
+    // enumerate — index + value pairs.
+    fruits :: ["apple", "banana", "cherry"]
+    for [i, f] in fruits.enumerate() {
+        println("${i}: ${f}")
+    }
+
+    // flat_map — each input expands to a sub-array.
+    bursts :: flat_map([1, 2, 3], fn(x: i32) -> i32[] { return [x, x * 10] })
+    for n in bursts {
+        println("b=${n}")
+    }
+
+    return 0
+}

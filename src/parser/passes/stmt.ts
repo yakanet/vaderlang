@@ -299,7 +299,12 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
     const iter = parseExpr(p, 0);
     p.allowStructLit = savedAllow;
     const body = parseBlock(p);
-    const synth = `__for_${start.span.start.offset}`;
+    // Encoding-invariant synth name: line/column are codepoint-based on
+    // both sides (TS skips low surrogates ; Vader skips UTF-8 continuation
+    // bytes), whereas `offset` diverges (UTF-16 code units in TS, UTF-8
+    // bytes in the self-host) and would break parser parity on snippets
+    // with multi-byte source.
+    const synth = `__for_${start.span.start.line}_${start.span.start.column}`;
     const synthSpan = binding.span;
     const synthIdent: A.IdentExpr = { kind: "IdentExpr", span: synthSpan, name: synth };
     const desugared: A.LetStmt = {
