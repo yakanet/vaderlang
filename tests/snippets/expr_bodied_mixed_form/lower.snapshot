@@ -10,6 +10,3 @@
           x#44 :i32
   fn tests_snippets_expr_bodied_mixed_form__main_vader$main() -> i32
     return int(0) :i32
-
-# Diagnostics
-[4:36] error[P1020] expression-bodied function cannot also declare an explicit return type

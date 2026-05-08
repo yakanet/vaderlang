@@ -43,6 +43,10 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
+  "expr_bodied_mixed_form": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
   "file_decorator": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -146,6 +150,10 @@
   "expr_bodied_fn": {
     "leakedNodes": 6,
     "leakedBytes": 480
+  },
+  "expr_bodied_recursive_typed": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
   },
   "for_range": {
     "leakedNodes": 3,

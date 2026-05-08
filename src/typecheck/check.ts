@@ -173,6 +173,10 @@ export function inferExprBodiedReturns(
     for (const decl of program.source.decls) {
       if (decl.kind !== "FnDecl") continue;
       if (decl.isExpressionBodied !== true || decl.body === null) continue;
+      // An explicit `-> T` annotation already pinned the return type in
+      // `declareFn` ; the body is regular-checked in `checkProgram` against
+      // the annotated type, no inference needed.
+      if (decl.returnType !== null) continue;
       pending.push({ program, decl });
     }
   }

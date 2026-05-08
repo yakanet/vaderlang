@@ -1,0 +1,4 @@
+# stdout
+fact(5)=120 fib(10)=55
+# exit
+0

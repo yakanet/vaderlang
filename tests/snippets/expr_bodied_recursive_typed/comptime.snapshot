@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/expr_bodied_recursive_typed/_main.vader
+
+## generic instances
+  Yielded(i32)

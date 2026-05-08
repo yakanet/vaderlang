@@ -329,25 +329,23 @@ function parseFnDecl(
 }
 
 /** After the optional `-> T` and `where ...`, a fn decl's tail is one of :
- *    - `{ block }`     — explicit block body (today's form)
- *    - `= expr`        — Kotlin-style expression body, return type inferred
+ *    - `{ block }`     — explicit block body
+ *    - `= expr`        — Kotlin-style expression body ; the return type is
+ *                        inferred when omitted, and an explicit `-> T` is
+ *                        allowed so callers can pin the signature for
+ *                        recursion / generics
  *    - <nothing>       — signature-only (extern / trait method shape)
- *
- *  Combining `-> T` with `= expr` is rejected as P1020 ; the explicit form
- *  already declares the return type. */
+ */
 function parseFnBodyTail(
-  p: Parser, hasReturnType: boolean,
+  p: Parser, _hasReturnType: boolean,
 ): { body: A.BlockExpr | null; isExpressionBodied: boolean } {
   if (p.check("assign")) {
-    const eqTok = p.advance(); // `=`
-    if (hasReturnType) {
-      p.error("P1020", eqTok.span);
-    }
+    p.advance(); // `=`
     const expr = parseExpr(p, 0);
     const body: A.BlockExpr = {
       kind: "BlockExpr", span: expr.span, stmts: [], trailing: expr,
     };
-    return { body, isExpressionBodied: !hasReturnType };
+    return { body, isExpressionBodied: true };
   }
   if (p.check("lbrace")) {
     return { body: parseBlock(p), isExpressionBodied: false };

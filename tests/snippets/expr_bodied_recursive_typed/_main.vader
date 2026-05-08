@@ -1,0 +1,15 @@
+import "std/io" { println }
+
+// Recursive expression-bodied fn — only possible with an explicit return
+// type, otherwise the inferrer can't bind the return type from the
+// recursive call site (T3034). Annotating `-> i32` pins it eagerly so
+// the body type-checks normally.
+
+fact :: fn(n: i32) -> i32 = if n <= 1 { 1 } else { n * fact(n - 1) }
+
+fib :: fn(n: i32) -> i32 = if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
+
+main :: fn() -> i32 {
+    println("fact(5)=${fact(5)} fib(10)=${fib(10)}")
+    return 0
+}

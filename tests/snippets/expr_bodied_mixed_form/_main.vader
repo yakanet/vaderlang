@@ -1,5 +1,7 @@
-// Mixing `-> T` with `= expr` is rejected at parse time (P1020). The two
-// forms are mutually exclusive: `= expr` infers; `-> T { ... }` annotates.
+// Expression-bodied fn with an explicit return type. Allowed since
+// 2026-05-08 — the annotation is required for recursive expression-bodied
+// fns (the inferrer can't bind the return type from a recursive call
+// site alone) and is otherwise a free way to pin a public signature.
 
 export square :: fn(x: i32) -> i32 = x * x
 

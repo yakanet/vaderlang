@@ -480,28 +480,15 @@ FnBodyTail :: struct {
 }
 
 parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnBodyTail {
-    has_return_type :: match return_type {
-        is null            -> false
-        is NamedType       -> true
-        is UnionType       -> true
-        is FnTypeExpr      -> true
-        is ArrayTypeExpr   -> true
-        is TupleTypeExpr   -> true
-        is GenericInstType -> true
-        is TypeParamType   -> true
-    }
     if p.check(.Assign) {
-        eq_tok :: p.advance()  // `=`
-        if has_return_type {
-            p.error(.ExprBodiedFnExplicitReturnType, eq_tok.span, "")
-        }
+        p.advance()  // `=`
         expr :: p.parse_expr(0)
         body :: BlockExpr {
             .span     = expr_span(expr),
             .stmts    = [],
             .trailing = expr,
         }
-        return FnBodyTail { .body = body, .is_expression_bodied = !has_return_type }
+        return FnBodyTail { .body = body, .is_expression_bodied = true }
     }
     if p.check(.LBrace) {
         return FnBodyTail { .body = p.parse_block(), .is_expression_bodied = false }

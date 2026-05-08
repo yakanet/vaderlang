@@ -4,6 +4,3 @@
 
 ## generic instances
   Yielded(i32)
-
-# Diagnostics
-[4:36] error[P1020] expression-bodied function cannot also declare an explicit return type

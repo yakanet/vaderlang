@@ -1,0 +1,35 @@
+# Typecheck
+
+## tests/snippets/expr_bodied_recursive_typed/_main.vader
+  FnDecl         fact                 :: fn(i32) -> i32
+  FnDecl         fib                  :: fn(i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 10:28    IfExpr         :: i32
+  expr 10:31    BinaryExpr     :: bool
+  expr 10:31    IdentExpr      :: i32
+  expr 10:39    IdentExpr      :: i32
+  expr 10:50    BinaryExpr     :: i32
+  expr 10:50    CallExpr       :: i32
+  expr 10:50    IdentExpr      :: fn(i32) -> i32
+  expr 10:54    BinaryExpr     :: i32
+  expr 10:54    IdentExpr      :: i32
+  expr 10:63    CallExpr       :: i32
+  expr 10:63    IdentExpr      :: fn(i32) -> i32
+  expr 10:67    BinaryExpr     :: i32
+  expr 10:67    IdentExpr      :: i32
+  expr 13:13    StringLitExpr  :: string
+  expr 13:24    CallExpr       :: i32
+  expr 13:24    IdentExpr      :: fn(i32) -> i32
+  expr 13:43    CallExpr       :: i32
+  expr 13:43    IdentExpr      :: fn(i32) -> i32
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(string) -> void
+  expr 8:29     IfExpr         :: i32
+  expr 8:32     BinaryExpr     :: bool
+  expr 8:32     IdentExpr      :: i32
+  expr 8:52     BinaryExpr     :: i32
+  expr 8:52     IdentExpr      :: i32
+  expr 8:56     CallExpr       :: i32
+  expr 8:56     IdentExpr      :: fn(i32) -> i32
+  expr 8:61     BinaryExpr     :: i32
+  expr 8:61     IdentExpr      :: i32

@@ -56,15 +56,16 @@ function declareFn(decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector):
       t.globals.paramTypes.set(p, pt);
     }
   }
-  // Expression-bodied fns (`fn(...) = expr`) defer their return type to the
-  // separate inference pass — leave it Unresolved here. Annotated and
-  // block-bodied fns keep the existing behaviour (block body without `->`
-  // → `void` return).
-  const returnType = decl.isExpressionBodied
-    ? TY.unresolved
-    : decl.returnType === null
-      ? TY.void
-      : lowerTypeExpr(decl.returnType, t, diags);
+  // Expression-bodied fns (`fn(...) = expr`) without an explicit return
+  // type defer to the separate inference pass — leave Unresolved here.
+  // An annotated form (`fn(...) -> T = expr`) lets recursive expression
+  // bodies reference themselves without needing inference, and the
+  // declared type wins. Block-bodied fns without `->` default to `void`.
+  const returnType = decl.returnType !== null
+    ? lowerTypeExpr(decl.returnType, t, diags)
+    : decl.isExpressionBodied
+      ? TY.unresolved
+      : TY.void;
   t.globals.declTypes.set(decl, { kind: "Fn", params, returnType });
 }
 

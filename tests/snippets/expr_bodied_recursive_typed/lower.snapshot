@@ -1,0 +1,97 @@
+# Lower
+
+## tests/snippets/expr_bodied_recursive_typed/_main.vader
+  fn tests_snippets_expr_bodied_recursive_typed__main_vader$fact(n: i32) -> i32
+    ~>
+      if :i32
+        cond:
+          lte :bool
+            l:
+              n#55 :i32
+            r:
+              int(1) :i32
+        then:
+          ~>
+            int(1) :i32
+        else:
+          ~>
+            mul :i32
+              l:
+                n#55 :i32
+              r:
+                call :i32
+                  callee:
+                    fact#2 :fn(i32) -> i32
+                  arg0:
+                    sub :i32
+                      l:
+                        n#55 :i32
+                      r:
+                        int(1) :i32
+  fn tests_snippets_expr_bodied_recursive_typed__main_vader$fib(n: i32) -> i32
+    ~>
+      if :i32
+        cond:
+          lt :bool
+            l:
+              n#56 :i32
+            r:
+              int(2) :i32
+        then:
+          ~>
+            n#56 :i32
+        else:
+          ~>
+            add :i32
+              l:
+                call :i32
+                  callee:
+                    fib#3 :fn(i32) -> i32
+                  arg0:
+                    sub :i32
+                      l:
+                        n#56 :i32
+                      r:
+                        int(1) :i32
+              r:
+                call :i32
+                  callee:
+                    fib#3 :fn(i32) -> i32
+                  arg0:
+                    sub :i32
+                      l:
+                        n#56 :i32
+                      r:
+                        int(2) :i32
+  fn tests_snippets_expr_bodied_recursive_typed__main_vader$main() -> i32
+    call :void
+      callee:
+        println#26 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0#-1 :?
+            "fact(5)=" :string
+          @builder.append_display <for i32> :void
+            __sb_0#-1 :?
+            call :i32
+              callee:
+                fact#2 :fn(i32) -> i32
+              arg0:
+                int(5) :i32
+          @builder.append_str :void
+            __sb_0#-1 :?
+            " fib(10)=" :string
+          @builder.append_display <for i32> :void
+            __sb_0#-1 :?
+            call :i32
+              callee:
+                fib#3 :fn(i32) -> i32
+              arg0:
+                int(10) :i32
+          ~>
+            @builder.finish :string
+              __sb_0#-1 :?
+    return int(0) :i32
