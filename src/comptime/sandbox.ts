@@ -19,6 +19,14 @@ export const COMPTIME_BUILTIN = {
 
 export type ComptimeBuiltinName = typeof COMPTIME_BUILTIN[keyof typeof COMPTIME_BUILTIN];
 
+/** Mangled names of the comptime VM imports the host bindings resolve. The
+ *  lowerer emits calls under these names; `run.ts` maps them to `callBuiltin`
+ *  routes for `@file` / `@env`. */
+export const COMPTIME_IMPORT = {
+  file: "comptime$file",
+  env:  "comptime$env",
+} as const;
+
 export interface SandboxOptions {
   readonly allowEnv: boolean;
   /** Absolute path. `@file` is rejected for any target outside this root.

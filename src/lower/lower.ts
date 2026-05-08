@@ -93,7 +93,7 @@ function lowerEntry(entry: MonoEntry, ctx: LowerProjectCtx): LoweredDecl | null 
   }
 }
 
-function lowerFnEntry(
+export function lowerFnEntry(
   entry: MonoEntry, fn: A.FnDecl, ctx: LowerProjectCtx, selfType: Type | null,
 ): LoweredFnDecl | null {
   const typed = ctx.evaluated.typed.modules.get(entry.module.module.id);
@@ -138,7 +138,7 @@ function lowerStructEntry(entry: MonoEntry, struct: A.StructDecl, ctx: LowerProj
   };
 }
 
-function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerProjectCtx): LoweredDecl | null {
+export function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerProjectCtx): LoweredDecl | null {
   const typed = ctx.evaluated.typed.modules.get(entry.module.module.id);
   const evaled = ctx.evaluated.modules.get(entry.module.module.id);
   if (typed === undefined) return null;
@@ -167,7 +167,7 @@ function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerProjectC
 
 /** Materialize a comptime value as a Lowered AST literal. Compound values
  *  (arrays, structs) are recursively lowered field-by-field. */
-function comptimeValueToLowered(v: ComptimeValue, typeHint: Type, span: Span): LoweredExpr {
+export function comptimeValueToLowered(v: ComptimeValue, typeHint: Type, span: Span): LoweredExpr {
   switch (v.kind) {
     case "int":    return { kind: "LoweredIntLit",   span, type: typeHint, value: v.value };
     case "float":  return { kind: "LoweredFloatLit", span, type: typeHint, value: v.value };

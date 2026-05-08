@@ -210,7 +210,7 @@ function buildSubst(
   return { typeParams: map };
 }
 
-function mangle(name: string, program: ResolvedProgram, typeArgs: readonly Type[]): string {
+export function mangle(name: string, program: ResolvedProgram, typeArgs: readonly Type[]): string {
   const moduleStem = sanitise(program.module.displayPath);
   const head = moduleStem === "" || moduleStem === name ? name : `${moduleStem}$${name}`;
   return typeArgs.length === 0

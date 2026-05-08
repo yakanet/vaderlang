@@ -7,13 +7,15 @@ import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as A from "../parser/ast.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
+import type { ImplRegistry } from "../typecheck/impls.ts";
 import type { Type } from "../typecheck/types.ts";
 
 import { runFn, VmError, type HostBindings, type HostFn, type Value } from "../vm/index.ts";
 
 import { err } from "./diag.ts";
-import { compileComptime, COMPTIME_IMPORT } from "./compile.ts";
-import { callBuiltin, type SandboxOptions } from "./sandbox.ts";
+import type { EvaluatedProject } from "./evaluated-ast.ts";
+import { lowerComptimeDecl } from "./lower-decl.ts";
+import { COMPTIME_IMPORT, callBuiltin, type SandboxOptions } from "./sandbox.ts";
 import {
   FALSE, NULL, TRUE, VOID, intVal, floatVal, stringVal, type ComptimeValue,
 } from "./value.ts";
@@ -26,12 +28,17 @@ export interface RunComptimeInput {
   readonly callerFile: string;
   readonly diags: DiagnosticCollector;
   readonly sandbox: SandboxOptions;
+  /** Project-wide invariants built once by `evaluateProject` and shared
+   *  across every comptime decl in the loop. */
+  readonly liveEvaluated: EvaluatedProject;
+  readonly projectImpls: ImplRegistry;
 }
 
 export function runComptimeDecl(input: RunComptimeInput): ComptimeValue | null {
-  const compiled = compileComptime({
+  const compiled = lowerComptimeDecl({
     decl: input.decl, project: input.project, callerProgram: input.callerProgram,
     evaluated: input.evaluated, diags: input.diags,
+    liveEvaluated: input.liveEvaluated, projectImpls: input.projectImpls,
   });
   if (compiled === null) return null;
 

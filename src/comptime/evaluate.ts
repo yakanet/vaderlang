@@ -20,6 +20,7 @@ import type { EvaluatedProgram, EvaluatedProject } from "./evaluated-ast.ts";
 import { InstanceRegistry } from "./instances.ts";
 import { planComptimeOrder } from "./deps.ts";
 import { runComptimeDecl } from "./run.ts";
+import { buildImplRegistry } from "../typecheck/impls.ts";
 import { COMPTIME_BUILTIN, callBuiltin, type SandboxOptions } from "./sandbox.ts";
 import type { ComptimeValue } from "./value.ts";
 import { stringVal } from "./value.ts";
@@ -54,10 +55,17 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
   const comptimeByDecl = new Map<A.ConstDecl, ComptimeValue>();
   const comptimeOwner = new Map<A.ConstDecl, TypedProgram>();
   const order = planComptimeOrder(project, opts.diags);
+  // Project-wide invariants the per-decl loop needs — built once. The "live"
+  // EvaluatedProject shares the comptimeByDecl/fileByDecl maps across every
+  // module's overlay so each iteration sees the latest baked values without
+  // rebuilding the wrapper.
+  const liveEvaluated = makeLiveEvaluatedProject(project, comptimeByDecl, fileByDecl);
+  const projectImpls = buildImplRegistry(project.resolved);
   for (const { decl, program } of order.entries) {
     const value = runComptimeDecl({
       decl, project, callerProgram: program, evaluated: comptimeByDecl,
       callerFile: program.resolved.source.file, diags: opts.diags, sandbox: opts.sandbox,
+      liveEvaluated, projectImpls,
     });
     if (value !== null) { comptimeByDecl.set(decl, value); comptimeOwner.set(decl, program); }
   }
@@ -76,6 +84,23 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     modules.set(id, { typed, comptimeDecls: ct, fileDecls: fl });
   }
   return { typed: project, modules, instances: instances.entries() };
+}
+
+/** Build a synthetic EvaluatedProject whose per-module overlays all alias the
+ *  same shared `comptimeDecls` / `fileDecls` Maps. Lookups inside the
+ *  comptime loop hit those shared maps as new decls bake — no per-module
+ *  duplication. The final, properly per-module-scoped EvaluatedProject is
+ *  rebuilt once after the loop completes. */
+function makeLiveEvaluatedProject(
+  project: TypedProject,
+  comptimeDecls: ReadonlyMap<A.ConstDecl, ComptimeValue>,
+  fileDecls: ReadonlyMap<A.ConstDecl, ComptimeValue>,
+): EvaluatedProject {
+  const modules = new Map<string, EvaluatedProgram>();
+  for (const [id, typed] of project.modules) {
+    modules.set(id, { typed, comptimeDecls, fileDecls });
+  }
+  return { typed: project, modules, instances: [] };
 }
 
 function evalFileDecorator(
