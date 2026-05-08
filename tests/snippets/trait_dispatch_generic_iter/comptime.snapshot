@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/trait_dispatch_generic_iter/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Iterator(i32)
+  Repeat(i32)
+  Once(i32)

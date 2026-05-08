@@ -14,12 +14,13 @@ import { err } from "../diag.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { MethodResolution } from "../typed-ast.ts";
 import type { Substitution, Type } from "../types.ts";
-import { TY, defaultIfFree, displayType, isAssignable, isNumeric, isPrimitive, substitute } from "../types.ts";
+import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isNumeric, isPrimitive, substitute } from "../types.ts";
 
-import { tryStructSubst } from "../ctx.ts";
+import { buildStructSubst, tryStructSubst } from "../ctx.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr, typeOfSymbol } from "./expr.ts";
+import { findGlobalTrait } from "./traits.ts";
 import { primitiveFromName } from "./type-expr.ts";
 
 export function inferCall(
@@ -99,6 +100,7 @@ export function inferCall(
       err(diags, "T3001", arg.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(got)}`);
     }
+    if (expectedTy !== null) recordIterCoercion(arg.value, got, expectedTy, t);
   }
   return calleeType.returnType;
 }
@@ -131,6 +133,9 @@ function inferGenericFnCall(
     if (!typeContainsTypeParam(expectedTy) && !isAssignable(argTypes[i]!, expectedTy, impls)) {
       err(diags, "T3001", expr.args[i]!.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(argTypes[i]!)}`);
+    }
+    if (!typeContainsTypeParam(expectedTy)) {
+      recordIterCoercion(expr.args[i]!.value, argTypes[i]!, expectedTy, t);
     }
   }
 
@@ -272,8 +277,13 @@ export function inferField(
         if (fnType !== undefined && fnType.kind === "Fn") {
           t.traitVirtualResolutions.set(expr, { trait: targetType.symbol, member });
           // Drop the receiver param (params[0] is `self`); substitute Self with
-          // the trait type so the return type is meaningful at the call site.
-          const subst: Substitution = { self: targetType };
+          // the trait type and the trait's own type-params with the receiver's
+          // concrete args so e.g. `it: Iterator(i32); it.step()` returns
+          // `Done | Yielded(i32)` instead of `Done | Yielded($T)`.
+          const traitSubst = buildStructSubst(
+            traitDecl.typeParams, targetType.args, t.globals.typeParamSymbols,
+          );
+          const subst: Substitution = { self: targetType, typeParams: traitSubst.typeParams };
           return {
             kind: "Fn",
             params: fnType.params.slice(1).map((p) => substitute(p, subst)),
@@ -498,11 +508,28 @@ function inferGenericUfcsCall(
       err(diags, "T3001", expr.args[i]!.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(explicitArgTypes[i]!)}`);
     }
+    if (!typeContainsTypeParam(expectedTy)) {
+      recordIterCoercion(expr.args[i]!.value, explicitArgTypes[i]!, expectedTy, t);
+    }
   }
 
   recordGenericCallSite(expr, declOf(freeSym), bindings, t);
 
   return substitute(fullFnType.returnType, subst);
+}
+
+/** Record an `[T]` → `Iterator(T)` coercion when the assignability check
+ *  matched the trait-typed slot but the source expression is a raw array.
+ *  The lowerer reads `arrayIterCoercions` to wrap the lowered expression
+ *  in an `ArrayIter(T)` struct literal at the use site. */
+export function recordIterCoercion(
+  src: A.Expr, got: Type, expected: Type, t: MutableTyped,
+): void {
+  if (got.kind !== "Array") return;
+  if (expected.kind !== "Trait" || expected.args.length !== 1) return;
+  const iter = findGlobalTrait(t, CORE_TRAITS.Iterator);
+  if (iter === null || iter.id !== expected.symbol.id) return;
+  t.arrayIterCoercions.set(src, got.element);
 }
 
 function recordGenericCallSite(

@@ -84,6 +84,8 @@ export interface MutableTyped {
    *  right specialisation. Empty when the resolver's primary already matched
    *  (single overload, or first overload picked unambiguously). */
   readonly directCallOverloads: Map<A.CallExpr, Symbol>;
+  /** `[T]` → `Iterator(T)` coercion sites. See `TypedProgram.arrayIterCoercions`. */
+  readonly arrayIterCoercions: Map<A.Expr, Type>;
 }
 
 /** Find the std/core module's exported symbol map. Used by the impl registry

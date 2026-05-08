@@ -11,6 +11,7 @@ import type { Type } from "../types.ts";
 import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
+import { recordIterCoercion } from "./call.ts";
 import { checkExpr } from "./expr.ts";
 import { lowerTypeExpr } from "./type-expr.ts";
 
@@ -50,6 +51,7 @@ export function checkFnBody(
     err(diags, "T3020", body.trailing.span,
       `expected ${displayType(ctx.returnType)}, got ${displayType(got)}`);
   }
+  if (body.trailing !== null) recordIterCoercion(body.trailing, got, ctx.returnType, t);
 }
 
 export function checkBlock(
@@ -78,6 +80,7 @@ function checkStmt(
         err(diags, "T3001", stmt.span,
           `expected ${displayType(expected)}, got ${displayType(got)}`);
       }
+      if (expected !== null) recordIterCoercion(stmt.value, got, expected, t);
       t.localTypes.set(stmt, declared);
       return;
     }
@@ -106,6 +109,7 @@ function checkStmt(
         err(diags, "T3020", stmt.span,
           `expected ${displayType(fn.returnType)}, got ${displayType(got)}`);
       }
+      recordIterCoercion(stmt.value, got, fn.returnType, t);
       return;
     }
     case "ForStmt":

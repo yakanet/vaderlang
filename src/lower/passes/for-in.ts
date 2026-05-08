@@ -3,6 +3,7 @@
 // ImplRegistry. Also lowers `RangeExpr` into a `Range` struct literal so
 // for-in can dispatch through the same Iterator path.
 
+import type { Span } from "../../diagnostics/diagnostic.ts";
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { ImplEntry } from "../../typecheck/impls.ts";
@@ -18,6 +19,13 @@ import { lowerBlock } from "./block.ts";
 import { findCoreTrait, findCoreType, unionOfDoneYielded } from "./core.ts";
 import { lowerExpr } from "./expr.ts";
 import { blockStmtsWithTrailing, freshSyntheticSymbol, wrapStmts } from "./helpers.ts";
+
+/** Pure reads — referencing them twice is a no-op at the bytecode level
+ *  (`local.get` / `struct.get` etc.). Anything else (calls, allocations,
+ *  arithmetic) must be hoisted to a temp before being shared. */
+function isIdempotentRead(e: LoweredExpr): boolean {
+  return e.kind === "LoweredIdent" || e.kind === "LoweredFieldAccess";
+}
 
 /** Desugar `RangeExpr` (`a..<b` / `a..=b`) into a `Range` struct literal so
  *  `for-in` can dispatch through the standard Iterator impl rather than a
@@ -58,19 +66,10 @@ export function lowerForIn(ctx: FnLowerCtx, stmt: A.ForStmt): LoweredStmt {
   // captures the array, sets cursor=0, and pre-computes the length via the
   // `array.len` op (no generic `len(arr)` fn needed).
   if (iterType.kind === "Array") {
-    const arrayIterType = findCoreType(ctx, CORE_STRUCTS.ArrayIter, [iterType.element]);
-    if (arrayIterType !== null) {
-      iterLowered = {
-        kind: "LoweredStructLit", span: iterExpr.span, type: arrayIterType,
-        fields: [
-          { name: "arr",    value: iterLowered },
-          { name: "cursor", value: { kind: "LoweredIntLit", span, type: TY.i32, value: 0n } },
-          { name: "length", value: {
-            kind: "LoweredArrayLen", span, type: TY.i32, target: iterLowered,
-          } },
-        ],
-      };
-      iterType = arrayIterType;
+    const wrapped = wrapArrayAsIter(ctx, iterLowered, iterType.element, iterExpr.span, span);
+    if (wrapped !== null) {
+      iterLowered = wrapped;
+      iterType = wrapped.type;
     }
   }
 
@@ -207,4 +206,58 @@ export function lookupImplEntry(ctx: FnLowerCtx, member: A.FnDecl, args: readonl
   if (inner === undefined) return null;
   const key = args.map(displayType).join(",");
   return inner.get(key) ?? null;
+}
+
+/** Wrap a `[T]`-typed lowered expression into an `ArrayIter(T)` struct
+ *  literal. Returns `null` when std/core's `ArrayIter` can't be located —
+ *  caller falls back to the unwrapped expression. Shared between for-in's
+ *  iter auto-wrap and the `arrayIterCoercions` site (call args, let / return
+ *  slots typed as `Iterator(T)`).
+ *
+ *  Why hoist : the struct lit needs the array as both a field value and the
+ *  target of an `array.len`. Letting the same node appear twice would emit
+ *  the source expression twice — fine for a `LoweredIdent` read, but a
+ *  function call or fresh `[…]` literal would run twice and the iterator
+ *  would point at a different array than its `length` was computed from.
+ *
+ *  Two spans are accepted so call sites can attribute the synthetic struct
+ *  lit to the original array expression (`outerSpan`) while the synthetic
+ *  cursor/length sub-nodes stay attached to the surrounding stmt (`innerSpan`)
+ *  — matches the for-in lowering's existing diagnostic anchoring. */
+export function wrapArrayAsIter(
+  ctx: FnLowerCtx, arrLowered: LoweredExpr, element: Type,
+  outerSpan: Span, innerSpan: Span = outerSpan,
+): LoweredExpr | null {
+  const arrayIterType = findCoreType(ctx, CORE_STRUCTS.ArrayIter, [element]);
+  if (arrayIterType === null) return null;
+  const ref = isIdempotentRead(arrLowered) ? arrLowered : null;
+  if (ref !== null) return buildArrayIterLit(arrayIterType, ref, ref, outerSpan, innerSpan);
+  const tmp = freshSyntheticSymbol(ctx, "arr");
+  const tmpRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span: outerSpan, type: arrLowered.type, symbol: tmp,
+  });
+  return {
+    kind: "LoweredBlock", span: outerSpan, type: arrayIterType,
+    stmts: [{
+      kind: "LoweredLet", span: outerSpan, name: tmp.name, symbol: tmp,
+      type: arrLowered.type, value: arrLowered,
+    }],
+    trailing: buildArrayIterLit(arrayIterType, tmpRef(), tmpRef(), outerSpan, innerSpan),
+  };
+}
+
+function buildArrayIterLit(
+  arrayIterType: Type, arrField: LoweredExpr, arrForLen: LoweredExpr,
+  outerSpan: Span, innerSpan: Span,
+): LoweredExpr {
+  return {
+    kind: "LoweredStructLit", span: outerSpan, type: arrayIterType,
+    fields: [
+      { name: "arr",    value: arrField },
+      { name: "cursor", value: { kind: "LoweredIntLit", span: innerSpan, type: TY.i32, value: 0n } },
+      { name: "length", value: {
+        kind: "LoweredArrayLen", span: innerSpan, type: TY.i32, target: arrForLen,
+      } },
+    ],
+  };
 }

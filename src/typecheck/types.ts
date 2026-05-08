@@ -291,6 +291,9 @@ export function unionOf(variants: readonly Type[]): Type {
 export interface TraitOracle {
   hasUser(forSymbol: Symbol, trait: Symbol): boolean;
   forPrimitive(name: string, trait: Symbol): unknown | null;
+  /** Resolves a core trait by its canonical name. Returns null when the
+   *  caller couldn't locate std/core (e.g. dump-only pipelines). */
+  coreTrait(name: string): Symbol | null;
 }
 
 /**
@@ -319,6 +322,15 @@ export function isAssignable(from: Type, to: Type, impls?: TraitOracle): boolean
     if (from.kind === "Struct") return impls.hasUser(from.symbol, to.symbol);
     if (from.kind === "Primitive") return impls.forPrimitive(from.name, to.symbol) !== null;
     if (from.kind === "Union") return from.variants.every((v) => isAssignable(v, to, impls));
+    // `[T]` → `Iterator(T)` widening — paired with the lower-time auto-wrap
+    // into `ArrayIter(T)`. Gated on symbol identity so a user-defined trait
+    // also named "Iterator" doesn't get the std/core-only coercion.
+    if (from.kind === "Array" && to.args.length === 1) {
+      const iter = impls.coreTrait(CORE_TRAITS.Iterator);
+      if (iter !== null && iter.id === to.symbol.id) {
+        return equalsType(from.element, to.args[0]!);
+      }
+    }
   }
 
   if (to.kind === "Union") {

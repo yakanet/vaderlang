@@ -19,6 +19,7 @@ export class ImplRegistry {
   private readonly userIndex = new Map<string, ImplEntry>();
   private readonly byTrait = new Map<number, ImplEntry[]>();
   private readonly all: ImplEntry[] = [];
+  private coreSymbols: ReadonlyMap<string, Symbol> | null = null;
 
   add(entry: ImplEntry): void {
     if (entry.forSymbol !== null) {
@@ -54,12 +55,26 @@ export class ImplRegistry {
     return this.byTrait.get(traitSymbol.id) ?? [];
   }
 
+  /** Resolves a `std/core` trait by name. Returns `null` outside std-aware
+   *  pipelines (e.g. snapshot dumps). Used by `isAssignable` to gate trait
+   *  coercions on canonical-symbol identity. */
+  coreTrait(name: string): Symbol | null {
+    const sym = this.coreSymbols?.get(name);
+    return sym?.kind === "trait" ? sym : null;
+  }
+
   entries(): readonly ImplEntry[] { return this.all; }
+
+  /** @internal — set by `buildImplRegistry` after resolving std/core. */
+  setCoreSymbols(coreSymbols: ReadonlyMap<string, Symbol> | null): void {
+    this.coreSymbols = coreSymbols;
+  }
 }
 
 export function buildImplRegistry(project: ResolvedProject): ImplRegistry {
   const reg = new ImplRegistry();
   const coreSymbols = findCoreSymbols(project);
+  reg.setCoreSymbols(coreSymbols);
   for (const program of project.modules.values()) {
     collectImpls(program, reg, coreSymbols);
   }

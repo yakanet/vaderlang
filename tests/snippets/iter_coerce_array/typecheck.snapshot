@@ -1,0 +1,37 @@
+# Typecheck
+
+## tests/snippets/iter_coerce_array/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         make_iter            :: fn() -> Iterator(i32)
+  FnDecl         walk                 :: fn(Iterator(i32)) -> i32
+  expr 15:9     IdentExpr      :: bool
+  expr 16:15    CallExpr       :: Done | Yielded(i32)
+  expr 16:15    FieldExpr      :: fn() -> Done | Yielded(i32)
+  expr 16:15    IdentExpr      :: Iterator(i32)
+  expr 16:9     MatchExpr      :: void
+  expr 17:26    IdentExpr      :: bool
+  expr 18:39    IdentExpr      :: i32
+  expr 18:45    BinaryExpr     :: i32
+  expr 18:45    IdentExpr      :: i32
+  expr 18:51    FieldExpr      :: i32
+  expr 18:51    IdentExpr      :: Yielded(i32)
+  expr 21:12    IdentExpr      :: i32
+  expr 25:12    ArrayLitExpr   :: [i32]
+  expr 26:12    IdentExpr      :: [i32]
+  expr 31:10    CallExpr       :: i32
+  expr 31:10    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 31:15    ArrayLitExpr   :: [i32]
+  expr 34:33    ArrayLitExpr   :: [i32]
+  expr 35:10    CallExpr       :: i32
+  expr 35:10    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 35:15    IdentExpr      :: Iterator(i32)
+  expr 38:10    CallExpr       :: i32
+  expr 38:10    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 38:15    CallExpr       :: Iterator(i32)
+  expr 38:15    IdentExpr      :: fn() -> Iterator(i32)
+  expr 40:13    StringLitExpr  :: string
+  expr 40:18    IdentExpr      :: i32
+  expr 40:25    IdentExpr      :: i32
+  expr 40:32    IdentExpr      :: i32
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(string) -> void

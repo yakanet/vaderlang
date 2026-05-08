@@ -1,0 +1,42 @@
+# Modules
+
+## std/core
+  trait            public   Add 
+  struct           public   ArrayIter 
+  trait            public   Clone 
+  trait            public   Contains 
+  trait            public   Display 
+  trait            public   Div 
+  struct           public   Done 
+  trait            public   Eq 
+  trait            public   Error 
+  trait            public   Hash 
+  fn               public   hash_string 
+  trait            public   Iterator 
+  trait            public   Mul 
+  trait            public   Ord 
+  struct           public   Range 
+  trait            public   Sub 
+  struct           public   Yielded 
+  refs: idents=40 types=71 params=36 locals=3 typeParams=4 fields=0
+
+## std/io
+  fn               public   eprint 
+  fn               public   eprintln 
+  fn               public   exists 
+  struct           public   IOError 
+  fn               public   print 
+  fn               public   println 
+  fn               public   read_file 
+  fn               public   read_line 
+  fn               public   write_file 
+  refs: idents=1 types=22 params=9 locals=0 typeParams=0 fields=0
+
+## tests/snippets/trait_dispatch_generic_iter/_main.vader
+  fn               public   main 
+  struct           public   Once 
+  import-binding   private  println → println
+  struct           public   Repeat 
+  fn               private  walk 
+  import std/io → ok
+  refs: idents=21 types=31 params=3 locals=5 typeParams=2 fields=0

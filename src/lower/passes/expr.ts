@@ -13,7 +13,7 @@ import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
-import { lookupImplEntry, lookupImplFor, lowerRangeExpr } from "./for-in.ts";
+import { lookupImplEntry, lookupImplFor, lowerRangeExpr, wrapArrayAsIter } from "./for-in.ts";
 import { applySubst, blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
 import { lowerMatch } from "./match.ts";
@@ -21,6 +21,16 @@ import { lowerStringLit } from "./string-interp.ts";
 import { lowerTry } from "./try.ts";
 
 export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
+  const lowered = lowerExprInner(ctx, expr);
+  const coerceElement = ctx.typed.arrayIterCoercions.get(expr);
+  if (coerceElement !== undefined) {
+    const wrapped = wrapArrayAsIter(ctx, lowered, applySubst(coerceElement, ctx.subst), expr.span);
+    if (wrapped !== null) return wrapped;
+  }
+  return lowered;
+}
+
+function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
   const exprType = applySubst(ctx.typed.exprTypes.get(expr) ?? TY.unresolved, ctx.subst);
   switch (expr.kind) {
     case "IntLitExpr":
@@ -373,18 +383,21 @@ function lowerVirtualDispatch(
   for (const impl of ctx.project.impls.forTrait(traitSym)) {
     const member = impl.decl.members.find((m) => m.name === methodName);
     if (member === undefined) continue;
-    // Primitive impls and generic struct impls are skipped — primitives carry
-    // a per-primitive box tag but the chain is structured around `is Struct`
-    // checks ; generic impls would need the instance args, which the
-    // trait-typed receiver doesn't expose. Common case (Error) is non-generic.
+    // Skip primitive impls : they carry a per-primitive box tag but the
+    // dispatch chain is structured around `is Struct` checks.
     if (impl.forSymbol === null || impl.forSymbol.source.kind !== "struct") continue;
-    if (impl.forSymbol.source.decl.typeParams.length > 0) continue;
-    const entry = lookupImplEntry(ctx, member, []);
-    if (entry === null || entry.symbol === null) continue;
-    candidates.push({
-      forType: { kind: "Struct", symbol: impl.forSymbol, args: [] },
-      memberSym: entry.symbol,
-    });
+    // Each monomorphised `(member, struct args)` pair is a runtime-observable
+    // tag we can dispatch on. Non-generic impls have a single entry keyed
+    // by empty args ; generic impls have one entry per concrete instance.
+    const perArgs = ctx.project.mono.implMethodEntries.get(member);
+    if (perArgs === undefined) continue;
+    for (const entry of perArgs.values()) {
+      if (entry.symbol === null) continue;
+      candidates.push({
+        forType: { kind: "Struct", symbol: impl.forSymbol, args: entry.typeArgs },
+        memberSym: entry.symbol,
+      });
+    }
   }
   if (candidates.length === 0) return null;
 

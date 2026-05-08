@@ -215,6 +215,14 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry): vo
         } });
       }
     }
+    // Each `[T]` → `Iterator(T)` coercion site needs an `ArrayIter(T)`
+    // instance materialised by mono so the specialised step impl exists
+    // when the lower-time wrap unfolds. Registry deduplicates by displayKey.
+    if (arrayIterSymbol !== null) {
+      for (const elementTy of typed.arrayIterCoercions.values()) {
+        registry.add(arrayIterSymbol, [elementTy]);
+      }
+    }
     // Inferred generic-fn call sites: the typechecker records (CallExpr → typeArgs)
     // for each call site where it successfully unified the fn's type params.
     for (const [callExpr, typeArgs] of typed.genericFnCalls) {

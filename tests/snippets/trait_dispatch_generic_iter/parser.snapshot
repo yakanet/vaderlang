@@ -1,0 +1,787 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Repeat",
+      "visibility": "public",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "fields": [
+        {
+          "name": "value",
+          "type": {
+            "kind": "NamedType",
+            "name": "T"
+          },
+          "visibility": "private"
+        },
+        {
+          "name": "remaining",
+          "type": {
+            "kind": "NamedType",
+            "name": "i32"
+          },
+          "visibility": "private"
+        }
+      ],
+      "whereClauses": [],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "forType": {
+        "kind": "GenericInstType",
+        "base": {
+          "kind": "NamedType",
+          "name": "Repeat"
+        },
+        "args": [
+          {
+            "kind": "TypeParamType",
+            "name": "T"
+          }
+        ]
+      },
+      "traitName": "Iterator",
+      "traitArgs": [
+        {
+          "kind": "NamedType",
+          "name": "T"
+        }
+      ],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "step",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "UnionType",
+            "variants": [
+              {
+                "kind": "NamedType",
+                "name": "Done"
+              },
+              {
+                "kind": "GenericInstType",
+                "base": {
+                  "kind": "NamedType",
+                  "name": "Yielded"
+                },
+                "args": [
+                  {
+                    "kind": "NamedType",
+                    "name": "T"
+                  }
+                ]
+              }
+            ]
+          },
+          "whereClauses": [],
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "ExprStmt",
+                "expr": {
+                  "kind": "IfExpr",
+                  "cond": {
+                    "kind": "BinaryExpr",
+                    "op": "lte",
+                    "left": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "self"
+                      },
+                      "field": "remaining"
+                    },
+                    "right": {
+                      "kind": "IntLitExpr",
+                      "value": "0n",
+                      "suffix": null
+                    }
+                  },
+                  "then": {
+                    "kind": "BlockExpr",
+                    "stmts": [
+                      {
+                        "kind": "ReturnStmt",
+                        "value": {
+                          "kind": "StructLitExpr",
+                          "typeName": {
+                            "kind": "NamedType",
+                            "name": "Done"
+                          },
+                          "fields": []
+                        }
+                      }
+                    ],
+                    "trailing": null
+                  },
+                  "else": null
+                }
+              },
+              {
+                "kind": "LetStmt",
+                "mutable": false,
+                "name": "v",
+                "type": null,
+                "value": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "self"
+                  },
+                  "field": "value"
+                }
+              },
+              {
+                "kind": "AssignStmt",
+                "target": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "self"
+                  },
+                  "field": "remaining"
+                },
+                "value": {
+                  "kind": "BinaryExpr",
+                  "op": "sub",
+                  "left": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "self"
+                    },
+                    "field": "remaining"
+                  },
+                  "right": {
+                    "kind": "IntLitExpr",
+                    "value": "1n",
+                    "suffix": null
+                  }
+                }
+              },
+              {
+                "kind": "ReturnStmt",
+                "value": {
+                  "kind": "StructLitExpr",
+                  "typeName": {
+                    "kind": "GenericInstType",
+                    "base": {
+                      "kind": "NamedType",
+                      "name": "Yielded"
+                    },
+                    "args": [
+                      {
+                        "kind": "NamedType",
+                        "name": "T"
+                      }
+                    ]
+                  },
+                  "fields": [
+                    {
+                      "name": "value",
+                      "value": {
+                        "kind": "IdentExpr",
+                        "name": "v"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Once",
+      "visibility": "public",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "fields": [
+        {
+          "name": "value",
+          "type": {
+            "kind": "NamedType",
+            "name": "T"
+          },
+          "visibility": "private"
+        },
+        {
+          "name": "yielded",
+          "type": {
+            "kind": "NamedType",
+            "name": "bool"
+          },
+          "visibility": "private"
+        }
+      ],
+      "whereClauses": [],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "forType": {
+        "kind": "GenericInstType",
+        "base": {
+          "kind": "NamedType",
+          "name": "Once"
+        },
+        "args": [
+          {
+            "kind": "TypeParamType",
+            "name": "T"
+          }
+        ]
+      },
+      "traitName": "Iterator",
+      "traitArgs": [
+        {
+          "kind": "NamedType",
+          "name": "T"
+        }
+      ],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "step",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "UnionType",
+            "variants": [
+              {
+                "kind": "NamedType",
+                "name": "Done"
+              },
+              {
+                "kind": "GenericInstType",
+                "base": {
+                  "kind": "NamedType",
+                  "name": "Yielded"
+                },
+                "args": [
+                  {
+                    "kind": "NamedType",
+                    "name": "T"
+                  }
+                ]
+              }
+            ]
+          },
+          "whereClauses": [],
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "ExprStmt",
+                "expr": {
+                  "kind": "IfExpr",
+                  "cond": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "self"
+                    },
+                    "field": "yielded"
+                  },
+                  "then": {
+                    "kind": "BlockExpr",
+                    "stmts": [
+                      {
+                        "kind": "ReturnStmt",
+                        "value": {
+                          "kind": "StructLitExpr",
+                          "typeName": {
+                            "kind": "NamedType",
+                            "name": "Done"
+                          },
+                          "fields": []
+                        }
+                      }
+                    ],
+                    "trailing": null
+                  },
+                  "else": null
+                }
+              },
+              {
+                "kind": "AssignStmt",
+                "target": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "self"
+                  },
+                  "field": "yielded"
+                },
+                "value": {
+                  "kind": "BoolLitExpr",
+                  "value": true
+                }
+              },
+              {
+                "kind": "ReturnStmt",
+                "value": {
+                  "kind": "StructLitExpr",
+                  "typeName": {
+                    "kind": "GenericInstType",
+                    "base": {
+                      "kind": "NamedType",
+                      "name": "Yielded"
+                    },
+                    "args": [
+                      {
+                        "kind": "NamedType",
+                        "name": "T"
+                      }
+                    ]
+                  },
+                  "fields": [
+                    {
+                      "name": "value",
+                      "value": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "self"
+                        },
+                        "field": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "walk",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "it",
+          "type": {
+            "kind": "GenericInstType",
+            "base": {
+              "kind": "NamedType",
+              "name": "Iterator"
+            },
+            "args": [
+              {
+                "kind": "NamedType",
+                "name": "i32"
+              }
+            ]
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "i32"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "sum",
+            "type": null,
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "cont",
+            "type": null,
+            "value": {
+              "kind": "BoolLitExpr",
+              "value": true
+            }
+          },
+          {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "while",
+              "cond": {
+                "kind": "IdentExpr",
+                "name": "cont"
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "MatchExpr",
+                "scrutinee": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "it"
+                    },
+                    "field": "step"
+                  },
+                  "args": []
+                },
+                "arms": [
+                  {
+                    "pattern": {
+                      "kind": "IsPattern",
+                      "type": {
+                        "kind": "NamedType",
+                        "name": "Done"
+                      },
+                      "inner": null,
+                      "bindAs": null
+                    },
+                    "guard": null,
+                    "body": {
+                      "kind": "BlockExpr",
+                      "stmts": [
+                        {
+                          "kind": "AssignStmt",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "cont"
+                          },
+                          "value": {
+                            "kind": "BoolLitExpr",
+                            "value": false
+                          }
+                        }
+                      ],
+                      "trailing": null
+                    }
+                  },
+                  {
+                    "pattern": {
+                      "kind": "IsPattern",
+                      "type": {
+                        "kind": "GenericInstType",
+                        "base": {
+                          "kind": "NamedType",
+                          "name": "Yielded"
+                        },
+                        "args": [
+                          {
+                            "kind": "NamedType",
+                            "name": "i32"
+                          }
+                        ]
+                      },
+                      "inner": null,
+                      "bindAs": "y"
+                    },
+                    "guard": null,
+                    "body": {
+                      "kind": "BlockExpr",
+                      "stmts": [
+                        {
+                          "kind": "AssignStmt",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "sum"
+                          },
+                          "value": {
+                            "kind": "BinaryExpr",
+                            "op": "add",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "sum"
+                            },
+                            "right": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "y"
+                              },
+                              "field": "value"
+                            }
+                          }
+                        }
+                      ],
+                      "trailing": null
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "sum"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "NamedType",
+        "name": "i32"
+      },
+      "whereClauses": [],
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "r",
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "GenericInstType",
+                "base": {
+                  "kind": "NamedType",
+                  "name": "Repeat"
+                },
+                "args": [
+                  {
+                    "kind": "NamedType",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "name": "value",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "7n",
+                    "suffix": null
+                  }
+                },
+                {
+                  "name": "remaining",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "3n",
+                    "suffix": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "name": "o",
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "GenericInstType",
+                "base": {
+                  "kind": "NamedType",
+                  "name": "Once"
+                },
+                "args": [
+                  {
+                    "kind": "NamedType",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "name": "value",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "100n",
+                    "suffix": null
+                  }
+                },
+                {
+                  "name": "yielded",
+                  "value": {
+                    "kind": "BoolLitExpr",
+                    "value": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "repeat="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "walk"
+                          },
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "IdentExpr",
+                                "name": "r"
+                              },
+                              "spread": false
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "once="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "walk"
+                          },
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "IdentExpr",
+                                "name": "o"
+                              },
+                              "spread": false
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

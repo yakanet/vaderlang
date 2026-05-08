@@ -1,0 +1,60 @@
+// Virtual trait-method dispatch over a generic-struct receiver. Two distinct
+// generic iterators (`Repeat(i32)` and `Once(i32)`) implement `Iterator(i32)`.
+// `walk` takes an `Iterator(i32)` trait-typed parameter and calls `.step()`
+// directly — the lowerer must enumerate every concrete (struct, args)
+// instance observed at compile time and emit one `is Struct(args)` arm per.
+//
+// Without the generic-struct branch in `lowerVirtualDispatch` the call hits
+// `unreachable` at runtime ; without the trait-arg substitution in the
+// typechecker (`Substitution { typeParams }` for the trait's own params) the
+// match would reject `is Yielded(i32)` arms because `step` would be typed as
+// returning `Done | Yielded($T)`.
+
+import "std/io" { println }
+
+export Repeat :: struct($T) {
+    value: T
+    remaining: i32
+}
+
+Repeat($T) implements Iterator(T) {
+    fn step(self) -> Done | Yielded(T) {
+        if self.remaining <= 0 { return Done {} }
+        v :: self.value
+        self.remaining = self.remaining - 1
+        return Yielded(T) { .value = v }
+    }
+}
+
+export Once :: struct($T) {
+    value: T
+    yielded: bool
+}
+
+Once($T) implements Iterator(T) {
+    fn step(self) -> Done | Yielded(T) {
+        if self.yielded { return Done {} }
+        self.yielded = true
+        return Yielded(T) { .value = self.value }
+    }
+}
+
+walk :: fn(it: Iterator(i32)) -> i32 {
+    sum := 0
+    cont := true
+    for cont {
+        match it.step() {
+            is Done -> { cont = false }
+            is Yielded(i32) as y -> { sum = sum + y.value }
+        }
+    }
+    return sum
+}
+
+main :: fn() -> i32 {
+    r := Repeat(i32) { .value = 7, .remaining = 3 }
+    o := Once(i32)   { .value = 100, .yielded = false }
+    println("repeat=${walk(r)}")
+    println("once=${walk(o)}")
+    return 0
+}

@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/iter_coerce_array/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Iterator(i32)
+  ArrayIter(i32)

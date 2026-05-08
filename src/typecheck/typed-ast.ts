@@ -84,6 +84,13 @@ export interface TypedProgram {
   /** Direct `f(args)` calls where overload resolution picked a non-primary
    *  fn symbol. Lowerer consults this before falling back to `resolved.idents`. */
   readonly directCallOverloads: ReadonlyMap<A.CallExpr, Symbol>;
+  /** Implicit `[T]` → `Iterator(T)` coercion sites. Key: the source-position
+   *  expression (raw array) ; value: the array's element type `T`. The
+   *  lowerer auto-wraps the lowered expression into an `ArrayIter(T)` struct
+   *  literal so the receiving slot sees a proper iterator. Populated by
+   *  `inferCall` / `checkLet` / `checkReturn` whenever the typecheck observes
+   *  an array flowing into an `Iterator(T)` slot. */
+  readonly arrayIterCoercions: ReadonlyMap<A.Expr, Type>;
 }
 
 export interface TypedProject {

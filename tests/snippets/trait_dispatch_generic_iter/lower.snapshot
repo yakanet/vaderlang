@@ -1,0 +1,201 @@
+# Lower
+
+## tests/snippets/trait_dispatch_generic_iter/_main.vader
+  fn tests_snippets_trait_dispatch_generic_iter__main_vader$walk(it: Iterator(i32)) -> i32
+    let sum#60: i32 = int(0) :i32
+    let cont#61: bool = true
+    loop while (cont#61 :bool)
+      ~>
+        block :void
+          let __scrut_0#-1: Done | Yielded(i32) =
+            block :Done | Yielded(i32)
+              let __vdisp_1#-2: Iterator(i32) = it#59 :Iterator(i32)
+              ~>
+                if :Done | Yielded(i32)
+                  cond:
+                    is Repeat(i32) :bool
+                      __vdisp_1#-2 :Iterator(i32)
+                  then:
+                    ~>
+                      call :Done | Yielded(i32)
+                        callee:
+                          step#1000011 :Done | Yielded(i32)
+                        arg0:
+                          cast → Repeat(i32)
+                            __vdisp_1#-2 :Iterator(i32)
+                  else:
+                    ~>
+                      if :Done | Yielded(i32)
+                        cond:
+                          is Once(i32) :bool
+                            __vdisp_1#-2 :Iterator(i32)
+                        then:
+                          ~>
+                            call :Done | Yielded(i32)
+                              callee:
+                                step#1000012 :Done | Yielded(i32)
+                              arg0:
+                                cast → Once(i32)
+                                  __vdisp_1#-2 :Iterator(i32)
+                        else:
+                          ~>
+                            if :Done | Yielded(i32)
+                              cond:
+                                is Range :bool
+                                  __vdisp_1#-2 :Iterator(i32)
+                              then:
+                                ~>
+                                  call :Done | Yielded(i32)
+                                    callee:
+                                      step#1000001 :Done | Yielded(i32)
+                                    arg0:
+                                      cast → Range
+                                        __vdisp_1#-2 :Iterator(i32)
+                              else:
+                                ~>
+                                  unreachable("no matching impl for virtual trait dispatch") :Done | Yielded(i32)
+          ~>
+            if :void
+              cond:
+                is Done :bool
+                  __scrut_0#-1 :Done | Yielded(i32)
+              then:
+                ~>
+                  block :void
+                    assign
+                      target:
+                        cont#61 :bool
+                      value:
+                        false
+              else:
+                ~>
+                  if :void
+                    cond:
+                      is Yielded(i32) :bool
+                        __scrut_0#-1 :Done | Yielded(i32)
+                    then:
+                      let y#62: Yielded(i32) =
+                        cast → Yielded(i32)
+                          __scrut_0#-1 :Done | Yielded(i32)
+                      ~>
+                        block :void
+                          assign
+                            target:
+                              sum#60 :i32
+                            value:
+                              add :i32
+                                l:
+                                  sum#60 :i32
+                                r:
+                                  .value :i32
+                                    y#62 :Yielded(i32)
+                    else:
+                      ~>
+                        unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    return sum#60 :i32
+  fn tests_snippets_trait_dispatch_generic_iter__main_vader$main() -> i32
+    let r#63: Repeat(i32) =
+      Repeat(i32) {
+        value: int(7) :i32
+        remaining: int(3) :i32
+      }
+    let o#64: Once(i32) =
+      Once(i32) {
+        value: int(100) :i32
+        yielded: false
+      }
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0#-3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0#-3 :?
+            "repeat=" :string
+          @builder.append_display <for i32> :void
+            __sb_0#-3 :?
+            call :i32
+              callee:
+                walk#4 :fn(Iterator(i32)) -> i32
+              arg0:
+                r#63 :Repeat(i32)
+          ~>
+            @builder.finish :string
+              __sb_0#-3 :?
+    call :void
+      callee:
+        println#25 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1#-4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1#-4 :?
+            "once=" :string
+          @builder.append_display <for i32> :void
+            __sb_1#-4 :?
+            call :i32
+              callee:
+                walk#4 :fn(Iterator(i32)) -> i32
+              arg0:
+                o#64 :Once(i32)
+          ~>
+            @builder.finish :string
+              __sb_1#-4 :?
+    return int(0) :i32
+  struct tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat__i32 { value: i32, remaining: i32 }
+  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$step__i32(self: Repeat(i32)) -> Done | Yielded(i32)
+    if :void
+      cond:
+        lte :bool
+          l:
+            .remaining :i32
+              self#55 :Repeat(i32)
+          r:
+            int(0) :i32
+      then:
+        return
+          Done {
+          }
+    let v#56: i32 =
+      .value :i32
+        self#55 :Repeat(i32)
+    assign
+      target:
+        .remaining :i32
+          self#55 :Repeat(i32)
+      value:
+        sub :i32
+          l:
+            .remaining :i32
+              self#55 :Repeat(i32)
+          r:
+            int(1) :i32
+    return
+      Yielded(i32) {
+        value: v#56 :i32
+      }
+  struct tests_snippets_trait_dispatch_generic_iter__main_vader$Once__i32 { value: i32, yielded: bool }
+  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$step__i32(self: Once(i32)) -> Done | Yielded(i32)
+    if :void
+      cond:
+        .yielded :bool
+          self#58 :Once(i32)
+      then:
+        return
+          Done {
+          }
+    assign
+      target:
+        .yielded :bool
+          self#58 :Once(i32)
+      value:
+        true
+    return
+      Yielded(i32) {
+        value:
+          .value :i32
+            self#58 :Once(i32)
+      }
