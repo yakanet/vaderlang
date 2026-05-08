@@ -7,7 +7,7 @@
         println#27 :fn(string) -> void
       arg0:
         "-- ascii --" :string
-    let sum#128: u32 =
+    let sum#125: u32 =
       cast → u32
         int(0) :i32
     block :void
@@ -31,20 +31,20 @@
           then:
             break
           else:
-            let b#129: u8 =
+            let b#126: u8 =
               .value :u8
                 cast → Yielded(u8)
                   __step_1#-2 :Done | Yielded(u8)
             assign
               target:
-                sum#128 :u32
+                sum#125 :u32
               value:
                 add :u32
                   l:
-                    sum#128 :u32
+                    sum#125 :u32
                   r:
                     cast → u32
-                      b#129 :?
+                      b#126 :?
     call :void
       callee:
         println#27 :fn(string) -> void
@@ -57,7 +57,7 @@
             "sum=" :string
           @builder.append_display <for u32> :void
             __sb_2#-3 :?
-            sum#128 :u32
+            sum#125 :u32
           ~>
             @builder.finish :string
               __sb_2#-3 :?
@@ -87,7 +87,7 @@
           then:
             break
           else:
-            let b#130: u8 =
+            let b#127: u8 =
               .value :u8
                 cast → Yielded(u8)
                   __step_4#-5 :Done | Yielded(u8)
@@ -100,11 +100,11 @@
                     @builder.new :?
                   @builder.append_display <for ?> :void
                     __sb_5#-6 :?
-                    b#130 :?
+                    b#127 :?
                   ~>
                     @builder.finish :string
                       __sb_5#-6 :?
-    let bom#131: string = "﻿data" :string
+    let bom#128: string = "﻿data" :string
     call :void
       callee:
         println#27 :fn(string) -> void
@@ -126,7 +126,7 @@
               callee:
                 byte_at#48 :u8
               arg0:
-                bom#131 :string
+                bom#128 :string
               arg1:
                 int(0) :i32
           @builder.append_str :void
@@ -138,7 +138,7 @@
               callee:
                 byte_at#48 :u8
               arg0:
-                bom#131 :string
+                bom#128 :string
               arg1:
                 int(1) :i32
           @builder.append_str :void
@@ -150,7 +150,7 @@
               callee:
                 byte_at#48 :u8
               arg0:
-                bom#131 :string
+                bom#128 :string
               arg1:
                 int(2) :i32
           ~>
@@ -172,7 +172,7 @@
               callee:
                 byte_at#48 :u8
               arg0:
-                bom#131 :string
+                bom#128 :string
               arg1:
                 int(3) :i32
           @builder.append_str :void
@@ -216,7 +216,7 @@
           then:
             break
           else:
-            let b#132: u8 =
+            let b#129: u8 =
               .value :u8
                 cast → Yielded(u8)
                   __step_9#-10 :Done | Yielded(u8)

@@ -111,12 +111,8 @@
   refs: idents=12 types=17 params=9 locals=1 typeParams=0 fields=0
 
 ## std/utf8
-  import-binding   private  append_char → append_char
-  fn               public   append_codepoint 
   fn               public   codepoint_byte_len 
-  import-binding   private  StringBuilder → StringBuilder
-  import std/string_builder → ok
-  refs: idents=65 types=5 params=3 locals=1 typeParams=0 fields=0
+  refs: idents=8 types=2 params=1 locals=1 typeParams=0 fields=0
 
 ## tests/snippets/string_chars/_main.vader
   import-binding   private  byte_len → byte_len

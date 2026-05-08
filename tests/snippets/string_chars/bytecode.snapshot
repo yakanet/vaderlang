@@ -237,32 +237,32 @@ end
 
 fn 3 std_utf8$codepoint_byte_len (char) -> i32
   local cp u32
-  local.get 0   ; utf8.vader:66:15
-  char.to_u32   ; utf8.vader:66:11
-  local.tee 1   ; utf8.vader:66:5
-  i32.const 128   ; utf8.vader:67:17
-  i32.to_u32   ; utf8.vader:67:13
-  u32.lt   ; utf8.vader:67:8
-  if void   ; utf8.vader:67:5
-  i32.const 1   ; utf8.vader:67:35
-  return   ; utf8.vader:67:28
-  end   ; utf8.vader:67:5
-  local.get 1   ; utf8.vader:68:8
-  i32.const 2048   ; utf8.vader:68:17
-  i32.to_u32   ; utf8.vader:68:13
-  u32.lt   ; utf8.vader:68:8
-  if void   ; utf8.vader:68:5
-  i32.const 2   ; utf8.vader:68:35
-  return   ; utf8.vader:68:28
-  end   ; utf8.vader:68:5
-  local.get 1   ; utf8.vader:69:8
-  i32.const 65536   ; utf8.vader:69:17
-  i32.to_u32   ; utf8.vader:69:13
-  u32.lt   ; utf8.vader:69:8
-  if void   ; utf8.vader:69:5
-  i32.const 3   ; utf8.vader:69:35
-  return   ; utf8.vader:69:28
-  end   ; utf8.vader:69:5
-  i32.const 4   ; utf8.vader:70:12
-  return   ; utf8.vader:70:5
+  local.get 0   ; utf8.vader:24:15
+  char.to_u32   ; utf8.vader:24:11
+  local.tee 1   ; utf8.vader:24:5
+  i32.const 128   ; utf8.vader:25:17
+  i32.to_u32   ; utf8.vader:25:13
+  u32.lt   ; utf8.vader:25:8
+  if void   ; utf8.vader:25:5
+  i32.const 1   ; utf8.vader:25:35
+  return   ; utf8.vader:25:28
+  end   ; utf8.vader:25:5
+  local.get 1   ; utf8.vader:26:8
+  i32.const 2048   ; utf8.vader:26:17
+  i32.to_u32   ; utf8.vader:26:13
+  u32.lt   ; utf8.vader:26:8
+  if void   ; utf8.vader:26:5
+  i32.const 2   ; utf8.vader:26:35
+  return   ; utf8.vader:26:28
+  end   ; utf8.vader:26:5
+  local.get 1   ; utf8.vader:27:8
+  i32.const 65536   ; utf8.vader:27:17
+  i32.to_u32   ; utf8.vader:27:13
+  u32.lt   ; utf8.vader:27:8
+  if void   ; utf8.vader:27:5
+  i32.const 3   ; utf8.vader:27:35
+  return   ; utf8.vader:27:28
+  end   ; utf8.vader:27:5
+  i32.const 4   ; utf8.vader:28:12
+  return   ; utf8.vader:28:5
 end

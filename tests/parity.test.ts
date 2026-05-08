@@ -55,18 +55,12 @@ beforeAll(async () => {
   }
 });
 
-// Snippets whose source has non-ASCII chars hit the `std/string.char_at`
-// byte-indexing limitation differently between the two lexers (TS reads
-// UTF-16 code units, Vader byte-walks UTF-8 with no codepoint reassembly),
-// so the dumps don't agree. Skip until the byte-vs-codepoint divergence is
-// fixed in `std/string`.
-const UTF8_KNOWN_DIVERGENT = new Set([
-  "std_string",
-  "std_string_builder",
-  "string_bytes",
-  "string_chars",
-  "string_codepoints",
-]);
+// Snippets that previously diverged on multi-byte UTF-8 source content
+// were aligned by counting codepoints on both sides — TS skips low
+// surrogates in `advance()`, Vader's lexer skips UTF-8 continuation bytes.
+// Re-add an entry here only if a fixture re-introduces a non-codepoint
+// counting divergence.
+const UTF8_KNOWN_DIVERGENT = new Set<string>([]);
 
 const scenarios = listSnippets("tests/snippets");
 

@@ -12,11 +12,11 @@ main :: fn() -> i32 {
 
     // decode_codepoint walks one sequence at a time. Manual iteration mimics
     // what `chars()` does internally, demonstrating the [char, i32] return.
-    s := "你好"
+    s :: "你好"
+    n :: byte_len(s)
     i := 0
-    n := byte_len(s)
     for i < n {
-        [c, w] := decode_codepoint(s, i)
+        [c, w] :: decode_codepoint(s, i)
         println("at ${i}: '${c}' (${w} bytes)")
         i = i + w
     }

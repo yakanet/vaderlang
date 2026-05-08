@@ -13,9 +13,11 @@ export Severity :: enum {
     Hint,
 }
 
-// Source position. Offset/line/column are JS-string code-unit accurate, which
-// matches UTF-8 bytes for ASCII source. The LSP boundary translates to UTF-16
-// column counts when needed.
+// Source position. `offset` is a raw UTF-8 byte offset ; `column` is a
+// 1-based **codepoint** index within the line (matches both the Vader
+// self-host lexer counting leading bytes and the TS lexer skipping low
+// surrogates). The LSP boundary translates to UTF-16 column counts when
+// needed.
 export Position :: struct {
     file: string
     offset: i32

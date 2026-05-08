@@ -13,7 +13,6 @@ import "std/string" {
     starts_with as str_starts_with, parse_float, pad_start,
 }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated, to_string }
-import "std/utf8" { append_codepoint }
 import "std/collections" { MutableMap, put, get, contains_key, len, keys, values }
 import "std/numbers" { to_hex }
 
@@ -271,7 +270,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
                     k = k + 1
                 }
                 p.pos = p.pos + 4
-                sb.append_codepoint(u32(cp))
+                sb.append_char(char(cp))
             } else {
                 return fail(p, "unknown escape")
             }

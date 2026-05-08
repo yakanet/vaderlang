@@ -21,9 +21,9 @@
   expr 11:51    IdentExpr      :: fn(string) -> i32
   expr 11:60    StringLitExpr  :: string
   expr 15:10    StringLitExpr  :: string
-  expr 17:10    CallExpr       :: i32
-  expr 17:10    IdentExpr      :: fn(string) -> i32
-  expr 17:19    IdentExpr      :: string
+  expr 16:10    CallExpr       :: i32
+  expr 16:10    IdentExpr      :: fn(string) -> i32
+  expr 16:19    IdentExpr      :: string
   expr 18:13    IdentExpr      :: i32
   expr 18:9     BinaryExpr     :: bool
   expr 18:9     IdentExpr      :: i32

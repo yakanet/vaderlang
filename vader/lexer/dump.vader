@@ -11,7 +11,7 @@
 
 // `lexer.vader` (same module) already imports `byte_len, slice` from
 // std/string and the StringBuilder surface ; we only need the extras here.
-import "std/string" { pad_start, pad_end, compare_ascending as string_less }
+import "std/string" { decode_codepoint, pad_start, pad_end, compare_ascending as string_less }
 import "std/numbers" { to_hex }
 import "std/sort" { sort }
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
@@ -131,14 +131,16 @@ quote_simple :: fn(s: string) -> string {
     n :: s.byte_len()
     i := 0
     for i < n {
-        c :: s[i]
+        // Walk by codepoint so multi-byte sequences pass through cleanly
+        // (byte-walking would synthesise U+FFFD on continuation bytes).
+        [c, w] :: decode_codepoint(s, i)
         if c == '"'  { sb.append("\\\"") }
         else if c == '\\' { sb.append("\\\\") }
         else if c == '\n' { sb.append("\\n") }
         else if c == '\t' { sb.append("\\t") }
         else if c == '\r' { sb.append("\\r") }
         else { sb.append_char(c) }
-        i = i + 1
+        i = i + w
     }
     sb.append_char('"')
     return sb.to_string()

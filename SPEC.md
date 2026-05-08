@@ -1658,12 +1658,12 @@ Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
 
 ### `std/utf8`
 
-UTF-8 encoding helpers — codepoint encoder used by JSON parsing and any
-code that decodes `\uXXXX` / `\u{...}` escapes, plus the byte-width helper
-that powers `std/string.chars()` and `count_chars`.
+UTF-8 byte-width helper that powers `std/string.chars()` and `count_chars`.
+To append a decoded codepoint to a `StringBuilder`, call
+`sb.append_char(char(cp))` directly — `append_char` UTF-8-encodes the
+codepoint canonically, no `append_codepoint` wrapper needed.
 
 ```vader
-fn append_codepoint(self: StringBuilder, cp: u32) -> void
 fn codepoint_byte_len(c: char) -> i32          // 1..4 — UTF-8 width of a codepoint
 ```
 

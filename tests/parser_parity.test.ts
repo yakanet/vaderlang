@@ -54,13 +54,7 @@ beforeAll(async () => {
 // Snippets where the Vader parser today either traps at runtime
 // (`reached unreachable`) or diverges in detail. Tracked in TODO §2.1 ;
 // remove an entry once the underlying fix lands.
-const KNOWN_FAILURES = new Set([
-  // CJK / multi-byte UTF-8 fixtures. The Vader-side parser corrupts
-  // multi-byte codepoints because `std/string.char_at` is byte-indexed
-  // rather than codepoint-indexed. Tracked as a stdlib limitation, not a
-  // parser bug — see TODO §1.13.
-  "std_string", "std_string_builder", "string_bytes", "string_chars", "string_codepoints",
-]);
+const KNOWN_FAILURES = new Set<string>([]);
 
 const SKIP_ALL = false;
 

@@ -171,9 +171,14 @@ class Lexer {
 
   private advance(n: number): void {
     for (let i = 0; i < n && this.pos < this.src.length; i++) {
-      if (this.src[this.pos] === "\n") {
+      const code = this.src.charCodeAt(this.pos);
+      if (code === 10) {                        // '\n'
         this.line++;
         this.col = 1;
+      } else if (code >= 0xDC00 && code <= 0xDFFF) {
+        // Trailing surrogate of a non-BMP codepoint — already counted on the
+        // leading surrogate. Skip so col tracks codepoints, matching the
+        // Vader self-host lexer (which counts UTF-8 leading bytes only).
       } else {
         this.col++;
       }

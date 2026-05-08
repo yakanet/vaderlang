@@ -13,11 +13,12 @@
 //   - char literals + escape sequences
 //   - string literals, raw strings, triple strings, interpolation
 
-import "std/string" { byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit, is_hex_digit, is_digit_in_base, contains }
+import "std/string" { byte_at, byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit, is_hex_digit, is_digit_in_base, contains }
+import "std/utf8" { codepoint_byte_len }
+
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
 import "std/iter" { slice as slice_array }
 import "std/numbers" { hex_digit_value, parse_int_in_base, is_int_suffix, is_float_suffix }
-import "std/utf8" { append_codepoint }
 import "vader/diagnostics/diagnostic" { Diagnostic, error }
 import "vader/diagnostics/codes" { LexerCode }
 // Position/Span are re-imported transparently via token.vader (same module);
@@ -127,19 +128,24 @@ peek_at :: fn(l: Lexer, n: i32) -> char {
 position_here :: fn(l: Lexer) =
     Position { .file = l.file, .offset = l.pos, .line = l.line, .column = l.col }
 
+// Advance `pos` by `n` raw bytes. Column counts **codepoints** (matching
+// the TS lexer's UTF-16 code-unit count for BMP source) — UTF-8
+// continuation bytes (0x80..0xBF) don't increment the column, only leading
+// bytes do. Newlines reset col to 1 as usual.
 advance :: fn(l: Lexer, n: i32) -> void {
     i := 0
     for i < n {
         if l.pos >= l.src.byte_len() {
             return
         }
-        c := l.src[l.pos]
-        if c == '\n' {
+        b :: i32(u32(l.src.byte_at(l.pos)))
+        if b == 10 {                       // '\n' (0x0A)
             l.line = l.line + 1
             l.col = 1
-        } else {
+        } else if b < 128 || b >= 192 {    // ASCII or UTF-8 leading byte
             l.col = l.col + 1
         }
+        // UTF-8 continuation bytes (0x80..0xBF) leave col unchanged.
         l.pos = l.pos + 1
         i = i + 1
     }
@@ -521,8 +527,12 @@ lex_char :: fn(l: Lexer) -> void {
         l.emit(t)
         return
     } else {
-        cp = u32(l.peek())
-        l.advance(1)
+        c :: l.peek()
+        cp = u32(c)
+        // Advance by the codepoint's UTF-8 byte width so multi-byte literals
+        // ('é', '你', …) leave `pos` at the closing quote, not in the middle
+        // of a continuation sequence.
+        l.advance(codepoint_byte_len(c))
     }
 
     if l.peek() != '\'' {
@@ -679,15 +689,17 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
         // Escapes (only outside raw mode).
         if !raw && c == '\\' {
             cp :: l.lex_escape()
-            sb.append_codepoint(cp)
+            sb.append_char(char(cp))
             has_part = true
             continue
         }
 
-        // Plain content byte.
+        // Plain content codepoint — advance by its UTF-8 width so the
+        // builder gets one codepoint per iteration (not one per byte, which
+        // would synthesise FFFD on continuation bytes).
         sb.append_char(c)
         has_part = true
-        l.advance(1)
+        l.advance(codepoint_byte_len(c))
     }
 
     // Reached EOF without closing — emit the diagnostic at the current part.

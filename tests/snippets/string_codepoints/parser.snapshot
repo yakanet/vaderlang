@@ -453,7 +453,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "s"
@@ -471,21 +471,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
-            "binding": {
-              "kind": "SimpleBinding",
-              "name": "i"
-            },
-            "type": null,
-            "value": {
-              "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
-            }
-          },
-          {
-            "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "n"
@@ -507,6 +493,20 @@
                   "spread": false
                 }
               ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "i"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
             }
           },
           {
@@ -532,7 +532,7 @@
               "stmts": [
                 {
                   "kind": "LetStmt",
-                  "mutable": true,
+                  "mutable": false,
                   "binding": {
                     "kind": "TupleBinding",
                     "elements": [
