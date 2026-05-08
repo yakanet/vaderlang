@@ -24,3 +24,27 @@ export function makeErr<C extends string>(registry: Readonly<Record<C, string>>)
     });
   };
 }
+
+/**
+ * Mirror of `makeErr` for non-fatal diagnostics. Use for `@deprecated`,
+ * unused-binding hints (when added), and any check that flags a smell
+ * without preventing compilation. Same dedup contract — emitting twice at
+ * the same span produces a single entry.
+ */
+export function makeWarn<C extends string>(registry: Readonly<Record<C, string>>) {
+  return (
+    diags: DiagnosticCollector,
+    code: C,
+    primary: Span,
+    detail?: string,
+    secondary?: readonly LabeledSpan[],
+  ): void => {
+    diags.emit({
+      severity: "warning",
+      code,
+      message: detail !== undefined ? `${registry[code]}: ${detail}` : registry[code],
+      primary,
+      secondary,
+    });
+  };
+}

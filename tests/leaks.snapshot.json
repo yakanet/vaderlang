@@ -131,6 +131,10 @@
     "leakedNodes": 1,
     "leakedBytes": 80
   },
+  "decorator_deprecated": {
+    "leakedNodes": 1,
+    "leakedBytes": 80
+  },
   "enum_match": {
     "leakedNodes": 4,
     "leakedBytes": 320

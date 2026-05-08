@@ -141,3 +141,16 @@ export const BACKEND = {
 } as const;
 
 export type BackendCode = keyof typeof BACKEND;
+
+/**
+ * Warnings — non-fatal diagnostics. Code prefix `W` for "warning"; codes
+ * use `W0xxx` to keep them visually distinct from the phase-specific
+ * error registries above. Warnings ride the same DiagnosticCollector but
+ * use `severity: "warning"` so the runner can render / filter them apart
+ * from errors (and so a warn-only run still exits 0).
+ */
+export const WARNING = {
+  W0001: "use of deprecated declaration",
+} as const;
+
+export type WarningCode = keyof typeof WARNING;

@@ -6,10 +6,11 @@
 
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
+import { staticStringValue } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 
-import { err } from "../diag.ts";
+import { err, warn } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Type } from "../types.ts";
 import {
@@ -59,7 +60,7 @@ function inferExpr(
     case "NullLitExpr":   return TY.null;
     case "CharLitExpr":   return TY.char;
     case "StringLitExpr": return inferStringLit(expr, t, impls, diags, fn);
-    case "IdentExpr":     return inferIdent(expr, t);
+    case "IdentExpr":     return inferIdent(expr, t, diags);
     case "CallExpr":      return inferCall(expr, t, impls, diags, fn);
     case "FieldExpr":     return inferField(expr, t, impls, diags, fn);
     case "IndexExpr":     return inferIndex(expr, t, impls, diags, fn);
@@ -110,10 +111,31 @@ function inferStringLit(
   return TY.string;
 }
 
-function inferIdent(expr: A.IdentExpr, t: MutableTyped): Type {
+function inferIdent(expr: A.IdentExpr, t: MutableTyped, diags: DiagnosticCollector): Type {
   const sym = t.resolved.idents.get(expr);
   if (sym === undefined) return TY.unresolved;
+  checkDeprecated(expr, sym, diags);
   return typeOfSymbol(sym, t);
+}
+
+/** Walk the resolved decl's decorators ; emit W0001 if `@deprecated(...)` is
+ *  present. The decorator's first argument is taken as the human-readable
+ *  reason ; it must be a static string literal — interpolation or other
+ *  expressions silently produce a generic warning. The collector dedupes by
+ *  (code, span, message), so a single deprecated reference emits one diag
+ *  even if it's revisited (e.g. through generic instantiation). */
+function checkDeprecated(expr: A.IdentExpr, sym: Symbol, diags: DiagnosticCollector): void {
+  const decl = declOf(sym);
+  if (decl === null) return;
+  const dec = decl.decorators.find((d) => d.name === "deprecated");
+  if (dec === undefined) return;
+  let reason = "";
+  const first = dec.args[0];
+  if (first !== undefined && first.kind === "StringLitExpr") {
+    reason = staticStringValue(first) ?? "";
+  }
+  const detail = reason !== "" ? `\`${expr.name}\`: ${reason}` : `\`${expr.name}\``;
+  warn(diags, "W0001", expr.span, detail);
 }
 
 export function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {

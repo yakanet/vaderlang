@@ -1,0 +1,24 @@
+import "std/io" { println }
+
+// `@deprecated(message)` annotates a declaration so every reference site
+// emits a non-fatal warning (W0001). The decorator argument is the
+// human-readable reason ; reference still compiles and runs.
+@deprecated("use new_helper instead")
+old_helper :: fn(x: i32) -> i32 {
+    return x + 1
+}
+
+new_helper :: fn(x: i32) -> i32 {
+    return x * 2
+}
+
+@deprecated("KING is too dramatic, prefer THE_BEST")
+KING :: 42
+
+main :: fn() -> i32 {
+    a :: old_helper(KING)        // two warnings : old_helper + KING
+    b :: new_helper(10)
+    c :: old_helper(5)           // one more warning : old_helper at a fresh span
+    println("${a} ${b} ${c}")
+    return 0
+}
