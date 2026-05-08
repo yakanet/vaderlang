@@ -27,6 +27,7 @@ import { buildCFGProject } from "./midir/build.ts";
 import type { CFGProject } from "./midir/cfg.ts";
 import { eliminateDeadCFG } from "./midir/dce.ts";
 import { emitBytecodeFromCFG } from "./midir/emit.ts";
+import { annotateEscape } from "./midir/escape.ts";
 import { fromSSA, toSSA } from "./midir/ssa.ts";
 
 export type PipelineStage =
@@ -134,13 +135,15 @@ export async function pipelineCfg(
   file: string, opts?: { allowEnv?: boolean },
 ): Promise<CfgResult> {
   const r = await pipelineDced(file, opts);
-  // Build → DCE → SSA round-trip → DCE. The SSA pass is a no-op on
-  // observable behaviour (toSSA renames, fromSSA materialises phis as
-  // moves), but validates the SSA infrastructure end-to-end on every
-  // snippet via the parity harness. The trailing DCE cleans up the moves
-  // fromSSA inserts at predecessors when the phi was already-dead in
-  // the source CFG (semi-pruned SSA insertion).
-  const cfg = eliminateDeadCFG(fromSSA(toSSA(eliminateDeadCFG(buildCFGProject(r.dced)))));
+  // Build → DCE → SSA → escape analysis → fromSSA → DCE. The SSA round-trip
+  // is behaviour-neutral ; escape analysis runs on the SSA form to
+  // exploit single-def value tracking, and annotates StructNew/ArrayNew
+  // with `stack: true` when the value cannot be observed past the fn's
+  // return. Phase 5 ships the analysis only ; codegen for stack-allocated
+  // structs lands in a follow-up.
+  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(r.dced)));
+  const annotated = annotateEscape(ssa).project;
+  const cfg = eliminateDeadCFG(fromSSA(annotated));
   return { ...r, cfg };
 }
 
@@ -152,7 +155,8 @@ export async function pipelineBytecode(
   const emitOpts = { optimize: opts?.bytecodeOpt ?? true, implRegistry };
   let bytecode: BytecodeModule;
   if (opts?.midIr) {
-    const cfg = eliminateDeadCFG(fromSSA(toSSA(eliminateDeadCFG(buildCFGProject(r.dced)))));
+    const ssa = toSSA(eliminateDeadCFG(buildCFGProject(r.dced)));
+    const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
     bytecode = emitBytecodeFromCFG(r.dced, cfg, moduleNameFromFile(file), emitOpts);
   } else {
     bytecode = emitBytecode(r.dced, moduleNameFromFile(file), emitOpts);

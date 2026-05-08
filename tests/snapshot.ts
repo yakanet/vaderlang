@@ -18,6 +18,7 @@ import { writeVir, parseVir } from "../src/bytecode/text.ts";
 import { buildCFGProject } from "../src/midir/build.ts";
 import { eliminateDeadCFG } from "../src/midir/dce.ts";
 import { dumpCFGProject } from "../src/midir/dump.ts";
+import { annotateEscape } from "../src/midir/escape.ts";
 import { fromSSA, toSSA } from "../src/midir/ssa.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
@@ -201,7 +202,8 @@ export function dumpCfg(_source: string, entryPath: string): string {
   const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false, projectRoot: defaultProjectRoot(entryPath) } });
   const lowered = lowerProject(evaled, diags);
   const dced = eliminateDeadCode(lowered);
-  const cfg = eliminateDeadCFG(fromSSA(toSSA(eliminateDeadCFG(buildCFGProject(dced)))));
+  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(dced)));
+  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
 
   const text = dumpCFGProject(cfg, {
     includeModule: (path) => !isStdlibModule(path),

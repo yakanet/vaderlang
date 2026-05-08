@@ -88,8 +88,8 @@ function dumpInstr(ins: Instruction): string {
     case "ArraySet":  return `array_set %${ins.target}[%${ins.index}] = %${ins.value}`;
     case "ArrayLen":  return `%${ins.dst} = array_len %${ins.target}`;
     case "ArrayPush": return `array_push %${ins.target}, %${ins.value}`;
-    case "StructNew": return `%${ins.dst} = struct_new ${displayType(ins.type)}(${args(ins.fields)})`;
-    case "ArrayNew":  return `%${ins.dst} = array_new ${displayType(ins.type)}[${ins.length}](${args(ins.elements)})`;
+    case "StructNew": return `%${ins.dst} = struct_new${ins.stack ? "[stack]" : ""} ${displayType(ins.type)}(${args(ins.fields)})`;
+    case "ArrayNew":  return `%${ins.dst} = array_new${ins.stack ? "[stack]" : ""} ${displayType(ins.type)}[${ins.length}](${args(ins.elements)})`;
     case "TypeCheck": return `%${ins.dst} = type_check %${ins.value} is ${displayType(ins.checkType)}`;
     case "Cast":      return `%${ins.dst} = cast %${ins.value} :${displayType(ins.type)}`;
     case "CellNew":   return `%${ins.dst} = cell_new %${ins.value} :${displayType(ins.valueType)}`;

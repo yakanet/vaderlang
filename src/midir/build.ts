@@ -614,7 +614,10 @@ function buildStructLit(fn: FnCtx, e: L.LoweredStructLit): LocalId | null {
     fieldLocals.push(local);
   }
   const dst = freshTmp(fn, "struct", e.type);
-  emit(fn, { kind: "StructNew", dst, type: e.type, fields: fieldLocals, span: e.span });
+  emit(fn, {
+    kind: "StructNew", dst, type: e.type, fields: fieldLocals,
+    stack: false, span: e.span,
+  });
   return dst;
 }
 
@@ -628,7 +631,7 @@ function buildArrayLit(fn: FnCtx, e: L.LoweredArrayLit): LocalId | null {
   const dst = freshTmp(fn, "arr", e.type);
   emit(fn, {
     kind: "ArrayNew", dst, type: e.type, length: e.elements.length,
-    elements: elems, span: e.span,
+    elements: elems, stack: false, span: e.span,
   });
   return dst;
 }

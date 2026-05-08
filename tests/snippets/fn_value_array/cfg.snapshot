@@ -39,7 +39,7 @@ fn tests_snippets_fn_value_array__main_vader$main() -> i32
   bb0:
     %0 = fn_ref inc :fn(i32) -> i32
     %1 = fn_ref double :fn(i32) -> i32
-    %2 = array_new fn(i32) -> i32[][2](%0, %1)
+    %2 = array_new[stack] fn(i32) -> i32[][2](%0, %1)
     %3 = const int(0) :i32
     %4 = array_get %2[%3] :fn(i32) -> i32
     %5 = const int(7) :i32

@@ -82,7 +82,7 @@ fn tests_snippets_mutable_map_string__main_vader$main() -> i32
     %75 $intrinsic_76#152: string
     %76 $k_77#153: i32
   bb0:
-    %0 = array_new Entry(string, i32) | null[][0]()
+    %0 = array_new[stack] Entry(string, i32) | null[][0]()
     %1 = const int(0) :usize
     %2 = struct_new MutableMap(string, i32)(%0, %1)
     %3 = const string(#0) :string

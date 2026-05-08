@@ -230,6 +230,12 @@ export interface InstrStructNew extends InstrBase {
   readonly type: Type;
   /** Per-field initialiser locals, in declaration order. */
   readonly fields: readonly LocalId[];
+  /** When true, the struct value never escapes its function and can be
+   *  stack-allocated. Set by the escape-analysis pass (`escape.ts`) ;
+   *  defaults to false (heap alloc) when the analysis hasn't run or the
+   *  result is unknown. The actual stack-alloc codegen lives in a later
+   *  phase ; for now the flag is informational and shows up in the dump. */
+  readonly stack: boolean;
 }
 
 export interface InstrArrayNew extends InstrBase {
@@ -238,6 +244,8 @@ export interface InstrArrayNew extends InstrBase {
   readonly type: Type;
   readonly length: number;
   readonly elements: readonly LocalId[];
+  /** Same `stack` semantics as `InstrStructNew`. */
+  readonly stack: boolean;
 }
 
 /** Runtime tag check — `is X`. */

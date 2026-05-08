@@ -58,7 +58,7 @@ fn tests_snippets_gc_chain_survive__main_vader$main() -> i32
   bb0:
     %0 = const int(0) :i32
     %1 = const null :null
-    %2 = struct_new Node(%0, %1)
+    %2 = struct_new[stack] Node(%0, %1)
     %3 = const int(1) :i32
     branch -> bb1
   bb1:
@@ -66,7 +66,7 @@ fn tests_snippets_gc_chain_survive__main_vader$main() -> i32
     %5 = binop lt %3 %4 :bool
     cond_branch %5 ? bb2 : bb3
   bb2:
-    %2 = struct_new Node(%3, %2)
+    %2 = struct_new[stack] Node(%3, %2)
     %6 = const int(1) :i32
     %3 = binop add %3 %6 :i32
     branch -> bb1

@@ -171,7 +171,8 @@ the structuring approach.
 | **2** | LoweredAST → CFG converter (`src/midir/build.ts`) + structurer + CFG → bytecode emitter (`src/midir/emit.ts`) behind `--midir`. Behavioural parity (`tests/midir_parity.test.ts`) on every snippet. | 3-5 d | ✅ done |
 | **3** | DCE on the CFG (`src/midir/dce.ts`) : copy folding, per-store liveness + dead instruction elim, dead local elim. -11% to -36% instructions on representative snippets. | 1-2 d | ✅ done |
 | **4** | Pruned SSA conversion (`src/midir/ssa.ts`) : Cytron et al. with liveness-pruned phi placement, dom-tree-walk renaming. Out-of-SSA materialises phis as `Move` in predecessors. Wired as `toSSA → fromSSA` round-trip in the pipeline ; behaviour-preserving (145/145 parity). Sets up SSA infrastructure for phase 5. | 2-3 d | ✅ done |
-| **5** | Escape analysis on SSA: stack-allocate non-escaping structs. | 2-3 d | |
+| **5a** | Escape analysis on SSA (`src/midir/escape.ts`) — annotates `StructNew`/`ArrayNew` with `stack: true` when the value can't be observed past the fn's return. Stack-promotes ~17% of allocations across the snippet corpus (60/358) ; 100% on tuple-temporary patterns (`tuple_comptime`). | 1-2 d | ✅ done |
+| **5b** | Stack-allocation codegen — bytecode op variant + VM/C-emit support to actually stack-allocate flagged structs. | 2-3 d | |
 | **6** | Drop the legacy LoweredAST → bytecode path. CFG becomes the single substrate. | 1 d | |
 
 Total: ~2 weeks of focused work after this commit. Each phase is shippable

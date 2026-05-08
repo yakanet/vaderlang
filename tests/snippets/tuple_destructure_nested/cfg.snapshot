@@ -12,7 +12,7 @@ fn tests_snippets_tuple_destructure_nested__main_vader$make_record() -> [[i32, s
   bb0:
     %0 = const int(7) :i32
     %1 = const string(#0) :string
-    %2 = struct_new [i32, string](%0, %1)
+    %2 = struct_new[stack] [i32, string](%0, %1)
     %3 = const bool(true) :bool
     %4 = struct_new [[i32, string], bool](%2, %3)
     return %4

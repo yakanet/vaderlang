@@ -20,11 +20,11 @@ fn tests_snippets_self_ref_struct__main_vader$main() -> i32
   bb0:
     %0 = const int(30) :i32
     %1 = const null :null
-    %2 = struct_new Node(i32)(%0, %1)
+    %2 = struct_new[stack] Node(i32)(%0, %1)
     %3 = const int(20) :i32
-    %4 = struct_new Node(i32)(%3, %2)
+    %4 = struct_new[stack] Node(i32)(%3, %2)
     %5 = const int(10) :i32
-    %6 = struct_new Node(i32)(%5, %4)
+    %6 = struct_new[stack] Node(i32)(%5, %4)
     %7 = intrinsic builder.new()
     %8 = move %7
     %9 = const string(#0) :string
