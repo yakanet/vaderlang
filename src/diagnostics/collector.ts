@@ -7,8 +7,16 @@ import type { Diagnostic, Severity } from "./diagnostic.ts";
  */
 export class DiagnosticCollector {
   private readonly items: Diagnostic[] = [];
+  /** Dedup by `(code, primary.start.offset, primary.end.offset, message)`.
+   *  Cascading checks frequently produce the exact same diagnostic at the
+   *  same span — e.g. when an unresolved type re-trips T3007 at every use.
+   *  Drop the duplicates so users see each problem once. */
+  private readonly seen = new Set<string>();
 
   emit(d: Diagnostic): void {
+    const key = `${d.code}|${d.primary.start.file}|${d.primary.start.offset}|${d.primary.end.offset}|${d.message}`;
+    if (this.seen.has(key)) return;
+    this.seen.add(key);
     this.items.push(d);
   }
 

@@ -1394,8 +1394,22 @@ function emitMain(ctx: EmitCtx, out: string[]): void {
 // String / identifier escapes
 // =========================================================================
 
+/** C keywords (C11 + a few common identifiers like `restrict` reserved by
+ *  many compilers). Any user identifier that happens to match one is suffixed
+ *  with `_v` so the emitted C is always valid. */
+const C_RESERVED: ReadonlySet<string> = new Set([
+  "auto", "break", "case", "char", "const", "continue", "default", "do",
+  "double", "else", "enum", "extern", "float", "for", "goto", "if", "inline",
+  "int", "long", "register", "restrict", "return", "short", "signed",
+  "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned",
+  "void", "volatile", "while", "_Alignas", "_Alignof", "_Atomic", "_Bool",
+  "_Complex", "_Generic", "_Imaginary", "_Noreturn", "_Static_assert",
+  "_Thread_local",
+]);
+
 function sanitise(raw: string): string {
-  return raw.replace(/[^A-Za-z0-9_]/g, "_");
+  const out = raw.replace(/[^A-Za-z0-9_]/g, "_");
+  return C_RESERVED.has(out) ? `${out}_v` : out;
 }
 
 function cStringLit(s: string): string {

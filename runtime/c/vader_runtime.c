@@ -264,12 +264,25 @@ vader_u64_t vader_string_hash(vader_string_t s) {
 
 /* ----------------------------------------------------------------- array */
 
+/* `sizeof(vader_array_buf_t) + capacity * sizeof(vader_box_t)` without
+ * silent integer overflow. With user-controllable `capacity` (e.g. via
+ * `array.push` reaching into the gigabytes), the multiplication can wrap
+ * `size_t` and produce an under-allocation followed by an OOB write. Trap
+ * before the alloc with a clear message instead. */
+static size_t vader_array_buf_bytes(size_t capacity) {
+    const size_t per_slot = sizeof(vader_box_t);
+    if (capacity > (SIZE_MAX - sizeof(vader_array_buf_t)) / per_slot) {
+        vader_trap("vader_array: capacity overflows size_t");
+    }
+    return sizeof(vader_array_buf_t) + capacity * per_slot;
+}
+
 /* Allocate a fresh array buffer of `capacity` slots with the ARRAY_BUF
  * sentinel as its type tag — the GC scan loop dispatches on that to walk
  * `length` slots dynamically. The struct itself plus its trailing slot
  * area land in a single GC arena allocation. */
 static vader_array_buf_t* vader_array_buf_alloc(size_t capacity) {
-    size_t bytes = sizeof(vader_array_buf_t) + capacity * sizeof(vader_box_t);
+    size_t bytes = vader_array_buf_bytes(capacity);
     vader_array_buf_t* buf = (vader_array_buf_t*) vader_gc_alloc(bytes);
     vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
     buf->capacity = capacity;
@@ -289,7 +302,10 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length) {
      * cycles relocate them separately without surprise. */
     size_t cap = length > 0 ? length : 4;
     size_t struct_bytes = vader_gc_align(sizeof(vader_array_t));
-    size_t buf_bytes    = sizeof(vader_array_buf_t) + cap * sizeof(vader_box_t);
+    size_t buf_bytes    = vader_array_buf_bytes(cap);
+    if (struct_bytes > SIZE_MAX - buf_bytes) {
+        vader_trap("vader_array: total alloc size overflows size_t");
+    }
     char* block = (char*) vader_gc_alloc(struct_bytes + buf_bytes);
     vader_array_t* a = (vader_array_t*) block;
     vader_array_buf_t* buf = (vader_array_buf_t*) (block + struct_bytes);
@@ -431,7 +447,11 @@ vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t
 }
 
 vader_char_t vader_string_char_at(vader_string_t s, vader_i32_t i) {
-    if (i < 0 || (size_t)i >= s.len) return 0;
+    /* Trap on OOB to match `vader_array_get`'s contract — silently returning
+     * 0 made callers confuse "real NUL byte" with "out of bounds". The
+     * truncated-UTF-8 returns below stay as `0` / `0xFFFD` because they
+     * surface mid-codepoint encoding errors, not access violations. */
+    if (i < 0 || (size_t)i >= s.len) vader_trap("string index out of bounds");
     const uint8_t* p = (const uint8_t*)(s.ptr + i);
     size_t rem = s.len - (size_t)i;
     uint8_t b = *p;
@@ -540,15 +560,34 @@ void vader_builder_append_str(vader_builder_t* b, vader_string_t s) {
 }
 
 static void builder_append_fmt(vader_builder_t* b, const char* fmt, ...) {
-    char tmp[64];
+    /* Two-pass: first call sizes the formatted output (vsnprintf returns the
+     * would-have-been length), reserve the builder slot, then format
+     * directly into it. Avoids the OOB-read footgun where a caller passing
+     * a format that produces ≥ 64 bytes would `memcpy` past the stack
+     * buffer. We still keep a small stack scratch for the common case. */
+    char stack_buf[64];
     va_list ap;
     va_start(ap, fmt);
-    int n = vsnprintf(tmp, sizeof(tmp), fmt, ap);
+    va_list ap2;
+    va_copy(ap2, ap);
+    int n = vsnprintf(stack_buf, sizeof(stack_buf), fmt, ap);
     va_end(ap);
-    if (n < 0) return;
-    builder_reserve(b, (size_t) n);
-    memcpy(b->buf + b->len, tmp, (size_t) n);
-    b->len += (size_t) n;
+    if (n < 0) { va_end(ap2); return; }
+
+    if ((size_t) n < sizeof(stack_buf)) {
+        builder_reserve(b, (size_t) n);
+        memcpy(b->buf + b->len, stack_buf, (size_t) n);
+        b->len += (size_t) n;
+        va_end(ap2);
+        return;
+    }
+    /* Output didn't fit in the stack scratch — format straight into the
+     * builder's own buffer at the reserved offset. */
+    builder_reserve(b, (size_t) n + 1);     /* +1 for vsnprintf's trailing NUL */
+    int n2 = vsnprintf(b->buf + b->len, (size_t) n + 1, fmt, ap2);
+    va_end(ap2);
+    if (n2 < 0) return;
+    b->len += (size_t) n2;
 }
 
 void vader_builder_append_display_i32(vader_builder_t* b, vader_i32_t v) { builder_append_fmt(b, "%" PRId32, v); }
@@ -654,10 +693,20 @@ vader_box_t vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_t
     free(p);
     if (f == NULL) return vader_box_string(err_tag, vader_string_new("file not found", 14));
 
-    fseek(f, 0, SEEK_END);
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f); return vader_box_string(err_tag, vader_string_new("fseek failed", 12));
+    }
     long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
     if (size < 0) { fclose(f); return vader_box_string(err_tag, vader_string_new("ftell failed", 12)); }
+    /* Refuse files we can't safely allocate. The `SIZE_MAX/2` headroom keeps
+     * downstream `(size_t) size` arithmetic from wrapping anywhere we add a
+     * small offset (e.g. NUL terminators in scratch buffers). */
+    if ((unsigned long) size > SIZE_MAX / 2) {
+        fclose(f); return vader_box_string(err_tag, vader_string_new("file too large", 14));
+    }
+    if (fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f); return vader_box_string(err_tag, vader_string_new("fseek failed", 12));
+    }
 
     char* buf = (char*) vader_string_alloc((size_t) size);
     size_t n = fread(buf, 1, (size_t) size, f);

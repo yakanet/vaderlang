@@ -108,30 +108,54 @@ function relativeUnder(path: string, base: string): string | null {
 }
 
 function detectCycles(modules: ReadonlyMap<ModuleId, Module>, diags: DiagnosticCollector): void {
+  // Iterative tri-color DFS — recursive form would blow the JS stack on deep
+  // import chains (~10k frames is the typical V8/Bun limit). Each frame keeps
+  // an index into its module's import list so we can resume after recursing.
   const WHITE = 0, GRAY = 1, BLACK = 2;
   const color = new Map<ModuleId, number>();
   for (const id of modules.keys()) color.set(id, WHITE);
 
-  const stack: ModuleId[] = [];
-  const visit = (id: ModuleId): void => {
-    color.set(id, GRAY);
-    stack.push(id);
-    const mod = modules.get(id);
-    if (mod === undefined) { stack.pop(); color.set(id, BLACK); return; }
-    for (const imp of mod.imports) {
+  interface Frame {
+    readonly id: ModuleId;
+    readonly imports: readonly Module["imports"][number][];
+    cursor: number;
+  }
+  const path: ModuleId[] = [];
+
+  const visit = (start: ModuleId): void => {
+    const startMod = modules.get(start);
+    if (startMod === undefined) { color.set(start, BLACK); return; }
+    color.set(start, GRAY);
+    path.push(start);
+    const stack: Frame[] = [{ id: start, imports: startMod.imports, cursor: 0 }];
+
+    while (stack.length > 0) {
+      const top = stack[stack.length - 1]!;
+      if (top.cursor >= top.imports.length) {
+        stack.pop();
+        path.pop();
+        color.set(top.id, BLACK);
+        continue;
+      }
+      const imp = top.imports[top.cursor++]!;
       if (imp.resolvedTo === null) continue;
       const c = color.get(imp.resolvedTo) ?? WHITE;
       if (c === GRAY) {
-        const cycleStart = stack.indexOf(imp.resolvedTo);
-        const cycle = stack.slice(cycleStart).concat([imp.resolvedTo]);
+        const cycleStart = path.indexOf(imp.resolvedTo);
+        const cycle = path.slice(cycleStart).concat([imp.resolvedTo]);
         err(diags, "R2005", imp.span,
           cycle.map((m) => modules.get(m)?.displayPath ?? m).join(" → "));
       } else if (c === WHITE) {
-        visit(imp.resolvedTo);
+        const childMod = modules.get(imp.resolvedTo);
+        if (childMod === undefined) {
+          color.set(imp.resolvedTo, BLACK);
+          continue;
+        }
+        color.set(imp.resolvedTo, GRAY);
+        path.push(imp.resolvedTo);
+        stack.push({ id: imp.resolvedTo, imports: childMod.imports, cursor: 0 });
       }
     }
-    stack.pop();
-    color.set(id, BLACK);
   };
 
   for (const id of modules.keys()) {
