@@ -51,7 +51,6 @@ export const PARSER = {
   P1021: "1-tuple types are not allowed",
   P1022: "tuple pattern requires at least 2 elements",
   P1023: "let destructure requires at least 2 elements",
-  P1024: "legacy array type `[T]` is no longer accepted",
 } as const;
 
 export type ParserCode = keyof typeof PARSER;

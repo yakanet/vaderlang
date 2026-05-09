@@ -151,24 +151,18 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
       p.skipNewlines();
     }
     const end = p.expect("rbracket", "`]` to close bracketed type");
-    if (elements.length === 1 && !hadTrailingComma) {
-      // Legacy prefix `[T]` syntax has been retired. Direct users to the
-      // new postfix `T[]` form. The bracketed `[T1, T2]` shape is reserved
-      // for tuples (≥ 2 elements).
-      p.error("P1024", p.spanOf(start, end),
-        "use postfix `T[]` for array types ; `[T]` is now reserved for tuples (≥ 2 elements)");
-      // Best-effort recovery : keep parsing as if it were an array type so
-      // downstream phases get a usable shape and can surface their own errors.
+    if (elements.length === 1) {
+      // 1-tuple : `[T]` and `[T,]` both reach here. `T[]` is the array
+      // form ; a single-element tuple has no use case (just write `T`).
+      // Best-effort recovery as `ArrayTypeExpr` keeps downstream phases
+      // working when the user clearly meant an array.
+      p.error("P1021", p.spanOf(start, end),
+        "use postfix `T[]` for an array, or a plain value if you meant the element");
       return {
         kind: "ArrayTypeExpr",
         span: p.spanOf(start, end),
         element: elements[0]!,
       };
-    }
-    if (elements.length === 1 && hadTrailingComma) {
-      // `[T,]` — 1-tuple, forbidden.
-      p.error("P1021", p.spanOf(start, end),
-        "use a struct or a plain value instead");
     }
     return {
       kind: "SeqLitExpr",

@@ -1,5 +1,7 @@
-// Legacy prefix `[T]` array syntax was hard-cut → P1024. The modern form is
-// postfix `T[]`. The bracketed `[T1, T2, ...]` shape is reserved for tuples.
+// `[T]` (single-element bracketed type) is rejected with P1021 — the
+// array form is postfix `T[]`, and a 1-tuple has no use case (just write
+// the element type). The bracketed `[T1, T2, ...]` shape is reserved for
+// tuples (≥ 2 elements).
 
 main :: fn() -> i32 {
     items: [i32] = [1, 2, 3]

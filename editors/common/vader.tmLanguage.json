@@ -148,12 +148,23 @@
           }
         },
         {
-          "comment": "Type declaration: Name :: struct|trait|enum|type",
-          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(::)\\s*(struct|trait|enum|type)\\b",
+          "comment": "Type declaration: Name :: struct|trait|enum",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(::)\\s*(struct|trait|enum)\\b",
           "captures": {
             "1": { "name": "entity.name.type.vader" },
             "2": { "name": "keyword.operator.declaration.vader" },
             "3": { "name": "storage.type.vader" }
+          }
+        },
+        {
+          "comment": "Generic type alias: Name[T] :: <body>",
+          "match": "\\b([A-Z][A-Za-z0-9_]*)\\s*(\\[)([^\\]]*)(\\])\\s*(::)",
+          "captures": {
+            "1": { "name": "entity.name.type.vader" },
+            "2": { "name": "punctuation.bracket.vader" },
+            "3": { "name": "variable.parameter.type.vader" },
+            "4": { "name": "punctuation.bracket.vader" },
+            "5": { "name": "keyword.operator.declaration.vader" }
           }
         },
         {
@@ -171,7 +182,7 @@
       "patterns": [
         {
           "name": "keyword.control.vader",
-          "match": "\\b(if|else|match|for|in|return|defer|break|continue|where|as)\\b"
+          "match": "\\b(if|else|match|for|in|return|defer|break|continue|as)\\b"
         },
         {
           "name": "keyword.operator.expression.is.vader",

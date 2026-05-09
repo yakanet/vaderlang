@@ -1047,10 +1047,11 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
         return inner
     }
     if t.kind == .LBracket {
-        // Bracketed type form. Three readings :
+        // Bracketed type form. Two readings :
         //   `[T1, T2, ...]`  → tuple type (≥ 2 elements), encoded as `SeqLitExpr`
-        //   `[T,]`           → 1-tuple — forbidden (P1021)
-        //   `[T]`            → legacy array alias, hard-cut (P1024).
+        //   `[T]` / `[T,]`   → 1-tuple — forbidden (P1021), recovered as
+        //                      ArrayTypeExpr so the user-likely-meant-array
+        //                      flow keeps working downstream.
         start :: p.advance()
         elements: TypeExpr[] = []
         p.skip_newlines()
@@ -1064,31 +1065,20 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
         }
         elements.push(p.parse_type())
         p.skip_newlines()
-        had_trailing_comma := false
         for p.match_kind(.Comma).matched {
             p.skip_newlines()
-            if p.check(.RBracket) {
-                had_trailing_comma = true
-                break
-            }
+            if p.check(.RBracket) { break }
             elements.push(p.parse_type())
             p.skip_newlines()
         }
         end :: p.expect(.RBracket, "`]` to close bracketed type")
-        if elements.len() == 1 && !had_trailing_comma {
-            // Legacy `[T]` — array alias, retired.
-            p.error(.LegacyArrayType, p.span_of(start, end),
-                "use postfix `T[]` for array types ; `[T]` is now reserved for tuples (≥ 2 elements)")
-            // Best-effort recovery as ArrayTypeExpr so downstream phases get a
-            // usable shape.
+        if elements.len() == 1 {
+            p.error(.OneTupleNotAllowed, p.span_of(start, end),
+                "use postfix `T[]` for an array, or a plain value if you meant the element")
             return ArrayTypeExpr {
                 .span    = p.span_of(start, end),
                 .element = elements[0],
             }
-        }
-        if elements.len() == 1 && had_trailing_comma {
-            p.error(.OneTupleNotAllowed, p.span_of(start, end),
-                "use a struct or a plain value instead")
         }
         return SeqLitExpr {
             .span     = p.span_of(start, end),
