@@ -357,7 +357,42 @@ export type Expr =
   | TryExpr
   | CastExpr
   | GenericInstExpr
-  | DotVariantExpr;
+  | DotVariantExpr
+  // Type-expression variants — included in Expr at the type level so that
+  // future typechecker positions demanding `type` can accept any Expr.
+  // Today, parsers do not produce these in value-expression slots ; switches
+  // on Expr.kind treat them as unreachable (see `unreachableTypeExprInValuePosition`).
+  | TypeExpr;
+
+/** Narrow guard : true iff `e` is one of the seven syntactic type-expression
+ *  variants. Useful when traversing an Expr generically and needing to dispatch
+ *  to the type-expression handler. */
+export function isTypeExprNode(e: Expr): e is TypeExpr {
+  switch (e.kind) {
+    case "NamedType":
+    case "UnionType":
+    case "FnTypeExpr":
+    case "ArrayTypeExpr":
+    case "TupleTypeExpr":
+    case "GenericInstType":
+    case "TypeParamType":
+      return true;
+    default:
+      return false;
+  }
+}
+
+/** Guard for exhaustive switches on `Expr.kind` : type-expression variants
+ *  cannot appear in value-expression positions yet (the parser does not
+ *  produce them there). When the typechecker eventually accepts arbitrary
+ *  `Expr` in type-demanding positions (Layer 1.D), this helper's call sites
+ *  will be revisited. */
+export function unreachableTypeExprInValuePosition(e: TypeExpr): never {
+  throw new Error(
+    `internal: TypeExpr variant '${e.kind}' encountered in value-expression position; ` +
+    `the parser should not produce this here (Layer 3 fusion is type-level only for now)`,
+  );
+}
 
 export interface IntLitExpr {
   readonly kind: "IntLitExpr";

@@ -5,6 +5,7 @@
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as A from "../parser/ast.ts";
+import { unreachableTypeExprInValuePosition } from "../parser/ast.ts";
 
 import type { BuiltinScope } from "./builtins.ts";
 import { isKnownDecorator } from "../parser/decorators.ts";
@@ -616,6 +617,14 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       return;
     case "DotVariantExpr":
       return;
+    case "NamedType":
+    case "UnionType":
+    case "FnTypeExpr":
+    case "ArrayTypeExpr":
+    case "TupleTypeExpr":
+    case "GenericInstType":
+    case "TypeParamType":
+      unreachableTypeExprInValuePosition(expr);
   }
 }
 

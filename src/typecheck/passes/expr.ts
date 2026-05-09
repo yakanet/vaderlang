@@ -6,7 +6,7 @@
 
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
-import { staticStringValue } from "../../parser/ast.ts";
+import { staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 
@@ -94,6 +94,14 @@ function inferExpr(
       }
       return substitute(innerType, { typeParams: typeParamMap });
     }
+    case "NamedType":
+    case "UnionType":
+    case "FnTypeExpr":
+    case "ArrayTypeExpr":
+    case "TupleTypeExpr":
+    case "GenericInstType":
+    case "TypeParamType":
+      return unreachableTypeExprInValuePosition(expr);
   }
 }
 

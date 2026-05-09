@@ -2,6 +2,7 @@
 // interp, match, try, range, and for-in to their dedicated passes.
 
 import type * as A from "../../parser/ast.ts";
+import { unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
@@ -294,6 +295,14 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       };
     case "GenericInstExpr":
       return lowerExpr(ctx, expr.callee);     // type-args baked in post-mono
+    case "NamedType":
+    case "UnionType":
+    case "FnTypeExpr":
+    case "ArrayTypeExpr":
+    case "TupleTypeExpr":
+    case "GenericInstType":
+    case "TypeParamType":
+      return unreachableTypeExprInValuePosition(expr);
   }
 }
 

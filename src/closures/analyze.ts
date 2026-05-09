@@ -13,7 +13,7 @@
 // Otherwise the outer would have no way to pass them to the inner closure.
 
 import type * as A from "../parser/ast.ts";
-import { forEachPatternBindingKey } from "../parser/ast.ts";
+import { forEachPatternBindingKey, unreachableTypeExprInValuePosition } from "../parser/ast.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Type } from "../typecheck/types.ts";
@@ -241,6 +241,14 @@ function walkExpr(
     case "GenericInstExpr":
       walkExpr(expr.callee, scope, outCaptures, outSeen, ctx);
       return;
+    case "NamedType":
+    case "UnionType":
+    case "FnTypeExpr":
+    case "ArrayTypeExpr":
+    case "TupleTypeExpr":
+    case "GenericInstType":
+    case "TypeParamType":
+      unreachableTypeExprInValuePosition(expr);
   }
 }
 
