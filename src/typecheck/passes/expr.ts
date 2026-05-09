@@ -236,6 +236,11 @@ export function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {
         ? t.globals.paramTypes.get(sym.source.param) ?? TY.unresolved
         : TY.unresolved;
     case "local":
+      // Layer 5b — let-stmt locals tagged as in-fn type aliases
+      // (`t :: <type-expr>`) statically have type `type`. The underlying
+      // resolved type is served through `typeFromSymbol` for type-position
+      // references ; here in value-position we just report the metatype.
+      if (t.globals.letTypeAliases.has(sym)) return TY.type;
       return sym.source.kind === "local"
         ? t.localTypes.get(sym.source.binding) ?? TY.unresolved
         : TY.unresolved;

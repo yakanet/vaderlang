@@ -140,6 +140,7 @@ export function checkProgram(
     paramTypes: globals.paramTypes,
     typeExprTypes: globals.typeExprTypes,
     constTypeAliases: globals.constTypeAliases,
+    letTypeAliases: globals.letTypeAliases,
     methodResolutions: t.methodResolutions,
     ufcsFreeResolutions: t.ufcsFreeResolutions,
     arrayOps: t.arrayOps,

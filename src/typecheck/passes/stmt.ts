@@ -12,6 +12,7 @@ import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute }
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { recordIterCoercion } from "./call.ts";
+import { looksLikeTypeExpression } from "./decl.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
 import { lowerExprAsType } from "./type-expr.ts";
 
@@ -91,6 +92,33 @@ function checkStmt(
       if (expectedAnn !== null && !isAssignable(got, expectedAnn, impls)) {
         err(diags, "T3001", stmt.span,
           `expected ${displayType(expectedAnn)}, got ${displayType(got)}`);
+      }
+      // Layer 5b — `t :: <type-expr>` inside a fn body is an in-fn type
+      // alias : pre-resolve the underlying Type and stash it ; lower will
+      // skip emitting a runtime slot, downstream type-position references
+      // see the resolved type via `letTypeAliases`. Mirrors the top-level
+      // `constTypeAliases` mechanism, keyed by the local symbol since
+      // let-stmts have no decl AST node.
+      let isLetTypeAlias = false;
+      if (declared.kind === "TypeMeta" && !stmt.mutable
+          && stmt.binding.kind === "SimpleBinding"
+          && looksLikeTypeExpression(stmt.value, t)) {
+        const resolved = lowerExprAsType(stmt.value, t, diags);
+        const sym = t.resolved.locals.get(stmt.binding);
+        if (sym !== undefined) {
+          t.globals.letTypeAliases.set(sym, resolved);
+          isLetTypeAlias = true;
+        }
+      }
+      // Any other `type`-valued local can't be lowered today (the VM has
+      // no Type-value representation — Layer 4 milestone B.1 pending) ;
+      // reject at typecheck with T3035 so the user sees a clear diag
+      // instead of `reached unreachable` at runtime.
+      if (declared.kind === "TypeMeta" && !isLetTypeAlias) {
+        err(diags, "T3035", stmt.span,
+          "`type`-valued locals are not yet supported (Layer 4 milestone B.1) ; "
+          + "use the immutable form `name :: <type-expr>` for an in-fn type alias, "
+          + "or a top-level alias `Name :: type[T] ...`");
       }
       if (expectedAnn !== null) recordIterCoercion(stmt.value, got, expectedAnn, t);
       assignBindingTypes(stmt.binding, declared, t, diags);

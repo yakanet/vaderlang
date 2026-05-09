@@ -113,6 +113,7 @@ export const TYPECHECK = {
   T3032: "ambiguous overload resolution",
   T3033: "invalid `main` signature",
   T3034: "recursive expression-bodied function requires an explicit `-> Type` annotation",
+  T3035: "type-valued slot is not yet supported in this position",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

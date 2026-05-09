@@ -91,6 +91,14 @@ function emitDefersInto(ctx: FnLowerCtx, defers: readonly A.Stmt[], out: Lowered
 export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredStmt[] | null {
   switch (stmt.kind) {
     case "LetStmt": {
+      // Layer 5b — `t :: <type-expr>` in-fn type alias : the typechecker
+      // pre-resolved the underlying Type into `letTypeAliases`. There is
+      // no runtime slot — type-position users already resolved through
+      // `typeFromSymbol` ; skip emission entirely.
+      if (stmt.binding.kind === "SimpleBinding") {
+        const sym = ctx.typed.resolved.locals.get(stmt.binding);
+        if (sym !== undefined && ctx.typed.letTypeAliases.has(sym)) return null;
+      }
       const value = lowerExpr(ctx, stmt.value);
       if (stmt.binding.kind === "SimpleBinding") {
         const leaf = stmt.binding;

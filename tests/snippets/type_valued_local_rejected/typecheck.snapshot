@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/type_valued_local_rejected/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 8:15     IdentExpr      :: type
+  expr 9:27     IfExpr         :: type
+  expr 9:30     BinaryExpr     :: bool
+  expr 9:39     IdentExpr      :: type
+  expr 9:52     IdentExpr      :: type
+
+# Diagnostics
+[8:5] error[T3035] type-valued slot is not yet supported in this position: `type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`
+[9:5] error[T3035] type-valued slot is not yet supported in this position: `type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`

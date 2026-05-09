@@ -17,10 +17,11 @@ import { lowerExprAsType } from "./type-expr.ts";
 
 /** Syntactic predicate : does `expr` look like a type expression in the
  *  Layer 4-sugar sense ? Used by the implicit-type-alias promotion in the
- *  ConstDecl declarer to decide whether to lower the RHS as a type before
- *  any body has been checked. We can't call `lowerExprAsType` blindly —
- *  it emits diagnostics for non-type Exprs — so this is the gate. */
-function looksLikeTypeExpression(expr: A.Expr, t: MutableTyped): boolean {
+ *  ConstDecl declarer (and the in-fn let-stmt path in `inferLet`) to decide
+ *  whether to lower the RHS as a type before any body has been checked. We
+ *  can't call `lowerExprAsType` blindly — it emits diagnostics for non-type
+ *  Exprs — so this is the gate. */
+export function looksLikeTypeExpression(expr: A.Expr, t: MutableTyped): boolean {
   switch (expr.kind) {
     case "IdentExpr": {
       const sym = t.resolved.idents.get(expr) ?? t.resolved.types.get(expr);

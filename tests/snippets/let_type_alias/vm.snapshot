@@ -1,0 +1,6 @@
+# stdout
+size i32      = 4
+size i64      = 8
+size union    = 16
+# exit
+0

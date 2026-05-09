@@ -1,0 +1,11 @@
+// Layer 5b — `type`-valued locals are rejected at typecheck (T3035) until
+// Layer 4 milestone B.1 lands TypeValue end-to-end through the VM.
+// Without this rule, the lowerer emitted unreachable for the local slot
+// and the user got `reached unreachable` at runtime instead of a useful
+// diagnostic.
+
+main :: fn() -> i32 {
+    t: type = i32
+    runtime_typed: type = if 1 == 1 { i32 } else { i64 }
+    return 0
+}

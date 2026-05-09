@@ -90,6 +90,10 @@ export interface TypedProgram {
    *  ; `typeFromSymbol` reads it to serve the alias when the const name
    *  appears in a type-demanding slot. */
   readonly constTypeAliases: ReadonlyMap<A.ConstDecl, Type>;
+  /** In-fn `t :: <type-expr>` let-stmts (Layer 5b — type-as-comptime-binding
+   *  inside fn bodies). Same shape as `constTypeAliases` but keyed by the
+   *  binding's local symbol since let-stmts have no decl AST node. */
+  readonly letTypeAliases: ReadonlyMap<Symbol, Type>;
 
   /** `obj.method` field accesses that resolved to a trait-impl method via
    *  UFCS. The lowerer reads this to rewrite `obj.method(args)` into a

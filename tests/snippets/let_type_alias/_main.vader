@@ -1,0 +1,23 @@
+// Layer 5b — `t :: <structural-type-expr>` inside a fn body acts as an
+// in-fn type alias. The typechecker stashes the resolved underlying type
+// in `letTypeAliases` ; the lower phase skips emitting a runtime slot ;
+// downstream type-position references resolve through the alias.
+//
+// Mirrors the top-level `Maybe :: i32 | string` Layer 4-sugar implicit
+// alias, but lives inside a fn body via the same `looksLikeTypeExpression`
+// gate. Conditional type expressions (`t :: if ... { i32 } else { i64 }`)
+// still fail with T3035 until Layer 4 milestone B.1 lands TypeValue
+// end-to-end through the comptime VM.
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    t          :: i32
+    big_t      :: i64
+    union_t    :: i32 | string
+
+    println("size i32      = ${@size_of(t)}")
+    println("size i64      = ${@size_of(big_t)}")
+    println("size union    = ${@size_of(union_t)}")
+    return 0
+}

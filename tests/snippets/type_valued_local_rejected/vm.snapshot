@@ -1,0 +1,3 @@
+# compile errors
+[T3035] type-valued slot is not yet supported in this position: `type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`
+[T3035] type-valued slot is not yet supported in this position: `type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`

@@ -135,6 +135,14 @@ export function typeFromSymbol(
         if (aliased !== undefined) return aliased;
       }
       return TY.unresolved;
+    case "local": {
+      // Layer 5b — `t :: <type-expr>` inside a fn body acts as an in-fn
+      // type alias. The resolved underlying type is stashed in
+      // `letTypeAliases` keyed by the local's symbol.
+      const aliased = t.globals.letTypeAliases.get(sym);
+      if (aliased !== undefined) return aliased;
+      return TY.unresolved;
+    }
     default:
       return TY.unresolved;
   }

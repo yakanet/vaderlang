@@ -33,6 +33,7 @@ export interface Globals {
    *  position, and by the lower pass to decide whether to skip emitting
    *  a runtime slot. */
   readonly constTypeAliases: Map<A.ConstDecl, Type>;
+  readonly letTypeAliases: Map<Symbol, Type>;
   /** Auto-imported std/core symbols, looked up for Display / Error / Iterator etc. */
   coreSymbols: ReadonlyMap<string, Symbol> | null;
   /** Cross-module typeParam table from the resolver — used for O(1) lookup
@@ -56,6 +57,7 @@ export function newGlobals(
   return {
     declTypes: new Map(), paramTypes: new Map(), typeExprTypes: new Map(),
     constTypeAliases: new Map(),
+    letTypeAliases: new Map(),
     coreSymbols: null,
     typeParamSymbols,
     typeParamBounds,
