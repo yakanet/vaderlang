@@ -22,7 +22,7 @@ export ForForm :: type InfiniteFor | WhileFor | InFor
 
 export DeferBody :: type DeferStmtBody | DeferBlockBody
 
-export Expr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr
+export Expr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 export StringLitPart :: type StringLitText | StringLitInterp
 
@@ -34,7 +34,11 @@ export LetBinding :: type SimpleBinding | TupleBinding | WildcardBinding
 
 export PatternFieldValue :: type PatternBinding | PatternLiteral
 
-export TypeExpr :: type NamedType | UnionType | FnTypeExpr | ArrayTypeExpr | TupleTypeExpr | GenericInstType | TypeParamType
+// Type-position expressions parse as regular `Expr` nodes — what counts
+// as a « type expression » is determined by *position* (the slot demanding
+// a type) rather than by AST shape. The alias documents intent at slot
+// declarations (e.g. `StructField.ty: TypeExpr`) ; variants mirror `Expr`.
+export TypeExpr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 // ============================================================================
 // Visibility / shared shapes
@@ -167,12 +171,19 @@ export EnumVariant :: struct {
 
 // ---- Trait ----------------------------------------------------------------
 
+// `requires` carries the trait composition expression for either form :
+//   `Numeric :: trait[T] = Add & Sub`        (alias form, members empty)
+//   `Hashable :: trait[T] : Hash & Eq { ... }` (declared methods + composition)
+// Stored as a parsed type expression — typically a `BinaryExpr(.BitAnd)` chain
+// over trait names but a single trait reference is also valid. `null` for a
+// plain `trait { ... }` declaration without composition.
 export TraitDecl :: struct {
     span:        Span
     name:        string
     name_span:   Span
     visibility:  Visibility
     type_params: TypeParam[]
+    requires:    TypeExpr | null
     members:     FnDecl[]
     decorators:  Decorator[]
 }
@@ -346,9 +357,18 @@ export StringLitInterp :: struct { expr:  Expr,   span: Span }
 
 // ---- naming / access ------------------------------------------------------
 
+// `implicit_dot` is set when the source spelling was a leading-dot
+// reference (`.Foo`) — resolution defers to the surrounding context.
+// `is_type_param_intro` is set when the source was a dollar-prefixed
+// name — a legacy type-param introduction in a generic signature. Both
+// are `bool` (defaults `false`) ; the dumper emits the JSON keys
+// `implicitDot` / `isTypeParamIntro` only when `true` to match the TS
+// `JSON.stringify`-of-`undefined` shape.
 export IdentExpr :: struct {
-    span: Span
-    name: string
+    span:                Span
+    name:                string
+    implicit_dot:        bool
+    is_type_param_intro: bool
 }
 
 export CallExpr :: struct {
@@ -554,45 +574,17 @@ export EnumVariantPattern :: struct {
 // Type expressions
 // ============================================================================
 
-export NamedType :: struct {
-    span: Span
-    name: string
-    // True when the source spelling was a leading-dot reference (`.Foo`).
-    // Resolution defers to the surrounding context (typically the match
-    // scrutinee) ; the dump emits `"implicitDot": true` only when set, so
-    // regular named-type snapshots stay byte-identical.
-    implicit_dot: bool
-}
-
-export UnionType :: struct {
-    span:     Span
-    variants: TypeExpr[]
-}
-
+// Function type `fn(T1, T2) -> R` — type-only AST node (no value-side
+// counterpart).
 export FnTypeExpr :: struct {
     span:        Span
     params:      TypeExpr[]
     return_type: TypeExpr | null
 }
 
+// Postfix array type `T[]` — type-only AST node. The bracketed form
+// `[T1, T2]` parses as `SeqLitExpr` (tuple type) instead.
 export ArrayTypeExpr :: struct {
     span:    Span
     element: TypeExpr
-}
-
-// Tuple type `[T1, T2, ...]`. Always ≥ 2 elements (1-tuples are forbidden).
-export TupleTypeExpr :: struct {
-    span:     Span
-    elements: TypeExpr[]
-}
-
-export GenericInstType :: struct {
-    span: Span
-    base: NamedType
-    args: TypeExpr[]
-}
-
-export TypeParamType :: struct {
-    span: Span
-    name: string
 }

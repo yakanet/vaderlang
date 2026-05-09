@@ -370,6 +370,8 @@ write_trait_decl :: fn(sb: StringBuilder, d: TraitDecl, level: i32) -> void {
     write_visibility(sb, d.visibility)
     entry(sb, false, level + 1, "typeParams")
     write_type_params(sb, d.type_params, level + 1)
+    entry(sb, false, level + 1, "requires")
+    write_optional_type(sb, d.requires, level + 1)
     entry(sb, false, level + 1, "members")
     write_fn_decls(sb, d.members, level + 1)
     entry(sb, false, level + 1, "decorators")
@@ -528,84 +530,14 @@ write_types :: fn(sb: StringBuilder, ts: TypeExpr[], level: i32) -> void {
     close_arr(sb, level)
 }
 
-// Nullable-TypeExpr fields appear on FnDecl, FnParam, ConstDecl, EnumDecl,
-// TypeParam, FnTypeExpr, LetStmt, LambdaExpr — write_optional_type folds the
-// per-variant dispatch into one helper so each call site stays a single line.
+// `TypeExpr` is an alias for `Expr` ; type-position dumps forward to
+// `write_expr` directly.
 write_optional_type :: fn(sb: StringBuilder, t: TypeExpr | null, level: i32) -> void {
-    match t {
-        is null            -> { write_null(sb) }
-        is NamedType       -> { write_type(sb, t, level) }
-        is UnionType       -> { write_type(sb, t, level) }
-        is FnTypeExpr      -> { write_type(sb, t, level) }
-        is ArrayTypeExpr   -> { write_type(sb, t, level) }
-        is TupleTypeExpr   -> { write_type(sb, t, level) }
-        is GenericInstType -> { write_type(sb, t, level) }
-        is TypeParamType   -> { write_type(sb, t, level) }
-    }
+    write_expr(sb, t, level)
 }
 
 write_type :: fn(sb: StringBuilder, t: TypeExpr, level: i32) -> void {
-    match t {
-        is NamedType       -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "NamedType")
-            entry(sb, false, level + 1, "name")
-            write_string(sb, t.name)
-            // Mirror the TS dumper : `JSON.stringify` drops `undefined`,
-            // so the field is only emitted when set.
-            if t.implicit_dot {
-                entry(sb, false, level + 1, "implicitDot")
-                sb.append("true")
-            }
-            close_obj(sb, level)
-        }
-        is UnionType -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "UnionType")
-            entry(sb, false, level + 1, "variants")
-            write_types(sb, t.variants, level + 1)
-            close_obj(sb, level)
-        }
-        is FnTypeExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "FnTypeExpr")
-            entry(sb, false, level + 1, "params")
-            write_types(sb, t.params, level + 1)
-            entry(sb, false, level + 1, "returnType")
-            write_optional_type(sb, t.return_type, level + 1)
-            close_obj(sb, level)
-        }
-        is ArrayTypeExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "ArrayTypeExpr")
-            entry(sb, false, level + 1, "element")
-            write_type(sb, t.element, level + 1)
-            close_obj(sb, level)
-        }
-        is TupleTypeExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "TupleTypeExpr")
-            entry(sb, false, level + 1, "elements")
-            write_types(sb, t.elements, level + 1)
-            close_obj(sb, level)
-        }
-        is GenericInstType -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "GenericInstType")
-            entry(sb, false, level + 1, "base")
-            write_type(sb, t.base, level + 1)
-            entry(sb, false, level + 1, "args")
-            write_types(sb, t.args, level + 1)
-            close_obj(sb, level)
-        }
-        is TypeParamType -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "TypeParamType")
-            entry(sb, false, level + 1, "name")
-            write_string(sb, t.name)
-            close_obj(sb, level)
-        }
-    }
+    write_expr(sb, t, level)
 }
 
 // ============================================================================
@@ -747,32 +679,7 @@ write_for_form :: fn(sb: StringBuilder, f: ForForm, level: i32) -> void {
 // ============================================================================
 
 write_optional_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
-    match e {
-        is null              -> { write_null(sb) }
-        is IntLitExpr -> { write_expr(sb, e, level) }
-        is FloatLitExpr -> { write_expr(sb, e, level) }
-        is BoolLitExpr -> { write_expr(sb, e, level) }
-        is NullLitExpr -> { write_expr(sb, e, level) }
-        is CharLitExpr -> { write_expr(sb, e, level) }
-        is StringLitExpr -> { write_expr(sb, e, level) }
-        is IdentExpr -> { write_expr(sb, e, level) }
-        is CallExpr -> { write_expr(sb, e, level) }
-        is FieldExpr -> { write_expr(sb, e, level) }
-        is IndexExpr -> { write_expr(sb, e, level) }
-        is UnaryExpr -> { write_expr(sb, e, level) }
-        is BinaryExpr -> { write_expr(sb, e, level) }
-        is IfExpr -> { write_expr(sb, e, level) }
-        is MatchExpr -> { write_expr(sb, e, level) }
-        is BlockExpr -> { write_expr(sb, e, level) }
-        is LambdaExpr -> { write_expr(sb, e, level) }
-        is StructLitExpr -> { write_expr(sb, e, level) }
-        is SeqLitExpr -> { write_expr(sb, e, level) }
-        is RangeExpr -> { write_expr(sb, e, level) }
-        is TryExpr -> { write_expr(sb, e, level) }
-        is CastExpr -> { write_expr(sb, e, level) }
-        is GenericInstExpr -> { write_expr(sb, e, level) }
-        is DotVariantExpr -> { write_expr(sb, e, level) }
-    }
+    write_expr(sb, e, level)
 }
 
 write_exprs :: fn(sb: StringBuilder, es: Expr[], level: i32) -> void {
@@ -792,8 +699,9 @@ write_exprs :: fn(sb: StringBuilder, es: Expr[], level: i32) -> void {
     close_arr(sb, level)
 }
 
-write_expr :: fn(sb: StringBuilder, e: Expr, level: i32) -> void {
+write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
     match e {
+        is null -> { write_null(sb) }
         is IntLitExpr -> {
             open_obj(sb)
             kind_entry(sb, level + 1, "IntLitExpr")
@@ -853,6 +761,17 @@ write_expr :: fn(sb: StringBuilder, e: Expr, level: i32) -> void {
             kind_entry(sb, level + 1, "IdentExpr")
             entry(sb, false, level + 1, "name")
             write_string(sb, e.name)
+            // Mirror TS : both flags are emitted only when set, since the
+            // TS dumper drops `undefined`-valued optional fields via
+            // `JSON.stringify`.
+            if e.implicit_dot {
+                entry(sb, false, level + 1, "implicitDot")
+                sb.append("true")
+            }
+            if e.is_type_param_intro {
+                entry(sb, false, level + 1, "isTypeParamIntro")
+                sb.append("true")
+            }
             close_obj(sb, level)
         }
         is CallExpr -> {
@@ -1007,6 +926,22 @@ write_expr :: fn(sb: StringBuilder, e: Expr, level: i32) -> void {
             kind_entry(sb, level + 1, "DotVariantExpr")
             entry(sb, false, level + 1, "variant")
             write_string(sb, e.variant)
+            close_obj(sb, level)
+        }
+        is FnTypeExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "FnTypeExpr")
+            entry(sb, false, level + 1, "params")
+            write_types(sb, e.params, level + 1)
+            entry(sb, false, level + 1, "returnType")
+            write_optional_type(sb, e.return_type, level + 1)
+            close_obj(sb, level)
+        }
+        is ArrayTypeExpr -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "ArrayTypeExpr")
+            entry(sb, false, level + 1, "element")
+            write_expr(sb, e.element, level + 1)
             close_obj(sb, level)
         }
     }

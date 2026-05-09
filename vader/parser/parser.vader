@@ -362,18 +362,13 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     p.expect(.KwImplements, "`implements` keyword")
     trait_tok :: p.expect(.Ident, "trait name")
 
+    // Trait-args — `Iterator(T)` and `Iterator[T]` both accepted.
     trait_args: TypeExpr[] = []
-    if p.match_kind(.LParen).matched {
-        p.skip_newlines()
-        if !p.check(.RParen) {
-            for {
-                p.skip_newlines()
-                if p.check(.RParen) { break }
-                trait_args.push(p.parse_type())
-                p.skip_newlines()
-                if !p.match_kind(.Comma).matched { break }
-            }
-        }
+    if p.match_kind(.LBracket).matched {
+        trait_args = p.parse_type_list_until(.RBracket)
+        p.expect(.RBracket, "`]` to close trait argument list")
+    } else if p.match_kind(.LParen).matched {
+        trait_args = p.parse_type_list_until(.RParen)
         p.expect(.RParen, "`)` to close trait argument list")
     }
 
@@ -474,7 +469,11 @@ parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 
 parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
     p.advance()  // `fn`
+    // Bracketed type-params `fn[T: Bound](...)` are merged with legacy
+    // dollar-prefixed introductions collected from the value-arg types.
+    bracketed :: p.parse_bracketed_type_params()
     sig :: p.parse_fn_signature_params()
+    type_params :: merge_type_params(bracketed, sig.type_params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail(return_type)
@@ -483,7 +482,7 @@ parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, 
         .name                 = name_tok.text,
         .name_span            = name_tok.span,
         .visibility           = visibility,
-        .type_params          = sig.type_params,
+        .type_params          = type_params,
         .params               = sig.params,
         .return_type          = return_type,
         .body                 = tail.body,
@@ -527,7 +526,9 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     }
     fn_tok :: p.advance()  // `fn`
     name_tok :: p.expect(.Ident, "function name")
+    bracketed :: p.parse_bracketed_type_params()
     sig :: p.parse_fn_signature_params()
+    type_params :: merge_type_params(bracketed, sig.type_params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail(return_type)
@@ -536,7 +537,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
         .name                 = name_tok.text,
         .name_span            = name_tok.span,
         .visibility           = visibility,
-        .type_params          = sig.type_params,
+        .type_params          = type_params,
         .params               = sig.params,
         .return_type          = return_type,
         .body                 = tail.body,
@@ -599,17 +600,9 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
                 default_value = p.parse_expr(0)
             }
 
-            // Inline `$T` types are auto-promoted to type parameters.
-            match ty {
-                is null            -> {}
-                is NamedType       -> { collect_type_params(ty, type_params) }
-                is UnionType       -> { collect_type_params(ty, type_params) }
-                is FnTypeExpr      -> { collect_type_params(ty, type_params) }
-                is ArrayTypeExpr   -> { collect_type_params(ty, type_params) }
-                is TupleTypeExpr   -> { collect_type_params(ty, type_params) }
-                is GenericInstType -> { collect_type_params(ty, type_params) }
-                is TypeParamType   -> { collect_type_params(ty, type_params) }
-            }
+            // Legacy dollar-prefixed types are auto-promoted to type
+            // parameters (the canonical surface is bracketed `fn[T](...)`).
+            collect_type_params(ty, type_params)
 
             params.push(FnParam {
                 .span          = p.span_of(start_tok, p.peek_at(-1)),
@@ -663,6 +656,10 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
 }
 
 parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
+    // Bracketed `[T, U: Bound]` is canonical ; falls back to the legacy
+    // paren form when no `[` is present (still needed for the comptime-
+    // value head shape `(N: i32)` which the bracketed form doesn't express).
+    if p.check(.LBracket) { return p.parse_bracketed_type_params() }
     if !p.match_kind(.LParen).matched { return [] }
     out: TypeParam[] = []
     p.skip_newlines()
@@ -686,26 +683,16 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
 
             if !has_dollar {
                 hint :: match bound {
-                    is null            -> "`${name.text}` must be written `\$${name.text}`"
-                    is NamedType       -> "`${name.text}` must be prefixed with `\$`"
-                    is UnionType       -> "`${name.text}` must be prefixed with `\$`"
-                    is FnTypeExpr      -> "`${name.text}` must be prefixed with `\$`"
-                    is ArrayTypeExpr   -> "`${name.text}` must be prefixed with `\$`"
-                    is TupleTypeExpr   -> "`${name.text}` must be prefixed with `\$`"
-                    is GenericInstType -> "`${name.text}` must be prefixed with `\$`"
-                    is TypeParamType   -> "`${name.text}` must be prefixed with `\$`"
+                    is null -> "`${name.text}` must be written `\$${name.text}`"
+                    _       -> "`${name.text}` must be prefixed with `\$`"
                 }
                 p.error(.TypeParamMustBePrefixedWithDollar, p.span_of(start, p.peek_at(-1)), hint)
             } else {
                 // `: type` bound is redundant — drop it after diagnosing.
-                // Use an if-let-style pattern instead of `match` : on a
-                // 7-variant union including `null`, the runtime tag dispatch
-                // misfires (open compiler bug). Checking just `NamedType`
-                // explicitly covers the only arm we care about.
                 bnd :: bound
                 match bnd {
                     is null      -> {}
-                    is NamedType -> {
+                    is IdentExpr -> {
                         if bnd.name == "type" {
                             p.error(.TypeBoundRedundant, p.span_of(start, p.peek_at(-1)),
                                 "`${name.text}` is already a type parameter")
@@ -716,14 +703,8 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
                 }
             }
             is_comptime_value := match bound {
-                is null            -> false
-                is NamedType       -> true
-                is UnionType       -> true
-                is FnTypeExpr      -> true
-                is ArrayTypeExpr   -> true
-                is TupleTypeExpr   -> true
-                is GenericInstType -> true
-                is TypeParamType   -> true
+                is null -> false
+                _       -> true
             }
         out.push(TypeParam {
             .span              = p.span_of(start, p.peek_at(-1)),
@@ -736,12 +717,87 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
     return out
 }
 
+// Bracketed type-param list `[T, U: Bound, ...]`. Each entry is `name`
+// or `name: bound`. The bound parses as a type expression so trait bounds
+// (`[T: Hash & Eq]`) work via the same parser. Always returns
+// non-comptime-value entries — comptime-value params keep the legacy
+// paren form `(N: i32)` for now.
+parse_bracketed_type_params :: fn(p: Parser) -> TypeParam[] {
+    if !p.match_kind(.LBracket).matched { return [] }
+    out: TypeParam[] = []
+    p.skip_newlines()
+    for !p.check(.RBracket) && !p.check(.Eof) {
+        if out.len() > 0 {
+            if !p.match_kind(.Comma).matched { break }
+            p.skip_newlines()
+            if p.check(.RBracket) { break }
+        }
+        start :: p.peek()
+        name :: p.expect(.Ident, "type-param name")
+        bound: TypeExpr | null = null
+        if p.match_kind(.Colon).matched {
+            p.skip_newlines()
+            bound = p.parse_type()
+        }
+        out.push(TypeParam {
+            .span              = p.span_of(start, p.peek_at(-1)),
+            .name              = name.text,
+            .bound             = bound,
+            .is_comptime_value = false,
+        })
+    }
+    p.expect(.RBracket, "`]` to close type-param list")
+    return out
+}
+
+// Combine bracketed type-params with inline introductions collected from
+// the value-arg types (legacy dollar-prefixed form). The bracketed list
+// takes precedence — a name already declared explicitly is not re-added
+// from the inline list.
+merge_type_params :: fn(bracketed: TypeParam[], inlined: TypeParam[]) -> TypeParam[] {
+    if bracketed.len() == 0 { return inlined }
+    if inlined.len() == 0   { return bracketed }
+    merged: TypeParam[] = []
+    for bracketed_param in bracketed { merged.push(bracketed_param) }
+    for inline_param in inlined {
+        already_present := false
+        for existing in merged {
+            if existing.name == inline_param.name {
+                already_present = true
+                break
+            }
+        }
+        if !already_present { merged.push(inline_param) }
+    }
+    return merged
+}
+
 parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
     p.advance()  // `trait`
     type_params :: p.parse_struct_type_param_list()
+    // Trait composition. Two forms :
+    //   `Foo :: trait[T] = A & B`            (alias, no own methods)
+    //   `Foo :: trait[T] : A & B { ... }`    (composes A & B + own methods)
+    requires: TypeExpr | null = null
+    members: FnDecl[] = []
+    if p.match_kind(.Assign).matched {
+        requires = p.parse_type()
+        return TraitDecl {
+            .span        = p.span_of(name_tok, p.peek_at(-1)),
+            .name        = name_tok.text,
+            .name_span   = name_tok.span,
+            .visibility  = visibility,
+            .type_params = type_params,
+            .requires    = requires,
+            .members     = members,
+            .decorators  = decorators,
+        }
+    }
+    if p.match_kind(.Colon).matched {
+        requires = p.parse_type()
+    }
     p.expect(.LBrace, "`{` to open trait body")
     p.skip_newlines()
-    members: FnDecl[] = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         fn_opt :: p.parse_fn_decl_inside_trait()
         match fn_opt {
@@ -757,6 +813,7 @@ parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
         .name_span   = name_tok.span,
         .visibility  = visibility,
         .type_params = type_params,
+        .requires    = requires,
         .members     = members,
         .decorators  = decorators,
     }
@@ -860,6 +917,17 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
 // Type expressions
 // ============================================================================
 
+// Build a plain `IdentExpr` with both flag fields off — most call sites
+// don't need the implicit-dot or type-param-intro variants.
+ident_expr :: fn(span: Span, name: string) -> IdentExpr {
+    return IdentExpr {
+        .span                = span,
+        .name                = name,
+        .implicit_dot        = false,
+        .is_type_param_intro = false,
+    }
+}
+
 parse_type :: fn(p: Parser) -> TypeExpr {
     head := p.parse_type_primary()
     // Postfix `T[]` loop : `T[]`, `T[][]`, ... wraps `head` into an
@@ -868,7 +936,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     for p.check(.LBracket) && p.check_at(.RBracket, 1) {
         p.advance()              // [
         rb :: p.advance()        // ]
-        head_span :: type_span(head)
+        head_span :: expr_span(head)
         head = ArrayTypeExpr {
             .span    = Span { .start = head_span.start, .end = rb.span.end },
             .element = head,
@@ -877,40 +945,40 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     // `T!` desugars to `T | Error` (or `null | Error` for `void!`).
     if p.match_kind(.Bang).matched {
         bang_end :: p.peek_at(-1).span.end
-        head_span :: type_span(head)
+        head_span :: expr_span(head)
         success: TypeExpr = match head {
-            is NamedType -> {
-                if head.name == "void" { NamedType { .span = head_span, .name = "null", .implicit_dot = false } }
+            is IdentExpr -> {
+                if head.name == "void" { ident_expr(head_span, "null") }
                 else { head }
             }
-            is UnionType       -> head
-            is FnTypeExpr      -> head
-            is ArrayTypeExpr   -> head
-            is TupleTypeExpr   -> head
-            is GenericInstType -> head
-            is TypeParamType   -> head
+            _ -> head
         }
-        error_named :: NamedType {
+        error_ident :: IdentExpr {
             .span = Span { .start = bang_end, .end = bang_end },
             .name = "Error",
             .implicit_dot = false,
+            .is_type_param_intro = false,
         }
-        head = UnionType {
-            .span     = Span { .start = head_span.start, .end = bang_end },
-            .variants = [success, error_named],
+        head = BinaryExpr {
+            .span  = Span { .start = head_span.start, .end = bang_end },
+            .op    = .BitOr,
+            .left  = success,
+            .right = error_ident,
         }
     }
-    // `T | U | V` — flat union.
+    // `T | U | V` — left-associative `bitor` chain (mirroring the
+    // value-side Pratt tree).
     if p.check(.Pipe) {
-        variants: TypeExpr[] = [head]
+        head_span :: expr_span(head)
         for p.match_kind(.Pipe).matched {
-            variants.push(p.parse_type_primary())
-        }
-        last_span :: type_span(variants[variants.len() - 1])
-        first_span :: type_span(variants[0])
-        head = UnionType {
-            .span     = Span { .start = first_span.start, .end = last_span.end },
-            .variants = variants,
+            next :: p.parse_type_primary()
+            next_span :: expr_span(next)
+            head = BinaryExpr {
+                .span  = Span { .start = head_span.start, .end = next_span.end },
+                .op    = .BitOr,
+                .left  = head,
+                .right = next,
+            }
         }
     }
     return head
@@ -921,9 +989,11 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     if t.kind == .Dollar {
         p.advance()
         name :: p.expect(.Ident, "type parameter name after `\$`")
-        return TypeParamType {
-            .span = p.span_of(t, name),
-            .name = name.text,
+        return IdentExpr {
+            .span                = p.span_of(t, name),
+            .name                = name.text,
+            .implicit_dot        = false,
+            .is_type_param_intro = true,
         }
     }
     if t.kind == .KwFn {
@@ -941,7 +1011,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     }
     if t.kind == .LBracket {
         // Bracketed type form. Three readings :
-        //   `[T1, T2, ...]`  → tuple type (≥ 2 elements)
+        //   `[T1, T2, ...]`  → tuple type (≥ 2 elements), encoded as `SeqLitExpr`
         //   `[T,]`           → 1-tuple — forbidden (P1021)
         //   `[T]`            → legacy array alias, hard-cut (P1024).
         start :: p.advance()
@@ -950,7 +1020,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
         if p.check(.RBracket) {
             p.error(.ExpectedType, t.span, "empty `[]` is not a valid type")
             end :: p.advance()
-            return TupleTypeExpr {
+            return SeqLitExpr {
                 .span     = p.span_of(start, end),
                 .elements = elements,
             }
@@ -983,63 +1053,55 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
             p.error(.OneTupleNotAllowed, p.span_of(start, end),
                 "use a struct or a plain value instead")
         }
-        return TupleTypeExpr {
+        return SeqLitExpr {
             .span     = p.span_of(start, end),
             .elements = elements,
         }
     }
     if t.kind == .KwNull {
         p.advance()
-        return NamedType { .span = t.span, .name = "null", .implicit_dot = false }
+        return ident_expr(t.span, "null")
     }
     if t.kind == .KwType {
         p.advance()
-        return NamedType { .span = t.span, .name = "type", .implicit_dot = false }
+        return ident_expr(t.span, "type")
     }
     if t.kind == .Ident {
         name :: p.advance()
-        named :: NamedType { .span = name.span, .name = name.text, .implicit_dot = false }
-        if p.check(.LParen) {
-            p.advance()
-            args: TypeExpr[] = []
-            p.skip_newlines()
-            if !p.check(.RParen) {
-                for {
-                    p.skip_newlines()
-                    if p.check(.RParen) { break }
-                    args.push(p.parse_type())
-                    p.skip_newlines()
-                    if !p.match_kind(.Comma).matched { break }
-                }
+        named :: ident_expr(name.span, name.text)
+        // Generic instantiation : `Foo[i32]` (canonical) or `Foo(i32)`
+        // (legacy paren). `Foo[]` (empty brackets) is the postfix array
+        // shape, handled by the outer postfix loop — fall through.
+        if p.check(.LBracket) && p.check_at(.RBracket, 1) { return named }
+        if p.match_kind(.LBracket).matched {
+            args :: p.parse_type_list_until(.RBracket)
+            end :: p.expect(.RBracket, "`]` to close generic argument list")
+            return GenericInstExpr {
+                .span      = p.span_of(name, end),
+                .callee    = named,
+                .type_args = args,
             }
+        }
+        if p.match_kind(.LParen).matched {
+            args :: p.parse_type_list_until(.RParen)
             end :: p.expect(.RParen, "`)` to close generic argument list")
-            return GenericInstType {
-                .span = p.span_of(name, end),
-                .base = named,
-                .args = args,
+            return GenericInstExpr {
+                .span      = p.span_of(name, end),
+                .callee    = named,
+                .type_args = args,
             }
         }
         return named
     }
     p.error(.ExpectedType, t.span, "got ${describe_token(t)}")
     p.advance()
-    return NamedType { .span = t.span, .name = "?", .implicit_dot = false }
+    return ident_expr(t.span, "?")
 }
 
 parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
     start :: p.advance()  // `fn`
     p.expect(.LParen, "`(` after `fn` in function type")
-    params: TypeExpr[] = []
-    p.skip_newlines()
-    if !p.check(.RParen) {
-        for {
-            p.skip_newlines()
-            if p.check(.RParen) { break }
-            params.push(p.parse_type())
-            p.skip_newlines()
-            if !p.match_kind(.Comma).matched { break }
-        }
-    }
+    params :: p.parse_type_list_until(.RParen)
     p.expect(.RParen, "`)` after function parameter types")
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
@@ -1050,10 +1112,33 @@ parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
     }
 }
 
-// Walk a type and collect any inline `$T` introductions.
-collect_type_params :: fn(t: TypeExpr, out: TypeParam[]) -> void {
+// Comma-separated `parse_type` list up to (but not consuming) `close`.
+// Skips leading newlines around commas. Caller is responsible for
+// expecting the close token.
+parse_type_list_until :: fn(p: Parser, close: TokenKind) -> TypeExpr[] {
+    out: TypeExpr[] = []
+    p.skip_newlines()
+    if p.check(close) { return out }
+    for {
+        p.skip_newlines()
+        if p.check(close) { break }
+        out.push(p.parse_type())
+        p.skip_newlines()
+        if !p.match_kind(.Comma).matched { break }
+    }
+    return out
+}
+
+// Walk a type expression and collect any inline type-param introductions
+// (the legacy dollar-prefixed form). Only the `Expr` variants the parser
+// actually produces in type position need to be traversed. Accepts `null`
+// so call sites with optional type-bearing slots can dispatch directly
+// without an outer match.
+collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
     match t {
-        is TypeParamType -> {
+        is null -> {}
+        is IdentExpr -> {
+            if !t.is_type_param_intro { return }
             // Dedupe by name.
             n :: out.len()
             i := 0
@@ -1074,44 +1159,25 @@ collect_type_params :: fn(t: TypeExpr, out: TypeParam[]) -> void {
                 })
             }
         }
-        is UnionType -> {
-            for v in t.variants { collect_type_params(v, out) }
+        is BinaryExpr -> {
+            collect_type_params(t.left, out)
+            collect_type_params(t.right, out)
         }
         is FnTypeExpr -> {
             for pp in t.params { collect_type_params(pp, out) }
-            return_type :: t.return_type
-
-            match return_type {
-                is null                 -> {}
-                is NamedType -> { collect_type_params(return_type, out) }
-                is UnionType -> { collect_type_params(return_type, out) }
-                is FnTypeExpr -> { collect_type_params(return_type, out) }
-                is ArrayTypeExpr -> { collect_type_params(return_type, out) }
-                is TupleTypeExpr -> { collect_type_params(return_type, out) }
-                is GenericInstType -> { collect_type_params(return_type, out) }
-                is TypeParamType -> { collect_type_params(return_type, out) }
-            }
+            collect_type_params(t.return_type, out)
         }
         is ArrayTypeExpr  -> { collect_type_params(t.element, out) }
-        is TupleTypeExpr  -> {
+        is SeqLitExpr     -> {
             for e in t.elements { collect_type_params(e, out) }
         }
-        is GenericInstType -> {
-            for a in t.args { collect_type_params(a, out) }
+        is GenericInstExpr -> {
+            for a in t.type_args { collect_type_params(a, out) }
         }
-        is NamedType -> {}
+        // Other Expr variants never appear in the subset that `parse_type`
+        // produces, so they're effective no-ops here.
+        _ -> {}
     }
-}
-
-// Helper : extract span from any TypeExpr variant.
-type_span :: fn(t: TypeExpr) = match t {
-    is NamedType       -> t.span
-    is UnionType       -> t.span
-    is FnTypeExpr      -> t.span
-    is ArrayTypeExpr   -> t.span
-    is TupleTypeExpr   -> t.span
-    is GenericInstType -> t.span
-    is TypeParamType   -> t.span
 }
 
 // Helper : extract span from any Expr variant.
@@ -1139,6 +1205,8 @@ expr_span :: fn(e: Expr) = match e {
     is CastExpr        -> e.span
     is GenericInstExpr -> e.span
     is DotVariantExpr  -> e.span
+    is FnTypeExpr      -> e.span
+    is ArrayTypeExpr   -> e.span
 }
 
 // Helper : extract span from any Stmt variant.
@@ -1207,30 +1275,8 @@ parse_block :: fn(p: Parser) -> BlockExpr {
     }
     if last_is_expr {
         match last_expr {
-            is null              -> {}
-            is IntLitExpr        -> { trailing = last_expr }
-            is FloatLitExpr      -> { trailing = last_expr }
-            is BoolLitExpr       -> { trailing = last_expr }
-            is NullLitExpr       -> { trailing = last_expr }
-            is CharLitExpr       -> { trailing = last_expr }
-            is StringLitExpr     -> { trailing = last_expr }
-            is IdentExpr         -> { trailing = last_expr }
-            is CallExpr          -> { trailing = last_expr }
-            is FieldExpr         -> { trailing = last_expr }
-            is IndexExpr         -> { trailing = last_expr }
-            is UnaryExpr         -> { trailing = last_expr }
-            is BinaryExpr        -> { trailing = last_expr }
-            is IfExpr            -> { trailing = last_expr }
-            is MatchExpr         -> { trailing = last_expr }
-            is BlockExpr         -> { trailing = last_expr }
-            is LambdaExpr        -> { trailing = last_expr }
-            is StructLitExpr     -> { trailing = last_expr }
-            is SeqLitExpr        -> { trailing = last_expr }
-            is RangeExpr         -> { trailing = last_expr }
-            is TryExpr           -> { trailing = last_expr }
-            is CastExpr          -> { trailing = last_expr }
-            is GenericInstExpr   -> { trailing = last_expr }
-            is DotVariantExpr    -> { trailing = last_expr }
+            is null -> {}
+            _       -> { trailing = last_expr }
         }
     }
     rb :: p.expect(.RBrace, "`}` to close block")
@@ -1507,7 +1553,7 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         // on both lexers (TS / self-host), whereas `offset` diverges (UTF-16
         // units vs UTF-8 bytes) — see stmt.ts comment for the parity reason.
         synth :: "__for_${start.span.start.line}_${start.span.start.column}"
-        synth_ident :: IdentExpr { .span = binding_span, .name = synth }
+        synth_ident :: ident_expr(binding_span, synth)
         desugared :: LetStmt {
             .span    = binding_span,
             .mutable = false,
@@ -1952,7 +1998,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     if t.kind == .KwFn    { return p.parse_lambda() }
     if t.kind == .KwSelf {
         p.advance()
-        return IdentExpr { .span = t.span, .name = "self" }
+        return ident_expr(t.span, "self")
     }
     // `@partial match ...` — opt-out of exhaustiveness for one match.
     // Other `@<ident>` heads in expression position are rejected as
@@ -2092,10 +2138,10 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         rb :: p.expect(.RBrace, "`}` to close struct literal")
         return StructLitExpr {
             .span      = p.span_of(t, rb),
-            .type_name = GenericInstType {
-                .span = p.span_of(t, rp),
-                .base = NamedType { .span = t.span, .name = t.text, .implicit_dot = false },
-                .args = args,
+            .type_name = GenericInstExpr {
+                .span      = p.span_of(t, rp),
+                .callee    = ident_expr(t.span, t.text),
+                .type_args = args,
             },
             .fields    = fields,
         }
@@ -2107,11 +2153,11 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         rb :: p.expect(.RBrace, "`}` to close struct literal")
         return StructLitExpr {
             .span      = p.span_of(t, rb),
-            .type_name = NamedType { .span = t.span, .name = t.text, .implicit_dot = false },
+            .type_name = ident_expr(t.span, t.text),
             .fields    = fields,
         }
     }
-    return IdentExpr { .span = t.span, .name = t.text }
+    return ident_expr(t.span, t.text)
 }
 
 // Lookahead : `( <bal> ) {` followed by a `.<field>` struct-lit body?
@@ -2367,13 +2413,14 @@ parse_pattern :: fn(p: Parser) -> Pattern {
             // `is .Foo` — implicit-dot variant, resolved against the
             // match scrutinee at typecheck. Plain `parse_type` would
             // reject the leading dot, so we synthesise a flagged
-            // `NamedType` directly.
+            // `IdentExpr` directly.
             dot_tok :: p.advance()
             v_tok :: p.expect(.Ident, "variant name after `.`")
-            NamedType {
-                .span         = p.span_of(dot_tok, v_tok),
-                .name         = v_tok.text,
-                .implicit_dot = true,
+            IdentExpr {
+                .span                = p.span_of(dot_tok, v_tok),
+                .name                = v_tok.text,
+                .implicit_dot        = true,
+                .is_type_param_intro = false,
             }
         } else {
             p.parse_type()
