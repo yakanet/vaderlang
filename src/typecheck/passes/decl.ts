@@ -98,8 +98,6 @@ const REPR_RANGES: Record<PrimitiveName, { min: bigint; max: bigint } | null> = 
   u64:   { min: 0n, max: 18_446_744_073_709_551_615n },
   usize: { min: 0n, max: 18_446_744_073_709_551_615n },
   f32: null, f64: null, bool: null, char: null, string: null, void: null, null: null,
-  // `type` has no runtime range — comptime-only metatype.
-  type: null,
 };
 
 function resolveEnumIndices(

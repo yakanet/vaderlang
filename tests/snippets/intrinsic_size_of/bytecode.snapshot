@@ -1,0 +1,39 @@
+module _main
+string 0 "i32"
+import 0 add std_core$string$Add$add (string,string) -> string
+import 1 hash std_core$string$Hash$hash (string) -> u64
+import 2 at std_core$string$Index$at (string,i32) -> char
+
+fn 0 tests_snippets_intrinsic_size_of__main_vader$main () -> i32
+  local "s8#12" usize
+  local "s32#13" usize
+  local "s64#14" usize
+  local "sstr#15" usize
+  local "a32#16" usize
+  local "a64#17" usize
+  i64.const 1   ; _main.vader:6:13
+  local.set 0   ; _main.vader:6:13
+  i64.const 4   ; _main.vader:7:13
+  local.set 1   ; _main.vader:7:13
+  i64.const 8   ; _main.vader:8:13
+  local.set 2   ; _main.vader:8:13
+  i64.const 16   ; _main.vader:9:13
+  local.set 3   ; _main.vader:9:13
+  i64.const 4   ; _main.vader:11:13
+  local.set 4   ; _main.vader:11:13
+  i64.const 8   ; _main.vader:12:13
+  local.set 5   ; _main.vader:12:13
+  local.get 0   ; _main.vader:16:16
+  local.get 1   ; _main.vader:16:16
+  usize.add   ; _main.vader:16:16
+  local.get 2   ; _main.vader:16:16
+  usize.add   ; _main.vader:16:16
+  local.get 3   ; _main.vader:16:16
+  usize.add   ; _main.vader:16:16
+  local.get 4   ; _main.vader:16:16
+  usize.add   ; _main.vader:16:16
+  local.get 5   ; _main.vader:16:16
+  usize.add   ; _main.vader:16:16
+  usize.to_i32   ; _main.vader:16:12
+  return   ; _main.vader:16:5
+end

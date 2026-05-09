@@ -241,6 +241,12 @@ function walkExpr(
     case "GenericInstExpr":
       walkExpr(expr.callee, scope, outCaptures, outSeen, ctx);
       return;
+    case "IntrinsicCallExpr":
+      // Type-shape args don't contain runtime captures by definition ;
+      // value-shape args (e.g. future `@type_of(x)`) do — walk them all
+      // and let the type system worry about which kind they were.
+      for (const a of expr.args) walkExpr(a, scope, outCaptures, outSeen, ctx);
+      return;
     case "FnTypeExpr":
     case "ArrayTypeExpr":
       unreachableTypeExprInValuePosition(expr);

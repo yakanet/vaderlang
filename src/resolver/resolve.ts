@@ -9,6 +9,7 @@ import { unreachableTypeExprInValuePosition } from "../parser/ast.ts";
 
 import type { BuiltinScope } from "./builtins.ts";
 import { isKnownDecorator } from "../parser/decorators.ts";
+import { intrinsicSpec } from "../parser/intrinsics.ts";
 import { err } from "./diag.ts";
 import type { Module } from "./module.ts";
 import type { ResolvedProgram } from "./resolved-ast.ts";
@@ -653,6 +654,19 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       return;
     case "DotVariantExpr":
       return;
+    case "IntrinsicCallExpr": {
+      // Walk each arg in its declared shape : type-shape args go through
+      // `resolveType` so the IdentExpr / chain references land in the
+      // `types` side-table, value-shape args through `resolveExpr`.
+      const spec = intrinsicSpec(expr.name);
+      for (let i = 0; i < expr.args.length; i++) {
+        const arg = expr.args[i]!;
+        const kind = spec?.args[i] ?? "type";
+        if (kind === "type") resolveType(arg, scope, p, input);
+        else resolveExpr(arg, scope, p, input);
+      }
+      return;
+    }
     case "FnTypeExpr":
     case "ArrayTypeExpr":
       unreachableTypeExprInValuePosition(expr);

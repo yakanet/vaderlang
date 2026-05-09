@@ -12,6 +12,7 @@ import { describeToken, looksLikeStructLitBody } from "../parser.ts";
 import { parseBlock } from "./stmt.ts";
 import { parseFnSignatureParams } from "./decl.ts";
 import { parseType } from "./type.ts";
+import { intrinsicSpec } from "../intrinsics.ts";
 
 // (leftBP, rightBP) — higher = tighter. Left-assoc: rightBP = leftBP + 1.
 // Non-assoc operators have leftBP === rightBP and emit P1010 if chained.
@@ -216,19 +217,50 @@ function parsePrefix(p: Parser): A.Expr {
     case "kw_match":
       return parseMatchExpr(p, /*partial*/ false);
     case "at": {
-      // `@partial match x { ... }` — opt-out of exhaustiveness for one
-      // match expression. No other `@`-prefixed expression-position
-      // forms today, so reject anything else with P1014.
+      // Two expression-position `@` forms today :
+      //   `@partial match x { ... }` — opt-out of exhaustiveness for a match.
+      //   `@<intrinsic>(args)` — compiler reflection / introspection call
+      //                          (`@size_of`, `@type_name`, …). The set of
+      //                          recognised names lives in `parser/intrinsics.ts`.
+      // Anything else is P1014.
       const atTok = p.advance();
       const nameTok = p.expect("ident", "decorator name after `@`");
-      if (nameTok.text !== "partial") {
-        p.error("P1014", { start: atTok.span.start, end: nameTok.span.end },
-          `\`@${nameTok.text}\` is not allowed in expression position`);
+      if (nameTok.text === "partial") {
+        if (!p.check("kw_match")) {
+          p.error("P1014", nameTok.span, `\`@${nameTok.text}\` must precede a \`match\` expression`);
+        }
+        return parseMatchExpr(p, /*partial*/ true);
       }
-      if (!p.check("kw_match")) {
-        p.error("P1014", nameTok.span, `\`@${nameTok.text}\` must precede a \`match\` expression`);
+      const spec = intrinsicSpec(nameTok.text);
+      if (spec !== null) {
+        p.expect("lparen", `\`(\` after \`@${spec.name}\``);
+        const args: A.Expr[] = [];
+        p.skipNewlines();
+        if (!p.check("rparen")) {
+          while (true) {
+            p.skipNewlines();
+            if (p.check("rparen")) break;
+            // Type-shape args go through parseType so postfix `[]`, `|` and
+            // friends parse with type semantics ; value-shape args go through
+            // the regular expression parser.
+            const argSpec = spec.args[args.length];
+            args.push(argSpec === "type" ? parseType(p) : parseExpr(p, 0));
+            p.skipNewlines();
+            if (p.match("comma") === null) break;
+          }
+        }
+        const end = p.expect("rparen", `\`)\` to close \`@${spec.name}(...)\``);
+        return {
+          kind: "IntrinsicCallExpr",
+          span: { start: atTok.span.start, end: end.span.end },
+          name: spec.name,
+          nameSpan: nameTok.span,
+          args,
+        };
       }
-      return parseMatchExpr(p, /*partial*/ true);
+      p.error("P1014", { start: atTok.span.start, end: nameTok.span.end },
+        `\`@${nameTok.text}\` is not allowed in expression position`);
+      return placeholderExpr(atTok);
     }
     case "kw_fn":
       return parseLambda(p);

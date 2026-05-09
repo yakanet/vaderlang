@@ -25,20 +25,13 @@ export type PrimitiveName =
   | "i8" | "i16" | "i32" | "i64"
   | "u8" | "u16" | "u32" | "u64" | "usize"
   | "f32" | "f64"
-  | "bool" | "char" | "string" | "void" | "null"
-  // The metatype : a value of static type `type` *is* a Vader type.
-  // Comptime-only — instances never reach runtime by design
-  // (DESIGN_TYPE_FIRST.md §11 Layer 2). Today only the name and primitive
-  // entry are registered ; full integration (`@type_of`, types as comptime
-  // values, etc.) lands incrementally through Layer 6 / Layer 4-sugar.
-  | "type";
+  | "bool" | "char" | "string" | "void" | "null";
 
 export const PRIMITIVE_NAMES: readonly PrimitiveName[] = [
   "i8", "i16", "i32", "i64",
   "u8", "u16", "u32", "u64", "usize",
   "f32", "f64",
   "bool", "char", "string", "void", "null",
-  "type",
 ];
 
 export function isPrimitiveName(name: string): name is PrimitiveName {
@@ -205,6 +198,84 @@ export function isNumeric(t: Type): boolean {
 }
 export function isPrimitive(t: Type, name: PrimitiveName): boolean {
   return t.kind === "Primitive" && t.name === name;
+}
+
+// ----------------------------------------------------------------- layout
+
+/** Byte size of `t` as a runtime value. Used by `@size_of(T)` (Layer 6
+ *  reflection intrinsic). For primitives the size is fixed by Vader's ABI ;
+ *  for aggregates and reference types it is the size of the heap pointer
+ *  (`vader_box_t`, currently 16 bytes — tag + payload). Returns 0 for
+ *  comptime-only types or anything we cannot lay out at compile time
+ *  (TypeParam, Unresolved, Free*) — the typechecker emits a diagnostic at
+ *  the call site if the result is meaningless. */
+export function sizeOfType(t: Type): number {
+  switch (t.kind) {
+    case "Primitive":
+      switch (t.name) {
+        case "i8": case "u8": case "bool":      return 1;
+        case "i16": case "u16":                 return 2;
+        case "i32": case "u32": case "f32":
+        case "char":                            return 4;     // char is u32 in Vader
+        case "i64": case "u64": case "usize":
+        case "f64":                             return 8;
+        case "string":                          return 16;    // vader_string_t {data, len}
+        case "null":                            return 16;    // tagged box
+        case "void":                            return 0;
+      }
+      return 0;
+    case "Struct":
+    case "Enum":
+    case "Array":
+    case "Tuple":
+    case "Union":
+    case "Trait":
+    case "Fn":
+      return 16;     // vader_box_t (tag + payload)
+    case "TypeMeta":
+    case "TypeParam":
+    case "Self":
+    case "Unresolved":
+    case "FreeInt":
+    case "FreeFloat":
+    case "Never":
+      return 0;
+  }
+}
+
+/** Alignment in bytes for `t`. Mirrors `sizeOfType` for primitives ; aggregate
+ *  and reference types align to pointer boundary (8 bytes). */
+export function alignOfType(t: Type): number {
+  switch (t.kind) {
+    case "Primitive":
+      switch (t.name) {
+        case "i8": case "u8": case "bool":      return 1;
+        case "i16": case "u16":                 return 2;
+        case "i32": case "u32": case "f32":
+        case "char":                            return 4;
+        case "i64": case "u64": case "usize":
+        case "f64":                             return 8;
+        case "string": case "null":             return 8;
+        case "void":                            return 1;
+      }
+      return 1;
+    case "Struct":
+    case "Enum":
+    case "Array":
+    case "Tuple":
+    case "Union":
+    case "Trait":
+    case "Fn":
+      return 8;
+    case "TypeMeta":
+    case "TypeParam":
+    case "Self":
+    case "Unresolved":
+    case "FreeInt":
+    case "FreeFloat":
+    case "Never":
+      return 1;
+  }
 }
 
 // ----------------------------------------------------------------- display

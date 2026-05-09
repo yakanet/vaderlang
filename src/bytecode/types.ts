@@ -7,9 +7,7 @@ import type { PrimitiveName } from "../typecheck/types.ts";
 import { ALL_INTS, FLOATS, NUMERICS } from "../typecheck/types.ts";
 
 export type ValType =
-  // Every primitive *except* `type`, which is comptime-only and has no
-  // runtime representation by design (DESIGN_TYPE_FIRST.md §11 Layer 2).
-  | Exclude<PrimitiveName, "type">
+  | PrimitiveName
   | "ref"
   | "any";
 

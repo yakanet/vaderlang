@@ -358,6 +358,7 @@ export type Expr =
   | CastExpr
   | GenericInstExpr
   | DotVariantExpr
+  | IntrinsicCallExpr
   // Two type-only-meaningful shapes that have no value-level interpretation.
   // The parser produces them in value position too since 1.C (postfix `T[]`
   // and `fn(T) -> U` without body), so they appear as cases in the
@@ -610,6 +611,23 @@ export interface GenericInstExpr {
   readonly span: Span;
   readonly callee: Expr;
   readonly typeArgs: readonly TypeExpr[];
+}
+
+/** Compiler-built reflection / introspection call : `@size_of(T)`,
+ *  `@type_name(T)`, `@align_of(T)`, etc. (Layer 6 reflection surface,
+ *  see DESIGN_TYPE_FIRST.md §12). The `name` is the intrinsic identifier
+ *  *without* the leading `@` (`"size_of"`, `"type_name"`, …). The set of
+ *  recognised names lives in `parser/intrinsics.ts` ; the parser only
+ *  produces this node for known names — unknown `@name(...)` in expression
+ *  position still raises P1014. Each intrinsic carries its own typing rules
+ *  (input arity, type vs value position of args, return type) and folds to
+ *  a constant in the lowering pass. */
+export interface IntrinsicCallExpr {
+  readonly kind: "IntrinsicCallExpr";
+  readonly span: Span;
+  readonly name: string;
+  readonly nameSpan: Span;
+  readonly args: readonly Expr[];
 }
 
 /** `.Variant` dot-shorthand — target enum type inferred from context by the type-checker. */

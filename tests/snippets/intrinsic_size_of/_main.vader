@@ -1,0 +1,17 @@
+// Reflection intrinsics — @size_of, @align_of, @type_name on primitives.
+// Layer 6 of the type-first design ; values are folded to constants at lower
+// time so the runtime sees plain literals.
+
+main :: fn() -> i32 {
+    s8   :: @size_of(i8)
+    s32  :: @size_of(i32)
+    s64  :: @size_of(i64)
+    sstr :: @size_of(string)
+
+    a32  :: @align_of(i32)
+    a64  :: @align_of(i64)
+
+    name :: @type_name(i32)
+
+    return i32(s8 + s32 + s64 + sstr + a32 + a64)
+}

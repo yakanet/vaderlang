@@ -28,6 +28,7 @@ import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
 import { lowerExprAsType, primitiveFromName } from "./type-expr.ts";
+import { intrinsicSpec } from "../../parser/intrinsics.ts";
 import { findGlobalTrait, implementsDisplay } from "./traits.ts";
 import type {IndexResolution} from "../typed-ast.ts";
 
@@ -76,6 +77,7 @@ function inferExpr(
     case "TryExpr":       return inferTry(expr, t, impls, diags, fn);
     case "CastExpr":      return inferCast(expr, t, impls, diags, fn);
     case "DotVariantExpr": return inferDotVariant(expr, expected, t, diags);
+    case "IntrinsicCallExpr": return inferIntrinsic(expr, t, diags);
     case "GenericInstExpr": {
       const innerType = checkExpr(expr.callee, null, t, impls, diags, fn);
       for (const a of expr.typeArgs) lowerExprAsType(a, t, diags);
@@ -119,6 +121,50 @@ function inferIdent(expr: A.IdentExpr, t: MutableTyped, diags: DiagnosticCollect
   if (sym === undefined) return TY.unresolved;
   checkDeprecated(expr, sym, diags);
   return typeOfSymbol(sym, t);
+}
+
+/** Type-check a reflection / introspection call (`@size_of(T)`, etc.).
+ *  Validates argument arity, walks each arg through `lowerExprAsType`
+ *  (type-shape args) or the regular expression checker (value-shape args)
+ *  per its `IntrinsicSpec`, and returns the intrinsic's static result type.
+ *  Today's three intrinsics all return scalars — `usize` for size_of /
+ *  align_of, `string` for type_name. */
+function inferIntrinsic(
+  expr: A.IntrinsicCallExpr, t: MutableTyped, diags: DiagnosticCollector,
+): Type {
+  const spec = intrinsicSpec(expr.name);
+  if (spec === null) {
+    // Parser only emits IntrinsicCallExpr for known names ; reaching here
+    // means the registry and parser drifted. Surface an internal-bug-style
+    // diag rather than a confusing typecheck mismatch.
+    err(diags, "T3002", expr.span, `unknown intrinsic \`@${expr.name}\``);
+    return TY.unresolved;
+  }
+  if (expr.args.length !== spec.args.length) {
+    err(diags, "T3003", expr.span,
+      `\`@${expr.name}\` expects ${spec.args.length} arg(s), got ${expr.args.length}`);
+    return resultTypeOfIntrinsic(spec.name);
+  }
+  for (let i = 0; i < expr.args.length; i++) {
+    const arg = expr.args[i]!;
+    const kind = spec.args[i]!;
+    if (kind === "type") lowerExprAsType(arg, t, diags);
+    // Value-shape args are typechecked elsewhere through `checkExpr`,
+    // but today none of the registered intrinsics use them. The branch
+    // is here for extensibility — e.g. `@type_of(x)` will land that way.
+  }
+  return resultTypeOfIntrinsic(spec.name);
+}
+
+function resultTypeOfIntrinsic(name: string): Type {
+  switch (name) {
+    case "size_of":
+    case "align_of":
+      return { kind: "Primitive", name: "usize" };
+    case "type_name":
+      return TY.string;
+  }
+  return TY.unresolved;
 }
 
 /** Walk the resolved decl's decorators ; emit W0001 if `@deprecated(...)` is

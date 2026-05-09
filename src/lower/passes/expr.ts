@@ -6,7 +6,7 @@ import { unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_TRAITS, TY, defaultIfFree, displayType, equalsType } from "../../typecheck/types.ts";
+import { CORE_TRAITS, TY, alignOfType, defaultIfFree, displayType, equalsType, sizeOfType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStructLitField } from "../lowered-ast.ts";
@@ -295,10 +295,39 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       };
     case "GenericInstExpr":
       return lowerExpr(ctx, expr.callee);     // type-args baked in post-mono
+    case "IntrinsicCallExpr":
+      return lowerIntrinsic(ctx, expr, exprType);
     case "FnTypeExpr":
     case "ArrayTypeExpr":
       return unreachableTypeExprInValuePosition(expr);
   }
+}
+
+/** Fold a reflection intrinsic to a constant. The typechecker already
+ *  recorded the type of each type-shape arg in `typeExprTypes` ; we look
+ *  it up and emit the corresponding scalar literal. Layer 6 — see
+ *  DESIGN_TYPE_FIRST.md §12. */
+function lowerIntrinsic(
+  ctx: FnLowerCtx, expr: A.IntrinsicCallExpr, type: Type,
+): LoweredExpr {
+  switch (expr.name) {
+    case "size_of": {
+      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      const size = targetTy !== undefined ? sizeOfType(targetTy) : 0;
+      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(size) };
+    }
+    case "align_of": {
+      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      const align = targetTy !== undefined ? alignOfType(targetTy) : 0;
+      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(align) };
+    }
+    case "type_name": {
+      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      const name = targetTy !== undefined ? displayType(targetTy) : "?";
+      return { kind: "LoweredStringLit", span: expr.span, type, value: name };
+    }
+  }
+  return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unhandled intrinsic @${expr.name}` };
 }
 
 function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr {

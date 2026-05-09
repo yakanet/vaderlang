@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/intrinsic_size_of/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 11:13    IntrinsicCallExpr :: usize
+  expr 12:13    IntrinsicCallExpr :: usize
+  expr 14:13    IntrinsicCallExpr :: string
+  expr 16:12    CallExpr       :: i32
+  expr 16:12    IdentExpr      :: type
+  expr 16:16    BinaryExpr     :: usize
+  expr 16:16    BinaryExpr     :: usize
+  expr 16:16    BinaryExpr     :: usize
+  expr 16:16    BinaryExpr     :: usize
+  expr 16:16    BinaryExpr     :: usize
+  expr 16:16    IdentExpr      :: usize
+  expr 16:21    IdentExpr      :: usize
+  expr 16:27    IdentExpr      :: usize
+  expr 16:33    IdentExpr      :: usize
+  expr 16:40    IdentExpr      :: usize
+  expr 16:46    IdentExpr      :: usize
+  expr 6:13     IntrinsicCallExpr :: usize
+  expr 7:13     IntrinsicCallExpr :: usize
+  expr 8:13     IntrinsicCallExpr :: usize
+  expr 9:13     IntrinsicCallExpr :: usize

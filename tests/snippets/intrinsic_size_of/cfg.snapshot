@@ -1,0 +1,32 @@
+# CFG
+
+## tests/snippets/intrinsic_size_of/_main.vader
+
+fn tests_snippets_intrinsic_size_of__main_vader$main() -> i32
+  locals:
+    %0 s8#12: usize (local s8)
+    %1 s32#13: usize (local s32)
+    %2 s64#14: usize (local s64)
+    %3 sstr#15: usize (local sstr)
+    %4 a32#16: usize (local a32)
+    %5 a64#17: usize (local a64)
+    %6 $add_14#18: usize
+    %7 $add_15#19: usize
+    %8 $add_16#20: usize
+    %9 $add_17#21: usize
+    %10 $add_18#22: usize
+    %11 $cast_19#23: i32
+  bb0:
+    %0 = const int(1) :usize
+    %1 = const int(4) :usize
+    %2 = const int(8) :usize
+    %3 = const int(16) :usize
+    %4 = const int(4) :usize
+    %5 = const int(8) :usize
+    %6 = binop add %0 %1 :usize
+    %7 = binop add %6 %2 :usize
+    %8 = binop add %7 %3 :usize
+    %9 = binop add %8 %4 :usize
+    %10 = binop add %9 %5 :usize
+    %11 = cast %10 :i32
+    return %11

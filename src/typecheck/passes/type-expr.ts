@@ -135,12 +135,12 @@ export function primitiveFromName(name: string): Type | null {
     case "bool": case "char": case "string": case "void": case "null":
       return { kind: "Primitive", name };
     case "type":
-      // Comptime-only metatype (Layer 2.A groundwork). Today the type is
-      // registered so `: type` annotations resolve uniformly ; the typechecker
-      // does not yet enforce comptime-contagion or treat `type`-typed values
-      // specially — that comes with Layer 4-sugar and the reflection
-      // intrinsics (`@type_of`, `@size_of`, ...).
-      return { kind: "Primitive", name: "type" };
+      // Comptime-only metatype. Lowers to the dedicated `TypeMeta` Type
+      // variant (TY.type) rather than a `Primitive` — the metatype is
+      // structurally distinct from runtime primitives. Layer 2.A registers
+      // the name so `: type` annotations resolve uniformly ; full integration
+      // (comptime contagion, type-as-value evaluation) lands in Layer 4-sugar.
+      return TY.type;
     case "int":    return { kind: "Primitive", name: "i32" };
     case "long":   return { kind: "Primitive", name: "i64" };
     case "float":  return { kind: "Primitive", name: "f32" };

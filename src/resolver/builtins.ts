@@ -20,7 +20,7 @@ export const BUILTIN_TYPE_ALIASES: readonly string[] = [
  *  (rather than transitively via the `PRIMITIVE_NAMES` spread) so that adding
  *  the metatype does not shift any existing builtin's symbol id. */
 export const BUILTIN_TYPE_NAMES: readonly string[] = [
-  ...PRIMITIVE_NAMES.filter((n) => n !== "type"),
+  ...PRIMITIVE_NAMES,
   ...BUILTIN_TYPE_ALIASES,
   "Self",
   "type",
