@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/trait_composition/_main.vader
+
+## generic instances
+  Yielded(i32)
