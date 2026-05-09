@@ -1,0 +1,5 @@
+# Typecheck
+
+## tests/snippets/intrinsic_field_index/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Vec3                 :: Vec3

@@ -2,7 +2,7 @@
 // interp, match, try, range, and for-in to their dedicated passes.
 
 import type * as A from "../../parser/ast.ts";
-import { unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
+import { staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
@@ -340,6 +340,21 @@ function lowerIntrinsic(
       const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
       const count = targetTy !== undefined ? variantCountOfType(targetTy) : 0;
       return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(count) };
+    }
+    case "field_index": {
+      // Typechecker validated : args[0] is a Struct, args[1] is a static
+      // string literal naming an existing field. Find the index here so
+      // the lowered tree carries the literal directly.
+      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      const nameArg = expr.args[1]!;
+      const fieldName = nameArg.kind === "StringLitExpr" ? staticStringValue(nameArg) : null;
+      let idx = 0;
+      if (targetTy !== undefined && targetTy.kind === "Struct" && fieldName !== null
+          && targetTy.symbol.source.kind === "struct") {
+        const found = targetTy.symbol.source.decl.fields.findIndex((f) => f.name === fieldName);
+        if (found >= 0) idx = found;
+      }
+      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(idx) };
     }
   }
   return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unhandled intrinsic @${expr.name}` };

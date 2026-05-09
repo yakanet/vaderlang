@@ -1,0 +1,10 @@
+# CFG
+
+## tests/snippets/intrinsic_field_index/_main.vader
+
+fn tests_snippets_intrinsic_field_index__main_vader$main() -> i32
+  locals:
+    %0 $k_0#1: i32
+  bb0:
+    %0 = const int(0) :i32
+    return %0

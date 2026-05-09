@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/intrinsic_field_index/_main.vader
+
+## generic instances
+  Yielded(i32)

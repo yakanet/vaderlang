@@ -1,0 +1,18 @@
+// `@field_index(T, "name")` returns the 0-based position of `name` in T's
+// field list. T must be a struct ; `name` must be a static string literal
+// referring to an existing field. Useful for derive-style codegen where
+// dispatch on field position matters (e.g. tuple-based encoding).
+
+Vec3 :: struct {
+    x: f32
+    y: f32
+    z: f32
+}
+
+@assert(@field_index(Vec3, "x") == 0)
+@assert(@field_index(Vec3, "y") == 1)
+@assert(@field_index(Vec3, "z") == 2)
+
+main :: fn() -> i32 {
+    return 0
+}

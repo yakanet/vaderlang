@@ -77,7 +77,7 @@ function inferExpr(
     case "TryExpr":       return inferTry(expr, t, impls, diags, fn);
     case "CastExpr":      return inferCast(expr, t, impls, diags, fn);
     case "DotVariantExpr": return inferDotVariant(expr, expected, t, diags);
-    case "IntrinsicCallExpr": return inferIntrinsic(expr, t, diags);
+    case "IntrinsicCallExpr": return inferIntrinsic(expr, t, impls, diags, fn);
     case "GenericInstExpr": {
       const innerType = checkExpr(expr.callee, null, t, impls, diags, fn);
       for (const a of expr.typeArgs) lowerExprAsType(a, t, diags);
@@ -125,12 +125,13 @@ function inferIdent(expr: A.IdentExpr, t: MutableTyped, diags: DiagnosticCollect
 
 /** Type-check a reflection / introspection call (`@size_of(T)`, etc.).
  *  Validates argument arity, walks each arg through `lowerExprAsType`
- *  (type-shape args) or the regular expression checker (value-shape args)
- *  per its `IntrinsicSpec`, and returns the intrinsic's static result type.
- *  Today's three intrinsics all return scalars — `usize` for size_of /
- *  align_of, `string` for type_name. */
+ *  (type-shape args) or `checkExpr` (value-shape args) per its
+ *  `IntrinsicSpec`, runs intrinsic-specific validations (e.g. the
+ *  string-literal-only second arg of `@field_index`), and returns the
+ *  intrinsic's static result type. */
 function inferIntrinsic(
-  expr: A.IntrinsicCallExpr, t: MutableTyped, diags: DiagnosticCollector,
+  expr: A.IntrinsicCallExpr, t: MutableTyped, impls: ImplRegistry,
+  diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   const spec = intrinsicSpec(expr.name);
   if (spec === null) {
@@ -148,12 +149,44 @@ function inferIntrinsic(
   for (let i = 0; i < expr.args.length; i++) {
     const arg = expr.args[i]!;
     const kind = spec.args[i]!;
-    if (kind === "type") lowerExprAsType(arg, t, diags);
-    // Value-shape args are typechecked elsewhere through `checkExpr`,
-    // but today none of the registered intrinsics use them. The branch
-    // is here for extensibility — e.g. `@type_of(x)` will land that way.
+    if (kind === "type") {
+      lowerExprAsType(arg, t, diags);
+    } else {
+      checkExpr(arg, null, t, impls, diags, fn);
+    }
+  }
+  // Per-intrinsic validation : `@field_index(T, name)` requires `name` to
+  // be a static string literal AND a member of the struct `T`.
+  if (spec.name === "field_index") {
+    validateFieldIndex(expr, t, diags);
   }
   return resultTypeOfIntrinsic(spec.name);
+}
+
+function validateFieldIndex(
+  expr: A.IntrinsicCallExpr, t: MutableTyped, diags: DiagnosticCollector,
+): void {
+  const nameArg = expr.args[1];
+  const fieldName = nameArg !== undefined && nameArg.kind === "StringLitExpr"
+    ? staticStringValue(nameArg) : null;
+  if (fieldName === null) {
+    err(diags, "T3002", nameArg?.span ?? expr.span,
+      "`@field_index` second argument must be a static string literal");
+    return;
+  }
+  const targetTy = t.globals.typeExprTypes.get(expr.args[0]!);
+  if (targetTy === undefined || targetTy.kind !== "Struct") {
+    err(diags, "T3002", expr.args[0]!.span,
+      `\`@field_index\` first argument must be a struct type, got ${targetTy !== undefined ? displayType(targetTy) : "?"}`);
+    return;
+  }
+  const decl = targetTy.symbol.source.kind === "struct" ? targetTy.symbol.source.decl : null;
+  if (decl === null) return;
+  const idx = decl.fields.findIndex((f) => f.name === fieldName);
+  if (idx < 0) {
+    err(diags, "T3009", nameArg!.span,
+      `field \`${fieldName}\` does not exist on ${displayType(targetTy)}`);
+  }
 }
 
 function resultTypeOfIntrinsic(name: string): Type {
