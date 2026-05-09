@@ -608,16 +608,16 @@ fn 0 tests_snippets_mutable_map__main_vader$main () -> i32
 end
 
 fn 1 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:137:26
-  i32.to_u64   ; core.vader:137:26
-  return   ; core.vader:137:23
+  local.get 0   ; core.vader:139:26
+  i32.to_u64   ; core.vader:139:26
+  return   ; core.vader:139:23
 end
 
 fn 2 std_core$i32$Eq$equals (i32,i32) -> bool
-  local.get 0   ; core.vader:159:25
-  local.get 1   ; core.vader:159:25
-  i32.eq   ; core.vader:159:25
-  return   ; core.vader:159:22
+  local.get 0   ; core.vader:166:25
+  local.get 1   ; core.vader:166:25
+  i32.eq   ; core.vader:166:25
+  return   ; core.vader:166:22
 end
 
 fn 3 std_collections$bucket_index (u64) -> i32

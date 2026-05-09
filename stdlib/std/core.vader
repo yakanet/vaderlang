@@ -134,9 +134,16 @@ export Error :: trait {
 // Required for using primitives as keys in Map / Set.
 // ===========================================================================
 
+i8    implements Hash -> u64(self)
+i16   implements Hash -> u64(self)
 i32   implements Hash -> u64(self)
+i64   implements Hash -> u64(self)
+u8    implements Hash -> u64(self)
+u16   implements Hash -> u64(self)
 u32   implements Hash -> u64(self)
+u64   implements Hash -> u64(self)
 usize implements Hash -> u64(self)
+char  implements Hash -> u64(self)
 
 
 // String trait impls — all host-provided (`@intrinsic` propagates onto each

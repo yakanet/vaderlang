@@ -308,23 +308,23 @@ fn 2 tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_disp
 end
 
 fn 3 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:137:26
-  i32.to_u64   ; core.vader:137:26
-  return   ; core.vader:137:23
+  local.get 0   ; core.vader:139:26
+  i32.to_u64   ; core.vader:139:26
+  return   ; core.vader:139:23
 end
 
 fn 4 std_core$i32$Eq$equals (i32,i32) -> bool
-  local.get 0   ; core.vader:159:25
-  local.get 1   ; core.vader:159:25
-  i32.eq   ; core.vader:159:25
-  return   ; core.vader:159:22
+  local.get 0   ; core.vader:166:25
+  local.get 1   ; core.vader:166:25
+  i32.eq   ; core.vader:166:25
+  return   ; core.vader:166:22
 end
 
 fn 5 std_core$string$Eq$equals (string,string) -> bool
-  local.get 0   ; core.vader:162:25
-  local.get 1   ; core.vader:162:25
-  string.eq   ; core.vader:162:25
-  return   ; core.vader:162:22
+  local.get 0   ; core.vader:169:25
+  local.get 1   ; core.vader:169:25
+  string.eq   ; core.vader:169:25
+  return   ; core.vader:169:22
 end
 
 fn 6 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref

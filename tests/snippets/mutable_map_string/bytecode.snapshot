@@ -1100,10 +1100,10 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
 end
 
 fn 1 std_core$string$Eq$equals (string,string) -> bool
-  local.get 0   ; core.vader:162:25
-  local.get 1   ; core.vader:162:25
-  string.eq   ; core.vader:162:25
-  return   ; core.vader:162:22
+  local.get 0   ; core.vader:169:25
+  local.get 1   ; core.vader:169:25
+  string.eq   ; core.vader:169:25
+  return   ; core.vader:169:22
 end
 
 fn 2 std_collections$bucket_index (u64) -> i32

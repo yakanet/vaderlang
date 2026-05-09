@@ -168,8 +168,8 @@ fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_
 end
 
 fn 2 std_core$i32$Eq$equals (i32,i32) -> bool
-  local.get 0   ; core.vader:159:25
-  local.get 1   ; core.vader:159:25
-  i32.eq   ; core.vader:159:25
-  return   ; core.vader:159:22
+  local.get 0   ; core.vader:166:25
+  local.get 1   ; core.vader:166:25
+  i32.eq   ; core.vader:166:25
+  return   ; core.vader:166:22
 end
