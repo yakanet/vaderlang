@@ -219,6 +219,11 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     if p.is_impl_decl() {
         return p.parse_impl_decl(decorators)
     }
+    // Generic type alias : `Name[T] :: <body>`. The `[...]` between ident
+    // and `::` is unambiguous (no other decl form puts brackets there).
+    if p.check(.Ident) && p.check_at(.LBracket, 1) && p.peek_is_lhs_generic_alias_head() {
+        return p.parse_lhs_generic_alias_decl(decorators, visibility)
+    }
     if p.check(.Ident) && p.check_at(.DeclConst, 1) {
         return p.parse_named_decl(decorators, visibility)
     }
@@ -356,6 +361,54 @@ is_impl_decl :: fn(p: Parser) -> bool {
     return false
 }
 
+// Lookahead : starting on the leading ident, is the shape `ident [ ... ] ::` ?
+// Walks a balanced bracket pair and checks the next token is `::`. Lets the
+// dispatcher pick the generic-alias path without committing.
+peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
+    // Caller already verified ident + `[`.
+    i := p.pos + 2     // skip ident, skip `[`
+    depth := 1
+    n :: p.tokens.len()
+    for i < n {
+        t :: p.tokens[i]
+        if t.kind == .Eof || t.kind == .Newline { return false }
+        if t.kind == .LBracket {
+            depth = depth + 1
+        } else if t.kind == .RBracket {
+            depth = depth - 1
+            if depth == 0 {
+                if i + 1 < n {
+                    return p.tokens[i + 1].kind == .DeclConst
+                }
+                return false
+            }
+        } else if t.kind == .LParen || t.kind == .LBrace {
+            depth = depth + 1
+        } else if t.kind == .RParen || t.kind == .RBrace {
+            depth = depth - 1
+        }
+        if depth < 0 { return false }
+        i = i + 1
+    }
+    return false
+}
+
+parse_lhs_generic_alias_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility) -> TypeAliasDecl {
+    name_tok :: p.advance()  // ident
+    type_params :: p.parse_bracketed_type_params()
+    p.advance()  // `::`
+    aliased :: p.parse_expr(0)
+    return TypeAliasDecl {
+        .span        = p.span_of(name_tok, p.peek_at(-1)),
+        .name        = name_tok.text,
+        .name_span   = name_tok.span,
+        .visibility  = visibility,
+        .type_params = type_params,
+        .aliased     = aliased,
+        .decorators  = decorators,
+    }
+}
+
 parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     start_tok :: p.peek()
     for_type :: p.parse_type()
@@ -463,7 +516,6 @@ parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     if p.check(.KwStruct) { return p.parse_struct_decl(decorators, visibility, name_tok) }
     if p.check(.KwEnum)   { return p.parse_enum_decl(decorators, visibility, name_tok) }
     if p.check(.KwTrait)  { return p.parse_trait_decl(decorators, visibility, name_tok) }
-    if p.check(.KwType)   { return p.parse_type_alias_decl(decorators, visibility, name_tok) }
     return p.parse_const_decl(decorators, visibility, name_tok)
 }
 
@@ -864,21 +916,6 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
     }
 }
 
-parse_type_alias_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TypeAliasDecl {
-    p.advance()  // `type`
-    type_params :: p.parse_struct_type_param_list()
-    aliased :: p.parse_type()
-    return TypeAliasDecl {
-        .span        = p.span_of(name_tok, p.peek_at(-1)),
-        .name        = name_tok.text,
-        .name_span   = name_tok.span,
-        .visibility  = visibility,
-        .type_params = type_params,
-        .aliased     = aliased,
-        .decorators  = decorators,
-    }
-}
-
 // `name :: value` — untyped top-level const. The typed shape uses the
 // Odin-style `name : Type : value` form parsed by `parse_typed_const_decl`.
 parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
@@ -1061,10 +1098,6 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     if t.kind == .KwNull {
         p.advance()
         return ident_expr(t.span, "null")
-    }
-    if t.kind == .KwType {
-        p.advance()
-        return ident_expr(t.span, "type")
     }
     if t.kind == .Ident {
         name :: p.advance()
@@ -1777,7 +1810,6 @@ infix_for :: fn(k: TokenKind) = match k {
     .KwTrue       -> no_infix()
     .KwFalse      -> no_infix()
     .KwNull       -> no_infix()
-    .KwType       -> no_infix()
     .KwSelf       -> no_infix()
 }
 
@@ -1860,7 +1892,6 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwTrue       -> -1
     .KwFalse      -> -1
     .KwNull       -> -1
-    .KwType       -> -1
     .KwSelf       -> -1
 }
 

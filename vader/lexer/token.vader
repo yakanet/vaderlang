@@ -32,7 +32,7 @@ export TokenKind :: enum(u8) {
     KwReturn, KwDefer, KwBreak, KwContinue,
     KwImport, KwAs, KwExport,
     KwTrue, KwFalse, KwNull,
-    KwType, KwSelf,
+    KwSelf,
 
     // Operators
     Plus, Minus, Star, Slash, Percent,

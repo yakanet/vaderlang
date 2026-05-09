@@ -11,7 +11,7 @@ Day :: enum { Monday, Tuesday, Wednesday }
 
 Some :: struct { value: i32 }
 None :: struct {}
-Maybe :: type Some | None
+Maybe :: Some | None
 
 show_day :: fn(d: Day) -> string {
     return match d {

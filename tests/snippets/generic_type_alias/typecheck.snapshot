@@ -4,32 +4,32 @@
   FnDecl         main                 :: fn() -> i32
   TypeAliasDecl  Maybe                :: $T | null
   TypeAliasDecl  Pair                 :: $A | $B
-  expr 18:11    IdentExpr      :: i32 | null
-  expr 18:5     MatchExpr      :: void
+  expr 17:11    IdentExpr      :: i32 | null
+  expr 17:5     MatchExpr      :: void
+  expr 18:20    CallExpr       :: void
+  expr 18:20    IdentExpr      :: fn(string) -> void
+  expr 18:28    StringLitExpr  :: string
   expr 19:20    CallExpr       :: void
   expr 19:20    IdentExpr      :: fn(string) -> void
   expr 19:28    StringLitExpr  :: string
-  expr 20:20    CallExpr       :: void
-  expr 20:20    IdentExpr      :: fn(string) -> void
-  expr 20:28    StringLitExpr  :: string
-  expr 20:35    IdentExpr      :: i32
-  expr 22:11    IdentExpr      :: i32 | null
-  expr 22:5     MatchExpr      :: void
+  expr 19:35    IdentExpr      :: i32
+  expr 21:11    IdentExpr      :: i32 | null
+  expr 21:5     MatchExpr      :: void
+  expr 22:20    CallExpr       :: void
+  expr 22:20    IdentExpr      :: fn(string) -> void
+  expr 22:28    StringLitExpr  :: string
   expr 23:20    CallExpr       :: void
   expr 23:20    IdentExpr      :: fn(string) -> void
   expr 23:28    StringLitExpr  :: string
-  expr 24:20    CallExpr       :: void
-  expr 24:20    IdentExpr      :: fn(string) -> void
-  expr 24:28    StringLitExpr  :: string
-  expr 24:35    IdentExpr      :: i32
-  expr 27:28    StringLitExpr  :: string
-  expr 28:11    IdentExpr      :: i32 | string
-  expr 28:5     MatchExpr      :: void
+  expr 23:35    IdentExpr      :: i32
+  expr 26:28    StringLitExpr  :: string
+  expr 27:11    IdentExpr      :: i32 | string
+  expr 27:5     MatchExpr      :: void
+  expr 28:22    CallExpr       :: void
+  expr 28:22    IdentExpr      :: fn(string) -> void
+  expr 28:30    StringLitExpr  :: string
+  expr 28:46    IdentExpr      :: i32
   expr 29:22    CallExpr       :: void
   expr 29:22    IdentExpr      :: fn(string) -> void
   expr 29:30    StringLitExpr  :: string
-  expr 29:46    IdentExpr      :: i32
-  expr 30:22    CallExpr       :: void
-  expr 30:22    IdentExpr      :: fn(string) -> void
-  expr 30:30    StringLitExpr  :: string
-  expr 30:46    IdentExpr      :: string
+  expr 29:46    IdentExpr      :: string

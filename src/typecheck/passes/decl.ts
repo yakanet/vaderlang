@@ -34,6 +34,10 @@ export function looksLikeTypeExpression(expr: A.Expr, t: MutableTyped): boolean 
           && looksLikeTypeExpression(expr.right, t);
     case "ArrayTypeExpr":
     case "FnTypeExpr":
+    case "NullLitExpr":
+      // `null` in expression context parses as `NullLitExpr` ; in type
+      // context it's the null primitive. Both meanings collapse to the
+      // same `TY.null` at `lowerExprAsType` time.
       return true;
     case "GenericInstExpr":
       // `Map(K, V)` / `Map[K, V]` shape — type-shape iff the callee is.

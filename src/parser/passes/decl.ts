@@ -58,7 +58,17 @@ export function parseDecl(p: Parser): A.Decl | null {
     return parseImplDecl(p, decorators);
   }
 
-  // `name :: <fn|struct|trait|type|expr>` or `name := expr` (top-level forbidden) etc.
+  // `name[T] :: <type-expr>` — generic type alias with LHS-bracketed
+  // type-params. Detected before the regular `name ::` path since the
+  // `[...]` between name and `::` is unambiguous (no other decl form
+  // puts brackets there). Body is parsed as a regular expression and
+  // typechecked as a type at use time, matching the non-generic
+  // implicit-alias path.
+  if (p.check("ident") && p.check("lbracket", 1) && peekLhsGenericAliasHead(p)) {
+    return parseLhsGenericAliasDecl(p, decorators, visibility);
+  }
+
+  // `name :: <fn|struct|trait|expr>` or `name := expr` (top-level forbidden) etc.
   if (p.check("ident") && p.check("decl_const", 1)) {
     return parseNamedDecl(p, decorators, visibility);
   }
@@ -163,6 +173,51 @@ function expectStringLiteral(p: Parser, what: string): { text: string; span: Spa
   }
   const end = p.match("string_end") ?? p.peek();
   return { text, span: p.spanOf(begin, end) };
+}
+
+/** Lookahead : starting at `p.pos` (currently on the leading ident), is the
+ *  shape `ident [ ... ] ::` ? Walks a balanced bracket pair and checks the
+ *  next token is `decl_const`. Lets us dispatch to the generic-alias path
+ *  without committing — the regular const-decl path handles everything
+ *  else. */
+function peekLhsGenericAliasHead(p: Parser): boolean {
+  // `p.pos` is on the ident ; ident + `[` already verified by the caller.
+  let i = p.pos + 2;     // skip ident, skip `[`
+  let depth = 1;
+  while (i < p.tokens.length) {
+    const t = p.tokens[i]!;
+    if (t.kind === "eof" || t.kind === "newline") return false;
+    if (t.kind === "lbracket") depth++;
+    else if (t.kind === "rbracket") {
+      depth--;
+      if (depth === 0) {
+        return p.tokens[i + 1]?.kind === "decl_const";
+      }
+    } else if (t.kind === "lparen" || t.kind === "lbrace") depth++;
+    else if (t.kind === "rparen" || t.kind === "rbrace") depth--;
+    if (depth < 0) return false;
+    i++;
+  }
+  return false;
+}
+
+function parseLhsGenericAliasDecl(
+  p: Parser, decorators: readonly A.Decorator[], visibility: A.Visibility,
+): A.TypeAliasDecl {
+  const nameTok = p.advance(); // ident
+  const typeParams = parseBracketedTypeParams(p);
+  p.advance(); // ::
+  const aliased = parseExpr(p, 0);
+  return {
+    kind: "TypeAliasDecl",
+    span: p.spanOf(nameTok, p.peek(-1)),
+    name: nameTok.text,
+    nameSpan: nameTok.span,
+    visibility,
+    typeParams,
+    aliased,
+    decorators,
+  };
 }
 
 function isImplDecl(p: Parser): boolean {
@@ -302,7 +357,6 @@ function parseNamedDecl(p: Parser, decorators: readonly A.Decorator[], visibilit
   if (p.check("kw_struct")) return parseStructDecl(p, decorators, visibility, nameTok);
   if (p.check("kw_enum")) return parseEnumDecl(p, decorators, visibility, nameTok);
   if (p.check("kw_trait")) return parseTraitDecl(p, decorators, visibility, nameTok);
-  if (p.check("kw_type")) return parseTypeAliasDecl(p, decorators, visibility, nameTok);
 
   return parseConstDecl(p, decorators, visibility, nameTok);
 }
@@ -708,26 +762,6 @@ function parseEnumDecl(
   };
 }
 
-function parseTypeAliasDecl(
-  p: Parser,
-  decorators: readonly A.Decorator[],
-  visibility: A.Visibility,
-  nameTok: Token,
-): A.TypeAliasDecl {
-  p.advance(); // type
-  const typeParams = parseStructTypeParamList(p);
-  const aliased = parseType(p);
-  return {
-    kind: "TypeAliasDecl",
-    span: p.spanOf(nameTok, p.peek(-1)),
-    name: nameTok.text,
-    nameSpan: nameTok.span,
-    visibility,
-    typeParams,
-    aliased,
-    decorators,
-  };
-}
 
 /** `name :: value` — untyped top-level const. Type annotations live in the
  *  separate `name : type : value` form parsed by `parseTypedConstDecl` ;

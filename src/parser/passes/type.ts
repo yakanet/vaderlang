@@ -180,11 +180,6 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
     p.advance();
     return { kind: "IdentExpr", span: t.span, name: "null" };
   }
-  if (t.kind === "kw_type") {
-    // `type` as a type bound: `(T: type)` — the metatype.
-    p.advance();
-    return { kind: "IdentExpr", span: t.span, name: "type" };
-  }
   if (t.kind === "ident") {
     const name = p.advance();
     const named: A.IdentExpr = { kind: "IdentExpr", span: name.span, name: name.text };

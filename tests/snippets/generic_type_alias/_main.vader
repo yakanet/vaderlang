@@ -1,15 +1,14 @@
-// Generic type aliases (Layer 4 milestone B.6 — partial). The bracketed
-// type-param head `Name :: type[T] <body>` substitutes T at every use
-// site `Name[i32]`. Previously the typechecker's `type-alias` arm in
-// `typeFromSymbol` looked up type-params via `module.symbols.get(name)`
-// (the wrong table — type-params live in their decl's local scope) and
-// the substitution silently no-op'd, leaving `$T` unsubstituted.
+// Generic type aliases via the LHS-bracketed `Name[T] :: <body>` form.
+// `Name[T]` between the ident and `::` is the unambiguous head ; the body
+// is parsed as a regular expression and resolved as a type at use sites
+// like `Maybe[i32]`. Mirrors the non-generic implicit alias `Foo :: i32 | u32`
+// — `type` is no longer a keyword in Vader.
 
 import "std/io" { println }
 
-export Maybe :: type[T] T | null
+export Maybe[T] :: T | null
 
-export Pair  :: type[A, B] A | B
+export Pair[A, B] :: A | B
 
 main :: fn() -> i32 {
     x: Maybe[i32] = 42

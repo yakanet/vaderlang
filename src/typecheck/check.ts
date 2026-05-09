@@ -101,6 +101,12 @@ export function checkProgram(
         // Trait member bodies are sketches; nothing to check yet.
         break;
       case "ConstDecl": {
+        // Layer 4-sugar — implicit type alias : `declareType` already
+        // pre-resolved the body via `lowerExprAsType` and stashed it in
+        // `constTypeAliases`. Skip the value-position typecheck entirely
+        // since the body is type-shaped (running `checkExpr` on it would
+        // flag e.g. `i32 | null` as "bitor on type / null").
+        if (t.globals.constTypeAliases.has(decl)) break;
         const expected = decl.type !== null ? t.globals.typeExprTypes.get(decl.type) ?? TY.unresolved : null;
         const got = checkExpr(decl.value, expected, t, impls, diags, /*fn*/ null);
         if (expected !== null && !isAssignable(got, expected, impls)) {
@@ -110,10 +116,7 @@ export function checkProgram(
         // Record the inferred type for unannotated consts so identifier lookups
         // see a concrete type (e.g. i32 for `BUCKET_COUNT :: 16`) instead of
         // Unresolved — otherwise downstream casts emit ref.cast on numerics.
-        // Type-aliased consts (`Mixed :: i32 | string`) were already promoted
-        // by `declareType` ; their `declTypes` slot stays at `TY.type` and
-        // the underlying Type lives in `constTypeAliases`.
-        if (expected === null && !t.globals.constTypeAliases.has(decl)) {
+        if (expected === null) {
           t.globals.declTypes.set(decl, defaultIfFree(got));
         }
         break;

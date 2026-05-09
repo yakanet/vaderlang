@@ -1,10 +1,11 @@
 // vader/parser/ast — AST node types.
 //
-// Layout note : the resolver requires every `:: type` union alias to be
+// Layout note : the resolver requires every `::` union alias to be
 // declared *before* the struct that references it, so all aliases live at
-// the top of the file and the concrete structs follow. `type` is a Vader
-// keyword, so type-bearing fields are renamed `ty` ; the dumper emits the
-// JSON key as `"type"` so snapshots stay byte-identical with TS.
+// the top of the file and the concrete structs follow. Type-bearing
+// fields are renamed `ty` (since `type` was historically a keyword) ; the
+// dumper emits the JSON key as `"type"` so snapshots stay byte-identical
+// with TS.
 
 import "vader/diagnostics/diagnostic" { Span }
 
@@ -12,33 +13,33 @@ import "vader/diagnostics/diagnostic" { Span }
 // Type aliases (declared first — see header)
 // ============================================================================
 
-export Decl :: type ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl | AssertDecl
+export Decl :: ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl | AssertDecl
 
-export ImportBinding :: type NamespaceImport | AliasImport | DestructureImport
+export ImportBinding :: NamespaceImport | AliasImport | DestructureImport
 
-export Stmt :: type LetStmt | AssignStmt | ExprStmt | ReturnStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
+export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
 
-export ForForm :: type InfiniteFor | WhileFor | InFor
+export ForForm :: InfiniteFor | WhileFor | InFor
 
-export DeferBody :: type DeferStmtBody | DeferBlockBody
+export DeferBody :: DeferStmtBody | DeferBlockBody
 
-export Expr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
-export StringLitPart :: type StringLitText | StringLitInterp
+export StringLitPart :: StringLitText | StringLitInterp
 
-export IfElse :: type IfElseIf | IfElseBlock
+export IfElse :: IfElseIf | IfElseBlock
 
-export Pattern :: type IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern
+export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern
 
-export LetBinding :: type SimpleBinding | TupleBinding | WildcardBinding
+export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding
 
-export PatternFieldValue :: type PatternBinding | PatternLiteral
+export PatternFieldValue :: PatternBinding | PatternLiteral
 
 // Type-position expressions parse as regular `Expr` nodes — what counts
 // as a « type expression » is determined by *position* (the slot demanding
 // a type) rather than by AST shape. The alias documents intent at slot
 // declarations (e.g. `StructField.ty: TypeExpr`) ; variants mirror `Expr`.
-export TypeExpr :: type IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 // ============================================================================
 // Visibility / shared shapes

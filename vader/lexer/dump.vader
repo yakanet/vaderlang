@@ -183,7 +183,6 @@ export kind_name :: fn(k: TokenKind) = match k {
     .KwTrue       -> "kw_true"
     .KwFalse      -> "kw_false"
     .KwNull       -> "kw_null"
-    .KwType       -> "kw_type"
     .KwSelf       -> "kw_self"
 
     .Plus    -> "plus"

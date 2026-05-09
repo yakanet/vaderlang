@@ -9,6 +9,3 @@
   expr 20:12    CallExpr       :: i32
   expr 20:12    IdentExpr      :: fn(i32 | string) -> i32
   expr 20:21    IdentExpr      :: i32
-  expr 9:10     BinaryExpr     :: type
-  expr 9:10     IdentExpr      :: type
-  expr 9:16     IdentExpr      :: type

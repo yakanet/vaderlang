@@ -364,12 +364,17 @@ To ease migration from Java/Kotlin and reduce typing in everyday code, the compi
 
 These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases. Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
 
-User-defined type aliases use the same `Foo :: <type-expr>` syntax as a regular const declaration. The Layer 4-sugar typechecker recognises a const whose value is structurally a type expression (built from type-name references and the type operators `|` / `&` / `[]` / `fn(...) -> ...`) and promotes it to a type alias — no `type` keyword required, no runtime slot allocated. The legacy explicit form `Foo :: type <type-expr>` still works for explicitness and during the migration window.
+User-defined type aliases use the same `Foo :: <type-expr>` syntax as a regular const declaration — `type` is not a keyword in Vader. The typechecker recognises a const whose value is structurally a type expression (built from type-name references and the type operators `|` / `&` / `[]` / `fn(...) -> ...`) and promotes it to a type alias : no runtime slot is allocated and the name is usable in any type-demanding slot.
+
+Generic type aliases use the LHS-bracketed head `Foo[T] :: <body>` — the `[...]` between the ident and `::` is unambiguous (no other decl form puts brackets there), so the parser dispatches without a form-selector keyword.
 
 ```vader
-// Implicit alias — just a const whose value is a type
+// Non-generic implicit alias — just a const whose value is a type
 Mixed :: i32 | string
-type Maybe[T] = T | null
+
+// Generic alias via LHS-bracketed type-params
+Maybe[T] :: T | null
+Pair[A, B] :: A | B
 
 // Used like any named type
 fits :: fn(x: Mixed) -> bool {
@@ -379,8 +384,7 @@ fits :: fn(x: Mixed) -> bool {
     }
 }
 
-// Legacy explicit form (still supported)
-Mixed :: type i32 | string
+opt: Maybe[i32] = 42
 ```
 
 ### Default integer
@@ -494,7 +498,7 @@ The rule applies to the **immediate** condition expression. Struct literals nest
 ### Unions (TS-style)
 
 ```vader
-Result :: type string | i32 | null
+Result :: string | i32 | null
 
 show :: fn(r: Result) -> string {
     match r {
@@ -505,7 +509,7 @@ show :: fn(r: Result) -> string {
 }
 ```
 
-- Ad-hoc union declared via `Name :: type A | B | C`.
+- Ad-hoc union declared via `Name :: A | B | C`.
 - `T | null` is the standard idiom for nullability.
 - A union `A | B` satisfies a trait `T` if **and only if** both `A` and `B` implement it.
 - Runtime representation: `(tag, payload)` (tagged sum). The compiler chooses the tag size.
@@ -1469,7 +1473,7 @@ main :: fn() -> i32 {
 A source file may contain only:
 
 - `import` statements
-- Type declarations: `Result :: type ...`
+- Type declarations: `Result :: A | B | C` and `Maybe[T] :: T | null`
 - Function declarations: `name :: fn(...) -> T { ... }`
 - Struct declarations: `Foo :: struct { ... }`
 - Enum declarations: `Color :: enum { ... }`
@@ -1934,7 +1938,7 @@ empty, the program can't be launched, or the child is killed by a signal.
 Recursive-descent JSON parse + stringify, pure Vader. Numbers are stored as `f64` (loses precision past 2^53 — fine for compiler use cases).
 
 ```vader
-JsonValue :: type JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
+JsonValue :: JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
 JsonString :: struct { value: string }
 JsonNumber :: struct { value: f64 }
 JsonBool   :: struct { value: bool }

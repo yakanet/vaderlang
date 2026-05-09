@@ -18,7 +18,7 @@ import "std/numbers" { to_hex, to_compact_str }
 
 // ---- value tree -----------------------------------------------------------
 
-export JsonValue :: type JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
+export JsonValue :: JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
 
 export JsonString :: struct { value: string }
 export JsonNumber :: struct { value: f64 }

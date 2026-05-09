@@ -32,7 +32,6 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
     if text == "true"       { return .KwTrue }
     if text == "false"      { return .KwFalse }
     if text == "null"       { return .KwNull }
-    if text == "type"       { return .KwType }
     if text == "self"       { return .KwSelf }
     return .Ident
 }

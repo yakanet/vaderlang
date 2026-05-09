@@ -73,6 +73,14 @@ function lowerExprAsTypeInner(expr: A.Expr, t: MutableTyped, diags: DiagnosticCo
       };
     case "ArrayTypeExpr":
       return { kind: "Array", element: lowerExprAsType(expr.element, t, diags) };
+    case "NullLitExpr":
+      // `null` in type position : the null primitive. Reached when the
+      // body of a type-shaped expression was parsed via `parseExpr` (the
+      // Pratt parser produces `NullLitExpr` for the `null` keyword in
+      // expression context, vs. `parseTypePrimary` which produces an
+      // `IdentExpr` for the same keyword in type context). Both surface
+      // the same underlying type.
+      return TY.null;
     case "SeqLitExpr":
       // Bracketed `[T1, T2, ...]` in type position lowers to a tuple type.
       // Element nodes are guaranteed type-shaped here ; the cast is safe.
