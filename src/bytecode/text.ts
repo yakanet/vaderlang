@@ -12,6 +12,7 @@ import type { Op } from "./ops.ts";
 import { intrinsicIdByName, intrinsicNameById } from "./ops.ts";
 import type { BcType, ValType } from "./types.ts";
 import { isValType } from "./types.ts";
+import { bytecodeFail } from "../diagnostics/errors.ts";
 
 // ---------------------------------------------------------------- writer
 
@@ -156,19 +157,32 @@ function quoteIdent(s: string): string {
 
 // ---------------------------------------------------------------- parser
 
-export function parseVir(text: string): BytecodeModule {
-  const lines = text.split("\n");
-  const cur = { i: 0 };
+export function parseVir(text: string, path: string | null = null): BytecodeModule {
+  const ctx: ParseCtx = { lines: text.split("\n"), cur: { i: 0 }, path };
   const m = newMutableModule();
 
-  while (cur.i < lines.length) {
-    const raw = lines[cur.i]!;
-    cur.i++;
+  while (ctx.cur.i < ctx.lines.length) {
+    const raw = ctx.lines[ctx.cur.i]!;
+    ctx.cur.i++;
     const stripped = stripTrailingComment(raw).trim();
     if (stripped === "") continue;
-    parseHeaderLine(stripped, m, lines, cur);
+    parseHeaderLine(stripped, m, ctx);
   }
   return finalizeModule(m);
+}
+
+interface ParseCtx {
+  readonly lines: readonly string[];
+  readonly cur: { i: number };
+  readonly path: string | null;
+}
+
+function fail(ctx: ParseCtx, message: string): never {
+  // `cur.i` is post-increment — points at the line we just consumed.
+  bytecodeFail("vir parse", message, {
+    path: ctx.path,
+    position: { kind: "text", line: ctx.cur.i, column: 1 },
+  });
 }
 
 interface MutableModule {
@@ -201,7 +215,7 @@ function stripTrailingComment(line: string): string {
   return idx < 0 ? line : line.slice(0, idx).replace(/\s+$/, "");
 }
 
-function parseHeaderLine(line: string, m: MutableModule, lines: string[], cur: { i: number }): void {
+function parseHeaderLine(line: string, m: MutableModule, ctx: ParseCtx): void {
   const head = firstWord(line);
   const rest = line.slice(head.length).trim();
   switch (head) {
@@ -211,7 +225,7 @@ function parseHeaderLine(line: string, m: MutableModule, lines: string[], cur: {
     case "type": {
       const [idxStr, ...spec] = rest.split(/\s+/);
       const idx = Number(idxStr);
-      m.types[idx] = parseType(spec.join(" "));
+      m.types[idx] = parseType(spec.join(" "), ctx);
       return;
     }
     case "string": {
@@ -223,7 +237,7 @@ function parseHeaderLine(line: string, m: MutableModule, lines: string[], cur: {
     case "import": {
       const [idxStr, ...spec] = rest.split(/\s+/);
       const idx = Number(idxStr);
-      m.imports[idx] = parseImport(spec.join(" "));
+      m.imports[idx] = parseImport(spec.join(" "), ctx);
       return;
     }
     case "export": {
@@ -235,24 +249,24 @@ function parseHeaderLine(line: string, m: MutableModule, lines: string[], cur: {
       return;
     }
     case "fn":
-      parseFn(line, lines, cur, m);
+      parseFn(line, m, ctx);
       return;
     default:
-      throw new Error(`vir parse: unknown header "${head}"`);
+      fail(ctx, `unknown header "${head}"`);
   }
 }
 
-function parseType(spec: string): BcType {
+function parseType(spec: string, ctx: ParseCtx): BcType {
   const head = firstWord(spec);
   const rest = spec.slice(head.length).trim();
   switch (head) {
-    case "primitive": return { kind: "primitive", val: expectValType(rest) };
+    case "primitive": return { kind: "primitive", val: expectValType(rest, ctx) };
     case "array":     return { kind: "array", element: Number(rest) };
     case "union":     return { kind: "union", variants: rest.split(",").map(Number) };
     case "ref":       return { kind: "ref", traitName: rest === "_" ? null : unquoteIdent(rest) };
     case "fn": {
       const fm = /^\((.*?)\)\s*->\s*(\d+)$/.exec(rest);
-      if (fm === null) throw new Error(`vir parse: malformed fn type "${spec}"`);
+      if (fm === null) fail(ctx, `malformed fn type "${spec}"`);
       const params = fm[1] === "" ? [] : fm[1]!.split(",").map(Number);
       return { kind: "fn", params, returnType: Number(fm[2]) };
     }
@@ -268,35 +282,35 @@ function parseType(spec: string): BcType {
       });
       return { kind: "struct", name, fields };
     }
-    default: throw new Error(`vir parse: unknown type kind "${head}"`);
+    default: fail(ctx, `unknown type kind "${head}"`);
   }
 }
 
-function parseImport(spec: string): BcImport {
+function parseImport(spec: string, ctx: ParseCtx): BcImport {
   // "<extern> <mangled> (T,T,...) -> R"
   const m = /^(\S+)\s+(\S+)\s+\((.*?)\)\s*->\s*(\S+)$/.exec(spec);
-  if (m === null) throw new Error(`vir parse: malformed import "${spec}"`);
+  if (m === null) fail(ctx, `malformed import "${spec}"`);
   return {
     externName: unquoteIdent(m[1]!),
     mangledName: unquoteIdent(m[2]!),
-    signature: parseSignatureBody(m[3]!, m[4]!),
+    signature: parseSignatureBody(m[3]!, m[4]!, ctx),
   };
 }
 
-function parseSignatureBody(params: string, result: string): BcSignature {
+function parseSignatureBody(params: string, result: string, ctx: ParseCtx): BcSignature {
   return {
-    params: params === "" ? [] : params.split(",").map((s) => expectValType(s.trim())),
-    result: expectValType(result.trim()),
+    params: params === "" ? [] : params.split(",").map((s) => expectValType(s.trim(), ctx)),
+    result: expectValType(result.trim(), ctx),
   };
 }
 
-function parseFn(headerLine: string, lines: string[], cur: { i: number }, m: MutableModule): void {
+function parseFn(headerLine: string, m: MutableModule, ctx: ParseCtx): void {
   // "fn <idx> <name> (params) -> result"
   const match = /^fn\s+(\d+)\s+(\S+)\s+\((.*?)\)\s*->\s*(\S+)$/.exec(headerLine);
-  if (match === null) throw new Error(`vir parse: malformed fn header "${headerLine}"`);
+  if (match === null) fail(ctx, `malformed fn header "${headerLine}"`);
   const idx = Number(match[1]!);
   const name = unquoteIdent(match[2]!);
-  const sig = parseSignatureBody(match[3]!, match[4]!);
+  const sig = parseSignatureBody(match[3]!, match[4]!, ctx);
 
   const locals: BcLocal[] = [];
   const body: Op[] = [];
@@ -306,19 +320,19 @@ function parseFn(headerLine: string, lines: string[], cur: { i: number }, m: Mut
   // empty.
   const scopes: { name: string }[] = [];
 
-  while (cur.i < lines.length) {
-    const raw = lines[cur.i]!;
-    cur.i++;
+  while (ctx.cur.i < ctx.lines.length) {
+    const raw = ctx.lines[ctx.cur.i]!;
+    ctx.cur.i++;
     const stripped = stripTrailingComment(raw).trim();
     if (stripped === "") continue;
     if (stripped === "end" && scopes.length === 0) break;
     if (stripped.startsWith("local ")) {
       const lm = /^local\s+(\S+)\s+(\S+)$/.exec(stripped);
-      if (lm === null) throw new Error(`vir parse: malformed local "${stripped}"`);
-      locals.push({ name: unquoteIdent(lm[1]!), val: expectValType(lm[2]!) });
+      if (lm === null) fail(ctx, `malformed local "${stripped}"`);
+      locals.push({ name: unquoteIdent(lm[1]!), val: expectValType(lm[2]!, ctx) });
       continue;
     }
-    const { op, dbg } = parseOpLine(raw, scopes);
+    const { op, dbg } = parseOpLine(raw, scopes, ctx);
     body.push(op);
     debug.push(dbg);
   }
@@ -326,13 +340,13 @@ function parseFn(headerLine: string, lines: string[], cur: { i: number }, m: Mut
   m.functions[idx] = { name, signature: sig, locals, body, debug };
 }
 
-function parseOpLine(raw: string, scopes: { name: string }[]): { op: Op; dbg: DebugPos | null } {
+function parseOpLine(raw: string, scopes: { name: string }[], ctx: ParseCtx): { op: Op; dbg: DebugPos | null } {
   // Split off the `; file:line:col` annotation if present.
   const trimmed = raw.trim();
   const semi = findCommentStart(trimmed);
   const opText = (semi < 0 ? trimmed : trimmed.slice(0, semi)).trim();
   const dbgText = semi < 0 ? "" : trimmed.slice(semi + 1).trim();
-  return { op: parseOp(opText, scopes), dbg: parseDebug(dbgText) };
+  return { op: parseOp(opText, scopes, ctx), dbg: parseDebug(dbgText) };
 }
 
 function findCommentStart(line: string): number {
@@ -360,7 +374,7 @@ function parseDebug(text: string): DebugPos | null {
   return { file, line, column };
 }
 
-function parseOp(text: string, scopes: { name: string }[]): Op {
+function parseOp(text: string, scopes: { name: string }[], ctx: ParseCtx): Op {
   const head = firstWord(text);
   const tail = text.slice(head.length).trim();
   switch (head) {
@@ -378,26 +392,25 @@ function parseOp(text: string, scopes: { name: string }[]): Op {
     case "block": case "loop": case "if": {
       // `block $name <result>` / `loop $name <result>` / `if $name <result>`.
       const sp = tail.indexOf(" ");
-      if (sp < 0) throw new Error(`vir parse: ${head} expects "<name> <result>"`);
+      if (sp < 0) fail(ctx, `${head} expects "<name> <result>"`);
       scopes.push({ name: tail.slice(0, sp) });
-      return { kind: head, result: expectValType(tail.slice(sp + 1).trim()) };
+      return { kind: head, result: expectValType(tail.slice(sp + 1).trim(), ctx) };
     }
     case "end": {
-      // `end $name` pops the named scope ; bare `end` is a defensive fallback.
       const top = scopes.pop();
       if (tail !== "" && top !== undefined && tail !== top.name) {
-        throw new Error(`vir parse: end mismatch — expected ${top.name}, got ${tail}`);
+        fail(ctx, `end mismatch — expected ${top.name}, got ${tail}`);
       }
       return { kind: "end" };
     }
     case "br":
-    case "br_if":       return { kind: head as "br" | "br_if", depth: resolveScope(tail, scopes) };
+    case "br_if":       return { kind: head as "br" | "br_if", depth: resolveScope(tail, scopes, ctx) };
     case "call":         return { kind: "call",  fnIndex: Number(tail) };
     case "call.import":  return { kind: "call.import", importIndex: Number(tail) };
     case "call.indirect": return { kind: "call.indirect", typeIndex: Number(tail) };
     case "virtual.call": {
       const sp = tail.indexOf(" ");
-      if (sp < 0) throw new Error(`vir parse: virtual.call needs paramCount and key`);
+      if (sp < 0) fail(ctx, `virtual.call needs paramCount and key`);
       return { kind: "virtual.call",
                paramCount: Number(tail.slice(0, sp)),
                vtableKey: tail.slice(sp + 1) };
@@ -412,7 +425,7 @@ function parseOp(text: string, scopes: { name: string }[]): Op {
     }
     case "intrinsic": {
       const id = intrinsicIdByName(tail);
-      if (id === null) throw new Error(`vir parse: unknown intrinsic "${tail}"`);
+      if (id === null) fail(ctx, `unknown intrinsic "${tail}"`);
       return { kind: "intrinsic", id };
     }
     case "struct.new":   return { kind: "struct.new", typeIndex: Number(tail) };
@@ -459,18 +472,18 @@ function unquoteIdent(s: string): string {
   return s;
 }
 
-function expectValType(s: string): ValType {
-  if (!isValType(s)) throw new Error(`vir parse: unknown ValType "${s}"`);
+function expectValType(s: string, ctx: ParseCtx): ValType {
+  if (!isValType(s)) fail(ctx, `unknown ValType "${s}"`);
   return s;
 }
 
 /** Resolve a `br <target>` operand. Accepts a named label (`$L0`) — looked up
  *  in the active scope stack — or a bare numeric depth (kept for round-trip
  *  with payloads that bypass the writer). */
-function resolveScope(spec: string, scopes: readonly { name: string }[]): number {
+function resolveScope(spec: string, scopes: readonly { name: string }[], ctx: ParseCtx): number {
   if (/^-?\d+$/.test(spec)) return Number(spec);
   for (let i = scopes.length - 1; i >= 0; i--) {
     if (scopes[i]!.name === spec) return scopes.length - 1 - i;
   }
-  throw new Error(`vir parse: unknown branch label "${spec}"`);
+  fail(ctx, `unknown branch label "${spec}"`);
 }

@@ -30,7 +30,7 @@ import type {
   CFGProject, Instruction, LocalId, Terminator,
 } from "./cfg.ts";
 import {
-  computeLiveness, dstOf, forEachReadInTerminator, forEachReadLocal,
+  computeLiveness, countUses, dstOf, forEachReadInTerminator, forEachReadLocal,
   instructionHasSideEffect,
 } from "./analyses.ts";
 import { forEachReference, type RefVisitor, type VirtualCallVisitor } from "./lowered_walk.ts";
@@ -167,16 +167,6 @@ function foldMoves(fn: CFGFunction): CFGFunction {
     return { id: b.id, instructions: folded, terminator: b.terminator, span: b.span };
   });
   return mutated ? { ...fn, blocks: newBlocks } : fn;
-}
-
-function countUses(fn: CFGFunction): ReadonlyMap<LocalId, number> {
-  const counts = new Map<LocalId, number>();
-  const bump = (l: LocalId): void => { counts.set(l, (counts.get(l) ?? 0) + 1); };
-  for (const b of fn.blocks) {
-    for (const ins of b.instructions) forEachReadLocal(ins, bump);
-    forEachReadInTerminator(b.terminator, bump);
-  }
-  return counts;
 }
 
 function foldMovesInBlock(

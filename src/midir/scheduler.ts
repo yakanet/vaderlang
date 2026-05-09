@@ -18,7 +18,7 @@
 // `Return.value` and `CondBranch.cond`.
 
 import type { BasicBlock, BlockId, CFGFunction, Instruction, LocalId, Terminator } from "./cfg.ts";
-import { dstOf, forEachReadInTerminator, forEachReadLocal } from "./analyses.ts";
+import { countUses, dstOf } from "./analyses.ts";
 
 export interface ScheduleHints {
   /** Instructions whose result should be left on the stack (no `local.set`). */
@@ -124,20 +124,3 @@ function firstTerminatorOperand(t: Terminator): LocalId | null {
   }
 }
 
-function countUses(fn: CFGFunction): ReadonlyMap<LocalId, number> {
-  const counts = new Map<LocalId, number>();
-  const bump = (l: LocalId): void => { counts.set(l, (counts.get(l) ?? 0) + 1); };
-  for (const b of fn.blocks) {
-    for (const ins of b.instructions) {
-      forEachReadLocal(ins, bump);
-      // Phi sources count as predecessor-block reads, not phi-block reads,
-      // so they're already accounted for via the predecessors' liveness.
-      // For the scheduler we only care about reads at the use site, which
-      // for phis is the predecessors — those branches don't drive stack
-      // scheduling because the phi sits at the start of a block.
-      if (ins.kind === "Phi") for (const s of ins.sources) bump(s.value);
-    }
-    forEachReadInTerminator(b.terminator, bump);
-  }
-  return counts;
-}

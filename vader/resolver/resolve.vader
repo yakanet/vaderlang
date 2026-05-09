@@ -7,6 +7,7 @@
 // matching the TS resolver dump's first half.
 
 import "std/string" { compare_ascending }
+import "std/sort" { sort }
 import "vader/parser" { Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl, ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility, ImportBinding, AliasImport, DestructureImport, NamespaceImport }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory, make }
 
@@ -78,24 +79,8 @@ destructure_first :: fn(b: DestructureImport, module_path: string, factory: Symb
     return factory.make(.ImportBinding, local_name, module_path, .Private, n0.span)
 }
 
-// Stable alphabetical sort. The corpus is small enough that bubble sort is
-// fine — switching to a smarter sort once the stdlib's `sort` module is
-// usable from the resolver.
 sort_by_name :: fn(syms: Symbol[]) -> Symbol[] {
-    out :: syms
-    n := out.len()
-    i := 0
-    for i < n {
-        j := 0
-        for j < n - i - 1 {
-            if compare_ascending(out[j + 1].name, out[j].name) {
-                tmp :: out[j]
-                out[j] = out[j + 1]
-                out[j + 1] = tmp
-            }
-            j = j + 1
-        }
-        i = i + 1
-    }
-    return out
+    return sort(syms, fn(a: Symbol, b: Symbol) -> bool {
+        return compare_ascending(a.name, b.name)
+    })
 }

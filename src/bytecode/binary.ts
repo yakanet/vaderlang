@@ -1,20 +1,12 @@
 // Binary `.vir` format — section-based encoding of `BytecodeModule`.
 //
-// Format:
-//   Header: magic "VADR" (4) + version u32 (4) + flags u32 (4)             — 12 bytes
-//   Body:   moduleName, types, strings, imports, exports, vtables,
-//           implTable, debugFiles, functions
+// Layout: 12-byte header (magic "VADR" + version u32 + flags u32) followed
+// by moduleName, types, strings, imports, exports, vtables, implTable,
+// debugFiles, functions. All multi-byte integers little-endian; strings are
+// u32-prefixed UTF-8; ValType is one byte (`VAL_TYPES`); op kinds are a
+// u16 tag against the stable `OP_KINDS` table.
 //
-// Conventions:
-//   - All multi-byte integers are little-endian.
-//   - Strings are length-prefixed UTF-8 (u32 byte-length + bytes).
-//   - Lists are u32-prefixed counts.
-//   - ValType is encoded as a single byte (see VAL_TYPE_TAGS).
-//   - Op kinds are encoded as a u16 tag (see OP_KINDS).
-//
-// No backwards compatibility is supported pre-1.0 ; a version mismatch is a
-// hard error. The version field uses a packed semver representation
-// (major<<16 | minor<<8 | patch) so simple integer comparison works.
+// No backwards compatibility pre-1.0 — version mismatch is a hard error.
 
 import type {
   BcExport, BcFunction, BcImport, BcLocal, BcSignature, BytecodeModule, DebugPos,
@@ -22,18 +14,15 @@ import type {
 import type { Op } from "./ops.ts";
 import type { BcType, ValType } from "./types.ts";
 import { BYTECODE_VERSION, formatBytecodeVersion } from "../version.ts";
+import { bytecodeFail, CompilerBugError } from "../diagnostics/errors.ts";
 
 export const MAGIC = new Uint8Array([0x56, 0x41, 0x44, 0x52]);    // "VADR"
 
 export const FLAG_HAS_DEBUG = 0x0001;
 
-// =============================================================================
-// Section + sub-tag enums — every byte/short written by the encoder has a
-// matching named tag here so the format stays self-documenting.
-// =============================================================================
+// Named tags for every dispatch byte the encoder/decoder writes — keeps the
+// wire format self-documenting at the call sites.
 
-/** BcType kind tag. One byte per type-table entry, dispatches into the
- *  payload format for that variant. */
 const enum TypeTag {
   Primitive = 0,
   Struct    = 1,
@@ -43,21 +32,15 @@ const enum TypeTag {
   Fn        = 5,
 }
 
-/** Optional-field marker for nullable strings/structs. */
 const enum Nullable {
   Absent  = 0,
   Present = 1,
 }
 
-/** Per-op debug-info marker. */
 const enum DebugTag {
   None    = 0,
   Present = 1,
 }
-
-// =============================================================================
-// ValType tags — single-byte encoding
-// =============================================================================
 
 const VAL_TYPES: readonly ValType[] = [
   "void",   "null",   "bool",   "char",   "string",
@@ -72,20 +55,18 @@ const VAL_TYPE_TAG = new Map<ValType, number>(VAL_TYPES.map((v, i) => [v, i]));
 
 function valTypeTag(v: ValType): number {
   const t = VAL_TYPE_TAG.get(v);
-  if (t === undefined) throw new Error(`binary: unknown ValType "${v}"`);
+  if (t === undefined) throw new CompilerBugError(`binary: unknown ValType "${v}" at write time`);
   return t;
 }
 
-function valTypeFromTag(t: number): ValType {
+function valTypeFromTag(r: Reader, t: number): ValType {
   const v = VAL_TYPE_BY_TAG.get(t);
-  if (v === undefined) throw new Error(`binary: unknown ValType tag ${t}`);
+  if (v === undefined) r.fail(`unknown ValType tag ${t}`);
   return v;
 }
 
-// =============================================================================
-// Op kind table — u16 tag per kind. Order is stable ; appending is safe across
-// version bumps. Removing or reordering requires a version bump.
-// =============================================================================
+// Op kind → u16 tag. Order is stable: appending is safe across patch bumps,
+// removing or reordering requires a version bump.
 
 const INT_WIDTHS: readonly string[] = ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "usize"];
 const FLOAT_WIDTHS: readonly string[] = ["f32", "f64"];
@@ -125,11 +106,7 @@ const OP_KINDS = buildOpKinds();
 const OP_TAG = new Map<string, number>(OP_KINDS.map((k, i) => [k, i]));
 const OP_KIND_BY_TAG = new Map<number, string>(OP_KINDS.map((k, i) => [i, k]));
 
-if (OP_KINDS.length > 0xFFFF) throw new Error("binary: op-kind table exceeds u16");
-
-// =============================================================================
-// Writer
-// =============================================================================
+if (OP_KINDS.length > 0xFFFF) throw new CompilerBugError("binary: op-kind table exceeds u16");
 
 class Writer {
   private buf: Uint8Array = new Uint8Array(1024);
@@ -367,7 +344,7 @@ function writeFunctions(
       } else {
         w.u8(DebugTag.Present);
         const fi = debugFileIndex.get(d.file);
-        if (fi === undefined) throw new Error(`binary: debug file "${d.file}" missing from pool`);
+        if (fi === undefined) throw new CompilerBugError(`binary: debug file "${d.file}" missing from pool at write time`);
         w.u32(fi);
         w.u32(d.line);
         w.u32(d.column);
@@ -378,7 +355,7 @@ function writeFunctions(
 
 function writeOp(w: Writer, op: Op): void {
   const tag = OP_TAG.get(op.kind);
-  if (tag === undefined) throw new Error(`binary: unknown op kind "${op.kind}"`);
+  if (tag === undefined) throw new CompilerBugError(`binary: unknown op kind "${op.kind}" at write time`);
   w.u16(tag);
   // Operand encoding per kind (only the kinds that carry operands need a
   // case; pure-kind ops emit nothing past the tag).
@@ -432,27 +409,35 @@ function writeOp(w: Writer, op: Op): void {
   }
 }
 
-// =============================================================================
-// Reader
-// =============================================================================
-
 class Reader {
-  constructor(private readonly buf: Uint8Array, private pos: number = 0) {}
+  constructor(
+    private readonly buf: Uint8Array,
+    private readonly path: string | null = null,
+    private pos: number = 0,
+  ) {}
 
   remaining(): number { return this.buf.length - this.pos; }
+  position(): number { return this.pos; }
+
+  fail(message: string): never {
+    bytecodeFail("binary", message, {
+      path: this.path,
+      position: { kind: "binary", byteOffset: this.pos },
+    });
+  }
 
   u8(): number {
-    if (this.pos >= this.buf.length) throw new Error("binary: unexpected EOF (u8)");
+    if (this.pos >= this.buf.length) this.fail("unexpected EOF (u8)");
     return this.buf[this.pos++]!;
   }
   u16(): number {
-    if (this.pos + 2 > this.buf.length) throw new Error("binary: unexpected EOF (u16)");
+    if (this.pos + 2 > this.buf.length) this.fail("unexpected EOF (u16)");
     const v = this.buf[this.pos]! | (this.buf[this.pos + 1]! << 8);
     this.pos += 2;
     return v;
   }
   u32(): number {
-    if (this.pos + 4 > this.buf.length) throw new Error("binary: unexpected EOF (u32)");
+    if (this.pos + 4 > this.buf.length) this.fail("unexpected EOF (u32)");
     const v = (this.buf[this.pos]!
             | (this.buf[this.pos + 1]! << 8)
             | (this.buf[this.pos + 2]! << 16)
@@ -462,20 +447,20 @@ class Reader {
   }
   i32(): number { return this.u32() | 0; }
   i64(): bigint {
-    if (this.pos + 8 > this.buf.length) throw new Error("binary: unexpected EOF (i64)");
+    if (this.pos + 8 > this.buf.length) this.fail("unexpected EOF (i64)");
     const lo = BigInt(this.u32());
     const hi = BigInt(this.u32() | 0);     // sign-extend high word
     return (hi << 32n) | lo;
   }
   f32(): number {
-    if (this.pos + 4 > this.buf.length) throw new Error("binary: unexpected EOF (f32)");
+    if (this.pos + 4 > this.buf.length) this.fail("unexpected EOF (f32)");
     const dv = new DataView(this.buf.buffer, this.buf.byteOffset + this.pos, 4);
     const v = dv.getFloat32(0, true);
     this.pos += 4;
     return v;
   }
   f64(): number {
-    if (this.pos + 8 > this.buf.length) throw new Error("binary: unexpected EOF (f64)");
+    if (this.pos + 8 > this.buf.length) this.fail("unexpected EOF (f64)");
     const dv = new DataView(this.buf.buffer, this.buf.byteOffset + this.pos, 8);
     const v = dv.getFloat64(0, true);
     this.pos += 8;
@@ -483,7 +468,7 @@ class Reader {
   }
   bool(): boolean { return this.u8() !== 0; }
   raw(n: number): Uint8Array {
-    if (this.pos + n > this.buf.length) throw new Error(`binary: unexpected EOF (raw ${n})`);
+    if (this.pos + n > this.buf.length) this.fail(`unexpected EOF (raw ${n})`);
     const out = this.buf.subarray(this.pos, this.pos + n);
     this.pos += n;
     return out;
@@ -494,18 +479,18 @@ class Reader {
   }
 }
 
-export function parseBinary(bytes: Uint8Array): BytecodeModule {
-  const r = new Reader(bytes);
+export function parseBinary(bytes: Uint8Array, path: string | null = null): BytecodeModule {
+  const r = new Reader(bytes, path);
   // Header
   const m = r.raw(4);
   if (m[0] !== MAGIC[0] || m[1] !== MAGIC[1] || m[2] !== MAGIC[2] || m[3] !== MAGIC[3]) {
-    throw new Error("binary: bad magic — not a Vader IR module");
+    r.fail("bad magic — not a Vader IR module");
   }
   const version = r.u32();
   if (version !== BYTECODE_VERSION) {
     const want = formatBytecodeVersion(BYTECODE_VERSION);
     const got = formatBytecodeVersion(version);
-    throw new Error(`binary: version mismatch (file is ${got}, runtime expects ${want})`);
+    r.fail(`version mismatch (file is ${got}, runtime expects ${want})`);
   }
   r.u32();                                  // flags — reserved for future use
   const name = r.string();
@@ -529,7 +514,7 @@ function readTypes(r: Reader): BcType[] {
     const tag = r.u8();
     switch (tag) {
       case TypeTag.Primitive:
-        out.push({ kind: "primitive", val: valTypeFromTag(r.u8()) });
+        out.push({ kind: "primitive", val: valTypeFromTag(r, r.u8()) });
         break;
       case TypeTag.Struct: {
         const name = r.string();
@@ -563,7 +548,7 @@ function readTypes(r: Reader): BcType[] {
         break;
       }
       default:
-        throw new Error(`binary: unknown type tag ${tag}`);
+        r.fail(`unknown type tag ${tag}`);
     }
   }
   return out;
@@ -628,8 +613,8 @@ function readImpls(r: Reader): Map<number, string[]> {
 function readSignature(r: Reader): BcSignature {
   const pc = r.u32();
   const params: ValType[] = [];
-  for (let i = 0; i < pc; i++) params.push(valTypeFromTag(r.u8()));
-  const result = valTypeFromTag(r.u8());
+  for (let i = 0; i < pc; i++) params.push(valTypeFromTag(r, r.u8()));
+  const result = valTypeFromTag(r, r.u8());
   return { params, result };
 }
 
@@ -648,7 +633,7 @@ function readFunctions(r: Reader, debugFiles: readonly string[]): BcFunction[] {
     const signature = readSignature(r);
     const lc = r.u32();
     const locals: BcLocal[] = [];
-    for (let j = 0; j < lc; j++) locals.push({ name: r.string(), val: valTypeFromTag(r.u8()) });
+    for (let j = 0; j < lc; j++) locals.push({ name: r.string(), val: valTypeFromTag(r, r.u8()) });
     const oc = r.u32();
     const body: Op[] = [];
     const debug: (DebugPos | null)[] = [];
@@ -662,7 +647,7 @@ function readFunctions(r: Reader, debugFiles: readonly string[]): BcFunction[] {
         const line = r.u32();
         const column = r.u32();
         const file = debugFiles[fi];
-        if (file === undefined) throw new Error(`binary: debug file index ${fi} out of range`);
+        if (file === undefined) r.fail(`debug file index ${fi} out of range`);
         debug.push({ file, line, column });
       }
     }
@@ -674,7 +659,7 @@ function readFunctions(r: Reader, debugFiles: readonly string[]): BcFunction[] {
 function readOp(r: Reader): Op {
   const tag = r.u16();
   const kind = OP_KIND_BY_TAG.get(tag);
-  if (kind === undefined) throw new Error(`binary: unknown op tag ${tag}`);
+  if (kind === undefined) r.fail(`unknown op tag ${tag}`);
   switch (kind) {
     case "local.get": case "local.set": case "local.tee":
       return { kind, slot: r.u32() } as Op;
@@ -696,7 +681,7 @@ function readOp(r: Reader): Op {
     case "string.const":
       return { kind: "string.const", index: r.u32() };
     case "block": case "loop": case "if":
-      return { kind, result: valTypeFromTag(r.u8()) } as Op;
+      return { kind, result: valTypeFromTag(r, r.u8()) } as Op;
     case "br": case "br_if":
       return { kind, depth: r.u32() } as Op;
     case "call":

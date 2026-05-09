@@ -1,33 +1,25 @@
 // Intra-procedural escape analysis on the SSA-form CFG.
 //
-// For each `StructNew` / `ArrayNew` allocation, decide whether the value
-// can escape its function. An escape happens when the value (or anything
-// transitively reaching it) is :
+// For each `StructNew` / `ArrayNew` allocation, decide whether the value can
+// escape its function. An escape happens when the value (or anything
+// transitively reaching it) is:
 //   - Returned from the function (Return.value).
-//   - Passed as an argument to a Call / CallIndirect / VirtualCall — without
-//     inter-procedural analysis we conservatively assume the callee retains
-//     a reference past the call.
+//   - Passed as an argument to a Call / CallIndirect / VirtualCall (no
+//     inter-procedural analysis — we assume the callee retains a reference).
 //   - Stored as a field of another (escaping) value, or pushed into one.
-//   - Wrapped in a CellNew / written into a CellSet — closures capture-by-
-//     reference, so the cell outlives any local frame.
+//   - Wrapped in a CellNew / written into a CellSet (closures capture by
+//     reference, so the cell outlives any local frame).
 //   - Used as the sources of a Phi whose dst escapes (transitive propagation).
 //
-// All other uses (FieldGet, ArrayGet, ArrayLen, TypeCheck, Cast, Move,
-// CondBranch, ...) keep the value local to the function. When an
-// allocation has no escaping reachable use, we mark the producing
-// instruction with `stack: true`.
-//
-// Output is a side-table : `Set<LocalId>` of *escaping* allocations. The
-// pipeline applies this by setting `stack = !escaping` on every
-// StructNew / ArrayNew before fromSSA runs. Phase 5 ships the analysis
-// only ; the codegen path that turns `stack: true` into actual
-// stack-allocated C structs lands in a follow-up phase.
+// Pure read-only uses (FieldGet, ArrayGet, ArrayLen, TypeCheck, Cast, Move,
+// CondBranch, ...) keep the value local. Allocations with no escaping
+// reachable use are marked with `stack: true` for downstream codegen.
 
 import type {
   BasicBlock, BlockId, CFGFunction, CFGModule, CFGProject, Instruction, LocalId,
 } from "./cfg.ts";
 import {
-  computeDominators, dominates, predecessorsOf, successorsOf,
+  computeDominators, naturalLoopBodies, predecessorsOf,
 } from "./analyses.ts";
 
 export interface EscapeStats {
@@ -98,47 +90,23 @@ function annotateFunction(fn: CFGFunction): CFGFunction {
   return mutated ? { ...fn, blocks: newBlocks } : fn;
 }
 
-/** Blocks reachable through any back-edge of the CFG. A back-edge is an
- *  edge `u → v` where `v` dominates `u` ; the corresponding natural-loop
- *  body is `{ v, plus every block on a path from v back to u }`. */
+/** Union of every natural-loop body in the CFG — blocks where stack-allocation
+ *  is unsafe because the C-emit's block-scoped storage would alias across
+ *  iterations. */
 function computeBlocksInLoops(fn: CFGFunction): ReadonlySet<BlockId> {
   const preds = predecessorsOf(fn);
   const idom = computeDominators(fn, preds);
   const inLoop = new Set<BlockId>();
-  for (const b of fn.blocks) {
-    for (const succ of successorsOf(b)) {
-      if (!dominates(idom, succ, b.id)) continue;
-      // Back-edge b -> succ. Natural loop = {succ} ∪ ancestors of b that
-      // can reach b without going through succ.
-      addNaturalLoop(fn, preds, succ, b.id, inLoop);
-    }
+  for (const body of naturalLoopBodies(fn, preds, idom).values()) {
+    for (const b of body) inLoop.add(b);
   }
   return inLoop;
 }
 
-function addNaturalLoop(
-  fn: CFGFunction, preds: readonly (readonly BlockId[])[],
-  header: BlockId, tail: BlockId, into: Set<BlockId>,
-): void {
-  into.add(header);
-  if (tail === header) return;
-  const stack: BlockId[] = [tail];
-  into.add(tail);
-  while (stack.length > 0) {
-    const b = stack.pop()!;
-    for (const p of preds[b]!) {
-      if (into.has(p)) continue;
-      into.add(p);
-      stack.push(p);
-    }
-  }
-}
-
-/** Worklist : start with all locals known to escape (returned values, call
- *  args, cell-stored values, struct fields of values that already escape,
- *  ...) and propagate backward via Move and Phi sources. The result is the
- *  set of locals that escape ; allocs whose dst isn't in that set can be
- *  stack-allocated. */
+/** Worklist: start with all locals known to escape (returned values, call
+ *  args, cell-stored values, struct fields of escaping values, ...) and
+ *  propagate backward via Move and Phi sources. Allocs whose dst isn't in
+ *  the resulting set are stack-allocatable. */
 function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Set<LocalId> {
   const escaping = new Set<LocalId>();
   const aliasOf = new Map<LocalId, LocalId[]>();      // dst → producers (Move src or Phi sources)
@@ -160,26 +128,14 @@ function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Se
           appendAlias(aliasOf, ins.dst, ins.value);
           break;
         case "FieldSet":
-          // Storing into a struct field is an escape for the value being
-          // stored *and* for the target (which may now hold heap pointers).
-          // Conservative : both escape.
-          see(ins.value);
-          see(ins.target);
-          break;
         case "ArraySet":
-          see(ins.value);
-          see(ins.target);
-          break;
         case "ArrayPush":
+          // The value escapes (stored where the GC can reach it) ; the target
+          // also escapes since it now holds heap-reachable refs.
           see(ins.value);
           see(ins.target);
           break;
         case "CellNew":
-          // Cells are heap-allocated single-slot boxes shared across
-          // closures — anything written into one outlives the current
-          // frame. The contents escape ; the cell ref itself is just a
-          // local until it gets captured in a closure (handled by
-          // MakeClosure below).
           see(ins.value);
           break;
         case "CellSet":
@@ -190,22 +146,16 @@ function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Se
         case "CallIndirect":
         case "VirtualCall":
         case "Intrinsic":
-          // Callees may retain refs past the call — treat every passed
-          // local as escaping. Also covers the receiver of VirtualCall.
           if (ins.kind === "VirtualCall") see(ins.receiver);
           if (ins.kind === "CallIndirect") see(ins.callee);
           for (const a of ins.args) see(a);
           break;
         case "MakeClosure":
-          // Closure captures its env struct ; env outlives the current
-          // frame. We don't yet inspect env's contents — it'll be
-          // recursively flagged via the StructNew/FieldSet that built it.
           see(ins.env);
           break;
         case "StructNew":
-          // A StructNew's field initialisers become reachable through the
-          // struct ; if dst later escapes, every field must escape too.
-          // Wire this via alias so backward propagation handles it.
+          // Field initialisers become reachable through the struct ; if dst
+          // escapes later, every field escapes too.
           for (const f of ins.fields) appendAlias(aliasOf, ins.dst, f);
           break;
         case "ArrayNew":
@@ -220,8 +170,7 @@ function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Se
         case "TypeCheck":
         case "CellGet":
         case "FnRef":
-          // Pure / read-only ops don't escape their operands.
-          break;
+          break;       // pure / read-only ops don't escape their operands
       }
     }
     switch (b.terminator.kind) {

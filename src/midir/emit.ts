@@ -13,6 +13,7 @@
 // (Cooper, Harvey, Kennedy : "A Simple, Fast Dominance Algorithm").
 
 import type { Span } from "../diagnostics/diagnostic.ts";
+import { CompilerBugError } from "../diagnostics/errors.ts";
 import type * as L from "../lower/lowered-ast.ts";
 import type { LoweredProject } from "../lower/index.ts";
 import type { Type } from "../typecheck/types.ts";
@@ -37,7 +38,7 @@ import type {
   Instruction, LocalId,
 } from "./cfg.ts";
 import {
-  computeDominators, dominates, intersectDomTree,
+  computeDominators, dominates, intersectDomTree, naturalLoopBodies,
   predecessorsOf, reversePostorder, successorsOf,
 } from "./analyses.ts";
 import { NO_HINTS, scheduleStack, type ScheduleHints } from "./scheduler.ts";
@@ -332,7 +333,7 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
     case "Phi":
       // Phis must be lowered by `fromSSA` before reaching the structurer.
       // Reaching this branch means a pipeline wiring bug.
-      throw new Error(`midir/emit: unexpected Phi at emit time (block ${ins.span.start.line})`);
+      throw new CompilerBugError(`midir/emit: unexpected Phi at emit time (block ${ins.span.start.line})`);
   }
 }
 
@@ -744,21 +745,7 @@ function findLoopExits(
   fn: CFGFunction, preds: readonly (readonly BlockId[])[], idom: readonly number[],
 ): ReadonlyMap<BlockId, BlockId | null> {
   const out = new Map<BlockId, BlockId | null>();
-  for (let h = 0; h < fn.blocks.length; h++) {
-    const backEdgeSources = preds[h]!.filter((p) => dominates(idom, h, p));
-    if (backEdgeSources.length === 0) continue;
-
-    const body = new Set<BlockId>([h]);
-    const stack: BlockId[] = [...backEdgeSources];
-    while (stack.length > 0) {
-      const cur = stack.pop()!;
-      if (body.has(cur)) continue;
-      body.add(cur);
-      for (const p of preds[cur]!) {
-        if (p !== h) stack.push(p);
-      }
-    }
-
+  for (const [header, body] of naturalLoopBodies(fn, preds, idom)) {
     let exit: BlockId | null = null;
     for (const b of body) {
       for (const s of successorsOf(fn.blocks[b]!)) {
@@ -766,7 +753,7 @@ function findLoopExits(
       }
       if (exit !== null) break;
     }
-    out.set(h, exit);
+    out.set(header, exit);
   }
   return out;
 }

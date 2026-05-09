@@ -2,6 +2,7 @@ import type { GlobalOpts } from "../cli/options.ts";
 import { pipelineBytecode } from "../pipeline.ts";
 import { parseVir } from "../bytecode/text.ts";
 import { parseBinary } from "../bytecode/binary.ts";
+import { BytecodeFormatError, CompilerBugError, formatBytecodeWhere } from "../diagnostics/errors.ts";
 import { renderAllTextSingle, renderAllJson } from "../diagnostics/render.ts";
 import { defaultHostIO, makeBindings, runProgram, VmError } from "../vm/index.ts";
 
@@ -21,9 +22,9 @@ export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> 
 
   try {
     const bc = isBinary
-      ? parseBinary(new Uint8Array(await Bun.file(file).arrayBuffer()))
+      ? parseBinary(new Uint8Array(await Bun.file(file).arrayBuffer()), file)
       : isText
-      ? parseVir(await Bun.file(file).text())
+      ? parseVir(await Bun.file(file).text(), file)
       : await compileToBytecode(file, opts);
     if (bc === null) return 1;
     const result = runProgram(bc, { host: bindings, argv });
@@ -32,6 +33,15 @@ export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> 
     if (e instanceof VmError) {
       console.error(`vader run: ${e.message}`);
       return 1;
+    }
+    if (e instanceof BytecodeFormatError) {
+      console.error(`vader run: ${formatBytecodeWhere(e)}: ${e.message}`);
+      return 1;
+    }
+    if (e instanceof CompilerBugError) {
+      console.error(`vader run: internal compiler error — please report:`);
+      console.error(`  ${e.message}`);
+      return 70;     // EX_SOFTWARE
     }
     const msg = e instanceof Error ? e.message : String(e);
     if (msg.includes("ENOENT")) console.error(`vader run: file not found: ${file}`);

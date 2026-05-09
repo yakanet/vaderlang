@@ -86,6 +86,49 @@ export function forEachReadInTerminator(t: Terminator, visit: (l: LocalId) => vo
   }
 }
 
+/** Natural-loop bodies, keyed by header block id. A back-edge `u → v` exists
+ *  when v dominates u; the natural loop's body is `{v} ∪ all blocks that
+ *  reach u without going through v`. Returns one entry per back-edge target.
+ *  Pure-function — caller passes in the preds + idom they already computed. */
+export function naturalLoopBodies(
+  fn: CFGFunction,
+  preds: readonly (readonly BlockId[])[],
+  idom: readonly number[],
+): ReadonlyMap<BlockId, ReadonlySet<BlockId>> {
+  const out = new Map<BlockId, ReadonlySet<BlockId>>();
+  for (let h = 0; h < fn.blocks.length; h++) {
+    const backEdgeSources = preds[h]!.filter((p) => dominates(idom, h, p));
+    if (backEdgeSources.length === 0) continue;
+    const body = new Set<BlockId>([h]);
+    const stack: BlockId[] = [...backEdgeSources];
+    while (stack.length > 0) {
+      const cur = stack.pop()!;
+      if (body.has(cur)) continue;
+      body.add(cur);
+      for (const p of preds[cur]!) {
+        if (p !== h) stack.push(p);
+      }
+    }
+    out.set(h, body);
+  }
+  return out;
+}
+
+/** Per-LocalId read count across the whole fn body — every read in an
+ *  instruction or terminator counts once. Phi sources are skipped (they read
+ *  in the predecessor, not at the phi's program point), matching
+ *  `forEachReadLocal`'s semantics. Used by copy folding, the stack scheduler,
+ *  and any pass that needs use-counts. */
+export function countUses(fn: CFGFunction): ReadonlyMap<LocalId, number> {
+  const counts = new Map<LocalId, number>();
+  const bump = (l: LocalId): void => { counts.set(l, (counts.get(l) ?? 0) + 1); };
+  for (const b of fn.blocks) {
+    for (const ins of b.instructions) forEachReadLocal(ins, bump);
+    forEachReadInTerminator(b.terminator, bump);
+  }
+  return counts;
+}
+
 /** Reverse-postorder of the CFG starting from the entry. Stable across runs.
  *  Used by every dataflow analysis that wants to visit predecessors before
  *  successors (forward flow) or successors before predecessors (backward). */

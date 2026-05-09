@@ -1,21 +1,16 @@
 // SSA conversion (`toSSA`) and out-of-SSA lowering (`fromSSA`) for the
-// Mid-IR CFG. The Cytron et al. classical algorithm :
+// Mid-IR CFG. Standard Cytron et al. construction:
 //
 //   1. Compute dominators + dominance frontiers (in `analyses.ts`).
 //   2. For each variable v defined more than once, insert phi(v) at every
 //      block in DF+(defBlocks(v)).
-//   3. Rename : DFS the dominator tree, maintaining a per-variable stack of
+//   3. Rename: DFS the dominator tree, maintaining a per-variable stack of
 //      "current version" LocalIds. Each new definition pushes a fresh
-//      LocalId ; reads pick up the stack-top.
+//      LocalId; reads pick up the stack-top.
 //
 // `fromSSA` undoes the construction by inserting `Move dst src=phi-source`
 // at the end of each predecessor (right before the terminator) for every
-// phi, then dropping the phi nodes. The CFG returned by `fromSSA` is in
-// the same shape the structurer / emitter expects (no phis).
-//
-// Phase 4 wires `toSSA → fromSSA` as a behaviour-preserving round-trip ;
-// SSA-based optimisations (constant propagation, escape analysis, …) slot
-// in between in subsequent phases.
+// phi, then dropping the phi nodes.
 
 import type {
   BasicBlock, BlockId, CFGFunction, CFGLocal, CFGModule, CFGProject,
@@ -23,8 +18,9 @@ import type {
 } from "./cfg.ts";
 import {
   computeDominanceFrontiers, computeDominators, computeLiveness, dstOf,
-  forEachReadInTerminator, forEachReadLocal, predecessorsOf,
+  forEachReadInTerminator, forEachReadLocal, predecessorsOf, successorsOf,
 } from "./analyses.ts";
+import { CompilerBugError } from "../diagnostics/errors.ts";
 
 // =============================================================================
 // `toSSA` — Cytron et al. SSA construction
@@ -99,16 +95,21 @@ function toSSAFn(fn: CFGFunction): CFGFunction {
   // 3. Rename : DFS the dominator tree with per-variable stacks.
   const stacks = new Map<LocalId, LocalId[]>();
   for (let i = 0; i < locals.length; i++) stacks.set(i, [i]);   // every original local gets its own stack
+  // Reverse map from a renamed-LocalId back to the original it descends from.
+  // Phi-source resolution (in the rename pass below) needs this lookup ; the
+  // lazy `<name>#<id>` parsing it replaced was O(locals) per phi-source visit.
+  const originBy = new Map<LocalId, LocalId>();
 
-  const allocFresh = (origin: LocalId, source = "unknown"): LocalId => {
+  const allocFresh = (origin: LocalId): LocalId => {
     const id = locals.length;
     const orig = locals[origin];
     if (orig === undefined) {
-      throw new Error(`allocFresh: origin=${origin} (source=${source}) out of range (locals.length=${locals.length}) in fn ${fn.mangled}`);
+      throw new CompilerBugError(`ssa.allocFresh: origin=${origin} out of range (locals.length=${locals.length}) in fn ${fn.mangled}`);
     }
     locals.push({ name: `${orig.name}#${id}`, type: orig.type, symbol: orig.symbol });
     stacks.get(origin)!.push(id);
-    if (!stacks.has(id)) stacks.set(id, [id]);
+    stacks.set(id, [id]);
+    originBy.set(id, origin);
     return id;
   };
 
@@ -133,7 +134,7 @@ function toSSAFn(fn: CFGFunction): CFGFunction {
     // pick them up via the stack.
     for (const phi of block.phis) {
       const orig = phi.dst;
-      const fresh = allocFresh(orig, "phi");
+      const fresh = allocFresh(orig);
       pushed.push(orig);
       (phi as { dst: LocalId }).dst = fresh;
     }
@@ -146,10 +147,10 @@ function toSSAFn(fn: CFGFunction): CFGFunction {
 
     // Successors' phis pick up our top-of-stack value for the slots indexed
     // by us (B is the predecessor).
-    const succs = successorsOfTerminator(block.terminator);
+    const succs = successorsOf(block);
     for (const s of succs) {
       for (const phi of blocks[s]!.phis) {
-        const original = originalOf(phi.dst, locals);
+        const original = originBy.get(phi.dst) ?? phi.dst;
         const value = top(original);
         const newSources = [...phi.sources, { block: b, value }];
         (phi as { sources: readonly { block: BlockId; value: LocalId }[] }).sources = newSources;
@@ -181,26 +182,6 @@ function toSSAFn(fn: CFGFunction): CFGFunction {
     entry: fn.entry,
     origin: fn.origin,
   };
-}
-
-/** Recover the original variable a renamed local descends from. We track
- *  this implicitly by storing the name as `<origin>#<id>` in `allocFresh` —
- *  the prefix lookup is only needed for phi-source resolution. */
-function originalOf(l: LocalId, locals: readonly CFGLocal[]): LocalId {
-  // The rename pass populates `stacks` keyed by original ids ; phi.dst is
-  // a renamed id whose origin we track through the local's name. Walk back
-  // by parsing the `#id` suffix off the name. Locals introduced by allocFresh
-  // always carry `<orig-name>#<id>` ; original locals don't have the `#`.
-  const name = locals[l]?.name ?? "";
-  const hash = name.lastIndexOf("#");
-  if (hash < 0) return l;
-  // Origin local is the one whose name matches the prefix and has no `#`.
-  const prefix = name.slice(0, hash);
-  for (let i = 0; i < locals.length; i++) {
-    const ln = locals[i]!.name;
-    if (ln === prefix) return i;
-  }
-  return l;
 }
 
 function renameInstr(
@@ -282,15 +263,6 @@ function renameTerminator(t: Terminator, top: (l: LocalId) => LocalId): Terminat
   }
 }
 
-function successorsOfTerminator(t: Terminator): readonly BlockId[] {
-  switch (t.kind) {
-    case "Branch":      return [t.target];
-    case "CondBranch":  return [t.then, t.else];
-    case "Return":
-    case "Unreachable": return [];
-  }
-}
-
 // =============================================================================
 // `fromSSA` — drop phis, materialise them as `Move`s in predecessors
 // =============================================================================
@@ -309,14 +281,9 @@ export function fromSSA(p: CFGProject): CFGProject {
 }
 
 function fromSSAFn(fn: CFGFunction): CFGFunction {
-  // Collect : per predecessor, the moves we need to insert. Map<predBlock,
-  // [{ dst, src }]>. We then append them just before each predecessor's
-  // terminator. Phi swap problem (cyclic moves between phis) is rare in
-  // CFGs derived from structured source ; we do not handle it specially —
-  // a TODO for when SSA-aware optimisations expose the pattern.
-  const movesByPred = new Map<BlockId, { dst: LocalId; src: LocalId; type: BasicBlock["span"] extends infer S ? S : never }[]>();
-  void movesByPred;       // silence linter — repurposed below with proper shape
-
+  // Per-predecessor moves to insert just before the predecessor's terminator.
+  // Phi swap problem (cyclic moves between phis) is rare in CFGs derived
+  // from structured source — we don't handle it specially today.
   type PhiMove = { dst: LocalId; src: LocalId; span: Instruction["span"] };
   const moves = new Map<BlockId, PhiMove[]>();
   for (const b of fn.blocks) {
