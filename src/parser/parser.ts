@@ -142,12 +142,14 @@ export function describeToken(t: Token): string {
  */
 export function collectTypeParams(t: A.TypeExpr, out: A.TypeParam[]): void {
   switch (t.kind) {
-    case "TypeParamType": {
-      if (!out.some((p) => p.name === t.name)) {
+    case "IdentExpr":
+      // `$T` introductions carry the `isTypeParamIntro` flag (Layer 1.B.2).
+      // Plain references (`T` after introduction, or unrelated names like `Foo`)
+      // are skipped here ; the resolver looks them up in scope.
+      if (t.isTypeParamIntro === true && !out.some((p) => p.name === t.name)) {
         out.push({ span: t.span, name: t.name, bound: null, isComptimeValue: false });
       }
       return;
-    }
     case "UnionType":
       for (const v of t.variants) collectTypeParams(v, out);
       return;
@@ -163,8 +165,6 @@ export function collectTypeParams(t: A.TypeExpr, out: A.TypeParam[]): void {
       return;
     case "GenericInstType":
       for (const a of t.args) collectTypeParams(a, out);
-      return;
-    case "IdentExpr":
       return;
   }
 }

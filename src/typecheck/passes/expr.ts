@@ -99,7 +99,6 @@ function inferExpr(
     case "ArrayTypeExpr":
     case "TupleTypeExpr":
     case "GenericInstType":
-    case "TypeParamType":
       return unreachableTypeExprInValuePosition(expr);
   }
 }

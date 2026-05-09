@@ -53,7 +53,7 @@ interface MutableProgram {
   locals: Map<A.SimpleBinding, Symbol>;
   forIns: Map<A.ForStmt, Symbol>;
   typeParams: Map<A.TypeParam, Symbol>;
-  typeParamTypes: Map<A.TypeParamType, Symbol>;
+  typeParamTypes: Map<A.IdentExpr, Symbol>;
   fields: Map<A.FieldExpr, Symbol>;
   ufcsFreeResolutions: Map<A.FieldExpr, Symbol>;
   patternBindings: Map<A.IsPattern | A.BindingPattern | A.StructPatternField, Symbol>;
@@ -318,8 +318,6 @@ function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeE
       return { kind: "GenericInstType", span: expr.span,
         base: { kind: "IdentExpr", span: expr.base.span, name: expr.base.name },
         args: expr.args.map((a) => substituteTypeExpr(a, subst)) };
-    case "TypeParamType":
-      return { kind: "TypeParamType", span: expr.span, name: expr.name };
   }
 }
 
@@ -457,13 +455,20 @@ function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: Reso
       // (scrutinee union variant, expected type, …).
       if (t.implicitDot === true) return;
       const sym = lookup(scope, t.name);
-      if (sym === null) err(input.diags, "R2007", t.span, `\`${t.name}\``);
+      if (sym === null) {
+        // `$T` introductions whose name isn't in scope yet are silent : the
+        // typecheck phase reports the unresolved type. Only a *plain* name
+        // reference (`Foo`, no `$`) raises R2007 at the resolver stage.
+        if (t.isTypeParamIntro !== true) {
+          err(input.diags, "R2007", t.span, `\`${t.name}\``);
+        }
+        return;
+      }
+      // Type-param symbols land in their own side-table (preserved across
+      // the 1.B.2 merge so the typechecker can keep its existing dispatch
+      // shape — it can be unified into `types` in a later pass).
+      if (sym.kind === "type-param") p.typeParamTypes.set(t, sym);
       else p.types.set(t, resolveImportRedirect(sym, input));
-      return;
-    }
-    case "TypeParamType": {
-      const sym = lookup(scope, t.name);
-      if (sym !== null && sym.kind === "type-param") p.typeParamTypes.set(t, sym);
       return;
     }
     case "UnionType":
@@ -627,7 +632,6 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
     case "ArrayTypeExpr":
     case "TupleTypeExpr":
     case "GenericInstType":
-    case "TypeParamType":
       unreachableTypeExprInValuePosition(expr);
   }
 }

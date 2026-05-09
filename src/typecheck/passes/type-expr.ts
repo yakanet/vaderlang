@@ -21,6 +21,14 @@ export function lowerTypeExpr(expr: A.TypeExpr, t: MutableTyped, diags: Diagnost
 function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: DiagnosticCollector): Type {
   switch (expr.kind) {
     case "IdentExpr": {
+      // After the 1.B.2 merge, `IdentExpr` covers both former `NamedType`
+      // (regular type names) and former `TypeParamType` (`$T` introductions
+      // and subsequent param references). Type-param symbols land in
+      // `typeParamTypes` ; everything else lands in `types`. We try the
+      // type-param table first since the resolver only stores there for
+      // type-param symbols.
+      const tpSym = t.resolved.typeParamTypes.get(expr);
+      if (tpSym !== undefined) return { kind: "TypeParam", symbol: tpSym };
       const sym = t.resolved.types.get(expr);
       if (sym === undefined) return TY.unresolved;     // resolver already reported R2007
       return typeFromSymbol(sym, [], expr, t, diags);
@@ -43,11 +51,6 @@ function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: Diagnostic
       return { kind: "Array", element: lowerTypeExpr(expr.element, t, diags) };
     case "TupleTypeExpr":
       return { kind: "Tuple", elements: expr.elements.map((e) => lowerTypeExpr(e, t, diags)) };
-    case "TypeParamType": {
-      const sym = t.resolved.typeParamTypes.get(expr);
-      if (sym !== undefined) return { kind: "TypeParam", symbol: sym };
-      return TY.unresolved;
-    }
   }
 }
 

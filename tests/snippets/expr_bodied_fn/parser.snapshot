@@ -222,8 +222,9 @@
         {
           "name": "x",
           "type": {
-            "kind": "TypeParamType",
-            "name": "T"
+            "kind": "IdentExpr",
+            "name": "T",
+            "isTypeParamIntro": true
           },
           "defaultValue": null,
           "variadic": false

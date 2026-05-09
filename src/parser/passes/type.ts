@@ -63,7 +63,12 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
   if (t.kind === "dollar") {
     p.advance();
     const name = p.expect("ident", "type parameter name after `$`");
-    return { kind: "TypeParamType", span: p.spanOf(t, name), name: name.text };
+    return {
+      kind: "IdentExpr",
+      span: p.spanOf(t, name),
+      name: name.text,
+      isTypeParamIntro: true,
+    };
   }
   if (t.kind === "kw_fn") {
     return parseFnType(p);

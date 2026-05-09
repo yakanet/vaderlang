@@ -300,7 +300,6 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
     case "ArrayTypeExpr":
     case "TupleTypeExpr":
     case "GenericInstType":
-    case "TypeParamType":
       return unreachableTypeExprInValuePosition(expr);
   }
 }

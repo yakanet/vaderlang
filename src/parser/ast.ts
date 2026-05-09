@@ -364,14 +364,15 @@ export type Expr =
   // on Expr.kind treat them as unreachable (see `unreachableTypeExprInValuePosition`).
   | TypeExpr;
 
-/** Guard for exhaustive switches on `Expr.kind` : the six remaining
+/** Guard for exhaustive switches on `Expr.kind` : the five remaining
  *  type-only expression variants (`UnionType`, `FnTypeExpr`,
- *  `ArrayTypeExpr`, `TupleTypeExpr`, `GenericInstType`, `TypeParamType`)
- *  cannot appear in value-expression positions yet — the parser does
- *  not produce them there. `IdentExpr` is shared between type and value
- *  positions and is therefore not in this guard. When the typechecker
- *  eventually accepts arbitrary `Expr` in type-demanding positions
- *  (Layer 1.D), this helper's call sites will be revisited. */
+ *  `ArrayTypeExpr`, `TupleTypeExpr`, `GenericInstType`) cannot appear
+ *  in value-expression positions yet — the parser does not produce
+ *  them there. `IdentExpr` is shared between type and value positions
+ *  (including the former `$T` introduction, now an `IdentExpr` flag)
+ *  and is therefore not in this guard. When the typechecker eventually
+ *  accepts arbitrary `Expr` in type-demanding positions (Layer 1.D),
+ *  this helper's call sites will be revisited. */
 export function unreachableTypeExprInValuePosition(
   e: Exclude<TypeExpr, IdentExpr>,
 ): never {
@@ -446,6 +447,16 @@ export interface IdentExpr {
    *  variant ; absorbing it into `IdentExpr` is the first concrete
    *  step of the AST fusion. */
   readonly implicitDot?: boolean;
+  /** Set when the source spelling was `$Name` — a type-param introduction
+   *  in a generic signature. Used by `collectTypeParams` to gather the
+   *  type-param list at parse time, and by the resolver to permit silent
+   *  unresolved-name behaviour (a `$T` whose `T` isn't yet declared as a
+   *  type-param does not emit R2007 ; a regular `T` does). Subsequent
+   *  references to the same param within the signature drop the flag —
+   *  they're plain `IdentExpr` lookups against the introduced symbol.
+   *  Prior to Layer 1.B.2, this distinction lived on the dedicated
+   *  `TypeParamType` variant. */
+  readonly isTypeParamIntro?: boolean;
 }
 
 export interface CallExpr {
@@ -713,8 +724,7 @@ export type TypeExpr =
   | FnTypeExpr
   | ArrayTypeExpr
   | TupleTypeExpr
-  | GenericInstType
-  | TypeParamType;
+  | GenericInstType;
 
 export interface UnionType {
   readonly kind: "UnionType";
@@ -749,9 +759,3 @@ export interface GenericInstType {
   readonly args: readonly TypeExpr[];
 }
 
-export interface TypeParamType {
-  // `$T` introduced inline in a function signature
-  readonly kind: "TypeParamType";
-  readonly span: Span;
-  readonly name: string;
-}

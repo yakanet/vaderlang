@@ -246,7 +246,6 @@ function walkExpr(
     case "ArrayTypeExpr":
     case "TupleTypeExpr":
     case "GenericInstType":
-    case "TypeParamType":
       unreachableTypeExprInValuePosition(expr);
   }
 }

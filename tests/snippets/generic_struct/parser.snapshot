@@ -169,8 +169,9 @@
         },
         "args": [
           {
-            "kind": "TypeParamType",
-            "name": "T"
+            "kind": "IdentExpr",
+            "name": "T",
+            "isTypeParamIntro": true
           }
         ]
       },
