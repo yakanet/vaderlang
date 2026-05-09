@@ -1,0 +1,22 @@
+// Common-field access on a discriminated union (§1.18d). When every
+// variant of a union carries a field with the same name, the typechecker
+// allows direct `.field` access without an outer `match`. The lowerer
+// synthesises a variant-dispatch cascade (`if e is V1 { e.f } else if
+// e is V2 { e.f } else ...`) so the runtime reads the right struct
+// layout.
+
+import "std/io" { println }
+
+Cat :: struct { name: string, age: i32 }
+Dog :: struct { name: string, age: i32 }
+
+main :: fn() -> i32 {
+    a: Cat | Dog = Cat { .name = "Whiskers", .age = 3 }
+    println("name = ${a.name}")
+    println("age  = ${a.age}")
+
+    b: Cat | Dog = Dog { .name = "Rex", .age = 7 }
+    println("name = ${b.name}")
+    println("age  = ${b.age}")
+    return 0
+}

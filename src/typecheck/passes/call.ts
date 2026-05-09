@@ -12,9 +12,9 @@ import { declOf, sourceStructDecl, sourceTraitDecl } from "../../resolver/symbol
 
 import { err } from "../diag.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
-import type {MethodResolution, TraitMethodResolution} from "../typed-ast.ts";
+import type {MethodResolution, TraitMethodResolution, UnionFieldResolution} from "../typed-ast.ts";
 import type { Substitution, Type } from "../types.ts";
-import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isNumeric, isPrimitive, substitute } from "../types.ts";
+import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isNumeric, isPrimitive, substitute, unionOf } from "../types.ts";
 
 import { buildStructSubst, tryStructSubst } from "../ctx.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
@@ -271,6 +271,38 @@ export function inferField(
     }
   }
 
+  // Common-field access on discriminated unions (§1.18d) : `e.f` where
+  // `e` is `A | B | C` succeeds when every variant carries a field
+  // named `f`. The result type is the union of each variant's field
+  // type (canonicalised by `unionOf` so identical types collapse).
+  // Hints if any variant is missing the field, listing the offenders.
+  if (targetType.kind === "Union") {
+    const fieldTypes: Type[] = [];
+    const missing: string[] = [];
+    for (const variant of targetType.variants) {
+      const ft = fieldTypeOnType(variant, expr.field, t);
+      if (ft === null) {
+        missing.push(displayType(variant));
+      } else {
+        fieldTypes.push(ft);
+      }
+    }
+    if (missing.length === 0 && fieldTypes.length > 0) {
+      // The lowerer reads this resolution from `unionFieldResolutions` to
+      // synthesise the variant-dispatch cascade ; record per-variant
+      // types so the cast in each arm has the right narrowing.
+      t.unionFieldResolutions.set(expr, {
+        variants: targetType.variants.map((v, i) => ({ type: v, fieldType: fieldTypes[i]! })),
+      });
+      return unionOf(fieldTypes);
+    }
+    if (missing.length > 0) {
+      err(diags, "T3009", expr.fieldSpan,
+        `\`${expr.field}\` not on every variant of ${displayType(targetType)}: missing on ${missing.join(", ")}`);
+      return TY.unresolved;
+    }
+  }
+
   // No struct field — try impl-method lookup. Records into `methodResolutions`
   // so the lowerer can rewrite `obj.method(args)` into a direct call of the
   // specialised impl fn with `obj` as the first arg.
@@ -334,6 +366,35 @@ export function inferField(
     err(diags, "T3009", expr.fieldSpan, `\`${expr.field}\` on ${displayType(targetType)}`);
   }
   return TY.unresolved;
+}
+
+/** Resolve `t.field` for a non-union receiver. Returns null when the
+ *  field doesn't exist on `t`. Used by the union common-field path :
+ *  walks every variant, asks this helper, unions the results.
+ *
+ *  Mirrors the field lookup branches in `inferField` for Struct and
+ *  Tuple types — the cases that have a static field set. Other shapes
+ *  (Enum, Trait, Primitive, Array, Fn, …) fall through to null since
+ *  none of them carry a named-field surface that's meaningful inside
+ *  a union mix. */
+function fieldTypeOnType(target: Type, fieldName: string, t: MutableTyped): Type | null {
+  if (target.kind === "Struct") {
+    const decl = sourceStructDecl(target.symbol);
+    if (decl === null) return null;
+    const field = decl.fields.find((f) => f.name === fieldName);
+    if (field === undefined) return null;
+    const raw = t.globals.typeExprTypes.get(field.type) ?? TY.unresolved;
+    const subst = tryStructSubst(decl, target.args, t.globals);
+    return subst !== null ? substitute(raw, subst) : raw;
+  }
+  if (target.kind === "Tuple") {
+    const idx = Number.parseInt(fieldName, 10);
+    if (Number.isFinite(idx) && idx >= 0 && idx < target.elements.length) {
+      return target.elements[idx]!;
+    }
+    return null;
+  }
+  return null;
 }
 
 /** Walk the trait bounds of `param`'s symbol — declared via a `where T: …`

@@ -1,0 +1,30 @@
+# Typecheck
+
+## tests/snippets/union_common_field/_main.vader
+  StructDecl     Cat                  :: Cat
+  StructDecl     Dog                  :: Dog
+  FnDecl         main                 :: fn() -> i32
+  expr 14:20    StructLitExpr  :: Cat
+  expr 14:34    StringLitExpr  :: string
+  expr 15:13    StringLitExpr  :: string
+  expr 15:23    FieldExpr      :: string
+  expr 15:23    IdentExpr      :: Cat | Dog
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 16:13    StringLitExpr  :: string
+  expr 16:23    FieldExpr      :: i32
+  expr 16:23    IdentExpr      :: Cat | Dog
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(string) -> void
+  expr 18:20    StructLitExpr  :: Dog
+  expr 18:34    StringLitExpr  :: string
+  expr 19:13    StringLitExpr  :: string
+  expr 19:23    FieldExpr      :: string
+  expr 19:23    IdentExpr      :: Cat | Dog
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(string) -> void
+  expr 20:13    StringLitExpr  :: string
+  expr 20:23    FieldExpr      :: i32
+  expr 20:23    IdentExpr      :: Cat | Dog
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(string) -> void

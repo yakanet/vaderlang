@@ -1214,45 +1214,11 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
 }
 
 // Helper : extract span from any Expr variant.
-expr_span :: fn(e: Expr) = match e {
-    is IntLitExpr      -> e.span
-    is FloatLitExpr    -> e.span
-    is BoolLitExpr     -> e.span
-    is NullLitExpr     -> e.span
-    is CharLitExpr     -> e.span
-    is StringLitExpr   -> e.span
-    is IdentExpr       -> e.span
-    is CallExpr        -> e.span
-    is FieldExpr       -> e.span
-    is IndexExpr       -> e.span
-    is UnaryExpr       -> e.span
-    is BinaryExpr      -> e.span
-    is IfExpr          -> e.span
-    is MatchExpr       -> e.span
-    is BlockExpr       -> e.span
-    is LambdaExpr      -> e.span
-    is StructLitExpr   -> e.span
-    is SeqLitExpr      -> e.span
-    is RangeExpr       -> e.span
-    is TryExpr         -> e.span
-    is CastExpr        -> e.span
-    is GenericInstExpr -> e.span
-    is DotVariantExpr  -> e.span
-    is FnTypeExpr      -> e.span
-    is ArrayTypeExpr   -> e.span
-}
-
-// Helper : extract span from any Stmt variant.
-stmt_span :: fn(s: Stmt) = match s {
-    is LetStmt      -> s.span
-    is AssignStmt   -> s.span
-    is ExprStmt     -> s.span
-    is ReturnStmt   -> s.span
-    is ForStmt      -> s.span
-    is BreakStmt    -> s.span
-    is ContinueStmt -> s.span
-    is DeferStmt    -> s.span
-}
+// Span lookup on any union variant — common-field access (§1.18d) since
+// every Expr/Stmt/Pattern variant carries a `.span` field. Replaces the
+// 25-arm match shapes these helpers used to be.
+expr_span :: fn(e: Expr) = e.span
+stmt_span :: fn(s: Stmt) = s.span
 
 // ============================================================================
 // Statements / blocks

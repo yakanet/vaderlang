@@ -218,6 +218,11 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       if (exported !== undefined) {
         return { kind: "LoweredIdent", span: expr.span, type: exprType, symbol: exported };
       }
+      // Common-field access on a union receiver (§1.18d) — typecheck
+      // recorded the per-variant `(type, fieldType)` pairs ; emit the
+      // variant-dispatch cascade.
+      const unionRes = ctx.typed.unionFieldResolutions.get(expr);
+      if (unionRes !== undefined) return lowerUnionFieldAccess(ctx, expr, exprType, unionRes);
       // Disambiguate `Enum.Variant` from `b.field_of_enum_type` on the TARGET
       // — both leave `exprType` as the enum.
       const targetType = ctx.types.exprType(expr.target);
@@ -525,7 +530,7 @@ function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {
 }
 
 import type { MonoEntry } from "../../comptime/specialize.ts";
-import type {BinaryOpResolution, IndexResolution} from "../../typecheck/typed-ast.ts";
+import type {BinaryOpResolution, IndexResolution, UnionFieldResolution} from "../../typecheck/typed-ast.ts";
 
 function lookupFnInstance(ctx: FnLowerCtx, fnDecl: A.FnDecl, typeArgs: readonly Type[]): MonoEntry | null {
   const key = typeArgs.map((ta) => displayType(ctx.types.apply(ta))).join(",");
@@ -606,4 +611,59 @@ export function lowerIf(ctx: FnLowerCtx, expr: A.IfExpr, exprType: Type): Lowere
     return { kind: "LoweredIf", span: expr.span, type: TY.void, cond, then: thenVoid, else: null };
   }
   return { kind: "LoweredIf", span: expr.span, type: exprType, cond, then, else: elseBlock };
+}
+
+/** Lower `e.f` when `e` is a discriminated union and every variant carries
+ *  a field named `f` (§1.18d). Synthesises a variant-dispatch cascade:
+ *
+ *    let __scrut = <e>
+ *    if __scrut is V1 { (V1) __scrut.f }
+ *    else if __scrut is V2 { (V2) __scrut.f }
+ *    else ...
+ *
+ *  The cast in each arm narrows the runtime payload to the concrete
+ *  variant so the existing `LoweredFieldAccess` op reads from the right
+ *  layout. The bytecode/C-emit `match`-style `is X` machinery picks up
+ *  the type-check predicate. */
+function lowerUnionFieldAccess(
+  ctx: FnLowerCtx, expr: A.FieldExpr, exprType: Type, res: UnionFieldResolution,
+): LoweredExpr {
+  const span = expr.span;
+  const targetType = ctx.types.exprType(expr.target);
+  const scrutSym = freshSyntheticSymbol(ctx, "ufa");
+  const scrutValue = lowerExpr(ctx, expr.target);
+
+  let chain: LoweredExpr = {
+    kind: "LoweredUnreachable", span, type: exprType,
+    reason: "non-exhaustive union field access (T3009 should have caught this)",
+  };
+  for (let i = res.variants.length - 1; i >= 0; i--) {
+    const v = res.variants[i]!;
+    const ident: LoweredExpr = { kind: "LoweredIdent", span, type: targetType, symbol: scrutSym };
+    const cast: LoweredExpr = { kind: "LoweredCast", span, type: v.type, value: ident };
+    const fieldName = expr.isNumeric === true ? `_${expr.field}` : expr.field;
+    const access: LoweredExpr = {
+      kind: "LoweredFieldAccess", span, type: v.fieldType, target: cast, field: fieldName,
+    };
+    const check: LoweredExpr = {
+      kind: "LoweredTypeCheck", span, type: TY.bool,
+      value: { kind: "LoweredIdent", span, type: targetType, symbol: scrutSym },
+      checkType: v.type,
+    };
+    chain = {
+      kind: "LoweredIf", span, type: exprType,
+      cond: check,
+      then: wrapAsBlock(access, span),
+      else: wrapAsBlock(chain, span),
+    };
+  }
+
+  return {
+    kind: "LoweredBlock", span, type: exprType,
+    stmts: [{
+      kind: "LoweredLet", span, name: scrutSym.name, symbol: scrutSym,
+      type: targetType, value: scrutValue,
+    }],
+    trailing: chain,
+  };
 }

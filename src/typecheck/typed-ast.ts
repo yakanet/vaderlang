@@ -45,6 +45,14 @@ export interface TraitVirtualResolution {
   readonly member: A.FnDecl;
 }
 
+/** Common-field access on a discriminated union (§1.18d). Recorded by the
+ *  typechecker when `e.f` is valid because every variant of the union has
+ *  a field named `f`. The lowerer reads the per-variant `(type, fieldType)`
+ *  pairs to synthesise the variant-dispatch cascade. */
+export interface UnionFieldResolution {
+  readonly variants: readonly { readonly type: Type; readonly fieldType: Type }[];
+}
+
 /** Operator overloading resolution. Recorded by the typechecker on every
  *  `BinaryExpr` whose operands aren't handled by the primitive built-in
  *  paths (numeric arith, primitive equality, primitive comparison, string
@@ -108,6 +116,10 @@ export interface TypedProgram {
    *  lowerer emits a chain of `is X -> X_method(box)` dispatches over every
    *  registered impl of the trait. */
   readonly traitVirtualResolutions: ReadonlyMap<A.FieldExpr, TraitVirtualResolution>;
+  /** Common-field access on union receivers (§1.18d). Populated by
+   *  `inferField` when every variant of the union carries the field ;
+   *  consumed by the lowerer to synthesise the variant-dispatch cascade. */
+  readonly unionFieldResolutions: ReadonlyMap<A.FieldExpr, UnionFieldResolution>;
   /** `obj.fn(args)` UFCS on free imported functions — rewritten to `fn(obj, args)`.
    *  Populated by the typechecker after validating first-param compatibility. */
   readonly ufcsFreeResolutions: ReadonlyMap<A.FieldExpr, Symbol>;

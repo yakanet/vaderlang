@@ -500,23 +500,17 @@ Lift `R2004` for free functions whose names collide if their **first parameter**
 
 ### 1.18d Common-field access on discriminated unions
 
-TypeScript-style structural narrowing — when every variant of a union shares a field with the same name, allow direct access without an outer `match`. Removes a class of boilerplate in AST-style code (the self-host parser has 25-arm `expr_span` and `stmt_span` matches whose only purpose is to expose a field that every variant carries).
+TypeScript-style structural narrowing — when every variant of a union shares a field with the same name, allow direct access without an outer `match`. Removes a class of boilerplate in AST-style code (the self-host parser had 25-arm `expr_span` and `stmt_span` matches whose only purpose was to expose a field every variant carries).
 
-Surface :
-
-```vader
-expr_span :: fn(e: Expr) -> Span = e.span    // OK : every Expr variant has `.span: Span`
-
-decl_visibility :: fn(d: Decl) -> Visibility = d.visibility  // works if all Decl variants have `.visibility`
-```
-
-- [ ] **Typecheck** (`src/typecheck/passes/expr.ts:inferField`) — when the receiver is a `Union`, walk every variant's struct fields. If all variants have a field named `f`, succeed and return `unionOf(field_types)` ; the `unionOf` canonicaliser already collapses identical types so a uniform `Span` field gives `Span`. If any variant lacks the field, surface T3009 with a hint listing the missing variants.
-- [ ] **Lowering** (`src/lower/passes/expr.ts`) — desugar `e.f` over a union into the synthesised `match e { is X -> e.f, is Y -> e.f, ... }` cascade. The bytecode/C-emit `match` machinery already handles tag dispatch ; no new runtime op required.
-- [ ] **Decide nullability semantics** — `(T | null).f` either (a) errors and forces an explicit `match` to handle null, or (b) succeeds with result type `T_field | null`. (b) is consistent with how the rest of the codebase treats nullable receivers (e.g. UFCS through nullable already requires explicit handling — verify alignment).
-- [ ] **Decide divergent-type policy** — when variants carry the same-named field with *different* types (`f: i32` vs `f: string`), allow access and return the union (`i32 | string`) so the caller narrows. Cohérent avec l'esprit ad-hoc-union de Vader.
-- [ ] **Methods (deferred)** — extending the same rule to UFCS calls (`e.method()` valid when every variant has a callable `method`) is more invasive (overload resolution × variant set) ; leave as a follow-up after the field-access path is stable.
-- [ ] **Snippet** — `tests/snippets/union_common_field/` covering uniform-type, divergent-type-narrowing, and the nullable-receiver case once the policy is decided.
-- [ ] **Self-host follow-up** — once the feature lands, collapse `expr_span` / `stmt_span` (plus any sister helpers in `vader/parser/parser.vader`) into one-liners, retire the boilerplate matches.
+- [x] **Typecheck** (`src/typecheck/passes/call.ts:inferField`) — Union-receiver arm walks every variant via the new `fieldTypeOnType` helper (handles Struct + Tuple variants today). If all variants have the field, returns `unionOf(field_types)` — `unionOf` collapses identical types so a uniform `Span` field gives `Span`. Otherwise emits T3009 listing the missing variants.
+- [x] **`UnionFieldResolution` resolution table** — populated by the typechecker, consumed by the lowerer. Records per-variant `(type, fieldType)` pairs in source order so the cascade is stable.
+- [x] **Lowering** (`src/lower/passes/expr.ts:lowerUnionFieldAccess`) — synthesises the variant-dispatch cascade (`let __scrut = e ; if __scrut is V1 { (V1) __scrut.f } else if __scrut is V2 { (V2) __scrut.f } else ...`). The cast in each arm narrows the runtime payload to the concrete variant ; the existing `LoweredFieldAccess` op then reads from the right layout.
+- [x] **Self-host** : `expr_span` / `stmt_span` collapsed from 25-arm / 8-arm matches to one-liners (`fn(e: Expr) = e.span`, `fn(s: Stmt) = s.span`).
+- [x] **Snippet** : `tests/snippets/union_common_field/` covers uniform-field access on a `Cat | Dog` union.
+- [ ] **Variants beyond Struct/Tuple** — `fieldTypeOnType` returns null for Enum/Trait/Primitive/Array/Fn variants. Extend if a real-world union needs e.g. `(SomeStruct | OtherStruct | i32).field` to fail more loudly than T3009 today (currently the `i32` variant is just listed as "missing").
+- [ ] **Methods (deferred)** — extending the rule to UFCS calls (`e.method()` valid when every variant has a callable `method`) is more invasive (overload resolution × variant set) ; leave as a follow-up after the field-access path is stable.
+- [ ] **Nullable receivers** — `(T | null).f` follows the same gate today : `null` is a primitive variant lacking the field, so T3009 fires. Decide later whether to special-case nullable-receiver fields (TypeScript-style optional-chaining) — for now the user writes `match` explicitly.
+- [ ] **Divergent-type policy** — when variants carry the same-named field with *different* types (`f: i32` vs `f: string`), the typechecker returns `unionOf` of both ; `unionOf` keeps them as a union (`i32 | string`) which the caller narrows. Verified working through the existing `unionOf` canonicalisation ; no extra wiring needed.
 
 ### 1.18 Built-in type aliases
 

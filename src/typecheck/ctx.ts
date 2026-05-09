@@ -15,7 +15,8 @@ import type {
   IndexResolution,
   MethodResolution,
   TraitMethodResolution,
-  TraitVirtualResolution
+  TraitVirtualResolution,
+  UnionFieldResolution,
 } from "./typed-ast.ts";
 import type { Substitution, Type } from "./types.ts";
 
@@ -85,6 +86,12 @@ export interface MutableTyped {
   /** Virtual trait-method dispatch on a trait-typed receiver. Populated by
    *  `inferField`, consumed by the lowerer to emit a tag-keyed dispatch. */
   readonly traitVirtualResolutions: Map<A.FieldExpr, TraitVirtualResolution>;
+  /** Common-field access on union receivers (§1.18d) — `e.f` over a union
+   *  whose every variant carries a field named `f`. Populated by
+   *  `inferField`, consumed by the lowerer to synthesise the variant-
+   *  dispatch cascade. The variants are recorded in source order so the
+   *  cascade is stable. */
+  readonly unionFieldResolutions: Map<A.FieldExpr, UnionFieldResolution>;
   /** UFCS-resolved free function calls (`a.f(b)` → `f(a, b)`). Populated by
    *  `inferField` after type-validating the resolver's candidate, consumed by
    *  the lowerer to prepend the receiver as the first argument. */
