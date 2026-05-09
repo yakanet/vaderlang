@@ -33,26 +33,25 @@
         }
       ],
       "returnType": {
-        "kind": "UnionType",
-        "variants": [
-          {
-            "kind": "SeqLitExpr",
-            "elements": [
-              {
-                "kind": "IdentExpr",
-                "name": "i32"
-              },
-              {
-                "kind": "IdentExpr",
-                "name": "string"
-              }
-            ]
-          },
-          {
-            "kind": "IdentExpr",
-            "name": "null"
-          }
-        ]
+        "kind": "BinaryExpr",
+        "op": "bitor",
+        "left": {
+          "kind": "SeqLitExpr",
+          "elements": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            }
+          ]
+        },
+        "right": {
+          "kind": "IdentExpr",
+          "name": "null"
+        }
       },
       "whereClauses": [],
       "body": {

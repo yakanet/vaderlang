@@ -35,25 +35,30 @@ export function parseType(p: Parser): A.TypeExpr {
     const successVariant: A.TypeExpr = head.kind === "IdentExpr" && head.name === "void"
       ? { kind: "IdentExpr", span: head.span, name: "null" }
       : head;
+    const errorVariant: A.IdentExpr = {
+      kind: "IdentExpr", span: { start: bangEnd, end: bangEnd }, name: "Error",
+    };
     head = {
-      kind: "UnionType",
+      kind: "BinaryExpr",
       span: { start: head.span.start, end: bangEnd },
-      variants: [successVariant, { kind: "IdentExpr", span: { start: bangEnd, end: bangEnd }, name: "Error" }],
+      op: "bitor",
+      left: successVariant,
+      right: errorVariant,
     };
   }
-  // Union: `T | U | V`
+  // Union: `T | U | V` — built as a left-associative `bitor` chain.
   if (p.check("pipe")) {
-    const variants: A.TypeExpr[] = [head];
-    const startTok = head;
+    const start = head.span.start;
     while (p.match("pipe") !== null) {
-      variants.push(parseTypePrimary(p));
+      const next = parseTypePrimary(p);
+      head = {
+        kind: "BinaryExpr",
+        span: { start, end: next.span.end },
+        op: "bitor",
+        left: head,
+        right: next,
+      };
     }
-    const last = variants[variants.length - 1]!;
-    head = {
-      kind: "UnionType",
-      span: { start: startTok.span.start, end: last.span.end },
-      variants,
-    };
   }
   return head;
 }

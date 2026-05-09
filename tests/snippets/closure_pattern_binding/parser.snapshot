@@ -43,17 +43,16 @@
         {
           "name": "v",
           "type": {
-            "kind": "UnionType",
-            "variants": [
-              {
-                "kind": "IdentExpr",
-                "name": "P"
-              },
-              {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
-            ]
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "P"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
           },
           "defaultValue": null,
           "variadic": false

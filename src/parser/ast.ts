@@ -364,16 +364,17 @@ export type Expr =
   // on Expr.kind treat them as unreachable (see `unreachableTypeExprInValuePosition`).
   | TypeExpr;
 
-/** Guard for exhaustive switches on `Expr.kind` : the three remaining
- *  type-only expression variants (`UnionType`, `FnTypeExpr`,
- *  `ArrayTypeExpr`) cannot appear in value-expression positions yet —
- *  the parser does not produce them there. `IdentExpr`, `SeqLitExpr`,
- *  and `GenericInstExpr` are shared between type and value positions
- *  and are therefore not in this guard. When the typechecker eventually
- *  accepts arbitrary `Expr` in type-demanding positions (Layer 1.D),
- *  this helper's call sites will be revisited. */
+/** Guard for exhaustive switches on `Expr.kind` : the two remaining
+ *  type-only expression variants (`FnTypeExpr`, `ArrayTypeExpr`)
+ *  cannot appear in value-expression positions yet — the parser does
+ *  not produce them there. `IdentExpr`, `SeqLitExpr`, `GenericInstExpr`,
+ *  and `BinaryExpr` (since 1.B.5, used to express `T | U` unions) are
+ *  shared between type and value positions and therefore not in this
+ *  guard. When the typechecker eventually accepts arbitrary `Expr` in
+ *  type-demanding positions (Layer 1.D), this helper's call sites
+ *  will be revisited. */
 export function unreachableTypeExprInValuePosition(
-  e: Exclude<TypeExpr, IdentExpr | SeqLitExpr | GenericInstExpr>,
+  e: Exclude<TypeExpr, IdentExpr | SeqLitExpr | GenericInstExpr | BinaryExpr>,
 ): never {
   throw new Error(
     `internal: TypeExpr variant '${e.kind}' encountered in value-expression position; ` +
@@ -723,16 +724,22 @@ export function forEachPatternBindingKey(
 
 export type TypeExpr =
   | IdentExpr
-  | UnionType
+  | BinaryExpr
   | FnTypeExpr
   | ArrayTypeExpr
   | SeqLitExpr
   | GenericInstExpr;
 
-export interface UnionType {
-  readonly kind: "UnionType";
-  readonly span: Span;
-  readonly variants: readonly TypeExpr[];
+/** Walk a left-associative `bitor` chain and return its leaves in source order.
+ *  Used by Layer 1.B.5 consumers (resolver, typechecker, parser walker) that
+ *  need the flat list of union variants from a `T | U | V` expression now
+ *  parsed as `BinaryExpr(bitor, BinaryExpr(bitor, T, U), V)`. Non-bitor
+ *  expressions are returned as a single-element list. */
+export function collectUnionVariants(e: Expr): readonly Expr[] {
+  if (e.kind === "BinaryExpr" && e.op === "bitor") {
+    return [...collectUnionVariants(e.left), ...collectUnionVariants(e.right)];
+  }
+  return [e];
 }
 
 export interface FnTypeExpr {

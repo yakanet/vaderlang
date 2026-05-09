@@ -150,8 +150,12 @@ export function collectTypeParams(t: A.TypeExpr, out: A.TypeParam[]): void {
         out.push({ span: t.span, name: t.name, bound: null, isComptimeValue: false });
       }
       return;
-    case "UnionType":
-      for (const v of t.variants) collectTypeParams(v, out);
+    case "BinaryExpr":
+      // Type-position `T | U` is a `bitor` chain since 1.B.5. Walk both
+      // operands to gather type-params from either side. Other binary ops
+      // do not occur in type position today (parser invariant).
+      collectTypeParams(t.left as A.TypeExpr, out);
+      collectTypeParams(t.right as A.TypeExpr, out);
       return;
     case "FnTypeExpr":
       for (const p of t.params) collectTypeParams(p, out);

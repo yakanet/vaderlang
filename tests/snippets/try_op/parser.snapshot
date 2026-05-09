@@ -37,17 +37,16 @@
         }
       ],
       "returnType": {
-        "kind": "UnionType",
-        "variants": [
-          {
-            "kind": "IdentExpr",
-            "name": "string"
-          },
-          {
-            "kind": "IdentExpr",
-            "name": "Error"
-          }
-        ]
+        "kind": "BinaryExpr",
+        "op": "bitor",
+        "left": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "right": {
+          "kind": "IdentExpr",
+          "name": "Error"
+        }
       },
       "whereClauses": [],
       "body": {
@@ -90,17 +89,16 @@
         {
           "name": "res",
           "type": {
-            "kind": "UnionType",
-            "variants": [
-              {
-                "kind": "IdentExpr",
-                "name": "string"
-              },
-              {
-                "kind": "IdentExpr",
-                "name": "Error"
-              }
-            ]
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "Error"
+            }
           },
           "defaultValue": null,
           "variadic": false

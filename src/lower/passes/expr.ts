@@ -295,7 +295,6 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       };
     case "GenericInstExpr":
       return lowerExpr(ctx, expr.callee);     // type-args baked in post-mono
-    case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":
       return unreachableTypeExprInValuePosition(expr);

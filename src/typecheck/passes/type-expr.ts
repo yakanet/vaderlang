@@ -4,6 +4,7 @@
 
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
+import { collectUnionVariants } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
@@ -43,8 +44,15 @@ function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: Diagnostic
       const args = expr.typeArgs.map((a) => lowerTypeExpr(a, t, diags));
       return typeFromSymbol(sym, args, expr, t, diags);
     }
-    case "UnionType":
-      return unionOf(expr.variants.map((v) => lowerTypeExpr(v, t, diags)));
+    case "BinaryExpr": {
+      // Type-position `T | U` is a `bitor` chain since 1.B.5.
+      // Flatten the chain via the AST helper, then build a Union type
+      // from each variant in source order. Other binary ops do not
+      // appear in type position today (parser invariant).
+      if (expr.op !== "bitor") return TY.unresolved;
+      const variants = collectUnionVariants(expr);
+      return unionOf(variants.map((v) => lowerTypeExpr(v as A.TypeExpr, t, diags)));
+    }
     case "FnTypeExpr":
       return {
         kind: "Fn",

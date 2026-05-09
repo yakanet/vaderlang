@@ -301,9 +301,12 @@ function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeE
       if (replacement !== undefined) return cloneTypeExpr(replacement);
       return { kind: "IdentExpr", span: expr.span, name: expr.name };
     }
-    case "UnionType":
-      return { kind: "UnionType", span: expr.span,
-        variants: expr.variants.map((v) => substituteTypeExpr(v, subst)) };
+    case "BinaryExpr":
+      // Type-position `bitor` chain (1.B.5 union form). Recursively
+      // substitute both operands, preserving the chain structure.
+      return { kind: "BinaryExpr", span: expr.span, op: expr.op,
+        left: substituteTypeExpr(expr.left as A.TypeExpr, subst),
+        right: substituteTypeExpr(expr.right as A.TypeExpr, subst) };
     case "FnTypeExpr":
       return { kind: "FnTypeExpr", span: expr.span,
         params: expr.params.map((par) => substituteTypeExpr(par, subst)),
@@ -481,8 +484,10 @@ function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: Reso
       else p.types.set(t, resolveImportRedirect(sym, input));
       return;
     }
-    case "UnionType":
-      for (const v of t.variants) resolveType(v, scope, p, input);
+    case "BinaryExpr":
+      // Type-position `bitor` chain : walk operands as types.
+      resolveType(t.left as A.TypeExpr, scope, p, input);
+      resolveType(t.right as A.TypeExpr, scope, p, input);
       return;
     case "FnTypeExpr":
       for (const param of t.params) resolveType(param, scope, p, input);
@@ -639,7 +644,6 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       return;
     case "DotVariantExpr":
       return;
-    case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":
       unreachableTypeExprInValuePosition(expr);
