@@ -6,7 +6,7 @@
       cond:
         call :bool
           callee:
-            needs_hash#1000063 :bool
+            needs_hash#1000073 :bool
           arg0:
             "foo" :string
       then:

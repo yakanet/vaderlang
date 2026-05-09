@@ -163,10 +163,24 @@ char  implements Hash -> u64(self)
 // Number formatting (`to_hex`, `to_bin`) lives in `std/numbers` so it can use
 // std/string_builder.
 
-i32    implements Eq -> self == other
-u32    implements Eq -> self == other
-usize  implements Eq -> self == other
-string implements Eq -> self == other
+// Eq impls — `@intrinsic` so the call routes directly to the matching
+// `<type>.eq` bytecode op (see `OP_INTRINSIC_BY_MANGLED`). The previous
+// `T implements Eq -> self == other` form did the same thing through
+// one extra fn-call indirection.
+@intrinsic i8     implements Eq
+@intrinsic i16    implements Eq
+@intrinsic i32    implements Eq
+@intrinsic i64    implements Eq
+@intrinsic u8     implements Eq
+@intrinsic u16    implements Eq
+@intrinsic u32    implements Eq
+@intrinsic u64    implements Eq
+@intrinsic usize  implements Eq
+@intrinsic f32    implements Eq
+@intrinsic f64    implements Eq
+@intrinsic bool   implements Eq
+@intrinsic char   implements Eq
+@intrinsic string implements Eq
 
 // ===========================================================================
 // Numeric arithmetic — Add/Sub/Mul/Div for every primitive numeric type.

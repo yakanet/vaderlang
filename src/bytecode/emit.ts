@@ -26,7 +26,7 @@ import { isIntegerVal, isNumericVal } from "./types.ts";
  *  name (`<module>$<type>$<trait>$<method>`) so the lookup happens after
  *  name-mangling and skips the `call.import` indirection — `s1 + s2` and
  *  `"a".add("b")` both emit the same `string.concat` op. */
-/** The 11 numeric primitive types whose Add/Sub/Mul/Div impls are
+/** The 11 numeric primitive types whose Add/Sub/Mul/Div/Eq impls are
  *  `@intrinsic`-declared in `std/core` and routed here to the matching
  *  WASM-style numeric op. Mirrors the `NumWidth` set in `bytecode/ops.ts`. */
 const NUMERIC_INTRINSIC_TYPES: readonly string[] = [
@@ -35,23 +35,41 @@ const NUMERIC_INTRINSIC_TYPES: readonly string[] = [
   "f32", "f64",
 ];
 
-const NUMERIC_INTRINSIC_OPS: ReadonlyArray<[string, "add" | "sub" | "mul" | "div"]> = [
-  ["Add", "add"], ["Sub", "sub"], ["Mul", "mul"], ["Div", "div"],
+/** `[traitName, methodName, opSuffix]` — `methodName` is the trait's member,
+ *  `opSuffix` is the dotted bytecode op suffix (e.g. `Eq.equals` → `i32.eq`). */
+const NUMERIC_INTRINSIC_OPS: ReadonlyArray<[string, string, string]> = [
+  ["Add", "add",    "add"],
+  ["Sub", "sub",    "sub"],
+  ["Mul", "mul",    "mul"],
+  ["Div", "div",    "div"],
+  ["Eq",  "equals", "eq" ],
 ];
 
-function buildNumericIntrinsicMap(): ReadonlyMap<string, () => Op> {
+/** Non-numeric primitives that also carry one or more `@intrinsic` trait
+ *  impls routed to a dedicated bytecode op. */
+const SCALAR_INTRINSIC_OPS: ReadonlyArray<[string, string, string, string]> = [
+  // [type, traitName, methodName, opKind]
+  ["string", "Add", "add",    "string.concat"],
+  ["string", "Eq",  "equals", "string.eq"    ],
+  ["bool",   "Eq",  "equals", "bool.eq"      ],
+  ["char",   "Eq",  "equals", "char.eq"      ],
+];
+
+function buildIntrinsicOpMap(): ReadonlyMap<string, () => Op> {
   const map = new Map<string, () => Op>();
-  map.set("std_core$string$Add$add", () => ({ kind: "string.concat" }));
   for (const ty of NUMERIC_INTRINSIC_TYPES) {
-    for (const [trait, method] of NUMERIC_INTRINSIC_OPS) {
-      const opKind = `${ty}.${method}` as Op["kind"];
+    for (const [trait, method, opSuffix] of NUMERIC_INTRINSIC_OPS) {
+      const opKind = `${ty}.${opSuffix}` as Op["kind"];
       map.set(`std_core$${ty}$${trait}$${method}`, () => ({ kind: opKind } as Op));
     }
+  }
+  for (const [ty, trait, method, opKind] of SCALAR_INTRINSIC_OPS) {
+    map.set(`std_core$${ty}$${trait}$${method}`, () => ({ kind: opKind } as Op));
   }
   return map;
 }
 
-export const OP_INTRINSIC_BY_MANGLED: ReadonlyMap<string, () => Op> = buildNumericIntrinsicMap();
+export const OP_INTRINSIC_BY_MANGLED: ReadonlyMap<string, () => Op> = buildIntrinsicOpMap();
 
 /** Knobs for the bytecode emitter. Today this only toggles the peephole
  *  pass; future codegen-time options (e.g. inline-thresholds, bound checks)

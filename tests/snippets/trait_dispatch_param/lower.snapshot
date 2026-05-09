@@ -5,7 +5,7 @@
     let n#47: u64 =
       call :u64
         callee:
-          hash_twice#1000063 :u64
+          hash_twice#1000073 :u64
         arg0:
           int(7) :i32
     return

@@ -39,7 +39,7 @@
             __sb_1#-2 :?
             call :bool
               callee:
-                equals#1000015 :bool
+                equals#1000017 :bool
               arg0:
                 a#54 :i32
               arg1:
@@ -61,7 +61,7 @@
             __sb_2#-3 :?
             call :bool
               callee:
-                equals#1000015 :bool
+                equals#1000017 :bool
               arg0:
                 a#54 :i32
               arg1:

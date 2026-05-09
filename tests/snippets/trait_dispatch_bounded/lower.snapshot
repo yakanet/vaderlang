@@ -21,7 +21,7 @@
             __sb_0#-1 :?
             call :i32
               callee:
-                count_matching#1000067 :i32
+                count_matching#1000077 :i32
               arg0:
                 nums#60 :i32[]
               arg1:
@@ -47,7 +47,7 @@
             __sb_1#-2 :?
             call :i32
               callee:
-                count_matching#1000068 :i32
+                count_matching#1000078 :i32
               arg0:
                 words#61 :string[]
               arg1:
@@ -70,7 +70,7 @@
         let __step_1#-4: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000065 :?
+              step#1000075 :?
             arg0:
               __iter_0#-3 :ArrayIter(i32)
         if :void
@@ -104,7 +104,7 @@
                   r:
                     call :bool
                       callee:
-                        equals#1000015 :bool
+                        equals#1000017 :bool
                       arg0:
                         x#59 :i32
                       arg1:
@@ -134,7 +134,7 @@
         let __step_1#-6: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000066 :?
+              step#1000076 :?
             arg0:
               __iter_0#-5 :ArrayIter(string)
         if :void
@@ -168,7 +168,7 @@
                   r:
                     call :bool
                       callee:
-                        equals#1000018 :bool
+                        equals#1000028 :bool
                       arg0:
                         x#59 :string
                       arg1:

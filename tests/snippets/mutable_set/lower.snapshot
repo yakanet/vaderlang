@@ -25,7 +25,7 @@
             __sb_0#-1 :?
             call :bool
               callee:
-                add#1000066 :bool
+                add#1000076 :bool
               arg0:
                 s#75 :MutableSet(i32)
               arg1:
@@ -47,7 +47,7 @@
             __sb_1#-2 :?
             call :bool
               callee:
-                add#1000066 :bool
+                add#1000076 :bool
               arg0:
                 s#75 :MutableSet(i32)
               arg1:
@@ -69,7 +69,7 @@
             __sb_2#-3 :?
             call :bool
               callee:
-                add#1000066 :bool
+                add#1000076 :bool
               arg0:
                 s#75 :MutableSet(i32)
               arg1:
@@ -91,7 +91,7 @@
             __sb_3#-4 :?
             call :usize
               callee:
-                len#1000068 :usize
+                len#1000078 :usize
               arg0:
                 s#75 :MutableSet(i32)
           ~>
@@ -111,7 +111,7 @@
             __sb_4#-5 :?
             call :bool
               callee:
-                contains#1000067 :bool
+                contains#1000077 :bool
               arg0:
                 s#75 :MutableSet(i32)
               arg1:
@@ -133,7 +133,7 @@
             __sb_5#-6 :?
             call :bool
               callee:
-                contains#1000067 :bool
+                contains#1000077 :bool
               arg0:
                 s#75 :MutableSet(i32)
               arg1:
