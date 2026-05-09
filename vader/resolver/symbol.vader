@@ -1,0 +1,81 @@
+// vader/resolver/symbol — symbol table primitives.
+//
+// Mirror of `src/resolver/symbol.ts`. Symbols are minted by the resolver as
+// it walks the AST and consumed by every later phase. The MVP carries the
+// kind, name, visibility and the source span ; the AST-decl back-reference
+// the TS resolver stores is deferred until typecheck/lower needs it.
+
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/parser" { Visibility }
+
+// SymbolKind values are kept as i32 (rather than an enum) so an empty list
+// of new variants can be added without touching every match site. Each kind
+// has a stable display name returned by `kind_name`.
+export SymbolKind :: enum(i32) {
+    Fn,
+    Struct,
+    Enum,
+    Trait,
+    Impl,
+    TypeAlias,
+    Const,
+    ImportBinding,
+    Param,
+    TypeParam,
+    Local,
+    Binding,
+    BuiltinType,
+    BuiltinFn,
+    Synthetic,
+}
+
+export kind_name :: fn(k: SymbolKind) -> string = match k {
+    .Fn            -> "fn"
+    .Struct        -> "struct"
+    .Enum          -> "enum"
+    .Trait         -> "trait"
+    .Impl          -> "impl"
+    .TypeAlias     -> "type-alias"
+    .Const         -> "const"
+    .ImportBinding -> "import-binding"
+    .Param         -> "param"
+    .TypeParam     -> "type-param"
+    .Local         -> "local"
+    .Binding       -> "binding"
+    .BuiltinType   -> "builtin-type"
+    .BuiltinFn     -> "builtin-fn"
+    .Synthetic     -> "synthetic"
+}
+
+export Symbol :: struct {
+    id:          i32
+    kind:        SymbolKind
+    name:        string
+    module:      string
+    visibility:  Visibility
+    defined_at:  Span | null
+}
+
+// IDs start at 1 — the TS factory does the same, so dumps keyed on the id
+// stay aligned across implementations.
+export SymbolFactory :: struct {
+    next: i32
+}
+
+export new_factory :: fn() -> SymbolFactory {
+    return SymbolFactory { .next = 1 }
+}
+
+export make :: fn(self: SymbolFactory, kind: SymbolKind, name: string, module: string,
+                  visibility: Visibility, defined_at: Span | null) -> Symbol {
+    id :: self.next
+    self.next = id + 1
+    return Symbol {
+        .id         = id,
+        .kind       = kind,
+        .name       = name,
+        .module     = module,
+        .visibility = visibility,
+        .defined_at = defined_at,
+    }
+}

@@ -12,6 +12,9 @@ import "std/io" { println, eprintln, read_file }
 import "std/string" { byte_len, slice, starts_with }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 import "vader/parser" { parse_source, dump_program }
+import "vader/resolver/symbol" { new_factory }
+import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
+import "vader/resolver/dump" { dump_project }
 
 VERSION :: "0.0.0-pre-mvp"
 
@@ -265,9 +268,12 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "ast" {
         return file.run_parser_stage()
     }
+    if stage == "resolved-ast" {
+        return file.run_resolver_stage()
+    }
 
     // Recognised TS stages — we know about them but can't run them yet.
-    if stage == "resolved-ast" || stage == "typed-ast" ||
+    if stage == "typed-ast" ||
        stage == "evaluated-ast" || stage == "lowered-ast" || stage == "dced-ast" ||
        stage == "bytecode" || stage == "c" || stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
@@ -314,6 +320,30 @@ run_parser_stage :: fn(file: string) -> i32 {
     }
     parsed :: parse_source(src, file)
     println(dump_program(parsed.program))
+    if parsed.errors.len() > 0 {
+        println(parsed.errors.dump_diagnostics())
+    }
+    return 0
+}
+
+// Resolver dump : per-module symbol summary. MVP output covers top-level
+// decls only — fn bodies, imports cross-module wiring and ref counts are
+// added once the resolver walks them.
+run_resolver_stage :: fn(file: string) -> i32 {
+    src_or_err :: file.read_file()
+    src: string = ""
+    match src_or_err {
+        is string -> { src = src_or_err }
+        is Error  -> {
+            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
+            return 1
+        }
+    }
+    parsed :: parse_source(src, file)
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, file, factory)
+    project :: ResolvedProject { .modules = [rm] }
+    println(dump_project(project))
     if parsed.errors.len() > 0 {
         println(parsed.errors.dump_diagnostics())
     }
