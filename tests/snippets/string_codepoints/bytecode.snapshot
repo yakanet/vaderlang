@@ -25,36 +25,80 @@ string 19 "emoji width="
 import 0 add std_core$string$Add$add (string,string) -> string
 import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 at std_core$string$Index$at (string,i32) -> char
-import 3 print std_io$print (string) -> void
-import 4 println std_io$println (string) -> void
-import 5 eprint std_io$eprint (string) -> void
-import 6 eprintln std_io$eprintln (string) -> void
-import 7 read_line std_io$read_line () -> ref
-import 8 read_file std_io$read_file (string) -> ref
-import 9 write_file std_io$write_file (string,string) -> ref
-import 10 exists std_io$exists (string) -> bool
-import 11 byte_len std_string$byte_len (string) -> i32
-import 12 slice std_string$slice (string,i32,i32) -> string
-import 13 contains std_string$contains (string,string) -> bool
-import 14 starts_with std_string$starts_with (string,string) -> bool
-import 15 ends_with std_string$ends_with (string,string) -> bool
-import 16 char_at std_string$char_at (string,i32) -> char
-import 17 byte_at std_string$byte_at (string,i32) -> u8
-import 18 split std_string$split (string,string) -> ref
-import 19 trim std_string$trim (string) -> string
-import 20 to_upper std_string$to_upper (string) -> string
-import 21 to_lower std_string$to_lower (string) -> string
-import 22 parse_int std_string$parse_int (string) -> ref
-import 23 parse_float std_string$parse_float (string) -> ref
-import 24 concat_all std_string_builder$concat_all (ref) -> string
-import 25 sqrt std_math$sqrt (f64) -> f64
-import 26 pow std_math$pow (f64,f64) -> f64
-import 27 floor std_math$floor (f64) -> f64
-import 28 ceil std_math$ceil (f64) -> f64
-import 29 round std_math$round (f64) -> f64
-import 30 sin std_math$sin (f64) -> f64
-import 31 cos std_math$cos (f64) -> f64
-import 32 tan std_math$tan (f64) -> f64
+import 3 add std_core$i8$Add$add (i8,i8) -> i8
+import 4 sub std_core$i8$Sub$sub (i8,i8) -> i8
+import 5 mul std_core$i8$Mul$mul (i8,i8) -> i8
+import 6 div std_core$i8$Div$div (i8,i8) -> i8
+import 7 add std_core$i16$Add$add (i16,i16) -> i16
+import 8 sub std_core$i16$Sub$sub (i16,i16) -> i16
+import 9 mul std_core$i16$Mul$mul (i16,i16) -> i16
+import 10 div std_core$i16$Div$div (i16,i16) -> i16
+import 11 add std_core$i32$Add$add (i32,i32) -> i32
+import 12 sub std_core$i32$Sub$sub (i32,i32) -> i32
+import 13 mul std_core$i32$Mul$mul (i32,i32) -> i32
+import 14 div std_core$i32$Div$div (i32,i32) -> i32
+import 15 add std_core$i64$Add$add (i64,i64) -> i64
+import 16 sub std_core$i64$Sub$sub (i64,i64) -> i64
+import 17 mul std_core$i64$Mul$mul (i64,i64) -> i64
+import 18 div std_core$i64$Div$div (i64,i64) -> i64
+import 19 add std_core$u8$Add$add (u8,u8) -> u8
+import 20 sub std_core$u8$Sub$sub (u8,u8) -> u8
+import 21 mul std_core$u8$Mul$mul (u8,u8) -> u8
+import 22 div std_core$u8$Div$div (u8,u8) -> u8
+import 23 add std_core$u16$Add$add (u16,u16) -> u16
+import 24 sub std_core$u16$Sub$sub (u16,u16) -> u16
+import 25 mul std_core$u16$Mul$mul (u16,u16) -> u16
+import 26 div std_core$u16$Div$div (u16,u16) -> u16
+import 27 add std_core$u32$Add$add (u32,u32) -> u32
+import 28 sub std_core$u32$Sub$sub (u32,u32) -> u32
+import 29 mul std_core$u32$Mul$mul (u32,u32) -> u32
+import 30 div std_core$u32$Div$div (u32,u32) -> u32
+import 31 add std_core$u64$Add$add (u64,u64) -> u64
+import 32 sub std_core$u64$Sub$sub (u64,u64) -> u64
+import 33 mul std_core$u64$Mul$mul (u64,u64) -> u64
+import 34 div std_core$u64$Div$div (u64,u64) -> u64
+import 35 add std_core$usize$Add$add (usize,usize) -> usize
+import 36 sub std_core$usize$Sub$sub (usize,usize) -> usize
+import 37 mul std_core$usize$Mul$mul (usize,usize) -> usize
+import 38 div std_core$usize$Div$div (usize,usize) -> usize
+import 39 add std_core$f32$Add$add (f32,f32) -> f32
+import 40 sub std_core$f32$Sub$sub (f32,f32) -> f32
+import 41 mul std_core$f32$Mul$mul (f32,f32) -> f32
+import 42 div std_core$f32$Div$div (f32,f32) -> f32
+import 43 add std_core$f64$Add$add (f64,f64) -> f64
+import 44 sub std_core$f64$Sub$sub (f64,f64) -> f64
+import 45 mul std_core$f64$Mul$mul (f64,f64) -> f64
+import 46 div std_core$f64$Div$div (f64,f64) -> f64
+import 47 print std_io$print (string) -> void
+import 48 println std_io$println (string) -> void
+import 49 eprint std_io$eprint (string) -> void
+import 50 eprintln std_io$eprintln (string) -> void
+import 51 read_line std_io$read_line () -> ref
+import 52 read_file std_io$read_file (string) -> ref
+import 53 write_file std_io$write_file (string,string) -> ref
+import 54 exists std_io$exists (string) -> bool
+import 55 byte_len std_string$byte_len (string) -> i32
+import 56 slice std_string$slice (string,i32,i32) -> string
+import 57 contains std_string$contains (string,string) -> bool
+import 58 starts_with std_string$starts_with (string,string) -> bool
+import 59 ends_with std_string$ends_with (string,string) -> bool
+import 60 char_at std_string$char_at (string,i32) -> char
+import 61 byte_at std_string$byte_at (string,i32) -> u8
+import 62 split std_string$split (string,string) -> ref
+import 63 trim std_string$trim (string) -> string
+import 64 to_upper std_string$to_upper (string) -> string
+import 65 to_lower std_string$to_lower (string) -> string
+import 66 parse_int std_string$parse_int (string) -> ref
+import 67 parse_float std_string$parse_float (string) -> ref
+import 68 concat_all std_string_builder$concat_all (ref) -> string
+import 69 sqrt std_math$sqrt (f64) -> f64
+import 70 pow std_math$pow (f64,f64) -> f64
+import 71 floor std_math$floor (f64) -> f64
+import 72 ceil std_math$ceil (f64) -> f64
+import 73 round std_math$round (f64) -> f64
+import 74 sin std_math$sin (f64) -> f64
+import 75 cos std_math$cos (f64) -> f64
+import 76 tan std_math$tan (f64) -> f64
 
 fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   local "__sb_0#87" any
@@ -124,14 +168,14 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   local.get 3   ; _main.vader:7:47
   intrinsic builder.append_str   ; _main.vader:7:47
   string.const 1   ; _main.vader:7:65
-  call.import 11   ; _main.vader:7:56
+  call.import 55   ; _main.vader:7:56
   local.set 4   ; _main.vader:7:56
   local.get 0   ; _main.vader:7:54
   local.get 4   ; _main.vader:7:54
   intrinsic builder.append_display   ; _main.vader:7:54
   local.get 0   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 4   ; _main.vader:7:5
+  call.import 48   ; _main.vader:7:5
   intrinsic builder.new   ; _main.vader:8:13
   local.set 5   ; _main.vader:8:13
   string.const 3   ; _main.vader:8:14
@@ -151,14 +195,14 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   local.get 8   ; _main.vader:8:47
   intrinsic builder.append_str   ; _main.vader:8:47
   string.const 4   ; _main.vader:8:65
-  call.import 11   ; _main.vader:8:56
+  call.import 55   ; _main.vader:8:56
   local.set 9   ; _main.vader:8:56
   local.get 5   ; _main.vader:8:54
   local.get 9   ; _main.vader:8:54
   intrinsic builder.append_display   ; _main.vader:8:54
   local.get 5   ; _main.vader:8:13
   intrinsic builder.finish   ; _main.vader:8:13
-  call.import 4   ; _main.vader:8:5
+  call.import 48   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
   local.set 10   ; _main.vader:9:13
   string.const 5   ; _main.vader:9:14
@@ -178,14 +222,14 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   local.get 13   ; _main.vader:9:46
   intrinsic builder.append_str   ; _main.vader:9:46
   string.const 6   ; _main.vader:9:64
-  call.import 11   ; _main.vader:9:55
+  call.import 55   ; _main.vader:9:55
   local.set 14   ; _main.vader:9:55
   local.get 10   ; _main.vader:9:53
   local.get 14   ; _main.vader:9:53
   intrinsic builder.append_display   ; _main.vader:9:53
   local.get 10   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
-  call.import 4   ; _main.vader:9:5
+  call.import 48   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:10:13
   local.set 15   ; _main.vader:10:13
   string.const 7   ; _main.vader:10:14
@@ -205,14 +249,14 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   local.get 18   ; _main.vader:10:53
   intrinsic builder.append_str   ; _main.vader:10:53
   string.const 8   ; _main.vader:10:71
-  call.import 11   ; _main.vader:10:62
+  call.import 55   ; _main.vader:10:62
   local.set 19   ; _main.vader:10:62
   local.get 15   ; _main.vader:10:60
   local.get 19   ; _main.vader:10:60
   intrinsic builder.append_display   ; _main.vader:10:60
   local.get 15   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
-  call.import 4   ; _main.vader:10:5
+  call.import 48   ; _main.vader:10:5
   intrinsic builder.new   ; _main.vader:11:13
   local.set 20   ; _main.vader:11:13
   string.const 9   ; _main.vader:11:14
@@ -232,17 +276,17 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   local.get 23   ; _main.vader:11:42
   intrinsic builder.append_str   ; _main.vader:11:42
   string.const 10   ; _main.vader:11:60
-  call.import 11   ; _main.vader:11:51
+  call.import 55   ; _main.vader:11:51
   local.set 24   ; _main.vader:11:51
   local.get 20   ; _main.vader:11:49
   local.get 24   ; _main.vader:11:49
   intrinsic builder.append_display   ; _main.vader:11:49
   local.get 20   ; _main.vader:11:13
   intrinsic builder.finish   ; _main.vader:11:13
-  call.import 4   ; _main.vader:11:5
+  call.import 48   ; _main.vader:11:5
   string.const 11   ; _main.vader:15:10
   local.tee 25   ; _main.vader:15:10
-  call.import 11   ; _main.vader:16:10
+  call.import 55   ; _main.vader:16:10
   local.set 26   ; _main.vader:16:5
   i32.const 0   ; _main.vader:17:10
   local.set 27   ; _main.vader:17:10
@@ -294,7 +338,7 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
         intrinsic builder.append_str   ; _main.vader:20:39
         local.get 31   ; _main.vader:20:17
         intrinsic builder.finish   ; _main.vader:20:17
-        call.import 4   ; _main.vader:20:9
+        call.import 48   ; _main.vader:20:9
         local.get 27   ; _main.vader:21:13
         local.get 30   ; _main.vader:21:13
         i32.add   ; _main.vader:21:13
@@ -319,7 +363,7 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:25:24
   local.get 36   ; _main.vader:25:13
   intrinsic builder.finish   ; _main.vader:25:13
-  call.import 4   ; _main.vader:25:5
+  call.import 48   ; _main.vader:25:5
   intrinsic builder.new   ; _main.vader:26:13
   local.set 39   ; _main.vader:26:13
   string.const 17   ; _main.vader:26:14
@@ -335,7 +379,7 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:26:24
   local.get 39   ; _main.vader:26:13
   intrinsic builder.finish   ; _main.vader:26:13
-  call.import 4   ; _main.vader:26:5
+  call.import 48   ; _main.vader:26:5
   intrinsic builder.new   ; _main.vader:27:13
   local.set 42   ; _main.vader:27:13
   string.const 18   ; _main.vader:27:14
@@ -351,7 +395,7 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:27:24
   local.get 42   ; _main.vader:27:13
   intrinsic builder.finish   ; _main.vader:27:13
-  call.import 4   ; _main.vader:27:5
+  call.import 48   ; _main.vader:27:5
   intrinsic builder.new   ; _main.vader:28:13
   local.set 45   ; _main.vader:28:13
   string.const 19   ; _main.vader:28:14
@@ -367,7 +411,7 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:28:26
   local.get 45   ; _main.vader:28:13
   intrinsic builder.finish   ; _main.vader:28:13
-  call.import 4   ; _main.vader:28:5
+  call.import 48   ; _main.vader:28:5
   i32.const 0   ; _main.vader:29:12
   return   ; _main.vader:29:5
 end
@@ -398,7 +442,7 @@ fn 2 std_string$count_chars (string) -> i32
   i32.const 0   ; string.vader:148:10
   local.set 3   ; string.vader:148:10
   local.get 0   ; string.vader:149:14
-  call.import 11   ; string.vader:149:14
+  call.import 55   ; string.vader:149:14
   local.set 1   ; string.vader:149:5
   block $L0 void   ; string.vader:150:5
     loop $L1 void   ; string.vader:150:5

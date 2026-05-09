@@ -3,14 +3,58 @@ string 0 "sum 1..5 = "
 import 0 add std_core$string$Add$add (string,string) -> string
 import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 at std_core$string$Index$at (string,i32) -> char
-import 3 print std_io$print (string) -> void
-import 4 println std_io$println (string) -> void
-import 5 eprint std_io$eprint (string) -> void
-import 6 eprintln std_io$eprintln (string) -> void
-import 7 read_line std_io$read_line () -> ref
-import 8 read_file std_io$read_file (string) -> ref
-import 9 write_file std_io$write_file (string,string) -> ref
-import 10 exists std_io$exists (string) -> bool
+import 3 add std_core$i8$Add$add (i8,i8) -> i8
+import 4 sub std_core$i8$Sub$sub (i8,i8) -> i8
+import 5 mul std_core$i8$Mul$mul (i8,i8) -> i8
+import 6 div std_core$i8$Div$div (i8,i8) -> i8
+import 7 add std_core$i16$Add$add (i16,i16) -> i16
+import 8 sub std_core$i16$Sub$sub (i16,i16) -> i16
+import 9 mul std_core$i16$Mul$mul (i16,i16) -> i16
+import 10 div std_core$i16$Div$div (i16,i16) -> i16
+import 11 add std_core$i32$Add$add (i32,i32) -> i32
+import 12 sub std_core$i32$Sub$sub (i32,i32) -> i32
+import 13 mul std_core$i32$Mul$mul (i32,i32) -> i32
+import 14 div std_core$i32$Div$div (i32,i32) -> i32
+import 15 add std_core$i64$Add$add (i64,i64) -> i64
+import 16 sub std_core$i64$Sub$sub (i64,i64) -> i64
+import 17 mul std_core$i64$Mul$mul (i64,i64) -> i64
+import 18 div std_core$i64$Div$div (i64,i64) -> i64
+import 19 add std_core$u8$Add$add (u8,u8) -> u8
+import 20 sub std_core$u8$Sub$sub (u8,u8) -> u8
+import 21 mul std_core$u8$Mul$mul (u8,u8) -> u8
+import 22 div std_core$u8$Div$div (u8,u8) -> u8
+import 23 add std_core$u16$Add$add (u16,u16) -> u16
+import 24 sub std_core$u16$Sub$sub (u16,u16) -> u16
+import 25 mul std_core$u16$Mul$mul (u16,u16) -> u16
+import 26 div std_core$u16$Div$div (u16,u16) -> u16
+import 27 add std_core$u32$Add$add (u32,u32) -> u32
+import 28 sub std_core$u32$Sub$sub (u32,u32) -> u32
+import 29 mul std_core$u32$Mul$mul (u32,u32) -> u32
+import 30 div std_core$u32$Div$div (u32,u32) -> u32
+import 31 add std_core$u64$Add$add (u64,u64) -> u64
+import 32 sub std_core$u64$Sub$sub (u64,u64) -> u64
+import 33 mul std_core$u64$Mul$mul (u64,u64) -> u64
+import 34 div std_core$u64$Div$div (u64,u64) -> u64
+import 35 add std_core$usize$Add$add (usize,usize) -> usize
+import 36 sub std_core$usize$Sub$sub (usize,usize) -> usize
+import 37 mul std_core$usize$Mul$mul (usize,usize) -> usize
+import 38 div std_core$usize$Div$div (usize,usize) -> usize
+import 39 add std_core$f32$Add$add (f32,f32) -> f32
+import 40 sub std_core$f32$Sub$sub (f32,f32) -> f32
+import 41 mul std_core$f32$Mul$mul (f32,f32) -> f32
+import 42 div std_core$f32$Div$div (f32,f32) -> f32
+import 43 add std_core$f64$Add$add (f64,f64) -> f64
+import 44 sub std_core$f64$Sub$sub (f64,f64) -> f64
+import 45 mul std_core$f64$Mul$mul (f64,f64) -> f64
+import 46 div std_core$f64$Div$div (f64,f64) -> f64
+import 47 print std_io$print (string) -> void
+import 48 println std_io$println (string) -> void
+import 49 eprint std_io$eprint (string) -> void
+import 50 eprintln std_io$eprintln (string) -> void
+import 51 read_line std_io$read_line () -> ref
+import 52 read_file std_io$read_file (string) -> ref
+import 53 write_file std_io$write_file (string,string) -> ref
+import 54 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_loop__main_vader$main () -> i32
   local "sum#12" i32
@@ -58,7 +102,7 @@ fn 0 tests_snippets_loop__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:10:25
   local.get 4   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
-  call.import 4   ; _main.vader:10:5
+  call.import 48   ; _main.vader:10:5
   i32.const 0   ; _main.vader:11:12
   return   ; _main.vader:11:5
 end

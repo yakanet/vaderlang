@@ -1,0 +1,17 @@
+// Numeric primitives now `@intrinsic`-implement Add/Sub/Mul/Div in
+// std/core. The bytecode emitter recognises the mangled
+// `<type>$<trait>$<method>` and rewrites to the matching numeric op
+// (`i32.add`, `f64.mul`, …). Net effect : `where T: Add` works on
+// every numeric primitive, and `(5).add(7)` shares the same path as
+// `5 + 7`.
+
+double :: fn[T: Add](x: T) -> T = x.add(x)
+
+triple :: fn[T: Add](x: T) -> T = x.add(x).add(x)
+
+main :: fn() -> i32 {
+    a :: double(7)              // 14
+    b :: triple(8)              // 24
+    c :: double(2)              // 4
+    return a + b + c            // 42
+}

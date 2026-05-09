@@ -26,9 +26,32 @@ import { isIntegerVal, isNumericVal } from "./types.ts";
  *  name (`<module>$<type>$<trait>$<method>`) so the lookup happens after
  *  name-mangling and skips the `call.import` indirection — `s1 + s2` and
  *  `"a".add("b")` both emit the same `string.concat` op. */
-export const OP_INTRINSIC_BY_MANGLED: ReadonlyMap<string, () => Op> = new Map([
-  ["std_core$string$Add$add", () => ({ kind: "string.concat" })],
-]);
+/** The 11 numeric primitive types whose Add/Sub/Mul/Div impls are
+ *  `@intrinsic`-declared in `std/core` and routed here to the matching
+ *  WASM-style numeric op. Mirrors the `NumWidth` set in `bytecode/ops.ts`. */
+const NUMERIC_INTRINSIC_TYPES: readonly string[] = [
+  "i8", "i16", "i32", "i64",
+  "u8", "u16", "u32", "u64", "usize",
+  "f32", "f64",
+];
+
+const NUMERIC_INTRINSIC_OPS: ReadonlyArray<[string, "add" | "sub" | "mul" | "div"]> = [
+  ["Add", "add"], ["Sub", "sub"], ["Mul", "mul"], ["Div", "div"],
+];
+
+function buildNumericIntrinsicMap(): ReadonlyMap<string, () => Op> {
+  const map = new Map<string, () => Op>();
+  map.set("std_core$string$Add$add", () => ({ kind: "string.concat" }));
+  for (const ty of NUMERIC_INTRINSIC_TYPES) {
+    for (const [trait, method] of NUMERIC_INTRINSIC_OPS) {
+      const opKind = `${ty}.${method}` as Op["kind"];
+      map.set(`std_core$${ty}$${trait}$${method}`, () => ({ kind: opKind } as Op));
+    }
+  }
+  return map;
+}
+
+export const OP_INTRINSIC_BY_MANGLED: ReadonlyMap<string, () => Op> = buildNumericIntrinsicMap();
 
 /** Knobs for the bytecode emitter. Today this only toggles the peephole
  *  pass; future codegen-time options (e.g. inline-thresholds, bound checks)

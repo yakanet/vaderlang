@@ -792,7 +792,8 @@ make_buffer :: fn($N: i32) -> [N]u8 { ... }
 
 **Limitations (MVP)**:
 - **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap(K, V) { ... }` for struct-literal construction. Post-MVP candidate.
-- **Built-in primitive arithmetic does not register an impl** — `i32 + i32` lowers to a direct numeric op, not a `Add` trait dispatch. So `where T: Add` succeeds for `string` (which has an explicit `string implements Add`) but fails for `i32`/`f64`/etc. — the workaround is to specialise per primitive or to declare explicit impls.
+
+Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `where T: Add` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Eq` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
 
 ### Traits
 
@@ -1632,7 +1633,7 @@ Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct f
 | `@field_count(T)` | `(T: type) -> usize` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
 | `@variant_count(T)` | `(T: type) -> usize` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
 | `@field_index(T, "name")` | `(T: type, name: string-literal) -> usize` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive) ; `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
-| `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope. | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Note : built-in primitive arithmetic on `i32`/`f64`/etc. does *not* go through trait dispatch, so `@satisfies(i32, Add)` is `false` despite `i32 + i32` being valid. Foundation for the future automatic bound enforcement of `where T: Trait` clauses (Layer 7e). |
+| `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope. | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `where T: Trait` clauses. |
 
 Composition example — comptime layout assertions :
 

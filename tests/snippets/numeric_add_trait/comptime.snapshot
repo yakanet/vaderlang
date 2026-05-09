@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/numeric_add_trait/_main.vader
+
+## generic instances
+  double(i32)
+  Yielded(i32)
+  triple(i32)

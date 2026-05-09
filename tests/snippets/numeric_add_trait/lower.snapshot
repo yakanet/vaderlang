@@ -1,0 +1,56 @@
+# Lower
+
+## tests/snippets/numeric_add_trait/_main.vader
+  fn tests_snippets_numeric_add_trait__main_vader$main() -> i32
+    let a#50: i32 =
+      call :i32
+        callee:
+          double#1000056 :i32
+        arg0:
+          int(7) :i32
+    let b#51: i32 =
+      call :i32
+        callee:
+          triple#1000057 :i32
+        arg0:
+          int(8) :i32
+    let c#52: i32 =
+      call :i32
+        callee:
+          double#1000056 :i32
+        arg0:
+          int(2) :i32
+    return
+      add :i32
+        l:
+          add :i32
+            l:
+              a#50 :i32
+            r:
+              b#51 :i32
+        r:
+          c#52 :i32
+  fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$double__i32(x: i32) -> i32
+    ~>
+      call :i32
+        callee:
+          add#1000020 :i32
+        arg0:
+          x#47 :i32
+        arg1:
+          x#47 :i32
+  fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$triple__i32(x: i32) -> i32
+    ~>
+      call :i32
+        callee:
+          add#1000020 :i32
+        arg0:
+          call :i32
+            callee:
+              add#1000020 :i32
+            arg0:
+              x#49 :i32
+            arg1:
+              x#49 :i32
+        arg1:
+          x#49 :i32

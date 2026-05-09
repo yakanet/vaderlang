@@ -147,14 +147,11 @@ usize implements Hash -> u64(self)
 // at byte offset `i` — wired here in std/core (auto-imported) so the
 // subscript syntax doesn't require `import "std/string"`. Strings are
 // immutable, so there's no `IndexSet` impl to pair with `Index`.
-@intrinsic
-string implements Add
+@intrinsic string implements Add
 
-@intrinsic
-string implements Hash
+@intrinsic string implements Hash
 
-@intrinsic
-string implements Index(i32, char)
+@intrinsic string implements Index(i32, char)
 
 // Number formatting (`to_hex`, `to_bin`) lives in `std/numbers` so it can use
 // std/string_builder.
@@ -163,3 +160,67 @@ i32    implements Eq -> self == other
 u32    implements Eq -> self == other
 usize  implements Eq -> self == other
 string implements Eq -> self == other
+
+// ===========================================================================
+// Numeric arithmetic — Add/Sub/Mul/Div for every primitive numeric type.
+// All host-provided ; the bytecode emitter recognises calls to the matching
+// `<type>$<trait>$<method>` mangled names and rewrites them to the dedicated
+// `<type>.add` / `<type>.sub` / … op (see `OP_INTRINSIC_BY_MANGLED` in
+// `src/bytecode/emit.ts`). This makes `where T: Add` and friends usable on
+// every numeric primitive — `5 + 7` and `(5).add(7)` share one path.
+// ===========================================================================
+
+@intrinsic i8 implements Add
+@intrinsic i8 implements Sub
+@intrinsic i8 implements Mul
+@intrinsic i8 implements Div
+
+@intrinsic i16 implements Add
+@intrinsic i16 implements Sub
+@intrinsic i16 implements Mul
+@intrinsic i16 implements Div
+
+@intrinsic i32 implements Add
+@intrinsic i32 implements Sub
+@intrinsic i32 implements Mul
+@intrinsic i32 implements Div
+
+@intrinsic i64 implements Add
+@intrinsic i64 implements Sub
+@intrinsic i64 implements Mul
+@intrinsic i64 implements Div
+
+@intrinsic u8 implements Add
+@intrinsic u8 implements Sub
+@intrinsic u8 implements Mul
+@intrinsic u8 implements Div
+
+@intrinsic u16 implements Add
+@intrinsic u16 implements Sub
+@intrinsic u16 implements Mul
+@intrinsic u16 implements Div
+
+@intrinsic u32 implements Add
+@intrinsic u32 implements Sub
+@intrinsic u32 implements Mul
+@intrinsic u32 implements Div
+
+@intrinsic u64 implements Add
+@intrinsic u64 implements Sub
+@intrinsic u64 implements Mul
+@intrinsic u64 implements Div
+
+@intrinsic usize implements Add
+@intrinsic usize implements Sub
+@intrinsic usize implements Mul
+@intrinsic usize implements Div
+
+@intrinsic f32 implements Add
+@intrinsic f32 implements Sub
+@intrinsic f32 implements Mul
+@intrinsic f32 implements Div
+
+@intrinsic f64 implements Add
+@intrinsic f64 implements Sub
+@intrinsic f64 implements Mul
+@intrinsic f64 implements Div

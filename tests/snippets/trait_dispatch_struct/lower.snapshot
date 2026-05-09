@@ -12,7 +12,7 @@
     return
       call :i32
         callee:
-          apply_tag#1000013 :i32
+          apply_tag#1000057 :i32
         arg0:
           int(7) :i32
   fn tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32(x: i32) -> i32
