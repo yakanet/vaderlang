@@ -131,7 +131,11 @@ export interface TraitDecl {
    *    `trait Foo[T] : A & B { ... }`    (with own methods)
    *  The composition expression is parsed as a type expression, typically
    *  a `BinaryExpr(bitand)` chain over trait names, but a single trait
-   *  reference is also valid (`trait Foo[T] : Bar { ... }`). */
+   *  reference is also valid (`trait Foo[T] : Bar { ... }`).
+   *  TODO(layer-7e) : the field is captured here but no downstream pass
+   *  consumes it yet — `T: Foo` bound checks don't transitively expand
+   *  through `requires`. Wire this in when `where`-clause enforcement
+   *  goes through `@satisfies`. */
   readonly requires: TypeExpr | null;
   readonly members: readonly FnDecl[];
   readonly decorators: readonly Decorator[];

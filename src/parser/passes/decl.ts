@@ -12,7 +12,7 @@ import { collectTypeParams, describeToken } from "../parser.ts";
 
 import { parseExpr } from "./expr.ts";
 import { parseBlock } from "./stmt.ts";
-import { parseType } from "./type.ts";
+import { parseGenericArgList, parseType } from "./type.ts";
 
 export function parseDecl(p: Parser): A.Decl | null {
   const decorators = parseDecorators(p);
@@ -189,24 +189,8 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
   // Optional generic args on the trait reference. Two forms during the
   // Layer 4-sugar migration : `… implements Iterator(i32)` (legacy paren form)
   // and `… implements Iterator[i32]` (Layer 4-sugar bracketed form).
-  const traitArgs: A.TypeExpr[] = [];
-  const traitArgOpen = p.check("lbracket") ? "lbracket" : p.check("lparen") ? "lparen" : null;
-  if (traitArgOpen !== null) {
-    const closeKind = traitArgOpen === "lbracket" ? "rbracket" : "rparen";
-    const closeText = traitArgOpen === "lbracket" ? "`]`" : "`)`";
-    p.advance();
-    p.skipNewlines();
-    if (!p.check(closeKind)) {
-      while (true) {
-        p.skipNewlines();
-        if (p.check(closeKind)) break;
-        traitArgs.push(parseType(p));
-        p.skipNewlines();
-        if (p.match("comma") === null) break;
-      }
-    }
-    p.expect(closeKind, `${closeText} to close trait argument list`);
-  }
+  const traitArgList = parseGenericArgList(p, "trait argument list");
+  const traitArgs: A.TypeExpr[] = traitArgList !== null ? traitArgList.items : [];
 
   // Four impl shapes after the trait reference:
   //   `... -> expr`        → SAM arrow: synthesise a single FnDecl whose body

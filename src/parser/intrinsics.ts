@@ -10,26 +10,32 @@
 
 /** Intrinsic-call argument shape — drives parser dispatch and typechecker
  *  validation. `type` args are walked by `resolveType` ; `value` args by
- *  `resolveExpr`. The intrinsic's return type is fixed per-name and decided
- *  by the typechecker. */
+ *  `resolveExpr`. */
 export type IntrinsicArgKind = "type" | "value";
+
+/** Result-type tag — the typechecker maps this to a concrete `Type`. Kept as
+ *  a small enum so the registry stays the single source of truth for every
+ *  intrinsic's signature ; downstream passes look it up rather than mirror
+ *  a per-name switch. */
+export type IntrinsicResultKind = "usize" | "string" | "bool";
 
 export interface IntrinsicSpec {
   readonly name: string;
   readonly args: readonly IntrinsicArgKind[];
+  readonly result: IntrinsicResultKind;
 }
 
 /** Full set of recognised intrinsics. New entries land here ; the typechecker
  *  and lower passes implement the per-name semantics. */
 export const INTRINSICS: readonly IntrinsicSpec[] = [
-  { name: "size_of",       args: ["type"] },
-  { name: "align_of",      args: ["type"] },
-  { name: "type_name",     args: ["type"] },
-  { name: "type_kind",     args: ["type"] },
-  { name: "field_count",   args: ["type"] },
-  { name: "variant_count", args: ["type"] },
-  { name: "field_index",   args: ["type", "value"] },
-  { name: "satisfies",     args: ["type", "type"] },
+  { name: "size_of",       args: ["type"],          result: "usize"  },
+  { name: "align_of",      args: ["type"],          result: "usize"  },
+  { name: "type_name",     args: ["type"],          result: "string" },
+  { name: "type_kind",     args: ["type"],          result: "string" },
+  { name: "field_count",   args: ["type"],          result: "usize"  },
+  { name: "variant_count", args: ["type"],          result: "usize"  },
+  { name: "field_index",   args: ["type", "value"], result: "usize"  },
+  { name: "satisfies",     args: ["type", "type"],  result: "bool"   },
 ];
 
 const INTRINSIC_BY_NAME: ReadonlyMap<string, IntrinsicSpec> = new Map(

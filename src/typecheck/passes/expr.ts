@@ -28,7 +28,7 @@ import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
 import { lowerExprAsType, primitiveFromName } from "./type-expr.ts";
-import { intrinsicSpec } from "../../parser/intrinsics.ts";
+import { intrinsicSpec, type IntrinsicResultKind } from "../../parser/intrinsics.ts";
 import { findGlobalTrait, implementsDisplay } from "./traits.ts";
 import type {IndexResolution} from "../typed-ast.ts";
 
@@ -144,7 +144,7 @@ function inferIntrinsic(
   if (expr.args.length !== spec.args.length) {
     err(diags, "T3003", expr.span,
       `\`@${expr.name}\` expects ${spec.args.length} arg(s), got ${expr.args.length}`);
-    return resultTypeOfIntrinsic(spec.name);
+    return intrinsicResultType(spec.result);
   }
   for (let i = 0; i < expr.args.length; i++) {
     const arg = expr.args[i]!;
@@ -160,7 +160,15 @@ function inferIntrinsic(
   if (spec.name === "field_index") {
     validateFieldIndex(expr, t, diags);
   }
-  return resultTypeOfIntrinsic(spec.name);
+  return intrinsicResultType(spec.result);
+}
+
+function intrinsicResultType(result: IntrinsicResultKind): Type {
+  switch (result) {
+    case "usize":  return { kind: "Primitive", name: "usize" };
+    case "string": return TY.string;
+    case "bool":   return TY.bool;
+  }
 }
 
 function validateFieldIndex(
@@ -189,22 +197,6 @@ function validateFieldIndex(
   }
 }
 
-function resultTypeOfIntrinsic(name: string): Type {
-  switch (name) {
-    case "size_of":
-    case "align_of":
-    case "field_count":
-    case "variant_count":
-    case "field_index":
-      return { kind: "Primitive", name: "usize" };
-    case "type_name":
-    case "type_kind":
-      return TY.string;
-    case "satisfies":
-      return TY.bool;
-  }
-  return TY.unresolved;
-}
 
 /** Walk the resolved decl's decorators ; emit W0001 if `@deprecated(...)` is
  *  present. The decorator's first argument is taken as the human-readable

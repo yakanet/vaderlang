@@ -83,6 +83,24 @@ export function sourceStructDecl(sym: Symbol): A.StructDecl | null {
   return sym.source.kind === "struct" ? sym.source.decl : null;
 }
 
+/** True iff `sym` names a *type* — used by typecheck (call-vs-cast dispatch),
+ *  lower (constructor recognition), and the implicit-type-alias detection.
+ *  Covers : primitives, user structs/enums/traits, type aliases, type params.
+ *  Excludes value-kind symbols (`fn`, `const`, `local`, `param`, …). */
+export function isTypeReferenceSymbol(sym: Symbol): boolean {
+  switch (sym.kind) {
+    case "builtin-type":
+    case "struct":
+    case "enum":
+    case "trait":
+    case "type-alias":
+    case "type-param":
+      return true;
+    default:
+      return false;
+  }
+}
+
 /** The enum decl backing an enum symbol; null otherwise. */
 export function sourceEnumDecl(sym: Symbol): A.EnumDecl | null {
   return sym.source.kind === "enum" ? sym.source.decl : null;

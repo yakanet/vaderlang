@@ -23,7 +23,6 @@ import {defaultIfFree, displayType, isAssignable, isPrimitive, TY} from "./types
 
 import type {Globals, MutableTyped} from "./ctx.ts";
 import {checkExpr} from "./passes/expr.ts";
-import {lowerExprAsType} from "./passes/type-expr.ts";
 import {bindSelfTypes, checkBlock, checkFnBody} from "./passes/stmt.ts";
 import {declareType} from "./passes/decl.ts";
 
@@ -111,18 +110,11 @@ export function checkProgram(
         // Record the inferred type for unannotated consts so identifier lookups
         // see a concrete type (e.g. i32 for `BUCKET_COUNT :: 16`) instead of
         // Unresolved — otherwise downstream casts emit ref.cast on numerics.
-        if (expected === null) {
+        // Type-aliased consts (`Mixed :: i32 | string`) were already promoted
+        // by `declareType` ; their `declTypes` slot stays at `TY.type` and
+        // the underlying Type lives in `constTypeAliases`.
+        if (expected === null && !t.globals.constTypeAliases.has(decl)) {
           t.globals.declTypes.set(decl, defaultIfFree(got));
-        }
-        // Layer 4-sugar — implicit type alias : when the value's static type
-        // is `type` (the metatype), the const is structurally a type alias.
-        // Comptime-evaluate the RHS to its underlying Type and record it so
-        // `typeFromSymbol` can serve the alias when the const name appears
-        // in a type-demanding slot (`fn fits(x: Mixed)`, etc.). The lower
-        // pass reads the same map to skip runtime emission for these consts.
-        if (got.kind === "TypeMeta") {
-          const aliased = lowerExprAsType(decl.value, t, diags);
-          t.globals.constTypeAliases.set(decl, aliased);
         }
         break;
       }

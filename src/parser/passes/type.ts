@@ -194,38 +194,48 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
     // The leading-`[` bracketed form takes precedence ; the postfix array
     // syntax `T[]` requires *empty* brackets and is handled later in the
     // postfix loop, so a non-empty `Foo[...]` is unambiguously generic-inst.
-    const open = p.check("lbracket") ? "lbracket" : p.check("lparen") ? "lparen" : null;
-    if (open !== null) {
-      // Bracketed form is generic-inst only when something actually follows
-      // — `Foo[]` is the postfix array `T[]`, parsed in the outer postfix loop.
-      if (open === "lbracket" && p.check("rbracket", 1)) return named;
-      const closeKind = open === "lbracket" ? "rbracket" : "rparen";
-      const closeText = open === "lbracket" ? "`]`" : "`)`";
-      p.advance();
-      const args: A.TypeExpr[] = [];
-      p.skipNewlines();
-      if (!p.check(closeKind)) {
-        while (true) {
-          p.skipNewlines();
-          if (p.check(closeKind)) break;
-          args.push(parseType(p));
-          p.skipNewlines();
-          if (p.match("comma") === null) break;
-        }
-      }
-      const end = p.expect(closeKind, `${closeText} to close generic argument list`);
-      return {
-        kind: "GenericInstExpr",
-        span: p.spanOf(name, end),
-        callee: named,
-        typeArgs: args,
-      };
-    }
-    return named;
+    // `Foo[]` (empty) skips through to let the outer postfix loop see it.
+    if (p.check("lbracket") && p.check("rbracket", 1)) return named;
+    const args = parseGenericArgList(p, "generic argument list");
+    if (args === null) return named;
+    return {
+      kind: "GenericInstExpr",
+      span: p.spanOf(name, p.peek(-1)),
+      callee: named,
+      typeArgs: args.items,
+    };
   }
   p.error("P1005", t.span, `got ${describeToken(t)}`);
   p.advance();
   return { kind: "IdentExpr", span: t.span, name: "?" };
+}
+
+/** Parse a comma-separated `(...)` or `[...]` list of type expressions, used
+ *  for both `Foo(args)` / `Foo[args]` generic instantiation and for the
+ *  trait-arg list of `... implements Trait(args)` / `... implements Trait[args]`.
+ *  Returns null when no opening delimiter is present (caller treats the
+ *  reference as un-instantiated). */
+export function parseGenericArgList(
+  p: Parser, what: string,
+): { items: A.TypeExpr[] } | null {
+  const open = p.check("lbracket") ? "lbracket" : p.check("lparen") ? "lparen" : null;
+  if (open === null) return null;
+  const close = open === "lbracket" ? "rbracket" : "rparen";
+  const closeText = open === "lbracket" ? "`]`" : "`)`";
+  p.advance();
+  const items: A.TypeExpr[] = [];
+  p.skipNewlines();
+  if (!p.check(close)) {
+    while (true) {
+      p.skipNewlines();
+      if (p.check(close)) break;
+      items.push(parseType(p));
+      p.skipNewlines();
+      if (p.match("comma") === null) break;
+    }
+  }
+  p.expect(close, `${closeText} to close ${what}`);
+  return { items };
 }
 
 function parseFnType(p: Parser): A.FnTypeExpr {

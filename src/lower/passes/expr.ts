@@ -310,42 +310,26 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
 function lowerIntrinsic(
   ctx: FnLowerCtx, expr: A.IntrinsicCallExpr, type: Type,
 ): LoweredExpr {
+  // Helpers : the four `usize` and the two `string` intrinsics share the
+  // same shape — read `args[0]`'s resolved Type, run a Type→scalar helper,
+  // wrap as a literal. The two outliers (`field_index`, `satisfies`) need
+  // extra inputs so they stay inline.
+  const intLit = (value: number): LoweredExpr =>
+    ({ kind: "LoweredIntLit", span: expr.span, type, value: BigInt(value) });
+  const strLit = (value: string): LoweredExpr =>
+    ({ kind: "LoweredStringLit", span: expr.span, type, value });
+  const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+
   switch (expr.name) {
-    case "size_of": {
-      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
-      const size = targetTy !== undefined ? sizeOfType(targetTy) : 0;
-      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(size) };
-    }
-    case "align_of": {
-      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
-      const align = targetTy !== undefined ? alignOfType(targetTy) : 0;
-      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(align) };
-    }
-    case "type_name": {
-      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
-      const name = targetTy !== undefined ? displayType(targetTy) : "?";
-      return { kind: "LoweredStringLit", span: expr.span, type, value: name };
-    }
-    case "type_kind": {
-      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
-      const kind = targetTy !== undefined ? kindStringOfType(targetTy) : "unknown";
-      return { kind: "LoweredStringLit", span: expr.span, type, value: kind };
-    }
-    case "field_count": {
-      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
-      const count = targetTy !== undefined ? fieldCountOfType(targetTy) : 0;
-      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(count) };
-    }
-    case "variant_count": {
-      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
-      const count = targetTy !== undefined ? variantCountOfType(targetTy) : 0;
-      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(count) };
-    }
+    case "size_of":       return intLit(targetTy !== undefined ? sizeOfType(targetTy) : 0);
+    case "align_of":      return intLit(targetTy !== undefined ? alignOfType(targetTy) : 0);
+    case "field_count":   return intLit(targetTy !== undefined ? fieldCountOfType(targetTy) : 0);
+    case "variant_count": return intLit(targetTy !== undefined ? variantCountOfType(targetTy) : 0);
+    case "type_name":     return strLit(targetTy !== undefined ? displayType(targetTy) : "?");
+    case "type_kind":     return strLit(targetTy !== undefined ? kindStringOfType(targetTy) : "unknown");
     case "field_index": {
       // Typechecker validated : args[0] is a Struct, args[1] is a static
-      // string literal naming an existing field. Find the index here so
-      // the lowered tree carries the literal directly.
-      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      // string literal naming an existing field.
       const nameArg = expr.args[1]!;
       const fieldName = nameArg.kind === "StringLitExpr" ? staticStringValue(nameArg) : null;
       let idx = 0;
@@ -354,21 +338,14 @@ function lowerIntrinsic(
         const found = targetTy.symbol.source.decl.fields.findIndex((f) => f.name === fieldName);
         if (found >= 0) idx = found;
       }
-      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(idx) };
+      return intLit(idx);
     }
     case "satisfies": {
-      // `@satisfies(T, Trait)` — true iff `T` has an impl of `Trait` in the
-      // project's impl registry. Folds to a constant bool at lower time so
-      // the comptime VM can use it inside `@assert`. Foundation for the
-      // automatic bound enforcement of Layer 7e — once we're confident in
-      // the satisfaction check, a separate pass can synthesise an implicit
-      // `@assert(@satisfies(T, Trait))` for every `where T: Trait` clause.
-      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      // True iff `T` has an explicit impl of `Trait` — foundation for the
+      // future automatic bound enforcement (Layer 7e).
       const traitTy = ctx.typed.typeExprTypes.get(expr.args[1]!);
-      let value = false;
-      if (targetTy !== undefined && traitTy !== undefined && traitTy.kind === "Trait") {
-        value = ctx.project.impls.findFor(targetTy, traitTy.symbol) !== null;
-      }
+      const value = targetTy !== undefined && traitTy !== undefined && traitTy.kind === "Trait"
+        && ctx.project.impls.findFor(targetTy, traitTy.symbol) !== null;
       return { kind: "LoweredBoolLit", span: expr.span, type, value };
     }
   }

@@ -6,6 +6,7 @@
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
+import { isTypeReferenceSymbol } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
 import type { PrimitiveName, Type } from "../types.ts";
@@ -23,10 +24,7 @@ function looksLikeTypeExpression(expr: A.Expr, t: MutableTyped): boolean {
   switch (expr.kind) {
     case "IdentExpr": {
       const sym = t.resolved.idents.get(expr) ?? t.resolved.types.get(expr);
-      if (sym === undefined) return false;
-      return sym.kind === "builtin-type" || sym.kind === "struct"
-          || sym.kind === "enum" || sym.kind === "trait"
-          || sym.kind === "type-alias" || sym.kind === "type-param";
+      return sym !== undefined && isTypeReferenceSymbol(sym);
     }
     case "BinaryExpr":
       // Only the type-position operators `|` (union) and `&` (intersection).
@@ -67,9 +65,12 @@ export function declareType(decl: A.Decl, t: MutableTyped, diags: DiagnosticColl
       // it so the const name is usable in type-demanding slots from this
       // point on. Detection is purely syntactic so it runs before any
       // body-level typecheck, sidestepping the ordering trap where another
-      // decl's signature mentions the alias.
+      // decl's signature mentions the alias. We also fix the const's static
+      // type to `TY.type` here so the body-check pass doesn't re-infer it
+      // from the literal value (which it can't, since the value is a type).
       if (looksLikeTypeExpression(decl.value, t)) {
         t.globals.constTypeAliases.set(decl, lowerExprAsType(decl.value, t, diags));
+        if (decl.type === null) t.globals.declTypes.set(decl, TY.type);
       }
       return;
     case "ImportDecl":
