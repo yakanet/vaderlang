@@ -754,7 +754,7 @@ List :: struct($T) {
 list := List[i32] { .items = [1, 2, 3], .len = 3 }
 ```
 
-**Constraints**. Two equivalent forms : a `where` clause (legacy, multi-trait via `+`) or inline next to the type-param in the bracketed list (Layer 4-sugar, multi-trait via `&` mirroring type intersection).
+**Constraints**. The canonical form is the inline bracketed bound `[T: A & B]`, multi-trait composed with `&` (mirroring type intersection — `&` reads as « satisfies both »). The `where` keyword still parses for backwards compatibility but is **deprecated** for trait bounds — no source we own uses it. Its design role going forward (DESIGN_TYPE_FIRST.md §13 Layer 7d) is the escape hatch for *non-trait* predicates such as size / alignment / kind constraints (`where @size_of(T) <= 64`) once those land.
 
 ```vader
 // Canonical bracketed form — bound co-located with the type-param.
@@ -776,7 +776,7 @@ put :: fn(self: MutableMap($K, $V), key: K, value: V) where K: Hash + Eq {
 }
 ```
 
-`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope** ; `|` on bounds is post-MVP. The legacy `where` clause uses `+` for the same intersection semantics.
+`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope** ; `|` on bounds is post-MVP. The deprecated `where` clause uses `+` for the same intersection semantics.
 
 **Compile-time values** (post-MVP candidate):
 
