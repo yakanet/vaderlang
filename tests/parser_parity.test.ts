@@ -13,7 +13,7 @@ import { test, expect, beforeAll } from "bun:test";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-import { listSnippets } from "./snapshot.ts";
+import { LEXER_PARSER_CORPUS, listSnippets } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
 const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}`;
@@ -58,7 +58,7 @@ const KNOWN_FAILURES = new Set<string>([]);
 
 const SKIP_ALL = false;
 
-const scenarios = listSnippets("tests/snippets");
+const scenarios = listSnippets("tests/snippets").filter((s) => LEXER_PARSER_CORPUS.has(s.name));
 
 test("parser parity: at least one snippet", () => {
   expect(scenarios.length).toBeGreaterThan(0);

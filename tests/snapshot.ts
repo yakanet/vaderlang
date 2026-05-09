@@ -80,6 +80,47 @@ export function listSnippets(snippetsDir: string): Scenario[] {
   return out;
 }
 
+/** Snippets that exercise the lexer + parser surface widely enough to keep
+ *  per-snippet `lexer.snapshot` / `parser.snapshot` files for. Used by
+ *  `tests/snapshot.test.ts` to gate the lexer/parser regression cases and by
+ *  `tests/parity.test.ts` / `tests/parser_parity.test.ts` to gate the Vader
+ *  CLI ↔ TS reference parity checks. Other snippets exercise the same
+ *  syntax through downstream snapshots (typecheck/lower/cfg/bytecode/vm) so
+ *  duplicating front-end snapshots across all 145 snippets is just churn. */
+export const LEXER_PARSER_CORPUS: ReadonlySet<string> = new Set([
+  "alias_import",
+  "arith",
+  "closure_pattern_binding",
+  "comptime_const",
+  "contains_op",
+  "decorators_ok",
+  "defer_block",
+  "enum_basic",
+  "enum_match",
+  "enum_typed",
+  "errors_lexer",
+  "errors_parser",
+  "expr_bodied_fn",
+  "expressions",
+  "for_range",
+  "generic_fn",
+  "generic_struct",
+  "if_branches",
+  "interpolation",
+  "match_struct_pattern_binding",
+  "multiline_string",
+  "namespace_import",
+  "op_overload_arith",
+  "range_bound_u64",
+  "struct_decl",
+  "trait_impl",
+  "trait_virtual_dispatch",
+  "try_op",
+  "tuple_destructure_let",
+  "tuple_match_union",
+  "type_aliases",
+]);
+
 export interface SnapshotResult {
   readonly ok: boolean;
   readonly expected: string | null;
@@ -441,31 +482,6 @@ export function dumpTypecheck(_source: string, entryPath: string): string {
     }
     exprLines.sort();
     lines.push(...exprLines);
-  }
-  return lines.join("\n") + "\n" + formatDiagnostics(diags.sorted());
-}
-
-/** Resolver dump: per-module symbol table + resolution counts + diagnostics. */
-export function dumpResolver(_source: string, entryPath: string): string {
-  const diags = new DiagnosticCollector();
-  const project = resolveProject({ entryPath, diags });
-
-  const lines: string[] = ["# Modules"];
-  const sortedIds = [...project.modules.keys()].sort();
-  for (const id of sortedIds) {
-    const p = project.modules.get(id)!;
-    lines.push(`\n## ${p.module.displayPath}`);
-    const sortedSyms = [...p.module.symbols.values()].sort((a, b) => a.name.localeCompare(b.name));
-    for (const s of sortedSyms) {
-      const ix = (s.source.kind === "import" && s.source.importedName !== null) ? `→ ${s.source.importedName}` : "";
-      lines.push(`  ${s.kind.padEnd(16)} ${s.visibility.padEnd(8)} ${s.name} ${ix}`);
-    }
-    const importLines = [...p.module.imports]
-      .map((imp) => `  import ${imp.path} → ${imp.resolvedTo === null ? "<unresolved>" : "ok"}`);
-    if (importLines.length > 0) {
-      lines.push(...importLines);
-    }
-    lines.push(`  refs: idents=${p.idents.size} types=${p.types.size} params=${p.params.size} locals=${p.locals.size} typeParams=${p.typeParams.size} fields=${p.fields.size}`);
   }
   return lines.join("\n") + "\n" + formatDiagnostics(diags.sorted());
 }

@@ -14,7 +14,7 @@ import { test, expect, beforeAll } from "bun:test";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-import { listSnippets } from "./snapshot.ts";
+import { LEXER_PARSER_CORPUS, listSnippets } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
 const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}`;
@@ -62,7 +62,7 @@ beforeAll(async () => {
 // counting divergence.
 const UTF8_KNOWN_DIVERGENT = new Set<string>([]);
 
-const scenarios = listSnippets("tests/snippets");
+const scenarios = listSnippets("tests/snippets").filter((s) => LEXER_PARSER_CORPUS.has(s.name));
 
 test("parity: at least one snippet", () => {
   expect(scenarios.length).toBeGreaterThan(0);

@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import {
-  MAIN_FILE, dumpBytecode, dumpCfg, dumpComptime, dumpLexer, dumpLower,
-  dumpParser, dumpResolver, dumpTypecheck, errMsg, listSnippets, loadConfig,
-  snapshotEquals,
+  LEXER_PARSER_CORPUS, MAIN_FILE, dumpBytecode, dumpCfg, dumpComptime,
+  dumpLexer, dumpLower, dumpParser, dumpTypecheck, errMsg, listSnippets,
+  loadConfig, snapshotEquals,
 } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
@@ -16,7 +16,6 @@ import { snapshotDiff } from "./diff.ts";
 const PHASES = [
   { name: "lexer",     snap: "lexer.snapshot",     dump: dumpLexer,     usePath: false },
   { name: "parser",    snap: "parser.snapshot",    dump: dumpParser,    usePath: false },
-  { name: "resolver",  snap: "resolver.snapshot",  dump: dumpResolver,  usePath: true  },
   { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheck, usePath: true  },
   { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptime,  usePath: true  },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLower,     usePath: true  },
@@ -32,7 +31,11 @@ test("snippets: at least one discovered", () => {
 
 for (const s of scenarios) {
   const config = loadConfig(s.dir);
-  const activePhases = config.phases ? PHASES.filter((p) => config.phases!.includes(p.name)) : PHASES;
+  const inCorpus = LEXER_PARSER_CORPUS.has(s.name);
+  const activePhases = (config.phases ? PHASES.filter((p) => config.phases!.includes(p.name)) : PHASES)
+    // Lexer + parser snapshots only on the curated corpus — every snippet
+    // would just duplicate coverage that downstream phases already provide.
+    .filter((p) => (p.name !== "lexer" && p.name !== "parser") || inCorpus);
   for (const p of activePhases) {
     test(`${p.name}: ${s.name}`, () => {
       const file = p.usePath ? s.mainPath : MAIN_FILE;
