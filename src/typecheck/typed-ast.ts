@@ -85,6 +85,11 @@ export interface TypedProgram {
   readonly declTypes: ReadonlyMap<A.Decl, Type>;
   readonly paramTypes: ReadonlyMap<A.FnParam, Type>;
   readonly typeExprTypes: ReadonlyMap<A.TypeExpr, Type>;
+  /** ConstDecl whose value is a type expression — Layer 4-sugar implicit
+   *  type alias. The lower pass reads this to skip emitting a runtime slot
+   *  ; `typeFromSymbol` reads it to serve the alias when the const name
+   *  appears in a type-demanding slot. */
+  readonly constTypeAliases: ReadonlyMap<A.ConstDecl, Type>;
 
   /** `obj.method` field accesses that resolved to a trait-impl method via
    *  UFCS. The lowerer reads this to rewrite `obj.method(args)` into a

@@ -36,10 +36,13 @@ function lowerExprAsTypeInner(expr: A.Expr, t: MutableTyped, diags: DiagnosticCo
       // and subsequent param references). Type-param symbols land in
       // `typeParamTypes` ; everything else lands in `types`. We try the
       // type-param table first since the resolver only stores there for
-      // type-param symbols.
+      // type-param symbols. Layer 4-sugar fallback : when the same node was
+      // walked by `resolveExpr` (value-position lookup, e.g. `Mixed :: i32`
+      // where `i32` lives in an Expr slot), the symbol lands in `idents`
+      // instead — try it last so type-position references still work.
       const tpSym = t.resolved.typeParamTypes.get(expr);
       if (tpSym !== undefined) return { kind: "TypeParam", symbol: tpSym };
-      const sym = t.resolved.types.get(expr);
+      const sym = t.resolved.types.get(expr) ?? t.resolved.idents.get(expr);
       if (sym === undefined) return TY.unresolved;     // resolver already reported R2007
       return typeFromSymbol(sym, [], expr, t, diags);
     }
@@ -122,6 +125,17 @@ export function typeFromSymbol(
       }
       return base;
     }
+    case "const":
+      // Layer 4-sugar — when a const's value is a type expression (e.g.
+      // `Mixed :: i32 | string`), `typeFromSymbol` serves the *underlying*
+      // type so the const name is usable in type-demanding slots. Regular
+      // value consts (`PI :: 3.14`) reach the default and stay unresolved
+      // — they aren't valid type names.
+      if (sym.source.kind === "const") {
+        const aliased = t.globals.constTypeAliases.get(sym.source.decl);
+        if (aliased !== undefined) return aliased;
+      }
+      return TY.unresolved;
     default:
       return TY.unresolved;
   }

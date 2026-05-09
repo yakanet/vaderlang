@@ -24,6 +24,15 @@ export interface Globals {
   readonly declTypes: Map<A.Decl, Type>;
   readonly paramTypes: Map<A.FnParam, Type>;
   readonly typeExprTypes: Map<A.TypeExpr, Type>;
+  /** ConstDecl whose value is a *type* (statically typed `type` / `TypeMeta`)
+   *  is implicitly a type alias (Layer 4-sugar — drops the `type` keyword
+   *  in `Foo :: type X`). The resolved underlying type lives here ; the
+   *  matching `declTypes` entry still records `TY.type` as the value's
+   *  static type so `typeOfSymbol` keeps reporting the right thing.
+   *  Read by `typeFromSymbol` when a const symbol is used in a type
+   *  position, and by the lower pass to decide whether to skip emitting
+   *  a runtime slot. */
+  readonly constTypeAliases: Map<A.ConstDecl, Type>;
   /** Auto-imported std/core symbols, looked up for Display / Error / Iterator etc. */
   coreSymbols: ReadonlyMap<string, Symbol> | null;
   /** Cross-module typeParam table from the resolver — used for O(1) lookup
@@ -46,6 +55,7 @@ export function newGlobals(
 ): Globals {
   return {
     declTypes: new Map(), paramTypes: new Map(), typeExprTypes: new Map(),
+    constTypeAliases: new Map(),
     coreSymbols: null,
     typeParamSymbols,
     typeParamBounds,

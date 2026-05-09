@@ -1,0 +1,21 @@
+// Layer 4-sugar : implicit type alias. `Foo :: <type-expr>` is a type
+// alias when the RHS is structurally a type expression — no `type` keyword
+// required. Names of types (`i32`, `string`, …) reference the metatype and
+// the type operators `|` / `&` produce union / intersection types.
+//
+// The const itself produces no runtime slot ; the type-position users
+// resolve through the implicit-alias side-table populated at typecheck.
+
+Mixed :: i32 | string
+
+classify :: fn(x: Mixed) -> i32 {
+    return match x {
+        is i32    -> 1
+        is string -> 2
+    }
+}
+
+main :: fn() -> i32 {
+    n: i32 = 42
+    return classify(n)
+}

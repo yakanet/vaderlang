@@ -363,7 +363,26 @@ To ease migration from Java/Kotlin and reduce typing in everyday code, the compi
 
 `usize` is a **target-dependent** unsigned integer used for sizes and indexes (analogous to C's `size_t`, Rust's `usize`). It maps to `size_t` in the C backend (typically 64-bit on modern hosts). The bytecode/VM bootstrap treats it as a 64-bit value. The WASM backend will choose the platform-native width when implemented (likely WASM64 only at first).
 
-These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases (those use the `name :: type SomeType` form). Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
+These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases. Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
+
+User-defined type aliases use the same `Foo :: <type-expr>` syntax as a regular const declaration. The Layer 4-sugar typechecker recognises a const whose value is structurally a type expression (built from type-name references and the type operators `|` / `&` / `[]` / `fn(...) -> ...`) and promotes it to a type alias — no `type` keyword required, no runtime slot allocated. The legacy explicit form `Foo :: type <type-expr>` still works for explicitness and during the migration window.
+
+```vader
+// Implicit alias — just a const whose value is a type
+Mixed :: i32 | string
+type Maybe[T] = T | null
+
+// Used like any named type
+fits :: fn(x: Mixed) -> bool {
+    return match x {
+        is i32    -> true
+        is string -> false
+    }
+}
+
+// Legacy explicit form (still supported)
+Mixed :: type i32 | string
+```
 
 ### Default integer
 

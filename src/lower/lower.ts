@@ -192,6 +192,12 @@ export function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerP
   const typed = ctx.evaluated.typed.modules.get(entry.module.module.id);
   const evaled = ctx.evaluated.modules.get(entry.module.module.id);
   if (typed === undefined) return null;
+  // Layer 4-sugar — a const whose value is structurally a type expression
+  // (`Mixed :: i32 | string`) is an implicit type alias. Skip emission :
+  // there is no runtime slot to populate, the metatype value is comptime-only.
+  // Type-position users of `Mixed` already resolved through `typeFromSymbol`
+  // via the `constTypeAliases` table.
+  if (typed.constTypeAliases.has(decl)) return null;
   const types = makeEntryTypes(typed, entry.subst);
   const type = types.exprType(decl.value);
 

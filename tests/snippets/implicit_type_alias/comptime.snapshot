@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/implicit_type_alias/_main.vader
+
+## generic instances
+  Yielded(i32)

@@ -247,7 +247,14 @@ export function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {
     case "type-param":
       return { kind: "TypeParam", symbol: sym };
     case "builtin-type":
-      return primitiveFromName(sym.name) ?? TY.unresolved;
+      // Layer 4-sugar : a *bare* type-name reference in value position is a
+      // value of static type `type` (the metatype). The actual primitive
+      // shape is recovered when the typechecker descends into a type-demanding
+      // slot via `lowerExprAsType` / `typeFromSymbol`. Treating the bare
+      // reference as `type` lets `Foo :: i32 | i64` parse as a const decl
+      // whose value is a union *type*, which the next phase recognises as
+      // an implicit type alias.
+      return TY.type;
     case "import-binding":
       // Resolver redirects most uses through `resolveImportRedirect` to the
       // concrete export; if we still see the binding here it's the namespace

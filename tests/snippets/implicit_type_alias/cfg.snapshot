@@ -1,0 +1,41 @@
+# CFG
+
+## tests/snippets/implicit_type_alias/_main.vader
+
+fn tests_snippets_implicit_type_alias__main_vader$classify(%0: i32 | string) -> i32
+  locals:
+    %0 x: i32 | string (param x)
+    %1 __scrut_0#6: i32 | string (synthetic __scrut_0)
+    %2 $type_check_2#7: bool
+    %3 $type_check_5#9: bool
+    %4 if_res#10: i32
+    %5 if_res#12: i32
+  bb0:
+    %1 = move %0
+    %2 = type_check %1 is i32
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %5 = const int(1) :i32
+    branch -> bb3
+  bb2:
+    %3 = type_check %1 is string
+    cond_branch %3 ? bb4 : bb5
+  bb3:
+    return %5
+  bb4:
+    %4 = const int(2) :i32
+    branch -> bb6
+  bb5:
+    unreachable ; non-exhaustive match (T3013 should have caught this)
+  bb6:
+    %5 = move %4
+    branch -> bb3
+
+fn tests_snippets_implicit_type_alias__main_vader$main() -> i32
+  locals:
+    %0 n#2: i32 (local n)
+    %1 $call_2#3: i32
+  bb0:
+    %0 = const int(42) :i32
+    %1 = call classify(%0) :i32
+    return %1

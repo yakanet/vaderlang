@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/implicit_type_alias/_main.vader
+  FnDecl         classify             :: fn(i32 | string) -> i32
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Mixed                :: type
+  expr 12:12    MatchExpr      :: i32
+  expr 12:18    IdentExpr      :: i32 | string
+  expr 20:12    CallExpr       :: i32
+  expr 20:12    IdentExpr      :: fn(i32 | string) -> i32
+  expr 20:21    IdentExpr      :: i32
+  expr 9:10     BinaryExpr     :: type
+  expr 9:10     IdentExpr      :: type
+  expr 9:16     IdentExpr      :: type

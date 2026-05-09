@@ -39,7 +39,14 @@ export function inferBinary(
   switch (expr.op) {
     case "add": case "sub": case "mul": case "div": case "mod":
       return binaryArith(expr, left, right, t, impls, diags);
-    case "shl": case "shr": case "bitand": case "bitor": case "bitxor":
+    case "bitor": case "bitand":
+      // Layer 4-sugar : `T | U` and `T & U` on type-meta operands produce
+      // the union / intersection type as a value of type `type`. The actual
+      // Type-domain construction (Union / intersection) happens when the
+      // const-decl recogniser promotes the host expression to a type alias.
+      if (left.kind === "TypeMeta" && right.kind === "TypeMeta") return TY.type;
+      return binaryInteger(expr, left, right, diags);
+    case "shl": case "shr": case "bitxor":
       return binaryInteger(expr, left, right, diags);
     case "eq": case "neq":
       return binaryEquality(expr, left, right, t, impls, diags);
