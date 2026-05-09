@@ -6,7 +6,7 @@ import { unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_TRAITS, TY, alignOfType, defaultIfFree, displayType, equalsType, kindStringOfType, sizeOfType } from "../../typecheck/types.ts";
+import { CORE_TRAITS, TY, alignOfType, defaultIfFree, displayType, equalsType, fieldCountOfType, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStructLitField } from "../lowered-ast.ts";
@@ -330,6 +330,16 @@ function lowerIntrinsic(
       const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
       const kind = targetTy !== undefined ? kindStringOfType(targetTy) : "unknown";
       return { kind: "LoweredStringLit", span: expr.span, type, value: kind };
+    }
+    case "field_count": {
+      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      const count = targetTy !== undefined ? fieldCountOfType(targetTy) : 0;
+      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(count) };
+    }
+    case "variant_count": {
+      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      const count = targetTy !== undefined ? variantCountOfType(targetTy) : 0;
+      return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(count) };
     }
   }
   return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unhandled intrinsic @${expr.name}` };

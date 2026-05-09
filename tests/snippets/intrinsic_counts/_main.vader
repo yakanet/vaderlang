@@ -1,0 +1,31 @@
+// `@field_count(T)` and `@variant_count(T)` count the parts of structured
+// types — fields for Struct/Tuple, variants for Union/Enum. Returns 0 for
+// any other shape. Folded to a constant at lower time so a comptime
+// `@assert` can compare without runtime overhead.
+
+Pair :: struct {
+    first: i32
+    second: i32
+}
+
+Triple :: struct {
+    a: i8
+    b: i8
+    c: i8
+}
+
+Side :: enum {
+    Left
+    Right
+}
+
+@assert(@field_count(Pair)        == 2)
+@assert(@field_count(Triple)      == 3)
+@assert(@field_count([i32, i32])  == 2)            // Tuple
+@assert(@field_count(i32)         == 0)            // Primitive — not a struct
+@assert(@variant_count(Side)      == 2)            // Enum
+@assert(@variant_count(i32 | string) == 2)         // Union
+
+main :: fn() -> i32 {
+    return 0
+}

@@ -243,6 +243,40 @@ export function sizeOfType(t: Type): number {
   }
 }
 
+/** Number of *fields* on a Struct or *elements* on a Tuple ; 0 for any other
+ *  type. Backs `@field_count(T)`. The compiler resolves the underlying decl
+ *  to read the count — it does not materialise the field list, which is
+ *  cheaper and avoids alignment / layout concerns. */
+export function fieldCountOfType(t: Type): number {
+  switch (t.kind) {
+    case "Struct":
+      return t.symbol.source.kind === "struct"
+        ? t.symbol.source.decl.fields.length
+        : 0;
+    case "Tuple":
+      return t.elements.length;
+    default:
+      return 0;
+  }
+}
+
+/** Number of *variants* on a Union (set-theoretic OR) or an Enum (named
+ *  variants). 0 for anything else. Backs `@variant_count(T)`. Notably, a
+ *  union of unions is already flattened by `unionOf` so the count reflects
+ *  the canonicalised shape. */
+export function variantCountOfType(t: Type): number {
+  switch (t.kind) {
+    case "Union":
+      return t.variants.length;
+    case "Enum": {
+      const decl = t.symbol.source.kind === "enum" ? t.symbol.source.decl : null;
+      return decl !== null ? decl.variants.length : 0;
+    }
+    default:
+      return 0;
+  }
+}
+
 /** Discriminator string for `@type_kind(T)` (Layer 6 reflection intrinsic).
  *  Returns one of `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`,
  *  `"tuple"`, `"fn"`, `"trait"`, `"type"` (metatype), or `"unknown"` for

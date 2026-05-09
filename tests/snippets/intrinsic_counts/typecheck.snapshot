@@ -1,0 +1,7 @@
+# Typecheck
+
+## tests/snippets/intrinsic_counts/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Pair                 :: Pair
+  EnumDecl       Side                 :: Side
+  StructDecl     Triple               :: Triple

@@ -22,10 +22,12 @@ export interface IntrinsicSpec {
 /** Full set of recognised intrinsics. New entries land here ; the typechecker
  *  and lower passes implement the per-name semantics. */
 export const INTRINSICS: readonly IntrinsicSpec[] = [
-  { name: "size_of",   args: ["type"] },
-  { name: "align_of",  args: ["type"] },
-  { name: "type_name", args: ["type"] },
-  { name: "type_kind", args: ["type"] },
+  { name: "size_of",       args: ["type"] },
+  { name: "align_of",      args: ["type"] },
+  { name: "type_name",     args: ["type"] },
+  { name: "type_kind",     args: ["type"] },
+  { name: "field_count",   args: ["type"] },
+  { name: "variant_count", args: ["type"] },
 ];
 
 const INTRINSIC_BY_NAME: ReadonlyMap<string, IntrinsicSpec> = new Map(

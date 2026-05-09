@@ -160,6 +160,8 @@ function resultTypeOfIntrinsic(name: string): Type {
   switch (name) {
     case "size_of":
     case "align_of":
+    case "field_count":
+    case "variant_count":
       return { kind: "Primitive", name: "usize" };
     case "type_name":
     case "type_kind":

@@ -343,6 +343,9 @@ x := a + \
 | Floats | `f32`, `f64` |
 | Text | `char` (32-bit codepoint), `string` (UTF-8 sequence) |
 | Null | `null` |
+| Metatype | `type` (comptime-only — see below) |
+
+`type` is the **metatype** : a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the `($T: type)` struct-head bound, soon `let T: type = i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable ; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
 
 ### Built-in type aliases
 
@@ -1441,7 +1444,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@file` | string literal | Embeds file contents at compile time |
 | `@test` | fn | Marks as a test, executed by `vader test` |
 | `@deprecated("reason")` | any decl | Emits a `W0001` warning at every reference — code still compiles |
-| `@assert(condition)` | top-level | Compile-time assertion ; condition must evaluate to `true` at comptime, otherwise build fails with `C4015` |
+| `@assert(condition)` or `@assert(condition, "message")` | top-level | Compile-time assertion ; condition must evaluate to `true` at comptime, otherwise build fails with `C4015`. The optional second argument must be a *static* string literal (no `${...}` interpolation) — when present, it is appended to the C4015 detail to surface meaningful context |
 | `@partial` | `match` expression | Opts out of exhaustiveness checking ; missing variants no longer trigger `T3013` |
 
 `@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI ; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `print`, `collect`, the methods of `string implements Add / Hash / Index`). The decorator is informational today — the compiler doesn't yet validate that every `@intrinsic` has a host wiring, but the marker enables that check and distinguishes intentional host-bridging from accidentally-bodyless declarations.
@@ -1550,6 +1553,37 @@ See section 2 (Compilation Model).
 ### Implementation note (TypeScript bootstrap)
 
 The bootstrap compiler runs an **AST-walking interpreter** for `@comptime`, not the bytecode VM described in §2. The op table and stack machine are built later in the bytecode-emitter phase, where they'll be shared by both the comptime engine and the C/WASM emitters. The semantics described above hold either way — the choice is purely an engineering one to avoid designing the op set twice. Self-hosted Vader switches to the bytecode VM uniformly.
+
+### Reflection intrinsics
+
+Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators (which annotate declarations) and from comptime-host builtins like `@file` / `@env` (which read project state). Each reflection intrinsic operates on a type expression — its argument is parsed as a type, not a value — and **folds to a constant at lower time** so the runtime cost is zero. They compose freely with `@assert(...)` and (eventually) `where` predicates to drive comptime branching on type shape and layout.
+
+| Intrinsic | Signature | Result | Notes |
+|-----------|-----------|--------|-------|
+| `@size_of(T)` | `(T: type) -> usize` | Byte size of `T` as a runtime value. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string`/`null` → 16) ; aggregate or reference types are stored as `vader_box_t` (16 bytes) ; comptime-only / unresolved kinds → 0. |
+| `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes. | Mirrors `size_of` for primitives ; aggregates align to the pointer boundary (8). |
+| `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap[i32, string]"`, `"i32 \| string"`). |
+| `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings : `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
+| `@field_count(T)` | `(T: type) -> usize` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
+| `@variant_count(T)` | `(T: type) -> usize` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
+
+Composition example — comptime layout assertions :
+
+```vader
+@assert(@size_of(MyHotStruct) <= 64,
+        "MyHotStruct must fit in a cache line")
+@assert(@type_kind(KeyType) == "primitive" || @type_kind(KeyType) == "struct",
+        "KeyType is not hashable")
+```
+
+The condition expression is evaluated by the comptime VM ; each intrinsic appears as a literal in the bytecode (folded at lower time), so the assertion compiles to a single comparison on constants.
+
+Future intrinsics planned for Layer 6 of the type-first design (`docs/DESIGN_TYPE_FIRST.md` §12) but not yet implemented :
+
+- `@type_of(x)` — static type of an expression (returns `type`).
+- `@fields(T) -> Field[]` — full field introspection.
+- `@field(x, name)` — dynamic field access by computed name.
+- `@type_args(T) -> type[]` — generic-argument list.
 
 ---
 
