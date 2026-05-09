@@ -299,6 +299,12 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       return lowerIntrinsic(ctx, expr, exprType);
     case "FnTypeExpr":
     case "ArrayTypeExpr":
+      // Type-shaped value expressions only ever reach the lower phase as
+      // the body of a type alias (`t :: i32[]` or top-level
+      // `Foo :: fn(i32) -> i32`). The let / const-decl lowering skips
+      // emission for those via `letTypeAliases` / `constTypeAliases`, so
+      // reaching here is an internal-bug : the alias detection or the
+      // skip path drifted.
       return unreachableTypeExprInValuePosition(expr);
   }
 }

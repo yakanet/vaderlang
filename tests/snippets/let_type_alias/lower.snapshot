@@ -50,4 +50,20 @@
           ~>
             @builder.finish :string
               __sb_2#-3 :?
+    call :void
+      callee:
+        println#24 :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3#-4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3#-4 :?
+            "size array    = " :string
+          @builder.append_display <for usize> :void
+            __sb_3#-4 :?
+            int(16) :usize
+          ~>
+            @builder.finish :string
+              __sb_3#-4 :?
     return int(0) :i32

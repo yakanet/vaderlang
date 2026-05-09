@@ -259,7 +259,10 @@ function walkExpr(
     }
     case "FnTypeExpr":
     case "ArrayTypeExpr":
-      unreachableTypeExprInValuePosition(expr);
+      // Type-shaped expressions never reference run-time locals — no
+      // captures to collect. The shape can legitimately appear in value
+      // position as the body of a type alias (`t :: i32[]`).
+      return;
   }
 }
 

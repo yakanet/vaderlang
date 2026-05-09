@@ -98,7 +98,12 @@ function inferExpr(
     }
     case "FnTypeExpr":
     case "ArrayTypeExpr":
-      return unreachableTypeExprInValuePosition(expr);
+      // `fn(T) -> R` and `T[]` are type-shaped expressions ; in value
+      // position they still carry the metatype as their static type.
+      // The Layer 5b in-fn alias path (`t :: i32[]`) and the implicit
+      // alias path (`Foo :: i32[]`) downstream pick them up via
+      // `looksLikeTypeExpression`.
+      return TY.type;
   }
 }
 

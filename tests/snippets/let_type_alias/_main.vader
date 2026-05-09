@@ -15,9 +15,11 @@ main :: fn() -> i32 {
     t          :: i32
     big_t      :: i64
     union_t    :: i32 | string
+    array_t    :: i32[]
 
     println("size i32      = ${@size_of(t)}")
     println("size i64      = ${@size_of(big_t)}")
     println("size union    = ${@size_of(union_t)}")
+    println("size array    = ${@size_of(array_t)}")
     return 0
 }

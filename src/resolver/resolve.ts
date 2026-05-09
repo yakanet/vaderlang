@@ -672,8 +672,16 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       return;
     }
     case "FnTypeExpr":
+      // Type-shaped expressions can legitimately appear in value
+      // position as the body of a type alias (`t :: fn(i32) -> i32`).
+      // Walk the inner type-position expressions through `resolveType`
+      // so any type-name references resolve.
+      for (const param of expr.params) resolveType(param, scope, p, input);
+      if (expr.returnType !== null) resolveType(expr.returnType, scope, p, input);
+      return;
     case "ArrayTypeExpr":
-      unreachableTypeExprInValuePosition(expr);
+      resolveType(expr.element, scope, p, input);
+      return;
   }
 }
 

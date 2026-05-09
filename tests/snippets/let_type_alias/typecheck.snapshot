@@ -7,10 +7,7 @@
   expr 17:19    BinaryExpr     :: type
   expr 17:19    IdentExpr      :: type
   expr 17:25    IdentExpr      :: type
-  expr 19:13    StringLitExpr  :: string
-  expr 19:32    IntrinsicCallExpr :: usize
-  expr 19:5     CallExpr       :: void
-  expr 19:5     IdentExpr      :: fn(string) -> void
+  expr 18:19    ArrayTypeExpr  :: type
   expr 20:13    StringLitExpr  :: string
   expr 20:32    IntrinsicCallExpr :: usize
   expr 20:5     CallExpr       :: void
@@ -19,3 +16,11 @@
   expr 21:32    IntrinsicCallExpr :: usize
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 22:13    StringLitExpr  :: string
+  expr 22:32    IntrinsicCallExpr :: usize
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 23:13    StringLitExpr  :: string
+  expr 23:32    IntrinsicCallExpr :: usize
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(string) -> void
