@@ -14,6 +14,7 @@
 
 import type * as A from "../parser/ast.ts";
 import { forEachPatternBindingKey, unreachableTypeExprInValuePosition } from "../parser/ast.ts";
+import { intrinsicSpec } from "../parser/intrinsics.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Type } from "../typecheck/types.ts";
@@ -241,12 +242,21 @@ function walkExpr(
     case "GenericInstExpr":
       walkExpr(expr.callee, scope, outCaptures, outSeen, ctx);
       return;
-    case "IntrinsicCallExpr":
-      // Type-shape args don't contain runtime captures by definition ;
-      // value-shape args (e.g. future `@type_of(x)`) do — walk them all
-      // and let the type system worry about which kind they were.
-      for (const a of expr.args) walkExpr(a, scope, outCaptures, outSeen, ctx);
+    case "IntrinsicCallExpr": {
+      // Walk only value-shape args : type-shape args (`@size_of(i32)`,
+      // `@type_kind(i32[])`, …) carry type expressions that may include
+      // shapes like `ArrayTypeExpr` or `FnTypeExpr` which have no
+      // value-position interpretation, and they cannot reference captured
+      // locals by definition. The intrinsic spec drives the dispatch.
+      const spec = intrinsicSpec(expr.name);
+      for (let i = 0; i < expr.args.length; i++) {
+        const argKind = spec?.args[i] ?? "value";
+        if (argKind === "value") {
+          walkExpr(expr.args[i]!, scope, outCaptures, outSeen, ctx);
+        }
+      }
       return;
+    }
     case "FnTypeExpr":
     case "ArrayTypeExpr":
       unreachableTypeExprInValuePosition(expr);

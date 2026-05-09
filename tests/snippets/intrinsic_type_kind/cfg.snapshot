@@ -1,0 +1,61 @@
+# CFG
+
+## tests/snippets/intrinsic_type_kind/_main.vader
+
+fn tests_snippets_intrinsic_type_kind__main_vader$main() -> i32
+  locals:
+    %0 kp#14: string (local kp)
+    %1 ks#15: string (local ks)
+    %2 ka#16: string (local ka)
+    %3 kt#17: string (local kt)
+    %4 $k_8#18: string
+    %5 $eq_9#19: bool
+    %6 $k_11#20: string
+    %7 and_res#23: bool
+    %8 $k_15#24: string
+    %9 and_res#27: bool
+    %10 $k_19#28: string
+    %11 and_res#31: bool
+    %12 $k_22#32: i32
+    %13 $k_23#33: i32
+  bb0:
+    %0 = const string(#0) :string
+    %1 = const string(#1) :string
+    %2 = const string(#2) :string
+    %3 = const string(#3) :string
+    %4 = const string(#0) :string
+    %5 = binop eq %0 %4 :bool
+    cond_branch %5 ? bb1 : bb2
+  bb1:
+    %6 = const string(#1) :string
+    %7 = binop eq %1 %6 :bool
+    branch -> bb3
+  bb2:
+    %7 = const bool(false) :bool
+    branch -> bb3
+  bb3:
+    cond_branch %7 ? bb4 : bb5
+  bb4:
+    %8 = const string(#2) :string
+    %9 = binop eq %2 %8 :bool
+    branch -> bb6
+  bb5:
+    %9 = const bool(false) :bool
+    branch -> bb6
+  bb6:
+    cond_branch %9 ? bb7 : bb8
+  bb7:
+    %10 = const string(#3) :string
+    %11 = binop eq %3 %10 :bool
+    branch -> bb9
+  bb8:
+    %11 = const bool(false) :bool
+    branch -> bb9
+  bb9:
+    cond_branch %11 ? bb10 : bb11
+  bb10:
+    %12 = const int(0) :i32
+    return %12
+  bb11:
+    %13 = const int(1) :i32
+    return %13

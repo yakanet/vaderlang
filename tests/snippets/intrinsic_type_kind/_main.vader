@@ -1,0 +1,20 @@
+// `@type_kind(T)` returns the discriminator of T's shape as a string —
+// "primitive", "struct", "enum", "union", "array", "tuple", "fn", "trait",
+// "type", or "unknown". Folded to a literal at lower time so the comparison
+// becomes a constant-time string match.
+
+Pair :: struct {
+    first: i32
+    second: i32
+}
+
+main :: fn() -> i32 {
+    kp :: @type_kind(i32)
+    ks :: @type_kind(Pair)
+    ka :: @type_kind(i32[])
+    kt :: @type_kind([i32, i32])
+    if kp == "primitive" && ks == "struct" && ka == "array" && kt == "tuple" {
+        return 0
+    }
+    return 1
+}

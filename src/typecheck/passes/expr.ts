@@ -162,6 +162,7 @@ function resultTypeOfIntrinsic(name: string): Type {
     case "align_of":
       return { kind: "Primitive", name: "usize" };
     case "type_name":
+    case "type_kind":
       return TY.string;
   }
   return TY.unresolved;

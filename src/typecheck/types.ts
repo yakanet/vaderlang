@@ -243,6 +243,33 @@ export function sizeOfType(t: Type): number {
   }
 }
 
+/** Discriminator string for `@type_kind(T)` (Layer 6 reflection intrinsic).
+ *  Returns one of `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`,
+ *  `"tuple"`, `"fn"`, `"trait"`, `"type"` (metatype), or `"unknown"` for
+ *  shapes a user shouldn't encounter (TypeParam, Self, Unresolved, Free*).
+ *  Strings are stable identifiers — user code is expected to compare on
+ *  exact match (`if @type_kind(T) == "struct"`). */
+export function kindStringOfType(t: Type): string {
+  switch (t.kind) {
+    case "Primitive": return "primitive";
+    case "Struct":    return "struct";
+    case "Enum":      return "enum";
+    case "Union":     return "union";
+    case "Array":     return "array";
+    case "Tuple":     return "tuple";
+    case "Fn":        return "fn";
+    case "Trait":     return "trait";
+    case "TypeMeta":  return "type";
+    case "TypeParam":
+    case "Self":
+    case "Unresolved":
+    case "FreeInt":
+    case "FreeFloat":
+    case "Never":
+      return "unknown";
+  }
+}
+
 /** Alignment in bytes for `t`. Mirrors `sizeOfType` for primitives ; aggregate
  *  and reference types align to pointer boundary (8 bytes). */
 export function alignOfType(t: Type): number {

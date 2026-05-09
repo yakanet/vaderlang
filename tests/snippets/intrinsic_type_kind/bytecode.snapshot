@@ -1,0 +1,80 @@
+module _main
+type 0 struct tests_snippets_intrinsic_type_kind__main_vader$Pair { first:1,second:1 }
+type 1 primitive i32
+string 0 "primitive"
+string 1 "struct"
+string 2 "array"
+string 3 "tuple"
+import 0 add std_core$string$Add$add (string,string) -> string
+import 1 hash std_core$string$Hash$hash (string) -> u64
+import 2 at std_core$string$Index$at (string,i32) -> char
+
+fn 0 tests_snippets_intrinsic_type_kind__main_vader$main () -> i32
+  local "kp#14" string
+  local "ks#15" string
+  local "ka#16" string
+  local "kt#17" string
+  local "$k_8#18" string
+  local "$k_11#20" string
+  local "and_res#23" bool
+  local "$k_15#24" string
+  local "and_res#27" bool
+  local "$k_19#28" string
+  local "and_res#31" bool
+  string.const 0   ; _main.vader:12:11
+  local.set 0   ; _main.vader:12:11
+  string.const 1   ; _main.vader:13:11
+  local.set 1   ; _main.vader:13:11
+  string.const 2   ; _main.vader:14:11
+  local.set 2   ; _main.vader:14:11
+  string.const 3   ; _main.vader:15:11
+  local.set 3   ; _main.vader:15:11
+  string.const 0   ; _main.vader:16:14
+  local.set 4   ; _main.vader:16:14
+  local.get 0   ; _main.vader:16:8
+  local.get 4   ; _main.vader:16:8
+  string.eq   ; _main.vader:16:8
+  if $L0 void   ; _main.vader:16:8
+    string.const 1   ; _main.vader:16:35
+    local.set 5   ; _main.vader:16:35
+    local.get 1   ; _main.vader:16:29
+    local.get 5   ; _main.vader:16:29
+    string.eq   ; _main.vader:16:29
+    local.set 6   ; _main.vader:16:29
+  else   ; _main.vader:16:8
+    bool.const false   ; _main.vader:16:8
+    local.set 6   ; _main.vader:16:8
+  end $L0   ; _main.vader:16:8
+  local.get 6   ; _main.vader:16:8
+  if $L1 void   ; _main.vader:16:8
+    string.const 2   ; _main.vader:16:53
+    local.set 7   ; _main.vader:16:53
+    local.get 2   ; _main.vader:16:47
+    local.get 7   ; _main.vader:16:47
+    string.eq   ; _main.vader:16:47
+    local.set 8   ; _main.vader:16:47
+  else   ; _main.vader:16:8
+    bool.const false   ; _main.vader:16:8
+    local.set 8   ; _main.vader:16:8
+  end $L1   ; _main.vader:16:8
+  local.get 8   ; _main.vader:16:8
+  if $L2 void   ; _main.vader:16:8
+    string.const 3   ; _main.vader:16:70
+    local.set 9   ; _main.vader:16:70
+    local.get 3   ; _main.vader:16:64
+    local.get 9   ; _main.vader:16:64
+    string.eq   ; _main.vader:16:64
+    local.set 10   ; _main.vader:16:64
+  else   ; _main.vader:16:8
+    bool.const false   ; _main.vader:16:8
+    local.set 10   ; _main.vader:16:8
+  end $L2   ; _main.vader:16:8
+  local.get 10   ; _main.vader:16:5
+  if $L3 void   ; _main.vader:16:5
+    i32.const 0   ; _main.vader:17:16
+    return   ; _main.vader:17:9
+  else   ; _main.vader:16:5
+    i32.const 1   ; _main.vader:19:12
+    return   ; _main.vader:19:5
+  end $L3   ; _main.vader:16:5
+end

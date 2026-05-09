@@ -25,6 +25,7 @@ export const INTRINSICS: readonly IntrinsicSpec[] = [
   { name: "size_of",   args: ["type"] },
   { name: "align_of",  args: ["type"] },
   { name: "type_name", args: ["type"] },
+  { name: "type_kind", args: ["type"] },
 ];
 
 const INTRINSIC_BY_NAME: ReadonlyMap<string, IntrinsicSpec> = new Map(
