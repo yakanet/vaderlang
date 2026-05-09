@@ -4,7 +4,7 @@
 import type * as A from "../../parser/ast.ts";
 import { staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
-import { declOf } from "../../resolver/symbol.ts";
+import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { CORE_TRAITS, TY, alignOfType, defaultIfFree, displayType, equalsType, fieldCountOfType, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
 
@@ -630,6 +630,28 @@ function lowerUnionFieldAccess(
 ): LoweredExpr {
   const span = expr.span;
   const targetType = ctx.types.exprType(expr.target);
+  const fieldName = expr.isNumeric === true ? `_${expr.field}` : expr.field;
+
+  // Same-offset shortcut : when every variant is a Struct that stores
+  // the field at the same index AND with the same resolved type, the
+  // runtime layouts match — emit a single `(<first-variant>) target` cast
+  // followed by a regular field access. The cast is a no-op at the
+  // bytecode level (boxed values share the `ref` ValType, no `ref.cast`
+  // emitted), and `struct.get` reads the field at its struct-relative
+  // offset regardless of the variant tag.
+  if (sameOffsetShortcutApplies(res, expr.field)) {
+    const first = res.variants[0]!;
+    const value = lowerExpr(ctx, expr.target);
+    return {
+      kind: "LoweredFieldAccess", span, type: first.fieldType,
+      target: { kind: "LoweredCast", span, type: first.type, value },
+      field: fieldName,
+    };
+  }
+
+  // General case : per-variant `if is V { (V) e.f } else if is W { ... }`
+  // cascade. O(N) bytecode size, used when offsets or field types diverge
+  // across variants.
   const scrutSym = freshSyntheticSymbol(ctx, "ufa");
   const scrutValue = lowerExpr(ctx, expr.target);
 
@@ -641,7 +663,6 @@ function lowerUnionFieldAccess(
     const v = res.variants[i]!;
     const ident: LoweredExpr = { kind: "LoweredIdent", span, type: targetType, symbol: scrutSym };
     const cast: LoweredExpr = { kind: "LoweredCast", span, type: v.type, value: ident };
-    const fieldName = expr.isNumeric === true ? `_${expr.field}` : expr.field;
     const access: LoweredExpr = {
       kind: "LoweredFieldAccess", span, type: v.fieldType, target: cast, field: fieldName,
     };
@@ -666,4 +687,30 @@ function lowerUnionFieldAccess(
     }],
     trailing: chain,
   };
+}
+
+/** Same-offset shortcut predicate : every variant is a Struct, the field
+ *  sits at the same declaration index in each variant's struct decl, and
+ *  the resolved field types are identical. Mirrors the runtime memory
+ *  layout — declaration order = struct layout order in Vader. */
+function sameOffsetShortcutApplies(
+  res: UnionFieldResolution, fieldName: string,
+): boolean {
+  if (res.variants.length === 0) return false;
+  let firstIdx = -1;
+  let firstFieldType: Type | null = null;
+  for (const v of res.variants) {
+    if (v.type.kind !== "Struct") return false;
+    const decl = sourceStructDecl(v.type.symbol);
+    if (decl === null) return false;
+    const idx = decl.fields.findIndex((f) => f.name === fieldName);
+    if (idx < 0) return false;
+    if (firstIdx < 0) {
+      firstIdx = idx;
+      firstFieldType = v.fieldType;
+    } else if (idx !== firstIdx || !equalsType(v.fieldType, firstFieldType!)) {
+      return false;
+    }
+  }
+  return true;
 }

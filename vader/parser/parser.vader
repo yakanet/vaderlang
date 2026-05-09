@@ -554,7 +554,7 @@ parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnBodyTail 
         p.advance()  // `=`
         expr :: p.parse_expr(0)
         body :: BlockExpr {
-            .span     = expr_span(expr),
+            .span     = expr.span,
             .stmts    = [],
             .trailing = expr,
         }
@@ -973,7 +973,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     for p.check(.LBracket) && p.check_at(.RBracket, 1) {
         p.advance()              // [
         rb :: p.advance()        // ]
-        head_span :: expr_span(head)
+        head_span :: head.span
         head = ArrayTypeExpr {
             .span    = Span { .start = head_span.start, .end = rb.span.end },
             .element = head,
@@ -982,7 +982,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     // `T!` desugars to `T | Error` (or `null | Error` for `void!`).
     if p.match_kind(.Bang).matched {
         bang_end :: p.peek_at(-1).span.end
-        head_span :: expr_span(head)
+        head_span :: head.span
         success: TypeExpr = match head {
             is IdentExpr -> {
                 if head.name == "void" { ident_expr(head_span, "null") }
@@ -1006,10 +1006,10 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     // `T | U | V` — left-associative `bitor` chain (mirroring the
     // value-side Pratt tree).
     if p.check(.Pipe) {
-        head_span :: expr_span(head)
+        head_span :: head.span
         for p.match_kind(.Pipe).matched {
             next :: p.parse_type_primary()
-            next_span :: expr_span(next)
+            next_span :: next.span
             head = BinaryExpr {
                 .span  = Span { .start = head_span.start, .end = next_span.end },
                 .op    = .BitOr,
@@ -1213,13 +1213,6 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
     }
 }
 
-// Helper : extract span from any Expr variant.
-// Span lookup on any union variant — common-field access (§1.18d) since
-// every Expr/Stmt/Pattern variant carries a `.span` field. Replaces the
-// 25-arm match shapes these helpers used to be.
-expr_span :: fn(e: Expr) = e.span
-stmt_span :: fn(s: Stmt) = s.span
-
 // ============================================================================
 // Statements / blocks
 // ============================================================================
@@ -1335,7 +1328,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
             .value  = BinaryExpr { .span = sp, .op = compound.op, .left = expr, .right = rhs },
         }
     }
-    return ExprStmt { .span = expr_span(expr), .expr = expr }
+    return ExprStmt { .span = expr.span, .expr = expr }
 }
 
 /** Maps a `*Assign` token kind to the underlying `BinaryOp` ; returns
@@ -1543,7 +1536,7 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
     // regular single-binding for-in.
     if p.looks_like_for_destructure() {
         binding :: p.parse_let_binding()
-        binding_span :: let_binding_span(binding)
+        binding_span :: binding.span
         p.expect(.KwIn, "`in` after for-loop binding")
         iter :: p.parse_expr(0)
         p.allow_struct_lit = saved_allow
@@ -1586,9 +1579,6 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         .body  = body,
     }
 }
-
-// Span of a `LetBinding` — common-field access (§1.18d).
-let_binding_span :: fn(b: LetBinding) = b.span
 
 // Lookahead : `[ ... ]` followed by `in`. Bracket-aware so nested patterns
 // (`[a, [b, c]]`) are detected correctly. Bounded to keep pathological
@@ -1657,7 +1647,7 @@ parse_defer :: fn(p: Parser) -> DeferStmt {
         }
     }
     body_span :: match body {
-        is DeferStmtBody  -> stmt_span(body.stmt)
+        is DeferStmtBody  -> body.stmt.span
         is DeferBlockBody -> body.block.span
     }
     return DeferStmt {
@@ -1878,7 +1868,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             p.advance()
             right :: p.parse_expr(21)
             left = BinaryExpr {
-                .span  = Span { .start = expr_span(left).start, .end = expr_span(right).end },
+                .span  = Span { .start = left.span.start, .end = right.span.end },
                 .op    = .NotIn,
                 .left  = left,
                 .right = right,
@@ -1898,14 +1888,14 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             right :: p.parse_expr(right_bp)
             if t.kind == .RangeExcl || t.kind == .RangeIncl {
                 left = RangeExpr {
-                    .span      = Span { .start = expr_span(left).start, .end = expr_span(right).end },
+                    .span      = Span { .start = left.span.start, .end = right.span.end },
                     .inclusive = t.kind == .RangeIncl,
                     .lower     = left,
                     .upper     = right,
                 }
             } else {
                 left = BinaryExpr {
-                    .span  = Span { .start = expr_span(left).start, .end = expr_span(right).end },
+                    .span  = Span { .start = left.span.start, .end = right.span.end },
                     .op    = infix.op,
                     .left  = left,
                     .right = right,
@@ -1979,7 +1969,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
         if t.kind == .Tilde { op = .BitNot }
         operand :: p.parse_expr(95)
         return UnaryExpr {
-            .span    = Span { .start = t.span.start, .end = expr_span(operand).end },
+            .span    = Span { .start = t.span.start, .end = operand.span.end },
             .op      = op,
             .operand = operand,
         }
@@ -2026,7 +2016,7 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     if t.kind == .Question {
         p.advance()
         return TryExpr {
-            .span  = Span { .start = expr_span(left).start, .end = t.span.end },
+            .span  = Span { .start = left.span.start, .end = t.span.end },
             .inner = left,
         }
     }
@@ -2037,7 +2027,7 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         if p.check(.IntLit) {
             num_tok :: p.advance()
             return FieldExpr {
-                .span       = Span { .start = expr_span(left).start, .end = num_tok.span.end },
+                .span       = Span { .start = left.span.start, .end = num_tok.span.end },
                 .target     = left,
                 .field      = num_tok.text,
                 .field_span = num_tok.span,
@@ -2046,7 +2036,7 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         }
         name :: p.expect(.Ident, "field name after `.`")
         return FieldExpr {
-            .span       = Span { .start = expr_span(left).start, .end = name.span.end },
+            .span       = Span { .start = left.span.start, .end = name.span.end },
             .target     = left,
             .field      = name.text,
             .field_span = name.span,
@@ -2058,7 +2048,7 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         args :: p.parse_call_args()
         p.expect(.RParen, "`)` to close argument list")
         return CallExpr {
-            .span   = Span { .start = expr_span(left).start, .end = p.peek_at(-1).span.end },
+            .span   = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
             .callee = left,
             .args   = args,
         }
@@ -2068,7 +2058,7 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     index :: p.parse_expr(0)
     p.expect(.RBracket, "`]` to close index")
     return IndexExpr {
-        .span   = Span { .start = expr_span(left).start, .end = p.peek_at(-1).span.end },
+        .span   = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
         .target = left,
         .index  = index,
     }
@@ -2095,7 +2085,7 @@ parse_call_args :: fn(p: Parser) -> CallArg[] {
         } else {
             value :: p.parse_expr(0)
             out.push(CallArg {
-                .span   = expr_span(value),
+                .span   = value.span,
                 .name   = null,
                 .value  = value,
                 .spread = false,
@@ -2269,7 +2259,7 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
             interp_start :: p.advance()
             expr :: p.parse_expr(0)
             close_match :: p.match_kind(.InterpClose)
-            close_span :: if close_match.matched { close_match.token.span } else { expr_span(expr) }
+            close_span :: if close_match.matched { close_match.token.span } else { expr.span }
             parts.push(StringLitInterp {
                 .expr = expr,
                 .span = Span { .start = interp_start.span.start, .end = close_span.end },
@@ -2363,7 +2353,7 @@ parse_match_arm :: fn(p: Parser) -> MatchArm {
     p.expect(.Arrow, "`->` between pattern and arm body")
     body :: p.parse_expr(0)
     return MatchArm {
-        .span    = Span { .start = start.span.start, .end = expr_span(body).end },
+        .span    = Span { .start = start.span.start, .end = body.span.end },
         .pattern = pattern,
         .guard   = guard,
         .body    = body,

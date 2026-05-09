@@ -4,57 +4,37 @@
 
 fn tests_snippets_union_common_field__main_vader$main() -> i32
   locals:
-    %0 $k_0#51: string
-    %1 $k_1#52: i32
-    %2 a#53: Cat | Dog (local a)
-    %3 $intrinsic_4#54: ?
-    %4 __sb_0#55: ? (synthetic __sb_0)
-    %5 $k_6#56: string
-    %6 __ufa_1#57: Cat | Dog (synthetic __ufa_1)
-    %7 $type_check_8#58: bool
-    %8 $cast_10#59: Cat
-    %9 $type_check_12#61: bool
-    %10 $cast_14#62: Dog
-    %11 if_res#63: string
-    %12 if_res#65: string
-    %13 $intrinsic_17#66: string
-    %14 $intrinsic_18#67: ?
-    %15 __sb_2#68: ? (synthetic __sb_2)
-    %16 $k_20#69: string
-    %17 __ufa_3#70: Cat | Dog (synthetic __ufa_3)
-    %18 $type_check_22#71: bool
-    %19 $cast_24#72: Cat
-    %20 $type_check_26#74: bool
-    %21 $cast_28#75: Dog
-    %22 if_res#76: i32
-    %23 if_res#78: i32
-    %24 $intrinsic_31#79: string
-    %25 $k_32#80: string
-    %26 $k_33#81: i32
-    %27 b#82: Cat | Dog (local b)
-    %28 $intrinsic_36#83: ?
-    %29 __sb_4#84: ? (synthetic __sb_4)
-    %30 $k_38#85: string
-    %31 __ufa_5#86: Cat | Dog (synthetic __ufa_5)
-    %32 $type_check_40#87: bool
-    %33 $cast_42#88: Cat
-    %34 $type_check_44#90: bool
-    %35 $cast_46#91: Dog
-    %36 if_res#92: string
-    %37 if_res#94: string
-    %38 $intrinsic_49#95: string
-    %39 $intrinsic_50#96: ?
-    %40 __sb_6#97: ? (synthetic __sb_6)
-    %41 $k_52#98: string
-    %42 __ufa_7#99: Cat | Dog (synthetic __ufa_7)
-    %43 $type_check_54#100: bool
-    %44 $cast_56#101: Cat
-    %45 $type_check_58#103: bool
-    %46 $cast_60#104: Dog
-    %47 if_res#105: i32
-    %48 if_res#107: i32
-    %49 $intrinsic_63#108: string
-    %50 $k_64#109: i32
+    %0 $k_0#31: string
+    %1 $k_1#32: i32
+    %2 a#33: Cat | Dog (local a)
+    %3 $intrinsic_4#34: ?
+    %4 __sb_0#35: ? (synthetic __sb_0)
+    %5 $k_6#36: string
+    %6 $cast_7#37: Cat
+    %7 $field_8#38: string
+    %8 $intrinsic_9#39: string
+    %9 $intrinsic_10#40: ?
+    %10 __sb_1#41: ? (synthetic __sb_1)
+    %11 $k_12#42: string
+    %12 $cast_13#43: Cat
+    %13 $field_14#44: i32
+    %14 $intrinsic_15#45: string
+    %15 $k_16#46: string
+    %16 $k_17#47: i32
+    %17 b#48: Cat | Dog (local b)
+    %18 $intrinsic_20#49: ?
+    %19 __sb_2#50: ? (synthetic __sb_2)
+    %20 $k_22#51: string
+    %21 $cast_23#52: Cat
+    %22 $field_24#53: string
+    %23 $intrinsic_25#54: string
+    %24 $intrinsic_26#55: ?
+    %25 __sb_3#56: ? (synthetic __sb_3)
+    %26 $k_28#57: string
+    %27 $cast_29#58: Cat
+    %28 $field_30#59: i32
+    %29 $intrinsic_31#60: string
+    %30 $k_32#61: i32
   bb0:
     %0 = const string(#0) :string
     %1 = const int(3) :i32
@@ -63,112 +43,40 @@ fn tests_snippets_union_common_field__main_vader$main() -> i32
     %4 = move %3
     %5 = const string(#1) :string
     intrinsic builder.append_str(%4, %5)
-    %6 = move %2
-    %7 = type_check %6 is Cat
-    cond_branch %7 ? bb1 : bb2
-  bb1:
-    %8 = cast %6 :Cat
-    %12 = field_get %8.name :string
-    branch -> bb3
-  bb2:
-    %9 = type_check %6 is Dog
-    cond_branch %9 ? bb4 : bb5
-  bb3:
-    intrinsic builder.append_display(%4, %12)
-    %13 = intrinsic builder.finish(%4)
-    call println(%13) :void
-    %14 = intrinsic builder.new()
-    %15 = move %14
-    %16 = const string(#2) :string
-    intrinsic builder.append_str(%15, %16)
-    %17 = move %2
-    %18 = type_check %17 is Cat
-    cond_branch %18 ? bb7 : bb8
-  bb4:
-    %10 = cast %6 :Dog
-    %11 = field_get %10.name :string
-    branch -> bb6
-  bb5:
-    unreachable ; non-exhaustive union field access (T3009 should have caught this)
-  bb6:
-    %12 = move %11
-    branch -> bb3
-  bb7:
-    %19 = cast %17 :Cat
-    %23 = field_get %19.age :i32
-    branch -> bb9
-  bb8:
-    %20 = type_check %17 is Dog
-    cond_branch %20 ? bb10 : bb11
-  bb9:
-    intrinsic builder.append_display(%15, %23)
-    %24 = intrinsic builder.finish(%15)
-    call println(%24) :void
-    %25 = const string(#3) :string
-    %26 = const int(7) :i32
-    %27 = struct_new[stack] Dog(%25, %26)
-    %28 = intrinsic builder.new()
-    %29 = move %28
-    %30 = const string(#1) :string
-    intrinsic builder.append_str(%29, %30)
-    %31 = move %27
-    %32 = type_check %31 is Cat
-    cond_branch %32 ? bb13 : bb14
-  bb10:
-    %21 = cast %17 :Dog
-    %22 = field_get %21.age :i32
-    branch -> bb12
-  bb11:
-    unreachable ; non-exhaustive union field access (T3009 should have caught this)
-  bb12:
-    %23 = move %22
-    branch -> bb9
-  bb13:
-    %33 = cast %31 :Cat
-    %37 = field_get %33.name :string
-    branch -> bb15
-  bb14:
-    %34 = type_check %31 is Dog
-    cond_branch %34 ? bb16 : bb17
-  bb15:
-    intrinsic builder.append_display(%29, %37)
-    %38 = intrinsic builder.finish(%29)
-    call println(%38) :void
-    %39 = intrinsic builder.new()
-    %40 = move %39
-    %41 = const string(#2) :string
-    intrinsic builder.append_str(%40, %41)
-    %42 = move %27
-    %43 = type_check %42 is Cat
-    cond_branch %43 ? bb19 : bb20
-  bb16:
-    %35 = cast %31 :Dog
-    %36 = field_get %35.name :string
-    branch -> bb18
-  bb17:
-    unreachable ; non-exhaustive union field access (T3009 should have caught this)
-  bb18:
-    %37 = move %36
-    branch -> bb15
-  bb19:
-    %44 = cast %42 :Cat
-    %48 = field_get %44.age :i32
-    branch -> bb21
-  bb20:
-    %45 = type_check %42 is Dog
-    cond_branch %45 ? bb22 : bb23
-  bb21:
-    intrinsic builder.append_display(%40, %48)
-    %49 = intrinsic builder.finish(%40)
-    call println(%49) :void
-    %50 = const int(0) :i32
-    return %50
-  bb22:
-    %46 = cast %42 :Dog
-    %47 = field_get %46.age :i32
-    branch -> bb24
-  bb23:
-    unreachable ; non-exhaustive union field access (T3009 should have caught this)
-  bb24:
-    %48 = move %47
-    branch -> bb21
+    %6 = cast %2 :Cat
+    %7 = field_get %6.name :string
+    intrinsic builder.append_display(%4, %7)
+    %8 = intrinsic builder.finish(%4)
+    call println(%8) :void
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    %11 = const string(#2) :string
+    intrinsic builder.append_str(%10, %11)
+    %12 = cast %2 :Cat
+    %13 = field_get %12.age :i32
+    intrinsic builder.append_display(%10, %13)
+    %14 = intrinsic builder.finish(%10)
+    call println(%14) :void
+    %15 = const string(#3) :string
+    %16 = const int(7) :i32
+    %17 = struct_new[stack] Dog(%15, %16)
+    %18 = intrinsic builder.new()
+    %19 = move %18
+    %20 = const string(#1) :string
+    intrinsic builder.append_str(%19, %20)
+    %21 = cast %17 :Cat
+    %22 = field_get %21.name :string
+    intrinsic builder.append_display(%19, %22)
+    %23 = intrinsic builder.finish(%19)
+    call println(%23) :void
+    %24 = intrinsic builder.new()
+    %25 = move %24
+    %26 = const string(#2) :string
+    intrinsic builder.append_str(%25, %26)
+    %27 = cast %17 :Cat
+    %28 = field_get %27.age :i32
+    intrinsic builder.append_display(%25, %28)
+    %29 = intrinsic builder.finish(%25)
+    call println(%29) :void
+    %30 = const int(0) :i32
+    return %30

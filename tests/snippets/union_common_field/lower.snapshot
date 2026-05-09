@@ -21,32 +21,9 @@
             "name = " :string
           @builder.append_display <for string> :void
             __sb_0#-1 :?
-            block :string
-              let __ufa_1#-2: Cat | Dog = a#56 :Cat | Dog
-              ~>
-                if :string
-                  cond:
-                    is Cat :bool
-                      __ufa_1#-2 :Cat | Dog
-                  then:
-                    ~>
-                      .name :string
-                        cast → Cat
-                          __ufa_1#-2 :Cat | Dog
-                  else:
-                    ~>
-                      if :string
-                        cond:
-                          is Dog :bool
-                            __ufa_1#-2 :Cat | Dog
-                        then:
-                          ~>
-                            .name :string
-                              cast → Dog
-                                __ufa_1#-2 :Cat | Dog
-                        else:
-                          ~>
-                            unreachable("non-exhaustive union field access (T3009 should have caught this)") :string
+            .name :string
+              cast → Cat
+                a#56 :Cat | Dog
           ~>
             @builder.finish :string
               __sb_0#-1 :?
@@ -55,42 +32,19 @@
         println#26 :fn(string) -> void
       arg0:
         block :string
-          let __sb_2#-3: ? =
+          let __sb_1#-2: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_2#-3 :?
+            __sb_1#-2 :?
             "age  = " :string
           @builder.append_display <for i32> :void
-            __sb_2#-3 :?
-            block :i32
-              let __ufa_3#-4: Cat | Dog = a#56 :Cat | Dog
-              ~>
-                if :i32
-                  cond:
-                    is Cat :bool
-                      __ufa_3#-4 :Cat | Dog
-                  then:
-                    ~>
-                      .age :i32
-                        cast → Cat
-                          __ufa_3#-4 :Cat | Dog
-                  else:
-                    ~>
-                      if :i32
-                        cond:
-                          is Dog :bool
-                            __ufa_3#-4 :Cat | Dog
-                        then:
-                          ~>
-                            .age :i32
-                              cast → Dog
-                                __ufa_3#-4 :Cat | Dog
-                        else:
-                          ~>
-                            unreachable("non-exhaustive union field access (T3009 should have caught this)") :i32
+            __sb_1#-2 :?
+            .age :i32
+              cast → Cat
+                a#56 :Cat | Dog
           ~>
             @builder.finish :string
-              __sb_2#-3 :?
+              __sb_1#-2 :?
     let b#57: Cat | Dog =
       Dog {
         name: "Rex" :string
@@ -101,81 +55,35 @@
         println#26 :fn(string) -> void
       arg0:
         block :string
-          let __sb_4#-5: ? =
+          let __sb_2#-3: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_4#-5 :?
+            __sb_2#-3 :?
             "name = " :string
           @builder.append_display <for string> :void
-            __sb_4#-5 :?
-            block :string
-              let __ufa_5#-6: Cat | Dog = b#57 :Cat | Dog
-              ~>
-                if :string
-                  cond:
-                    is Cat :bool
-                      __ufa_5#-6 :Cat | Dog
-                  then:
-                    ~>
-                      .name :string
-                        cast → Cat
-                          __ufa_5#-6 :Cat | Dog
-                  else:
-                    ~>
-                      if :string
-                        cond:
-                          is Dog :bool
-                            __ufa_5#-6 :Cat | Dog
-                        then:
-                          ~>
-                            .name :string
-                              cast → Dog
-                                __ufa_5#-6 :Cat | Dog
-                        else:
-                          ~>
-                            unreachable("non-exhaustive union field access (T3009 should have caught this)") :string
+            __sb_2#-3 :?
+            .name :string
+              cast → Cat
+                b#57 :Cat | Dog
           ~>
             @builder.finish :string
-              __sb_4#-5 :?
+              __sb_2#-3 :?
     call :void
       callee:
         println#26 :fn(string) -> void
       arg0:
         block :string
-          let __sb_6#-7: ? =
+          let __sb_3#-4: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_6#-7 :?
+            __sb_3#-4 :?
             "age  = " :string
           @builder.append_display <for i32> :void
-            __sb_6#-7 :?
-            block :i32
-              let __ufa_7#-8: Cat | Dog = b#57 :Cat | Dog
-              ~>
-                if :i32
-                  cond:
-                    is Cat :bool
-                      __ufa_7#-8 :Cat | Dog
-                  then:
-                    ~>
-                      .age :i32
-                        cast → Cat
-                          __ufa_7#-8 :Cat | Dog
-                  else:
-                    ~>
-                      if :i32
-                        cond:
-                          is Dog :bool
-                            __ufa_7#-8 :Cat | Dog
-                        then:
-                          ~>
-                            .age :i32
-                              cast → Dog
-                                __ufa_7#-8 :Cat | Dog
-                        else:
-                          ~>
-                            unreachable("non-exhaustive union field access (T3009 should have caught this)") :i32
+            __sb_3#-4 :?
+            .age :i32
+              cast → Cat
+                b#57 :Cat | Dog
           ~>
             @builder.finish :string
-              __sb_6#-7 :?
+              __sb_3#-4 :?
     return int(0) :i32
