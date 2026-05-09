@@ -115,6 +115,10 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 - Per-binding type narrowing in `is T as x` patterns (the *binding* `x` currently has `Unresolved` type — scrutinee-symbol narrowing already works, but `as x` would need a resolver side-table from `IsPattern` to its binding symbol to apply the same `narrowed` map).
 - Field-type substitution for generic struct instances (e.g. `List(i32).items` should be `[i32]`).
 - Validation of `where T: Trait` bounds against a concrete substitution at call sites.
+- **Struct-level `where` clauses** — `struct($K, $V) where K: Hash + Eq { ... }` is parsed today (parser stores `whereClauses` on the AST) but the typechecker ignores it. Two follow-ups :
+  (a) **Auto-inject the struct's bounds into every method whose receiver is that struct**, so `MutableMap`'s 8 methods don't have to repeat `where K: Hash + Eq`. The bound enables trait-method dispatch (`.hash()`, `==`) inside the bodies — same machinery as the per-method bound today, just sourced from the struct decl.
+  (b) **Validate the bound at the instantiation site** so `MutableMap(NoHash, i32)` errors immediately with a clear message instead of crashing later at the first `.put()` call. Hooks into the same "validate where bounds at call sites" item above — same algorithm, applied at type construction.
+  Effort: ~1–2 days of typechecker. Big DRY win on `std/collections.vader` (and any future generic-struct-with-bounds in user code).
 
 ### 1.5 Comptime engine + monomorphizer (split into MVP / deferred)
 
