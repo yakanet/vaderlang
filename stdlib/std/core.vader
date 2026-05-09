@@ -113,7 +113,7 @@ export ArrayIter :: struct[T] {
     length: i32
 }
 
-ArrayIter($T) implements Iterator(T) {
+ArrayIter[T] implements Iterator[T] {
     fn step(self) -> Done | Yielded(T) {
         if (self.cursor >= self.length) {
             return Done {}

@@ -188,21 +188,32 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
   if (t.kind === "ident") {
     const name = p.advance();
     const named: A.IdentExpr = { kind: "IdentExpr", span: name.span, name: name.text };
-    // Generic instantiation: `Foo(i32, U)`
-    if (p.check("lparen")) {
+    // Generic instantiation : two forms during the Layer 4-sugar migration —
+    //   `Foo(i32, U)`   (legacy paren form, still accepted)
+    //   `Foo[i32, U]`   (Layer 4-sugar bracketed form, canonical)
+    // The leading-`[` bracketed form takes precedence ; the postfix array
+    // syntax `T[]` requires *empty* brackets and is handled later in the
+    // postfix loop, so a non-empty `Foo[...]` is unambiguously generic-inst.
+    const open = p.check("lbracket") ? "lbracket" : p.check("lparen") ? "lparen" : null;
+    if (open !== null) {
+      // Bracketed form is generic-inst only when something actually follows
+      // — `Foo[]` is the postfix array `T[]`, parsed in the outer postfix loop.
+      if (open === "lbracket" && p.check("rbracket", 1)) return named;
+      const closeKind = open === "lbracket" ? "rbracket" : "rparen";
+      const closeText = open === "lbracket" ? "`]`" : "`)`";
       p.advance();
       const args: A.TypeExpr[] = [];
       p.skipNewlines();
-      if (!p.check("rparen")) {
+      if (!p.check(closeKind)) {
         while (true) {
           p.skipNewlines();
-          if (p.check("rparen")) break;
+          if (p.check(closeKind)) break;
           args.push(parseType(p));
           p.skipNewlines();
           if (p.match("comma") === null) break;
         }
       }
-      const end = p.expect("rparen", "`)` to close generic argument list");
+      const end = p.expect(closeKind, `${closeText} to close generic argument list`);
       return {
         kind: "GenericInstExpr",
         span: p.spanOf(name, end),

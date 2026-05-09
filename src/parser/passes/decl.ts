@@ -186,20 +186,26 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
   p.expect("kw_implements", "`implements` keyword");
   const traitTok = p.expect("ident", "trait name");
 
-  // Optional generic args on the trait reference: `… implements Iterator(i32)`.
+  // Optional generic args on the trait reference. Two forms during the
+  // Layer 4-sugar migration : `… implements Iterator(i32)` (legacy paren form)
+  // and `… implements Iterator[i32]` (Layer 4-sugar bracketed form).
   const traitArgs: A.TypeExpr[] = [];
-  if (p.match("lparen") !== null) {
+  const traitArgOpen = p.check("lbracket") ? "lbracket" : p.check("lparen") ? "lparen" : null;
+  if (traitArgOpen !== null) {
+    const closeKind = traitArgOpen === "lbracket" ? "rbracket" : "rparen";
+    const closeText = traitArgOpen === "lbracket" ? "`]`" : "`)`";
+    p.advance();
     p.skipNewlines();
-    if (!p.check("rparen")) {
+    if (!p.check(closeKind)) {
       while (true) {
         p.skipNewlines();
-        if (p.check("rparen")) break;
+        if (p.check(closeKind)) break;
         traitArgs.push(parseType(p));
         p.skipNewlines();
         if (p.match("comma") === null) break;
       }
     }
-    p.expect("rparen", "`)` to close trait argument list");
+    p.expect(closeKind, `${closeText} to close trait argument list`);
   }
 
   // Four impl shapes after the trait reference:
