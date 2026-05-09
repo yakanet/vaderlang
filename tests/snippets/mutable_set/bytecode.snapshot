@@ -379,7 +379,7 @@ fn 4 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
     local.get 0   ; collections.vader:92:5
     local.get 25   ; collections.vader:92:5
     struct.set 5 1   ; collections.vader:92:5
-    return   ; collections.vader:52:89
+    return   ; collections.vader:52:93
   end $L10   ; collections.vader:85:5
 end
 
@@ -529,8 +529,8 @@ fn 7 std_collections$std_collections$contains__i32 (ref,i32) -> bool
 end
 
 fn 8 std_collections$std_collections$len__i32 (ref) -> usize
-  local.get 0   ; collections.vader:219:58
-  struct.get 8 0   ; collections.vader:219:58
-  struct.get 5 1   ; collections.vader:219:58
-  return   ; collections.vader:219:51
+  local.get 0   ; collections.vader:219:60
+  struct.get 8 0   ; collections.vader:219:60
+  struct.get 5 1   ; collections.vader:219:60
+  return   ; collections.vader:219:53
 end

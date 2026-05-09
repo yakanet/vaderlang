@@ -3293,14 +3293,14 @@ fn 35 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
     local.get 0   ; collections.vader:92:5
     local.get 25   ; collections.vader:92:5
     struct.set 21 1   ; collections.vader:92:5
-    return   ; collections.vader:52:89
+    return   ; collections.vader:52:93
   end $L10   ; collections.vader:85:5
 end
 
 fn 36 std_collections$std_collections$len__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> usize
-  local.get 0   ; collections.vader:145:62
-  struct.get 21 1   ; collections.vader:145:62
-  return   ; collections.vader:145:55
+  local.get 0   ; collections.vader:145:66
+  struct.get 21 1   ; collections.vader:145:66
+  return   ; collections.vader:145:59
 end
 
 fn 37 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref

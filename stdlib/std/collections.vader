@@ -34,13 +34,13 @@
 
 BUCKET_COUNT :: 16
 
-Entry :: struct($K, $V) {
+Entry :: struct[K, V] {
     key:   K
     value: V
     next:  Entry(K, V) | null
 }
 
-export MutableMap :: struct($K, $V) {
+export MutableMap :: struct[K, V] {
     buckets: (Entry(K, V) | null)[]
     size:    usize
 }
@@ -49,7 +49,7 @@ bucket_index :: fn(h: u64) -> i32 {
     return i32(h % u64(BUCKET_COUNT))
 }
 
-export put :: fn(self: MutableMap($K, $V), key: K, value: V) -> void where K: Hash + Eq {
+export put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void where K: Hash + Eq {
     // Lazy bucket init — inlined here because nested generic calls aren't
     // observed by the comptime InstanceRegistry yet (transitive
     // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
@@ -92,7 +92,7 @@ export put :: fn(self: MutableMap($K, $V), key: K, value: V) -> void where K: Ha
     self.size = self.size + 1
 }
 
-export get :: fn(self: MutableMap($K, $V), key: K) -> V | null where K: Hash + Eq {
+export get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null where K: Hash + Eq {
     if self.buckets.len() == 0 {
         return null
     }
@@ -117,7 +117,7 @@ export get :: fn(self: MutableMap($K, $V), key: K) -> V | null where K: Hash + E
     return result
 }
 
-export contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool where K: Hash + Eq {
+export contains_key :: fn[K, V](self: MutableMap(K, V), key: K) -> bool where K: Hash + Eq {
     if self.buckets.len() == 0 {
         return false
     }
@@ -142,13 +142,13 @@ export contains_key :: fn(self: MutableMap($K, $V), key: K) -> bool where K: Has
     return found
 }
 
-export len :: fn(self: MutableMap($K, $V)) -> usize { return self.size }
+export len :: fn[K, V](self: MutableMap(K, V)) -> usize { return self.size }
 
-export is_empty :: fn(self: MutableMap($K, $V)) -> bool { return self.size == 0 }
+export is_empty :: fn[K, V](self: MutableMap(K, V)) -> bool { return self.size == 0 }
 
 // Snapshot of every key in insertion-independent order (bucket-walk order).
 // Calls allocate a fresh `[K]`. Suitable for stringification / iteration.
-export keys :: fn(self: MutableMap($K, $V)) -> K[] {
+export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
     out: K[] = []
     if self.buckets.len() == 0 {
         return out
@@ -172,7 +172,7 @@ export keys :: fn(self: MutableMap($K, $V)) -> K[] {
 }
 
 // Snapshot of every value matching `keys()` order.
-export values :: fn(self: MutableMap($K, $V)) -> V[] {
+export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
     out: V[] = []
     if self.buckets.len() == 0 {
         return out
@@ -201,21 +201,21 @@ export values :: fn(self: MutableMap($K, $V)) -> V[] {
 // from MutableMap. `where T: Hash + Eq` mirrors MutableMap's own bound.
 // ===========================================================================
 
-export MutableSet :: struct($T) {
+export MutableSet :: struct[T] {
     inner: MutableMap(T, bool)
 }
 
 // Returns true if the value was newly added, false if it was already present.
-export add :: fn(self: MutableSet($T), value: T) -> bool where T: Hash + Eq {
+export add :: fn[T](self: MutableSet(T), value: T) -> bool where T: Hash + Eq {
     if self.inner.contains_key(value) { return false }
     self.inner.put(value, true)
     return true
 }
 
-export contains :: fn(self: MutableSet($T), value: T) -> bool where T: Hash + Eq {
+export contains :: fn[T](self: MutableSet(T), value: T) -> bool where T: Hash + Eq {
     return self.inner.contains_key(value)
 }
 
-export len :: fn(self: MutableSet($T)) -> usize { return self.inner.size }
+export len :: fn[T](self: MutableSet(T)) -> usize { return self.inner.size }
 
-export is_empty :: fn(self: MutableSet($T)) -> bool { return self.inner.size == 0 }
+export is_empty :: fn[T](self: MutableSet(T)) -> bool { return self.inner.size == 0 }

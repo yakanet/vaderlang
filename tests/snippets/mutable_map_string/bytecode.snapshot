@@ -1253,7 +1253,7 @@ fn 3 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
     local.get 0   ; collections.vader:92:5
     local.get 25   ; collections.vader:92:5
     struct.set 5 1   ; collections.vader:92:5
-    return   ; collections.vader:52:89
+    return   ; collections.vader:52:93
   end $L10   ; collections.vader:85:5
 end
 
@@ -1483,7 +1483,7 @@ fn 5 std_collections$std_collections$contains_key__string__i32 (ref,string) -> b
 end
 
 fn 6 std_collections$std_collections$len__string__i32 (ref) -> usize
-  local.get 0   ; collections.vader:145:62
-  struct.get 5 1   ; collections.vader:145:62
-  return   ; collections.vader:145:55
+  local.get 0   ; collections.vader:145:66
+  struct.get 5 1   ; collections.vader:145:66
+  return   ; collections.vader:145:59
 end

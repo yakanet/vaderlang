@@ -41,10 +41,10 @@ export Rem :: trait { fn rem(self, other: Self) -> Self }
 
 // Index / IndexSet — dispatch for `a[i]` (read) and `a[i] = v` (write) when
 // `a` isn't a built-in array. `I` is the index type, `T` the element type.
-export Index :: trait($I, $T) {
+export Index :: trait[I, T] {
     fn at(self, i: I) -> T
 }
-export IndexSet :: trait($I, $T) {
+export IndexSet :: trait[I, T] {
     fn set_at(self, i: I, v: T)
 }
 
@@ -52,11 +52,11 @@ export IndexSet :: trait($I, $T) {
 // the next value. Sum-type discriminator avoids the sentinel collision that
 // `T | null` would have for lists whose element type itself includes `null`.
 export Done    :: struct {}
-export Yielded :: struct($T) { value: T }
+export Yielded :: struct[T] { value: T }
 
 // Iterator — pull-based. The lowerer dispatches `for x in iter` through the
 // impl table; users never call `step` directly.
-export Iterator :: trait($T) {
+export Iterator :: trait[T] {
     fn step(self) -> Done | Yielded(T)
 }
 
@@ -71,7 +71,7 @@ export Range :: struct {
 
 // Contains — `x in coll` desugars to `coll.contains(x)`. `x !in coll` desugars
 // to `!coll.contains(x)`.
-export Contains :: trait($T) {
+export Contains :: trait[T] {
     fn contains(self, value: T) -> bool
 }
 
@@ -107,7 +107,7 @@ Range implements Iterator(i32) {
 // flowing into `for x in arr`, so callers rarely need to construct one. The
 // `length` field is pre-computed at construction time so `step` can avoid
 // calling a generic `len(arr)` (generic-fn dispatch is still deferred).
-export ArrayIter :: struct($T) {
+export ArrayIter :: struct[T] {
     arr:    T[]
     cursor: i32
     length: i32

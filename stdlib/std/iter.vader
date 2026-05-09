@@ -14,14 +14,14 @@
 // boxing + vtable dispatch land (TODO §3.5), keep one obvious shape.
 
 // count — number of items in the array.
-export count :: fn(arr: $T[]) -> i32 {
+export count :: fn[T](arr: T[]) -> i32 {
     return arr.len()
 }
 
 // collect — clone the array into a fresh allocation. Symmetric with the
 // future Iterator-driven form ; for arrays today it's a deep copy at the
 // element-reference level (elements aren't recursively cloned).
-export collect :: fn(arr: $T[]) -> T[] {
+export collect :: fn[T](arr: T[]) -> T[] {
     out: T[] = []
     for x in arr {
         out.push(x)
@@ -30,7 +30,7 @@ export collect :: fn(arr: $T[]) -> T[] {
 }
 
 // map — apply `f` to every element, returning a fresh array of the results.
-export map :: fn(arr: $T[], f: fn(T) -> $U) -> U[] {
+export map :: fn[T, U](arr: T[], f: fn(T) -> U) -> U[] {
     out: U[] = []
     for x in arr {
         out.push(f(x))
@@ -39,7 +39,7 @@ export map :: fn(arr: $T[], f: fn(T) -> $U) -> U[] {
 }
 
 // filter — keep only the elements for which `pred` returns true.
-export filter :: fn(arr: $T[], pred: fn(T) -> bool) -> T[] {
+export filter :: fn[T](arr: T[], pred: fn(T) -> bool) -> T[] {
     out: T[] = []
     for x in arr {
         if pred(x) {
@@ -50,7 +50,7 @@ export filter :: fn(arr: $T[], pred: fn(T) -> bool) -> T[] {
 }
 
 // fold — left-reduce the array with seed `init`.
-export fold :: fn(arr: $T[], init: $U, f: fn(U, T) -> U) -> U {
+export fold :: fn[T, U](arr: T[], init: U, f: fn(U, T) -> U) -> U {
     acc := init
     for x in arr {
         acc = f(acc, x)
@@ -70,7 +70,7 @@ export sum :: fn(arr: i32[]) -> i32 {
 }
 
 // take — copy at most `n` items from the array into a fresh array.
-export take :: fn(arr: $T[], n: i32) -> T[] {
+export take :: fn[T](arr: T[], n: i32) -> T[] {
     out: T[] = []
     i := 0
     for x in arr {
@@ -84,7 +84,7 @@ export take :: fn(arr: $T[], n: i32) -> T[] {
 }
 
 // skip — drop the first `n` items, return the remaining ones as an array.
-export skip :: fn(arr: $T[], n: i32) -> T[] {
+export skip :: fn[T](arr: T[], n: i32) -> T[] {
     out: T[] = []
     i := 0
     for x in arr {
@@ -99,7 +99,7 @@ export skip :: fn(arr: $T[], n: i32) -> T[] {
 // slice — copy `arr[start..<end]` into a fresh array. Bounds are clamped
 // (start to [0, len], end to [start, len]), so out-of-range indices yield a
 // shorter result rather than panicking. Negative indices are not supported.
-export slice :: fn(arr: $T[], start: i32, end: i32) -> T[] {
+export slice :: fn[T](arr: T[], start: i32, end: i32) -> T[] {
     out: T[] = []
     len := arr.len()
     lo := start
@@ -119,7 +119,7 @@ export slice :: fn(arr: $T[], start: i32, end: i32) -> T[] {
 // zip — pair elements of `a` and `b` into tuples, stopping at the shorter
 // of the two. Mirrors Python `zip` and JS `Array.prototype.entries`-style
 // pairing for parallel arrays (e.g. keys + values).
-export zip :: fn(a: $T[], b: $U[]) -> [T, U][] {
+export zip :: fn[T, U](a: T[], b: U[]) -> [T, U][] {
     out: [T, U][] = []
     n :: a.len()
     m :: b.len()
@@ -135,7 +135,7 @@ export zip :: fn(a: $T[], b: $U[]) -> [T, U][] {
 // chain — concatenate `a` followed by `b` into a fresh array. Equivalent to
 // pushing every element of each in order ; useful when building a flat
 // stream out of two homogeneous sources.
-export chain :: fn(a: $T[], b: T[]) -> T[] {
+export chain :: fn[T](a: T[], b: T[]) -> T[] {
     out: T[] = []
     for x in a { out.push(x) }
     for x in b { out.push(x) }
@@ -145,7 +145,7 @@ export chain :: fn(a: $T[], b: T[]) -> T[] {
 // enumerate — pair each element with its index, starting at 0. Returns
 // `[i32, T]` tuples so callers can `for [i, x] in arr.enumerate()` — pairs
 // nicely with the for-in destructure form.
-export enumerate :: fn(arr: $T[]) -> [i32, T][] {
+export enumerate :: fn[T](arr: T[]) -> [i32, T][] {
     out: [i32, T][] = []
     i := 0
     for x in arr {
@@ -158,7 +158,7 @@ export enumerate :: fn(arr: $T[]) -> [i32, T][] {
 // flat_map — apply `f` to each element and concatenate the resulting
 // arrays. Useful when each input expands to zero-or-more outputs (parsing,
 // tree flattening).
-export flat_map :: fn(arr: $T[], f: fn(T) -> $U[]) -> U[] {
+export flat_map :: fn[T, U](arr: T[], f: fn(T) -> U[]) -> U[] {
     out: U[] = []
     for x in arr {
         for y in f(x) {

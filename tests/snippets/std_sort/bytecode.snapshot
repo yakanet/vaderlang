@@ -1041,7 +1041,7 @@ fn 9 std_sort$std_sort$merge_sort_range__i32 (ref,ref,i32,i32,ref) -> void
           end $L7   ; sort.vader:55:9
         end $L6   ; sort.vader:55:5
       end $L5   ; sort.vader:55:5
-      return   ; sort.vader:35:98
+      return   ; sort.vader:35:100
     end $L1   ; sort.vader:38:5
   end $L0   ; sort.vader:37:5
 end
@@ -1283,7 +1283,7 @@ fn 10 std_sort$std_sort$merge_sort_range__string (ref,ref,i32,i32,ref) -> void
           end $L7   ; sort.vader:55:9
         end $L6   ; sort.vader:55:5
       end $L5   ; sort.vader:55:5
-      return   ; sort.vader:35:98
+      return   ; sort.vader:35:100
     end $L1   ; sort.vader:38:5
   end $L0   ; sort.vader:37:5
 end
@@ -1390,7 +1390,7 @@ fn 11 std_sort$std_sort$insertion_sort_range__i32 (ref,i32,i32,ref) -> void
       end $L2   ; sort.vader:78:9
     end $L1   ; sort.vader:78:5
   end $L0   ; sort.vader:78:5
-  return   ; sort.vader:76:92
+  return   ; sort.vader:76:94
 end
 
 fn 12 std_sort$std_sort$insertion_sort_range__string (ref,i32,i32,ref) -> void
@@ -1495,7 +1495,7 @@ fn 12 std_sort$std_sort$insertion_sort_range__string (ref,i32,i32,ref) -> void
       end $L2   ; sort.vader:78:9
     end $L1   ; sort.vader:78:5
   end $L0   ; sort.vader:78:5
-  return   ; sort.vader:76:92
+  return   ; sort.vader:76:94
 end
 
 fn 13 std_string$compare_ascending (string,string) -> bool
