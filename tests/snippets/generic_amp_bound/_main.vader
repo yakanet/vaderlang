@@ -1,0 +1,19 @@
+// Layer 3.B : `&` for trait composition in bounds.
+// `[T: Add & Sub]` reads as « T satisfies both Add *and* Sub » — same
+// operator as type-intersection, parsed at a tighter precedence than `|`
+// (the union operator). The bound parses to `BinaryExpr(bitand, Add, Sub)`,
+// matching the value-side Pratt precedence (`amp` BP 60 > `pipe` BP 40).
+//
+// Today the typechecker doesn't yet enforce trait bounds with composition,
+// so this snippet only exercises *parsing* — proves the surface compiles
+// and the AST shape is right.
+
+foo :: fn[T: Add & Sub & Mul](x: T) -> T = x
+
+bar :: fn[K: Hash & Eq, V](key: K, value: V) -> V = value
+
+main :: fn() -> i32 {
+    a :: foo(10)
+    b :: bar(1, 2)
+    return a + b
+}

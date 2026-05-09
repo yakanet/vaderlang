@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/generic_amp_bound/_main.vader
+
+## generic instances
+  foo(i32)
+  Yielded(i32)
+  bar(i32, i32)

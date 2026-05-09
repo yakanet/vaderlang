@@ -13,6 +13,56 @@ import type { Parser } from "../parser.ts";
 import { describeToken } from "../parser.ts";
 
 export function parseType(p: Parser): A.TypeExpr {
+  // Precedence ladder for type expressions :
+  //   postfix `[]` `!`     (tightest — applied to the primary)
+  //   infix   `&`          (intersection / trait composition)
+  //   infix   `|`          (union — loosest)
+  // Mirrors the value-side Pratt precedence (`amp` BP 60, `pipe` BP 40)
+  // so `T | U & V` parses as `T | (U & V)` everywhere.
+  let head = parseTypeIntersection(p);
+  // Union: `T | U | V` — built as a left-associative `bitor` chain.
+  if (p.check("pipe")) {
+    const start = head.span.start;
+    while (p.match("pipe") !== null) {
+      const next = parseTypeIntersection(p);
+      head = {
+        kind: "BinaryExpr",
+        span: { start, end: next.span.end },
+        op: "bitor",
+        left: head,
+        right: next,
+      };
+    }
+  }
+  return head;
+}
+
+/** Intersection-level : `T & U & V` — tighter than `|`, looser than the
+ *  postfix `[]`/`!`. Used both for type-position intersection types (the
+ *  set-theoretic meet) and for trait-composition bounds (`[T: A & B]`,
+ *  meaning T satisfies A *and* B). */
+function parseTypeIntersection(p: Parser): A.TypeExpr {
+  let head = parseTypePostfix(p);
+  if (p.check("amp")) {
+    const start = head.span.start;
+    while (p.match("amp") !== null) {
+      const next = parseTypePostfix(p);
+      head = {
+        kind: "BinaryExpr",
+        span: { start, end: next.span.end },
+        op: "bitand",
+        left: head,
+        right: next,
+      };
+    }
+  }
+  return head;
+}
+
+/** Primary + the two postfix operators (`T[]`, `T!`). The `!` form
+ *  desugars to `T | Error` (SPEC §10) — `void!` rewrites to `null!` so the
+ *  success arm matches cleanly on `is null`. */
+function parseTypePostfix(p: Parser): A.TypeExpr {
   let head = parseTypePrimary(p);
   // Postfix `[]` loop : `T[]`, `T[][]`, ... wraps `head` into an ArrayTypeExpr.
   // Two-token lookahead `[ ]` keeps us from accidentally consuming a `[` that
@@ -26,10 +76,7 @@ export function parseType(p: Parser): A.TypeExpr {
       element: head,
     };
   }
-  // Postfix `!`: `T!` desugars to `T | Error` (SPEC §10). Special case for
-  // `void!` — the runtime has no `void` value to box, it emits `null` for the
-  // success branch ; we rewrite to `null | Error` so `match { is null -> ... }`
-  // matches cleanly on the success arm.
+  // Postfix `!` — error-union shorthand.
   if (p.match("bang") !== null) {
     const bangEnd = p.peek(-1).span.end;
     const successVariant: A.TypeExpr = head.kind === "IdentExpr" && head.name === "void"
@@ -45,20 +92,6 @@ export function parseType(p: Parser): A.TypeExpr {
       left: successVariant,
       right: errorVariant,
     };
-  }
-  // Union: `T | U | V` — built as a left-associative `bitor` chain.
-  if (p.check("pipe")) {
-    const start = head.span.start;
-    while (p.match("pipe") !== null) {
-      const next = parseTypePrimary(p);
-      head = {
-        kind: "BinaryExpr",
-        span: { start, end: next.span.end },
-        op: "bitor",
-        left: head,
-        right: next,
-      };
-    }
   }
   return head;
 }
