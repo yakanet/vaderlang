@@ -9,7 +9,7 @@ i32 implements Tagger {
     fn tag(self) -> i32 { return self * 10 }
 }
 
-export apply_tag :: fn(x: $T) -> i32 where T: Tagger {
+export apply_tag :: fn[T](x: T) -> i32 where T: Tagger {
     return x.tag() + x.tag()
 }
 

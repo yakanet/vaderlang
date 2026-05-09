@@ -13,7 +13,7 @@
   expr 13:28    IdentExpr      :: i32
   expr 14:26    BinaryExpr     :: i32
   expr 14:26    IdentExpr      :: i32
-  expr 17:26    IdentExpr      :: $T
+  expr 17:28    IdentExpr      :: $T
   expr 20:13    StringLitExpr  :: string
   expr 20:16    CallExpr       :: i32
   expr 20:16    IdentExpr      :: fn(i32) -> i32

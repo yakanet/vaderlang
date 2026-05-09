@@ -1,10 +1,10 @@
 import "std/io" { println }
 
-export identity :: fn(x: $T) -> T {
+export identity :: fn[T](x: T) -> T {
     return x
 }
 
-export first :: fn(arr: $T[], fallback: T) -> T {
+export first :: fn[T](arr: T[], fallback: T) -> T {
     if arr.len() > 0 {
         return arr[0]
     }

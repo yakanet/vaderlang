@@ -8,7 +8,7 @@
 // Each case dispatches `step` / `greet` / `doubled` through the per-(trait,
 // method) vtable populated from `mono.implMethodEntries`.
 
-count :: fn(it: Iterator($T)) -> i32 {
+count :: fn[T](it: Iterator(T)) -> i32 {
     n := 0
     cont := true
     for cont {
@@ -20,7 +20,7 @@ count :: fn(it: Iterator($T)) -> i32 {
     return n
 }
 
-Greeter :: trait($T) {
+Greeter :: trait[T] {
     fn greet(self) -> T
 }
 Hello :: struct {}
@@ -28,18 +28,18 @@ Hello implements Greeter(i32) {
     fn greet(self) -> i32 { return 100 }
 }
 
-Doubler :: trait($T) {
+Doubler :: trait[T] {
     fn doubled(self) -> T
 }
 i32 implements Doubler(i32) {
     fn doubled(self) -> i32 { return self + self }
 }
 
-invoke :: fn(g: Greeter($T)) -> T {
+invoke :: fn[T](g: Greeter(T)) -> T {
     return g.greet()
 }
 
-twice :: fn(x: Doubler($T)) -> T {
+twice :: fn[T](x: Doubler(T)) -> T {
     return x.doubled()
 }
 

@@ -1,12 +1,12 @@
 import "std/io" { println }
 
 // A generic "repeat" iterator: yields the same value `count` times.
-export Repeat :: struct($T) {
+export Repeat :: struct[T] {
     value:     T
     remaining: i32
 }
 
-Repeat($T) implements Iterator(T) {
+Repeat[T] implements Iterator[T] {
     fn step(self) -> Done | Yielded(T) {
         if (self.remaining <= 0) {
             return Done {}

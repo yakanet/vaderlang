@@ -1,18 +1,18 @@
 import "std/io" { println }
 
-export Stack :: struct($T) {
+export Stack :: struct[T] {
     data: T[]
     size: i32
 }
 
-export Stackable :: trait($T) {
+export Stackable :: trait[T] {
     fn push(self, value: T) -> void
     fn pop(self) -> T
     fn len(self) -> i32
     fn is_empty(self) -> bool
 }
 
-Stack($T) implements Stackable(T) {
+Stack[T] implements Stackable[T] {
     fn push(self, value: T) -> void {
         self.data.push(value)
         self.size = self.size + 1

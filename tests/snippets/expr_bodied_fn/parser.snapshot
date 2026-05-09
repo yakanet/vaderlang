@@ -223,8 +223,7 @@
           "name": "x",
           "type": {
             "kind": "IdentExpr",
-            "name": "T",
-            "isTypeParamIntro": true
+            "name": "T"
           },
           "defaultValue": null,
           "variadic": false

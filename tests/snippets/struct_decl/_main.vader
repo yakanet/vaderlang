@@ -3,11 +3,14 @@ export Point :: struct {
     y: f64
 }
 
-export List :: struct($T) {
+export List :: struct[T] {
     items: T[]
     len: u32
 }
 
+// `($N: i32)` is a comptime *value* parameter (not a type) — kept in
+// the legacy paren form for now ; bracketed comptime-value params are
+// post-MVP.
 export Buffer :: struct($N: i32) {
     data: u8[]
 }

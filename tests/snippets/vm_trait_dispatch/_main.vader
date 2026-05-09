@@ -20,8 +20,8 @@ Dog implements Printable {
 }
 
 // Generic struct whose monomorphisation also implements the trait.
-export Wrapper :: struct($T) {
-    inner: $T
+export Wrapper :: struct[T] {
+    inner: T
 }
 
 Wrapper(i32) implements Printable {

@@ -171,8 +171,7 @@
         "typeArgs": [
           {
             "kind": "IdentExpr",
-            "name": "T",
-            "isTypeParamIntro": true
+            "name": "T"
           }
         ]
       },

@@ -2,7 +2,7 @@
 // to BOTH params, not just the receiver. Hand-rolled equality check via the
 // `Eq` trait method on a TypeParam-typed pair.
 
-export both_equal :: fn(a: $T, b: T, c: T) -> i32 where T: Eq {
+export both_equal :: fn[T](a: T, b: T, c: T) -> i32 where T: Eq {
     n := 0
     if a.equals(b) {
         n = n + 1
