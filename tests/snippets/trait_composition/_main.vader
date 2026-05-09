@@ -1,0 +1,19 @@
+// Layer 7c — trait composition. Two declaration shapes :
+//   `Foo :: trait[T] = A & B & C`        pure alias, no own methods
+//   `Foo :: trait[T] : A & B { ... }`    requires + own methods
+// Both record the composition in `TraitDecl.requires` ; the typechecker
+// (in a future Layer 7e step) will desugar `T: Foo` bound checking through
+// `@satisfies(T, Foo)` against the composed trait list.
+
+// Pure alias — Numeric requires Add, Sub, Mul (no own methods).
+Numeric :: trait[T] = Add & Sub & Mul
+
+// With own methods — Hashable requires Hash and Eq, plus declares its own.
+Hashable :: trait[T] : Hash & Eq {
+    fn fingerprint(self: T) -> u64
+}
+
+// Single-trait alias is also valid (no `&`).
+Aliased :: trait[T] = Numeric
+
+main :: fn() -> i32 { return 0 }

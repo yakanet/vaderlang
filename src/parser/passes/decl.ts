@@ -659,15 +659,39 @@ function parseTraitDecl(
 ): A.TraitDecl {
   p.advance(); // trait
   const typeParams = parseStructTypeParamList(p);
+  // Layer 7c — trait composition. Two shapes :
+  //   `trait Foo[T] = A & B`         pure alias, no own body
+  //   `trait Foo[T] : A & B { ... }` requires + own methods
+  let requires: A.TypeExpr | null = null;
+  let endTok: Token;
+  let members: A.FnDecl[] = [];
+  if (p.match("assign") !== null) {
+    // Alias form — parse the composed trait expression, no body.
+    requires = parseType(p);
+    endTok = p.peek(-1);
+    return {
+      kind: "TraitDecl",
+      span: p.spanOf(nameTok, endTok),
+      name: nameTok.text,
+      nameSpan: nameTok.span,
+      visibility,
+      typeParams,
+      requires,
+      members,
+      decorators,
+    };
+  }
+  if (p.match("colon") !== null) {
+    requires = parseType(p);
+  }
   p.expect("lbrace", "`{` to open trait body");
   p.skipNewlines();
-  const members: A.FnDecl[] = [];
   while (!p.check("rbrace") && !p.check("eof")) {
     const fn = parseFnDeclInsideTrait(p);
     if (fn !== null) members.push(fn);
     p.skipNewlines();
   }
-  const endTok = p.expect("rbrace", "`}` to close trait body");
+  endTok = p.expect("rbrace", "`}` to close trait body");
   return {
     kind: "TraitDecl",
     span: p.spanOf(nameTok, endTok),
@@ -675,6 +699,7 @@ function parseTraitDecl(
     nameSpan: nameTok.span,
     visibility,
     typeParams,
+    requires,
     members,
     decorators,
   };

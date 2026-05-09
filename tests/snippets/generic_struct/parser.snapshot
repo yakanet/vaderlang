@@ -62,6 +62,7 @@
           "isComptimeValue": false
         }
       ],
+      "requires": null,
       "members": [
         {
           "kind": "FnDecl",

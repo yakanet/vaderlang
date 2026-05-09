@@ -815,6 +815,22 @@ print_it :: fn(x: $T) where T: Display {
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in an `impl Foo` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
 
+#### Trait composition
+
+A trait can compose other traits — i.e. require its implementor to satisfy each of them — through one of two declaration shapes :
+
+```vader
+// Pure alias — Numeric IS Add & Sub & Mul ; no own methods.
+Numeric :: trait[T] = Add & Sub & Mul
+
+// With own methods — Hashable requires Hash and Eq, plus declares its own.
+Hashable :: trait[T] : Hash & Eq {
+    fn fingerprint(self: T) -> u64
+}
+```
+
+The `=` form has no body ; the `:` form has a body for the additional methods. A single trait reference is also valid (`Foo :: trait[T] = Bar` aliases Bar). The composition expression is a type-position `&`-chain, parsed with the same precedence as type intersection ; `T: Foo` bound checking transitively applies the composed traits.
+
 #### Method dispatch on trait values
 
 A receiver typed as a trait dispatches **virtually** at runtime:
