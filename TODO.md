@@ -498,6 +498,26 @@ Lift `R2004` for free functions whose names collide if their **first parameter**
 - [x] **Stdlib `min`/`max`/`abs` i32+f64 overloads** added in `std/math.vader` (2026-05-07). `std/string.compare_ascending` now uses `min(la, lb)` instead of an inline `if`.
 - [x] **Stdlib cleanup** done 2026-05-07 : `len` / `is_empty` / `put` / `get` / `add` / `contains` are shared between `MutableMap` and `MutableSet` via first-param overloading. Dead immutable `Map` / `Set` struct stubs deleted from `std/collections.vader`. No `len_map` / `len_set` workaround names remain.
 
+### 1.18d Common-field access on discriminated unions
+
+TypeScript-style structural narrowing — when every variant of a union shares a field with the same name, allow direct access without an outer `match`. Removes a class of boilerplate in AST-style code (the self-host parser has 25-arm `expr_span` and `stmt_span` matches whose only purpose is to expose a field that every variant carries).
+
+Surface :
+
+```vader
+expr_span :: fn(e: Expr) -> Span = e.span    // OK : every Expr variant has `.span: Span`
+
+decl_visibility :: fn(d: Decl) -> Visibility = d.visibility  // works if all Decl variants have `.visibility`
+```
+
+- [ ] **Typecheck** (`src/typecheck/passes/expr.ts:inferField`) — when the receiver is a `Union`, walk every variant's struct fields. If all variants have a field named `f`, succeed and return `unionOf(field_types)` ; the `unionOf` canonicaliser already collapses identical types so a uniform `Span` field gives `Span`. If any variant lacks the field, surface T3009 with a hint listing the missing variants.
+- [ ] **Lowering** (`src/lower/passes/expr.ts`) — desugar `e.f` over a union into the synthesised `match e { is X -> e.f, is Y -> e.f, ... }` cascade. The bytecode/C-emit `match` machinery already handles tag dispatch ; no new runtime op required.
+- [ ] **Decide nullability semantics** — `(T | null).f` either (a) errors and forces an explicit `match` to handle null, or (b) succeeds with result type `T_field | null`. (b) is consistent with how the rest of the codebase treats nullable receivers (e.g. UFCS through nullable already requires explicit handling — verify alignment).
+- [ ] **Decide divergent-type policy** — when variants carry the same-named field with *different* types (`f: i32` vs `f: string`), allow access and return the union (`i32 | string`) so the caller narrows. Cohérent avec l'esprit ad-hoc-union de Vader.
+- [ ] **Methods (deferred)** — extending the same rule to UFCS calls (`e.method()` valid when every variant has a callable `method`) is more invasive (overload resolution × variant set) ; leave as a follow-up after the field-access path is stable.
+- [ ] **Snippet** — `tests/snippets/union_common_field/` covering uniform-type, divergent-type-narrowing, and the nullable-receiver case once the policy is decided.
+- [ ] **Self-host follow-up** — once the feature lands, collapse `expr_span` / `stmt_span` (plus any sister helpers in `vader/parser/parser.vader`) into one-liners, retire the boilerplate matches.
+
 ### 1.18 Built-in type aliases
 
 Per SPEC §4 ("Built-in type aliases"), the compiler should recognise `int`, `long`, `float`, `double`, `byte` as transparent synonyms for their primitive counterparts.
@@ -508,6 +528,83 @@ Implementation is small and self-contained — no new IR nodes, no new passes:
 - [x] **Type-checker** (`src/typecheck/passes/type-expr.ts`): extend `primitiveFromName` to map `int → i32`, `long → i64`, `float → f32`, `double → f64`, `byte → u8`.
 - [x] **Diagnostics**: error messages and snapshot dumps continue to show the *canonical* name (`i32`, not `int`) so the output is stable regardless of which alias the user typed.
 - [x] **Tests**: add a snippet `tests/snippets/type_aliases/` that exercises each alias in a variable declaration, a function parameter, and a cast; verify the VM output matches.
+
+### 1.19 Type-first design — remaining layers
+
+Per `docs/DESIGN_TYPE_FIRST.md` §11–§14, the type-first redesign has 8 layers split across surface ergonomics (mostly landed) and architectural depth (mostly outstanding). Surface — bracketed `[T]`, `&` composition, trait composition, call-site bound enforcement, removed `$T` and `where` — landed via Layers 1.A–1.D, 2.A, 2.B (reflection primitives), 3.A–3.F, 7b/7c/7e, 8a. The remaining work below targets the architectural depth.
+
+#### Layer 2 (full) — monomorphisation as comptime evaluation
+
+Today the mono pass is a separate pipeline stage that walks call sites and produces specialised entries before lowering. Path 2 dissolves it into the comptime engine : `fn[T](...)` called at a site is *partially evaluated* with `T` bound, producing a specialised version. The cache key `(fn, args)` matches the current mono dedup ; the architectural shift is that the engine is the sole source of specialisation.
+
+- [ ] **Identify the mono surface** — `src/monomorphize/index.ts` enumerates `MonoEntry` per concrete instance ; downstream phases (lower, bytecode, C-emit) consume the flat list. Catalog every consumer of `MonoProject` to know what the comptime engine must produce in its place.
+- [ ] **Mono-as-comptime — interpreter path** — extend the AST-walking comptime interpreter (`src/comptime/`) so `call_generic_fn(fn, type_args, value_args)` either (a) returns a memoised previously-specialised entry from the cache, or (b) clones the fn body, substitutes the type-params, type-checks the clone, and registers the result. The registered entry is keyed by `(fn-id, hash(type-args))`.
+- [ ] **Cache shape** — `Map<string, MonoEntry>` keyed by mangled name (already what mono produces). Reuse the existing `mangleName(fn, type-args)` so emitted symbols are stable. The cache must outlive a single comptime call and be consultable from the lower phase.
+- [ ] **Replace the standalone mono pass** — once every generic instantiation flows through the comptime engine, delete `src/monomorphize/` and route the lowerer's "give me all entries" query to the comptime cache.
+- [ ] **Test plan** — every snippet under `tests/snippets/generic_*` plus `tests/snippets/iter_combinators` exercises mono. Snapshot the bytecode for a representative subset before/after the migration ; bytecode bytes should be identical post-rewire (specialisation is structural, the engine just relocates *where* it happens).
+- [ ] **Diagnostic preservation** — bound-violation diagnostics (T3033) currently fire from the mono pass via the `typeParamBounds` registry. They need to fire from the comptime engine post-rewire. Same span, same code, same message.
+
+#### Layer 4 — purity and memoisation of `type`-producing exprs
+
+Builds on Layer 2. Once `type` values are first-class comptime values, two requirements lock in :
+
+- [ ] **Determinism** — a pure-comptime fn returning a `type` must have no I/O, no global mutable state. Enforced by the comptime engine's existing capability gate (`@comptime` already disallows network/exec/stdout per SPEC §15).
+- [ ] **Memoisation** — `MutableMap[i32, string]` evaluated from two call sites must yield the *same* runtime type identity. Cache by `(generator, args)` in the comptime engine ; structural identity for unions/tuples already canonicalised by `unionOf`.
+
+#### Layer 4 (sugar) — fn-form type aliases & computed type aliases
+
+- [ ] **Computed type aliases with logic** — `boxed :: fn[T]() = if @size_of(T) > 16 { Heap[T] } else { Stack[T] }`. Requires the comptime engine to evaluate the body and return a `type` value. Depends on Layer 2.
+- [ ] **`type` keyword as plain TypeAliasDecl returning a type** — `type Maybe[T] = T | null` and `type Pair[A, B] = struct { first: A, second: B }`. The first form likely works today via existing TypeAliasDecl ; verify ; the struct-returning form needs the comptime engine to evaluate the struct literal as a type-producing expression.
+
+#### Layer 5a — uniform `[]` for type-args at call sites
+
+- [ ] **Verify call-site override** — `sum[i64](arr)` form. Confirm it parses and typechecks ; if not, wire it through `parseCall` / `inferCall`.
+- [ ] **Reject the legacy `()` call-site form for type-args** — once `[]` is universal, decide whether `MutableMap(K, V)` at the call site (currently still accepted) emits a deprecation warning. Track separately to avoid breaking stdlib.
+
+#### Layer 5b — comptime contagion
+
+- [ ] **Reject runtime-dependent `type`-typed exprs** — `let t: type = if user_input == "fast" { i32 } else { i64 }` must fail typecheck. Add a check in `inferLet` / `inferReturn` / wherever a `type`-typed slot is filled : if the value is not comptime-evaluable, emit T3035 ("type expression must be comptime-evaluable").
+- [ ] **Implicit `comptime` for `let T: type = ...`** — flag the binding so downstream usage type-checks against the resolved type. No new annotation surface ; it's by virtue of the `type` static type.
+
+#### Layer 6 — reflection iteration
+
+- [ ] **`@type_of(x)`** — returns the static type of a value as a `type`-typed comptime value. Useful inside `@derive` style generic code.
+- [ ] **`@fields(T) -> Field[]`** — returns the comptime-known list of fields, where `Field :: struct { name: string, type: type, offset: usize }` lives in `std/reflect`. Replaces `@field_count` + `@field_index` by carrying all metadata together. Keep both old intrinsics as low-level primitives ; `@fields` is the ergonomic surface.
+- [ ] **`@type_args(T)`** — generic args of a generic instance. `@type_args(MutableMap[i32, string])` returns `[i32, string]` as a `type[]`.
+- [ ] **`@field(x, name) -> ?`** — dynamic field access by comptime string. Return type depends on `name` (resolved at comptime). Lowers to a tag-dispatch over `T`'s field set.
+- [ ] **`@comptime for f in @fields(T) { ... }`** — iteration syntax. The `@comptime` prefix forces comptime evaluation ; the loop unrolls. Requires a parser change (recognise `@comptime for`) plus the lowerer expanding the loop into a sequence of substituted bodies. Touches : parser, typechecker, lowerer.
+
+#### Layer 7d — `where` re-introduced for non-trait predicates
+
+`where` was removed entirely (commit `f367aee`). Re-introduce in a narrower form for predicates that don't fit the `T: Bound` shape :
+
+- [ ] **Reintroduce the `where` keyword** in the lexer and parser (only after the comptime engine can evaluate predicates).
+- [ ] **Surface** : `where @size_of(T) <= 64` and `where @type_kind(T) == TypeKind.struct`. Single boolean comptime expression per clause.
+- [ ] **Evaluation** — `@satisfies` covers trait bounds ; `where` covers everything else. Both reduce to comptime predicates evaluated at instantiation. Failure produces a localised diagnostic at the call site, not deep in the body.
+- [ ] **Decide ergonomics** — should `where T: Trait` still work as a synonym for `[T: Trait]` ? Probably no (the bracketed form is canonical) ; `where` is reserved strictly for the non-trait predicates.
+
+#### Layer 7a/7e — bounds as comptime predicates (architectural)
+
+Currently bounds are enforced via the impl registry walk (`src/typecheck/passes/call.ts`). Path 2's vision is that they desugar to `@satisfies` comptime calls. Net effect today is identical ; the rewrite is for architectural uniformity once the comptime engine handles all type-level work :
+
+- [ ] **Rewrite `[T: Trait]` enforcement** to lower to `@satisfies(T, Trait)` evaluated by the comptime engine, replacing the current direct registry walk.
+- [ ] **Trait method dispatch on bounded type-param** — currently uses `traitMethodResolutions`. Once bounds are comptime predicates, the trait obligation becomes a comptime fact and dispatch is monomorphised at the generic call site. Same end result, cleaner mechanism.
+
+#### Layer 8 — impl & coherence
+
+Mostly done by virtue of Vader's existing `Type implements Trait[Args]` form, but several rules need explicit verification or implementation :
+
+- [ ] **8b — implements verifies inherent methods** — confirm the typechecker validates each `implements` line against the type's existing inherent methods (today). Pin down with a snippet that fails when a required method is missing.
+- [ ] **8c — explicit conformance, no structural inference** — confirm a struct with a matching method but no `implements` line does **not** satisfy the bound. Snippet : declare `Vec3` with `add`, declare a `sum :: fn[T: Add]`, call `sum(vec3_array)` without `Vec3 implements Add`. Must be T3006.
+- [ ] **8d — default-method injection at `implements` site** — currently SAM-synthetic and `@intrinsic` impls populate methods, but full default-method semantics (a trait method body executes when the impl doesn't provide one) needs verifying. Test with a trait carrying a default `not_equals = !equals` and an impl providing only `equals`.
+- [ ] **8e — orphan rule (light)** — `Type implements Trait[Args]` legal only in the module owning `Type` *or* the module owning `Trait`. Today : likely not enforced. Add a check in `resolveImplDecl` and emit a new diagnostic (R2012 "orphan impl forbidden"). Snippet : module C imports modules A (defines `Foo`) and B (defines `Bar`) ; tries `Foo implements Bar` — must error.
+- [ ] **8f — same-signature method satisfies multiple traits** — verify mutualisation works (one `add` method satisfies both `Add` and a user-defined trait requiring `add`). If a name conflict exists with different signatures, error at the second `implements` line.
+
+#### Open questions deferred
+
+- **Q8** — comptime evaluation budget (Zig has one ; Vader doesn't). Decide once Layer 2 lands and we can measure typical evaluation depth on the stdlib.
+- **Q10** — hygienic macros vs `@comptime for`-only. `@comptime for` covers ~95% of macro use cases ; revisit only if real demand surfaces.
+- **Q11** — migration phasing. Path 2 is the chosen path ; the layer-by-layer landing is the migration plan.
 
 ---
 

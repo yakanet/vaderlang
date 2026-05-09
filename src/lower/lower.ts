@@ -17,7 +17,6 @@ import { TY, defaultIfFree } from "../typecheck/types.ts";
 import { primitiveFromName } from "../typecheck/passes/type-expr.ts";
 
 import type {MonoEntry, MonoProject} from "../monomorphize/index.ts";
-import { monomorphizeProject } from "../monomorphize/index.ts";
 
 import type { LowerProjectCtx } from "./ctx.ts";
 import { makeEntryTypes } from "./entry-types.ts";
@@ -35,7 +34,7 @@ export function lowerProject(
   diags?: DiagnosticCollector,
   closures?: ClosureAnalysis,
 ): LoweredProject {
-  const mono = monomorphizeProject(evaluated);
+  const mono = evaluated.mono;
   const impls = buildImplRegistry(evaluated.typed.resolved);
   let coreSymbols: ReadonlyMap<string, Symbol> | null = null;
   for (const program of evaluated.typed.modules.values()) {

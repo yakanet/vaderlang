@@ -21,6 +21,8 @@ import { InstanceRegistry } from "./instances.ts";
 import { planComptimeOrder } from "./deps.ts";
 import { runComptimeDecl } from "./run.ts";
 import { buildImplRegistry } from "../typecheck/impls.ts";
+import { monomorphizeProject } from "../monomorphize/index.ts";
+import type { MonoProject } from "../monomorphize/mono-ast.ts";
 import { COMPTIME_BUILTIN, callBuiltin, type SandboxOptions } from "./sandbox.ts";
 import type { ComptimeValue } from "./value.ts";
 import { stringVal } from "./value.ts";
@@ -116,8 +118,23 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     }
     modules.set(id, { typed, comptimeDecls: ct, fileDecls: fl });
   }
-  return { typed: project, modules, instances: instances.entries() };
+  // Drive specialisation through the comptime engine — the registry built
+  // above is the single source of generic instances, and `monomorphizeProject`
+  // flattens it into the mono entry table consumed by the lowerer. Layer 2
+  // of the type-first redesign relocates this call out of `lowerProject`.
+  const evaluatedCore = {
+    typed: project, modules, instances: instances.entries(), mono: EMPTY_MONO,
+  };
+  const mono = monomorphizeProject(evaluatedCore);
+  return { ...evaluatedCore, mono };
 }
+
+const EMPTY_MONO: MonoProject = {
+  entries: [],
+  lookupByInstance: new Map(),
+  implMethodEntries: new Map(),
+  fnInstanceEntries: new Map(),
+};
 
 /** Build a synthetic EvaluatedProject whose per-module overlays all alias the
  *  same shared `comptimeDecls` / `fileDecls` Maps. Lookups inside the
@@ -133,7 +150,7 @@ function makeLiveEvaluatedProject(
   for (const [id, typed] of project.modules) {
     modules.set(id, { typed, comptimeDecls, fileDecls });
   }
-  return { typed: project, modules, instances: [] };
+  return { typed: project, modules, instances: [], mono: EMPTY_MONO };
 }
 
 function evalFileDecorator(
