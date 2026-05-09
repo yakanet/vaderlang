@@ -184,8 +184,8 @@ function resolveImplDecl(decl: A.ImplDecl, parent: Scope, p: MutableProgram, inp
   // own field references) and expose them under their names in the impl
   // scope so references in forType / trait args / member bodies resolve.
   const scope = newScope(parent);
-  if (decl.forType.kind === "GenericInstType") {
-    const baseSym = lookup(parent, decl.forType.base.name);
+  if (decl.forType.kind === "GenericInstExpr" && decl.forType.callee.kind === "IdentExpr") {
+    const baseSym = lookup(parent, decl.forType.callee.name);
     if (baseSym !== null && baseSym.source.kind === "struct") {
       for (const tp of baseSym.source.decl.typeParams) {
         const existing = input.typeParamSymbols.get(tp);
@@ -317,10 +317,17 @@ function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeE
       // guaranteed to be TypeExprs by the parser ; cast is safe.
       return { kind: "SeqLitExpr", span: expr.span,
         elements: expr.elements.map((e) => substituteTypeExpr(e as A.TypeExpr, subst)) };
-    case "GenericInstType":
-      return { kind: "GenericInstType", span: expr.span,
-        base: { kind: "IdentExpr", span: expr.base.span, name: expr.base.name },
-        args: expr.args.map((a) => substituteTypeExpr(a, subst)) };
+    case "GenericInstExpr": {
+      // In type position, the callee is always an IdentExpr (parser invariant).
+      // The shape is widened to `Expr` because of the merge with the value-level
+      // `GenericInstExpr`, but here it's safe to assume IdentExpr.
+      const baseIdent = expr.callee.kind === "IdentExpr" ? expr.callee : null;
+      return { kind: "GenericInstExpr", span: expr.span,
+        callee: baseIdent !== null
+          ? { kind: "IdentExpr", span: baseIdent.span, name: baseIdent.name }
+          : expr.callee,
+        typeArgs: expr.typeArgs.map((a) => substituteTypeExpr(a, subst)) };
+    }
   }
 }
 
@@ -487,9 +494,11 @@ function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: Reso
     case "SeqLitExpr":
       for (const e of t.elements) resolveType(e as A.TypeExpr, scope, p, input);
       return;
-    case "GenericInstType":
-      resolveType(t.base, scope, p, input);
-      for (const arg of t.args) resolveType(arg, scope, p, input);
+    case "GenericInstExpr":
+      // Type-position GenericInstExpr : the callee is always an IdentExpr by
+      // parser invariant. Treat it as a type-position name reference.
+      if (t.callee.kind === "IdentExpr") resolveType(t.callee, scope, p, input);
+      for (const arg of t.typeArgs) resolveType(arg, scope, p, input);
       return;
   }
 }
@@ -633,7 +642,6 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
     case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":
-    case "GenericInstType":
       unreachableTypeExprInValuePosition(expr);
   }
 }

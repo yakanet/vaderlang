@@ -33,10 +33,14 @@ function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: Diagnostic
       if (sym === undefined) return TY.unresolved;     // resolver already reported R2007
       return typeFromSymbol(sym, [], expr, t, diags);
     }
-    case "GenericInstType": {
-      const sym = t.resolved.types.get(expr.base);
+    case "GenericInstExpr": {
+      // Type-position GenericInstExpr : the callee is always an IdentExpr by
+      // parser invariant (Layer 1.B.4 merge). Looking up its symbol is the
+      // right move ; non-IdentExpr callees in this position are a parser bug.
+      if (expr.callee.kind !== "IdentExpr") return TY.unresolved;
+      const sym = t.resolved.types.get(expr.callee);
       if (sym === undefined) return TY.unresolved;
-      const args = expr.args.map((a) => lowerTypeExpr(a, t, diags));
+      const args = expr.typeArgs.map((a) => lowerTypeExpr(a, t, diags));
       return typeFromSymbol(sym, args, expr, t, diags);
     }
     case "UnionType":

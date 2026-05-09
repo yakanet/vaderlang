@@ -166,10 +166,10 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
       }
       const end = p.expect("rparen", "`)` to close generic argument list");
       return {
-        kind: "GenericInstType",
+        kind: "GenericInstExpr",
         span: p.spanOf(name, end),
-        base: named,
-        args,
+        callee: named,
+        typeArgs: args,
       };
     }
     return named;

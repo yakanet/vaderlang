@@ -162,12 +162,12 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "GenericInstType",
-        "base": {
+        "kind": "GenericInstExpr",
+        "callee": {
           "kind": "IdentExpr",
           "name": "Stack"
         },
-        "args": [
+        "typeArgs": [
           {
             "kind": "IdentExpr",
             "name": "T",
@@ -461,12 +461,12 @@
             "value": {
               "kind": "StructLitExpr",
               "typeName": {
-                "kind": "GenericInstType",
-                "base": {
+                "kind": "GenericInstExpr",
+                "callee": {
                   "kind": "IdentExpr",
                   "name": "Stack"
                 },
-                "args": [
+                "typeArgs": [
                   {
                     "kind": "IdentExpr",
                     "name": "i32"

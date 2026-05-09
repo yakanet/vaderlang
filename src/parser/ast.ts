@@ -364,16 +364,16 @@ export type Expr =
   // on Expr.kind treat them as unreachable (see `unreachableTypeExprInValuePosition`).
   | TypeExpr;
 
-/** Guard for exhaustive switches on `Expr.kind` : the four remaining
+/** Guard for exhaustive switches on `Expr.kind` : the three remaining
  *  type-only expression variants (`UnionType`, `FnTypeExpr`,
- *  `ArrayTypeExpr`, `GenericInstType`) cannot appear in value-expression
- *  positions yet — the parser does not produce them there. `IdentExpr`
- *  and `SeqLitExpr` are shared between type and value positions and are
- *  therefore not in this guard. When the typechecker eventually accepts
- *  arbitrary `Expr` in type-demanding positions (Layer 1.D), this
- *  helper's call sites will be revisited. */
+ *  `ArrayTypeExpr`) cannot appear in value-expression positions yet —
+ *  the parser does not produce them there. `IdentExpr`, `SeqLitExpr`,
+ *  and `GenericInstExpr` are shared between type and value positions
+ *  and are therefore not in this guard. When the typechecker eventually
+ *  accepts arbitrary `Expr` in type-demanding positions (Layer 1.D),
+ *  this helper's call sites will be revisited. */
 export function unreachableTypeExprInValuePosition(
-  e: Exclude<TypeExpr, IdentExpr | SeqLitExpr>,
+  e: Exclude<TypeExpr, IdentExpr | SeqLitExpr | GenericInstExpr>,
 ): never {
   throw new Error(
     `internal: TypeExpr variant '${e.kind}' encountered in value-expression position; ` +
@@ -727,7 +727,7 @@ export type TypeExpr =
   | FnTypeExpr
   | ArrayTypeExpr
   | SeqLitExpr
-  | GenericInstType;
+  | GenericInstExpr;
 
 export interface UnionType {
   readonly kind: "UnionType";
@@ -746,12 +746,5 @@ export interface ArrayTypeExpr {
   readonly kind: "ArrayTypeExpr";
   readonly span: Span;
   readonly element: TypeExpr;
-}
-
-export interface GenericInstType {
-  readonly kind: "GenericInstType";
-  readonly span: Span;
-  readonly base: IdentExpr;
-  readonly args: readonly TypeExpr[];
 }
 

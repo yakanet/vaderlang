@@ -46,7 +46,7 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
           entries.push(makeEntry(decl, decl.name, typed.resolved, EMPTY_SUBST, [], seenMangled));
           break;
         case "ImplDecl":
-          if (decl.forType.kind === "GenericInstType") break;     // handled per-instance in pass 2
+          if (decl.forType.kind === "GenericInstExpr") break;     // handled per-instance in pass 2
           for (const member of decl.members) {
             const base = `${forTypeName(decl.forType)}$${decl.traitName}$${member.name}`;
             const entry = makeImplMemberEntry(member, base, typed.resolved, EMPTY_SUBST, [], seenMangled, synthIds);
@@ -66,8 +66,9 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
   for (const m of evaluated.typed.modules.values()) {
     for (const d of m.resolved.source.decls) {
       if (d.kind !== "ImplDecl") continue;
-      if (d.forType.kind !== "GenericInstType") continue;
-      const name = d.forType.base.name;
+      if (d.forType.kind !== "GenericInstExpr") continue;
+      if (d.forType.callee.kind !== "IdentExpr") continue;
+      const name = d.forType.callee.name;
       let bucket = genericImplsByStruct.get(name);
       if (bucket === undefined) { bucket = []; genericImplsByStruct.set(name, bucket); }
       bucket.push({ decl: d, program: m.resolved });
@@ -220,7 +221,7 @@ export function mangle(name: string, program: ResolvedProgram, typeArgs: readonl
 
 function forTypeName(t: A.TypeExpr): string {
   if (t.kind === "IdentExpr") return t.name;
-  if (t.kind === "GenericInstType") return t.base.name;
+  if (t.kind === "GenericInstExpr" && t.callee.kind === "IdentExpr") return t.callee.name;
   return "?";
 }
 

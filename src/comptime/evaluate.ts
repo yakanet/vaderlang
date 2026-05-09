@@ -331,8 +331,9 @@ function closeOverGenericImpls(
   for (const m of project.modules.values()) {
     for (const d of m.resolved.source.decls) {
       if (d.kind === "ImplDecl") {
-        if (d.forType.kind !== "GenericInstType") continue;
-        const sym = m.resolved.module.symbols.get(d.forType.base.name);
+        if (d.forType.kind !== "GenericInstExpr") continue;
+        if (d.forType.callee.kind !== "IdentExpr") continue;
+        const sym = m.resolved.module.symbols.get(d.forType.callee.name);
         if (sym === undefined || sym.source.kind !== "struct") continue;
         const list = implsByStructId.get(sym.id) ?? [];
         list.push({ impl: d, program: m.resolved, structDecl: sym.source.decl });

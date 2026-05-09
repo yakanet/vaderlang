@@ -355,10 +355,10 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
       kind: "StructLitExpr",
       span: p.spanOf(t, rb),
       typeName: {
-        kind: "GenericInstType",
+        kind: "GenericInstExpr",
         span: p.spanOf(t, rp),
-        base: { kind: "IdentExpr", span: t.span, name: t.text },
-        args,
+        callee: { kind: "IdentExpr", span: t.span, name: t.text },
+        typeArgs: args,
       },
       fields,
     };

@@ -163,8 +163,8 @@ export function collectTypeParams(t: A.TypeExpr, out: A.TypeParam[]): void {
     case "SeqLitExpr":
       for (const e of t.elements) collectTypeParams(e as A.TypeExpr, out);
       return;
-    case "GenericInstType":
-      for (const a of t.args) collectTypeParams(a, out);
+    case "GenericInstExpr":
+      for (const a of t.typeArgs) collectTypeParams(a, out);
       return;
   }
 }

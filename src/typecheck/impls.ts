@@ -114,8 +114,8 @@ function forTypeSymbol(forType: A.TypeExpr, program: ResolvedProgram): Symbol | 
     const sym = program.types.get(forType);
     if (sym !== undefined && (sym.kind === "struct" || sym.kind === "type-alias")) return sym;
   }
-  if (forType.kind === "GenericInstType") {
-    const sym = program.types.get(forType.base);
+  if (forType.kind === "GenericInstExpr" && forType.callee.kind === "IdentExpr") {
+    const sym = program.types.get(forType.callee);
     if (sym !== undefined && (sym.kind === "struct" || sym.kind === "type-alias")) return sym;
   }
   return null;
