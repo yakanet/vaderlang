@@ -25,7 +25,7 @@
         {
           "name": "x",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "defaultValue": null,
@@ -62,7 +62,7 @@
         {
           "name": "a",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "f64"
           },
           "defaultValue": null,
@@ -71,7 +71,7 @@
         {
           "name": "b",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "f64"
           },
           "defaultValue": null,
@@ -127,7 +127,7 @@
         {
           "name": "x",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "defaultValue": null,
@@ -178,7 +178,7 @@
         {
           "name": "x",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "defaultValue": null,
@@ -249,7 +249,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],

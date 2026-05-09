@@ -25,7 +25,7 @@
         {
           "name": "x",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "visibility": "private"
@@ -33,7 +33,7 @@
         {
           "name": "y",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "visibility": "private"
@@ -45,7 +45,7 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "Vec"
       },
       "traitName": "Add",
@@ -66,7 +66,7 @@
             {
               "name": "other",
               "type": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "Vec"
               },
               "defaultValue": null,
@@ -74,7 +74,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Vec"
           },
           "whereClauses": [],
@@ -86,7 +86,7 @@
                 "value": {
                   "kind": "StructLitExpr",
                   "typeName": {
-                    "kind": "NamedType",
+                    "kind": "IdentExpr",
                     "name": "Vec"
                   },
                   "fields": [
@@ -150,7 +150,7 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "Vec"
       },
       "traitName": "Sub",
@@ -171,7 +171,7 @@
             {
               "name": "other",
               "type": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "Vec"
               },
               "defaultValue": null,
@@ -179,7 +179,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Vec"
           },
           "whereClauses": [],
@@ -191,7 +191,7 @@
                 "value": {
                   "kind": "StructLitExpr",
                   "typeName": {
-                    "kind": "NamedType",
+                    "kind": "IdentExpr",
                     "name": "Vec"
                   },
                   "fields": [
@@ -255,7 +255,7 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "Vec"
       },
       "traitName": "Mul",
@@ -276,7 +276,7 @@
             {
               "name": "other",
               "type": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "Vec"
               },
               "defaultValue": null,
@@ -284,7 +284,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Vec"
           },
           "whereClauses": [],
@@ -296,7 +296,7 @@
                 "value": {
                   "kind": "StructLitExpr",
                   "typeName": {
-                    "kind": "NamedType",
+                    "kind": "IdentExpr",
                     "name": "Vec"
                   },
                   "fields": [
@@ -360,7 +360,7 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "Vec"
       },
       "traitName": "Div",
@@ -381,7 +381,7 @@
             {
               "name": "other",
               "type": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "Vec"
               },
               "defaultValue": null,
@@ -389,7 +389,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Vec"
           },
           "whereClauses": [],
@@ -401,7 +401,7 @@
                 "value": {
                   "kind": "StructLitExpr",
                   "typeName": {
-                    "kind": "NamedType",
+                    "kind": "IdentExpr",
                     "name": "Vec"
                   },
                   "fields": [
@@ -465,7 +465,7 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "Vec"
       },
       "traitName": "Rem",
@@ -486,7 +486,7 @@
             {
               "name": "other",
               "type": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "Vec"
               },
               "defaultValue": null,
@@ -494,7 +494,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Vec"
           },
           "whereClauses": [],
@@ -506,7 +506,7 @@
                 "value": {
                   "kind": "StructLitExpr",
                   "typeName": {
-                    "kind": "NamedType",
+                    "kind": "IdentExpr",
                     "name": "Vec"
                   },
                   "fields": [
@@ -574,7 +574,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -592,7 +592,7 @@
             "value": {
               "kind": "StructLitExpr",
               "typeName": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "Vec"
               },
               "fields": [
@@ -626,7 +626,7 @@
             "value": {
               "kind": "StructLitExpr",
               "typeName": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "Vec"
               },
               "fields": [

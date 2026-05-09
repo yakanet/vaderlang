@@ -25,7 +25,7 @@
         {
           "name": "name",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "visibility": "private"
@@ -46,11 +46,11 @@
             "kind": "UnionType",
             "variants": [
               {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "P"
               },
               {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "i32"
               }
             ]
@@ -60,7 +60,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "void"
       },
       "whereClauses": [],
@@ -78,7 +78,7 @@
               "pattern": {
                 "kind": "IsPattern",
                 "type": {
-                  "kind": "NamedType",
+                  "kind": "IdentExpr",
                   "name": "P"
                 },
                 "inner": null,
@@ -100,7 +100,7 @@
                       "kind": "LambdaExpr",
                       "params": [],
                       "returnType": {
-                        "kind": "NamedType",
+                        "kind": "IdentExpr",
                         "name": "string"
                       },
                       "body": {
@@ -193,7 +193,7 @@
               "pattern": {
                 "kind": "IsPattern",
                 "type": {
-                  "kind": "NamedType",
+                  "kind": "IdentExpr",
                   "name": "i32"
                 },
                 "inner": null,
@@ -215,7 +215,7 @@
                       "kind": "LambdaExpr",
                       "params": [],
                       "returnType": {
-                        "kind": "NamedType",
+                        "kind": "IdentExpr",
                         "name": "i32"
                       },
                       "body": {
@@ -284,7 +284,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -305,7 +305,7 @@
                   "value": {
                     "kind": "StructLitExpr",
                     "typeName": {
-                      "kind": "NamedType",
+                      "kind": "IdentExpr",
                       "name": "P"
                     },
                     "fields": [

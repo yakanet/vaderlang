@@ -29,7 +29,7 @@
         {
           "name": "path",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "defaultValue": null,
@@ -40,11 +40,11 @@
         "kind": "UnionType",
         "variants": [
           {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Error"
           }
         ]
@@ -93,11 +93,11 @@
             "kind": "UnionType",
             "variants": [
               {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "string"
               },
               {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "Error"
               }
             ]
@@ -107,7 +107,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "void"
       },
       "whereClauses": [],
@@ -125,7 +125,7 @@
               "pattern": {
                 "kind": "IsPattern",
                 "type": {
-                  "kind": "NamedType",
+                  "kind": "IdentExpr",
                   "name": "string"
                 },
                 "inner": null,
@@ -154,7 +154,7 @@
               "pattern": {
                 "kind": "IsPattern",
                 "type": {
-                  "kind": "NamedType",
+                  "kind": "IdentExpr",
                   "name": "Error"
                 },
                 "inner": null,
@@ -196,7 +196,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],

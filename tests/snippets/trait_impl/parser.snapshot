@@ -22,7 +22,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "whereClauses": [],
@@ -41,7 +41,7 @@
         {
           "name": "x",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "f64"
           },
           "visibility": "private"
@@ -49,7 +49,7 @@
         {
           "name": "y",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "f64"
           },
           "visibility": "private"
@@ -61,7 +61,7 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "Point"
       },
       "traitName": "Display",
@@ -81,7 +81,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "whereClauses": [],

@@ -164,7 +164,7 @@ export function collectTypeParams(t: A.TypeExpr, out: A.TypeParam[]): void {
     case "GenericInstType":
       for (const a of t.args) collectTypeParams(a, out);
       return;
-    case "NamedType":
+    case "IdentExpr":
       return;
   }
 }

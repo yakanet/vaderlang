@@ -45,7 +45,7 @@ export class ImplRegistry {
     if (bucket === undefined) return null;
     for (const e of bucket) {
       if (e.forSymbol !== null) continue;
-      if (e.decl.forType.kind === "NamedType" && e.decl.forType.name === name) return e;
+      if (e.decl.forType.kind === "IdentExpr" && e.decl.forType.name === name) return e;
     }
     return null;
   }
@@ -110,7 +110,7 @@ function collectImpls(
 }
 
 function forTypeSymbol(forType: A.TypeExpr, program: ResolvedProgram): Symbol | null {
-  if (forType.kind === "NamedType") {
+  if (forType.kind === "IdentExpr") {
     const sym = program.types.get(forType);
     if (sym !== undefined && (sym.kind === "struct" || sym.kind === "type-alias")) return sym;
   }

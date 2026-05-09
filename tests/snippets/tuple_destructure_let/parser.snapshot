@@ -26,11 +26,11 @@
         "kind": "TupleTypeExpr",
         "elements": [
           {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           }
         ]
@@ -73,7 +73,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],

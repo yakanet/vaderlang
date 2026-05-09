@@ -25,7 +25,7 @@
         {
           "name": "bits",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "visibility": "private"
@@ -37,13 +37,13 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "DigitSet"
       },
       "traitName": "Contains",
       "traitArgs": [
         {
-          "kind": "NamedType",
+          "kind": "IdentExpr",
           "name": "i32"
         }
       ],
@@ -63,7 +63,7 @@
             {
               "name": "value",
               "type": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "i32"
               },
               "defaultValue": null,
@@ -71,7 +71,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "bool"
           },
           "whereClauses": [],
@@ -193,7 +193,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -379,7 +379,7 @@
             "value": {
               "kind": "StructLitExpr",
               "typeName": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "DigitSet"
               },
               "fields": [

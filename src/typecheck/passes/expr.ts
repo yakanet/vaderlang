@@ -94,7 +94,6 @@ function inferExpr(
       }
       return substitute(innerType, { typeParams: typeParamMap });
     }
-    case "NamedType":
     case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":

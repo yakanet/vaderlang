@@ -25,7 +25,7 @@
         {
           "name": "key",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "defaultValue": null,
@@ -39,17 +39,17 @@
             "kind": "TupleTypeExpr",
             "elements": [
               {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "i32"
               },
               {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "string"
               }
             ]
           },
           {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "null"
           }
         ]
@@ -128,7 +128,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -179,7 +179,7 @@
                   "pattern": {
                     "kind": "IsPattern",
                     "type": {
-                      "kind": "NamedType",
+                      "kind": "IdentExpr",
                       "name": "null"
                     },
                     "inner": null,
@@ -312,7 +312,7 @@
                   "pattern": {
                     "kind": "IsPattern",
                     "type": {
-                      "kind": "NamedType",
+                      "kind": "IdentExpr",
                       "name": "null"
                     },
                     "inner": null,

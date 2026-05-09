@@ -357,7 +357,7 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
       typeName: {
         kind: "GenericInstType",
         span: p.spanOf(t, rp),
-        base: { kind: "NamedType", span: t.span, name: t.text },
+        base: { kind: "IdentExpr", span: t.span, name: t.text },
         args,
       },
       fields,
@@ -371,7 +371,7 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
     return {
       kind: "StructLitExpr",
       span: p.spanOf(t, rb),
-      typeName: { kind: "NamedType", span: t.span, name: t.text },
+      typeName: { kind: "IdentExpr", span: t.span, name: t.text },
       fields,
     };
   }
@@ -609,7 +609,7 @@ function parsePattern(p: Parser): A.Pattern {
       const dotTok = p.advance();
       const variantTok = p.expect("ident", "variant name after `.`");
       type = {
-        kind: "NamedType",
+        kind: "IdentExpr",
         span: { start: dotTok.span.start, end: variantTok.span.end },
         name: variantTok.text,
         implicitDot: true,

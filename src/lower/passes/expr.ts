@@ -295,7 +295,6 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       };
     case "GenericInstExpr":
       return lowerExpr(ctx, expr.callee);     // type-args baked in post-mono
-    case "NamedType":
     case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":
@@ -512,7 +511,7 @@ function lowerVirtualDispatch(
     // impls (forSymbol === null with NamedType forType — `i32 implements …`).
     // Type-aliases and other shapes don't dispatch through the vtable.
     if (impl.forSymbol !== null && impl.forSymbol.source.kind !== "struct") continue;
-    if (impl.forSymbol === null && impl.decl.forType.kind !== "NamedType") continue;
+    if (impl.forSymbol === null && impl.decl.forType.kind !== "IdentExpr") continue;
     const member = impl.decl.members.find((m) => m.name === methodName);
     if (member === undefined) continue;
     const perArgs = ctx.project.mono.implMethodEntries.get(member);

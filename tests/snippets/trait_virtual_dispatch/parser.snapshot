@@ -25,7 +25,7 @@
         {
           "name": "msg",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "visibility": "private"
@@ -43,7 +43,7 @@
         {
           "name": "reason",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "visibility": "private"
@@ -55,7 +55,7 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "ParseErr"
       },
       "traitName": "Error",
@@ -75,7 +75,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "whereClauses": [],
@@ -116,7 +116,7 @@
     {
       "kind": "ImplDecl",
       "forType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "NetErr"
       },
       "traitName": "Error",
@@ -136,7 +136,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "string"
           },
           "whereClauses": [],
@@ -183,7 +183,7 @@
         {
           "name": "e",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Error"
           },
           "defaultValue": null,
@@ -191,7 +191,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "string"
       },
       "whereClauses": [],
@@ -225,7 +225,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -255,7 +255,7 @@
                         "value": {
                           "kind": "StructLitExpr",
                           "typeName": {
-                            "kind": "NamedType",
+                            "kind": "IdentExpr",
                             "name": "ParseErr"
                           },
                           "fields": [
@@ -305,7 +305,7 @@
                         "value": {
                           "kind": "StructLitExpr",
                           "typeName": {
-                            "kind": "NamedType",
+                            "kind": "IdentExpr",
                             "name": "NetErr"
                           },
                           "fields": [

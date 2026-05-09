@@ -20,7 +20,7 @@ export function lowerTypeExpr(expr: A.TypeExpr, t: MutableTyped, diags: Diagnost
 
 function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: DiagnosticCollector): Type {
   switch (expr.kind) {
-    case "NamedType": {
+    case "IdentExpr": {
       const sym = t.resolved.types.get(expr);
       if (sym === undefined) return TY.unresolved;     // resolver already reported R2007
       return typeFromSymbol(sym, [], expr, t, diags);

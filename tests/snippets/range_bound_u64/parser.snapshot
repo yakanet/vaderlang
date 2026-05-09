@@ -9,7 +9,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -24,7 +24,7 @@
               "name": "n"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "u64"
             },
             "value": {

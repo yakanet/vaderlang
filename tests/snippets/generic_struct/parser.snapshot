@@ -33,7 +33,7 @@
           "type": {
             "kind": "ArrayTypeExpr",
             "element": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "T"
             }
           },
@@ -42,7 +42,7 @@
         {
           "name": "size",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "visibility": "private"
@@ -78,7 +78,7 @@
             {
               "name": "value",
               "type": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "T"
               },
               "defaultValue": null,
@@ -86,7 +86,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "void"
           },
           "whereClauses": [],
@@ -107,7 +107,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "T"
           },
           "whereClauses": [],
@@ -128,7 +128,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "whereClauses": [],
@@ -149,7 +149,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "bool"
           },
           "whereClauses": [],
@@ -164,7 +164,7 @@
       "forType": {
         "kind": "GenericInstType",
         "base": {
-          "kind": "NamedType",
+          "kind": "IdentExpr",
           "name": "Stack"
         },
         "args": [
@@ -177,7 +177,7 @@
       "traitName": "Stackable",
       "traitArgs": [
         {
-          "kind": "NamedType",
+          "kind": "IdentExpr",
           "name": "T"
         }
       ],
@@ -197,7 +197,7 @@
             {
               "name": "value",
               "type": {
-                "kind": "NamedType",
+                "kind": "IdentExpr",
                 "name": "T"
               },
               "defaultValue": null,
@@ -205,7 +205,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "void"
           },
           "whereClauses": [],
@@ -287,7 +287,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "T"
           },
           "whereClauses": [],
@@ -363,7 +363,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "whereClauses": [],
@@ -400,7 +400,7 @@
             }
           ],
           "returnType": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "bool"
           },
           "whereClauses": [],
@@ -442,7 +442,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -462,12 +462,12 @@
               "typeName": {
                 "kind": "GenericInstType",
                 "base": {
-                  "kind": "NamedType",
+                  "kind": "IdentExpr",
                   "name": "Stack"
                 },
                 "args": [
                   {
-                    "kind": "NamedType",
+                    "kind": "IdentExpr",
                     "name": "i32"
                   }
                 ]

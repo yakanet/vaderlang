@@ -50,7 +50,7 @@
         {
           "name": "d",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Direction"
           },
           "defaultValue": null,
@@ -58,7 +58,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "string"
       },
       "whereClauses": [],
@@ -160,7 +160,7 @@
               "name": "d"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "Direction"
             },
             "value": {

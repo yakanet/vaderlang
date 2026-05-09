@@ -67,7 +67,7 @@
         {
           "name": "n",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "defaultValue": null,
@@ -75,7 +75,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "Severity"
       },
       "whereClauses": [],
@@ -169,7 +169,7 @@
         {
           "name": "c",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Color"
           },
           "defaultValue": null,
@@ -177,7 +177,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "string"
       },
       "whereClauses": [],
@@ -253,7 +253,7 @@
         {
           "name": "a",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Color"
           },
           "defaultValue": null,
@@ -262,7 +262,7 @@
         {
           "name": "b",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Color"
           },
           "defaultValue": null,
@@ -270,7 +270,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "bool"
       },
       "whereClauses": [],
@@ -299,7 +299,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -314,7 +314,7 @@
               "name": "c"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "Color"
             },
             "value": {

@@ -32,13 +32,13 @@ export function parseType(p: Parser): A.TypeExpr {
   // matches cleanly on the success arm.
   if (p.match("bang") !== null) {
     const bangEnd = p.peek(-1).span.end;
-    const successVariant: A.TypeExpr = head.kind === "NamedType" && head.name === "void"
-      ? { kind: "NamedType", span: head.span, name: "null" }
+    const successVariant: A.TypeExpr = head.kind === "IdentExpr" && head.name === "void"
+      ? { kind: "IdentExpr", span: head.span, name: "null" }
       : head;
     head = {
       kind: "UnionType",
       span: { start: head.span.start, end: bangEnd },
-      variants: [successVariant, { kind: "NamedType", span: { start: bangEnd, end: bangEnd }, name: "Error" }],
+      variants: [successVariant, { kind: "IdentExpr", span: { start: bangEnd, end: bangEnd }, name: "Error" }],
     };
   }
   // Union: `T | U | V`
@@ -135,16 +135,16 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
   }
   if (t.kind === "kw_null") {
     p.advance();
-    return { kind: "NamedType", span: t.span, name: "null" };
+    return { kind: "IdentExpr", span: t.span, name: "null" };
   }
   if (t.kind === "kw_type") {
     // `type` as a type bound: `(T: type)` — the metatype.
     p.advance();
-    return { kind: "NamedType", span: t.span, name: "type" };
+    return { kind: "IdentExpr", span: t.span, name: "type" };
   }
   if (t.kind === "ident") {
     const name = p.advance();
-    const named: A.NamedType = { kind: "NamedType", span: name.span, name: name.text };
+    const named: A.IdentExpr = { kind: "IdentExpr", span: name.span, name: name.text };
     // Generic instantiation: `Foo(i32, U)`
     if (p.check("lparen")) {
       p.advance();
@@ -171,7 +171,7 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
   }
   p.error("P1005", t.span, `got ${describeToken(t)}`);
   p.advance();
-  return { kind: "NamedType", span: t.span, name: "?" };
+  return { kind: "IdentExpr", span: t.span, name: "?" };
 }
 
 function parseFnType(p: Parser): A.FnTypeExpr {

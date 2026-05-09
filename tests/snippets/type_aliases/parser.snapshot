@@ -25,7 +25,7 @@
         {
           "name": "a",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "int"
           },
           "defaultValue": null,
@@ -34,7 +34,7 @@
         {
           "name": "b",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "int"
           },
           "defaultValue": null,
@@ -42,7 +42,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "int"
       },
       "whereClauses": [],
@@ -73,7 +73,7 @@
         {
           "name": "a",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "double"
           },
           "defaultValue": null,
@@ -82,7 +82,7 @@
         {
           "name": "b",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "double"
           },
           "defaultValue": null,
@@ -90,7 +90,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "double"
       },
       "whereClauses": [],
@@ -119,7 +119,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -134,7 +134,7 @@
               "name": "x"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "int"
             },
             "value": {
@@ -151,7 +151,7 @@
               "name": "y"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "long"
             },
             "value": {
@@ -168,7 +168,7 @@
               "name": "f"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "float"
             },
             "value": {
@@ -185,7 +185,7 @@
               "name": "d"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "double"
             },
             "value": {
@@ -202,7 +202,7 @@
               "name": "b"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "byte"
             },
             "value": {

@@ -11,7 +11,7 @@
         {
           "name": "x",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "f64"
           },
           "visibility": "private"
@@ -19,7 +19,7 @@
         {
           "name": "y",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "f64"
           },
           "visibility": "private"
@@ -45,7 +45,7 @@
           "type": {
             "kind": "ArrayTypeExpr",
             "element": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "T"
             }
           },
@@ -54,7 +54,7 @@
         {
           "name": "len",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "u32"
           },
           "visibility": "private"
@@ -71,7 +71,7 @@
         {
           "name": "N",
           "bound": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "isComptimeValue": true
@@ -83,7 +83,7 @@
           "type": {
             "kind": "ArrayTypeExpr",
             "element": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "u8"
             }
           },

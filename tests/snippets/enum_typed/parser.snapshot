@@ -21,7 +21,7 @@
       "name": "Direction",
       "visibility": "public",
       "repr": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "u8"
       },
       "variants": [
@@ -49,7 +49,7 @@
       "name": "Op",
       "visibility": "public",
       "repr": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "u16"
       },
       "variants": [
@@ -81,7 +81,7 @@
         {
           "name": "d",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "Direction"
           },
           "defaultValue": null,
@@ -89,7 +89,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "string"
       },
       "whereClauses": [],
@@ -184,7 +184,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],
@@ -265,7 +265,7 @@
               "name": "op"
             },
             "type": {
-              "kind": "NamedType",
+              "kind": "IdentExpr",
               "name": "Op"
             },
             "value": {

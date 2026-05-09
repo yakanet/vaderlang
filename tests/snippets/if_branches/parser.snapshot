@@ -11,7 +11,7 @@
         {
           "name": "n",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "i32"
           },
           "defaultValue": null,
@@ -19,7 +19,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "string"
       },
       "whereClauses": [],

@@ -364,30 +364,17 @@ export type Expr =
   // on Expr.kind treat them as unreachable (see `unreachableTypeExprInValuePosition`).
   | TypeExpr;
 
-/** Narrow guard : true iff `e` is one of the seven syntactic type-expression
- *  variants. Useful when traversing an Expr generically and needing to dispatch
- *  to the type-expression handler. */
-export function isTypeExprNode(e: Expr): e is TypeExpr {
-  switch (e.kind) {
-    case "NamedType":
-    case "UnionType":
-    case "FnTypeExpr":
-    case "ArrayTypeExpr":
-    case "TupleTypeExpr":
-    case "GenericInstType":
-    case "TypeParamType":
-      return true;
-    default:
-      return false;
-  }
-}
-
-/** Guard for exhaustive switches on `Expr.kind` : type-expression variants
- *  cannot appear in value-expression positions yet (the parser does not
- *  produce them there). When the typechecker eventually accepts arbitrary
- *  `Expr` in type-demanding positions (Layer 1.D), this helper's call sites
- *  will be revisited. */
-export function unreachableTypeExprInValuePosition(e: TypeExpr): never {
+/** Guard for exhaustive switches on `Expr.kind` : the six remaining
+ *  type-only expression variants (`UnionType`, `FnTypeExpr`,
+ *  `ArrayTypeExpr`, `TupleTypeExpr`, `GenericInstType`, `TypeParamType`)
+ *  cannot appear in value-expression positions yet — the parser does
+ *  not produce them there. `IdentExpr` is shared between type and value
+ *  positions and is therefore not in this guard. When the typechecker
+ *  eventually accepts arbitrary `Expr` in type-demanding positions
+ *  (Layer 1.D), this helper's call sites will be revisited. */
+export function unreachableTypeExprInValuePosition(
+  e: Exclude<TypeExpr, IdentExpr>,
+): never {
   throw new Error(
     `internal: TypeExpr variant '${e.kind}' encountered in value-expression position; ` +
     `the parser should not produce this here (Layer 3 fusion is type-level only for now)`,
@@ -449,6 +436,16 @@ export interface IdentExpr {
   readonly kind: "IdentExpr";
   readonly span: Span;
   readonly name: string;
+  /** Set when the source spelling was a leading-dot reference (`.Foo`)
+   *  rather than a fully-qualified name. Resolution of such names defers
+   *  to the surrounding context (typically the scrutinee of a `match`
+   *  arm or the expected type of an expression). Plain global symbol
+   *  lookup is skipped — the resolver leaves the type unresolved and
+   *  the typechecker walks the contextual variant set instead.
+   *  Prior to Layer 1.B, this field lived on the dedicated `NamedType`
+   *  variant ; absorbing it into `IdentExpr` is the first concrete
+   *  step of the AST fusion. */
+  readonly implicitDot?: boolean;
 }
 
 export interface CallExpr {
@@ -711,26 +708,13 @@ export function forEachPatternBindingKey(
 // ============================================================================
 
 export type TypeExpr =
-  | NamedType
+  | IdentExpr
   | UnionType
   | FnTypeExpr
   | ArrayTypeExpr
   | TupleTypeExpr
   | GenericInstType
   | TypeParamType;
-
-export interface NamedType {
-  readonly kind: "NamedType";
-  readonly span: Span;
-  readonly name: string;
-  /** Set when the source spelling was a leading-dot reference (`.Foo`)
-   *  rather than a fully-qualified name. Resolution of such names
-   *  defers to the surrounding context (typically the scrutinee of a
-   *  `match` arm or the expected type of an expression).  Plain global
-   *  symbol lookup is skipped — the resolver leaves the type unresolved
-   *  and the typechecker walks the contextual variant set instead. */
-  readonly implicitDot?: boolean;
-}
 
 export interface UnionType {
   readonly kind: "UnionType";
@@ -761,7 +745,7 @@ export interface TupleTypeExpr {
 export interface GenericInstType {
   readonly kind: "GenericInstType";
   readonly span: Span;
-  readonly base: NamedType;
+  readonly base: IdentExpr;
   readonly args: readonly TypeExpr[];
 }
 

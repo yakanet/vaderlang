@@ -592,7 +592,7 @@ function implMatchesTarget(entry: ImplEntry, target: Type): boolean {
   }
   if (target.kind === "Primitive") {
     return entry.forSymbol === null
-      && entry.decl.forType.kind === "NamedType"
+      && entry.decl.forType.kind === "IdentExpr"
       && entry.decl.forType.name === target.name;
   }
   return false;

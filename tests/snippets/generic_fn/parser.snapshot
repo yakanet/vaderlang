@@ -39,7 +39,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "T"
       },
       "whereClauses": [],
@@ -85,7 +85,7 @@
         {
           "name": "fallback",
           "type": {
-            "kind": "NamedType",
+            "kind": "IdentExpr",
             "name": "T"
           },
           "defaultValue": null,
@@ -93,7 +93,7 @@
         }
       ],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "T"
       },
       "whereClauses": [],
@@ -168,7 +168,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "NamedType",
+        "kind": "IdentExpr",
         "name": "i32"
       },
       "whereClauses": [],

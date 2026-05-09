@@ -241,7 +241,6 @@ function walkExpr(
     case "GenericInstExpr":
       walkExpr(expr.callee, scope, outCaptures, outSeen, ctx);
       return;
-    case "NamedType":
     case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":

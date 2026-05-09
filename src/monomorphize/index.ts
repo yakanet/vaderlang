@@ -219,7 +219,7 @@ export function mangle(name: string, program: ResolvedProgram, typeArgs: readonl
 }
 
 function forTypeName(t: A.TypeExpr): string {
-  if (t.kind === "NamedType") return t.name;
+  if (t.kind === "IdentExpr") return t.name;
   if (t.kind === "GenericInstType") return t.base.name;
   return "?";
 }

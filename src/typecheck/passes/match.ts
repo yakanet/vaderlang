@@ -35,7 +35,7 @@ export function inferMatch(
     if (arm.pattern.kind === "TuplePattern" && isIrrefutableTuple(arm.pattern)) hasWildcard = true;
     let narrowed: Type | null = null;
     if (arm.pattern.kind === "IsPattern") {
-      const variantTy = arm.pattern.type.kind === "NamedType" && arm.pattern.type.implicitDot === true
+      const variantTy = arm.pattern.type.kind === "IdentExpr" && arm.pattern.type.implicitDot === true
         ? resolveImplicitDotVariant(arm.pattern.type, scrut, t, diags)
         : lowerTypeExpr(arm.pattern.type, t, diags);
       coveredVariants.add(displayType(variantTy));
@@ -98,7 +98,7 @@ export function inferMatch(
  *  the variant isn't found ; downstream coverage checks still run on
  *  whatever was emitted so cascading errors stay minimal. */
 function resolveImplicitDotVariant(
-  type: A.NamedType, scrut: Type, t: MutableTyped, diags: DiagnosticCollector,
+  type: A.IdentExpr, scrut: Type, t: MutableTyped, diags: DiagnosticCollector,
 ): Type {
   if (scrut.kind === "Union") {
     for (const v of scrut.variants) {

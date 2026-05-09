@@ -40,7 +40,12 @@ interface MutableProgram {
   module: Module;
   source: A.Program;
   idents: Map<A.IdentExpr, Symbol>;
-  types: Map<A.NamedType, Symbol>;
+  /** Resolution table for `IdentExpr` nodes that appear in *type* position
+   *  (struct field types, fn return types, where-clause bounds, etc.). Keyed
+   *  by node identity, so it does not collide with `idents` despite both
+   *  using the same `IdentExpr` shape : the parser creates distinct objects
+   *  for expr-position vs type-position references. */
+  types: Map<A.IdentExpr, Symbol>;
   params: Map<A.FnParam, Symbol>;
   /** Symbol per leaf SimpleBinding. For a simple `x := expr` the LetStmt's
    *  `binding` IS the SimpleBinding key ; for tuple destructure each leaf is
@@ -285,16 +290,16 @@ function materializeSamMembers(
   }
 }
 
-/** Clone a TypeExpr tree, replacing any `NamedType` whose name matches a key
- *  in `subst` with a clone of the corresponding replacement. Cloning is
- *  required so the resolver records its own per-impl side-table entries
- *  rather than overwriting the trait's. */
+/** Clone a TypeExpr tree, replacing any name-reference (`IdentExpr` at the
+ *  type level) whose name matches a key in `subst` with a clone of the
+ *  corresponding replacement. Cloning is required so the resolver records
+ *  its own per-impl side-table entries rather than overwriting the trait's. */
 function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeExpr>): A.TypeExpr {
   switch (expr.kind) {
-    case "NamedType": {
+    case "IdentExpr": {
       const replacement = subst.get(expr.name);
       if (replacement !== undefined) return cloneTypeExpr(replacement);
-      return { kind: "NamedType", span: expr.span, name: expr.name };
+      return { kind: "IdentExpr", span: expr.span, name: expr.name };
     }
     case "UnionType":
       return { kind: "UnionType", span: expr.span,
@@ -311,7 +316,7 @@ function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeE
         elements: expr.elements.map((e) => substituteTypeExpr(e, subst)) };
     case "GenericInstType":
       return { kind: "GenericInstType", span: expr.span,
-        base: { kind: "NamedType", span: expr.base.span, name: expr.base.name },
+        base: { kind: "IdentExpr", span: expr.base.span, name: expr.base.name },
         args: expr.args.map((a) => substituteTypeExpr(a, subst)) };
     case "TypeParamType":
       return { kind: "TypeParamType", span: expr.span, name: expr.name };
@@ -446,8 +451,8 @@ function resolveWhereClause(w: A.WhereClause, scope: Scope, p: MutableProgram, i
 
 function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {
   switch (t.kind) {
-    case "NamedType": {
-      // Implicit-dot named types (`is .Foo`) skip global lookup ; the
+    case "IdentExpr": {
+      // Implicit-dot named references (`is .Foo`) skip global lookup ; the
       // typecheck pass resolves them against the surrounding context
       // (scrutinee union variant, expected type, …).
       if (t.implicitDot === true) return;
@@ -617,7 +622,6 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       return;
     case "DotVariantExpr":
       return;
-    case "NamedType":
     case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":

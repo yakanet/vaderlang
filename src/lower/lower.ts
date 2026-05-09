@@ -127,7 +127,7 @@ function vtableReceiverType(impl: { forSymbol: Symbol | null; decl: A.ImplDecl }
     if (impl.forSymbol.source.kind !== "struct") return null;
     return { kind: "Struct", symbol: impl.forSymbol, args: [] };
   }
-  if (impl.decl.forType.kind !== "NamedType") return null;
+  if (impl.decl.forType.kind !== "IdentExpr") return null;
   const prim = primitiveFromName(impl.decl.forType.name);
   return prim;
 }

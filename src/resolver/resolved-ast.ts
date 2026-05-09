@@ -19,8 +19,12 @@ export interface ResolvedProgram {
   /** Resolution of every value-position identifier. */
   readonly idents: ReadonlyMap<A.IdentExpr, Symbol>;
 
-  /** Resolution of every named type. */
-  readonly types: ReadonlyMap<A.NamedType, Symbol>;
+  /** Resolution of every name-reference appearing in type position
+   *  (`StructField.type`, fn param/return types, `where` clauses, …).
+   *  Keyed by node identity ; does not collide with `idents` even though
+   *  both maps now use `IdentExpr` keys, because the parser produces
+   *  distinct objects for type-position vs value-position references. */
+  readonly types: ReadonlyMap<A.IdentExpr, Symbol>;
 
   /** Symbols introduced for fn params (incl. lambda params). */
   readonly params: ReadonlyMap<A.FnParam, Symbol>;

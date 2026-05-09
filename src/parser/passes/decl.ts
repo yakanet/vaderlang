@@ -545,7 +545,7 @@ function parseStructTypeParamList(p: Parser): A.TypeParam[] {
           ? `\`${name.text}\` must be written \`$${name.text}\``
           : `\`${name.text}\` must be prefixed with \`$\``;
         p.error("P1018", p.spanOf(start, p.peek(-1)), hint);
-      } else if (bound?.kind === "NamedType" && bound.name === "type") {
+      } else if (bound?.kind === "IdentExpr" && bound.name === "type") {
         p.error("P1019", p.spanOf(start, p.peek(-1)),
           `\`: type\` bound is redundant; write \`$${name.text}\``);
         bound = null;
