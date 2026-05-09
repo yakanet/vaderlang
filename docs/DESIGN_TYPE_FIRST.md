@@ -535,4 +535,632 @@ type system is the right tool for the language you want to build.
 
 ---
 
-*Last updated 2026-05-09. Update this when the conversation resumes.*
+## 11. Path 2 — design sketch (working draft)
+
+> **Status**: design notes from the 2026-05-09 session exploring what
+> Path 2 concretely looks like. Not a commitment to Path 2 yet — this
+> records the *shape* of Path 2 if chosen, so the §10 comparison can
+> be made on substance rather than abstraction.
+
+The headline : Path 2's surface stays close to current Vader. Heavy
+machinery moves into the compiler, not into user-facing syntax.
+`comptime`, `: type`, `-> type` **never appear in user code** — they
+exist as internal desugaring only. Users keep writing the `struct($T)`
+and `$T`-phantom forms they already know.
+
+### Decisions, by layer
+
+| # | Layer | Decision | Closes §8 |
+|---|---|---|---|
+| 1 | `type` semantic model | Hybrid : opaque at language level ; member access (`T.zero`, `T.size`) resolves to intrinsics | Q1 |
+| 2 | Runtime existence | Comptime-only ; mono pass survives but migrates into the comptime engine | Q1, Q2, Q12 |
+| 3 | AST | Fuse `Expr` and `TypeExpr` into one `Expr` family | — |
+| 4 | Type-producing fns | Pure + memoised by `(generator, args)` | — |
+| 4 (sugar) | User-facing syntax | Type-params declared in `[]` brackets : `struct[T]`, `type Foo[T] = ...`, `fn[T]() = expr` ; bounds attach inline (`[T: Bound]`) ; `&` composes ; never expose `comptime`/`: type`/`-> type` | Q3 |
+| 5a | Explicit type-args | Uniform `[]` for type-args at both declaration and call site : `MutableMap[i32, string]`, `sum[i64](arr)` | Q4 |
+| 5b | Comptime contagion | `type`-typed expressions must be comptime-evaluable ; the static type carries the contagion | Q7 |
+| 5c | `is` operator | Stays syntactic and lowers to a tag comparison ; not coupled to comptime type-values | — |
+
+### Layer 1 — `type` semantic model
+
+A value of static type `type` is opaque. The compiler reserves
+member-access syntax on it (`T.zero`, `T.size`) and lowers each access
+to a dedicated intrinsic. The internal type-table representation stays
+free to evolve without breaking user source.
+
+### Layer 2 — comptime-only
+
+Types live exclusively at comptime. No runtime `type` values, no RTTI.
+The current mono pass is **not deleted** : it moves into the comptime
+engine. Calling `fn($T, ...)` at a site partially-evaluates the fn
+with `T` bound, producing a specialised version. Caching by
+`(fn, args)` tuple = same dedup as today's mono.
+
+### Layer 3 — fused AST
+
+Single `Expr` family. `i32 | string` becomes the value-level `|`
+applied to two `type` values. The parser stops switching modes between
+type and value contexts ; the typechecker uses position to demand
+`type`-typed expressions where required (`:`, `where`, generic arg
+slot).
+
+This is the **largest compiler-side chantier** in Path 2 — it
+eliminates the `TypeExpr` dual resolver walk entirely.
+
+### Layer 4 — purity + memoisation
+
+Any expression producing a `type` value is :
+- **deterministic** in its inputs (no I/O, no global mutable state) ;
+- **memoised** by `(generator, args)` so `MutableMap[i32, string]`
+  called from two sites yields the *same* type.
+
+Without memoisation, structural identity breaks and interop is lost.
+Without purity, memoisation is ill-defined.
+
+### Layer 4 (sugar) — surface syntax
+
+Type-params are declared in `[]` brackets at the declaration site
+(locality : the bound sits with its param). The `&` operator composes
+constraints — same operator as Vader's existing type-intersection,
+which is sound because composing trait bounds *is* an intersection of
+satisfaction sets.
+
+```vader
+MutableMap :: struct[K: Hash & Eq, V] {
+    buckets: (Entry[K, V] | null)[]
+    size: usize
+}
+```
+
+Computed type aliases (existing `TypeAliasDecl`, slightly extended) :
+
+```vader
+type Maybe[T] = T | null
+type Pair[A, B] = struct { first: A, second: B }
+```
+
+Fn-form, only when logic is required :
+
+```vader
+boxed :: fn[T]() = if size_of(T) > 16 { Heap[T] } else { Stack[T] }
+derive_eq :: fn[T]() = impl_block { fn equals(a: T, b: T) -> bool { ... } }
+```
+
+Return-type inference eliminates `-> type`. The bracketed type-param
+position implies `comptime`. Side-by-side with Zig :
+
+```zig
+// Zig
+fn ArrayList(comptime T: type) type {
+    return struct { items: []T, len: usize };
+}
+```
+
+```vader
+// Vader Path 2
+ArrayList :: struct[T] { items: T[], len: usize }
+```
+
+Same semantics. One line. No `comptime`, no `type` return, no
+`return`, no `fn` ceremony.
+
+The previous Vader `$T` phantom syntax does **not** survive Path 2 —
+all type-params are explicit in `[]`. This is a real source-level
+break for current Vader code, accounted for in the migration cost
+(see §6).
+
+### Layer 5a — uniform `[]` for type-args
+
+Single regime : type-args always go in `[]`, both at declaration and
+at call site. No second slot to remember.
+
+- **Type generators** : `MutableMap[i32, string]`, `Maybe[i32]`,
+  `Pair[i32, string]`.
+- **Mixed-param fns** : inference covers ~95 % of call sites. When it
+  fails, the override stays `[]` : `sum[i64](arr)`.
+
+The `[]`/`()` split mirrors the Rust/Kotlin/Java convention : brackets
+for type-arg positions, parens for value-arg positions. The single
+rule applies uniformly to declarations and call sites — no asymmetry
+between defining `MutableMap[K, V]` and instantiating it as
+`MutableMap[i32, string]`.
+
+### Layer 5b — comptime contagion
+
+A value of static type `type` **must** be comptime-evaluable. The
+typechecker rejects runtime-dependent type expressions :
+
+```vader
+let t: type = if user_input == "fast" { i32 } else { i64 }   // ERROR
+sum[t](arr)
+```
+
+and accepts comptime-known ones :
+
+```vader
+@comptime IDX_TYPE :: if TARGET_PTR_SIZE == 64 { i64 } else { i32 }
+sum[IDX_TYPE](arr)   // OK
+```
+
+Consequence : `let T: type = ...` is implicitly comptime by virtue of
+its type. No new "runtime type" category to spec.
+
+### Layer 5c — `is` operator unchanged
+
+`if x is SomeVariant` keeps its current semantics : the RHS is a type
+name resolved at compile time and lowered to a tag comparison. **Not
+coupled to comptime type-values.** Reason : `is` operates on runtime
+tags ; types are erased at runtime (Layer 2) ; coupling them would
+resurrect RTTI for no real gain. Users who want dispatch on a
+comptime-computed type go through `match` or a dispatch table.
+
+### Open after Layer 5
+
+§8 questions still unanswered after these decisions :
+- **Q5, Q6** — trait/`where` as comptime predicates, or kept as a
+  distinct concept ?
+- **Q8** — comptime evaluation budget (Zig has one ; Vader doesn't).
+- **Q9** — reflection scope. Layer 6 — next session.
+- **Q10** — hygienic macros vs `inline for`-only.
+- **Q11** — migration phasing (Path 2 big-bang vs Path 3 incremental).
+
+---
+
+## 12. Layer 6 — reflection scope
+
+> Decisions from the same 2026-05-09 session, continuing §11.
+
+### 6a — Iteration syntax : `@comptime for`
+
+```vader
+@comptime for f in @fields(T) {
+    println("${f.name}: ${f.type}")
+}
+```
+
+Reuses the existing `@comptime` annotation. Marks the structural shift
+from runtime loop to comptime unroll without inventing a new keyword
+(unlike Zig's `inline for`).
+
+**Generalisation rule** : `@comptime` is a statement-level prefix
+meaning « I require comptime evaluation here, fail otherwise ». For
+`for` it is structurally necessary because a bare `for` reads as
+runtime. For `if` it is not — Layer 5b's contagion already makes an
+`if` over a comptime condition evaluate at comptime. `@comptime if`
+can be added later as an explicit assertion form if real demand
+appears.
+
+### 6b — `@fields(T)` returns `Field[]`
+
+A `Field` struct is declared once in `std/reflect` :
+
+```vader
+type Field = struct {
+    name: string
+    type: type
+    offset: usize
+}
+```
+
+`@fields(T)` returns a comptime-known `Field[]` ; the `@comptime for`
+loop unrolls it. Choosing a struct over bare strings means each piece
+of metadata travels together — no need for `@field_type(T, name)`,
+`@field_offset(T, name)`, etc. — and `Field` becomes a reusable type
+that user comptime code can pass around.
+
+### 6c — Dynamic field access via `@field`
+
+```vader
+@comptime for f in @fields(T) {
+    let value = @field(x, f.name)
+    ...
+}
+```
+
+Use the `@field(x, name)` intrinsic, not a `x.${name}` interpolation
+syntax. Reasons :
+- `${...}` is already the string interpolation form ; reusing it
+  inside an access expression forces contextual lookahead in the
+  parser.
+- The intrinsic is explicit — a reader sees that this is reflective
+  access, not a static field read.
+- Compositional : `@field` accepts any comptime string expression.
+
+If the pattern becomes pervasive, sugar can be layered on top later.
+We start with the primitive.
+
+### Reflection surface — primitive vs derived
+
+**Primitive** (compiler intrinsics) :
+
+| Intrinsic | Returns | Role |
+|---|---|---|
+| `@type_of(x)` | `type` | Static type of an expression |
+| `@type_name(T)` | `string` | Printable name |
+| `@type_kind(T)` | `TypeKind` | struct / enum / union / primitive / ... |
+| `@size_of(T)` | `usize` | Size in bytes |
+| `@align_of(T)` | `usize` | Alignment |
+| `@fields(T)` | `Field[]` | Field introspection |
+| `@field(x, name)` | depends | Dynamic field access |
+| `@type_args(T)` | `type[]` | Generic args ; `MutableMap[i32, string]` → `[i32, string]` |
+
+**Derived** (in stdlib, written in Vader) :
+- `is_struct(T)`, `is_enum(T)`, `is_union(T)`, ... — wrappers over
+  `@type_kind`.
+- Type equality `type_eq(T, U)` — direct comparison on `type` values.
+- Field search by predicate — `@comptime for` over `@fields`.
+- `@derive(Eq)`, `@derive(Display)`, etc. — user-writable now,
+  not compiler-magic.
+
+### Open after Layer 6
+
+§8 questions still unanswered :
+- **Q5, Q6** — trait/`where` as comptime predicates. Next layer.
+- **Q8** — comptime evaluation budget.
+- **Q10** — hygienic macros vs `@comptime for`-only.
+- **Q11** — migration phasing.
+
+---
+
+## 13. Layer 7 — traits & `where` (Q5, Q6)
+
+> Decisions from the same 2026-05-09 session, continuing §12. Note :
+> the surface form here uses the bracketed `[T: Bound]` syntax chosen
+> in §11 Layer 5a (revised) — `$T` does not exist in Path 2.
+
+### 7a — `trait` stays declarative ; bounds are comptime predicates
+
+A `trait` declaration bundles three things :
+1. An **obligation** — « T must support these methods with these
+   signatures ».
+2. A **method namespace** — when `T: Foo` holds, `x.foo()` resolves.
+3. Optionally, **default impls**.
+
+Of these, (1) is exactly a comptime predicate on `T`. (2) and (3)
+remain attached to the `trait` declaration as organisation. Therefore :
+- `trait` stays a declarable concept (sugar, namespace, defaults).
+- `T: Foo` is sugar for a comptime predicate the typechecker
+  evaluates.
+- No new sub-system — bounds are predicates, predicates are comptime
+  fns returning `bool`.
+
+### 7b — Bound surface : inline in `[]`, composed with `&`
+
+Bounds attach to the type-param at declaration site. `&` composes
+constraints (intersection of satisfaction sets — same operator as
+Vader's existing type-intersection) :
+
+```vader
+sum :: fn[T: Numeric](arr: T[]) -> T = arr.fold(T.zero, +)
+
+fast_sum :: fn[T: Add & Zero](arr: T[]) -> T { ... }
+
+zip :: fn[T: Eq, U: Eq](a: T[], b: U[]) -> Pair[T, U][] { ... }
+
+MutableMap :: struct[K: Hash & Eq, V] {
+    buckets: (Entry[K, V] | null)[]
+    size: usize
+}
+```
+
+### 7c — Composition primitives : `trait Foo = A & B`
+
+Two declaration shapes :
+
+```vader
+// Pure alias — Foo is just shorthand for the conjunction
+trait Numeric[T] = Add & Sub & Mul & Zero
+trait Hashable[T] = Hash & Eq
+
+// Trait with own methods that also requires others
+trait Numeric[T] : Add & Sub & Mul & Zero {
+    fn sign(self: T) -> i8
+}
+```
+
+Both desugar to a comptime predicate. The pure-alias form is just a
+fn returning `bool`. The with-methods form additionally registers a
+method-set in the typechecker. Composition is unbounded — a trait can
+require a previously-composed trait, etc.
+
+### 7d — `where` : escape hatch for non-trait predicates
+
+`where` keeps its place but its role narrows : it carries comptime
+predicates that don't fit the `T: Bound` pattern. Typically size /
+alignment / kind constraints, or predicates relating multiple params :
+
+```vader
+fast :: fn[T: Numeric](arr: T[]) -> T
+    where @size_of(T) <= 64
+{ ... }
+
+is_pod :: fn[T]() -> bool = @type_kind(T) == TypeKind.struct and ...
+
+fast_copy :: fn[T](src: T[], dst: T[])
+    where is_pod(T)
+{ ... }
+```
+
+Combined surface : trait bounds inline in `[]`, complex predicates in
+`where`. Most signatures will not need `where` at all.
+
+### 7e — Desugar : `T: Foo` → `@satisfies(T, Foo)`
+
+The compiler translates the bound surface into a uniform comptime
+predicate evaluation. Conceptually :
+
+```vader
+fn[T: Numeric](arr: T[]) -> T
+// is internally :
+fn[T](arr: T[]) -> T where @satisfies(T, Numeric)
+```
+
+`@satisfies(T, Trait)` is the intrinsic that, at comptime :
+1. For each method required by `Trait`, verifies T provides one with
+   matching signature.
+2. Returns `true`/`false`.
+
+The typechecker, in addition to enforcing the predicate, registers the
+trait's method-set — so inside the body, `x.foo()` (with `x: T`)
+resolves through the trait obligation. This dual role is local to the
+typechecker, not a separate semantic category.
+
+### Decisions table
+
+| # | Decision | Closes §8 |
+|---|---|---|
+| 7a | `trait` stays declarative ; bounds are comptime predicates | Q6 |
+| 7b | Bounds attach to type-params in `[T: Bound]` ; `&` composes | Q5 |
+| 7c | `trait Foo[T] = A & B` (alias) and `trait Foo[T] : A & B { ... }` (with methods) | — |
+| 7d | `where` reserved for non-trait predicates and multi-param relations | Q5 |
+| 7e | All bounds desugar to `@satisfies` comptime check | — |
+
+### Open after Layer 7
+
+§8 questions still unanswered :
+- **Q8** — comptime evaluation budget.
+- **Q10** — hygienic macros vs `@comptime for`-only.
+- **Q11** — migration phasing (still : Path 2 big-bang vs Path 3
+  incremental).
+
+Fresh sub-question raised by the bracketed surface : **impl &
+coherence** (next layer). How does `impl Trait for Type` look ?
+Orphan rules ? Default impl resolution ? Resolution order when
+multiple impls match ?
+
+---
+
+## 14. Layer 8 — impl & coherence
+
+> Decisions from the same 2026-05-09 session, continuing §13.
+
+### 8a — `Type implements Trait[Args]` keeps Vader's existing form
+
+Vader already has `Type implements Trait(Args)`. Path 2 keeps the
+exact form, only migrating `()` to `[]` in line with §11 Layer 5a :
+
+```vader
+// Today (pre-Path 2) :
+StringBytes implements Iterator(u8)
+
+// Path 2 :
+StringBytes implements Iterator[u8]
+```
+
+Natural reading order — « the type implements the trait » — preserved.
+No Rust-style `impl Trait for Type { ... }` block.
+
+### 8b — Methods are inherent ; `implements` verifies at declaration
+
+`implements` is **not** a block. Methods live inherently on the type ;
+the `implements` line is a declarative conformance assertion the
+compiler verifies :
+
+```vader
+type Vec3 = struct { x: f32, y: f32, z: f32 }
+
+fn add(self: Vec3, other: Vec3) -> Vec3 = ...
+fn zero() -> Vec3 = ...
+fn dot(self: Vec3, other: Vec3) -> f32 = ...
+
+Vec3 implements Add
+Vec3 implements Zero
+Vec3 implements Numeric
+```
+
+At each `implements` line, the compiler checks the type provides every
+required method with matching signature. Missing or mismatched
+methods → error localised at the `implements` line.
+
+Three consequences :
+- **Mutualised methods** — one `add` definition can satisfy any number
+  of traits whose requirement matches.
+- **No impl duplication** — single method namespace per type.
+- **Localised errors** — conformance verified once, at declaration.
+
+### 8c — Explicit conformance, no structural inference
+
+Without `Vec3 implements Add`, the type does **not** satisfy an `Add`
+bound, even if structurally it has a matching `add`. Intent is
+declared, not guessed. Kills the « accidental satisfaction » failure
+mode of pure structural matching :
+
+```vader
+sum :: fn[T: Add](arr: T[]) -> T = ...
+sum(my_vec3_array)   // ERROR if `Vec3 implements Add` is absent
+```
+
+### 8d — Default methods inject as inherent at `implements` site
+
+Trait defaults synthesise inherent methods on the type when the
+`implements` line is processed :
+
+```vader
+trait Eq[T] {
+    fn equals(self: T, other: T) -> bool
+    fn not_equals(self: T, other: T) -> bool = !self.equals(other)
+}
+
+type Vec3 = ...
+fn equals(self: Vec3, other: Vec3) -> bool = ...
+
+Vec3 implements Eq
+// `v.not_equals(w)` valid after this line — synthesised from default
+```
+
+Override : declare an inherent method with the same name before
+`implements`. The user-provided method shadows the default.
+
+### 8e — Orphan rule (light) : own `Type` or own `Trait`
+
+`Type implements Trait[Args]` is legal only in the module that owns
+`Type` or the module that owns `Trait`. Third-party impls — where
+neither side is owned — are forbidden.
+
+Sufficient to prevent :
+- Multiple conflicting impls from different modules.
+- Surprise impls appearing through transitive imports.
+
+Rust's blanket-impl coherence is more elaborate ; not needed for
+Path 2.
+
+### 8f — Method conflict resolution
+
+If two traits both require a method `foo` :
+- **Same signature** → no conflict. One inherent method satisfies
+  both. This mutualisation is a feature.
+- **Different signatures** → genuine conflict. The type cannot
+  satisfy both simultaneously. Error at the second `implements`.
+
+Precedence : inherent methods always win over synthesised defaults —
+the user explicitly overrode.
+
+### 8g — No dyn dispatch in Path 2
+
+Trait objects (`dyn Trait` à la Rust) are deferred. Vader's tagged
+unions (`A | B | C`) cover the closed-set runtime polymorphism case ;
+open-set dyn dispatch is added later if real demand surfaces.
+
+### Decisions table
+
+| # | Decision |
+|---|---|
+| 8a | `Type implements Trait[Args]` (existing Vader form, `()` → `[]`) |
+| 8b | Methods inherent on type ; `implements` verifies at declaration |
+| 8c | Explicit conformance required ; no structural inference |
+| 8d | Defaults inject as inherent methods at `implements` site |
+| 8e | Orphan rule (light) — own Type or own Trait |
+| 8f | Same-signature method satisfies multiple traits ; mutualisation |
+| 8g | No dyn dispatch in Path 2 ; tagged unions cover closed-set case |
+
+### Open after Layer 8
+
+§8 questions still unanswered :
+- **Q8** — comptime evaluation budget.
+- **Q10** — hygienic macros vs `@comptime for`-only.
+- **Q11** — migration phasing (Path 2 big-bang vs Path 3 incremental).
+
+---
+
+## 15. Closing — §8 remaining open questions
+
+> Decisions from the same 2026-05-09 session, closing the §8 list.
+
+### Q8 — Comptime evaluation budget
+
+Instruction-count budget on the comptime VM, default 1M instructions
+per comptime fn, overridable via `@eval_budget(N)` annotation on a
+fn or block.
+
+Why instruction-count over wall-clock : deterministic, reproducible
+across machines, stable for tests and CI. Wall-clock is non-portable.
+
+Default 1M is generous — enough for `@derive` over structs with ~50
+fields, deeply recursive type generators, etc. Cases that need more
+raise the budget locally :
+
+```vader
+@eval_budget(10_000_000)
+big_derive :: fn[T]() -> impl_block { ... }
+```
+
+Error at exhaustion is explicit : « comptime budget exhausted in fn
+`derive_eq` after 1000000 instructions ; raise via `@eval_budget(N)` ».
+
+### Q10 — No hygienic macros ; structured comptime values instead
+
+No AST-level macros in Path 2. Reflection + comptime + structured
+comptime values cover the realistic cases (`@derive`, serialisation,
+hashing, pretty-printing).
+
+Mechanism : a builtin `impl_block` comptime value type. A fn returning
+`impl_block` is integrated by the compiler as if it were a textual
+`Type implements Trait { ... }` declaration :
+
+```vader
+@derive(Eq)
+type Vec3 = struct { x: f32, y: f32, z: f32 }
+```
+
+Desugars to :
+
+```vader
+Eq_for_Vec3 :: fn() -> impl_block {
+    return impl_block[Vec3] {
+        @comptime for f in @fields(Vec3) {
+            // synthesise per-field equality
+        }
+    }
+}
+```
+
+No AST manipulation — just comptime evaluation producing a structured
+value the compiler accepts. Stays clean. True hygienic macros, if
+ever needed, are an additive feature beyond Path 2.
+
+### Q11 — Work directly on `main`
+
+No dedicated branch. Vader has no external users yet ; leaving `main`
+intermediate during migration costs nothing. Branching adds overhead
+(rebase load, double test infra, merge friction) without benefit in
+this context.
+
+Concrete ordering — each step makes the next evaluable in isolation :
+1. Fuse `Expr` / `TypeExpr` AST (Layer 3) — foundation.
+2. `type` builtin + reflection intrinsics (Layers 1-2).
+3. Comptime engine extended for type-as-value (Layer 4).
+4. Migrate surface syntax to `[]` (Layers 4-sugar, 5a).
+5. Desugar traits to `@satisfies` (Layers 7-8).
+6. Migrate stdlib + tests + snapshots.
+
+If a step stalls, fallback is Path 3 (parallel infrastructure) — but
+it's not the first-order strategy.
+
+### §8 — final state
+
+All §8 open questions are now closed :
+
+| § | Question | Closing layer |
+|---|---|---|
+| Q1 | Type representation (erased / carried) | Layer 1, 2 |
+| Q2 | Runtime representation of `type` | Layer 2 |
+| Q3 | `$T` sugar vs explicit | Layer 4-sugar (revised) — `[T: Bound]` instead |
+| Q4 | Explicit type-args at call sites | Layer 5a |
+| Q5 | Trait bounds form | Layer 7 |
+| Q6 | Traits as special concept vs predicates | Layer 7 |
+| Q7 | Comptime / runtime boundary | Layer 5b |
+| Q8 | Comptime budget | Layer 9 (this section) |
+| Q9 | Reflection scope | Layer 6 |
+| Q10 | Macros vs `@comptime for` only | Layer 9 (this section) |
+| Q11 | Migration phasing | Layer 9 (this section) |
+| Q12 | Where mono lives | Layer 2 |
+
+The Path 2 design is now specified end-to-end in §11–15. From here,
+implementation can begin against the ordering listed in Q11.
+
+---
+
+*Last updated 2026-05-09. §11–15 added during the design session
+exploring full type-first ; §8 fully closed. §11 Layer 4-sugar and
+5a revised when the bracketed `[T: Bound]` surface was chosen over
+the `$T` + `where` form.*
