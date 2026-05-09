@@ -601,10 +601,10 @@ The crowning piece — `boxed :: fn[T]() = if @size_of(T) > 16 { Heap[T] } else 
 
 ##### Milestone B.6 — Computed type aliases via `type` keyword
 
-`type Maybe[T] = T | null` and `type Pair[A, B] = struct { first: A, second: B }`. The TypeAliasDecl path probably already handles the union-returning form ; the struct-literal-as-type-expression form needs the comptime engine to fold the struct literal into a Type value.
+`Maybe :: type[T] T | null` (Vader's TypeAliasDecl surface ; the design doc spells it `type Maybe[T] = T | null`) and `Pair :: type[A, B] struct { first: A, second: B }`. The TypeAliasDecl path handles the union-returning form ; the struct-literal-as-type-expression form needs the comptime engine to fold the struct literal into a Type value.
 
-- [ ] **Verify** `type Maybe[T] = T | null` works today end-to-end. If yes, mark complete.
-- [ ] **Add struct-literal-as-type** — `type Pair[A, B] = struct { first: A, second: B }`. The body is a struct literal *expression* whose static type is `TypeMeta` ; the comptime engine evaluates it into a (synthesised, anonymous) `Struct` Type.
+- [x] **Verified** `Maybe :: type[T] T | null` and `Pair :: type[A, B] A | B` work end-to-end via TypeAliasDecl with bracketed type-params. Snippet : `tests/snippets/generic_type_alias/`. Required a typecheck fix in `typeFromSymbol`'s `type-alias` arm — type-param symbols live in their decl's local scope (registered by `bindTypeParam`), not in `module.symbols` ; switched to `buildStructSubst` which already had the right plumbing.
+- [ ] **Add struct-literal-as-type** — `Pair :: type[A, B] struct { first: A, second: B }`. The body is a struct literal *expression* whose static type is `TypeMeta` ; the comptime engine evaluates it into a (synthesised, anonymous) `Struct` Type.
 
 #### Layer 5a — uniform `[]` for type-args at call sites
 

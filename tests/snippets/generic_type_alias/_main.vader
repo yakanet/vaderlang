@@ -1,0 +1,34 @@
+// Generic type aliases (Layer 4 milestone B.6 — partial). The bracketed
+// type-param head `Name :: type[T] <body>` substitutes T at every use
+// site `Name[i32]`. Previously the typechecker's `type-alias` arm in
+// `typeFromSymbol` looked up type-params via `module.symbols.get(name)`
+// (the wrong table — type-params live in their decl's local scope) and
+// the substitution silently no-op'd, leaving `$T` unsubstituted.
+
+import "std/io" { println }
+
+export Maybe :: type[T] T | null
+
+export Pair  :: type[A, B] A | B
+
+main :: fn() -> i32 {
+    x: Maybe[i32] = 42
+    y: Maybe[i32] = null
+
+    match x {
+        is null -> println("x is null")
+        is i32  -> println("x = ${x}")
+    }
+    match y {
+        is null -> println("y is null")
+        is i32  -> println("y = ${y}")
+    }
+
+    p: Pair[i32, string] = "hello"
+    match p {
+        is i32    -> println("pair int   = ${p}")
+        is string -> println("pair str   = ${p}")
+    }
+
+    return 0
+}

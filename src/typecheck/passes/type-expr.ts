@@ -20,7 +20,7 @@ import { err } from "../diag.ts";
 import type { Type } from "../types.ts";
 import { TY, substitute, unionOf } from "../types.ts";
 
-import type { MutableTyped } from "../ctx.ts";
+import { buildStructSubst, type MutableTyped } from "../ctx.ts";
 
 export function lowerExprAsType(expr: A.Expr, t: MutableTyped, diags: DiagnosticCollector): Type {
   const result = lowerExprAsTypeInner(expr, t, diags);
@@ -116,12 +116,11 @@ export function typeFromSymbol(
           err(diags, "T3021", at.span, `${sym.name} expects ${params.length} arg(s), got ${args.length}`);
           return base;
         }
-        const typeParams = new Map<number, Type>();
-        for (let i = 0; i < params.length; i++) {
-          const tp = t.resolved.module.symbols.get(params[i]!.name);
-          if (tp !== undefined) typeParams.set(tp.id, args[i]!);
-        }
-        return substitute(base, { typeParams });
+        // Resolve type-param symbols via the cross-module `typeParamSymbols`
+        // table — `bindTypeParam` registers them there during resolveModule.
+        // The previous lookup via `module.symbols.get(name)` failed because
+        // type-params live in their decl's local scope, not the module table.
+        return substitute(base, buildStructSubst(params, args, t.globals.typeParamSymbols));
       }
       return base;
     }
