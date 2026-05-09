@@ -1,0 +1,11 @@
+# Typecheck
+
+## tests/snippets/impl_missing_method/_main.vader
+  StructDecl     Foo                  :: Foo
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      TwoFn                :: TwoFn
+  expr 14:36    FieldExpr      :: i32
+  expr 14:36    IdentExpr      :: Foo
+
+# Diagnostics
+[13:16] error[T3036] impl block missing required trait method: `TwoFn` requires method `second` — not provided in this impl block

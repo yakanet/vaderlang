@@ -196,6 +196,32 @@ function declareImpl(decl: A.ImplDecl, t: MutableTyped, diags: DiagnosticCollect
   lowerExprAsType(decl.forType, t, diags);
   for (const ta of decl.traitArgs) lowerExprAsType(ta, t, diags);
   for (const member of decl.members) declareFn(member, t, diags);
+
+  // Layer 8b — verify the impl block provides every method the trait
+  // requires. SAM-synthetic and `@intrinsic` impls already materialise
+  // members in the resolver before reaching here, so the check naturally
+  // skips them ; only explicit-body impls with a literal hole trip T3036.
+  const traitSym = t.resolved.module.symbols.get(decl.traitName)
+    ?? lookupImportedTrait(decl.traitName, t);
+  if (traitSym === null || traitSym.source.kind !== "trait") return;
+  const traitDecl = traitSym.source.decl;
+  const provided = new Set(decl.members.map((m) => m.name));
+  for (const required of traitDecl.members) {
+    if (!provided.has(required.name)) {
+      err(diags, "T3036", decl.traitNameSpan,
+        `\`${traitDecl.name}\` requires method \`${required.name}\` — not provided in this impl block`);
+    }
+  }
+}
+
+function lookupImportedTrait(name: string, t: MutableTyped): Symbol | null {
+  // Scoped trait name inside an impl decl — the resolver has already wired
+  // it through the module's import table. Recover the redirected target
+  // for the typecheck-side member-list check.
+  for (const sym of t.resolved.module.symbols.values()) {
+    if (sym.name === name && sym.source.kind === "trait") return sym;
+  }
+  return null;
 }
 
 function symbolFor(decl: A.StructDecl | A.TraitDecl, t: MutableTyped): Symbol | null {

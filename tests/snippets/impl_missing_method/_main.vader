@@ -1,0 +1,18 @@
+// Layer 8b — `implements` verifies inherent methods. An impl block
+// that doesn't provide every method the trait requires fails at
+// declaration with T3036 instead of slipping through to a runtime
+// "field does not exist" T3009 at the call site.
+
+TwoFn :: trait {
+    fn first(self) -> i32
+    fn second(self) -> i32
+}
+
+Foo :: struct { x: i32 }
+
+Foo implements TwoFn {
+    fn first(self) -> i32 { return self.x }
+    // Missing `second` — T3036 fires here.
+}
+
+main :: fn() -> i32 { return 0 }
