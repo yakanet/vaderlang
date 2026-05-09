@@ -10,6 +10,7 @@
 
 import "std/io" { println, eprintln, read_file }
 import "std/string" { byte_len, slice, starts_with }
+import "std/iter" { slice as slice_arr }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
@@ -62,19 +63,6 @@ export ParseGlobalsResult :: struct {
     errors: string[]
 }
 
-// `[T]` arrays don't expose `slice` at MVP (cf. stdlib/std/collections doc),
-// so we copy by hand. Used twice below : drop argv[0], then drop the
-// command from the post-globals `rest`.
-slice_args :: fn(arr: string[], start: i32) -> string[] {
-    out: string[] = []
-    i := start
-    for i < arr.len() {
-        out.push(arr[i])
-        i = i + 1
-    }
-    return out
-}
-
 // One-pass parser : recognises the three TS global flags, accumulates
 // everything else into `rest`. Mirror of `parseGlobalOpts` in
 // `src/cli/options.ts`.
@@ -115,7 +103,7 @@ parse_global_opts :: fn(args: string[]) -> ParseGlobalsResult {
 
 main :: fn(argv: string[]) -> i32 {
     // argv[0] is the binary path ; meaningful args start at index 1.
-    args :: slice_args(argv, 1)
+    args :: argv.slice_arr(1, argv.len())
     if args.len() == 0 { return cmd_repl() }
 
     r :: parse_global_opts(args)
@@ -127,7 +115,7 @@ main :: fn(argv: string[]) -> i32 {
     if rest.len() == 0 { return cmd_repl() }
 
     cmd :: rest[0]
-    cmd_args :: slice_args(rest, 1)
+    cmd_args :: rest.slice_arr(1, rest.len())
 
     if cmd == "--help" || cmd == "-h" || cmd == "help" {
         println(HELP)

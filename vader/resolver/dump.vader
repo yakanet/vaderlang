@@ -12,7 +12,7 @@
 // require resolving fn bodies, which the MVP doesn't do yet ; they're
 // added once `resolve_module` walks bodies.
 
-import "std/string" { byte_len }
+import "std/string" { pad_end }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
 import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule }
@@ -27,9 +27,9 @@ export dump_project :: fn(p: ResolvedProject) -> string {
         sb.append_char('\n')
         for s in m.symbols {
             sb.append("  ")
-            sb.append(pad_right(kind_name(s.kind), 16))
+            sb.append(kind_name(s.kind).pad_end(16, ' '))
             sb.append_char(' ')
-            sb.append(pad_right(visibility_name(s.visibility), 8))
+            sb.append(visibility_name(s.visibility).pad_end(8, ' '))
             sb.append_char(' ')
             sb.append(s.name)
             sb.append(" \n")
@@ -43,16 +43,3 @@ visibility_name :: fn(v: Visibility) -> string = match v {
     .Private -> "private"
 }
 
-// Right-pad with spaces until the string is at least `width` chars wide.
-pad_right :: fn(s: string, width: i32) -> string {
-    n :: s.byte_len()
-    if n >= width { return s }
-    sb :: new_builder()
-    sb.append(s)
-    i := n
-    for i < width {
-        sb.append_char(' ')
-        i = i + 1
-    }
-    return sb.to_string()
-}
