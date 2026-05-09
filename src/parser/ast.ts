@@ -163,9 +163,13 @@ export interface ConstDecl {
   readonly decorators: readonly Decorator[];
 }
 
-/** `@assert(cond)` — top-level compile-time assertion. The condition is
- *  evaluated by the comptime VM ; the build fails with C4015 if the result
- *  is `false`. No runtime emission ; nothing left after the comptime stage.
+/** `@assert(cond)` or `@assert(cond, "message")` — top-level compile-time
+ *  assertion. The condition is evaluated by the comptime VM ; the build
+ *  fails with C4015 if the result is `false`. The optional second argument
+ *  must be a static string literal (no interpolation) ; when present, it is
+ *  appended to the C4015 diagnostic so the failure surfaces meaningful
+ *  context to the reader.
+ *  No runtime emission ; nothing left after the comptime stage.
  *  `decorators` is always empty (the `@assert` itself is not stored as a
  *  decorator on the resulting decl) but the field is present for uniform
  *  iteration with the rest of the `Decl` variants. */
@@ -173,6 +177,7 @@ export interface AssertDecl {
   readonly kind: "AssertDecl";
   readonly span: Span;
   readonly condition: Expr;
+  readonly message: string | null;
   readonly decorators: readonly Decorator[];
 }
 

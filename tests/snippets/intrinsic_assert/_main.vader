@@ -18,6 +18,9 @@
 @assert(@type_name(i32)         == "i32")
 @assert(@type_name(string)      == "string")
 
+// Optional message — appended to the C4015 detail when the assertion fails.
+@assert(@size_of(i32) == 4, "i32 must be 4 bytes on this target")
+
 main :: fn() -> i32 {
     return 0
 }

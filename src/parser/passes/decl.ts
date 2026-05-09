@@ -6,6 +6,7 @@
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Token } from "../../lexer/token.ts";
 import type * as A from "../ast.ts";
+import { staticStringValue } from "../ast.ts";
 import type { Parser } from "../parser.ts";
 import { collectTypeParams, describeToken } from "../parser.ts";
 
@@ -24,14 +25,27 @@ export function parseDecl(p: Parser): A.Decl | null {
   // @assert(...)` would be ambiguous).
   if (decorators.length === 1 && decorators[0]!.name === "assert") {
     const dec = decorators[0]!;
-    if (dec.args.length !== 1) {
-      p.error("P1014", dec.span, "`@assert` expects exactly one expression argument");
+    if (dec.args.length < 1 || dec.args.length > 2) {
+      p.error("P1014", dec.span,
+        "`@assert` expects 1 or 2 arguments : `@assert(cond)` or `@assert(cond, \"message\")`");
       return null;
+    }
+    let message: string | null = null;
+    if (dec.args.length === 2) {
+      const msgArg = dec.args[1]!;
+      const literal = msgArg.kind === "StringLitExpr" ? staticStringValue(msgArg) : null;
+      if (literal === null) {
+        p.error("P1014", msgArg.span,
+          "`@assert` message must be a static string literal (no interpolation)");
+        return null;
+      }
+      message = literal;
     }
     return {
       kind: "AssertDecl",
       span: dec.span,
       condition: dec.args[0]!,
+      message,
       decorators: [],
     };
   }

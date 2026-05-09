@@ -95,7 +95,10 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
         liveEvaluated, projectImpls,
       });
       if (value !== null && value.kind === "bool" && value.value === false) {
-        err(opts.diags, "C4015", decl.span, "condition evaluated to `false`");
+        const detail = decl.message !== null
+          ? `condition evaluated to \`false\` : ${decl.message}`
+          : "condition evaluated to `false`";
+        err(opts.diags, "C4015", decl.span, detail);
       }
     }
   }
