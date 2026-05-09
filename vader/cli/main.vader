@@ -11,19 +11,18 @@
 import "std/io" { println, eprintln, read_file }
 import "std/string" { byte_len, slice, starts_with }
 import "std/iter" { slice as slice_arr }
+import "vader/version" { CLI_VERSION }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver/dump" { dump_project }
 
-VERSION :: "0.0.0-pre-mvp"
-
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
 // the newline immediately after the opening `"""`, so the body starts at
 // `vader —` ; the closing `"""` sits on its own line so the string ends
 // with a single trailing newline (matching the TS template literal).
-HELP :: """vader — the Vader compiler
+HELP :: """vader ${CLI_VERSION} — the Vader compiler
 
 USAGE:
   vader [global-options] <command> [options] [args]
@@ -138,7 +137,7 @@ main :: fn(argv: string[]) -> i32 {
         return 0
     }
     if cmd == "--version" || cmd == "-v" || cmd == "version" {
-        println(VERSION)
+        println(CLI_VERSION)
         return 0
     }
     if cmd == "run"   { return cmd_run(cmd_args) }

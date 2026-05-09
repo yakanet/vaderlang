@@ -5,8 +5,9 @@ import { cmdFmt } from "./commands/fmt.ts";
 import { cmdTest } from "./commands/test.ts";
 import { cmdDump } from "./commands/dump.ts";
 import { cmdRepl } from "./commands/repl.ts";
+import { CLI_VERSION } from "./version.ts";
 
-const HELP = `vader — the Vader compiler
+const HELP = `vader ${CLI_VERSION} — the Vader compiler
 
 USAGE:
   vader [global-options] <command> [options] [args]
@@ -45,7 +46,6 @@ GLOBAL OPTIONS:
   --version, -v                    Show the compiler version
 `;
 
-const VERSION = "0.0.0-pre-mvp";
 
 export async function runCli(argv: string[]): Promise<number> {
   if (argv.length === 0) return cmdRepl();
@@ -70,7 +70,7 @@ export async function runCli(argv: string[]): Promise<number> {
     case "--version":
     case "-v":
     case "version":
-      console.log(VERSION);
+      console.log(CLI_VERSION);
       return 0;
 
     case "run":

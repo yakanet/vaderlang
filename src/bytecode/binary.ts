@@ -21,9 +21,9 @@ import type {
 } from "./module.ts";
 import type { Op } from "./ops.ts";
 import type { BcType, ValType } from "./types.ts";
+import { BYTECODE_VERSION, formatBytecodeVersion } from "../version.ts";
 
 export const MAGIC = new Uint8Array([0x56, 0x41, 0x44, 0x52]);    // "VADR"
-export const VERSION = (0 << 16) | (1 << 8) | 0;                   // 0.1.0
 
 export const FLAG_HAS_DEBUG = 0x0001;
 
@@ -212,7 +212,7 @@ export function writeBinary(m: BytecodeModule): Uint8Array {
   const w = new Writer();
   // Header
   w.raw(MAGIC);
-  w.u32(VERSION);
+  w.u32(BYTECODE_VERSION);
   const hasDebug = m.functions.some((fn) => fn.debug.some((d) => d !== null));
   w.u32(hasDebug ? FLAG_HAS_DEBUG : 0);
 
@@ -502,9 +502,9 @@ export function parseBinary(bytes: Uint8Array): BytecodeModule {
     throw new Error("binary: bad magic — not a Vader IR module");
   }
   const version = r.u32();
-  if (version !== VERSION) {
-    const want = formatVersion(VERSION);
-    const got = formatVersion(version);
+  if (version !== BYTECODE_VERSION) {
+    const want = formatBytecodeVersion(BYTECODE_VERSION);
+    const got = formatBytecodeVersion(version);
     throw new Error(`binary: version mismatch (file is ${got}, runtime expects ${want})`);
   }
   r.u32();                                  // flags — reserved for future use
@@ -520,10 +520,6 @@ export function parseBinary(bytes: Uint8Array): BytecodeModule {
   const functions = readFunctions(r, debugFiles);
 
   return { name, types, strings, functions, imports, exports, implTable, vtables };
-}
-
-function formatVersion(v: number): string {
-  return `${(v >>> 16) & 0xFF}.${(v >>> 8) & 0xFF}.${v & 0xFF}`;
 }
 
 function readTypes(r: Reader): BcType[] {
