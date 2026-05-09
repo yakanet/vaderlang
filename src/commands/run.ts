@@ -1,6 +1,7 @@
 import type { GlobalOpts } from "../cli/options.ts";
 import { pipelineBytecode } from "../pipeline.ts";
 import { parseVir } from "../bytecode/text.ts";
+import { parseBinary } from "../bytecode/binary.ts";
 import { renderAllTextSingle, renderAllJson } from "../diagnostics/render.ts";
 import { defaultHostIO, makeBindings, runProgram, VmError } from "../vm/index.ts";
 
@@ -11,14 +12,17 @@ export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> 
     return 1;
   }
 
-  const isIr = file.endsWith(".vir");
+  const isBinary = file.endsWith(".vir");
+  const isText = file.endsWith(".virt");
   const bindings = makeBindings(defaultHostIO());
   // argv[0] is the script path, the rest is forwarded — mirrors the C target
   // where main captures the OS-level argv (incl. argv[0]).
   const argv = [file, ...args.slice(1)];
 
   try {
-    const bc = isIr
+    const bc = isBinary
+      ? parseBinary(new Uint8Array(await Bun.file(file).arrayBuffer()))
+      : isText
       ? parseVir(await Bun.file(file).text())
       : await compileToBytecode(file, opts);
     if (bc === null) return 1;

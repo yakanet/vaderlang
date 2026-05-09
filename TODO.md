@@ -231,6 +231,63 @@ Line-oriented, one op per line, header sections for `module` / `type` / `string`
 - [x] `vader run program.vir` — wired in §1.8: the run command detects `.vir` and calls `parseVir` → `runProgram` directly, no re-parsing of the source.
 - [ ] Manifest mode (`vader build --target=ir --manifest`) — single-file mode is wired today; multi-module projects come when the build pipeline learns to merge bytecode modules.
 
+### 1.7c Bytecode format refresh
+
+Today's `.vir` is textual-only despite the name and lacks any header — the first
+line is just `module <name>`, no magic number, no version. The format predates
+the midir refactor and mimics WASM's structured control flow (`block`/`loop`/
+`if`/`else`/`end` + `br <depth>`) even though the VM and C-emit don't need that
+shape.
+
+**Two-format split (#1 — sure win, no semantic debate)**
+
+- [ ] Rename the current text format to `.virt` (textual). All snapshot tests
+      and CLI flags follow.
+- [ ] Add a new binary `.vir` format alongside, with a proper header :
+      ```
+      magic     "VADR"  (4 bytes)
+      version   u32     (semver compact: major<<16 | minor<<8 | patch)
+      flags     u32     (debug-info-present, target hint, …)
+      sections  [ TypeSection, StringSection, ImportSection, ExportSection,
+                  FnSection, VtableSection, ImplSection, DebugSection ]
+      ```
+- [ ] No backwards compatibility — the format is single-version and any
+      mismatch is a hard error. We're pre-1.0, no on-disk artifacts to
+      preserve.
+- [ ] Both formats round-trip the same `BytecodeModule`. CLI flag :
+      `vader build --target=ir` defaults to `.vir` (binary) ; `--target=ir-text`
+      (or similar) for `.virt`.
+- [ ] Header flags worth carrying : `target = native | wasm | vm-only`,
+      `has_debug_info`, `module_id` (content hash for incremental cache later),
+      `producer` (compiler version that emitted this).
+
+Effort estimate : 2-3 days. Independent of the architectural question below.
+
+**"Plus IR-like" — open architecture question (#2 — discuss before coding)**
+
+The current bytecode is stack-machine WASM-style. Midir is CFG/SSA. Three
+variants on the table, in increasing ambition :
+
+  (a) **Drop the WASM mimicry, keep stack-machine.** Replace `block`/`loop`/
+      `if`/`else`/`end` + `br <depth>` with `goto label` + `branch_if cond
+      label`. The current structurizer in `midir/emit.ts` becomes redundant
+      for VM/C-emit ; only the future WASM emitter would re-structure. ~3-4
+      days. Saves ~200 lines, makes VM/C-emit more direct.
+
+  (b) **Bytecode adopts midir's CFG shape.** Op set keeps arithmetic ops, but
+      control flow is `BasicBlock { instrs, terminator }`. VM consumes a CFG
+      ("step until next terminator"). C-emit emits one C label per block.
+      ~1-2 weeks. Cleaner than (a), touches the VM.
+
+  (c) **Promote midir directly — bytecode and midir merge.** `BytecodeModule`
+      becomes `IRModule` (CFG/SSA-ready). The `.vir` serialises the CFG. No
+      separate bytecode layer. ~2-3 weeks. Most radical, eliminates the dual-
+      maintenance burden.
+
+Bias before discussion : (a) is a fast win that keeps options open ; (c) is
+the right long-term destination. (b) is an awkward intermediate. **Do not
+implement until we've discussed the trade-offs at the architecture level.**
+
 ### 1.8 VM (interpreter mode for `vader run`) — done
 
 Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives under `src/vm/`. The TODO line "reuse the comptime VM" is superseded by the §1.5a decision (the comptime engine stays AST-walking until self-host; the bytecode VM is the new shared moteur, and migrating comptime onto it is tracked separately under 1.5b).

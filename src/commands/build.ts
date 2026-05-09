@@ -4,11 +4,12 @@ import type { GlobalOpts } from "../cli/options.ts";
 import { renderAllJson, renderAllTextSingle } from "../diagnostics/render.ts";
 import { pipelineBytecode, type BytecodeResult } from "../pipeline.ts";
 import { writeVir } from "../bytecode/text.ts";
+import { writeBinary } from "../bytecode/binary.ts";
 import { emitC } from "../c_emit/emit.ts";
 
-type Target = "native" | "wasm" | "ir" | "c";
+type Target = "native" | "wasm" | "ir" | "ir-text" | "c";
 
-const TARGETS: readonly Target[] = ["native", "wasm", "ir", "c"] as const;
+const TARGETS: readonly Target[] = ["native", "wasm", "ir", "ir-text", "c"] as const;
 
 function isTarget(s: string): s is Target {
   return (TARGETS as readonly string[]).includes(s);
@@ -38,12 +39,12 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
     return 1;
   }
 
-  if (target === "ir") {
+  if (target === "ir" || target === "ir-text") {
     if (!file) {
-      console.error("vader build --target=ir: --manifest mode not yet implemented");
+      console.error(`vader build --target=${target}: --manifest mode not yet implemented`);
       return 2;
     }
-    return await buildIr(opts, file, outFlag);
+    return await buildIr(opts, file, outFlag, target === "ir-text");
   }
 
   if (target === "native") {
@@ -132,7 +133,9 @@ function flushDiagnostics(r: BytecodeResult, opts: GlobalOpts, file: string): bo
   return !sorted.some((d) => d.severity === "error");
 }
 
-async function buildIr(opts: GlobalOpts, file: string, outPath: string | undefined): Promise<number> {
+async function buildIr(
+  opts: GlobalOpts, file: string, outPath: string | undefined, asText: boolean,
+): Promise<number> {
   const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   const sorted = r.diagnostics.sorted();
   if (sorted.length > 0) {
@@ -142,7 +145,12 @@ async function buildIr(opts: GlobalOpts, file: string, outPath: string | undefin
   }
   if (sorted.some((d) => d.severity === "error")) return 1;
 
-  const out = outPath ?? file.replace(/\.vader$/, ".vir");
-  await Bun.write(out, writeVir(r.bytecode));
+  const ext = asText ? ".virt" : ".vir";
+  const out = outPath ?? file.replace(/\.vader$/, ext);
+  if (asText) {
+    await Bun.write(out, writeVir(r.bytecode));
+  } else {
+    await Bun.write(out, writeBinary(r.bytecode));
+  }
   return 0;
 }
