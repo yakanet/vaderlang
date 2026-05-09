@@ -358,23 +358,22 @@ export type Expr =
   | CastExpr
   | GenericInstExpr
   | DotVariantExpr
-  // Type-expression variants — included in Expr at the type level so that
-  // future typechecker positions demanding `type` can accept any Expr.
-  // Today, parsers do not produce these in value-expression slots ; switches
-  // on Expr.kind treat them as unreachable (see `unreachableTypeExprInValuePosition`).
-  | TypeExpr;
+  // Two type-only-meaningful shapes that have no value-level interpretation.
+  // The parser produces them in value position too since 1.C (postfix `T[]`
+  // and `fn(T) -> U` without body), so they appear as cases in the
+  // value-expression switches — they're rejected by the typechecker.
+  | ArrayTypeExpr
+  | FnTypeExpr;
 
-/** Guard for exhaustive switches on `Expr.kind` : the two remaining
- *  type-only expression variants (`FnTypeExpr`, `ArrayTypeExpr`)
- *  cannot appear in value-expression positions yet — the parser does
- *  not produce them there. `IdentExpr`, `SeqLitExpr`, `GenericInstExpr`,
- *  and `BinaryExpr` (since 1.B.5, used to express `T | U` unions) are
- *  shared between type and value positions and therefore not in this
- *  guard. When the typechecker eventually accepts arbitrary `Expr` in
- *  type-demanding positions (Layer 1.D), this helper's call sites
- *  will be revisited. */
+/** Guard for exhaustive switches on `Expr.kind` : the two type-only
+ *  expression variants (`FnTypeExpr`, `ArrayTypeExpr`) carry a syntactic
+ *  shape that has no meaning in value position. The parser may now produce
+ *  them in value-position contexts (Layer 1.C absorbed `T[]` and `fn(T)->U`
+ *  into the main Pratt parser), but the typechecker rejects them — so any
+ *  pass running after typecheck (closures analysis, lower) treats reaching
+ *  them here as an internal bug. */
 export function unreachableTypeExprInValuePosition(
-  e: Exclude<TypeExpr, IdentExpr | SeqLitExpr | GenericInstExpr | BinaryExpr>,
+  e: ArrayTypeExpr | FnTypeExpr,
 ): never {
   throw new Error(
     `internal: TypeExpr variant '${e.kind}' encountered in value-expression position; ` +
@@ -722,13 +721,15 @@ export function forEachPatternBindingKey(
 // Type expressions
 // ============================================================================
 
-export type TypeExpr =
-  | IdentExpr
-  | BinaryExpr
-  | FnTypeExpr
-  | ArrayTypeExpr
-  | SeqLitExpr
-  | GenericInstExpr;
+/** Since Layer 1.D, `TypeExpr` is an alias for `Expr` — the AST has a
+ *  single expression family, and what counts as a « type expression »
+ *  is determined by *position* (the typechecker demanding a value of
+ *  static type `type`) rather than by AST shape. The alias is kept to
+ *  preserve the documentary intent at slot declarations (e.g. a
+ *  `StructField.type: TypeExpr` reads as « type-shaped expression »
+ *  even though the type system no longer enforces it). The typechecker
+ *  rejects non-type-shaped expressions in type-demanding positions. */
+export type TypeExpr = Expr;
 
 /** Walk a left-associative `bitor` chain and return its leaves in source order.
  *  Used by Layer 1.B.5 consumers (resolver, typechecker, parser walker) that

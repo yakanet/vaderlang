@@ -14,13 +14,13 @@ import { displayType, isAssignable, substitute } from "../types.ts";
 import { buildStructSubst } from "../ctx.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkExpr } from "./expr.ts";
-import { lowerTypeExpr } from "./type-expr.ts";
+import { lowerExprAsType } from "./type-expr.ts";
 
 export function inferStructLit(
   expr: A.StructLitExpr, t: MutableTyped, impls: ImplRegistry,
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
-  const ty = lowerTypeExpr(expr.typeName, t, diags);
+  const ty = lowerExprAsType(expr.typeName, t, diags);
   if (ty.kind !== "Struct") {
     err(diags, "T3001", expr.typeName.span,
       `${displayType(ty)} is not a struct`);

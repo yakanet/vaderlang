@@ -27,7 +27,7 @@ import { inferMatch } from "./match.ts";
 import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
-import { lowerTypeExpr, primitiveFromName } from "./type-expr.ts";
+import { lowerExprAsType, primitiveFromName } from "./type-expr.ts";
 import { findGlobalTrait, implementsDisplay } from "./traits.ts";
 import type {IndexResolution} from "../typed-ast.ts";
 
@@ -78,7 +78,7 @@ function inferExpr(
     case "DotVariantExpr": return inferDotVariant(expr, expected, t, diags);
     case "GenericInstExpr": {
       const innerType = checkExpr(expr.callee, null, t, impls, diags, fn);
-      for (const a of expr.typeArgs) lowerTypeExpr(a, t, diags);
+      for (const a of expr.typeArgs) lowerExprAsType(a, t, diags);
       if (innerType.kind !== "Fn") return TY.unresolved;
       // Specialize the fn type by substituting typeParams with the resolved args
       // so inferCall can type-check the arguments and return type correctly.
@@ -290,7 +290,7 @@ function inferLambda(
     const p = expr.params[i]!;
     let pt: Type;
     if (p.type !== null) {
-      pt = lowerTypeExpr(p.type, t, diags);
+      pt = lowerExprAsType(p.type, t, diags);
     } else if (expectedFn !== null && i < expectedFn.params.length) {
       pt = expectedFn.params[i]!;
     } else {
@@ -301,7 +301,7 @@ function inferLambda(
     t.globals.paramTypes.set(p, pt);
   }
   const expectedRet = expr.returnType !== null
-    ? lowerTypeExpr(expr.returnType, t, diags)
+    ? lowerExprAsType(expr.returnType, t, diags)
     : expectedFn?.returnType ?? null;
   const innerFn: FnContext = { returnType: expectedRet ?? TY.unresolved, selfType: fn?.selfType ?? null, loopDepth: 0 };
   const bodyType = checkBlock(expr.body, expectedRet, t, impls, diags, innerFn);
@@ -390,7 +390,7 @@ function inferCast(
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   // Parser doesn't currently emit CastExpr (Type(value) → CallExpr); branch unused.
-  const target = lowerTypeExpr(expr.target, t, diags);
+  const target = lowerExprAsType(expr.target, t, diags);
   checkExpr(expr.value, null, t, impls, diags, fn);
   return target;
 }

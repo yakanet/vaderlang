@@ -95,6 +95,35 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
       continue;
     }
 
+    // Lone postfix `!` — type-mode error-union shorthand absorbed into the
+    // main Pratt parser since 1.C. `T!` desugars to `T | Error` (with the
+    // void→null special case mirroring the original parseType behaviour).
+    // In value position the typechecker rejects the resulting BinaryExpr,
+    // so semantics are unchanged.
+    // Guard: do not fire when the next token is `kw_in` (handled above as
+    // `!in`) — without this, a higher-minBP context that skipped the
+    // 20-BP `!in` branch would misparse `expr !in xs` as `(expr!) in xs`.
+    if (t.kind === "bang" && p.peek(1).kind !== "kw_in" && 100 >= minBP) {
+      const bangTok = p.advance();
+      const successVariant: A.Expr = left.kind === "IdentExpr" && left.name === "void"
+        ? { kind: "IdentExpr", span: left.span, name: "null" }
+        : left;
+      const errorVariant: A.IdentExpr = {
+        kind: "IdentExpr",
+        span: { start: bangTok.span.end, end: bangTok.span.end },
+        name: "Error",
+      };
+      left = {
+        kind: "BinaryExpr",
+        span: { start: left.span.start, end: bangTok.span.end },
+        op: "bitor",
+        left: successVariant,
+        right: errorVariant,
+      };
+      lastNonAssocLevel = -1;
+      continue;
+    }
+
     const infix = INFIX_OPS.get(t.kind);
     if (infix !== undefined && infix.leftBP >= minBP) {
       if (infix.nonAssoc === true && lastNonAssocLevel === infix.leftBP) {
@@ -206,6 +235,20 @@ function parsePrefix(p: Parser): A.Expr {
     case "kw_self":
       p.advance();
       return { kind: "IdentExpr", span: t.span, name: "self" };
+    case "dollar": {
+      // `$T` — type-param introduction prefix absorbed into the main Pratt
+      // parser since 1.C. Produces an `IdentExpr` carrying `isTypeParamIntro`,
+      // exactly as the type-mode parser did. In value position the resulting
+      // node is an unresolved name reference that the typechecker will flag.
+      const dollarTok = p.advance();
+      const name = p.expect("ident", "type parameter name after `$`");
+      return {
+        kind: "IdentExpr",
+        span: { start: dollarTok.span.start, end: name.span.end },
+        name: name.text,
+        isTypeParamIntro: true,
+      };
+    }
     case "dot": {
       p.advance(); // consume `.`
       const variantTok = p.expect("ident", "variant name after `.`");
@@ -278,6 +321,20 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
     return callExpr;
   }
   if (t.kind === "lbracket") {
+    // Two readings (Layer 1.C — type-mode operator absorbed into the main
+    // Pratt parser):
+    //   `T[]`   (empty brackets)  → ArrayTypeExpr ; type-only construct,
+    //                               typechecker rejects it in value position.
+    //   `T[i]`  (with index)      → IndexExpr (ordinary value-level indexing).
+    if (p.peek(1).kind === "rbracket") {
+      p.advance(); // [
+      const rb = p.advance(); // ]
+      return {
+        kind: "ArrayTypeExpr",
+        span: { start: left.span.start, end: rb.span.end },
+        element: left,
+      };
+    }
     p.advance();
     const index = parseExpr(p, 0);
     p.expect("rbracket", "`]` to close index");
@@ -573,11 +630,22 @@ function parseMatchArm(p: Parser): A.MatchArm {
   };
 }
 
-function parseLambda(p: Parser): A.LambdaExpr {
+function parseLambda(p: Parser): A.LambdaExpr | A.FnTypeExpr {
   const start = p.advance(); // fn
   const { params } = parseFnSignatureParams(p);
   let returnType: A.TypeExpr | null = null;
   if (p.match("arrow") !== null) returnType = parseType(p);
+  // Layer 1.C — when no body block follows, this is a function *type*
+  // (`fn(T) -> U`), not a lambda. The two share the `fn` keyword and
+  // signature ; the parser disambiguates by looking ahead for `{`.
+  if (!p.check("lbrace")) {
+    return {
+      kind: "FnTypeExpr",
+      span: { start: start.span.start, end: p.peek(-1).span.end },
+      params: params.map((par) => par.type ?? { kind: "IdentExpr", span: par.span, name: "?" }),
+      returnType,
+    };
+  }
   const body = parseBlock(p);
   return {
     kind: "LambdaExpr",

@@ -1,6 +1,15 @@
-// Lowers `A.TypeExpr` nodes into the type-checker's `Type` domain. Resolves
-// named types via the resolver's symbol table, instantiates generics, and
-// rewrites primitives, function types, arrays, unions, and `$T` typeParams.
+// Lowers an AST expression occurring in *type position* into the typechecker's
+// `Type` domain. Since Layer 1.D the input is `A.Expr` (not the former
+// `A.TypeExpr` union, now an alias for `A.Expr`) — the parser's main Pratt
+// loop is the single entry point that produces both type-shaped and
+// value-shaped expressions, and dispatch happens here on `expr.kind`.
+//
+// Resolves named types via the resolver's symbol table, instantiates generics,
+// and lowers primitives, function types, arrays, unions, and `$T` type-params.
+// For expression shapes that have no meaning as a type today (literals, arith,
+// etc.), returns `TY.unresolved` and emits a diagnostic — Layer 4-sugar will
+// fold in comptime evaluation so any comptime-known `type`-valued expression
+// can be accepted here.
 
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
@@ -13,13 +22,13 @@ import { TY, substitute, unionOf } from "../types.ts";
 
 import type { MutableTyped } from "../ctx.ts";
 
-export function lowerTypeExpr(expr: A.TypeExpr, t: MutableTyped, diags: DiagnosticCollector): Type {
-  const result = lowerTypeExprInner(expr, t, diags);
+export function lowerExprAsType(expr: A.Expr, t: MutableTyped, diags: DiagnosticCollector): Type {
+  const result = lowerExprAsTypeInner(expr, t, diags);
   t.globals.typeExprTypes.set(expr, result);
   return result;
 }
 
-function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: DiagnosticCollector): Type {
+function lowerExprAsTypeInner(expr: A.Expr, t: MutableTyped, diags: DiagnosticCollector): Type {
   switch (expr.kind) {
     case "IdentExpr": {
       // After the 1.B.2 merge, `IdentExpr` covers both former `NamedType`
@@ -41,7 +50,7 @@ function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: Diagnostic
       if (expr.callee.kind !== "IdentExpr") return TY.unresolved;
       const sym = t.resolved.types.get(expr.callee);
       if (sym === undefined) return TY.unresolved;
-      const args = expr.typeArgs.map((a) => lowerTypeExpr(a, t, diags));
+      const args = expr.typeArgs.map((a) => lowerExprAsType(a, t, diags));
       return typeFromSymbol(sym, args, expr, t, diags);
     }
     case "BinaryExpr": {
@@ -51,20 +60,31 @@ function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: Diagnostic
       // appear in type position today (parser invariant).
       if (expr.op !== "bitor") return TY.unresolved;
       const variants = collectUnionVariants(expr);
-      return unionOf(variants.map((v) => lowerTypeExpr(v as A.TypeExpr, t, diags)));
+      return unionOf(variants.map((v) => lowerExprAsType(v as A.TypeExpr, t, diags)));
     }
     case "FnTypeExpr":
       return {
         kind: "Fn",
-        params: expr.params.map((p) => lowerTypeExpr(p, t, diags)),
-        returnType: expr.returnType === null ? TY.void : lowerTypeExpr(expr.returnType, t, diags),
+        params: expr.params.map((p) => lowerExprAsType(p, t, diags)),
+        returnType: expr.returnType === null ? TY.void : lowerExprAsType(expr.returnType, t, diags),
       };
     case "ArrayTypeExpr":
-      return { kind: "Array", element: lowerTypeExpr(expr.element, t, diags) };
+      return { kind: "Array", element: lowerExprAsType(expr.element, t, diags) };
     case "SeqLitExpr":
       // Bracketed `[T1, T2, ...]` in type position lowers to a tuple type.
       // Element nodes are guaranteed type-shaped here ; the cast is safe.
-      return { kind: "Tuple", elements: expr.elements.map((e) => lowerTypeExpr(e as A.TypeExpr, t, diags)) };
+      return { kind: "Tuple", elements: expr.elements.map((e) => lowerExprAsType(e as A.TypeExpr, t, diags)) };
+    default:
+      // Layer 1.D — the function accepts any `Expr`, but only the cases above
+      // have a current type interpretation. Reaching here means the parser
+      // produced a value-shaped expression in a type-demanding slot — by
+      // current parser invariants this should not happen, so we surface a
+      // `T3002` (« expected an expression of a known type »). Under
+      // Layer 4-sugar this branch will attempt comptime evaluation and
+      // accept the result if it is a `type` value.
+      err(diags, "T3002", expr.span,
+        `expected a type expression, got \`${expr.kind}\``);
+      return TY.unresolved;
   }
 }
 

@@ -331,6 +331,15 @@ function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeE
           : expr.callee,
         typeArgs: expr.typeArgs.map((a) => substituteTypeExpr(a, subst)) };
     }
+    default:
+      // Layer 1.D — `TypeExpr` is now an alias for `Expr`, so this function
+      // formally accepts any expression. Today the resolver only reaches this
+      // helper through type-position walks where the parser produces only the
+      // type-shaped variants above ; reaching the default is an internal bug.
+      // Returning the input unchanged is a best-effort fallback that avoids a
+      // hard crash if some future caller hits this path before Layer 4-sugar
+      // generalises the substitution to arbitrary expressions.
+      return expr;
   }
 }
 

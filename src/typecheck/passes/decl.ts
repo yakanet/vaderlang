@@ -12,7 +12,7 @@ import type { PrimitiveName, Type } from "../types.ts";
 import { ALL_INTS, TY } from "../types.ts";
 
 import type { MutableTyped } from "../ctx.ts";
-import { lowerTypeExpr } from "./type-expr.ts";
+import { lowerExprAsType } from "./type-expr.ts";
 
 export function declareType(decl: A.Decl, t: MutableTyped, diags: DiagnosticCollector): void {
   switch (decl.kind) {
@@ -22,12 +22,12 @@ export function declareType(decl: A.Decl, t: MutableTyped, diags: DiagnosticColl
     case "TraitDecl":   declareTrait(decl, t, diags); return;
     case "ImplDecl":    declareImpl(decl, t, diags); return;
     case "TypeAliasDecl": {
-      const aliased = lowerTypeExpr(decl.aliased, t, diags);
+      const aliased = lowerExprAsType(decl.aliased, t, diags);
       t.globals.declTypes.set(decl, aliased);
       return;
     }
     case "ConstDecl":
-      if (decl.type !== null) t.globals.declTypes.set(decl, lowerTypeExpr(decl.type, t, diags));
+      if (decl.type !== null) t.globals.declTypes.set(decl, lowerExprAsType(decl.type, t, diags));
       return;
     case "ImportDecl":
       return;
@@ -51,7 +51,7 @@ function declareFn(decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector):
         params.push(TY.unresolved);
       }
     } else {
-      const pt = lowerTypeExpr(p.type, t, diags);
+      const pt = lowerExprAsType(p.type, t, diags);
       params.push(pt);
       t.globals.paramTypes.set(p, pt);
     }
@@ -62,7 +62,7 @@ function declareFn(decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector):
   // bodies reference themselves without needing inference, and the
   // declared type wins. Block-bodied fns without `->` default to `void`.
   const returnType = decl.returnType !== null
-    ? lowerTypeExpr(decl.returnType, t, diags)
+    ? lowerExprAsType(decl.returnType, t, diags)
     : decl.isExpressionBodied
       ? TY.unresolved
       : TY.void;
@@ -79,7 +79,7 @@ function declareEnum(decl: A.EnumDecl, t: MutableTyped, diags: DiagnosticCollect
 
 function resolveEnumRepr(decl: A.EnumDecl, t: MutableTyped, diags: DiagnosticCollector): PrimitiveName {
   if (decl.repr === null) return "i32";
-  const reprType = lowerTypeExpr(decl.repr, t, diags);
+  const reprType = lowerExprAsType(decl.repr, t, diags);
   if (reprType.kind !== "Primitive" || !(ALL_INTS as readonly string[]).includes(reprType.name)) {
     err(diags, "T3029", decl.repr.span, `got ${reprType.kind === "Primitive" ? reprType.name : reprType.kind}`);
     return "i32";
@@ -132,7 +132,7 @@ function declareStruct(decl: A.StructDecl, t: MutableTyped, diags: DiagnosticCol
   if (sym === null) return;
   const args = decl.typeParams.map((tp) => typeParamRef(tp, t));
   t.globals.declTypes.set(decl, { kind: "Struct", symbol: sym, args });
-  for (const f of decl.fields) lowerTypeExpr(f.type, t, diags);
+  for (const f of decl.fields) lowerExprAsType(f.type, t, diags);
 }
 
 function declareTrait(decl: A.TraitDecl, t: MutableTyped, diags: DiagnosticCollector): void {
@@ -144,8 +144,8 @@ function declareTrait(decl: A.TraitDecl, t: MutableTyped, diags: DiagnosticColle
 }
 
 function declareImpl(decl: A.ImplDecl, t: MutableTyped, diags: DiagnosticCollector): void {
-  lowerTypeExpr(decl.forType, t, diags);
-  for (const ta of decl.traitArgs) lowerTypeExpr(ta, t, diags);
+  lowerExprAsType(decl.forType, t, diags);
+  for (const ta of decl.traitArgs) lowerExprAsType(ta, t, diags);
   for (const member of decl.members) declareFn(member, t, diags);
 }
 

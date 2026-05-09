@@ -16,7 +16,7 @@ import { TY, displayType, isAssignable, unionOf } from "../types.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr } from "./expr.ts";
-import { lowerTypeExpr } from "./type-expr.ts";
+import { lowerExprAsType } from "./type-expr.ts";
 
 export function inferMatch(
   expr: A.MatchExpr, expected: Type | null,
@@ -37,7 +37,7 @@ export function inferMatch(
     if (arm.pattern.kind === "IsPattern") {
       const variantTy = arm.pattern.type.kind === "IdentExpr" && arm.pattern.type.implicitDot === true
         ? resolveImplicitDotVariant(arm.pattern.type, scrut, t, diags)
-        : lowerTypeExpr(arm.pattern.type, t, diags);
+        : lowerExprAsType(arm.pattern.type, t, diags);
       coveredVariants.add(displayType(variantTy));
       narrowed = variantTy;
     }

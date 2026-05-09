@@ -13,7 +13,7 @@ import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute }
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { recordIterCoercion } from "./call.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
-import { lowerTypeExpr } from "./type-expr.ts";
+import { lowerExprAsType } from "./type-expr.ts";
 
 /** Substitute `Self` in this fn's param/return types now that we know the
  *  surrounding impl's target type, and bind unannotated `self` parameters.
@@ -79,7 +79,7 @@ function checkStmt(
 ): void {
   switch (stmt.kind) {
     case "LetStmt": {
-      const expectedAnn = stmt.type !== null ? lowerTypeExpr(stmt.type, t, diags) : null;
+      const expectedAnn = stmt.type !== null ? lowerExprAsType(stmt.type, t, diags) : null;
       // Hint for value inference : the annotation when present, otherwise a
       // synthetic tuple shape derived from the binding tree (so `[a, b] := pair()`
       // disambiguates a SeqLit RHS as a tuple of the right arity). The hint
