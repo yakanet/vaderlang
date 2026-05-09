@@ -1,0 +1,4 @@
+# Typecheck
+
+## tests/snippets/intrinsic_assert/_main.vader
+  FnDecl         main                 :: fn() -> i32

@@ -1,0 +1,9 @@
+module _main
+import 0 add std_core$string$Add$add (string,string) -> string
+import 1 hash std_core$string$Hash$hash (string) -> u64
+import 2 at std_core$string$Index$at (string,i32) -> char
+
+fn 0 tests_snippets_intrinsic_assert__main_vader$main () -> i32
+  i32.const 0   ; _main.vader:22:12
+  return   ; _main.vader:22:5
+end

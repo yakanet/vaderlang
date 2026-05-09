@@ -1,0 +1,23 @@
+// Reflection intrinsics composed with @assert : the intrinsics fold to
+// constants at lower time, so the comptime VM evaluates the assertions
+// against literals and fails the build if any holds false. Demonstrates
+// the foundation of comptime-driven layout / type validation.
+
+@assert(@size_of(i8)     == 1)
+@assert(@size_of(i32)    == 4)
+@assert(@size_of(i64)    == 8)
+@assert(@size_of(string) == 16)
+
+@assert(@align_of(i32) == 4)
+@assert(@align_of(i64) == 8)
+
+@assert(@type_kind(i32)        == "primitive")
+@assert(@type_kind(i32[])      == "array")
+@assert(@type_kind([i32, i32]) == "tuple")
+
+@assert(@type_name(i32)         == "i32")
+@assert(@type_name(string)      == "string")
+
+main :: fn() -> i32 {
+    return 0
+}
