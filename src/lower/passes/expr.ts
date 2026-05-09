@@ -356,6 +356,21 @@ function lowerIntrinsic(
       }
       return { kind: "LoweredIntLit", span: expr.span, type, value: BigInt(idx) };
     }
+    case "satisfies": {
+      // `@satisfies(T, Trait)` — true iff `T` has an impl of `Trait` in the
+      // project's impl registry. Folds to a constant bool at lower time so
+      // the comptime VM can use it inside `@assert`. Foundation for the
+      // automatic bound enforcement of Layer 7e — once we're confident in
+      // the satisfaction check, a separate pass can synthesise an implicit
+      // `@assert(@satisfies(T, Trait))` for every `where T: Trait` clause.
+      const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
+      const traitTy = ctx.typed.typeExprTypes.get(expr.args[1]!);
+      let value = false;
+      if (targetTy !== undefined && traitTy !== undefined && traitTy.kind === "Trait") {
+        value = ctx.project.impls.findFor(targetTy, traitTy.symbol) !== null;
+      }
+      return { kind: "LoweredBoolLit", span: expr.span, type, value };
+    }
   }
   return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unhandled intrinsic @${expr.name}` };
 }

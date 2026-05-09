@@ -1,0 +1,6 @@
+# Typecheck
+
+## tests/snippets/intrinsic_satisfies/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 17:5     IfExpr         :: void
+  expr 17:8     IntrinsicCallExpr :: bool

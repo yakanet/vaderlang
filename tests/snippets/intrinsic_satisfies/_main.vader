@@ -1,0 +1,22 @@
+// `@satisfies(T, Trait)` returns true at compile time iff `T` has an impl
+// of `Trait` in the project's impl registry. Folds to a constant bool at
+// lower time so it composes freely with `@assert(...)`. Foundation for
+// automatic bound enforcement of `where T: Trait` clauses (Layer 7e).
+
+// Positive cases — std/core wires these impls explicitly.
+@assert(@satisfies(string, Add),  "string implements Add (concat)")
+@assert(@satisfies(string, Hash), "string implements Hash")
+@assert(@satisfies(i32, Hash),    "i32 implements Hash")
+@assert(@satisfies(u32, Hash),    "u32 implements Hash")
+@assert(@satisfies(usize, Hash),  "usize implements Hash")
+
+// Built-in primitive arithmetic does *not* go through the `Add` trait —
+// `i32 + i32` lowers to a direct numeric op, so there is no `Add` impl
+// on `i32` to find. `@satisfies` reflects this honestly.
+main :: fn() -> i32 {
+    if @satisfies(i32, Add) {
+        // Unreachable today : there is no `i32 implements Add` block.
+        return 99
+    }
+    return 0
+}

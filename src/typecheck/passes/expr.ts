@@ -195,10 +195,13 @@ function resultTypeOfIntrinsic(name: string): Type {
     case "align_of":
     case "field_count":
     case "variant_count":
+    case "field_index":
       return { kind: "Primitive", name: "usize" };
     case "type_name":
     case "type_kind":
       return TY.string;
+    case "satisfies":
+      return TY.bool;
   }
   return TY.unresolved;
 }
