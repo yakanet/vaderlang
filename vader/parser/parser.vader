@@ -1587,14 +1587,8 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
     }
 }
 
-// Span of a `LetBinding`. Vader's typechecker doesn't auto-narrow a union
-// to a common field, so we destructure here once and reuse the span at
-// every emission site.
-let_binding_span :: fn(b: LetBinding) = match b {
-    is SimpleBinding   -> b.span
-    is TupleBinding    -> b.span
-    is WildcardBinding -> b.span
-}
+// Span of a `LetBinding` — common-field access (§1.18d).
+let_binding_span :: fn(b: LetBinding) = b.span
 
 // Lookahead : `[ ... ]` followed by `in`. Bracket-aware so nested patterns
 // (`[a, [b, c]]`) are detected correctly. Bounded to keep pathological
