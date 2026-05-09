@@ -49,8 +49,10 @@ function lowerTypeExprInner(expr: A.TypeExpr, t: MutableTyped, diags: Diagnostic
       };
     case "ArrayTypeExpr":
       return { kind: "Array", element: lowerTypeExpr(expr.element, t, diags) };
-    case "TupleTypeExpr":
-      return { kind: "Tuple", elements: expr.elements.map((e) => lowerTypeExpr(e, t, diags)) };
+    case "SeqLitExpr":
+      // Bracketed `[T1, T2, ...]` in type position lowers to a tuple type.
+      // Element nodes are guaranteed type-shaped here ; the cast is safe.
+      return { kind: "Tuple", elements: expr.elements.map((e) => lowerTypeExpr(e as A.TypeExpr, t, diags)) };
   }
 }
 

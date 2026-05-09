@@ -36,7 +36,7 @@
         "kind": "UnionType",
         "variants": [
           {
-            "kind": "TupleTypeExpr",
+            "kind": "SeqLitExpr",
             "elements": [
               {
                 "kind": "IdentExpr",

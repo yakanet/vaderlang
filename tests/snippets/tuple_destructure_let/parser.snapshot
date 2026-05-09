@@ -23,7 +23,7 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "TupleTypeExpr",
+        "kind": "SeqLitExpr",
         "elements": [
           {
             "kind": "IdentExpr",

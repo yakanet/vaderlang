@@ -311,9 +311,12 @@ function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeE
     case "ArrayTypeExpr":
       return { kind: "ArrayTypeExpr", span: expr.span,
         element: substituteTypeExpr(expr.element, subst) };
-    case "TupleTypeExpr":
-      return { kind: "TupleTypeExpr", span: expr.span,
-        elements: expr.elements.map((e) => substituteTypeExpr(e, subst)) };
+    case "SeqLitExpr":
+      // Bracketed type tuple `[T1, T2, ...]` — same shape as the value-level
+      // sequence literal since 1.B.3. In type position the elements are
+      // guaranteed to be TypeExprs by the parser ; cast is safe.
+      return { kind: "SeqLitExpr", span: expr.span,
+        elements: expr.elements.map((e) => substituteTypeExpr(e as A.TypeExpr, subst)) };
     case "GenericInstType":
       return { kind: "GenericInstType", span: expr.span,
         base: { kind: "IdentExpr", span: expr.base.span, name: expr.base.name },
@@ -481,8 +484,8 @@ function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: Reso
     case "ArrayTypeExpr":
       resolveType(t.element, scope, p, input);
       return;
-    case "TupleTypeExpr":
-      for (const e of t.elements) resolveType(e, scope, p, input);
+    case "SeqLitExpr":
+      for (const e of t.elements) resolveType(e as A.TypeExpr, scope, p, input);
       return;
     case "GenericInstType":
       resolveType(t.base, scope, p, input);
@@ -630,7 +633,6 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
     case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":
-    case "TupleTypeExpr":
     case "GenericInstType":
       unreachableTypeExprInValuePosition(expr);
   }

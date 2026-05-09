@@ -98,7 +98,7 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
       p.error("P1005", t.span, "empty `[]` is not a valid type");
       const end = p.advance();
       return {
-        kind: "TupleTypeExpr",
+        kind: "SeqLitExpr",
         span: p.spanOf(start, end),
         elements: [],
       };
@@ -133,7 +133,7 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
         "use a struct or a plain value instead");
     }
     return {
-      kind: "TupleTypeExpr",
+      kind: "SeqLitExpr",
       span: p.spanOf(start, end),
       elements,
     };

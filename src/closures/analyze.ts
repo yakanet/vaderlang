@@ -244,7 +244,6 @@ function walkExpr(
     case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":
-    case "TupleTypeExpr":
     case "GenericInstType":
       unreachableTypeExprInValuePosition(expr);
   }

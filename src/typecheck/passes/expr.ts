@@ -97,7 +97,6 @@ function inferExpr(
     case "UnionType":
     case "FnTypeExpr":
     case "ArrayTypeExpr":
-    case "TupleTypeExpr":
     case "GenericInstType":
       return unreachableTypeExprInValuePosition(expr);
   }

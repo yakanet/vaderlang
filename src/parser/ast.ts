@@ -364,17 +364,16 @@ export type Expr =
   // on Expr.kind treat them as unreachable (see `unreachableTypeExprInValuePosition`).
   | TypeExpr;
 
-/** Guard for exhaustive switches on `Expr.kind` : the five remaining
+/** Guard for exhaustive switches on `Expr.kind` : the four remaining
  *  type-only expression variants (`UnionType`, `FnTypeExpr`,
- *  `ArrayTypeExpr`, `TupleTypeExpr`, `GenericInstType`) cannot appear
- *  in value-expression positions yet — the parser does not produce
- *  them there. `IdentExpr` is shared between type and value positions
- *  (including the former `$T` introduction, now an `IdentExpr` flag)
- *  and is therefore not in this guard. When the typechecker eventually
- *  accepts arbitrary `Expr` in type-demanding positions (Layer 1.D),
- *  this helper's call sites will be revisited. */
+ *  `ArrayTypeExpr`, `GenericInstType`) cannot appear in value-expression
+ *  positions yet — the parser does not produce them there. `IdentExpr`
+ *  and `SeqLitExpr` are shared between type and value positions and are
+ *  therefore not in this guard. When the typechecker eventually accepts
+ *  arbitrary `Expr` in type-demanding positions (Layer 1.D), this
+ *  helper's call sites will be revisited. */
 export function unreachableTypeExprInValuePosition(
-  e: Exclude<TypeExpr, IdentExpr>,
+  e: Exclude<TypeExpr, IdentExpr | SeqLitExpr>,
 ): never {
   throw new Error(
     `internal: TypeExpr variant '${e.kind}' encountered in value-expression position; ` +
@@ -574,7 +573,11 @@ export interface StructLitField {
  *  vs "tuple" — the typechecker decides via contextual disambiguation:
  *  when an annotation expects a tuple, it's a tuple ; when an annotation
  *  expects an array, it's an array ; without annotation, all-same-type
- *  unifies to an array, otherwise it's a tuple. */
+ *  unifies to an array, otherwise it's a tuple.
+ *  Since Layer 1.B.3 the same shape carries the *type-level* tuple
+ *  `[T1, T2, ...]` too (formerly the dedicated `TupleTypeExpr` variant).
+ *  The dispatch is positional — `SeqLitExpr` in a value slot is a tuple
+ *  literal ; in a type slot it lowers to a tuple type. */
 export interface SeqLitExpr {
   readonly kind: "SeqLitExpr";
   readonly span: Span;
@@ -723,7 +726,7 @@ export type TypeExpr =
   | UnionType
   | FnTypeExpr
   | ArrayTypeExpr
-  | TupleTypeExpr
+  | SeqLitExpr
   | GenericInstType;
 
 export interface UnionType {
@@ -743,13 +746,6 @@ export interface ArrayTypeExpr {
   readonly kind: "ArrayTypeExpr";
   readonly span: Span;
   readonly element: TypeExpr;
-}
-
-/** Tuple type `[T1, T2, ...]`. Always ≥ 2 elements (1-tuples are forbidden). */
-export interface TupleTypeExpr {
-  readonly kind: "TupleTypeExpr";
-  readonly span: Span;
-  readonly elements: readonly TypeExpr[];
 }
 
 export interface GenericInstType {
