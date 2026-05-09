@@ -98,7 +98,7 @@ fn 0 tests_snippets_seq_lit_inference__main_vader$main () -> i32
   local.set 9   ; _main.vader:14:19
   local.get 8   ; _main.vader:14:14
   local.get 9   ; _main.vader:14:14
-  struct.new 5   ; _main.vader:14:14
+  struct.new_stack 5   ; _main.vader:14:14
   local.set 10   ; _main.vader:14:14
   intrinsic builder.new   ; _main.vader:15:13
   local.set 11   ; _main.vader:15:13

@@ -332,9 +332,10 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       runIntrinsic(f, op.id);
       f.ip++; return;
 
-    case "struct.new": {
+    case "struct.new":
+    case "struct.new_stack": {
       const t = ctx.module.types[op.typeIndex];
-      if (t?.kind !== "struct") throw new VmError(`vm: struct.new on non-struct type ${op.typeIndex}`, debugOf(f.fn, f.ip));
+      if (t?.kind !== "struct") throw new VmError(`vm: ${op.kind} on non-struct type ${op.typeIndex}`, debugOf(f.fn, f.ip));
       const fields = popArgs(f, t.fields.length);
       f.stack.push({ tag: "struct", typeIndex: op.typeIndex, fields });
       f.ip++; return;

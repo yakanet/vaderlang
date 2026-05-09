@@ -531,7 +531,9 @@ function emitArrayPush(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayP
 function emitStructNew(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "StructNew" }>): void {
   const typeIndex = internType(ctx.project, ins.type);
   emitArgs(ctx, ins, ins.fields);
-  pushOp(ctx.emit, { kind: "struct.new", typeIndex }, ins.span);
+  pushOp(ctx.emit, ins.stack
+    ? { kind: "struct.new_stack", typeIndex }
+    : { kind: "struct.new", typeIndex }, ins.span);
   emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 

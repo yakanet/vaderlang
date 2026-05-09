@@ -32,14 +32,14 @@ fn tests_snippets_tuple_for_destructure__main_vader$main() -> i32
   bb0:
     %0 = const string(#0) :string
     %1 = const int(1) :i32
-    %2 = struct_new[stack] [string, i32](%0, %1)
+    %2 = struct_new [string, i32](%0, %1)
     %3 = const string(#1) :string
     %4 = const int(2) :i32
-    %5 = struct_new[stack] [string, i32](%3, %4)
+    %5 = struct_new [string, i32](%3, %4)
     %6 = const string(#2) :string
     %7 = const int(3) :i32
-    %8 = struct_new[stack] [string, i32](%6, %7)
-    %9 = array_new[stack] [string, i32][][3](%2, %5, %8)
+    %8 = struct_new [string, i32](%6, %7)
+    %9 = array_new [string, i32][][3](%2, %5, %8)
     %10 = const int(0) :i32
     %11 = array_len %9
     %12 = struct_new ArrayIter([string, i32])(%9, %10, %11)

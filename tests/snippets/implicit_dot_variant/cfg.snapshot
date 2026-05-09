@@ -94,7 +94,7 @@ fn tests_snippets_implicit_dot_variant__main_vader$main() -> i32
     call println(%1) :void
     %2 = const int(0) :i32
     %3 = const int(2) :i32
-    %4 = array_new[stack] Day[][2](%2, %3)
+    %4 = array_new Day[][2](%2, %3)
     %5 = const int(0) :i32
     %6 = array_len %4
     %7 = struct_new ArrayIter(Day)(%4, %5, %6)

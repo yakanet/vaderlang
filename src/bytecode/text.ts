@@ -99,6 +99,7 @@ function formatOp(op: Op): string {
     case "make_closure": return `make_closure ${op.fnIndex} ${op.typeIndex}`;
     case "intrinsic":    return `intrinsic ${intrinsicNameById(op.id) ?? op.id}`;
     case "struct.new":   return `struct.new ${op.typeIndex}`;
+    case "struct.new_stack": return `struct.new_stack ${op.typeIndex}`;
     case "struct.get":   return `struct.get ${op.typeIndex} ${op.fieldIndex}`;
     case "struct.set":   return `struct.set ${op.typeIndex} ${op.fieldIndex}`;
     case "array.new":    return `array.new ${op.typeIndex} ${op.length}`;
@@ -376,6 +377,7 @@ function parseOp(text: string): Op {
       return { kind: "intrinsic", id };
     }
     case "struct.new":   return { kind: "struct.new", typeIndex: Number(tail) };
+    case "struct.new_stack": return { kind: "struct.new_stack", typeIndex: Number(tail) };
     case "struct.get": {
       const [t, f] = tail.split(/\s+/);
       return { kind: "struct.get", typeIndex: Number(t), fieldIndex: Number(f) };

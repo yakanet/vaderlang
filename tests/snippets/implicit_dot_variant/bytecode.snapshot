@@ -121,7 +121,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   end   ; _main.vader:31:5
   end   ; _main.vader:31:5
   i32.const 42   ; _main.vader:34:32
-  struct.new 0   ; _main.vader:34:16
+  struct.new_stack 0   ; _main.vader:34:16
   local.tee 7   ; _main.vader:34:16
   local.tee 8   ; _main.vader:35:11
   type_check 0   ; _main.vader:36:9
@@ -142,7 +142,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   local.get 9   ; _main.vader:36:29
   intrinsic builder.finish   ; _main.vader:36:29
   call.import 4   ; _main.vader:36:21
-  struct.new 2   ; _main.vader:39:16
+  struct.new_stack 2   ; _main.vader:39:16
   local.tee 12   ; _main.vader:39:16
   local.tee 13   ; _main.vader:40:11
   type_check 0   ; _main.vader:41:9
@@ -183,7 +183,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   if void   ; _main.vader:37:9
   string.const 4   ; _main.vader:37:29
   call.import 4   ; _main.vader:37:21
-  struct.new 2   ; _main.vader:39:16
+  struct.new_stack 2   ; _main.vader:39:16
   local.tee 12   ; _main.vader:39:16
   local.tee 13   ; _main.vader:40:11
   type_check 0   ; _main.vader:41:9

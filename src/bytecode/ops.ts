@@ -88,6 +88,10 @@ export type Op =
 
   // -- Struct (GC-style) --------------------------------------------------
   | { readonly kind: "struct.new"; readonly typeIndex: number }
+  // Stack-allocated struct — emitted when escape analysis proves the value
+  // can't outlive the fn. The C-emit allocates the storage on the C stack
+  // (avoids GC pressure); the VM treats it as a regular heap struct.
+  | { readonly kind: "struct.new_stack"; readonly typeIndex: number }
   | { readonly kind: "struct.get"; readonly typeIndex: number; readonly fieldIndex: number }
   | { readonly kind: "struct.set"; readonly typeIndex: number; readonly fieldIndex: number }
 

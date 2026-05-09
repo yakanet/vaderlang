@@ -24,8 +24,11 @@
 // stack-allocated C structs lands in a follow-up phase.
 
 import type {
-  CFGFunction, CFGModule, CFGProject, Instruction, LocalId,
+  BasicBlock, BlockId, CFGFunction, CFGModule, CFGProject, Instruction, LocalId,
 } from "./cfg.ts";
+import {
+  computeDominators, dominates, predecessorsOf, successorsOf,
+} from "./analyses.ts";
 
 export interface EscapeStats {
   readonly totalAllocs: number;
@@ -71,6 +74,7 @@ function annotateFunction(fn: CFGFunction): CFGFunction {
   if (allocLocals.size === 0) return fn;
 
   const escaping = computeEscaping(fn, allocLocals);
+  const inLoop = computeBlocksInLoops(fn);
 
   let mutated = false;
   const newBlocks = fn.blocks.map((b) => {
@@ -78,7 +82,11 @@ function annotateFunction(fn: CFGFunction): CFGFunction {
     const instructions = b.instructions.map((ins) => {
       if (ins.kind !== "StructNew" && ins.kind !== "ArrayNew") return ins;
       if (!allocLocals.has(ins.dst)) return ins;
-      const stack = !escaping.has(ins.dst);
+      // Stack-allocate iff the value doesn't escape and the alloc isn't in
+      // a loop body. The C-emit declares the storage as a block-scoped local,
+      // which would alias across iterations of the same back-edge — keep
+      // those on the heap so each iteration's value is a fresh allocation.
+      const stack = !escaping.has(ins.dst) && !inLoop.has(b.id);
       if (stack === ins.stack) return ins;
       blockMutated = true;
       return { ...ins, stack };
@@ -88,6 +96,42 @@ function annotateFunction(fn: CFGFunction): CFGFunction {
     return { id: b.id, instructions, terminator: b.terminator, span: b.span };
   });
   return mutated ? { ...fn, blocks: newBlocks } : fn;
+}
+
+/** Blocks reachable through any back-edge of the CFG. A back-edge is an
+ *  edge `u → v` where `v` dominates `u` ; the corresponding natural-loop
+ *  body is `{ v, plus every block on a path from v back to u }`. */
+function computeBlocksInLoops(fn: CFGFunction): ReadonlySet<BlockId> {
+  const preds = predecessorsOf(fn);
+  const idom = computeDominators(fn, preds);
+  const inLoop = new Set<BlockId>();
+  for (const b of fn.blocks) {
+    for (const succ of successorsOf(b)) {
+      if (!dominates(idom, succ, b.id)) continue;
+      // Back-edge b -> succ. Natural loop = {succ} ∪ ancestors of b that
+      // can reach b without going through succ.
+      addNaturalLoop(fn, preds, succ, b.id, inLoop);
+    }
+  }
+  return inLoop;
+}
+
+function addNaturalLoop(
+  fn: CFGFunction, preds: readonly (readonly BlockId[])[],
+  header: BlockId, tail: BlockId, into: Set<BlockId>,
+): void {
+  into.add(header);
+  if (tail === header) return;
+  const stack: BlockId[] = [tail];
+  into.add(tail);
+  while (stack.length > 0) {
+    const b = stack.pop()!;
+    for (const p of preds[b]!) {
+      if (into.has(p)) continue;
+      into.add(p);
+      stack.push(p);
+    }
+  }
 }
 
 /** Worklist : start with all locals known to escape (returned values, call
@@ -159,7 +203,14 @@ function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Se
           see(ins.env);
           break;
         case "StructNew":
+          // A StructNew's field initialisers become reachable through the
+          // struct ; if dst later escapes, every field must escape too.
+          // Wire this via alias so backward propagation handles it.
+          for (const f of ins.fields) appendAlias(aliasOf, ins.dst, f);
+          break;
         case "ArrayNew":
+          for (const e of ins.elements) appendAlias(aliasOf, ins.dst, e);
+          break;
         case "Const":
         case "BinOp":
         case "UnOp":

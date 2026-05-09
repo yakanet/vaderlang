@@ -18,7 +18,7 @@ fn 1 tests_snippets_fn_value_struct__main_vader$main () -> i32
   local "$k_4#9" i32
   local "$k_5#10" i32
   fn.ref 0 1   ; _main.vader:10:21
-  struct.new 0   ; _main.vader:10:10
+  struct.new_stack 0   ; _main.vader:10:10
   struct.get 0 0   ; _main.vader:11:12
   local.set 0   ; _main.vader:11:12
   i32.const 4   ; _main.vader:11:17

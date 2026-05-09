@@ -677,7 +677,8 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "make_closure": return emitMakeClosure(s, op);
     case "intrinsic":    return emitIntrinsic(s, op);
 
-    case "struct.new":   return emitStructNew(s, op);
+    case "struct.new":   return emitStructNew(s, op, /*onStack*/ false);
+    case "struct.new_stack": return emitStructNew(s, op, /*onStack*/ true);
     case "struct.get":   return emitStructGet(s, op);
     case "struct.set":   return emitStructSet(s, op);
 
@@ -1056,7 +1057,10 @@ function displayCoerce(name: string, v: ValType): string {
 
 // ------------------------------------------------------------- struct / array
 
-function emitStructNew(s: FnState, op: Extract<Op, { kind: "struct.new" }>): void {
+function emitStructNew(
+  s: FnState, op: Extract<Op, { kind: "struct.new" | "struct.new_stack" }>,
+  onStack: boolean,
+): void {
   const t = s.ctx.module.types[op.typeIndex]!;
   if (t.kind !== "struct") return;
   const cname = s.ctx.structNames[op.typeIndex]!;
@@ -1064,7 +1068,18 @@ function emitStructNew(s: FnState, op: Extract<Op, { kind: "struct.new" }>): voi
   const fieldVals: { name: string; val: ValType }[] = [];
   for (let i = t.fields.length - 1; i >= 0; i--) fieldVals.unshift(pop(s));
   const tmp = newTmp(s, "ref");
-  line(s, `${cname}* ${tmp}_obj = (${cname}*) vader_gc_alloc(sizeof(${cname}));`);
+  if (onStack) {
+    // Escape analysis proved the value can't outlive the fn — allocate the
+    // storage as a C local, skip the GC. If a GC cycle hits before the box
+    // dies, the runtime forwards the payload to the heap (via the standard
+    // shadow-stack scan) ; the stale `forward` slot left in the alloca'd
+    // header is harmless since the C frame goes away on return and any
+    // reuse runs `vader_obj_header_init` again.
+    line(s, `${cname} ${tmp}_storage;`);
+    line(s, `${cname}* ${tmp}_obj = &${tmp}_storage;`);
+  } else {
+    line(s, `${cname}* ${tmp}_obj = (${cname}*) vader_gc_alloc(sizeof(${cname}));`);
+  }
   line(s, `vader_obj_header_init(${tmp}_obj, ${op.typeIndex}u);`);
   for (let i = 0; i < t.fields.length; i++) {
     const f = t.fields[i]!;
