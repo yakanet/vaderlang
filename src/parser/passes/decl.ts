@@ -269,7 +269,6 @@ function parseSamArrowMember(p: Parser): A.FnDecl {
     typeParams: [],
     params: [],                        // filled by resolver
     returnType: null,                  // filled by resolver
-    whereClauses: [],
     body,
     decorators: [],
     samSynthetic: true,
@@ -289,7 +288,6 @@ function parseSamBlockMember(p: Parser): A.FnDecl {
     typeParams: [],
     params: [],
     returnType: null,
-    whereClauses: [],
     body: block,
     decorators: [],
     samSynthetic: true,
@@ -324,7 +322,6 @@ function parseFnDecl(
   const typeParams = mergeTypeParams(bracketed, dollarParams);
   let returnType: A.TypeExpr | null = null;
   if (p.match("arrow") !== null) returnType = parseType(p);
-  const whereClauses = parseWhereClauses(p);
 
   const { body, isExpressionBodied } = parseFnBodyTail(p, returnType !== null);
 
@@ -337,7 +334,6 @@ function parseFnDecl(
     typeParams,
     params,
     returnType,
-    whereClauses,
     body,
     decorators,
     isExpressionBodied: isExpressionBodied ? true : undefined,
@@ -388,7 +384,6 @@ function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
   const typeParams = mergeTypeParams(bracketed, dollarParams);
   let returnType: A.TypeExpr | null = null;
   if (p.match("arrow") !== null) returnType = parseType(p);
-  const whereClauses = parseWhereClauses(p);
   const { body, isExpressionBodied } = parseFnBodyTail(p, returnType !== null);
   return {
     kind: "FnDecl",
@@ -399,7 +394,6 @@ function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
     typeParams,
     params,
     returnType,
-    whereClauses,
     body,
     decorators,
     isExpressionBodied: isExpressionBodied ? true : undefined,
@@ -469,26 +463,6 @@ export function parseFnSignatureParams(p: Parser): { params: A.FnParam[]; typePa
   return { params, typeParams };
 }
 
-function parseWhereClauses(p: Parser): A.WhereClause[] {
-  if (p.match("kw_where") === null) return [];
-  const out: A.WhereClause[] = [];
-  do {
-    const start = p.peek();
-    const typeName = p.expect("ident", "type parameter name in `where`");
-    p.expect("colon", "`:` between type param and trait bound");
-    // Multi-trait bound: `T: A + B + C` flattens into one clause per trait.
-    do {
-      const traitName = p.expect("ident", "trait name in `where` clause");
-      out.push({
-        span: p.spanOf(start, traitName),
-        typeName: typeName.text,
-        traitName: traitName.text,
-      });
-    } while (p.match("plus") !== null);
-  } while (p.match("comma") !== null);
-  return out;
-}
-
 function parseStructDecl(
   p: Parser,
   decorators: readonly A.Decorator[],
@@ -497,7 +471,6 @@ function parseStructDecl(
 ): A.StructDecl {
   p.advance(); // struct
   const typeParams: A.TypeParam[] = parseStructTypeParamList(p);
-  const whereClauses = parseWhereClauses(p);
   p.expect("lbrace", "`{` to open struct body");
   p.skipNewlines();
   const fields: A.StructField[] = [];
@@ -528,7 +501,6 @@ function parseStructDecl(
     visibility,
     typeParams,
     fields,
-    whereClauses,
     decorators,
   };
 }

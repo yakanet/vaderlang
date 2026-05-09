@@ -218,7 +218,7 @@ function synthMainFnDecl(decl: A.ConstDecl): A.FnDecl {
   return {
     kind: "FnDecl", span: decl.span, name: SYNTH_MAIN_NAME,
     nameSpan: decl.span, visibility: "public",
-    typeParams: [], params: [], returnType: null, whereClauses: [],
+    typeParams: [], params: [], returnType: null,
     body: null, decorators: [],
   };
 }

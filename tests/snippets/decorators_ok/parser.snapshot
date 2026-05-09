@@ -28,7 +28,6 @@
         }
       ],
       "returnType": null,
-      "whereClauses": [],
       "body": null,
       "decorators": [
         {
@@ -63,7 +62,6 @@
       "typeParams": [],
       "params": [],
       "returnType": null,
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [],

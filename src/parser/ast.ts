@@ -60,7 +60,6 @@ export interface FnDecl {
    *  trait method's signature before the body is walked. */
   params: readonly FnParam[];
   returnType: TypeExpr | null;
-  readonly whereClauses: readonly WhereClause[];
   readonly body: BlockExpr | null;
   readonly decorators: readonly Decorator[];
   /** Marker for parser-fabricated FnDecls produced by the SAM impl sugar
@@ -84,7 +83,6 @@ export interface StructDecl {
   readonly visibility: Visibility;
   readonly typeParams: readonly TypeParam[];
   readonly fields: readonly StructField[];
-  readonly whereClauses: readonly WhereClause[];
   readonly decorators: readonly Decorator[];
 }
 
@@ -214,12 +212,6 @@ export interface TypeParam {
   // For struct heads: `(T: type)` ; for comptime values: `($N: i32)`.
   readonly bound: TypeExpr | null;
   readonly isComptimeValue: boolean;  // true when introduced as `$N: <type>`
-}
-
-export interface WhereClause {
-  readonly span: Span;
-  readonly typeName: string;
-  readonly traitName: string;
 }
 
 // ============================================================================

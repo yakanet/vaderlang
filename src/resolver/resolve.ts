@@ -29,10 +29,11 @@ export interface ResolveModuleInput {
    *  minting a fresh one (which would clobber the struct's own field
    *  resolutions). */
   readonly typeParamSymbols: Map<A.TypeParam, Symbol>;
-  /** Cross-module trait-bound table populated by `resolveWhereClause`.
-   *  `typeParam.symbol.id → traitSymbols[]`. The same map is shared across
-   *  fn / struct decls so an impl method's body can find the bounds declared
-   *  on the surrounding struct's where-clause without re-walking. */
+  /** Cross-module trait-bound table populated by `bindTypeParam` from each
+   *  type-param's bracketed bound (`[T: A & B]`). Keyed by
+   *  `typeParam.symbol.id`, valued by the trait symbols the param must
+   *  satisfy. Consumed by the typechecker for trait-method dispatch on
+   *  bounded params and for call-site bound enforcement. */
   readonly typeParamBounds: Map<number, Symbol[]>;
   readonly diags: DiagnosticCollector;
 }
@@ -42,7 +43,7 @@ interface MutableProgram {
   source: A.Program;
   idents: Map<A.IdentExpr, Symbol>;
   /** Resolution table for `IdentExpr` nodes that appear in *type* position
-   *  (struct field types, fn return types, where-clause bounds, etc.). Keyed
+   *  (struct field types, fn return types, bracketed bounds, etc.). Keyed
    *  by node identity, so it does not collide with `idents` despite both
    *  using the same `IdentExpr` shape : the parser creates distinct objects
    *  for expr-position vs type-position references. */
@@ -161,14 +162,12 @@ function resolveFnDecl(decl: A.FnDecl, parent: Scope, p: MutableProgram, input: 
   for (const tp of decl.typeParams) bindTypeParam(tp, scope, p, input);
   for (const param of decl.params) bindParam(param, decl, scope, p, input);
   if (decl.returnType !== null) resolveType(decl.returnType, scope, p, input);
-  for (const w of decl.whereClauses) resolveWhereClause(w, scope, p, input);
   if (decl.body !== null) resolveBlock(decl.body, scope, p, input);
 }
 
 function resolveStructDecl(decl: A.StructDecl, parent: Scope, p: MutableProgram, input: ResolveModuleInput): void {
   const scope = newScope(parent);
   for (const tp of decl.typeParams) bindTypeParam(tp, scope, p, input);
-  for (const w of decl.whereClauses) resolveWhereClause(w, scope, p, input);
   for (const field of decl.fields) resolveType(field.type, scope, p, input);
 }
 
@@ -247,7 +246,6 @@ function materializeIntrinsicMembers(decl: A.ImplDecl, trait: A.TraitDecl): void
       })),
       returnType: method.returnType !== null
         ? substituteTypeExpr(method.returnType, subst) : null,
-      whereClauses: [],
       body: null,
       decorators: [{ span: decl.span, name: "intrinsic", args: [] }],
     });
@@ -394,10 +392,9 @@ function bindTypeParam(tp: A.TypeParam, scope: Scope, p: MutableProgram, input: 
   scope.bindings.set(tp.name, sym);
   p.typeParams.set(tp, sym);
   input.typeParamSymbols.set(tp, sym);
-  // Layer 7e — bracketed bounds `[T: A & B & ...]` flow into the same
-  // `typeParamBounds` table that legacy `where T: A + B` populates, so
-  // downstream phases (trait-method dispatch, the auto-bound-enforcement
-  // check at call sites) see one uniform bound list per type-param.
+  // Layer 7e — bracketed bounds `[T: A & B & ...]` populate the
+  // `typeParamBounds` table that downstream phases (trait-method dispatch,
+  // call-site bound enforcement) consult.
   if (tp.bound !== null) {
     for (const traitSym of resolveTraitBoundExpr(tp.bound, scope)) {
       let bucket = input.typeParamBounds.get(sym.id);
@@ -471,30 +468,6 @@ function bindBinding(
   });
   scope.bindings.set(name, sym);
   return sym;
-}
-
-function resolveWhereClause(w: A.WhereClause, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {
-  const tpSym = lookup(scope, w.typeName);
-  if (tpSym === null) {
-    err(input.diags, "R2006", w.span, `\`${w.typeName}\` (in \`where\`)`);
-  }
-  const traitSym = lookup(scope, w.traitName);
-  if (traitSym === null) {
-    err(input.diags, "R2007", w.span, `\`${w.traitName}\` (trait bound)`);
-  }
-
-  // Record the bound for downstream phases. We allow recording even when the
-  // scoped name is e.g. a struct rather than a strict TypeParam — the
-  // typechecker's TypeParam-target lookup will only fire for keys that match
-  // an actual TypeParam Symbol, and unused entries are harmless.
-  if (tpSym !== null && traitSym !== null && traitSym.kind === "trait") {
-    let bucket = input.typeParamBounds.get(tpSym.id);
-    if (bucket === undefined) {
-      bucket = [];
-      input.typeParamBounds.set(tpSym.id, bucket);
-    }
-    if (!bucket.some((s) => s.id === traitSym.id)) bucket.push(traitSym);
-  }
 }
 
 // ============================================================================

@@ -61,7 +61,6 @@
         "kind": "IdentExpr",
         "name": "string"
       },
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [],
@@ -148,7 +147,6 @@
       "typeParams": [],
       "params": [],
       "returnType": null,
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [

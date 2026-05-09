@@ -66,12 +66,6 @@ export TypeParam :: struct {
     is_comptime_value:  bool
 }
 
-export WhereClause :: struct {
-    span:        Span
-    type_name:   string
-    trait_name:  string
-}
-
 export Decorator :: struct {
     span: Span
     name: string
@@ -114,7 +108,6 @@ export FnDecl :: struct {
     type_params:           TypeParam[]
     params:                FnParam[]
     return_type:           TypeExpr | null
-    where_clauses:         WhereClause[]
     body:                  BlockExpr | null
     decorators:            Decorator[]
     sam_synthetic:         bool
@@ -139,7 +132,6 @@ export StructDecl :: struct {
     visibility:    Visibility
     type_params:   TypeParam[]
     fields:        StructField[]
-    where_clauses: WhereClause[]
     decorators:    Decorator[]
 }
 

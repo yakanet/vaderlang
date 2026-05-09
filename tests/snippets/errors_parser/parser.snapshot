@@ -9,7 +9,6 @@
       "typeParams": [],
       "params": [],
       "returnType": null,
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [

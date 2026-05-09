@@ -227,8 +227,6 @@ write_fn_decl :: fn(sb: StringBuilder, d: FnDecl, level: i32) -> void {
     write_fn_params(sb, d.params, level + 1)
     entry(sb, false, level + 1, "returnType")
     write_optional_type(sb, d.return_type, level + 1)
-    entry(sb, false, level + 1, "whereClauses")
-    write_where_clauses(sb, d.where_clauses, level + 1)
     entry(sb, false, level + 1, "body")
     body :: d.body
 
@@ -292,8 +290,6 @@ write_struct_decl :: fn(sb: StringBuilder, d: StructDecl, level: i32) -> void {
     write_type_params(sb, d.type_params, level + 1)
     entry(sb, false, level + 1, "fields")
     write_struct_fields(sb, d.fields, level + 1)
-    entry(sb, false, level + 1, "whereClauses")
-    write_where_clauses(sb, d.where_clauses, level + 1)
     entry(sb, false, level + 1, "decorators")
     write_decorators(sb, d.decorators, level + 1)
     close_obj(sb, level)
@@ -456,7 +452,7 @@ write_fn_decls :: fn(sb: StringBuilder, ds: FnDecl[], level: i32) -> void {
     close_arr(sb, level)
 }
 
-// ---- Visibility / decorators / type-params / where-clauses --------------
+// ---- Visibility / decorators / type-params -------------------------------
 
 write_visibility :: fn(sb: StringBuilder, v: Visibility) -> void {
     match v {
@@ -506,28 +502,6 @@ write_type_params :: fn(sb: StringBuilder, tps: TypeParam[], level: i32) -> void
         write_optional_type(sb, tp.bound, level + 2)
         entry(sb, false, level + 2, "isComptimeValue")
         write_bool(sb, tp.is_comptime_value)
-        close_obj(sb, level + 1)
-    }
-    close_arr(sb, level)
-}
-
-write_where_clauses :: fn(sb: StringBuilder, ws: WhereClause[], level: i32) -> void {
-    if ws.len() == 0 {
-        close_arr_empty(sb)
-        return
-    }
-    open_arr(sb)
-    first := true
-    for w in ws {
-        if !first { sb.append_char(',') }
-        first = false
-        sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
-        entry(sb, true, level + 2, "typeName")
-        write_string(sb, w.type_name)
-        entry(sb, false, level + 2, "traitName")
-        write_string(sb, w.trait_name)
         close_obj(sb, level + 1)
     }
     close_arr(sb, level)

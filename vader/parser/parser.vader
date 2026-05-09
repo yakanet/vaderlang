@@ -436,7 +436,6 @@ parse_sam_arrow_member :: fn(p: Parser) -> FnDecl {
         .type_params          = [],
         .params               = [],
         .return_type          = null,
-        .where_clauses        = [],
         .body                 = body,
         .decorators           = [],
         .sam_synthetic        = true,
@@ -454,7 +453,6 @@ parse_sam_block_member :: fn(p: Parser) -> FnDecl {
         .type_params          = [],
         .params               = [],
         .return_type          = null,
-        .where_clauses        = [],
         .body                 = block,
         .decorators           = [],
         .sam_synthetic        = true,
@@ -479,7 +477,6 @@ parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, 
     sig :: p.parse_fn_signature_params()
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
-    where_clauses :: p.parse_where_clauses()
     tail :: p.parse_fn_body_tail(return_type)
     return FnDecl {
         .span                 = p.span_of(name_tok, p.peek_at(-1)),
@@ -489,7 +486,6 @@ parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, 
         .type_params          = sig.type_params,
         .params               = sig.params,
         .return_type          = return_type,
-        .where_clauses        = where_clauses,
         .body                 = tail.body,
         .decorators           = decorators,
         .sam_synthetic        = false,
@@ -534,7 +530,6 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     sig :: p.parse_fn_signature_params()
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
-    where_clauses :: p.parse_where_clauses()
     tail :: p.parse_fn_body_tail(return_type)
     return FnDecl {
         .span                 = p.span_of(fn_tok, p.peek_at(-1)),
@@ -544,7 +539,6 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
         .type_params          = sig.type_params,
         .params               = sig.params,
         .return_type          = return_type,
-        .where_clauses        = where_clauses,
         .body                 = tail.body,
         .decorators           = decorators,
         .sam_synthetic        = false,
@@ -632,31 +626,9 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
 
 empty_token :: fn() = make_token(.Eof, "", empty_span(""))
 
-parse_where_clauses :: fn(p: Parser) -> WhereClause[] {
-    if !p.match_kind(.KwWhere).matched { return [] }
-    out: WhereClause[] = []
-    for {
-        start :: p.peek()
-        type_name :: p.expect(.Ident, "type parameter name in `where`")
-        p.expect(.Colon, "`:` between type param and trait bound")
-        for {
-            trait_name :: p.expect(.Ident, "trait name in `where` clause")
-            out.push(WhereClause {
-                .span       = p.span_of(start, trait_name),
-                .type_name  = type_name.text,
-                .trait_name = trait_name.text,
-            })
-            if !p.match_kind(.Plus).matched { break }
-        }
-        if !p.match_kind(.Comma).matched { break }
-    }
-    return out
-}
-
 parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
     p.advance()  // `struct`
     type_params :: p.parse_struct_type_param_list()
-    where_clauses :: p.parse_where_clauses()
     p.expect(.LBrace, "`{` to open struct body")
     p.skip_newlines()
     fields: StructField[] = []
@@ -686,7 +658,6 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
         .visibility    = visibility,
         .type_params   = type_params,
         .fields        = fields,
-        .where_clauses = where_clauses,
         .decorators    = decorators,
     }
 }
@@ -1761,7 +1732,6 @@ infix_for :: fn(k: TokenKind) = match k {
     .KwFalse      -> no_infix()
     .KwNull       -> no_infix()
     .KwType       -> no_infix()
-    .KwWhere      -> no_infix()
     .KwSelf       -> no_infix()
 }
 
@@ -1845,7 +1815,6 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwFalse      -> -1
     .KwNull       -> -1
     .KwType       -> -1
-    .KwWhere      -> -1
     .KwSelf       -> -1
 }
 

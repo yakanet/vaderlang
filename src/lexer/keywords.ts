@@ -25,7 +25,6 @@ export const KEYWORDS: Readonly<Record<string, TokenKind>> = {
   false:      "kw_false",
   null:       "kw_null",
   type:       "kw_type",
-  where:      "kw_where",
   self:       "kw_self",
 };
 

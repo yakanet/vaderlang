@@ -22,7 +22,6 @@
         "kind": "IdentExpr",
         "name": "string"
       },
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [

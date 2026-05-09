@@ -48,7 +48,6 @@
           "visibility": "private"
         }
       ],
-      "whereClauses": [],
       "decorators": []
     },
     {
@@ -90,7 +89,6 @@
             "kind": "IdentExpr",
             "name": "void"
           },
-          "whereClauses": [],
           "body": null,
           "decorators": []
         },
@@ -111,7 +109,6 @@
             "kind": "IdentExpr",
             "name": "T"
           },
-          "whereClauses": [],
           "body": null,
           "decorators": []
         },
@@ -132,7 +129,6 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "whereClauses": [],
           "body": null,
           "decorators": []
         },
@@ -153,7 +149,6 @@
             "kind": "IdentExpr",
             "name": "bool"
           },
-          "whereClauses": [],
           "body": null,
           "decorators": []
         }
@@ -209,7 +204,6 @@
             "kind": "IdentExpr",
             "name": "void"
           },
-          "whereClauses": [],
           "body": {
             "kind": "BlockExpr",
             "stmts": [
@@ -291,7 +285,6 @@
             "kind": "IdentExpr",
             "name": "T"
           },
-          "whereClauses": [],
           "body": {
             "kind": "BlockExpr",
             "stmts": [
@@ -367,7 +360,6 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "whereClauses": [],
           "body": {
             "kind": "BlockExpr",
             "stmts": [
@@ -404,7 +396,6 @@
             "kind": "IdentExpr",
             "name": "bool"
           },
-          "whereClauses": [],
           "body": {
             "kind": "BlockExpr",
             "stmts": [
@@ -446,7 +437,6 @@
         "kind": "IdentExpr",
         "name": "i32"
       },
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [

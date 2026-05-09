@@ -25,7 +25,7 @@ export type TokenKind =
   | "kw_return" | "kw_defer" | "kw_break" | "kw_continue"
   | "kw_import" | "kw_as" | "kw_export"
   | "kw_true" | "kw_false" | "kw_null"
-  | "kw_type" | "kw_where" | "kw_self"
+  | "kw_type" | "kw_self"
 
   // Operators
   | "plus" | "minus" | "star" | "slash" | "percent"

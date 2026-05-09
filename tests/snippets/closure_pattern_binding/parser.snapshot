@@ -31,7 +31,6 @@
           "visibility": "private"
         }
       ],
-      "whereClauses": [],
       "decorators": []
     },
     {
@@ -62,7 +61,6 @@
         "kind": "IdentExpr",
         "name": "void"
       },
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [],
@@ -286,7 +284,6 @@
         "kind": "IdentExpr",
         "name": "i32"
       },
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [

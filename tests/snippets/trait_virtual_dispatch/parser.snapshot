@@ -31,7 +31,6 @@
           "visibility": "private"
         }
       ],
-      "whereClauses": [],
       "decorators": []
     },
     {
@@ -49,7 +48,6 @@
           "visibility": "private"
         }
       ],
-      "whereClauses": [],
       "decorators": []
     },
     {
@@ -78,7 +76,6 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "whereClauses": [],
           "body": {
             "kind": "BlockExpr",
             "stmts": [
@@ -139,7 +136,6 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "whereClauses": [],
           "body": {
             "kind": "BlockExpr",
             "stmts": [
@@ -194,7 +190,6 @@
         "kind": "IdentExpr",
         "name": "string"
       },
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [
@@ -228,7 +223,6 @@
         "kind": "IdentExpr",
         "name": "i32"
       },
-      "whereClauses": [],
       "body": {
         "kind": "BlockExpr",
         "stmts": [

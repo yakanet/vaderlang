@@ -223,7 +223,6 @@ function makeStubFnDecl(sym: Symbol): A.FnDecl {
     typeParams: [],
     params: [],
     returnType: null,
-    whereClauses: [],
     body: null,
     decorators: [],
   };
@@ -239,7 +238,6 @@ function makeStubStructDecl(sym: Symbol): A.StructDecl {
     visibility: "private",
     typeParams: [],
     fields: [],
-    whereClauses: [],
     decorators: [],
   };
 }

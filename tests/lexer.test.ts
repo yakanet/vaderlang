@@ -61,7 +61,6 @@ describe("lexer — identifiers and keywords", () => {
       ["false", "kw_false"],
       ["null", "kw_null"],
       ["type", "kw_type"],
-      ["where", "kw_where"],
       ["self", "kw_self"],
     ];
     for (const [text, kind] of cases) {

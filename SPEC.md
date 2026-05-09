@@ -167,7 +167,6 @@ if else match is for in return defer break continue
 import as
 export
 true false null
-where
 self
 @<decorator>
 ```
@@ -754,10 +753,9 @@ List :: struct($T) {
 list := List[i32] { .items = [1, 2, 3], .len = 3 }
 ```
 
-**Constraints**. The canonical form is the inline bracketed bound `[T: A & B]`, multi-trait composed with `&` (mirroring type intersection — `&` reads as « satisfies both »). The `where` keyword still parses for backwards compatibility but is **deprecated** for trait bounds — no source we own uses it. Its design role going forward (DESIGN_TYPE_FIRST.md §13 Layer 7d) is the escape hatch for *non-trait* predicates such as size / alignment / kind constraints (`where @size_of(T) <= 64`) once those land.
+**Constraints**. The canonical form is the inline bracketed bound `[T: A & B]`, multi-trait composed with `&` (mirroring type intersection — `&` reads as « satisfies both »).
 
 ```vader
-// Canonical bracketed form — bound co-located with the type-param.
 sort :: fn[T: Ord](items: T[]) {
     // ...
 }
@@ -765,18 +763,9 @@ sort :: fn[T: Ord](items: T[]) {
 put :: fn[K: Hash & Eq, V](self: MutableMap[K, V], key: K, value: V) {
     // ...
 }
-
-// Legacy form — `$T` + trailing `where` clause (still accepted).
-sort :: fn(items: $T[]) where T: Ord {
-    // ...
-}
-
-put :: fn(self: MutableMap($K, $V), key: K, value: V) where K: Hash + Eq {
-    // ...
-}
 ```
 
-`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope** ; `|` on bounds is post-MVP. The deprecated `where` clause uses `+` for the same intersection semantics.
+`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope** ; `|` on bounds is post-MVP. A future predicate-bound escape hatch (`[T: @size_of <= 64]`-style ; DESIGN_TYPE_FIRST.md §13 Layer 7d) is reserved for non-trait constraints once they land.
 
 **Compile-time values** (post-MVP candidate):
 
@@ -788,12 +777,12 @@ make_buffer :: fn($N: i32) -> [N]u8 { ... }
 
 **Bound enforcement and trait-method dispatch on type parameters**: both wired since Layer 7e. The typechecker:
 - Resolves `key.hash()` inside a generic body where `key: $K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member.
-- At every call site of a generic fn, walks the call-site type-args against each type-param's bracketed bound (`[T: Trait]`) and `where T: Trait` clauses. Any concrete type lacking an explicit `T implements Trait` impl yields T3006 (« trait not satisfied »).
+- At every call site of a generic fn, walks the call-site type-args against each type-param's bracketed bound (`[T: Trait]`). Any concrete type lacking an explicit `T implements Trait` impl yields T3006 (« trait not satisfied »).
 
 **Limitations (MVP)**:
 - **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap(K, V) { ... }` for struct-literal construction. Post-MVP candidate.
 
-Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `where T: Add` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Eq` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
+Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `[T: Add]` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Eq` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
 
 ### Traits
 
@@ -810,7 +799,7 @@ u32 implements Display {
     }
 }
 
-print_it :: fn(x: $T) where T: Display {
+print_it :: fn[T: Display](x: T) {
     println(x.show())
 }
 ```
@@ -1633,7 +1622,7 @@ Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct f
 | `@field_count(T)` | `(T: type) -> usize` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
 | `@variant_count(T)` | `(T: type) -> usize` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
 | `@field_index(T, "name")` | `(T: type, name: string-literal) -> usize` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive) ; `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
-| `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope. | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `where T: Trait` clauses. |
+| `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope. | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `[T: Trait]` bounds. |
 
 Composition example — comptime layout assertions :
 
@@ -1676,7 +1665,7 @@ Contains :: trait($T) {
 // out of the box. User types opt in by implementing the trait.
 ```
 
-Trait-method dispatch on a bounded type param (`fn f(x: $T) where T: Hash { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
+Trait-method dispatch on a bounded type param (`fn f[T: Hash](x: T) { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
 
 ### `std/io`
 
@@ -1799,19 +1788,19 @@ land (post-MVP).
 
 ```vader
 // Hash map — chaining HashMap with fixed bucket count.
-MutableMap(K, V)   where K: Hash + Eq
-Map(K, V)          // read-only (struct stub, post-MVP API)
-fn put          (self: MutableMap(K, V), key: K, value: V) -> void
-fn get          (self: MutableMap(K, V), key: K) -> V | null
-fn contains_key (self: MutableMap(K, V), key: K) -> bool
-fn len          (self: MutableMap(K, V)) -> usize
-fn is_empty     (self: MutableMap(K, V)) -> bool
-fn keys         (self: MutableMap(K, V)) -> K[]
-fn values       (self: MutableMap(K, V)) -> V[]
+MutableMap[K: Hash & Eq, V]
+Map[K, V]          // read-only (struct stub, post-MVP API)
+fn put          (self: MutableMap[K, V], key: K, value: V) -> void
+fn get          (self: MutableMap[K, V], key: K) -> V | null
+fn contains_key (self: MutableMap[K, V], key: K) -> bool
+fn len          (self: MutableMap[K, V]) -> usize
+fn is_empty     (self: MutableMap[K, V]) -> bool
+fn keys         (self: MutableMap[K, V]) -> K[]
+fn values       (self: MutableMap[K, V]) -> V[]
 
-// Hash set — wraps a `MutableMap(T, bool)` (Java HashSet pattern). Lookups
+// Hash set — wraps a `MutableMap[T, bool]` (Java HashSet pattern). Lookups
 // inherit the chained-bucket O(1) behaviour from the underlying map.
-MutableSet(T)      where T: Hash + Eq
+MutableSet[T: Hash & Eq]
 Set(T)             // read-only (struct stub, post-MVP API)
 fn add      (self: MutableSet(T), value: T) -> bool   // true if newly added
 fn contains (self: MutableSet(T), value: T) -> bool
