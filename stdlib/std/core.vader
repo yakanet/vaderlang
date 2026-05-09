@@ -124,6 +124,18 @@ Range[i32] implements Iterator[i32] {
     }
 }
 
+// `char` has no `+ i32` op ; advance via u32 round-trip.
+Range[char] implements Iterator[char] {
+    fn step(self) -> Done | Yielded(char) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = char(u32(self.cursor) + u32(1))
+        return Yielded(char) { .value = v }
+    }
+}
+
 // ArrayIter — iterator over a `[T]`. The lowerer auto-wraps array exprs
 // flowing into `for x in arr`, so callers rarely need to construct one.
 // The `length` field is pre-computed at construction time so `step` can

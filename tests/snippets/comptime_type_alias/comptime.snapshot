@@ -6,6 +6,7 @@
   @comptime  byte_string          = string
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

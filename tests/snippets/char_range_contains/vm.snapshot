@@ -9,5 +9,7 @@ M is not lower
 z is alpha
 Z is alpha
 5 is not alpha
+a..=e count = 5
+0..<5 count = 5
 # exit
 0

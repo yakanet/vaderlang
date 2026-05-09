@@ -5,6 +5,7 @@
   @comptime  ORIGIN               = [f64, f64, string] { ._0 = 0_f64, ._1 = 0_f64, ._2 = "origin" }
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

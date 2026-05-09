@@ -5,6 +5,7 @@
 ## generic instances
   count_matching(i32)
   count_matching(string)
+  Yielded(char)
   Yielded(i32)
   Yielded(string)
   Range(char)

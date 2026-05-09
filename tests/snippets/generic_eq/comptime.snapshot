@@ -4,6 +4,7 @@
 
 ## generic instances
   are_eq(i32)
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

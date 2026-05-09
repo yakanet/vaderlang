@@ -1,2 +1,2 @@
-# exit
-122
+# runtime error
+vm: expected char, got i32

@@ -5,6 +5,7 @@
 ## generic instances
   identity(i32)
   swap(i32, i32)
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

@@ -3,6 +3,7 @@
 ## tests/snippets/implicit_dot_variant/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(Day)
   Yielded(i32)
   Range(char)

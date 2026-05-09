@@ -3,6 +3,7 @@
 ## tests/snippets/generic_type_alias/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

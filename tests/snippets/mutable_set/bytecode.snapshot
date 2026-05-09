@@ -234,9 +234,9 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
 end
 
 fn 1 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:180:26
-  i32.to_u64   ; core.vader:180:26
-  return   ; core.vader:180:23
+  local.get 0   ; core.vader:192:26
+  i32.to_u64   ; core.vader:192:26
+  return   ; core.vader:192:23
 end
 
 fn 2 std_collections$bucket_index (u64) -> i32

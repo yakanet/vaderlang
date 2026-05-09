@@ -3,6 +3,7 @@
 ## tests/snippets/array_push/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

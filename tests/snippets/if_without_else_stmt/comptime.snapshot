@@ -3,6 +3,7 @@
 ## tests/snippets/if_without_else_stmt/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

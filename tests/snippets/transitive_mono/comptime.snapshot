@@ -5,6 +5,7 @@
 ## generic instances
   inner_count(i32)
   inner_count(string)
+  Yielded(char)
   Yielded(i32)
   Yielded(string)
   Range(char)

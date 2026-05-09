@@ -3,6 +3,7 @@
 ## tests/snippets/op_overload_index/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Yielded(string)
   Range(char)

@@ -1,7 +1,9 @@
-// `Range[char] implements Contains[char]` — `c in 'a'..='z'` works as the
-// natural surface for character class checks. Replaces the verbose
-// `c >= 'a' && c <= 'z'` chain. Iterator[char] (`for c in 'a'..='z'`) is
-// deferred until char arithmetic for the cursor advance lands.
+// `Range[char]` exercises both `Contains[char]` and `Iterator[char]`.
+// `c in 'a'..='z'` is the natural surface for character class checks
+// (replaces the verbose `c >= 'a' && c <= 'z'` chain). `for c in 'a'..='z'`
+// also works — the Iterator impl advances the cursor via the u32
+// round-trip `char(u32(self.cursor) + u32(1))` since char has no
+// dedicated `+ i32` operator.
 
 import "std/io" { println }
 
@@ -30,6 +32,20 @@ main :: fn() -> i32 {
     if is_alpha('z')   { println("z is alpha") }
     if is_alpha('Z')   { println("Z is alpha") }
     if !is_alpha('5')  { println("5 is not alpha") }
+
+    // for-in over a char range — Iterator[char] dispatch.
+    n := 0
+    for c in 'a'..='e' {
+        n = n + 1
+    }
+    println("a..=e count = ${n}")
+
+    // exclusive range
+    m := 0
+    for c in '0'..<'5' {
+        m = m + 1
+    }
+    println("0..<5 count = ${m}")
 
     return 0
 }

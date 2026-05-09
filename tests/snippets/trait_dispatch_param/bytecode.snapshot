@@ -85,7 +85,7 @@ fn 1 tests_snippets_trait_dispatch_param__main_vader$tests_snippets_trait_dispat
 end
 
 fn 2 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:180:26
-  i32.to_u64   ; core.vader:180:26
-  return   ; core.vader:180:23
+  local.get 0   ; core.vader:192:26
+  i32.to_u64   ; core.vader:192:26
+  return   ; core.vader:192:23
 end

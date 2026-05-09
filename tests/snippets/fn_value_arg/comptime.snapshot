@@ -3,6 +3,7 @@
 ## tests/snippets/fn_value_arg/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

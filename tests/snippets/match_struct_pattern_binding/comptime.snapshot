@@ -3,6 +3,7 @@
 ## tests/snippets/match_struct_pattern_binding/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)

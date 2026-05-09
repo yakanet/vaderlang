@@ -3,6 +3,7 @@
 ## tests/snippets/closure_simple/_main.vader
 
 ## generic instances
+  Yielded(char)
   Yielded(i32)
   Range(char)
   Range(i32)
