@@ -16,25 +16,25 @@ fn 0 tests_snippets_if_branches__main_vader$classify (i32) -> string
   local.get 0   ; _main.vader:2:16
   local.get 1   ; _main.vader:2:16
   i32.gt   ; _main.vader:2:16
-  if void   ; _main.vader:2:12
-  string.const 0   ; _main.vader:3:9
-  local.set 4   ; _main.vader:3:9
+  if $L0 void   ; _main.vader:2:12
+    string.const 0   ; _main.vader:3:9
+    local.set 4   ; _main.vader:3:9
   else   ; _main.vader:2:12
-  i32.const 0   ; _main.vader:4:20
-  local.set 2   ; _main.vader:4:20
-  local.get 0   ; _main.vader:4:16
-  local.get 2   ; _main.vader:4:16
-  i32.lt   ; _main.vader:4:16
-  if void   ; _main.vader:4:12
-  string.const 1   ; _main.vader:5:9
-  local.set 3   ; _main.vader:5:9
-  else   ; _main.vader:4:12
-  string.const 2   ; _main.vader:7:9
-  local.set 3   ; _main.vader:7:9
-  end   ; _main.vader:4:12
-  local.get 3   ; _main.vader:4:12
-  local.set 4   ; _main.vader:4:12
-  end   ; _main.vader:2:12
+    i32.const 0   ; _main.vader:4:20
+    local.set 2   ; _main.vader:4:20
+    local.get 0   ; _main.vader:4:16
+    local.get 2   ; _main.vader:4:16
+    i32.lt   ; _main.vader:4:16
+    if $L1 void   ; _main.vader:4:12
+      string.const 1   ; _main.vader:5:9
+      local.set 3   ; _main.vader:5:9
+    else   ; _main.vader:4:12
+      string.const 2   ; _main.vader:7:9
+      local.set 3   ; _main.vader:7:9
+    end $L1   ; _main.vader:4:12
+    local.get 3   ; _main.vader:4:12
+    local.set 4   ; _main.vader:4:12
+  end $L0   ; _main.vader:2:12
   local.get 4   ; _main.vader:2:5
   return   ; _main.vader:2:5
 end

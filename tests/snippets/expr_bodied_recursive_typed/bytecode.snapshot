@@ -23,22 +23,22 @@ fn 0 tests_snippets_expr_bodied_recursive_typed__main_vader$fact (i32) -> i32
   local.get 0   ; _main.vader:8:32
   local.get 1   ; _main.vader:8:32
   i32.le   ; _main.vader:8:32
-  if void   ; _main.vader:8:29
-  i32.const 1   ; _main.vader:8:41
-  local.set 4   ; _main.vader:8:41
+  if $L0 void   ; _main.vader:8:29
+    i32.const 1   ; _main.vader:8:41
+    local.set 4   ; _main.vader:8:41
   else   ; _main.vader:8:29
-  i32.const 1   ; _main.vader:8:65
-  local.set 2   ; _main.vader:8:65
-  local.get 0   ; _main.vader:8:61
-  local.get 2   ; _main.vader:8:61
-  i32.sub   ; _main.vader:8:61
-  call 0   ; _main.vader:8:56
-  local.set 3   ; _main.vader:8:56
-  local.get 0   ; _main.vader:8:52
-  local.get 3   ; _main.vader:8:52
-  i32.mul   ; _main.vader:8:52
-  local.set 4   ; _main.vader:8:52
-  end   ; _main.vader:8:29
+    i32.const 1   ; _main.vader:8:65
+    local.set 2   ; _main.vader:8:65
+    local.get 0   ; _main.vader:8:61
+    local.get 2   ; _main.vader:8:61
+    i32.sub   ; _main.vader:8:61
+    call 0   ; _main.vader:8:56
+    local.set 3   ; _main.vader:8:56
+    local.get 0   ; _main.vader:8:52
+    local.get 3   ; _main.vader:8:52
+    i32.mul   ; _main.vader:8:52
+    local.set 4   ; _main.vader:8:52
+  end $L0   ; _main.vader:8:29
   local.get 4   ; _main.vader:8:29
   return   ; _main.vader:8:29
 end
@@ -55,29 +55,29 @@ fn 1 tests_snippets_expr_bodied_recursive_typed__main_vader$fib (i32) -> i32
   local.get 0   ; _main.vader:10:31
   local.get 1   ; _main.vader:10:31
   i32.lt   ; _main.vader:10:31
-  if void   ; _main.vader:10:28
-  local.get 0   ; _main.vader:10:37
-  local.set 6   ; _main.vader:10:37
+  if $L0 void   ; _main.vader:10:28
+    local.get 0   ; _main.vader:10:37
+    local.set 6   ; _main.vader:10:37
   else   ; _main.vader:10:28
-  i32.const 1   ; _main.vader:10:58
-  local.set 2   ; _main.vader:10:58
-  local.get 0   ; _main.vader:10:54
-  local.get 2   ; _main.vader:10:54
-  i32.sub   ; _main.vader:10:54
-  call 1   ; _main.vader:10:50
-  local.set 3   ; _main.vader:10:50
-  i32.const 2   ; _main.vader:10:71
-  local.set 4   ; _main.vader:10:71
-  local.get 0   ; _main.vader:10:67
-  local.get 4   ; _main.vader:10:67
-  i32.sub   ; _main.vader:10:67
-  call 1   ; _main.vader:10:63
-  local.set 5   ; _main.vader:10:63
-  local.get 3   ; _main.vader:10:50
-  local.get 5   ; _main.vader:10:50
-  i32.add   ; _main.vader:10:50
-  local.set 6   ; _main.vader:10:50
-  end   ; _main.vader:10:28
+    i32.const 1   ; _main.vader:10:58
+    local.set 2   ; _main.vader:10:58
+    local.get 0   ; _main.vader:10:54
+    local.get 2   ; _main.vader:10:54
+    i32.sub   ; _main.vader:10:54
+    call 1   ; _main.vader:10:50
+    local.set 3   ; _main.vader:10:50
+    i32.const 2   ; _main.vader:10:71
+    local.set 4   ; _main.vader:10:71
+    local.get 0   ; _main.vader:10:67
+    local.get 4   ; _main.vader:10:67
+    i32.sub   ; _main.vader:10:67
+    call 1   ; _main.vader:10:63
+    local.set 5   ; _main.vader:10:63
+    local.get 3   ; _main.vader:10:50
+    local.get 5   ; _main.vader:10:50
+    i32.add   ; _main.vader:10:50
+    local.set 6   ; _main.vader:10:50
+  end $L0   ; _main.vader:10:28
   local.get 6   ; _main.vader:10:28
   return   ; _main.vader:10:28
 end

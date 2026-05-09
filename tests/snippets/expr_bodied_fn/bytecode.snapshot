@@ -24,13 +24,13 @@ fn 1 tests_snippets_expr_bodied_fn__main_vader$max (f64,f64) -> f64
   local.get 0   ; _main.vader:9:39
   local.get 1   ; _main.vader:9:39
   f64.gt   ; _main.vader:9:39
-  if void   ; _main.vader:9:36
-  local.get 0   ; _main.vader:9:45
-  local.set 2   ; _main.vader:9:45
+  if $L0 void   ; _main.vader:9:36
+    local.get 0   ; _main.vader:9:45
+    local.set 2   ; _main.vader:9:45
   else   ; _main.vader:9:36
-  local.get 1   ; _main.vader:9:56
-  local.set 2   ; _main.vader:9:56
-  end   ; _main.vader:9:36
+    local.get 1   ; _main.vader:9:56
+    local.set 2   ; _main.vader:9:56
+  end $L0   ; _main.vader:9:36
   local.get 2   ; _main.vader:9:36
   return   ; _main.vader:9:36
 end

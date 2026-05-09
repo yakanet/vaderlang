@@ -59,10 +59,41 @@ function formatSignature(s: BcSignature): string {
 function formatFunction(fn: BcFunction, idx: number, out: string[]): void {
   out.push(`fn ${idx} ${quoteIdent(fn.name)} ${formatSignature(fn.signature)}`);
   for (const local of fn.locals) out.push(`  local ${quoteIdent(local.name)} ${local.val}`);
+
+  // Structured ops emit named labels (`$L0`, `$L1`, …) instead of numeric
+  // depths so `br $L_outer` reads at a glance — no counting backwards.
+  // Indentation visualises the nesting (2 spaces per scope on top of the
+  // 2-space fn-body base).
+  const scopes: { name: string; kind: "block" | "loop" | "if" }[] = [];
+  let labelCounter = 0;
+
   for (let i = 0; i < fn.body.length; i++) {
     const op = fn.body[i]!;
     const dbg = fn.debug[i];
-    out.push(`  ${formatOp(op)}${formatDebug(dbg ?? null)}`);
+
+    // `else`/`end` outdent to the parent's level even though they still
+    // belong to the open scope (the scope stack tracks them).
+    const outdented = op.kind === "else" || op.kind === "end";
+    const indent = "  ".repeat(1 + (outdented ? scopes.length - 1 : scopes.length));
+
+    let line: string;
+    if (op.kind === "block" || op.kind === "loop" || op.kind === "if") {
+      const name = `$L${labelCounter++}`;
+      scopes.push({ name, kind: op.kind });
+      line = `${op.kind} ${name} ${op.result}`;
+    } else if (op.kind === "end") {
+      const top = scopes.pop();
+      line = top === undefined ? `end` : `end ${top.name}`;
+    } else if (op.kind === "br" || op.kind === "br_if") {
+      const target = scopes[scopes.length - 1 - op.depth];
+      line = target === undefined
+        ? `${op.kind} ${op.depth}`         // unreachable in practice — be defensive
+        : `${op.kind} ${target.name}`;
+    } else {
+      line = formatOp(op);
+    }
+
+    out.push(`${indent}${line}${formatDebug(dbg ?? null)}`);
   }
   out.push(`end`);
 }
@@ -73,6 +104,8 @@ function formatDebug(d: DebugPos | null): string {
 }
 
 function formatOp(op: Op): string {
+  // Structured-control + branch ops (`block`/`loop`/`if`/`end`/`br`/`br_if`)
+  // are emitted by `formatFunction` directly so it can resolve named labels.
   // Common cases first; the kind-string carries most info, the operands tail.
   switch (op.kind) {
     case "i32.const":    return `i32.const ${op.value}`;
@@ -86,11 +119,6 @@ function formatOp(op: Op): string {
     case "local.get":    return `local.get ${op.slot}`;
     case "local.set":    return `local.set ${op.slot}`;
     case "local.tee":    return `local.tee ${op.slot}`;
-    case "block":        return `block ${op.result}`;
-    case "loop":         return `loop ${op.result}`;
-    case "if":           return `if ${op.result}`;
-    case "br":           return `br ${op.depth}`;
-    case "br_if":        return `br_if ${op.depth}`;
     case "call":         return `call ${op.fnIndex}`;
     case "call.import":  return `call.import ${op.importIndex}`;
     case "call.indirect": return `call.indirect ${op.typeIndex}`;
@@ -273,39 +301,38 @@ function parseFn(headerLine: string, lines: string[], cur: { i: number }, m: Mut
   const locals: BcLocal[] = [];
   const body: Op[] = [];
   const debug: (DebugPos | null)[] = [];
-  // structured-op nesting depth: `block`/`loop`/`if` push, `end` pops.
-  // The fn terminator is the `end` at depth 0.
-  let depth = 0;
+  // Named-label scope stack — `block`/`loop`/`if` push, `end <name>` pops.
+  // The fn terminator is a bare `end` (no name) reached when the stack is
+  // empty.
+  const scopes: { name: string }[] = [];
 
   while (cur.i < lines.length) {
     const raw = lines[cur.i]!;
     cur.i++;
     const stripped = stripTrailingComment(raw).trim();
     if (stripped === "") continue;
-    if (stripped === "end" && depth === 0) break;
+    if (stripped === "end" && scopes.length === 0) break;
     if (stripped.startsWith("local ")) {
       const lm = /^local\s+(\S+)\s+(\S+)$/.exec(stripped);
       if (lm === null) throw new Error(`vir parse: malformed local "${stripped}"`);
       locals.push({ name: unquoteIdent(lm[1]!), val: expectValType(lm[2]!) });
       continue;
     }
-    const { op, dbg } = parseOpLine(raw);
+    const { op, dbg } = parseOpLine(raw, scopes);
     body.push(op);
     debug.push(dbg);
-    if (op.kind === "block" || op.kind === "loop" || op.kind === "if") depth++;
-    else if (op.kind === "end") depth--;
   }
 
   m.functions[idx] = { name, signature: sig, locals, body, debug };
 }
 
-function parseOpLine(raw: string): { op: Op; dbg: DebugPos | null } {
+function parseOpLine(raw: string, scopes: { name: string }[]): { op: Op; dbg: DebugPos | null } {
   // Split off the `; file:line:col` annotation if present.
   const trimmed = raw.trim();
   const semi = findCommentStart(trimmed);
   const opText = (semi < 0 ? trimmed : trimmed.slice(0, semi)).trim();
   const dbgText = semi < 0 ? "" : trimmed.slice(semi + 1).trim();
-  return { op: parseOp(opText), dbg: parseDebug(dbgText) };
+  return { op: parseOp(opText, scopes), dbg: parseDebug(dbgText) };
 }
 
 function findCommentStart(line: string): number {
@@ -333,7 +360,7 @@ function parseDebug(text: string): DebugPos | null {
   return { file, line, column };
 }
 
-function parseOp(text: string): Op {
+function parseOp(text: string, scopes: { name: string }[]): Op {
   const head = firstWord(text);
   const tail = text.slice(head.length).trim();
   switch (head) {
@@ -348,11 +375,23 @@ function parseOp(text: string): Op {
     case "local.get":    return { kind: "local.get", slot: Number(tail) };
     case "local.set":    return { kind: "local.set", slot: Number(tail) };
     case "local.tee":    return { kind: "local.tee", slot: Number(tail) };
-    case "block":        return { kind: "block", result: expectValType(tail) };
-    case "loop":         return { kind: "loop",  result: expectValType(tail) };
-    case "if":           return { kind: "if",    result: expectValType(tail) };
-    case "br":           return { kind: "br",    depth: Number(tail) };
-    case "br_if":        return { kind: "br_if", depth: Number(tail) };
+    case "block": case "loop": case "if": {
+      // `block $name <result>` / `loop $name <result>` / `if $name <result>`.
+      const sp = tail.indexOf(" ");
+      if (sp < 0) throw new Error(`vir parse: ${head} expects "<name> <result>"`);
+      scopes.push({ name: tail.slice(0, sp) });
+      return { kind: head, result: expectValType(tail.slice(sp + 1).trim()) };
+    }
+    case "end": {
+      // `end $name` pops the named scope ; bare `end` is a defensive fallback.
+      const top = scopes.pop();
+      if (tail !== "" && top !== undefined && tail !== top.name) {
+        throw new Error(`vir parse: end mismatch — expected ${top.name}, got ${tail}`);
+      }
+      return { kind: "end" };
+    }
+    case "br":
+    case "br_if":       return { kind: head as "br" | "br_if", depth: resolveScope(tail, scopes) };
     case "call":         return { kind: "call",  fnIndex: Number(tail) };
     case "call.import":  return { kind: "call.import", importIndex: Number(tail) };
     case "call.indirect": return { kind: "call.indirect", typeIndex: Number(tail) };
@@ -423,4 +462,15 @@ function unquoteIdent(s: string): string {
 function expectValType(s: string): ValType {
   if (!isValType(s)) throw new Error(`vir parse: unknown ValType "${s}"`);
   return s;
+}
+
+/** Resolve a `br <target>` operand. Accepts a named label (`$L0`) — looked up
+ *  in the active scope stack — or a bare numeric depth (kept for round-trip
+ *  with payloads that bypass the writer). */
+function resolveScope(spec: string, scopes: readonly { name: string }[]): number {
+  if (/^-?\d+$/.test(spec)) return Number(spec);
+  for (let i = scopes.length - 1; i >= 0; i--) {
+    if (scopes[i]!.name === spec) return scopes.length - 1 - i;
+  }
+  throw new Error(`vir parse: unknown branch label "${spec}"`);
 }

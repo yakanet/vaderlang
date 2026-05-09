@@ -32,42 +32,42 @@ fn 0 tests_snippets_enum_typed__main_vader$describe (u8) -> string
   local.get 1   ; _main.vader:19:9
   local.get 2   ; _main.vader:19:9
   u8.eq   ; _main.vader:19:9
-  if void   ; _main.vader:19:9
-  string.const 0   ; _main.vader:19:19
-  return   ; _main.vader:18:5
+  if $L0 void   ; _main.vader:19:9
+    string.const 0   ; _main.vader:19:19
+    return   ; _main.vader:18:5
   else   ; _main.vader:19:9
-  i32.const 2   ; _main.vader:20:9
-  local.set 3   ; _main.vader:20:9
-  local.get 1   ; _main.vader:20:9
-  local.get 3   ; _main.vader:20:9
-  u8.eq   ; _main.vader:20:9
-  if void   ; _main.vader:20:9
-  string.const 1   ; _main.vader:20:19
-  return   ; _main.vader:18:5
-  else   ; _main.vader:20:9
-  i32.const 4   ; _main.vader:21:9
-  local.set 4   ; _main.vader:21:9
-  local.get 1   ; _main.vader:21:9
-  local.get 4   ; _main.vader:21:9
-  u8.eq   ; _main.vader:21:9
-  if void   ; _main.vader:21:9
-  string.const 2   ; _main.vader:21:19
-  return   ; _main.vader:18:5
-  else   ; _main.vader:21:9
-  i32.const 8   ; _main.vader:22:9
-  local.set 5   ; _main.vader:22:9
-  local.get 1   ; _main.vader:22:9
-  local.get 5   ; _main.vader:22:9
-  u8.eq   ; _main.vader:22:9
-  if void   ; _main.vader:22:9
-  string.const 3   ; _main.vader:22:19
-  return   ; _main.vader:18:5
-  else   ; _main.vader:22:9
-  unreachable   ; _main.vader:18:12
-  end   ; _main.vader:22:9
-  end   ; _main.vader:21:9
-  end   ; _main.vader:20:9
-  end   ; _main.vader:19:9
+    i32.const 2   ; _main.vader:20:9
+    local.set 3   ; _main.vader:20:9
+    local.get 1   ; _main.vader:20:9
+    local.get 3   ; _main.vader:20:9
+    u8.eq   ; _main.vader:20:9
+    if $L1 void   ; _main.vader:20:9
+      string.const 1   ; _main.vader:20:19
+      return   ; _main.vader:18:5
+    else   ; _main.vader:20:9
+      i32.const 4   ; _main.vader:21:9
+      local.set 4   ; _main.vader:21:9
+      local.get 1   ; _main.vader:21:9
+      local.get 4   ; _main.vader:21:9
+      u8.eq   ; _main.vader:21:9
+      if $L2 void   ; _main.vader:21:9
+        string.const 2   ; _main.vader:21:19
+        return   ; _main.vader:18:5
+      else   ; _main.vader:21:9
+        i32.const 8   ; _main.vader:22:9
+        local.set 5   ; _main.vader:22:9
+        local.get 1   ; _main.vader:22:9
+        local.get 5   ; _main.vader:22:9
+        u8.eq   ; _main.vader:22:9
+        if $L3 void   ; _main.vader:22:9
+          string.const 3   ; _main.vader:22:19
+          return   ; _main.vader:18:5
+        else   ; _main.vader:22:9
+          unreachable   ; _main.vader:18:12
+        end $L3   ; _main.vader:22:9
+      end $L2   ; _main.vader:21:9
+    end $L1   ; _main.vader:20:9
+  end $L0   ; _main.vader:19:9
 end
 
 fn 1 tests_snippets_enum_typed__main_vader$main () -> i32
@@ -89,48 +89,48 @@ fn 1 tests_snippets_enum_typed__main_vader$main () -> i32
   local.get 0   ; _main.vader:32:9
   local.get 1   ; _main.vader:32:9
   u16.eq   ; _main.vader:32:9
-  if void   ; _main.vader:32:9
-  string.const 4   ; _main.vader:32:26
-  call.import 4   ; _main.vader:32:18
-  i32.const 0   ; _main.vader:38:12
-  return   ; _main.vader:38:5
+  if $L0 void   ; _main.vader:32:9
+    string.const 4   ; _main.vader:32:26
+    call.import 4   ; _main.vader:32:18
+    i32.const 0   ; _main.vader:38:12
+    return   ; _main.vader:38:5
   else   ; _main.vader:32:9
-  i32.const 100   ; _main.vader:33:9
-  local.set 2   ; _main.vader:33:9
-  local.get 0   ; _main.vader:33:9
-  local.get 2   ; _main.vader:33:9
-  u16.eq   ; _main.vader:33:9
-  if void   ; _main.vader:33:9
-  string.const 5   ; _main.vader:33:26
-  call.import 4   ; _main.vader:33:18
-  i32.const 0   ; _main.vader:38:12
-  return   ; _main.vader:38:5
-  else   ; _main.vader:33:9
-  i32.const 101   ; _main.vader:34:9
-  local.set 3   ; _main.vader:34:9
-  local.get 0   ; _main.vader:34:9
-  local.get 3   ; _main.vader:34:9
-  u16.eq   ; _main.vader:34:9
-  if void   ; _main.vader:34:9
-  string.const 6   ; _main.vader:34:26
-  call.import 4   ; _main.vader:34:18
-  i32.const 0   ; _main.vader:38:12
-  return   ; _main.vader:38:5
-  else   ; _main.vader:34:9
-  i32.const 102   ; _main.vader:35:9
-  local.set 4   ; _main.vader:35:9
-  local.get 0   ; _main.vader:35:9
-  local.get 4   ; _main.vader:35:9
-  u16.eq   ; _main.vader:35:9
-  if void   ; _main.vader:35:9
-  string.const 7   ; _main.vader:35:26
-  call.import 4   ; _main.vader:35:18
-  i32.const 0   ; _main.vader:38:12
-  return   ; _main.vader:38:5
-  else   ; _main.vader:35:9
-  unreachable   ; _main.vader:31:5
-  end   ; _main.vader:35:9
-  end   ; _main.vader:34:9
-  end   ; _main.vader:33:9
-  end   ; _main.vader:32:9
+    i32.const 100   ; _main.vader:33:9
+    local.set 2   ; _main.vader:33:9
+    local.get 0   ; _main.vader:33:9
+    local.get 2   ; _main.vader:33:9
+    u16.eq   ; _main.vader:33:9
+    if $L1 void   ; _main.vader:33:9
+      string.const 5   ; _main.vader:33:26
+      call.import 4   ; _main.vader:33:18
+      i32.const 0   ; _main.vader:38:12
+      return   ; _main.vader:38:5
+    else   ; _main.vader:33:9
+      i32.const 101   ; _main.vader:34:9
+      local.set 3   ; _main.vader:34:9
+      local.get 0   ; _main.vader:34:9
+      local.get 3   ; _main.vader:34:9
+      u16.eq   ; _main.vader:34:9
+      if $L2 void   ; _main.vader:34:9
+        string.const 6   ; _main.vader:34:26
+        call.import 4   ; _main.vader:34:18
+        i32.const 0   ; _main.vader:38:12
+        return   ; _main.vader:38:5
+      else   ; _main.vader:34:9
+        i32.const 102   ; _main.vader:35:9
+        local.set 4   ; _main.vader:35:9
+        local.get 0   ; _main.vader:35:9
+        local.get 4   ; _main.vader:35:9
+        u16.eq   ; _main.vader:35:9
+        if $L3 void   ; _main.vader:35:9
+          string.const 7   ; _main.vader:35:26
+          call.import 4   ; _main.vader:35:18
+          i32.const 0   ; _main.vader:38:12
+          return   ; _main.vader:38:5
+        else   ; _main.vader:35:9
+          unreachable   ; _main.vader:31:5
+        end $L3   ; _main.vader:35:9
+      end $L2   ; _main.vader:34:9
+    end $L1   ; _main.vader:33:9
+  end $L0   ; _main.vader:32:9
 end

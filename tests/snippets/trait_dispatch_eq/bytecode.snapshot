@@ -78,15 +78,15 @@ fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_
   local.get 3   ; _main.vader:7:5
   local.set 6   ; _main.vader:7:5
   local.get 4   ; _main.vader:7:5
-  if void   ; _main.vader:7:5
-  i32.const 1   ; _main.vader:8:17
-  local.set 5   ; _main.vader:8:17
-  local.get 3   ; _main.vader:8:13
-  local.get 5   ; _main.vader:8:13
-  i32.add   ; _main.vader:8:13
-  local.set 6   ; _main.vader:8:13
+  if $L0 void   ; _main.vader:7:5
+    i32.const 1   ; _main.vader:8:17
+    local.set 5   ; _main.vader:8:17
+    local.get 3   ; _main.vader:8:13
+    local.get 5   ; _main.vader:8:13
+    i32.add   ; _main.vader:8:13
+    local.set 6   ; _main.vader:8:13
   else   ; _main.vader:7:5
-  end   ; _main.vader:7:5
+  end $L0   ; _main.vader:7:5
   local.get 0   ; _main.vader:10:8
   local.get 2   ; _main.vader:10:8
   call 2   ; _main.vader:10:8
@@ -94,15 +94,15 @@ fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_
   local.get 6   ; _main.vader:10:5
   local.set 9   ; _main.vader:10:5
   local.get 7   ; _main.vader:10:5
-  if void   ; _main.vader:10:5
-  i32.const 10   ; _main.vader:11:17
-  local.set 8   ; _main.vader:11:17
-  local.get 6   ; _main.vader:11:13
-  local.get 8   ; _main.vader:11:13
-  i32.add   ; _main.vader:11:13
-  local.set 9   ; _main.vader:11:13
+  if $L1 void   ; _main.vader:10:5
+    i32.const 10   ; _main.vader:11:17
+    local.set 8   ; _main.vader:11:17
+    local.get 6   ; _main.vader:11:13
+    local.get 8   ; _main.vader:11:13
+    i32.add   ; _main.vader:11:13
+    local.set 9   ; _main.vader:11:13
   else   ; _main.vader:10:5
-  end   ; _main.vader:10:5
+  end $L1   ; _main.vader:10:5
   local.get 1   ; _main.vader:13:8
   local.get 2   ; _main.vader:13:8
   call 2   ; _main.vader:13:8
@@ -110,15 +110,15 @@ fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_
   local.get 9   ; _main.vader:13:5
   local.set 12   ; _main.vader:13:5
   local.get 10   ; _main.vader:13:5
-  if void   ; _main.vader:13:5
-  i32.const 100   ; _main.vader:14:17
-  local.set 11   ; _main.vader:14:17
-  local.get 9   ; _main.vader:14:13
-  local.get 11   ; _main.vader:14:13
-  i32.add   ; _main.vader:14:13
-  local.set 12   ; _main.vader:14:13
+  if $L2 void   ; _main.vader:13:5
+    i32.const 100   ; _main.vader:14:17
+    local.set 11   ; _main.vader:14:17
+    local.get 9   ; _main.vader:14:13
+    local.get 11   ; _main.vader:14:13
+    i32.add   ; _main.vader:14:13
+    local.set 12   ; _main.vader:14:13
   else   ; _main.vader:13:5
-  end   ; _main.vader:13:5
+  end $L2   ; _main.vader:13:5
   local.get 12   ; _main.vader:16:5
   return   ; _main.vader:16:5
 end

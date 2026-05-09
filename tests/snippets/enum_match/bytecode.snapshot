@@ -25,23 +25,23 @@ fn 0 tests_snippets_enum_match__main_vader$classify (i32) -> i32
   local.get 0   ; _main.vader:9:8
   local.get 1   ; _main.vader:9:8
   i32.lt   ; _main.vader:9:8
-  if void   ; _main.vader:9:5
-  i32.const 2   ; _main.vader:9:23
-  return   ; _main.vader:9:16
+  if $L0 void   ; _main.vader:9:5
+    i32.const 2   ; _main.vader:9:23
+    return   ; _main.vader:9:16
   else   ; _main.vader:9:5
-  i32.const 0   ; _main.vader:10:13
-  local.set 2   ; _main.vader:10:13
-  local.get 0   ; _main.vader:10:8
-  local.get 2   ; _main.vader:10:8
-  i32.eq   ; _main.vader:10:8
-  if void   ; _main.vader:10:5
-  i32.const 1   ; _main.vader:10:24
-  return   ; _main.vader:10:17
-  else   ; _main.vader:10:5
-  i32.const 0   ; _main.vader:11:12
-  return   ; _main.vader:11:5
-  end   ; _main.vader:10:5
-  end   ; _main.vader:9:5
+    i32.const 0   ; _main.vader:10:13
+    local.set 2   ; _main.vader:10:13
+    local.get 0   ; _main.vader:10:8
+    local.get 2   ; _main.vader:10:8
+    i32.eq   ; _main.vader:10:8
+    if $L1 void   ; _main.vader:10:5
+      i32.const 1   ; _main.vader:10:24
+      return   ; _main.vader:10:17
+    else   ; _main.vader:10:5
+      i32.const 0   ; _main.vader:11:12
+      return   ; _main.vader:11:5
+    end $L1   ; _main.vader:10:5
+  end $L0   ; _main.vader:9:5
 end
 
 fn 1 tests_snippets_enum_match__main_vader$label (i32) -> string
@@ -56,32 +56,32 @@ fn 1 tests_snippets_enum_match__main_vader$label (i32) -> string
   local.get 1   ; _main.vader:17:9
   local.get 2   ; _main.vader:17:9
   i32.eq   ; _main.vader:17:9
-  if void   ; _main.vader:17:9
-  string.const 0   ; _main.vader:17:19
-  return   ; _main.vader:15:40
+  if $L0 void   ; _main.vader:17:9
+    string.const 0   ; _main.vader:17:19
+    return   ; _main.vader:15:40
   else   ; _main.vader:17:9
-  i32.const 1   ; _main.vader:18:9
-  local.set 3   ; _main.vader:18:9
-  local.get 1   ; _main.vader:18:9
-  local.get 3   ; _main.vader:18:9
-  i32.eq   ; _main.vader:18:9
-  if void   ; _main.vader:18:9
-  string.const 1   ; _main.vader:18:19
-  return   ; _main.vader:15:40
-  else   ; _main.vader:18:9
-  i32.const 2   ; _main.vader:19:9
-  local.set 4   ; _main.vader:19:9
-  local.get 1   ; _main.vader:19:9
-  local.get 4   ; _main.vader:19:9
-  i32.eq   ; _main.vader:19:9
-  if void   ; _main.vader:19:9
-  string.const 2   ; _main.vader:19:19
-  return   ; _main.vader:15:40
-  else   ; _main.vader:19:9
-  unreachable   ; _main.vader:16:5
-  end   ; _main.vader:19:9
-  end   ; _main.vader:18:9
-  end   ; _main.vader:17:9
+    i32.const 1   ; _main.vader:18:9
+    local.set 3   ; _main.vader:18:9
+    local.get 1   ; _main.vader:18:9
+    local.get 3   ; _main.vader:18:9
+    i32.eq   ; _main.vader:18:9
+    if $L1 void   ; _main.vader:18:9
+      string.const 1   ; _main.vader:18:19
+      return   ; _main.vader:15:40
+    else   ; _main.vader:18:9
+      i32.const 2   ; _main.vader:19:9
+      local.set 4   ; _main.vader:19:9
+      local.get 1   ; _main.vader:19:9
+      local.get 4   ; _main.vader:19:9
+      i32.eq   ; _main.vader:19:9
+      if $L2 void   ; _main.vader:19:9
+        string.const 2   ; _main.vader:19:19
+        return   ; _main.vader:15:40
+      else   ; _main.vader:19:9
+        unreachable   ; _main.vader:16:5
+      end $L2   ; _main.vader:19:9
+    end $L1   ; _main.vader:18:9
+  end $L0   ; _main.vader:17:9
 end
 
 fn 2 tests_snippets_enum_match__main_vader$same_color (i32,i32) -> bool
@@ -198,492 +198,492 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   local.get 15   ; _main.vader:46:9
   local.get 16   ; _main.vader:46:9
   i32.eq   ; _main.vader:46:9
-  if void   ; _main.vader:46:9
-  string.const 3   ; _main.vader:46:29
-  call.import 4   ; _main.vader:46:21
-  i32.const 0   ; _main.vader:51:20
-  call 0   ; _main.vader:51:11
-  local.set 19   ; _main.vader:51:5
-  i32.const 0   ; _main.vader:53:9
-  local.set 20   ; _main.vader:53:9
-  local.get 19   ; _main.vader:53:9
-  local.get 20   ; _main.vader:53:9
-  i32.eq   ; _main.vader:53:9
-  if void   ; _main.vader:53:9
-  string.const 3   ; _main.vader:53:29
-  call.import 4   ; _main.vader:53:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:53:9
-  i32.const 1   ; _main.vader:54:9
-  local.set 21   ; _main.vader:54:9
-  local.get 19   ; _main.vader:54:9
-  local.get 21   ; _main.vader:54:9
-  i32.eq   ; _main.vader:54:9
-  if void   ; _main.vader:54:9
-  string.const 4   ; _main.vader:54:29
-  call.import 4   ; _main.vader:54:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:54:9
-  i32.const 2   ; _main.vader:55:9
-  local.set 22   ; _main.vader:55:9
-  local.get 19   ; _main.vader:55:9
-  local.get 22   ; _main.vader:55:9
-  i32.eq   ; _main.vader:55:9
-  if void   ; _main.vader:55:9
-  string.const 5   ; _main.vader:55:29
-  call.import 4   ; _main.vader:55:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:55:9
-  unreachable   ; _main.vader:52:5
-  end   ; _main.vader:55:9
-  end   ; _main.vader:54:9
-  end   ; _main.vader:53:9
+  if $L0 void   ; _main.vader:46:9
+    string.const 3   ; _main.vader:46:29
+    call.import 4   ; _main.vader:46:21
+    i32.const 0   ; _main.vader:51:20
+    call 0   ; _main.vader:51:11
+    local.set 19   ; _main.vader:51:5
+    i32.const 0   ; _main.vader:53:9
+    local.set 20   ; _main.vader:53:9
+    local.get 19   ; _main.vader:53:9
+    local.get 20   ; _main.vader:53:9
+    i32.eq   ; _main.vader:53:9
+    if $L1 void   ; _main.vader:53:9
+      string.const 3   ; _main.vader:53:29
+      call.import 4   ; _main.vader:53:21
+      i32.const 1   ; _main.vader:58:20
+      call 0   ; _main.vader:58:11
+      local.set 23   ; _main.vader:58:5
+      i32.const 0   ; _main.vader:60:9
+      local.set 24   ; _main.vader:60:9
+      local.get 23   ; _main.vader:60:9
+      local.get 24   ; _main.vader:60:9
+      i32.eq   ; _main.vader:60:9
+      if $L2 void   ; _main.vader:60:9
+        string.const 3   ; _main.vader:60:29
+        call.import 4   ; _main.vader:60:21
+        i32.const 0   ; _main.vader:65:12
+        return   ; _main.vader:65:5
+      else   ; _main.vader:60:9
+        i32.const 1   ; _main.vader:61:9
+        local.set 25   ; _main.vader:61:9
+        local.get 23   ; _main.vader:61:9
+        local.get 25   ; _main.vader:61:9
+        i32.eq   ; _main.vader:61:9
+        if $L3 void   ; _main.vader:61:9
+          string.const 4   ; _main.vader:61:29
+          call.import 4   ; _main.vader:61:21
+          i32.const 0   ; _main.vader:65:12
+          return   ; _main.vader:65:5
+        else   ; _main.vader:61:9
+          i32.const 2   ; _main.vader:62:9
+          local.set 26   ; _main.vader:62:9
+          local.get 23   ; _main.vader:62:9
+          local.get 26   ; _main.vader:62:9
+          i32.eq   ; _main.vader:62:9
+          if $L4 void   ; _main.vader:62:9
+            string.const 5   ; _main.vader:62:29
+            call.import 4   ; _main.vader:62:21
+            i32.const 0   ; _main.vader:65:12
+            return   ; _main.vader:65:5
+          else   ; _main.vader:62:9
+            unreachable   ; _main.vader:59:5
+          end $L4   ; _main.vader:62:9
+        end $L3   ; _main.vader:61:9
+      end $L2   ; _main.vader:60:9
+    else   ; _main.vader:53:9
+      i32.const 1   ; _main.vader:54:9
+      local.set 21   ; _main.vader:54:9
+      local.get 19   ; _main.vader:54:9
+      local.get 21   ; _main.vader:54:9
+      i32.eq   ; _main.vader:54:9
+      if $L5 void   ; _main.vader:54:9
+        string.const 4   ; _main.vader:54:29
+        call.import 4   ; _main.vader:54:21
+        i32.const 1   ; _main.vader:58:20
+        call 0   ; _main.vader:58:11
+        local.set 23   ; _main.vader:58:5
+        i32.const 0   ; _main.vader:60:9
+        local.set 24   ; _main.vader:60:9
+        local.get 23   ; _main.vader:60:9
+        local.get 24   ; _main.vader:60:9
+        i32.eq   ; _main.vader:60:9
+        if $L6 void   ; _main.vader:60:9
+          string.const 3   ; _main.vader:60:29
+          call.import 4   ; _main.vader:60:21
+          i32.const 0   ; _main.vader:65:12
+          return   ; _main.vader:65:5
+        else   ; _main.vader:60:9
+          i32.const 1   ; _main.vader:61:9
+          local.set 25   ; _main.vader:61:9
+          local.get 23   ; _main.vader:61:9
+          local.get 25   ; _main.vader:61:9
+          i32.eq   ; _main.vader:61:9
+          if $L7 void   ; _main.vader:61:9
+            string.const 4   ; _main.vader:61:29
+            call.import 4   ; _main.vader:61:21
+            i32.const 0   ; _main.vader:65:12
+            return   ; _main.vader:65:5
+          else   ; _main.vader:61:9
+            i32.const 2   ; _main.vader:62:9
+            local.set 26   ; _main.vader:62:9
+            local.get 23   ; _main.vader:62:9
+            local.get 26   ; _main.vader:62:9
+            i32.eq   ; _main.vader:62:9
+            if $L8 void   ; _main.vader:62:9
+              string.const 5   ; _main.vader:62:29
+              call.import 4   ; _main.vader:62:21
+              i32.const 0   ; _main.vader:65:12
+              return   ; _main.vader:65:5
+            else   ; _main.vader:62:9
+              unreachable   ; _main.vader:59:5
+            end $L8   ; _main.vader:62:9
+          end $L7   ; _main.vader:61:9
+        end $L6   ; _main.vader:60:9
+      else   ; _main.vader:54:9
+        i32.const 2   ; _main.vader:55:9
+        local.set 22   ; _main.vader:55:9
+        local.get 19   ; _main.vader:55:9
+        local.get 22   ; _main.vader:55:9
+        i32.eq   ; _main.vader:55:9
+        if $L9 void   ; _main.vader:55:9
+          string.const 5   ; _main.vader:55:29
+          call.import 4   ; _main.vader:55:21
+          i32.const 1   ; _main.vader:58:20
+          call 0   ; _main.vader:58:11
+          local.set 23   ; _main.vader:58:5
+          i32.const 0   ; _main.vader:60:9
+          local.set 24   ; _main.vader:60:9
+          local.get 23   ; _main.vader:60:9
+          local.get 24   ; _main.vader:60:9
+          i32.eq   ; _main.vader:60:9
+          if $L10 void   ; _main.vader:60:9
+            string.const 3   ; _main.vader:60:29
+            call.import 4   ; _main.vader:60:21
+            i32.const 0   ; _main.vader:65:12
+            return   ; _main.vader:65:5
+          else   ; _main.vader:60:9
+            i32.const 1   ; _main.vader:61:9
+            local.set 25   ; _main.vader:61:9
+            local.get 23   ; _main.vader:61:9
+            local.get 25   ; _main.vader:61:9
+            i32.eq   ; _main.vader:61:9
+            if $L11 void   ; _main.vader:61:9
+              string.const 4   ; _main.vader:61:29
+              call.import 4   ; _main.vader:61:21
+              i32.const 0   ; _main.vader:65:12
+              return   ; _main.vader:65:5
+            else   ; _main.vader:61:9
+              i32.const 2   ; _main.vader:62:9
+              local.set 26   ; _main.vader:62:9
+              local.get 23   ; _main.vader:62:9
+              local.get 26   ; _main.vader:62:9
+              i32.eq   ; _main.vader:62:9
+              if $L12 void   ; _main.vader:62:9
+                string.const 5   ; _main.vader:62:29
+                call.import 4   ; _main.vader:62:21
+                i32.const 0   ; _main.vader:65:12
+                return   ; _main.vader:65:5
+              else   ; _main.vader:62:9
+                unreachable   ; _main.vader:59:5
+              end $L12   ; _main.vader:62:9
+            end $L11   ; _main.vader:61:9
+          end $L10   ; _main.vader:60:9
+        else   ; _main.vader:55:9
+          unreachable   ; _main.vader:52:5
+        end $L9   ; _main.vader:55:9
+      end $L5   ; _main.vader:54:9
+    end $L1   ; _main.vader:53:9
   else   ; _main.vader:46:9
-  i32.const 1   ; _main.vader:47:9
-  local.set 17   ; _main.vader:47:9
-  local.get 15   ; _main.vader:47:9
-  local.get 17   ; _main.vader:47:9
-  i32.eq   ; _main.vader:47:9
-  if void   ; _main.vader:47:9
-  string.const 4   ; _main.vader:47:29
-  call.import 4   ; _main.vader:47:21
-  i32.const 0   ; _main.vader:51:20
-  call 0   ; _main.vader:51:11
-  local.set 19   ; _main.vader:51:5
-  i32.const 0   ; _main.vader:53:9
-  local.set 20   ; _main.vader:53:9
-  local.get 19   ; _main.vader:53:9
-  local.get 20   ; _main.vader:53:9
-  i32.eq   ; _main.vader:53:9
-  if void   ; _main.vader:53:9
-  string.const 3   ; _main.vader:53:29
-  call.import 4   ; _main.vader:53:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:53:9
-  i32.const 1   ; _main.vader:54:9
-  local.set 21   ; _main.vader:54:9
-  local.get 19   ; _main.vader:54:9
-  local.get 21   ; _main.vader:54:9
-  i32.eq   ; _main.vader:54:9
-  if void   ; _main.vader:54:9
-  string.const 4   ; _main.vader:54:29
-  call.import 4   ; _main.vader:54:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:54:9
-  i32.const 2   ; _main.vader:55:9
-  local.set 22   ; _main.vader:55:9
-  local.get 19   ; _main.vader:55:9
-  local.get 22   ; _main.vader:55:9
-  i32.eq   ; _main.vader:55:9
-  if void   ; _main.vader:55:9
-  string.const 5   ; _main.vader:55:29
-  call.import 4   ; _main.vader:55:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:55:9
-  unreachable   ; _main.vader:52:5
-  end   ; _main.vader:55:9
-  end   ; _main.vader:54:9
-  end   ; _main.vader:53:9
-  else   ; _main.vader:47:9
-  i32.const 2   ; _main.vader:48:9
-  local.set 18   ; _main.vader:48:9
-  local.get 15   ; _main.vader:48:9
-  local.get 18   ; _main.vader:48:9
-  i32.eq   ; _main.vader:48:9
-  if void   ; _main.vader:48:9
-  string.const 5   ; _main.vader:48:29
-  call.import 4   ; _main.vader:48:21
-  i32.const 0   ; _main.vader:51:20
-  call 0   ; _main.vader:51:11
-  local.set 19   ; _main.vader:51:5
-  i32.const 0   ; _main.vader:53:9
-  local.set 20   ; _main.vader:53:9
-  local.get 19   ; _main.vader:53:9
-  local.get 20   ; _main.vader:53:9
-  i32.eq   ; _main.vader:53:9
-  if void   ; _main.vader:53:9
-  string.const 3   ; _main.vader:53:29
-  call.import 4   ; _main.vader:53:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:53:9
-  i32.const 1   ; _main.vader:54:9
-  local.set 21   ; _main.vader:54:9
-  local.get 19   ; _main.vader:54:9
-  local.get 21   ; _main.vader:54:9
-  i32.eq   ; _main.vader:54:9
-  if void   ; _main.vader:54:9
-  string.const 4   ; _main.vader:54:29
-  call.import 4   ; _main.vader:54:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:54:9
-  i32.const 2   ; _main.vader:55:9
-  local.set 22   ; _main.vader:55:9
-  local.get 19   ; _main.vader:55:9
-  local.get 22   ; _main.vader:55:9
-  i32.eq   ; _main.vader:55:9
-  if void   ; _main.vader:55:9
-  string.const 5   ; _main.vader:55:29
-  call.import 4   ; _main.vader:55:21
-  i32.const 1   ; _main.vader:58:20
-  call 0   ; _main.vader:58:11
-  local.set 23   ; _main.vader:58:5
-  i32.const 0   ; _main.vader:60:9
-  local.set 24   ; _main.vader:60:9
-  local.get 23   ; _main.vader:60:9
-  local.get 24   ; _main.vader:60:9
-  i32.eq   ; _main.vader:60:9
-  if void   ; _main.vader:60:9
-  string.const 3   ; _main.vader:60:29
-  call.import 4   ; _main.vader:60:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:60:9
-  i32.const 1   ; _main.vader:61:9
-  local.set 25   ; _main.vader:61:9
-  local.get 23   ; _main.vader:61:9
-  local.get 25   ; _main.vader:61:9
-  i32.eq   ; _main.vader:61:9
-  if void   ; _main.vader:61:9
-  string.const 4   ; _main.vader:61:29
-  call.import 4   ; _main.vader:61:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:61:9
-  i32.const 2   ; _main.vader:62:9
-  local.set 26   ; _main.vader:62:9
-  local.get 23   ; _main.vader:62:9
-  local.get 26   ; _main.vader:62:9
-  i32.eq   ; _main.vader:62:9
-  if void   ; _main.vader:62:9
-  string.const 5   ; _main.vader:62:29
-  call.import 4   ; _main.vader:62:21
-  i32.const 0   ; _main.vader:65:12
-  return   ; _main.vader:65:5
-  else   ; _main.vader:62:9
-  unreachable   ; _main.vader:59:5
-  end   ; _main.vader:62:9
-  end   ; _main.vader:61:9
-  end   ; _main.vader:60:9
-  else   ; _main.vader:55:9
-  unreachable   ; _main.vader:52:5
-  end   ; _main.vader:55:9
-  end   ; _main.vader:54:9
-  end   ; _main.vader:53:9
-  else   ; _main.vader:48:9
-  unreachable   ; _main.vader:45:5
-  end   ; _main.vader:48:9
-  end   ; _main.vader:47:9
-  end   ; _main.vader:46:9
+    i32.const 1   ; _main.vader:47:9
+    local.set 17   ; _main.vader:47:9
+    local.get 15   ; _main.vader:47:9
+    local.get 17   ; _main.vader:47:9
+    i32.eq   ; _main.vader:47:9
+    if $L13 void   ; _main.vader:47:9
+      string.const 4   ; _main.vader:47:29
+      call.import 4   ; _main.vader:47:21
+      i32.const 0   ; _main.vader:51:20
+      call 0   ; _main.vader:51:11
+      local.set 19   ; _main.vader:51:5
+      i32.const 0   ; _main.vader:53:9
+      local.set 20   ; _main.vader:53:9
+      local.get 19   ; _main.vader:53:9
+      local.get 20   ; _main.vader:53:9
+      i32.eq   ; _main.vader:53:9
+      if $L14 void   ; _main.vader:53:9
+        string.const 3   ; _main.vader:53:29
+        call.import 4   ; _main.vader:53:21
+        i32.const 1   ; _main.vader:58:20
+        call 0   ; _main.vader:58:11
+        local.set 23   ; _main.vader:58:5
+        i32.const 0   ; _main.vader:60:9
+        local.set 24   ; _main.vader:60:9
+        local.get 23   ; _main.vader:60:9
+        local.get 24   ; _main.vader:60:9
+        i32.eq   ; _main.vader:60:9
+        if $L15 void   ; _main.vader:60:9
+          string.const 3   ; _main.vader:60:29
+          call.import 4   ; _main.vader:60:21
+          i32.const 0   ; _main.vader:65:12
+          return   ; _main.vader:65:5
+        else   ; _main.vader:60:9
+          i32.const 1   ; _main.vader:61:9
+          local.set 25   ; _main.vader:61:9
+          local.get 23   ; _main.vader:61:9
+          local.get 25   ; _main.vader:61:9
+          i32.eq   ; _main.vader:61:9
+          if $L16 void   ; _main.vader:61:9
+            string.const 4   ; _main.vader:61:29
+            call.import 4   ; _main.vader:61:21
+            i32.const 0   ; _main.vader:65:12
+            return   ; _main.vader:65:5
+          else   ; _main.vader:61:9
+            i32.const 2   ; _main.vader:62:9
+            local.set 26   ; _main.vader:62:9
+            local.get 23   ; _main.vader:62:9
+            local.get 26   ; _main.vader:62:9
+            i32.eq   ; _main.vader:62:9
+            if $L17 void   ; _main.vader:62:9
+              string.const 5   ; _main.vader:62:29
+              call.import 4   ; _main.vader:62:21
+              i32.const 0   ; _main.vader:65:12
+              return   ; _main.vader:65:5
+            else   ; _main.vader:62:9
+              unreachable   ; _main.vader:59:5
+            end $L17   ; _main.vader:62:9
+          end $L16   ; _main.vader:61:9
+        end $L15   ; _main.vader:60:9
+      else   ; _main.vader:53:9
+        i32.const 1   ; _main.vader:54:9
+        local.set 21   ; _main.vader:54:9
+        local.get 19   ; _main.vader:54:9
+        local.get 21   ; _main.vader:54:9
+        i32.eq   ; _main.vader:54:9
+        if $L18 void   ; _main.vader:54:9
+          string.const 4   ; _main.vader:54:29
+          call.import 4   ; _main.vader:54:21
+          i32.const 1   ; _main.vader:58:20
+          call 0   ; _main.vader:58:11
+          local.set 23   ; _main.vader:58:5
+          i32.const 0   ; _main.vader:60:9
+          local.set 24   ; _main.vader:60:9
+          local.get 23   ; _main.vader:60:9
+          local.get 24   ; _main.vader:60:9
+          i32.eq   ; _main.vader:60:9
+          if $L19 void   ; _main.vader:60:9
+            string.const 3   ; _main.vader:60:29
+            call.import 4   ; _main.vader:60:21
+            i32.const 0   ; _main.vader:65:12
+            return   ; _main.vader:65:5
+          else   ; _main.vader:60:9
+            i32.const 1   ; _main.vader:61:9
+            local.set 25   ; _main.vader:61:9
+            local.get 23   ; _main.vader:61:9
+            local.get 25   ; _main.vader:61:9
+            i32.eq   ; _main.vader:61:9
+            if $L20 void   ; _main.vader:61:9
+              string.const 4   ; _main.vader:61:29
+              call.import 4   ; _main.vader:61:21
+              i32.const 0   ; _main.vader:65:12
+              return   ; _main.vader:65:5
+            else   ; _main.vader:61:9
+              i32.const 2   ; _main.vader:62:9
+              local.set 26   ; _main.vader:62:9
+              local.get 23   ; _main.vader:62:9
+              local.get 26   ; _main.vader:62:9
+              i32.eq   ; _main.vader:62:9
+              if $L21 void   ; _main.vader:62:9
+                string.const 5   ; _main.vader:62:29
+                call.import 4   ; _main.vader:62:21
+                i32.const 0   ; _main.vader:65:12
+                return   ; _main.vader:65:5
+              else   ; _main.vader:62:9
+                unreachable   ; _main.vader:59:5
+              end $L21   ; _main.vader:62:9
+            end $L20   ; _main.vader:61:9
+          end $L19   ; _main.vader:60:9
+        else   ; _main.vader:54:9
+          i32.const 2   ; _main.vader:55:9
+          local.set 22   ; _main.vader:55:9
+          local.get 19   ; _main.vader:55:9
+          local.get 22   ; _main.vader:55:9
+          i32.eq   ; _main.vader:55:9
+          if $L22 void   ; _main.vader:55:9
+            string.const 5   ; _main.vader:55:29
+            call.import 4   ; _main.vader:55:21
+            i32.const 1   ; _main.vader:58:20
+            call 0   ; _main.vader:58:11
+            local.set 23   ; _main.vader:58:5
+            i32.const 0   ; _main.vader:60:9
+            local.set 24   ; _main.vader:60:9
+            local.get 23   ; _main.vader:60:9
+            local.get 24   ; _main.vader:60:9
+            i32.eq   ; _main.vader:60:9
+            if $L23 void   ; _main.vader:60:9
+              string.const 3   ; _main.vader:60:29
+              call.import 4   ; _main.vader:60:21
+              i32.const 0   ; _main.vader:65:12
+              return   ; _main.vader:65:5
+            else   ; _main.vader:60:9
+              i32.const 1   ; _main.vader:61:9
+              local.set 25   ; _main.vader:61:9
+              local.get 23   ; _main.vader:61:9
+              local.get 25   ; _main.vader:61:9
+              i32.eq   ; _main.vader:61:9
+              if $L24 void   ; _main.vader:61:9
+                string.const 4   ; _main.vader:61:29
+                call.import 4   ; _main.vader:61:21
+                i32.const 0   ; _main.vader:65:12
+                return   ; _main.vader:65:5
+              else   ; _main.vader:61:9
+                i32.const 2   ; _main.vader:62:9
+                local.set 26   ; _main.vader:62:9
+                local.get 23   ; _main.vader:62:9
+                local.get 26   ; _main.vader:62:9
+                i32.eq   ; _main.vader:62:9
+                if $L25 void   ; _main.vader:62:9
+                  string.const 5   ; _main.vader:62:29
+                  call.import 4   ; _main.vader:62:21
+                  i32.const 0   ; _main.vader:65:12
+                  return   ; _main.vader:65:5
+                else   ; _main.vader:62:9
+                  unreachable   ; _main.vader:59:5
+                end $L25   ; _main.vader:62:9
+              end $L24   ; _main.vader:61:9
+            end $L23   ; _main.vader:60:9
+          else   ; _main.vader:55:9
+            unreachable   ; _main.vader:52:5
+          end $L22   ; _main.vader:55:9
+        end $L18   ; _main.vader:54:9
+      end $L14   ; _main.vader:53:9
+    else   ; _main.vader:47:9
+      i32.const 2   ; _main.vader:48:9
+      local.set 18   ; _main.vader:48:9
+      local.get 15   ; _main.vader:48:9
+      local.get 18   ; _main.vader:48:9
+      i32.eq   ; _main.vader:48:9
+      if $L26 void   ; _main.vader:48:9
+        string.const 5   ; _main.vader:48:29
+        call.import 4   ; _main.vader:48:21
+        i32.const 0   ; _main.vader:51:20
+        call 0   ; _main.vader:51:11
+        local.set 19   ; _main.vader:51:5
+        i32.const 0   ; _main.vader:53:9
+        local.set 20   ; _main.vader:53:9
+        local.get 19   ; _main.vader:53:9
+        local.get 20   ; _main.vader:53:9
+        i32.eq   ; _main.vader:53:9
+        if $L27 void   ; _main.vader:53:9
+          string.const 3   ; _main.vader:53:29
+          call.import 4   ; _main.vader:53:21
+          i32.const 1   ; _main.vader:58:20
+          call 0   ; _main.vader:58:11
+          local.set 23   ; _main.vader:58:5
+          i32.const 0   ; _main.vader:60:9
+          local.set 24   ; _main.vader:60:9
+          local.get 23   ; _main.vader:60:9
+          local.get 24   ; _main.vader:60:9
+          i32.eq   ; _main.vader:60:9
+          if $L28 void   ; _main.vader:60:9
+            string.const 3   ; _main.vader:60:29
+            call.import 4   ; _main.vader:60:21
+            i32.const 0   ; _main.vader:65:12
+            return   ; _main.vader:65:5
+          else   ; _main.vader:60:9
+            i32.const 1   ; _main.vader:61:9
+            local.set 25   ; _main.vader:61:9
+            local.get 23   ; _main.vader:61:9
+            local.get 25   ; _main.vader:61:9
+            i32.eq   ; _main.vader:61:9
+            if $L29 void   ; _main.vader:61:9
+              string.const 4   ; _main.vader:61:29
+              call.import 4   ; _main.vader:61:21
+              i32.const 0   ; _main.vader:65:12
+              return   ; _main.vader:65:5
+            else   ; _main.vader:61:9
+              i32.const 2   ; _main.vader:62:9
+              local.set 26   ; _main.vader:62:9
+              local.get 23   ; _main.vader:62:9
+              local.get 26   ; _main.vader:62:9
+              i32.eq   ; _main.vader:62:9
+              if $L30 void   ; _main.vader:62:9
+                string.const 5   ; _main.vader:62:29
+                call.import 4   ; _main.vader:62:21
+                i32.const 0   ; _main.vader:65:12
+                return   ; _main.vader:65:5
+              else   ; _main.vader:62:9
+                unreachable   ; _main.vader:59:5
+              end $L30   ; _main.vader:62:9
+            end $L29   ; _main.vader:61:9
+          end $L28   ; _main.vader:60:9
+        else   ; _main.vader:53:9
+          i32.const 1   ; _main.vader:54:9
+          local.set 21   ; _main.vader:54:9
+          local.get 19   ; _main.vader:54:9
+          local.get 21   ; _main.vader:54:9
+          i32.eq   ; _main.vader:54:9
+          if $L31 void   ; _main.vader:54:9
+            string.const 4   ; _main.vader:54:29
+            call.import 4   ; _main.vader:54:21
+            i32.const 1   ; _main.vader:58:20
+            call 0   ; _main.vader:58:11
+            local.set 23   ; _main.vader:58:5
+            i32.const 0   ; _main.vader:60:9
+            local.set 24   ; _main.vader:60:9
+            local.get 23   ; _main.vader:60:9
+            local.get 24   ; _main.vader:60:9
+            i32.eq   ; _main.vader:60:9
+            if $L32 void   ; _main.vader:60:9
+              string.const 3   ; _main.vader:60:29
+              call.import 4   ; _main.vader:60:21
+              i32.const 0   ; _main.vader:65:12
+              return   ; _main.vader:65:5
+            else   ; _main.vader:60:9
+              i32.const 1   ; _main.vader:61:9
+              local.set 25   ; _main.vader:61:9
+              local.get 23   ; _main.vader:61:9
+              local.get 25   ; _main.vader:61:9
+              i32.eq   ; _main.vader:61:9
+              if $L33 void   ; _main.vader:61:9
+                string.const 4   ; _main.vader:61:29
+                call.import 4   ; _main.vader:61:21
+                i32.const 0   ; _main.vader:65:12
+                return   ; _main.vader:65:5
+              else   ; _main.vader:61:9
+                i32.const 2   ; _main.vader:62:9
+                local.set 26   ; _main.vader:62:9
+                local.get 23   ; _main.vader:62:9
+                local.get 26   ; _main.vader:62:9
+                i32.eq   ; _main.vader:62:9
+                if $L34 void   ; _main.vader:62:9
+                  string.const 5   ; _main.vader:62:29
+                  call.import 4   ; _main.vader:62:21
+                  i32.const 0   ; _main.vader:65:12
+                  return   ; _main.vader:65:5
+                else   ; _main.vader:62:9
+                  unreachable   ; _main.vader:59:5
+                end $L34   ; _main.vader:62:9
+              end $L33   ; _main.vader:61:9
+            end $L32   ; _main.vader:60:9
+          else   ; _main.vader:54:9
+            i32.const 2   ; _main.vader:55:9
+            local.set 22   ; _main.vader:55:9
+            local.get 19   ; _main.vader:55:9
+            local.get 22   ; _main.vader:55:9
+            i32.eq   ; _main.vader:55:9
+            if $L35 void   ; _main.vader:55:9
+              string.const 5   ; _main.vader:55:29
+              call.import 4   ; _main.vader:55:21
+              i32.const 1   ; _main.vader:58:20
+              call 0   ; _main.vader:58:11
+              local.set 23   ; _main.vader:58:5
+              i32.const 0   ; _main.vader:60:9
+              local.set 24   ; _main.vader:60:9
+              local.get 23   ; _main.vader:60:9
+              local.get 24   ; _main.vader:60:9
+              i32.eq   ; _main.vader:60:9
+              if $L36 void   ; _main.vader:60:9
+                string.const 3   ; _main.vader:60:29
+                call.import 4   ; _main.vader:60:21
+                i32.const 0   ; _main.vader:65:12
+                return   ; _main.vader:65:5
+              else   ; _main.vader:60:9
+                i32.const 1   ; _main.vader:61:9
+                local.set 25   ; _main.vader:61:9
+                local.get 23   ; _main.vader:61:9
+                local.get 25   ; _main.vader:61:9
+                i32.eq   ; _main.vader:61:9
+                if $L37 void   ; _main.vader:61:9
+                  string.const 4   ; _main.vader:61:29
+                  call.import 4   ; _main.vader:61:21
+                  i32.const 0   ; _main.vader:65:12
+                  return   ; _main.vader:65:5
+                else   ; _main.vader:61:9
+                  i32.const 2   ; _main.vader:62:9
+                  local.set 26   ; _main.vader:62:9
+                  local.get 23   ; _main.vader:62:9
+                  local.get 26   ; _main.vader:62:9
+                  i32.eq   ; _main.vader:62:9
+                  if $L38 void   ; _main.vader:62:9
+                    string.const 5   ; _main.vader:62:29
+                    call.import 4   ; _main.vader:62:21
+                    i32.const 0   ; _main.vader:65:12
+                    return   ; _main.vader:65:5
+                  else   ; _main.vader:62:9
+                    unreachable   ; _main.vader:59:5
+                  end $L38   ; _main.vader:62:9
+                end $L37   ; _main.vader:61:9
+              end $L36   ; _main.vader:60:9
+            else   ; _main.vader:55:9
+              unreachable   ; _main.vader:52:5
+            end $L35   ; _main.vader:55:9
+          end $L31   ; _main.vader:54:9
+        end $L27   ; _main.vader:53:9
+      else   ; _main.vader:48:9
+        unreachable   ; _main.vader:45:5
+      end $L26   ; _main.vader:48:9
+    end $L13   ; _main.vader:47:9
+  end $L0   ; _main.vader:46:9
 end

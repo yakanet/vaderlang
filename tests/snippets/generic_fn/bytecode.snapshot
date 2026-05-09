@@ -94,16 +94,16 @@ fn 2 tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader
   local.get 2   ; _main.vader:8:8
   local.get 3   ; _main.vader:8:8
   i32.gt   ; _main.vader:8:8
-  if void   ; _main.vader:8:5
-  i32.const 0   ; _main.vader:9:20
-  local.set 4   ; _main.vader:9:20
-  local.get 0   ; _main.vader:9:16
-  local.get 4   ; _main.vader:9:16
-  array.get 0   ; _main.vader:9:16
-  ref.cast 1   ; _main.vader:9:16
-  return   ; _main.vader:9:9
+  if $L0 void   ; _main.vader:8:5
+    i32.const 0   ; _main.vader:9:20
+    local.set 4   ; _main.vader:9:20
+    local.get 0   ; _main.vader:9:16
+    local.get 4   ; _main.vader:9:16
+    array.get 0   ; _main.vader:9:16
+    ref.cast 1   ; _main.vader:9:16
+    return   ; _main.vader:9:9
   else   ; _main.vader:8:5
-  local.get 1   ; _main.vader:11:5
-  return   ; _main.vader:11:5
-  end   ; _main.vader:8:5
+    local.get 1   ; _main.vader:11:5
+    return   ; _main.vader:11:5
+  end $L0   ; _main.vader:8:5
 end

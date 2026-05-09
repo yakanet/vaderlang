@@ -36,19 +36,19 @@ fn 1 tests_snippets_if_without_else_stmt__main_vader$main () -> i32
   local "matched#6" bool
   bool.const false   ; _main.vader:14:16
   local.tee 0   ; _main.vader:14:16
-  if void   ; _main.vader:15:5
-  string.const 1   ; _main.vader:18:23
-  call 0   ; _main.vader:18:9
-  drop   ; _main.vader:18:9
+  if $L0 void   ; _main.vader:15:5
+    string.const 1   ; _main.vader:18:23
+    call 0   ; _main.vader:18:9
+    drop   ; _main.vader:18:9
   else   ; _main.vader:15:5
-  end   ; _main.vader:15:5
+  end $L0   ; _main.vader:15:5
   local.get 0   ; _main.vader:20:8
   bool.not   ; _main.vader:20:8
-  if void   ; _main.vader:20:5
-  string.const 2   ; _main.vader:21:17
-  call.import 4   ; _main.vader:21:9
+  if $L1 void   ; _main.vader:20:5
+    string.const 2   ; _main.vader:21:17
+    call.import 4   ; _main.vader:21:9
   else   ; _main.vader:20:5
-  end   ; _main.vader:20:5
+  end $L1   ; _main.vader:20:5
   i32.const 0   ; _main.vader:23:12
   return   ; _main.vader:23:5
 end

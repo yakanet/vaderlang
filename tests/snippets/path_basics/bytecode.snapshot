@@ -560,26 +560,26 @@ fn 5 std_path$is_absolute (ref) -> bool
   local.get 0   ; path.vader:41:8
   struct.get 0 0   ; path.vader:41:8
   call 14   ; path.vader:41:8
-  if void   ; path.vader:41:5
-  bool.const false   ; path.vader:42:16
-  return   ; path.vader:42:9
+  if $L0 void   ; path.vader:41:5
+    bool.const false   ; path.vader:42:16
+    return   ; path.vader:42:9
   else   ; path.vader:41:5
-  local.get 0   ; path.vader:44:12
-  struct.get 0 0   ; path.vader:44:12
-  local.set 1   ; path.vader:44:12
-  i32.const 0   ; path.vader:44:22
-  local.set 2   ; path.vader:44:22
-  local.get 1   ; path.vader:44:12
-  local.get 2   ; path.vader:44:12
-  call.import 2   ; path.vader:44:12
-  local.set 3   ; path.vader:44:12
-  char.const 47   ; path.vader:13:15
-  local.set 4   ; path.vader:13:15
-  local.get 3   ; path.vader:44:12
-  local.get 4   ; path.vader:44:12
-  char.eq   ; path.vader:44:12
-  return   ; path.vader:44:5
-  end   ; path.vader:41:5
+    local.get 0   ; path.vader:44:12
+    struct.get 0 0   ; path.vader:44:12
+    local.set 1   ; path.vader:44:12
+    i32.const 0   ; path.vader:44:22
+    local.set 2   ; path.vader:44:22
+    local.get 1   ; path.vader:44:12
+    local.get 2   ; path.vader:44:12
+    call.import 2   ; path.vader:44:12
+    local.set 3   ; path.vader:44:12
+    char.const 47   ; path.vader:13:15
+    local.set 4   ; path.vader:13:15
+    local.get 3   ; path.vader:44:12
+    local.get 4   ; path.vader:44:12
+    char.eq   ; path.vader:44:12
+    return   ; path.vader:44:5
+  end $L0   ; path.vader:41:5
 end
 
 fn 6 std_path$parent (ref) -> ref
@@ -608,34 +608,34 @@ fn 6 std_path$parent (ref) -> ref
   local.get 4   ; path.vader:52:8
   local.get 5   ; path.vader:52:8
   i32.lt   ; path.vader:52:8
-  if void   ; path.vader:52:5
-  string.const 43   ; path.vader:53:31
-  struct.new 0   ; path.vader:53:16
-  return   ; path.vader:53:9
+  if $L0 void   ; path.vader:52:5
+    string.const 43   ; path.vader:53:31
+    struct.new 0   ; path.vader:53:16
+    return   ; path.vader:53:9
   else   ; path.vader:52:5
-  i32.const 0   ; path.vader:55:15
-  local.set 6   ; path.vader:55:15
-  local.get 4   ; path.vader:55:8
-  local.get 6   ; path.vader:55:8
-  i32.eq   ; path.vader:55:8
-  if void   ; path.vader:55:5
-  string.const 44   ; path.vader:14:19
-  struct.new 0   ; path.vader:57:16
-  return   ; path.vader:57:9
-  else   ; path.vader:55:5
-  local.get 0   ; path.vader:59:27
-  struct.get 0 0   ; path.vader:59:27
-  local.set 7   ; path.vader:59:27
-  i32.const 0   ; path.vader:59:43
-  local.set 8   ; path.vader:59:43
-  local.get 7   ; path.vader:59:27
-  local.get 8   ; path.vader:59:27
-  local.get 4   ; path.vader:59:27
-  call.import 12   ; path.vader:59:27
-  struct.new 0   ; path.vader:59:12
-  return   ; path.vader:59:5
-  end   ; path.vader:55:5
-  end   ; path.vader:52:5
+    i32.const 0   ; path.vader:55:15
+    local.set 6   ; path.vader:55:15
+    local.get 4   ; path.vader:55:8
+    local.get 6   ; path.vader:55:8
+    i32.eq   ; path.vader:55:8
+    if $L1 void   ; path.vader:55:5
+      string.const 44   ; path.vader:14:19
+      struct.new 0   ; path.vader:57:16
+      return   ; path.vader:57:9
+    else   ; path.vader:55:5
+      local.get 0   ; path.vader:59:27
+      struct.get 0 0   ; path.vader:59:27
+      local.set 7   ; path.vader:59:27
+      i32.const 0   ; path.vader:59:43
+      local.set 8   ; path.vader:59:43
+      local.get 7   ; path.vader:59:27
+      local.get 8   ; path.vader:59:27
+      local.get 4   ; path.vader:59:27
+      call.import 12   ; path.vader:59:27
+      struct.new 0   ; path.vader:59:12
+      return   ; path.vader:59:5
+    end $L1   ; path.vader:55:5
+  end $L0   ; path.vader:52:5
 end
 
 fn 7 std_path$filename (ref) -> string
@@ -665,30 +665,30 @@ fn 7 std_path$filename (ref) -> string
   local.get 4   ; path.vader:65:8
   local.get 5   ; path.vader:65:8
   i32.lt   ; path.vader:65:8
-  if void   ; path.vader:65:5
-  local.get 0   ; path.vader:66:16
-  struct.get 0 0   ; path.vader:66:16
-  return   ; path.vader:66:9
+  if $L0 void   ; path.vader:65:5
+    local.get 0   ; path.vader:66:16
+    struct.get 0 0   ; path.vader:66:16
+    return   ; path.vader:66:9
   else   ; path.vader:65:5
-  local.get 0   ; path.vader:68:12
-  struct.get 0 0   ; path.vader:68:12
-  local.set 6   ; path.vader:68:12
-  i32.const 1   ; path.vader:68:34
-  local.set 7   ; path.vader:68:34
-  local.get 4   ; path.vader:68:28
-  local.get 7   ; path.vader:68:28
-  i32.add   ; path.vader:68:28
-  local.set 8   ; path.vader:68:28
-  local.get 0   ; path.vader:68:37
-  struct.get 0 0   ; path.vader:68:37
-  call.import 11   ; path.vader:68:37
-  local.set 9   ; path.vader:68:37
-  local.get 6   ; path.vader:68:12
-  local.get 8   ; path.vader:68:12
-  local.get 9   ; path.vader:68:12
-  call.import 12   ; path.vader:68:12
-  return   ; path.vader:68:5
-  end   ; path.vader:65:5
+    local.get 0   ; path.vader:68:12
+    struct.get 0 0   ; path.vader:68:12
+    local.set 6   ; path.vader:68:12
+    i32.const 1   ; path.vader:68:34
+    local.set 7   ; path.vader:68:34
+    local.get 4   ; path.vader:68:28
+    local.get 7   ; path.vader:68:28
+    i32.add   ; path.vader:68:28
+    local.set 8   ; path.vader:68:28
+    local.get 0   ; path.vader:68:37
+    struct.get 0 0   ; path.vader:68:37
+    call.import 11   ; path.vader:68:37
+    local.set 9   ; path.vader:68:37
+    local.get 6   ; path.vader:68:12
+    local.get 8   ; path.vader:68:12
+    local.get 9   ; path.vader:68:12
+    call.import 12   ; path.vader:68:12
+    return   ; path.vader:68:5
+  end $L0   ; path.vader:65:5
 end
 
 fn 8 std_path$extension (ref) -> string
@@ -717,25 +717,25 @@ fn 8 std_path$extension (ref) -> string
   local.get 4   ; path.vader:76:8
   local.get 5   ; path.vader:76:8
   i32.lt   ; path.vader:76:8
-  if void   ; path.vader:76:5
-  string.const 43   ; path.vader:77:16
-  return   ; path.vader:77:9
+  if $L0 void   ; path.vader:76:5
+    string.const 43   ; path.vader:77:16
+    return   ; path.vader:77:9
   else   ; path.vader:76:5
-  i32.const 1   ; path.vader:79:29
-  local.set 6   ; path.vader:79:29
-  local.get 4   ; path.vader:79:23
-  local.get 6   ; path.vader:79:23
-  i32.add   ; path.vader:79:23
-  local.set 7   ; path.vader:79:23
-  local.get 1   ; path.vader:79:32
-  call.import 11   ; path.vader:79:32
-  local.set 8   ; path.vader:79:32
-  local.get 1   ; path.vader:79:12
-  local.get 7   ; path.vader:79:12
-  local.get 8   ; path.vader:79:12
-  call.import 12   ; path.vader:79:12
-  return   ; path.vader:79:5
-  end   ; path.vader:76:5
+    i32.const 1   ; path.vader:79:29
+    local.set 6   ; path.vader:79:29
+    local.get 4   ; path.vader:79:23
+    local.get 6   ; path.vader:79:23
+    i32.add   ; path.vader:79:23
+    local.set 7   ; path.vader:79:23
+    local.get 1   ; path.vader:79:32
+    call.import 11   ; path.vader:79:32
+    local.set 8   ; path.vader:79:32
+    local.get 1   ; path.vader:79:12
+    local.get 7   ; path.vader:79:12
+    local.get 8   ; path.vader:79:12
+    call.import 12   ; path.vader:79:12
+    return   ; path.vader:79:5
+  end $L0   ; path.vader:76:5
 end
 
 fn 9 std_path$stem (ref) -> string
@@ -762,18 +762,18 @@ fn 9 std_path$stem (ref) -> string
   local.get 4   ; path.vader:87:8
   local.get 5   ; path.vader:87:8
   i32.lt   ; path.vader:87:8
-  if void   ; path.vader:87:5
-  local.get 1   ; path.vader:88:9
-  return   ; path.vader:88:9
+  if $L0 void   ; path.vader:87:5
+    local.get 1   ; path.vader:88:9
+    return   ; path.vader:88:9
   else   ; path.vader:87:5
-  i32.const 0   ; path.vader:90:23
-  local.set 6   ; path.vader:90:23
-  local.get 1   ; path.vader:90:12
-  local.get 6   ; path.vader:90:12
-  local.get 4   ; path.vader:90:12
-  call.import 12   ; path.vader:90:12
-  return   ; path.vader:90:5
-  end   ; path.vader:87:5
+    i32.const 0   ; path.vader:90:23
+    local.set 6   ; path.vader:90:23
+    local.get 1   ; path.vader:90:12
+    local.get 6   ; path.vader:90:12
+    local.get 4   ; path.vader:90:12
+    call.import 12   ; path.vader:90:12
+    return   ; path.vader:90:5
+  end $L0   ; path.vader:87:5
 end
 
 fn 10 std_path$join (ref,string) -> ref
@@ -790,80 +790,80 @@ fn 10 std_path$join (ref,string) -> ref
   local "$k_23#48" string
   local.get 1   ; path.vader:98:8
   call 14   ; path.vader:98:8
-  if void   ; path.vader:98:5
-  local.get 0   ; path.vader:99:9
-  return   ; path.vader:99:9
+  if $L0 void   ; path.vader:98:5
+    local.get 0   ; path.vader:99:9
+    return   ; path.vader:99:9
   else   ; path.vader:98:5
-  i32.const 0   ; path.vader:101:14
-  local.set 2   ; path.vader:101:14
-  local.get 1   ; path.vader:101:8
-  local.get 2   ; path.vader:101:8
-  call.import 2   ; path.vader:101:8
-  local.set 3   ; path.vader:101:8
-  char.const 47   ; path.vader:13:15
-  local.set 4   ; path.vader:13:15
-  local.get 3   ; path.vader:101:8
-  local.get 4   ; path.vader:101:8
-  char.eq   ; path.vader:101:8
-  if void   ; path.vader:101:5
-  local.get 1   ; path.vader:102:16
-  struct.new 0   ; path.vader:102:16
-  return   ; path.vader:102:9
-  else   ; path.vader:101:5
-  local.get 0   ; path.vader:104:8
-  struct.get 0 0   ; path.vader:104:8
-  call 14   ; path.vader:104:8
-  if void   ; path.vader:104:5
-  local.get 1   ; path.vader:105:16
-  struct.new 0   ; path.vader:105:16
-  return   ; path.vader:105:9
-  else   ; path.vader:104:5
-  local.get 0   ; path.vader:107:8
-  struct.get 0 0   ; path.vader:107:8
-  local.set 5   ; path.vader:107:8
-  local.get 0   ; path.vader:107:18
-  struct.get 0 0   ; path.vader:107:18
-  call.import 11   ; path.vader:107:18
-  local.set 6   ; path.vader:107:18
-  i32.const 1   ; path.vader:107:41
-  local.set 7   ; path.vader:107:41
-  local.get 6   ; path.vader:107:18
-  local.get 7   ; path.vader:107:18
-  i32.sub   ; path.vader:107:18
-  local.set 8   ; path.vader:107:18
-  local.get 5   ; path.vader:107:8
-  local.get 8   ; path.vader:107:8
-  call.import 2   ; path.vader:107:8
-  local.set 9   ; path.vader:107:8
-  char.const 47   ; path.vader:13:15
-  local.set 10   ; path.vader:13:15
-  local.get 9   ; path.vader:107:8
-  local.get 10   ; path.vader:107:8
-  char.eq   ; path.vader:107:8
-  if void   ; path.vader:107:5
-  local.get 0   ; path.vader:108:31
-  struct.get 0 0   ; path.vader:108:31
-  local.get 1   ; path.vader:108:31
-  string.concat   ; path.vader:108:31
-  struct.new 0   ; path.vader:108:16
-  return   ; path.vader:108:9
-  else   ; path.vader:107:5
-  local.get 0   ; path.vader:110:27
-  struct.get 0 0   ; path.vader:110:27
-  local.set 11   ; path.vader:110:27
-  string.const 44   ; path.vader:14:19
-  local.set 12   ; path.vader:14:19
-  local.get 11   ; path.vader:110:27
-  local.get 12   ; path.vader:110:27
-  string.concat   ; path.vader:110:27
-  local.get 1   ; path.vader:110:27
-  string.concat   ; path.vader:110:27
-  struct.new 0   ; path.vader:110:12
-  return   ; path.vader:110:5
-  end   ; path.vader:107:5
-  end   ; path.vader:104:5
-  end   ; path.vader:101:5
-  end   ; path.vader:98:5
+    i32.const 0   ; path.vader:101:14
+    local.set 2   ; path.vader:101:14
+    local.get 1   ; path.vader:101:8
+    local.get 2   ; path.vader:101:8
+    call.import 2   ; path.vader:101:8
+    local.set 3   ; path.vader:101:8
+    char.const 47   ; path.vader:13:15
+    local.set 4   ; path.vader:13:15
+    local.get 3   ; path.vader:101:8
+    local.get 4   ; path.vader:101:8
+    char.eq   ; path.vader:101:8
+    if $L1 void   ; path.vader:101:5
+      local.get 1   ; path.vader:102:16
+      struct.new 0   ; path.vader:102:16
+      return   ; path.vader:102:9
+    else   ; path.vader:101:5
+      local.get 0   ; path.vader:104:8
+      struct.get 0 0   ; path.vader:104:8
+      call 14   ; path.vader:104:8
+      if $L2 void   ; path.vader:104:5
+        local.get 1   ; path.vader:105:16
+        struct.new 0   ; path.vader:105:16
+        return   ; path.vader:105:9
+      else   ; path.vader:104:5
+        local.get 0   ; path.vader:107:8
+        struct.get 0 0   ; path.vader:107:8
+        local.set 5   ; path.vader:107:8
+        local.get 0   ; path.vader:107:18
+        struct.get 0 0   ; path.vader:107:18
+        call.import 11   ; path.vader:107:18
+        local.set 6   ; path.vader:107:18
+        i32.const 1   ; path.vader:107:41
+        local.set 7   ; path.vader:107:41
+        local.get 6   ; path.vader:107:18
+        local.get 7   ; path.vader:107:18
+        i32.sub   ; path.vader:107:18
+        local.set 8   ; path.vader:107:18
+        local.get 5   ; path.vader:107:8
+        local.get 8   ; path.vader:107:8
+        call.import 2   ; path.vader:107:8
+        local.set 9   ; path.vader:107:8
+        char.const 47   ; path.vader:13:15
+        local.set 10   ; path.vader:13:15
+        local.get 9   ; path.vader:107:8
+        local.get 10   ; path.vader:107:8
+        char.eq   ; path.vader:107:8
+        if $L3 void   ; path.vader:107:5
+          local.get 0   ; path.vader:108:31
+          struct.get 0 0   ; path.vader:108:31
+          local.get 1   ; path.vader:108:31
+          string.concat   ; path.vader:108:31
+          struct.new 0   ; path.vader:108:16
+          return   ; path.vader:108:9
+        else   ; path.vader:107:5
+          local.get 0   ; path.vader:110:27
+          struct.get 0 0   ; path.vader:110:27
+          local.set 11   ; path.vader:110:27
+          string.const 44   ; path.vader:14:19
+          local.set 12   ; path.vader:14:19
+          local.get 11   ; path.vader:110:27
+          local.get 12   ; path.vader:110:27
+          string.concat   ; path.vader:110:27
+          local.get 1   ; path.vader:110:27
+          string.concat   ; path.vader:110:27
+          struct.new 0   ; path.vader:110:12
+          return   ; path.vader:110:5
+        end $L3   ; path.vader:107:5
+      end $L2   ; path.vader:104:5
+    end $L1   ; path.vader:101:5
+  end $L0   ; path.vader:98:5
 end
 
 fn 11 std_path$starts_with (ref,ref) -> bool
@@ -892,82 +892,82 @@ fn 11 std_path$starts_with (ref,ref) -> bool
   local.get 3   ; path.vader:118:9
   call.import 14   ; path.vader:118:9
   bool.not   ; path.vader:118:8
-  if void   ; path.vader:118:5
-  bool.const false   ; path.vader:119:16
-  return   ; path.vader:119:9
+  if $L0 void   ; path.vader:118:5
+    bool.const false   ; path.vader:119:16
+    return   ; path.vader:119:9
   else   ; path.vader:118:5
-  local.get 0   ; path.vader:121:8
-  struct.get 0 0   ; path.vader:121:8
-  call.import 11   ; path.vader:121:8
-  local.set 4   ; path.vader:121:8
-  local.get 1   ; path.vader:121:32
-  struct.get 0 0   ; path.vader:121:32
-  call.import 11   ; path.vader:121:32
-  local.set 5   ; path.vader:121:32
-  local.get 4   ; path.vader:121:8
-  local.get 5   ; path.vader:121:8
-  i32.eq   ; path.vader:121:8
-  if void   ; path.vader:121:5
-  bool.const true   ; path.vader:122:16
-  return   ; path.vader:122:9
-  else   ; path.vader:121:5
-  local.get 1   ; path.vader:126:9
-  struct.get 0 0   ; path.vader:126:9
-  call 14   ; path.vader:126:9
-  bool.not   ; path.vader:126:8
-  if void   ; path.vader:126:8
-  local.get 1   ; path.vader:126:35
-  struct.get 0 0   ; path.vader:126:35
-  local.set 6   ; path.vader:126:35
-  local.get 1   ; path.vader:126:47
-  struct.get 0 0   ; path.vader:126:47
-  call.import 11   ; path.vader:126:47
-  local.set 7   ; path.vader:126:47
-  i32.const 1   ; path.vader:126:72
-  local.set 8   ; path.vader:126:72
-  local.get 7   ; path.vader:126:47
-  local.get 8   ; path.vader:126:47
-  i32.sub   ; path.vader:126:47
-  local.set 9   ; path.vader:126:47
-  local.get 6   ; path.vader:126:35
-  local.get 9   ; path.vader:126:35
-  call.import 2   ; path.vader:126:35
-  local.set 10   ; path.vader:126:35
-  char.const 47   ; path.vader:13:15
-  local.set 11   ; path.vader:13:15
-  local.get 10   ; path.vader:126:35
-  local.get 11   ; path.vader:126:35
-  char.eq   ; path.vader:126:35
-  local.set 12   ; path.vader:126:35
-  else   ; path.vader:126:8
-  bool.const false   ; path.vader:126:8
-  local.set 12   ; path.vader:126:8
-  end   ; path.vader:126:8
-  local.get 12   ; path.vader:126:5
-  if void   ; path.vader:126:5
-  bool.const true   ; path.vader:127:16
-  return   ; path.vader:127:9
-  else   ; path.vader:126:5
-  local.get 0   ; path.vader:129:12
-  struct.get 0 0   ; path.vader:129:12
-  local.set 13   ; path.vader:129:12
-  local.get 1   ; path.vader:129:22
-  struct.get 0 0   ; path.vader:129:22
-  call.import 11   ; path.vader:129:22
-  local.set 14   ; path.vader:129:22
-  local.get 13   ; path.vader:129:12
-  local.get 14   ; path.vader:129:12
-  call.import 2   ; path.vader:129:12
-  local.set 15   ; path.vader:129:12
-  char.const 47   ; path.vader:13:15
-  local.set 16   ; path.vader:13:15
-  local.get 15   ; path.vader:129:12
-  local.get 16   ; path.vader:129:12
-  char.eq   ; path.vader:129:12
-  return   ; path.vader:129:5
-  end   ; path.vader:126:5
-  end   ; path.vader:121:5
-  end   ; path.vader:118:5
+    local.get 0   ; path.vader:121:8
+    struct.get 0 0   ; path.vader:121:8
+    call.import 11   ; path.vader:121:8
+    local.set 4   ; path.vader:121:8
+    local.get 1   ; path.vader:121:32
+    struct.get 0 0   ; path.vader:121:32
+    call.import 11   ; path.vader:121:32
+    local.set 5   ; path.vader:121:32
+    local.get 4   ; path.vader:121:8
+    local.get 5   ; path.vader:121:8
+    i32.eq   ; path.vader:121:8
+    if $L1 void   ; path.vader:121:5
+      bool.const true   ; path.vader:122:16
+      return   ; path.vader:122:9
+    else   ; path.vader:121:5
+      local.get 1   ; path.vader:126:9
+      struct.get 0 0   ; path.vader:126:9
+      call 14   ; path.vader:126:9
+      bool.not   ; path.vader:126:8
+      if $L2 void   ; path.vader:126:8
+        local.get 1   ; path.vader:126:35
+        struct.get 0 0   ; path.vader:126:35
+        local.set 6   ; path.vader:126:35
+        local.get 1   ; path.vader:126:47
+        struct.get 0 0   ; path.vader:126:47
+        call.import 11   ; path.vader:126:47
+        local.set 7   ; path.vader:126:47
+        i32.const 1   ; path.vader:126:72
+        local.set 8   ; path.vader:126:72
+        local.get 7   ; path.vader:126:47
+        local.get 8   ; path.vader:126:47
+        i32.sub   ; path.vader:126:47
+        local.set 9   ; path.vader:126:47
+        local.get 6   ; path.vader:126:35
+        local.get 9   ; path.vader:126:35
+        call.import 2   ; path.vader:126:35
+        local.set 10   ; path.vader:126:35
+        char.const 47   ; path.vader:13:15
+        local.set 11   ; path.vader:13:15
+        local.get 10   ; path.vader:126:35
+        local.get 11   ; path.vader:126:35
+        char.eq   ; path.vader:126:35
+        local.set 12   ; path.vader:126:35
+      else   ; path.vader:126:8
+        bool.const false   ; path.vader:126:8
+        local.set 12   ; path.vader:126:8
+      end $L2   ; path.vader:126:8
+      local.get 12   ; path.vader:126:5
+      if $L3 void   ; path.vader:126:5
+        bool.const true   ; path.vader:127:16
+        return   ; path.vader:127:9
+      else   ; path.vader:126:5
+        local.get 0   ; path.vader:129:12
+        struct.get 0 0   ; path.vader:129:12
+        local.set 13   ; path.vader:129:12
+        local.get 1   ; path.vader:129:22
+        struct.get 0 0   ; path.vader:129:22
+        call.import 11   ; path.vader:129:22
+        local.set 14   ; path.vader:129:22
+        local.get 13   ; path.vader:129:12
+        local.get 14   ; path.vader:129:12
+        call.import 2   ; path.vader:129:12
+        local.set 15   ; path.vader:129:12
+        char.const 47   ; path.vader:13:15
+        local.set 16   ; path.vader:13:15
+        local.get 15   ; path.vader:129:12
+        local.get 16   ; path.vader:129:12
+        char.eq   ; path.vader:129:12
+        return   ; path.vader:129:5
+      end $L3   ; path.vader:126:5
+    end $L1   ; path.vader:121:5
+  end $L0   ; path.vader:118:5
 end
 
 fn 12 std_path$ends_with (ref,ref) -> bool
@@ -998,88 +998,88 @@ fn 12 std_path$ends_with (ref,ref) -> bool
   local.get 3   ; path.vader:134:9
   call.import 15   ; path.vader:134:9
   bool.not   ; path.vader:134:8
-  if void   ; path.vader:134:5
-  bool.const false   ; path.vader:135:16
-  return   ; path.vader:135:9
+  if $L0 void   ; path.vader:134:5
+    bool.const false   ; path.vader:135:16
+    return   ; path.vader:135:9
   else   ; path.vader:134:5
-  local.get 0   ; path.vader:137:8
-  struct.get 0 0   ; path.vader:137:8
-  call.import 11   ; path.vader:137:8
-  local.set 4   ; path.vader:137:8
-  local.get 1   ; path.vader:137:32
-  struct.get 0 0   ; path.vader:137:32
-  call.import 11   ; path.vader:137:32
-  local.set 5   ; path.vader:137:32
-  local.get 4   ; path.vader:137:8
-  local.get 5   ; path.vader:137:8
-  i32.eq   ; path.vader:137:8
-  if void   ; path.vader:137:5
-  bool.const true   ; path.vader:138:16
-  return   ; path.vader:138:9
-  else   ; path.vader:137:5
-  local.get 0   ; path.vader:140:12
-  struct.get 0 0   ; path.vader:140:12
-  call.import 11   ; path.vader:140:12
-  local.set 6   ; path.vader:140:12
-  local.get 1   ; path.vader:140:35
-  struct.get 0 0   ; path.vader:140:35
-  call.import 11   ; path.vader:140:35
-  local.set 7   ; path.vader:140:35
-  local.get 6   ; path.vader:140:12
-  local.get 7   ; path.vader:140:12
-  i32.sub   ; path.vader:140:12
-  local.set 8   ; path.vader:140:12
-  local.get 1   ; path.vader:141:9
-  struct.get 0 0   ; path.vader:141:9
-  call 14   ; path.vader:141:9
-  bool.not   ; path.vader:141:8
-  if void   ; path.vader:141:8
-  local.get 1   ; path.vader:141:35
-  struct.get 0 0   ; path.vader:141:35
-  local.set 9   ; path.vader:141:35
-  i32.const 0   ; path.vader:141:47
-  local.set 10   ; path.vader:141:47
-  local.get 9   ; path.vader:141:35
-  local.get 10   ; path.vader:141:35
-  call.import 2   ; path.vader:141:35
-  local.set 11   ; path.vader:141:35
-  char.const 47   ; path.vader:13:15
-  local.set 12   ; path.vader:13:15
-  local.get 11   ; path.vader:141:35
-  local.get 12   ; path.vader:141:35
-  char.eq   ; path.vader:141:35
-  local.set 13   ; path.vader:141:35
-  else   ; path.vader:141:8
-  bool.const false   ; path.vader:141:8
-  local.set 13   ; path.vader:141:8
-  end   ; path.vader:141:8
-  local.get 13   ; path.vader:141:5
-  if void   ; path.vader:141:5
-  bool.const true   ; path.vader:142:16
-  return   ; path.vader:142:9
-  else   ; path.vader:141:5
-  local.get 0   ; path.vader:144:12
-  struct.get 0 0   ; path.vader:144:12
-  local.set 14   ; path.vader:144:12
-  i32.const 1   ; path.vader:144:28
-  local.set 15   ; path.vader:144:28
-  local.get 8   ; path.vader:144:22
-  local.get 15   ; path.vader:144:22
-  i32.sub   ; path.vader:144:22
-  local.set 16   ; path.vader:144:22
-  local.get 14   ; path.vader:144:12
-  local.get 16   ; path.vader:144:12
-  call.import 2   ; path.vader:144:12
-  local.set 17   ; path.vader:144:12
-  char.const 47   ; path.vader:13:15
-  local.set 18   ; path.vader:13:15
-  local.get 17   ; path.vader:144:12
-  local.get 18   ; path.vader:144:12
-  char.eq   ; path.vader:144:12
-  return   ; path.vader:144:5
-  end   ; path.vader:141:5
-  end   ; path.vader:137:5
-  end   ; path.vader:134:5
+    local.get 0   ; path.vader:137:8
+    struct.get 0 0   ; path.vader:137:8
+    call.import 11   ; path.vader:137:8
+    local.set 4   ; path.vader:137:8
+    local.get 1   ; path.vader:137:32
+    struct.get 0 0   ; path.vader:137:32
+    call.import 11   ; path.vader:137:32
+    local.set 5   ; path.vader:137:32
+    local.get 4   ; path.vader:137:8
+    local.get 5   ; path.vader:137:8
+    i32.eq   ; path.vader:137:8
+    if $L1 void   ; path.vader:137:5
+      bool.const true   ; path.vader:138:16
+      return   ; path.vader:138:9
+    else   ; path.vader:137:5
+      local.get 0   ; path.vader:140:12
+      struct.get 0 0   ; path.vader:140:12
+      call.import 11   ; path.vader:140:12
+      local.set 6   ; path.vader:140:12
+      local.get 1   ; path.vader:140:35
+      struct.get 0 0   ; path.vader:140:35
+      call.import 11   ; path.vader:140:35
+      local.set 7   ; path.vader:140:35
+      local.get 6   ; path.vader:140:12
+      local.get 7   ; path.vader:140:12
+      i32.sub   ; path.vader:140:12
+      local.set 8   ; path.vader:140:12
+      local.get 1   ; path.vader:141:9
+      struct.get 0 0   ; path.vader:141:9
+      call 14   ; path.vader:141:9
+      bool.not   ; path.vader:141:8
+      if $L2 void   ; path.vader:141:8
+        local.get 1   ; path.vader:141:35
+        struct.get 0 0   ; path.vader:141:35
+        local.set 9   ; path.vader:141:35
+        i32.const 0   ; path.vader:141:47
+        local.set 10   ; path.vader:141:47
+        local.get 9   ; path.vader:141:35
+        local.get 10   ; path.vader:141:35
+        call.import 2   ; path.vader:141:35
+        local.set 11   ; path.vader:141:35
+        char.const 47   ; path.vader:13:15
+        local.set 12   ; path.vader:13:15
+        local.get 11   ; path.vader:141:35
+        local.get 12   ; path.vader:141:35
+        char.eq   ; path.vader:141:35
+        local.set 13   ; path.vader:141:35
+      else   ; path.vader:141:8
+        bool.const false   ; path.vader:141:8
+        local.set 13   ; path.vader:141:8
+      end $L2   ; path.vader:141:8
+      local.get 13   ; path.vader:141:5
+      if $L3 void   ; path.vader:141:5
+        bool.const true   ; path.vader:142:16
+        return   ; path.vader:142:9
+      else   ; path.vader:141:5
+        local.get 0   ; path.vader:144:12
+        struct.get 0 0   ; path.vader:144:12
+        local.set 14   ; path.vader:144:12
+        i32.const 1   ; path.vader:144:28
+        local.set 15   ; path.vader:144:28
+        local.get 8   ; path.vader:144:22
+        local.get 15   ; path.vader:144:22
+        i32.sub   ; path.vader:144:22
+        local.set 16   ; path.vader:144:22
+        local.get 14   ; path.vader:144:12
+        local.get 16   ; path.vader:144:12
+        call.import 2   ; path.vader:144:12
+        local.set 17   ; path.vader:144:12
+        char.const 47   ; path.vader:13:15
+        local.set 18   ; path.vader:13:15
+        local.get 17   ; path.vader:144:12
+        local.get 18   ; path.vader:144:12
+        char.eq   ; path.vader:144:12
+        return   ; path.vader:144:5
+      end $L3   ; path.vader:141:5
+    end $L1   ; path.vader:137:5
+  end $L0   ; path.vader:134:5
 end
 
 fn 13 std_path$normalize (ref) -> ref
@@ -1133,304 +1133,304 @@ fn 13 std_path$normalize (ref) -> ref
   local.get 0   ; path.vader:156:8
   struct.get 0 0   ; path.vader:156:8
   call 14   ; path.vader:156:8
-  if void   ; path.vader:156:5
-  local.get 0   ; path.vader:157:9
-  return   ; path.vader:157:9
+  if $L0 void   ; path.vader:156:5
+    local.get 0   ; path.vader:157:9
+    return   ; path.vader:157:9
   else   ; path.vader:156:5
-  local.get 0   ; path.vader:159:12
-  call 5   ; path.vader:159:12
-  local.set 1   ; path.vader:159:5
-  array.new 3 0   ; path.vader:160:26
-  local.set 2   ; path.vader:160:26
-  i32.const 0   ; path.vader:161:14
-  local.set 3   ; path.vader:161:14
-  local.get 0   ; path.vader:162:10
-  struct.get 0 0   ; path.vader:162:10
-  call.import 11   ; path.vader:162:10
-  local.set 4   ; path.vader:162:5
-  local.get 1   ; path.vader:163:10
-  if void   ; path.vader:163:10
-  i32.const 1   ; path.vader:163:19
-  local.set 5   ; path.vader:163:19
-  else   ; path.vader:163:10
-  i32.const 0   ; path.vader:163:30
-  local.set 5   ; path.vader:163:30
-  end   ; path.vader:163:10
-  local.get 5   ; path.vader:163:5
-  local.tee 6   ; path.vader:163:5
-  local.set 9   ; path.vader:164:5
-  local.get 3   ; path.vader:165:5
-  local.set 7   ; path.vader:165:5
-  local.get 6   ; path.vader:165:5
-  local.set 8   ; path.vader:165:5
-  block void   ; path.vader:165:5
-  loop void   ; path.vader:165:5
-  local.get 8   ; path.vader:165:9
-  local.get 4   ; path.vader:165:9
-  i32.le   ; path.vader:165:9
-  if void   ; path.vader:165:9
-  local.get 8   ; path.vader:166:19
-  local.get 4   ; path.vader:166:19
-  i32.eq   ; path.vader:166:19
-  local.tee 10   ; path.vader:166:19
-  bool.not   ; path.vader:167:19
-  if void   ; path.vader:167:19
-  local.get 0   ; path.vader:167:30
-  struct.get 0 0   ; path.vader:167:30
-  local.get 8   ; path.vader:167:30
-  call.import 2   ; path.vader:167:30
-  local.set 11   ; path.vader:167:30
-  char.const 47   ; path.vader:13:15
-  local.set 12   ; path.vader:13:15
-  local.get 11   ; path.vader:167:30
-  local.get 12   ; path.vader:167:30
-  char.eq   ; path.vader:167:30
-  local.set 13   ; path.vader:167:30
-  else   ; path.vader:167:19
-  bool.const false   ; path.vader:167:19
-  local.set 13   ; path.vader:167:19
-  end   ; path.vader:167:19
-  local.get 13   ; path.vader:167:9
-  if void   ; path.vader:168:12
-  bool.const true   ; path.vader:168:12
-  local.set 14   ; path.vader:168:12
-  else   ; path.vader:168:12
-  local.get 10   ; path.vader:168:22
-  local.set 14   ; path.vader:168:22
-  end   ; path.vader:168:12
-  local.get 7   ; path.vader:168:9
-  local.set 36   ; path.vader:168:9
-  local.get 9   ; path.vader:168:9
-  local.set 37   ; path.vader:168:9
-  local.get 14   ; path.vader:168:9
-  if void   ; path.vader:168:9
-  local.get 0   ; path.vader:169:20
-  struct.get 0 0   ; path.vader:169:20
-  local.get 9   ; path.vader:169:20
-  local.get 8   ; path.vader:169:20
-  call.import 12   ; path.vader:169:20
-  local.tee 15   ; path.vader:169:13
-  call 14   ; path.vader:170:16
-  if void   ; path.vader:170:16
-  bool.const true   ; path.vader:170:16
-  local.set 17   ; path.vader:170:16
-  else   ; path.vader:170:16
-  string.const 45   ; path.vader:170:41
-  local.set 16   ; path.vader:170:41
-  local.get 15   ; path.vader:170:34
-  local.get 16   ; path.vader:170:34
-  string.eq   ; path.vader:170:34
-  local.set 17   ; path.vader:170:34
-  end   ; path.vader:170:16
-  local.get 17   ; path.vader:170:13
-  if void   ; path.vader:170:13
-  local.get 7   ; path.vader:170:13
-  local.set 34   ; path.vader:170:13
-  else   ; path.vader:170:13
-  string.const 38   ; path.vader:172:30
-  local.set 18   ; path.vader:172:30
-  local.get 15   ; path.vader:172:23
-  local.get 18   ; path.vader:172:23
-  string.eq   ; path.vader:172:23
-  if void   ; path.vader:172:20
-  i32.const 0   ; path.vader:173:36
-  local.set 19   ; path.vader:173:36
-  local.get 7   ; path.vader:173:28
-  local.get 19   ; path.vader:173:28
-  i32.gt   ; path.vader:173:28
-  if void   ; path.vader:173:28
-  i32.const 1   ; path.vader:173:58
-  local.set 20   ; path.vader:173:58
-  local.get 7   ; path.vader:173:50
-  local.get 20   ; path.vader:173:50
-  i32.sub   ; path.vader:173:50
-  local.set 21   ; path.vader:173:50
-  local.get 2   ; path.vader:173:41
-  local.get 21   ; path.vader:173:41
-  array.get 3   ; path.vader:173:41
-  ref.cast 1   ; path.vader:173:41
-  local.set 22   ; path.vader:173:41
-  string.const 38   ; path.vader:173:64
-  local.set 23   ; path.vader:173:64
-  local.get 22   ; path.vader:173:41
-  local.get 23   ; path.vader:173:41
-  string.ne   ; path.vader:173:41
-  local.set 24   ; path.vader:173:41
-  else   ; path.vader:173:28
-  bool.const false   ; path.vader:173:28
-  local.set 24   ; path.vader:173:28
-  end   ; path.vader:173:28
-  local.get 24   ; path.vader:173:17
-  if void   ; path.vader:174:17
-  i32.const 1   ; path.vader:175:37
-  local.set 25   ; path.vader:175:37
-  local.get 7   ; path.vader:175:29
-  local.get 25   ; path.vader:175:29
-  i32.sub   ; path.vader:175:29
-  local.set 30   ; path.vader:175:29
-  else   ; path.vader:174:17
-  local.get 1   ; path.vader:176:27
-  bool.not   ; path.vader:176:27
-  local.set 26   ; path.vader:176:27
-  local.get 7   ; path.vader:176:24
-  local.set 29   ; path.vader:176:24
-  local.get 26   ; path.vader:176:24
-  if void   ; path.vader:176:24
-  local.get 2   ; path.vader:177:32
-  array.len   ; path.vader:177:32
-  local.set 27   ; path.vader:177:32
-  local.get 7   ; path.vader:177:24
-  local.get 27   ; path.vader:177:24
-  i32.lt   ; path.vader:177:24
-  if void   ; path.vader:177:21
-  local.get 2   ; path.vader:178:25
-  local.get 7   ; path.vader:178:25
-  local.get 15   ; path.vader:178:25
-  array.set 3   ; path.vader:178:25
-  else   ; path.vader:177:21
-  local.get 2   ; path.vader:180:25
-  local.get 15   ; path.vader:180:25
-  array.push 1   ; path.vader:180:25
-  end   ; path.vader:177:21
-  i32.const 1   ; path.vader:182:37
-  local.set 28   ; path.vader:182:37
-  local.get 7   ; path.vader:182:29
-  local.get 28   ; path.vader:182:29
-  i32.add   ; path.vader:182:29
-  local.set 29   ; path.vader:182:29
-  else   ; path.vader:176:24
-  end   ; path.vader:176:24
-  local.get 29   ; path.vader:174:17
-  local.set 30   ; path.vader:174:17
-  end   ; path.vader:174:17
-  local.get 30   ; path.vader:172:20
-  local.set 33   ; path.vader:172:20
-  else   ; path.vader:172:20
-  local.get 2   ; path.vader:185:28
-  array.len   ; path.vader:185:28
-  local.set 31   ; path.vader:185:28
-  local.get 7   ; path.vader:185:20
-  local.get 31   ; path.vader:185:20
-  i32.lt   ; path.vader:185:20
-  if void   ; path.vader:185:17
-  local.get 2   ; path.vader:186:21
-  local.get 7   ; path.vader:186:21
-  local.get 15   ; path.vader:186:21
-  array.set 3   ; path.vader:186:21
-  else   ; path.vader:185:17
-  local.get 2   ; path.vader:188:21
-  local.get 15   ; path.vader:188:21
-  array.push 1   ; path.vader:188:21
-  end   ; path.vader:185:17
-  i32.const 1   ; path.vader:190:33
-  local.set 32   ; path.vader:190:33
-  local.get 7   ; path.vader:190:25
-  local.get 32   ; path.vader:190:25
-  i32.add   ; path.vader:190:25
-  local.set 33   ; path.vader:190:25
-  end   ; path.vader:172:20
-  local.get 33   ; path.vader:170:13
-  local.set 34   ; path.vader:170:13
-  end   ; path.vader:170:13
-  i32.const 1   ; path.vader:192:29
-  local.set 35   ; path.vader:192:29
-  local.get 8   ; path.vader:192:25
-  local.get 35   ; path.vader:192:25
-  i32.add   ; path.vader:192:25
-  local.set 37   ; path.vader:192:25
-  local.get 34   ; path.vader:168:9
-  local.set 36   ; path.vader:168:9
-  else   ; path.vader:168:9
-  end   ; path.vader:168:9
-  i32.const 1   ; path.vader:194:17
-  local.set 38   ; path.vader:194:17
-  local.get 8   ; path.vader:194:13
-  local.get 38   ; path.vader:194:13
-  i32.add   ; path.vader:194:13
-  local.set 8   ; path.vader:194:13
-  local.get 36   ; path.vader:165:5
-  local.set 7   ; path.vader:165:5
-  local.get 37   ; path.vader:165:5
-  local.set 9   ; path.vader:165:5
-  br 1   ; path.vader:165:5
-  else   ; path.vader:165:9
-  end   ; path.vader:165:9
-  end   ; path.vader:165:5
-  end   ; path.vader:165:5
-  call 16   ; path.vader:196:11
-  local.set 39   ; path.vader:196:5
-  local.get 1   ; path.vader:197:5
-  if void   ; path.vader:197:5
-  string.const 44   ; path.vader:14:19
-  local.set 40   ; path.vader:14:19
-  local.get 39   ; path.vader:198:9
-  local.get 40   ; path.vader:198:9
-  call 17   ; path.vader:198:9
-  else   ; path.vader:197:5
-  end   ; path.vader:197:5
-  i32.const 0   ; path.vader:200:10
-  local.set 41   ; path.vader:200:10
-  block void   ; path.vader:201:5
-  loop void   ; path.vader:201:5
-  local.get 41   ; path.vader:201:9
-  local.get 7   ; path.vader:201:9
-  i32.lt   ; path.vader:201:9
-  if void   ; path.vader:201:9
-  i32.const 0   ; path.vader:202:16
-  local.set 42   ; path.vader:202:16
-  local.get 41   ; path.vader:202:12
-  local.get 42   ; path.vader:202:12
-  i32.gt   ; path.vader:202:12
-  if void   ; path.vader:202:9
-  string.const 44   ; path.vader:14:19
-  local.set 43   ; path.vader:14:19
-  local.get 39   ; path.vader:203:13
-  local.get 43   ; path.vader:203:13
-  call 17   ; path.vader:203:13
-  else   ; path.vader:202:9
-  end   ; path.vader:202:9
-  local.get 2   ; path.vader:205:19
-  local.get 41   ; path.vader:205:19
-  array.get 3   ; path.vader:205:19
-  ref.cast 1   ; path.vader:205:19
-  local.set 44   ; path.vader:205:19
-  local.get 39   ; path.vader:205:9
-  local.get 44   ; path.vader:205:9
-  call 17   ; path.vader:205:9
-  i32.const 1   ; path.vader:206:17
-  local.set 45   ; path.vader:206:17
-  local.get 41   ; path.vader:206:13
-  local.get 45   ; path.vader:206:13
-  i32.add   ; path.vader:206:13
-  local.set 41   ; path.vader:206:13
-  br 1   ; path.vader:201:5
-  else   ; path.vader:201:9
-  end   ; path.vader:201:9
-  end   ; path.vader:201:5
-  end   ; path.vader:201:5
-  local.get 39   ; path.vader:208:12
-  call 18   ; path.vader:208:12
-  local.tee 46   ; path.vader:208:5
-  call 14   ; path.vader:209:8
-  if void   ; path.vader:209:8
-  local.get 1   ; path.vader:209:26
-  bool.not   ; path.vader:209:26
-  local.set 47   ; path.vader:209:26
-  else   ; path.vader:209:8
-  bool.const false   ; path.vader:209:8
-  local.set 47   ; path.vader:209:8
-  end   ; path.vader:209:8
-  local.get 47   ; path.vader:209:5
-  if void   ; path.vader:209:5
-  string.const 45   ; path.vader:210:31
-  struct.new 0   ; path.vader:210:16
-  return   ; path.vader:210:9
-  else   ; path.vader:209:5
-  local.get 46   ; path.vader:212:12
-  struct.new 0   ; path.vader:212:12
-  return   ; path.vader:212:5
-  end   ; path.vader:209:5
-  end   ; path.vader:156:5
+    local.get 0   ; path.vader:159:12
+    call 5   ; path.vader:159:12
+    local.set 1   ; path.vader:159:5
+    array.new 3 0   ; path.vader:160:26
+    local.set 2   ; path.vader:160:26
+    i32.const 0   ; path.vader:161:14
+    local.set 3   ; path.vader:161:14
+    local.get 0   ; path.vader:162:10
+    struct.get 0 0   ; path.vader:162:10
+    call.import 11   ; path.vader:162:10
+    local.set 4   ; path.vader:162:5
+    local.get 1   ; path.vader:163:10
+    if $L1 void   ; path.vader:163:10
+      i32.const 1   ; path.vader:163:19
+      local.set 5   ; path.vader:163:19
+    else   ; path.vader:163:10
+      i32.const 0   ; path.vader:163:30
+      local.set 5   ; path.vader:163:30
+    end $L1   ; path.vader:163:10
+    local.get 5   ; path.vader:163:5
+    local.tee 6   ; path.vader:163:5
+    local.set 9   ; path.vader:164:5
+    local.get 3   ; path.vader:165:5
+    local.set 7   ; path.vader:165:5
+    local.get 6   ; path.vader:165:5
+    local.set 8   ; path.vader:165:5
+    block $L2 void   ; path.vader:165:5
+      loop $L3 void   ; path.vader:165:5
+        local.get 8   ; path.vader:165:9
+        local.get 4   ; path.vader:165:9
+        i32.le   ; path.vader:165:9
+        if $L4 void   ; path.vader:165:9
+          local.get 8   ; path.vader:166:19
+          local.get 4   ; path.vader:166:19
+          i32.eq   ; path.vader:166:19
+          local.tee 10   ; path.vader:166:19
+          bool.not   ; path.vader:167:19
+          if $L5 void   ; path.vader:167:19
+            local.get 0   ; path.vader:167:30
+            struct.get 0 0   ; path.vader:167:30
+            local.get 8   ; path.vader:167:30
+            call.import 2   ; path.vader:167:30
+            local.set 11   ; path.vader:167:30
+            char.const 47   ; path.vader:13:15
+            local.set 12   ; path.vader:13:15
+            local.get 11   ; path.vader:167:30
+            local.get 12   ; path.vader:167:30
+            char.eq   ; path.vader:167:30
+            local.set 13   ; path.vader:167:30
+          else   ; path.vader:167:19
+            bool.const false   ; path.vader:167:19
+            local.set 13   ; path.vader:167:19
+          end $L5   ; path.vader:167:19
+          local.get 13   ; path.vader:167:9
+          if $L6 void   ; path.vader:168:12
+            bool.const true   ; path.vader:168:12
+            local.set 14   ; path.vader:168:12
+          else   ; path.vader:168:12
+            local.get 10   ; path.vader:168:22
+            local.set 14   ; path.vader:168:22
+          end $L6   ; path.vader:168:12
+          local.get 7   ; path.vader:168:9
+          local.set 36   ; path.vader:168:9
+          local.get 9   ; path.vader:168:9
+          local.set 37   ; path.vader:168:9
+          local.get 14   ; path.vader:168:9
+          if $L7 void   ; path.vader:168:9
+            local.get 0   ; path.vader:169:20
+            struct.get 0 0   ; path.vader:169:20
+            local.get 9   ; path.vader:169:20
+            local.get 8   ; path.vader:169:20
+            call.import 12   ; path.vader:169:20
+            local.tee 15   ; path.vader:169:13
+            call 14   ; path.vader:170:16
+            if $L8 void   ; path.vader:170:16
+              bool.const true   ; path.vader:170:16
+              local.set 17   ; path.vader:170:16
+            else   ; path.vader:170:16
+              string.const 45   ; path.vader:170:41
+              local.set 16   ; path.vader:170:41
+              local.get 15   ; path.vader:170:34
+              local.get 16   ; path.vader:170:34
+              string.eq   ; path.vader:170:34
+              local.set 17   ; path.vader:170:34
+            end $L8   ; path.vader:170:16
+            local.get 17   ; path.vader:170:13
+            if $L9 void   ; path.vader:170:13
+              local.get 7   ; path.vader:170:13
+              local.set 34   ; path.vader:170:13
+            else   ; path.vader:170:13
+              string.const 38   ; path.vader:172:30
+              local.set 18   ; path.vader:172:30
+              local.get 15   ; path.vader:172:23
+              local.get 18   ; path.vader:172:23
+              string.eq   ; path.vader:172:23
+              if $L10 void   ; path.vader:172:20
+                i32.const 0   ; path.vader:173:36
+                local.set 19   ; path.vader:173:36
+                local.get 7   ; path.vader:173:28
+                local.get 19   ; path.vader:173:28
+                i32.gt   ; path.vader:173:28
+                if $L11 void   ; path.vader:173:28
+                  i32.const 1   ; path.vader:173:58
+                  local.set 20   ; path.vader:173:58
+                  local.get 7   ; path.vader:173:50
+                  local.get 20   ; path.vader:173:50
+                  i32.sub   ; path.vader:173:50
+                  local.set 21   ; path.vader:173:50
+                  local.get 2   ; path.vader:173:41
+                  local.get 21   ; path.vader:173:41
+                  array.get 3   ; path.vader:173:41
+                  ref.cast 1   ; path.vader:173:41
+                  local.set 22   ; path.vader:173:41
+                  string.const 38   ; path.vader:173:64
+                  local.set 23   ; path.vader:173:64
+                  local.get 22   ; path.vader:173:41
+                  local.get 23   ; path.vader:173:41
+                  string.ne   ; path.vader:173:41
+                  local.set 24   ; path.vader:173:41
+                else   ; path.vader:173:28
+                  bool.const false   ; path.vader:173:28
+                  local.set 24   ; path.vader:173:28
+                end $L11   ; path.vader:173:28
+                local.get 24   ; path.vader:173:17
+                if $L12 void   ; path.vader:174:17
+                  i32.const 1   ; path.vader:175:37
+                  local.set 25   ; path.vader:175:37
+                  local.get 7   ; path.vader:175:29
+                  local.get 25   ; path.vader:175:29
+                  i32.sub   ; path.vader:175:29
+                  local.set 30   ; path.vader:175:29
+                else   ; path.vader:174:17
+                  local.get 1   ; path.vader:176:27
+                  bool.not   ; path.vader:176:27
+                  local.set 26   ; path.vader:176:27
+                  local.get 7   ; path.vader:176:24
+                  local.set 29   ; path.vader:176:24
+                  local.get 26   ; path.vader:176:24
+                  if $L13 void   ; path.vader:176:24
+                    local.get 2   ; path.vader:177:32
+                    array.len   ; path.vader:177:32
+                    local.set 27   ; path.vader:177:32
+                    local.get 7   ; path.vader:177:24
+                    local.get 27   ; path.vader:177:24
+                    i32.lt   ; path.vader:177:24
+                    if $L14 void   ; path.vader:177:21
+                      local.get 2   ; path.vader:178:25
+                      local.get 7   ; path.vader:178:25
+                      local.get 15   ; path.vader:178:25
+                      array.set 3   ; path.vader:178:25
+                    else   ; path.vader:177:21
+                      local.get 2   ; path.vader:180:25
+                      local.get 15   ; path.vader:180:25
+                      array.push 1   ; path.vader:180:25
+                    end $L14   ; path.vader:177:21
+                    i32.const 1   ; path.vader:182:37
+                    local.set 28   ; path.vader:182:37
+                    local.get 7   ; path.vader:182:29
+                    local.get 28   ; path.vader:182:29
+                    i32.add   ; path.vader:182:29
+                    local.set 29   ; path.vader:182:29
+                  else   ; path.vader:176:24
+                  end $L13   ; path.vader:176:24
+                  local.get 29   ; path.vader:174:17
+                  local.set 30   ; path.vader:174:17
+                end $L12   ; path.vader:174:17
+                local.get 30   ; path.vader:172:20
+                local.set 33   ; path.vader:172:20
+              else   ; path.vader:172:20
+                local.get 2   ; path.vader:185:28
+                array.len   ; path.vader:185:28
+                local.set 31   ; path.vader:185:28
+                local.get 7   ; path.vader:185:20
+                local.get 31   ; path.vader:185:20
+                i32.lt   ; path.vader:185:20
+                if $L15 void   ; path.vader:185:17
+                  local.get 2   ; path.vader:186:21
+                  local.get 7   ; path.vader:186:21
+                  local.get 15   ; path.vader:186:21
+                  array.set 3   ; path.vader:186:21
+                else   ; path.vader:185:17
+                  local.get 2   ; path.vader:188:21
+                  local.get 15   ; path.vader:188:21
+                  array.push 1   ; path.vader:188:21
+                end $L15   ; path.vader:185:17
+                i32.const 1   ; path.vader:190:33
+                local.set 32   ; path.vader:190:33
+                local.get 7   ; path.vader:190:25
+                local.get 32   ; path.vader:190:25
+                i32.add   ; path.vader:190:25
+                local.set 33   ; path.vader:190:25
+              end $L10   ; path.vader:172:20
+              local.get 33   ; path.vader:170:13
+              local.set 34   ; path.vader:170:13
+            end $L9   ; path.vader:170:13
+            i32.const 1   ; path.vader:192:29
+            local.set 35   ; path.vader:192:29
+            local.get 8   ; path.vader:192:25
+            local.get 35   ; path.vader:192:25
+            i32.add   ; path.vader:192:25
+            local.set 37   ; path.vader:192:25
+            local.get 34   ; path.vader:168:9
+            local.set 36   ; path.vader:168:9
+          else   ; path.vader:168:9
+          end $L7   ; path.vader:168:9
+          i32.const 1   ; path.vader:194:17
+          local.set 38   ; path.vader:194:17
+          local.get 8   ; path.vader:194:13
+          local.get 38   ; path.vader:194:13
+          i32.add   ; path.vader:194:13
+          local.set 8   ; path.vader:194:13
+          local.get 36   ; path.vader:165:5
+          local.set 7   ; path.vader:165:5
+          local.get 37   ; path.vader:165:5
+          local.set 9   ; path.vader:165:5
+          br $L3   ; path.vader:165:5
+        else   ; path.vader:165:9
+        end $L4   ; path.vader:165:9
+      end $L3   ; path.vader:165:5
+    end $L2   ; path.vader:165:5
+    call 16   ; path.vader:196:11
+    local.set 39   ; path.vader:196:5
+    local.get 1   ; path.vader:197:5
+    if $L16 void   ; path.vader:197:5
+      string.const 44   ; path.vader:14:19
+      local.set 40   ; path.vader:14:19
+      local.get 39   ; path.vader:198:9
+      local.get 40   ; path.vader:198:9
+      call 17   ; path.vader:198:9
+    else   ; path.vader:197:5
+    end $L16   ; path.vader:197:5
+    i32.const 0   ; path.vader:200:10
+    local.set 41   ; path.vader:200:10
+    block $L17 void   ; path.vader:201:5
+      loop $L18 void   ; path.vader:201:5
+        local.get 41   ; path.vader:201:9
+        local.get 7   ; path.vader:201:9
+        i32.lt   ; path.vader:201:9
+        if $L19 void   ; path.vader:201:9
+          i32.const 0   ; path.vader:202:16
+          local.set 42   ; path.vader:202:16
+          local.get 41   ; path.vader:202:12
+          local.get 42   ; path.vader:202:12
+          i32.gt   ; path.vader:202:12
+          if $L20 void   ; path.vader:202:9
+            string.const 44   ; path.vader:14:19
+            local.set 43   ; path.vader:14:19
+            local.get 39   ; path.vader:203:13
+            local.get 43   ; path.vader:203:13
+            call 17   ; path.vader:203:13
+          else   ; path.vader:202:9
+          end $L20   ; path.vader:202:9
+          local.get 2   ; path.vader:205:19
+          local.get 41   ; path.vader:205:19
+          array.get 3   ; path.vader:205:19
+          ref.cast 1   ; path.vader:205:19
+          local.set 44   ; path.vader:205:19
+          local.get 39   ; path.vader:205:9
+          local.get 44   ; path.vader:205:9
+          call 17   ; path.vader:205:9
+          i32.const 1   ; path.vader:206:17
+          local.set 45   ; path.vader:206:17
+          local.get 41   ; path.vader:206:13
+          local.get 45   ; path.vader:206:13
+          i32.add   ; path.vader:206:13
+          local.set 41   ; path.vader:206:13
+          br $L18   ; path.vader:201:5
+        else   ; path.vader:201:9
+        end $L19   ; path.vader:201:9
+      end $L18   ; path.vader:201:5
+    end $L17   ; path.vader:201:5
+    local.get 39   ; path.vader:208:12
+    call 18   ; path.vader:208:12
+    local.tee 46   ; path.vader:208:5
+    call 14   ; path.vader:209:8
+    if $L21 void   ; path.vader:209:8
+      local.get 1   ; path.vader:209:26
+      bool.not   ; path.vader:209:26
+      local.set 47   ; path.vader:209:26
+    else   ; path.vader:209:8
+      bool.const false   ; path.vader:209:8
+      local.set 47   ; path.vader:209:8
+    end $L21   ; path.vader:209:8
+    local.get 47   ; path.vader:209:5
+    if $L22 void   ; path.vader:209:5
+      string.const 45   ; path.vader:210:31
+      struct.new 0   ; path.vader:210:16
+      return   ; path.vader:210:9
+    else   ; path.vader:209:5
+      local.get 46   ; path.vader:212:12
+      struct.new 0   ; path.vader:212:12
+      return   ; path.vader:212:5
+    end $L22   ; path.vader:209:5
+  end $L0   ; path.vader:156:5
 end
 
 fn 14 std_string$is_empty (string) -> bool
@@ -1461,33 +1461,33 @@ fn 15 std_string$last_index_of (string,char,i32) -> i32
   local.get 4   ; string.vader:179:10
   i32.sub   ; string.vader:179:10
   local.set 5   ; string.vader:179:10
-  block void   ; string.vader:180:5
-  loop void   ; string.vader:180:5
-  local.get 5   ; string.vader:180:9
-  local.get 2   ; string.vader:180:9
-  i32.ge   ; string.vader:180:9
-  if void   ; string.vader:180:9
-  local.get 0   ; string.vader:181:12
-  local.get 5   ; string.vader:181:12
-  call.import 2   ; string.vader:181:12
-  local.get 1   ; string.vader:181:12
-  char.eq   ; string.vader:181:12
-  if void   ; string.vader:181:9
-  local.get 5   ; string.vader:182:13
-  return   ; string.vader:182:13
-  else   ; string.vader:181:9
-  i32.const 1   ; string.vader:184:17
-  local.set 6   ; string.vader:184:17
-  local.get 5   ; string.vader:184:13
-  local.get 6   ; string.vader:184:13
-  i32.sub   ; string.vader:184:13
-  local.set 5   ; string.vader:184:13
-  br 2   ; string.vader:180:5
-  end   ; string.vader:181:9
-  else   ; string.vader:180:9
-  end   ; string.vader:180:9
-  end   ; string.vader:180:5
-  end   ; string.vader:180:5
+  block $L0 void   ; string.vader:180:5
+    loop $L1 void   ; string.vader:180:5
+      local.get 5   ; string.vader:180:9
+      local.get 2   ; string.vader:180:9
+      i32.ge   ; string.vader:180:9
+      if $L2 void   ; string.vader:180:9
+        local.get 0   ; string.vader:181:12
+        local.get 5   ; string.vader:181:12
+        call.import 2   ; string.vader:181:12
+        local.get 1   ; string.vader:181:12
+        char.eq   ; string.vader:181:12
+        if $L3 void   ; string.vader:181:9
+          local.get 5   ; string.vader:182:13
+          return   ; string.vader:182:13
+        else   ; string.vader:181:9
+          i32.const 1   ; string.vader:184:17
+          local.set 6   ; string.vader:184:17
+          local.get 5   ; string.vader:184:13
+          local.get 6   ; string.vader:184:13
+          i32.sub   ; string.vader:184:13
+          local.set 5   ; string.vader:184:13
+          br $L1   ; string.vader:180:5
+        end $L3   ; string.vader:181:9
+      else   ; string.vader:180:9
+      end $L2   ; string.vader:180:9
+    end $L1   ; string.vader:180:5
+  end $L0   ; string.vader:180:5
   i32.const 1   ; string.vader:186:13
   i32.neg   ; string.vader:186:12
   return   ; string.vader:186:5

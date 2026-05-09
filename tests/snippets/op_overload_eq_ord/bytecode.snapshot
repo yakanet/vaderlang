@@ -48,28 +48,28 @@ fn 1 tests_snippets_op_overload_eq_ord__main_vader$Money$Ord$compare (ref,ref) -
   local.get 2   ; _main.vader:17:12
   local.get 3   ; _main.vader:17:12
   i32.lt   ; _main.vader:17:12
-  if void   ; _main.vader:17:9
-  i32.const 1   ; _main.vader:17:49
-  i32.neg   ; _main.vader:17:48
-  return   ; _main.vader:17:41
+  if $L0 void   ; _main.vader:17:9
+    i32.const 1   ; _main.vader:17:49
+    i32.neg   ; _main.vader:17:48
+    return   ; _main.vader:17:41
   else   ; _main.vader:17:9
-  local.get 0   ; _main.vader:18:12
-  struct.get 0 0   ; _main.vader:18:12
-  local.set 4   ; _main.vader:18:12
-  local.get 1   ; _main.vader:18:26
-  struct.get 0 0   ; _main.vader:18:26
-  local.set 5   ; _main.vader:18:26
-  local.get 4   ; _main.vader:18:12
-  local.get 5   ; _main.vader:18:12
-  i32.gt   ; _main.vader:18:12
-  if void   ; _main.vader:18:9
-  i32.const 1   ; _main.vader:18:48
-  return   ; _main.vader:18:41
-  else   ; _main.vader:18:9
-  i32.const 0   ; _main.vader:19:16
-  return   ; _main.vader:19:9
-  end   ; _main.vader:18:9
-  end   ; _main.vader:17:9
+    local.get 0   ; _main.vader:18:12
+    struct.get 0 0   ; _main.vader:18:12
+    local.set 4   ; _main.vader:18:12
+    local.get 1   ; _main.vader:18:26
+    struct.get 0 0   ; _main.vader:18:26
+    local.set 5   ; _main.vader:18:26
+    local.get 4   ; _main.vader:18:12
+    local.get 5   ; _main.vader:18:12
+    i32.gt   ; _main.vader:18:12
+    if $L1 void   ; _main.vader:18:9
+      i32.const 1   ; _main.vader:18:48
+      return   ; _main.vader:18:41
+    else   ; _main.vader:18:9
+      i32.const 0   ; _main.vader:19:16
+      return   ; _main.vader:19:9
+    end $L1   ; _main.vader:18:9
+  end $L0   ; _main.vader:17:9
 end
 
 fn 2 tests_snippets_op_overload_eq_ord__main_vader$main () -> i32
