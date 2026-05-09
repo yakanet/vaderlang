@@ -1,0 +1,2 @@
+# compile errors
+[R2018] orphan impl forbidden: Bar for Foo — neither type nor trait is owned by this module

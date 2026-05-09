@@ -74,6 +74,7 @@ export const RESOLVER = {
   R2015: "module folder is empty (no .vader files)",
   R2016: "short impl form requires a trait with exactly one method",
   R2017: "feature not yet implemented",
+  R2018: "orphan impl forbidden",
 } as const;
 
 export type ResolverCode = keyof typeof RESOLVER;

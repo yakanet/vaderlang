@@ -1,0 +1,4 @@
+// Module B defines a trait `Bar` — owns the trait, not the type.
+export Bar :: trait {
+    fn baz(self) -> i32
+}

@@ -1,0 +1,19 @@
+// Layer 8e — orphan rule (light). The current module owns neither
+// `Foo` (defined in lib_a) nor `Bar` (defined in lib_b), so trying
+// to bridge them here is an orphan impl. R2018 fires at the
+// `implements` line. Primitive receivers are exempt — `i32 implements
+// SomeTrait` is allowed even when neither side is local, since Vader
+// has no newtype-pattern infrastructure to recover the use case.
+
+import "./lib_a" { Foo }
+import "./lib_b" { Bar }
+
+Foo implements Bar {
+    fn baz(self) -> i32 {
+        return self.value
+    }
+}
+
+main :: fn() -> i32 {
+    return 0
+}

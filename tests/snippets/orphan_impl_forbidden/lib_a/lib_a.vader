@@ -1,0 +1,2 @@
+// Module A defines a struct `Foo` — owns the type, not the trait.
+export Foo :: struct { value: i32 }

@@ -194,13 +194,35 @@ function resolveImplDecl(decl: A.ImplDecl, parent: Scope, p: MutableProgram, inp
     }
   }
   resolveType(decl.forType, scope, p, input);
-  const traitSym = lookup(parent, decl.traitName);
+  const rawTraitSym = lookup(parent, decl.traitName);
+  // Import-bindings : `import "..." { Bar }` brings `Bar` into scope as
+  // a binding whose actual trait Symbol lives in the exporting module.
+  // The orphan rule needs the *real* trait symbol's module, so follow
+  // the redirect now and use that for both kind- and module-checks.
+  const traitSym = rawTraitSym !== null ? resolveImportRedirect(rawTraitSym, input) : null;
   if (traitSym === null) {
     err(input.diags, "R2007", decl.traitNameSpan, `\`${decl.traitName}\``);
   } else if (traitSym.kind !== "trait") {
     err(input.diags, "R2009", decl.traitNameSpan, `\`${decl.traitName}\` is a ${traitSym.kind}`);
   }
   for (const ta of decl.traitArgs) resolveType(ta, scope, p, input);
+
+  // Orphan rule (Layer 8e) : `Type implements Trait[Args]` is legal only
+  // when the current module owns `Type` *or* `Trait`. Primitives are an
+  // exception — any module can implement traits on them (Vader's
+  // pragmatic deviation from Rust's stricter rule, since we lack the
+  // newtype-pattern infrastructure to recover the use case otherwise).
+  // The check is a straight `module === current` comparison.
+  if (traitSym !== null && traitSym.kind === "trait") {
+    const forSym = forTypeOwnerSymbol(decl.forType, p);
+    const forIsPrimitive = forSym !== null && isPrimitiveOwner(forSym);
+    const forIsLocal = forSym !== null && forSym.module === input.module.id;
+    const traitIsLocal = traitSym.module === input.module.id;
+    if (!forIsPrimitive && !forIsLocal && !traitIsLocal) {
+      err(input.diags, "R2018", decl.span,
+        `${decl.traitName} for ${forTypeDisplayName(decl.forType)} — neither type nor trait is owned by this module`);
+    }
+  }
 
   // Materialise SAM-synthetic members from the trait's single method before
   // walking bodies — `bindParam` needs the params to exist for `self`/`other`
@@ -452,6 +474,29 @@ function bindLetBinding(
     case "WildcardBinding":
       return;
   }
+}
+
+/** For-type owner lookup used by the orphan rule. Returns the leaf symbol
+ *  of the for-type expression — for `Foo` it's `Foo`'s symbol, for
+ *  `Foo[T]` it's the callee's. Returns null when the for-type isn't a
+ *  named-or-generic-instance head (e.g. `(T | U) implements …` doesn't
+ *  parse today, but stays defensive). */
+function forTypeOwnerSymbol(t: A.TypeExpr, p: MutableProgram): Symbol | null {
+  if (t.kind === "IdentExpr") return p.types.get(t) ?? null;
+  if (t.kind === "GenericInstExpr" && t.callee.kind === "IdentExpr") {
+    return p.types.get(t.callee) ?? null;
+  }
+  return null;
+}
+
+function forTypeDisplayName(t: A.TypeExpr): string {
+  if (t.kind === "IdentExpr") return t.name;
+  if (t.kind === "GenericInstExpr" && t.callee.kind === "IdentExpr") return t.callee.name;
+  return "?";
+}
+
+function isPrimitiveOwner(sym: Symbol): boolean {
+  return sym.kind === "builtin-type";
 }
 
 function bindBinding(
