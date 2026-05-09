@@ -1,0 +1,17 @@
+// `@comptime t :: <type-expr>` is a type alias bound at compile time.
+// The bake skips VM evaluation since the underlying Type is already
+// resolved by the typechecker (Layer 4 milestone B.0). Downstream uses
+// of `t` in type-demanding slots resolve through `constTypeAliases`.
+
+import "std/io" { println }
+
+@comptime byte_int   :: i32
+@comptime byte_long  :: i64
+@comptime byte_string :: string
+
+main :: fn() -> i32 {
+    println("size i32     = ${@size_of(byte_int)}")
+    println("size i64     = ${@size_of(byte_long)}")
+    println("size string  = ${@size_of(byte_string)}")
+    return 0
+}

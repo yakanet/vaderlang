@@ -25,7 +25,7 @@ import { monomorphizeProject } from "./specialize.ts";
 import type { MonoProject } from "./specialize.ts";
 import { COMPTIME_BUILTIN, callBuiltin, type SandboxOptions } from "./sandbox.ts";
 import type { ComptimeValue } from "./value.ts";
-import { stringVal } from "./value.ts";
+import { stringVal, typeVal } from "./value.ts";
 
 export interface EvaluateOptions {
   readonly diags: DiagnosticCollector;
@@ -64,6 +64,18 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
   const liveEvaluated = makeLiveEvaluatedProject(project, comptimeByDecl, fileByDecl);
   const projectImpls = buildImplRegistry(project.resolved);
   for (const { decl, program } of order.entries) {
+    // Layer 4 milestone B.0 — `@comptime t :: i32` (a const whose RHS is
+    // structurally a type expression) doesn't need VM evaluation : the
+    // typechecker already pre-resolved the underlying Type into the
+    // `constTypeAliases` table. Synthesise a `ComptimeValue.type` directly
+    // and skip the bake — the bytecode VM has no representation for type
+    // values yet (proper end-to-end TypeValue plumbing is the rest of B.1).
+    const aliased = program.constTypeAliases.get(decl);
+    if (aliased !== undefined) {
+      comptimeByDecl.set(decl, typeVal(aliased));
+      comptimeOwner.set(decl, program);
+      continue;
+    }
     const value = runComptimeDecl({
       decl, project, callerProgram: program, evaluated: comptimeByDecl,
       callerFile: program.resolved.source.file, diags: opts.diags, sandbox: opts.sandbox,

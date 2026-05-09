@@ -247,5 +247,17 @@ export function comptimeValueToLowered(v: ComptimeValue, typeHint: Type, span: S
           name, value: comptimeValueToLowered(val, TY.unresolved, span),
         })),
       };
+    case "type":
+      // Type-valued comptime values stay comptime — lowering them to a
+      // runtime expression is the proper Layer 4 milestone B.1 work
+      // (TypeValue end-to-end). Today every `ComptimeValue.type` consumer
+      // is a const decl that's already short-circuited via the
+      // `constTypeAliases` path in `lowerConstEntry`, so reaching here
+      // means a non-const slot held a type — surface as unreachable so
+      // the bug is visible.
+      return {
+        kind: "LoweredUnreachable", span, type: typeHint,
+        reason: "comptime type value reached lowering — TypeValue end-to-end is not yet implemented (B.1)",
+      };
   }
 }

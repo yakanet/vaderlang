@@ -221,5 +221,12 @@ function comptimeToValue(v: ComptimeValue): Value {
     case "void":   return { tag: "void" };
     case "array":  return { tag: "array", typeIndex: -1, elements: v.elements.map(comptimeToValue) };
     case "struct": return { tag: "struct", typeIndex: -1, fields: [...v.fields.values()].map(comptimeToValue) };
+    case "type":
+      // Type values aren't representable in the bytecode VM yet (B.1
+      // pending). They reach this conversion only via comptime-to-comptime
+      // dependency wiring, where the consumer reads the ComptimeValue
+      // directly and never goes through a VM Value round-trip. Trap to
+      // make the unreachable path explicit.
+      throw new Error("comptime type values cannot flow through the VM yet (Layer 4 milestone B.1)");
   }
 }

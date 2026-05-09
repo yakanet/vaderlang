@@ -1,0 +1,22 @@
+# Typecheck
+
+## tests/snippets/comptime_type_alias/_main.vader
+  ConstDecl      byte_int             :: type
+  ConstDecl      byte_long            :: type
+  ConstDecl      byte_string          :: type
+  FnDecl         main                 :: fn() -> i32
+  expr 10:26    IdentExpr      :: type
+  expr 13:13    StringLitExpr  :: string
+  expr 13:31    IntrinsicCallExpr :: usize
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(string) -> void
+  expr 14:13    StringLitExpr  :: string
+  expr 14:31    IntrinsicCallExpr :: usize
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(string) -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:31    IntrinsicCallExpr :: usize
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 8:25     IdentExpr      :: type
+  expr 9:25     IdentExpr      :: type

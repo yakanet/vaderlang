@@ -544,17 +544,67 @@ Today the mono pass is a separate pipeline stage that walks call sites and produ
 - [ ] **Test plan** — every snippet under `tests/snippets/generic_*` plus `tests/snippets/iter_combinators` exercises mono. Snapshot the bytecode for a representative subset before/after the migration ; bytecode bytes should be identical post-rewire (specialisation is structural, the engine just relocates *where* it happens).
 - [ ] **Diagnostic preservation** — bound-violation diagnostics (T3033) currently fire from the mono pass via the `typeParamBounds` registry. They need to fire from the comptime engine post-rewire. Same span, same code, same message.
 
-#### Layer 4 — purity and memoisation of `type`-producing exprs
+#### Layer 4 — `type` as a first-class comptime value
 
-Builds on Layer 2. Once `type` values are first-class comptime values, two requirements lock in :
+The architectural prerequisite for Phase 3 of the mono → comptime migration. Today the typechecker recognises `i32` in expression position as `TY.type` (TypeMeta) but the lower / bytecode / VM stack has no representation for a *value of type `type`* — historically `@comptime t :: i32` trapped with `reached unreachable`. Building this stack from the bottom up unblocks fn-form type aliases, computed type aliases, memoisation, and ultimately per-call-site partial evaluation.
 
-- [ ] **Determinism** — a pure-comptime fn returning a `type` must have no I/O, no global mutable state. Enforced by the comptime engine's existing capability gate (`@comptime` already disallows network/exec/stdout per SPEC §15).
-- [ ] **Memoisation** — `MutableMap[i32, string]` evaluated from two call sites must yield the *same* runtime type identity. Cache by `(generator, args)` in the comptime engine ; structural identity for unions/tuples already canonicalised by `unionOf`.
+##### Milestone B.0 — short-circuit `@comptime` type-alias decls (DONE)
 
-#### Layer 4 (sugar) — fn-form type aliases & computed type aliases
+- [x] **Short-circuit type-alias bake** — when `@comptime` is applied to a const whose RHS is structurally a type expression (e.g. `@comptime t :: i32`), the typechecker has already pre-resolved the underlying Type into `constTypeAliases`. `evaluateProject` now checks that table before queuing the VM bake and synthesises a `ComptimeValue.type` directly. Unblocks the common type-alias-as-comptime-decl case without introducing TypeValue plumbing through the VM. Snippet : `tests/snippets/comptime_type_alias/`.
+- [x] **`ComptimeValue.type`** added to the comptime value union with a `displayValue` case and a `typeVal()` builder. Conversion `comptimeToValue` traps for now — type values that flow through dependency wiring read the ComptimeValue directly without VM round-trip.
 
-- [ ] **Computed type aliases with logic** — `boxed :: fn[T]() = if @size_of(T) > 16 { Heap[T] } else { Stack[T] }`. Requires the comptime engine to evaluate the body and return a `type` value. Depends on Layer 2.
-- [ ] **`type` keyword as plain TypeAliasDecl returning a type** — `type Maybe[T] = T | null` and `type Pair[A, B] = struct { first: A, second: B }`. The first form likely works today via existing TypeAliasDecl ; verify ; the struct-returning form needs the comptime engine to evaluate the struct literal as a type-producing expression.
+##### Milestone B.1 — `Type` as a VM Value
+
+End-to-end : a Type value flows through the bytecode VM, observable as a runtime value at comptime.
+
+- [ ] **VM Value variant** — add `TypeValue { tag: "type", typeIndex: i32 }` (or carry the `Type` IR by ref) to `src/vm/value.ts`. The `typeIndex` keys into a project-wide type table interned at bytecode-emit time.
+- [ ] **Bytecode op `type.const`** — push a Type value referencing the type-table entry. Add to `src/bytecode/ops.ts`, `src/bytecode/text.ts` (textual `.virt` round-trip), and `src/bytecode/binary.ts` (binary `.vir` round-trip).
+- [ ] **Type table on `BytecodeModule`** — `typeTable: BcType[]` already exists for struct/array layout. Extend so `Type` values can index into it ; emit the canonical interning of any type referenced by `type.const`.
+- [ ] **Lower IdentExpr → LoweredTypeConst** — when an IdentExpr has type `TypeMeta` (i.e. resolves to a builtin-type / struct / type-alias symbol read in expression position), lower to a new `LoweredTypeConst { type: Type }` instead of treating it as a value reference. Also covers `null`, `type`, primitive names.
+- [ ] **Bytecode emit `LoweredTypeConst` → `type.const`** — intern the `Type` in the type table, emit the indexed op.
+- [ ] **VM op handler** — `type.const` pushes `{ tag: "type", typeIndex }` ; the `typeIndex` resolves to a `Type` via the module's type table when consumed by the comptime engine.
+- [ ] **ComptimeValue gains a `type` case** — `{ kind: "type", t: Type }` in `src/comptime/value.ts`. Conversion `valueToComptime` / `comptimeToValue` in `src/comptime/run.ts` round-trips Type values.
+- [ ] **Test snippet** — `tests/snippets/comptime_type_value/` with `@comptime t :: i32` and a downstream `@assert(@size_of(t) == 4)` once we have type-value-typed args (deferred to B.2).
+
+##### Milestone B.2 — Type values flow through intrinsics
+
+`@size_of`, `@type_name`, `@type_kind`, etc. accept a *Type value* in addition to the existing type-expression syntactic form. Same for `@type_of(x)` returning a Type value usable downstream.
+
+- [ ] **`@type_of(x)`** new intrinsic returning the static type of a value as a Type value.
+- [ ] **Reflection intrinsics accept comptime Type values** — `@size_of(t)` where `t: type` is a comptime-evaluable expression. Currently the parser's `IntrinsicCallExpr` arg with `kind: "type"` calls `lowerExprAsType(arg, ...)` which only handles syntactic forms ; extend to fold a Type-value argument into its underlying `Type` for the intrinsic's static result.
+- [ ] **Test snippet** — `@comptime t :: i32 ; @comptime sz :: @size_of(t) ; @assert(sz == 4)`.
+
+##### Milestone B.3 — Type-typed bindings in comptime context
+
+`let T: type = i32` works inside `@comptime` decls and in fn bodies where the resulting `T` flows to other type-demanding slots (Layer 5b — comptime contagion enforcement comes for free here).
+
+- [ ] **Resolver** — type-typed bindings introduce a Symbol carrying a Type value at comptime evaluation time.
+- [ ] **Typechecker** — when a binding is `: type`, the value expression must produce `TY.type` (already enforced via expected-type propagation) ; the binding's downstream uses are typechecked against the *resolved* underlying Type, not the static `TypeMeta`.
+- [ ] **Lower** — the binding stores a Type value at runtime ; at use sites in type position, the lowerer resolves the binding's value to the underlying Type.
+- [ ] **Diagnostic T3035 "type expression must be comptime-evaluable"** — closes Layer 5b (rejects `let t: type = if user_input { i32 } else { i64 }` via the comptime-only static-type rule).
+
+##### Milestone B.4 — Type-yielding operations
+
+Generic application (`MutableMap[i32, string]`), unions (`T | U`), intersections (`T & U`) all evaluate to Type values at comptime. Today they're parsed as `GenericInstExpr` / `BinaryExpr(.BitOr)` / `BinaryExpr(.BitAnd)` ; in expression position with comptime evaluation, they should produce a Type value.
+
+- [ ] **`GenericInstExpr` in value position** — when typechecker sees `MutableMap[i32, string]` and the result is `TY.type`, lower to a `LoweredTypeConst` of the resolved `Struct(MutableMap, [i32, string])`.
+- [ ] **`BinaryExpr(.BitOr/.BitAnd)` in value position with `TY.type`-typed operands** — produces a union/intersection Type value. Lower to `LoweredTypeConst` after canonicalisation via `unionOf`.
+- [ ] **Memoisation** — `MutableMap[i32, string]` evaluated from two call sites yields the *same* Type identity. Cache by `(generator-symbol, type-args)` in the comptime engine. Structural identity for unions/tuples already canonicalised by `unionOf`.
+
+##### Milestone B.5 — fn-form type aliases
+
+The crowning piece — `boxed :: fn[T]() = if @size_of(T) > 16 { Heap[T] } else { Stack[T] }` evaluated at the call site to produce a Type. This is the Layer 4 sugar of the design doc.
+
+- [ ] **Comptime engine drives evaluation** — when a generic fn whose body returns `TY.type` is called with concrete type args, the comptime VM evaluates the body and the result is the call site's resolved type.
+- [ ] **Type-yielding fn signature** — typechecker recognises a fn whose return type is `type` (or whose body's static type is `type`) and routes its calls through the comptime engine.
+- [ ] **Phase 3 of the mono migration unblocked** — once a fn body can produce a Type at comptime, partial evaluation per call site (the original Phase 3) is just the natural composition of B.4 + B.5.
+
+##### Milestone B.6 — Computed type aliases via `type` keyword
+
+`type Maybe[T] = T | null` and `type Pair[A, B] = struct { first: A, second: B }`. The TypeAliasDecl path probably already handles the union-returning form ; the struct-literal-as-type-expression form needs the comptime engine to fold the struct literal into a Type value.
+
+- [ ] **Verify** `type Maybe[T] = T | null` works today end-to-end. If yes, mark complete.
+- [ ] **Add struct-literal-as-type** — `type Pair[A, B] = struct { first: A, second: B }`. The body is a struct literal *expression* whose static type is `TypeMeta` ; the comptime engine evaluates it into a (synthesised, anonymous) `Struct` Type.
 
 #### Layer 5a — uniform `[]` for type-args at call sites
 

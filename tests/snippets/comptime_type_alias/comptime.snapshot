@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/comptime_type_alias/_main.vader
+  @comptime  byte_int             = i32
+  @comptime  byte_long            = i64
+  @comptime  byte_string          = string
+
+## generic instances
+  Yielded(i32)

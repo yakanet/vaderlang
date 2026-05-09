@@ -3,6 +3,9 @@
 // JS-native objects (tagged union) — perf doesn't matter at compile time and
 // debugging is easier with a plain `console.log`.
 
+import type { Type } from "../typecheck/types.ts";
+import { displayType } from "../typecheck/types.ts";
+
 export type ComptimeValue =
   | { readonly kind: "int"; readonly value: bigint; readonly typeName: string }
   | { readonly kind: "float"; readonly value: number; readonly typeName: string }
@@ -12,7 +15,8 @@ export type ComptimeValue =
   | { readonly kind: "null" }
   | { readonly kind: "void" }
   | { readonly kind: "array"; readonly elements: readonly ComptimeValue[]; readonly elementTypeName: string }
-  | { readonly kind: "struct"; readonly typeName: string; readonly fields: ReadonlyMap<string, ComptimeValue> };
+  | { readonly kind: "struct"; readonly typeName: string; readonly fields: ReadonlyMap<string, ComptimeValue> }
+  | { readonly kind: "type"; readonly value: Type };
 
 export const VOID: ComptimeValue = { kind: "void" };
 export const NULL: ComptimeValue = { kind: "null" };
@@ -43,5 +47,10 @@ export function displayValue(v: ComptimeValue): string {
       const fs = [...v.fields].map(([k, val]) => `.${k} = ${displayValue(val)}`).join(", ");
       return `${v.typeName} { ${fs} }`;
     }
+    case "type":   return displayType(v.value);
   }
+}
+
+export function typeVal(value: Type): ComptimeValue {
+  return { kind: "type", value };
 }
