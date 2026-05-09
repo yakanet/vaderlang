@@ -715,12 +715,12 @@ n: i32 | Error = parse_int("42")
 
 ### Generics
 
-Two equivalent forms during the Layer 4-sugar migration window — the `$T` inline form (legacy) and the bracketed `[T]` form (Layer 4-sugar, the canonical Path 2 surface). Both compile to the same `TypeParam[]` shape on the underlying `FnDecl` / `StructDecl` ; pick whichever reads better at the call site. Inline `$T` introductions appearing in value-arg types of a fn declared with the bracketed form are merged in (the bracketed list takes precedence on name collisions).
+The canonical Path 2 surface is the bracketed `[T]` form. The `$T` inline introduction syntax remains parser-supported during the migration window for backwards compatibility but is **deprecated** — new code should use `[T]` exclusively, and existing code should migrate over time. Both forms compile to the same `TypeParam[]` shape on the underlying `FnDecl` / `StructDecl` ; inline `$T` introductions appearing in value-arg types of a fn declared with the bracketed form are merged in (the bracketed list takes precedence on name collisions).
 
 **Generic functions**:
 
 ```vader
-// Bracketed form — explicit at the declaration site.
+// Canonical bracketed form — explicit at the declaration site.
 map :: fn[T, U](items: T[], f: fn(T) -> U) -> U[] {
     result: U[] = []
     for x in items {
@@ -729,7 +729,8 @@ map :: fn[T, U](items: T[], f: fn(T) -> U) -> U[] {
     return result
 }
 
-// Legacy inline form — type-param introduced by `$T` at first use.
+// Legacy inline form (deprecated, still parser-accepted) —
+// type-param introduced by `$T` at first use.
 map :: fn(items: $T[], f: fn(T) -> $U) -> U[] {
     // … same body
 }
@@ -738,25 +739,25 @@ map :: fn(items: $T[], f: fn(T) -> $U) -> U[] {
 **Generic structs**:
 
 ```vader
-// Bracketed form
+// Canonical bracketed form
 List :: struct[T] {
     items: T[]
     len: u32
 }
 
-// Legacy form
+// Legacy form (deprecated)
 List :: struct($T) {
     items: T[]
     len: u32
 }
 
-list := List(i32) { .items = [1, 2, 3], .len = 3 }
+list := List[i32] { .items = [1, 2, 3], .len = 3 }
 ```
 
-**Constraints**. Two equivalent forms : a `where` clause (legacy) or inline next to the type-param in the bracketed list. Multiple traits combined with `&` (intersection) — the same separator as type intersections.
+**Constraints**. Two equivalent forms : a `where` clause (legacy, multi-trait via `+`) or inline next to the type-param in the bracketed list (Layer 4-sugar, multi-trait via `&` mirroring type intersection).
 
 ```vader
-// Bracketed form — bound co-located with the type-param.
+// Canonical bracketed form — bound co-located with the type-param.
 sort :: fn[T: Ord](items: T[]) {
     // ...
 }
@@ -765,17 +766,17 @@ put :: fn[K: Hash & Eq, V](self: MutableMap[K, V], key: K, value: V) {
     // ...
 }
 
-// Legacy form — `$T` + trailing `where` clause.
+// Legacy form — `$T` + trailing `where` clause (still accepted).
 sort :: fn(items: $T[]) where T: Ord {
     // ...
 }
 
-put :: fn(self: MutableMap($K, $V), key: K, value: V) where K: Hash & Eq {
+put :: fn(self: MutableMap($K, $V), key: K, value: V) where K: Hash + Eq {
     // ...
 }
 ```
 
-`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` is in MVP scope** ; `|` on bounds is post-MVP.
+`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope** ; `|` on bounds is post-MVP. The legacy `where` clause uses `+` for the same intersection semantics.
 
 **Compile-time values** (post-MVP candidate):
 
