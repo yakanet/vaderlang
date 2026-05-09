@@ -2,7 +2,7 @@
 
 ## tests/snippets/trait_dispatch_param/_main.vader
   fn tests_snippets_trait_dispatch_param__main_vader$main() -> i32
-    let n#46: u64 =
+    let n#47: u64 =
       call :u64
         callee:
           hash_twice#1000012 :u64
@@ -10,7 +10,7 @@
           int(7) :i32
     return
       cast → i32
-        n#46 :u64
+        n#47 :u64
   fn tests_snippets_trait_dispatch_param__main_vader$tests_snippets_trait_dispatch_param__main_vader$hash_twice__i32(x: i32) -> u64
     return
       add :u64
@@ -19,10 +19,10 @@
             callee:
               hash#1000002 :u64
             arg0:
-              x#45 :i32
+              x#46 :i32
         r:
           call :u64
             callee:
               hash#1000002 :u64
             arg0:
-              x#45 :i32
+              x#46 :i32

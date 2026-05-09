@@ -14,11 +14,16 @@ export const BUILTIN_TYPE_ALIASES: readonly string[] = [
   "int", "long", "float", "double", "byte",
 ];
 
-/** Names visible at every scope's root. Primitives + aliases + `Self`. */
+/** Names visible at every scope's root. Primitives + aliases + `Self` + `type`.
+ *  Order is load-bearing : the symbols are minted in this order, and bytecode /
+ *  lower snapshots embed the resulting IDs. `type` is appended *after* `Self`
+ *  (rather than transitively via the `PRIMITIVE_NAMES` spread) so that adding
+ *  the metatype does not shift any existing builtin's symbol id. */
 export const BUILTIN_TYPE_NAMES: readonly string[] = [
-  ...PRIMITIVE_NAMES,
+  ...PRIMITIVE_NAMES.filter((n) => n !== "type"),
   ...BUILTIN_TYPE_ALIASES,
   "Self",
+  "type",
 ];
 
 export interface BuiltinScope {

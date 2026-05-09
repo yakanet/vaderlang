@@ -2,14 +2,14 @@
 
 ## tests/snippets/multiline_string/_main.vader
   fn tests_snippets_multiline_string__main_vader$main() -> i32
-    let s#54: string = "line one\nline two\n" :string
+    let s#55: string = "line one\nline two\n" :string
     call :void
       callee:
         print#24 :fn(string) -> void
       arg0:
-        s#54 :string
-    let n#55: i32 = int(42) :i32
-    let msg#56: string =
+        s#55 :string
+    let n#56: i32 = int(42) :i32
+    let msg#57: string =
       block :string
         let __sb_0#-1: ? =
           @builder.new :?
@@ -18,7 +18,7 @@
           "count: " :string
         @builder.append_display <for i32> :void
           __sb_0#-1 :?
-          n#55 :i32
+          n#56 :i32
         @builder.append_str :void
           __sb_0#-1 :?
           "\ndone\n" :string
@@ -29,23 +29,23 @@
       callee:
         print#24 :fn(string) -> void
       arg0:
-        msg#56 :string
-    let escaped#57: string = "tab:\there\n" :string
+        msg#57 :string
+    let escaped#58: string = "tab:\there\n" :string
     call :void
       callee:
         print#24 :fn(string) -> void
       arg0:
-        escaped#57 :string
-    let prefix#58: string = "start" :string
-    let combined#59: string =
+        escaped#58 :string
+    let prefix#59: string = "start" :string
+    let combined#60: string =
       add :string
         l:
-          prefix#58 :string
+          prefix#59 :string
         r:
           " middle\nend" :string
     call :void
       callee:
         println#25 :fn(string) -> void
       arg0:
-        combined#59 :string
+        combined#60 :string
     return int(0) :i32

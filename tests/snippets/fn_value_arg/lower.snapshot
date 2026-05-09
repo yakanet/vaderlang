@@ -5,14 +5,14 @@
     return
       call :i32
         callee:
-          g#45 :fn(i32) -> i32
+          g#46 :fn(i32) -> i32
         arg0:
-          x#46 :i32
+          x#47 :i32
   fn tests_snippets_fn_value_arg__main_vader$inc(x: i32) -> i32
     return
       add :i32
         l:
-          x#47 :i32
+          x#48 :i32
         r:
           int(1) :i32
   fn tests_snippets_fn_value_arg__main_vader$main() -> i32

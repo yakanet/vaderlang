@@ -3,20 +3,20 @@
 ## tests/snippets/match_struct_pattern_binding/_main.vader
   struct tests_snippets_match_struct_pattern_binding__main_vader$P { x: i32, name: string }
   fn tests_snippets_match_struct_pattern_binding__main_vader$main() -> i32
-    let p#54: P =
+    let p#55: P =
       P {
         x: int(10) :i32
         name: "alice" :string
       }
     block :void
-      let __scrut_0#-1: P = p#54 :P
+      let __scrut_0#-1: P = p#55 :P
       ~>
         if :void
           cond:
             is P :bool
               __scrut_0#-1 :P
           then:
-            let name#55: ? =
+            let name#56: ? =
               .name :?
                 __scrut_0#-1 :P
             ~>
@@ -32,7 +32,7 @@
                       "ten alice=" :string
                     @builder.append_display <for ?> :void
                       __sb_1#-2 :?
-                      name#55 :?
+                      name#56 :?
                     ~>
                       @builder.finish :string
                         __sb_1#-2 :?

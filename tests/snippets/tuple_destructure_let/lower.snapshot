@@ -12,10 +12,10 @@
       call :[i32, string]
         callee:
           make_pair#2 :fn() -> [i32, string]
-    let n#54: i32 =
+    let n#55: i32 =
       ._0 :i32
         __tup_0#-1 :[i32, string]
-    let s#55: string =
+    let s#56: string =
       ._1 :string
         __tup_0#-1 :[i32, string]
     call :void
@@ -30,7 +30,7 @@
             "n = " :string
           @builder.append_display <for i32> :void
             __sb_1#-2 :?
-            n#54 :i32
+            n#55 :i32
           ~>
             @builder.finish :string
               __sb_1#-2 :?
@@ -46,7 +46,7 @@
             "s = " :string
           @builder.append_display <for string> :void
             __sb_2#-3 :?
-            s#55 :string
+            s#56 :string
           ~>
             @builder.finish :string
               __sb_2#-3 :?

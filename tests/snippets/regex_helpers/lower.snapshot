@@ -8,13 +8,13 @@
           l:
             gte :bool
               l:
-                c#128 :char
+                c#129 :char
               r:
                 char(0x30)
           r:
             lte :bool
               l:
-                c#128 :char
+                c#129 :char
               r:
                 char(0x39)
       then:
@@ -25,13 +25,13 @@
           l:
             gte :bool
               l:
-                c#128 :char
+                c#129 :char
               r:
                 char(0x61)
           r:
             lte :bool
               l:
-                c#128 :char
+                c#129 :char
               r:
                 char(0x7a)
       then:
@@ -42,13 +42,13 @@
           l:
             gte :bool
               l:
-                c#128 :char
+                c#129 :char
               r:
                 char(0x41)
           r:
             lte :bool
               l:
-                c#128 :char
+                c#129 :char
               r:
                 char(0x5a)
       then:
@@ -57,7 +57,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#129 :char
           r:
             char(0x5f)
       then:
@@ -121,7 +121,7 @@
             is_non_id#7 :fn(char) -> bool
           arg2:
             "_" :string
-    let parts#129: string[] =
+    let parts#130: string[] =
       call :string[]
         callee:
           split_where#78 :fn(string, fn(char) -> bool) -> string[]
@@ -145,9 +145,9 @@
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let n#130: i32 =
+    let n#131: i32 =
       LoweredArrayLen
-    let i#131: i32 = int(0) :i32
+    let i#132: i32 = int(0) :i32
     loop while (<…>)
       call :void
         callee:
@@ -155,16 +155,16 @@
         arg0:
           index :string
             on:
-              parts#129 :string[]
+              parts#130 :string[]
             ix:
-              i#131 :i32
+              i#132 :i32
       assign
         target:
-          i#131 :i32
+          i#132 :i32
         value:
           add :i32
             l:
-              i#131 :i32
+              i#132 :i32
             r:
               int(1) :i32
     return int(0) :i32

@@ -6,7 +6,7 @@
   fn tests_snippets_implicit_dot_variant__main_vader$show_day(d: Day) -> string
     return
       block :string
-        let __scrut_0#-1: Day = d#58 :Day
+        let __scrut_0#-1: Day = d#59 :Day
         ~>
           if :string
             cond:
@@ -46,7 +46,7 @@
                           ~>
                             unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn tests_snippets_implicit_dot_variant__main_vader$main() -> i32
-    let a#59: Day = int(0) :i32
+    let a#60: Day = int(0) :i32
     call :void
       callee:
         println#29 :fn(string) -> void
@@ -55,15 +55,15 @@
           callee:
             show_day#6 :fn(Day) -> string
           arg0:
-            a#59 :Day
-    let days#60: Day[] =
+            a#60 :Day
+    let days#61: Day[] =
       array :Day[]
         int(0) :i32
         int(2) :i32
     block :void
       let __iter_0#-2: ArrayIter(Day) =
         ArrayIter(Day) {
-          arr: days#60 :Day[]
+          arr: days#61 :Day[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -82,7 +82,7 @@
           then:
             break
           else:
-            let d#61: Day =
+            let d#62: Day =
               .value :Day
                 cast → Yielded(Day)
                   __step_1#-3 :Done | Yielded(Day)
@@ -94,13 +94,13 @@
                   callee:
                     show_day#6 :fn(Day) -> string
                   arg0:
-                    d#61 :Day
-    let m#62: None | Some =
+                    d#62 :Day
+    let m#63: None | Some =
       Some {
         value: int(42) :i32
       }
     block :void
-      let __scrut_2#-4: None | Some = m#62 :None | Some
+      let __scrut_2#-4: None | Some = m#63 :None | Some
       ~>
         if :void
           cond:
@@ -122,7 +122,7 @@
                       __sb_3#-5 :?
                       .value :i32
                         cast → Some
-                          m#62 :None | Some
+                          m#63 :None | Some
                     ~>
                       @builder.finish :string
                         __sb_3#-5 :?
@@ -142,11 +142,11 @@
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let n#63: None | Some =
+    let n#64: None | Some =
       None {
       }
     block :void
-      let __scrut_4#-6: None | Some = n#63 :None | Some
+      let __scrut_4#-6: None | Some = n#64 :None | Some
       ~>
         if :void
           cond:
@@ -168,7 +168,7 @@
                       __sb_5#-7 :?
                       .value :i32
                         cast → Some
-                          n#63 :None | Some
+                          n#64 :None | Some
                     ~>
                       @builder.finish :string
                         __sb_5#-7 :?

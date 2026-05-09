@@ -4,7 +4,7 @@
   fn tests_snippets_enum_basic__main_vader$describe(d: Direction) -> string
     ~>
       block :string
-        let __scrut_0#-1: Direction = d#55 :Direction
+        let __scrut_0#-1: Direction = d#56 :Direction
         ~>
           if :string
             cond:
@@ -56,7 +56,7 @@
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn tests_snippets_enum_basic__main_vader$main() -> void
-    let d#56: Direction = int(2) :i32
+    let d#57: Direction = int(2) :i32
     call :void
       callee:
         println#26 :fn(string) -> void
@@ -65,7 +65,7 @@
           callee:
             describe#3 :fn(Direction) -> string
           arg0:
-            d#56 :Direction
+            d#57 :Direction
     call :void
       callee:
         println#26 :fn(string) -> void
@@ -79,7 +79,7 @@
       cond:
         eq :bool
           l:
-            d#56 :Direction
+            d#57 :Direction
           r:
             int(2) :i32
       then:
@@ -92,7 +92,7 @@
       cond:
         eq :bool
           l:
-            d#56 :Direction
+            d#57 :Direction
           r:
             int(3) :i32
       then:
@@ -115,7 +115,7 @@
             __sb_0#-2 :?
             eq :bool
               l:
-                d#56 :Direction
+                d#57 :Direction
               r:
                 int(2) :i32
           ~>
@@ -136,7 +136,7 @@
               __sb_1#-3 :?
               eq :bool
                 l:
-                  d#56 :Direction
+                  d#57 :Direction
                 r:
                   int(3) :i32
             ~>

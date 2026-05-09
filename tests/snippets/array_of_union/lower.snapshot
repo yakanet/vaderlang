@@ -2,7 +2,7 @@
 
 ## tests/snippets/array_of_union/_main.vader
   fn tests_snippets_array_of_union__main_vader$main() -> i32
-    let arr#55: Node(i32) | null[] =
+    let arr#56: Node(i32) | null[] =
       array :Node(i32) | null[]
     LoweredArrayPush
     LoweredArrayPush
@@ -22,14 +22,14 @@
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let cell#56: Node(i32) | null =
+    let cell#57: Node(i32) | null =
       index :Node(i32) | null
         on:
-          arr#55 :Node(i32) | null[]
+          arr#56 :Node(i32) | null[]
         ix:
           int(1) :i32
     block :void
-      let __scrut_1#-2: Node(i32) | null = cell#56 :Node(i32) | null
+      let __scrut_1#-2: Node(i32) | null = cell#57 :Node(i32) | null
       ~>
         if :void
           cond:

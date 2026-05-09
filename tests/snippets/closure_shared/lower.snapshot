@@ -2,28 +2,28 @@
 
 ## tests/snippets/closure_shared/_main.vader
   fn tests_snippets_closure_shared__main_vader$main() -> i32
-    let n#43: ? =
+    let n#44: ? =
       LoweredCellNew
-    let inc#44: fn() -> void =
+    let inc#45: fn() -> void =
       LoweredMakeClosure
-    let get#45: fn() -> i32 =
+    let get#46: fn() -> i32 =
       LoweredMakeClosure
     call :void
       callee:
-        inc#44 :fn() -> void
+        inc#45 :fn() -> void
     call :void
       callee:
-        inc#44 :fn() -> void
+        inc#45 :fn() -> void
     call :void
       callee:
-        inc#44 :fn() -> void
+        inc#45 :fn() -> void
     call :void
       callee:
-        inc#44 :fn() -> void
+        inc#45 :fn() -> void
     return
       call :i32
         callee:
-          get#45 :fn() -> i32
+          get#46 :fn() -> i32
   struct __lambda_env_2 { cap_0: ? }
   fn __lambda_1(__env_0: __lambda_env_2) -> void
   struct __lambda_env_5 { cap_0: ? }

@@ -45,6 +45,6 @@
     return
       eq :bool
         l:
-          a#55 :i32
+          a#56 :i32
         r:
-          b#56 :i32
+          b#57 :i32

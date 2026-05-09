@@ -2,7 +2,7 @@
 
 ## tests/snippets/array_push/_main.vader
   fn tests_snippets_array_push__main_vader$main() -> i32
-    let arr#53: ?[] =
+    let arr#54: ?[] =
       array :?[]
     LoweredArrayPush
     LoweredArrayPush
@@ -31,7 +31,7 @@
             __sb_1#-2 :?
             index :?
               on:
-                arr#53 :?[]
+                arr#54 :?[]
               ix:
                 int(0) :i32
           ~>
@@ -48,7 +48,7 @@
             __sb_2#-3 :?
             index :?
               on:
-                arr#53 :?[]
+                arr#54 :?[]
               ix:
                 int(2) :i32
           ~>

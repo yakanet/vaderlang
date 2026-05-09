@@ -25,13 +25,20 @@ export type PrimitiveName =
   | "i8" | "i16" | "i32" | "i64"
   | "u8" | "u16" | "u32" | "u64" | "usize"
   | "f32" | "f64"
-  | "bool" | "char" | "string" | "void" | "null";
+  | "bool" | "char" | "string" | "void" | "null"
+  // The metatype : a value of static type `type` *is* a Vader type.
+  // Comptime-only — instances never reach runtime by design
+  // (DESIGN_TYPE_FIRST.md §11 Layer 2). Today only the name and primitive
+  // entry are registered ; full integration (`@type_of`, types as comptime
+  // values, etc.) lands incrementally through Layer 6 / Layer 4-sugar.
+  | "type";
 
 export const PRIMITIVE_NAMES: readonly PrimitiveName[] = [
   "i8", "i16", "i32", "i64",
   "u8", "u16", "u32", "u64", "usize",
   "f32", "f64",
   "bool", "char", "string", "void", "null",
+  "type",
 ];
 
 export function isPrimitiveName(name: string): name is PrimitiveName {

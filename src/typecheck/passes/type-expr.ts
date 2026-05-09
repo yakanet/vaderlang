@@ -134,6 +134,13 @@ export function primitiveFromName(name: string): Type | null {
     case "f32": case "f64":
     case "bool": case "char": case "string": case "void": case "null":
       return { kind: "Primitive", name };
+    case "type":
+      // Comptime-only metatype (Layer 2.A groundwork). Today the type is
+      // registered so `: type` annotations resolve uniformly ; the typechecker
+      // does not yet enforce comptime-contagion or treat `type`-typed values
+      // specially — that comes with Layer 4-sugar and the reflection
+      // intrinsics (`@type_of`, `@size_of`, ...).
+      return { kind: "Primitive", name: "type" };
     case "int":    return { kind: "Primitive", name: "i32" };
     case "long":   return { kind: "Primitive", name: "i64" };
     case "float":  return { kind: "Primitive", name: "f32" };

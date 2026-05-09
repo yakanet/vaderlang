@@ -268,7 +268,13 @@ function internStructDecl(d: L.LoweredStructDecl, ctx: EmitterCtx): number {
 }
 
 function primitiveToVal(name: PrimitiveName): ValType {
-  // PrimitiveName ⊂ ValType: every primitive is also a stack-machine value type.
+  // Every primitive except `type` (comptime-only metatype) maps to a
+  // stack-machine value type. `type` reaching here would be a Layer 2
+  // invariant violation — bail loudly so the bug surfaces immediately
+  // instead of silently producing bad bytecode.
+  if (name === "type") {
+    throw new Error("internal: comptime-only primitive `type` reached bytecode emission");
+  }
   return name;
 }
 

@@ -28,7 +28,7 @@
           then:
             break
           else:
-            let c#124: char =
+            let c#125: char =
               .value :char
                 cast → Yielded(char)
                   __step_1#-2 :Done | Yielded(char)
@@ -41,7 +41,7 @@
                     @builder.new :?
                   @builder.append_display <for ?> :void
                     __sb_2#-3 :?
-                    c#124 :?
+                    c#125 :?
                   ~>
                     @builder.finish :string
                       __sb_2#-3 :?
@@ -71,7 +71,7 @@
           then:
             break
           else:
-            let c#125: char =
+            let c#126: char =
               .value :char
                 cast → Yielded(char)
                   __step_4#-5 :Done | Yielded(char)
@@ -84,11 +84,11 @@
                     @builder.new :?
                   @builder.append_display <for ?> :void
                     __sb_5#-6 :?
-                    c#125 :?
+                    c#126 :?
                   ~>
                     @builder.finish :string
                       __sb_5#-6 :?
-    let n#126: i32 = int(0) :i32
+    let n#127: i32 = int(0) :i32
     block :void
       let __iter_6#-7: StringChars =
         call :StringChars
@@ -110,17 +110,17 @@
           then:
             break
           else:
-            let c#127: char =
+            let c#128: char =
               .value :char
                 cast → Yielded(char)
                   __step_7#-8 :Done | Yielded(char)
             assign
               target:
-                n#126 :i32
+                n#127 :i32
               value:
                 add :i32
                   l:
-                    n#126 :i32
+                    n#127 :i32
                   r:
                     int(1) :i32
     call :void
@@ -135,7 +135,7 @@
             "codepoints=" :string
           @builder.append_display <for i32> :void
             __sb_8#-9 :?
-            n#126 :i32
+            n#127 :i32
           @builder.append_str :void
             __sb_8#-9 :?
             " bytes=" :string
@@ -175,7 +175,7 @@
           then:
             break
           else:
-            let c#128: char =
+            let c#129: char =
               .value :char
                 cast → Yielded(char)
                   __step_10#-11 :Done | Yielded(char)

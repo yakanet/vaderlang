@@ -9,7 +9,7 @@
             callee:
               read_file#31 :fn(string) -> Error | string
             arg0:
-              path#56 :string
+              path#57 :string
         ~>
           if :string
             cond:
@@ -24,7 +24,7 @@
   fn tests_snippets_try_op__main_vader$show(res: Error | string) -> void
     ~>
       block :void
-        let __scrut_0#-2: Error | string = res#57 :Error | string
+        let __scrut_0#-2: Error | string = res#58 :Error | string
         ~>
           if :void
             cond:
@@ -37,7 +37,7 @@
                     println#27 :fn(string) -> void
                   arg0:
                     cast → string
-                      res#57 :Error | string
+                      res#58 :Error | string
             else:
               ~>
                 if :void
