@@ -141,7 +141,7 @@ function inferGenericFnCall(
 
   if (expr.callee.kind === "IdentExpr") {
     const sym = t.resolved.idents.get(expr.callee);
-    if (sym !== undefined) recordGenericCallSite(expr, declOf(sym), bindings, t);
+    if (sym !== undefined) recordGenericCallSite(expr, declOf(sym), bindings, t, impls, diags);
   }
 
   return substitute(calleeType.returnType, subst);
@@ -529,7 +529,7 @@ function inferGenericUfcsCall(
     }
   }
 
-  recordGenericCallSite(expr, declOf(freeSym), bindings, t);
+  recordGenericCallSite(expr, declOf(freeSym), bindings, t, impls, diags);
 
   return substitute(fullFnType.returnType, subst);
 }
@@ -551,6 +551,7 @@ export function recordIterCoercion(
 function recordGenericCallSite(
   expr: A.CallExpr, decl: ReturnType<typeof declOf>,
   bindings: ReadonlyMap<number, Type>, t: MutableTyped,
+  impls: ImplRegistry, diags: DiagnosticCollector,
 ): void {
   if (decl === null || decl.kind !== "FnDecl" || decl.typeParams.length === 0) return;
   const typeArgs = decl.typeParams.map((tp) => {
@@ -565,6 +566,26 @@ function recordGenericCallSite(
   // unification failure already reported elsewhere.
   if (typeArgs.every((a) => a.kind !== "Unresolved")) {
     t.genericFnCalls.set(expr, typeArgs);
+  }
+  // Layer 7e — auto-enforce bracketed `[T: Trait]` and `where T: Trait`
+  // bounds. For every fully-resolved type-arg, look up the trait bounds
+  // attached to its formal type-param and emit T3006 if the concrete type
+  // has no impl. TypeParam-typed args (from inside another generic body)
+  // are skipped — they propagate to the outer instance which checks at
+  // its own call site once it's monomorphised.
+  for (let i = 0; i < decl.typeParams.length; i++) {
+    const concrete = typeArgs[i]!;
+    if (concrete.kind === "Unresolved" || concrete.kind === "TypeParam") continue;
+    const tpSym = t.globals.typeParamSymbols.get(decl.typeParams[i]!);
+    if (tpSym === undefined) continue;
+    const bounds = t.globals.typeParamBounds.get(tpSym.id);
+    if (bounds === undefined) continue;
+    for (const traitSym of bounds) {
+      if (impls.findFor(concrete, traitSym) === null) {
+        err(diags, "T3006", expr.span,
+          `\`${displayType(concrete)}\` does not implement \`${traitSym.name}\` (required by type parameter \`${decl.typeParams[i]!.name}\` of \`${decl.name}\`)`);
+      }
+    }
   }
 }
 

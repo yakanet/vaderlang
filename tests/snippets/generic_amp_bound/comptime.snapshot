@@ -3,6 +3,6 @@
 ## tests/snippets/generic_amp_bound/_main.vader
 
 ## generic instances
-  foo(i32)
+  needs_add(string)
   Yielded(i32)
   bar(i32, i32)

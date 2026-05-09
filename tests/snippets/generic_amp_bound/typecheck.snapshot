@@ -2,14 +2,13 @@
 
 ## tests/snippets/generic_amp_bound/_main.vader
   FnDecl         bar                  :: fn($K, $V) -> $V
-  FnDecl         foo                  :: fn($T) -> $T
   FnDecl         main                 :: fn() -> i32
-  expr 11:44    IdentExpr      :: $T
-  expr 13:53    IdentExpr      :: $V
-  expr 16:10    CallExpr       :: i32
-  expr 16:10    IdentExpr      :: fn($T) -> $T
-  expr 17:10    CallExpr       :: i32
-  expr 17:10    IdentExpr      :: fn($K, $V) -> $V
-  expr 18:12    BinaryExpr     :: i32
-  expr 18:12    IdentExpr      :: i32
-  expr 18:16    IdentExpr      :: i32
+  FnDecl         needs_add            :: fn($T) -> $T
+  expr 13:38    IdentExpr      :: $T
+  expr 15:53    IdentExpr      :: $V
+  expr 18:10    CallExpr       :: string
+  expr 18:10    IdentExpr      :: fn($T) -> $T
+  expr 18:20    StringLitExpr  :: string
+  expr 19:10    CallExpr       :: i32
+  expr 19:10    IdentExpr      :: fn($K, $V) -> $V
+  expr 20:12    IdentExpr      :: i32

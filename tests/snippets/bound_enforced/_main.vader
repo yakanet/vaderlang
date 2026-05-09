@@ -1,0 +1,16 @@
+// Layer 7e — bracketed `[T: Trait]` and `where T: Trait` bounds are now
+// enforced at every call site of a generic fn. `string` implements Hash
+// (declared in std/core), so this call type-checks. The negative case
+// (passing a non-Hash type) would emit T3006 « trait not satisfied ».
+
+needs_hash :: fn[T: Hash](x: T) -> bool {
+    h :: x.hash()
+    return h > u64(0)
+}
+
+main :: fn() -> i32 {
+    if needs_hash("foo") {
+        return 0
+    }
+    return 1
+}

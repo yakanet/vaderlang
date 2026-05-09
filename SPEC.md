@@ -786,9 +786,13 @@ make_buffer :: fn($N: i32) -> [N]u8 { ... }
 
 **Implementation**: monomorphization at compile time, driven by the comptime engine. Single specialization machinery.
 
+**Bound enforcement and trait-method dispatch on type parameters**: both wired since Layer 7e. The typechecker:
+- Resolves `key.hash()` inside a generic body where `key: $K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member.
+- At every call site of a generic fn, walks the call-site type-args against each type-param's bracketed bound (`[T: Trait]`) and `where T: Trait` clauses. Any concrete type lacking an explicit `T implements Trait` impl yields T3006 (« trait not satisfied »).
+
 **Limitations (MVP)**:
 - **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap(K, V) { ... }` for struct-literal construction. Post-MVP candidate.
-- **No trait-method dispatch on bounded type parameters** — inside a generic body, `key.hash()` where `key: $K` and `K: Hash` doesn't resolve, since the typechecker doesn't propagate where-clause methods to type-params. Workaround: pass dispatch as `fn`-typed parameters or specialise per concrete key type. Post-MVP work.
+- **Built-in primitive arithmetic does not register an impl** — `i32 + i32` lowers to a direct numeric op, not a `Add` trait dispatch. So `where T: Add` succeeds for `string` (which has an explicit `string implements Add`) but fails for `i32`/`f64`/etc. — the workaround is to specialise per primitive or to declare explicit impls.
 
 ### Traits
 

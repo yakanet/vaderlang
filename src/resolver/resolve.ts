@@ -394,6 +394,37 @@ function bindTypeParam(tp: A.TypeParam, scope: Scope, p: MutableProgram, input: 
   scope.bindings.set(tp.name, sym);
   p.typeParams.set(tp, sym);
   input.typeParamSymbols.set(tp, sym);
+  // Layer 7e — bracketed bounds `[T: A & B & ...]` flow into the same
+  // `typeParamBounds` table that legacy `where T: A + B` populates, so
+  // downstream phases (trait-method dispatch, the auto-bound-enforcement
+  // check at call sites) see one uniform bound list per type-param.
+  if (tp.bound !== null) {
+    for (const traitSym of resolveTraitBoundExpr(tp.bound, scope)) {
+      let bucket = input.typeParamBounds.get(sym.id);
+      if (bucket === undefined) {
+        bucket = [];
+        input.typeParamBounds.set(sym.id, bucket);
+      }
+      if (!bucket.some((s) => s.id === traitSym.id)) bucket.push(traitSym);
+    }
+  }
+}
+
+/** Walk a bracketed bound expression and yield every trait symbol it
+ *  references. Handles single-trait (`T: Foo`) and `&`-chain composition
+ *  (`T: A & B & C`) ; non-trait references are silently skipped — the
+ *  typechecker's bound-check pass surfaces a diagnostic at the call site
+ *  if the resolved Type doesn't satisfy a trait that wasn't recorded here. */
+function* resolveTraitBoundExpr(expr: A.TypeExpr, scope: Scope): Generator<Symbol> {
+  if (expr.kind === "IdentExpr") {
+    const sym = lookup(scope, expr.name);
+    if (sym !== null && sym.kind === "trait") yield sym;
+    return;
+  }
+  if (expr.kind === "BinaryExpr" && expr.op === "bitand") {
+    yield* resolveTraitBoundExpr(expr.left as A.TypeExpr, scope);
+    yield* resolveTraitBoundExpr(expr.right as A.TypeExpr, scope);
+  }
 }
 
 function bindLocal(stmt: A.LetStmt, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {

@@ -1,0 +1,28 @@
+# Lower
+
+## tests/snippets/bound_enforced/_main.vader
+  fn tests_snippets_bound_enforced__main_vader$main() -> i32
+    if :void
+      cond:
+        call :bool
+          callee:
+            needs_hash#1000012 :bool
+          arg0:
+            "foo" :string
+      then:
+        return int(0) :i32
+    return int(1) :i32
+  fn tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string(x: string) -> bool
+    let h#47: u64 =
+      call :u64
+        callee:
+          hash#1000006 :u64
+        arg0:
+          x#46 :string
+    return
+      gt :bool
+        l:
+          h#47 :u64
+        r:
+          cast → u64
+            int(0) :i32

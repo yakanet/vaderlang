@@ -1,0 +1,7 @@
+# Comptime
+
+## tests/snippets/bound_enforced/_main.vader
+
+## generic instances
+  needs_hash(string)
+  Yielded(i32)

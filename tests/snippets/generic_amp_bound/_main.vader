@@ -4,16 +4,18 @@
 // (the union operator). The bound parses to `BinaryExpr(bitand, Add, Sub)`,
 // matching the value-side Pratt precedence (`amp` BP 60 > `pipe` BP 40).
 //
-// Today the typechecker doesn't yet enforce trait bounds with composition,
-// so this snippet only exercises *parsing* — proves the surface compiles
-// and the AST shape is right.
+// Layer 7e enforces these bounds at call sites — the concrete type-arg
+// must implement every composed trait, otherwise T3006 fires. `string`
+// is the only stdlib primitive that explicitly `implements Add` (concat),
+// so the snippet uses it for the `Add`-bounded case ; `bar` uses
+// `Hash & Eq` which `i32` and `string` satisfy.
 
-foo :: fn[T: Add & Sub & Mul](x: T) -> T = x
+needs_add :: fn[T: Add](x: T) -> T = x
 
 bar :: fn[K: Hash & Eq, V](key: K, value: V) -> V = value
 
 main :: fn() -> i32 {
-    a :: foo(10)
+    s :: needs_add("hello")
     b :: bar(1, 2)
-    return a + b
+    return b
 }
