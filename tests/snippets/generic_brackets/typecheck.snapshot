@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/generic_brackets/_main.vader
+  FnDecl         identity             :: fn($T) -> $T
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Pair                 :: Pair($A, $B)
+  FnDecl         swap                 :: fn($A, $B) -> $B
+  expr 18:10    CallExpr       :: i32
+  expr 18:10    IdentExpr      :: fn($T) -> $T
+  expr 19:10    CallExpr       :: i32
+  expr 19:10    IdentExpr      :: fn($A, $B) -> $B
+  expr 20:10    StructLitExpr  :: Pair(i32, i32)
+  expr 21:12    BinaryExpr     :: i32
+  expr 21:12    BinaryExpr     :: i32
+  expr 21:12    IdentExpr      :: i32
+  expr 21:16    IdentExpr      :: i32
+  expr 21:20    FieldExpr      :: i32
+  expr 21:20    IdentExpr      :: Pair(i32, i32)
+  expr 6:32     IdentExpr      :: $T
+  expr 9:37     IdentExpr      :: $B

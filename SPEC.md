@@ -694,23 +694,38 @@ For risky conversions (parsing), use explicit functions returning unions:
 n: i32 | Error = parse_int("42")
 ```
 
-### Generics — Pure Odin
+### Generics
 
-**Generic functions**: type parameter introduced inline with `$T`; subsequent uses without `$`.
+Two equivalent forms during the Layer 4-sugar migration window — the `$T` inline form (legacy) and the bracketed `[T]` form (Layer 4-sugar, the canonical Path 2 surface). Both compile to the same `TypeParam[]` shape on the underlying `FnDecl` / `StructDecl` ; pick whichever reads better at the call site. Inline `$T` introductions appearing in value-arg types of a fn declared with the bracketed form are merged in (the bracketed list takes precedence on name collisions).
+
+**Generic functions**:
 
 ```vader
-map :: fn(items: $T[], f: fn(T) -> $U) -> U[] {
+// Bracketed form — explicit at the declaration site.
+map :: fn[T, U](items: T[], f: fn(T) -> U) -> U[] {
     result: U[] = []
     for x in items {
         result.push(f(x))
     }
     return result
 }
+
+// Legacy inline form — type-param introduced by `$T` at first use.
+map :: fn(items: $T[], f: fn(T) -> $U) -> U[] {
+    // … same body
+}
 ```
 
-**Generic structs**: type params declared up front with `$` prefix.
+**Generic structs**:
 
 ```vader
+// Bracketed form
+List :: struct[T] {
+    items: T[]
+    len: u32
+}
+
+// Legacy form
 List :: struct($T) {
     items: T[]
     len: u32
@@ -719,9 +734,19 @@ List :: struct($T) {
 list := List(i32) { .items = [1, 2, 3], .len = 3 }
 ```
 
-**Constraints** via `where`. Multiple traits combined with `&` (intersection) — the same separator as type intersections:
+**Constraints**. Two equivalent forms : a `where` clause (legacy) or inline next to the type-param in the bracketed list. Multiple traits combined with `&` (intersection) — the same separator as type intersections.
 
 ```vader
+// Bracketed form — bound co-located with the type-param.
+sort :: fn[T: Ord](items: T[]) {
+    // ...
+}
+
+put :: fn[K: Hash & Eq, V](self: MutableMap[K, V], key: K, value: V) {
+    // ...
+}
+
+// Legacy form — `$T` + trailing `where` clause.
 sort :: fn(items: $T[]) where T: Ord {
     // ...
 }

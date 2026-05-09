@@ -1,0 +1,22 @@
+// Layer 4-sugar : bracketed type-param syntax `fn[T]` and `struct[T]`.
+// The new form coexists with the legacy `fn(arg: $T)` and `struct($T)`
+// during the migration window — both produce the same AST shape.
+
+// Generic fn, new bracketed form
+identity :: fn[T](x: T) -> T = x
+
+// Generic fn, multiple type-params, multiple bracketed
+swap :: fn[A, B](a: A, b: B) -> B = b
+
+// Generic struct, bracketed form
+Pair :: struct[A, B] {
+    first: A
+    second: B
+}
+
+main :: fn() -> i32 {
+    a :: identity(10)
+    b :: swap(1, 2)
+    p := Pair(i32, i32) { .first = 30, .second = 0 }
+    return a + b + p.first
+}

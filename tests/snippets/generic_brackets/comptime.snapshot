@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/generic_brackets/_main.vader
+
+## generic instances
+  identity(i32)
+  Yielded(i32)
+  swap(i32, i32)
+  Pair(i32, i32)

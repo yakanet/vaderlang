@@ -326,7 +326,12 @@ function parseFnDecl(
   nameTok: Token,
 ): A.FnDecl {
   p.advance(); // fn
-  const { params, typeParams } = parseFnSignatureParams(p);
+  // Bracketed type-params `fn[T: Bound](...)` (Layer 4-sugar). Inline `$T`
+  // introductions in the value-arg types are still collected ; both lists
+  // are merged so the two forms compose during the migration.
+  const bracketed = parseBracketedTypeParams(p);
+  const { params, typeParams: dollarParams } = parseFnSignatureParams(p);
+  const typeParams = mergeTypeParams(bracketed, dollarParams);
   let returnType: A.TypeExpr | null = null;
   if (p.match("arrow") !== null) returnType = parseType(p);
   const whereClauses = parseWhereClauses(p);
@@ -388,7 +393,9 @@ function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
   }
   const fnTok = p.advance(); // fn
   const nameTok = p.expect("ident", "function name");
-  const { params, typeParams } = parseFnSignatureParams(p);
+  const bracketed = parseBracketedTypeParams(p);
+  const { params, typeParams: dollarParams } = parseFnSignatureParams(p);
+  const typeParams = mergeTypeParams(bracketed, dollarParams);
   let returnType: A.TypeExpr | null = null;
   if (p.match("arrow") !== null) returnType = parseType(p);
   const whereClauses = parseWhereClauses(p);
@@ -537,7 +544,74 @@ function parseStructDecl(
 }
 
 /** Parse the optional `($T, $U, $N: i32)` head on a struct/trait declaration. */
+/** Combine bracketed type-params (declared explicitly via `fn[T, U]`) with
+ *  inline `$T` introductions collected from the value-arg types. The
+ *  bracketed list takes precedence — an inline `$T` whose name already
+ *  appears in the bracketed list is skipped (the bracketed entry wins,
+ *  carrying any bound that was declared). */
+function mergeTypeParams(
+  bracketed: readonly A.TypeParam[], inline: readonly A.TypeParam[],
+): A.TypeParam[] {
+  if (bracketed.length === 0) return [...inline];
+  const seen = new Set(bracketed.map((tp) => tp.name));
+  const out: A.TypeParam[] = [...bracketed];
+  for (const tp of inline) {
+    if (!seen.has(tp.name)) {
+      out.push(tp);
+      seen.add(tp.name);
+    }
+  }
+  return out;
+}
+
+/** Bracketed type-param list `[T, U: Bound, ...]` — the Layer 4-sugar form
+ *  (DESIGN_TYPE_FIRST.md §11). Each entry is `name` or `name: bound`. The
+ *  bound is parsed as a type expression (so `[T: Numeric]` works) ; future
+ *  work allows trait composition via `&` and arbitrary comptime predicates.
+ *  Returns an empty list and consumes nothing if the next token is not `[`. */
+function parseBracketedTypeParams(p: Parser): A.TypeParam[] {
+  if (!p.check("lbracket")) return [];
+  p.advance(); // [
+  const out: A.TypeParam[] = [];
+  p.skipNewlines();
+  if (!p.check("rbracket")) {
+    let first = true;
+    while (true) {
+      p.skipNewlines();
+      if (p.check("rbracket") || p.check("eof")) break;
+      if (!first) {
+        if (p.match("comma") === null) break;
+        p.skipNewlines();
+        if (p.check("rbracket")) break;
+      }
+      first = false;
+      const start = p.peek();
+      const nameTok = p.expect("ident", "type-param name");
+      let bound: A.TypeExpr | null = null;
+      if (p.match("colon") !== null) {
+        p.skipNewlines();
+        bound = parseType(p);
+      }
+      out.push({
+        span: p.spanOf(start, p.peek(-1)),
+        name: nameTok.text,
+        bound,
+        // Bracketed type-params are always type-params, never comptime
+        // *value* params. Comptime values keep the legacy `($N: i32)` form
+        // for now ; a future round may unify the two.
+        isComptimeValue: false,
+      });
+    }
+  }
+  p.expect("rbracket", "`]` to close type-param list");
+  return out;
+}
+
 function parseStructTypeParamList(p: Parser): A.TypeParam[] {
+  // Layer 4-sugar bracketed form takes precedence ; falls back to the
+  // legacy `($T)` paren form when no `[` is present. Both shapes coexist
+  // through the migration window.
+  if (p.check("lbracket")) return parseBracketedTypeParams(p);
   if (!p.match("lparen")) return [];
   const out: A.TypeParam[] = [];
   if (!p.check("rparen")) {
