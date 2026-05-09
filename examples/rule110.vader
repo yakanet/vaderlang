@@ -1,0 +1,80 @@
+// Rule 110 — a one-dimensional cellular automaton famously proven to be
+// Turing-complete. Each cell's next state is a fixed function of its own
+// state and its two neighbours' states ; the lookup table for those eight
+// (left, mid, right) bit-patterns is the binary encoding of 110 (0b01101110).
+//
+// Boundaries wrap around so the row stays a closed loop ; the initial
+// generation has a single live cell on the right end, which is the seed
+// classically used to display the rule's drift to the left.
+
+import "std/io" { print, println }
+import "std/string_builder" { new_builder, append_char, to_string }
+
+WIDTH       :: 80
+GENERATIONS :: 40
+
+// Rule 110, as a bit pattern. `next_cell(l, m, r)` reads bit `(l<<2 | m<<1 | r)`
+// out of this byte to decide the centre cell's next state.
+RULE :: 110
+
+next_cell :: fn(left: i32, mid: i32, right: i32) -> i32 {
+    pattern :: (left * 4) + (mid * 2) + right
+    return (RULE / pow2(pattern)) % 2
+}
+
+// Tiny `pow(2, n)` for n in 0..=7. The table is small enough that a chain
+// reads fine ; integer literal-patterns aren't supported in `match` yet.
+pow2 :: fn(n: i32) -> i32 {
+    p := 1
+    i := 0
+    for i < n {
+        p = p * 2
+        i = i + 1
+    }
+    return p
+}
+
+step :: fn(row: i32[]) -> i32[] {
+    n :: row.len()
+    next: i32[] = []
+    i := 0
+    for i < n {
+        // Wrap-around so the row is a closed loop.
+        left  :: row[(i - 1 + n) % n]
+        mid   :: row[i]
+        right :: row[(i + 1) % n]
+        next.push(next_cell(left, mid, right))
+        i = i + 1
+    }
+    return next
+}
+
+format_row :: fn(row: i32[]) -> string {
+    sb :: new_builder()
+    for cell in row {
+        if cell == 1 {
+            sb.append_char('#')
+        } else {
+            sb.append_char(' ')
+        }
+    }
+    return sb.to_string()
+}
+
+main :: fn() -> i32 {
+    row: i32[] = []
+    i := 0
+    for i < WIDTH {
+        // Seed: a single live cell on the right end.
+        row.push(if i == WIDTH - 1 { 1 } else { 0 })
+        i = i + 1
+    }
+
+    g := 0
+    for g < GENERATIONS {
+        println(format_row(row))
+        row = step(row)
+        g = g + 1
+    }
+    return 0
+}

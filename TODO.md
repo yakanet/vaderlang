@@ -151,6 +151,18 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 - [x] **Transitive monomorphization** — done. `closeOverGenericImpls` (`src/comptime/evaluate.ts:253`) runs a fixed-point loop (max 64 iters) that, for each registered struct/fn instance, observes (a) the substituted types of every impl member, (b) every nested generic call site inside fn bodies (`observeFnBody` substitutes the outer subst into inner typeArgs before re-feeding the registry). Wrapper-style stdlib (`MutableSet(T) { inner: MutableMap(T, bool) }`) compiles end-to-end (`tests/snippets/mutable_set/`).
 - [x] **First-class trait-method dispatch** — done. Three call shapes now resolve through the same ImplRegistry plumbing: (a) bounded type param (`fn foo(x: $T) where T: Hash { x.hash() }` — recorded in `traitMethodResolutions`, `tests/snippets/trait_dispatch_bounded/`); (b) non-generic trait receiver (`e: Error; e.message()` — recorded in `traitVirtualResolutions`, lowered via `lowerVirtualDispatch` into an `is X -> X_method(box)` cascade, `tests/snippets/trait_virtual_dispatch/`); (c) **generic trait receiver** (`it: Iterator(i32); it.step()` — typechecker substitutes the trait's typeParams into the method's return type so `Yielded($T)` becomes `Yielded(i32)`; lowerer enumerates every observed `(generic struct, args)` instance from `mono.implMethodEntries` and emits one arm per concrete struct, `tests/snippets/trait_dispatch_generic_iter/`).
 - [ ] **Default-init for generic param** — `acc: T = T()` style, needed by `sum(it)` over an iterator. Either a `Default` trait + auto-impl on numerics, or a `zero<T>()` intrinsic. Currently blocks the iterator-driven flavour of `sum`, `min`, `max`.
+
+  Investigation 2026-05-09 : the implementation is genuinely blocked on a parser/typechecker enhancement. Vader requires every `$T` generic param to appear at least once in the parameter list (it's the declaration site) — `fn make_default() -> $T where T: Default { ... }` errors out at the where-clause with `R2006: unresolved identifier T`. So a parameter-less generic constructor isn't expressible today. Three viable resolutions, in increasing scope :
+
+    (a) **Allow `$T` declared at any first-mention site** (incl. return type, where-clause). Smallest parser change ; the resolver must learn to populate the `typeParams` table from those positions. ~half a day.
+
+    (b) **Explicit type-args at call sites** — `default[T]()` / `foo[T1, T2](args)`. The AST node `GenericInstExpr` is already declared but never produced by the parser. Adding the syntax + typecheck + lower routing is ~2-3 days.
+
+    (c) **`T()` constructor syntax for type-params** — sugar for `Default::default()` instantiated with T. Most user-facing but most invasive : parser learns to recognise `<TypeParam>()` ; typecheck dispatches via the bounded-trait-param infrastructure ; lowerer routes to the right impl based on the call-site monomorphisation. ~3 days.
+
+  Recommendation : start with (a) since it unblocks the cleanest formulation (`default()` inferring T from return-type context, similar to how `i32 x = 42` infers `FreeInt → i32`). (b) is a useful follow-up regardless. (c) is sugar that can come last.
+
+  The `Default` trait itself can be added now as a placeholder (no-op until one of the above lands) but doing so without a dispatch path adds complexity for no immediate user benefit — defer until (a) or (b) is implemented.
 - [ ] **Generic `len(arr)`** — today `ArrayIter` carries an explicit `length: i32` field set at auto-wrap time via `LoweredArrayLen` (the bytecode `array.len` op). Now that generic-fn dispatch is in, the field could be dropped in favour of `len(self.arr)` — pure cleanup, low priority.
 - [x] **Auto-coerce `T[]` → `Iterator(T)`** — done. Typechecker accepts the assignability (`isAssignable` in `src/typecheck/types.ts` matches `Array(T)` against `Trait{Iterator}(T)`) and records each coercion site in `arrayIterCoercions: Map<A.Expr, Type>` (call args, `let` with explicit type, `return` slots — `src/typecheck/passes/call.ts`, `stmt.ts`). Lowerer reads the side-table at the top of `lowerExpr` (`src/lower/passes/expr.ts`) and wraps via the shared `wrapArrayAsIter` helper extracted from for-in. Comptime engine pre-registers each coerced `ArrayIter(T)` instance so mono materialises the step impl. Test: `tests/snippets/iter_coerce_array/`.
 - [ ] `for x in iter` / `MutableList(u32){}.add(...)` inside @comptime — needs arena allocation for transient collections (Iterator dispatch is now solved).
@@ -424,9 +436,11 @@ These items unblock porting the TS compiler to Vader.
 
 ### 1.16 Examples
 
-- [ ] `examples/hello.vader` ✓ (already created)
-- [ ] `examples/fib.vader` — Fibonacci
-- [ ] `examples/rule110.vader` — Rule 110 cellular automaton
+- [x] `examples/hello.vader`
+- [x] `examples/fibonacci.vader` — Fibonacci
+- [x] `examples/fizzbuzz.vader` — FizzBuzz, classic loop / branching exercise
+- [x] `examples/rule110.vader` — Rule 110 cellular automaton (Turing-complete CA)
+- [x] `examples/primes.vader` — Sieve of Eratosthenes
 - [ ] `examples/aoc_2024_day1.vader` — solve an AOC problem end-to-end (validates I/O + parsing + collections)
 - [ ] `examples/wasm_browser/` — minimal HTML + Vader code calling JS via `@extern`
 

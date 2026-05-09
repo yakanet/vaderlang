@@ -1,0 +1,21 @@
+// FizzBuzz — print 1..=100, replacing multiples of 3 with "Fizz", multiples
+// of 5 with "Buzz", and multiples of both with "FizzBuzz".
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    n := 1
+    for n <= 100 {
+        if n % 15 == 0 {
+            println("FizzBuzz")
+        } else if n % 3 == 0 {
+            println("Fizz")
+        } else if n % 5 == 0 {
+            println("Buzz")
+        } else {
+            println("${n}")
+        }
+        n = n + 1
+    }
+    return 0
+}

@@ -1,0 +1,50 @@
+// Sieve of Eratosthenes — print all primes ≤ N.
+//
+// Allocates a `bool` array of length N+1 where `composite[i]` flips to true
+// once any multiple of `i` lands on it. The remaining `false` slots are the
+// primes. Classic O(N log log N) ; far more efficient than trial-division
+// for any non-trivial bound.
+
+import "std/io" { println, print }
+
+N :: 100
+
+main :: fn() -> i32 {
+    composite: bool[] = []
+    i := 0
+    for i <= N {
+        composite.push(false)
+        i = i + 1
+    }
+
+    p := 2
+    for p * p <= N {
+        if !composite[p] {
+            // Mark every multiple of p starting at p² (smaller multiples
+            // were already marked when we walked p's smaller factors).
+            k := p * p
+            for k <= N {
+                composite[k] = true
+                k = k + p
+            }
+        }
+        p = p + 1
+    }
+
+    println("Primes up to ${N}:")
+    first := true
+    n := 2
+    for n <= N {
+        if !composite[n] {
+            if first {
+                print("${n}")
+                first = false
+            } else {
+                print(", ${n}")
+            }
+        }
+        n = n + 1
+    }
+    println("")
+    return 0
+}
