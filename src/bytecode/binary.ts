@@ -28,6 +28,34 @@ export const VERSION = (0 << 16) | (1 << 8) | 0;                   // 0.1.0
 export const FLAG_HAS_DEBUG = 0x0001;
 
 // =============================================================================
+// Section + sub-tag enums — every byte/short written by the encoder has a
+// matching named tag here so the format stays self-documenting.
+// =============================================================================
+
+/** BcType kind tag. One byte per type-table entry, dispatches into the
+ *  payload format for that variant. */
+const enum TypeTag {
+  Primitive = 0,
+  Struct    = 1,
+  Array     = 2,
+  Union     = 3,
+  Ref       = 4,
+  Fn        = 5,
+}
+
+/** Optional-field marker for nullable strings/structs. */
+const enum Nullable {
+  Absent  = 0,
+  Present = 1,
+}
+
+/** Per-op debug-info marker. */
+const enum DebugTag {
+  None    = 0,
+  Present = 1,
+}
+
+// =============================================================================
 // ValType tags — single-byte encoding
 // =============================================================================
 
@@ -229,11 +257,11 @@ function writeTypes(w: Writer, types: readonly BcType[]): void {
   for (const t of types) {
     switch (t.kind) {
       case "primitive":
-        w.u8(0);
+        w.u8(TypeTag.Primitive);
         w.u8(valTypeTag(t.val));
         break;
       case "struct":
-        w.u8(1);
+        w.u8(TypeTag.Struct);
         w.string(t.name);
         w.u32(t.fields.length);
         for (const f of t.fields) {
@@ -242,25 +270,25 @@ function writeTypes(w: Writer, types: readonly BcType[]): void {
         }
         break;
       case "array":
-        w.u8(2);
+        w.u8(TypeTag.Array);
         w.u32(t.element);
         break;
       case "union":
-        w.u8(3);
+        w.u8(TypeTag.Union);
         w.u32(t.variants.length);
         for (const v of t.variants) w.u32(v);
         break;
       case "ref":
-        w.u8(4);
+        w.u8(TypeTag.Ref);
         if (t.traitName === null) {
-          w.u8(0);
+          w.u8(Nullable.Absent);
         } else {
-          w.u8(1);
+          w.u8(Nullable.Present);
           w.string(t.traitName);
         }
         break;
       case "fn":
-        w.u8(5);
+        w.u8(TypeTag.Fn);
         w.u32(t.params.length);
         for (const p of t.params) w.u32(p);
         w.u32(t.returnType);
@@ -335,9 +363,9 @@ function writeFunctions(
       writeOp(w, fn.body[i]!);
       const d = fn.debug[i];
       if (d === undefined || d === null) {
-        w.u8(0);
+        w.u8(DebugTag.None);
       } else {
-        w.u8(1);
+        w.u8(DebugTag.Present);
         const fi = debugFileIndex.get(d.file);
         if (fi === undefined) throw new Error(`binary: debug file "${d.file}" missing from pool`);
         w.u32(fi);
@@ -504,10 +532,10 @@ function readTypes(r: Reader): BcType[] {
   for (let i = 0; i < n; i++) {
     const tag = r.u8();
     switch (tag) {
-      case 0:
+      case TypeTag.Primitive:
         out.push({ kind: "primitive", val: valTypeFromTag(r.u8()) });
         break;
-      case 1: {
+      case TypeTag.Struct: {
         const name = r.string();
         const fc = r.u32();
         const fields = [];
@@ -515,22 +543,22 @@ function readTypes(r: Reader): BcType[] {
         out.push({ kind: "struct", name, fields });
         break;
       }
-      case 2:
+      case TypeTag.Array:
         out.push({ kind: "array", element: r.u32() });
         break;
-      case 3: {
+      case TypeTag.Union: {
         const vc = r.u32();
         const variants: number[] = [];
         for (let j = 0; j < vc; j++) variants.push(r.u32());
         out.push({ kind: "union", variants });
         break;
       }
-      case 4: {
-        const present = r.u8();
-        out.push({ kind: "ref", traitName: present === 0 ? null : r.string() });
+      case TypeTag.Ref: {
+        const marker = r.u8();
+        out.push({ kind: "ref", traitName: marker === Nullable.Absent ? null : r.string() });
         break;
       }
-      case 5: {
+      case TypeTag.Fn: {
         const pc = r.u32();
         const params: number[] = [];
         for (let j = 0; j < pc; j++) params.push(r.u32());
@@ -630,8 +658,8 @@ function readFunctions(r: Reader, debugFiles: readonly string[]): BcFunction[] {
     const debug: (DebugPos | null)[] = [];
     for (let j = 0; j < oc; j++) {
       body.push(readOp(r));
-      const has = r.u8();
-      if (has === 0) {
+      const marker = r.u8();
+      if (marker === DebugTag.None) {
         debug.push(null);
       } else {
         const fi = r.u32();

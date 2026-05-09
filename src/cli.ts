@@ -13,13 +13,29 @@ USAGE:
 
 COMMANDS:
   run [file]                       Interpret a Vader file (no args → REPL)
-  build [file] [--target=native|wasm|ir|c] [--release] [--manifest]
-                                   Compile to a binary with debug information, use --release for production
+                                   Accepts .vader source, .vir (binary IR), or .virt (text IR)
+  build [file] [options]           Compile a Vader source file
+                                     --target=native    Native binary (default ; via the C emitter)
+                                     --target=ir        Binary bytecode module (.vir)
+                                     --target=ir-text   Textual bytecode dump   (.virt)
+                                     --target=c         Emit the generated C source only
+                                     --target=wasm      WebAssembly module (not yet implemented)
+                                     --release          Optimise ; default builds carry debug info
+                                     --manifest         Read vader.json instead of a single file
+                                     --out=<path>       Override the default output path
   fmt [path]                       Format Vader sources in place
   test [path]                      Run @test functions
   dump --stage=<stage> <file>      Dump an IR stage as JSON/text
-                                   Stages: ast, resolved-ast, typed-ast, evaluated-ast,
-                                           lowered-ast, bytecode, c, wasm
+                                     ast            Parser AST (JSON, spans elided)
+                                     resolved-ast   Per-module symbol table + import wiring
+                                     typed-ast      Per-decl + per-expression types
+                                     evaluated-ast  @comptime / @file values + generic instances
+                                     lowered-ast    Desugared tree (match/?/interp/defer expanded)
+                                     dced-ast       Lowered tree post stdlib reachability prune
+                                     cfg            Mid-IR CFG (post DCE + escape annotation)
+                                     bytecode       Stack-machine ops + type/string/import tables
+                                     c              Generated C source
+                                     wasm           WebAssembly module (not yet implemented)
 
 GLOBAL OPTIONS:
   --diagnostics=text|json          Output diagnostics in plain text (default) or JSON for tooling
