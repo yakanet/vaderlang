@@ -12,7 +12,7 @@
 
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
-import type { Capture } from "../../closures/analyze.ts";
+import type { Capture } from "./closures.ts";
 import type { FnLowerCtx } from "../ctx.ts";
 import type { Substitution, Type } from "../../typecheck/types.ts";
 import { TY } from "../../typecheck/types.ts";
@@ -21,7 +21,7 @@ import { lowerBlock } from "./block.ts";
 import type {
   LoweredExpr, LoweredFnDecl, LoweredParam, LoweredStructDecl,
 } from "../lowered-ast.ts";
-import type {MonoEntry} from "../../monomorphize";
+import type {MonoEntry} from "../../comptime/specialize.ts";
 
 export function lowerLambda(ctx: FnLowerCtx, lambda: A.LambdaExpr): LoweredExpr {
   const captures = ctx.project.closures.lambdaCaptures.get(lambda) ?? [];

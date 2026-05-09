@@ -1,10 +1,10 @@
-import type { GlobalOpts } from "../cli/options.ts";
-import { pipelineBytecode } from "../pipeline.ts";
-import { parseVir } from "../bytecode/text.ts";
-import { parseBinary } from "../bytecode/binary.ts";
-import { BytecodeFormatError, CompilerBugError, formatBytecodeWhere } from "../diagnostics/errors.ts";
-import { renderAllTextSingle, renderAllJson } from "../diagnostics/render.ts";
-import { defaultHostIO, makeBindings, runProgram, VmError } from "../vm/index.ts";
+import type { GlobalOpts } from "../options.ts";
+import { pipelineBytecode } from "../../pipeline.ts";
+import { parseVir } from "../../bytecode/text.ts";
+import { parseBinary } from "../../bytecode/binary.ts";
+import { BytecodeFormatError, CompilerBugError, formatBytecodeWhere } from "../../diagnostics/errors.ts";
+import { renderAllTextSingle, renderAllJson } from "../../diagnostics/render.ts";
+import { defaultHostIO, makeBindings, runProgram, VmError } from "../../vm/index.ts";
 
 export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> {
   const file = args[0];

@@ -1,4 +1,4 @@
-import type { GlobalOpts } from "../cli/options.ts";
+import type { GlobalOpts } from "../options.ts";
 
 export async function cmdTest(_opts: GlobalOpts, args: string[]): Promise<number> {
   const path = args[0] ?? ".";

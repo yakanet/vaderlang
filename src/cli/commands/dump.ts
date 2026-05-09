@@ -1,12 +1,12 @@
-import type { GlobalOpts } from "../cli/options.ts";
-import { renderAllJson, renderAllTextSingle } from "../diagnostics/render.ts";
-import { displayType } from "../typecheck/index.ts";
-import { displayValue } from "../comptime/index.ts";
-import { pipelineAst, pipelineBytecode, pipelineCfg, pipelineDced, pipelineEvaluated, pipelineLowered, pipelineResolved, pipelineTyped } from "../pipeline.ts";
-import type { DiagnosticCollector } from "../diagnostics/collector.ts";
-import type { LoweredDecl, LoweredProject } from "../lower/index.ts";
-import { writeVir } from "../bytecode/text.ts";
-import { dumpCFGProject } from "../midir/dump.ts";
+import type { GlobalOpts } from "../options.ts";
+import { renderAllJson, renderAllTextSingle } from "../../diagnostics/render.ts";
+import { displayType } from "../../typecheck/index.ts";
+import { displayValue } from "../../comptime/index.ts";
+import { pipelineAst, pipelineBytecode, pipelineCfg, pipelineDced, pipelineEvaluated, pipelineLowered, pipelineResolved, pipelineTyped } from "../../pipeline.ts";
+import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
+import type { LoweredDecl, LoweredProject } from "../../lower/index.ts";
+import { writeVir } from "../../bytecode/text.ts";
+import { dumpCFGProject } from "../../midir/dump.ts";
 
 /** Stages the frontend pipeline can produce today. Mirrors `PipelineStage`. */
 const IMPLEMENTED_STAGES = ["ast", "resolved-ast", "typed-ast", "evaluated-ast", "lowered-ast", "dced-ast", "cfg", "bytecode"] as const;

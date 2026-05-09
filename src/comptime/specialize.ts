@@ -1,22 +1,70 @@
-// Minimal monomorphization pass — implements the comptime-driven specialisation
-// described in SPEC §2 ("Monomorphization"). For MVP, this means:
+// Specialisation pass driven by the comptime engine. Flattens the
+// `InstanceRegistry` (populated during comptime evaluation) into a list of
+// concrete `MonoEntry` items that the lowerer and downstream phases consume :
 //
-//   - every non-generic top-level decl gets one MonoEntry with empty substitution;
-//   - every concrete `(struct, type-args)` instance from the comptime InstanceRegistry
-//     gets one MonoEntry whose substitution maps the decl's type-params to the
-//     concrete args;
-//   - generic FnDecls aren't tracked yet — the registry only observes struct/trait
-//     sites today; when generic-fn dispatch arrives this pass extends the same way.
+//   - every non-generic top-level decl gets one MonoEntry with empty substitution ;
+//   - every concrete `(struct, type-args)` instance from the registry gets one
+//     MonoEntry whose substitution maps the decl's type-params to the concrete args ;
+//   - every concrete `(generic fn, type-args)` instance from a call site gets one
+//     MonoEntry per impl member specialised against the call-site substitution.
+//
+// Layer 2 of the type-first redesign relocated this from a standalone pass
+// into the comptime engine — `evaluateProject` calls `monomorphizeProject`
+// at the end of bake, before returning the `EvaluatedProject` to the lowerer.
 
 import type * as A from "../parser/ast.ts";
-import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
-import type { GenericInstance } from "../comptime/instances.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import { displayType, type Substitution, type Type } from "../typecheck/types.ts";
-import type { MonoEntry, MonoProject } from "./mono-ast.ts";
+import type { EvaluatedProject } from "./evaluated-ast.ts";
+import type { GenericInstance } from "./instances.ts";
 
-export type { MonoEntry, MonoProject } from "./mono-ast.ts";
+// ============================================================================
+// Specialised AST shape
+// ============================================================================
+
+/** Mangled-name suffix produced for any fn named `main`. The DCE root finder,
+ *  the VM's entry-point lookup, and the C emitter's `main()` shim all key off
+ *  this. Centralised so they stay in sync. */
+export const MAIN_MANGLED_SUFFIX = "$main";
+
+export function isMainMangled(mangled: string): boolean {
+  return mangled.endsWith(MAIN_MANGLED_SUFFIX);
+}
+
+export interface MonoEntry {
+  /** Stable mangled name, e.g. `main` or `List$i32`. Used as the lowered decl's identity. */
+  readonly mangled: string;
+  /** Origin decl in the source AST. Multiple MonoEntry can share the same origin (different specialisations). */
+  readonly decl: A.FnDecl | A.StructDecl | A.ImplDecl | A.ConstDecl;
+  /** The decl's symbol, when applicable. ImplDecl has none — its members are emitted as separate entries. */
+  readonly symbol: Symbol | null;
+  /** Substitution mapping `TypeParam` symbol IDs to the concrete type-args. Empty for non-generic decls. */
+  readonly subst: Substitution;
+  /** When this entry comes from a generic instantiation, the concrete type-args (in source order). */
+  readonly typeArgs: readonly Type[];
+  /** Module the origin decl lives in — needed for resolver-table lookups. */
+  readonly module: ResolvedProgram;
+}
+
+export interface MonoProject {
+  readonly entries: readonly MonoEntry[];
+  /** Lookup by `(declIdentity, typeArgsKey)` returning the entry's mangled name. */
+  readonly lookupByInstance: ReadonlyMap<string, MonoEntry>;
+  /** Lookup by impl member FnDecl, then by the struct args' display key. The
+   *  inner key is `""` for non-generic impls; for generic impls it's
+   *  `displayType(arg).join(",")` so each `(member, struct args)` pair
+   *  resolves to its specialised entry. */
+  readonly implMethodEntries: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>;
+  /** Lookup by generic FnDecl, then by the concrete type-args key (`displayType`
+   *  joined by `,`). Populated by the fn-instance pass for call sites of the
+   *  form `foo(T)(args)`. */
+  readonly fnInstanceEntries: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>;
+}
+
+// ============================================================================
+// Specialisation pass
+// ============================================================================
 
 const EMPTY_SUBST: Substitution = { typeParams: new Map() };
 

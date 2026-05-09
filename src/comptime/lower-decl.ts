@@ -27,8 +27,8 @@ import { makeEntryTypes } from "../lower/entry-types.ts";
 import { lowerExpr } from "../lower/passes/expr.ts";
 import { lowerConstEntry, lowerFnEntry } from "../lower/lower.ts";
 
-import type { MonoEntry, MonoProject } from "../monomorphize/index.ts";
-import { mangle } from "../monomorphize/index.ts";
+import type { MonoEntry, MonoProject } from "./specialize.ts";
+import { mangle } from "./specialize.ts";
 
 import type { BytecodeModule } from "../bytecode/module.ts";
 import { emitBytecodeFromCFG } from "../midir/emit.ts";

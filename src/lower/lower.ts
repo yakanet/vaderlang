@@ -8,15 +8,15 @@ import type { Span } from "../diagnostics/diagnostic.ts";
 import { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
 import type { ComptimeValue } from "../comptime/value.ts";
-import { analyzeClosures } from "../closures/analyze.ts";
-import type { ClosureAnalysis } from "../closures/analyze.ts";
+import { analyzeClosures } from "./passes/closures.ts";
+import type { ClosureAnalysis } from "./passes/closures.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import {buildImplRegistry, ImplRegistry} from "../typecheck/impls.ts";
 import type { Type } from "../typecheck/types.ts";
 import { TY, defaultIfFree } from "../typecheck/types.ts";
 import { primitiveFromName } from "../typecheck/passes/type-expr.ts";
 
-import type {MonoEntry, MonoProject} from "../monomorphize/index.ts";
+import type {MonoEntry, MonoProject} from "../comptime/specialize.ts";
 
 import type { LowerProjectCtx } from "./ctx.ts";
 import { makeEntryTypes } from "./entry-types.ts";

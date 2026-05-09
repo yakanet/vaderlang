@@ -12,14 +12,14 @@
 // lambdas' captures that originate outside the outer lambda's own scope.
 // Otherwise the outer would have no way to pass them to the inner closure.
 
-import type * as A from "../parser/ast.ts";
-import { forEachPatternBindingKey, unreachableTypeExprInValuePosition } from "../parser/ast.ts";
-import { intrinsicSpec } from "../parser/intrinsics.ts";
-import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
-import type { Symbol } from "../resolver/symbol.ts";
-import type { Type } from "../typecheck/types.ts";
-import type { TypedProject, TypedProgram } from "../typecheck/typed-ast.ts";
-import { TY } from "../typecheck/types.ts";
+import type * as A from "../../parser/ast.ts";
+import { forEachPatternBindingKey, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
+import { intrinsicSpec } from "../../parser/intrinsics.ts";
+import type { ResolvedProgram } from "../../resolver/resolved-ast.ts";
+import type { Symbol } from "../../resolver/symbol.ts";
+import type { Type } from "../../typecheck/types.ts";
+import type { TypedProject, TypedProgram } from "../../typecheck/typed-ast.ts";
+import { TY } from "../../typecheck/types.ts";
 
 export interface Capture {
   readonly symbol: Symbol;

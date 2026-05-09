@@ -1,6 +1,6 @@
 import type * as A from "../parser/ast.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
-import type { MonoProject } from "../monomorphize/mono-ast.ts";
+import type { MonoProject } from "./specialize.ts";
 import type { GenericInstance } from "./instances.ts";
 import type { ComptimeValue } from "./value.ts";
 

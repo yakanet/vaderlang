@@ -3,7 +3,7 @@
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type { Type } from "../typecheck/types.ts";
-import type { MonoEntry } from "../monomorphize/index.ts";
+import type { MonoEntry } from "../comptime/specialize.ts";
 
 export interface LoweredProject {
   readonly modules: ReadonlyMap<string, LoweredModule>;

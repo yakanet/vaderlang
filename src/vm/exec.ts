@@ -6,7 +6,7 @@
 import type { BytecodeModule, BcFunction } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
-import { isMainMangled } from "../monomorphize/mono-ast.ts";
+import { isMainMangled } from "../comptime/specialize.ts";
 import { isFloatVal } from "../bytecode/types.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
 

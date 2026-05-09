@@ -8,12 +8,12 @@
 import type * as A from "../parser/ast.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
-import type { ClosureAnalysis } from "../closures/analyze.ts";
+import type { ClosureAnalysis } from "./passes/closures.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram } from "../typecheck/typed-ast.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
 import type { Substitution, Type } from "../typecheck/types.ts";
-import type { MonoEntry, MonoProject } from "../monomorphize/index.ts";
+import type { MonoEntry, MonoProject } from "../comptime/specialize.ts";
 import type { EntryTypes } from "./entry-types.ts";
 import type {LoweredDecl} from "./lowered-ast.ts";
 

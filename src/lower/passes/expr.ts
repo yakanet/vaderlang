@@ -518,7 +518,7 @@ function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {
   return call;
 }
 
-import type { MonoEntry } from "../../monomorphize/mono-ast.ts";
+import type { MonoEntry } from "../../comptime/specialize.ts";
 import type {BinaryOpResolution, IndexResolution} from "../../typecheck/typed-ast.ts";
 
 function lookupFnInstance(ctx: FnLowerCtx, fnDecl: A.FnDecl, typeArgs: readonly Type[]): MonoEntry | null {

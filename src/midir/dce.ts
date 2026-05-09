@@ -36,7 +36,7 @@ import {
 import { forEachReference, type RefVisitor, type VirtualCallVisitor } from "./lowered_walk.ts";
 
 import type { LoweredDecl, LoweredModule, LoweredProject } from "../lower/index.ts";
-import { isMainMangled } from "../monomorphize/mono-ast.ts";
+import { isMainMangled } from "../comptime/specialize.ts";
 import { isStdlibModule } from "../resolver/module.ts";
 import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type { Decorator } from "../parser/ast.ts";

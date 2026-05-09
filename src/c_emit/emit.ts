@@ -20,7 +20,7 @@ import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecod
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
-import { isMainMangled } from "../monomorphize/mono-ast.ts";
+import { isMainMangled } from "../comptime/specialize.ts";
 
 export function emitC(m: BytecodeModule): string {
   const ctx = newCtx(m);

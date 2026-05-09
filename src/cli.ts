@@ -1,10 +1,10 @@
 import { parseGlobalOpts, type GlobalOpts } from "./cli/options.ts";
-import { cmdRun } from "./commands/run.ts";
-import { cmdBuild } from "./commands/build.ts";
-import { cmdFmt } from "./commands/fmt.ts";
-import { cmdTest } from "./commands/test.ts";
-import { cmdDump } from "./commands/dump.ts";
-import { cmdRepl } from "./commands/repl.ts";
+import { cmdRun } from "./cli/commands/run.ts";
+import { cmdBuild } from "./cli/commands/build.ts";
+import { cmdFmt } from "./cli/commands/fmt.ts";
+import { cmdTest } from "./cli/commands/test.ts";
+import { cmdDump } from "./cli/commands/dump.ts";
+import { cmdRepl } from "./cli/commands/repl.ts";
 import { CLI_VERSION } from "./version.ts";
 
 const HELP = `vader ${CLI_VERSION} — the Vader compiler

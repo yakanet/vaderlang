@@ -9,7 +9,7 @@ import type { Symbol } from "../../resolver/symbol.ts";
 import type { ImplEntry } from "../../typecheck/impls.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { CORE_STRUCTS, CORE_TRAITS, TY, displayType, substitute } from "../../typecheck/types.ts";
-import type { MonoEntry } from "../../monomorphize/index.ts";
+import type { MonoEntry } from "../../comptime/specialize.ts";
 
 import type { FnLowerCtx, LowerProjectCtx } from "../ctx.ts";
 import { err } from "../diag.ts";
