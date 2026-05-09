@@ -1,0 +1,203 @@
+# CFG
+
+## tests/snippets/char_range_contains/_main.vader
+
+fn tests_snippets_char_range_contains__main_vader$is_digit(%0: char) -> bool
+  locals:
+    %0 c: char (param c)
+    %1 $k_1#7: char
+    %2 $k_2#8: char
+    %3 $k_3#9: bool
+    %4 $k_4#10: char
+    %5 $struct_5#11: Range(char)
+    %6 $call_6#12: bool
+  bb0:
+    %1 = const char(48) :char
+    %2 = const char(57) :char
+    %3 = const bool(true) :bool
+    %4 = const char(48) :char
+    %5 = struct_new Range(char)(%1, %2, %3, %4)
+    %6 = call contains(%5, %0) :bool
+    return %6
+
+fn tests_snippets_char_range_contains__main_vader$is_lower(%0: char) -> bool
+  locals:
+    %0 c: char (param c)
+    %1 $k_1#7: char
+    %2 $k_2#8: char
+    %3 $k_3#9: bool
+    %4 $k_4#10: char
+    %5 $struct_5#11: Range(char)
+    %6 $call_6#12: bool
+  bb0:
+    %1 = const char(97) :char
+    %2 = const char(122) :char
+    %3 = const bool(true) :bool
+    %4 = const char(97) :char
+    %5 = struct_new Range(char)(%1, %2, %3, %4)
+    %6 = call contains(%5, %0) :bool
+    return %6
+
+fn tests_snippets_char_range_contains__main_vader$is_alpha(%0: char) -> bool
+  locals:
+    %0 c: char (param c)
+    %1 $k_1#14: char
+    %2 $k_2#15: char
+    %3 $k_3#16: bool
+    %4 $k_4#17: char
+    %5 $struct_5#18: Range(char)
+    %6 $call_6#19: bool
+    %7 $k_9#21: char
+    %8 $k_10#22: char
+    %9 $k_11#23: bool
+    %10 $k_12#24: char
+    %11 $struct_13#25: Range(char)
+    %12 $call_14#26: bool
+    %13 or_res#28: bool
+  bb0:
+    %1 = const char(97) :char
+    %2 = const char(122) :char
+    %3 = const bool(true) :bool
+    %4 = const char(97) :char
+    %5 = struct_new Range(char)(%1, %2, %3, %4)
+    %6 = call contains(%5, %0) :bool
+    cond_branch %6 ? bb1 : bb2
+  bb1:
+    %13 = const bool(true) :bool
+    branch -> bb3
+  bb2:
+    %7 = const char(65) :char
+    %8 = const char(90) :char
+    %9 = const bool(true) :bool
+    %10 = const char(65) :char
+    %11 = struct_new Range(char)(%7, %8, %9, %10)
+    %12 = call contains(%11, %0) :bool
+    %13 = move %12
+    branch -> bb3
+  bb3:
+    return %13
+
+fn tests_snippets_char_range_contains__main_vader$main() -> i32
+  locals:
+    %0 $k_0#35: char
+    %1 $call_1#36: bool
+    %2 $k_2#37: string
+    %3 $k_3#38: char
+    %4 $call_4#39: bool
+    %5 $not_5#40: bool
+    %6 $k_6#41: string
+    %7 $k_7#42: char
+    %8 $call_8#43: bool
+    %9 $k_9#44: string
+    %10 $k_10#45: char
+    %11 $call_11#46: bool
+    %12 $k_12#47: string
+    %13 $k_13#48: char
+    %14 $call_14#49: bool
+    %15 $not_15#50: bool
+    %16 $k_16#51: string
+    %17 $k_17#52: char
+    %18 $call_18#53: bool
+    %19 $k_19#54: string
+    %20 $k_20#55: char
+    %21 $call_21#56: bool
+    %22 $not_22#57: bool
+    %23 $k_23#58: string
+    %24 $k_24#59: char
+    %25 $call_25#60: bool
+    %26 $k_26#61: string
+    %27 $k_27#62: char
+    %28 $call_28#63: bool
+    %29 $k_29#64: string
+    %30 $k_30#65: char
+    %31 $call_31#66: bool
+    %32 $not_32#67: bool
+    %33 $k_33#68: string
+    %34 $k_34#69: i32
+  bb0:
+    %0 = const char(53) :char
+    %1 = call is_digit(%0) :bool
+    cond_branch %1 ? bb1 : bb2
+  bb1:
+    %2 = const string(#0) :string
+    call println(%2) :void
+    branch -> bb2
+  bb2:
+    %3 = const char(97) :char
+    %4 = call is_digit(%3) :bool
+    %5 = unop not %4 :bool
+    cond_branch %5 ? bb3 : bb4
+  bb3:
+    %6 = const string(#1) :string
+    call println(%6) :void
+    branch -> bb4
+  bb4:
+    %7 = const char(48) :char
+    %8 = call is_digit(%7) :bool
+    cond_branch %8 ? bb5 : bb6
+  bb5:
+    %9 = const string(#2) :string
+    call println(%9) :void
+    branch -> bb6
+  bb6:
+    %10 = const char(57) :char
+    %11 = call is_digit(%10) :bool
+    cond_branch %11 ? bb7 : bb8
+  bb7:
+    %12 = const string(#3) :string
+    call println(%12) :void
+    branch -> bb8
+  bb8:
+    %13 = const char(58) :char
+    %14 = call is_digit(%13) :bool
+    %15 = unop not %14 :bool
+    cond_branch %15 ? bb9 : bb10
+  bb9:
+    %16 = const string(#4) :string
+    call println(%16) :void
+    branch -> bb10
+  bb10:
+    %17 = const char(109) :char
+    %18 = call is_lower(%17) :bool
+    cond_branch %18 ? bb11 : bb12
+  bb11:
+    %19 = const string(#5) :string
+    call println(%19) :void
+    branch -> bb12
+  bb12:
+    %20 = const char(77) :char
+    %21 = call is_lower(%20) :bool
+    %22 = unop not %21 :bool
+    cond_branch %22 ? bb13 : bb14
+  bb13:
+    %23 = const string(#6) :string
+    call println(%23) :void
+    branch -> bb14
+  bb14:
+    %24 = const char(122) :char
+    %25 = call is_alpha(%24) :bool
+    cond_branch %25 ? bb15 : bb16
+  bb15:
+    %26 = const string(#7) :string
+    call println(%26) :void
+    branch -> bb16
+  bb16:
+    %27 = const char(90) :char
+    %28 = call is_alpha(%27) :bool
+    cond_branch %28 ? bb17 : bb18
+  bb17:
+    %29 = const string(#8) :string
+    call println(%29) :void
+    branch -> bb18
+  bb18:
+    %30 = const char(53) :char
+    %31 = call is_alpha(%30) :bool
+    %32 = unop not %31 :bool
+    cond_branch %32 ? bb19 : bb20
+  bb19:
+    %33 = const string(#9) :string
+    call println(%33) :void
+    branch -> bb20
+  bb20:
+    %34 = const int(0) :i32
+    return %34

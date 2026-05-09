@@ -5,4 +5,6 @@
 ## generic instances
   Yielded([i32, string])
   Yielded(i32)
+  Range(char)
+  Range(i32)
   ArrayIter([i32, string])

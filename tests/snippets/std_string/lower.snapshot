@@ -128,7 +128,7 @@
             __sb_4#-5 :?
             call :char
               callee:
-                at#1000014 :char
+                at#1000070 :char
               arg0:
                 "hello" :string
               arg1:
@@ -147,7 +147,7 @@
             __sb_5#-6 :?
             call :char
               callee:
-                at#1000014 :char
+                at#1000070 :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -166,7 +166,7 @@
             __sb_6#-7 :?
             call :char
               callee:
-                at#1000014 :char
+                at#1000070 :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -185,7 +185,7 @@
             __sb_7#-8 :?
             call :char
               callee:
-                at#1000014 :char
+                at#1000070 :char
               arg0:
                 "你好嗎？" :string
               arg1:

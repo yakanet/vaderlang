@@ -243,17 +243,17 @@ export pad_end :: fn(s: string, width: i32, fill: char) -> string {
 export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
 // True for ASCII decimal digit `0..9`.
-export is_digit :: fn(c: char) = c >= '0' && c <= '9'
+export is_digit :: fn(c: char) = c in '0'..='9'
 
 // True for ASCII hex digit `0..9 a..f A..F`.
 export is_hex_digit :: fn(c: char) =
-    c.is_digit() || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+    c.is_digit() || c in 'a'..='f' || c in 'A'..='F'
 
 // True for any digit in `base` (2 / 8 / 10 / 16). Caller is expected to
 // pass a supported base ; unsupported bases fall through to base-10.
 export is_digit_in_base :: fn(c: char, base: i32) -> bool {
     if base == 2 { return c == '0' || c == '1' }
-    if base == 8 { return c >= '0' && c <= '7' }
+    if base == 8 { return c in '0'..='7' }
     if base == 16 { return c.is_hex_digit() }
     return c.is_digit()
 }
@@ -262,7 +262,7 @@ export is_digit_in_base :: fn(c: char, base: i32) -> bool {
  * True for an ASCII letter — `a..z` or `A..Z`. Locale-independent ; Unicode
  * letters are not recognised in MVP.
  */
-export is_alpha :: fn(c: char) = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+export is_alpha :: fn(c: char) = c in 'a'..='z' || c in 'A'..='Z'
 
 /**
  * True for an ASCII letter or decimal digit — `a..z`, `A..Z`, or `0..9`.

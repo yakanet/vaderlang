@@ -4,5 +4,7 @@
 
 ## generic instances
   needs_add(string)
-  Yielded(i32)
   bar(i32, i32)
+  Yielded(i32)
+  Range(char)
+  Range(i32)

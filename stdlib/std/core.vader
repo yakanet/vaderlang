@@ -1,9 +1,18 @@
 // std/core — auto-imported in every Vader program.
 //
-// Provides the core traits used throughout the language:
-//   Display, Eq, Ord, Add, Sub, Mul, Div, Hash, Clone, Iterator, Iterable, Error
+// Layout :
+//   1. Trait declarations (Display, Eq, Ord, Hash, Clone, arithmetic,
+//      indexing, containment, iteration, error)
+//   2. Core struct definitions and their impls (Done, Yielded, Range,
+//      ArrayIter)
+//   3. Primitive type impls (Eq, Hash, numeric arithmetic, string)
 //
-// And the base Error type used by !T sugar.
+// The base `Error` trait powering the `!T` and `?` sugar lives in §1 ; the
+// concrete error structs are user-defined.
+
+// ============================================================================
+// 1. Trait declarations
+// ============================================================================
 
 // Display — for compile-time string interpolation and println().
 export Display :: trait {
@@ -48,55 +57,67 @@ export IndexSet :: trait[I, T] {
     fn set_at(self, i: I, v: T)
 }
 
-// Iterator step result. `Done` signals end-of-iteration; `Yielded(T)` carries
-// the next value. Sum-type discriminator avoids the sentinel collision that
-// `T | null` would have for lists whose element type itself includes `null`.
-export Done    :: struct {}
-export Yielded :: struct[T] { value: T }
-
-// Iterator — pull-based. The lowerer dispatches `for x in iter` through the
-// impl table; users never call `step` directly.
-export Iterator :: trait[T] {
-    fn step(self) -> Done | Yielded(T)
-}
-
-// Range — produced by `0..<n` / `0..=n`. `cursor` advances each iteration
-// via implicit struct-ref mutation inside `step`.
-export Range :: struct {
-    start:     i32
-    end:       i32
-    inclusive: bool
-    cursor:    i32
-}
-
-// Contains — `x in coll` desugars to `coll.contains(x)`. `x !in coll` desugars
-// to `!coll.contains(x)`.
+// Contains — `x in coll` desugars to `coll.contains(x)`. `x !in coll`
+// desugars to `!coll.contains(x)`.
 export Contains :: trait[T] {
     fn contains(self, value: T) -> bool
 }
 
-Range implements Contains(i32) {
+// Iterator — pull-based. The lowerer dispatches `for x in iter` through
+// the impl table ; users never call `step` directly.
+export Iterator :: trait[T] {
+    fn step(self) -> Done | Yielded(T)
+}
+
+// Error — base trait for any value usable in `!T` returns and the `?`
+// operator.
+export Error :: trait {
+    fn message(self) -> string
+}
+
+// ============================================================================
+// 2. Core struct definitions
+// ============================================================================
+
+// Iterator step result. `Done` signals end-of-iteration ; `Yielded(T)`
+// carries the next value. The discriminator avoids the sentinel collision
+// that `T | null` would have for lists whose element type itself includes
+// `null`.
+export Done    :: struct {}
+export Yielded :: struct[T] { value: T }
+
+// Range — produced by `0..<n` / `0..=n` and `'a'..='z'`. Generic over
+// the bound type so integer ranges, char ranges, etc. all share one
+// struct. `cursor` advances each iteration via implicit struct-ref
+// mutation inside `step` (Iterator impl is per concrete `T`).
+export Range :: struct[T] {
+    start:     T
+    end:       T
+    inclusive: bool
+    cursor:    T
+}
+
+Range[i32] implements Contains[i32] {
     fn contains(self, value: i32) -> bool {
-        if value < self.start {
-            return false
-        }
-        if self.inclusive {
-            return value <= self.end
-        }
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
         return value < self.end
     }
 }
 
-Range implements Iterator(i32) {
+Range[char] implements Contains[char] {
+    fn contains(self, value: char) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+
+Range[i32] implements Iterator[i32] {
     fn step(self) -> Done | Yielded(i32) {
-        done :: if (self.inclusive) {
-            self.cursor > self.end
-        } else {
-            self.cursor >= self.end
-        }
-        if (done) {
-            return Done {}
-        }
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
         v :: self.cursor
         self.cursor = self.cursor + 1
         return Yielded(i32) { .value = v }
@@ -104,9 +125,10 @@ Range implements Iterator(i32) {
 }
 
 // ArrayIter — iterator over a `[T]`. The lowerer auto-wraps array exprs
-// flowing into `for x in arr`, so callers rarely need to construct one. The
-// `length` field is pre-computed at construction time so `step` can avoid
-// calling a generic `len(arr)` (generic-fn dispatch is still deferred).
+// flowing into `for x in arr`, so callers rarely need to construct one.
+// The `length` field is pre-computed at construction time so `step` can
+// avoid calling a generic `len(arr)` (generic-fn dispatch is still
+// deferred).
 export ArrayIter :: struct[T] {
     arr:    T[]
     cursor: i32
@@ -115,58 +137,24 @@ export ArrayIter :: struct[T] {
 
 ArrayIter[T] implements Iterator[T] {
     fn step(self) -> Done | Yielded(T) {
-        if (self.cursor >= self.length) {
-            return Done {}
-        }
+        if (self.cursor >= self.length) { return Done {} }
         v :: self.arr[self.cursor]
         self.cursor = self.cursor + 1
         return Yielded(T) { .value = v }
     }
 }
 
-// Error — base trait for any value usable in !T returns and the `?` operator.
-export Error :: trait {
-    fn message(self) -> string
-}
+// ============================================================================
+// 3. Primitive type impls
+// ============================================================================
+//
+// `@intrinsic` impls route the call directly to the matching bytecode op
+// via `OP_INTRINSIC_BY_MANGLED` (see `src/bytecode/emit.ts`) — no fn-call
+// indirection, identical performance to the operator form. `s1 + s2` and
+// `(s1).add(s2)` share a single runtime path.
 
-// ===========================================================================
-// Hash + Eq impls for primitive types.
-// Required for using primitives as keys in Map / Set.
-// ===========================================================================
+// ---- Eq -------------------------------------------------------------------
 
-i8    implements Hash -> u64(self)
-i16   implements Hash -> u64(self)
-i32   implements Hash -> u64(self)
-i64   implements Hash -> u64(self)
-u8    implements Hash -> u64(self)
-u16   implements Hash -> u64(self)
-u32   implements Hash -> u64(self)
-u64   implements Hash -> u64(self)
-usize implements Hash -> u64(self)
-char  implements Hash -> u64(self)
-
-
-// String trait impls — all host-provided (`@intrinsic` propagates onto each
-// impl method). The bytecode emitter recognises `string$Add$add` calls and
-// emits the dedicated `string.concat` op directly, so `s1 + s2` and
-// `"a".add("b")` share a single runtime path. `string$Hash$hash` is FNV-1a
-// over the UTF-8 bytes ; `string$Index$at(i)` returns the Unicode codepoint
-// at byte offset `i` — wired here in std/core (auto-imported) so the
-// subscript syntax doesn't require `import "std/string"`. Strings are
-// immutable, so there's no `IndexSet` impl to pair with `Index`.
-@intrinsic string implements Add
-
-@intrinsic string implements Hash
-
-@intrinsic string implements Index(i32, char)
-
-// Number formatting (`to_hex`, `to_bin`) lives in `std/numbers` so it can use
-// std/string_builder.
-
-// Eq impls — `@intrinsic` so the call routes directly to the matching
-// `<type>.eq` bytecode op (see `OP_INTRINSIC_BY_MANGLED`). The previous
-// `T implements Eq -> self == other` form did the same thing through
-// one extra fn-call indirection.
 @intrinsic i8     implements Eq
 @intrinsic i16    implements Eq
 @intrinsic i32    implements Eq
@@ -182,14 +170,29 @@ char  implements Hash -> u64(self)
 @intrinsic char   implements Eq
 @intrinsic string implements Eq
 
-// ===========================================================================
-// Numeric arithmetic — Add/Sub/Mul/Div for every primitive numeric type.
-// All host-provided ; the bytecode emitter recognises calls to the matching
-// `<type>$<trait>$<method>` mangled names and rewrites them to the dedicated
-// `<type>.add` / `<type>.sub` / … op (see `OP_INTRINSIC_BY_MANGLED` in
-// `src/bytecode/emit.ts`). This makes `where T: Add` and friends usable on
-// every numeric primitive — `5 + 7` and `(5).add(7)` share one path.
-// ===========================================================================
+// ---- Hash -----------------------------------------------------------------
+//
+// Integer Hash impls cast through u64 ; `string` uses FNV-1a over the
+// UTF-8 bytes (host-provided).
+
+i8    implements Hash -> u64(self)
+i16   implements Hash -> u64(self)
+i32   implements Hash -> u64(self)
+i64   implements Hash -> u64(self)
+u8    implements Hash -> u64(self)
+u16   implements Hash -> u64(self)
+u32   implements Hash -> u64(self)
+u64   implements Hash -> u64(self)
+usize implements Hash -> u64(self)
+char  implements Hash -> u64(self)
+
+@intrinsic string implements Hash
+
+// ---- Numeric arithmetic ---------------------------------------------------
+//
+// Add/Sub/Mul/Div for every primitive numeric type. Makes `[T: Add]` and
+// friends usable on every numeric primitive — `5 + 7` and `(5).add(7)`
+// share one path.
 
 @intrinsic i8 implements Add
 @intrinsic i8 implements Sub
@@ -245,3 +248,14 @@ char  implements Hash -> u64(self)
 @intrinsic f64 implements Sub
 @intrinsic f64 implements Mul
 @intrinsic f64 implements Div
+
+// ---- String ---------------------------------------------------------------
+//
+// `Add` is wired here in std/core (auto-imported) so concat works without
+// `import "std/string"`. `Index(i32, char)` returns the Unicode codepoint
+// at byte offset `i` — strings are immutable so there's no `IndexSet` to
+// pair with. Number formatting (`to_hex`, `to_bin`) lives in `std/numbers`
+// so it can use `std/string_builder`.
+
+@intrinsic string implements Add
+@intrinsic string implements Index(i32, char)

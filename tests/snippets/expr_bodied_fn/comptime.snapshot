@@ -4,6 +4,8 @@
 
 ## generic instances
   Yielded(i32)
+  Range(char)
+  Range(i32)
   id(f64)
   id(i32)
   id(string)

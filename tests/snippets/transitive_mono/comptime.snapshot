@@ -3,10 +3,12 @@
 ## tests/snippets/transitive_mono/_main.vader
 
 ## generic instances
-  Yielded(i32)
-  Yielded(string)
   inner_count(i32)
   inner_count(string)
+  Yielded(i32)
+  Yielded(string)
+  Range(char)
+  Range(i32)
   ArrayIter($T)
   ArrayIter(i32)
   ArrayIter(string)

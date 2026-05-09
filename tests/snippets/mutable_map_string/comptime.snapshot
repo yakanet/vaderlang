@@ -4,6 +4,8 @@
 
 ## generic instances
   Yielded(i32)
+  Range(char)
+  Range(i32)
   Entry(string, i32)
   MutableMap(string, i32)
   put(string, i32)

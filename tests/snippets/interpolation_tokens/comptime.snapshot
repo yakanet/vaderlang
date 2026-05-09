@@ -4,6 +4,8 @@
 
 ## generic instances
   Yielded(i32)
+  Range(char)
+  Range(i32)
 
 # Diagnostics
 [1:26] error[R2006] unresolved identifier: `name`

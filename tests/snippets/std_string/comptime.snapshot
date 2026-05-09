@@ -6,3 +6,5 @@
   Yielded(char)
   Yielded(i32)
   Yielded(u8)
+  Range(char)
+  Range(i32)

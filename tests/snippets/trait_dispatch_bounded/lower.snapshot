@@ -21,7 +21,7 @@
             __sb_0#-1 :?
             call :i32
               callee:
-                count_matching#1000077 :i32
+                count_matching#1000081 :i32
               arg0:
                 nums#60 :i32[]
               arg1:
@@ -47,7 +47,7 @@
             __sb_1#-2 :?
             call :i32
               callee:
-                count_matching#1000078 :i32
+                count_matching#1000082 :i32
               arg0:
                 words#61 :string[]
               arg1:
@@ -70,7 +70,7 @@
         let __step_1#-4: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000075 :?
+              step#1000079 :?
             arg0:
               __iter_0#-3 :ArrayIter(i32)
         if :void
@@ -92,19 +92,19 @@
                       l:
                         call :u64
                           callee:
-                            hash#1000004 :u64
+                            hash#1000016 :u64
                           arg0:
                             x#59 :i32
                       r:
                         call :u64
                           callee:
-                            hash#1000004 :u64
+                            hash#1000016 :u64
                           arg0:
                             target#57 :i32
                   r:
                     call :bool
                       callee:
-                        equals#1000017 :bool
+                        equals#1000002 :bool
                       arg0:
                         x#59 :i32
                       arg1:
@@ -134,7 +134,7 @@
         let __step_1#-6: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000076 :?
+              step#1000080 :?
             arg0:
               __iter_0#-5 :ArrayIter(string)
         if :void
@@ -156,19 +156,19 @@
                       l:
                         call :u64
                           callee:
-                            hash#1000013 :u64
+                            hash#1000024 :u64
                           arg0:
                             x#59 :string
                       r:
                         call :u64
                           callee:
-                            hash#1000013 :u64
+                            hash#1000024 :u64
                           arg0:
                             target#57 :string
                   r:
                     call :bool
                       callee:
-                        equals#1000028 :bool
+                        equals#1000013 :bool
                       arg0:
                         x#59 :string
                       arg1:

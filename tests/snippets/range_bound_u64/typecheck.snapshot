@@ -2,7 +2,7 @@
 
 ## tests/snippets/range_bound_u64/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 3:14     RangeExpr      :: Range
+  expr 3:14     RangeExpr      :: Range(i32)
   expr 3:18     IdentExpr      :: u64
 
 # Diagnostics

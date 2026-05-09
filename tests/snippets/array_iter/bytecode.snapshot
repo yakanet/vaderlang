@@ -6,67 +6,67 @@ type 3 struct std_core$ArrayIter__i32 { arr:4,cursor:2,length:2 }
 type 4 array 2
 string 0 "sum = "
 string 1 "count = "
-import 0 add std_core$string$Add$add (string,string) -> string
-import 1 hash std_core$string$Hash$hash (string) -> u64
-import 2 at std_core$string$Index$at (string,i32) -> char
-import 3 equals std_core$i8$Eq$equals (i8,i8) -> bool
-import 4 equals std_core$i16$Eq$equals (i16,i16) -> bool
-import 5 equals std_core$i32$Eq$equals (i32,i32) -> bool
-import 6 equals std_core$i64$Eq$equals (i64,i64) -> bool
-import 7 equals std_core$u8$Eq$equals (u8,u8) -> bool
-import 8 equals std_core$u16$Eq$equals (u16,u16) -> bool
-import 9 equals std_core$u32$Eq$equals (u32,u32) -> bool
-import 10 equals std_core$u64$Eq$equals (u64,u64) -> bool
-import 11 equals std_core$usize$Eq$equals (usize,usize) -> bool
-import 12 equals std_core$f32$Eq$equals (f32,f32) -> bool
-import 13 equals std_core$f64$Eq$equals (f64,f64) -> bool
-import 14 equals std_core$bool$Eq$equals (bool,bool) -> bool
-import 15 equals std_core$char$Eq$equals (char,char) -> bool
-import 16 equals std_core$string$Eq$equals (string,string) -> bool
-import 17 add std_core$i8$Add$add (i8,i8) -> i8
-import 18 sub std_core$i8$Sub$sub (i8,i8) -> i8
-import 19 mul std_core$i8$Mul$mul (i8,i8) -> i8
-import 20 div std_core$i8$Div$div (i8,i8) -> i8
-import 21 add std_core$i16$Add$add (i16,i16) -> i16
-import 22 sub std_core$i16$Sub$sub (i16,i16) -> i16
-import 23 mul std_core$i16$Mul$mul (i16,i16) -> i16
-import 24 div std_core$i16$Div$div (i16,i16) -> i16
-import 25 add std_core$i32$Add$add (i32,i32) -> i32
-import 26 sub std_core$i32$Sub$sub (i32,i32) -> i32
-import 27 mul std_core$i32$Mul$mul (i32,i32) -> i32
-import 28 div std_core$i32$Div$div (i32,i32) -> i32
-import 29 add std_core$i64$Add$add (i64,i64) -> i64
-import 30 sub std_core$i64$Sub$sub (i64,i64) -> i64
-import 31 mul std_core$i64$Mul$mul (i64,i64) -> i64
-import 32 div std_core$i64$Div$div (i64,i64) -> i64
-import 33 add std_core$u8$Add$add (u8,u8) -> u8
-import 34 sub std_core$u8$Sub$sub (u8,u8) -> u8
-import 35 mul std_core$u8$Mul$mul (u8,u8) -> u8
-import 36 div std_core$u8$Div$div (u8,u8) -> u8
-import 37 add std_core$u16$Add$add (u16,u16) -> u16
-import 38 sub std_core$u16$Sub$sub (u16,u16) -> u16
-import 39 mul std_core$u16$Mul$mul (u16,u16) -> u16
-import 40 div std_core$u16$Div$div (u16,u16) -> u16
-import 41 add std_core$u32$Add$add (u32,u32) -> u32
-import 42 sub std_core$u32$Sub$sub (u32,u32) -> u32
-import 43 mul std_core$u32$Mul$mul (u32,u32) -> u32
-import 44 div std_core$u32$Div$div (u32,u32) -> u32
-import 45 add std_core$u64$Add$add (u64,u64) -> u64
-import 46 sub std_core$u64$Sub$sub (u64,u64) -> u64
-import 47 mul std_core$u64$Mul$mul (u64,u64) -> u64
-import 48 div std_core$u64$Div$div (u64,u64) -> u64
-import 49 add std_core$usize$Add$add (usize,usize) -> usize
-import 50 sub std_core$usize$Sub$sub (usize,usize) -> usize
-import 51 mul std_core$usize$Mul$mul (usize,usize) -> usize
-import 52 div std_core$usize$Div$div (usize,usize) -> usize
-import 53 add std_core$f32$Add$add (f32,f32) -> f32
-import 54 sub std_core$f32$Sub$sub (f32,f32) -> f32
-import 55 mul std_core$f32$Mul$mul (f32,f32) -> f32
-import 56 div std_core$f32$Div$div (f32,f32) -> f32
-import 57 add std_core$f64$Add$add (f64,f64) -> f64
-import 58 sub std_core$f64$Sub$sub (f64,f64) -> f64
-import 59 mul std_core$f64$Mul$mul (f64,f64) -> f64
-import 60 div std_core$f64$Div$div (f64,f64) -> f64
+import 0 equals std_core$i8$Eq$equals (i8,i8) -> bool
+import 1 equals std_core$i16$Eq$equals (i16,i16) -> bool
+import 2 equals std_core$i32$Eq$equals (i32,i32) -> bool
+import 3 equals std_core$i64$Eq$equals (i64,i64) -> bool
+import 4 equals std_core$u8$Eq$equals (u8,u8) -> bool
+import 5 equals std_core$u16$Eq$equals (u16,u16) -> bool
+import 6 equals std_core$u32$Eq$equals (u32,u32) -> bool
+import 7 equals std_core$u64$Eq$equals (u64,u64) -> bool
+import 8 equals std_core$usize$Eq$equals (usize,usize) -> bool
+import 9 equals std_core$f32$Eq$equals (f32,f32) -> bool
+import 10 equals std_core$f64$Eq$equals (f64,f64) -> bool
+import 11 equals std_core$bool$Eq$equals (bool,bool) -> bool
+import 12 equals std_core$char$Eq$equals (char,char) -> bool
+import 13 equals std_core$string$Eq$equals (string,string) -> bool
+import 14 hash std_core$string$Hash$hash (string) -> u64
+import 15 add std_core$i8$Add$add (i8,i8) -> i8
+import 16 sub std_core$i8$Sub$sub (i8,i8) -> i8
+import 17 mul std_core$i8$Mul$mul (i8,i8) -> i8
+import 18 div std_core$i8$Div$div (i8,i8) -> i8
+import 19 add std_core$i16$Add$add (i16,i16) -> i16
+import 20 sub std_core$i16$Sub$sub (i16,i16) -> i16
+import 21 mul std_core$i16$Mul$mul (i16,i16) -> i16
+import 22 div std_core$i16$Div$div (i16,i16) -> i16
+import 23 add std_core$i32$Add$add (i32,i32) -> i32
+import 24 sub std_core$i32$Sub$sub (i32,i32) -> i32
+import 25 mul std_core$i32$Mul$mul (i32,i32) -> i32
+import 26 div std_core$i32$Div$div (i32,i32) -> i32
+import 27 add std_core$i64$Add$add (i64,i64) -> i64
+import 28 sub std_core$i64$Sub$sub (i64,i64) -> i64
+import 29 mul std_core$i64$Mul$mul (i64,i64) -> i64
+import 30 div std_core$i64$Div$div (i64,i64) -> i64
+import 31 add std_core$u8$Add$add (u8,u8) -> u8
+import 32 sub std_core$u8$Sub$sub (u8,u8) -> u8
+import 33 mul std_core$u8$Mul$mul (u8,u8) -> u8
+import 34 div std_core$u8$Div$div (u8,u8) -> u8
+import 35 add std_core$u16$Add$add (u16,u16) -> u16
+import 36 sub std_core$u16$Sub$sub (u16,u16) -> u16
+import 37 mul std_core$u16$Mul$mul (u16,u16) -> u16
+import 38 div std_core$u16$Div$div (u16,u16) -> u16
+import 39 add std_core$u32$Add$add (u32,u32) -> u32
+import 40 sub std_core$u32$Sub$sub (u32,u32) -> u32
+import 41 mul std_core$u32$Mul$mul (u32,u32) -> u32
+import 42 div std_core$u32$Div$div (u32,u32) -> u32
+import 43 add std_core$u64$Add$add (u64,u64) -> u64
+import 44 sub std_core$u64$Sub$sub (u64,u64) -> u64
+import 45 mul std_core$u64$Mul$mul (u64,u64) -> u64
+import 46 div std_core$u64$Div$div (u64,u64) -> u64
+import 47 add std_core$usize$Add$add (usize,usize) -> usize
+import 48 sub std_core$usize$Sub$sub (usize,usize) -> usize
+import 49 mul std_core$usize$Mul$mul (usize,usize) -> usize
+import 50 div std_core$usize$Div$div (usize,usize) -> usize
+import 51 add std_core$f32$Add$add (f32,f32) -> f32
+import 52 sub std_core$f32$Sub$sub (f32,f32) -> f32
+import 53 mul std_core$f32$Mul$mul (f32,f32) -> f32
+import 54 div std_core$f32$Div$div (f32,f32) -> f32
+import 55 add std_core$f64$Add$add (f64,f64) -> f64
+import 56 sub std_core$f64$Sub$sub (f64,f64) -> f64
+import 57 mul std_core$f64$Mul$mul (f64,f64) -> f64
+import 58 div std_core$f64$Div$div (f64,f64) -> f64
+import 59 add std_core$string$Add$add (string,string) -> string
+import 60 at std_core$string$Index$at (string,i32) -> char
 import 61 print std_io$print (string) -> void
 import 62 println std_io$println (string) -> void
 import 63 eprint std_io$eprint (string) -> void
@@ -225,44 +225,44 @@ fn 1 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref
   local "$field_9#19" i32
   local "$k_10#20" i32
   local "$add_11#21" i32
-  local.get 0   ; core.vader:118:13
-  struct.get 3 1   ; core.vader:118:13
-  local.set 1   ; core.vader:118:13
-  local.get 0   ; core.vader:118:28
-  struct.get 3 2   ; core.vader:118:28
-  local.set 2   ; core.vader:118:28
-  local.get 1   ; core.vader:118:13
-  local.get 2   ; core.vader:118:13
-  i32.ge   ; core.vader:118:13
-  if $L0 void   ; core.vader:118:9
-    struct.new 0   ; core.vader:119:20
-    return   ; core.vader:119:13
-  else   ; core.vader:118:9
-    local.get 0   ; core.vader:121:14
-    struct.get 3 0   ; core.vader:121:14
-    local.set 3   ; core.vader:121:14
-    local.get 0   ; core.vader:121:23
-    struct.get 3 1   ; core.vader:121:23
-    local.set 4   ; core.vader:121:23
-    local.get 3   ; core.vader:121:14
-    local.get 4   ; core.vader:121:14
-    array.get 4   ; core.vader:121:14
-    ref.cast 2   ; core.vader:121:14
-    local.set 5   ; core.vader:121:14
-    local.get 0   ; core.vader:122:23
-    struct.get 3 1   ; core.vader:122:23
-    local.set 6   ; core.vader:122:23
-    i32.const 1   ; core.vader:122:37
-    local.set 7   ; core.vader:122:37
-    local.get 6   ; core.vader:122:23
-    local.get 7   ; core.vader:122:23
-    i32.add   ; core.vader:122:23
-    local.set 8   ; core.vader:122:23
-    local.get 0   ; core.vader:122:9
-    local.get 8   ; core.vader:122:9
-    struct.set 3 1   ; core.vader:122:9
-    local.get 5   ; core.vader:123:16
-    struct.new 1   ; core.vader:123:16
-    return   ; core.vader:123:9
-  end $L0   ; core.vader:118:9
+  local.get 0   ; core.vader:140:13
+  struct.get 3 1   ; core.vader:140:13
+  local.set 1   ; core.vader:140:13
+  local.get 0   ; core.vader:140:28
+  struct.get 3 2   ; core.vader:140:28
+  local.set 2   ; core.vader:140:28
+  local.get 1   ; core.vader:140:13
+  local.get 2   ; core.vader:140:13
+  i32.ge   ; core.vader:140:13
+  if $L0 void   ; core.vader:140:9
+    struct.new 0   ; core.vader:140:50
+    return   ; core.vader:140:43
+  else   ; core.vader:140:9
+    local.get 0   ; core.vader:141:14
+    struct.get 3 0   ; core.vader:141:14
+    local.set 3   ; core.vader:141:14
+    local.get 0   ; core.vader:141:23
+    struct.get 3 1   ; core.vader:141:23
+    local.set 4   ; core.vader:141:23
+    local.get 3   ; core.vader:141:14
+    local.get 4   ; core.vader:141:14
+    array.get 4   ; core.vader:141:14
+    ref.cast 2   ; core.vader:141:14
+    local.set 5   ; core.vader:141:14
+    local.get 0   ; core.vader:142:23
+    struct.get 3 1   ; core.vader:142:23
+    local.set 6   ; core.vader:142:23
+    i32.const 1   ; core.vader:142:37
+    local.set 7   ; core.vader:142:37
+    local.get 6   ; core.vader:142:23
+    local.get 7   ; core.vader:142:23
+    i32.add   ; core.vader:142:23
+    local.set 8   ; core.vader:142:23
+    local.get 0   ; core.vader:142:9
+    local.get 8   ; core.vader:142:9
+    struct.set 3 1   ; core.vader:142:9
+    local.get 5   ; core.vader:143:16
+    struct.new 1   ; core.vader:143:16
+    return   ; core.vader:143:9
+  end $L0   ; core.vader:140:9
 end

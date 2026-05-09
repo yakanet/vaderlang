@@ -42,9 +42,9 @@
       cond:
         call :bool
           callee:
-            contains#1000001 :bool
+            contains#1000077 :bool
           arg0:
-            Range {
+            Range(i32) {
               start: int(0) :i32
               end: int(10) :i32
               inclusive: false
@@ -63,9 +63,9 @@
         not :bool
           call :bool
             callee:
-              contains#1000001 :bool
+              contains#1000077 :bool
             arg0:
-              Range {
+              Range(i32) {
                 start: int(0) :i32
                 end: int(10) :i32
                 inclusive: false
@@ -83,9 +83,9 @@
       cond:
         call :bool
           callee:
-            contains#1000001 :bool
+            contains#1000077 :bool
           arg0:
-            Range {
+            Range(i32) {
               start: int(0) :i32
               end: int(10) :i32
               inclusive: true

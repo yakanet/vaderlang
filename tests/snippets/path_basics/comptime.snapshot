@@ -6,6 +6,8 @@
   Yielded(char)
   Yielded(i32)
   Yielded(u8)
+  Range(char)
+  Range(i32)
 
 # Diagnostics
 [36:8] error[R2004] duplicate top-level symbol in module: `is_empty` already declared in this module

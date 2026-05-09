@@ -2,7 +2,7 @@
 
 ## tests/snippets/for_range/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 11:14    RangeExpr      :: Range
+  expr 11:14    RangeExpr      :: Range(i32)
   expr 12:17    BinaryExpr     :: i32
   expr 12:17    IdentExpr      :: i32
   expr 12:25    IdentExpr      :: i32
@@ -11,7 +11,7 @@
   expr 14:25    IdentExpr      :: i32
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(string) -> void
-  expr 18:14    RangeExpr      :: Range
+  expr 18:14    RangeExpr      :: Range(i32)
   expr 19:13    BinaryExpr     :: i32
   expr 19:13    IdentExpr      :: i32
   expr 19:9     IdentExpr      :: i32
@@ -19,7 +19,7 @@
   expr 21:31    IdentExpr      :: i32
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(string) -> void
-  expr 5:14     RangeExpr      :: Range
+  expr 5:14     RangeExpr      :: Range(i32)
   expr 6:15     BinaryExpr     :: i32
   expr 6:15     IdentExpr      :: i32
   expr 6:21     IdentExpr      :: i32

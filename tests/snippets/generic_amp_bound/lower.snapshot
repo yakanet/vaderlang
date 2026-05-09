@@ -5,13 +5,13 @@
     let s#52: string =
       call :string
         callee:
-          needs_add#1000073 :string
+          needs_add#1000077 :string
         arg0:
           "hello" :string
     let b#53: i32 =
       call :i32
         callee:
-          bar#1000074 :i32
+          bar#1000078 :i32
         arg0:
           int(1) :i32
         arg1:

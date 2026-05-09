@@ -131,7 +131,7 @@ parse_value :: fn(p: Parser) -> JsonValue | JsonError {
     if c == 'n' {
         return parse_null(p)?
     }
-    if c == '-' || c >= '0' && c <= '9' {
+    if c == '-' || c in '0'..='9' {
         return parse_number(p)?
     }
     return fail(p, "unexpected character")
@@ -159,7 +159,7 @@ parse_bool :: fn(p: Parser) -> JsonBool | JsonError {
 // ---- number parser --------------------------------------------------------
 
 is_digit :: fn(c: char) -> bool {
-    return c >= '0' && c <= '9'
+    return c in '0'..='9'
 }
 
 parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
@@ -211,13 +211,13 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
 // ---- string parser --------------------------------------------------------
 
 parse_hex_digit :: fn(c: char) -> i32 {
-    if c >= '0' && c <= '9' {
+    if c in '0'..='9' {
         return i32(u32(c) - u32('0'))
     }
-    if c >= 'a' && c <= 'f' {
+    if c in 'a'..='f' {
         return i32(u32(c) - u32('a') + u32(10))
     }
-    if c >= 'A' && c <= 'F' {
+    if c in 'A'..='F' {
         return i32(u32(c) - u32('A') + u32(10))
     }
     return -1

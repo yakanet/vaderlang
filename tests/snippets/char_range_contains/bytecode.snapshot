@@ -1,0 +1,296 @@
+module _main
+type 0 struct std_core$Range__char { start:1,end:1,inclusive:2,cursor:1 }
+type 1 primitive char
+type 2 primitive bool
+type 3 struct std_core$Range__i32 { start:4,end:4,inclusive:2,cursor:4 }
+type 4 primitive i32
+string 0 "5 is digit"
+string 1 "a is not digit"
+string 2 "0 is digit"
+string 3 "9 is digit"
+string 4 ": is not digit"
+string 5 "m is lower"
+string 6 "M is not lower"
+string 7 "z is alpha"
+string 8 "Z is alpha"
+string 9 "5 is not alpha"
+import 0 equals std_core$i8$Eq$equals (i8,i8) -> bool
+import 1 equals std_core$i16$Eq$equals (i16,i16) -> bool
+import 2 equals std_core$i32$Eq$equals (i32,i32) -> bool
+import 3 equals std_core$i64$Eq$equals (i64,i64) -> bool
+import 4 equals std_core$u8$Eq$equals (u8,u8) -> bool
+import 5 equals std_core$u16$Eq$equals (u16,u16) -> bool
+import 6 equals std_core$u32$Eq$equals (u32,u32) -> bool
+import 7 equals std_core$u64$Eq$equals (u64,u64) -> bool
+import 8 equals std_core$usize$Eq$equals (usize,usize) -> bool
+import 9 equals std_core$f32$Eq$equals (f32,f32) -> bool
+import 10 equals std_core$f64$Eq$equals (f64,f64) -> bool
+import 11 equals std_core$bool$Eq$equals (bool,bool) -> bool
+import 12 equals std_core$char$Eq$equals (char,char) -> bool
+import 13 equals std_core$string$Eq$equals (string,string) -> bool
+import 14 hash std_core$string$Hash$hash (string) -> u64
+import 15 add std_core$i8$Add$add (i8,i8) -> i8
+import 16 sub std_core$i8$Sub$sub (i8,i8) -> i8
+import 17 mul std_core$i8$Mul$mul (i8,i8) -> i8
+import 18 div std_core$i8$Div$div (i8,i8) -> i8
+import 19 add std_core$i16$Add$add (i16,i16) -> i16
+import 20 sub std_core$i16$Sub$sub (i16,i16) -> i16
+import 21 mul std_core$i16$Mul$mul (i16,i16) -> i16
+import 22 div std_core$i16$Div$div (i16,i16) -> i16
+import 23 add std_core$i32$Add$add (i32,i32) -> i32
+import 24 sub std_core$i32$Sub$sub (i32,i32) -> i32
+import 25 mul std_core$i32$Mul$mul (i32,i32) -> i32
+import 26 div std_core$i32$Div$div (i32,i32) -> i32
+import 27 add std_core$i64$Add$add (i64,i64) -> i64
+import 28 sub std_core$i64$Sub$sub (i64,i64) -> i64
+import 29 mul std_core$i64$Mul$mul (i64,i64) -> i64
+import 30 div std_core$i64$Div$div (i64,i64) -> i64
+import 31 add std_core$u8$Add$add (u8,u8) -> u8
+import 32 sub std_core$u8$Sub$sub (u8,u8) -> u8
+import 33 mul std_core$u8$Mul$mul (u8,u8) -> u8
+import 34 div std_core$u8$Div$div (u8,u8) -> u8
+import 35 add std_core$u16$Add$add (u16,u16) -> u16
+import 36 sub std_core$u16$Sub$sub (u16,u16) -> u16
+import 37 mul std_core$u16$Mul$mul (u16,u16) -> u16
+import 38 div std_core$u16$Div$div (u16,u16) -> u16
+import 39 add std_core$u32$Add$add (u32,u32) -> u32
+import 40 sub std_core$u32$Sub$sub (u32,u32) -> u32
+import 41 mul std_core$u32$Mul$mul (u32,u32) -> u32
+import 42 div std_core$u32$Div$div (u32,u32) -> u32
+import 43 add std_core$u64$Add$add (u64,u64) -> u64
+import 44 sub std_core$u64$Sub$sub (u64,u64) -> u64
+import 45 mul std_core$u64$Mul$mul (u64,u64) -> u64
+import 46 div std_core$u64$Div$div (u64,u64) -> u64
+import 47 add std_core$usize$Add$add (usize,usize) -> usize
+import 48 sub std_core$usize$Sub$sub (usize,usize) -> usize
+import 49 mul std_core$usize$Mul$mul (usize,usize) -> usize
+import 50 div std_core$usize$Div$div (usize,usize) -> usize
+import 51 add std_core$f32$Add$add (f32,f32) -> f32
+import 52 sub std_core$f32$Sub$sub (f32,f32) -> f32
+import 53 mul std_core$f32$Mul$mul (f32,f32) -> f32
+import 54 div std_core$f32$Div$div (f32,f32) -> f32
+import 55 add std_core$f64$Add$add (f64,f64) -> f64
+import 56 sub std_core$f64$Sub$sub (f64,f64) -> f64
+import 57 mul std_core$f64$Mul$mul (f64,f64) -> f64
+import 58 div std_core$f64$Div$div (f64,f64) -> f64
+import 59 add std_core$string$Add$add (string,string) -> string
+import 60 at std_core$string$Index$at (string,i32) -> char
+import 61 print std_io$print (string) -> void
+import 62 println std_io$println (string) -> void
+import 63 eprint std_io$eprint (string) -> void
+import 64 eprintln std_io$eprintln (string) -> void
+import 65 read_line std_io$read_line () -> ref
+import 66 read_file std_io$read_file (string) -> ref
+import 67 write_file std_io$write_file (string,string) -> ref
+import 68 exists std_io$exists (string) -> bool
+
+fn 0 tests_snippets_char_range_contains__main_vader$is_digit (char) -> bool
+  local "$k_1#7" char
+  local "$k_2#8" char
+  local "$k_3#9" bool
+  local "$k_4#10" char
+  char.const 48   ; _main.vader:9:17
+  local.set 1   ; _main.vader:9:17
+  char.const 57   ; _main.vader:9:23
+  local.set 2   ; _main.vader:9:23
+  bool.const true   ; _main.vader:9:17
+  local.set 3   ; _main.vader:9:17
+  char.const 48   ; _main.vader:9:17
+  local.set 4   ; _main.vader:9:17
+  local.get 1   ; _main.vader:9:17
+  local.get 2   ; _main.vader:9:17
+  local.get 3   ; _main.vader:9:17
+  local.get 4   ; _main.vader:9:17
+  struct.new 0   ; _main.vader:9:17
+  local.get 0   ; _main.vader:9:12
+  call 4   ; _main.vader:9:12
+  return   ; _main.vader:9:5
+end
+
+fn 1 tests_snippets_char_range_contains__main_vader$is_lower (char) -> bool
+  local "$k_1#7" char
+  local "$k_2#8" char
+  local "$k_3#9" bool
+  local "$k_4#10" char
+  char.const 97   ; _main.vader:13:17
+  local.set 1   ; _main.vader:13:17
+  char.const 122   ; _main.vader:13:23
+  local.set 2   ; _main.vader:13:23
+  bool.const true   ; _main.vader:13:17
+  local.set 3   ; _main.vader:13:17
+  char.const 97   ; _main.vader:13:17
+  local.set 4   ; _main.vader:13:17
+  local.get 1   ; _main.vader:13:17
+  local.get 2   ; _main.vader:13:17
+  local.get 3   ; _main.vader:13:17
+  local.get 4   ; _main.vader:13:17
+  struct.new 0   ; _main.vader:13:17
+  local.get 0   ; _main.vader:13:12
+  call 4   ; _main.vader:13:12
+  return   ; _main.vader:13:5
+end
+
+fn 2 tests_snippets_char_range_contains__main_vader$is_alpha (char) -> bool
+  local "$k_1#14" char
+  local "$k_2#15" char
+  local "$k_3#16" bool
+  local "$k_4#17" char
+  local "$k_9#21" char
+  local "$k_10#22" char
+  local "$k_11#23" bool
+  local "$k_12#24" char
+  local "or_res#28" bool
+  char.const 97   ; _main.vader:17:17
+  local.set 1   ; _main.vader:17:17
+  char.const 122   ; _main.vader:17:23
+  local.set 2   ; _main.vader:17:23
+  bool.const true   ; _main.vader:17:17
+  local.set 3   ; _main.vader:17:17
+  char.const 97   ; _main.vader:17:17
+  local.set 4   ; _main.vader:17:17
+  local.get 1   ; _main.vader:17:17
+  local.get 2   ; _main.vader:17:17
+  local.get 3   ; _main.vader:17:17
+  local.get 4   ; _main.vader:17:17
+  struct.new 0   ; _main.vader:17:17
+  local.get 0   ; _main.vader:17:12
+  call 4   ; _main.vader:17:12
+  if $L0 void   ; _main.vader:17:12
+    bool.const true   ; _main.vader:17:12
+    local.set 9   ; _main.vader:17:12
+  else   ; _main.vader:17:12
+    char.const 65   ; _main.vader:17:35
+    local.set 5   ; _main.vader:17:35
+    char.const 90   ; _main.vader:17:41
+    local.set 6   ; _main.vader:17:41
+    bool.const true   ; _main.vader:17:35
+    local.set 7   ; _main.vader:17:35
+    char.const 65   ; _main.vader:17:35
+    local.set 8   ; _main.vader:17:35
+    local.get 5   ; _main.vader:17:35
+    local.get 6   ; _main.vader:17:35
+    local.get 7   ; _main.vader:17:35
+    local.get 8   ; _main.vader:17:35
+    struct.new 0   ; _main.vader:17:35
+    local.get 0   ; _main.vader:17:30
+    call 4   ; _main.vader:17:30
+    local.set 9   ; _main.vader:17:30
+  end $L0   ; _main.vader:17:12
+  local.get 9   ; _main.vader:17:5
+  return   ; _main.vader:17:5
+end
+
+fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
+  char.const 53   ; _main.vader:21:17
+  call 0   ; _main.vader:21:8
+  if $L0 void   ; _main.vader:21:5
+    string.const 0   ; _main.vader:21:34
+    call.import 62   ; _main.vader:21:26
+  else   ; _main.vader:21:5
+  end $L0   ; _main.vader:21:5
+  char.const 97   ; _main.vader:22:18
+  call 0   ; _main.vader:22:9
+  bool.not   ; _main.vader:22:8
+  if $L1 void   ; _main.vader:22:5
+    string.const 1   ; _main.vader:22:34
+    call.import 62   ; _main.vader:22:26
+  else   ; _main.vader:22:5
+  end $L1   ; _main.vader:22:5
+  char.const 48   ; _main.vader:23:17
+  call 0   ; _main.vader:23:8
+  if $L2 void   ; _main.vader:23:5
+    string.const 2   ; _main.vader:23:34
+    call.import 62   ; _main.vader:23:26
+  else   ; _main.vader:23:5
+  end $L2   ; _main.vader:23:5
+  char.const 57   ; _main.vader:24:17
+  call 0   ; _main.vader:24:8
+  if $L3 void   ; _main.vader:24:5
+    string.const 3   ; _main.vader:24:34
+    call.import 62   ; _main.vader:24:26
+  else   ; _main.vader:24:5
+  end $L3   ; _main.vader:24:5
+  char.const 58   ; _main.vader:25:18
+  call 0   ; _main.vader:25:9
+  bool.not   ; _main.vader:25:8
+  if $L4 void   ; _main.vader:25:5
+    string.const 4   ; _main.vader:25:34
+    call.import 62   ; _main.vader:25:26
+  else   ; _main.vader:25:5
+  end $L4   ; _main.vader:25:5
+  char.const 109   ; _main.vader:27:17
+  call 1   ; _main.vader:27:8
+  if $L5 void   ; _main.vader:27:5
+    string.const 5   ; _main.vader:27:34
+    call.import 62   ; _main.vader:27:26
+  else   ; _main.vader:27:5
+  end $L5   ; _main.vader:27:5
+  char.const 77   ; _main.vader:28:18
+  call 1   ; _main.vader:28:9
+  bool.not   ; _main.vader:28:8
+  if $L6 void   ; _main.vader:28:5
+    string.const 6   ; _main.vader:28:34
+    call.import 62   ; _main.vader:28:26
+  else   ; _main.vader:28:5
+  end $L6   ; _main.vader:28:5
+  char.const 122   ; _main.vader:30:17
+  call 2   ; _main.vader:30:8
+  if $L7 void   ; _main.vader:30:5
+    string.const 7   ; _main.vader:30:34
+    call.import 62   ; _main.vader:30:26
+  else   ; _main.vader:30:5
+  end $L7   ; _main.vader:30:5
+  char.const 90   ; _main.vader:31:17
+  call 2   ; _main.vader:31:8
+  if $L8 void   ; _main.vader:31:5
+    string.const 8   ; _main.vader:31:34
+    call.import 62   ; _main.vader:31:26
+  else   ; _main.vader:31:5
+  end $L8   ; _main.vader:31:5
+  char.const 53   ; _main.vader:32:18
+  call 2   ; _main.vader:32:9
+  bool.not   ; _main.vader:32:8
+  if $L9 void   ; _main.vader:32:5
+    string.const 9   ; _main.vader:32:34
+    call.import 62   ; _main.vader:32:26
+  else   ; _main.vader:32:5
+  end $L9   ; _main.vader:32:5
+  i32.const 0   ; _main.vader:34:12
+  return   ; _main.vader:34:5
+end
+
+fn 4 std_core$Range$Contains$contains__char_1 (ref,char) -> bool
+  local "$field_2#10" char
+  local "$field_6#14" char
+  local "$field_8#16" char
+  local.get 0   ; core.vader:110:20
+  struct.get 0 0   ; core.vader:110:20
+  local.set 2   ; core.vader:110:20
+  local.get 1   ; core.vader:110:12
+  local.get 2   ; core.vader:110:12
+  char.lt   ; core.vader:110:12
+  if $L0 void   ; core.vader:110:9
+    bool.const false   ; core.vader:110:40
+    return   ; core.vader:110:33
+  else   ; core.vader:110:9
+    local.get 0   ; core.vader:111:12
+    struct.get 0 2   ; core.vader:111:12
+    if $L1 void   ; core.vader:111:9
+      local.get 0   ; core.vader:111:49
+      struct.get 0 1   ; core.vader:111:49
+      local.set 3   ; core.vader:111:49
+      local.get 1   ; core.vader:111:40
+      local.get 3   ; core.vader:111:40
+      char.le   ; core.vader:111:40
+      return   ; core.vader:111:33
+    else   ; core.vader:111:9
+      local.get 0   ; core.vader:112:24
+      struct.get 0 1   ; core.vader:112:24
+      local.set 4   ; core.vader:112:24
+      local.get 1   ; core.vader:112:16
+      local.get 4   ; core.vader:112:16
+      char.lt   ; core.vader:112:16
+      return   ; core.vader:112:9
+    end $L1   ; core.vader:111:9
+  end $L0   ; core.vader:110:9
+end

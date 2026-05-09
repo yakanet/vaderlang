@@ -19,7 +19,7 @@
             __sb_0#-1 :?
             call :u64
               callee:
-                hash#1000004 :u64
+                hash#1000016 :u64
               arg0:
                 a#54 :i32
           ~>
@@ -39,7 +39,7 @@
             __sb_1#-2 :?
             call :bool
               callee:
-                equals#1000017 :bool
+                equals#1000002 :bool
               arg0:
                 a#54 :i32
               arg1:
@@ -61,7 +61,7 @@
             __sb_2#-3 :?
             call :bool
               callee:
-                equals#1000017 :bool
+                equals#1000002 :bool
               arg0:
                 a#54 :i32
               arg1:
@@ -84,7 +84,7 @@
             __sb_3#-4 :?
             call :u64
               callee:
-                hash#1000010 :u64
+                hash#1000022 :u64
               arg0:
                 n#57 :usize
           ~>

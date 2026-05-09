@@ -3,5 +3,7 @@
 ## tests/snippets/tuple_generic_swap/_main.vader
 
 ## generic instances
-  Yielded(i32)
   swap(i32, string)
+  Yielded(i32)
+  Range(char)
+  Range(i32)

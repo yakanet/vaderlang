@@ -1,0 +1,35 @@
+// `Range[char] implements Contains[char]` — `c in 'a'..='z'` works as the
+// natural surface for character class checks. Replaces the verbose
+// `c >= 'a' && c <= 'z'` chain. Iterator[char] (`for c in 'a'..='z'`) is
+// deferred until char arithmetic for the cursor advance lands.
+
+import "std/io" { println }
+
+is_digit :: fn(c: char) -> bool {
+    return c in '0'..='9'
+}
+
+is_lower :: fn(c: char) -> bool {
+    return c in 'a'..='z'
+}
+
+is_alpha :: fn(c: char) -> bool {
+    return c in 'a'..='z' || c in 'A'..='Z'
+}
+
+main :: fn() -> i32 {
+    if is_digit('5')   { println("5 is digit") }
+    if !is_digit('a')  { println("a is not digit") }
+    if is_digit('0')   { println("0 is digit") }
+    if is_digit('9')   { println("9 is digit") }
+    if !is_digit(':')  { println(": is not digit") }
+
+    if is_lower('m')   { println("m is lower") }
+    if !is_lower('M')  { println("M is not lower") }
+
+    if is_alpha('z')   { println("z is alpha") }
+    if is_alpha('Z')   { println("Z is alpha") }
+    if !is_alpha('5')  { println("5 is not alpha") }
+
+    return 0
+}

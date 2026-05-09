@@ -3,5 +3,7 @@
 ## tests/snippets/trait_dispatch_struct/_main.vader
 
 ## generic instances
-  Yielded(i32)
   apply_tag(i32)
+  Yielded(i32)
+  Range(char)
+  Range(i32)

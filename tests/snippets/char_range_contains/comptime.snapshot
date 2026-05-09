@@ -1,0 +1,8 @@
+# Comptime
+
+## tests/snippets/char_range_contains/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Range(char)
+  Range(i32)

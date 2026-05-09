@@ -3,5 +3,7 @@
 ## tests/snippets/array_of_union/_main.vader
 
 ## generic instances
-  Yielded(i32)
   Node(i32)
+  Yielded(i32)
+  Range(char)
+  Range(i32)

@@ -1,0 +1,13 @@
+# stdout
+5 is digit
+a is not digit
+0 is digit
+9 is digit
+: is not digit
+m is lower
+M is not lower
+z is alpha
+Z is alpha
+5 is not alpha
+# exit
+0

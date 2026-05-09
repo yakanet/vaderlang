@@ -29,7 +29,7 @@
   expr 43:12    IdentExpr      :: Doubler($T)
   expr 47:10    CallExpr       :: i32
   expr 47:10    IdentExpr      :: fn(Iterator($T)) -> i32
-  expr 47:16    RangeExpr      :: Range
+  expr 47:16    RangeExpr      :: Range(i32)
   expr 48:10    CallExpr       :: i32
   expr 48:10    IdentExpr      :: fn(Iterator($T)) -> i32
   expr 48:16    SeqLitExpr     :: i32[]

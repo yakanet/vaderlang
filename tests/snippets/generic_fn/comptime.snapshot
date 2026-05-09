@@ -3,6 +3,8 @@
 ## tests/snippets/generic_fn/_main.vader
 
 ## generic instances
-  Yielded(i32)
   identity(i32)
+  Yielded(i32)
+  Range(char)
+  Range(i32)
   first(i32)

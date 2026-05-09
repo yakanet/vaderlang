@@ -6,7 +6,7 @@
       cond:
         call :bool
           callee:
-            needs_hash#1000073 :bool
+            needs_hash#1000077 :bool
           arg0:
             "foo" :string
       then:
@@ -16,7 +16,7 @@
     let h#47: u64 =
       call :u64
         callee:
-          hash#1000013 :u64
+          hash#1000024 :u64
         arg0:
           x#46 :string
     return

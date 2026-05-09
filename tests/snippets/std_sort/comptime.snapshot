@@ -7,6 +7,8 @@
   Yielded(i32)
   Yielded(string)
   Yielded(u8)
+  Range(char)
+  Range(i32)
   ArrayIter($T)
   ArrayIter($U)
   ArrayIter(i32)

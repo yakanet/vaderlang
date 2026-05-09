@@ -463,20 +463,27 @@ function inferRange(
   expr: A.RangeExpr, t: MutableTyped, impls: ImplRegistry,
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
-  // Range is hard-coded as Range(i32) in std/core; reject non-i32 bounds at
-  // compile time instead of letting them slip through and trap in the VM.
-  // (Generic Range($T) is tracked in TODO §1.18b.)
-  const lower = checkExpr(expr.lower, TY.i32, t, impls, diags, fn);
-  const upper = checkExpr(expr.upper, TY.i32, t, impls, diags, fn);
-  if (!isAssignable(lower, TY.i32, impls)) {
-    err(diags, "T3001", expr.lower.span, `range bounds must be \`i32\`, got ${displayType(lower)}`);
+  // Range is generic over the bound type since std/core's `Range :: struct[T]`.
+  // Today only `i32` and `char` are wired end-to-end (Iterator[char] is
+  // deferred until char arithmetic for the cursor advance lands ; Contains[char]
+  // works so `c in 'a'..='z'` is supported).
+  // The lower bound's type drives `T` ; the upper bound is checked against it.
+  const lower = checkExpr(expr.lower, null, t, impls, diags, fn);
+  const elementType: Type = lower.kind === "Primitive" && lower.name === "char"
+    ? TY.char
+    : TY.i32;
+  const upper = checkExpr(expr.upper, elementType, t, impls, diags, fn);
+  if (!isAssignable(lower, elementType, impls)) {
+    err(diags, "T3001", expr.lower.span,
+      `range bounds must be \`${displayType(elementType)}\`, got ${displayType(lower)}`);
   }
-  if (!isAssignable(upper, TY.i32, impls)) {
-    err(diags, "T3001", expr.upper.span, `range bounds must be \`i32\`, got ${displayType(upper)}`);
+  if (!isAssignable(upper, elementType, impls)) {
+    err(diags, "T3001", expr.upper.span,
+      `range bounds must be \`${displayType(elementType)}\`, got ${displayType(upper)}`);
   }
   const rangeSym = t.globals.coreSymbols?.get(CORE_STRUCTS.Range);
   if (rangeSym === undefined || rangeSym.kind !== "struct") return TY.unresolved;
-  return { kind: "Struct", symbol: rangeSym, args: [] };
+  return { kind: "Struct", symbol: rangeSym, args: [elementType] };
 }
 
 function inferCast(

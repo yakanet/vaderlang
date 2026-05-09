@@ -3,6 +3,8 @@
 ## tests/snippets/iter_coerce_array/_main.vader
 
 ## generic instances
-  Yielded(i32)
   Iterator(i32)
+  Yielded(i32)
+  Range(char)
+  Range(i32)
   ArrayIter(i32)

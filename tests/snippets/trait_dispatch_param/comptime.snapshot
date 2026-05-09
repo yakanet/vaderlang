@@ -5,3 +5,5 @@
 ## generic instances
   hash_twice(i32)
   Yielded(i32)
+  Range(char)
+  Range(i32)

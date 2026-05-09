@@ -47,8 +47,8 @@
               false
         r:
           true
-    let e#51: Range =
-      Range {
+    let e#51: Range(i32) =
+      Range(i32) {
         start: int(0) :i32
         end: int(10) :i32
         inclusive: false

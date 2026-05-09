@@ -16,19 +16,19 @@
   expr 14:17    FieldExpr      :: i32
   expr 14:17    IdentExpr      :: DigitSet
   expr 14:29    IdentExpr      :: i32
-  expr 19:13    RangeExpr      :: Range
+  expr 19:13    RangeExpr      :: Range(i32)
   expr 19:22    CallExpr       :: void
   expr 19:22    IdentExpr      :: fn(string) -> void
   expr 19:30    StringLitExpr  :: string
   expr 19:5     IfExpr         :: void
   expr 19:8     BinaryExpr     :: bool
-  expr 20:15    RangeExpr      :: Range
+  expr 20:15    RangeExpr      :: Range(i32)
   expr 20:24    CallExpr       :: void
   expr 20:24    IdentExpr      :: fn(string) -> void
   expr 20:32    StringLitExpr  :: string
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
-  expr 21:14    RangeExpr      :: Range
+  expr 21:14    RangeExpr      :: Range(i32)
   expr 21:23    CallExpr       :: void
   expr 21:23    IdentExpr      :: fn(string) -> void
   expr 21:31    StringLitExpr  :: string

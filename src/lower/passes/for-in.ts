@@ -34,17 +34,22 @@ export function lowerRangeExpr(ctx: FnLowerCtx, expr: A.RangeExpr, exprType: Typ
   const span = expr.span;
   const lower = lowerExpr(ctx, expr.lower);
   const upper = lowerExpr(ctx, expr.upper);
-  const zero: LoweredExpr = { kind: "LoweredIntLit", span, type: TY.i32, value: 0n };
   const inclusive: LoweredExpr = {
     kind: "LoweredBoolLit", span, type: TY.bool, value: expr.inclusive,
   };
+  // `cursor` starts at the lower bound — same expression literal, lowered
+  // a second time so the two emit independent slot reads when the bound is
+  // an ident. The previous form initialised cursor to `0_i32` which only
+  // worked when iteration started at zero ; generic Range[T] (e.g.
+  // `Range[char]`) needs the bound type's value here.
+  const cursor = lowerExpr(ctx, expr.lower);
   return {
     kind: "LoweredStructLit", span, type: exprType,
     fields: [
       { name: "start",     value: lower },
       { name: "end",       value: upper },
       { name: "inclusive", value: inclusive },
-      { name: "cursor",    value: zero },
+      { name: "cursor",    value: cursor },
     ],
   };
 }

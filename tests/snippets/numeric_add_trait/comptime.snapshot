@@ -4,5 +4,7 @@
 
 ## generic instances
   double(i32)
-  Yielded(i32)
   triple(i32)
+  Yielded(i32)
+  Range(char)
+  Range(i32)

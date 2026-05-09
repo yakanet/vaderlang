@@ -5,8 +5,10 @@
 ## generic instances
   count(i32)
   Greeter(i32)
-  Yielded(i32)
   Iterator(i32)
+  Yielded(i32)
+  Range(char)
+  Range(i32)
   ArrayIter(i32)
   Doubler(i32)
   invoke(i32)

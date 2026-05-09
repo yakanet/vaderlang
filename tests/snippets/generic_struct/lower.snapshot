@@ -10,21 +10,21 @@
       }
     call :void
       callee:
-        push#1000074 :void
+        push#1000072 :void
       arg0:
         s#68 :Stack(i32)
       arg1:
         int(10) :i32
     call :void
       callee:
-        push#1000074 :void
+        push#1000072 :void
       arg0:
         s#68 :Stack(i32)
       arg1:
         int(20) :i32
     call :void
       callee:
-        push#1000074 :void
+        push#1000072 :void
       arg0:
         s#68 :Stack(i32)
       arg1:
@@ -43,7 +43,7 @@
             __sb_0#-1 :?
             call :i32
               callee:
-                len#1000076 :i32
+                len#1000074 :i32
               arg0:
                 s#68 :Stack(i32)
           ~>
@@ -63,7 +63,7 @@
             __sb_1#-2 :?
             call :i32
               callee:
-                pop#1000075 :i32
+                pop#1000073 :i32
               arg0:
                 s#68 :Stack(i32)
           ~>
@@ -83,7 +83,7 @@
             __sb_2#-3 :?
             call :i32
               callee:
-                len#1000076 :i32
+                len#1000074 :i32
               arg0:
                 s#68 :Stack(i32)
           ~>
