@@ -818,7 +818,7 @@ fn 3 std_collections$std_collections$put__i32__i32 (ref,i32,i32) -> void
     local.get 0   ; collections.vader:92:5
     local.get 25   ; collections.vader:92:5
     struct.set 4 1   ; collections.vader:92:5
-    return   ; collections.vader:52:93
+    return   ; collections.vader:52:85
   end $L10   ; collections.vader:85:5
 end
 

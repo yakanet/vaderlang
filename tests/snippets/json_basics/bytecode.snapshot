@@ -3344,7 +3344,7 @@ fn 34 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
     local.get 0   ; collections.vader:92:5
     local.get 25   ; collections.vader:92:5
     struct.set 21 1   ; collections.vader:92:5
-    return   ; collections.vader:52:93
+    return   ; collections.vader:52:85
   end $L10   ; collections.vader:85:5
 end
 

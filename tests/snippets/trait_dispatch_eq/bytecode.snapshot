@@ -117,13 +117,13 @@ end
 
 fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32 (i32,i32,i32) -> i32
   local "n#10" i32
-  local "$call_5#11" bool
+  local "$eq_5#11" bool
   local "$k_6#12" i32
   local "n#14" i32
-  local "$call_8#15" bool
+  local "$eq_8#15" bool
   local "$k_9#16" i32
   local "n#18" i32
-  local "$call_11#19" bool
+  local "$eq_11#19" bool
   local "$k_12#20" i32
   local "n#22" i32
   i32.const 0   ; _main.vader:6:10

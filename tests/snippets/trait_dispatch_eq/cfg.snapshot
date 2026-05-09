@@ -47,18 +47,18 @@ fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq
     %1 b: i32 (param b)
     %2 c: i32 (param c)
     %3 n#10: i32 (local n)
-    %4 $call_5#11: bool
+    %4 $eq_5#11: bool
     %5 $k_6#12: i32
     %6 n#14: i32 (local n)
-    %7 $call_8#15: bool
+    %7 $eq_8#15: bool
     %8 $k_9#16: i32
     %9 n#18: i32 (local n)
-    %10 $call_11#19: bool
+    %10 $eq_11#19: bool
     %11 $k_12#20: i32
     %12 n#22: i32 (local n)
   bb0:
     %3 = const int(0) :i32
-    %4 = call equals(%0, %1) :bool
+    %4 = binop eq %0 %1 :bool
     %6 = move %3
     cond_branch %4 ? bb1 : bb2
   bb1:
@@ -66,7 +66,7 @@ fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq
     %6 = binop add %3 %5 :i32
     branch -> bb2
   bb2:
-    %7 = call equals(%0, %2) :bool
+    %7 = binop eq %0 %2 :bool
     %9 = move %6
     cond_branch %7 ? bb3 : bb4
   bb3:
@@ -74,7 +74,7 @@ fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq
     %9 = binop add %6 %8 :i32
     branch -> bb4
   bb4:
-    %10 = call equals(%1, %2) :bool
+    %10 = binop eq %1 %2 :bool
     %12 = move %9
     cond_branch %10 ? bb5 : bb6
   bb5:

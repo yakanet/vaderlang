@@ -46,12 +46,10 @@
     let n#49: i32 = int(0) :i32
     if :void
       cond:
-        call :bool
-          callee:
-            equals#1000017 :bool
-          arg0:
+        eq :bool
+          l:
             a#46 :i32
-          arg1:
+          r:
             b#47 :i32
       then:
         assign
@@ -65,12 +63,10 @@
                 int(1) :i32
     if :void
       cond:
-        call :bool
-          callee:
-            equals#1000017 :bool
-          arg0:
+        eq :bool
+          l:
             a#46 :i32
-          arg1:
+          r:
             c#48 :i32
       then:
         assign
@@ -84,12 +80,10 @@
                 int(10) :i32
     if :void
       cond:
-        call :bool
-          callee:
-            equals#1000017 :bool
-          arg0:
+        eq :bool
+          l:
             b#47 :i32
-          arg1:
+          r:
             c#48 :i32
       then:
         assign
