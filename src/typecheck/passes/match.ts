@@ -112,7 +112,7 @@ function resolveImplicitDotVariant(
       }
     }
   }
-  err(diags, "R2007", type.span,
+  err(diags, "T3027", type.span,
     `\`.${type.name}\` (no variant named \`${type.name}\` on ${displayType(scrut)})`);
   return TY.unresolved;
 }
