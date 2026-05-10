@@ -398,6 +398,15 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { vader_eprintln(a0); }`;
     case "std_io$exists":
       return `${head} { return vader_exists(a0); }`;
+    case "std_io$is_dir":
+      return `${head} { return vader_is_dir(a0); }`;
+    case "std_io$read_dir": {
+      const strIdx = ctx.stringTagIndex;
+      if (strIdx < 0) return `${head} { vader_trap("read_dir: no string type"); }`;
+      const arrIdx = ctx.module.types.findIndex(t => t.kind === "array" && t.element === strIdx);
+      if (arrIdx < 0) return `${head} { vader_trap("read_dir: no [string] type"); }`;
+      return `${head} { return vader_read_dir(a0, ${arrIdx}u, ${strIdx}u, ${tagOrTrap(ctx, "error")}); }`;
+    }
     case "std_io$read_file":
       return `${head} { return vader_read_file(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_io$write_file":

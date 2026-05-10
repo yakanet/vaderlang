@@ -6,7 +6,7 @@
       let __scrut_0#-1: Error | i32 =
         call :Error | i32
           callee:
-            parse_int#60 :fn(string) -> Error | i32
+            parse_int#62 :fn(string) -> Error | i32
           arg0:
             "42" :string
       ~>
@@ -49,7 +49,7 @@
       let __scrut_1#-2: Error | i32 =
         call :Error | i32
           callee:
-            parse_int#60 :fn(string) -> Error | i32
+            parse_int#62 :fn(string) -> Error | i32
           arg0:
             "nope" :string
       ~>
@@ -92,7 +92,7 @@
       let __scrut_2#-3: Error | f64 =
         call :Error | f64
           callee:
-            parse_float#61 :fn(string) -> Error | f64
+            parse_float#63 :fn(string) -> Error | f64
           arg0:
             "3.14" :string
       ~>
@@ -135,7 +135,7 @@
       let __scrut_3#-4: Error | f64 =
         call :Error | f64
           callee:
-            parse_float#61 :fn(string) -> Error | f64
+            parse_float#63 :fn(string) -> Error | f64
           arg0:
             "nope" :string
       ~>

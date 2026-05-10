@@ -5,7 +5,7 @@
     ~>
       if :void
         cond:
-          ok#57 :bool
+          ok#59 :bool
         then:
           ~>
             call :void
@@ -16,7 +16,7 @@
                   callee:
                     to_string#1000014 :string
                   arg0:
-                    name#56 :string
+                    name#58 :string
         else:
           ~>
             call :void
@@ -29,8 +29,8 @@
                   arg0:
                     "BAD" :string
   fn tests_snippets_u32_bitops__main_vader$main() -> i32
-    let a#58: u32 = int(4294967295) :u32
-    let b#59: u32 = int(2147483648) :u32
+    let a#60: u32 = int(4294967295) :u32
+    let b#61: u32 = int(2147483648) :u32
     call :void
       callee:
         check#2 :fn(string, bool) -> void
@@ -41,7 +41,7 @@
           l:
             shr :u32
               l:
-                a#58 :u32
+                a#60 :u32
               r:
                 int(1) :u32
           r:
@@ -56,7 +56,7 @@
           l:
             shr :u32
               l:
-                b#59 :u32
+                b#61 :u32
               r:
                 int(31) :u32
           r:
@@ -75,7 +75,7 @@
               r:
                 int(31) :u32
           r:
-            b#59 :u32
+            b#61 :u32
     call :void
       callee:
         check#2 :fn(string, bool) -> void
@@ -86,7 +86,7 @@
           l:
             shl :u32
               l:
-                b#59 :u32
+                b#61 :u32
               r:
                 int(1) :u32
           r:
@@ -101,11 +101,11 @@
           l:
             bitand :u32
               l:
-                a#58 :u32
+                a#60 :u32
               r:
-                a#58 :u32
+                a#60 :u32
           r:
-            a#58 :u32
+            a#60 :u32
     call :void
       callee:
         check#2 :fn(string, bool) -> void
@@ -116,7 +116,7 @@
           l:
             bitor :u32
               l:
-                b#59 :u32
+                b#61 :u32
               r:
                 int(1) :u32
           r:
@@ -131,9 +131,9 @@
           l:
             bitxor :u32
               l:
-                a#58 :u32
+                a#60 :u32
               r:
-                b#59 :u32
+                b#61 :u32
           r:
             int(2147483647) :u32
     call :void
@@ -147,7 +147,7 @@
             bitnot :u32
               int(0) :u32
           r:
-            a#58 :u32
+            a#60 :u32
     call :void
       callee:
         check#2 :fn(string, bool) -> void
@@ -157,7 +157,7 @@
         eq :bool
           l:
             bitnot :u32
-              b#59 :u32
+              b#61 :u32
           r:
             int(2147483647) :u32
     return int(0) :i32

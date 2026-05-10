@@ -4,7 +4,7 @@
   struct tests_snippets_union_common_field__main_vader$Cat { name: string, age: i32 }
   struct tests_snippets_union_common_field__main_vader$Dog { name: string, age: i32 }
   fn tests_snippets_union_common_field__main_vader$main() -> i32
-    let a#57: Cat | Dog =
+    let a#59: Cat | Dog =
       Cat {
         name: "Whiskers" :string
         age: int(3) :i32
@@ -27,7 +27,7 @@
                 __sb_0#-1 :?
                 .name :string
                   cast → Cat
-                    a#57 :Cat | Dog
+                    a#59 :Cat | Dog
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?
@@ -49,11 +49,11 @@
                 __sb_1#-2 :?
                 .age :i32
                   cast → Cat
-                    a#57 :Cat | Dog
+                    a#59 :Cat | Dog
               ~>
                 @builder.finish :string
                   __sb_1#-2 :?
-    let b#58: Cat | Dog =
+    let b#60: Cat | Dog =
       Dog {
         name: "Rex" :string
         age: int(7) :i32
@@ -76,7 +76,7 @@
                 __sb_2#-3 :?
                 .name :string
                   cast → Cat
-                    b#58 :Cat | Dog
+                    b#60 :Cat | Dog
               ~>
                 @builder.finish :string
                   __sb_2#-3 :?
@@ -98,7 +98,7 @@
                 __sb_3#-4 :?
                 .age :i32
                   cast → Cat
-                    b#58 :Cat | Dog
+                    b#60 :Cat | Dog
               ~>
                 @builder.finish :string
                   __sb_3#-4 :?

@@ -2,10 +2,10 @@
 
 ## tests/snippets/cast_test/_main.vader
   fn tests_snippets_cast_test__main_vader$main() -> i32
-    let n#55: i32 = int(42) :i32
-    let m#56: u64 =
+    let n#57: i32 = int(42) :i32
+    let m#58: u64 =
       cast → u64
-        n#55 :i32
+        n#57 :i32
     call :void
       callee:
         println#24 :fn(Display) -> void
@@ -19,7 +19,7 @@
                 @builder.new :?
               @builder.append_display <for u64> :void
                 __sb_0#-1 :?
-                m#56 :u64
+                m#58 :u64
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?

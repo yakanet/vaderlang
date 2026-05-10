@@ -4,8 +4,15 @@
 // Sync I/O is required because the VM's dispatch loop is sync. Bun has no
 // synchronous file API, so the on-disk operations go through `node:fs`.
 
-import { accessSync, readFileSync as fsReadFile, writeFileSync as fsWriteFile } from "node:fs";
+import {
+  accessSync,
+  readdirSync as fsReadDir,
+  readFileSync as fsReadFile,
+  statSync as fsStat,
+  writeFileSync as fsWriteFile,
+} from "node:fs";
 
+import type { BytecodeModule } from "../bytecode/module.ts";
 import type { Value } from "./value.ts";
 import { NULL, VOID, bool, ch, displayValue, err, num, str, asNum, asIndex, i64 } from "./value.ts";
 
@@ -22,9 +29,18 @@ export interface HostIO {
   writeFile(path: string, content: string): void;
   /** True iff the path exists. Errors (e.g. permission denied) → false. */
   exists(path: string): boolean;
+  /** True iff the path is a directory. Errors → false (matches `exists`). */
+  isDir(path: string): boolean;
+  /** Lists the immediate entries of `path` (minus `.` and `..`). Throws on
+   *  I/O error ; the caller boxes into Error like `readFile`. */
+  readDir(path: string): string[];
 }
 
-export type HostFn = (args: Value[]) => Value;
+/** Host fn implementations may consult the running module — needed by bindings
+ *  whose return type is a tagged GC object (typed array, struct) where the VM
+ *  expects the value's `typeIndex` to match a concrete BcType in the module's
+ *  type table. Most bindings ignore the second arg. */
+export type HostFn = (args: Value[], module: BytecodeModule) => Value;
 
 export interface HostBindings {
   /** Looks up by `mangledName` first (`std_io$print`), with `externName`
@@ -57,6 +73,12 @@ export function defaultHostIO(): HostIO {
     exists(p) {
       try { accessSync(p); return true; } catch { return false; }
     },
+    isDir(p) {
+      try { return fsStat(p).isDirectory(); } catch { return false; }
+    },
+    readDir(p) {
+      return fsReadDir(p);
+    },
   };
 }
 
@@ -79,7 +101,28 @@ export function stdIoBindings(io: HostIO): Record<string, HostFn> {
       catch (e) { return err(messageOf(e)); }
     },
     std_io$exists:     (args) => bool(io.exists(stringArg(args, 0))),
+    std_io$is_dir:     (args) => bool(io.isDir(stringArg(args, 0))),
+    std_io$read_dir:   (args, module) => {
+      try {
+        const entries = io.readDir(stringArg(args, 0));
+        const arrTypeIdx = findStringArrayTypeIndex(module);
+        return { tag: "array" as const, typeIndex: arrTypeIdx, elements: entries.map(p => str(p)) };
+      } catch (e) {
+        return err(messageOf(e));
+      }
+    },
   };
+}
+
+/** Walk the BcType table looking for a `string[]` entry (array whose element
+ *  type resolves to the `string` primitive). Returns 0 if none exists ; the
+ *  caller's `type_check` will fail loudly and the trap message points at the
+ *  host bindings rather than at an opaque "reached unreachable". */
+function findStringArrayTypeIndex(module: BytecodeModule): number {
+  const stringIdx = module.types.findIndex(t => t.kind === "primitive" && t.val === "string");
+  if (stringIdx < 0) return 0;
+  const arrIdx = module.types.findIndex(t => t.kind === "array" && t.element === stringIdx);
+  return arrIdx < 0 ? 0 : arrIdx;
 }
 
 /** FNV-1a 64-bit hash over the raw UTF-8 bytes — mirrors vader_string_hash in C. */

@@ -2,7 +2,7 @@
 
 ## tests/snippets/mutable_set/_main.vader
   fn tests_snippets_mutable_set__main_vader$main() -> i32
-    let s#76: MutableSet(i32) =
+    let s#78: MutableSet(i32) =
       MutableSet(i32) {
         inner:
           MutableMap(i32, bool) {
@@ -31,7 +31,7 @@
                   callee:
                     add#1000174 :bool
                   arg0:
-                    s#76 :MutableSet(i32)
+                    s#78 :MutableSet(i32)
                   arg1:
                     int(10) :i32
               ~>
@@ -57,7 +57,7 @@
                   callee:
                     add#1000174 :bool
                   arg0:
-                    s#76 :MutableSet(i32)
+                    s#78 :MutableSet(i32)
                   arg1:
                     int(20) :i32
               ~>
@@ -83,7 +83,7 @@
                   callee:
                     add#1000174 :bool
                   arg0:
-                    s#76 :MutableSet(i32)
+                    s#78 :MutableSet(i32)
                   arg1:
                     int(10) :i32
               ~>
@@ -109,7 +109,7 @@
                   callee:
                     len#1000175 :usize
                   arg0:
-                    s#76 :MutableSet(i32)
+                    s#78 :MutableSet(i32)
               ~>
                 @builder.finish :string
                   __sb_3#-4 :?
@@ -133,7 +133,7 @@
                   callee:
                     contains#1000170 :bool
                   arg0:
-                    s#76 :MutableSet(i32)
+                    s#78 :MutableSet(i32)
                   arg1:
                     int(10) :i32
               ~>
@@ -159,7 +159,7 @@
                   callee:
                     contains#1000170 :bool
                   arg0:
-                    s#76 :MutableSet(i32)
+                    s#78 :MutableSet(i32)
                   arg1:
                     int(30) :i32
               ~>

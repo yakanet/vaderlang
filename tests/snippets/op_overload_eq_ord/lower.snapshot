@@ -7,10 +7,10 @@
       eq :bool
         l:
           .amount :i32
-            self#56 :Money
+            self#58 :Money
         r:
           .amount :i32
-            other#57 :Money
+            other#59 :Money
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$not_equals(self: Money, other: Money) -> bool
     return
       not :bool
@@ -18,19 +18,19 @@
           callee:
             equals#1000000 :bool
           arg0:
-            self#58 :Money
+            self#60 :Money
           arg1:
-            other#59 :Money
+            other#61 :Money
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare(self: Money, other: Money) -> i32
     if :void
       cond:
         lt :bool
           l:
             .amount :i32
-              self#60 :Money
+              self#62 :Money
           r:
             .amount :i32
-              other#61 :Money
+              other#63 :Money
       then:
         return
           neg :i32
@@ -40,10 +40,10 @@
         gt :bool
           l:
             .amount :i32
-              self#60 :Money
+              self#62 :Money
           r:
             .amount :i32
-              other#61 :Money
+              other#63 :Money
       then:
         return int(1) :i32
     return int(0) :i32
@@ -55,9 +55,9 @@
             callee:
               compare#1000002 :i32
             arg0:
-              self#62 :Money
+              self#64 :Money
             arg1:
-              other#63 :Money
+              other#65 :Money
         r:
           int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$lte(self: Money, other: Money) -> bool
@@ -68,9 +68,9 @@
             callee:
               compare#1000002 :i32
             arg0:
-              self#64 :Money
+              self#66 :Money
             arg1:
-              other#65 :Money
+              other#67 :Money
         r:
           int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$gt(self: Money, other: Money) -> bool
@@ -81,9 +81,9 @@
             callee:
               compare#1000002 :i32
             arg0:
-              self#66 :Money
+              self#68 :Money
             arg1:
-              other#67 :Money
+              other#69 :Money
         r:
           int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$gte(self: Money, other: Money) -> bool
@@ -94,21 +94,21 @@
             callee:
               compare#1000002 :i32
             arg0:
-              self#68 :Money
+              self#70 :Money
             arg1:
-              other#69 :Money
+              other#71 :Money
         r:
           int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$main() -> i32
-    let a#70: Money =
+    let a#72: Money =
       Money {
         amount: int(100) :i32
       }
-    let b#71: Money =
+    let b#73: Money =
       Money {
         amount: int(100) :i32
       }
-    let c#72: Money =
+    let c#74: Money =
       Money {
         amount: int(200) :i32
       }
@@ -132,9 +132,9 @@
                   callee:
                     equals#1000000 :bool
                   arg0:
-                    a#70 :Money
+                    a#72 :Money
                   arg1:
-                    b#71 :Money
+                    b#73 :Money
               @builder.append_str :void
                 __sb_0#-1 :?
                 "  a!=c " :string
@@ -145,9 +145,9 @@
                     callee:
                       equals#1000000 :bool
                     arg0:
-                      a#70 :Money
+                      a#72 :Money
                     arg1:
-                      c#72 :Money
+                      c#74 :Money
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?
@@ -173,9 +173,9 @@
                       callee:
                         compare#1000002 :i32
                       arg0:
-                        a#70 :Money
+                        a#72 :Money
                       arg1:
-                        c#72 :Money
+                        c#74 :Money
                   r:
                     int(0) :i32
               @builder.append_str :void
@@ -189,9 +189,9 @@
                       callee:
                         compare#1000002 :i32
                       arg0:
-                        c#72 :Money
+                        c#74 :Money
                       arg1:
-                        a#70 :Money
+                        a#72 :Money
                   r:
                     int(0) :i32
               @builder.append_str :void
@@ -205,9 +205,9 @@
                       callee:
                         compare#1000002 :i32
                       arg0:
-                        a#70 :Money
+                        a#72 :Money
                       arg1:
-                        b#71 :Money
+                        b#73 :Money
                   r:
                     int(0) :i32
               @builder.append_str :void
@@ -221,9 +221,9 @@
                       callee:
                         compare#1000002 :i32
                       arg0:
-                        c#72 :Money
+                        c#74 :Money
                       arg1:
-                        c#72 :Money
+                        c#74 :Money
                   r:
                     int(0) :i32
               ~>

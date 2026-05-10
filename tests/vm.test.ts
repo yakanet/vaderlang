@@ -1,5 +1,5 @@
 import { test } from "bun:test";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { errMsg, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
@@ -32,6 +32,12 @@ function captureIO(): Captured {
       writeFile(p, c) { writeFileSync(p, c, "utf8"); },
       exists(p) {
         try { readFileSync(p); return true; } catch { return false; }
+      },
+      isDir(p) {
+        try { return statSync(p).isDirectory(); } catch { return false; }
+      },
+      readDir(p) {
+        return readdirSync(p);
       },
     },
   };

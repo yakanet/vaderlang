@@ -787,6 +787,97 @@ vader_bool_t vader_exists(vader_string_t path) {
     return true;
 }
 
+/* `is_dir` / `read_dir` — directory traversal split across POSIX (`dirent.h`,
+ * `sys/stat.h`) and Windows (`FindFirstFileA` / `GetFileAttributesA`). Same
+ * `vader_string_alloc` discipline as the rest of the IO surface: any owned
+ * char buffer escaping the function lives off the GC arena. */
+
+#if defined(_WIN32)
+
+vader_bool_t vader_is_dir(vader_string_t path) {
+    char* p = (char*) vader_string_alloc(path.len + 1);
+    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    DWORD attr = GetFileAttributesA(p);
+    free(p);
+    return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
+                           uint32_t str_type, uint32_t err_tag) {
+    /* FindFirstFileA expects a glob — append "\\*". */
+    char* pat = (char*) vader_string_alloc(path.len + 3);
+    memcpy(pat, path.ptr, path.len);
+    size_t pat_len = path.len;
+    if (pat_len > 0 && pat[pat_len - 1] != '\\' && pat[pat_len - 1] != '/') {
+        pat[pat_len++] = '\\';
+    }
+    pat[pat_len++] = '*';
+    pat[pat_len] = '\0';
+
+    WIN32_FIND_DATAA fd;
+    HANDLE h = FindFirstFileA(pat, &fd);
+    free(pat);
+    if (h == INVALID_HANDLE_VALUE) {
+        return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
+    }
+
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0));
+    VADER_GC_PUSH1(arr_box);
+    do {
+        const char* name = fd.cFileName;
+        if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
+        size_t n = strlen(name);
+        vader_array_push((vader_array_t*) arr_box.payload.obj,
+                         vader_box_string(str_type, vader_string_new(name, n)));
+    } while (FindNextFileA(h, &fd));
+    FindClose(h);
+    vader_box_t result = arr_box;
+    VADER_GC_POP();
+    return result;
+}
+
+#else  /* POSIX */
+
+#include <dirent.h>
+#include <sys/stat.h>
+
+vader_bool_t vader_is_dir(vader_string_t path) {
+    char* p = (char*) vader_string_alloc(path.len + 1);
+    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    struct stat st;
+    int rc = stat(p, &st);
+    free(p);
+    return rc == 0 && S_ISDIR(st.st_mode);
+}
+
+vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
+                           uint32_t str_type, uint32_t err_tag) {
+    char* p = (char*) vader_string_alloc(path.len + 1);
+    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    DIR* d = opendir(p);
+    free(p);
+    if (d == NULL) {
+        return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
+    }
+
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0));
+    VADER_GC_PUSH1(arr_box);
+    struct dirent* ent;
+    while ((ent = readdir(d)) != NULL) {
+        const char* name = ent->d_name;
+        if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
+        size_t n = strlen(name);
+        vader_array_push((vader_array_t*) arr_box.payload.obj,
+                         vader_box_string(str_type, vader_string_new(name, n)));
+    }
+    closedir(d);
+    vader_box_t result = arr_box;
+    VADER_GC_POP();
+    return result;
+}
+
+#endif  /* _WIN32 / POSIX */
+
 /* ----------------------------------------------------------------- process
  *
  * `vader_spawn_run` posix_spawn-s a child with stdout/stderr redirected to

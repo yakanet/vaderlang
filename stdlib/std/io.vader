@@ -34,3 +34,9 @@ export read_file  :: fn(path: string) -> string!
 export write_file :: fn(path: string, content: string) -> void!
 @intrinsic
 export exists     :: fn(path: string) -> bool
+@intrinsic
+export is_dir     :: fn(path: string) -> bool
+// `read_dir` lists immediate entries (relative names, no `.` / `..`) in
+// OS-provided order. Caller joins against `path` if absolute paths are wanted.
+@intrinsic
+export read_dir   :: fn(path: string) -> string[]!

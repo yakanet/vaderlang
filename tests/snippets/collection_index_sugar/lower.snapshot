@@ -2,7 +2,7 @@
 
 ## tests/snippets/collection_index_sugar/_main.vader
   fn tests_snippets_collection_index_sugar__main_vader$main() -> i32
-    let m#74: MutableMap(string, i32) =
+    let m#76: MutableMap(string, i32) =
       MutableMap(string, i32) {
         buckets:
           array :Entry(string, i32) | null[]
@@ -12,7 +12,7 @@
       callee:
         set_at#1000171 :void
       arg0:
-        m#74 :MutableMap(string, i32)
+        m#76 :MutableMap(string, i32)
       arg1:
         "a" :string
       arg2:
@@ -21,7 +21,7 @@
       callee:
         set_at#1000171 :void
       arg0:
-        m#74 :MutableMap(string, i32)
+        m#76 :MutableMap(string, i32)
       arg1:
         "b" :string
       arg2:
@@ -30,7 +30,7 @@
       callee:
         set_at#1000171 :void
       arg0:
-        m#74 :MutableMap(string, i32)
+        m#76 :MutableMap(string, i32)
       arg1:
         "a" :string
       arg2:
@@ -41,7 +41,7 @@
           callee:
             at#1000170 :i32 | null
           arg0:
-            m#74 :MutableMap(string, i32)
+            m#76 :MutableMap(string, i32)
           arg1:
             "a" :string
       ~>
@@ -50,7 +50,7 @@
             is i32 :bool
               __scrut_0#-1 :i32 | null
           then:
-            let v#75: i32 =
+            let v#77: i32 =
               cast → i32
                 __scrut_0#-1 :i32 | null
             ~>
@@ -70,7 +70,7 @@
                           "a=" :string
                         @builder.append_display <for i32> :void
                           __sb_1#-2 :?
-                          v#75 :i32
+                          v#77 :i32
                         ~>
                           @builder.finish :string
                             __sb_1#-2 :?
@@ -100,7 +100,7 @@
           callee:
             at#1000170 :i32 | null
           arg0:
-            m#74 :MutableMap(string, i32)
+            m#76 :MutableMap(string, i32)
           arg1:
             "c" :string
       ~>
@@ -145,7 +145,7 @@
           callee:
             contains#1000172 :bool
           arg0:
-            m#74 :MutableMap(string, i32)
+            m#76 :MutableMap(string, i32)
           arg1:
             "a" :string
       then:
@@ -165,7 +165,7 @@
             callee:
               contains#1000172 :bool
             arg0:
-              m#74 :MutableMap(string, i32)
+              m#76 :MutableMap(string, i32)
             arg1:
               "z" :string
       then:
@@ -178,7 +178,7 @@
                 to_string#1000014 :string
               arg0:
                 "z not in m" :string
-    let s#76: MutableSet(i32) =
+    let s#78: MutableSet(i32) =
       MutableSet(i32) {
         inner:
           MutableMap(i32, bool) {
@@ -191,14 +191,14 @@
       callee:
         add#1000180 :bool
       arg0:
-        s#76 :MutableSet(i32)
+        s#78 :MutableSet(i32)
       arg1:
         int(1) :i32
     call :bool
       callee:
         add#1000180 :bool
       arg0:
-        s#76 :MutableSet(i32)
+        s#78 :MutableSet(i32)
       arg1:
         int(2) :i32
     if :void
@@ -207,7 +207,7 @@
           callee:
             contains#1000173 :bool
           arg0:
-            s#76 :MutableSet(i32)
+            s#78 :MutableSet(i32)
           arg1:
             int(1) :i32
       then:
@@ -227,7 +227,7 @@
             callee:
               contains#1000173 :bool
             arg0:
-              s#76 :MutableSet(i32)
+              s#78 :MutableSet(i32)
             arg1:
               int(3) :i32
       then:

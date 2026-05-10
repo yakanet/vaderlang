@@ -4,7 +4,7 @@
   fn tests_snippets_enum_typed__main_vader$describe(d: Direction) -> string
     return
       block :string
-        let __scrut_0#-1: Direction = d#58 :Direction
+        let __scrut_0#-1: Direction = d#60 :Direction
         ~>
           if :string
             cond:
@@ -82,9 +82,9 @@
                 describe#4 :fn(Direction) -> string
               arg0:
                 int(8) :u8
-    let op#59: Op = int(101) :u16
+    let op#61: Op = int(101) :u16
     block :void
-      let __scrut_0#-2: Op = op#59 :Op
+      let __scrut_0#-2: Op = op#61 :Op
       ~>
         if :void
           cond:

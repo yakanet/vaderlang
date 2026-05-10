@@ -271,7 +271,7 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
         throw new VmError(`vm: unbound host import "${imp.externName}" (${imp.mangledName})`, debugOf(f.fn, f.ip));
       }
       const args = popArgs(f, imp.signature.params.length);
-      const result = hostFn(args);
+      const result = hostFn(args, ctx.module);
       if (imp.signature.result !== "void") f.stack.push(result);
       f.ip++; return;
     }

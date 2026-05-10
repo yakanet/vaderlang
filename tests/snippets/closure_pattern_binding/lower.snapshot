@@ -5,18 +5,18 @@
   fn tests_snippets_closure_pattern_binding__main_vader$greet(v: i32 | P) -> void
     ~>
       block :void
-        let __scrut_0#-1: i32 | P = v#57 :i32 | P
+        let __scrut_0#-1: i32 | P = v#59 :i32 | P
         ~>
           if :void
             cond:
               is P :bool
                 __scrut_0#-1 :i32 | P
             then:
-              let p#58: ? =
+              let p#60: ? =
                 LoweredCellNew
               ~>
                 block :void
-                  let shout#59: fn() -> string =
+                  let shout#61: fn() -> string =
                     LoweredMakeClosure
                   call :void
                     callee:
@@ -28,7 +28,7 @@
                         arg0:
                           call :string
                             callee:
-                              shout#59 :fn() -> string
+                              shout#61 :fn() -> string
                   ~>
                     call :void
                       callee:
@@ -48,7 +48,7 @@
                                 __sb_4#-10 :?
                                 call :string
                                   callee:
-                                    shout#59 :fn() -> string
+                                    shout#61 :fn() -> string
                               ~>
                                 @builder.finish :string
                                   __sb_4#-10 :?
@@ -59,11 +59,11 @@
                     is i32 :bool
                       __scrut_0#-1 :i32 | P
                   then:
-                    let n#60: ? =
+                    let n#62: ? =
                       LoweredCellNew
                     ~>
                       block :void
-                        let doubled#61: fn() -> i32 =
+                        let doubled#63: fn() -> i32 =
                           LoweredMakeClosure
                         ~>
                           call :void
@@ -84,7 +84,7 @@
                                       __sb_2#-5 :?
                                       call :i32
                                         callee:
-                                          doubled#61 :fn() -> i32
+                                          doubled#63 :fn() -> i32
                                     ~>
                                       @builder.finish :string
                                         __sb_2#-5 :?

@@ -17,7 +17,7 @@
                 __sb_0#-1 :?
                 call :f64
                   callee:
-                    sqrt#38 :fn(f64) -> f64
+                    sqrt#40 :fn(f64) -> f64
                   arg0:
                     float(4) :f64
               ~>
@@ -38,7 +38,7 @@
                 __sb_1#-2 :?
                 call :f64
                   callee:
-                    pow#39 :fn(f64, f64) -> f64
+                    pow#41 :fn(f64, f64) -> f64
                   arg0:
                     float(2) :f64
                   arg1:
@@ -61,7 +61,7 @@
                 __sb_2#-3 :?
                 call :f64
                   callee:
-                    floor#40 :fn(f64) -> f64
+                    floor#42 :fn(f64) -> f64
                   arg0:
                     float(3.7) :f64
               ~>
@@ -82,7 +82,7 @@
                 __sb_3#-4 :?
                 call :f64
                   callee:
-                    ceil#41 :fn(f64) -> f64
+                    ceil#43 :fn(f64) -> f64
                   arg0:
                     float(3.2) :f64
               ~>
@@ -103,7 +103,7 @@
                 __sb_4#-5 :?
                 call :f64
                   callee:
-                    round#42 :fn(f64) -> f64
+                    round#44 :fn(f64) -> f64
                   arg0:
                     float(2.5) :f64
               ~>

@@ -298,6 +298,13 @@ vader_box_t    vader_write_file(vader_string_t path, vader_string_t content,
                                 uint32_t ok_tag, uint32_t err_tag);
 vader_box_t    vader_read_line(uint32_t ok_tag, uint32_t err_tag);
 vader_bool_t   vader_exists(vader_string_t path);
+vader_bool_t   vader_is_dir(vader_string_t path);
+/* `read_dir` lists the immediate entries of `path` as a `[string]`. Entries
+ * are returned in OS-provided order (POSIX `readdir`, Windows `FindNextFileA`)
+ * minus `.` and `..`. On failure, boxes an Error variant carrying a short
+ * diagnostic string. */
+vader_box_t    vader_read_dir(vader_string_t path, uint32_t arr_type,
+                              uint32_t str_type, uint32_t err_tag);
 
 /* ----------------------------------------------------------------- process
  * `spawn_run` blocks on the child, stashes captured stdout/stderr into

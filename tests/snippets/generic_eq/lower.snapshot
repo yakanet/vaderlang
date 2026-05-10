@@ -53,6 +53,6 @@
     return
       eq :bool
         l:
-          a#57 :i32
+          a#59 :i32
         r:
-          b#58 :i32
+          b#60 :i32

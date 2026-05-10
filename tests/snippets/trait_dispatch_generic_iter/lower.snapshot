@@ -2,15 +2,15 @@
 
 ## tests/snippets/trait_dispatch_generic_iter/_main.vader
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$walk(it: Iterator(i32)) -> i32
-    let sum#80: i32 = int(0) :i32
-    let cont#81: bool = true
-    loop while (cont#81 :bool)
+    let sum#82: i32 = int(0) :i32
+    let cont#83: bool = true
+    loop while (cont#83 :bool)
       ~>
         block :void
           let __scrut_0#-1: Done | Yielded(i32) =
             vcall Iterator.step :Done | Yielded(i32)
               recv:
-                it#79 :Iterator(i32)
+                it#81 :Iterator(i32)
           ~>
             if :void
               cond:
@@ -21,7 +21,7 @@
                   block :void
                     assign
                       target:
-                        cont#81 :bool
+                        cont#83 :bool
                       value:
                         false
               else:
@@ -31,32 +31,32 @@
                       is Yielded(i32) :bool
                         __scrut_0#-1 :Done | Yielded(i32)
                     then:
-                      let y#82: Yielded(i32) =
+                      let y#84: Yielded(i32) =
                         cast → Yielded(i32)
                           __scrut_0#-1 :Done | Yielded(i32)
                       ~>
                         block :void
                           assign
                             target:
-                              sum#80 :i32
+                              sum#82 :i32
                             value:
                               add :i32
                                 l:
-                                  sum#80 :i32
+                                  sum#82 :i32
                                 r:
                                   .value :i32
-                                    y#82 :Yielded(i32)
+                                    y#84 :Yielded(i32)
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return sum#80 :i32
+    return sum#82 :i32
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$main() -> i32
-    let r#83: Repeat(i32) =
+    let r#85: Repeat(i32) =
       Repeat(i32) {
         value: int(7) :i32
         remaining: int(3) :i32
       }
-    let o#84: Once(i32) =
+    let o#86: Once(i32) =
       Once(i32) {
         value: int(100) :i32
         yielded: false
@@ -81,7 +81,7 @@
                   callee:
                     walk#4 :fn(Iterator(i32)) -> i32
                   arg0:
-                    r#83 :Repeat(i32)
+                    r#85 :Repeat(i32)
               ~>
                 @builder.finish :string
                   __sb_0#-2 :?
@@ -105,7 +105,7 @@
                   callee:
                     walk#4 :fn(Iterator(i32)) -> i32
                   arg0:
-                    o#84 :Once(i32)
+                    o#86 :Once(i32)
               ~>
                 @builder.finish :string
                   __sb_1#-3 :?
@@ -117,30 +117,30 @@
         lte :bool
           l:
             .remaining :i32
-              self#59 :Repeat(i32)
+              self#61 :Repeat(i32)
           r:
             int(0) :i32
       then:
         return
           Done {
           }
-    let v#60: i32 =
+    let v#62: i32 =
       .value :i32
-        self#59 :Repeat(i32)
+        self#61 :Repeat(i32)
     assign
       target:
         .remaining :i32
-          self#59 :Repeat(i32)
+          self#61 :Repeat(i32)
       value:
         sub :i32
           l:
             .remaining :i32
-              self#59 :Repeat(i32)
+              self#61 :Repeat(i32)
           r:
             int(1) :i32
     return
       Yielded(i32) {
-        value: v#60 :i32
+        value: v#62 :i32
       }
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$is_empty__i32(self: Repeat(i32)) -> bool
     ~>
@@ -149,7 +149,7 @@
           call :Done | Yielded(i32)
             callee:
               .step :fn() -> Done | Yielded(i32)
-                self#61 :Repeat(i32)
+                self#63 :Repeat(i32)
         ~>
           if :bool
             cond:
@@ -171,8 +171,8 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$count__i32(self: Repeat(i32)) -> usize
-    let total#63: usize = int(0) :usize
-    let finished#64: bool = false
+    let total#65: usize = int(0) :usize
+    let finished#66: bool = false
     loop while (<…>)
       ~>
         block :void
@@ -180,7 +180,7 @@
             call :Done | Yielded(i32)
               callee:
                 .step :fn() -> Done | Yielded(i32)
-                  self#62 :Repeat(i32)
+                  self#64 :Repeat(i32)
           ~>
             if :void
               cond:
@@ -191,7 +191,7 @@
                   block :void
                     assign
                       target:
-                        finished#64 :bool
+                        finished#66 :bool
                       value:
                         true
               else:
@@ -205,20 +205,20 @@
                         block :void
                           assign
                             target:
-                              total#63 :usize
+                              total#65 :usize
                             value:
                               add :usize
                                 l:
-                                  total#63 :usize
+                                  total#65 :usize
                                 r:
                                   int(1) :usize
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return total#63 :usize
+    return total#65 :usize
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$last__i32(self: Repeat(i32)) -> i32 | null
-    let result#66: i32 | null = null
-    let finished#67: bool = false
+    let result#68: i32 | null = null
+    let finished#69: bool = false
     loop while (<…>)
       ~>
         block :void
@@ -226,7 +226,7 @@
             call :Done | Yielded(i32)
               callee:
                 .step :fn() -> Done | Yielded(i32)
-                  self#65 :Repeat(i32)
+                  self#67 :Repeat(i32)
           ~>
             if :void
               cond:
@@ -237,7 +237,7 @@
                   block :void
                     assign
                       target:
-                        finished#67 :bool
+                        finished#69 :bool
                       value:
                         true
               else:
@@ -247,27 +247,27 @@
                       is Yielded(i32) :bool
                         __scrut_0#-6 :Done | Yielded(i32)
                     then:
-                      let y#68: Yielded(i32) =
+                      let y#70: Yielded(i32) =
                         cast → Yielded(i32)
                           __scrut_0#-6 :Done | Yielded(i32)
                       ~>
                         block :void
                           assign
                             target:
-                              result#66 :i32 | null
+                              result#68 :i32 | null
                             value:
                               .value :i32
-                                y#68 :Yielded(i32)
+                                y#70 :Yielded(i32)
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return result#66 :i32 | null
+    return result#68 :i32 | null
   struct tests_snippets_trait_dispatch_generic_iter__main_vader$Once__i32 { value: i32, yielded: bool }
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$step__i32(self: Once(i32)) -> Done | Yielded(i32)
     if :void
       cond:
         .yielded :bool
-          self#70 :Once(i32)
+          self#72 :Once(i32)
       then:
         return
           Done {
@@ -275,14 +275,14 @@
     assign
       target:
         .yielded :bool
-          self#70 :Once(i32)
+          self#72 :Once(i32)
       value:
         true
     return
       Yielded(i32) {
         value:
           .value :i32
-            self#70 :Once(i32)
+            self#72 :Once(i32)
       }
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$is_empty__i32(self: Once(i32)) -> bool
     ~>
@@ -291,7 +291,7 @@
           call :Done | Yielded(i32)
             callee:
               .step :fn() -> Done | Yielded(i32)
-                self#71 :Once(i32)
+                self#73 :Once(i32)
         ~>
           if :bool
             cond:
@@ -313,8 +313,8 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$count__i32(self: Once(i32)) -> usize
-    let total#73: usize = int(0) :usize
-    let finished#74: bool = false
+    let total#75: usize = int(0) :usize
+    let finished#76: bool = false
     loop while (<…>)
       ~>
         block :void
@@ -322,7 +322,7 @@
             call :Done | Yielded(i32)
               callee:
                 .step :fn() -> Done | Yielded(i32)
-                  self#72 :Once(i32)
+                  self#74 :Once(i32)
           ~>
             if :void
               cond:
@@ -333,7 +333,7 @@
                   block :void
                     assign
                       target:
-                        finished#74 :bool
+                        finished#76 :bool
                       value:
                         true
               else:
@@ -347,20 +347,20 @@
                         block :void
                           assign
                             target:
-                              total#73 :usize
+                              total#75 :usize
                             value:
                               add :usize
                                 l:
-                                  total#73 :usize
+                                  total#75 :usize
                                 r:
                                   int(1) :usize
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return total#73 :usize
+    return total#75 :usize
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$last__i32(self: Once(i32)) -> i32 | null
-    let result#76: i32 | null = null
-    let finished#77: bool = false
+    let result#78: i32 | null = null
+    let finished#79: bool = false
     loop while (<…>)
       ~>
         block :void
@@ -368,7 +368,7 @@
             call :Done | Yielded(i32)
               callee:
                 .step :fn() -> Done | Yielded(i32)
-                  self#75 :Once(i32)
+                  self#77 :Once(i32)
           ~>
             if :void
               cond:
@@ -379,7 +379,7 @@
                   block :void
                     assign
                       target:
-                        finished#77 :bool
+                        finished#79 :bool
                       value:
                         true
               else:
@@ -389,18 +389,18 @@
                       is Yielded(i32) :bool
                         __scrut_0#-42 :Done | Yielded(i32)
                     then:
-                      let y#78: Yielded(i32) =
+                      let y#80: Yielded(i32) =
                         cast → Yielded(i32)
                           __scrut_0#-42 :Done | Yielded(i32)
                       ~>
                         block :void
                           assign
                             target:
-                              result#76 :i32 | null
+                              result#78 :i32 | null
                             value:
                               .value :i32
-                                y#78 :Yielded(i32)
+                                y#80 :Yielded(i32)
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return result#76 :i32 | null
+    return result#78 :i32 | null

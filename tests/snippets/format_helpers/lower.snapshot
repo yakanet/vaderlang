@@ -20,7 +20,7 @@
                 __sb_0#-1 :?
                 call :string
                   callee:
-                    pad_start#65 :string
+                    pad_start#67 :string
                   arg0:
                     "42" :string
                   arg1:
@@ -51,7 +51,7 @@
                 __sb_1#-2 :?
                 call :string
                   callee:
-                    pad_end#66 :string
+                    pad_end#68 :string
                   arg0:
                     "42" :string
                   arg1:
@@ -82,7 +82,7 @@
                 __sb_2#-3 :?
                 call :string
                   callee:
-                    pad_start#65 :string
+                    pad_start#67 :string
                   arg0:
                     "hello" :string
                   arg1:
@@ -95,7 +95,7 @@
               ~>
                 @builder.finish :string
                   __sb_2#-3 :?
-    let n#147: u64 = int(255) :u64
+    let n#149: u64 = int(255) :u64
     call :void
       callee:
         println#29 :fn(Display) -> void
@@ -114,9 +114,9 @@
                 __sb_3#-4 :?
                 call :string
                   callee:
-                    to_hex#90 :string
+                    to_hex#92 :string
                   arg0:
-                    n#147 :u64
+                    n#149 :u64
               ~>
                 @builder.finish :string
                   __sb_3#-4 :?
@@ -138,9 +138,9 @@
                 __sb_4#-5 :?
                 call :string
                   callee:
-                    to_bin#91 :string
+                    to_bin#93 :string
                   arg0:
-                    n#147 :u64
+                    n#149 :u64
               ~>
                 @builder.finish :string
                   __sb_4#-5 :?
@@ -162,13 +162,13 @@
                 __sb_5#-6 :?
                 call :string
                   callee:
-                    pad_start#65 :string
+                    pad_start#67 :string
                   arg0:
                     call :string
                       callee:
-                        to_hex#90 :string
+                        to_hex#92 :string
                       arg0:
-                        n#147 :u64
+                        n#149 :u64
                   arg1:
                     int(4) :usize
                   arg2:
@@ -176,7 +176,7 @@
               ~>
                 @builder.finish :string
                   __sb_5#-6 :?
-    let zero#148: u64 = int(0) :u64
+    let zero#150: u64 = int(0) :u64
     call :void
       callee:
         println#29 :fn(Display) -> void
@@ -195,9 +195,9 @@
                 __sb_6#-7 :?
                 call :string
                   callee:
-                    to_bin#91 :string
+                    to_bin#93 :string
                   arg0:
-                    zero#148 :u64
+                    zero#150 :u64
               ~>
                 @builder.finish :string
                   __sb_6#-7 :?
@@ -219,7 +219,7 @@
                 __sb_7#-8 :?
                 call :bool
                   callee:
-                    is_white_char#67 :bool
+                    is_white_char#69 :bool
                   arg0:
                     char(0x20)
               ~>
@@ -243,7 +243,7 @@
                 __sb_8#-9 :?
                 call :bool
                   callee:
-                    is_white_char#67 :bool
+                    is_white_char#69 :bool
                   arg0:
                     char(0x61)
               ~>
@@ -267,7 +267,7 @@
                 __sb_9#-10 :?
                 call :bool
                   callee:
-                    is_white_char#67 :bool
+                    is_white_char#69 :bool
                   arg0:
                     char(0x9)
               ~>
