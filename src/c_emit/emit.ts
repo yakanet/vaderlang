@@ -443,15 +443,13 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
 
   // Declare local slots (params already declared in the signature). `void`
   // slots are runtime-meaningless placeholders the lowerer uses to thread
-  // block-trailing exprs past `defer`s; we skip emitting a real variable and
-  // make local.{get,set,tee} on those slots be no-ops at the op-level.
-  for (let i = 0; i < fn.locals.length; i++) {
-    const slot = fn.signature.params.length + i;
-    const local = fn.locals[i]!;
-    if (local.val === "void") continue;
-    out.push(`    ${cTypeForVal(ctx, local.val)} l${slot} = ${zeroInit(ctx, local.val)};`);
-    if (isRefVal(local.val)) rootAddrs.push(`&l${slot}`);
-  }
+  // block-trailing exprs past `defer`s ; we skip emitting a real variable
+  // and make local.{get,set,tee} on those slots be no-ops at the op-level.
+  // Slots are bucketed by ValType so we can collapse same-typed locals into
+  // a single comma-separated declaration — `int32_t l1=0, l2=0, l3=0;` in
+  // place of one line per local. ~3-4× compression on the local-decl
+  // boilerplate of fns with many primitives.
+  emitLocalDecls(out, ctx, fn, rootAddrs);
 
   // Per-op tmp vars: every push allocates a fresh `tN`. The stack tracks
   // `{ name, val }` so we know how to coerce when crossing slot boundaries.
@@ -490,9 +488,14 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
   // unconditionally pop without a runtime check; the cost is two memory ops
   // per call, which the C compiler usually folds away.
   const prelude: string[] = [];
-  for (const idx of state.refTmpIndices) {
-    prelude.push(`    vader_box_t t${idx} = vader_box_null();`);
-    rootAddrs.push(`&t${idx}`);
+  if (state.refTmpIndices.length > 0) {
+    const PER_LINE = 6;
+    for (const idx of state.refTmpIndices) rootAddrs.push(`&t${idx}`);
+    for (let i = 0; i < state.refTmpIndices.length; i += PER_LINE) {
+      const chunk = state.refTmpIndices.slice(i, i + PER_LINE)
+        .map((idx) => `t${idx} = vader_box_null()`).join(", ");
+      prelude.push(`    vader_box_t ${chunk};`);
+    }
   }
   if (rootAddrs.length > 0) {
     prelude.push(`    vader_box_t* gc_roots[${rootAddrs.length}] = { ${rootAddrs.join(", ")} };`);
@@ -514,6 +517,34 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
 
 function isRefVal(v: ValType): boolean {
   return v === "ref" || v === "any";
+}
+
+/** Bucket the fn's locals by ValType and emit one comma-separated decl
+ *  per type, padding the line to ~6 entries before wrapping. Each entry
+ *  also pushes its `&lN` onto `rootAddrs` when ref-typed so the GC frame
+ *  pins the slot. */
+function emitLocalDecls(
+  out: string[], ctx: EmitCtx, fn: BcFunction, rootAddrs: string[],
+): void {
+  const buckets = new Map<ValType, number[]>();
+  for (let i = 0; i < fn.locals.length; i++) {
+    const local = fn.locals[i]!;
+    if (local.val === "void") continue;
+    const slot = fn.signature.params.length + i;
+    let bucket = buckets.get(local.val);
+    if (bucket === undefined) { bucket = []; buckets.set(local.val, bucket); }
+    bucket.push(slot);
+    if (isRefVal(local.val)) rootAddrs.push(`&l${slot}`);
+  }
+  const PER_LINE = 6;
+  for (const [val, slots] of buckets) {
+    const ctype = cTypeForVal(ctx, val);
+    const init  = zeroInit(ctx, val);
+    for (let i = 0; i < slots.length; i += PER_LINE) {
+      const chunk = slots.slice(i, i + PER_LINE).map((s) => `l${s} = ${init}`).join(", ");
+      out.push(`    ${ctype} ${chunk};`);
+    }
+  }
 }
 
 // ------------------------------------------------------------- per-fn state
