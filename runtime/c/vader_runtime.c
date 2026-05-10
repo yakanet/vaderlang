@@ -106,9 +106,20 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
 
 /* Forward-copy `obj` (typed by `type_index`) to to-space. Returns the new
  * address, or the existing forwarding address if already copied this cycle.
- * NULL inputs round-trip as NULL. */
+ * NULL inputs round-trip as NULL.
+ *
+ * Pointers outside the from-space arena are treated as immortal — static
+ * compile-time data (lookup tables, interned constants) lives in the C data
+ * segment and is never copied. The C-emit may emit such tables for fns
+ * matching the `match enum -> StructLit constant` pattern (TODO §3.5 Prop 2).
+ * Constraint: a static object MUST NOT contain any pointer to a dynamic
+ * (arena-allocated) object — the Cheney scan never visits it, so any inner
+ * dynamic ref would be missed and freed under your feet. */
 static void* vader_gc_forward(void* obj, uint32_t type_index) {
     if (obj == NULL) return NULL;
+    if ((char*) obj < g_from_space.base || (char*) obj >= g_from_space.end) {
+        return obj;                                    /* static / immortal */
+    }
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
     if (hdr->forward != NULL) return hdr->forward;     /* already moved */
     size_t bytes = vader_gc_obj_size(obj, type_index);
@@ -147,6 +158,9 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
  * header to get its type, forwards, updates. Used for fn closure envs. */
 static void vader_gc_scan_raw(void** slot) {
     if (slot == NULL || *slot == NULL) return;
+    if ((char*) *slot < g_from_space.base || (char*) *slot >= g_from_space.end) {
+        return;                                        /* static / immortal */
+    }
     vader_obj_header_t* hdr = (vader_obj_header_t*) *slot;
     /* Watch for a forwarding pointer left over from this cycle. */
     if (hdr->forward != NULL) { *slot = hdr->forward; return; }
