@@ -1,0 +1,242 @@
+// vader/fmt/comments — comment pre-scan.
+//
+// The lexer drops every `//` and `/* */` comment before the token stream
+// reaches the parser (cf. vader/lexer/lexer.vader::consume_block_comment).
+// To preserve comments across format passes we re-scan the raw source in a
+// dedicated pass and build an offset-keyed map. The printer consults the
+// map at every AST-node boundary and interleaves matching comments at the
+// right indentation.
+
+import "std/string" { byte_len, byte_at, char_at, slice as slice_text }
+
+export CommentKind :: enum(u8) {
+    Line,    // `// …`
+    Block,   // `/* … */` (may contain nested `/* … */`)
+}
+
+export Comment :: struct {
+    // Byte offset (inclusive) of the leading `/` in the source.
+    offset:      usize
+    // Byte offset (exclusive) past the comment's closing token.
+    end_offset:  usize
+    // 1-based source line of `offset` — used to decide leading vs trailing.
+    line:        i32
+    kind:        CommentKind
+    // Verbatim source slice including delimiters. Re-emitted as-is.
+    text:        string
+}
+
+// Sorted by `offset` ascending. `cursor` is the index of the next un-emitted
+// comment ; the printer's `take_*` methods advance it.
+export CommentMap :: struct {
+    comments: Comment[]
+    cursor:   usize
+}
+
+// Walk the source and collect every comment span. Mirrors the lexer's
+// classification : single-line `//` consumes to end-of-line ; block `/* */`
+// supports nesting (depth counter), like the lexer's `consume_block_comment`.
+// String literals are skipped so a `"contains // pseudo-comment"` literal
+// doesn't fool the scanner.
+export scan_comments :: fn(source: string) -> CommentMap {
+    out: Comment[] = []
+    n :: source.byte_len()
+    i: usize = 0
+    line: i32 = 1
+    for i < n {
+        b :: source.byte_at(i)
+
+        // Newline tracking. `\n` only — CR is normalised elsewhere.
+        if b == 10u8 {
+            line = line + 1
+            i = i + usize(1)
+            continue
+        }
+
+        // `//` line comment.
+        if b == 47u8 && i + usize(1) < n && source.byte_at(i + usize(1)) == 47u8 {
+            start :: i
+            start_line :: line
+            // Scan to next newline (or EOF). Newline itself is NOT part of
+            // the comment's text — that matches how the printer re-emits.
+            j: usize = i + usize(2)
+            for j < n && source.byte_at(j) != 10u8 {
+                j = j + usize(1)
+            }
+            text :: source.slice_text(start, j)
+            out.push(Comment {
+                .offset = start,
+                .end_offset = j,
+                .line = start_line,
+                .kind = .Line,
+                .text = text,
+            })
+            i = j
+            continue
+        }
+
+        // `/* … */` block comment, nesting-aware.
+        if b == 47u8 && i + usize(1) < n && source.byte_at(i + usize(1)) == 42u8 {
+            start :: i
+            start_line :: line
+            j: usize = i + usize(2)
+            depth: i32 = 1
+            for j < n && depth > 0 {
+                cur :: source.byte_at(j)
+                if cur == 10u8 {
+                    line = line + 1
+                    j = j + usize(1)
+                    continue
+                }
+                if cur == 47u8 && j + usize(1) < n && source.byte_at(j + usize(1)) == 42u8 {
+                    depth = depth + 1
+                    j = j + usize(2)
+                    continue
+                }
+                if cur == 42u8 && j + usize(1) < n && source.byte_at(j + usize(1)) == 47u8 {
+                    depth = depth - 1
+                    j = j + usize(2)
+                    continue
+                }
+                j = j + usize(1)
+            }
+            text :: source.slice_text(start, j)
+            out.push(Comment {
+                .offset = start,
+                .end_offset = j,
+                .line = start_line,
+                .kind = .Block,
+                .text = text,
+            })
+            i = j
+            continue
+        }
+
+        // String literals — skip the entire span so embedded `//` / `/*` don't
+        // confuse the scanner. We don't handle interpolation specially since
+        // we don't care what's *inside* the literal, only the closing quote.
+        if b == 34u8 {
+            // Triple-quoted ?
+            if i + usize(2) < n && source.byte_at(i + usize(1)) == 34u8 && source.byte_at(i + usize(2)) == 34u8 {
+                j: usize = i + usize(3)
+                for j + usize(2) < n {
+                    if source.byte_at(j) == 34u8 && source.byte_at(j + usize(1)) == 34u8 && source.byte_at(j + usize(2)) == 34u8 {
+                        j = j + usize(3)
+                        break
+                    }
+                    if source.byte_at(j) == 10u8 { line = line + 1 }
+                    j = j + usize(1)
+                }
+                i = j
+                continue
+            }
+            // Plain `"…"`, handling escape `\"` and `\\`. The scanner doesn't
+            // recurse into `${expr}` interpolation : a closing `"` inside an
+            // interp expression is rare and we accept the small risk of
+            // misclassification.
+            j: usize = i + usize(1)
+            for j < n {
+                c :: source.byte_at(j)
+                if c == 92u8 && j + usize(1) < n {
+                    j = j + usize(2)
+                    continue
+                }
+                if c == 34u8 {
+                    j = j + usize(1)
+                    break
+                }
+                if c == 10u8 { line = line + 1 }
+                j = j + usize(1)
+            }
+            i = j
+            continue
+        }
+
+        // Raw string `r"…"`.
+        if b == 114u8 && i + usize(1) < n && source.byte_at(i + usize(1)) == 34u8 {
+            j: usize = i + usize(2)
+            for j < n {
+                c :: source.byte_at(j)
+                if c == 34u8 {
+                    j = j + usize(1)
+                    break
+                }
+                if c == 10u8 { line = line + 1 }
+                j = j + usize(1)
+            }
+            i = j
+            continue
+        }
+
+        // Char literal `'…'`. Same escape rules as strings.
+        if b == 39u8 {
+            j: usize = i + usize(1)
+            for j < n {
+                c :: source.byte_at(j)
+                if c == 92u8 && j + usize(1) < n {
+                    j = j + usize(2)
+                    continue
+                }
+                if c == 39u8 {
+                    j = j + usize(1)
+                    break
+                }
+                j = j + usize(1)
+            }
+            i = j
+            continue
+        }
+
+        i = i + usize(1)
+    }
+
+    return CommentMap { .comments = out, .cursor = usize(0) }
+}
+
+// True when at least one un-emitted comment has `offset < before`. The
+// printer uses this to decide whether a separator line is needed between
+// the leading-comment run and the AST node that follows.
+export has_before :: fn(self: CommentMap, before: usize) -> bool {
+    if self.cursor >= self.comments.len() { return false }
+    c :: self.comments[self.cursor]
+    return c.offset < before
+}
+
+// Return every un-emitted comment whose `offset < before` and advance the
+// cursor past them. The printer calls this just before emitting each
+// AST node so leading comments land at the right position.
+export take_before :: fn(self: CommentMap, before: usize) -> Comment[] {
+    out: Comment[] = []
+    for self.cursor < self.comments.len() {
+        c :: self.comments[self.cursor]
+        if c.offset >= before { break }
+        out.push(c)
+        self.cursor = self.cursor + usize(1)
+    }
+    return out
+}
+
+// Return a trailing comment for a node : an un-emitted comment whose `line`
+// equals `node_end_line` AND whose `offset >= node_end_offset`. There's at
+// most one — once we find it, advance the cursor. `null` when nothing
+// matches.
+export take_trailing :: fn(self: CommentMap, node_end_line: i32, node_end_offset: usize) -> Comment | null {
+    if self.cursor >= self.comments.len() { return null }
+    c :: self.comments[self.cursor]
+    if c.line == node_end_line && c.offset >= node_end_offset {
+        self.cursor = self.cursor + usize(1)
+        return c
+    }
+    return null
+}
+
+// Drain every remaining comment (used at end-of-file to flush trailing
+// comments after the last decl).
+export drain_remaining :: fn(self: CommentMap) -> Comment[] {
+    out: Comment[] = []
+    for self.cursor < self.comments.len() {
+        out.push(self.comments[self.cursor])
+        self.cursor = self.cursor + usize(1)
+    }
+    return out
+}

@@ -17,6 +17,7 @@ import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver/dump" { dump_project }
+import "vader/fmt/cli" { run_fmt }
 
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
 // the newline immediately after the opening `"""`, so the body starts at
@@ -173,9 +174,7 @@ cmd_run :: fn(args: string[]) -> i32 {
 }
 
 cmd_fmt :: fn(args: string[]) -> i32 {
-    path :: if args.len() > 0 { args[0] } else { "." }
-    eprintln("vader fmt: not yet implemented (would format ${path})")
-    return 2
+    return run_fmt(args)
 }
 
 cmd_test :: fn(args: string[]) -> i32 {

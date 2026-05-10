@@ -1,0 +1,33 @@
+// vader/fmt/format — top-level entry points for the formatter.
+
+import "vader/parser" { parse_source, Program }
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/fmt/comments" { scan_comments }
+import "vader/fmt/printer" { new_printer, emit_program }
+
+// FormatResult carries either the formatted output or the diagnostic list
+// the parser emitted. Callers decide whether to write back, print, or skip.
+export FormatResult :: ParseFailure | Formatted
+
+export ParseFailure :: struct {
+    diagnostics: Diagnostic[]
+}
+
+export Formatted :: struct {
+    output: string
+}
+
+// `path` is purely informational — used as the `file` field of `Program` for
+// diagnostic provenance. The actual source bytes come from `source`.
+export format_source :: fn(source: string, path: string) -> FormatResult {
+    pr :: parse_source(source, path)
+    if pr.errors.len() > usize(0) {
+        // Don't format files with parse errors — round-trip parity cannot
+        // hold when the AST is partial.
+        return ParseFailure { .diagnostics = pr.errors }
+    }
+    cm :: scan_comments(source)
+    pp :: new_printer(source, cm)
+    output :: pp.emit_program(pr.program)
+    return Formatted { .output = output }
+}

@@ -1,0 +1,195 @@
+// vader/fmt/cli — `vader fmt` argv dispatch + file walk.
+//
+// Surface mirrors `gofmt`/`prettier --write`/`rustfmt` :
+//   vader fmt              format every .vader under cwd, in place
+//   vader fmt <path>       format file or directory in place
+//   vader fmt --check ...  read-only ; exit 1 if any drift
+//   vader fmt --stdout ... single-file, write to stdout, don't touch disk
+
+import "std/io" { read_file, write_file, exists, is_dir, read_dir, println, eprintln }
+import "std/string" { byte_len, ends_with, starts_with }
+import "std/path" { Path, join, to_path, as_string }
+import "vader/fmt/format" { format_source, FormatResult, ParseFailure, Formatted }
+
+// Per-file outcome. Typed so call sites can pattern-match instead of
+// chaining magic-number comparisons. `to_exit_code` collapses to the OS
+// integer at the very end of `run_fmt` ; mirrors the contract in the
+// TS shim (`src/cli/commands/fmt.ts`).
+FileResult :: enum(u8) {
+    Ok,           // no change, or written successfully
+    Drift,        // --check : would format
+    ParseSkip,    // skipped because the parser emitted diagnostics
+    IoError,      // read / write / readdir failed
+}
+
+to_exit_code :: fn(r: FileResult) -> i32 {
+    match r {
+        .Ok        -> 0
+        .Drift     -> 1
+        .ParseSkip -> 2
+        .IoError   -> 3
+    }
+}
+
+Mode :: enum(u8) {
+    InPlace,
+    Check,
+    Stdout,
+}
+
+Options :: struct {
+    mode:  Mode
+    paths: string[]
+}
+
+parse_args :: fn(args: string[]) -> Options {
+    mode := Mode.InPlace
+    paths: string[] = []
+    for a in args {
+        if a == "--check" {
+            mode = Mode.Check
+            continue
+        }
+        if a == "--stdout" {
+            mode = Mode.Stdout
+            continue
+        }
+        paths.push(a)
+    }
+    if paths.len() == usize(0) { paths.push(".") }
+    return Options { .mode = mode, .paths = paths }
+}
+
+// Recursive `.vader` collector. Skips hidden entries and known build dirs by
+// name so `vader fmt .` doesn't walk vendored / generated trees.
+collect_files :: fn(root: string, out: string[]) -> void {
+    if !exists(root) {
+        eprintln("vader fmt: path not found: ${root}")
+        return
+    }
+    if !is_dir(root) {
+        if root.ends_with(".vader") {
+            out.push(root)
+        }
+        return
+    }
+    r :: read_dir(root)
+    match r {
+        is Error -> eprintln("vader fmt: cannot read directory: ${root}")
+        is string[] as entries -> {
+            for name in entries {
+                if name.starts_with(".") { continue }
+                if name == "node_modules" || name == "target" || name == "dist" || name == "build" {
+                    continue
+                }
+                full :: to_path(root).join(name).as_string()
+                if is_dir(full) {
+                    collect_files(full, out)
+                } else if full.ends_with(".vader") {
+                    out.push(full)
+                }
+            }
+        }
+    }
+}
+
+// Drive the formatter over the resolved file set. Aggregates per-file
+// FileResults and collapses to a single OS exit code at the end.
+export run_fmt :: fn(args: string[]) -> i32 {
+    opts :: parse_args(args)
+
+    // `--stdout` is single-file only.
+    if opts.mode == Mode.Stdout {
+        if opts.paths.len() != usize(1) {
+            eprintln("vader fmt: --stdout requires exactly one file path")
+            return to_exit_code(FileResult.Drift)
+        }
+        return to_exit_code(run_one_stdout(opts.paths[0]))
+    }
+
+    files: string[] = []
+    for p in opts.paths { collect_files(p, files) }
+
+    drift   := 0
+    skipped := 0
+    errors  := 0
+    for f in files {
+        match run_one(f, opts.mode) {
+            .Ok        -> {}
+            .Drift     -> { drift = drift + 1 }
+            .ParseSkip -> { skipped = skipped + 1 }
+            .IoError   -> { errors = errors + 1 }
+        }
+    }
+
+    if errors > 0 { return to_exit_code(FileResult.IoError) }
+    if opts.mode == Mode.Check && drift > 0 { return to_exit_code(FileResult.Drift) }
+    if skipped > 0 { return to_exit_code(FileResult.ParseSkip) }
+    return to_exit_code(FileResult.Ok)
+}
+
+// Format one file. Returns a FileResult.
+run_one :: fn(path: string, mode: Mode) -> FileResult {
+    src := ""
+    r :: read_file(path)
+    match r {
+        is Error -> {
+            eprintln("vader fmt: cannot read ${path}")
+            return FileResult.IoError
+        }
+        is string as s -> { src = s }
+    }
+
+    out :: format_source(src, path)
+    match out {
+        is ParseFailure -> {
+            eprintln("vader fmt: skipped (parse errors): ${path}")
+            return FileResult.ParseSkip
+        }
+        is Formatted as f -> {
+            if f.output == src {
+                return FileResult.Ok
+            }
+            if mode == Mode.Check {
+                eprintln("would format ${path}")
+                return FileResult.Drift
+            }
+            // In-place. (Stdout case routes to run_one_stdout above.)
+            w :: write_file(path, f.output)
+            match w {
+                is Error -> {
+                    eprintln("vader fmt: cannot write ${path}")
+                    return FileResult.IoError
+                }
+                is null -> { return FileResult.Ok }
+            }
+        }
+    }
+    // Unreachable — every arm above returns. The outer `match` is a void
+    // expression so the fn would otherwise be inferred to return void.
+    return FileResult.IoError
+}
+
+run_one_stdout :: fn(path: string) -> FileResult {
+    src := ""
+    r :: read_file(path)
+    match r {
+        is Error -> {
+            eprintln("vader fmt: cannot read ${path}")
+            return FileResult.IoError
+        }
+        is string as s -> { src = s }
+    }
+    out :: format_source(src, path)
+    match out {
+        is ParseFailure -> {
+            eprintln("vader fmt: skipped (parse errors): ${path}")
+            return FileResult.ParseSkip
+        }
+        is Formatted as f -> {
+            println(f.output)
+            return FileResult.Ok
+        }
+    }
+    return FileResult.IoError   // unreachable, see note above
+}
