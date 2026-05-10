@@ -16,7 +16,7 @@
                   @builder.new :?
                 @builder.append_display <for string> :void
                   __sb_0#-1 :?
-                  label#160 :string
+                  label#158 :string
                 @builder.append_str :void
                   __sb_0#-1 :?
                   "=" :string
@@ -26,12 +26,12 @@
                     callee:
                       as_string#60 :string
                     arg0:
-                      p#161 :Path
+                      p#159 :Path
                 ~>
                   @builder.finish :string
                     __sb_0#-1 :?
   fn tests_snippets_path_basics__main_vader$main() -> i32
-    let p#162: Path =
+    let p#160: Path =
       call :Path
         callee:
           to_path#58 :Path
@@ -43,7 +43,7 @@
       arg0:
         "path" :string
       arg1:
-        p#162 :Path
+        p#160 :Path
     call :void
       callee:
         println#39 :fn(Display) -> void
@@ -64,7 +64,7 @@
                   callee:
                     filename#64 :string
                   arg0:
-                    p#162 :Path
+                    p#160 :Path
               ~>
                 @builder.finish :string
                   __sb_0#-2 :?
@@ -88,7 +88,7 @@
                   callee:
                     stem#66 :string
                   arg0:
-                    p#162 :Path
+                    p#160 :Path
               ~>
                 @builder.finish :string
                   __sb_1#-3 :?
@@ -112,7 +112,7 @@
                   callee:
                     extension#65 :string
                   arg0:
-                    p#162 :Path
+                    p#160 :Path
               ~>
                 @builder.finish :string
                   __sb_2#-4 :?
@@ -126,7 +126,7 @@
           callee:
             parent#63 :Path
           arg0:
-            p#162 :Path
+            p#160 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -141,8 +141,8 @@
               callee:
                 parent#63 :Path
               arg0:
-                p#162 :Path
-    let abs#163: Path =
+                p#160 :Path
+    let abs#161: Path =
       call :Path
         callee:
           to_path#58 :Path
@@ -168,7 +168,7 @@
                   callee:
                     is_absolute#62 :bool
                   arg0:
-                    abs#163 :Path
+                    abs#161 :Path
               ~>
                 @builder.finish :string
                   __sb_3#-5 :?
@@ -182,7 +182,7 @@
           callee:
             parent#63 :Path
           arg0:
-            abs#163 :Path
+            abs#161 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -197,7 +197,7 @@
               callee:
                 filename#64 :string
               arg0:
-                abs#163 :Path
+                abs#161 :Path
     call :void
       callee:
         show_path#16 :fn(string, Path) -> void
@@ -212,7 +212,7 @@
               callee:
                 parent#63 :Path
               arg0:
-                abs#163 :Path
+                abs#161 :Path
     call :void
       callee:
         println#39 :fn(Display) -> void
@@ -257,7 +257,7 @@
                 call :?
                   callee:
                     .is_empty :?
-                      p#162 :Path
+                      p#160 :Path
               ~>
                 @builder.finish :string
                   __sb_5#-7 :?

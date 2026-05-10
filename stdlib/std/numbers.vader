@@ -3,7 +3,7 @@
 // Lives outside std/core so we can use std/builder for efficient construction.
 // UFCS-callable as `n.to_hex()` once `import "std/numbers"` is in scope.
 
-import "std/string" { byte_len, ends_with, slice }
+import "std/string" { byte_len, ends_with, is_digit, slice }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 // ParseError — raised by every fallible parser in this module. The shape
@@ -11,6 +11,19 @@ import "std/string_builder" { StringBuilder, new_builder, append_char }
 export ParseError :: struct { msg: string }
 ParseError implements Error {
     message :: fn(self) -> string { return self.msg }
+}
+
+// True for ASCII hex digit `0..9 a..f A..F`.
+export is_hex_digit :: fn(c: char) =
+    c.is_digit() || c in 'a'..='f' || c in 'A'..='F'
+
+// True for any digit in `base` (2 / 8 / 10 / 16). Caller is expected to
+// pass a supported base ; unsupported bases fall through to base-10.
+export is_digit_in_base :: fn(c: char, base: i32) -> bool {
+    if base == 2 { return c == '0' || c == '1' }
+    if base == 8 { return c in '0'..='7' }
+    if base == 16 { return c.is_hex_digit() }
+    return c.is_digit()
 }
 
 // 0..15 for an ASCII hex digit, -1 otherwise.

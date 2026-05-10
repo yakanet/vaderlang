@@ -242,21 +242,10 @@ export pad_end :: fn(s: string, width: i32, fill: char) -> string {
 // True for ASCII whitespace: space, tab, newline, carriage return.
 export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
-// True for ASCII decimal digit `0..9`.
+// True for ASCII decimal digit `0..9`. Base-aware predicates
+// (`is_hex_digit`, `is_digit_in_base`) live in `std/numbers` alongside
+// `hex_digit_value` and `parse_int_in_base`.
 export is_digit :: fn(c: char) = c in '0'..='9'
-
-// True for ASCII hex digit `0..9 a..f A..F`.
-export is_hex_digit :: fn(c: char) =
-    c.is_digit() || c in 'a'..='f' || c in 'A'..='F'
-
-// True for any digit in `base` (2 / 8 / 10 / 16). Caller is expected to
-// pass a supported base ; unsupported bases fall through to base-10.
-export is_digit_in_base :: fn(c: char, base: i32) -> bool {
-    if base == 2 { return c == '0' || c == '1' }
-    if base == 8 { return c in '0'..='7' }
-    if base == 16 { return c.is_hex_digit() }
-    return c.is_digit()
-}
 
 /**
  * True for an ASCII letter — `a..z` or `A..Z`. Locale-independent ; Unicode

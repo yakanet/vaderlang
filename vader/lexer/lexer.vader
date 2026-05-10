@@ -13,12 +13,12 @@
 //   - char literals + escape sequences
 //   - string literals, raw strings, triple strings, interpolation
 
-import "std/string" { byte_at, byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit, is_hex_digit, is_digit_in_base, contains }
+import "std/string" { byte_at, byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit, contains }
 import "std/utf8" { codepoint_byte_len }
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/iter" { slice as slice_array }
-import "std/numbers" { hex_digit_value, parse_int_in_base, is_int_suffix, is_float_suffix }
+import "std/numbers" { hex_digit_value, is_hex_digit, is_digit_in_base, parse_int_in_base, is_int_suffix, is_float_suffix }
 import "vader/diagnostics/diagnostic" { Diagnostic, error }
 import "vader/diagnostics/codes" { LexerCode }
 // Position/Span are re-imported transparently via token.vader (same module);

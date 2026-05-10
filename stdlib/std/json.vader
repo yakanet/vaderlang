@@ -8,13 +8,10 @@
 // (manifests, diagnostics) but loses precision past 2^53. Cf. TODO §3.4
 // for the post-MVP compile-time-generated parser à la kotlinx-serialization.
 
-import "std/string" {
-    byte_len, slice, contains as str_contains,
-    starts_with as str_starts_with, parse_float, pad_start,
-}
+import "std/string" { byte_len, slice, parse_float, pad_start }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, put, get, contains_key, len, keys, values }
-import "std/numbers" { to_hex, to_compact_str }
+import "std/numbers" { hex_digit_value, to_hex, to_compact_str }
 
 // ---- value tree -----------------------------------------------------------
 
@@ -210,19 +207,6 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
 
 // ---- string parser --------------------------------------------------------
 
-parse_hex_digit :: fn(c: char) -> i32 {
-    if c in '0'..='9' {
-        return i32(u32(c) - u32('0'))
-    }
-    if c in 'a'..='f' {
-        return i32(u32(c) - u32('a') + u32(10))
-    }
-    if c in 'A'..='F' {
-        return i32(u32(c) - u32('A') + u32(10))
-    }
-    return -1
-}
-
 parse_string :: fn(p: Parser) -> string | JsonError {
     expect_byte(p, '"')?
     sb := new_builder()
@@ -262,7 +246,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
                 cp := 0
                 k := 0
                 for k < 4 {
-                    d := parse_hex_digit(p.src[p.pos + k])
+                    d := hex_digit_value(p.src[p.pos + k])
                     if d < 0 {
                         return fail(p, "invalid hex digit in \\u escape")
                     }
