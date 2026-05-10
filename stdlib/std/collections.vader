@@ -45,11 +45,15 @@ export MutableMap :: struct[K: Hash & Equals, V] {
     size:    usize
 }
 
+// Method signatures below declare just `[K, V]` (no bound repetition) — the
+// `Hash & Equals` constraint is auto-inherited from the struct decl above by
+// the typecheck `inherit-bounds` pass when the first param is `MutableMap(K, V)`.
+
 bucket_index :: fn(h: u64) -> i32 {
     return i32(h % u64(BUCKET_COUNT))
 }
 
-export put :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K, value: V) -> void {
+export put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
     // Lazy bucket init — inlined here because nested generic calls aren't
     // observed by the comptime InstanceRegistry yet (transitive
     // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
@@ -92,7 +96,7 @@ export put :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K, value: V) 
     self.size = self.size + 1
 }
 
-export get :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> V | null {
+export get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null {
     if self.buckets.len() == 0 {
         return null
     }
@@ -117,7 +121,7 @@ export get :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> V | nul
     return result
 }
 
-export contains_key :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> bool {
+export contains_key :: fn[K, V](self: MutableMap(K, V), key: K) -> bool {
     if self.buckets.len() == 0 {
         return false
     }
@@ -206,13 +210,13 @@ export MutableSet :: struct[T: Hash & Equals] {
 }
 
 // Returns true if the value was newly added, false if it was already present.
-export add :: fn[T: Hash & Equals](self: MutableSet(T), value: T) -> bool {
+export add :: fn[T](self: MutableSet(T), value: T) -> bool {
     if self.inner.contains_key(value) { return false }
     self.inner.put(value, true)
     return true
 }
 
-export contains :: fn[T: Hash & Equals](self: MutableSet(T), value: T) -> bool {
+export contains :: fn[T](self: MutableSet(T), value: T) -> bool {
     return self.inner.contains_key(value)
 }
 

@@ -6,6 +6,7 @@ import type { ModuleId } from "../resolver/symbol.ts";
 import { checkProgram, declareModule, inferExprBodiedReturns, newGlobals } from "./check.ts";
 import { findCoreSymbols } from "./ctx.ts";
 import { buildImplRegistry } from "./impls.ts";
+import { inheritStructBounds } from "./passes/inherit-bounds.ts";
 import { validateStructBounds } from "./passes/struct-bounds.ts";
 import type { TypedProject, TypedProgram } from "./typed-ast.ts";
 
@@ -34,6 +35,13 @@ export function checkProject(project: ResolvedProject, diags: DiagnosticCollecto
   // Pass 1.5: infer return types for expression-bodied fns (`fn(...) = expr`).
   // Runs as a fixpoint so forward references between one-liners resolve.
   inferExprBodiedReturns(project.modules, globals, impls, diags);
+
+  // Pass 1.6: auto-inherit struct-level type-param bounds onto fn type-params.
+  // Lets methods drop the `[K: Hash & Equals, V]` repetition when the struct
+  // already declares the bound. Must run before `checkProgram` so trait-bound
+  // dispatch inside method bodies (e.g. `key.hash()`) sees the inherited
+  // bound and resolves statically.
+  inheritStructBounds(project, globals, diags);
 
   // Pass 2: check expression bodies.
   const modules = new Map<string, TypedProgram>();
