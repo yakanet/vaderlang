@@ -3,7 +3,7 @@
 ## tests/snippets/custom_iter/_main.vader
   StructDecl     Countdown            :: Countdown
   FnDecl         main                 :: fn() -> i32
-  expr 102:16   IdentExpr      :: i32
+  expr 102:16   IdentExpr      :: usize
   expr 10:13    BinaryExpr     :: bool
   expr 10:13    FieldExpr      :: i32
   expr 10:13    IdentExpr      :: Countdown
@@ -43,9 +43,9 @@
   expr 96:14    IdentExpr      :: bool
   expr 97:13    MatchExpr      :: void
   expr 97:19    CallExpr       :: Done | Yielded(i32)
-  expr 99:44    BinaryExpr     :: i32
+  expr 99:44    BinaryExpr     :: usize
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded(i32)
   expr undefined:undefined IdentExpr      :: Countdown
   expr undefined:undefined IdentExpr      :: bool
-  expr undefined:undefined IdentExpr      :: i32
-  expr undefined:undefined IdentExpr      :: i32
+  expr undefined:undefined IdentExpr      :: usize
+  expr undefined:undefined IdentExpr      :: usize

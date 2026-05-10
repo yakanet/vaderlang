@@ -170,8 +170,8 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
-  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$count__i32(self: Repeat(i32)) -> i32
-    let total#63: i32 = int(0) :i32
+  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$count__i32(self: Repeat(i32)) -> usize
+    let total#63: usize = int(0) :usize
     let finished#64: bool = false
     loop while (<…>)
       ~>
@@ -205,17 +205,17 @@
                         block :void
                           assign
                             target:
-                              total#63 :i32
+                              total#63 :usize
                             value:
-                              add :i32
+                              add :usize
                                 l:
-                                  total#63 :i32
+                                  total#63 :usize
                                 r:
-                                  int(1) :i32
+                                  int(1) :usize
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return total#63 :i32
+    return total#63 :usize
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$last__i32(self: Repeat(i32)) -> i32 | null
     let result#66: i32 | null = null
     let finished#67: bool = false
@@ -312,8 +312,8 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
-  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$count__i32(self: Once(i32)) -> i32
-    let total#73: i32 = int(0) :i32
+  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$count__i32(self: Once(i32)) -> usize
+    let total#73: usize = int(0) :usize
     let finished#74: bool = false
     loop while (<…>)
       ~>
@@ -347,17 +347,17 @@
                         block :void
                           assign
                             target:
-                              total#73 :i32
+                              total#73 :usize
                             value:
-                              add :i32
+                              add :usize
                                 l:
-                                  total#73 :i32
+                                  total#73 :usize
                                 r:
-                                  int(1) :i32
+                                  int(1) :usize
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return total#73 :i32
+    return total#73 :usize
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$last__i32(self: Once(i32)) -> i32 | null
     let result#76: i32 | null = null
     let finished#77: bool = false

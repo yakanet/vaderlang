@@ -40,10 +40,8 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
  *   sb.append_repeated('-', 40)           // divider line
  */
 export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
-    i := 0
-    for i < count {
+    for 0..<count {
         self.append_char(c)
-        i = i + 1
     }
 }
 

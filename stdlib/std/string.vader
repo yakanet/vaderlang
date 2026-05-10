@@ -143,17 +143,7 @@ export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] {
  *   count_chars("你好")     // 2    (byte_len() would return 6)
  *   count_chars("")         // 0
  */
-export count_chars :: fn(s: string) -> usize {
-    n: usize = 0
-    i: usize = 0
-    bytes :: s.byte_len()
-    for i < bytes {
-        c :: s[i]
-        i = i + codepoint_byte_len(c)
-        n = n + 1
-    }
-    return n
-}
+export count_chars :: fn(s: string) = s.chars().count()
 
 // Comparator suitable for `sort(arr, compare_ascending)` : returns true when
 // `a` lexicographically precedes `b` (byte-wise). Mirrors JS `s1 < s2`.
@@ -163,13 +153,11 @@ export compare_ascending :: fn(a: string, b: string) -> bool {
     la :: a.byte_len()
     lb :: b.byte_len()
     n :: min(la, lb)
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         ca :: a[i]
         cb :: b[i]
         if ca < cb { return true }
         if ca > cb { return false }
-        i = i + 1
     }
     return la < lb
 }
@@ -283,16 +271,12 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
 // the regex pattern `replace(/[<class>]/g, "<replacement>")`.
 export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
     sb := new_builder()
-    n := s.byte_len()
-    i: usize = 0
-    for i < n {
-        c := s[i]
+    for c in s.chars() {
         if pred(c) {
             sb.append(replacement)
         } else {
             sb.append_char(c)
         }
-        i = i + 1
     }
     return sb.to_string()
 }
@@ -313,10 +297,7 @@ export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
     out: string[] = []
     sb := new_builder()
     has_pending := false
-    n := s.byte_len()
-    i: usize = 0
-    for i < n {
-        c := s[i]
+    for c in s.chars() {
         if pred(c) {
             if has_pending {
                 out.push(sb.to_string())
@@ -327,7 +308,6 @@ export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
             sb.append_char(c)
             has_pending = true
         }
-        i = i + 1
     }
     if has_pending {
         out.push(sb.to_string())

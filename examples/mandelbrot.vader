@@ -23,8 +23,7 @@ PALETTE_N :: 10
 iterations :: fn(cx: f64, cy: f64) -> i32 {
     zx := 0.0
     zy := 0.0
-    iter := 0
-    for iter < MAX_ITER {
+    for iter in 0..<MAX_ITER {
         zx2 :: zx * zx
         zy2 :: zy * zy
         if zx2 + zy2 > 4.0 {
@@ -34,7 +33,6 @@ iterations :: fn(cx: f64, cy: f64) -> i32 {
         next_zy :: 2.0 * zx * zy + cy
         zx = next_zx
         zy = next_zy
-        iter = iter + 1
     }
     return MAX_ITER
 }

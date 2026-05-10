@@ -3,7 +3,7 @@
 // Lives outside std/core so we can use std/builder for efficient construction.
 // UFCS-callable as `n.to_hex()` once `import "std/numbers"` is in scope.
 
-import "std/string" { byte_len, ends_with, is_digit, slice }
+import "std/string" { byte_len, chars, ends_with, is_digit, is_empty, slice }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 // ParseError — raised by every fallible parser in this module. The shape
@@ -39,20 +39,17 @@ export hex_digit_value :: fn(c: char) -> i32 {
 // no leading sign. Empty input or any non-digit character yields an error.
 // Caller is responsible for stripping syntactic decoration.
 export parse_int_in_base :: fn(s: string, base: i32) -> i64! {
-    n := s.byte_len()
-    if n == 0 {
+    if s.is_empty() {
         return ParseError { .msg = "empty input" }
     }
     acc: i64 = i64(0)
     b: i64 = i64(base)
-    i: usize = 0
-    for i < n {
-        d := hex_digit_value(s[i])
+    for c in s.chars() {
+        d := hex_digit_value(c)
         if d < 0 || d >= base {
             return ParseError { .msg = "invalid digit" }
         }
         acc = acc * b + i64(d)
-        i = i + 1
     }
     return acc
 }

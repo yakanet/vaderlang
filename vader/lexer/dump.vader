@@ -11,7 +11,7 @@
 
 // `lexer.vader` (same module) already imports `byte_len, slice` from
 // std/string and the StringBuilder surface ; we only need the extras here.
-import "std/string" { decode_codepoint, pad_start, pad_end, compare_ascending as string_less }
+import "std/string" { chars, pad_start, pad_end, compare_ascending as string_less }
 import "std/numbers" { to_hex }
 import "std/sort" { sort }
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
@@ -19,12 +19,9 @@ import "std/sort" { sort }
 export dump_tokens :: fn(l: Lexer) -> string {
     sb := new_builder()
     sb.append("# Tokens")
-    n :: l.tokens.len()
-    i := 0
-    for i < n {
+    for t in l.tokens {
         sb.append_char('\n')
-        sb.format_token(l.tokens[i])
-        i = i + 1
+        sb.format_token(t)
     }
     return sb.to_string()
 }
@@ -36,12 +33,9 @@ export dump_diagnostics :: fn(diags: Diagnostic[]) -> string {
     sorted :: sort(diags, diag_less)
     sb := new_builder()
     sb.append("\n# Diagnostics")
-    n :: sorted.len()
-    i := 0
-    for i < n {
+    for d in sorted {
         sb.append_char('\n')
-        sb.format_diagnostic(sorted[i])
-        i = i + 1
+        sb.format_diagnostic(d)
     }
     return sb.to_string()
 }
@@ -128,19 +122,15 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
 quote_simple :: fn(s: string) -> string {
     sb := new_builder()
     sb.append_char('"')
-    n :: s.byte_len()
-    i: usize = 0
-    for i < n {
-        // Walk by codepoint so multi-byte sequences pass through cleanly
-        // (byte-walking would synthesise U+FFFD on continuation bytes).
-        [c, w] :: decode_codepoint(s, i)
+    // Walk by codepoint so multi-byte sequences pass through cleanly
+    // (byte-walking would synthesise U+FFFD on continuation bytes).
+    for c in s.chars() {
         if c == '"'  { sb.append("\\\"") }
         else if c == '\\' { sb.append("\\\\") }
         else if c == '\n' { sb.append("\\n") }
         else if c == '\t' { sb.append("\\t") }
         else if c == '\r' { sb.append("\\r") }
         else { sb.append_char(c) }
-        i = i + w
     }
     sb.append_char('"')
     return sb.to_string()

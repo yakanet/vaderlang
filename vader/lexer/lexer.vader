@@ -134,8 +134,7 @@ position_here :: fn(l: Lexer) =
 // continuation bytes (0x80..0xBF) don't increment the column, only leading
 // bytes do. Newlines reset col to 1 as usual.
 advance :: fn(l: Lexer, n: usize) -> void {
-    i: usize = 0
-    for i < n {
+    for 0..<n {
         if l.pos >= l.src.byte_len() {
             return
         }
@@ -148,7 +147,6 @@ advance :: fn(l: Lexer, n: usize) -> void {
         }
         // UTF-8 continuation bytes (0x80..0xBF) leave col unchanged.
         l.pos = l.pos + 1
-        i = i + 1
     }
 }
 
@@ -401,11 +399,9 @@ strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> string {
         return text
     }
     sb := new_builder()
-    i := start
-    for i < end {
+    for i in start..<end {
         c :: text[i]
         if c != '_' { sb.append_char(c) }
-        i = i + 1
     }
     return sb.to_string()
 }
@@ -487,11 +483,9 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
         return u32(0)
     }
     cp: u32 = u32(0)
-    i: usize = 0
-    for i < hex_len {
+    for i in 0..<hex_len {
         d :: hex_digit_value(l.src[hex_start + i])
         cp = cp * u32(16) + u32(d)
-        i = i + 1
     }
     if cp > u32(0x10FFFF) {
         l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start),

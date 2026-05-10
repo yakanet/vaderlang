@@ -5,8 +5,8 @@
   StructDecl     Once                 :: Once($T)
   StructDecl     Repeat               :: Repeat($T)
   FnDecl         walk                 :: fn(Iterator(i32)) -> i32
-  expr 102:16   IdentExpr      :: i32
-  expr 102:16   IdentExpr      :: i32
+  expr 102:16   IdentExpr      :: usize
+  expr 102:16   IdentExpr      :: usize
   expr 110:13   UnaryExpr      :: bool
   expr 110:13   UnaryExpr      :: bool
   expr 110:14   IdentExpr      :: bool
@@ -94,15 +94,15 @@
   expr 97:13    MatchExpr      :: void
   expr 97:19    CallExpr       :: Done | Yielded($T)
   expr 97:19    CallExpr       :: Done | Yielded($T)
-  expr 99:44    BinaryExpr     :: i32
-  expr 99:44    BinaryExpr     :: i32
+  expr 99:44    BinaryExpr     :: usize
+  expr 99:44    BinaryExpr     :: usize
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded($T)
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded($T)
   expr undefined:undefined IdentExpr      :: Once($T)
   expr undefined:undefined IdentExpr      :: Repeat($T)
   expr undefined:undefined IdentExpr      :: bool
   expr undefined:undefined IdentExpr      :: bool
-  expr undefined:undefined IdentExpr      :: i32
-  expr undefined:undefined IdentExpr      :: i32
-  expr undefined:undefined IdentExpr      :: i32
-  expr undefined:undefined IdentExpr      :: i32
+  expr undefined:undefined IdentExpr      :: usize
+  expr undefined:undefined IdentExpr      :: usize
+  expr undefined:undefined IdentExpr      :: usize
+  expr undefined:undefined IdentExpr      :: usize

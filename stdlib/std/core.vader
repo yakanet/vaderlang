@@ -90,8 +90,8 @@ export Iterator :: trait[T] {
 
     // Drain the iterator, returning the count of yielded items. Consumes
     // self ; the iterator is exhausted after this call.
-    count :: fn(self) -> i32 {
-        total := 0
+    count :: fn(self) -> usize {
+        total: usize = 0
         finished := false
         for !finished {
             match self.step() {

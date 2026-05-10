@@ -108,10 +108,8 @@ export slice :: fn[T](arr: T[], start: usize, end: usize) -> T[] {
     hi := end
     if hi < lo { hi = lo }
     if hi > len { hi = len }
-    i := lo
-    for i < hi {
+    for i in lo..<hi {
         out.push(arr[i])
-        i = i + 1
     }
     return out
 }
@@ -124,10 +122,8 @@ export zip :: fn[T, U](a: T[], b: U[]) -> [T, U][] {
     n :: a.len()
     m :: b.len()
     k :: if n < m { n } else { m }
-    i: usize = 0
-    for i < k {
+    for i in 0..<k {
         out.push([a[i], b[i]])
-        i = i + 1
     }
     return out
 }

@@ -3,7 +3,7 @@
 ## tests/snippets/iter_defaults/_main.vader
   StructDecl     Countdown            :: Countdown
   FnDecl         main                 :: fn() -> i32
-  expr 102:16   IdentExpr      :: i32
+  expr 102:16   IdentExpr      :: usize
   expr 110:13   UnaryExpr      :: bool
   expr 110:14   IdentExpr      :: bool
   expr 111:13   MatchExpr      :: void
@@ -29,8 +29,8 @@
   expr 13:9     IdentExpr      :: Countdown
   expr 14:16    StructLitExpr  :: Yielded(i32)
   expr 14:40    IdentExpr      :: i32
-  expr 20:14    CallExpr       :: i32
-  expr 20:14    FieldExpr      :: fn() -> i32
+  expr 20:14    CallExpr       :: usize
+  expr 20:14    FieldExpr      :: fn() -> usize
   expr 20:14    RangeExpr      :: Range(i32)
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(Display) -> void
@@ -54,8 +54,8 @@
   expr 30:14    RangeExpr      :: Range(i32)
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(Display) -> void
-  expr 33:13    CallExpr       :: i32
-  expr 33:13    FieldExpr      :: fn() -> i32
+  expr 33:13    CallExpr       :: usize
+  expr 33:13    FieldExpr      :: fn() -> usize
   expr 33:13    StructLitExpr  :: Countdown
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(Display) -> void
@@ -67,9 +67,9 @@
   expr 96:14    IdentExpr      :: bool
   expr 97:13    MatchExpr      :: void
   expr 97:19    CallExpr       :: Done | Yielded(i32)
-  expr 99:44    BinaryExpr     :: i32
+  expr 99:44    BinaryExpr     :: usize
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded(i32)
   expr undefined:undefined IdentExpr      :: Countdown
   expr undefined:undefined IdentExpr      :: bool
-  expr undefined:undefined IdentExpr      :: i32
-  expr undefined:undefined IdentExpr      :: i32
+  expr undefined:undefined IdentExpr      :: usize
+  expr undefined:undefined IdentExpr      :: usize

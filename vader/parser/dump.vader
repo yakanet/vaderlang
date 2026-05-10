@@ -7,7 +7,7 @@
 // stable when the same value is parsed by the TS BigInt-based parser. The
 // helpers below walk every variant explicitly — no reflection.
 
-import "std/string" { byte_len, decode_codepoint, is_empty, pad_start }
+import "std/string" { byte_len, chars, is_empty, pad_start }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/numbers" { to_hex, to_compact_str }
 
@@ -34,12 +34,9 @@ indent :: fn(sb: StringBuilder, level: i32) -> void {
 
 write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
-    n :: s.byte_len()
-    i: usize = 0
-    for i < n {
-        // Walk by codepoint so multi-byte sequences emit cleanly (a byte
-        // walk would surface FFFD on continuation bytes).
-        [c, w] :: decode_codepoint(s, i)
+    // Walk by codepoint so multi-byte sequences emit cleanly (a byte
+    // walk would surface FFFD on continuation bytes).
+    for c in s.chars() {
         if c == '"'  { sb.append("\\\"") }
         else if c == '\\' { sb.append("\\\\") }
         else if c == '\n' { sb.append("\\n") }
@@ -54,7 +51,6 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
         } else {
             sb.append_char(c)
         }
-        i = i + w
     }
     sb.append_char('"')
 }

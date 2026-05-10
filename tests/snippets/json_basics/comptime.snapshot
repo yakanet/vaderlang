@@ -3,6 +3,7 @@
 ## tests/snippets/json_basics/_main.vader
 
 ## generic instances
+  zip(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   Entry(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   MutableMap(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   put(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
@@ -11,6 +12,7 @@
   len(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   keys(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   values(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  Yielded([string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString])
   Yielded(char)
   Yielded(Entry(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) | null)
   Yielded(i16)
@@ -18,6 +20,7 @@
   Yielded(i64)
   Yielded(i8)
   Yielded(isize)
+  Yielded(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   Yielded(u16)
   Yielded(u32)
   Yielded(u64)
@@ -34,5 +37,10 @@
   Range(u64)
   Range(u8)
   Range(usize)
+  ArrayIter([string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString])
+  ArrayIter($T)
+  ArrayIter($U)
   ArrayIter(Entry($K, $V) | null)
   ArrayIter(Entry(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) | null)
+  ArrayIter(i32)
+  ArrayIter(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)

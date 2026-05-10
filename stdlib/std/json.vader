@@ -8,7 +8,8 @@
 // (manifests, diagnostics) but loses precision past 2^53. Cf. TODO §3.4
 // for the post-MVP compile-time-generated parser à la kotlinx-serialization.
 
-import "std/string" { byte_len, slice, parse_float, pad_start, is_digit, is_white_char }
+import "std/string" { byte_len, slice, parse_float, pad_start, is_digit, is_white_char, chars }
+import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, len, keys, values }
 import "std/numbers" { hex_digit_value, to_hex, to_compact_str }
@@ -92,12 +93,10 @@ match_keyword :: fn(p: Parser, kw: string) -> bool {
     if p.pos + n > p.eof {
         return false
     }
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         if p.src[p.pos + i] != kw[i] {
             return false
         }
-        i = i + 1
     }
     p.pos = p.pos + n
     return true
@@ -344,10 +343,7 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 
 write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
-    n := s.byte_len()
-    i: usize = 0
-    for i < n {
-        c := s[i]
+    for c in s.chars() {
         cp := i32(u32(c))
         if c == '"' { sb.append("\\\"") } else
         if c == '\\' { sb.append("\\\\") } else
@@ -360,7 +356,6 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
         } else {
             sb.append_char(c)
         }
-        i = i + 1
     }
     sb.append_char('"')
 }
@@ -405,15 +400,14 @@ write_array :: fn(sb: StringBuilder, a: JsonArray, indent: i32, depth: i32) -> v
         return
     }
     sb.append_char('[')
-    n := a.items.len()
-    i: usize = 0
-    for i < n {
-        if i > 0 {
+    first := true
+    for item in a.items {
+        if !first {
             sb.append_char(',')
         }
         write_indent(sb, indent, depth + 1)
-        write_value(sb, a.items[i], indent, depth + 1)
-        i = i + 1
+        write_value(sb, item, indent, depth + 1)
+        first = false
     }
     write_indent(sb, indent, depth)
     sb.append_char(']')
@@ -429,20 +423,19 @@ write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) ->
     // skip the per-entry hash lookup.
     ks := o.entries.keys()
     vs := o.entries.values()
-    n := ks.len()
-    i: usize = 0
-    for i < n {
-        if i > 0 {
+    first := true
+    for [k, v] in zip(ks, vs) {
+        if !first {
             sb.append_char(',')
         }
         write_indent(sb, indent, depth + 1)
-        write_string(sb, ks[i])
+        write_string(sb, k)
         sb.append(":")
         if indent > 0 {
             sb.append_char(' ')
         }
-        write_value(sb, vs[i], indent, depth + 1)
-        i = i + 1
+        write_value(sb, v, indent, depth + 1)
+        first = false
     }
     write_indent(sb, indent, depth)
     sb.append_char('}')

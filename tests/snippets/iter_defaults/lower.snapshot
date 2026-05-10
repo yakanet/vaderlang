@@ -62,8 +62,8 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
-  fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$count(self: Countdown) -> i32
-    let total#60: i32 = int(0) :i32
+  fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$count(self: Countdown) -> usize
+    let total#60: usize = int(0) :usize
     let finished#61: bool = false
     loop while (<…>)
       ~>
@@ -98,17 +98,17 @@
                         block :void
                           assign
                             target:
-                              total#60 :i32
+                              total#60 :usize
                             value:
-                              add :i32
+                              add :usize
                                 l:
-                                  total#60 :i32
+                                  total#60 :usize
                                 r:
-                                  int(1) :i32
+                                  int(1) :usize
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return total#60 :i32
+    return total#60 :usize
   fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$last(self: Countdown) -> i32 | null
     let result#63: i32 | null = null
     let finished#64: bool = false
@@ -163,11 +163,11 @@
       arg0:
         call :string
           callee:
-            to_string#1000006 :string
+            to_string#1000013 :string
           arg0:
-            call :i32
+            call :usize
               callee:
-                count#1000125 :i32
+                count#1000125 :usize
               arg0:
                 Range(i32) {
                   start: int(0) :i32
@@ -268,11 +268,11 @@
       arg0:
         call :string
           callee:
-            to_string#1000006 :string
+            to_string#1000013 :string
           arg0:
-            call :i32
+            call :usize
               callee:
-                count#1000002 :i32
+                count#1000002 :usize
               arg0:
                 Countdown {
                   remaining: int(3) :i32

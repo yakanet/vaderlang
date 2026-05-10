@@ -59,10 +59,8 @@ export put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
     // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
     // helper would not get materialised at the right K/V instantiation.
     if self.buckets.len() == 0 {
-        bi: usize = 0
-        for bi < BUCKET_COUNT {
+        for 0..<BUCKET_COUNT {
             self.buckets.push(null)
-            bi = bi + 1
         }
     }
     h :: key.hash()

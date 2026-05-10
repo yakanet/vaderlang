@@ -1207,15 +1207,12 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
         is IdentExpr -> {
             if !t.is_type_param_intro { return }
             // Dedupe by name.
-            n :: out.len()
-            i := 0
             seen := false
-            for i < n {
-                if out[i].name == t.name {
+            for tp in out {
+                if tp.name == t.name {
                     seen = true
                     break
                 }
-                i = i + 1
             }
             if !seen {
                 out.push(TypeParam {
@@ -1294,10 +1291,8 @@ parse_block :: fn(p: Parser) -> BlockExpr {
         }
     }
     keep :: if last_is_expr { n - 1 } else { n }
-    i := 0
-    for i < keep {
+    for i in 0..<keep {
         stmts.push(raw[i])
-        i = i + 1
     }
     if last_is_expr {
         match last_expr {
