@@ -9,6 +9,7 @@
   Range(char)
   Range(i32)
   Range(usize)
+  ArrayIter(Entry($K, $V) | null)
   Entry(i32, bool)
   MutableMap(i32, bool)
   put(i32, bool)

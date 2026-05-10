@@ -170,12 +170,8 @@ MutableMap[K, V] implements Contains[K] {
 // Calls allocate a fresh `[K]`. Suitable for stringification / iteration.
 export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
     out: K[] = []
-    if self.buckets.len() == 0 {
-        return out
-    }
-    bi: usize = 0
-    for bi < self.buckets.len() {
-        cur: Entry(K, V) | null = self.buckets[bi]
+    for bucket in self.buckets {
+        cur: Entry(K, V) | null = bucket
         done := false
         for !done {
             match cur {
@@ -186,7 +182,6 @@ export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
                 }
             }
         }
-        bi = bi + 1
     }
     return out
 }
@@ -194,12 +189,8 @@ export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
 // Snapshot of every value matching `keys()` order.
 export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
     out: V[] = []
-    if self.buckets.len() == 0 {
-        return out
-    }
-    bi: usize = 0
-    for bi < self.buckets.len() {
-        cur: Entry(K, V) | null = self.buckets[bi]
+    for bucket in self.buckets {
+        cur: Entry(K, V) | null = bucket
         done := false
         for !done {
             match cur {
@@ -210,7 +201,6 @@ export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
                 }
             }
         }
-        bi = bi + 1
     }
     return out
 }
