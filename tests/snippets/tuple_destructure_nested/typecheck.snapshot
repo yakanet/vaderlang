@@ -8,15 +8,15 @@
   expr 11:13    StringLitExpr  :: string
   expr 11:19    IdentExpr      :: i32
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 11:5     IdentExpr      :: fn($T) -> void
   expr 12:13    StringLitExpr  :: string
   expr 12:22    IdentExpr      :: string
   expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn(string) -> void
+  expr 12:5     IdentExpr      :: fn($T) -> void
   expr 13:13    StringLitExpr  :: string
   expr 13:23    IdentExpr      :: bool
   expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn(string) -> void
+  expr 13:5     IdentExpr      :: fn($T) -> void
   expr 6:12     SeqLitExpr     :: [[i32, string], bool]
   expr 6:13     SeqLitExpr     :: [i32, string]
   expr 6:17     StringLitExpr  :: string

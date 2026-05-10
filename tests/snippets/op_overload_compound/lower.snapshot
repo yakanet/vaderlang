@@ -9,18 +9,18 @@
           add :i32
             l:
               .x :i32
-                self#55 :Vec
+                self#59 :Vec
             r:
               .x :i32
-                other#56 :Vec
+                other#60 :Vec
         y:
           add :i32
             l:
               .y :i32
-                self#55 :Vec
+                self#59 :Vec
             r:
               .y :i32
-                other#56 :Vec
+                other#60 :Vec
       }
   fn tests_snippets_op_overload_compound__main_vader$Vec$Sub$sub(self: Vec, other: Vec) -> Vec
     return
@@ -29,80 +29,80 @@
           sub :i32
             l:
               .x :i32
-                self#57 :Vec
+                self#61 :Vec
             r:
               .x :i32
-                other#58 :Vec
+                other#62 :Vec
         y:
           sub :i32
             l:
               .y :i32
-                self#57 :Vec
+                self#61 :Vec
             r:
               .y :i32
-                other#58 :Vec
+                other#62 :Vec
       }
   fn tests_snippets_op_overload_compound__main_vader$main() -> i32
-    let n#59: i32 = int(5) :i32
+    let n#63: i32 = int(5) :i32
     assign
       target:
-        n#59 :i32
+        n#63 :i32
       value:
         add :i32
           l:
-            n#59 :i32
+            n#63 :i32
           r:
             int(3) :i32
     assign
       target:
-        n#59 :i32
+        n#63 :i32
       value:
         sub :i32
           l:
-            n#59 :i32
+            n#63 :i32
           r:
             int(1) :i32
     assign
       target:
-        n#59 :i32
+        n#63 :i32
       value:
         mul :i32
           l:
-            n#59 :i32
+            n#63 :i32
           r:
             int(2) :i32
     assign
       target:
-        n#59 :i32
+        n#63 :i32
       value:
         div :i32
           l:
-            n#59 :i32
+            n#63 :i32
           r:
             int(2) :i32
     assign
       target:
-        n#59 :i32
+        n#63 :i32
       value:
         mod :i32
           l:
-            n#59 :i32
+            n#63 :i32
           r:
             int(5) :i32
-    let v#60: Vec =
+    let v#64: Vec =
       Vec {
         x: int(1) :i32
         y: int(2) :i32
       }
     assign
       target:
-        v#60 :Vec
+        v#64 :Vec
       value:
         call :Vec
           callee:
             add#1000000 :Vec
           arg0:
-            v#60 :Vec
+            v#64 :Vec
           arg1:
             Vec {
               x: int(10) :i32
@@ -110,13 +110,13 @@
             }
     assign
       target:
-        v#60 :Vec
+        v#64 :Vec
       value:
         call :Vec
           callee:
             sub#1000001 :Vec
           arg0:
-            v#60 :Vec
+            v#64 :Vec
           arg1:
             Vec {
               x: int(1) :i32
@@ -124,7 +124,7 @@
             }
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#1000092 :void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -134,21 +134,21 @@
             "n=" :string
           @builder.append_display <for i32> :void
             __sb_0#-1 :?
-            n#59 :i32
+            n#63 :i32
           @builder.append_str :void
             __sb_0#-1 :?
             "  v=(" :string
           @builder.append_display <for i32> :void
             __sb_0#-1 :?
             .x :i32
-              v#60 :Vec
+              v#64 :Vec
           @builder.append_str :void
             __sb_0#-1 :?
             "," :string
           @builder.append_display <for i32> :void
             __sb_0#-1 :?
             .y :i32
-              v#60 :Vec
+              v#64 :Vec
           @builder.append_str :void
             __sb_0#-1 :?
             ")" :string

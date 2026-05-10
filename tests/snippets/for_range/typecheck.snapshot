@@ -10,7 +10,7 @@
   expr 14:13    StringLitExpr  :: string
   expr 14:25    IdentExpr      :: i32
   expr 14:5     CallExpr       :: void
-  expr 14:5     IdentExpr      :: fn(string) -> void
+  expr 14:5     IdentExpr      :: fn($T) -> void
   expr 18:14    RangeExpr      :: Range(i32)
   expr 19:13    BinaryExpr     :: i32
   expr 19:13    IdentExpr      :: i32
@@ -18,7 +18,7 @@
   expr 21:13    StringLitExpr  :: string
   expr 21:31    IdentExpr      :: i32
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 21:5     IdentExpr      :: fn($T) -> void
   expr 5:14     RangeExpr      :: Range(i32)
   expr 6:15     BinaryExpr     :: i32
   expr 6:15     IdentExpr      :: i32
@@ -27,4 +27,4 @@
   expr 8:13     StringLitExpr  :: string
   expr 8:25     IdentExpr      :: i32
   expr 8:5      CallExpr       :: void
-  expr 8:5      IdentExpr      :: fn(string) -> void
+  expr 8:5      IdentExpr      :: fn($T) -> void

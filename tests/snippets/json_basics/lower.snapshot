@@ -2,15 +2,15 @@
 
 ## tests/snippets/json_basics/_main.vader
   fn tests_snippets_json_basics__main_vader$show(label: string, src: string) -> void
-    let parsed#220: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString =
+    let parsed#224: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString =
       call :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
         callee:
-          parse#89 :fn(string) -> JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+          parse#93 :fn(string) -> JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
         arg0:
-          src#219 :string
+          src#223 :string
     ~>
       block :void
-        let __scrut_0#-1: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString = parsed#220 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+        let __scrut_0#-1: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString = parsed#224 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
         ~>
           if :void
             cond:
@@ -22,14 +22,14 @@
                   ~>
                     call :void
                       callee:
-                        println#36 :fn(string) -> void
+                        println#1000100 :void
                       arg0:
                         block :string
                           let __sb_7#-8: ? =
                             @builder.new :?
                           @builder.append_display <for string> :void
                             __sb_7#-8 :?
-                            label#218 :string
+                            label#222 :string
                           @builder.append_str :void
                             __sb_7#-8 :?
                             ": error: " :string
@@ -37,7 +37,7 @@
                             __sb_7#-8 :?
                             .msg :string
                               cast → JsonError
-                                parsed#220 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                parsed#224 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                           ~>
                             @builder.finish :string
                               __sb_7#-8 :?
@@ -53,14 +53,14 @@
                         ~>
                           call :void
                             callee:
-                              println#36 :fn(string) -> void
+                              println#1000100 :void
                             arg0:
                               block :string
                                 let __sb_6#-7: ? =
                                   @builder.new :?
                                 @builder.append_display <for string> :void
                                   __sb_6#-7 :?
-                                  label#218 :string
+                                  label#222 :string
                                 @builder.append_str :void
                                   __sb_6#-7 :?
                                   ": " :string
@@ -68,10 +68,10 @@
                                   __sb_6#-7 :?
                                   call :string
                                     callee:
-                                      stringify#96 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                      stringify#100 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                     arg0:
                                       cast → JsonString
-                                        parsed#220 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                        parsed#224 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                 ~>
                                   @builder.finish :string
                                     __sb_6#-7 :?
@@ -87,14 +87,14 @@
                               ~>
                                 call :void
                                   callee:
-                                    println#36 :fn(string) -> void
+                                    println#1000100 :void
                                   arg0:
                                     block :string
                                       let __sb_5#-6: ? =
                                         @builder.new :?
                                       @builder.append_display <for string> :void
                                         __sb_5#-6 :?
-                                        label#218 :string
+                                        label#222 :string
                                       @builder.append_str :void
                                         __sb_5#-6 :?
                                         ": " :string
@@ -102,10 +102,10 @@
                                         __sb_5#-6 :?
                                         call :string
                                           callee:
-                                            stringify#96 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                            stringify#100 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                           arg0:
                                             cast → JsonNumber
-                                              parsed#220 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                              parsed#224 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                       ~>
                                         @builder.finish :string
                                           __sb_5#-6 :?
@@ -121,14 +121,14 @@
                                     ~>
                                       call :void
                                         callee:
-                                          println#36 :fn(string) -> void
+                                          println#1000100 :void
                                         arg0:
                                           block :string
                                             let __sb_4#-5: ? =
                                               @builder.new :?
                                             @builder.append_display <for string> :void
                                               __sb_4#-5 :?
-                                              label#218 :string
+                                              label#222 :string
                                             @builder.append_str :void
                                               __sb_4#-5 :?
                                               ": " :string
@@ -136,10 +136,10 @@
                                               __sb_4#-5 :?
                                               call :string
                                                 callee:
-                                                  stringify#96 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                                  stringify#100 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                 arg0:
                                                   cast → JsonBool
-                                                    parsed#220 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                                    parsed#224 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                             ~>
                                               @builder.finish :string
                                                 __sb_4#-5 :?
@@ -155,14 +155,14 @@
                                           ~>
                                             call :void
                                               callee:
-                                                println#36 :fn(string) -> void
+                                                println#1000100 :void
                                               arg0:
                                                 block :string
                                                   let __sb_3#-4: ? =
                                                     @builder.new :?
                                                   @builder.append_display <for string> :void
                                                     __sb_3#-4 :?
-                                                    label#218 :string
+                                                    label#222 :string
                                                   @builder.append_str :void
                                                     __sb_3#-4 :?
                                                     ": " :string
@@ -170,10 +170,10 @@
                                                     __sb_3#-4 :?
                                                     call :string
                                                       callee:
-                                                        stringify#96 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                                        stringify#100 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                       arg0:
                                                         cast → JsonNull
-                                                          parsed#220 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                                          parsed#224 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                   ~>
                                                     @builder.finish :string
                                                       __sb_3#-4 :?
@@ -189,14 +189,14 @@
                                                 ~>
                                                   call :void
                                                     callee:
-                                                      println#36 :fn(string) -> void
+                                                      println#1000100 :void
                                                     arg0:
                                                       block :string
                                                         let __sb_2#-3: ? =
                                                           @builder.new :?
                                                         @builder.append_display <for string> :void
                                                           __sb_2#-3 :?
-                                                          label#218 :string
+                                                          label#222 :string
                                                         @builder.append_str :void
                                                           __sb_2#-3 :?
                                                           ": " :string
@@ -204,10 +204,10 @@
                                                           __sb_2#-3 :?
                                                           call :string
                                                             callee:
-                                                              stringify#96 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                                              stringify#100 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                             arg0:
                                                               cast → JsonArray
-                                                                parsed#220 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                                                parsed#224 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                         ~>
                                                           @builder.finish :string
                                                             __sb_2#-3 :?
@@ -223,14 +223,14 @@
                                                       ~>
                                                         call :void
                                                           callee:
-                                                            println#36 :fn(string) -> void
+                                                            println#1000100 :void
                                                           arg0:
                                                             block :string
                                                               let __sb_1#-2: ? =
                                                                 @builder.new :?
                                                               @builder.append_display <for string> :void
                                                                 __sb_1#-2 :?
-                                                                label#218 :string
+                                                                label#222 :string
                                                               @builder.append_str :void
                                                                 __sb_1#-2 :?
                                                                 ": " :string
@@ -238,10 +238,10 @@
                                                                 __sb_1#-2 :?
                                                                 call :string
                                                                   callee:
-                                                                    stringify#96 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+                                                                    stringify#100 :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                                   arg0:
                                                                     cast → JsonObject
-                                                                      parsed#220 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                                                      parsed#224 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                               ~>
                                                                 @builder.finish :string
                                                                   __sb_1#-2 :?

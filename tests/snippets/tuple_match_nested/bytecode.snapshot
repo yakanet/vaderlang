@@ -8,7 +8,8 @@ string 0 "answer"
 string 1 "id="
 string 2 " label="
 string 3 " active="
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_tuple_match_nested__main_vader$main () -> i32
   local "$struct_2#19" ref
@@ -57,7 +58,14 @@ fn 0 tests_snippets_tuple_match_nested__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:6:74
   local.get 5   ; _main.vader:6:42
   intrinsic builder.finish   ; _main.vader:6:42
-  call.import 0   ; _main.vader:6:34
+  call 1   ; _main.vader:6:34
   i32.const 0   ; _main.vader:8:12
   return   ; _main.vader:8:5
+end
+
+fn 1 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

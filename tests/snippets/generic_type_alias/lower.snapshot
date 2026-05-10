@@ -2,10 +2,10 @@
 
 ## tests/snippets/generic_type_alias/_main.vader
   fn tests_snippets_generic_type_alias__main_vader$main() -> i32
-    let x#59: i32 | null = int(42) :i32 | null
-    let y#60: i32 | null = null
+    let x#63: i32 | null = int(42) :i32 | null
+    let y#64: i32 | null = null
     block :void
-      let __scrut_0#-1: i32 | null = x#59 :i32 | null
+      let __scrut_0#-1: i32 | null = x#63 :i32 | null
       ~>
         if :void
           cond:
@@ -15,7 +15,7 @@
             ~>
               call :void
                 callee:
-                  println#26 :fn(string) -> void
+                  println#1000090 :void
                 arg0:
                   "x is null" :string
           else:
@@ -28,7 +28,7 @@
                   ~>
                     call :void
                       callee:
-                        println#26 :fn(string) -> void
+                        println#1000090 :void
                       arg0:
                         block :string
                           let __sb_1#-2: ? =
@@ -39,7 +39,7 @@
                           @builder.append_display <for i32> :void
                             __sb_1#-2 :?
                             cast → i32
-                              x#59 :i32 | null
+                              x#63 :i32 | null
                           ~>
                             @builder.finish :string
                               __sb_1#-2 :?
@@ -47,7 +47,7 @@
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
-      let __scrut_2#-3: i32 | null = y#60 :i32 | null
+      let __scrut_2#-3: i32 | null = y#64 :i32 | null
       ~>
         if :void
           cond:
@@ -57,7 +57,7 @@
             ~>
               call :void
                 callee:
-                  println#26 :fn(string) -> void
+                  println#1000090 :void
                 arg0:
                   "y is null" :string
           else:
@@ -70,7 +70,7 @@
                   ~>
                     call :void
                       callee:
-                        println#26 :fn(string) -> void
+                        println#1000090 :void
                       arg0:
                         block :string
                           let __sb_3#-4: ? =
@@ -81,16 +81,16 @@
                           @builder.append_display <for i32> :void
                             __sb_3#-4 :?
                             cast → i32
-                              y#60 :i32 | null
+                              y#64 :i32 | null
                           ~>
                             @builder.finish :string
                               __sb_3#-4 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let p#61: i32 | string = "hello" :string
+    let p#65: i32 | string = "hello" :string
     block :void
-      let __scrut_4#-5: i32 | string = p#61 :i32 | string
+      let __scrut_4#-5: i32 | string = p#65 :i32 | string
       ~>
         if :void
           cond:
@@ -100,7 +100,7 @@
             ~>
               call :void
                 callee:
-                  println#26 :fn(string) -> void
+                  println#1000090 :void
                 arg0:
                   block :string
                     let __sb_6#-7: ? =
@@ -111,7 +111,7 @@
                     @builder.append_display <for i32> :void
                       __sb_6#-7 :?
                       cast → i32
-                        p#61 :i32 | string
+                        p#65 :i32 | string
                     ~>
                       @builder.finish :string
                         __sb_6#-7 :?
@@ -125,7 +125,7 @@
                   ~>
                     call :void
                       callee:
-                        println#26 :fn(string) -> void
+                        println#1000090 :void
                       arg0:
                         block :string
                           let __sb_5#-6: ? =
@@ -136,7 +136,7 @@
                           @builder.append_display <for string> :void
                             __sb_5#-6 :?
                             cast → string
-                              p#61 :i32 | string
+                              p#65 :i32 | string
                           ~>
                             @builder.finish :string
                               __sb_5#-6 :?

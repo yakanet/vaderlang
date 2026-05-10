@@ -4,7 +4,7 @@
   fn tests_snippets_let_type_alias__main_vader$main() -> i32
     call :void
       callee:
-        println#24 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -20,7 +20,7 @@
               __sb_0#-1 :?
     call :void
       callee:
-        println#24 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -36,7 +36,7 @@
               __sb_1#-2 :?
     call :void
       callee:
-        println#24 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -52,7 +52,7 @@
               __sb_2#-3 :?
     call :void
       callee:
-        println#24 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_3#-4: ? =

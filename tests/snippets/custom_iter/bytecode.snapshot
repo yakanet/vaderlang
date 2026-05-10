@@ -5,7 +5,8 @@ type 2 struct std_core$Done {  }
 type 3 struct std_core$Yielded__char { value:4 }
 type 4 primitive char
 type 5 struct std_core$Yielded__i32 { value:1 }
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_custom_iter__main_vader$Countdown$Iterator$step (ref) -> ref
   local "$field_1#10" i32
@@ -66,11 +67,18 @@ fn 1 tests_snippets_custom_iter__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:22:18
         local.get 3   ; _main.vader:22:17
         intrinsic builder.finish   ; _main.vader:22:17
-        call.import 0   ; _main.vader:22:9
+        call 2   ; _main.vader:22:9
         br $L1   ; _main.vader:21:5
       end $L2   ; _main.vader:21:5
     end $L1   ; _main.vader:21:5
   end $L0   ; _main.vader:21:5
   i32.const 0   ; _main.vader:24:12
   return   ; _main.vader:24:5
+end
+
+fn 2 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

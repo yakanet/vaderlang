@@ -2,7 +2,7 @@
 
 ## tests/snippets/mutable_set/_main.vader
   fn tests_snippets_mutable_set__main_vader$main() -> i32
-    let s#75: MutableSet(i32) =
+    let s#79: MutableSet(i32) =
       MutableSet(i32) {
         inner:
           MutableMap(i32, bool) {
@@ -13,7 +13,7 @@
       }
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -25,9 +25,9 @@
             __sb_0#-1 :?
             call :bool
               callee:
-                add#1000078 :bool
+                add#1000093 :bool
               arg0:
-                s#75 :MutableSet(i32)
+                s#79 :MutableSet(i32)
               arg1:
                 int(10) :i32
           ~>
@@ -35,7 +35,7 @@
               __sb_0#-1 :?
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -47,9 +47,9 @@
             __sb_1#-2 :?
             call :bool
               callee:
-                add#1000078 :bool
+                add#1000093 :bool
               arg0:
-                s#75 :MutableSet(i32)
+                s#79 :MutableSet(i32)
               arg1:
                 int(20) :i32
           ~>
@@ -57,7 +57,7 @@
               __sb_1#-2 :?
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -69,9 +69,9 @@
             __sb_2#-3 :?
             call :bool
               callee:
-                add#1000078 :bool
+                add#1000093 :bool
               arg0:
-                s#75 :MutableSet(i32)
+                s#79 :MutableSet(i32)
               arg1:
                 int(10) :i32
           ~>
@@ -79,7 +79,7 @@
               __sb_2#-3 :?
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_3#-4: ? =
@@ -91,15 +91,15 @@
             __sb_3#-4 :?
             call :usize
               callee:
-                len#1000080 :usize
+                len#1000095 :usize
               arg0:
-                s#75 :MutableSet(i32)
+                s#79 :MutableSet(i32)
           ~>
             @builder.finish :string
               __sb_3#-4 :?
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_4#-5: ? =
@@ -111,9 +111,9 @@
             __sb_4#-5 :?
             call :bool
               callee:
-                contains#1000079 :bool
+                contains#1000094 :bool
               arg0:
-                s#75 :MutableSet(i32)
+                s#79 :MutableSet(i32)
               arg1:
                 int(10) :i32
           ~>
@@ -121,7 +121,7 @@
               __sb_4#-5 :?
     call :void
       callee:
-        println#29 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_5#-6: ? =
@@ -133,9 +133,9 @@
             __sb_5#-6 :?
             call :bool
               callee:
-                contains#1000079 :bool
+                contains#1000094 :bool
               arg0:
-                s#75 :MutableSet(i32)
+                s#79 :MutableSet(i32)
               arg1:
                 int(30) :i32
           ~>

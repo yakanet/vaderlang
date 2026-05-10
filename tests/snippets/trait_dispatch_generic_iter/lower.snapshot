@@ -2,15 +2,15 @@
 
 ## tests/snippets/trait_dispatch_generic_iter/_main.vader
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$walk(it: Iterator(i32)) -> i32
-    let sum#63: i32 = int(0) :i32
-    let cont#64: bool = true
-    loop while (cont#64 :bool)
+    let sum#67: i32 = int(0) :i32
+    let cont#68: bool = true
+    loop while (cont#68 :bool)
       ~>
         block :void
           let __scrut_0#-1: Done | Yielded(i32) =
             vcall Iterator.step :Done | Yielded(i32)
               recv:
-                it#62 :Iterator(i32)
+                it#66 :Iterator(i32)
           ~>
             if :void
               cond:
@@ -21,7 +21,7 @@
                   block :void
                     assign
                       target:
-                        cont#64 :bool
+                        cont#68 :bool
                       value:
                         false
               else:
@@ -31,39 +31,39 @@
                       is Yielded(i32) :bool
                         __scrut_0#-1 :Done | Yielded(i32)
                     then:
-                      let y#65: Yielded(i32) =
+                      let y#69: Yielded(i32) =
                         cast → Yielded(i32)
                           __scrut_0#-1 :Done | Yielded(i32)
                       ~>
                         block :void
                           assign
                             target:
-                              sum#63 :i32
+                              sum#67 :i32
                             value:
                               add :i32
                                 l:
-                                  sum#63 :i32
+                                  sum#67 :i32
                                 r:
                                   .value :i32
-                                    y#65 :Yielded(i32)
+                                    y#69 :Yielded(i32)
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return sum#63 :i32
+    return sum#67 :i32
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$main() -> i32
-    let r#66: Repeat(i32) =
+    let r#70: Repeat(i32) =
       Repeat(i32) {
         value: int(7) :i32
         remaining: int(3) :i32
       }
-    let o#67: Once(i32) =
+    let o#71: Once(i32) =
       Once(i32) {
         value: int(100) :i32
         yielded: false
       }
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#1000092 :void
       arg0:
         block :string
           let __sb_0#-2: ? =
@@ -77,13 +77,13 @@
               callee:
                 walk#4 :fn(Iterator(i32)) -> i32
               arg0:
-                r#66 :Repeat(i32)
+                r#70 :Repeat(i32)
           ~>
             @builder.finish :string
               __sb_0#-2 :?
     call :void
       callee:
-        println#27 :fn(string) -> void
+        println#1000092 :void
       arg0:
         block :string
           let __sb_1#-3: ? =
@@ -97,7 +97,7 @@
               callee:
                 walk#4 :fn(Iterator(i32)) -> i32
               arg0:
-                o#67 :Once(i32)
+                o#71 :Once(i32)
           ~>
             @builder.finish :string
               __sb_1#-3 :?
@@ -109,37 +109,37 @@
         lte :bool
           l:
             .remaining :i32
-              self#58 :Repeat(i32)
+              self#62 :Repeat(i32)
           r:
             int(0) :i32
       then:
         return
           Done {
           }
-    let v#59: i32 =
+    let v#63: i32 =
       .value :i32
-        self#58 :Repeat(i32)
+        self#62 :Repeat(i32)
     assign
       target:
         .remaining :i32
-          self#58 :Repeat(i32)
+          self#62 :Repeat(i32)
       value:
         sub :i32
           l:
             .remaining :i32
-              self#58 :Repeat(i32)
+              self#62 :Repeat(i32)
           r:
             int(1) :i32
     return
       Yielded(i32) {
-        value: v#59 :i32
+        value: v#63 :i32
       }
   struct tests_snippets_trait_dispatch_generic_iter__main_vader$Once__i32 { value: i32, yielded: bool }
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$step__i32(self: Once(i32)) -> Done | Yielded(i32)
     if :void
       cond:
         .yielded :bool
-          self#61 :Once(i32)
+          self#65 :Once(i32)
       then:
         return
           Done {
@@ -147,12 +147,12 @@
     assign
       target:
         .yielded :bool
-          self#61 :Once(i32)
+          self#65 :Once(i32)
       value:
         true
     return
       Yielded(i32) {
         value:
           .value :i32
-            self#61 :Once(i32)
+            self#65 :Once(i32)
       }

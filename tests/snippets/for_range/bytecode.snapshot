@@ -10,7 +10,8 @@ type 7 struct std_core$Range__i32 { start:4,end:4,inclusive:6,cursor:4 }
 string 0 "0..<5 -> "
 string 1 "1..=4 -> "
 string 2 "5..<3 iters -> "
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_for_range__main_vader$main () -> i32
   local "__iter_0#50" ref
@@ -63,7 +64,7 @@ fn 0 tests_snippets_for_range__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:8:23
   local.get 3   ; _main.vader:8:13
   intrinsic builder.finish   ; _main.vader:8:13
-  call.import 0   ; _main.vader:8:5
+  call 2   ; _main.vader:8:5
   i32.const 0   ; _main.vader:10:14
   local.set 5   ; _main.vader:10:14
   i32.const 1   ; _main.vader:11:14
@@ -101,7 +102,7 @@ fn 0 tests_snippets_for_range__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:14:23
   local.get 7   ; _main.vader:14:13
   intrinsic builder.finish   ; _main.vader:14:13
-  call.import 0   ; _main.vader:14:5
+  call 2   ; _main.vader:14:5
   i32.const 0   ; _main.vader:17:10
   local.set 9   ; _main.vader:17:10
   i32.const 5   ; _main.vader:18:14
@@ -135,7 +136,7 @@ fn 0 tests_snippets_for_range__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:21:29
   local.get 10   ; _main.vader:21:13
   intrinsic builder.finish   ; _main.vader:21:13
-  call.import 0   ; _main.vader:21:5
+  call 2   ; _main.vader:21:5
   i32.const 0   ; _main.vader:22:12
   return   ; _main.vader:22:5
 end
@@ -196,4 +197,11 @@ fn 1 std_core$Range$Iterator$step__i32 (ref) -> ref
     struct.new 3   ; core.vader:124:16
     return   ; core.vader:124:9
   end $L1   ; core.vader:121:9
+end
+
+fn 2 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

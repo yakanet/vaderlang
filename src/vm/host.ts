@@ -7,7 +7,7 @@
 import { accessSync, readFileSync as fsReadFile, writeFileSync as fsWriteFile } from "node:fs";
 
 import type { Value } from "./value.ts";
-import { NULL, VOID, bool, ch, err, num, str, asNum, i64 } from "./value.ts";
+import { NULL, VOID, bool, ch, displayValue, err, num, str, asNum, i64 } from "./value.ts";
 
 const UTF8_ENC = new TextEncoder();
 const UTF8_DEC = new TextDecoder();
@@ -62,10 +62,10 @@ export function defaultHostIO(): HostIO {
 
 export function stdIoBindings(io: HostIO): Record<string, HostFn> {
   return {
-    std_io$print:      (args) => { io.write(stringArg(args, 0));        return VOID; },
-    std_io$println:    (args) => { io.write(stringArg(args, 0) + "\n"); return VOID; },
-    std_io$eprint:     (args) => { io.writeError(stringArg(args, 0));        return VOID; },
-    std_io$eprintln:   (args) => { io.writeError(stringArg(args, 0) + "\n"); return VOID; },
+    std_io$print_str:    (args) => { io.write(stringArg(args, 0));        return VOID; },
+    std_io$println_str:  (args) => { io.write(stringArg(args, 0) + "\n"); return VOID; },
+    std_io$eprint_str:   (args) => { io.writeError(stringArg(args, 0));        return VOID; },
+    std_io$eprintln_str: (args) => { io.writeError(stringArg(args, 0) + "\n"); return VOID; },
     std_io$read_line:  ()     => {
       const line = io.readLine();
       return line === null ? err("EOF") : str(line);
@@ -148,6 +148,23 @@ export function stdStringBindings(): Record<string, HostFn> {
       return num("f64", n);
     },
     "std_core$string$Hash$hash": (args) => i64("u64", fnv1a64(stringArg(args, 0))),
+    // `@intrinsic <T> implements Display` for every primitive — `displayValue`
+    // already produces the SPEC §9 canonical form (decimal numerics, `true` /
+    // `false`, codepoint-as-string for char, `null` for null).
+    "std_core$i8$Display$to_string":     (args) => str(displayValue(args[0]!)),
+    "std_core$i16$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$i32$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$i64$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$u8$Display$to_string":     (args) => str(displayValue(args[0]!)),
+    "std_core$u16$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$u32$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$u64$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$usize$Display$to_string":  (args) => str(displayValue(args[0]!)),
+    "std_core$f32$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$f64$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$bool$Display$to_string":   (args) => str(displayValue(args[0]!)),
+    "std_core$char$Display$to_string":   (args) => str(displayValue(args[0]!)),
+    "std_core$string$Display$to_string": (args) => str(stringArg(args, 0)),
     // `@intrinsic StringBuilder implements Display` — flushes the buffer in
     // one allocation. Receiver is the boxed StringBuilder struct ; field 0
     // is its `parts: string[]`.

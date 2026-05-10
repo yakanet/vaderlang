@@ -7,6 +7,7 @@
   Yielded(i32)
   Range(char)
   Range(i32)
+  println(string)
   id(f64)
   id(i32)
   id(string)

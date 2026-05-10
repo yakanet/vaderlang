@@ -11,7 +11,8 @@ string 2 "range incl yes"
 string 3 "set has 4"
 string 4 "set lacks 5"
 string 5 "set has 7"
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_contains_op__main_vader$DigitSet$Contains$contains (ref,i32) -> bool
   local "or_res#18" bool
@@ -70,7 +71,7 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   call 2   ; _main.vader:19:8
   if $L0 void   ; _main.vader:19:5
     string.const 0   ; _main.vader:19:30
-    call.import 0   ; _main.vader:19:22
+    call 3   ; _main.vader:19:22
   else   ; _main.vader:19:5
   end $L0   ; _main.vader:19:5
   i32.const 0   ; _main.vader:20:15
@@ -85,7 +86,7 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   bool.not   ; _main.vader:20:8
   if $L1 void   ; _main.vader:20:5
     string.const 1   ; _main.vader:20:32
-    call.import 0   ; _main.vader:20:24
+    call 3   ; _main.vader:20:24
   else   ; _main.vader:20:5
   end $L1   ; _main.vader:20:5
   i32.const 0   ; _main.vader:21:14
@@ -99,7 +100,7 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   call 2   ; _main.vader:21:8
   if $L2 void   ; _main.vader:21:5
     string.const 2   ; _main.vader:21:31
-    call.import 0   ; _main.vader:21:23
+    call 3   ; _main.vader:21:23
   else   ; _main.vader:21:5
   end $L2   ; _main.vader:21:5
   i32.const 1   ; _main.vader:23:30
@@ -128,7 +129,7 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   call 0   ; _main.vader:24:8
   if $L3 void   ; _main.vader:24:5
     string.const 3   ; _main.vader:24:25
-    call.import 0   ; _main.vader:24:17
+    call 3   ; _main.vader:24:17
   else   ; _main.vader:24:5
   end $L3   ; _main.vader:24:5
   local.get 7   ; _main.vader:25:8
@@ -137,7 +138,7 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   bool.not   ; _main.vader:25:8
   if $L4 void   ; _main.vader:25:5
     string.const 4   ; _main.vader:25:26
-    call.import 0   ; _main.vader:25:18
+    call 3   ; _main.vader:25:18
   else   ; _main.vader:25:5
   end $L4   ; _main.vader:25:5
   local.get 7   ; _main.vader:26:8
@@ -145,7 +146,7 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   call 0   ; _main.vader:26:8
   if $L5 void   ; _main.vader:26:5
     string.const 5   ; _main.vader:26:25
-    call.import 0   ; _main.vader:26:17
+    call 3   ; _main.vader:26:17
   else   ; _main.vader:26:5
   end $L5   ; _main.vader:26:5
   i32.const 0   ; _main.vader:28:12
@@ -186,4 +187,11 @@ fn 2 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
       return   ; core.vader:105:9
     end $L1   ; core.vader:104:9
   end $L0   ; core.vader:103:9
+end
+
+fn 3 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

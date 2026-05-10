@@ -11,15 +11,15 @@
           "ok: " :string
         @builder.append_display <for string> :void
           __sb_0#-1 :?
-          s#55 :string
+          s#59 :string
         ~>
           @builder.finish :string
             __sb_0#-1 :?
   fn tests_snippets_if_without_else_stmt__main_vader$main() -> i32
-    let matched#56: bool = false
+    let matched#60: bool = false
     if :void
       cond:
-        matched#56 :bool
+        matched#60 :bool
       then:
         call :string
           callee:
@@ -29,11 +29,11 @@
     if :void
       cond:
         not :bool
-          matched#56 :bool
+          matched#60 :bool
       then:
         call :void
           callee:
-            println#25 :fn(string) -> void
+            println#1000090 :void
           arg0:
             "not matched" :string
     return int(0) :i32

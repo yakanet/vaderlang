@@ -10,6 +10,7 @@
   ArrayIter($T)
   ArrayIter($U)
   ArrayIter(i32)
+  println(string)
   map(i32, i32)
   filter(i32)
   fold(i32, i32)

@@ -39,7 +39,8 @@ string 9 "banana"
 string 10 "cherry"
 string 11 ": "
 string 12 "b="
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   local "nums#107" ref
@@ -93,16 +94,16 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   string.const 0   ; _main.vader:7:14
   intrinsic builder.append_str   ; _main.vader:7:14
   local.get 0   ; _main.vader:7:22
-  call 6   ; _main.vader:7:22
+  call 7   ; _main.vader:7:22
   local.set 2   ; _main.vader:7:22
   local.get 1   ; _main.vader:7:20
   local.get 2   ; _main.vader:7:20
   intrinsic builder.append_display   ; _main.vader:7:20
   local.get 1   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 0   ; _main.vader:7:5
+  call 6   ; _main.vader:7:5
   local.get 0   ; _main.vader:8:15
-  call 7   ; _main.vader:8:15
+  call 8   ; _main.vader:8:15
   local.set 3   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
   local.set 4   ; _main.vader:9:13
@@ -119,7 +120,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:9:23
   local.get 4   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
-  call.import 0   ; _main.vader:9:5
+  call 6   ; _main.vader:9:5
   string.const 2   ; _main.vader:12:13
   string.const 3   ; _main.vader:12:13
   string.const 4   ; _main.vader:12:13
@@ -133,7 +134,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   local.set 7   ; _main.vader:13:13
   local.get 6   ; _main.vader:14:14
   local.get 7   ; _main.vader:14:14
-  call 8   ; _main.vader:14:14
+  call 9   ; _main.vader:14:14
   local.set 8   ; _main.vader:14:5
   local.get 8   ; _main.vader:15:5
   array.len   ; _main.vader:15:5
@@ -171,7 +172,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:16:23
         local.get 39   ; _main.vader:16:17
         intrinsic builder.finish   ; _main.vader:16:17
-        call.import 0   ; _main.vader:16:9
+        call 6   ; _main.vader:16:9
         br $L1   ; _main.vader:15:5
       end $L2   ; _main.vader:15:5
     end $L1   ; _main.vader:15:5
@@ -187,7 +188,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   local.set 13   ; _main.vader:21:13
   local.get 12   ; _main.vader:22:15
   local.get 13   ; _main.vader:22:15
-  call 9   ; _main.vader:22:15
+  call 10   ; _main.vader:22:15
   local.set 14   ; _main.vader:22:5
   local.get 14   ; _main.vader:23:5
   array.len   ; _main.vader:23:5
@@ -218,7 +219,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:24:20
         local.get 35   ; _main.vader:24:17
         intrinsic builder.finish   ; _main.vader:24:17
-        call.import 0   ; _main.vader:24:9
+        call 6   ; _main.vader:24:9
         br $L4   ; _main.vader:23:5
       end $L5   ; _main.vader:23:5
     end $L4   ; _main.vader:23:5
@@ -227,7 +228,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   string.const 9   ; _main.vader:28:15
   string.const 10   ; _main.vader:28:15
   array.new 25 3   ; _main.vader:28:15
-  call 10   ; _main.vader:29:19
+  call 11   ; _main.vader:29:19
   local.set 18   ; _main.vader:29:19
   local.get 18   ; _main.vader:29:5
   array.len   ; _main.vader:29:5
@@ -265,7 +266,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:30:24
         local.get 33   ; _main.vader:30:17
         intrinsic builder.finish   ; _main.vader:30:17
-        call.import 0   ; _main.vader:30:9
+        call 6   ; _main.vader:30:9
         br $L7   ; _main.vader:29:5
       end $L8   ; _main.vader:29:5
     end $L7   ; _main.vader:29:5
@@ -280,7 +281,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   local.set 23   ; _main.vader:34:35
   local.get 22   ; _main.vader:34:15
   local.get 23   ; _main.vader:34:15
-  call 11   ; _main.vader:34:15
+  call 12   ; _main.vader:34:15
   local.set 24   ; _main.vader:34:5
   local.get 24   ; _main.vader:35:5
   array.len   ; _main.vader:35:5
@@ -311,7 +312,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:36:20
         local.get 29   ; _main.vader:36:17
         intrinsic builder.finish   ; _main.vader:36:17
-        call.import 0   ; _main.vader:36:9
+        call 6   ; _main.vader:36:9
         br $L10   ; _main.vader:35:5
       end $L11   ; _main.vader:35:5
     end $L10   ; _main.vader:35:5
@@ -522,13 +523,20 @@ fn 5 std_core$ArrayIter$Iterator$step__string (ref) -> ref
   end $L0   ; core.vader:153:9
 end
 
-fn 6 std_iter$std_iter$count__i32 (ref) -> i32
+fn 6 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
+end
+
+fn 7 std_iter$std_iter$count__i32 (ref) -> i32
   local.get 0   ; iter.vader:18:12
   array.len   ; iter.vader:18:12
   return   ; iter.vader:18:5
 end
 
-fn 7 std_iter$std_iter$collect__i32 (ref) -> ref
+fn 8 std_iter$std_iter$collect__i32 (ref) -> ref
   local "out#10" ref
   local "$len_4#12" i32
   local "__iter_0#13" ref
@@ -566,7 +574,7 @@ fn 7 std_iter$std_iter$collect__i32 (ref) -> ref
   return   ; iter.vader:29:5
 end
 
-fn 8 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
+fn 9 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   local "out#14" ref
   local "n#15" i32
   local "m#16" i32
@@ -634,7 +642,7 @@ fn 8 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   return   ; iter.vader:132:5
 end
 
-fn 9 std_iter$std_iter$chain__i32 (ref,ref) -> ref
+fn 10 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   local "out#19" ref
   local "$len_5#21" i32
   local "__iter_0#22" ref
@@ -702,7 +710,7 @@ fn 9 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   return   ; iter.vader:142:5
 end
 
-fn 10 std_iter$std_iter$enumerate__string (ref) -> ref
+fn 11 std_iter$std_iter$enumerate__string (ref) -> ref
   local "out#13" ref
   local "$len_6#16" i32
   local "__iter_0#17" ref
@@ -752,7 +760,7 @@ fn 10 std_iter$std_iter$enumerate__string (ref) -> ref
   return   ; iter.vader:155:5
 end
 
-fn 11 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
+fn 12 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
   local "out#21" ref
   local "$len_5#23" i32
   local "__iter_0#24" ref

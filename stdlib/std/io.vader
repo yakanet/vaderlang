@@ -12,17 +12,24 @@ IOError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-// print / println — write to stdout.
-@intrinsic
-export print   :: fn(msg: string) -> void
-@intrinsic
-export println :: fn(msg: string) -> void
+// Host-provided string sinks. Private — public `print` / `println` /
+// `eprint` / `eprintln` are generic Display wrappers that funnel through
+// these after stringifying.
+@intrinsic print_str    :: fn(msg: string) -> void
+@intrinsic println_str  :: fn(msg: string) -> void
+@intrinsic eprint_str   :: fn(msg: string) -> void
+@intrinsic eprintln_str :: fn(msg: string) -> void
 
-// eprint / eprintln — write to stderr.
-@intrinsic
-export eprint   :: fn(msg: string) -> void
-@intrinsic
-export eprintln :: fn(msg: string) -> void
+// print / println — write to stdout. Accept anything implementing
+// `Display`, so callers can pass a primitive, a user struct with a
+// `to_string` impl, or a `StringBuilder` directly without manually
+// formatting.
+export print    :: fn[T: Display](msg: T) -> void = print_str(msg.to_string())
+export println  :: fn[T: Display](msg: T) -> void = println_str(msg.to_string())
+
+// eprint / eprintln — same for stderr.
+export eprint   :: fn[T: Display](msg: T) -> void = eprint_str(msg.to_string())
+export eprintln :: fn[T: Display](msg: T) -> void = eprintln_str(msg.to_string())
 
 // read_line — block on stdin until newline.
 @intrinsic

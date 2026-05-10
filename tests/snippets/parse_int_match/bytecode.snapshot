@@ -12,9 +12,10 @@ string 3 "nope"
 string 4 "3.14"
 string 5 "float ok"
 string 6 "float err"
-import 0 println std_io$println (string) -> void
-import 1 parse_int std_string$parse_int (string) -> ref
-import 2 parse_float std_string$parse_float (string) -> ref
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
+import 2 parse_int std_string$parse_int (string) -> ref
+import 3 parse_float std_string$parse_float (string) -> ref
 
 fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
   local "__scrut_0#31" ref
@@ -22,33 +23,33 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
   local "__scrut_2#45" ref
   local "__scrut_3#52" ref
   string.const 0   ; _main.vader:9:21
-  call.import 1   ; _main.vader:9:11
+  call.import 2   ; _main.vader:9:11
   local.tee 0   ; _main.vader:9:11
   type_check 3   ; _main.vader:10:9
   if $L0 void   ; _main.vader:10:9
     string.const 1   ; _main.vader:10:27
-    call.import 0   ; _main.vader:10:19
+    call 1   ; _main.vader:10:19
     string.const 3   ; _main.vader:13:21
-    call.import 1   ; _main.vader:13:11
+    call.import 2   ; _main.vader:13:11
     local.tee 1   ; _main.vader:13:11
     type_check 3   ; _main.vader:14:9
     if $L1 void   ; _main.vader:14:9
       string.const 1   ; _main.vader:14:27
-      call.import 0   ; _main.vader:14:19
+      call 1   ; _main.vader:14:19
       string.const 4   ; _main.vader:17:23
-      call.import 2   ; _main.vader:17:11
+      call.import 3   ; _main.vader:17:11
       local.tee 2   ; _main.vader:17:11
       type_check 4   ; _main.vader:18:9
       if $L2 void   ; _main.vader:18:9
         string.const 5   ; _main.vader:18:27
-        call.import 0   ; _main.vader:18:19
+        call 1   ; _main.vader:18:19
         string.const 3   ; _main.vader:21:23
-        call.import 2   ; _main.vader:21:11
+        call.import 3   ; _main.vader:21:11
         local.tee 3   ; _main.vader:21:11
         type_check 4   ; _main.vader:22:9
         if $L3 void   ; _main.vader:22:9
           string.const 5   ; _main.vader:22:27
-          call.import 0   ; _main.vader:22:19
+          call 1   ; _main.vader:22:19
           i32.const 0   ; _main.vader:25:12
           return   ; _main.vader:25:5
         else   ; _main.vader:22:9
@@ -56,7 +57,7 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
           type_check 5   ; _main.vader:23:9
           if $L4 void   ; _main.vader:23:9
             string.const 6   ; _main.vader:23:29
-            call.import 0   ; _main.vader:23:21
+            call 1   ; _main.vader:23:21
             i32.const 0   ; _main.vader:25:12
             return   ; _main.vader:25:5
           else   ; _main.vader:23:9
@@ -68,14 +69,14 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
         type_check 5   ; _main.vader:19:9
         if $L5 void   ; _main.vader:19:9
           string.const 6   ; _main.vader:19:29
-          call.import 0   ; _main.vader:19:21
+          call 1   ; _main.vader:19:21
           string.const 3   ; _main.vader:21:23
-          call.import 2   ; _main.vader:21:11
+          call.import 3   ; _main.vader:21:11
           local.tee 3   ; _main.vader:21:11
           type_check 4   ; _main.vader:22:9
           if $L6 void   ; _main.vader:22:9
             string.const 5   ; _main.vader:22:27
-            call.import 0   ; _main.vader:22:19
+            call 1   ; _main.vader:22:19
             i32.const 0   ; _main.vader:25:12
             return   ; _main.vader:25:5
           else   ; _main.vader:22:9
@@ -83,7 +84,7 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
             type_check 5   ; _main.vader:23:9
             if $L7 void   ; _main.vader:23:9
               string.const 6   ; _main.vader:23:29
-              call.import 0   ; _main.vader:23:21
+              call 1   ; _main.vader:23:21
               i32.const 0   ; _main.vader:25:12
               return   ; _main.vader:25:5
             else   ; _main.vader:23:9
@@ -99,21 +100,21 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
       type_check 5   ; _main.vader:15:9
       if $L8 void   ; _main.vader:15:9
         string.const 2   ; _main.vader:15:29
-        call.import 0   ; _main.vader:15:21
+        call 1   ; _main.vader:15:21
         string.const 4   ; _main.vader:17:23
-        call.import 2   ; _main.vader:17:11
+        call.import 3   ; _main.vader:17:11
         local.tee 2   ; _main.vader:17:11
         type_check 4   ; _main.vader:18:9
         if $L9 void   ; _main.vader:18:9
           string.const 5   ; _main.vader:18:27
-          call.import 0   ; _main.vader:18:19
+          call 1   ; _main.vader:18:19
           string.const 3   ; _main.vader:21:23
-          call.import 2   ; _main.vader:21:11
+          call.import 3   ; _main.vader:21:11
           local.tee 3   ; _main.vader:21:11
           type_check 4   ; _main.vader:22:9
           if $L10 void   ; _main.vader:22:9
             string.const 5   ; _main.vader:22:27
-            call.import 0   ; _main.vader:22:19
+            call 1   ; _main.vader:22:19
             i32.const 0   ; _main.vader:25:12
             return   ; _main.vader:25:5
           else   ; _main.vader:22:9
@@ -121,7 +122,7 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
             type_check 5   ; _main.vader:23:9
             if $L11 void   ; _main.vader:23:9
               string.const 6   ; _main.vader:23:29
-              call.import 0   ; _main.vader:23:21
+              call 1   ; _main.vader:23:21
               i32.const 0   ; _main.vader:25:12
               return   ; _main.vader:25:5
             else   ; _main.vader:23:9
@@ -133,14 +134,14 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
           type_check 5   ; _main.vader:19:9
           if $L12 void   ; _main.vader:19:9
             string.const 6   ; _main.vader:19:29
-            call.import 0   ; _main.vader:19:21
+            call 1   ; _main.vader:19:21
             string.const 3   ; _main.vader:21:23
-            call.import 2   ; _main.vader:21:11
+            call.import 3   ; _main.vader:21:11
             local.tee 3   ; _main.vader:21:11
             type_check 4   ; _main.vader:22:9
             if $L13 void   ; _main.vader:22:9
               string.const 5   ; _main.vader:22:27
-              call.import 0   ; _main.vader:22:19
+              call 1   ; _main.vader:22:19
               i32.const 0   ; _main.vader:25:12
               return   ; _main.vader:25:5
             else   ; _main.vader:22:9
@@ -148,7 +149,7 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
               type_check 5   ; _main.vader:23:9
               if $L14 void   ; _main.vader:23:9
                 string.const 6   ; _main.vader:23:29
-                call.import 0   ; _main.vader:23:21
+                call 1   ; _main.vader:23:21
                 i32.const 0   ; _main.vader:25:12
                 return   ; _main.vader:25:5
               else   ; _main.vader:23:9
@@ -168,28 +169,28 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
     type_check 5   ; _main.vader:11:9
     if $L15 void   ; _main.vader:11:9
       string.const 2   ; _main.vader:11:29
-      call.import 0   ; _main.vader:11:21
+      call 1   ; _main.vader:11:21
       string.const 3   ; _main.vader:13:21
-      call.import 1   ; _main.vader:13:11
+      call.import 2   ; _main.vader:13:11
       local.tee 1   ; _main.vader:13:11
       type_check 3   ; _main.vader:14:9
       if $L16 void   ; _main.vader:14:9
         string.const 1   ; _main.vader:14:27
-        call.import 0   ; _main.vader:14:19
+        call 1   ; _main.vader:14:19
         string.const 4   ; _main.vader:17:23
-        call.import 2   ; _main.vader:17:11
+        call.import 3   ; _main.vader:17:11
         local.tee 2   ; _main.vader:17:11
         type_check 4   ; _main.vader:18:9
         if $L17 void   ; _main.vader:18:9
           string.const 5   ; _main.vader:18:27
-          call.import 0   ; _main.vader:18:19
+          call 1   ; _main.vader:18:19
           string.const 3   ; _main.vader:21:23
-          call.import 2   ; _main.vader:21:11
+          call.import 3   ; _main.vader:21:11
           local.tee 3   ; _main.vader:21:11
           type_check 4   ; _main.vader:22:9
           if $L18 void   ; _main.vader:22:9
             string.const 5   ; _main.vader:22:27
-            call.import 0   ; _main.vader:22:19
+            call 1   ; _main.vader:22:19
             i32.const 0   ; _main.vader:25:12
             return   ; _main.vader:25:5
           else   ; _main.vader:22:9
@@ -197,7 +198,7 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
             type_check 5   ; _main.vader:23:9
             if $L19 void   ; _main.vader:23:9
               string.const 6   ; _main.vader:23:29
-              call.import 0   ; _main.vader:23:21
+              call 1   ; _main.vader:23:21
               i32.const 0   ; _main.vader:25:12
               return   ; _main.vader:25:5
             else   ; _main.vader:23:9
@@ -209,14 +210,14 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
           type_check 5   ; _main.vader:19:9
           if $L20 void   ; _main.vader:19:9
             string.const 6   ; _main.vader:19:29
-            call.import 0   ; _main.vader:19:21
+            call 1   ; _main.vader:19:21
             string.const 3   ; _main.vader:21:23
-            call.import 2   ; _main.vader:21:11
+            call.import 3   ; _main.vader:21:11
             local.tee 3   ; _main.vader:21:11
             type_check 4   ; _main.vader:22:9
             if $L21 void   ; _main.vader:22:9
               string.const 5   ; _main.vader:22:27
-              call.import 0   ; _main.vader:22:19
+              call 1   ; _main.vader:22:19
               i32.const 0   ; _main.vader:25:12
               return   ; _main.vader:25:5
             else   ; _main.vader:22:9
@@ -224,7 +225,7 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
               type_check 5   ; _main.vader:23:9
               if $L22 void   ; _main.vader:23:9
                 string.const 6   ; _main.vader:23:29
-                call.import 0   ; _main.vader:23:21
+                call 1   ; _main.vader:23:21
                 i32.const 0   ; _main.vader:25:12
                 return   ; _main.vader:25:5
               else   ; _main.vader:23:9
@@ -240,21 +241,21 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
         type_check 5   ; _main.vader:15:9
         if $L23 void   ; _main.vader:15:9
           string.const 2   ; _main.vader:15:29
-          call.import 0   ; _main.vader:15:21
+          call 1   ; _main.vader:15:21
           string.const 4   ; _main.vader:17:23
-          call.import 2   ; _main.vader:17:11
+          call.import 3   ; _main.vader:17:11
           local.tee 2   ; _main.vader:17:11
           type_check 4   ; _main.vader:18:9
           if $L24 void   ; _main.vader:18:9
             string.const 5   ; _main.vader:18:27
-            call.import 0   ; _main.vader:18:19
+            call 1   ; _main.vader:18:19
             string.const 3   ; _main.vader:21:23
-            call.import 2   ; _main.vader:21:11
+            call.import 3   ; _main.vader:21:11
             local.tee 3   ; _main.vader:21:11
             type_check 4   ; _main.vader:22:9
             if $L25 void   ; _main.vader:22:9
               string.const 5   ; _main.vader:22:27
-              call.import 0   ; _main.vader:22:19
+              call 1   ; _main.vader:22:19
               i32.const 0   ; _main.vader:25:12
               return   ; _main.vader:25:5
             else   ; _main.vader:22:9
@@ -262,7 +263,7 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
               type_check 5   ; _main.vader:23:9
               if $L26 void   ; _main.vader:23:9
                 string.const 6   ; _main.vader:23:29
-                call.import 0   ; _main.vader:23:21
+                call 1   ; _main.vader:23:21
                 i32.const 0   ; _main.vader:25:12
                 return   ; _main.vader:25:5
               else   ; _main.vader:23:9
@@ -274,14 +275,14 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
             type_check 5   ; _main.vader:19:9
             if $L27 void   ; _main.vader:19:9
               string.const 6   ; _main.vader:19:29
-              call.import 0   ; _main.vader:19:21
+              call 1   ; _main.vader:19:21
               string.const 3   ; _main.vader:21:23
-              call.import 2   ; _main.vader:21:11
+              call.import 3   ; _main.vader:21:11
               local.tee 3   ; _main.vader:21:11
               type_check 4   ; _main.vader:22:9
               if $L28 void   ; _main.vader:22:9
                 string.const 5   ; _main.vader:22:27
-                call.import 0   ; _main.vader:22:19
+                call 1   ; _main.vader:22:19
                 i32.const 0   ; _main.vader:25:12
                 return   ; _main.vader:25:5
               else   ; _main.vader:22:9
@@ -289,7 +290,7 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
                 type_check 5   ; _main.vader:23:9
                 if $L29 void   ; _main.vader:23:9
                   string.const 6   ; _main.vader:23:29
-                  call.import 0   ; _main.vader:23:21
+                  call 1   ; _main.vader:23:21
                   i32.const 0   ; _main.vader:25:12
                   return   ; _main.vader:25:5
                 else   ; _main.vader:23:9
@@ -308,4 +309,11 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
       unreachable   ; _main.vader:9:5
     end $L15   ; _main.vader:11:9
   end $L0   ; _main.vader:10:9
+end
+
+fn 1 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

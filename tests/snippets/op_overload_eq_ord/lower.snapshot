@@ -7,20 +7,20 @@
       eq :bool
         l:
           .amount :i32
-            self#55 :Money
+            self#59 :Money
         r:
           .amount :i32
-            other#56 :Money
+            other#60 :Money
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare(self: Money, other: Money) -> i32
     if :void
       cond:
         lt :bool
           l:
             .amount :i32
-              self#57 :Money
+              self#61 :Money
           r:
             .amount :i32
-              other#58 :Money
+              other#62 :Money
       then:
         return
           neg :i32
@@ -30,29 +30,29 @@
         gt :bool
           l:
             .amount :i32
-              self#57 :Money
+              self#61 :Money
           r:
             .amount :i32
-              other#58 :Money
+              other#62 :Money
       then:
         return int(1) :i32
     return int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$main() -> i32
-    let a#59: Money =
+    let a#63: Money =
       Money {
         amount: int(100) :i32
       }
-    let b#60: Money =
+    let b#64: Money =
       Money {
         amount: int(100) :i32
       }
-    let c#61: Money =
+    let c#65: Money =
       Money {
         amount: int(200) :i32
       }
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#1000092 :void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -66,9 +66,9 @@
               callee:
                 equals#1000000 :bool
               arg0:
-                a#59 :Money
+                a#63 :Money
               arg1:
-                b#60 :Money
+                b#64 :Money
           @builder.append_str :void
             __sb_0#-1 :?
             "  a!=c " :string
@@ -79,15 +79,15 @@
                 callee:
                   equals#1000000 :bool
                 arg0:
-                  a#59 :Money
+                  a#63 :Money
                 arg1:
-                  c#61 :Money
+                  c#65 :Money
           ~>
             @builder.finish :string
               __sb_0#-1 :?
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#1000092 :void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -103,9 +103,9 @@
                   callee:
                     compare#1000001 :i32
                   arg0:
-                    a#59 :Money
+                    a#63 :Money
                   arg1:
-                    c#61 :Money
+                    c#65 :Money
               r:
                 int(0) :i32
           @builder.append_str :void
@@ -119,9 +119,9 @@
                   callee:
                     compare#1000001 :i32
                   arg0:
-                    c#61 :Money
+                    c#65 :Money
                   arg1:
-                    a#59 :Money
+                    a#63 :Money
               r:
                 int(0) :i32
           @builder.append_str :void
@@ -135,9 +135,9 @@
                   callee:
                     compare#1000001 :i32
                   arg0:
-                    a#59 :Money
+                    a#63 :Money
                   arg1:
-                    b#60 :Money
+                    b#64 :Money
               r:
                 int(0) :i32
           @builder.append_str :void
@@ -151,9 +151,9 @@
                   callee:
                     compare#1000001 :i32
                   arg0:
-                    c#61 :Money
+                    c#65 :Money
                   arg1:
-                    c#61 :Money
+                    c#65 :Money
               r:
                 int(0) :i32
           ~>

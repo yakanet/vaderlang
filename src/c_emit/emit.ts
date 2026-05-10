@@ -388,13 +388,13 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
 
   // Built-in std/io routes — implemented by the runtime.
   switch (imp.mangledName) {
-    case "std_io$print":
+    case "std_io$print_str":
       return `${head} { vader_print(a0); }`;
-    case "std_io$println":
+    case "std_io$println_str":
       return `${head} { vader_println(a0); }`;
-    case "std_io$eprint":
+    case "std_io$eprint_str":
       return `${head} { vader_eprint(a0); }`;
-    case "std_io$eprintln":
+    case "std_io$eprintln_str":
       return `${head} { vader_eprintln(a0); }`;
     case "std_io$exists":
       return `${head} { return vader_exists(a0); }`;
@@ -434,6 +434,35 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_string_parse_float(a0, ${primTagOrTrap(ctx, "f64")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_core$string$Hash$hash":
       return `${head} { return vader_string_hash(a0); }`;
+
+    // `@intrinsic <T> implements Display` for primitives — each shim spins
+    // up a one-shot StringBuilder, calls the matching append_display_<T>
+    // helper, then finishes. Reuses existing runtime infrastructure rather
+    // than introducing parallel `vader_<T>_to_string` helpers.
+    case "std_core$i8$Display$to_string":
+    case "std_core$i16$Display$to_string":
+    case "std_core$i32$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i32(sb, (int32_t) a0); return vader_builder_finish(sb); }`;
+    case "std_core$i64$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i64(sb, a0); return vader_builder_finish(sb); }`;
+    case "std_core$u8$Display$to_string":
+    case "std_core$u16$Display$to_string":
+    case "std_core$u32$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_u32(sb, (uint32_t) a0); return vader_builder_finish(sb); }`;
+    case "std_core$u64$Display$to_string":
+    case "std_core$usize$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_u64(sb, (uint64_t) a0); return vader_builder_finish(sb); }`;
+    case "std_core$f32$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f32(sb, a0); return vader_builder_finish(sb); }`;
+    case "std_core$f64$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f64(sb, a0); return vader_builder_finish(sb); }`;
+    case "std_core$bool$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_bool(sb, a0); return vader_builder_finish(sb); }`;
+    case "std_core$char$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_char(sb, a0); return vader_builder_finish(sb); }`;
+    case "std_core$string$Display$to_string":
+      return `${head} { return a0; }`;
+
     case "std_string_builder$StringBuilder$Display$to_string": {
       // `@intrinsic StringBuilder implements Display` — receiver is a boxed
       // StringBuilder whose only field `parts` holds the string[] buffer.

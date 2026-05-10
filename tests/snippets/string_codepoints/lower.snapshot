@@ -4,7 +4,7 @@
   fn tests_snippets_string_codepoints__main_vader$main() -> i32
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -16,7 +16,7 @@
             __sb_0#-1 :?
             call :i32
               callee:
-                count_chars#54 :fn(string) -> i32
+                count_chars#58 :fn(string) -> i32
               arg0:
                 "vader" :string
           @builder.append_str :void
@@ -26,7 +26,7 @@
             __sb_0#-1 :?
             call :i32
               callee:
-                byte_len#41 :fn(string) -> i32
+                byte_len#45 :fn(string) -> i32
               arg0:
                 "vader" :string
           ~>
@@ -34,7 +34,7 @@
               __sb_0#-1 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -46,7 +46,7 @@
             __sb_1#-2 :?
             call :i32
               callee:
-                count_chars#54 :fn(string) -> i32
+                count_chars#58 :fn(string) -> i32
               arg0:
                 "héllo" :string
           @builder.append_str :void
@@ -56,7 +56,7 @@
             __sb_1#-2 :?
             call :i32
               callee:
-                byte_len#41 :fn(string) -> i32
+                byte_len#45 :fn(string) -> i32
               arg0:
                 "héllo" :string
           ~>
@@ -64,7 +64,7 @@
               __sb_1#-2 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_2#-3: ? =
@@ -76,7 +76,7 @@
             __sb_2#-3 :?
             call :i32
               callee:
-                count_chars#54 :fn(string) -> i32
+                count_chars#58 :fn(string) -> i32
               arg0:
                 "你好嗎？" :string
           @builder.append_str :void
@@ -86,7 +86,7 @@
             __sb_2#-3 :?
             call :i32
               callee:
-                byte_len#41 :fn(string) -> i32
+                byte_len#45 :fn(string) -> i32
               arg0:
                 "你好嗎？" :string
           ~>
@@ -94,7 +94,7 @@
               __sb_2#-3 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_3#-4: ? =
@@ -106,7 +106,7 @@
             __sb_3#-4 :?
             call :i32
               callee:
-                count_chars#54 :fn(string) -> i32
+                count_chars#58 :fn(string) -> i32
               arg0:
                 "a😀b" :string
           @builder.append_str :void
@@ -116,7 +116,7 @@
             __sb_3#-4 :?
             call :i32
               callee:
-                byte_len#41 :fn(string) -> i32
+                byte_len#45 :fn(string) -> i32
               arg0:
                 "a😀b" :string
           ~>
@@ -124,7 +124,7 @@
               __sb_3#-4 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_4#-5: ? =
@@ -136,7 +136,7 @@
             __sb_4#-5 :?
             call :i32
               callee:
-                count_chars#54 :fn(string) -> i32
+                count_chars#58 :fn(string) -> i32
               arg0:
                 "" :string
           @builder.append_str :void
@@ -146,38 +146,38 @@
             __sb_4#-5 :?
             call :i32
               callee:
-                byte_len#41 :fn(string) -> i32
+                byte_len#45 :fn(string) -> i32
               arg0:
                 "" :string
           ~>
             @builder.finish :string
               __sb_4#-5 :?
-    let s#124: string = "你好" :string
-    let n#125: i32 =
+    let s#128: string = "你好" :string
+    let n#129: i32 =
       call :i32
         callee:
-          byte_len#41 :fn(string) -> i32
+          byte_len#45 :fn(string) -> i32
         arg0:
-          s#124 :string
-    let i#126: i32 = int(0) :i32
+          s#128 :string
+    let i#130: i32 = int(0) :i32
     loop while (<…>)
       let __tup_5#-6: [char, i32] =
         call :[char, i32]
           callee:
-            decode_codepoint#53 :fn(string, i32) -> [char, i32]
+            decode_codepoint#57 :fn(string, i32) -> [char, i32]
           arg0:
-            s#124 :string
+            s#128 :string
           arg1:
-            i#126 :i32
-      let c#127: char =
+            i#130 :i32
+      let c#131: char =
         ._0 :char
           __tup_5#-6 :[char, i32]
-      let w#128: i32 =
+      let w#132: i32 =
         ._1 :i32
           __tup_5#-6 :[char, i32]
       call :void
         callee:
-          println#28 :fn(string) -> void
+          println#1000094 :void
         arg0:
           block :string
             let __sb_6#-7: ? =
@@ -187,19 +187,19 @@
               "at " :string
             @builder.append_display <for i32> :void
               __sb_6#-7 :?
-              i#126 :i32
+              i#130 :i32
             @builder.append_str :void
               __sb_6#-7 :?
               ": '" :string
             @builder.append_display <for char> :void
               __sb_6#-7 :?
-              c#127 :char
+              c#131 :char
             @builder.append_str :void
               __sb_6#-7 :?
               "' (" :string
             @builder.append_display <for i32> :void
               __sb_6#-7 :?
-              w#128 :i32
+              w#132 :i32
             @builder.append_str :void
               __sb_6#-7 :?
               " bytes)" :string
@@ -208,16 +208,16 @@
                 __sb_6#-7 :?
       assign
         target:
-          i#126 :i32
+          i#130 :i32
         value:
           add :i32
             l:
-              i#126 :i32
+              i#130 :i32
             r:
-              w#128 :i32
+              w#132 :i32
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_7#-8: ? =
@@ -229,7 +229,7 @@
             __sb_7#-8 :?
             call :i32
               callee:
-                codepoint_byte_len#76 :fn(char) -> i32
+                codepoint_byte_len#80 :fn(char) -> i32
               arg0:
                 char(0x61)
           ~>
@@ -237,7 +237,7 @@
               __sb_7#-8 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_8#-9: ? =
@@ -249,7 +249,7 @@
             __sb_8#-9 :?
             call :i32
               callee:
-                codepoint_byte_len#76 :fn(char) -> i32
+                codepoint_byte_len#80 :fn(char) -> i32
               arg0:
                 char(0xe9)
           ~>
@@ -257,7 +257,7 @@
               __sb_8#-9 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_9#-10: ? =
@@ -269,7 +269,7 @@
             __sb_9#-10 :?
             call :i32
               callee:
-                codepoint_byte_len#76 :fn(char) -> i32
+                codepoint_byte_len#80 :fn(char) -> i32
               arg0:
                 char(0x4f60)
           ~>
@@ -277,7 +277,7 @@
               __sb_9#-10 :?
     call :void
       callee:
-        println#28 :fn(string) -> void
+        println#1000094 :void
       arg0:
         block :string
           let __sb_10#-11: ? =
@@ -289,7 +289,7 @@
             __sb_10#-11 :?
             call :i32
               callee:
-                codepoint_byte_len#76 :fn(char) -> i32
+                codepoint_byte_len#80 :fn(char) -> i32
               arg0:
                 char(0x1f600)
           ~>

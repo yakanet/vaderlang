@@ -11,7 +11,8 @@ string 2 "E"
 string 3 "S"
 string 4 "W"
 string 5 "err"
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_dot_variant_in_union__main_vader$parse (char) -> ref
   local.get 0   ; _main.vader:12:8
@@ -101,7 +102,7 @@ fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
     local.get 0   ; _main.vader:30:9
     ref.cast 4   ; _main.vader:30:9
     call 1   ; _main.vader:30:38
-    call.import 0   ; _main.vader:30:30
+    call 3   ; _main.vader:30:30
     char.const 63   ; _main.vader:33:17
     call 0   ; _main.vader:33:11
     local.tee 1   ; _main.vader:33:11
@@ -110,7 +111,7 @@ fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
       local.get 1   ; _main.vader:34:9
       ref.cast 4   ; _main.vader:34:9
       call 1   ; _main.vader:34:38
-      call.import 0   ; _main.vader:34:30
+      call 3   ; _main.vader:34:30
       i32.const 0   ; _main.vader:37:12
       return   ; _main.vader:37:5
     else   ; _main.vader:34:9
@@ -118,7 +119,7 @@ fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
       type_check 5   ; _main.vader:35:9
       if $L2 void   ; _main.vader:35:9
         string.const 5   ; _main.vader:35:39
-        call.import 0   ; _main.vader:35:31
+        call 3   ; _main.vader:35:31
         i32.const 0   ; _main.vader:37:12
         return   ; _main.vader:37:5
       else   ; _main.vader:35:9
@@ -130,7 +131,7 @@ fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
     type_check 5   ; _main.vader:31:9
     if $L3 void   ; _main.vader:31:9
       string.const 5   ; _main.vader:31:39
-      call.import 0   ; _main.vader:31:31
+      call 3   ; _main.vader:31:31
       char.const 63   ; _main.vader:33:17
       call 0   ; _main.vader:33:11
       local.tee 1   ; _main.vader:33:11
@@ -139,7 +140,7 @@ fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
         local.get 1   ; _main.vader:34:9
         ref.cast 4   ; _main.vader:34:9
         call 1   ; _main.vader:34:38
-        call.import 0   ; _main.vader:34:30
+        call 3   ; _main.vader:34:30
         i32.const 0   ; _main.vader:37:12
         return   ; _main.vader:37:5
       else   ; _main.vader:34:9
@@ -147,7 +148,7 @@ fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
         type_check 5   ; _main.vader:35:9
         if $L5 void   ; _main.vader:35:9
           string.const 5   ; _main.vader:35:39
-          call.import 0   ; _main.vader:35:31
+          call 3   ; _main.vader:35:31
           i32.const 0   ; _main.vader:37:12
           return   ; _main.vader:37:5
         else   ; _main.vader:35:9
@@ -158,4 +159,11 @@ fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
       unreachable   ; _main.vader:29:5
     end $L3   ; _main.vader:31:9
   end $L0   ; _main.vader:30:9
+end
+
+fn 3 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

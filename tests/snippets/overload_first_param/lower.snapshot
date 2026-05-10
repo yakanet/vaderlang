@@ -14,7 +14,7 @@
         @builder.append_display <for i32> :void
           __sb_0#-1 :?
           .v :i32
-            b#81 :Box
+            b#85 :Box
         ~>
           @builder.finish :string
             __sb_0#-1 :?
@@ -29,58 +29,58 @@
         @builder.append_display <for string> :void
           __sb_0#-2 :?
           .v :string
-            b#82 :Bag
+            b#86 :Bag
         ~>
           @builder.finish :string
             __sb_0#-2 :?
   fn tests_snippets_overload_first_param__main_vader$main() -> i32
-    let a#83: Box =
+    let a#87: Box =
       Box {
         v: int(42) :i32
       }
-    let b#84: Bag =
+    let b#88: Bag =
       Bag {
         v: "hi" :string
       }
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         call :string
           callee:
             describe#8 :fn(Box) -> string
           arg0:
-            a#83 :Box
+            a#87 :Box
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         call :string
           callee:
             describe#9 :string
           arg0:
-            b#84 :Bag
+            b#88 :Bag
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         call :string
           callee:
             describe#8 :string
           arg0:
-            a#83 :Box
+            a#87 :Box
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         call :string
           callee:
             describe#9 :string
           arg0:
-            b#84 :Bag
+            b#88 :Bag
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_0#-3: ? =
@@ -92,7 +92,7 @@
             __sb_0#-3 :?
             call :i32
               callee:
-                min#50 :i32
+                min#54 :i32
               arg0:
                 int(3) :i32
               arg1:
@@ -102,7 +102,7 @@
               __sb_0#-3 :?
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_1#-4: ? =
@@ -114,7 +114,7 @@
             __sb_1#-4 :?
             call :f64
               callee:
-                min#49 :fn(f64, f64) -> f64
+                min#53 :fn(f64, f64) -> f64
               arg0:
                 float(3.5) :f64
               arg1:
@@ -124,7 +124,7 @@
               __sb_1#-4 :?
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_2#-5: ? =
@@ -136,7 +136,7 @@
             __sb_2#-5 :?
             call :i32
               callee:
-                max#52 :i32
+                max#56 :i32
               arg0:
                 neg :i32
                   int(2) :i32
@@ -147,7 +147,7 @@
               __sb_2#-5 :?
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_3#-6: ? =
@@ -159,7 +159,7 @@
             __sb_3#-6 :?
             call :i32
               callee:
-                abs#54 :i32
+                abs#58 :i32
               arg0:
                 neg :i32
                   int(7) :i32
@@ -168,7 +168,7 @@
               __sb_3#-6 :?
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_4#-7: ? =
@@ -180,7 +180,7 @@
             __sb_4#-7 :?
             call :f64
               callee:
-                abs#53 :fn(f64) -> f64
+                abs#57 :fn(f64) -> f64
               arg0:
                 neg :f64
                   float(7.5) :f64
@@ -189,7 +189,7 @@
               __sb_4#-7 :?
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_5#-8: ? =
@@ -201,7 +201,7 @@
             __sb_5#-8 :?
             call :i32
               callee:
-                clamp#56 :i32
+                clamp#60 :i32
               arg0:
                 int(15) :i32
               arg1:
@@ -213,7 +213,7 @@
               __sb_5#-8 :?
     call :void
       callee:
-        println#32 :fn(string) -> void
+        println#1000090 :void
       arg0:
         block :string
           let __sb_6#-9: ? =
@@ -225,7 +225,7 @@
             __sb_6#-9 :?
             call :f64
               callee:
-                clamp#55 :fn(f64, f64, f64) -> f64
+                clamp#59 :fn(f64, f64, f64) -> f64
               arg0:
                 float(1.5) :f64
               arg1:

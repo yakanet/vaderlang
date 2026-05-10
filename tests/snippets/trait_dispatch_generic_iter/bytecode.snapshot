@@ -11,7 +11,8 @@ type 8 struct std_core$Range__char { start:6,end:6,inclusive:3,cursor:6 }
 type 9 struct std_core$Range__i32 { start:1,end:1,inclusive:3,cursor:1 }
 string 0 "repeat="
 string 1 "once="
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
   local "sum#11" i32
@@ -99,7 +100,7 @@ fn 1 tests_snippets_trait_dispatch_generic_iter__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:57:21
   local.get 2   ; _main.vader:57:13
   intrinsic builder.finish   ; _main.vader:57:13
-  call.import 0   ; _main.vader:57:5
+  call 6   ; _main.vader:57:5
   intrinsic builder.new   ; _main.vader:58:13
   local.set 4   ; _main.vader:58:13
   local.get 4   ; _main.vader:58:14
@@ -113,7 +114,7 @@ fn 1 tests_snippets_trait_dispatch_generic_iter__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:58:19
   local.get 4   ; _main.vader:58:13
   intrinsic builder.finish   ; _main.vader:58:13
-  call.import 0   ; _main.vader:58:5
+  call 6   ; _main.vader:58:5
   i32.const 0   ; _main.vader:59:12
   return   ; _main.vader:59:5
 end
@@ -289,4 +290,11 @@ fn 5 std_core$Range$Iterator$step__i32 (ref) -> ref
     struct.new 7   ; core.vader:124:16
     return   ; core.vader:124:9
   end $L1   ; core.vader:121:9
+end
+
+fn 6 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

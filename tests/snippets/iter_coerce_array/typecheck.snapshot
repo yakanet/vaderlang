@@ -39,4 +39,4 @@
   expr 41:25    IdentExpr      :: i32
   expr 41:32    IdentExpr      :: i32
   expr 41:5     CallExpr       :: void
-  expr 41:5     IdentExpr      :: fn(string) -> void
+  expr 41:5     IdentExpr      :: fn($T) -> void

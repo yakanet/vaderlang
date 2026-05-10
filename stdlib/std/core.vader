@@ -166,6 +166,29 @@ ArrayIter[T] implements Iterator[T] {
 // indirection, identical performance to the operator form. `s1 + s2` and
 // `(s1).add(s2)` share a single runtime path.
 
+// ---- Display --------------------------------------------------------------
+//
+// Every primitive type carries a host-provided `to_string` so trait-typed
+// receivers (e.g. `print(value: Display)`) dispatch uniformly. `${x}` string
+// interpolation still goes through the dedicated `builder.append_display`
+// intrinsic for performance — the trait route is for explicit method calls
+// and trait-bound parameters.
+
+@intrinsic i8     implements Display
+@intrinsic i16    implements Display
+@intrinsic i32    implements Display
+@intrinsic i64    implements Display
+@intrinsic u8     implements Display
+@intrinsic u16    implements Display
+@intrinsic u32    implements Display
+@intrinsic u64    implements Display
+@intrinsic usize  implements Display
+@intrinsic f32    implements Display
+@intrinsic f64    implements Display
+@intrinsic bool   implements Display
+@intrinsic char   implements Display
+@intrinsic string implements Display
+
 // ---- Equals ---------------------------------------------------------------
 
 @intrinsic i8     implements Equals

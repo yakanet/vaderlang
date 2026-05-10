@@ -7,6 +7,7 @@
   Yielded(i32)
   Range(char)
   Range(i32)
+  println(string)
   Entry(string, i32)
   MutableMap(string, i32)
   put(string, i32)

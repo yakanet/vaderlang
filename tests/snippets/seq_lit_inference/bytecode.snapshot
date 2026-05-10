@@ -12,7 +12,8 @@ string 0 "score="
 string 1 "answer"
 string 2 "id="
 string 3 "label="
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_seq_lit_inference__main_vader$main () -> i32
   local "scores#33" ref
@@ -60,7 +61,7 @@ fn 0 tests_snippets_seq_lit_inference__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:11:38
         local.get 10   ; _main.vader:11:31
         intrinsic builder.finish   ; _main.vader:11:31
-        call.import 0   ; _main.vader:11:23
+        call 2   ; _main.vader:11:23
         br $L1   ; _main.vader:11:5
       end $L2   ; _main.vader:11:5
     end $L1   ; _main.vader:11:5
@@ -82,7 +83,7 @@ fn 0 tests_snippets_seq_lit_inference__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:15:17
   local.get 5   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
-  call.import 0   ; _main.vader:15:5
+  call 2   ; _main.vader:15:5
   intrinsic builder.new   ; _main.vader:16:13
   local.set 7   ; _main.vader:16:13
   local.get 7   ; _main.vader:16:14
@@ -96,7 +97,7 @@ fn 0 tests_snippets_seq_lit_inference__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:16:20
   local.get 7   ; _main.vader:16:13
   intrinsic builder.finish   ; _main.vader:16:13
-  call.import 0   ; _main.vader:16:5
+  call 2   ; _main.vader:16:5
   i32.const 0   ; _main.vader:18:12
   return   ; _main.vader:18:5
 end
@@ -147,4 +148,11 @@ fn 1 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref
     struct.new 3   ; core.vader:156:16
     return   ; core.vader:156:9
   end $L0   ; core.vader:153:9
+end
+
+fn 2 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

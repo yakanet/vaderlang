@@ -13,7 +13,8 @@ string 0 "one"
 string 1 "two"
 string 2 "three"
 string 3 " -> "
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_tuple_in_array__main_vader$main () -> i32
   local "$struct_2#27" ref
@@ -82,7 +83,7 @@ fn 0 tests_snippets_tuple_in_array__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:6:30
         local.get 8   ; _main.vader:6:17
         intrinsic builder.finish   ; _main.vader:6:17
-        call.import 0   ; _main.vader:6:9
+        call 2   ; _main.vader:6:9
         br $L1   ; _main.vader:5:5
       end $L2   ; _main.vader:5:5
     end $L1   ; _main.vader:5:5
@@ -136,4 +137,11 @@ fn 1 std_core$ArrayIter$Iterator$step___i32__string_ (ref) -> ref
     struct.new 1   ; core.vader:156:16
     return   ; core.vader:156:9
   end $L0   ; core.vader:153:9
+end
+
+fn 2 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

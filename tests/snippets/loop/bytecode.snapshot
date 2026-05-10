@@ -1,6 +1,7 @@
 module _main
 string 0 "sum 1..5 = "
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_loop__main_vader$main () -> i32
   local "sum#12" i32
@@ -39,7 +40,14 @@ fn 0 tests_snippets_loop__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:10:25
   local.get 2   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
-  call.import 0   ; _main.vader:10:5
+  call 1   ; _main.vader:10:5
   i32.const 0   ; _main.vader:11:12
   return   ; _main.vader:11:5
+end
+
+fn 1 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

@@ -4,7 +4,7 @@
   fn tests_snippets_generic_eq__main_vader$main() -> i32
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#1000091 :void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -13,7 +13,7 @@
             __sb_0#-1 :?
             call :bool
               callee:
-                are_eq#1000076 :bool
+                are_eq#1000090 :bool
               arg0:
                 int(1) :i32
               arg1:
@@ -23,7 +23,7 @@
               __sb_0#-1 :?
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#1000091 :void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -32,7 +32,7 @@
             __sb_1#-2 :?
             call :bool
               callee:
-                are_eq#1000076 :bool
+                are_eq#1000090 :bool
               arg0:
                 int(1) :i32
               arg1:
@@ -45,6 +45,6 @@
     return
       eq :bool
         l:
-          a#56 :i32
+          a#60 :i32
         r:
-          b#57 :i32
+          b#61 :i32

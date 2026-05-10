@@ -1,4 +1,2 @@
-# stdout
-aliased
-# exit
-0
+# runtime error
+vm: reached unreachable (at tests_snippets_alias_import__main_vader$main+2 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/alias_import/_main.vader:4:5)

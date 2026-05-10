@@ -6,10 +6,11 @@ string 1 "hello from vader"
 string 2 "exists: "
 string 3 "read: "
 string 4 "read failed"
-import 0 println std_io$println (string) -> void
-import 1 read_file std_io$read_file (string) -> ref
-import 2 write_file std_io$write_file (string,string) -> ref
-import 3 exists std_io$exists (string) -> bool
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
+import 2 read_file std_io$read_file (string) -> ref
+import 3 write_file std_io$write_file (string,string) -> ref
+import 4 exists std_io$exists (string) -> bool
 
 fn 0 tests_snippets_io_roundtrip__main_vader$main () -> i32
   local "path#20" string
@@ -23,7 +24,7 @@ fn 0 tests_snippets_io_roundtrip__main_vader$main () -> i32
   local.set 0   ; _main.vader:4:13
   local.get 0   ; _main.vader:7:5
   string.const 1   ; _main.vader:7:5
-  call.import 2   ; _main.vader:7:5
+  call.import 3   ; _main.vader:7:5
   drop   ; _main.vader:7:5
   intrinsic builder.new   ; _main.vader:9:13
   local.set 1   ; _main.vader:9:13
@@ -31,16 +32,16 @@ fn 0 tests_snippets_io_roundtrip__main_vader$main () -> i32
   string.const 2   ; _main.vader:9:14
   intrinsic builder.append_str   ; _main.vader:9:14
   local.get 0   ; _main.vader:9:24
-  call.import 3   ; _main.vader:9:24
+  call.import 4   ; _main.vader:9:24
   local.set 2   ; _main.vader:9:24
   local.get 1   ; _main.vader:9:22
   local.get 2   ; _main.vader:9:22
   intrinsic builder.append_display   ; _main.vader:9:22
   local.get 1   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
-  call.import 0   ; _main.vader:9:5
+  call 1   ; _main.vader:9:5
   local.get 0   ; _main.vader:11:17
-  call.import 1   ; _main.vader:11:17
+  call.import 2   ; _main.vader:11:17
   local.tee 3   ; _main.vader:11:5
   local.tee 4   ; _main.vader:12:11
   type_check 0   ; _main.vader:13:9
@@ -58,7 +59,7 @@ fn 0 tests_snippets_io_roundtrip__main_vader$main () -> i32
     intrinsic builder.append_display   ; _main.vader:13:37
     local.get 5   ; _main.vader:13:30
     intrinsic builder.finish   ; _main.vader:13:30
-    call.import 0   ; _main.vader:13:22
+    call 1   ; _main.vader:13:22
     i32.const 0   ; _main.vader:17:12
     return   ; _main.vader:17:5
   else   ; _main.vader:13:9
@@ -66,11 +67,18 @@ fn 0 tests_snippets_io_roundtrip__main_vader$main () -> i32
     type_check 1   ; _main.vader:14:9
     if $L1 void   ; _main.vader:14:9
       string.const 4   ; _main.vader:14:30
-      call.import 0   ; _main.vader:14:22
+      call 1   ; _main.vader:14:22
       i32.const 0   ; _main.vader:17:12
       return   ; _main.vader:17:5
     else   ; _main.vader:14:9
       unreachable   ; _main.vader:12:5
     end $L1   ; _main.vader:14:9
   end $L0   ; _main.vader:13:9
+end
+
+fn 1 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

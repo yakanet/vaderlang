@@ -12,18 +12,18 @@
   expr 20:13    FieldExpr      :: fn() -> string
   expr 20:13    IdentExpr      :: i32
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 20:5     IdentExpr      :: fn($T) -> void
   expr 21:13    CallExpr       :: string
   expr 21:13    FieldExpr      :: fn() -> string
   expr 21:13    IdentExpr      :: i64
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 21:5     IdentExpr      :: fn($T) -> void
   expr 22:13    StringLitExpr  :: string
   expr 22:16    CallExpr       :: u64
   expr 22:16    FieldExpr      :: fn() -> u64
   expr 22:16    IdentExpr      :: i32
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 22:5     IdentExpr      :: fn($T) -> void
   expr 5:27     StringLitExpr  :: string
   expr 5:44     IdentExpr      :: i32
   expr 9:22     StringLitExpr  :: string

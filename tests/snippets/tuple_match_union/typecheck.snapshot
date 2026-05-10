@@ -9,10 +9,10 @@
   expr 16:11    IdentExpr      :: [i32, string] | null
   expr 16:5     MatchExpr      :: void
   expr 17:20    CallExpr       :: void
-  expr 17:20    IdentExpr      :: fn(string) -> void
+  expr 17:20    IdentExpr      :: fn($T) -> void
   expr 17:28    StringLitExpr  :: string
   expr 18:19    CallExpr       :: void
-  expr 18:19    IdentExpr      :: fn(string) -> void
+  expr 18:19    IdentExpr      :: fn($T) -> void
   expr 18:27    StringLitExpr  :: string
   expr 18:32    IdentExpr      :: ?
   expr 18:39    IdentExpr      :: ?
@@ -22,10 +22,10 @@
   expr 21:11    IdentExpr      :: [i32, string] | null
   expr 21:5     MatchExpr      :: void
   expr 22:20    CallExpr       :: void
-  expr 22:20    IdentExpr      :: fn(string) -> void
+  expr 22:20    IdentExpr      :: fn($T) -> void
   expr 22:28    StringLitExpr  :: string
   expr 23:19    CallExpr       :: void
-  expr 23:19    IdentExpr      :: fn(string) -> void
+  expr 23:19    IdentExpr      :: fn($T) -> void
   expr 23:27    StringLitExpr  :: string
   expr 23:32    IdentExpr      :: ?
   expr 23:39    IdentExpr      :: ?

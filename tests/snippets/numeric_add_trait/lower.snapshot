@@ -5,19 +5,19 @@
     let a#50: i32 =
       call :i32
         callee:
-          double#1000075 :i32
+          double#1000089 :i32
         arg0:
           int(7) :i32
     let b#51: i32 =
       call :i32
         callee:
-          triple#1000076 :i32
+          triple#1000090 :i32
         arg0:
           int(8) :i32
     let c#52: i32 =
       call :i32
         callee:
-          double#1000075 :i32
+          double#1000089 :i32
         arg0:
           int(2) :i32
     return
@@ -34,7 +34,7 @@
     ~>
       call :i32
         callee:
-          add#1000033 :i32
+          add#1000047 :i32
         arg0:
           x#47 :i32
         arg1:
@@ -43,11 +43,11 @@
     ~>
       call :i32
         callee:
-          add#1000033 :i32
+          add#1000047 :i32
         arg0:
           call :i32
             callee:
-              add#1000033 :i32
+              add#1000047 :i32
             arg0:
               x#49 :i32
             arg1:

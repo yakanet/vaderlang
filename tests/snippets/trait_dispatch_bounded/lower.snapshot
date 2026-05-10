@@ -2,7 +2,7 @@
 
 ## tests/snippets/trait_dispatch_bounded/_main.vader
   fn tests_snippets_trait_dispatch_bounded__main_vader$main() -> i32
-    let nums#60: i32[] =
+    let nums#64: i32[] =
       array :i32[]
         int(1) :i32
         int(2) :i32
@@ -12,7 +12,7 @@
         int(2) :i32
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#1000095 :void
       arg0:
         block :string
           let __sb_0#-1: ? =
@@ -21,15 +21,15 @@
             __sb_0#-1 :?
             call :i32
               callee:
-                count_matching#1000079 :i32
+                count_matching#1000093 :i32
               arg0:
-                nums#60 :i32[]
+                nums#64 :i32[]
               arg1:
                 int(2) :i32
           ~>
             @builder.finish :string
               __sb_0#-1 :?
-    let words#61: string[] =
+    let words#65: string[] =
       array :string[]
         "foo" :string
         "bar" :string
@@ -38,7 +38,7 @@
         "foo" :string
     call :void
       callee:
-        println#25 :fn(string) -> void
+        println#1000095 :void
       arg0:
         block :string
           let __sb_1#-2: ? =
@@ -47,9 +47,9 @@
             __sb_1#-2 :?
             call :i32
               callee:
-                count_matching#1000080 :i32
+                count_matching#1000094 :i32
               arg0:
-                words#61 :string[]
+                words#65 :string[]
               arg1:
                 "foo" :string
           ~>
@@ -57,11 +57,11 @@
               __sb_1#-2 :?
     return int(0) :i32
   fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__i32(items: i32[], target: i32) -> i32
-    let n#58: i32 = int(0) :i32
+    let n#62: i32 = int(0) :i32
     block :void
       let __iter_0#-3: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: items#56 :i32[]
+          arr: items#60 :i32[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -70,7 +70,7 @@
         let __step_1#-4: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000077 :?
+              step#1000091 :?
             arg0:
               __iter_0#-3 :ArrayIter(i32)
         if :void
@@ -80,7 +80,7 @@
           then:
             break
           else:
-            let x#59: i32 =
+            let x#63: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_1#-4 :Done | Yielded(i32)
@@ -92,40 +92,40 @@
                       l:
                         call :u64
                           callee:
-                            hash#1000016 :u64
+                            hash#1000030 :u64
                           arg0:
-                            x#59 :i32
+                            x#63 :i32
                       r:
                         call :u64
                           callee:
-                            hash#1000016 :u64
+                            hash#1000030 :u64
                           arg0:
-                            target#57 :i32
+                            target#61 :i32
                   r:
                     call :bool
                       callee:
-                        equals#1000002 :bool
+                        equals#1000016 :bool
                       arg0:
-                        x#59 :i32
+                        x#63 :i32
                       arg1:
-                        target#57 :i32
+                        target#61 :i32
               then:
                 assign
                   target:
-                    n#58 :i32
+                    n#62 :i32
                   value:
                     add :i32
                       l:
-                        n#58 :i32
+                        n#62 :i32
                       r:
                         int(1) :i32
-    return n#58 :i32
+    return n#62 :i32
   fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__string(items: string[], target: string) -> i32
-    let n#58: i32 = int(0) :i32
+    let n#62: i32 = int(0) :i32
     block :void
       let __iter_0#-5: ArrayIter(string) =
         ArrayIter(string) {
-          arr: items#56 :string[]
+          arr: items#60 :string[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -134,7 +134,7 @@
         let __step_1#-6: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000078 :?
+              step#1000092 :?
             arg0:
               __iter_0#-5 :ArrayIter(string)
         if :void
@@ -144,7 +144,7 @@
           then:
             break
           else:
-            let x#59: string =
+            let x#63: string =
               .value :string
                 cast → Yielded(string)
                   __step_1#-6 :Done | Yielded(string)
@@ -156,31 +156,31 @@
                       l:
                         call :u64
                           callee:
-                            hash#1000024 :u64
+                            hash#1000038 :u64
                           arg0:
-                            x#59 :string
+                            x#63 :string
                       r:
                         call :u64
                           callee:
-                            hash#1000024 :u64
+                            hash#1000038 :u64
                           arg0:
-                            target#57 :string
+                            target#61 :string
                   r:
                     call :bool
                       callee:
-                        equals#1000013 :bool
+                        equals#1000027 :bool
                       arg0:
-                        x#59 :string
+                        x#63 :string
                       arg1:
-                        target#57 :string
+                        target#61 :string
               then:
                 assign
                   target:
-                    n#58 :i32
+                    n#62 :i32
                   value:
                     add :i32
                       l:
-                        n#58 :i32
+                        n#62 :i32
                       r:
                         int(1) :i32
-    return n#58 :i32
+    return n#62 :i32

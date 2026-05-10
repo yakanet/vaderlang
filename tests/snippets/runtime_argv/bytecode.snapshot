@@ -9,7 +9,8 @@ type 6 primitive string
 type 7 struct std_core$ArrayIter__string { arr:8,cursor:4,length:4 }
 type 8 array 6
 string 0 "argc="
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println_str std_io$println_str (string) -> void
 
 fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   local "__sb_0#19" any
@@ -38,7 +39,7 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   intrinsic builder.append_display   ; _main.vader:7:19
   local.get 1   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 0   ; _main.vader:7:5
+  call 2   ; _main.vader:7:5
   bool.const true   ; _main.vader:8:14
   local.set 6   ; _main.vader:8:14
   local.get 0   ; _main.vader:9:5
@@ -66,7 +67,7 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
           local.set 9   ; _main.vader:11:21
         else   ; _main.vader:10:9
           local.get 8   ; _main.vader:13:13
-          call.import 0   ; _main.vader:13:13
+          call 2   ; _main.vader:13:13
           local.get 6   ; _main.vader:10:9
           local.set 9   ; _main.vader:10:9
         end $L3   ; _main.vader:10:9
@@ -126,4 +127,11 @@ fn 1 std_core$ArrayIter$Iterator$step__string (ref) -> ref
     struct.new 5   ; core.vader:156:16
     return   ; core.vader:156:9
   end $L0   ; core.vader:153:9
+end
+
+fn 2 std_io$std_io$println__string (string) -> void
+  local.get 0   ; io.vader:28:65
+  call.import 0   ; io.vader:28:65
+  call.import 1   ; io.vader:28:53
+  return   ; io.vader:28:53
 end

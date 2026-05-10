@@ -7,9 +7,9 @@
         let __try_0#-1: Error | string =
           call :Error | string
             callee:
-              read_file#31 :fn(string) -> Error | string
+              read_file#35 :fn(string) -> Error | string
             arg0:
-              path#57 :string
+              path#61 :string
         ~>
           if :string
             cond:
@@ -24,7 +24,7 @@
   fn tests_snippets_try_op__main_vader$show(res: Error | string) -> void
     ~>
       block :void
-        let __scrut_0#-2: Error | string = res#58 :Error | string
+        let __scrut_0#-2: Error | string = res#62 :Error | string
         ~>
           if :void
             cond:
@@ -34,10 +34,10 @@
               ~>
                 call :void
                   callee:
-                    println#27 :fn(string) -> void
+                    println#1000090 :void
                   arg0:
                     cast → string
-                      res#58 :Error | string
+                      res#62 :Error | string
             else:
               ~>
                 if :void
@@ -48,7 +48,7 @@
                     ~>
                       call :void
                         callee:
-                          println#27 :fn(string) -> void
+                          println#1000090 :void
                         arg0:
                           "err: this file does not exists" :string
                   else:
