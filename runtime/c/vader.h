@@ -21,6 +21,18 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+/* Branch-prediction hints. Hot paths put `VADER_LIKELY` on the taken
+ * branch and `VADER_UNLIKELY` on the trap branch ; the compiler then
+ * lays out the cold path past the function epilogue and keeps the
+ * hot path in-line for the I-cache. GCC and clang both accept these. */
+#if defined(__GNUC__) || defined(__clang__)
+#  define VADER_LIKELY(x)   __builtin_expect(!!(x), 1)
+#  define VADER_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+#  define VADER_LIKELY(x)   (x)
+#  define VADER_UNLIKELY(x) (x)
+#endif
+
 /* ------------------------------------------------------ scalar primitives */
 
 typedef int8_t   vader_i8_t;
@@ -150,10 +162,15 @@ typedef struct vader_array_buf {
 #define VADER_TYPE_INDEX_ARRAY_BUF UINT32_C(0xFFFFFFFE)
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length);
-size_t         vader_array_len(vader_array_t* a);
 vader_box_t    vader_array_get(vader_array_t* a, size_t i);
 void           vader_array_set(vader_array_t* a, size_t i, vader_box_t v);
 void           vader_array_push(vader_array_t* a, vader_box_t v);
+
+/* `len` is hot enough — and trivial enough — to live in the header so
+ * every translation unit can fold the indirection. Callers usually
+ * follow `len()` with an iteration whose bounds the compiler can then
+ * keep in registers. */
+static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
 
 /* Phase 2 — Cheney semi-space copying GC.
  *

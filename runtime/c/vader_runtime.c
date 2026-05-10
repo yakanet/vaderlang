@@ -74,11 +74,11 @@ void vader_gc_shutdown(void) {
 }
 
 void* vader_gc_alloc(size_t bytes) {
-    if (!g_gc_initialized) vader_gc_init();
+    if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
     size_t aligned = vader_gc_align(bytes);
-    if (g_from_space.cur + aligned > g_from_space.end) {
+    if (VADER_UNLIKELY(g_from_space.cur + aligned > g_from_space.end)) {
         vader_gc_collect();
-        if (g_from_space.cur + aligned > g_from_space.end) {
+        if (VADER_UNLIKELY(g_from_space.cur + aligned > g_from_space.end)) {
             vader_trap("vader_gc_alloc: out of memory after collection");
         }
     }
@@ -328,15 +328,13 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length) {
     return a;
 }
 
-size_t vader_array_len(vader_array_t* a) { return a->length; }
-
 vader_box_t vader_array_get(vader_array_t* a, size_t i) {
-    if (i >= a->length) vader_trap("array index out of bounds");
+    if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
     return a->buf->slots[i];
 }
 
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
-    if (i >= a->length) vader_trap("array index out of bounds");
+    if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
     a->buf->slots[i] = v;
 }
 
