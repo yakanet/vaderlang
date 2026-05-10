@@ -2,7 +2,7 @@
 
 ## tests/snippets/op_overload_eq_ord/_main.vader
 
-fn tests_snippets_op_overload_eq_ord__main_vader$Money$Eq$equals(%0: Money, %1: Money) -> bool
+fn tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$equals(%0: Money, %1: Money) -> bool
   locals:
     %0 self: Money (param self)
     %1 other: Money (param other)
@@ -15,7 +15,7 @@ fn tests_snippets_op_overload_eq_ord__main_vader$Money$Eq$equals(%0: Money, %1: 
     %4 = binop eq %2 %3 :bool
     return %4
 
-fn tests_snippets_op_overload_eq_ord__main_vader$Money$Ord$compare(%0: Money, %1: Money) -> i32
+fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare(%0: Money, %1: Money) -> i32
   locals:
     %0 self: Money (param self)
     %1 other: Money (param other)

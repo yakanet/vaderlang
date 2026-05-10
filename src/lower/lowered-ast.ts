@@ -376,8 +376,8 @@ export interface LoweredUnreachable {
  *   - `builder.finish`         : (StringBuilder)    -> string
  *
  * The trailing `display_for` field on `append_display` records which impl's
- * `.show` to call so the bytecode emitter can hook it up to the right symbol
- * at codegen time.
+ * `.to_string` to call so the bytecode emitter can hook it up to the right
+ * symbol at codegen time.
  */
 export interface LoweredIntrinsicCall {
   readonly kind: "LoweredIntrinsicCall";

@@ -466,8 +466,9 @@ export function lowerIndexTraitCall(
 }
 
 /** Rewrite `a <op> b` into a direct call against the impl member resolved by
- *  the typechecker. Eq/neq wrap with `bool.not` ; ord wraps with a primitive
- *  comparison against zero against `compare`'s i32 result. */
+ *  the typechecker. Equality/inequality wrap with `bool.not` ; ordering
+ *  wraps with a primitive comparison against zero against `compare`'s i32
+ *  result. */
 function lowerOverloadedBinary(
   ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type,
   res: BinaryOpResolution,

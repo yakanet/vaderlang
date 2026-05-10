@@ -6,25 +6,25 @@ export Stack :: struct[T] {
 }
 
 export Stackable :: trait[T] {
-    fn push(self, value: T) -> void
-    fn pop(self) -> T
-    fn len(self) -> i32
-    fn is_empty(self) -> bool
+    push     :: fn(self, value: T) -> void
+    pop      :: fn(self) -> T
+    len      :: fn(self) -> i32
+    is_empty :: fn(self) -> bool
 }
 
 Stack[T] implements Stackable[T] {
-    fn push(self, value: T) -> void {
+    push :: fn(self, value: T) -> void {
         self.data.push(value)
         self.size = self.size + 1
     }
-    fn pop(self) -> T {
+    pop :: fn(self) -> T {
         self.size = self.size - 1
         return self.data[self.size]
     }
-    fn len(self) -> i32 {
+    len :: fn(self) -> i32 {
         return self.size
     }
-    fn is_empty(self) -> bool {
+    is_empty :: fn(self) -> bool {
         return self.size == 0
     }
 }

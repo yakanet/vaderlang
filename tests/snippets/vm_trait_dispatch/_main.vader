@@ -3,7 +3,7 @@
 // monomorphised structs.  This exercises the VM impl-table path.
 
 export Printable :: trait {
-    fn label(self) -> string
+    label :: fn(self) -> string
 }
 
 export Dog :: struct {
@@ -16,7 +16,7 @@ export Cat :: struct {
 
 // Dog implements Printable; Cat does not.
 Dog implements Printable {
-    fn label(self) -> string { return self.name }
+    label :: fn(self) -> string { return self.name }
 }
 
 // Generic struct whose monomorphisation also implements the trait.
@@ -25,7 +25,7 @@ export Wrapper :: struct[T] {
 }
 
 Wrapper(i32) implements Printable {
-    fn label(self) -> string { return "wrapped" }
+    label :: fn(self) -> string { return "wrapped" }
 }
 
 export describe :: fn(items: Dog | Cat) -> i32 {

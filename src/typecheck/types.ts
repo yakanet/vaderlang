@@ -40,22 +40,22 @@ export function isPrimitiveName(name: string): name is PrimitiveName {
 
 /** Names of stdlib core traits used for compiler-driven dispatch. */
 export const CORE_TRAITS = {
-  Display:  "Display",
-  Error:    "Error",
-  Eq:       "Eq",
-  Ord:      "Ord",
-  Add:      "Add",
-  Sub:      "Sub",
-  Mul:      "Mul",
-  Div:      "Div",
-  Rem:      "Rem",
-  Hash:     "Hash",
-  Clone:    "Clone",
-  Iterator: "Iterator",
-  Iterable: "Iterable",
-  Contains: "Contains",
-  Index:    "Index",
-  IndexSet: "IndexSet",
+  Display:    "Display",
+  Error:      "Error",
+  Equals:     "Equals",
+  Comparable: "Comparable",
+  Add:        "Add",
+  Sub:        "Sub",
+  Mul:        "Mul",
+  Div:        "Div",
+  Rem:        "Rem",
+  Hash:       "Hash",
+  Clone:      "Clone",
+  Iterator:   "Iterator",
+  Iterable:   "Iterable",
+  Contains:   "Contains",
+  Index:      "Index",
+  IndexSet:   "IndexSet",
 } as const;
 
 /** Names of stdlib core structs the compiler refers to by symbol. */

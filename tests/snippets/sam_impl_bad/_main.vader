@@ -2,8 +2,8 @@
 // pas — il faut décliner toutes les méthodes via la forme classique.
 
 export TwoFns :: trait {
-    fn first(self) -> i32
-    fn second(self) -> i32
+    first  :: fn(self) -> i32
+    second :: fn(self) -> i32
 }
 
 i32 implements TwoFns -> 0

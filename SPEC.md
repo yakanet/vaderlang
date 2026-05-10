@@ -88,7 +88,7 @@ The lowerer consumes the monomorphised typed AST and produces a **separate, smal
 - **`expr?` → `match`.** Lowered to `match expr { is Error e -> return e; is T t -> t }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
 - **String interpolation → builder intrinsics.** Each `"…${x}…"` lowers to a sequence of `builder.new`, `builder.append_str`, `builder.append_display(x)`, `builder.finish` intrinsic calls. The runtime (which `std/string_builder` wraps) provides the actual implementation; the lowerer only emits the call chain. `builder.append_display` is dispatched statically per the post-mono `Display` impl table.
 - **`defer` → exit-point duplication.** The lowerer keeps a per-block stack of pending defers (LIFO) and inlines them physically at every textual exit of the block: implicit fallthrough, `return`, `break`, `continue`. Panics are **not** unwound through defers in MVP (panics abort the program). Defers do not propagate across function boundaries.
-- **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.show()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
+- **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.to_string()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
 - **No inserted runtime checks.** The lowerer does not synthesize bounds checks, null checks, division-by-zero guards, or overflow checks. Type narrowing already covers nullability; the remaining safety checks are the runtime's responsibility (when emitted) or are explicitly out of scope for MVP.
 
 The Lowered AST is the input to the dead-code elimination pass. It is dumpable as JSON via `vader dump --stage=lowered-ast` for debugging and snapshot tests.
@@ -488,7 +488,7 @@ p :: Point { .x = 1.0, .y = 2.0 }
 
 - Heap-allocated by default (Java-style).
 - `p2 := p` copies the **reference**, not the contents.
-- `==` is reference identity by default. For structural comparison: implement the `Eq` trait, or call a free function `equals(a, b)`.
+- `==` is reference identity by default. For structural comparison: implement the `Equals` trait, or call a free function `equals(a, b)`.
 - Field layout is **not guaranteed** (the compiler arranges fields freely).
 - The user has no access to the layout (no `@offset_of`, no `unsafe_cast` in MVP).
 
@@ -550,7 +550,7 @@ Result :: string | i32 | null
 show :: fn(r: Result) -> string {
     match r {
         is string -> r
-        is i32    -> Display.show(r)
+        is i32    -> Display.to_string(r)
         is null   -> "(none)"
     }
 }
@@ -626,7 +626,7 @@ Match on an enum scrutinee is **exhaustive**: every variant must appear as an ar
 
 #### Equality
 
-`==` and `!=` work on enum values and compare by variant identity. No explicit `Eq` impl is required.
+`==` and `!=` work on enum values and compare by variant identity. No explicit `Equals` impl is required.
 
 #### Representation
 
@@ -674,7 +674,7 @@ Enums do not implement `Display` automatically. Implement the trait explicitly t
 
 ```vader
 Direction implements Display {
-    fn show(self) -> string {
+    to_string :: fn(self) -> string {
         match self {
             .North -> "North"
             .South -> "South"
@@ -807,11 +807,11 @@ list := List[i32] { .items = [1, 2, 3], .len = 3 }
 **Constraints**. The canonical form is the inline bracketed bound `[T: A & B]`, multi-trait composed with `&` (mirroring type intersection — `&` reads as « satisfies both »).
 
 ```vader
-sort :: fn[T: Ord](items: T[]) {
+sort :: fn[T: Comparable](items: T[]) {
     // ...
 }
 
-put :: fn[K: Hash & Eq, V](self: MutableMap[K, V], key: K, value: V) {
+put :: fn[K: Hash & Equalsuals, V](self: MutableMap[K, V], key: K, value: V) {
     // ...
 }
 ```
@@ -833,25 +833,25 @@ make_buffer :: fn($N: i32) -> [N]u8 { ... }
 **Limitations (MVP)**:
 - **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap(K, V) { ... }` for struct-literal construction. Post-MVP candidate.
 
-Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `[T: Add]` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Eq` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
+Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `[T: Add]` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Equals` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
 
 ### Traits
 
-A trait defines a contract of methods (in practice, UFCS-callable functions on a type).
+A trait defines a contract of methods (in practice, UFCS-callable functions on a type). Members are declared with the same `name :: fn(...)` shape as top-level functions — there is no separate `fn name(...)` syntax inside trait/impl bodies.
 
 ```vader
 Display :: trait {
-    fn show(self) -> string
+    to_string :: fn(self) -> string
 }
 
 u32 implements Display {
-    fn show(self) -> string {
+    to_string :: fn(self) -> string {
         // ... implementation
     }
 }
 
 print_it :: fn[T: Display](x: T) {
-    println(x.show())
+    println(x.to_string())
 }
 ```
 
@@ -869,9 +869,9 @@ A trait can compose other traits — i.e. require its implementor to satisfy eac
 // Pure alias — Numeric IS Add & Sub & Mul ; no own methods.
 Numeric :: trait[T] = Add & Sub & Mul
 
-// With own methods — Hashable requires Hash and Eq, plus declares its own.
-Hashable :: trait[T] : Hash & Eq {
-    fn fingerprint(self: T) -> u64
+// With own methods — Hashable requires Hash and Equals, plus declares its own.
+Hashable :: trait[T] : Hash & Equalsuals {
+    fingerprint :: fn(self: T) -> u64
 }
 ```
 
@@ -893,12 +893,12 @@ Inside a generic body, `key.method()` where `key: $T` and `T: Trait` resolves at
 
 #### Single-method trait sugar (SAM)
 
-When a trait has **exactly one method**, the implementation may omit the redundant `fn name(...) -> RetType` line and write the body directly. The compiler synthesises the signature from the trait declaration; parameter names (`self`, `other`, …) come from the trait and are in scope of the body — no redeclaration required.
+When a trait has **exactly one method**, the implementation may omit the redundant `name :: fn(...) -> RetType` line and write the body directly. The compiler synthesises the signature from the trait declaration; parameter names (`self`, `other`, …) come from the trait and are in scope of the body — no redeclaration required.
 
 ```vader
 // Arrow form — single-expression body.
-i32   implements Hash -> u64(self)
-i32   implements Eq   -> self == other
+i32   implements Hash   -> u64(self)
+i32   implements Equals -> self == other
 
 // With generic trait args.
 Tutu  implements Toto(i32, i64) -> i64(self + other)
@@ -917,12 +917,12 @@ string implements Hash {
 
 // Classic form — required for traits with two or more methods.
 ArrayIter($T) implements Iterator(T) {
-    fn step(self) -> Done | Yielded(T) { ... }
+    step :: fn(self) -> Done | Yielded(T) { ... }
 }
 ```
 
-- Detection: the impl body starts with `->` (arrow) or `{` not followed by `fn` (block).
-- The classic form (`{ fn name(...) ... }`) remains valid and is **required** for multi-method traits.
+- Detection: the impl body starts with `->` (arrow), or with `{` whose first significant token is **not** the start of a member declaration (`name :: fn`). Anything else inside the braces is treated as a SAM block body.
+- The classic form (`{ name :: fn(...) ... }`) remains valid and is **required** for multi-method traits.
 - `R2016` is emitted when the short forms are used on a trait with 0 or ≥ 2 methods.
 
 #### Operator overloading
@@ -931,16 +931,16 @@ Built-in operators dispatch through stdlib traits when the operand types are not
 
 | Operator        | Trait              | Method                                      |
 |-----------------|--------------------|---------------------------------------------|
-| `a + b`         | `Add`              | `fn add(self, other: Self) -> Self`         |
-| `a - b`         | `Sub`              | `fn sub(self, other: Self) -> Self`         |
-| `a * b`         | `Mul`              | `fn mul(self, other: Self) -> Self`         |
-| `a / b`         | `Div`              | `fn div(self, other: Self) -> Self`         |
-| `a % b`         | `Rem`              | `fn rem(self, other: Self) -> Self`         |
-| `a == b`        | `Eq`               | `fn equals(self, other: Self) -> bool`      |
-| `a < b` / `<=` / `>` / `>=` | `Ord`  | `fn compare(self, other: Self) -> i32`      |
-| `a[i]`          | `Index($I, $T)`    | `fn at(self, i: I) -> T`                    |
-| `a[i] = v`      | `IndexSet($I, $T)` | `fn set_at(self, i: I, v: T)`               |
-| `v in a`        | `Contains($T)`     | `fn contains(self, v: T) -> bool`           |
+| `a + b`         | `Add`              | `add :: fn(self, other: Self) -> Self`      |
+| `a - b`         | `Sub`              | `sub :: fn(self, other: Self) -> Self`      |
+| `a * b`         | `Mul`              | `mul :: fn(self, other: Self) -> Self`      |
+| `a / b`         | `Div`              | `div :: fn(self, other: Self) -> Self`      |
+| `a % b`         | `Rem`              | `rem :: fn(self, other: Self) -> Self`      |
+| `a == b`        | `Equals`           | `equals :: fn(self, other: Self) -> bool`   |
+| `a < b` / `<=` / `>` / `>=` | `Comparable` | `compare :: fn(self, other: Self) -> i32` |
+| `a[i]`          | `Index($I, $T)`    | `at :: fn(self, i: I) -> T`                 |
+| `a[i] = v`      | `IndexSet($I, $T)` | `set_at :: fn(self, i: I, v: T)`            |
+| `v in a`        | `Contains($T)`     | `contains :: fn(self, v: T) -> bool`        |
 
 Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch.
 
@@ -952,12 +952,12 @@ Resolution rule for **arithmetic** operators (`+ - * / %`) :
 
 Resolution rule for **equality** (`==` / `!=`) :
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
-2. User-struct operands of the same type look up the `Eq` impl and dispatch through `equals` when one exists ; without an impl they fall back to **reference identity** (Java-style — SPEC §4 memory model). No error.
+2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists ; without an impl they fall back to **reference identity** (Java-style — SPEC §4 memory model). No error.
 3. Mismatched types are T3017.
 
 Resolution rule for **ordering** (`< <= > >=`) :
 1. Primitive numerics, strings, and chars use the built-in comparison ops.
-2. User-struct operands look up the `Ord` impl ; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
+2. User-struct operands look up the `Comparable` impl ; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
 3. If no impl matches, T3017.
 
 Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch through `Index($I, $T)::at` / `Contains($T)::contains` — the trait path covers struct receivers AND primitives (`string implements Index(i32, char)` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet($I, $T)::set_at`.
@@ -985,9 +985,9 @@ match u {
 | Primitives (numeric, bool, char) | Bit-for-bit |
 | `string` | Structural (compares contents) |
 | Struct, array | **Reference identity** (Java-style) |
-| Type with `impl Eq` | Delegated to `Eq.equals` |
+| Type with `impl Equals` | Delegated to `Equals.equals` |
 
-To compare two structs structurally, implement `Eq` or call `equals(a, b)`.
+To compare two structs structurally, implement `Equals` or call `equals(a, b)`.
 
 ---
 
@@ -1388,7 +1388,7 @@ Interpolation expressions `${...}` are parsed and **type-checked at compile time
 - Type incompatible with `Display`
 - Malformed expression
 
-Interpolation is **desugared** into calls to `Display.show` followed by concatenation via `StringBuilder`.
+Interpolation is **desugared** into calls to `Display.to_string` followed by concatenation via `StringBuilder`.
 
 ### `Display` trait
 
@@ -1396,7 +1396,7 @@ All primitives implement `Display`. User types must impl explicitly:
 
 ```vader
 Point implements Display {
-    fn show(self) -> string {
+    to_string :: fn(self) -> string {
         return "(${self.x}, ${self.y})"
     }
 }
@@ -1430,7 +1430,7 @@ read_file :: fn(path: string) -> string!  {
 
 ```vader
 Error :: trait {
-    fn message(self) -> string
+    message :: fn(self) -> string
 }
 ```
 
@@ -1711,34 +1711,34 @@ Future intrinsics planned for Layer 6 of the type-first design (`docs/DESIGN_TYP
 
 ### `std/core` (auto-imported)
 
-Traits : `Display`, `Eq`, `Ord`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Index(I, T)`, `IndexSet(I, T)`, `Error`.
+Traits : `Display`, `Equals`, `Comparable`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Index(I, T)`, `IndexSet(I, T)`, `Error`.
 
 Types : `Done`, `Yielded(T)`, `Range`, `ArrayIter(T)`.
 
-Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index(i32, char)` (powers `s[i]`), and `Eq`/`Hash` on the integer primitives. All marked `@intrinsic` — bodies are host-provided.
+Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index(i32, char)` (powers `s[i]`), and `Equals`/`Hash` on the integer primitives. All marked `@intrinsic` — bodies are host-provided.
 
 The `Contains(T)` trait powers the `in` / `!in` operators :
 
 ```vader
 Contains :: trait($T) {
-    fn contains(self, value: T) -> bool
+    contains :: fn(self, value: T) -> bool
 }
 
 // `Range implements Contains(i32)` is shipped, so `5 in 0..<10` works
 // out of the box. User types opt in by implementing the trait.
 ```
 
-Trait-method dispatch on a bounded type param (`fn f[T: Hash](x: T) { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
+Trait-method dispatch on a bounded type param (`f :: fn[T: Hash](x: T) { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
 
 ### `std/io`
 
 ```vader
-fn print(msg: string) -> void
-fn println(msg: string) -> void
-fn read_line() -> string!
-fn read_file(path: string) -> string!
-fn write_file(path: string, content: string) -> void!
-fn exists(path: string) -> bool
+print      :: fn(msg: string) -> void
+println    :: fn(msg: string) -> void
+read_line  :: fn() -> string!
+read_file  :: fn(path: string) -> string!
+write_file :: fn(path: string, content: string) -> void!
+exists     :: fn(path: string) -> bool
 ```
 
 I/O is **synchronous blocking** only in MVP.
@@ -1749,49 +1749,49 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 
 ```vader
 // Core access (intrinsics — no body in Vader).
-fn byte_len(s: string) -> i32                  // UTF-8 bytes ; pair with count_chars() for codepoints
-fn slice(s: string, start: i32, end: i32) -> string
-fn char_at(s: string, i: i32) -> char          // also reachable via `s[i]` (Index impl in std/core)
-fn contains(s: string, sub: string) -> bool
-fn starts_with(s: string, prefix: string) -> bool
-fn ends_with(s: string, suffix: string) -> bool
-fn split(s: string, sep: string) -> string[]
-fn trim(s: string) -> string
-fn to_upper(s: string) -> string
-fn to_lower(s: string) -> string
-fn parse_int(s: string) -> i32!
-fn parse_float(s: string) -> f64!
+byte_len    :: fn(s: string) -> i32                  // UTF-8 bytes ; pair with count_chars() for codepoints
+slice       :: fn(s: string, start: i32, end: i32) -> string
+char_at     :: fn(s: string, i: i32) -> char         // also reachable via `s[i]` (Index impl in std/core)
+contains    :: fn(s: string, sub: string) -> bool
+starts_with :: fn(s: string, prefix: string) -> bool
+ends_with   :: fn(s: string, suffix: string) -> bool
+split       :: fn(s: string, sep: string) -> string[]
+trim        :: fn(s: string) -> string
+to_upper    :: fn(s: string) -> string
+to_lower    :: fn(s: string) -> string
+parse_int   :: fn(s: string) -> i32!
+parse_float :: fn(s: string) -> f64!
 
 // Codepoint walkers.
-fn is_empty(s: string) -> bool                 // sugar for byte_len() == 0
-fn count_chars(s: string) -> i32               // codepoint count, allocation-free
-fn chars(s: string) -> StringChars             // StringChars implements Iterator(char)
-fn decode_codepoint(s: string, i: i32) -> [char, i32]   // (codepoint, byte width)
+is_empty         :: fn(s: string) -> bool                       // sugar for byte_len() == 0
+count_chars      :: fn(s: string) -> i32                        // codepoint count, allocation-free
+chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator(char)
+decode_codepoint :: fn(s: string, i: i32) -> [char, i32]        // (codepoint, byte width)
 
 // Byte walkers (raw UTF-8 — for ASCII / binary protocols / BOM detection).
-fn byte_at(s: string, i: i32) -> u8
-fn bytes(s: string) -> StringBytes             // StringBytes implements Iterator(u8)
+byte_at :: fn(s: string, i: i32) -> u8
+bytes   :: fn(s: string) -> StringBytes                         // StringBytes implements Iterator(u8)
 
 // Indexing helpers.
-fn last_index_of(s: string, c: char, min_index: i32) -> i32
+last_index_of :: fn(s: string, c: char, min_index: i32) -> i32
 
 // Format helpers (pure Vader).
-fn pad_start(s: string, width: i32, fill: char) -> string
-fn pad_end(s: string, width: i32, fill: char) -> string
+pad_start :: fn(s: string, width: i32, fill: char) -> string
+pad_end   :: fn(s: string, width: i32, fill: char) -> string
 
 // Char predicates (universal — useful for any DSL or text scanner).
-fn is_alpha(c: char) -> bool                   // a-z, A-Z
-fn is_alnum(c: char) -> bool                   // a-z, A-Z, 0-9
-fn is_digit(c: char) -> bool                   // 0-9
-fn is_hex_digit(c: char) -> bool               // 0-9, a-f, A-F
-fn is_white_char(c: char) -> bool              // space, tab, newline, CR
-fn is_digit_in_base(c: char, base: i32) -> bool
+is_alpha         :: fn(c: char) -> bool                         // a-z, A-Z
+is_alnum         :: fn(c: char) -> bool                         // a-z, A-Z, 0-9
+is_digit         :: fn(c: char) -> bool                         // 0-9
+is_hex_digit     :: fn(c: char) -> bool                         // 0-9, a-f, A-F
+is_white_char    :: fn(c: char) -> bool                         // space, tab, newline, CR
+is_digit_in_base :: fn(c: char, base: i32) -> bool
 
 // Pattern helpers (ad-hoc — no real regex engine in MVP).
-fn replace_chars_where(s: string, pred: fn(char) -> bool, replacement: string) -> string
-fn trim_suffix(s: string, suffix: string) -> string
-fn trim_prefix(s: string, prefix: string) -> string
-fn split_where(s: string, pred: fn(char) -> bool) -> string[]   // e.g. `s.split_where(is_white_char)`
+replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string
+trim_suffix         :: fn(s: string, suffix: string) -> string
+trim_prefix         :: fn(s: string, prefix: string) -> string
+split_where         :: fn(s: string, pred: fn(char) -> bool) -> string[]   // e.g. `s.split_where(is_white_char)`
 ```
 
 ### `std/numbers`
@@ -1799,16 +1799,16 @@ fn split_where(s: string, pred: fn(char) -> bool) -> string[]   // e.g. `s.split
 UFCS-callable numeric formatting and parsing.
 
 ```vader
-fn to_hex(self: u64) -> string         // lowercase, no `0x`, no leading zeros
-fn to_bin(self: u64) -> string         // no prefix, no leading zeros
-fn to_compact_str(self: f64) -> string // strips trailing `.0` ; `(10.0).to_compact_str() = "10"`
+to_hex          :: fn(self: u64) -> string         // lowercase, no `0x`, no leading zeros
+to_bin          :: fn(self: u64) -> string         // no prefix, no leading zeros
+to_compact_str  :: fn(self: f64) -> string         // strips trailing `.0` ; `(10.0).to_compact_str() = "10"`
 
-fn parse_int_in_base(s: string, base: i32) -> i64!
-fn hex_digit_value(c: char) -> i32     // -1 if not a hex digit
+parse_int_in_base :: fn(s: string, base: i32) -> i64!
+hex_digit_value   :: fn(c: char) -> i32            // -1 if not a hex digit
 
 // Numeric type-suffix predicates — for DSLs parsing typed literals.
-fn is_int_suffix(s: string) -> bool    // i8/i16/i32/i64/u8/u16/u32/u64
-fn is_float_suffix(s: string) -> bool  // f32/f64
+is_int_suffix   :: fn(s: string) -> bool           // i8/i16/i32/i64/u8/u16/u32/u64
+is_float_suffix :: fn(s: string) -> bool           // f32/f64
 ```
 
 Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
@@ -1821,7 +1821,7 @@ To append a decoded codepoint to a `StringBuilder`, call
 codepoint canonically, no `append_codepoint` wrapper needed.
 
 ```vader
-fn codepoint_byte_len(c: char) -> i32          // 1..4 — UTF-8 width of a codepoint
+codepoint_byte_len :: fn(c: char) -> i32           // 1..4 — UTF-8 width of a codepoint
 ```
 
 ### `std/string_builder`
@@ -1831,14 +1831,17 @@ Efficient string construction.
 ```vader
 StringBuilder :: struct { parts: string[] }
 
-fn new_builder() -> StringBuilder
-fn append      (self: StringBuilder, s: string) -> void
-fn append_char (self: StringBuilder, c: char) -> void
-fn append_repeated(self: StringBuilder, c: char, count: i32) -> void  // pretty-printer / padding helper
-fn to_string   (self: StringBuilder) -> string
+new_builder       :: fn() -> StringBuilder
+append            :: fn(self: StringBuilder, s: string) -> void
+append_char       :: fn(self: StringBuilder, c: char) -> void
+append_repeated   :: fn(self: StringBuilder, c: char, count: i32) -> void  // pretty-printer / padding helper
+to_string         :: fn(self: StringBuilder) -> string
+
+// Flushes the builder when interpolated as `${sb}`.
+StringBuilder implements Display -> concat_all(self.parts)
 
 @intrinsic
-fn concat_all(parts: string[]) -> string  // single-allocation flatten
+concat_all :: fn(parts: string[]) -> string         // single-allocation flatten
 ```
 
 ### `std/collections`
@@ -1851,52 +1854,52 @@ land (post-MVP).
 
 ```vader
 // Hash map — chaining HashMap with fixed bucket count.
-MutableMap[K: Hash & Eq, V]
+MutableMap[K: Hash & Equals, V]
 Map[K, V]          // read-only (struct stub, post-MVP API)
-fn put          (self: MutableMap[K, V], key: K, value: V) -> void
-fn get          (self: MutableMap[K, V], key: K) -> V | null
-fn contains_key (self: MutableMap[K, V], key: K) -> bool
-fn len          (self: MutableMap[K, V]) -> usize
-fn is_empty     (self: MutableMap[K, V]) -> bool
-fn keys         (self: MutableMap[K, V]) -> K[]
-fn values       (self: MutableMap[K, V]) -> V[]
+put          :: fn(self: MutableMap[K, V], key: K, value: V) -> void
+get          :: fn(self: MutableMap[K, V], key: K) -> V | null
+contains_key :: fn(self: MutableMap[K, V], key: K) -> bool
+len          :: fn(self: MutableMap[K, V]) -> usize
+is_empty     :: fn(self: MutableMap[K, V]) -> bool
+keys         :: fn(self: MutableMap[K, V]) -> K[]
+values       :: fn(self: MutableMap[K, V]) -> V[]
 
 // Hash set — wraps a `MutableMap[T, bool]` (Java HashSet pattern). Lookups
 // inherit the chained-bucket O(1) behaviour from the underlying map.
-MutableSet[T: Hash & Eq]
+MutableSet[T: Hash & Equals]
 Set(T)             // read-only (struct stub, post-MVP API)
-fn add      (self: MutableSet(T), value: T) -> bool   // true if newly added
-fn contains (self: MutableSet(T), value: T) -> bool
-fn len      (self: MutableSet(T)) -> usize
-fn is_empty (self: MutableSet(T)) -> bool
+add      :: fn(self: MutableSet(T), value: T) -> bool   // true if newly added
+contains :: fn(self: MutableSet(T), value: T) -> bool
+len      :: fn(self: MutableSet(T)) -> usize
+is_empty :: fn(self: MutableSet(T)) -> bool
 ```
 
 ### `std/math`
 
 ```vader
 // Comparison + helpers — overloaded on `i32` and `f64`. A generic
-// `Ord`-driven variant (one fn body for any `T: Ord`) is post-MVP : the
+// `Comparable`-driven variant (one fn body for any `T: Comparable`) is post-MVP : the
 // body needs to default-init a slot of type `T` before threading it through
 // `compare`, which is gated on `Default(T)` / a `zero<T>()` intrinsic.
-fn min(a: i32, b: i32) -> i32
-fn min(a: f64, b: f64) -> f64
-fn max(a: i32, b: i32) -> i32
-fn max(a: f64, b: f64) -> f64
-fn abs(x: i32) -> i32
-fn abs(x: f64) -> f64
-fn clamp(x: i32, lo: i32, hi: i32) -> i32
-fn clamp(x: f64, lo: f64, hi: f64) -> f64
-fn lerp(a: f64, b: f64, t: f64) -> f64    // a + (b - a) * clamp(t, 0.0, 1.0)
+min   :: fn(a: i32, b: i32) -> i32
+min   :: fn(a: f64, b: f64) -> f64
+max   :: fn(a: i32, b: i32) -> i32
+max   :: fn(a: f64, b: f64) -> f64
+abs   :: fn(x: i32) -> i32
+abs   :: fn(x: f64) -> f64
+clamp :: fn(x: i32, lo: i32, hi: i32) -> i32
+clamp :: fn(x: f64, lo: f64, hi: f64) -> f64
+lerp  :: fn(a: f64, b: f64, t: f64) -> f64        // a + (b - a) * clamp(t, 0.0, 1.0)
 
 // Float intrinsics — wired to libm on native, JS Math on the VM.
-fn sqrt(x: f64) -> f64
-fn pow(x: f64, n: f64) -> f64
-fn floor(x: f64) -> f64
-fn ceil(x: f64) -> f64
-fn round(x: f64) -> f64
-fn sin(x: f64) -> f64
-fn cos(x: f64) -> f64
-fn tan(x: f64) -> f64
+sqrt  :: fn(x: f64) -> f64
+pow   :: fn(x: f64, n: f64) -> f64
+floor :: fn(x: f64) -> f64
+ceil  :: fn(x: f64) -> f64
+round :: fn(x: f64) -> f64
+sin   :: fn(x: f64) -> f64
+cos   :: fn(x: f64) -> f64
+tan   :: fn(x: f64) -> f64
 
 const pi: f64
 const e:  f64
@@ -1911,7 +1914,7 @@ Done    :: struct {}
 Yielded :: struct($T) { value: T }
 
 Iterator(T) :: trait {
-    fn step(self) -> Done | Yielded(T)
+    step :: fn(self) -> Done | Yielded(T)
 }
 ```
 
@@ -1920,16 +1923,16 @@ Iterator(T) :: trait {
 ```vader
 // Iterator-driven, concrete trait instance — `it.step()` dispatches via the
 // virtual chain over each materialised impl :
-fn walk(it: Iterator(i32)) -> i32
+walk :: fn(it: Iterator(i32)) -> i32
 
 // Array-driven (closure-friendly; eager — return `T[]` or a single value):
-fn map(arr: $T[], f: fn(T) -> $U)        -> U[]
-fn filter(arr: $T[], pred: fn(T) -> bool) -> T[]
-fn fold(arr: $T[], init: $U, f: fn(U, T) -> U) -> U
-fn sum(arr: i32[]) -> i32
-fn take(arr: $T[], n: i32) -> T[]
-fn skip(arr: $T[], n: i32) -> T[]
-fn slice(arr: $T[], start: i32, end: i32) -> T[]    // bounds clamped, end exclusive
+map    :: fn(arr: $T[], f: fn(T) -> $U)        -> U[]
+filter :: fn(arr: $T[], pred: fn(T) -> bool)   -> T[]
+fold   :: fn(arr: $T[], init: $U, f: fn(U, T) -> U) -> U
+sum    :: fn(arr: i32[]) -> i32
+take   :: fn(arr: $T[], n: i32) -> T[]
+skip   :: fn(arr: $T[], n: i32) -> T[]
+slice  :: fn(arr: $T[], start: i32, end: i32) -> T[]    // bounds clamped, end exclusive
 ```
 
 Stdlib combinators today take a concrete `T[]` rather than `Iterator($T)` because the inference engine can't bind a free type-param across the `T[]` → `Iterator(T)` widening : `count_it(arr)` would need to unify `i32[]` against `Iterator($T)` to set `T = i32`, and that path isn't wired. Combinators specialised for a concrete element type (`fn walk(it: Iterator(i32))`) work end-to-end ; bridging from an iterator to the array-driven family goes through `collect(it)`. Lifting the inference gap is tracked separately and would let the two flavours converge.
@@ -1939,10 +1942,10 @@ Stdlib combinators today take a concrete `T[]` rather than `Iterator($T)` becaus
 Runtime introspection and controls — currently GC-only, named `runtime` (Go-style) since Vader has no compiler-private visibility tier today. Mostly a debug/test surface :
 
 ```vader
-fn collect()       -> void   // force a Cheney cycle
-fn collections()   -> i32    // total cycles since start
-fn bytes_used()    -> i32    // live bytes in from-space
-fn bytes_copied()  -> i32    // cumulative bytes copied
+collect      :: fn() -> void   // force a Cheney cycle
+collections  :: fn() -> i32    // total cycles since start
+bytes_used   :: fn() -> i32    // live bytes in from-space
+bytes_copied :: fn() -> i32    // cumulative bytes copied
 ```
 
 ### `std/path`
@@ -1952,19 +1955,19 @@ Filesystem path manipulation. POSIX `/` separator only in MVP — Windows suppor
 ```vader
 Path :: struct { repr: string }
 
-fn to_path     (s: string)                    -> Path
-fn empty_path  ()                             -> Path
-fn as_string   (self: Path)                   -> string
-fn is_empty    (self: Path)                   -> bool
-fn is_absolute (self: Path)                   -> bool
-fn parent      (self: Path)                   -> Path
-fn filename    (self: Path)                   -> string
-fn extension   (self: Path)                   -> string
-fn stem        (self: Path)                   -> string
-fn join        (self: Path, other: string)    -> Path
-fn starts_with (self: Path, prefix: Path)     -> bool   // segment-aware
-fn ends_with   (self: Path, suffix: Path)     -> bool   // segment-aware
-fn normalize   (self: Path)                   -> Path   // collapse `.` and `..`
+to_path     :: fn(s: string)                    -> Path
+empty_path  :: fn()                             -> Path
+as_string   :: fn(self: Path)                   -> string
+is_empty    :: fn(self: Path)                   -> bool
+is_absolute :: fn(self: Path)                   -> bool
+parent      :: fn(self: Path)                   -> Path
+filename    :: fn(self: Path)                   -> string
+extension   :: fn(self: Path)                   -> string
+stem        :: fn(self: Path)                   -> string
+join        :: fn(self: Path, other: string)    -> Path
+starts_with :: fn(self: Path, prefix: Path)     -> bool   // segment-aware
+ends_with   :: fn(self: Path, suffix: Path)     -> bool   // segment-aware
+normalize   :: fn(self: Path)                   -> Path   // collapse `.` and `..`
 ```
 
 ### `std/process`
@@ -1982,7 +1985,7 @@ ProcessResult :: struct {
     stderr: string
 }
 
-fn spawn(argv: string[]) -> ProcessResult!
+spawn :: fn(argv: string[]) -> ProcessResult!
 ```
 
 `argv[0]` is the program name (resolved against `PATH`) ; `argv[1..]` are
@@ -2007,9 +2010,9 @@ JsonObject :: struct { entries: MutableMap(string, JsonValue) }
 
 JsonError  :: struct { msg: string, pos: i32 }   // implements Error
 
-fn parse            (input: string)                -> JsonValue | JsonError
-fn stringify        (v: JsonValue)                 -> string
-fn stringify_pretty (v: JsonValue, indent: i32)    -> string
+parse            :: fn(input: string)                -> JsonValue | JsonError
+stringify        :: fn(v: JsonValue)                  -> string
+stringify_pretty :: fn(v: JsonValue, indent: i32)     -> string
 ```
 
 The trait-widening limitation (struct implementing `Error` → `Error`) prevents `T!` sugar on `parse`'s return today (cf. self-host TODO). Returns `JsonValue | JsonError` explicitly.
@@ -2278,7 +2281,7 @@ main :: fn() -> i32 {
 import "std/io" { println }
 
 Display :: trait {
-    fn show(self) -> string
+    to_string :: fn(self) -> string
 }
 
 Point :: struct {
@@ -2287,14 +2290,14 @@ Point :: struct {
 }
 
 Point implements Display {
-    fn show(self) -> string {
+    to_string :: fn(self) -> string {
         return "(${self.x}, ${self.y})"
     }
 }
 
 main :: fn() -> i32 {
     p :: Point { .x = 1.5, .y = 2.5 }
-    println(p.show())
+    println(p.to_string())
     return 0
 }
 ```

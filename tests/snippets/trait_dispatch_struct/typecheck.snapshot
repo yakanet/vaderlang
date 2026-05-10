@@ -13,5 +13,5 @@
   expr 13:22    IdentExpr      :: $T
   expr 17:12    CallExpr       :: i32
   expr 17:12    IdentExpr      :: fn($T) -> i32
-  expr 9:34     BinaryExpr     :: i32
-  expr 9:34     IdentExpr      :: i32
+  expr 9:37     BinaryExpr     :: i32
+  expr 9:37     IdentExpr      :: i32

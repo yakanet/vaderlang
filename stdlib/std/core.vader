@@ -1,11 +1,11 @@
 // std/core — auto-imported in every Vader program.
 //
 // Layout :
-//   1. Trait declarations (Display, Eq, Ord, Hash, Clone, arithmetic,
-//      indexing, containment, iteration, error)
+//   1. Trait declarations (Display, Equals, Comparable, Hash, Clone,
+//      arithmetic, indexing, containment, iteration, error)
 //   2. Core struct definitions and their impls (Done, Yielded, Range,
 //      ArrayIter)
-//   3. Primitive type impls (Eq, Hash, numeric arithmetic, string)
+//   3. Primitive type impls (Equals, Hash, numeric arithmetic, string)
 //
 // The base `Error` trait powering the `!T` and `?` sugar lives in §1 ; the
 // concrete error structs are user-defined.
@@ -14,65 +14,66 @@
 // 1. Trait declarations
 // ============================================================================
 
-// Display — for compile-time string interpolation and println().
+// Display — for compile-time string interpolation and println(). Method
+// `to_string` returns the value's textual form.
 export Display :: trait {
-    fn show(self) -> string
+    to_string :: fn(self) -> string
 }
 
-// Eq — for == and !=.
-export Eq :: trait {
-    fn equals(self, other: Self) -> bool
+// Equals — for == and !=.
+export Equals :: trait {
+    equals :: fn(self, other: Self) -> bool
 }
 
-// Ord — for <, <=, >, >=.
-export Ord :: trait {
-    fn compare(self, other: Self) -> i32
+// Comparable — for <, <=, >, >=.
+export Comparable :: trait {
+    compare :: fn(self, other: Self) -> i32
 }
 
 // Hash — for Map / Set keys.
 export Hash :: trait {
-    fn hash(self) -> u64
+    hash :: fn(self) -> u64
 }
 
 // Clone — explicit deep copy. Free function `clone(x)` calls into this.
 export Clone :: trait {
-    fn clone(self) -> Self
+    clone :: fn(self) -> Self
 }
 
 // Arithmetic operator traits. `+` `-` `*` `/` `%` dispatch through these
 // when the operands aren't primitive numerics (numerics use the built-in
 // bytecode ops directly).
-export Add :: trait { fn add(self, other: Self) -> Self }
-export Sub :: trait { fn sub(self, other: Self) -> Self }
-export Mul :: trait { fn mul(self, other: Self) -> Self }
-export Div :: trait { fn div(self, other: Self) -> Self }
-export Rem :: trait { fn rem(self, other: Self) -> Self }
+export Add :: trait { add :: fn(self, other: Self) -> Self }
+export Sub :: trait { sub :: fn(self, other: Self) -> Self }
+export Mul :: trait { mul :: fn(self, other: Self) -> Self }
+export Div :: trait { div :: fn(self, other: Self) -> Self }
+export Rem :: trait { rem :: fn(self, other: Self) -> Self }
 
 // Index / IndexSet — dispatch for `a[i]` (read) and `a[i] = v` (write) when
 // `a` isn't a built-in array. `I` is the index type, `T` the element type.
 export Index :: trait[I, T] {
-    fn at(self, i: I) -> T
+    at :: fn(self, i: I) -> T
 }
 export IndexSet :: trait[I, T] {
-    fn set_at(self, i: I, v: T)
+    set_at :: fn(self, i: I, v: T)
 }
 
 // Contains — `x in coll` desugars to `coll.contains(x)`. `x !in coll`
 // desugars to `!coll.contains(x)`.
 export Contains :: trait[T] {
-    fn contains(self, value: T) -> bool
+    contains :: fn(self, value: T) -> bool
 }
 
 // Iterator — pull-based. The lowerer dispatches `for x in iter` through
 // the impl table ; users never call `step` directly.
 export Iterator :: trait[T] {
-    fn step(self) -> Done | Yielded(T)
+    step :: fn(self) -> Done | Yielded(T)
 }
 
 // Error — base trait for any value usable in `!T` returns and the `?`
 // operator.
 export Error :: trait {
-    fn message(self) -> string
+    message :: fn(self) -> string
 }
 
 // ============================================================================
@@ -98,7 +99,7 @@ export Range :: struct[T] {
 }
 
 Range[i32] implements Contains[i32] {
-    fn contains(self, value: i32) -> bool {
+    contains :: fn(self, value: i32) -> bool {
         if value < self.start { return false }
         if self.inclusive     { return value <= self.end }
         return value < self.end
@@ -106,7 +107,7 @@ Range[i32] implements Contains[i32] {
 }
 
 Range[char] implements Contains[char] {
-    fn contains(self, value: char) -> bool {
+    contains :: fn(self, value: char) -> bool {
         if value < self.start { return false }
         if self.inclusive     { return value <= self.end }
         return value < self.end
@@ -114,7 +115,7 @@ Range[char] implements Contains[char] {
 }
 
 Range[i32] implements Iterator[i32] {
-    fn step(self) -> Done | Yielded(i32) {
+    step :: fn(self) -> Done | Yielded(i32) {
         done :: if (self.inclusive) { self.cursor > self.end }
                 else                 { self.cursor >= self.end }
         if (done) { return Done {} }
@@ -126,7 +127,7 @@ Range[i32] implements Iterator[i32] {
 
 // `char` has no `+ i32` op ; advance via u32 round-trip.
 Range[char] implements Iterator[char] {
-    fn step(self) -> Done | Yielded(char) {
+    step :: fn(self) -> Done | Yielded(char) {
         done :: if (self.inclusive) { self.cursor > self.end }
                 else                 { self.cursor >= self.end }
         if (done) { return Done {} }
@@ -148,7 +149,7 @@ export ArrayIter :: struct[T] {
 }
 
 ArrayIter[T] implements Iterator[T] {
-    fn step(self) -> Done | Yielded(T) {
+    step :: fn(self) -> Done | Yielded(T) {
         if (self.cursor >= self.length) { return Done {} }
         v :: self.arr[self.cursor]
         self.cursor = self.cursor + 1
@@ -165,22 +166,22 @@ ArrayIter[T] implements Iterator[T] {
 // indirection, identical performance to the operator form. `s1 + s2` and
 // `(s1).add(s2)` share a single runtime path.
 
-// ---- Eq -------------------------------------------------------------------
+// ---- Equals ---------------------------------------------------------------
 
-@intrinsic i8     implements Eq
-@intrinsic i16    implements Eq
-@intrinsic i32    implements Eq
-@intrinsic i64    implements Eq
-@intrinsic u8     implements Eq
-@intrinsic u16    implements Eq
-@intrinsic u32    implements Eq
-@intrinsic u64    implements Eq
-@intrinsic usize  implements Eq
-@intrinsic f32    implements Eq
-@intrinsic f64    implements Eq
-@intrinsic bool   implements Eq
-@intrinsic char   implements Eq
-@intrinsic string implements Eq
+@intrinsic i8     implements Equals
+@intrinsic i16    implements Equals
+@intrinsic i32    implements Equals
+@intrinsic i64    implements Equals
+@intrinsic u8     implements Equals
+@intrinsic u16    implements Equals
+@intrinsic u32    implements Equals
+@intrinsic u64    implements Equals
+@intrinsic usize  implements Equals
+@intrinsic f32    implements Equals
+@intrinsic f64    implements Equals
+@intrinsic bool   implements Equals
+@intrinsic char   implements Equals
+@intrinsic string implements Equals
 
 // ---- Hash -----------------------------------------------------------------
 //

@@ -141,9 +141,9 @@ fn 3 std_string_builder$append_char (ref,char) -> void
   return   ; string_builder.vader:26:64
 end
 
-fn 4 std_string_builder$to_string (ref) -> string
-  local.get 0   ; string_builder.vader:55:23
-  struct.get 0 0   ; string_builder.vader:55:23
-  call.import 1   ; string_builder.vader:55:12
-  return   ; string_builder.vader:55:5
+fn 4 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+  local.get 0   ; string_builder.vader:61:48
+  struct.get 0 0   ; string_builder.vader:61:48
+  call.import 1   ; string_builder.vader:61:37
+  return   ; string_builder.vader:61:34
 end

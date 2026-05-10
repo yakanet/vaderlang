@@ -54,3 +54,8 @@ export concat_all :: fn(parts: string[]) -> string
 export to_string :: fn(self: StringBuilder) -> string {
     return concat_all(self.parts)
 }
+
+// Display — `${sb}` flushes the builder into the surrounding string. We call
+// the host intrinsic directly rather than the free `to_string` to avoid
+// resolving through trait dispatch (which would recurse on ourselves).
+StringBuilder implements Display -> concat_all(self.parts)

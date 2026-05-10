@@ -9,7 +9,7 @@ export IOError :: struct {
 }
 
 IOError implements Error {
-    fn message(self) -> string { return self.msg }
+    message :: fn(self) -> string { return self.msg }
 }
 
 // print / println — write to stdout.

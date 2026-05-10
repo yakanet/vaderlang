@@ -6,8 +6,8 @@ import "std/io" { println }
 
 Vec :: struct { x: i32, y: i32 }
 
-Vec implements Add { fn add(self, other: Vec) -> Vec { return Vec { .x = self.x + other.x, .y = self.y + other.y } } }
-Vec implements Sub { fn sub(self, other: Vec) -> Vec { return Vec { .x = self.x - other.x, .y = self.y - other.y } } }
+Vec implements Add { add :: fn(self, other: Vec) -> Vec { return Vec { .x = self.x + other.x, .y = self.y + other.y } } }
+Vec implements Sub { sub :: fn(self, other: Vec) -> Vec { return Vec { .x = self.x - other.x, .y = self.y - other.y } } }
 
 main :: fn() -> i32 {
     // Primitive numerics — built-in path.

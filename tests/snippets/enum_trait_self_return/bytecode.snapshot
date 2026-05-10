@@ -7,37 +7,37 @@ import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_left (i32) -> i32
   local "__scrut_0#14" i32
-  local.get 0   ; _main.vader:16:32
-  local.set 1   ; _main.vader:16:32
+  local.get 0   ; _main.vader:16:35
+  local.set 1   ; _main.vader:16:35
   local.get 1   ; _main.vader:17:9
   i32.const 0   ; _main.vader:17:9
   i32.eq   ; _main.vader:17:9
   if $L0 void   ; _main.vader:17:9
     i32.const 3   ; _main.vader:17:19
-    return   ; _main.vader:16:26
+    return   ; _main.vader:16:29
   else   ; _main.vader:17:9
     local.get 1   ; _main.vader:18:9
     i32.const 3   ; _main.vader:18:9
     i32.eq   ; _main.vader:18:9
     if $L1 void   ; _main.vader:18:9
       i32.const 2   ; _main.vader:18:19
-      return   ; _main.vader:16:26
+      return   ; _main.vader:16:29
     else   ; _main.vader:18:9
       local.get 1   ; _main.vader:19:9
       i32.const 2   ; _main.vader:19:9
       i32.eq   ; _main.vader:19:9
       if $L2 void   ; _main.vader:19:9
         i32.const 1   ; _main.vader:19:19
-        return   ; _main.vader:16:26
+        return   ; _main.vader:16:29
       else   ; _main.vader:19:9
         local.get 1   ; _main.vader:20:9
         i32.const 1   ; _main.vader:20:9
         i32.eq   ; _main.vader:20:9
         if $L3 void   ; _main.vader:20:9
           i32.const 0   ; _main.vader:20:19
-          return   ; _main.vader:16:26
+          return   ; _main.vader:16:29
         else   ; _main.vader:20:9
-          unreachable   ; _main.vader:16:26
+          unreachable   ; _main.vader:16:29
         end $L3   ; _main.vader:20:9
       end $L2   ; _main.vader:19:9
     end $L1   ; _main.vader:18:9
@@ -46,76 +46,76 @@ end
 
 fn 1 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_right (i32) -> i32
   local "__scrut_0#14" i32
-  local.get 0   ; _main.vader:23:33
-  local.set 1   ; _main.vader:23:33
+  local.get 0   ; _main.vader:23:36
+  local.set 1   ; _main.vader:23:36
   local.get 1   ; _main.vader:24:9
   i32.const 0   ; _main.vader:24:9
   i32.eq   ; _main.vader:24:9
   if $L0 void   ; _main.vader:24:9
     i32.const 1   ; _main.vader:24:19
-    return   ; _main.vader:23:27
+    return   ; _main.vader:23:30
   else   ; _main.vader:24:9
     local.get 1   ; _main.vader:25:9
     i32.const 1   ; _main.vader:25:9
     i32.eq   ; _main.vader:25:9
     if $L1 void   ; _main.vader:25:9
       i32.const 2   ; _main.vader:25:19
-      return   ; _main.vader:23:27
+      return   ; _main.vader:23:30
     else   ; _main.vader:25:9
       local.get 1   ; _main.vader:26:9
       i32.const 2   ; _main.vader:26:9
       i32.eq   ; _main.vader:26:9
       if $L2 void   ; _main.vader:26:9
         i32.const 3   ; _main.vader:26:19
-        return   ; _main.vader:23:27
+        return   ; _main.vader:23:30
       else   ; _main.vader:26:9
         local.get 1   ; _main.vader:27:9
         i32.const 3   ; _main.vader:27:9
         i32.eq   ; _main.vader:27:9
         if $L3 void   ; _main.vader:27:9
           i32.const 0   ; _main.vader:27:19
-          return   ; _main.vader:23:27
+          return   ; _main.vader:23:30
         else   ; _main.vader:27:9
-          unreachable   ; _main.vader:23:27
+          unreachable   ; _main.vader:23:30
         end $L3   ; _main.vader:27:9
       end $L2   ; _main.vader:26:9
     end $L1   ; _main.vader:25:9
   end $L0   ; _main.vader:24:9
 end
 
-fn 2 tests_snippets_enum_trait_self_return__main_vader$Direction$Display$show (i32) -> any
+fn 2 tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_string (i32) -> any
   local "__scrut_0#14" i32
-  local.get 0   ; _main.vader:32:27
-  local.set 1   ; _main.vader:32:27
+  local.get 0   ; _main.vader:32:35
+  local.set 1   ; _main.vader:32:35
   local.get 1   ; _main.vader:33:9
   i32.const 0   ; _main.vader:33:9
   i32.eq   ; _main.vader:33:9
   if $L0 void   ; _main.vader:33:9
     string.const 0   ; _main.vader:33:19
-    return   ; _main.vader:32:21
+    return   ; _main.vader:32:29
   else   ; _main.vader:33:9
     local.get 1   ; _main.vader:34:9
     i32.const 1   ; _main.vader:34:9
     i32.eq   ; _main.vader:34:9
     if $L1 void   ; _main.vader:34:9
       string.const 1   ; _main.vader:34:19
-      return   ; _main.vader:32:21
+      return   ; _main.vader:32:29
     else   ; _main.vader:34:9
       local.get 1   ; _main.vader:35:9
       i32.const 2   ; _main.vader:35:9
       i32.eq   ; _main.vader:35:9
       if $L2 void   ; _main.vader:35:9
         string.const 2   ; _main.vader:35:19
-        return   ; _main.vader:32:21
+        return   ; _main.vader:32:29
       else   ; _main.vader:35:9
         local.get 1   ; _main.vader:36:9
         i32.const 3   ; _main.vader:36:9
         i32.eq   ; _main.vader:36:9
         if $L3 void   ; _main.vader:36:9
           string.const 3   ; _main.vader:36:19
-          return   ; _main.vader:32:21
+          return   ; _main.vader:32:29
         else   ; _main.vader:36:9
-          unreachable   ; _main.vader:32:21
+          unreachable   ; _main.vader:32:29
         end $L3   ; _main.vader:36:9
       end $L2   ; _main.vader:35:9
     end $L1   ; _main.vader:34:9

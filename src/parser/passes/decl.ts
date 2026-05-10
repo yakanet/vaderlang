@@ -248,16 +248,19 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
   const traitArgs: A.TypeExpr[] = traitArgList !== null ? traitArgList.items : [];
 
   // Four impl shapes after the trait reference:
-  //   `... -> expr`        → SAM arrow: synthesise a single FnDecl whose body
-  //                          returns `expr`.
-  //   `... { fn ... }`     → classic: one or more explicit fn members.
-  //   `... { stmts }`      → SAM block: synthesise a single FnDecl whose body
-  //                          is the parsed block.
-  //   `@intrinsic ...`     → host-provided impl with no source body. Members
-  //                          are synthesised by the resolver from the trait's
-  //                          methods, each marked `@intrinsic` (body=null).
-  // Detection for the brace forms peeks past `{` and any newlines: if the
-  // next significant token is `kw_fn`, classic; otherwise SAM block.
+  //   `... -> expr`             → SAM arrow: synthesise a single FnDecl whose
+  //                               body returns `expr`.
+  //   `... { name :: fn ... }`  → classic: one or more explicit fn members,
+  //                               written with the same `name :: fn(...)`
+  //                               form as top-level functions.
+  //   `... { stmts }`           → SAM block: synthesise a single FnDecl whose
+  //                               body is the parsed block.
+  //   `@intrinsic ...`          → host-provided impl with no source body.
+  //                               Members are synthesised by the resolver from
+  //                               the trait's methods (body = null).
+  // Detection for the brace forms peeks past `{` and any newlines/decorators
+  // /`export` to see whether the first significant tokens spell out
+  // `ident :: fn`; if so, classic, otherwise SAM block.
   const members: A.FnDecl[] = [];
   const isIntrinsic = decorators.some((d) => d.name === "intrinsic");
   let endTok: Token;
@@ -297,13 +300,44 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
   };
 }
 
-/** True when the impl body is the classic `{ fn ... }` shape. The parser is
- *  positioned at `lbrace`; we peek past it and any newlines to see whether
- *  the first significant token is `kw_fn`. */
+/** True when the impl body is the classic `{ name :: fn ... }` shape. The
+ *  parser is positioned at `lbrace`; we peek past it, any newlines, any
+ *  leading decorators (`@foo` / `@foo(...)`) and an optional `export`
+ *  keyword, and check that the first three significant tokens spell out
+ *  `ident :: fn`. Anything else (including a bare `fn ...` survivor of the
+ *  pre-unification syntax) is treated as a SAM block — that path will then
+ *  surface a clean parse error from `parseStmt`. */
 function peekIsClassicImplBody(p: Parser): boolean {
-  let i = 1;
-  while (p.peek(i).kind === "newline") i++;
-  return p.peek(i).kind === "kw_fn";
+  let i = 1; // past the `{`
+  const skipWs = () => {
+    while (p.peek(i).kind === "newline") i++;
+  };
+  skipWs();
+  // Drift past any number of decorators and an optional `export`.
+  while (true) {
+    const tk = p.peek(i).kind;
+    if (tk === "at") {
+      i++; // `@`
+      if (p.peek(i).kind === "ident") i++;
+      if (p.peek(i).kind === "lparen") {
+        let depth = 1;
+        i++;
+        while (depth > 0 && p.peek(i).kind !== "eof") {
+          const k = p.peek(i).kind;
+          if (k === "lparen") depth++;
+          else if (k === "rparen") depth--;
+          i++;
+        }
+      }
+      skipWs();
+      continue;
+    }
+    if (tk === "kw_export") { i++; skipWs(); continue; }
+    break;
+  }
+  return p.peek(i).kind === "ident"
+      && p.peek(i + 1).kind === "decl_const"
+      && p.peek(i + 2).kind === "kw_fn";
 }
 
 /** SAM arrow form: `… implements Trait -> expr`. Build a synthetic FnDecl
@@ -420,19 +454,32 @@ function parseFnBodyTail(
   return { body: null, isExpressionBodied: false };
 }
 
-/** Same fn syntax used in trait member lists and impl bodies — body optional. */
+/** Member declaration inside a trait body or a classic impl body. Uses the
+ *  same `name :: fn(...)` form as top-level fns so the surface syntax stays
+ *  uniform across the language ; the body is optional (signature-only for
+ *  trait method declarations and `@extern` impls). */
 function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
   const decorators = parseDecorators(p);
   const visibility: A.Visibility = p.match("kw_export") !== null ? "public" : "private";
-  if (!p.check("kw_fn")) {
+  if (!(p.check("ident") && p.check("decl_const", 1) && p.check("kw_fn", 2))) {
     const t = p.peek();
-    p.error("P1006", t.span, `expected a function inside trait/impl (got ${describeToken(t)})`);
-    // recover
-    while (!p.check("rbrace") && !p.check("eof") && !p.check("kw_fn")) p.advance();
+    if (t.kind === "kw_fn") {
+      p.error("P1006", t.span,
+        "trait/impl members must use the `name :: fn(...)` form (the bare `fn name(...)` form was retired)");
+    } else {
+      p.error("P1006", t.span,
+        `expected member declaration \`name :: fn(...)\` (got ${describeToken(t)})`);
+    }
+    // Recover: skip to the next `}` or to a token that looks like a member start.
+    while (!p.check("rbrace") && !p.check("eof")) {
+      if (p.check("ident") && p.check("decl_const", 1) && p.check("kw_fn", 2)) break;
+      p.advance();
+    }
     return null;
   }
-  const fnTok = p.advance(); // fn
-  const nameTok = p.expect("ident", "function name");
+  const nameTok = p.advance(); // ident
+  p.advance();                 // ::
+  p.advance();                 // fn
   const bracketed = parseBracketedTypeParams(p);
   const { params, typeParams: dollarParams } = parseFnSignatureParams(p);
   const typeParams = mergeTypeParams(bracketed, dollarParams);
@@ -441,7 +488,7 @@ function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
   const { body, isExpressionBodied } = parseFnBodyTail(p, returnType !== null);
   return {
     kind: "FnDecl",
-    span: p.spanOf(fnTok, p.peek(-1)),
+    span: p.spanOf(nameTok, p.peek(-1)),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,

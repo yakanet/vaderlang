@@ -8,7 +8,7 @@ import "std/io" { println }
 Direction :: enum { North, East, South, West }
 
 Direction implements Display {
-    fn show(self) -> string {
+    to_string :: fn(self) -> string {
         match self {
             .North -> "N"
             .East  -> "E"
@@ -21,11 +21,11 @@ Direction implements Display {
 main :: fn() -> i32 {
     // UFCS-style dispatch on an enum value
     d :: Direction.North
-    println(d.show())
+    println(d.to_string())
     // Method call directly on `EnumName.Variant`
-    println(Direction.East.show())
+    println(Direction.East.to_string())
     // Through a let binding from a different variant
     s :: Direction.South
-    println(s.show())
+    println(s.to_string())
     return 0
 }

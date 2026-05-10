@@ -15,7 +15,7 @@ export ProcessError :: struct {
 }
 
 ProcessError implements Error {
-    fn message(self) -> string { return self.msg }
+    message :: fn(self) -> string { return self.msg }
 }
 
 export ProcessResult :: struct {

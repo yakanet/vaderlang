@@ -8,10 +8,10 @@ export ParseErr :: struct { msg: string }
 export NetErr   :: struct { reason: string }
 
 ParseErr implements Error {
-    fn message(self) -> string { return "parse: ${self.msg}" }
+    message :: fn(self) -> string { return "parse: ${self.msg}" }
 }
 NetErr implements Error {
-    fn message(self) -> string { return "net: ${self.reason}" }
+    message :: fn(self) -> string { return "net: ${self.reason}" }
 }
 
 export report :: fn(e: Error) -> string {

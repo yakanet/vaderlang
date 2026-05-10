@@ -1,5 +1,5 @@
 export Display :: trait {
-    fn show(self) -> string
+    to_string :: fn(self) -> string
 }
 
 export Point :: struct {
@@ -8,7 +8,7 @@ export Point :: struct {
 }
 
 Point implements Display {
-    fn show(self) -> string {
+    to_string :: fn(self) -> string {
         return "point"
     }
 }

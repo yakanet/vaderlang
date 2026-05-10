@@ -9,7 +9,7 @@ import "./lib_a" { Foo }
 import "./lib_b" { Bar }
 
 Foo implements Bar {
-    fn baz(self) -> i32 {
+    baz :: fn(self) -> i32 {
         return self.value
     }
 }

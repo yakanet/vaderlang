@@ -131,9 +131,9 @@ fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
 end
 
 fn 1 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:192:26
-  i32.to_u64   ; core.vader:192:26
-  return   ; core.vader:192:23
+  local.get 0   ; core.vader:193:26
+  i32.to_u64   ; core.vader:193:26
+  return   ; core.vader:193:23
 end
 
 fn 2 std_collections$bucket_index (u64) -> i32
@@ -316,7 +316,7 @@ fn 3 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
     local.get 0   ; collections.vader:92:5
     local.get 21   ; collections.vader:92:5
     struct.set 5 1   ; collections.vader:92:5
-    return   ; collections.vader:52:85
+    return   ; collections.vader:52:89
   end $L10   ; collections.vader:85:5
 end
 

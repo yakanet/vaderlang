@@ -8,7 +8,7 @@
 //   - `!T` errors propagated through `?`
 //   - top-level `@file` baking the canonical test input at compile time
 //   - argv handling so the same binary accepts an external file at runtime
-//   - UFCS chained calls (`s.trim().split_where(is_white_char)`, `m.dir.show()`)
+//   - UFCS chained calls (`s.trim().split_where(is_white_char)`, `m.dir.to_string()`)
 
 import "std/io" { println, eprintln, read_file }
 import "std/string" {
@@ -25,7 +25,7 @@ DEFAULT_INPUT :: @file("mowitnow_input.txt")
 Direction :: enum { North, East, South, West }
 
 Direction implements Display {
-    fn show(self) -> string {
+    to_string :: fn(self) -> string {
         match self {
             .North -> "N"
             .East  -> "E"
@@ -38,19 +38,19 @@ Direction implements Display {
 // Quarter-turn rotation, abstracted as a trait so any compass-like type can
 // opt in. The methods return `Self`, which resolves to the implementer.
 Turnable :: trait {
-    fn turn_left(self) -> Self
-    fn turn_right(self) -> Self
+    turn_left  :: fn(self) -> Self
+    turn_right :: fn(self) -> Self
 }
 
 Direction implements Turnable {
-    fn turn_left(self) = match self {
+    turn_left :: fn(self) = match self {
         .North -> .West
         .West  -> .South
         .South -> .East
         .East  -> .North
     }
 
-    fn turn_right(self) = match self {
+    turn_right :: fn(self) = match self {
         .North -> .East
         .East  -> .South
         .South -> .West
@@ -77,7 +77,7 @@ Mower :: struct {
 }
 
 Mower implements Display {
-    fn show(self) = "${self.x} ${self.y} ${self.dir.show()}"
+    to_string :: fn(self) = "${self.x} ${self.y} ${self.dir.to_string()}"
 }
 
 // --- Movement -------------------------------------------------------------
@@ -191,7 +191,7 @@ run :: fn(input: string) -> string! {
         if !first {
             out.append("\n")
         }
-        out.append(final.show())
+        out.append(final.to_string())
         first = false
         i = i + 2
     }

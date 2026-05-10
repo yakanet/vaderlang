@@ -327,36 +327,36 @@ fn 2 std_core$Range$Contains$contains__char (ref,char) -> bool
   local "$field_2#10" char
   local "$field_6#14" char
   local "$field_8#16" char
-  local.get 0   ; core.vader:110:20
-  struct.get 0 0   ; core.vader:110:20
-  local.set 2   ; core.vader:110:20
-  local.get 1   ; core.vader:110:12
-  local.get 2   ; core.vader:110:12
-  char.lt   ; core.vader:110:12
-  if $L0 void   ; core.vader:110:9
-    bool.const false   ; core.vader:110:40
-    return   ; core.vader:110:33
-  else   ; core.vader:110:9
-    local.get 0   ; core.vader:111:12
-    struct.get 0 2   ; core.vader:111:12
-    if $L1 void   ; core.vader:111:9
-      local.get 0   ; core.vader:111:49
-      struct.get 0 1   ; core.vader:111:49
-      local.set 3   ; core.vader:111:49
-      local.get 1   ; core.vader:111:40
-      local.get 3   ; core.vader:111:40
-      char.le   ; core.vader:111:40
-      return   ; core.vader:111:33
-    else   ; core.vader:111:9
-      local.get 0   ; core.vader:112:24
-      struct.get 0 1   ; core.vader:112:24
-      local.set 4   ; core.vader:112:24
-      local.get 1   ; core.vader:112:16
-      local.get 4   ; core.vader:112:16
-      char.lt   ; core.vader:112:16
-      return   ; core.vader:112:9
-    end $L1   ; core.vader:111:9
-  end $L0   ; core.vader:110:9
+  local.get 0   ; core.vader:111:20
+  struct.get 0 0   ; core.vader:111:20
+  local.set 2   ; core.vader:111:20
+  local.get 1   ; core.vader:111:12
+  local.get 2   ; core.vader:111:12
+  char.lt   ; core.vader:111:12
+  if $L0 void   ; core.vader:111:9
+    bool.const false   ; core.vader:111:40
+    return   ; core.vader:111:33
+  else   ; core.vader:111:9
+    local.get 0   ; core.vader:112:12
+    struct.get 0 2   ; core.vader:112:12
+    if $L1 void   ; core.vader:112:9
+      local.get 0   ; core.vader:112:49
+      struct.get 0 1   ; core.vader:112:49
+      local.set 3   ; core.vader:112:49
+      local.get 1   ; core.vader:112:40
+      local.get 3   ; core.vader:112:40
+      char.le   ; core.vader:112:40
+      return   ; core.vader:112:33
+    else   ; core.vader:112:9
+      local.get 0   ; core.vader:113:24
+      struct.get 0 1   ; core.vader:113:24
+      local.set 4   ; core.vader:113:24
+      local.get 1   ; core.vader:113:16
+      local.get 4   ; core.vader:113:16
+      char.lt   ; core.vader:113:16
+      return   ; core.vader:113:9
+    end $L1   ; core.vader:112:9
+  end $L0   ; core.vader:111:9
 end
 
 fn 3 std_json$new_parser (string) -> ref
@@ -2564,11 +2564,11 @@ fn 32 std_string_builder$append_repeated (ref,char,i32) -> void
   return   ; string_builder.vader:42:80
 end
 
-fn 33 std_string_builder$to_string (ref) -> string
-  local.get 0   ; string_builder.vader:55:23
-  struct.get 19 0   ; string_builder.vader:55:23
-  call.import 7   ; string_builder.vader:55:12
-  return   ; string_builder.vader:55:5
+fn 33 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+  local.get 0   ; string_builder.vader:61:48
+  struct.get 19 0   ; string_builder.vader:61:48
+  call.import 7   ; string_builder.vader:61:37
+  return   ; string_builder.vader:61:34
 end
 
 fn 34 std_collections$bucket_index (u64) -> i32
@@ -2751,7 +2751,7 @@ fn 35 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
     local.get 0   ; collections.vader:92:5
     local.get 21   ; collections.vader:92:5
     struct.set 24 1   ; collections.vader:92:5
-    return   ; collections.vader:52:85
+    return   ; collections.vader:52:89
   end $L10   ; collections.vader:85:5
 end
 

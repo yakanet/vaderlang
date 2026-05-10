@@ -8,9 +8,9 @@
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Printable            :: Printable
   StructDecl     Wrapper              :: Wrapper($T)
-  expr 19:39    FieldExpr      :: string
-  expr 19:39    IdentExpr      :: Dog
-  expr 28:39    StringLitExpr  :: string
+  expr 19:42    FieldExpr      :: string
+  expr 19:42    IdentExpr      :: Dog
+  expr 28:42    StringLitExpr  :: string
   expr 32:11    IdentExpr      :: Cat | Dog
   expr 32:5     MatchExpr      :: i32
   expr 39:11    IdentExpr      :: Cat | Wrapper(i32)

@@ -3,7 +3,7 @@ type 0 struct tests_snippets_trait_impl__main_vader$Point { x:1,y:1 }
 type 1 primitive f64
 string 0 "point"
 
-fn 0 tests_snippets_trait_impl__main_vader$Point$Display$show (ref) -> string
+fn 0 tests_snippets_trait_impl__main_vader$Point$Display$to_string (ref) -> string
   string.const 0   ; _main.vader:12:16
   return   ; _main.vader:12:9
 end

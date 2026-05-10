@@ -11,7 +11,7 @@
       "members": [
         {
           "kind": "FnDecl",
-          "name": "show",
+          "name": "to_string",
           "visibility": "private",
           "typeParams": [],
           "params": [
@@ -70,7 +70,7 @@
       "members": [
         {
           "kind": "FnDecl",
-          "name": "show",
+          "name": "to_string",
           "visibility": "private",
           "typeParams": [],
           "params": [

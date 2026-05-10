@@ -3,7 +3,7 @@ type 0 primitive i32
 string 0 "the answer is "
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_primitive_impl__main_vader$i32$Display$show (i32) -> string
+fn 0 tests_snippets_primitive_impl__main_vader$i32$Display$to_string (i32) -> string
   local "__sb_0#6" any
   intrinsic builder.new   ; _main.vader:5:16
   local.set 1   ; _main.vader:5:16

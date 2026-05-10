@@ -50,7 +50,7 @@ export StringBytes :: struct {
 }
 
 StringBytes implements Iterator(u8) {
-    fn step(self) -> Done | Yielded(u8) {
+    step :: fn(self) -> Done | Yielded(u8) {
         if (self.cursor >= self.length) {
             return Done {}
         }
@@ -87,7 +87,7 @@ export StringChars :: struct {
 }
 
 StringChars implements Iterator(char) {
-    fn step(self) -> Done | Yielded(char) {
+    step :: fn(self) -> Done | Yielded(char) {
         if (self.cursor >= self.length) {
             return Done {}
         }
@@ -157,7 +157,7 @@ export count_chars :: fn(s: string) -> i32 {
 
 // Comparator suitable for `sort(arr, compare_ascending)` : returns true when
 // `a` lexicographically precedes `b` (byte-wise). Mirrors JS `s1 < s2`.
-// Will become `Ord(string)::less` once trait-method dispatch on bounded type
+// Will become `Comparable(string)::less` once trait-method dispatch on bounded type
 // parameters lands (TODO §1.18b).
 export compare_ascending :: fn(a: string, b: string) -> bool {
     la :: a.byte_len()
@@ -200,7 +200,7 @@ export ParseError :: struct {
 }
 
 ParseError implements Error {
-    fn message(self) -> string { return self.msg }
+    message :: fn(self) -> string { return self.msg }
 }
 
 export parse_int   :: fn(s: string) -> i32!

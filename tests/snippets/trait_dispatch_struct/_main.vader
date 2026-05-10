@@ -2,11 +2,11 @@
 // Verifies non-stdlib traits flow through the same machinery as built-ins.
 
 export Tagger :: trait {
-    fn tag(self) -> i32
+    tag :: fn(self) -> i32
 }
 
 i32 implements Tagger {
-    fn tag(self) -> i32 { return self * 10 }
+    tag :: fn(self) -> i32 { return self * 10 }
 }
 
 export apply_tag :: fn[T: Tagger](x: T) -> i32 {

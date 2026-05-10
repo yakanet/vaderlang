@@ -2,7 +2,7 @@
 
 ## tests/snippets/enum_implements_trait/_main.vader
 
-fn tests_snippets_enum_implements_trait__main_vader$Direction$Display$show(%0: Direction) -> string
+fn tests_snippets_enum_implements_trait__main_vader$Direction$Display$to_string(%0: Direction) -> string
   locals:
     %0 self: Direction (param self)
     %1 __scrut_0#14: Direction (synthetic __scrut_0)
@@ -72,13 +72,13 @@ fn tests_snippets_enum_implements_trait__main_vader$main() -> i32
     %6 $k_8#13: i32
   bb0:
     %0 = const int(0) :i32
-    %1 = call show(%0) :string
+    %1 = call to_string(%0) :string
     call println(%1) :void
     %2 = const int(1) :i32
-    %3 = call show(%2) :string
+    %3 = call to_string(%2) :string
     call println(%3) :void
     %4 = const int(2) :i32
-    %5 = call show(%4) :string
+    %5 = call to_string(%4) :string
     call println(%5) :void
     %6 = const int(0) :i32
     return %6

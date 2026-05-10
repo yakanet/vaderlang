@@ -3,11 +3,11 @@
 ## tests/snippets/op_overload_eq_ord/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     Money                :: Money
-  expr 14:24    BinaryExpr     :: bool
-  expr 14:24    FieldExpr      :: i32
-  expr 14:24    IdentExpr      :: Money
-  expr 14:39    FieldExpr      :: i32
-  expr 14:39    IdentExpr      :: Money
+  expr 14:28    BinaryExpr     :: bool
+  expr 14:28    FieldExpr      :: i32
+  expr 14:28    IdentExpr      :: Money
+  expr 14:43    FieldExpr      :: i32
+  expr 14:43    IdentExpr      :: Money
   expr 17:12    BinaryExpr     :: bool
   expr 17:12    FieldExpr      :: i32
   expr 17:12    IdentExpr      :: Money

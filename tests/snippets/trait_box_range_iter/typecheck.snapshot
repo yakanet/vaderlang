@@ -18,9 +18,9 @@
   expr 17:36    BinaryExpr     :: i32
   expr 17:36    IdentExpr      :: i32
   expr 20:12    IdentExpr      :: i32
-  expr 35:38    BinaryExpr     :: i32
-  expr 35:38    IdentExpr      :: i32
-  expr 35:45    IdentExpr      :: i32
+  expr 35:41    BinaryExpr     :: i32
+  expr 35:41    IdentExpr      :: i32
+  expr 35:48    IdentExpr      :: i32
   expr 39:12    CallExpr       :: $T
   expr 39:12    FieldExpr      :: fn() -> $T
   expr 39:12    IdentExpr      :: Greeter($T)

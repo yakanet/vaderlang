@@ -35,7 +35,7 @@ export JsonError :: struct {
 }
 
 JsonError implements Error {
-    fn message(self) -> string { return self.msg }
+    message :: fn(self) -> string { return self.msg }
 }
 
 // ---- parser ---------------------------------------------------------------

@@ -1,13 +1,13 @@
 import "std/io" { println }
 
 i32 implements Display {
-    fn show(self) -> string {
+    to_string :: fn(self) -> string {
         return "the answer is ${self}"
     }
 }
 
 main :: fn() -> i32 {
     x: i32 = 42
-    println(x.show())
+    println(x.to_string())
     return 0
 }

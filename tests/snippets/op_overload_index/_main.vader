@@ -9,7 +9,7 @@ import "std/io" { println }
 Cell :: struct { keys: string[], vals: i32[] }
 
 Cell implements Index(string, i32) {
-    fn at(self, key: string) -> i32 {
+    at :: fn(self, key: string) -> i32 {
         i := 0
         for k in self.keys {
             if k == key { return self.vals[i] }
@@ -20,7 +20,7 @@ Cell implements Index(string, i32) {
 }
 
 Cell implements IndexSet(string, i32) {
-    fn set_at(self, key: string, v: i32) {
+    set_at :: fn(self, key: string, v: i32) {
         i := 0
         for k in self.keys {
             if k == key {

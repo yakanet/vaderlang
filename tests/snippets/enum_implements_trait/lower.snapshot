@@ -1,7 +1,7 @@
 # Lower
 
 ## tests/snippets/enum_implements_trait/_main.vader
-  fn tests_snippets_enum_implements_trait__main_vader$Direction$Display$show(self: Direction) -> string
+  fn tests_snippets_enum_implements_trait__main_vader$Direction$Display$to_string(self: Direction) -> string
     ~>
       block :string
         let __scrut_0#-1: Direction = self#55 :Direction
@@ -63,7 +63,7 @@
       arg0:
         call :string
           callee:
-            show#1000000 :string
+            to_string#1000000 :string
           arg0:
             d#56 :Direction
     call :void
@@ -72,7 +72,7 @@
       arg0:
         call :string
           callee:
-            show#1000000 :string
+            to_string#1000000 :string
           arg0:
             int(1) :i32
     let s#57: Direction = int(2) :i32
@@ -82,7 +82,7 @@
       arg0:
         call :string
           callee:
-            show#1000000 :string
+            to_string#1000000 :string
           arg0:
             s#57 :Direction
     return int(0) :i32

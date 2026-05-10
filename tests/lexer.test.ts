@@ -429,7 +429,7 @@ describe("lexer — declarations smoke test", () => {
   });
 
   test("trait declaration tokens", () => {
-    const { tokens, diags } = lex("Display :: trait { fn show(self) -> string }");
+    const { tokens, diags } = lex("Display :: trait { to_string :: fn(self) -> string }");
     expect(diags.count("error")).toBe(0);
     expect(kinds(tokens)).toContain("kw_trait");
     expect(kinds(tokens)).toContain("kw_self");

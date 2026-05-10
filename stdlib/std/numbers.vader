@@ -10,7 +10,7 @@ import "std/string_builder" { StringBuilder, new_builder, append_char, to_string
 // mirrors `std/string.ParseError` so callers can match on either as `Error`.
 export ParseError :: struct { msg: string }
 ParseError implements Error {
-    fn message(self) -> string { return self.msg }
+    message :: fn(self) -> string { return self.msg }
 }
 
 // 0..15 for an ASCII hex digit, -1 otherwise.

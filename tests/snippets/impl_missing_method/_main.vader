@@ -4,14 +4,14 @@
 // "field does not exist" T3009 at the call site.
 
 TwoFn :: trait {
-    fn first(self) -> i32
-    fn second(self) -> i32
+    first  :: fn(self) -> i32
+    second :: fn(self) -> i32
 }
 
 Foo :: struct { x: i32 }
 
 Foo implements TwoFn {
-    fn first(self) -> i32 { return self.x }
+    first :: fn(self) -> i32 { return self.x }
     // Missing `second` — T3036 fires here.
 }
 

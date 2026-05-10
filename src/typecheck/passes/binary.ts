@@ -120,7 +120,7 @@ function resolveBinaryDirect(
 
 /** Look up an impl of `traitName` on `forType` and return the member fn
  *  matching `methodName`. The trait/member pair is the common shape consumed
- *  by every operator-overload resolution (`Add`, `Eq`, `Ord`, …). */
+ *  by every operator-overload resolution (`Add`, `Equals`, `Comparable`, …). */
 function findTraitOpMember(
   t: MutableTyped, impls: ImplRegistry, forType: Type,
   traitName: string, methodName: string,
@@ -150,10 +150,11 @@ function binaryEquality(
   if (left.kind === "Unresolved" || right.kind === "Unresolved") return TY.bool;
   if (equalsType(defaultIfFree(left), defaultIfFree(right))) {
     // Same-type equality. Primitives + strings get the built-in path ;
-    // user structs with an `Eq` impl route through trait dispatch ; without
-    // an impl they fall back to reference identity (SPEC §4 memory model).
+    // user structs with an `Equals` impl route through trait dispatch ;
+    // without an impl they fall back to reference identity (SPEC §4 memory
+    // model).
     if (left.kind === "Struct") {
-      const found = findTraitOpMember(t, impls, left, CORE_TRAITS.Eq, "equals");
+      const found = findTraitOpMember(t, impls, left, CORE_TRAITS.Equals, "equals");
       if (found !== null) {
         t.binaryOpResolutions.set(expr, {
           kind: "eq", negate: expr.op === "neq", ...found, receiverType: left,
@@ -182,9 +183,10 @@ function binaryComparison(
   if (okPair) return TY.bool;
   if (isPrimitive(left, "string") && isPrimitive(right, "string")) return TY.bool;
   if (isPrimitive(left, "char") && isPrimitive(right, "char")) return TY.bool;
-  // User-type fallback via `Ord::compare` — lowerer rewrites to `compare(a, b) <op> 0`.
+  // User-type fallback via `Comparable::compare` — lowerer rewrites to
+  // `compare(a, b) <op> 0`.
   if (left.kind === "Struct" && equalsType(defaultIfFree(left), defaultIfFree(right))) {
-    const found = findTraitOpMember(t, impls, left, CORE_TRAITS.Ord, "compare");
+    const found = findTraitOpMember(t, impls, left, CORE_TRAITS.Comparable, "compare");
     if (found !== null) {
       t.binaryOpResolutions.set(expr, {
         kind: "ord", cmp: expr.op as "lt" | "lte" | "gt" | "gte",

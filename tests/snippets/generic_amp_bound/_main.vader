@@ -8,11 +8,11 @@
 // must implement every composed trait, otherwise T3006 fires. `string`
 // is the only stdlib primitive that explicitly `implements Add` (concat),
 // so the snippet uses it for the `Add`-bounded case ; `bar` uses
-// `Hash & Eq` which `i32` and `string` satisfy.
+// `Hash & Equals` which `i32` and `string` satisfy.
 
 needs_add :: fn[T: Add](x: T) -> T = x
 
-bar :: fn[K: Hash & Eq, V](key: K, value: V) -> V = value
+bar :: fn[K: Hash & Equals, V](key: K, value: V) -> V = value
 
 main :: fn() -> i32 {
     s :: needs_add("hello")

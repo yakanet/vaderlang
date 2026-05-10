@@ -25,7 +25,7 @@
 // ===========================================================================
 // MutableMap(K, V) — chaining hash map. Each bucket holds a singly-linked
 // list of `Entry(K, V)` nodes. Lookup hashes the key, walks the bucket's
-// chain comparing keys via the `Eq` trait, and inserts at the chain head.
+// chain comparing keys via the `Equals` trait, and inserts at the chain head.
 //
 // Bucket count is a fixed `BUCKET_COUNT` (no resize in MVP — collisions
 // degrade gracefully into linear search per bucket). Lazy-initialised on
@@ -40,7 +40,7 @@ Entry :: struct[K, V] {
     next:  Entry(K, V) | null
 }
 
-export MutableMap :: struct[K: Hash & Eq, V] {
+export MutableMap :: struct[K: Hash & Equals, V] {
     buckets: (Entry(K, V) | null)[]
     size:    usize
 }
@@ -49,7 +49,7 @@ bucket_index :: fn(h: u64) -> i32 {
     return i32(h % u64(BUCKET_COUNT))
 }
 
-export put :: fn[K: Hash & Eq, V](self: MutableMap(K, V), key: K, value: V) -> void {
+export put :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K, value: V) -> void {
     // Lazy bucket init — inlined here because nested generic calls aren't
     // observed by the comptime InstanceRegistry yet (transitive
     // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
@@ -92,7 +92,7 @@ export put :: fn[K: Hash & Eq, V](self: MutableMap(K, V), key: K, value: V) -> v
     self.size = self.size + 1
 }
 
-export get :: fn[K: Hash & Eq, V](self: MutableMap(K, V), key: K) -> V | null {
+export get :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> V | null {
     if self.buckets.len() == 0 {
         return null
     }
@@ -117,7 +117,7 @@ export get :: fn[K: Hash & Eq, V](self: MutableMap(K, V), key: K) -> V | null {
     return result
 }
 
-export contains_key :: fn[K: Hash & Eq, V](self: MutableMap(K, V), key: K) -> bool {
+export contains_key :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> bool {
     if self.buckets.len() == 0 {
         return false
     }
@@ -198,21 +198,21 @@ export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
 // ===========================================================================
 // MutableSet(T) — hash-backed via a wrapping MutableMap. Each member is stored
 // as a (T → true) entry, so lookups inherit the chained-bucket O(1) behaviour
-// from MutableMap. `where T: Hash + Eq` mirrors MutableMap's own bound.
+// from MutableMap. `where T: Hash + Equals` mirrors MutableMap's own bound.
 // ===========================================================================
 
-export MutableSet :: struct[T: Hash & Eq] {
+export MutableSet :: struct[T: Hash & Equals] {
     inner: MutableMap(T, bool)
 }
 
 // Returns true if the value was newly added, false if it was already present.
-export add :: fn[T: Hash & Eq](self: MutableSet(T), value: T) -> bool {
+export add :: fn[T: Hash & Equals](self: MutableSet(T), value: T) -> bool {
     if self.inner.contains_key(value) { return false }
     self.inner.put(value, true)
     return true
 }
 
-export contains :: fn[T: Hash & Eq](self: MutableSet(T), value: T) -> bool {
+export contains :: fn[T: Hash & Equals](self: MutableSet(T), value: T) -> bool {
     return self.inner.contains_key(value)
 }
 

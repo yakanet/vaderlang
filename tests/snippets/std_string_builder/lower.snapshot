@@ -40,7 +40,7 @@
       arg0:
         call :string
           callee:
-            to_string#42 :string
+            to_string#1000072 :string
           arg0:
             sb#66 :StringBuilder
     let sb2#67: StringBuilder =
@@ -74,7 +74,7 @@
       arg0:
         call :string
           callee:
-            to_string#42 :string
+            to_string#1000072 :string
           arg0:
             sb2#67 :StringBuilder
     let sb3#68: StringBuilder =
@@ -95,7 +95,7 @@
             __sb_0#-1 :?
             call :string
               callee:
-                to_string#42 :string
+                to_string#1000072 :string
               arg0:
                 sb3#68 :StringBuilder
           @builder.append_str :void
@@ -128,7 +128,7 @@
       arg0:
         call :string
           callee:
-            to_string#42 :string
+            to_string#1000072 :string
           arg0:
             sb4#69 :StringBuilder
     let n#70: i32 = int(42) :i32
@@ -164,7 +164,7 @@
       arg0:
         call :string
           callee:
-            to_string#42 :string
+            to_string#1000072 :string
           arg0:
             sb5#71 :StringBuilder
     return int(0) :i32

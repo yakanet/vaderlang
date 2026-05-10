@@ -2,7 +2,7 @@
 
 ## tests/snippets/op_overload_eq_ord/_main.vader
   struct tests_snippets_op_overload_eq_ord__main_vader$Money { amount: i32 }
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Eq$equals(self: Money, other: Money) -> bool
+  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$equals(self: Money, other: Money) -> bool
     ~>
       eq :bool
         l:
@@ -11,7 +11,7 @@
         r:
           .amount :i32
             other#56 :Money
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Ord$compare(self: Money, other: Money) -> i32
+  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare(self: Money, other: Money) -> i32
     if :void
       cond:
         lt :bool

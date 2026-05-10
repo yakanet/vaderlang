@@ -5,12 +5,12 @@
   StructDecl     NetErr               :: NetErr
   StructDecl     ParseErr             :: ParseErr
   FnDecl         report               :: fn(Error) -> string
-  expr 11:41    StringLitExpr  :: string
-  expr 11:51    FieldExpr      :: string
-  expr 11:51    IdentExpr      :: ParseErr
-  expr 14:41    StringLitExpr  :: string
-  expr 14:49    FieldExpr      :: string
-  expr 14:49    IdentExpr      :: NetErr
+  expr 11:44    StringLitExpr  :: string
+  expr 11:54    FieldExpr      :: string
+  expr 11:54    IdentExpr      :: ParseErr
+  expr 14:44    StringLitExpr  :: string
+  expr 14:52    FieldExpr      :: string
+  expr 14:52    IdentExpr      :: NetErr
   expr 18:12    CallExpr       :: string
   expr 18:12    FieldExpr      :: fn() -> string
   expr 18:12    IdentExpr      :: Error

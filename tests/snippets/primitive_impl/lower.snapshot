@@ -1,7 +1,7 @@
 # Lower
 
 ## tests/snippets/primitive_impl/_main.vader
-  fn tests_snippets_primitive_impl__main_vader$i32$Display$show(self: i32) -> string
+  fn tests_snippets_primitive_impl__main_vader$i32$Display$to_string(self: i32) -> string
     return
       block :string
         let __sb_0#-1: ? =
@@ -23,7 +23,7 @@
       arg0:
         call :string
           callee:
-            show#1000000 :string
+            to_string#1000000 :string
           arg0:
             x#55 :i32
     return int(0) :i32

@@ -417,7 +417,7 @@ function remapTerminator(t: Terminator, m: readonly LocalId[]): Terminator {
 // =============================================================================
 // Bytecode-level DCE — drop imports no `call.import` op references and
 // renumber survivors. Runs after `OP_INTRINSIC_BY_MANGLED` has routed the
-// primitive trait intrinsics (`std_core$i32$Add$add`, `std_core$bool$Eq$equals`,
+// primitive trait intrinsics (`std_core$i32$Add$add`, `std_core$bool$Equals$equals`,
 // …) to dedicated bytecode ops, leaving the reserved import slots dead.
 // Without this, every backend (VM unbound-import stub, C-emit shim, future
 // WASM import section) propagates ~60 trap stubs for primitive ops the

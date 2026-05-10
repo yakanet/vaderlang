@@ -1,7 +1,7 @@
 # Lower
 
 ## tests/snippets/sam_impl/_main.vader
-  fn tests_snippets_sam_impl__main_vader$i32$Display$show(self: i32) -> string
+  fn tests_snippets_sam_impl__main_vader$i32$Display$to_string(self: i32) -> string
     ~>
       block :string
         let __sb_0#-1: ? =
@@ -15,7 +15,7 @@
         ~>
           @builder.finish :string
             __sb_0#-1 :?
-  fn tests_snippets_sam_impl__main_vader$i64$Display$show(self: i64) -> string
+  fn tests_snippets_sam_impl__main_vader$i64$Display$to_string(self: i64) -> string
     let prefix#56: string = "i64=" :string
     return
       block :string
@@ -43,7 +43,7 @@
       arg0:
         call :string
           callee:
-            show#1000000 :string
+            to_string#1000000 :string
           arg0:
             x#58 :i32
     call :void
@@ -52,7 +52,7 @@
       arg0:
         call :string
           callee:
-            show#1000001 :string
+            to_string#1000001 :string
           arg0:
             y#59 :i64
     call :void

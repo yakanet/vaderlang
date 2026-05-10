@@ -18,7 +18,7 @@ export Repeat :: struct[T] {
 }
 
 Repeat[T] implements Iterator[T] {
-    fn step(self) -> Done | Yielded(T) {
+    step :: fn(self) -> Done | Yielded(T) {
         if self.remaining <= 0 { return Done {} }
         v :: self.value
         self.remaining = self.remaining - 1
@@ -32,7 +32,7 @@ export Once :: struct[T] {
 }
 
 Once[T] implements Iterator[T] {
-    fn step(self) -> Done | Yielded(T) {
+    step :: fn(self) -> Done | Yielded(T) {
         if self.yielded { return Done {} }
         self.yielded = true
         return Yielded(T) { .value = self.value }

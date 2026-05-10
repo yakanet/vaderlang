@@ -21,18 +21,18 @@ count :: fn[T](it: Iterator(T)) -> i32 {
 }
 
 Greeter :: trait[T] {
-    fn greet(self) -> T
+    greet :: fn(self) -> T
 }
 Hello :: struct {}
 Hello implements Greeter(i32) {
-    fn greet(self) -> i32 { return 100 }
+    greet :: fn(self) -> i32 { return 100 }
 }
 
 Doubler :: trait[T] {
-    fn doubled(self) -> T
+    doubled :: fn(self) -> T
 }
 i32 implements Doubler(i32) {
-    fn doubled(self) -> i32 { return self + self }
+    doubled :: fn(self) -> i32 { return self + self }
 }
 
 invoke :: fn[T](g: Greeter(T)) -> T {

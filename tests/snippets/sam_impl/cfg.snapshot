@@ -2,7 +2,7 @@
 
 ## tests/snippets/sam_impl/_main.vader
 
-fn tests_snippets_sam_impl__main_vader$i32$Display$show(%0: i32) -> string
+fn tests_snippets_sam_impl__main_vader$i32$Display$to_string(%0: i32) -> string
   locals:
     %0 self: i32 (param self)
     %1 $intrinsic_1#5: ?
@@ -18,7 +18,7 @@ fn tests_snippets_sam_impl__main_vader$i32$Display$show(%0: i32) -> string
     %4 = intrinsic builder.finish(%2)
     return %4
 
-fn tests_snippets_sam_impl__main_vader$i64$Display$show(%0: i64) -> string
+fn tests_snippets_sam_impl__main_vader$i64$Display$to_string(%0: i64) -> string
   locals:
     %0 self: i64 (param self)
     %1 prefix#5: string (local prefix)
@@ -56,9 +56,9 @@ fn tests_snippets_sam_impl__main_vader$main() -> i32
   bb0:
     %0 = const int(42) :i32
     %1 = const int(7) :i64
-    %2 = call show(%0) :string
+    %2 = call to_string(%0) :string
     call println(%2) :void
-    %3 = call show(%1) :string
+    %3 = call to_string(%1) :string
     call println(%3) :void
     %4 = intrinsic builder.new()
     %5 = move %4

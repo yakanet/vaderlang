@@ -109,7 +109,7 @@
                               else:
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :Direction
-  fn tests_snippets_enum_trait_self_return__main_vader$Direction$Display$show(self: Direction) -> ?
+  fn tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_string(self: Direction) -> ?
     ~>
       block :string
         let __scrut_0#-3: Direction = self#60 :Direction
@@ -171,7 +171,7 @@
       arg0:
         call :?
           callee:
-            show#1000002 :?
+            to_string#1000002 :?
           arg0:
             d#61 :Direction
     call :void
@@ -180,7 +180,7 @@
       arg0:
         call :?
           callee:
-            show#1000002 :?
+            to_string#1000002 :?
           arg0:
             call :Direction
               callee:
@@ -193,7 +193,7 @@
       arg0:
         call :?
           callee:
-            show#1000002 :?
+            to_string#1000002 :?
           arg0:
             call :Direction
               callee:

@@ -1,8 +1,8 @@
 // Trait method with two args (Self + other) — checks the substitution flows
 // to BOTH params, not just the receiver. Hand-rolled equality check via the
-// `Eq` trait method on a TypeParam-typed pair.
+// `Equals` trait method on a TypeParam-typed pair.
 
-export both_equal :: fn[T: Eq](a: T, b: T, c: T) -> i32 {
+export both_equal :: fn[T: Equals](a: T, b: T, c: T) -> i32 {
     n := 0
     if a == b {
         n = n + 1
