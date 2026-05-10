@@ -470,11 +470,17 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
   };
 
   // Pre-declare every block result tmp so jumps can assign without scope
-  // gymnastics. We do this by walking the labels table.
+  // gymnastics. We do this by walking the labels table. Same write-before-
+  // read invariant as locals : ref-typed slots get `vader_box_null()` (GC
+  // root reachability) ; primitives skip the explicit init.
   for (const l of state.labels.openInfo) {
-    if (l !== null && l.resultType !== "void") {
-      out.push(`    ${cTypeForVal(ctx, l.resultType)} blockres_${l.openIp} = ${zeroInit(ctx, l.resultType)};`);
-      if (isRefVal(l.resultType)) rootAddrs.push(`&blockres_${l.openIp}`);
+    if (l === null || l.resultType === "void") continue;
+    const ctype = cTypeForVal(ctx, l.resultType);
+    if (isRefVal(l.resultType)) {
+      out.push(`    ${ctype} blockres_${l.openIp} = vader_box_null();`);
+      rootAddrs.push(`&blockres_${l.openIp}`);
+    } else {
+      out.push(`    ${ctype} blockres_${l.openIp};`);
     }
   }
 
@@ -525,9 +531,13 @@ function isRefVal(v: ValType): boolean {
 }
 
 /** Bucket the fn's locals by ValType and emit one comma-separated decl
- *  per type, padding the line to ~6 entries before wrapping. Each entry
- *  also pushes its `&lN` onto `rootAddrs` when ref-typed so the GC frame
- *  pins the slot. */
+ *  per type. Each entry pushes its `&lN` onto `rootAddrs` when ref-typed
+ *  so the GC frame pins the slot. Ref/any locals carry `= vader_box_null()`
+ *  because the GC scan reaches them before the user body runs ; primitives
+ *  drop the explicit zero-init — the lowerer guarantees write-before-read,
+ *  so an uninitialised primitive slot is never observed. Skipping the
+ *  init also lets each line carry more entries (PER_LINE bumps from 6 to
+ *  10) since the names are shorter. */
 function emitLocalDecls(
   out: string[], ctx: EmitCtx, fn: BcFunction, rootAddrs: string[],
 ): void {
@@ -541,13 +551,21 @@ function emitLocalDecls(
     bucket.push(slot);
     if (isRefVal(local.val)) rootAddrs.push(`&l${slot}`);
   }
-  const PER_LINE = 6;
   for (const [val, slots] of buckets) {
     const ctype = cTypeForVal(ctx, val);
-    const init  = zeroInit(ctx, val);
-    for (let i = 0; i < slots.length; i += PER_LINE) {
-      const chunk = slots.slice(i, i + PER_LINE).map((s) => `l${s} = ${init}`).join(", ");
-      out.push(`    ${ctype} ${chunk};`);
+    if (isRefVal(val)) {
+      const PER_LINE = 6;
+      for (let i = 0; i < slots.length; i += PER_LINE) {
+        const chunk = slots.slice(i, i + PER_LINE)
+          .map((s) => `l${s} = vader_box_null()`).join(", ");
+        out.push(`    ${ctype} ${chunk};`);
+      }
+    } else {
+      const PER_LINE = 10;
+      for (let i = 0; i < slots.length; i += PER_LINE) {
+        const chunk = slots.slice(i, i + PER_LINE).map((s) => `l${s}`).join(", ");
+        out.push(`    ${ctype} ${chunk};`);
+      }
     }
   }
 }
