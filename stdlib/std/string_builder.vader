@@ -1,8 +1,8 @@
 // std/builder — efficient string construction.
 //
 // Concatenating strings with `+` allocates each time. StringBuilder accumulates
-// parts into an internal `[string]` buffer and flushes once via to_string()
-// using the host `concat_all` intrinsic — a single pass with one allocation
+// parts into an internal `[string]` buffer and flushes once via the
+// `Display.to_string` host intrinsic — a single pass with one allocation
 // sized from the total length, instead of the O(N²) of repeated `+`.
 //
 // Usage:
@@ -47,15 +47,7 @@ export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
     }
 }
 
-// Host intrinsic: flatten a [string] into one string in a single allocation.
-@intrinsic
-export concat_all :: fn(parts: string[]) -> string
-
-export to_string :: fn(self: StringBuilder) -> string {
-    return concat_all(self.parts)
-}
-
-// Display — `${sb}` flushes the builder into the surrounding string. We call
-// the host intrinsic directly rather than the free `to_string` to avoid
-// resolving through trait dispatch (which would recurse on ourselves).
-StringBuilder implements Display -> concat_all(self.parts)
+// Display — flushes the buffer into one string. Host-provided ; the runtime
+// extracts `.parts` from the receiver and concatenates in a single allocation.
+// `${sb}` interpolation and `sb.to_string()` both resolve here.
+@intrinsic StringBuilder implements Display

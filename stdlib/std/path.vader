@@ -8,7 +8,7 @@ import "std/string" {
     byte_len, is_empty, slice, last_index_of,
     starts_with as str_starts_with, ends_with as str_ends_with,
 }
-import "std/string_builder" { StringBuilder, new_builder, append, to_string }
+import "std/string_builder" { StringBuilder, new_builder, append }
 
 export SEP :: '/'
 export SEP_STR :: "/"

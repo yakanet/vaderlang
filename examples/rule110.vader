@@ -8,7 +8,7 @@
 // classically used to display the rule's drift to the left.
 
 import "std/io" { print, println }
-import "std/string_builder" { new_builder, append_char, to_string }
+import "std/string_builder" { new_builder, append_char }
 
 GENERATIONS :: 100
 WIDTH       :: GENERATIONS

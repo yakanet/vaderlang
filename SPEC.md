@@ -1831,17 +1831,14 @@ Efficient string construction.
 ```vader
 StringBuilder :: struct { parts: string[] }
 
-new_builder       :: fn() -> StringBuilder
-append            :: fn(self: StringBuilder, s: string) -> void
-append_char       :: fn(self: StringBuilder, c: char) -> void
-append_repeated   :: fn(self: StringBuilder, c: char, count: i32) -> void  // pretty-printer / padding helper
-to_string         :: fn(self: StringBuilder) -> string
+new_builder     :: fn() -> StringBuilder
+append          :: fn(self: StringBuilder, s: string) -> void
+append_char     :: fn(self: StringBuilder, c: char) -> void
+append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void  // pretty-printer / padding helper
 
-// Flushes the builder when interpolated as `${sb}`.
-StringBuilder implements Display -> concat_all(self.parts)
-
-@intrinsic
-concat_all :: fn(parts: string[]) -> string         // single-allocation flatten
+// Display is host-provided — flushes the buffer in one allocation.
+// `${sb}` interpolation and `sb.to_string()` both resolve here.
+@intrinsic StringBuilder implements Display
 ```
 
 ### `std/collections`

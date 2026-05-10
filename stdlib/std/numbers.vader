@@ -4,7 +4,7 @@
 // UFCS-callable as `n.to_hex()` once `import "std/numbers"` is in scope.
 
 import "std/string" { byte_len, ends_with, slice }
-import "std/string_builder" { StringBuilder, new_builder, append_char, to_string }
+import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 // ParseError — raised by every fallible parser in this module. The shape
 // mirrors `std/string.ParseError` so callers can match on either as `Error`.

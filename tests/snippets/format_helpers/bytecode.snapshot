@@ -18,7 +18,7 @@ string 10 "ws_tab="
 string 11 "0"
 import 0 println std_io$println (string) -> void
 import 1 byte_len std_string$byte_len (string) -> i32
-import 2 concat_all std_string_builder$concat_all (ref) -> string
+import 2 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 
 fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   local "__sb_0#72" any
@@ -249,7 +249,7 @@ fn 1 std_string$pad_start (string,i32,char) -> string
     local.get 0   ; string.vader:222:5
     call 8   ; string.vader:222:5
     local.get 4   ; string.vader:223:12
-    call 10   ; string.vader:223:12
+    call.import 2   ; string.vader:223:12
     return   ; string.vader:223:5
   end $L0   ; string.vader:213:5
 end
@@ -292,7 +292,7 @@ fn 2 std_string$pad_end (string,i32,char) -> string
       end $L2   ; string.vader:235:5
     end $L1   ; string.vader:235:5
     local.get 4   ; string.vader:239:12
-    call 10   ; string.vader:239:12
+    call.import 2   ; string.vader:239:12
     return   ; string.vader:239:5
   end $L0   ; string.vader:229:5
 end
@@ -465,7 +465,7 @@ fn 5 std_numbers$to_hex (u64) -> string
       end $L5   ; numbers.vader:71:5
     end $L4   ; numbers.vader:71:5
     local.get 5   ; numbers.vader:75:12
-    call 10   ; numbers.vader:75:12
+    call.import 2   ; numbers.vader:75:12
     return   ; numbers.vader:75:5
   end $L0   ; numbers.vader:57:5
 end
@@ -559,7 +559,7 @@ fn 6 std_numbers$to_bin (u64) -> string
       end $L6   ; numbers.vader:96:5
     end $L5   ; numbers.vader:96:5
     local.get 5   ; numbers.vader:100:12
-    call 10   ; numbers.vader:100:12
+    call.import 2   ; numbers.vader:100:12
     return   ; numbers.vader:100:5
   end $L0   ; numbers.vader:80:5
 end
@@ -596,11 +596,4 @@ fn 9 std_string_builder$append_char (ref,char) -> void
   local.get 4   ; string_builder.vader:27:5
   array.push 2   ; string_builder.vader:27:5
   return   ; string_builder.vader:26:64
-end
-
-fn 10 std_string_builder$StringBuilder$Display$to_string (ref) -> string
-  local.get 0   ; string_builder.vader:61:48
-  struct.get 0 0   ; string_builder.vader:61:48
-  call.import 2   ; string_builder.vader:61:37
-  return   ; string_builder.vader:61:34
 end

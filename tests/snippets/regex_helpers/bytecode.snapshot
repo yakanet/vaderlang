@@ -21,7 +21,7 @@ import 2 byte_len std_string$byte_len (string) -> i32
 import 3 slice std_string$slice (string,i32,i32) -> string
 import 4 starts_with std_string$starts_with (string,string) -> bool
 import 5 ends_with std_string$ends_with (string,string) -> bool
-import 6 concat_all std_string_builder$concat_all (ref) -> string
+import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 
 fn 0 tests_snippets_regex_helpers__main_vader$is_non_id (char) -> bool
   local "and_res#25" bool
@@ -309,7 +309,7 @@ fn 5 std_string$replace_chars_where (string,ref,string) -> string
     end $L1   ; string.vader:295:5
   end $L0   ; string.vader:295:5
   local.get 3   ; string.vader:304:12
-  call 10   ; string.vader:304:12
+  call.import 6   ; string.vader:304:12
   return   ; string.vader:304:5
 end
 
@@ -357,7 +357,7 @@ fn 6 std_string$split_where (string,ref) -> ref
           local.get 5   ; string.vader:328:13
           if $L4 void   ; string.vader:328:13
             local.get 4   ; string.vader:329:26
-            call 10   ; string.vader:329:26
+            call.import 6   ; string.vader:329:26
             local.set 8   ; string.vader:329:26
             local.get 2   ; string.vader:329:17
             local.get 8   ; string.vader:329:17
@@ -397,7 +397,7 @@ fn 6 std_string$split_where (string,ref) -> ref
   local.get 5   ; string.vader:339:5
   if $L5 void   ; string.vader:339:5
     local.get 4   ; string.vader:340:18
-    call 10   ; string.vader:340:18
+    call.import 6   ; string.vader:340:18
     local.set 13   ; string.vader:340:18
     local.get 2   ; string.vader:340:9
     local.get 13   ; string.vader:340:9
@@ -440,11 +440,4 @@ fn 9 std_string_builder$append_char (ref,char) -> void
   local.get 4   ; string_builder.vader:27:5
   array.push 2   ; string_builder.vader:27:5
   return   ; string_builder.vader:26:64
-end
-
-fn 10 std_string_builder$StringBuilder$Display$to_string (ref) -> string
-  local.get 0   ; string_builder.vader:61:48
-  struct.get 0 0   ; string_builder.vader:61:48
-  call.import 6   ; string_builder.vader:61:37
-  return   ; string_builder.vader:61:34
 end

@@ -15,7 +15,7 @@ import "std/string" {
     byte_len, char_at, chars, is_white_char, parse_int,
     split_where, trim, ParseError,
 }
-import "std/string_builder" { new_builder, append, to_string }
+import "std/string_builder" { new_builder, append }
 
 // Compile-time bake: the canonical test input is embedded next to the source.
 DEFAULT_INPUT :: @file("mowitnow_input.txt")

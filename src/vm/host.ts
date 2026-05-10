@@ -148,13 +148,20 @@ export function stdStringBindings(): Record<string, HostFn> {
       return num("f64", n);
     },
     "std_core$string$Hash$hash": (args) => i64("u64", fnv1a64(stringArg(args, 0))),
-    std_string_builder$concat_all: (args) => {
-      const arr = args[0];
-      if (arr === undefined || arr.tag !== "array") {
-        throw new Error(`vm: expected array at host arg 0, got ${arr?.tag ?? "<missing>"}`);
+    // `@intrinsic StringBuilder implements Display` — flushes the buffer in
+    // one allocation. Receiver is the boxed StringBuilder struct ; field 0
+    // is its `parts: string[]`.
+    "std_string_builder$StringBuilder$Display$to_string": (args) => {
+      const sb = args[0];
+      if (sb === undefined || sb.tag !== "struct") {
+        throw new Error(`vm: expected struct receiver, got ${sb?.tag ?? "<missing>"}`);
+      }
+      const partsField = sb.fields[0];
+      if (partsField === undefined || partsField.tag !== "array") {
+        throw new Error(`vm: StringBuilder.parts is not an array (got ${partsField?.tag ?? "<missing>"})`);
       }
       let result = "";
-      for (const el of arr.elements) {
+      for (const el of partsField.elements) {
         if (el.tag === "string") result += el.n;
       }
       return str(result);

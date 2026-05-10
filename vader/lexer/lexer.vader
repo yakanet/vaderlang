@@ -16,7 +16,7 @@
 import "std/string" { byte_at, byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit, is_hex_digit, is_digit_in_base, contains }
 import "std/utf8" { codepoint_byte_len }
 
-import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/iter" { slice as slice_array }
 import "std/numbers" { hex_digit_value, parse_int_in_base, is_int_suffix, is_float_suffix }
 import "vader/diagnostics/diagnostic" { Diagnostic, error }

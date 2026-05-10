@@ -434,8 +434,19 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_string_parse_float(a0, ${primTagOrTrap(ctx, "f64")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_core$string$Hash$hash":
       return `${head} { return vader_string_hash(a0); }`;
-    case "std_string_builder$concat_all":
-      return `${head} { return vader_string_concat_all((vader_array_t*) a0.payload.obj); }`;
+    case "std_string_builder$StringBuilder$Display$to_string": {
+      // `@intrinsic StringBuilder implements Display` — receiver is a boxed
+      // StringBuilder whose only field `parts` holds the string[] buffer.
+      // The mangled struct name is `<module>$StringBuilder` (or just
+      // `StringBuilder` when the module stem matches the type name).
+      const sbIdx = ctx.module.types.findIndex(
+        (t) => t.kind === "struct"
+            && (t.name === "StringBuilder" || t.name.endsWith("$StringBuilder")),
+      );
+      if (sbIdx < 0) return `${head} { vader_trap("StringBuilder type not found"); }`;
+      const sbCName = ctx.structNames[sbIdx]!;
+      return `${head} { vader_box_t parts = ((${sbCName}*) a0.payload.obj)->f_parts; return vader_string_concat_all((vader_array_t*) parts.payload.obj); }`;
+    }
 
     case "std_runtime$collect":      return `${head} { vader_gc_collect(); }`;
     case "std_runtime$collections":  return `${head} { return (int32_t) vader_gc_get_stats().total_collections; }`;

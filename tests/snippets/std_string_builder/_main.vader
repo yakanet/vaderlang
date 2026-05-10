@@ -1,5 +1,5 @@
 import "std/io" { println }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 
 main :: fn() -> i32 {
     // Basic usage via new_builder()

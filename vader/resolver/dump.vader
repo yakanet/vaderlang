@@ -13,7 +13,7 @@
 // added once `resolve_module` walks bodies.
 
 import "std/string" { pad_end }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char, to_string }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule }
 import "vader/parser" { Visibility }

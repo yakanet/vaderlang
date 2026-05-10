@@ -94,7 +94,7 @@ import 3 byte_len std_string$byte_len (string) -> i32
 import 4 slice std_string$slice (string,i32,i32) -> string
 import 5 ends_with std_string$ends_with (string,string) -> bool
 import 6 parse_float std_string$parse_float (string) -> ref
-import 7 concat_all std_string_builder$concat_all (ref) -> string
+import 7 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 
 fn 0 tests_snippets_json_basics__main_vader$show (string,string) -> void
   local "parsed#55" ref
@@ -1488,7 +1488,7 @@ fn 17 std_json$parse_string (ref) -> ref
             local.get 0   ; json.vader:232:13
             call 6   ; json.vader:232:13
             local.get 2   ; json.vader:233:20
-            call 33   ; json.vader:233:20
+            call.import 7   ; json.vader:233:20
             return   ; json.vader:233:13
           else   ; json.vader:231:9
             local.get 3   ; json.vader:235:12
@@ -1926,7 +1926,7 @@ fn 19 std_json$parse_object (ref) -> ref
                   local.get 3   ; json.vader:333:9
                   local.get 7   ; json.vader:333:9
                   local.get 10   ; json.vader:333:9
-                  call 35   ; json.vader:333:9
+                  call 34   ; json.vader:333:9
                   local.get 0   ; json.vader:334:9
                   call 7   ; json.vader:334:9
                   local.get 0   ; json.vader:335:12
@@ -2090,7 +2090,7 @@ fn 21 std_json$write_string (ref,string) -> void
                     call 30   ; json.vader:379:13
                     local.get 5   ; json.vader:380:23
                     i32.to_u64   ; json.vader:380:23
-                    call 40   ; json.vader:380:23
+                    call 39   ; json.vader:380:23
                     local.set 6   ; json.vader:380:23
                     local.get 6   ; json.vader:380:23
                     i32.const 4   ; json.vader:380:23
@@ -2128,7 +2128,7 @@ end
 fn 22 std_json$write_number (ref,f64) -> void
   local "$call_2#3" string
   local.get 1   ; json.vader:395:15
-  call 41   ; json.vader:395:15
+  call 40   ; json.vader:395:15
   local.set 2   ; json.vader:395:15
   local.get 0   ; json.vader:395:5
   local.get 2   ; json.vader:395:5
@@ -2343,7 +2343,7 @@ fn 26 std_json$write_object (ref,ref,i32,i32) -> void
   local "$add_33#62" i32
   local.get 1   ; json.vader:444:8
   struct.get 15 0   ; json.vader:444:8
-  call 36   ; json.vader:444:8
+  call 35   ; json.vader:444:8
   local.set 4   ; json.vader:444:8
   local.get 4   ; json.vader:444:8
   i64.const 0   ; json.vader:444:8
@@ -2360,11 +2360,11 @@ fn 26 std_json$write_object (ref,ref,i32,i32) -> void
     call 31   ; json.vader:448:5
     local.get 1   ; json.vader:451:11
     struct.get 15 0   ; json.vader:451:11
-    call 37   ; json.vader:451:11
+    call 36   ; json.vader:451:11
     local.set 5   ; json.vader:451:5
     local.get 1   ; json.vader:452:11
     struct.get 15 0   ; json.vader:452:11
-    call 38   ; json.vader:452:11
+    call 37   ; json.vader:452:11
     local.set 6   ; json.vader:452:5
     local.get 5   ; json.vader:453:10
     array.len   ; json.vader:453:10
@@ -2457,7 +2457,7 @@ fn 27 std_json$stringify (ref) -> string
   i32.const 0   ; json.vader:474:5
   call 23   ; json.vader:474:5
   local.get 1   ; json.vader:475:12
-  call 33   ; json.vader:475:12
+  call.import 7   ; json.vader:475:12
   return   ; json.vader:475:5
 end
 
@@ -2500,7 +2500,7 @@ fn 28 std_string$pad_start (string,i32,char) -> string
     local.get 0   ; string.vader:222:5
     call 30   ; string.vader:222:5
     local.get 4   ; string.vader:223:12
-    call 33   ; string.vader:223:12
+    call.import 7   ; string.vader:223:12
     return   ; string.vader:223:5
   end $L0   ; string.vader:213:5
 end
@@ -2564,14 +2564,7 @@ fn 32 std_string_builder$append_repeated (ref,char,i32) -> void
   return   ; string_builder.vader:42:80
 end
 
-fn 33 std_string_builder$StringBuilder$Display$to_string (ref) -> string
-  local.get 0   ; string_builder.vader:61:48
-  struct.get 19 0   ; string_builder.vader:61:48
-  call.import 7   ; string_builder.vader:61:37
-  return   ; string_builder.vader:61:34
-end
-
-fn 34 std_collections$bucket_index (u64) -> i32
+fn 33 std_collections$bucket_index (u64) -> i32
   local "$cast_2#6" u64
   i32.const 16   ; collections.vader:35:17
   i32.to_u64   ; collections.vader:49:20
@@ -2583,7 +2576,7 @@ fn 34 std_collections$bucket_index (u64) -> i32
   return   ; collections.vader:49:5
 end
 
-fn 35 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref,string,ref) -> void
+fn 34 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref,string,ref) -> void
   local "$len_4#38" i32
   local "bi#42" i32
   local "$field_11#45" ref
@@ -2640,7 +2633,7 @@ fn 35 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
   end $L0   ; collections.vader:57:5
   local.get 1   ; collections.vader:64:10
   call.import 0   ; collections.vader:64:10
-  call 34   ; collections.vader:65:12
+  call 33   ; collections.vader:65:12
   local.set 7   ; collections.vader:65:5
   local.get 0   ; collections.vader:68:31
   struct.get 24 0   ; collections.vader:68:31
@@ -2755,13 +2748,13 @@ fn 35 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
   end $L10   ; collections.vader:85:5
 end
 
-fn 36 std_collections$std_collections$len__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> usize
+fn 35 std_collections$std_collections$len__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> usize
   local.get 0   ; collections.vader:145:66
   struct.get 24 1   ; collections.vader:145:66
   return   ; collections.vader:145:59
 end
 
-fn 37 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
+fn 36 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
   local "out#21" ref
   local "$len_4#23" i32
   local "bi#27" i32
@@ -2863,7 +2856,7 @@ fn 37 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
   end $L0   ; collections.vader:153:5
 end
 
-fn 38 std_collections$std_collections$values__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
+fn 37 std_collections$std_collections$values__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
   local "out#21" ref
   local "$len_4#23" i32
   local "bi#27" i32
@@ -2965,7 +2958,7 @@ fn 38 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
   end $L0   ; collections.vader:177:5
 end
 
-fn 39 std_numbers$hex_digit (u64) -> char
+fn 38 std_numbers$hex_digit (u64) -> char
   local "$cast_2#18" u64
   local "$cast_5#21" u32
   local "$cast_6#22" u32
@@ -3013,7 +3006,7 @@ fn 39 std_numbers$hex_digit (u64) -> char
   end $L0   ; numbers.vader:48:5
 end
 
-fn 40 std_numbers$to_hex (u64) -> string
+fn 39 std_numbers$to_hex (u64) -> string
   local "rev#24" ref
   local "base#25" u64
   local "x#27" u64
@@ -3046,7 +3039,7 @@ fn 40 std_numbers$to_hex (u64) -> string
           local.get 3   ; numbers.vader:66:28
           local.get 2   ; numbers.vader:66:28
           u64.rem   ; numbers.vader:66:28
-          call 39   ; numbers.vader:66:18
+          call 38   ; numbers.vader:66:18
           local.set 4   ; numbers.vader:66:18
           local.get 1   ; numbers.vader:66:9
           local.get 4   ; numbers.vader:66:9
@@ -3093,12 +3086,12 @@ fn 40 std_numbers$to_hex (u64) -> string
       end $L5   ; numbers.vader:71:5
     end $L4   ; numbers.vader:71:5
     local.get 5   ; numbers.vader:75:12
-    call 33   ; numbers.vader:75:12
+    call.import 7   ; numbers.vader:75:12
     return   ; numbers.vader:75:5
   end $L0   ; numbers.vader:57:5
 end
 
-fn 41 std_numbers$to_compact_str (f64) -> string
+fn 40 std_numbers$to_compact_str (f64) -> string
   local "__sb_0#13" any
   local "s#15" string
   local "$call_8#19" i32

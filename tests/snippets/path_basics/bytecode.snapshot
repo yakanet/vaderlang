@@ -56,7 +56,7 @@ import 2 byte_len std_string$byte_len (string) -> i32
 import 3 slice std_string$slice (string,i32,i32) -> string
 import 4 starts_with std_string$starts_with (string,string) -> bool
 import 5 ends_with std_string$ends_with (string,string) -> bool
-import 6 concat_all std_string_builder$concat_all (ref) -> string
+import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 
 fn 0 tests_snippets_path_basics__main_vader$show_path (string,ref) -> void
   local "__sb_0#8" any
@@ -1155,7 +1155,7 @@ fn 13 std_path$normalize (ref) -> ref
       end $L18   ; path.vader:201:5
     end $L17   ; path.vader:201:5
     local.get 27   ; path.vader:208:12
-    call 18   ; path.vader:208:12
+    call.import 6   ; path.vader:208:12
     local.tee 30   ; path.vader:208:5
     call 14   ; path.vader:209:8
     if $L21 void   ; path.vader:209:8
@@ -1242,13 +1242,6 @@ fn 17 std_string_builder$append (ref,string) -> void
   local.get 1   ; string_builder.vader:23:5
   array.push 1   ; string_builder.vader:23:5
   return   ; string_builder.vader:22:61
-end
-
-fn 18 std_string_builder$StringBuilder$Display$to_string (ref) -> string
-  local.get 0   ; string_builder.vader:61:48
-  struct.get 2 0   ; string_builder.vader:61:48
-  call.import 6   ; string_builder.vader:61:37
-  return   ; string_builder.vader:61:34
 end
 
 # Diagnostics

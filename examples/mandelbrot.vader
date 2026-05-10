@@ -1,6 +1,6 @@
 import "std/io" { println }
 import "std/string" { char_at }
-import "std/string_builder" { new_builder, append_char, to_string }
+import "std/string_builder" { new_builder, append_char }
 
 WIDTH    :: 80
 HEIGHT   :: 30
