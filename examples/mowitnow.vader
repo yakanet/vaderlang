@@ -185,9 +185,9 @@ run :: fn(input: string) -> string! {
         if i + 1 >= lines.len() {
             return ParseError { .msg = "missing command line for mower at '${lines[i]}'" }
         }
-        mower :: parse_position(lines[i], lawn)?
-        cmds  :: parse_commands(lines[i + 1])?
-        final :: run_mower(mower, lawn, cmds)
+        mower    :: parse_position(lines[i], lawn)?
+        command  :: parse_commands(lines[i + 1])?
+        final    :: run_mower(mower, lawn, command)
         if !first {
             out.append("\n")
         }
