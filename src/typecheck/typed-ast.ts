@@ -148,6 +148,12 @@ export interface TypedProgram {
   /** `a[i] = v` write dispatch through `IndexSet($I, $T)::set_at`. Keyed by
    *  the LHS `IndexExpr` (which lives inside an `AssignStmt.target`). */
   readonly indexSetResolutions: ReadonlyMap<A.IndexExpr, IndexResolution>;
+  /** `for <iter> { body }` — same shape as `for _ in <iter> { body }` but
+   *  spelled without the binding. Populated by `checkForStmt` when the
+   *  while-form's condition resolves to an iterable type ; the lowerer
+   *  reads this to route through the for-in path with the synthesised
+   *  discard symbol. */
+  readonly whileAsForIn: ReadonlyMap<A.ForStmt, Symbol>;
 }
 
 export interface TypedProject {

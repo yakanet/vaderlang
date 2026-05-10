@@ -49,11 +49,16 @@ export interface Globals {
    *  resolver from `where T: Trait` clauses. Read by the typechecker when a
    *  `t.method()` site has a TypeParam-typed receiver. */
   typeParamBounds: ReadonlyMap<number, readonly Symbol[]>;
+  /** Shared symbol id allocator from the resolver — typecheck mints
+   *  synthetic locals (e.g. the `for <iter>` discard binding) through this
+   *  so ids stay globally unique across phases. */
+  factory: import("../resolver/symbol.ts").SymbolFactory;
 }
 
 export function newGlobals(
   typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>,
   typeParamBounds: ReadonlyMap<number, readonly Symbol[]>,
+  factory: import("../resolver/symbol.ts").SymbolFactory,
 ): Globals {
   return {
     declTypes: new Map(), paramTypes: new Map(), typeExprTypes: new Map(),
@@ -63,6 +68,7 @@ export function newGlobals(
     typeParamSymbols,
     typeParamBounds,
     modules: null,
+    factory,
   };
 }
 
@@ -117,6 +123,10 @@ export interface MutableTyped {
   readonly indexResolutions: Map<A.IndexExpr, IndexResolution>;
   /** IndexSet trait dispatch sites for `a[i] = v` writes. */
   readonly indexSetResolutions: Map<A.IndexExpr, IndexResolution>;
+  /** `for <iter> { body }` (no binding) sites where the cond resolves to an
+   *  iterable. The synthesised symbol stands in for the discarded binding
+   *  the lowerer would otherwise read from `resolved.forIns`. */
+  readonly whileAsForIn: Map<A.ForStmt, Symbol>;
 }
 
 /** Find the std/core module's exported symbol map. Used by the impl registry

@@ -199,7 +199,19 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredS
         { kind: "LoweredContinue", span: stmt.span, label: stmt.label }]);
     }
     case "ForStmt": {
-      if (stmt.form.kind === "in") return lowerForIn(ctx, stmt);
+      if (stmt.form.kind === "in") {
+        return lowerForIn(
+          ctx, stmt, stmt.form.iter, stmt.form.binding,
+          ctx.typed.resolved.forIns.get(stmt),
+        );
+      }
+      if (stmt.form.kind === "while") {
+        // `for <iter> { body }` sugar — typecheck flags it via whileAsForIn.
+        const discardSym = ctx.typed.whileAsForIn.get(stmt);
+        if (discardSym !== undefined) {
+          return lowerForIn(ctx, stmt, stmt.form.cond, "_", discardSym);
+        }
+      }
       const cond = stmt.form.kind === "while" ? lowerExpr(ctx, stmt.form.cond) : null;
       const body = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
       return { kind: "LoweredLoop", span: stmt.span, label: stmt.label, cond, body };

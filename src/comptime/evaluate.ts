@@ -210,6 +210,9 @@ function walkStmt(stmt: A.Stmt, v: BlockVisitor): void {
         v.forInIter?.(stmt.form.iter);
         walkExpr(stmt.form.iter, v);
       } else if (stmt.form.kind === "while") {
+        // `for <iter> { body }` surfaces the iter as the while cond ; the
+        // visitor's array-only filter makes true bool conds inert.
+        v.forInIter?.(stmt.form.cond);
         walkExpr(stmt.form.cond, v);
       }
       walkBlock(stmt.body, v);

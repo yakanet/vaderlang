@@ -61,7 +61,7 @@ export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCo
     const merged = mergeFilePrograms(programs);
     if (merged !== null) resolved.set(id, merged);
   }
-  return { modules: resolved, importTargets, typeParamSymbols, typeParamBounds };
+  return { modules: resolved, importTargets, typeParamSymbols, typeParamBounds, factory: project.factory };
 }
 
 /** Fold the per-file `ResolvedProgram`s of a multi-file module into one.

@@ -59,10 +59,11 @@ export function lowerRangeExpr(ctx: FnLowerCtx, expr: A.RangeExpr, exprType: Typ
  *  this path; the caller-side iter is lowered first so `RangeExpr` becomes a
  *  `Range` struct literal before we look up its Iterator impl.
  */
-export function lowerForIn(ctx: FnLowerCtx, stmt: A.ForStmt): LoweredStmt {
-  if (stmt.form.kind !== "in") throw new Error("lowerForIn called on non-`in` form");
+export function lowerForIn(
+  ctx: FnLowerCtx, stmt: A.ForStmt,
+  iterExpr: A.Expr, bindingName: string, bindingSym: Symbol | undefined,
+): LoweredStmt {
   const span = stmt.span;
-  const iterExpr = stmt.form.iter;
   let iterLowered = lowerExpr(ctx, iterExpr);
   let iterType = iterLowered.type;
 
@@ -98,7 +99,6 @@ export function lowerForIn(ctx: FnLowerCtx, stmt: A.ForStmt): LoweredStmt {
     } };
   }
 
-  const bindingSym = ctx.typed.resolved.forIns.get(stmt);
   if (bindingSym === undefined) {
     err(ctx.project.diags, "B5001", span, "for-in binding not resolved");
     return { kind: "LoweredExprStmt", span, expr: {
@@ -140,7 +140,7 @@ export function lowerForIn(ctx: FnLowerCtx, stmt: A.ForStmt): LoweredStmt {
     kind: "LoweredFieldAccess", span, type: elementType, target: yieldedCast, field: "value",
   };
   const bindLet: LoweredStmt = {
-    kind: "LoweredLet", span, name: stmt.form.binding, symbol: bindingSym,
+    kind: "LoweredLet", span, name: bindingName, symbol: bindingSym,
     type: elementType, value: valueAccess,
   };
   const userBody = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);

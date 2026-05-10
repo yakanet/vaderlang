@@ -7,6 +7,7 @@ import type * as A from "../../parser/ast.ts";
 
 import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
+import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type, TupleType } from "../types.ts";
 import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute } from "../types.ts";
 
@@ -193,8 +194,14 @@ function checkForStmt(
     case "infinite":
       break;
     case "while": {
-      const got = checkExpr(stmt.form.cond, TY.bool, t, impls, diags, fn);
-      if (!isAssignable(got, TY.bool)) err(diags, "T3019", stmt.form.cond.span);
+      // The cond may be `bool` (true while-loop) or an iterable (sugar for
+      // `for _ in <iter>`) — infer freely and dispatch on the result.
+      const got = checkExpr(stmt.form.cond, null, t, impls, diags, fn);
+      if (isIterableType(got, t, impls)) {
+        t.whileAsForIn.set(stmt, makeDiscardSymbol(stmt, t));
+      } else if (!isAssignable(got, TY.bool)) {
+        err(diags, "T3019", stmt.form.cond.span);
+      }
       break;
     }
     case "in": {
@@ -216,6 +223,25 @@ function checkForStmt(
   }
   const newFn = fn !== null ? { ...fn, loopDepth: fn.loopDepth + 1 } : null;
   checkBlock(stmt.body, null, t, impls, diags, newFn);
+}
+
+function isIterableType(t: Type, ctx: MutableTyped, impls: ImplRegistry): boolean {
+  if (t.kind === "Array") return true;
+  if (t.kind !== "Struct") return false;
+  const iteratorSym = ctx.globals.coreSymbols?.get(CORE_TRAITS.Iterator);
+  if (iteratorSym === undefined) return false;
+  return impls.findFor(t, iteratorSym) !== null;
+}
+
+function makeDiscardSymbol(stmt: A.ForStmt, t: MutableTyped): Symbol {
+  return t.globals.factory.make({
+    kind: "synthetic",
+    name: "_",
+    module: t.resolved.module.id,
+    visibility: "private",
+    definedAt: stmt.span,
+    source: { kind: "synthetic", origin: "for-discard" },
+  });
 }
 
 function forInElementType(iter: A.Expr, t: MutableTyped): Type | null {

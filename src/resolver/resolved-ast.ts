@@ -66,6 +66,9 @@ export interface ResolvedProgram {
 export interface ResolvedProject {
   readonly modules: ReadonlyMap<string, ResolvedProgram>;     // keyed by ModuleId
   readonly importTargets: ImportTargetTable;
+  /** Shared symbol id allocator — downstream phases that mint synthetic
+   *  symbols (typecheck, lower) must use this so ids stay globally unique. */
+  readonly factory: import("./symbol.ts").SymbolFactory;
   /** Cross-module typeParam table — every TypeParam AST node maps to its
    *  canonical Symbol regardless of which module declared the type. */
   readonly typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>;
