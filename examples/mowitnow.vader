@@ -2,7 +2,7 @@
 //
 // Showcases a broad slice of Vader's surface area:
 //   - enums (`Direction`, `Command`) with dot-shorthand and exhaustive `match`
-//   - struct + trait impl (`Mower implements Display`)
+//   - trait impl on both struct and enum (`Mower`/`Direction` implements Display)
 //   - tuple destructuring of a function result
 //   - `!T` errors propagated through `?`
 //   - top-level `@file` baking the canonical test input at compile time
@@ -23,14 +23,14 @@ DEFAULT_INPUT :: @file("mowitnow_input.txt")
 
 Direction :: enum { North, East, South, West }
 
-// Free-function `show(Direction)` — overloads with `Mower::show` below via
-// UFCS first-param dispatch ; both reachable as `x.show()`.
-show :: fn(self: Direction) -> string {
-    match self {
-        .North -> "N"
-        .East  -> "E"
-        .South -> "S"
-        .West  -> "W"
+Direction implements Display {
+    fn show(self) -> string {
+        match self {
+            .North -> "N"
+            .East  -> "E"
+            .South -> "S"
+            .West  -> "W"
+        }
     }
 }
 
@@ -114,21 +114,18 @@ run_mower :: fn(start: Mower, lawn: Lawn, commands: Command[]) -> Mower {
 
 // --- Parsing --------------------------------------------------------------
 
-// Dot-shorthand requires the expected type to be a bare enum ; here the
-// return type is `Direction!` (= `Direction | Error`), so the variant must
-// be written `Direction.North` rather than `.North`.
 parse_direction :: fn(c: char) -> Direction! {
-    if c == 'N' { return Direction.North }
-    if c == 'E' { return Direction.East }
-    if c == 'S' { return Direction.South }
-    if c == 'W' { return Direction.West }
+    if c == 'N' { return .North }
+    if c == 'E' { return .East }
+    if c == 'S' { return .South }
+    if c == 'W' { return .West }
     return ParseError { .msg = "unknown direction: '${c}'" }
 }
 
 parse_command :: fn(c: char) -> Command! {
-    if c == 'A' { return Command.Advance }
-    if c == 'G' { return Command.Left }
-    if c == 'D' { return Command.Right }
+    if c == 'A' { return .Advance }
+    if c == 'G' { return .Left }
+    if c == 'D' { return .Right }
     return ParseError { .msg = "unknown command: '${c}'" }
 }
 
