@@ -9,9 +9,6 @@ export interface EvaluatedProgram {
 
   /** `@comptime`-marked decls and their materialized values. */
   readonly comptimeDecls: ReadonlyMap<A.ConstDecl, ComptimeValue>;
-
-  /** `@file`-driven decls — the value read from disk at compile time. */
-  readonly fileDecls: ReadonlyMap<A.ConstDecl, ComptimeValue>;
 }
 
 export interface EvaluatedProject {
@@ -26,4 +23,7 @@ export interface EvaluatedProject {
    *  empty `mono` ; the final post-bake EvaluatedProject is the only one
    *  consumers should rely on for specialisation lookups. */
   readonly mono: MonoProject;
+  /** `@file("path")` expression-position calls baked at comptime. Lower
+   *  reads this to emit a `LoweredStringLit` of the file contents. */
+  readonly fileExprs: ReadonlyMap<A.IntrinsicCallExpr, string>;
 }

@@ -1,6 +1,9 @@
-@file("data.txt")
-export GREETING :: ""
+import "std/io" { println }
+
+FILENAME :: "data"
+GREETING :: @file("${FILENAME}.txt")
 
 main :: fn() -> i32 {
+    println(GREETING)
     return 0
 }

@@ -103,7 +103,7 @@ Roots — preserved unconditionally:
 - `main` (the fn whose mangled name ends in `$main` and has a body);
 - any decl carrying `@export`, `@test`, or `@extern` (`@extern` covers signature-only imports — the import table must stay aligned with what the host expects).
 
-`@comptime` and `@file` constants are not automatic roots — their value is inlined at each use site by the bytecode emitter, so an unreferenced one is genuinely dead. They are still preserved when defined in a non-stdlib module by the user-code rule.
+`@comptime` constants are not automatic roots — their value is inlined at each use site by the bytecode emitter, so an unreferenced one is genuinely dead. They are still preserved when defined in a non-stdlib module by the user-code rule.
 
 Reachability is computed via BFS over the Lowered AST: every `LoweredIdent.symbol.id` and every struct/trait `Type.symbol.id` encountered is added to the live set. Trait dispatch is already statically resolved by the lowerer (one impl-member symbol per call site), so there is no need to over-approximate by keeping every impl of a referenced trait. The pass is a pure `LoweredProject → LoweredProject` transform and is shared across backends. It is dumpable via `vader dump --stage=dced-ast`.
 
@@ -119,7 +119,7 @@ Code in `@comptime` context can:
 
 - ✅ compute (pure functions)
 - ✅ allocate memory and manipulate structures
-- ✅ read project files (equivalent to v1 `@file`)
+- ✅ read project files (via `@file(path)` — see §14)
 - ⚠️ read `ENV` / `args`: **opt-in** only, via `vader build --allow-env`
 - ❌ network syscalls / exec / stdout: **forbidden**, to preserve build reproducibility
 
@@ -170,6 +170,8 @@ true false null
 self
 @<decorator>
 ```
+
+The identifier `void` is **reserved** : binding it as a fn name, struct name, parameter, local, type-param, pattern binding, or import alias raises `R2019`. The name describes the type of expressions that yield no value and is never user-facing in source code.
 
 ### Literals
 
@@ -460,6 +462,19 @@ match pair {
 
 A tuple pattern whose every leaf is a binding or `_` is *irrefutable* — the compiler treats it as covering the scrutinee, no wildcard arm needed.
 
+#### Spread destructuring (arrays only)
+
+A `let`-binding may end with `...rest` to collect the tail of an array source into a fresh array. At most one rest, last position only.
+
+```vader
+arr :: [10, 20, 30, 40, 50]
+[first, ...rest] := arr                // first: i32, rest: i32[] = [20,30,40,50]
+[a, b, ...tail] := arr                 // a, b consume the head ; tail = [30,40,50]
+[_, _, ...short] := arr                // wildcards combine with rest
+```
+
+Tuple sources keep the existing exact-arity rule (`[a, b] := pair` requires the tuple to have exactly two elements) — `...rest` is array-specific because the result type only makes sense when the tail length is dynamic. T3001 fires on a non-array source or when `...rest` isn't the last element.
+
 ### Structs
 
 ```vader
@@ -476,6 +491,38 @@ p :: Point { .x = 1.0, .y = 2.0 }
 - `==` is reference identity by default. For structural comparison: implement the `Eq` trait, or call a free function `equals(a, b)`.
 - Field layout is **not guaranteed** (the compiler arranges fields freely).
 - The user has no access to the layout (no `@offset_of`, no `unsafe_cast` in MVP).
+
+Struct-literal field order does not have to match the declaration order — the compiler always emits in declaration order. Listing the same field twice raises `T3038`.
+
+#### Field defaults
+
+A field declaration may carry an initialiser used when the literal omits it. Defaults are checked once at the decl site against the (unsubstituted) field type ; they are re-lowered at every literal site that uses them.
+
+```vader
+Settings :: struct {
+    name:    string
+    timeout: i32  = 30
+    debug:   bool = false
+}
+
+s1 :: Settings { .name = "minimal" }                    // timeout=30, debug=false
+s2 :: Settings { .name = "loud", .debug = true }        // timeout=30
+s3 :: Settings { .name = "tight", .timeout = 5 }        // debug=false
+```
+
+Omitting a field that has neither a default nor a spread source raises `T3037`.
+
+#### Spread (functional update)
+
+`{ ...other, .field = v }` copies every field of `other` and overrides the listed ones. The spread source is evaluated **once** (bound to a synthetic local) regardless of how many fields inherit from it. Multiple spreads are allowed ; the last one wins for any field not explicitly named.
+
+```vader
+base :: P { .a = 1, .b = 2, .c = 3 }
+upd  :: P { ...base, .b = 99 }                          // a=1, b=99, c=3
+mix  :: P { ...base, ...other, .b = 7 }                 // 'other' wins for non-named
+```
+
+The spread source's static type must be assignable to the literal's struct type.
 
 #### Struct literals in `if` / `for` / `match` / `while` conditions
 
@@ -1183,7 +1230,18 @@ for cond {
 for {
     if exit_condition { break }
 }
+
+// Iter without a binding (sugar for `for _ in <iter>`)
+for 0..<GENERATIONS {
+    step()
+}
 ```
+
+The single-expression form `for <expr> { body }` is dispatched by the type of `<expr>` :
+- `bool` — true while-loop, body runs while the condition holds.
+- iterable (built-in array, `Iterator(T)`, `Range`, …) — equivalent to `for _ in <expr>`, body runs once per element with the value discarded.
+
+`T3019` fires when the expression is neither — the diagnostic catches a misplaced struct cond as well as a non-`Iterator` user type.
 
 The iteration form `for x in expr` accepts three shapes for `expr`:
 1. A built-in array `T[]` — auto-wrapped in `ArrayIter(T)`.
@@ -1500,7 +1558,6 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@extern("module", "name")` | fn (no body) | Declares an import (WASM) or external symbol (C) — user-controlled FFI |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided ; the runtime (VM / C / WASM) wires each method by mangled name |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
-| `@file` | string literal | Embeds file contents at compile time |
 | `@test` | fn | Marks as a test, executed by `vader test` |
 | `@deprecated("reason")` | any decl | Emits a `W0001` warning at every reference — code still compiles |
 | `@assert(condition)` or `@assert(condition, "message")` | top-level | Compile-time assertion ; condition must evaluate to `true` at comptime, otherwise build fails with `C4015`. The optional second argument must be a *static* string literal (no `${...}` interpolation) — when present, it is appended to the C4015 detail to surface meaningful context |
@@ -1613,9 +1670,9 @@ See section 2 (Compilation Model).
 
 The bootstrap compiler runs an **AST-walking interpreter** for `@comptime`, not the bytecode VM described in §2. The op table and stack machine are built later in the bytecode-emitter phase, where they'll be shared by both the comptime engine and the C/WASM emitters. The semantics described above hold either way — the choice is purely an engineering one to avoid designing the op set twice. Self-hosted Vader switches to the bytecode VM uniformly.
 
-### Reflection intrinsics
+### Reflection / comptime intrinsics
 
-Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators (which annotate declarations) and from comptime-host builtins like `@file` / `@env` (which read project state). Each reflection intrinsic operates on a type expression — its argument is parsed as a type, not a value — and **folds to a constant at lower time** so the runtime cost is zero. They compose freely with `@assert(...)` and (eventually) `where` predicates to drive comptime branching on type shape and layout.
+Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time** ; the comptime-host builtins (`@file`, `@env`) read project state and bake their result before the lower phase. Both shapes compose freely with `@assert(...)` and (eventually) `where` predicates to drive comptime branching on type shape, layout, or external content.
 
 | Intrinsic | Signature | Result | Notes |
 |-----------|-----------|--------|-------|
@@ -1627,6 +1684,8 @@ Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct f
 | `@variant_count(T)` | `(T: type) -> usize` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
 | `@field_index(T, "name")` | `(T: type, name: string-literal) -> usize` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive) ; `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
 | `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope. | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `[T: Trait]` bounds. |
+| `@file(path)` | `(path: string) -> string` | UTF-8 contents of the file at `path`, baked at compile time. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable — a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The sandbox confines the resolved path to the project root ; escapes raise `C4011`. Missing file raises `C4006`. |
+| `@env(name)` | `(name: string) -> string` | Value of the named env var, baked at compile time. | Empty string if unset. Gated by `--allow-env` (otherwise `C4008`). Same comptime-evaluable rule as `@file` for `name`. |
 
 Composition example — comptime layout assertions :
 

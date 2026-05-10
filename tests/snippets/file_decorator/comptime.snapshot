@@ -1,7 +1,6 @@
 # Comptime
 
 ## tests/snippets/file_decorator/_main.vader
-  @file      GREETING             = "Hello from file!"
 
 ## generic instances
   Yielded(char)

@@ -165,6 +165,18 @@ function inferIntrinsic(
   if (spec.name === "field_index") {
     validateFieldIndex(expr, t, diags);
   }
+  // `@file("path")` requires the arg to be a string at typecheck — the
+  // comptime stage decides whether it's actually comptime-evaluable
+  // (literal, const ident, concat of either, …). Anything dynamic
+  // surfaces C4002 then.
+  if (spec.name === "file") {
+    const arg = expr.args[0];
+    const argTy = arg !== undefined ? t.exprTypes.get(arg) : undefined;
+    if (argTy !== undefined && !isAssignable(argTy, TY.string)) {
+      err(diags, "T3001", arg!.span,
+        `\`@file(...)\` expects \`string\`, got ${displayType(argTy)}`);
+    }
+  }
   return intrinsicResultType(spec.result);
 }
 

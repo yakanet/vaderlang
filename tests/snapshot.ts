@@ -185,9 +185,6 @@ export function dumpComptime(_source: string, entryPath: string): string {
     for (const [decl, value] of m.comptimeDecls) {
       entries.push(`  @comptime  ${decl.name.padEnd(20)} = ${displayValue(value)}`);
     }
-    for (const [decl, value] of m.fileDecls) {
-      entries.push(`  @file      ${decl.name.padEnd(20)} = ${displayValue(value)}`);
-    }
     entries.sort();
     lines.push(...entries);
   }

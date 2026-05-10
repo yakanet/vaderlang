@@ -354,6 +354,13 @@ function lowerIntrinsic(
         && ctx.project.impls.findFor(targetTy, traitTy.symbol) !== null;
       return { kind: "LoweredBoolLit", span: expr.span, type, value };
     }
+    case "file": {
+      // Comptime pre-pass already read the file ; lookup is the bake.
+      const baked = ctx.project.evaluated.fileExprs.get(expr);
+      return baked !== undefined
+        ? strLit(baked)
+        : { kind: "LoweredUnreachable", span: expr.span, type, reason: "@file failed to bake" };
+    }
   }
   return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unhandled intrinsic @${expr.name}` };
 }

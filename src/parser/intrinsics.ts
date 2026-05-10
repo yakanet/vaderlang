@@ -36,6 +36,10 @@ export const INTRINSICS: readonly IntrinsicSpec[] = [
   { name: "variant_count", args: ["type"],          result: "usize"  },
   { name: "field_index",   args: ["type", "value"], result: "usize"  },
   { name: "satisfies",     args: ["type", "type"],  result: "bool"   },
+  // `@file("path")` reads the file at compile time and bakes its UTF-8
+  // contents as a string literal. The sandbox confines the path to the
+  // project root (same rule as the legacy `@file` decorator).
+  { name: "file",          args: ["value"],         result: "string" },
 ];
 
 const INTRINSIC_BY_NAME: ReadonlyMap<string, IntrinsicSpec> = new Map(

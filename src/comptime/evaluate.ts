@@ -11,6 +11,7 @@ import type { Substitution, Type } from "../typecheck/types.ts";
 import { CORE_STRUCTS, substitute } from "../typecheck/types.ts";
 import { buildStructSubst } from "../typecheck/ctx.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
+import type { ImplRegistry } from "../typecheck/impls.ts";
 
 import { staticStringValue } from "../parser/ast.ts";
 import { DEC } from "../parser/decorators.ts";
@@ -36,32 +37,20 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
   const instances = new InstanceRegistry();
   collectInstances(project, instances, opts.diags);
 
-  // 1. Walk every module to bake @file decorators (synchronous, no deps).
-  // 2. Plan @comptime evaluation order (topological sort + cycle detection).
-  // 3. Evaluate @comptime decls in that order, accumulating values into a
+  // 1. Plan @comptime evaluation order (topological sort + cycle detection).
+  // 2. Evaluate @comptime decls in that order, accumulating values into a
   //    shared map so later decls can inline earlier ones.
-  const fileByDecl = new Map<A.ConstDecl, ComptimeValue>();
-  const fileOwner = new Map<A.ConstDecl, TypedProgram>();
-  for (const typed of project.modules.values()) {
-    for (const decl of typed.resolved.source.decls) {
-      if (decl.kind !== "ConstDecl") continue;
-      for (const dec of decl.decorators) {
-        if (dec.name !== DEC.file) continue;
-        const value = evalFileDecorator(dec, typed.resolved.source.file, opts);
-        if (value !== null) { fileByDecl.set(decl, value); fileOwner.set(decl, typed); }
-        break;
-      }
-    }
-  }
-
+  // 3. Walk every IntrinsicCallExpr `@file("path")` and bake its result —
+  //    the path expression may reference @comptime-baked values, hence
+  //    after step 2.
   const comptimeByDecl = new Map<A.ConstDecl, ComptimeValue>();
   const comptimeOwner = new Map<A.ConstDecl, TypedProgram>();
   const order = planComptimeOrder(project, opts.diags);
   // Project-wide invariants the per-decl loop needs — built once. The "live"
-  // EvaluatedProject shares the comptimeByDecl/fileByDecl maps across every
-  // module's overlay so each iteration sees the latest baked values without
+  // EvaluatedProject shares the comptimeByDecl map across every module's
+  // overlay so each iteration sees the latest baked values without
   // rebuilding the wrapper.
-  const liveEvaluated = makeLiveEvaluatedProject(project, comptimeByDecl, fileByDecl);
+  const liveEvaluated = makeLiveEvaluatedProject(project, comptimeByDecl);
   const projectImpls = buildImplRegistry(project.resolved);
   for (const { decl, program } of order.entries) {
     // Layer 4 milestone B.0 — `@comptime t :: i32` (a const whose RHS is
@@ -82,6 +71,15 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
       liveEvaluated, projectImpls,
     });
     if (value !== null) { comptimeByDecl.set(decl, value); comptimeOwner.set(decl, program); }
+  }
+
+  const fileExprs = new Map<A.IntrinsicCallExpr, string>();
+  for (const typed of project.modules.values()) {
+    walkProgramExprs(typed.resolved.source.decls, (e) => {
+      if (e.kind !== "IntrinsicCallExpr" || e.name !== "file") return;
+      const value = evalFileExpr(e, typed, opts, project, comptimeByDecl, liveEvaluated, projectImpls);
+      if (value !== null) fileExprs.set(e, value);
+    });
   }
 
   // `@assert(cond)` decls — evaluate each condition through the same
@@ -121,21 +119,18 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
   const modules = new Map<string, EvaluatedProgram>();
   for (const [id, typed] of project.modules) {
     const ct = new Map<A.ConstDecl, ComptimeValue>();
-    const fl = new Map<A.ConstDecl, ComptimeValue>();
     for (const [decl, value] of comptimeByDecl) {
       if (comptimeOwner.get(decl) === typed) ct.set(decl, value);
     }
-    for (const [decl, value] of fileByDecl) {
-      if (fileOwner.get(decl) === typed) fl.set(decl, value);
-    }
-    modules.set(id, { typed, comptimeDecls: ct, fileDecls: fl });
+    modules.set(id, { typed, comptimeDecls: ct });
   }
   // Drive specialisation through the comptime engine — the registry built
   // above is the single source of generic instances, and `monomorphizeProject`
   // flattens it into the mono entry table consumed by the lowerer. Layer 2
   // of the type-first redesign relocates this call out of `lowerProject`.
   const evaluatedCore = {
-    typed: project, modules, instances: instances.entries(), mono: EMPTY_MONO,
+    typed: project, modules, instances: instances.entries(),
+    mono: EMPTY_MONO, fileExprs,
   };
   const mono = monomorphizeProject(evaluatedCore);
   return { ...evaluatedCore, mono };
@@ -148,43 +143,85 @@ const EMPTY_MONO: MonoProject = {
   fnInstanceEntries: new Map(),
 };
 
-/** Build a synthetic EvaluatedProject whose per-module overlays all alias the
- *  same shared `comptimeDecls` / `fileDecls` Maps. Lookups inside the
- *  comptime loop hit those shared maps as new decls bake — no per-module
- *  duplication. The final, properly per-module-scoped EvaluatedProject is
- *  rebuilt once after the loop completes. */
+/** Build a synthetic EvaluatedProject whose per-module overlays all alias
+ *  the same shared `comptimeDecls` Map. Lookups inside the comptime loop
+ *  hit it as new decls bake — no per-module duplication. The final,
+ *  properly per-module-scoped EvaluatedProject is rebuilt once after the
+ *  loop completes. */
 function makeLiveEvaluatedProject(
   project: TypedProject,
   comptimeDecls: ReadonlyMap<A.ConstDecl, ComptimeValue>,
-  fileDecls: ReadonlyMap<A.ConstDecl, ComptimeValue>,
 ): EvaluatedProject {
   const modules = new Map<string, EvaluatedProgram>();
   for (const [id, typed] of project.modules) {
-    modules.set(id, { typed, comptimeDecls, fileDecls });
+    modules.set(id, { typed, comptimeDecls });
   }
-  return { typed: project, modules, instances: [], mono: EMPTY_MONO };
+  return { typed: project, modules, instances: [], mono: EMPTY_MONO, fileExprs: new Map() };
 }
 
-function evalFileDecorator(
-  dec: A.Decorator, callerFile: string, opts: EvaluateOptions,
-): ComptimeValue | null {
-  const arg = dec.args[0];
-  const path = dec.args.length === 1 && arg !== undefined && arg.kind === "StringLitExpr"
-    ? staticStringValue(arg) : null;
+/** Bake an expression-position `@file("path")` call. The arg is comptime-
+ *  evaluated through the same VM that runs `@comptime` decls — literals
+ *  and const-ident chains take a fast path ; anything else (concat,
+ *  comptime fn calls, …) goes through the VM. Returns the file's contents
+ *  on success ; surfaces C4002/C4006/C4011 on failure. */
+function evalFileExpr(
+  expr: A.IntrinsicCallExpr, typed: TypedProgram, opts: EvaluateOptions,
+  project: TypedProject, comptimeByDecl: ReadonlyMap<A.ConstDecl, ComptimeValue>,
+  liveEvaluated: EvaluatedProject, projectImpls: ImplRegistry,
+): string | null {
+  const arg = expr.args[0];
+  if (arg === undefined) return null;
+  let path = staticStringFromExpr(arg, typed.resolved);
   if (path === null) {
-    err(opts.diags, "C4012", dec.span);
-    return null;
+    const fake: A.ConstDecl = {
+      kind: "ConstDecl", span: expr.span, name: `__file_arg`, nameSpan: expr.span,
+      visibility: "private", type: null, value: arg, decorators: [],
+    };
+    const value = runComptimeDecl({
+      decl: fake, project, callerProgram: typed, evaluated: comptimeByDecl,
+      callerFile: typed.resolved.source.file, diags: opts.diags, sandbox: opts.sandbox,
+      liveEvaluated, projectImpls,
+    });
+    if (value === null || value.kind !== "string") return null;
+    path = value.value;
   }
   const result = callBuiltin(
-    { fnName: COMPTIME_BUILTIN.file, args: [stringVal(path)], callerFile },
+    { fnName: COMPTIME_BUILTIN.file, args: [stringVal(path)], callerFile: typed.resolved.source.file },
     opts.sandbox,
   );
   if (result === null) return null;
   if (!result.ok) {
-    err(opts.diags, result.code, dec.span, result.message);
+    err(opts.diags, result.code, expr.span, result.message);
     return null;
   }
-  return result.value;
+  if (result.value.kind !== "string") return null;
+  return result.value.value;
+}
+
+/** Fast path for `@file("lit")` and `@file(IDENT)` where IDENT points at
+ *  a const whose value is itself one of those — saves a VM round-trip
+ *  when the path is statically resolvable from the AST. */
+function staticStringFromExpr(expr: A.Expr, resolved: ResolvedProgram): string | null {
+  if (expr.kind === "StringLitExpr") return staticStringValue(expr);
+  if (expr.kind !== "IdentExpr") return null;
+  const sym = resolved.idents.get(expr);
+  if (sym === undefined || sym.source.kind !== "const") return null;
+  return staticStringFromExpr(sym.source.decl.value, resolved);
+}
+
+/** Walk every expression node reachable from a list of top-level decls.
+ *  Used by the `@file` pre-pass — we don't care about block / stmt
+ *  structure, only the set of expressions present in fn / impl member
+ *  bodies and const RHS. */
+function walkProgramExprs(decls: readonly A.Decl[], visit: (e: A.Expr) => void): void {
+  const visitor: BlockVisitor = { expr: visit };
+  for (const decl of decls) {
+    if (decl.kind === "FnDecl" && decl.body !== null) walkBlock(decl.body, visitor);
+    else if (decl.kind === "ImplDecl") {
+      for (const m of decl.members) if (m.body !== null) walkBlock(m.body, visitor);
+    } else if (decl.kind === "ConstDecl") walkExpr(decl.value, visitor);
+    else if (decl.kind === "AssertDecl") walkExpr(decl.condition, visitor);
+  }
 }
 
 /** Tree walker over a fn body. Surfaces three event kinds — every expression,
@@ -271,6 +308,14 @@ function walkExpr(expr: A.Expr, v: BlockVisitor): void {
       }
       return;
     case "GenericInstExpr": walkExpr(expr.callee, v); return;
+    case "IntrinsicCallExpr":
+      for (const a of expr.args) walkExpr(a, v);
+      return;
+    case "StringLitExpr":
+      for (const part of expr.parts) {
+        if (part.kind === "interp") walkExpr(part.expr, v);
+      }
+      return;
     default: return;
   }
 }

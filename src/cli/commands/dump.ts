@@ -99,7 +99,6 @@ async function runEvaluatedAst(file: string, opts: GlobalOpts) {
     modules: [...r.evaluated.modules.values()].map((m) => ({
       module: m.typed.resolved.module.displayPath,
       comptime: [...m.comptimeDecls].map(([d, v]) => ({ name: d.name, value: displayValue(v) })),
-      file:     [...m.fileDecls].map(([d, v]) => ({ name: d.name, value: displayValue(v) })),
     })),
     instances: r.evaluated.instances.map((i) => i.displayKey),
   };

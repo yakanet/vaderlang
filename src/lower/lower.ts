@@ -200,10 +200,11 @@ export function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerP
   const types = makeEntryTypes(typed, entry.subst);
   const type = types.exprType(decl.value);
 
-  // @comptime / @file values were already baked by the comptime pass — emit
-  // the literal directly so downstream phases see the materialized constant
-  // rather than re-running the AST.
-  const baked = evaled?.comptimeDecls.get(decl) ?? evaled?.fileDecls.get(decl);
+  // @comptime values were already baked — emit the literal directly so
+  // downstream phases see the materialised constant rather than re-running
+  // the AST. (Inline `@file("...")` is baked per-IntrinsicCallExpr in
+  // `evaluated.fileExprs` and folded by `lowerIntrinsic`.)
+  const baked = evaled?.comptimeDecls.get(decl);
   const value: LoweredExpr = baked !== undefined
     ? comptimeValueToLowered(baked, defaultIfFree(type), decl.span)
     : lowerExpr({

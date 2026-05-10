@@ -5,7 +5,6 @@ export type DecoratorName =
   | "comptime"
   | "extern"
   | "export"
-  | "file"
   | "test"
   | "intrinsic"
   | "deprecated"
@@ -15,7 +14,6 @@ export const DEC = {
   comptime:   "comptime",
   extern:     "extern",
   export:     "export",
-  file:       "file",
   test:       "test",
   intrinsic:  "intrinsic",
   deprecated: "deprecated",
@@ -23,7 +21,7 @@ export const DEC = {
 } as const satisfies Record<DecoratorName, DecoratorName>;
 
 export const KNOWN_DECORATORS: ReadonlySet<DecoratorName> = new Set([
-  DEC.comptime, DEC.extern, DEC.export, DEC.file, DEC.test, DEC.intrinsic,
+  DEC.comptime, DEC.extern, DEC.export, DEC.test, DEC.intrinsic,
   DEC.deprecated, DEC.assert,
 ]);
 
