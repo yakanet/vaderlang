@@ -512,9 +512,33 @@ function inferDotVariant(
   expr: A.DotVariantExpr, expected: Type | null,
   t: MutableTyped, diags: DiagnosticCollector,
 ): Type {
-  if (expected !== null && expected.kind === "Enum") {
-    checkEnumVariant(expected, expr.variant, expr.variantSpan, diags);
-    return expected;
+  if (expected !== null) {
+    if (expected.kind === "Enum") {
+      checkEnumVariant(expected, expr.variant, expr.variantSpan, diags);
+      return expected;
+    }
+    // Union expected (e.g. `Direction!` = `Direction | Error`) — descend
+    // into the variants and pick the unique Enum that carries this name.
+    // Two enums in the same union both carrying the variant would be an
+    // ambiguity ; we report it instead of arbitrating.
+    if (expected.kind === "Union") {
+      const matches: Type[] = [];
+      for (const v of expected.variants) {
+        if (v.kind === "Enum" && v.indices.has(expr.variant)) matches.push(v);
+      }
+      if (matches.length === 1) {
+        const enumTy = matches[0]!;
+        if (enumTy.kind === "Enum") {
+          checkEnumVariant(enumTy, expr.variant, expr.variantSpan, diags);
+        }
+        return enumTy;
+      }
+      if (matches.length > 1) {
+        err(diags, "T3028", expr.span,
+          `\`.${expr.variant}\` is ambiguous : ${matches.map(displayType).join(" or ")}`);
+        return TY.unresolved;
+      }
+    }
   }
   err(diags, "T3028", expr.span, `\`.${expr.variant}\``);
   return TY.unresolved;

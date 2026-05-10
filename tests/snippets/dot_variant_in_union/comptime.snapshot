@@ -1,0 +1,10 @@
+# Comptime
+
+## tests/snippets/dot_variant_in_union/_main.vader
+
+## generic instances
+  Yielded(char)
+  Yielded(i32)
+  Yielded(u8)
+  Range(char)
+  Range(i32)
