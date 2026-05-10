@@ -30,7 +30,7 @@
         let __step_1#-2: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000110 :?
+              step#1000128 :?
             arg0:
               __iter_0#-1 :ArrayIter(i32)
         if :void
@@ -118,7 +118,7 @@
         let __step_1#-6: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000111 :?
+              step#1000132 :?
             arg0:
               __iter_0#-5 :ArrayIter(string)
         if :void
@@ -195,7 +195,7 @@
     let one#154: i32[] =
       call :i32[]
         callee:
-          sort#1000112 :i32[]
+          sort#1000136 :i32[]
         arg0:
           array :i32[]
             int(42) :i32
@@ -209,7 +209,7 @@
     let asc#155: i32[] =
       call :i32[]
         callee:
-          sort#1000112 :i32[]
+          sort#1000136 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -227,7 +227,7 @@
     let desc#156: i32[] =
       call :i32[]
         callee:
-          sort#1000112 :i32[]
+          sort#1000136 :i32[]
         arg0:
           array :i32[]
             int(5) :i32
@@ -245,7 +245,7 @@
     let rand#157: i32[] =
       call :i32[]
         callee:
-          sort#1000112 :i32[]
+          sort#1000136 :i32[]
         arg0:
           array :i32[]
             int(3) :i32
@@ -269,7 +269,7 @@
     let descending#158: i32[] =
       call :i32[]
         callee:
-          sort#1000112 :i32[]
+          sort#1000136 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -287,7 +287,7 @@
     let big#159: i32[] =
       call :i32[]
         callee:
-          sort#1000112 :i32[]
+          sort#1000136 :i32[]
         arg0:
           array :i32[]
             int(10) :i32
@@ -330,7 +330,7 @@
     let strs#160: string[] =
       call :string[]
         callee:
-          sort#1000113 :string[]
+          sort#1000137 :string[]
         arg0:
           array :string[]
             "banana" :string
@@ -352,7 +352,7 @@
     let out#162: i32[] =
       call :i32[]
         callee:
-          sort#1000112 :i32[]
+          sort#1000136 :i32[]
         arg0:
           input#161 :i32[]
         arg1:

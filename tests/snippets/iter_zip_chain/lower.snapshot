@@ -25,7 +25,7 @@
                 __sb_0#-1 :?
                 call :i32
                   callee:
-                    count#1000110 :i32
+                    count#1000134 :i32
                   arg0:
                     nums#73 :i32[]
               ~>
@@ -34,7 +34,7 @@
     let cloned#74: i32[] =
       call :i32[]
         callee:
-          collect#1000111 :i32[]
+          collect#1000135 :i32[]
         arg0:
           nums#73 :i32[]
     call :void
@@ -75,7 +75,7 @@
     let pairs#77: [string, i32][] =
       call :[string, i32][]
         callee:
-          zip#1000112 :[string, i32][]
+          zip#1000136 :[string, i32][]
         arg0:
           keys#75 :string[]
         arg1:
@@ -92,7 +92,7 @@
         let __step_3#-4: Done | Yielded([string, i32]) =
           call :Done | Yielded([string, i32])
             callee:
-              step#1000105 :?
+              step#1000114 :?
             arg0:
               __iter_2#-3 :ArrayIter([string, i32])
         if :void
@@ -148,7 +148,7 @@
     let joined#83: i32[] =
       call :i32[]
         callee:
-          chain#1000113 :i32[]
+          chain#1000137 :i32[]
         arg0:
           head#81 :i32[]
         arg1:
@@ -165,7 +165,7 @@
         let __step_7#-8: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000108 :?
+              step#1000126 :?
             arg0:
               __iter_6#-7 :ArrayIter(i32)
         if :void
@@ -210,7 +210,7 @@
           let __arr_9#-10: [i32, string][] =
             call :[i32, string][]
               callee:
-                enumerate#1000114 :[i32, string][]
+                enumerate#1000138 :[i32, string][]
               arg0:
                 fruits#85 :string[]
           ~>
@@ -224,7 +224,7 @@
         let __step_11#-12: Done | Yielded([i32, string]) =
           call :Done | Yielded([i32, string])
             callee:
-              step#1000104 :?
+              step#1000110 :?
             arg0:
               __iter_10#-11 :ArrayIter([i32, string])
         if :void
@@ -271,7 +271,7 @@
     let bursts#90: i32[] =
       call :i32[]
         callee:
-          flat_map#1000115 :i32[]
+          flat_map#1000139 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -291,7 +291,7 @@
         let __step_16#-19: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000108 :?
+              step#1000126 :?
             arg0:
               __iter_15#-18 :ArrayIter(i32)
         if :void

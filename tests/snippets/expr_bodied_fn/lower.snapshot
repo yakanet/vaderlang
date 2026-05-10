@@ -145,7 +145,7 @@
                 __sb_4#-5 :?
                 call :i32
                   callee:
-                    id#1000105 :i32
+                    id#1000111 :i32
                   arg0:
                     int(42) :i32
               ~>
@@ -166,7 +166,7 @@
                 __sb_5#-6 :?
                 call :f64
                   callee:
-                    id#1000104 :f64
+                    id#1000110 :f64
                   arg0:
                     float(7.5) :f64
               ~>
@@ -182,7 +182,7 @@
           arg0:
             call :string
               callee:
-                id#1000106 :string
+                id#1000112 :string
               arg0:
                 "hello" :string
     return int(0) :i32

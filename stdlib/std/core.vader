@@ -73,9 +73,48 @@ export Contains :: trait[T] {
 }
 
 // Iterator — pull-based. The lowerer dispatches `for x in iter` through
-// the impl table ; users never call `step` directly.
+// the impl table ; users never call `step` directly. The `count` / `last`
+// / `is_empty` defaults derive from `step` (Layer 8d), so every Iterator
+// impl picks them up without writing a body.
 export Iterator :: trait[T] {
     step :: fn(self) -> Done | Yielded(T)
+
+    // True iff the next `step()` returns `Done`. Drains exactly one step ;
+    // a `false` result has *consumed* the first yielded item already (the
+    // iterator is one step ahead from the caller's perspective). Reflects
+    // the pull-based shape — there's no peek without an internal buffer.
+    is_empty :: fn(self) -> bool = match self.step() {
+        is Done       -> true
+        is Yielded(T) -> false
+    }
+
+    // Drain the iterator, returning the count of yielded items. Consumes
+    // self ; the iterator is exhausted after this call.
+    count :: fn(self) -> i32 {
+        total := 0
+        finished := false
+        for !finished {
+            match self.step() {
+                is Done       -> { finished = true }
+                is Yielded(T) -> { total = total + 1 }
+            }
+        }
+        return total
+    }
+
+    // Drain the iterator, returning the last yielded item or `null` if it
+    // was empty. Consumes self.
+    last :: fn(self) -> T | null {
+        result: T | null = null
+        finished := false
+        for !finished {
+            match self.step() {
+                is Done            -> { finished = true }
+                is Yielded(T) as y -> { result = y.value }
+            }
+        }
+        return result
+    }
 }
 
 // Error — base trait for any value usable in `!T` returns and the `?`

@@ -10,7 +10,7 @@
       }
     call :void
       callee:
-        put#1000107 :void
+        put#1000113 :void
       arg0:
         m#75 :MutableMap(i32, i32)
       arg1:
@@ -19,7 +19,7 @@
         int(10) :i32
     call :void
       callee:
-        put#1000107 :void
+        put#1000113 :void
       arg0:
         m#75 :MutableMap(i32, i32)
       arg1:
@@ -28,7 +28,7 @@
         int(20) :i32
     call :void
       callee:
-        put#1000107 :void
+        put#1000113 :void
       arg0:
         m#75 :MutableMap(i32, i32)
       arg1:
@@ -53,7 +53,7 @@
                 __sb_0#-1 :?
                 call :usize
                   callee:
-                    len#1000110 :usize
+                    len#1000116 :usize
                   arg0:
                     m#75 :MutableMap(i32, i32)
               ~>
@@ -62,7 +62,7 @@
     let v1#76: i32 | null =
       call :i32 | null
         callee:
-          get#1000108 :i32 | null
+          get#1000114 :i32 | null
         arg0:
           m#75 :MutableMap(i32, i32)
         arg1:
@@ -124,7 +124,7 @@
     let v17#77: i32 | null =
       call :i32 | null
         callee:
-          get#1000108 :i32 | null
+          get#1000114 :i32 | null
         arg0:
           m#75 :MutableMap(i32, i32)
         arg1:
@@ -201,7 +201,7 @@
                 __sb_5#-6 :?
                 call :bool
                   callee:
-                    contains_key#1000109 :bool
+                    contains_key#1000115 :bool
                   arg0:
                     m#75 :MutableMap(i32, i32)
                   arg1:
@@ -227,7 +227,7 @@
                 __sb_6#-7 :?
                 call :bool
                   callee:
-                    contains_key#1000109 :bool
+                    contains_key#1000115 :bool
                   arg0:
                     m#75 :MutableMap(i32, i32)
                   arg1:
@@ -237,7 +237,7 @@
                   __sb_6#-7 :?
     call :void
       callee:
-        put#1000107 :void
+        put#1000113 :void
       arg0:
         m#75 :MutableMap(i32, i32)
       arg1:
@@ -247,7 +247,7 @@
     let v1b#78: i32 | null =
       call :i32 | null
         callee:
-          get#1000108 :i32 | null
+          get#1000114 :i32 | null
         arg0:
           m#75 :MutableMap(i32, i32)
         arg1:

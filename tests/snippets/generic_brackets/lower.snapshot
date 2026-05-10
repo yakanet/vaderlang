@@ -5,13 +5,13 @@
     let a#55: i32 =
       call :i32
         callee:
-          identity#1000103 :i32
+          identity#1000109 :i32
         arg0:
           int(10) :i32
     let b#56: i32 =
       call :i32
         callee:
-          swap#1000104 :i32
+          swap#1000110 :i32
         arg0:
           int(1) :i32
         arg1:

@@ -17,7 +17,7 @@
                 __sb_0#-1 :?
                 call :i32
                   callee:
-                    outer#1000109 :i32
+                    outer#1000124 :i32
                   arg0:
                     array :i32[]
                       int(1) :i32
@@ -43,7 +43,7 @@
                 __sb_1#-2 :?
                 call :i32
                   callee:
-                    outer#1000110 :i32
+                    outer#1000125 :i32
                   arg0:
                     array :string[]
                       "a" :string
@@ -56,7 +56,7 @@
   fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__i32(arr: i32[]) -> i32
     let n#58: i32 = int(0) :i32
     block :void
-      let __iter_0#-3: ArrayIter(i32) =
+      let __iter_0#-18: ArrayIter(i32) =
         ArrayIter(i32) {
           arr: arr#57 :i32[]
           cursor: int(0) :i32
@@ -64,23 +64,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_1#-4: Done | Yielded(i32) =
+        let __step_1#-19: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000105 :?
+              step#1000114 :?
             arg0:
-              __iter_0#-3 :ArrayIter(i32)
+              __iter_0#-18 :ArrayIter(i32)
         if :void
           cond:
             is Done :bool
-              __step_1#-4 :Done | Yielded(i32)
+              __step_1#-19 :Done | Yielded(i32)
           then:
             break
           else:
             let x#59: i32 =
               .value :i32
                 cast → Yielded(i32)
-                  __step_1#-4 :Done | Yielded(i32)
+                  __step_1#-19 :Done | Yielded(i32)
             assign
               target:
                 n#58 :i32
@@ -94,7 +94,7 @@
   fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__string(arr: string[]) -> i32
     let n#58: i32 = int(0) :i32
     block :void
-      let __iter_0#-5: ArrayIter(string) =
+      let __iter_0#-20: ArrayIter(string) =
         ArrayIter(string) {
           arr: arr#57 :string[]
           cursor: int(0) :i32
@@ -102,23 +102,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_1#-6: Done | Yielded(string) =
+        let __step_1#-21: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000106 :?
+              step#1000118 :?
             arg0:
-              __iter_0#-5 :ArrayIter(string)
+              __iter_0#-20 :ArrayIter(string)
         if :void
           cond:
             is Done :bool
-              __step_1#-6 :Done | Yielded(string)
+              __step_1#-21 :Done | Yielded(string)
           then:
             break
           else:
             let x#59: string =
               .value :string
                 cast → Yielded(string)
-                  __step_1#-6 :Done | Yielded(string)
+                  __step_1#-21 :Done | Yielded(string)
             assign
               target:
                 n#58 :i32
@@ -133,13 +133,13 @@
     return
       call :i32
         callee:
-          inner_count#1000107 :i32
+          inner_count#1000122 :i32
         arg0:
           arr#61 :i32[]
   fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$outer__string(arr: string[]) -> i32
     return
       call :i32
         callee:
-          inner_count#1000108 :i32
+          inner_count#1000123 :i32
         arg0:
           arr#61 :string[]

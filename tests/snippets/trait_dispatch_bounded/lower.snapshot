@@ -25,7 +25,7 @@
                 __sb_0#-1 :?
                 call :i32
                   callee:
-                    count_matching#1000107 :i32
+                    count_matching#1000122 :i32
                   arg0:
                     nums#60 :i32[]
                   arg1:
@@ -55,7 +55,7 @@
                 __sb_1#-2 :?
                 call :i32
                   callee:
-                    count_matching#1000108 :i32
+                    count_matching#1000123 :i32
                   arg0:
                     words#61 :string[]
                   arg1:
@@ -67,7 +67,7 @@
   fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__i32(items: i32[], target: i32) -> i32
     let n#58: i32 = int(0) :i32
     block :void
-      let __iter_0#-3: ArrayIter(i32) =
+      let __iter_0#-18: ArrayIter(i32) =
         ArrayIter(i32) {
           arr: items#56 :i32[]
           cursor: int(0) :i32
@@ -75,23 +75,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_1#-4: Done | Yielded(i32) =
+        let __step_1#-19: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000105 :?
+              step#1000114 :?
             arg0:
-              __iter_0#-3 :ArrayIter(i32)
+              __iter_0#-18 :ArrayIter(i32)
         if :void
           cond:
             is Done :bool
-              __step_1#-4 :Done | Yielded(i32)
+              __step_1#-19 :Done | Yielded(i32)
           then:
             break
           else:
             let x#59: i32 =
               .value :i32
                 cast → Yielded(i32)
-                  __step_1#-4 :Done | Yielded(i32)
+                  __step_1#-19 :Done | Yielded(i32)
             if :void
               cond:
                 and :bool
@@ -131,7 +131,7 @@
   fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__string(items: string[], target: string) -> i32
     let n#58: i32 = int(0) :i32
     block :void
-      let __iter_0#-5: ArrayIter(string) =
+      let __iter_0#-20: ArrayIter(string) =
         ArrayIter(string) {
           arr: items#56 :string[]
           cursor: int(0) :i32
@@ -139,23 +139,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_1#-6: Done | Yielded(string) =
+        let __step_1#-21: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000106 :?
+              step#1000118 :?
             arg0:
-              __iter_0#-5 :ArrayIter(string)
+              __iter_0#-20 :ArrayIter(string)
         if :void
           cond:
             is Done :bool
-              __step_1#-6 :Done | Yielded(string)
+              __step_1#-21 :Done | Yielded(string)
           then:
             break
           else:
             let x#59: string =
               .value :string
                 cast → Yielded(string)
-                  __step_1#-6 :Done | Yielded(string)
+                  __step_1#-21 :Done | Yielded(string)
             if :void
               cond:
                 and :bool

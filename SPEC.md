@@ -1966,9 +1966,16 @@ Done    :: struct {}
 Yielded :: struct($T) { value: T }
 
 Iterator(T) :: trait {
-    step :: fn(self) -> Done | Yielded(T)
+    step     :: fn(self) -> Done | Yielded(T)
+    is_empty :: fn(self) -> bool                  // default — derives from step
+    count    :: fn(self) -> i32                   // default — drains, returns total
+    last     :: fn(self) -> T | null              // default — drains, last yielded
 }
 ```
+
+`is_empty` / `count` / `last` are default methods (Layer 8d) — every
+Iterator impl inherits the bodies derived from `step`, the user only has
+to provide `step`.
 
 `std/iter` provides combinators on top of it. Two flavours coexist :
 

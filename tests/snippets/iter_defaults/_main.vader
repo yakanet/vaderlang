@@ -1,0 +1,36 @@
+// `Iterator` defaults injected via Layer 8d — `count`, `last`, `is_empty`
+// derive from the user's `step`. Every Iterator impl (Range, ArrayIter,
+// StringChars, …) inherits the three methods without writing a body.
+
+import "std/io" { println }
+
+Countdown :: struct { remaining: i32 }
+
+Countdown implements Iterator(i32) {
+    step :: fn(self) -> Done | Yielded(i32) {
+        if self.remaining <= 0 { return Done {} }
+        v :: self.remaining
+        self.remaining = self.remaining - 1
+        return Yielded(i32) { .value = v }
+    }
+}
+
+main :: fn() -> i32 {
+    // Range — count drains the iterator.
+    println((0..<5).count())
+
+    // Range — last yields the inclusive end.
+    match (10..=15).last() {
+        is i32 as v -> println(v)
+        is null     -> println("none")
+    }
+
+    // is_empty — the empty range Done's immediately.
+    println((0..<0).is_empty())
+    println((0..<5).is_empty())
+
+    // User struct — same machinery via the trait default.
+    println(Countdown { .remaining = 3 }.count())
+
+    return 0
+}

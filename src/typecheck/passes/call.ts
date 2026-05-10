@@ -684,16 +684,24 @@ function findImplMethod(
   fieldSpan: import("../../diagnostics/diagnostic.ts").Span | null,
   diags: DiagnosticCollector | null,
 ): MethodResolution | null {
-  // Collect every impl whose for-type matches the receiver and that
-  // declares a member of the requested name. Ambiguous when ≥ 2 different
-  // traits provide the same method on the same type — pick the first to
-  // keep the AST resolvable, but emit T3032 so the user knows.
+  // Walk every distinct trait that any impl on `targetType`'s symbol claims,
+  // and ask the registry for the canonical impl for `(targetType, trait)` —
+  // `findFor` already disambiguates concrete instances (Range[i32] vs
+  // Range[char]) via the args key. Any trait whose canonical impl declares
+  // a member named `name` contributes a match. Ambiguous when ≥ 2 distinct
+  // traits provide the same method on the same type — emit T3032 ; pick
+  // the first to keep the AST resolvable.
   const matches: { entry: ImplEntry; member: A.FnDecl }[] = [];
+  const seenTraits = new Set<number>();
   for (const entry of impls.entries()) {
+    if (entry.traitSymbol === null) continue;
     if (!implMatchesTarget(entry, targetType)) continue;
-    const member = entry.decl.members.find((m) => m.name === name);
+    if (seenTraits.has(entry.traitSymbol.id)) continue;
+    seenTraits.add(entry.traitSymbol.id);
+    const concrete = impls.findFor(targetType, entry.traitSymbol) ?? entry;
+    const member = concrete.decl.members.find((m) => m.name === name);
     if (member === undefined) continue;
-    matches.push({ entry, member });
+    matches.push({ entry: concrete, member });
   }
   if (matches.length === 0) return null;
   // Only flag when the matches come from *different* trait symbols. Multiple

@@ -289,11 +289,15 @@ function materializeIntrinsicMembers(decl: A.ImplDecl, trait: A.TraitDecl): void
  *  identities are fresh — the resolver's per-node side-tables stay distinct
  *  between the trait's own resolution and each impl's injected copy.
  *
- *  Signatures are substituted via `substituteTypeExpr` (Self → forType,
- *  trait type-params → impl trait-args) so bodies type-check against the
- *  concrete impl context. References inside the body to other trait methods
- *  (`self.equals(other)` from a default `not_equals`) resolve through UFCS
- *  against the impl's scope, picking up the impl's own member when present. */
+ *  Signature *and* body are substituted via the same `Self → forType` /
+ *  trait-type-param → impl-trait-arg map. Body substitution rewrites every
+ *  IdentExpr whose name is a key in the map ; this is safe in trait method
+ *  bodies because trait type-params and `Self` only meaningfully appear in
+ *  type-position uses (match patterns, struct lits, casts, typed lets) where
+ *  collisions with value-level locals don't occur. References to other
+ *  trait methods (`self.equals(other)` from a default `not_equals`) resolve
+ *  through UFCS against the impl's scope, picking up the impl's own member
+ *  when present. */
 function materializeDefaultMembers(decl: A.ImplDecl, trait: A.TraitDecl): void {
   // Trait has no defaults at all — common case, return without allocating.
   if (!trait.members.some((m) => m.body !== null)) return;
@@ -324,10 +328,202 @@ function materializeDefaultMembers(decl: A.ImplDecl, trait: A.TraitDecl): void {
       })),
       returnType: method.returnType !== null
         ? substituteTypeExpr(method.returnType, subst) : null,
-      body: structuredClone(method.body),
+      body: substituteIdentsInBlock(structuredClone(method.body), subst),
       decorators: [],
       isExpressionBodied: method.isExpressionBodied,
     });
+  }
+}
+
+/** Walk the cloned body tree and replace every IdentExpr whose name is a key
+ *  in `subst` with a deep clone of the substituted TypeExpr. Mutates the tree
+ *  in place ; the caller is expected to pass a `structuredClone` result so
+ *  the trait's original AST stays untouched. The walker is exhaustive over
+ *  Stmt and Expr kinds — adding a new node kind to the AST means extending
+ *  the relevant `case`. Pattern type-positions and StructLit/Cast/typed-let
+ *  type fields all funnel through `substituteTypeExpr` ; value-position
+ *  IdentExprs are also rewritten (no-op for non-matching names). */
+function substituteIdentsInBlock(block: A.BlockExpr, subst: ReadonlyMap<string, A.TypeExpr>): A.BlockExpr {
+  for (const stmt of block.stmts) substituteIdentsInStmt(stmt, subst);
+  if (block.trailing !== null) (block as { trailing: A.Expr }).trailing = substituteIdentsInExpr(block.trailing, subst);
+  return block;
+}
+
+function substituteIdentsInStmt(stmt: A.Stmt, subst: ReadonlyMap<string, A.TypeExpr>): void {
+  switch (stmt.kind) {
+    case "LetStmt": {
+      const m = stmt as { type: A.TypeExpr | null; value: A.Expr };
+      if (m.type !== null) m.type = substituteTypeExpr(m.type, subst);
+      m.value = substituteIdentsInExpr(stmt.value, subst);
+      return;
+    }
+    case "AssignStmt": {
+      const m = stmt as { target: A.Expr; value: A.Expr };
+      m.target = substituteIdentsInExpr(stmt.target, subst);
+      m.value = substituteIdentsInExpr(stmt.value, subst);
+      return;
+    }
+    case "ExprStmt":
+      (stmt as { expr: A.Expr }).expr = substituteIdentsInExpr(stmt.expr, subst);
+      return;
+    case "ReturnStmt":
+      if (stmt.value !== null) (stmt as { value: A.Expr | null }).value = substituteIdentsInExpr(stmt.value, subst);
+      return;
+    case "ForStmt": {
+      const m = stmt as { form: A.ForForm };
+      const f = m.form;
+      if (f.kind === "while") (f as { cond: A.Expr }).cond = substituteIdentsInExpr(f.cond, subst);
+      else if (f.kind === "in")  (f as { iter: A.Expr }).iter = substituteIdentsInExpr(f.iter, subst);
+      m.form = f;
+      (stmt as { body: A.BlockExpr }).body = substituteIdentsInBlock(stmt.body, subst);
+      return;
+    }
+    case "DeferStmt":
+      (stmt as { body: A.BlockExpr }).body = substituteIdentsInBlock(stmt.body, subst);
+      return;
+    case "BreakStmt":
+    case "ContinueStmt":
+      return;
+  }
+}
+
+function substituteIdentsInExpr(expr: A.Expr, subst: ReadonlyMap<string, A.TypeExpr>): A.Expr {
+  switch (expr.kind) {
+    case "IdentExpr": {
+      const repl = subst.get(expr.name);
+      return repl !== undefined ? cloneTypeExpr(repl) : expr;
+    }
+    case "GenericInstExpr": {
+      const m = expr as { callee: A.Expr; typeArgs: A.TypeExpr[] };
+      m.callee = substituteIdentsInExpr(expr.callee, subst);
+      m.typeArgs = expr.typeArgs.map((ta) => substituteTypeExpr(ta, subst));
+      return expr;
+    }
+    case "CallExpr": {
+      const m = expr as { callee: A.Expr; args: A.CallArg[] };
+      m.callee = substituteIdentsInExpr(expr.callee, subst);
+      for (const a of expr.args) {
+        (a as { value: A.Expr }).value = substituteIdentsInExpr(a.value, subst);
+      }
+      return expr;
+    }
+    case "FieldExpr":
+      (expr as { target: A.Expr }).target = substituteIdentsInExpr(expr.target, subst);
+      return expr;
+    case "IndexExpr": {
+      const m = expr as { target: A.Expr; index: A.Expr };
+      m.target = substituteIdentsInExpr(expr.target, subst);
+      m.index = substituteIdentsInExpr(expr.index, subst);
+      return expr;
+    }
+    case "UnaryExpr":
+      (expr as { operand: A.Expr }).operand = substituteIdentsInExpr(expr.operand, subst);
+      return expr;
+    case "BinaryExpr": {
+      const m = expr as { left: A.Expr; right: A.Expr };
+      m.left = substituteIdentsInExpr(expr.left, subst);
+      m.right = substituteIdentsInExpr(expr.right, subst);
+      return expr;
+    }
+    case "IfExpr": {
+      const m = expr as { cond: A.Expr; then: A.BlockExpr; else: A.BlockExpr | A.IfExpr | null };
+      m.cond = substituteIdentsInExpr(expr.cond, subst);
+      m.then = substituteIdentsInBlock(expr.then, subst);
+      if (m.else !== null) {
+        m.else = m.else.kind === "BlockExpr"
+          ? substituteIdentsInBlock(m.else, subst)
+          : substituteIdentsInExpr(m.else, subst) as A.IfExpr;
+      }
+      return expr;
+    }
+    case "MatchExpr": {
+      const m = expr as { scrutinee: A.Expr; arms: A.MatchArm[] };
+      m.scrutinee = substituteIdentsInExpr(expr.scrutinee, subst);
+      for (const arm of expr.arms) {
+        substituteIdentsInPattern(arm.pattern, subst);
+        if (arm.guard !== null) (arm as { guard: A.Expr | null }).guard = substituteIdentsInExpr(arm.guard, subst);
+        (arm as { body: A.Expr }).body = substituteIdentsInExpr(arm.body, subst);
+      }
+      return expr;
+    }
+    case "BlockExpr":
+      return substituteIdentsInBlock(expr, subst);
+    case "LambdaExpr": {
+      const m = expr as { returnType: A.TypeExpr | null; body: A.BlockExpr; params: A.FnParam[] };
+      if (m.returnType !== null) m.returnType = substituteTypeExpr(m.returnType, subst);
+      for (const p of expr.params) {
+        if (p.type !== null) (p as { type: A.TypeExpr | null }).type = substituteTypeExpr(p.type, subst);
+        if (p.defaultValue !== null) (p as { defaultValue: A.Expr | null }).defaultValue = substituteIdentsInExpr(p.defaultValue, subst);
+      }
+      m.body = substituteIdentsInBlock(expr.body, subst);
+      return expr;
+    }
+    case "StructLitExpr": {
+      const m = expr as { typeName: A.TypeExpr; items: A.StructLitItem[] };
+      m.typeName = substituteTypeExpr(expr.typeName, subst);
+      for (const it of expr.items) {
+        if (it.kind === "field") (it as { value: A.Expr }).value = substituteIdentsInExpr(it.value, subst);
+        else (it as { expr: A.Expr }).expr = substituteIdentsInExpr(it.expr, subst);
+      }
+      return expr;
+    }
+    case "SeqLitExpr":
+      (expr as { elements: A.Expr[] }).elements = expr.elements.map((e) => substituteIdentsInExpr(e, subst));
+      return expr;
+    case "RangeExpr": {
+      const m = expr as { lower: A.Expr; upper: A.Expr };
+      m.lower = substituteIdentsInExpr(expr.lower, subst);
+      m.upper = substituteIdentsInExpr(expr.upper, subst);
+      return expr;
+    }
+    case "TryExpr":
+      (expr as { inner: A.Expr }).inner = substituteIdentsInExpr(expr.inner, subst);
+      return expr;
+    case "CastExpr": {
+      const m = expr as { target: A.TypeExpr; value: A.Expr };
+      m.target = substituteTypeExpr(expr.target, subst);
+      m.value = substituteIdentsInExpr(expr.value, subst);
+      return expr;
+    }
+    case "IntrinsicCallExpr":
+      (expr as { args: A.Expr[] }).args = expr.args.map((a) => substituteIdentsInExpr(a, subst));
+      return expr;
+    case "StringLitExpr":
+      for (const part of expr.parts) {
+        if (part.kind === "interp") (part as { expr: A.Expr }).expr = substituteIdentsInExpr(part.expr, subst);
+      }
+      return expr;
+    // Leaves — no children to recurse into.
+    case "IntLitExpr":
+    case "FloatLitExpr":
+    case "BoolLitExpr":
+    case "NullLitExpr":
+    case "CharLitExpr":
+    case "DotVariantExpr":
+    case "ArrayTypeExpr":
+    case "FnTypeExpr":
+      return expr;
+  }
+}
+
+function substituteIdentsInPattern(pat: A.Pattern, subst: ReadonlyMap<string, A.TypeExpr>): void {
+  switch (pat.kind) {
+    case "IsPattern":
+      (pat as { type: A.TypeExpr }).type = substituteTypeExpr(pat.type, subst);
+      if (pat.inner !== null) substituteIdentsInPattern(pat.inner, subst);
+      return;
+    case "StructPattern":
+      for (const f of pat.fields) {
+        if (f.value.kind === "literal") (f.value as { value: A.Expr }).value = substituteIdentsInExpr(f.value.value, subst);
+      }
+      return;
+    case "TuplePattern":
+      for (const e of pat.elements) substituteIdentsInPattern(e, subst);
+      return;
+    case "BindingPattern":
+    case "WildcardPattern":
+    case "EnumVariantPattern":
+      return;
   }
 }
 
