@@ -21,6 +21,7 @@ import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
 import { isMainMangled } from "../comptime/specialize.ts";
+import { tryEmitStaticTable } from "./static_table.ts";
 
 export function emitC(m: BytecodeModule): string {
   const ctx = newCtx(m);
@@ -485,6 +486,10 @@ function primTagOrTrap(ctx: EmitCtx, val: ValType): string {
 
 function emitFunctions(ctx: EmitCtx, out: string[]): void {
   for (let i = 0; i < ctx.module.functions.length; i++) {
+    if (tryEmitStaticTable(ctx, ctx.module.functions[i]!, i, out)) {
+      out.push(``);
+      continue;
+    }
     emitFunctionBody(ctx, ctx.module.functions[i]!, i, out);
     out.push(``);
   }
