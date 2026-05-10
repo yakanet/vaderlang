@@ -56,13 +56,18 @@ async function buildOne(target: Target, repoRoot: string): Promise<void> {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
 
-  // 1. Compile the binary.
+  // 1. Compile the binary. The Windows runtime defaults to requiring AVX2,
+  // which Wine on Apple Silicon (Rosetta) does not provide and old PCs may
+  // lack — pick the `baseline` Bun variant for windows-x64 so the artifact
+  // runs on any x86_64 with at least SSE2. Marginal perf cost on modern CPUs
+  // since Vader's CLI is not SIMD-bound.
+  const bunTarget = target === "windows-x64" ? "bun-windows-x64-baseline" : `bun-${target}`;
   await run([
     "bun", "build",
     "--compile",
     "--minify",
     "--sourcemap",
-    `--target=bun-${target}`,
+    `--target=${bunTarget}`,
     "src/index.ts",
     `--outfile=${join(outDir, binName)}`,
   ], { cwd: repoRoot });
