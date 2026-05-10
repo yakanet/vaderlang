@@ -106,15 +106,3 @@ fn tests_snippets_generic_struct__main_vader$Stack$Stackable$len__i32(%0: Stack(
   bb0:
     %1 = field_get %0.size :i32
     return %1
-
-fn tests_snippets_generic_struct__main_vader$Stack$Stackable$is_empty__i32(%0: Stack(i32)) -> bool
-  locals:
-    %0 self: Stack(i32) (param self)
-    %1 $field_1#4: i32
-    %2 $k_2#5: i32
-    %3 $eq_3#6: bool
-  bb0:
-    %1 = field_get %0.size :i32
-    %2 = const int(0) :i32
-    %3 = binop eq %1 %2 :bool
-    return %3

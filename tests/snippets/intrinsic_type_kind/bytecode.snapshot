@@ -1,6 +1,4 @@
 module _main
-type 0 struct tests_snippets_intrinsic_type_kind__main_vader$Pair { first:1,second:1 }
-type 1 primitive i32
 string 0 "primitive"
 string 1 "struct"
 string 2 "array"

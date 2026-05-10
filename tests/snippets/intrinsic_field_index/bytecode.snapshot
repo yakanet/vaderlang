@@ -1,6 +1,4 @@
 module _main
-type 0 struct tests_snippets_intrinsic_field_index__main_vader$Vec3 { x:1,y:1,z:1 }
-type 1 primitive f32
 import 0 equals std_core$i8$Eq$equals (i8,i8) -> bool
 import 1 equals std_core$i16$Eq$equals (i16,i16) -> bool
 import 2 equals std_core$i32$Eq$equals (i32,i32) -> bool

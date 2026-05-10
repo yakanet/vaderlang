@@ -224,17 +224,3 @@ fn 3 tests_snippets_generic_struct__main_vader$Stack$Stackable$len__i32 (ref) ->
   struct.get 0 1   ; _main.vader:25:16
   return   ; _main.vader:25:9
 end
-
-fn 4 tests_snippets_generic_struct__main_vader$Stack$Stackable$is_empty__i32 (ref) -> bool
-  local "$field_1#4" i32
-  local "$k_2#5" i32
-  local.get 0   ; _main.vader:28:16
-  struct.get 0 1   ; _main.vader:28:16
-  local.set 1   ; _main.vader:28:16
-  i32.const 0   ; _main.vader:28:29
-  local.set 2   ; _main.vader:28:29
-  local.get 1   ; _main.vader:28:16
-  local.get 2   ; _main.vader:28:16
-  i32.eq   ; _main.vader:28:16
-  return   ; _main.vader:28:9
-end

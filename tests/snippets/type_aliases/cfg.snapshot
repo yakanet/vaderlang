@@ -11,15 +11,6 @@ fn tests_snippets_type_aliases__main_vader$add(%0: i32, %1: i32) -> i32
     %2 = binop add %0 %1 :i32
     return %2
 
-fn tests_snippets_type_aliases__main_vader$sum_doubles(%0: f64, %1: f64) -> f64
-  locals:
-    %0 a: f64 (param a)
-    %1 b: f64 (param b)
-    %2 $add_2#3: f64
-  bb0:
-    %2 = binop add %0 %1 :f64
-    return %2
-
 fn tests_snippets_type_aliases__main_vader$main() -> i32
   locals:
     %0 x#15: i32 (local x)

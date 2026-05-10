@@ -2,13 +2,6 @@
 
 ## tests/snippets/interp_string_comptime/_main.vader
 
-fn tests_snippets_interp_string_comptime__main_vader$name() -> string
-  locals:
-    %0 $k_0#1: string
-  bb0:
-    %0 = const string(#0) :string
-    return %0
-
 fn tests_snippets_interp_string_comptime__main_vader$main() -> i32
   locals:
     %0 $k_0#1: i32

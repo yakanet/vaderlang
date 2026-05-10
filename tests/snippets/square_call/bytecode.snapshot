@@ -61,14 +61,7 @@ import 58 div std_core$f64$Div$div (f64,f64) -> f64
 import 59 add std_core$string$Add$add (string,string) -> string
 import 60 at std_core$string$Index$at (string,i32) -> char
 
-fn 0 tests_snippets_square_call__main_vader$square (i32) -> i32
-  local.get 0   ; _main.vader:2:12
-  local.get 0   ; _main.vader:2:12
-  i32.mul   ; _main.vader:2:12
-  return   ; _main.vader:2:5
-end
-
-fn 1 tests_snippets_square_call__main_vader$main () -> i32
+fn 0 tests_snippets_square_call__main_vader$main () -> i32
   i32.const 9   ; _main.vader:6:8
   return   ; _main.vader:9:5
 end

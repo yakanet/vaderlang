@@ -125,14 +125,15 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
   }
   out.push(``);
 
-  // String literals as named constants — C string literals embed null bytes
-  // safely if we declare with `static const char[]`. Length is the UTF-8
-  // byte count (matches vader_string_t.len), not the JS UTF-16 unit count.
+  // String literals as named struct constants — one decl per pool entry,
+  // pre-sized to the UTF-8 byte length. The C compiler interns the data
+  // array regardless ; folding the pointer + length into one
+  // `vader_string_t` static lets `string.const` resolve to a bare name
+  // instead of a `vader_string_new(_data, _len)` call.
   for (let i = 0; i < ctx.module.strings.length; i++) {
     const s = ctx.module.strings[i]!;
     const bytes = new TextEncoder().encode(s);
-    out.push(`static const char vader_str_${i}_data[] = ${cStringLitFromBytes(bytes)};`);
-    out.push(`static const size_t vader_str_${i}_len = ${bytes.length};`);
+    out.push(`static const vader_string_t vader_str_${i} = { ${cStringLitFromBytes(bytes)}, ${bytes.length} };`);
   }
   out.push(``);
 }
@@ -207,7 +208,12 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   }
 
   out.push(``);
-  out.push(`const vader_type_info_t vader_type_info_table[] = {`);
+  // Fixed length so missing entries (primitives, unions, refs — no GC info)
+  // zero-initialise to `VADER_TYPE_KIND_NONE`. Without the explicit size, C
+  // would size the array to `max-designated-index + 1`, and any later
+  // `vader_type_info_table[tag]` read with `tag` past the last designated
+  // entry but below `vader_type_info_count` would walk off the array.
+  out.push(`const vader_type_info_t vader_type_info_table[${types.length}] = {`);
   for (let i = 0; i < types.length; i++) {
     const t = types[i]!;
     if (t.kind === "struct") {
@@ -512,10 +518,29 @@ function isRefVal(v: ValType): boolean {
 
 // ------------------------------------------------------------- per-fn state
 
+/** A value sitting on the C-side stack. Three flavours :
+ *
+ *  - `tmp` — already materialised into a fresh `tN`. The eager case ; used
+ *    for any expression with side effects, ref/any types (GC-rooted), or
+ *    once a `local-ref` has been forced by an intervening write.
+ *  - `literal` — a pure literal text (`"42"`, `"true"`, …). Always safe to
+ *    inline at the consumer ; never invalidated.
+ *  - `local-ref` — a snapshot of `lN` taken at push time. Inlined as `lN`
+ *    when popped UNLESS a later `local.set/tee N` happens before the pop,
+ *    in which case `materializeStackForSlot` upgrades it to a `tmp` first.
+ *
+ *  Lazy materialisation halves the line count on the Vader self-host
+ *  output by skipping the constant-then-immediately-used boilerplate
+ *  (`int32_t t6 = INT32_C(1); l4 = t6;` → `l4 = 1;`). */
+type StackVal =
+  | { kind: "tmp";       name: string; val: ValType }
+  | { kind: "literal";   text: string; val: ValType }
+  | { kind: "local-ref"; slot:  number; val: ValType };
+
 interface FnState {
   readonly fn: BcFunction;
   readonly ctx: EmitCtx;
-  readonly stack: { name: string; val: ValType }[];
+  readonly stack: StackVal[];
   tmpCounter: number;
   readonly out: string[];
   indent: string;
@@ -584,19 +609,32 @@ function emitOp(s: FnState, ip: number, op: Op): void {
   switch (k) {
     case "drop":     s.stack.pop(); return;
     case "dup": {
-      const top = peek(s); s.stack.push({ name: top.name, val: top.val }); return;
+      // Push the same StackVal — literals + local-refs are safe to share ;
+      // tmps just reference the same name. Each consumer reads consistently.
+      const top = s.stack[s.stack.length - 1];
+      if (top !== undefined) s.stack.push(top);
+      return;
     }
 
     case "local.get": {
       const val = slotValType(s, op.slot);
       if (val === "void") return;       // void slots: no real storage, no push
-      const t = newTmp(s, val);
-      line(s, `${decl(s, val, t)} = l${op.slot};`);
+      // Inline `lN` for primitives (no GC concern) ; for ref/any, snapshot
+      // into a refTmp so the value stays a GC root through any intervening
+      // allocation. C may otherwise evaluate `l0.payload.obj` *before* a
+      // sibling alloc arg, leaving a stale pointer post-collection.
+      if (val === "ref" || val === "any") {
+        const t = newTmp(s, val);
+        line(s, `${decl(s, val, t)} = l${op.slot};`);
+      } else {
+        pushLocalRef(s, op.slot, val);
+      }
       return;
     }
     case "local.set": {
       const slotVal = slotValType(s, op.slot);
       if (slotVal === "void") return;   // void slots: nothing on the stack to consume
+      materializeStackForSlot(s, op.slot);
       const v = pop(s);
       line(s, `l${op.slot} = ${coerce(s, v.name, v.val, slotVal)};`);
       return;
@@ -604,13 +642,17 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "local.tee": {
       const slotVal = slotValType(s, op.slot);
       if (slotVal === "void") return;
+      materializeStackForSlot(s, op.slot);
       const v = pop(s);
       line(s, `l${op.slot} = ${coerce(s, v.name, v.val, slotVal)};`);
-      // Re-push a fresh tmp typed as the slot. Critical when the source is a
-      // boxed value (`any`/`ref`) but the slot is a primitive — peeking would
-      // leave the box on the stack and break downstream typed ops.
-      const t = newTmp(s, slotVal);
-      line(s, `${decl(s, slotVal, t)} = l${op.slot};`);
+      // Push a fresh snapshot — primitives inline as `lN`, refs/any need
+      // a refTmp for GC-precision (see local.get).
+      if (slotVal === "ref" || slotVal === "any") {
+        const t = newTmp(s, slotVal);
+        line(s, `${decl(s, slotVal, t)} = l${op.slot};`);
+      } else {
+        pushLocalRef(s, op.slot, slotVal);
+      }
       return;
     }
 
@@ -627,11 +669,11 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       const tag = s.ctx.primitiveTagOf.get("null") ?? 0;
       return pushLit(s, "any", `vader_box_obj(${tag}u, NULL)`);
     }
-    case "string.const": {
-      const t = newTmp(s, "string");
-      line(s, `vader_string_t ${t} = vader_string_new(vader_str_${op.index}_data, vader_str_${op.index}_len);`);
+    case "string.const":
+      // Pool entry is already a `vader_string_t` static — push by name
+      // and let the consumer copy it inline. No allocation, no temp.
+      pushLit(s, "string", `vader_str_${op.index}`);
       return;
-    }
 
     case "bool.and":   return pushBinop(s, "bool", "&&", "bool");
     case "bool.or":    return pushBinop(s, "bool", "||", "bool");
@@ -1278,15 +1320,26 @@ function pushFnCall2(s: FnState, resultT: ValType, fn: string): void {
   line(s, `${decl(s, resultT, tmp)} = ${fn}(${l.name}, ${r.name});`);
 }
 
+/** Push a pure literal — the text is stashed on the stack and inlined at
+ *  the consumer site. No `Type tN = lit;` line is emitted. */
 function pushLit(s: FnState, t: ValType, lit: string): void {
-  const tmp = newTmp(s, t);
-  line(s, `${decl(s, t, tmp)} = ${lit};`);
+  s.stack.push({ kind: "literal", text: lit, val: t });
 }
 
+/** Push a snapshot of `lN` taken at this point. The pop site reads back
+ *  `lN` directly UNLESS an intervening `local.set/tee` on the same slot
+ *  forces a materialisation (see `materializeStackForSlot`). */
+function pushLocalRef(s: FnState, slot: number, val: ValType): void {
+  s.stack.push({ kind: "local-ref", slot, val });
+}
+
+/** Materialise a fresh `tN` on the stack and emit its declaration. Used
+ *  by every push that produces a value with side effects (calls, allocs,
+ *  ops between non-literals, ref/any results). */
 function newTmp(s: FnState, val: ValType): string {
   const idx = s.tmpCounter++;
   const name = `t${idx}`;
-  s.stack.push({ name, val });
+  s.stack.push({ kind: "tmp", name, val });
   if (val === "ref" || val === "any") s.refTmpIndices.push(idx);
   return name;
 }
@@ -1300,16 +1353,42 @@ function decl(s: FnState, val: ValType, name: string): string {
   return `${cTypeForVal(s.ctx, val)} ${name}`;
 }
 
+/** Inline-able C text for a stack value. Literals expand to their text,
+ *  tmps to the tmp name, local-refs to `lN`. */
+function nameOf(v: StackVal): string {
+  switch (v.kind) {
+    case "tmp":       return v.name;
+    case "literal":   return v.text;
+    case "local-ref": return `l${v.slot}`;
+  }
+}
+
 function pop(s: FnState): { name: string; val: ValType } {
   const v = s.stack.pop();
   if (v === undefined) return { name: "0", val: "i32" };  // defensive — emitter bug
-  return v;
+  return { name: nameOf(v), val: v.val };
 }
 
 function peek(s: FnState): { name: string; val: ValType } {
   const v = s.stack[s.stack.length - 1];
   if (v === undefined) return { name: "0", val: "i32" };
-  return v;
+  return { name: nameOf(v), val: v.val };
+}
+
+/** Before a `local.set/tee N` mutates `lN`, force every stack entry that
+ *  references `lN` to snapshot its current value into a fresh tmp.
+ *  Without this, popping a `local-ref{slot:N}` after the set would read
+ *  the *new* value of `lN` instead of the old one. */
+function materializeStackForSlot(s: FnState, slot: number): void {
+  for (let i = 0; i < s.stack.length; i++) {
+    const v = s.stack[i]!;
+    if (v.kind !== "local-ref" || v.slot !== slot) continue;
+    const idx = s.tmpCounter++;
+    const name = `t${idx}`;
+    line(s, `${decl(s, v.val, name)} = l${v.slot};`);
+    if (v.val === "ref" || v.val === "any") s.refTmpIndices.push(idx);
+    s.stack[i] = { kind: "tmp", name, val: v.val };
+  }
 }
 
 function line(s: FnState, code: string): void { s.out.push(`${s.indent}${code}`); }
@@ -1476,7 +1555,7 @@ function zeroInit(_ctx: EmitCtx, v: ValType): string {
       return "0";
     case "f32": case "f64": return "0.0";
     case "bool": return "false";
-    case "string": return "vader_string_new(\"\", 0)";
+    case "string": return "(vader_string_t){0}";
     case "null":   return "vader_box_null()";
     case "void":   return "0";
     case "ref": case "any":  return "vader_box_null()";

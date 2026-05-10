@@ -1,8 +1,4 @@
 module _main
-type 0 struct tests_snippets_intrinsic_counts__main_vader$Pair { first:1,second:1 }
-type 1 primitive i32
-type 2 struct tests_snippets_intrinsic_counts__main_vader$Triple { a:3,b:3,c:3 }
-type 3 primitive i8
 import 0 equals std_core$i8$Eq$equals (i8,i8) -> bool
 import 1 equals std_core$i16$Eq$equals (i16,i16) -> bool
 import 2 equals std_core$i32$Eq$equals (i32,i32) -> bool

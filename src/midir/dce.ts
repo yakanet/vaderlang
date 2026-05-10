@@ -54,12 +54,20 @@ export function pruneUnreachable(lp: LoweredProject): LoweredProject {
   const reachable = new Set<number>();
   const worklist: LoweredDecl[] = [];
 
+  // Whole-program reachability is gated on the project actually exposing a
+  // `main`. When it does, we treat user code uniformly with stdlib (root from
+  // main + every @export/@test/@extern, prune the rest). When it doesn't —
+  // library target, snapshot fixture, single-file `vader run` of a non-main
+  // file — every user decl stays a root, matching the prior behavior so
+  // those workflows don't lose their decls.
+  const hasMain = projectHasMain(lp);
+
   for (const m of lp.modules.values()) {
     const fromStdlib = isStdlibModule(m.displayPath);
     for (const d of m.decls) {
       const sym = d.origin.symbol;
       if (sym !== null) bySymId.set(sym.id, d);
-      if (!isRoot(d, fromStdlib)) continue;
+      if (!isRoot(d, fromStdlib, hasMain)) continue;
       if (sym !== null) reachable.add(sym.id);
       worklist.push(d);
     }
@@ -100,10 +108,11 @@ export function pruneUnreachable(lp: LoweredProject): LoweredProject {
   return { modules, vtableEntries: lp.vtableEntries };
 }
 
-function isRoot(d: LoweredDecl, fromStdlib: boolean): boolean {
-  // User code is never DCE'd — keeps library targets and snapshot fixtures
-  // intact when there's no `main`.
-  if (!fromStdlib) return true;
+function isRoot(d: LoweredDecl, fromStdlib: boolean, hasMain: boolean): boolean {
+  // No `main` anywhere — every user decl stays a root so library targets,
+  // snapshot fixtures, and `vader run` of a script without `main` keep
+  // their decls intact. Stdlib is always reachability-only.
+  if (!fromStdlib && !hasMain) return true;
   if (d.kind === "LoweredFnDecl") {
     if (d.body === null) return true;                    // @extern import
     if (isMainMangled(d.mangled)) return true;
@@ -112,6 +121,17 @@ function isRoot(d: LoweredDecl, fromStdlib: boolean): boolean {
   return hasDecorator(decs, DEC.export)
       || hasDecorator(decs, DEC.test)
       || hasDecorator(decs, DEC.extern);
+}
+
+function projectHasMain(lp: LoweredProject): boolean {
+  for (const m of lp.modules.values()) {
+    for (const d of m.decls) {
+      if (d.kind === "LoweredFnDecl" && d.body !== null && isMainMangled(d.mangled)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 // =============================================================================
