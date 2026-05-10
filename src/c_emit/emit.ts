@@ -66,6 +66,13 @@ interface EmitCtx {
   /** Inverse of `module.implTable`: trait name → struct type-indices that
    *  implement it. Built once so `is Trait` checks don't re-scan the table. */
   readonly structIdxsByTrait: ReadonlyMap<string, readonly number[]>;
+  /** Fn indices that may allocate — directly via a `struct.new` / `array.new`
+   *  / `string.concat` / `intrinsic` / `make_closure`, indirectly via a
+   *  `call.import` / `call.indirect` / `virtual.call` (conservative), or
+   *  transitively via a `call` to another may-alloc fn. Fns NOT in this set
+   *  skip the shadow-stack frame entirely — no `vader_gc_frame_t` setup,
+   *  no `gc_top` push/pop, no `gc_roots[]` array. */
+  readonly mayAlloc: ReadonlySet<number>;
 }
 
 function newCtx(m: BytecodeModule): EmitCtx {
@@ -93,7 +100,58 @@ function newCtx(m: BytecodeModule): EmitCtx {
   return {
     module: m, stringTagIndex: stringIdx, errorTagIndex: errorIdx,
     fnNames, structNames, primitiveTagOf, structIdxsByTrait,
+    mayAlloc: computeMayAlloc(m),
   };
+}
+
+// Bytecode-level callgraph analysis: which fns may trigger a GC allocation
+// (transitively). Used by `emitFunctionBody` to skip the shadow-stack frame
+// for pure leaf-ish fns — `inc(x) = x + 1`, accessor methods, predicates.
+//
+// Direct allocators: `struct.new`, `array.new`, `array.push`, `string.concat`,
+// `intrinsic` (string-builder family), `make_closure`. Indirect allocators
+// (conservative — unknown target): `call.import`, `call.indirect`,
+// `virtual.call`. Transitive: any `call` to a fn already in the set.
+function computeMayAlloc(m: BytecodeModule): Set<number> {
+  const mayAlloc = new Set<number>();
+
+  for (let fi = 0; fi < m.functions.length; fi++) {
+    const fn = m.functions[fi]!;
+    for (const op of fn.body) {
+      switch (op.kind) {
+        case "struct.new":
+        case "array.new":
+        case "array.push":
+        case "string.concat":
+        case "intrinsic":
+        case "make_closure":
+        case "call.import":
+        case "call.indirect":
+        case "virtual.call":
+          mayAlloc.add(fi);
+          break;
+      }
+      if (mayAlloc.has(fi)) break;
+    }
+  }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let fi = 0; fi < m.functions.length; fi++) {
+      if (mayAlloc.has(fi)) continue;
+      const fn = m.functions[fi]!;
+      for (const op of fn.body) {
+        if (op.kind === "call" && mayAlloc.has(op.fnIndex)) {
+          mayAlloc.add(fi);
+          changed = true;
+          break;
+        }
+      }
+    }
+  }
+
+  return mayAlloc;
 }
 
 // =========================================================================
@@ -435,6 +493,13 @@ function emitFunctions(ctx: EmitCtx, out: string[]): void {
 function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: string[]): void {
   out.push(`static ${signatureFor(ctx, fn)} {`);
 
+  // Provably no-alloc fns skip the entire shadow-stack dance. No allocation
+  // means no GC pass while inside this fn (or any of its callees) — so any
+  // `&lN` we'd chain into `gc_roots[]` would never be visited. Skipping the
+  // address-of also frees the C compiler's DSE pass to drop dead writes to
+  // those slots.
+  const noFrame = !ctx.mayAlloc.has(_fnIndex);
+
   // Collect addresses of every ref-typed slot that needs to be a GC root —
   // the C emit takes their `&` to pin them on the C stack and chains the
   // resulting array through the shadow stack frame. Ref-typed *tmps* are
@@ -442,8 +507,10 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
   // params and block-result slots are known up front.
   const rootAddrs: string[] = [];
 
-  for (let i = 0; i < fn.signature.params.length; i++) {
-    if (isRefVal(fn.signature.params[i]!)) rootAddrs.push(`&l${i}`);
+  if (!noFrame) {
+    for (let i = 0; i < fn.signature.params.length; i++) {
+      if (isRefVal(fn.signature.params[i]!)) rootAddrs.push(`&l${i}`);
+    }
   }
 
   // Declare local slots (params already declared in the signature). `void`
@@ -454,7 +521,7 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
   // a single comma-separated declaration — `int32_t l1=0, l2=0, l3=0;` in
   // place of one line per local. ~3-4× compression on the local-decl
   // boilerplate of fns with many primitives.
-  emitLocalDecls(out, ctx, fn, rootAddrs);
+  emitLocalDecls(out, ctx, fn, noFrame ? null : rootAddrs);
 
   // Per-op tmp vars: every push allocates a fresh `tN`. The stack tracks
   // `{ name, val }` so we know how to coerce when crossing slot boundaries.
@@ -467,6 +534,7 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
     labels: precomputeLabels(fn),
     scopeStack: [],
     refTmpIndices: [],
+    noFrame,
   };
 
   // Pre-declare every block result tmp so jumps can assign without scope
@@ -478,7 +546,7 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
     const ctype = cTypeForVal(ctx, l.resultType);
     if (isRefVal(l.resultType)) {
       out.push(`    ${ctype} blockres_${l.openIp} = vader_box_null();`);
-      rootAddrs.push(`&blockres_${l.openIp}`);
+      if (!noFrame) rootAddrs.push(`&blockres_${l.openIp}`);
     } else {
       out.push(`    ${ctype} blockres_${l.openIp};`);
     }
@@ -494,32 +562,36 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
     emitOp(state, ip, op);
   }
 
-  // Build prelude: ref-tmp declarations + gc_roots + frame push. Even when
-  // the function has no ref slots we still push a frame so `emitReturn` can
-  // unconditionally pop without a runtime check; the cost is two memory ops
-  // per call, which the C compiler usually folds away.
+  // Build prelude: ref-tmp declarations + gc_roots + frame push. No-alloc
+  // fns (`noFrame` set) skip the gc_roots[] / gc_frame / gc_top lines —
+  // they still pre-declare ref tmps for liveness, but those don't need to
+  // be GC roots since no GC pass can fire while in this fn.
   const prelude: string[] = [];
   if (state.refTmpIndices.length > 0) {
     const PER_LINE = 6;
-    for (const idx of state.refTmpIndices) rootAddrs.push(`&t${idx}`);
+    if (!noFrame) {
+      for (const idx of state.refTmpIndices) rootAddrs.push(`&t${idx}`);
+    }
     for (let i = 0; i < state.refTmpIndices.length; i += PER_LINE) {
       const chunk = state.refTmpIndices.slice(i, i + PER_LINE)
         .map((idx) => `t${idx} = vader_box_null()`).join(", ");
       prelude.push(`    vader_box_t ${chunk};`);
     }
   }
-  if (rootAddrs.length > 0) {
-    prelude.push(`    vader_box_t* gc_roots[${rootAddrs.length}] = { ${rootAddrs.join(", ")} };`);
-  }
-  const rootsExpr = rootAddrs.length > 0 ? `gc_roots` : `NULL`;
-  prelude.push(`    vader_gc_frame_t gc_frame = { vader_gc_top, ${rootAddrs.length}u, 0u, ${rootsExpr} };`);
-  prelude.push(`    vader_gc_top = &gc_frame;`);
+  if (!noFrame) {
+    if (rootAddrs.length > 0) {
+      prelude.push(`    vader_box_t* gc_roots[${rootAddrs.length}] = { ${rootAddrs.join(", ")} };`);
+    }
+    const rootsExpr = rootAddrs.length > 0 ? `gc_roots` : `NULL`;
+    prelude.push(`    vader_gc_frame_t gc_frame = { vader_gc_top, ${rootAddrs.length}u, 0u, ${rootsExpr} };`);
+    prelude.push(`    vader_gc_top = &gc_frame;`);
 
-  // Defensive pop on fall-through: if the body falls past its last op without
-  // an explicit return (void fn with implicit end), restore the caller's
-  // frame before returning. Explicit returns (`emitReturn`) pop before
-  // issuing `return`, so this line is dead in those paths.
-  out.push(`    vader_gc_top = gc_frame.prev;`);
+    // Defensive pop on fall-through: if the body falls past its last op
+    // without an explicit return (void fn with implicit end), restore the
+    // caller's frame before returning. Explicit returns (`emitReturn`) pop
+    // before issuing `return`, so this line is dead in those paths.
+    out.push(`    vader_gc_top = gc_frame.prev;`);
+  }
 
   out.splice(preludePos, 0, ...prelude);
 
@@ -539,7 +611,7 @@ function isRefVal(v: ValType): boolean {
  *  init also lets each line carry more entries (PER_LINE bumps from 6 to
  *  10) since the names are shorter. */
 function emitLocalDecls(
-  out: string[], ctx: EmitCtx, fn: BcFunction, rootAddrs: string[],
+  out: string[], ctx: EmitCtx, fn: BcFunction, rootAddrs: string[] | null,
 ): void {
   const buckets = new Map<ValType, number[]>();
   for (let i = 0; i < fn.locals.length; i++) {
@@ -549,7 +621,7 @@ function emitLocalDecls(
     let bucket = buckets.get(local.val);
     if (bucket === undefined) { bucket = []; buckets.set(local.val, bucket); }
     bucket.push(slot);
-    if (isRefVal(local.val)) rootAddrs.push(`&l${slot}`);
+    if (isRefVal(local.val) && rootAddrs !== null) rootAddrs.push(`&l${slot}`);
   }
   for (const [val, slots] of buckets) {
     const ctype = cTypeForVal(ctx, val);
@@ -603,6 +675,9 @@ interface FnState {
   /** tmp indices that hold ref-typed values — pre-declared in the function
    *  prelude and registered as GC roots via the shadow stack frame. */
   readonly refTmpIndices: number[];
+  /** True when the fn is provably no-alloc (per `EmitCtx.mayAlloc`). Tells
+   *  `emitReturn` to skip the `vader_gc_top = gc_frame.prev` restore. */
+  readonly noFrame: boolean;
 }
 
 interface OpenLabel {
@@ -904,13 +979,18 @@ function emitReturn(s: FnState): void {
   // Pop the shadow-stack frame first, then return. For non-void returns we
   // capture the value into a tmp before popping (the expression may read from
   // frame-pinned locals — capturing a snapshot makes the order safe).
+  // No-frame fns skip the `gc_top` restore — there's no frame to pop.
   if (s.fn.signature.result === "void") {
-    line(s, `{ vader_gc_top = gc_frame.prev; return; }`);
+    line(s, s.noFrame ? `return;` : `{ vader_gc_top = gc_frame.prev; return; }`);
   } else {
     const v = pop(s);
     const ret = coerce(s, v.name, v.val, s.fn.signature.result);
-    const cret = cTypeForVal(s.ctx, s.fn.signature.result);
-    line(s, `{ ${cret} __vret = ${ret}; vader_gc_top = gc_frame.prev; return __vret; }`);
+    if (s.noFrame) {
+      line(s, `return ${ret};`);
+    } else {
+      const cret = cTypeForVal(s.ctx, s.fn.signature.result);
+      line(s, `{ ${cret} __vret = ${ret}; vader_gc_top = gc_frame.prev; return __vret; }`);
+    }
   }
   markUnreachable(s);
 }
