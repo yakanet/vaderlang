@@ -1,0 +1,59 @@
+module _main
+string 0 "N"
+string 1 "E"
+string 2 "S"
+string 3 "W"
+import 0 println std_io$println (string) -> void
+
+fn 0 tests_snippets_enum_implements_trait__main_vader$Direction$Display$show (i32) -> string
+  local "__scrut_0#14" i32
+  local.get 0   ; _main.vader:12:15
+  local.set 1   ; _main.vader:12:15
+  local.get 1   ; _main.vader:13:13
+  i32.const 0   ; _main.vader:13:13
+  i32.eq   ; _main.vader:13:13
+  if $L0 void   ; _main.vader:13:13
+    string.const 0   ; _main.vader:13:23
+    return   ; _main.vader:11:29
+  else   ; _main.vader:13:13
+    local.get 1   ; _main.vader:14:13
+    i32.const 1   ; _main.vader:14:13
+    i32.eq   ; _main.vader:14:13
+    if $L1 void   ; _main.vader:14:13
+      string.const 1   ; _main.vader:14:23
+      return   ; _main.vader:11:29
+    else   ; _main.vader:14:13
+      local.get 1   ; _main.vader:15:13
+      i32.const 2   ; _main.vader:15:13
+      i32.eq   ; _main.vader:15:13
+      if $L2 void   ; _main.vader:15:13
+        string.const 2   ; _main.vader:15:23
+        return   ; _main.vader:11:29
+      else   ; _main.vader:15:13
+        local.get 1   ; _main.vader:16:13
+        i32.const 3   ; _main.vader:16:13
+        i32.eq   ; _main.vader:16:13
+        if $L3 void   ; _main.vader:16:13
+          string.const 3   ; _main.vader:16:23
+          return   ; _main.vader:11:29
+        else   ; _main.vader:16:13
+          unreachable   ; _main.vader:12:9
+        end $L3   ; _main.vader:16:13
+      end $L2   ; _main.vader:15:13
+    end $L1   ; _main.vader:14:13
+  end $L0   ; _main.vader:13:13
+end
+
+fn 1 tests_snippets_enum_implements_trait__main_vader$main () -> i32
+  i32.const 0   ; _main.vader:23:10
+  call 0   ; _main.vader:24:13
+  call.import 0   ; _main.vader:24:5
+  i32.const 1   ; _main.vader:26:13
+  call 0   ; _main.vader:26:13
+  call.import 0   ; _main.vader:26:5
+  i32.const 2   ; _main.vader:28:10
+  call 0   ; _main.vader:29:13
+  call.import 0   ; _main.vader:29:5
+  i32.const 0   ; _main.vader:30:12
+  return   ; _main.vader:30:5
+end

@@ -72,16 +72,18 @@ export class ImplRegistry {
     return null;
   }
 
-  /** Resolve `(forType, trait)` regardless of whether `forType` is a struct
-   *  or a primitive. Struct lookups consider the concrete type-args so
-   *  `Range[i32] implements Iterator` and `Range[char] implements Iterator`
-   *  coexist without clobbering each other. Other shapes (Array, Trait,
-   *  TypeParam, …) have no impl by construction. */
+  /** Resolve `(forType, trait)` regardless of whether `forType` is a struct,
+   *  an enum, or a primitive. Struct lookups consider the concrete type-args
+   *  so `Range[i32] implements Iterator` and `Range[char] implements Iterator`
+   *  coexist without clobbering each other. Enums have no type-args (their
+   *  variants are name-only) so the lookup uses an empty args key. Other
+   *  shapes (Array, Trait, TypeParam, …) have no impl by construction. */
   findFor(forType: Type, traitSymbol: Symbol): ImplEntry | null {
     if (forType.kind === "Struct") {
       const argsKey = forType.args.length === 0 ? "" : forType.args.map(implArgKey).join(",");
       return this.findUserWithArgs(forType.symbol, traitSymbol, argsKey);
     }
+    if (forType.kind === "Enum") return this.findUserWithArgs(forType.symbol, traitSymbol, "");
     if (forType.kind === "Primitive") return this.forPrimitive(forType.name, traitSymbol);
     return null;
   }
@@ -140,11 +142,11 @@ function collectImpls(
 function forTypeSymbol(forType: A.TypeExpr, program: ResolvedProgram): Symbol | null {
   if (forType.kind === "IdentExpr") {
     const sym = program.types.get(forType);
-    if (sym !== undefined && (sym.kind === "struct" || sym.kind === "type-alias")) return sym;
+    if (sym !== undefined && (sym.kind === "struct" || sym.kind === "enum" || sym.kind === "type-alias")) return sym;
   }
   if (forType.kind === "GenericInstExpr" && forType.callee.kind === "IdentExpr") {
     const sym = program.types.get(forType.callee);
-    if (sym !== undefined && (sym.kind === "struct" || sym.kind === "type-alias")) return sym;
+    if (sym !== undefined && (sym.kind === "struct" || sym.kind === "enum" || sym.kind === "type-alias")) return sym;
   }
   return null;
 }

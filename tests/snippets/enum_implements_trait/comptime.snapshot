@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/enum_implements_trait/_main.vader
+
+## generic instances
+  Yielded(char)
+  Yielded(i32)
+  Range(char)
+  Range(i32)

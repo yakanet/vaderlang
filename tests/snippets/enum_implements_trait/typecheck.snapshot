@@ -1,0 +1,31 @@
+# Typecheck
+
+## tests/snippets/enum_implements_trait/_main.vader
+  EnumDecl       Direction            :: Direction
+  FnDecl         main                 :: fn() -> i32
+  expr 12:15    IdentExpr      :: Direction
+  expr 12:9     MatchExpr      :: string
+  expr 13:23    StringLitExpr  :: string
+  expr 14:23    StringLitExpr  :: string
+  expr 15:23    StringLitExpr  :: string
+  expr 16:23    StringLitExpr  :: string
+  expr 23:10    FieldExpr      :: Direction
+  expr 23:10    IdentExpr      :: Direction
+  expr 24:13    CallExpr       :: string
+  expr 24:13    FieldExpr      :: fn() -> string
+  expr 24:13    IdentExpr      :: Direction
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 26:13    CallExpr       :: string
+  expr 26:13    FieldExpr      :: Direction
+  expr 26:13    FieldExpr      :: fn() -> string
+  expr 26:13    IdentExpr      :: Direction
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(string) -> void
+  expr 28:10    FieldExpr      :: Direction
+  expr 28:10    IdentExpr      :: Direction
+  expr 29:13    CallExpr       :: string
+  expr 29:13    FieldExpr      :: fn() -> string
+  expr 29:13    IdentExpr      :: Direction
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(string) -> void

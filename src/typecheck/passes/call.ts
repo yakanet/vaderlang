@@ -672,6 +672,9 @@ function implMatchesTarget(entry: ImplEntry, target: Type): boolean {
   if (target.kind === "Struct") {
     return entry.forSymbol !== null && entry.forSymbol.id === target.symbol.id;
   }
+  if (target.kind === "Enum") {
+    return entry.forSymbol !== null && entry.forSymbol.id === target.symbol.id;
+  }
   if (target.kind === "Primitive") {
     return entry.forSymbol === null
       && entry.decl.forType.kind === "IdentExpr"

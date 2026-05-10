@@ -1,0 +1,31 @@
+// `Enum implements Trait` — exercises the impl-machinery branches added for
+// Enum targets (forTypeSymbol, ImplRegistry.findFor, implMatchesTarget) and
+// the lower-side guard distinguishing `EnumName.Variant` from
+// `enum_value.method` on the same dotted-target shape.
+
+import "std/io" { println }
+
+Direction :: enum { North, East, South, West }
+
+Direction implements Display {
+    fn show(self) -> string {
+        match self {
+            .North -> "N"
+            .East  -> "E"
+            .South -> "S"
+            .West  -> "W"
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    // UFCS-style dispatch on an enum value
+    d :: Direction.North
+    println(d.show())
+    // Method call directly on `EnumName.Variant`
+    println(Direction.East.show())
+    // Through a let binding from a different variant
+    s :: Direction.South
+    println(s.show())
+    return 0
+}
