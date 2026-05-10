@@ -17,19 +17,21 @@ fn tests_snippets_tuple_destructure_wildcard__main_vader$triple() -> [i32, strin
 
 fn tests_snippets_tuple_destructure_wildcard__main_vader$main() -> i32
   locals:
-    %0 $call_0#13: [i32, string, bool]
-    %1 __tup_0#14: [i32, string, bool] (synthetic __tup_0)
-    %2 a#15: i32 (local a)
-    %3 c#16: bool (local c)
-    %4 $intrinsic_6#17: ?
-    %5 __sb_1#18: ? (synthetic __sb_1)
-    %6 $k_8#19: string
-    %7 $intrinsic_9#20: string
-    %8 $intrinsic_10#21: ?
-    %9 __sb_2#22: ? (synthetic __sb_2)
-    %10 $k_12#23: string
-    %11 $intrinsic_13#24: string
-    %12 $k_14#25: i32
+    %0 $call_0#15: [i32, string, bool]
+    %1 __tup_0#16: [i32, string, bool] (synthetic __tup_0)
+    %2 a#17: i32 (local a)
+    %3 c#18: bool (local c)
+    %4 $intrinsic_6#19: ?
+    %5 __sb_1#20: ? (synthetic __sb_1)
+    %6 $k_8#21: string
+    %7 $intrinsic_9#22: string
+    %8 $call_10#23: string
+    %9 $intrinsic_11#24: ?
+    %10 __sb_2#25: ? (synthetic __sb_2)
+    %11 $k_13#26: string
+    %12 $intrinsic_14#27: string
+    %13 $call_15#28: string
+    %14 $k_16#29: i32
   bb0:
     %0 = call triple() :[i32, string, bool]
     %1 = move %0
@@ -41,13 +43,15 @@ fn tests_snippets_tuple_destructure_wildcard__main_vader$main() -> i32
     intrinsic builder.append_str(%5, %6)
     intrinsic builder.append_display(%5, %2)
     %7 = intrinsic builder.finish(%5)
-    call println(%7) :void
-    %8 = intrinsic builder.new()
-    %9 = move %8
-    %10 = const string(#2) :string
-    intrinsic builder.append_str(%9, %10)
-    intrinsic builder.append_display(%9, %3)
-    %11 = intrinsic builder.finish(%9)
-    call println(%11) :void
-    %12 = const int(0) :i32
-    return %12
+    %8 = call to_string(%7) :string
+    call println(%8) :void
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    %11 = const string(#2) :string
+    intrinsic builder.append_str(%10, %11)
+    intrinsic builder.append_display(%10, %3)
+    %12 = intrinsic builder.finish(%10)
+    %13 = call to_string(%12) :string
+    call println(%13) :void
+    %14 = const int(0) :i32
+    return %14

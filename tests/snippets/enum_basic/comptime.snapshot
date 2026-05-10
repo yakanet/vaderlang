@@ -7,7 +7,6 @@
   Yielded(i32)
   Range(char)
   Range(i32)
-  println(string)
 
 # Diagnostics
 [19:1] error[T3033] invalid `main` signature: main must return i32

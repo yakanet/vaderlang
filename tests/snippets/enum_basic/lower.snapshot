@@ -4,7 +4,7 @@
   fn tests_snippets_enum_basic__main_vader$describe(d: Direction) -> string
     ~>
       block :string
-        let __scrut_0#-1: Direction = d#60 :Direction
+        let __scrut_0#-1: Direction = d#56 :Direction
         ~>
           if :string
             cond:
@@ -56,92 +56,116 @@
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn tests_snippets_enum_basic__main_vader$main() -> void
-    let d#61: Direction = int(2) :i32
+    let d#57: Direction = int(2) :i32
     call :void
       callee:
-        println#1000090 :void
+        println#26 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            describe#3 :fn(Direction) -> string
+            to_string#1000013 :string
           arg0:
-            d#61 :Direction
+            call :string
+              callee:
+                describe#3 :fn(Direction) -> string
+              arg0:
+                d#57 :Direction
     call :void
       callee:
-        println#1000090 :void
+        println#26 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            describe#3 :fn(Direction) -> string
+            to_string#1000013 :string
           arg0:
-            int(0) :i32
+            call :string
+              callee:
+                describe#3 :fn(Direction) -> string
+              arg0:
+                int(0) :i32
     if :void
       cond:
         eq :bool
           l:
-            d#61 :Direction
+            d#57 :Direction
           r:
             int(2) :i32
       then:
         call :void
           callee:
-            println#1000090 :void
+            println#26 :fn(Display) -> void
           arg0:
-            "d is East" :string
+            call :string
+              callee:
+                to_string#1000013 :string
+              arg0:
+                "d is East" :string
     if :void
       cond:
         eq :bool
           l:
-            d#61 :Direction
+            d#57 :Direction
           r:
             int(3) :i32
       then:
         call :void
           callee:
-            println#1000090 :void
+            println#26 :fn(Display) -> void
           arg0:
-            "d is West" :string
+            call :string
+              callee:
+                to_string#1000013 :string
+              arg0:
+                "d is West" :string
     call :void
       callee:
-        println#1000090 :void
+        println#26 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_0#-2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0#-2 :?
-            "Is EAST: " :string
-          @builder.append_display <for bool> :void
-            __sb_0#-2 :?
-            eq :bool
-              l:
-                d#61 :Direction
-              r:
-                int(2) :i32
-          ~>
-            @builder.finish :string
-              __sb_0#-2 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_0#-2: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0#-2 :?
+                "Is EAST: " :string
+              @builder.append_display <for bool> :void
+                __sb_0#-2 :?
+                eq :bool
+                  l:
+                    d#57 :Direction
+                  r:
+                    int(2) :i32
+              ~>
+                @builder.finish :string
+                  __sb_0#-2 :?
     ~>
       call :void
         callee:
-          println#1000090 :void
+          println#26 :fn(Display) -> void
         arg0:
-          block :string
-            let __sb_1#-3: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_1#-3 :?
-              "Is WEST: " :string
-            @builder.append_display <for bool> :void
-              __sb_1#-3 :?
-              eq :bool
-                l:
-                  d#61 :Direction
-                r:
-                  int(3) :i32
-            ~>
-              @builder.finish :string
-                __sb_1#-3 :?
+          call :string
+            callee:
+              to_string#1000013 :string
+            arg0:
+              block :string
+                let __sb_1#-3: ? =
+                  @builder.new :?
+                @builder.append_str :void
+                  __sb_1#-3 :?
+                  "Is WEST: " :string
+                @builder.append_display <for bool> :void
+                  __sb_1#-3 :?
+                  eq :bool
+                    l:
+                      d#57 :Direction
+                    r:
+                      int(3) :i32
+                ~>
+                  @builder.finish :string
+                    __sb_1#-3 :?
 
 # Diagnostics
 [19:1] error[T3033] invalid `main` signature: main must return i32

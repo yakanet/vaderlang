@@ -10,26 +10,26 @@ string 4 "hello"
 string 5 "pair int   = "
 string 6 "pair str   = "
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
-  local "x#35" ref
-  local "y#36" ref
-  local "__scrut_0#37" ref
-  local "__sb_1#42" any
-  local "$cast_11#44" i32
-  local "__scrut_2#46" ref
-  local "__sb_3#51" any
-  local "$k_19#52" string
-  local "$cast_20#53" i32
-  local "p#55" ref
-  local "__scrut_4#56" ref
-  local "__sb_6#59" any
-  local "$k_28#60" string
-  local "$cast_29#61" i32
-  local "__sb_5#65" any
-  local "$k_34#66" string
-  local "$cast_35#67" string
+  local "x#41" ref
+  local "y#42" ref
+  local "__scrut_0#43" ref
+  local "__sb_1#49" any
+  local "$cast_12#51" i32
+  local "__scrut_2#54" ref
+  local "__sb_3#60" any
+  local "$k_22#61" string
+  local "$cast_23#62" i32
+  local "p#65" ref
+  local "__scrut_4#66" ref
+  local "__sb_6#69" any
+  local "$k_32#70" string
+  local "$cast_33#71" i32
+  local "__sb_5#76" any
+  local "$k_39#77" string
+  local "$cast_40#78" string
   i32.const 42   ; _main.vader:14:21
   local.set 0   ; _main.vader:14:21
   null.const   ; _main.vader:15:21
@@ -39,13 +39,15 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
   type_check 0   ; _main.vader:18:9
   if $L0 void   ; _main.vader:18:9
     string.const 0   ; _main.vader:18:28
-    call 1   ; _main.vader:18:20
+    call.import 0   ; _main.vader:18:28
+    call.import 1   ; _main.vader:18:20
     local.get 1   ; _main.vader:21:11
     local.tee 5   ; _main.vader:21:11
     type_check 0   ; _main.vader:22:9
     if $L1 void   ; _main.vader:22:9
       string.const 2   ; _main.vader:22:28
-      call 1   ; _main.vader:22:20
+      call.import 0   ; _main.vader:22:28
+      call.import 1   ; _main.vader:22:20
       string.const 4   ; _main.vader:26:28
       local.tee 9   ; _main.vader:26:28
       local.tee 10   ; _main.vader:27:11
@@ -66,7 +68,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:28:44
         local.get 11   ; _main.vader:28:30
         intrinsic builder.finish   ; _main.vader:28:30
-        call 1   ; _main.vader:28:22
+        call.import 0   ; _main.vader:28:30
+        call.import 1   ; _main.vader:28:22
         i32.const 0   ; _main.vader:32:12
         return   ; _main.vader:32:5
       else   ; _main.vader:28:9
@@ -88,7 +91,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:29:44
           local.get 14   ; _main.vader:29:30
           intrinsic builder.finish   ; _main.vader:29:30
-          call 1   ; _main.vader:29:22
+          call.import 0   ; _main.vader:29:30
+          call.import 1   ; _main.vader:29:22
           i32.const 0   ; _main.vader:32:12
           return   ; _main.vader:32:5
         else   ; _main.vader:29:9
@@ -114,7 +118,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:23:33
         local.get 6   ; _main.vader:23:28
         intrinsic builder.finish   ; _main.vader:23:28
-        call 1   ; _main.vader:23:20
+        call.import 0   ; _main.vader:23:28
+        call.import 1   ; _main.vader:23:20
         string.const 4   ; _main.vader:26:28
         local.tee 9   ; _main.vader:26:28
         local.tee 10   ; _main.vader:27:11
@@ -135,7 +140,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:28:44
           local.get 11   ; _main.vader:28:30
           intrinsic builder.finish   ; _main.vader:28:30
-          call 1   ; _main.vader:28:22
+          call.import 0   ; _main.vader:28:30
+          call.import 1   ; _main.vader:28:22
           i32.const 0   ; _main.vader:32:12
           return   ; _main.vader:32:5
         else   ; _main.vader:28:9
@@ -157,7 +163,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:29:44
             local.get 14   ; _main.vader:29:30
             intrinsic builder.finish   ; _main.vader:29:30
-            call 1   ; _main.vader:29:22
+            call.import 0   ; _main.vader:29:30
+            call.import 1   ; _main.vader:29:22
             i32.const 0   ; _main.vader:32:12
             return   ; _main.vader:32:5
           else   ; _main.vader:29:9
@@ -185,13 +192,15 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
       intrinsic builder.append_display   ; _main.vader:19:33
       local.get 3   ; _main.vader:19:28
       intrinsic builder.finish   ; _main.vader:19:28
-      call 1   ; _main.vader:19:20
+      call.import 0   ; _main.vader:19:28
+      call.import 1   ; _main.vader:19:20
       local.get 1   ; _main.vader:21:11
       local.tee 5   ; _main.vader:21:11
       type_check 0   ; _main.vader:22:9
       if $L8 void   ; _main.vader:22:9
         string.const 2   ; _main.vader:22:28
-        call 1   ; _main.vader:22:20
+        call.import 0   ; _main.vader:22:28
+        call.import 1   ; _main.vader:22:20
         string.const 4   ; _main.vader:26:28
         local.tee 9   ; _main.vader:26:28
         local.tee 10   ; _main.vader:27:11
@@ -212,7 +221,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:28:44
           local.get 11   ; _main.vader:28:30
           intrinsic builder.finish   ; _main.vader:28:30
-          call 1   ; _main.vader:28:22
+          call.import 0   ; _main.vader:28:30
+          call.import 1   ; _main.vader:28:22
           i32.const 0   ; _main.vader:32:12
           return   ; _main.vader:32:5
         else   ; _main.vader:28:9
@@ -234,7 +244,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:29:44
             local.get 14   ; _main.vader:29:30
             intrinsic builder.finish   ; _main.vader:29:30
-            call 1   ; _main.vader:29:22
+            call.import 0   ; _main.vader:29:30
+            call.import 1   ; _main.vader:29:22
             i32.const 0   ; _main.vader:32:12
             return   ; _main.vader:32:5
           else   ; _main.vader:29:9
@@ -260,7 +271,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:23:33
           local.get 6   ; _main.vader:23:28
           intrinsic builder.finish   ; _main.vader:23:28
-          call 1   ; _main.vader:23:20
+          call.import 0   ; _main.vader:23:28
+          call.import 1   ; _main.vader:23:20
           string.const 4   ; _main.vader:26:28
           local.tee 9   ; _main.vader:26:28
           local.tee 10   ; _main.vader:27:11
@@ -281,7 +293,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:28:44
             local.get 11   ; _main.vader:28:30
             intrinsic builder.finish   ; _main.vader:28:30
-            call 1   ; _main.vader:28:22
+            call.import 0   ; _main.vader:28:30
+            call.import 1   ; _main.vader:28:22
             i32.const 0   ; _main.vader:32:12
             return   ; _main.vader:32:5
           else   ; _main.vader:28:9
@@ -303,7 +316,8 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
               intrinsic builder.append_display   ; _main.vader:29:44
               local.get 14   ; _main.vader:29:30
               intrinsic builder.finish   ; _main.vader:29:30
-              call 1   ; _main.vader:29:22
+              call.import 0   ; _main.vader:29:30
+              call.import 1   ; _main.vader:29:22
               i32.const 0   ; _main.vader:32:12
               return   ; _main.vader:32:5
             else   ; _main.vader:29:9
@@ -318,11 +332,4 @@ fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
       unreachable   ; _main.vader:17:5
     end $L7   ; _main.vader:19:9
   end $L0   ; _main.vader:18:9
-end
-
-fn 1 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

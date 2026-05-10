@@ -4,17 +4,19 @@
 
 fn tests_snippets_match_struct_pattern_binding__main_vader$main() -> i32
   locals:
-    %0 $k_0#11: i32
-    %1 $k_1#12: string
-    %2 __scrut_0#13: P (synthetic __scrut_0)
-    %3 $type_check_5#14: bool
-    %4 name#15: ? (binding name)
-    %5 $intrinsic_8#16: ?
-    %6 __sb_1#17: ? (synthetic __sb_1)
-    %7 $k_10#18: string
-    %8 $intrinsic_11#19: string
-    %9 $k_12#20: string
-    %10 $k_13#21: i32
+    %0 $k_0#13: i32
+    %1 $k_1#14: string
+    %2 __scrut_0#15: P (synthetic __scrut_0)
+    %3 $type_check_5#16: bool
+    %4 name#17: ? (binding name)
+    %5 $intrinsic_8#18: ?
+    %6 __sb_1#19: ? (synthetic __sb_1)
+    %7 $k_10#20: string
+    %8 $intrinsic_11#21: string
+    %9 $call_12#22: string
+    %10 $k_13#23: string
+    %11 $call_14#24: string
+    %12 $k_15#25: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const string(#0) :string
@@ -29,12 +31,14 @@ fn tests_snippets_match_struct_pattern_binding__main_vader$main() -> i32
     intrinsic builder.append_str(%6, %7)
     intrinsic builder.append_display(%6, %4)
     %8 = intrinsic builder.finish(%6)
-    call println(%8) :void
-    branch -> bb3
-  bb2:
-    %9 = const string(#2) :string
+    %9 = call to_string(%8) :string
     call println(%9) :void
     branch -> bb3
+  bb2:
+    %10 = const string(#2) :string
+    %11 = call to_string(%10) :string
+    call println(%11) :void
+    branch -> bb3
   bb3:
-    %10 = const int(0) :i32
-    return %10
+    %12 = const int(0) :i32
+    return %12

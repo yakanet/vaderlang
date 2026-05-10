@@ -388,13 +388,13 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
 
   // Built-in std/io routes — implemented by the runtime.
   switch (imp.mangledName) {
-    case "std_io$print_str":
+    case "std_io$print":
       return `${head} { vader_print(a0); }`;
-    case "std_io$println_str":
+    case "std_io$println":
       return `${head} { vader_println(a0); }`;
-    case "std_io$eprint_str":
+    case "std_io$eprint":
       return `${head} { vader_eprint(a0); }`;
-    case "std_io$eprintln_str":
+    case "std_io$eprintln":
       return `${head} { vader_eprintln(a0); }`;
     case "std_io$exists":
       return `${head} { return vader_exists(a0); }`;

@@ -1,6 +1,6 @@
 module _main
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_type_aliases__main_vader$add (i32,i32) -> i32
   local.get 0   ; _main.vader:4:5
@@ -10,10 +10,10 @@ fn 0 tests_snippets_type_aliases__main_vader$add (i32,i32) -> i32
 end
 
 fn 1 tests_snippets_type_aliases__main_vader$main () -> i32
-  local "__sb_0#19" any
-  local "$call_13#21" i32
-  local "__sb_1#24" any
-  local "__sb_2#27" any
+  local "__sb_0#22" any
+  local "$call_13#24" i32
+  local "__sb_1#28" any
+  local "__sb_2#32" any
   intrinsic builder.new   ; _main.vader:18:13
   local.set 0   ; _main.vader:18:13
   i32.const 42   ; _main.vader:18:16
@@ -25,14 +25,16 @@ fn 1 tests_snippets_type_aliases__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:18:14
   local.get 0   ; _main.vader:18:13
   intrinsic builder.finish   ; _main.vader:18:13
-  call 2   ; _main.vader:18:5
+  call.import 0   ; _main.vader:18:13
+  call.import 1   ; _main.vader:18:5
   intrinsic builder.new   ; _main.vader:19:13
   local.tee 2   ; _main.vader:19:13
   i64.const 1000000000000   ; _main.vader:19:14
   intrinsic builder.append_display   ; _main.vader:19:14
   local.get 2   ; _main.vader:19:13
   intrinsic builder.finish   ; _main.vader:19:13
-  call 2   ; _main.vader:19:5
+  call.import 0   ; _main.vader:19:13
+  call.import 1   ; _main.vader:19:5
   intrinsic builder.new   ; _main.vader:20:13
   local.tee 3   ; _main.vader:20:13
   i32.const 255   ; _main.vader:20:14
@@ -40,14 +42,8 @@ fn 1 tests_snippets_type_aliases__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:20:14
   local.get 3   ; _main.vader:20:13
   intrinsic builder.finish   ; _main.vader:20:13
-  call 2   ; _main.vader:20:5
+  call.import 0   ; _main.vader:20:13
+  call.import 1   ; _main.vader:20:5
   i32.const 0   ; _main.vader:22:12
   return   ; _main.vader:22:5
-end
-
-fn 2 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

@@ -5,7 +5,7 @@
   expr 10:13    StringLitExpr  :: string
   expr 10:27    IdentExpr      :: i32
   expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn($T) -> void
+  expr 10:5     IdentExpr      :: fn(Display) -> void
   expr 6:9      BinaryExpr     :: bool
   expr 6:9      IdentExpr      :: i32
   expr 7:15     BinaryExpr     :: i32

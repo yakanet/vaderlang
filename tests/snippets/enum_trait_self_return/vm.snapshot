@@ -1,2 +1,6 @@
-# runtime error
-vm: reached unreachable (at tests_snippets_enum_trait_self_return__main_vader$main+4 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/enum_trait_self_return/_main.vader:42:5)
+# stdout
+N
+W
+E
+# exit
+0

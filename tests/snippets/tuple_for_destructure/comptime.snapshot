@@ -9,4 +9,3 @@
   Range(char)
   Range(i32)
   ArrayIter([string, i32])
-  println(string)

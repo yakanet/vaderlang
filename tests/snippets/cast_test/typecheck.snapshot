@@ -8,4 +8,4 @@
   expr 6:13     StringLitExpr  :: string
   expr 6:16     IdentExpr      :: u64
   expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn($T) -> void
+  expr 6:5      IdentExpr      :: fn(Display) -> void

@@ -1733,10 +1733,10 @@ Trait-method dispatch on a bounded type param (`f :: fn[T: Hash](x: T) { x.hash(
 ### `std/io`
 
 ```vader
-print      :: fn[T: Display](msg: T) -> void
-println    :: fn[T: Display](msg: T) -> void
-eprint     :: fn[T: Display](msg: T) -> void
-eprintln   :: fn[T: Display](msg: T) -> void
+print      :: fn(msg: Display) -> void
+println    :: fn(msg: Display) -> void
+eprint     :: fn(msg: Display) -> void
+eprintln   :: fn(msg: Display) -> void
 read_line  :: fn() -> string!
 read_file  :: fn(path: string) -> string!
 write_file :: fn(path: string, content: string) -> void!
@@ -1745,9 +1745,12 @@ exists     :: fn(path: string) -> bool
 
 `print` / `println` / `eprint` / `eprintln` accept any `Display` — pass a
 primitive, a struct with a `to_string` impl, or a `StringBuilder` directly.
-The compiler monomorphises one wrapper per type used at the call site, each
-calling the trait's `to_string` and routing the result to a private
-`print_str` / `println_str` / … host hook.
+At each call site the lowerer rewrites the argument into a static call to
+the matching `<T>.Display.to_string` impl member ; the host hook itself
+receives a flat `string`, so there is no per-type wrapper and no virtual
+dispatch (see `lower/passes/display-coerce.ts`). The same machinery applies
+to any future `@intrinsic` declaration whose parameter is a Display-typed
+slot.
 
 I/O is **synchronous blocking** only in MVP.
 

@@ -6,7 +6,7 @@
   fn tests_snippets_implicit_dot_variant__main_vader$show_day(d: Day) -> string
     return
       block :string
-        let __scrut_0#-1: Day = d#63 :Day
+        let __scrut_0#-1: Day = d#59 :Day
         ~>
           if :string
             cond:
@@ -46,24 +46,28 @@
                           ~>
                             unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn tests_snippets_implicit_dot_variant__main_vader$main() -> i32
-    let a#64: Day = int(0) :i32
+    let a#60: Day = int(0) :i32
     call :void
       callee:
-        println#1000091 :void
+        println#29 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            show_day#6 :fn(Day) -> string
+            to_string#1000013 :string
           arg0:
-            a#64 :Day
-    let days#65: Day[] =
+            call :string
+              callee:
+                show_day#6 :fn(Day) -> string
+              arg0:
+                a#60 :Day
+    let days#61: Day[] =
       array :Day[]
         int(0) :i32
         int(2) :i32
     block :void
       let __iter_0#-2: ArrayIter(Day) =
         ArrayIter(Day) {
-          arr: days#65 :Day[]
+          arr: days#61 :Day[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -82,25 +86,29 @@
           then:
             break
           else:
-            let d#66: Day =
+            let d#62: Day =
               .value :Day
                 cast → Yielded(Day)
                   __step_1#-3 :Done | Yielded(Day)
             call :void
               callee:
-                println#1000091 :void
+                println#29 :fn(Display) -> void
               arg0:
                 call :string
                   callee:
-                    show_day#6 :fn(Day) -> string
+                    to_string#1000013 :string
                   arg0:
-                    d#66 :Day
-    let m#67: None | Some =
+                    call :string
+                      callee:
+                        show_day#6 :fn(Day) -> string
+                      arg0:
+                        d#62 :Day
+    let m#63: None | Some =
       Some {
         value: int(42) :i32
       }
     block :void
-      let __scrut_2#-4: None | Some = m#67 :None | Some
+      let __scrut_2#-4: None | Some = m#63 :None | Some
       ~>
         if :void
           cond:
@@ -110,22 +118,26 @@
             ~>
               call :void
                 callee:
-                  println#1000091 :void
+                  println#29 :fn(Display) -> void
                 arg0:
-                  block :string
-                    let __sb_3#-5: ? =
-                      @builder.new :?
-                    @builder.append_str :void
-                      __sb_3#-5 :?
-                      "got=" :string
-                    @builder.append_display <for i32> :void
-                      __sb_3#-5 :?
-                      .value :i32
-                        cast → Some
-                          m#67 :None | Some
-                    ~>
-                      @builder.finish :string
-                        __sb_3#-5 :?
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      block :string
+                        let __sb_3#-5: ? =
+                          @builder.new :?
+                        @builder.append_str :void
+                          __sb_3#-5 :?
+                          "got=" :string
+                        @builder.append_display <for i32> :void
+                          __sb_3#-5 :?
+                          .value :i32
+                            cast → Some
+                              m#63 :None | Some
+                        ~>
+                          @builder.finish :string
+                            __sb_3#-5 :?
           else:
             ~>
               if :void
@@ -136,17 +148,21 @@
                   ~>
                     call :void
                       callee:
-                        println#1000091 :void
+                        println#29 :fn(Display) -> void
                       arg0:
-                        "nothing" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "nothing" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let n#68: None | Some =
+    let n#64: None | Some =
       None {
       }
     block :void
-      let __scrut_4#-6: None | Some = n#68 :None | Some
+      let __scrut_4#-6: None | Some = n#64 :None | Some
       ~>
         if :void
           cond:
@@ -156,22 +172,26 @@
             ~>
               call :void
                 callee:
-                  println#1000091 :void
+                  println#29 :fn(Display) -> void
                 arg0:
-                  block :string
-                    let __sb_5#-7: ? =
-                      @builder.new :?
-                    @builder.append_str :void
-                      __sb_5#-7 :?
-                      "got=" :string
-                    @builder.append_display <for i32> :void
-                      __sb_5#-7 :?
-                      .value :i32
-                        cast → Some
-                          n#68 :None | Some
-                    ~>
-                      @builder.finish :string
-                        __sb_5#-7 :?
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      block :string
+                        let __sb_5#-7: ? =
+                          @builder.new :?
+                        @builder.append_str :void
+                          __sb_5#-7 :?
+                          "got=" :string
+                        @builder.append_display <for i32> :void
+                          __sb_5#-7 :?
+                          .value :i32
+                            cast → Some
+                              n#64 :None | Some
+                        ~>
+                          @builder.finish :string
+                            __sb_5#-7 :?
           else:
             ~>
               if :void
@@ -182,9 +202,13 @@
                   ~>
                     call :void
                       callee:
-                        println#1000091 :void
+                        println#29 :fn(Display) -> void
                       arg0:
-                        "nothing" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "nothing" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

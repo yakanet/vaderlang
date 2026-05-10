@@ -15,4 +15,4 @@
   expr 13:44    FieldExpr      :: f64
   expr 13:44    IdentExpr      :: Entry
   expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn($T) -> void
+  expr 13:5     IdentExpr      :: fn(Display) -> void

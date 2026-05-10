@@ -60,16 +60,17 @@ fn tests_snippets_expr_bodied_recursive_typed__main_vader$fib(%0: i32) -> i32
 
 fn tests_snippets_expr_bodied_recursive_typed__main_vader$main() -> i32
   locals:
-    %0 $intrinsic_0#10: ?
-    %1 __sb_0#11: ? (synthetic __sb_0)
-    %2 $k_2#12: string
-    %3 $k_3#13: i32
-    %4 $call_4#14: i32
-    %5 $k_5#15: string
-    %6 $k_6#16: i32
-    %7 $call_7#17: i32
-    %8 $intrinsic_8#18: string
-    %9 $k_9#19: i32
+    %0 $intrinsic_0#11: ?
+    %1 __sb_0#12: ? (synthetic __sb_0)
+    %2 $k_2#13: string
+    %3 $k_3#14: i32
+    %4 $call_4#15: i32
+    %5 $k_5#16: string
+    %6 $k_6#17: i32
+    %7 $call_7#18: i32
+    %8 $intrinsic_8#19: string
+    %9 $call_9#20: string
+    %10 $k_10#21: i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0
@@ -84,6 +85,7 @@ fn tests_snippets_expr_bodied_recursive_typed__main_vader$main() -> i32
     %7 = call fib(%6) :i32
     intrinsic builder.append_display(%1, %7)
     %8 = intrinsic builder.finish(%1)
-    call println(%8) :void
-    %9 = const int(0) :i32
-    return %9
+    %9 = call to_string(%8) :string
+    call println(%9) :void
+    %10 = const int(0) :i32
+    return %10

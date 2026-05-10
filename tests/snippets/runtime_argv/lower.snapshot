@@ -4,29 +4,33 @@
   fn tests_snippets_runtime_argv__main_vader$main(argv: string[]) -> i32
     call :void
       callee:
-        println#1000091 :void
+        println#24 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_0#-1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0#-1 :?
-            "argc=" :string
-          @builder.append_display <for i32> :void
-            __sb_0#-1 :?
-            sub :i32
-              l:
-                LoweredArrayLen
-              r:
-                int(1) :i32
-          ~>
-            @builder.finish :string
-              __sb_0#-1 :?
-    let first#59: bool = true
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_0#-1: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0#-1 :?
+                "argc=" :string
+              @builder.append_display <for i32> :void
+                __sb_0#-1 :?
+                sub :i32
+                  l:
+                    LoweredArrayLen
+                  r:
+                    int(1) :i32
+              ~>
+                @builder.finish :string
+                  __sb_0#-1 :?
+    let first#55: bool = true
     block :void
       let __iter_1#-2: ArrayIter(string) =
         ArrayIter(string) {
-          arr: argv#58 :string[]
+          arr: argv#54 :string[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -45,24 +49,28 @@
           then:
             break
           else:
-            let s#60: string =
+            let s#56: string =
               .value :string
                 cast → Yielded(string)
                   __step_2#-3 :Done | Yielded(string)
             if :void
               cond:
-                first#59 :bool
+                first#55 :bool
               then:
                 assign
                   target:
-                    first#59 :bool
+                    first#55 :bool
                   value:
                     false
               else:
                 ~>
                   call :void
                     callee:
-                      println#1000091 :void
+                      println#24 :fn(Display) -> void
                     arg0:
-                      s#60 :string
+                      call :string
+                        callee:
+                          to_string#1000013 :string
+                        arg0:
+                          s#56 :string
     return int(0) :i32

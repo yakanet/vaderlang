@@ -10,17 +10,17 @@
   expr 11:39    FieldExpr      :: fn() -> i32
   expr 11:39    IdentExpr      :: i32[]
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn($T) -> void
+  expr 11:5     IdentExpr      :: fn(Display) -> void
   expr 14:28    IdentExpr      :: i32[]
   expr 15:13    StringLitExpr  :: string
   expr 15:26    CallExpr       :: i32
   expr 15:26    FieldExpr      :: fn() -> i32
   expr 15:26    IdentExpr      :: i32[]
   expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn($T) -> void
+  expr 15:5     IdentExpr      :: fn(Display) -> void
   expr 16:14    IdentExpr      :: i32[]
   expr 16:22    CallExpr       :: void
-  expr 16:22    IdentExpr      :: fn($T) -> void
+  expr 16:22    IdentExpr      :: fn(Display) -> void
   expr 16:30    StringLitExpr  :: string
   expr 16:35    IdentExpr      :: i32
   expr 4:12     SeqLitExpr     :: i32[]
@@ -31,9 +31,9 @@
   expr 7:40     FieldExpr      :: fn() -> i32
   expr 7:40     IdentExpr      :: i32[]
   expr 7:5      CallExpr       :: void
-  expr 7:5      IdentExpr      :: fn($T) -> void
+  expr 7:5      IdentExpr      :: fn(Display) -> void
   expr 8:14     IdentExpr      :: i32[]
   expr 8:21     CallExpr       :: void
-  expr 8:21     IdentExpr      :: fn($T) -> void
+  expr 8:21     IdentExpr      :: fn(Display) -> void
   expr 8:29     StringLitExpr  :: string
   expr 8:34     IdentExpr      :: i32

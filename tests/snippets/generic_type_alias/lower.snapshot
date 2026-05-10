@@ -2,10 +2,10 @@
 
 ## tests/snippets/generic_type_alias/_main.vader
   fn tests_snippets_generic_type_alias__main_vader$main() -> i32
-    let x#63: i32 | null = int(42) :i32 | null
-    let y#64: i32 | null = null
+    let x#59: i32 | null = int(42) :i32 | null
+    let y#60: i32 | null = null
     block :void
-      let __scrut_0#-1: i32 | null = x#63 :i32 | null
+      let __scrut_0#-1: i32 | null = x#59 :i32 | null
       ~>
         if :void
           cond:
@@ -15,9 +15,13 @@
             ~>
               call :void
                 callee:
-                  println#1000090 :void
+                  println#26 :fn(Display) -> void
                 arg0:
-                  "x is null" :string
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      "x is null" :string
           else:
             ~>
               if :void
@@ -28,26 +32,30 @@
                   ~>
                     call :void
                       callee:
-                        println#1000090 :void
+                        println#26 :fn(Display) -> void
                       arg0:
-                        block :string
-                          let __sb_1#-2: ? =
-                            @builder.new :?
-                          @builder.append_str :void
-                            __sb_1#-2 :?
-                            "x = " :string
-                          @builder.append_display <for i32> :void
-                            __sb_1#-2 :?
-                            cast → i32
-                              x#63 :i32 | null
-                          ~>
-                            @builder.finish :string
-                              __sb_1#-2 :?
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            block :string
+                              let __sb_1#-2: ? =
+                                @builder.new :?
+                              @builder.append_str :void
+                                __sb_1#-2 :?
+                                "x = " :string
+                              @builder.append_display <for i32> :void
+                                __sb_1#-2 :?
+                                cast → i32
+                                  x#59 :i32 | null
+                              ~>
+                                @builder.finish :string
+                                  __sb_1#-2 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
-      let __scrut_2#-3: i32 | null = y#64 :i32 | null
+      let __scrut_2#-3: i32 | null = y#60 :i32 | null
       ~>
         if :void
           cond:
@@ -57,9 +65,13 @@
             ~>
               call :void
                 callee:
-                  println#1000090 :void
+                  println#26 :fn(Display) -> void
                 arg0:
-                  "y is null" :string
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      "y is null" :string
           else:
             ~>
               if :void
@@ -70,27 +82,31 @@
                   ~>
                     call :void
                       callee:
-                        println#1000090 :void
+                        println#26 :fn(Display) -> void
                       arg0:
-                        block :string
-                          let __sb_3#-4: ? =
-                            @builder.new :?
-                          @builder.append_str :void
-                            __sb_3#-4 :?
-                            "y = " :string
-                          @builder.append_display <for i32> :void
-                            __sb_3#-4 :?
-                            cast → i32
-                              y#64 :i32 | null
-                          ~>
-                            @builder.finish :string
-                              __sb_3#-4 :?
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            block :string
+                              let __sb_3#-4: ? =
+                                @builder.new :?
+                              @builder.append_str :void
+                                __sb_3#-4 :?
+                                "y = " :string
+                              @builder.append_display <for i32> :void
+                                __sb_3#-4 :?
+                                cast → i32
+                                  y#60 :i32 | null
+                              ~>
+                                @builder.finish :string
+                                  __sb_3#-4 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let p#65: i32 | string = "hello" :string
+    let p#61: i32 | string = "hello" :string
     block :void
-      let __scrut_4#-5: i32 | string = p#65 :i32 | string
+      let __scrut_4#-5: i32 | string = p#61 :i32 | string
       ~>
         if :void
           cond:
@@ -100,21 +116,25 @@
             ~>
               call :void
                 callee:
-                  println#1000090 :void
+                  println#26 :fn(Display) -> void
                 arg0:
-                  block :string
-                    let __sb_6#-7: ? =
-                      @builder.new :?
-                    @builder.append_str :void
-                      __sb_6#-7 :?
-                      "pair int   = " :string
-                    @builder.append_display <for i32> :void
-                      __sb_6#-7 :?
-                      cast → i32
-                        p#65 :i32 | string
-                    ~>
-                      @builder.finish :string
-                        __sb_6#-7 :?
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      block :string
+                        let __sb_6#-7: ? =
+                          @builder.new :?
+                        @builder.append_str :void
+                          __sb_6#-7 :?
+                          "pair int   = " :string
+                        @builder.append_display <for i32> :void
+                          __sb_6#-7 :?
+                          cast → i32
+                            p#61 :i32 | string
+                        ~>
+                          @builder.finish :string
+                            __sb_6#-7 :?
           else:
             ~>
               if :void
@@ -125,21 +145,25 @@
                   ~>
                     call :void
                       callee:
-                        println#1000090 :void
+                        println#26 :fn(Display) -> void
                       arg0:
-                        block :string
-                          let __sb_5#-6: ? =
-                            @builder.new :?
-                          @builder.append_str :void
-                            __sb_5#-6 :?
-                            "pair str   = " :string
-                          @builder.append_display <for string> :void
-                            __sb_5#-6 :?
-                            cast → string
-                              p#65 :i32 | string
-                          ~>
-                            @builder.finish :string
-                              __sb_5#-6 :?
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            block :string
+                              let __sb_5#-6: ? =
+                                @builder.new :?
+                              @builder.append_str :void
+                                __sb_5#-6 :?
+                                "pair str   = " :string
+                              @builder.append_display <for string> :void
+                                __sb_5#-6 :?
+                                cast → string
+                                  p#61 :i32 | string
+                              ~>
+                                @builder.finish :string
+                                  __sb_5#-6 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

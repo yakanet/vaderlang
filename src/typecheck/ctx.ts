@@ -117,6 +117,8 @@ export interface MutableTyped {
   readonly directCallOverloads: Map<A.CallExpr, Symbol>;
   /** `[T]` → `Iterator(T)` coercion sites. See `TypedProgram.arrayIterCoercions`. */
   readonly arrayIterCoercions: Map<A.Expr, Type>;
+  /** `T` → `Display` coercion sites. See `TypedProgram.displayCoercions`. */
+  readonly displayCoercions: Map<A.Expr, Type>;
   /** Operator-overload dispatch sites. See `TypedProgram.binaryOpResolutions`. */
   readonly binaryOpResolutions: Map<A.BinaryExpr, BinaryOpResolution>;
   /** Index trait dispatch sites for `a[i]` reads. */

@@ -4,19 +4,20 @@
 
 fn tests_snippets_tuple_generic_swap__main_vader$main() -> i32
   locals:
-    %0 $k_0#13: i32
-    %1 $k_1#14: string
-    %2 $struct_2#15: [i32, string]
-    %3 $call_3#16: [string, i32]
-    %4 s#17: [string, i32] (local s)
-    %5 $intrinsic_5#18: ?
-    %6 __sb_0#19: ? (synthetic __sb_0)
-    %7 $k_7#20: string
-    %8 $field_8#21: string
-    %9 $k_9#22: string
-    %10 $field_10#23: i32
-    %11 $intrinsic_11#24: string
-    %12 $k_12#25: i32
+    %0 $k_0#14: i32
+    %1 $k_1#15: string
+    %2 $struct_2#16: [i32, string]
+    %3 $call_3#17: [string, i32]
+    %4 s#18: [string, i32] (local s)
+    %5 $intrinsic_5#19: ?
+    %6 __sb_0#20: ? (synthetic __sb_0)
+    %7 $k_7#21: string
+    %8 $field_8#22: string
+    %9 $k_9#23: string
+    %10 $field_10#24: i32
+    %11 $intrinsic_11#25: string
+    %12 $call_12#26: string
+    %13 $k_13#27: i32
   bb0:
     %0 = const int(1) :i32
     %1 = const string(#0) :string
@@ -34,9 +35,10 @@ fn tests_snippets_tuple_generic_swap__main_vader$main() -> i32
     %10 = field_get %4._1 :i32
     intrinsic builder.append_display(%6, %10)
     %11 = intrinsic builder.finish(%6)
-    call println(%11) :void
-    %12 = const int(0) :i32
-    return %12
+    %12 = call to_string(%11) :string
+    call println(%12) :void
+    %13 = const int(0) :i32
+    return %13
 
 fn tests_snippets_tuple_generic_swap__main_vader$tests_snippets_tuple_generic_swap__main_vader$swap__i32__string(%0: [i32, string]) -> [string, i32]
   locals:

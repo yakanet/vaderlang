@@ -15,23 +15,23 @@
   expr 21:13    IdentExpr      :: fn(Direction) -> string
   expr 21:22    IdentExpr      :: Direction
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn($T) -> void
+  expr 21:5     IdentExpr      :: fn(Display) -> void
   expr 22:13    CallExpr       :: string
   expr 22:13    IdentExpr      :: fn(Direction) -> string
   expr 22:22    FieldExpr      :: Direction
   expr 22:22    IdentExpr      :: Direction
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn($T) -> void
+  expr 22:5     IdentExpr      :: fn(Display) -> void
   expr 23:13    DotVariantExpr :: Direction
   expr 23:21    CallExpr       :: void
-  expr 23:21    IdentExpr      :: fn($T) -> void
+  expr 23:21    IdentExpr      :: fn(Display) -> void
   expr 23:29    StringLitExpr  :: string
   expr 23:5     IfExpr         :: void
   expr 23:8     BinaryExpr     :: bool
   expr 23:8     IdentExpr      :: Direction
   expr 24:13    DotVariantExpr :: Direction
   expr 24:21    CallExpr       :: void
-  expr 24:21    IdentExpr      :: fn($T) -> void
+  expr 24:21    IdentExpr      :: fn(Display) -> void
   expr 24:29    StringLitExpr  :: string
   expr 24:5     IfExpr         :: void
   expr 24:8     BinaryExpr     :: bool
@@ -41,13 +41,13 @@
   expr 25:25    IdentExpr      :: Direction
   expr 25:30    DotVariantExpr :: Direction
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn($T) -> void
+  expr 25:5     IdentExpr      :: fn(Display) -> void
   expr 26:13    StringLitExpr  :: string
   expr 26:25    BinaryExpr     :: bool
   expr 26:25    IdentExpr      :: Direction
   expr 26:30    DotVariantExpr :: Direction
   expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn($T) -> void
+  expr 26:5     IdentExpr      :: fn(Display) -> void
 
 # Diagnostics
 [19:1] error[T3033] invalid `main` signature: main must return i32

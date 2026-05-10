@@ -20,7 +20,7 @@ string 9 "5 is not alpha"
 string 10 "a..=e count = "
 string 11 "0..<5 count = "
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_char_range_contains__main_vader$is_digit (char) -> bool
   char.const 48   ; _main.vader:11:17
@@ -71,17 +71,18 @@ fn 2 tests_snippets_char_range_contains__main_vader$is_alpha (char) -> bool
 end
 
 fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
-  local "__iter_0#102" ref
-  local "n#103" i32
-  local "__sb_2#108" any
-  local "__iter_3#116" ref
-  local "m#117" i32
-  local "__sb_5#122" any
+  local "__iter_0#124" ref
+  local "n#125" i32
+  local "__sb_2#130" any
+  local "__iter_3#139" ref
+  local "m#140" i32
+  local "__sb_5#145" any
   char.const 53   ; _main.vader:23:17
   call 0   ; _main.vader:23:8
   if $L0 void   ; _main.vader:23:5
     string.const 0   ; _main.vader:23:34
-    call 6   ; _main.vader:23:26
+    call.import 0   ; _main.vader:23:34
+    call.import 1   ; _main.vader:23:26
   else   ; _main.vader:23:5
   end $L0   ; _main.vader:23:5
   char.const 97   ; _main.vader:24:18
@@ -89,21 +90,24 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   bool.not   ; _main.vader:24:8
   if $L1 void   ; _main.vader:24:5
     string.const 1   ; _main.vader:24:34
-    call 6   ; _main.vader:24:26
+    call.import 0   ; _main.vader:24:34
+    call.import 1   ; _main.vader:24:26
   else   ; _main.vader:24:5
   end $L1   ; _main.vader:24:5
   char.const 48   ; _main.vader:25:17
   call 0   ; _main.vader:25:8
   if $L2 void   ; _main.vader:25:5
     string.const 2   ; _main.vader:25:34
-    call 6   ; _main.vader:25:26
+    call.import 0   ; _main.vader:25:34
+    call.import 1   ; _main.vader:25:26
   else   ; _main.vader:25:5
   end $L2   ; _main.vader:25:5
   char.const 57   ; _main.vader:26:17
   call 0   ; _main.vader:26:8
   if $L3 void   ; _main.vader:26:5
     string.const 3   ; _main.vader:26:34
-    call 6   ; _main.vader:26:26
+    call.import 0   ; _main.vader:26:34
+    call.import 1   ; _main.vader:26:26
   else   ; _main.vader:26:5
   end $L3   ; _main.vader:26:5
   char.const 58   ; _main.vader:27:18
@@ -111,14 +115,16 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   bool.not   ; _main.vader:27:8
   if $L4 void   ; _main.vader:27:5
     string.const 4   ; _main.vader:27:34
-    call 6   ; _main.vader:27:26
+    call.import 0   ; _main.vader:27:34
+    call.import 1   ; _main.vader:27:26
   else   ; _main.vader:27:5
   end $L4   ; _main.vader:27:5
   char.const 109   ; _main.vader:29:17
   call 1   ; _main.vader:29:8
   if $L5 void   ; _main.vader:29:5
     string.const 5   ; _main.vader:29:34
-    call 6   ; _main.vader:29:26
+    call.import 0   ; _main.vader:29:34
+    call.import 1   ; _main.vader:29:26
   else   ; _main.vader:29:5
   end $L5   ; _main.vader:29:5
   char.const 77   ; _main.vader:30:18
@@ -126,21 +132,24 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   bool.not   ; _main.vader:30:8
   if $L6 void   ; _main.vader:30:5
     string.const 6   ; _main.vader:30:34
-    call 6   ; _main.vader:30:26
+    call.import 0   ; _main.vader:30:34
+    call.import 1   ; _main.vader:30:26
   else   ; _main.vader:30:5
   end $L6   ; _main.vader:30:5
   char.const 122   ; _main.vader:32:17
   call 2   ; _main.vader:32:8
   if $L7 void   ; _main.vader:32:5
     string.const 7   ; _main.vader:32:34
-    call 6   ; _main.vader:32:26
+    call.import 0   ; _main.vader:32:34
+    call.import 1   ; _main.vader:32:26
   else   ; _main.vader:32:5
   end $L7   ; _main.vader:32:5
   char.const 90   ; _main.vader:33:17
   call 2   ; _main.vader:33:8
   if $L8 void   ; _main.vader:33:5
     string.const 8   ; _main.vader:33:34
-    call 6   ; _main.vader:33:26
+    call.import 0   ; _main.vader:33:34
+    call.import 1   ; _main.vader:33:26
   else   ; _main.vader:33:5
   end $L8   ; _main.vader:33:5
   char.const 53   ; _main.vader:34:18
@@ -148,7 +157,8 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   bool.not   ; _main.vader:34:8
   if $L9 void   ; _main.vader:34:5
     string.const 9   ; _main.vader:34:34
-    call 6   ; _main.vader:34:26
+    call.import 0   ; _main.vader:34:34
+    call.import 1   ; _main.vader:34:26
   else   ; _main.vader:34:5
   end $L9   ; _main.vader:34:5
   i32.const 0   ; _main.vader:37:10
@@ -184,7 +194,8 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:41:28
   local.get 2   ; _main.vader:41:13
   intrinsic builder.finish   ; _main.vader:41:13
-  call 6   ; _main.vader:41:5
+  call.import 0   ; _main.vader:41:13
+  call.import 1   ; _main.vader:41:5
   i32.const 0   ; _main.vader:44:10
   local.set 4   ; _main.vader:44:10
   char.const 48   ; _main.vader:45:14
@@ -218,7 +229,8 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:48:28
   local.get 5   ; _main.vader:48:13
   intrinsic builder.finish   ; _main.vader:48:13
-  call 6   ; _main.vader:48:5
+  call.import 0   ; _main.vader:48:13
+  call.import 1   ; _main.vader:48:5
   i32.const 0   ; _main.vader:50:12
   return   ; _main.vader:50:5
 end
@@ -321,11 +333,4 @@ fn 5 std_core$Range$Iterator$step__char (ref) -> ref
     struct.new 1   ; core.vader:136:16
     return   ; core.vader:136:9
   end $L1   ; core.vader:133:9
-end
-
-fn 6 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

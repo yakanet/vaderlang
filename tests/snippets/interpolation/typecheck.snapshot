@@ -7,4 +7,4 @@
   expr 6:23     IdentExpr      :: string
   expr 6:40     IdentExpr      :: i32
   expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn($T) -> void
+  expr 6:5      IdentExpr      :: fn(Display) -> void

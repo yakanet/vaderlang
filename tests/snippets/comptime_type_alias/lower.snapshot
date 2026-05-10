@@ -4,50 +4,62 @@
   fn tests_snippets_comptime_type_alias__main_vader$main() -> i32
     call :void
       callee:
-        println#1000090 :void
+        println#27 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_0#-1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0#-1 :?
-            "size i32     = " :string
-          @builder.append_display <for usize> :void
-            __sb_0#-1 :?
-            int(4) :usize
-          ~>
-            @builder.finish :string
-              __sb_0#-1 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_0#-1: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0#-1 :?
+                "size i32     = " :string
+              @builder.append_display <for usize> :void
+                __sb_0#-1 :?
+                int(4) :usize
+              ~>
+                @builder.finish :string
+                  __sb_0#-1 :?
     call :void
       callee:
-        println#1000090 :void
+        println#27 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_1#-2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1#-2 :?
-            "size i64     = " :string
-          @builder.append_display <for usize> :void
-            __sb_1#-2 :?
-            int(8) :usize
-          ~>
-            @builder.finish :string
-              __sb_1#-2 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_1#-2: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_1#-2 :?
+                "size i64     = " :string
+              @builder.append_display <for usize> :void
+                __sb_1#-2 :?
+                int(8) :usize
+              ~>
+                @builder.finish :string
+                  __sb_1#-2 :?
     call :void
       callee:
-        println#1000090 :void
+        println#27 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_2#-3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2#-3 :?
-            "size string  = " :string
-          @builder.append_display <for usize> :void
-            __sb_2#-3 :?
-            int(16) :usize
-          ~>
-            @builder.finish :string
-              __sb_2#-3 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_2#-3: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_2#-3 :?
+                "size string  = " :string
+              @builder.append_display <for usize> :void
+                __sb_2#-3 :?
+                int(16) :usize
+              ~>
+                @builder.finish :string
+                  __sb_2#-3 :?
     return int(0) :i32

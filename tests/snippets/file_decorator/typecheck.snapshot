@@ -10,4 +10,4 @@
   expr 4:22     IdentExpr      :: string
   expr 7:13     IdentExpr      :: string
   expr 7:5      CallExpr       :: void
-  expr 7:5      IdentExpr      :: fn($T) -> void
+  expr 7:5      IdentExpr      :: fn(Display) -> void

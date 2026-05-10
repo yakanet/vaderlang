@@ -8,19 +8,19 @@ string 1 "name = "
 string 2 "age  = "
 string 3 "Rex"
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_union_common_field__main_vader$main () -> i32
-  local "a#33" ref
-  local "__sb_0#35" any
-  local "$field_8#38" string
-  local "__sb_1#41" any
-  local "$field_14#44" i32
-  local "b#48" ref
-  local "__sb_2#50" any
-  local "$field_24#53" string
-  local "__sb_3#56" any
-  local "$field_30#59" i32
+  local "a#37" ref
+  local "__sb_0#39" any
+  local "$field_8#42" string
+  local "__sb_1#46" any
+  local "$field_15#49" i32
+  local "b#54" ref
+  local "__sb_2#56" any
+  local "$field_26#59" string
+  local "__sb_3#63" any
+  local "$field_33#66" i32
   string.const 0   ; _main.vader:14:20
   i32.const 3   ; _main.vader:14:20
   struct.new_stack 0   ; _main.vader:14:20
@@ -38,7 +38,8 @@ fn 0 tests_snippets_union_common_field__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:15:21
   local.get 1   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
-  call 1   ; _main.vader:15:5
+  call.import 0   ; _main.vader:15:13
+  call.import 1   ; _main.vader:15:5
   intrinsic builder.new   ; _main.vader:16:13
   local.set 3   ; _main.vader:16:13
   local.get 3   ; _main.vader:16:14
@@ -52,7 +53,8 @@ fn 0 tests_snippets_union_common_field__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:16:21
   local.get 3   ; _main.vader:16:13
   intrinsic builder.finish   ; _main.vader:16:13
-  call 1   ; _main.vader:16:5
+  call.import 0   ; _main.vader:16:13
+  call.import 1   ; _main.vader:16:5
   string.const 3   ; _main.vader:18:20
   i32.const 7   ; _main.vader:18:20
   struct.new_stack 3   ; _main.vader:18:20
@@ -70,7 +72,8 @@ fn 0 tests_snippets_union_common_field__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:19:21
   local.get 6   ; _main.vader:19:13
   intrinsic builder.finish   ; _main.vader:19:13
-  call 1   ; _main.vader:19:5
+  call.import 0   ; _main.vader:19:13
+  call.import 1   ; _main.vader:19:5
   intrinsic builder.new   ; _main.vader:20:13
   local.set 8   ; _main.vader:20:13
   local.get 8   ; _main.vader:20:14
@@ -84,14 +87,8 @@ fn 0 tests_snippets_union_common_field__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:20:21
   local.get 8   ; _main.vader:20:13
   intrinsic builder.finish   ; _main.vader:20:13
-  call 1   ; _main.vader:20:5
+  call.import 0   ; _main.vader:20:13
+  call.import 1   ; _main.vader:20:5
   i32.const 0   ; _main.vader:21:12
   return   ; _main.vader:21:5
-end
-
-fn 1 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

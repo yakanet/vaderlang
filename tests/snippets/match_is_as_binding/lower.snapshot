@@ -6,7 +6,7 @@
   fn tests_snippets_match_is_as_binding__main_vader$show(a: null | P | Q) -> string
     return
       block :string
-        let __scrut_0#-1: null | P | Q = a#61 :null | P | Q
+        let __scrut_0#-1: null | P | Q = a#57 :null | P | Q
         ~>
           if :string
             cond:
@@ -22,7 +22,7 @@
                     is P :bool
                       __scrut_0#-1 :null | P | Q
                   then:
-                    let p#62: P =
+                    let p#58: P =
                       cast → P
                         __scrut_0#-1 :null | P | Q
                     ~>
@@ -35,7 +35,7 @@
                         @builder.append_display <for i32> :void
                           __sb_2#-3 :?
                           .x :i32
-                            p#62 :P
+                            p#58 :P
                         ~>
                           @builder.finish :string
                             __sb_2#-3 :?
@@ -46,7 +46,7 @@
                           is Q :bool
                             __scrut_0#-1 :null | P | Q
                         then:
-                          let q#63: Q =
+                          let q#59: Q =
                             cast → Q
                               __scrut_0#-1 :null | P | Q
                           ~>
@@ -59,7 +59,7 @@
                               @builder.append_display <for string> :void
                                 __sb_1#-2 :?
                                 .y :string
-                                  q#63 :Q
+                                  q#59 :Q
                               ~>
                                 @builder.finish :string
                                   __sb_1#-2 :?
@@ -69,33 +69,45 @@
   fn tests_snippets_match_is_as_binding__main_vader$main() -> i32
     call :void
       callee:
-        println#1000090 :void
+        println#27 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            show#4 :fn(null | P | Q) -> string
+            to_string#1000013 :string
           arg0:
-            P {
-              x: int(42) :i32
-            }
+            call :string
+              callee:
+                show#4 :fn(null | P | Q) -> string
+              arg0:
+                P {
+                  x: int(42) :i32
+                }
     call :void
       callee:
-        println#1000090 :void
+        println#27 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            show#4 :fn(null | P | Q) -> string
+            to_string#1000013 :string
           arg0:
-            Q {
-              y: "hello" :string
-            }
+            call :string
+              callee:
+                show#4 :fn(null | P | Q) -> string
+              arg0:
+                Q {
+                  y: "hello" :string
+                }
     call :void
       callee:
-        println#1000090 :void
+        println#27 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            show#4 :fn(null | P | Q) -> string
+            to_string#1000013 :string
           arg0:
-            null
+            call :string
+              callee:
+                show#4 :fn(null | P | Q) -> string
+              arg0:
+                null
     return int(0) :i32

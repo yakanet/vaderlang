@@ -6,19 +6,19 @@
   expr 14:10    IdentExpr      :: i32
   expr 17:11    IdentExpr      :: string
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn($T) -> void
+  expr 17:5     IdentExpr      :: fn(Display) -> void
   expr 20:16    StringLitExpr  :: string
   expr 23:11    IdentExpr      :: string
   expr 23:5     CallExpr       :: void
-  expr 23:5     IdentExpr      :: fn($T) -> void
+  expr 23:5     IdentExpr      :: fn(Display) -> void
   expr 26:15    StringLitExpr  :: string
   expr 27:17    BinaryExpr     :: string
   expr 27:17    IdentExpr      :: string
   expr 27:26    StringLitExpr  :: string
   expr 30:13    IdentExpr      :: string
   expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn($T) -> void
+  expr 30:5     IdentExpr      :: fn(Display) -> void
   expr 5:10     StringLitExpr  :: string
   expr 9:11     IdentExpr      :: string
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn($T) -> void
+  expr 9:5      IdentExpr      :: fn(Display) -> void

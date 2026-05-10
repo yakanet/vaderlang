@@ -13,7 +13,6 @@
   ArrayIter($U)
   ArrayIter(i32)
   ArrayIter(string)
-  println(string)
   sort(i32)
   sort(string)
   merge_sort_range(i32)

@@ -5,23 +5,23 @@
     return
       lt :bool
         l:
-          a#148 :i32
+          a#144 :i32
         r:
-          b#149 :i32
+          b#145 :i32
   fn tests_snippets_std_sort__main_vader$i32_gt(a: i32, b: i32) -> bool
     return
       gt :bool
         l:
-          a#150 :i32
+          a#146 :i32
         r:
-          b#151 :i32
+          b#147 :i32
   fn tests_snippets_std_sort__main_vader$print_ints(arr: i32[]) -> void
-    let sb#153: string = "" :string
-    let i#154: i32 = int(0) :i32
+    let sb#149: string = "" :string
+    let i#150: i32 = int(0) :i32
     block :void
       let __iter_0#-1: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: arr#152 :i32[]
+          arr: arr#148 :i32[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -40,7 +40,7 @@
           then:
             break
           else:
-            let x#155: i32 =
+            let x#151: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_1#-2 :Done | Yielded(i32)
@@ -48,20 +48,20 @@
               cond:
                 gt :bool
                   l:
-                    i#154 :i32
+                    i#150 :i32
                   r:
                     int(0) :i32
               then:
                 assign
                   target:
-                    sb#153 :string
+                    sb#149 :string
                   value:
                     block :string
                       let __sb_2#-3: ? =
                         @builder.new :?
                       @builder.append_display <for string> :void
                         __sb_2#-3 :?
-                        sb#153 :string
+                        sb#149 :string
                       @builder.append_str :void
                         __sb_2#-3 :?
                         ", " :string
@@ -70,42 +70,46 @@
                           __sb_2#-3 :?
             assign
               target:
-                sb#153 :string
+                sb#149 :string
               value:
                 block :string
                   let __sb_3#-4: ? =
                     @builder.new :?
                   @builder.append_display <for string> :void
                     __sb_3#-4 :?
-                    sb#153 :string
+                    sb#149 :string
                   @builder.append_display <for i32> :void
                     __sb_3#-4 :?
-                    x#155 :i32
+                    x#151 :i32
                   ~>
                     @builder.finish :string
                       __sb_3#-4 :?
             assign
               target:
-                i#154 :i32
+                i#150 :i32
               value:
                 add :i32
                   l:
-                    i#154 :i32
+                    i#150 :i32
                   r:
                     int(1) :i32
     ~>
       call :void
         callee:
-          println#1000098 :void
+          println#30 :fn(Display) -> void
         arg0:
-          sb#153 :string
+          call :string
+            callee:
+              to_string#1000013 :string
+            arg0:
+              sb#149 :string
   fn tests_snippets_std_sort__main_vader$print_strings(arr: string[]) -> void
-    let sb#157: string = "" :string
-    let i#158: i32 = int(0) :i32
+    let sb#153: string = "" :string
+    let i#154: i32 = int(0) :i32
     block :void
       let __iter_0#-5: ArrayIter(string) =
         ArrayIter(string) {
-          arr: arr#156 :string[]
+          arr: arr#152 :string[]
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -124,7 +128,7 @@
           then:
             break
           else:
-            let s#159: string =
+            let s#155: string =
               .value :string
                 cast → Yielded(string)
                   __step_1#-6 :Done | Yielded(string)
@@ -132,20 +136,20 @@
               cond:
                 gt :bool
                   l:
-                    i#158 :i32
+                    i#154 :i32
                   r:
                     int(0) :i32
               then:
                 assign
                   target:
-                    sb#157 :string
+                    sb#153 :string
                   value:
                     block :string
                       let __sb_2#-7: ? =
                         @builder.new :?
                       @builder.append_display <for string> :void
                         __sb_2#-7 :?
-                        sb#157 :string
+                        sb#153 :string
                       @builder.append_str :void
                         __sb_2#-7 :?
                         ", " :string
@@ -154,40 +158,44 @@
                           __sb_2#-7 :?
             assign
               target:
-                sb#157 :string
+                sb#153 :string
               value:
                 block :string
                   let __sb_3#-8: ? =
                     @builder.new :?
                   @builder.append_display <for string> :void
                     __sb_3#-8 :?
-                    sb#157 :string
+                    sb#153 :string
                   @builder.append_display <for string> :void
                     __sb_3#-8 :?
-                    s#159 :string
+                    s#155 :string
                   ~>
                     @builder.finish :string
                       __sb_3#-8 :?
             assign
               target:
-                i#158 :i32
+                i#154 :i32
               value:
                 add :i32
                   l:
-                    i#158 :i32
+                    i#154 :i32
                   r:
                     int(1) :i32
     ~>
       call :void
         callee:
-          println#1000098 :void
+          println#30 :fn(Display) -> void
         arg0:
-          sb#157 :string
+          call :string
+            callee:
+              to_string#1000013 :string
+            arg0:
+              sb#153 :string
   fn tests_snippets_std_sort__main_vader$main() -> i32
-    let one#160: i32[] =
+    let one#156: i32[] =
       call :i32[]
         callee:
-          sort#1000099 :i32[]
+          sort#1000098 :i32[]
         arg0:
           array :i32[]
             int(42) :i32
@@ -197,11 +205,11 @@
       callee:
         print_ints#6 :fn(i32[]) -> void
       arg0:
-        one#160 :i32[]
-    let asc#161: i32[] =
+        one#156 :i32[]
+    let asc#157: i32[] =
       call :i32[]
         callee:
-          sort#1000099 :i32[]
+          sort#1000098 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -215,11 +223,11 @@
       callee:
         print_ints#6 :fn(i32[]) -> void
       arg0:
-        asc#161 :i32[]
-    let desc#162: i32[] =
+        asc#157 :i32[]
+    let desc#158: i32[] =
       call :i32[]
         callee:
-          sort#1000099 :i32[]
+          sort#1000098 :i32[]
         arg0:
           array :i32[]
             int(5) :i32
@@ -233,11 +241,11 @@
       callee:
         print_ints#6 :fn(i32[]) -> void
       arg0:
-        desc#162 :i32[]
-    let rand#163: i32[] =
+        desc#158 :i32[]
+    let rand#159: i32[] =
       call :i32[]
         callee:
-          sort#1000099 :i32[]
+          sort#1000098 :i32[]
         arg0:
           array :i32[]
             int(3) :i32
@@ -257,11 +265,11 @@
       callee:
         print_ints#6 :fn(i32[]) -> void
       arg0:
-        rand#163 :i32[]
-    let descending#164: i32[] =
+        rand#159 :i32[]
+    let descending#160: i32[] =
       call :i32[]
         callee:
-          sort#1000099 :i32[]
+          sort#1000098 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -275,11 +283,11 @@
       callee:
         print_ints#6 :fn(i32[]) -> void
       arg0:
-        descending#164 :i32[]
-    let big#165: i32[] =
+        descending#160 :i32[]
+    let big#161: i32[] =
       call :i32[]
         callee:
-          sort#1000099 :i32[]
+          sort#1000098 :i32[]
         arg0:
           array :i32[]
             int(10) :i32
@@ -318,11 +326,11 @@
       callee:
         print_ints#6 :fn(i32[]) -> void
       arg0:
-        big#165 :i32[]
-    let strs#166: string[] =
+        big#161 :i32[]
+    let strs#162: string[] =
       call :string[]
         callee:
-          sort#1000100 :string[]
+          sort#1000099 :string[]
         arg0:
           array :string[]
             "banana" :string
@@ -330,33 +338,33 @@
             "cherry" :string
             "date" :string
         arg1:
-          compare_ascending#66 :fn(string, string) -> bool
+          compare_ascending#62 :fn(string, string) -> bool
     call :void
       callee:
         print_strings#7 :fn(string[]) -> void
       arg0:
-        strs#166 :string[]
-    let input#167: i32[] =
+        strs#162 :string[]
+    let input#163: i32[] =
       array :i32[]
         int(3) :i32
         int(1) :i32
         int(2) :i32
-    let out#168: i32[] =
+    let out#164: i32[] =
       call :i32[]
         callee:
-          sort#1000099 :i32[]
+          sort#1000098 :i32[]
         arg0:
-          input#167 :i32[]
+          input#163 :i32[]
         arg1:
           i32_lt#4 :fn(i32, i32) -> bool
     call :void
       callee:
         print_ints#6 :fn(i32[]) -> void
       arg0:
-        input#167 :i32[]
+        input#163 :i32[]
     call :void
       callee:
         print_ints#6 :fn(i32[]) -> void
       arg0:
-        out#168 :i32[]
+        out#164 :i32[]
     return int(0) :i32

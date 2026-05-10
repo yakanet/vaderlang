@@ -7,30 +7,30 @@ string 2 " c="
 string 3 "upd:  a="
 string 4 "merged: a="
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_struct_spread__main_vader$main () -> i32
-  local "base#48" ref
-  local "__spread_0#49" ref
-  local "$field_6#50" i32
-  local "$field_8#52" i32
-  local "upd#53" ref
-  local "__sb_1#55" any
-  local "$field_14#57" i32
-  local "$field_16#59" i32
-  local "$field_18#61" i32
-  local "__sb_2#64" any
-  local "$field_23#66" i32
-  local "$field_25#68" i32
-  local "$field_27#70" i32
-  local "__spread_4#75" ref
-  local "$field_36#76" i32
-  local "$field_38#78" i32
-  local "merged#79" ref
-  local "__sb_5#81" any
-  local "$field_44#83" i32
-  local "$field_46#85" i32
-  local "$field_48#87" i32
+  local "base#51" ref
+  local "__spread_0#52" ref
+  local "$field_6#53" i32
+  local "$field_8#55" i32
+  local "upd#56" ref
+  local "__sb_1#58" any
+  local "$field_14#60" i32
+  local "$field_16#62" i32
+  local "$field_18#64" i32
+  local "__sb_2#68" any
+  local "$field_24#70" i32
+  local "$field_26#72" i32
+  local "$field_28#74" i32
+  local "__spread_4#80" ref
+  local "$field_38#81" i32
+  local "$field_40#83" i32
+  local "merged#84" ref
+  local "__sb_5#86" any
+  local "$field_46#88" i32
+  local "$field_48#90" i32
+  local "$field_50#92" i32
   i32.const 1   ; _main.vader:10:13
   i32.const 2   ; _main.vader:10:13
   i32.const 3   ; _main.vader:10:13
@@ -78,7 +78,8 @@ fn 0 tests_snippets_struct_spread__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:12:46
   local.get 5   ; _main.vader:12:13
   intrinsic builder.finish   ; _main.vader:12:13
-  call 1   ; _main.vader:12:5
+  call.import 0   ; _main.vader:12:13
+  call.import 1   ; _main.vader:12:5
   intrinsic builder.new   ; _main.vader:13:13
   local.set 9   ; _main.vader:13:13
   local.get 9   ; _main.vader:13:14
@@ -110,7 +111,8 @@ fn 0 tests_snippets_struct_spread__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:13:44
   local.get 9   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
-  call 1   ; _main.vader:13:5
+  call.import 0   ; _main.vader:13:13
+  call.import 1   ; _main.vader:13:5
   i32.const 10   ; _main.vader:16:14
   i32.const 20   ; _main.vader:16:14
   i32.const 30   ; _main.vader:16:14
@@ -157,14 +159,8 @@ fn 0 tests_snippets_struct_spread__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:18:52
   local.get 17   ; _main.vader:18:13
   intrinsic builder.finish   ; _main.vader:18:13
-  call 1   ; _main.vader:18:5
+  call.import 0   ; _main.vader:18:13
+  call.import 1   ; _main.vader:18:5
   i32.const 0   ; _main.vader:19:12
   return   ; _main.vader:19:5
-end
-
-fn 1 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

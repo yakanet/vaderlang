@@ -8,11 +8,11 @@
   expr 12:11    IdentExpr      :: Error | string
   expr 12:5     MatchExpr      :: void
   expr 13:22    CallExpr       :: void
-  expr 13:22    IdentExpr      :: fn($T) -> void
+  expr 13:22    IdentExpr      :: fn(Display) -> void
   expr 13:30    StringLitExpr  :: string
   expr 13:39    IdentExpr      :: string
   expr 14:22    CallExpr       :: void
-  expr 14:22    IdentExpr      :: fn($T) -> void
+  expr 14:22    IdentExpr      :: fn(Display) -> void
   expr 14:30    StringLitExpr  :: string
   expr 4:13     StringLitExpr  :: string
   expr 7:16     IdentExpr      :: string
@@ -24,4 +24,4 @@
   expr 9:24     IdentExpr      :: fn(string) -> bool
   expr 9:31     IdentExpr      :: string
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn($T) -> void
+  expr 9:5      IdentExpr      :: fn(Display) -> void

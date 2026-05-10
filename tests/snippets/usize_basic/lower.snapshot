@@ -5,30 +5,34 @@
     return
       add :usize
         l:
-          a#59 :usize
+          a#55 :usize
         r:
-          b#60 :usize
+          b#56 :usize
   fn tests_snippets_usize_basic__main_vader$main() -> i32
-    let n#61: usize = int(10) :usize
-    let m#62: usize =
+    let n#57: usize = int(10) :usize
+    let m#58: usize =
       call :usize
         callee:
           add#2 :fn(usize, usize) -> usize
         arg0:
-          n#61 :usize
+          n#57 :usize
         arg1:
           int(32) :usize
     call :void
       callee:
-        println#1000090 :void
+        println#25 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_0#-1: ? =
-            @builder.new :?
-          @builder.append_display <for usize> :void
-            __sb_0#-1 :?
-            m#62 :usize
-          ~>
-            @builder.finish :string
-              __sb_0#-1 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_0#-1: ? =
+                @builder.new :?
+              @builder.append_display <for usize> :void
+                __sb_0#-1 :?
+                m#58 :usize
+              ~>
+                @builder.finish :string
+                  __sb_0#-1 :?
     return int(0) :i32

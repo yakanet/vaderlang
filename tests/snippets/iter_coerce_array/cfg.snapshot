@@ -73,43 +73,44 @@ fn tests_snippets_iter_coerce_array__main_vader$make_iter() -> Iterator(i32)
 
 fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
   locals:
-    %0 $k_0#37: i32
-    %1 $k_1#38: i32
-    %2 $k_2#39: i32
-    %3 __arr_0#40: i32[] (synthetic __arr_0)
-    %4 $k_5#41: i32
-    %5 $len_6#42: i32
-    %6 $struct_7#43: ArrayIter(i32)
-    %7 $call_8#44: i32
-    %8 a#45: i32 (local a)
-    %9 $k_10#46: i32
-    %10 $k_11#47: i32
-    %11 $k_12#48: i32
-    %12 $k_13#49: i32
-    %13 __arr_1#50: i32[] (synthetic __arr_1)
-    %14 $k_16#51: i32
-    %15 $len_17#52: i32
-    %16 typed_iter_mut#53: Iterator(i32) (local typed_iter_mut)
-    %17 $k_20#54: i32
-    %18 $k_21#55: i32
-    %19 $k_22#56: i32
-    %20 __arr_2#57: i32[] (synthetic __arr_2)
-    %21 $k_25#58: i32
-    %22 $len_26#59: i32
-    %23 typed_iter_immut#60: Iterator(i32) (local typed_iter_immut)
-    %24 $call_29#61: i32
-    %25 $call_30#62: i32
-    %26 b#63: i32 (local b)
-    %27 $call_33#64: Iterator(i32)
-    %28 $call_34#65: i32
-    %29 c#66: i32 (local c)
-    %30 $intrinsic_36#67: ?
-    %31 __sb_3#68: ? (synthetic __sb_3)
-    %32 $k_38#69: string
-    %33 $k_39#70: string
-    %34 $k_40#71: string
-    %35 $intrinsic_41#72: string
-    %36 $k_42#73: i32
+    %0 $k_0#38: i32
+    %1 $k_1#39: i32
+    %2 $k_2#40: i32
+    %3 __arr_0#41: i32[] (synthetic __arr_0)
+    %4 $k_5#42: i32
+    %5 $len_6#43: i32
+    %6 $struct_7#44: ArrayIter(i32)
+    %7 $call_8#45: i32
+    %8 a#46: i32 (local a)
+    %9 $k_10#47: i32
+    %10 $k_11#48: i32
+    %11 $k_12#49: i32
+    %12 $k_13#50: i32
+    %13 __arr_1#51: i32[] (synthetic __arr_1)
+    %14 $k_16#52: i32
+    %15 $len_17#53: i32
+    %16 typed_iter_mut#54: Iterator(i32) (local typed_iter_mut)
+    %17 $k_20#55: i32
+    %18 $k_21#56: i32
+    %19 $k_22#57: i32
+    %20 __arr_2#58: i32[] (synthetic __arr_2)
+    %21 $k_25#59: i32
+    %22 $len_26#60: i32
+    %23 typed_iter_immut#61: Iterator(i32) (local typed_iter_immut)
+    %24 $call_29#62: i32
+    %25 $call_30#63: i32
+    %26 b#64: i32 (local b)
+    %27 $call_33#65: Iterator(i32)
+    %28 $call_34#66: i32
+    %29 c#67: i32 (local c)
+    %30 $intrinsic_36#68: ?
+    %31 __sb_3#69: ? (synthetic __sb_3)
+    %32 $k_38#70: string
+    %33 $k_39#71: string
+    %34 $k_40#72: string
+    %35 $intrinsic_41#73: string
+    %36 $call_42#74: string
+    %37 $k_43#75: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
@@ -153,6 +154,7 @@ fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
     intrinsic builder.append_str(%31, %34)
     intrinsic builder.append_display(%31, %29)
     %35 = intrinsic builder.finish(%31)
-    call println(%35) :void
-    %36 = const int(0) :i32
-    return %36
+    %36 = call to_string(%35) :string
+    call println(%36) :void
+    %37 = const int(0) :i32
+    return %37

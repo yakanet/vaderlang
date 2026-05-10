@@ -14,6 +14,7 @@ import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
+import { wrapAsDisplay } from "./display-coerce.ts";
 import { lookupImplEntry, lookupImplFor, lowerRangeExpr, wrapArrayAsIter } from "./for-in.ts";
 import { blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
@@ -26,6 +27,11 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
   const coerceElement = ctx.typed.arrayIterCoercions.get(expr);
   if (coerceElement !== undefined) {
     const wrapped = wrapArrayAsIter(ctx, lowered, ctx.types.apply(coerceElement), expr.span);
+    if (wrapped !== null) return wrapped;
+  }
+  const displaySource = ctx.typed.displayCoercions.get(expr);
+  if (displaySource !== undefined) {
+    const wrapped = wrapAsDisplay(ctx, lowered, ctx.types.apply(displaySource), expr.span);
     if (wrapped !== null) return wrapped;
   }
   return lowered;

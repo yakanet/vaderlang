@@ -8,46 +8,46 @@
   expr 10:16    StringLitExpr  :: string
   expr 10:34    StringLitExpr  :: string
   expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn($T) -> void
+  expr 10:5     IdentExpr      :: fn(Display) -> void
   expr 11:13    StringLitExpr  :: string
   expr 11:16    CallExpr       :: bool
   expr 11:16    FieldExpr      :: fn(string) -> bool
   expr 11:16    StringLitExpr  :: string
   expr 11:37    StringLitExpr  :: string
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn($T) -> void
+  expr 11:5     IdentExpr      :: fn(Display) -> void
   expr 12:13    StringLitExpr  :: string
   expr 12:16    CallExpr       :: bool
   expr 12:16    FieldExpr      :: fn(string) -> bool
   expr 12:16    StringLitExpr  :: string
   expr 12:35    StringLitExpr  :: string
   expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn($T) -> void
+  expr 12:5     IdentExpr      :: fn(Display) -> void
   expr 13:13    CallExpr       :: string
   expr 13:13    FieldExpr      :: fn(i32, i32) -> string
   expr 13:13    StringLitExpr  :: string
   expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn($T) -> void
+  expr 13:5     IdentExpr      :: fn(Display) -> void
   expr 14:13    StringLitExpr  :: string
   expr 14:16    IndexExpr      :: char
   expr 14:16    StringLitExpr  :: string
   expr 14:5     CallExpr       :: void
-  expr 14:5     IdentExpr      :: fn($T) -> void
+  expr 14:5     IdentExpr      :: fn(Display) -> void
   expr 15:13    StringLitExpr  :: string
   expr 15:16    IndexExpr      :: char
   expr 15:16    StringLitExpr  :: string
   expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn($T) -> void
+  expr 15:5     IdentExpr      :: fn(Display) -> void
   expr 16:13    StringLitExpr  :: string
   expr 16:16    IndexExpr      :: char
   expr 16:16    StringLitExpr  :: string
   expr 16:5     CallExpr       :: void
-  expr 16:5     IdentExpr      :: fn($T) -> void
+  expr 16:5     IdentExpr      :: fn(Display) -> void
   expr 17:13    StringLitExpr  :: string
   expr 17:16    IndexExpr      :: char
   expr 17:16    StringLitExpr  :: string
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn($T) -> void
+  expr 17:5     IdentExpr      :: fn(Display) -> void
   expr 18:14    CallExpr       :: string[]
   expr 18:14    FieldExpr      :: fn(string) -> string[]
   expr 18:14    StringLitExpr  :: string
@@ -55,34 +55,34 @@
   expr 19:13    IdentExpr      :: string[]
   expr 19:13    IndexExpr      :: string
   expr 19:5     CallExpr       :: void
-  expr 19:5     IdentExpr      :: fn($T) -> void
+  expr 19:5     IdentExpr      :: fn(Display) -> void
   expr 20:13    IdentExpr      :: string[]
   expr 20:13    IndexExpr      :: string
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn($T) -> void
+  expr 20:5     IdentExpr      :: fn(Display) -> void
   expr 21:13    IdentExpr      :: string[]
   expr 21:13    IndexExpr      :: string
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn($T) -> void
+  expr 21:5     IdentExpr      :: fn(Display) -> void
   expr 5:10     StringLitExpr  :: string
   expr 6:13     StringLitExpr  :: string
   expr 6:16     CallExpr       :: i32
   expr 6:16     IdentExpr      :: fn(string) -> i32
   expr 6:25     IdentExpr      :: string
   expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn($T) -> void
+  expr 6:5      IdentExpr      :: fn(Display) -> void
   expr 7:13     CallExpr       :: string
   expr 7:13     FieldExpr      :: fn() -> string
   expr 7:13     IdentExpr      :: string
   expr 7:5      CallExpr       :: void
-  expr 7:5      IdentExpr      :: fn($T) -> void
+  expr 7:5      IdentExpr      :: fn(Display) -> void
   expr 8:13     CallExpr       :: string
   expr 8:13     FieldExpr      :: fn() -> string
   expr 8:13     StringLitExpr  :: string
   expr 8:5      CallExpr       :: void
-  expr 8:5      IdentExpr      :: fn($T) -> void
+  expr 8:5      IdentExpr      :: fn(Display) -> void
   expr 9:13     CallExpr       :: string
   expr 9:13     FieldExpr      :: fn() -> string
   expr 9:13     StringLitExpr  :: string
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn($T) -> void
+  expr 9:5      IdentExpr      :: fn(Display) -> void

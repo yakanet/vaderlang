@@ -2,10 +2,10 @@
 
 ## tests/snippets/null_blockres/_main.vader
   fn tests_snippets_null_blockres__main_vader$pick(c: bool) -> null | string
-    let x#60: null =
+    let x#56: null =
       if :null
         cond:
-          c#59 :bool
+          c#55 :bool
         then:
           ~>
             null
@@ -16,7 +16,7 @@
       cond:
         eq :bool
           l:
-            x#60 :null
+            x#56 :null
           r:
             null
       then:
@@ -39,9 +39,13 @@
             ~>
               call :void
                 callee:
-                  println#1000090 :void
+                  println#25 :fn(Display) -> void
                 arg0:
-                  "got string" :string
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      "got string" :string
           else:
             ~>
               if :void
@@ -52,9 +56,13 @@
                   ~>
                     call :void
                       callee:
-                        println#1000090 :void
+                        println#25 :fn(Display) -> void
                       arg0:
-                        "nothing" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "nothing" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

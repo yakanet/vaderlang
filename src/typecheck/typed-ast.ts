@@ -140,6 +140,13 @@ export interface TypedProgram {
    *  `inferCall` / `checkLet` / `checkReturn` whenever the typecheck observes
    *  an array flowing into an `Iterator(T)` slot. */
   readonly arrayIterCoercions: ReadonlyMap<A.Expr, Type>;
+  /** Implicit `T` → `Display` coercion sites. Key: the argument expression ;
+   *  value: the source type the lowerer needs to dispatch
+   *  `<T>.Display.to_string` on before the value is consumed by the call. The
+   *  lowerer rewrites these sites into a static call to the impl member that
+   *  produces the string the host hook receives. Populated when a value with
+   *  a concrete Display-implementing type flows into a `Display`-typed slot. */
+  readonly displayCoercions: ReadonlyMap<A.Expr, Type>;
   /** Operator overload resolutions. See `BinaryOpResolution`. */
   readonly binaryOpResolutions: ReadonlyMap<A.BinaryExpr, BinaryOpResolution>;
   /** `a[i]` read dispatch through `Index($I, $T)::at` when `a` isn't a

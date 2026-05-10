@@ -22,4 +22,4 @@
   expr 22:17    StringLitExpr  :: string
   expr 22:20    IdentExpr      :: ?
   expr 22:9     CallExpr       :: void
-  expr 22:9     IdentExpr      :: fn($T) -> void
+  expr 22:9     IdentExpr      :: fn(Display) -> void

@@ -16,7 +16,6 @@
   ArrayIter($U)
   ArrayIter(i32)
   ArrayIter(string)
-  println(string)
   count(i32)
   collect(i32)
   zip(string, i32)

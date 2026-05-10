@@ -2,7 +2,7 @@
 
 ## tests/snippets/tuple_triple_quad/_main.vader
   fn tests_snippets_tuple_triple_quad__main_vader$main() -> i32
-    let triple#58: [i32, string, bool] =
+    let triple#54: [i32, string, bool] =
       [i32, string, bool] {
         _0: int(1) :i32
         _1: "x" :string
@@ -10,33 +10,37 @@
       }
     call :void
       callee:
-        println#1000090 :void
+        println#24 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_0#-1: ? =
-            @builder.new :?
-          @builder.append_display <for i32> :void
-            __sb_0#-1 :?
-            ._0 :i32
-              triple#58 :[i32, string, bool]
-          @builder.append_str :void
-            __sb_0#-1 :?
-            " " :string
-          @builder.append_display <for string> :void
-            __sb_0#-1 :?
-            ._1 :string
-              triple#58 :[i32, string, bool]
-          @builder.append_str :void
-            __sb_0#-1 :?
-            " " :string
-          @builder.append_display <for bool> :void
-            __sb_0#-1 :?
-            ._2 :bool
-              triple#58 :[i32, string, bool]
-          ~>
-            @builder.finish :string
-              __sb_0#-1 :?
-    let quad#59: [i32, string, bool, f64] =
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_0#-1: ? =
+                @builder.new :?
+              @builder.append_display <for i32> :void
+                __sb_0#-1 :?
+                ._0 :i32
+                  triple#54 :[i32, string, bool]
+              @builder.append_str :void
+                __sb_0#-1 :?
+                " " :string
+              @builder.append_display <for string> :void
+                __sb_0#-1 :?
+                ._1 :string
+                  triple#54 :[i32, string, bool]
+              @builder.append_str :void
+                __sb_0#-1 :?
+                " " :string
+              @builder.append_display <for bool> :void
+                __sb_0#-1 :?
+                ._2 :bool
+                  triple#54 :[i32, string, bool]
+              ~>
+                @builder.finish :string
+                  __sb_0#-1 :?
+    let quad#55: [i32, string, bool, f64] =
       [i32, string, bool, f64] {
         _0: int(9) :i32
         _1: "q" :string
@@ -45,37 +49,41 @@
       }
     call :void
       callee:
-        println#1000090 :void
+        println#24 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_1#-2: ? =
-            @builder.new :?
-          @builder.append_display <for i32> :void
-            __sb_1#-2 :?
-            ._0 :i32
-              quad#59 :[i32, string, bool, f64]
-          @builder.append_str :void
-            __sb_1#-2 :?
-            " " :string
-          @builder.append_display <for string> :void
-            __sb_1#-2 :?
-            ._1 :string
-              quad#59 :[i32, string, bool, f64]
-          @builder.append_str :void
-            __sb_1#-2 :?
-            " " :string
-          @builder.append_display <for bool> :void
-            __sb_1#-2 :?
-            ._2 :bool
-              quad#59 :[i32, string, bool, f64]
-          @builder.append_str :void
-            __sb_1#-2 :?
-            " " :string
-          @builder.append_display <for f64> :void
-            __sb_1#-2 :?
-            ._3 :f64
-              quad#59 :[i32, string, bool, f64]
-          ~>
-            @builder.finish :string
-              __sb_1#-2 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_1#-2: ? =
+                @builder.new :?
+              @builder.append_display <for i32> :void
+                __sb_1#-2 :?
+                ._0 :i32
+                  quad#55 :[i32, string, bool, f64]
+              @builder.append_str :void
+                __sb_1#-2 :?
+                " " :string
+              @builder.append_display <for string> :void
+                __sb_1#-2 :?
+                ._1 :string
+                  quad#55 :[i32, string, bool, f64]
+              @builder.append_str :void
+                __sb_1#-2 :?
+                " " :string
+              @builder.append_display <for bool> :void
+                __sb_1#-2 :?
+                ._2 :bool
+                  quad#55 :[i32, string, bool, f64]
+              @builder.append_str :void
+                __sb_1#-2 :?
+                " " :string
+              @builder.append_display <for f64> :void
+                __sb_1#-2 :?
+                ._3 :f64
+                  quad#55 :[i32, string, bool, f64]
+              ~>
+                @builder.finish :string
+                  __sb_1#-2 :?
     return int(0) :i32

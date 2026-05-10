@@ -5,15 +5,15 @@ type 2 union 0,3
 type 3 primitive null
 string 0 "head.value = "
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_self_ref_struct__main_vader$main () -> i32
-  local "$k_1#14" null
-  local "tail#15" ref
-  local "mid#17" ref
-  local "head#19" ref
-  local "__sb_0#21" any
-  local "$field_13#23" i32
+  local "$k_1#15" null
+  local "tail#16" ref
+  local "mid#18" ref
+  local "head#20" ref
+  local "__sb_0#22" any
+  local "$field_13#24" i32
   null.const   ; _main.vader:9:46
   local.set 0   ; _main.vader:9:46
   i32.const 30   ; _main.vader:9:13
@@ -41,14 +41,8 @@ fn 0 tests_snippets_self_ref_struct__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:12:27
   local.get 4   ; _main.vader:12:13
   intrinsic builder.finish   ; _main.vader:12:13
-  call 1   ; _main.vader:12:5
+  call.import 0   ; _main.vader:12:13
+  call.import 1   ; _main.vader:12:5
   i32.const 0   ; _main.vader:13:12
   return   ; _main.vader:13:5
-end
-
-fn 1 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

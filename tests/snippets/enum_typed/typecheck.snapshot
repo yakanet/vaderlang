@@ -15,24 +15,24 @@
   expr 27:13    IdentExpr      :: fn(Direction) -> string
   expr 27:22    DotVariantExpr :: Direction
   expr 27:5     CallExpr       :: void
-  expr 27:5     IdentExpr      :: fn($T) -> void
+  expr 27:5     IdentExpr      :: fn(Display) -> void
   expr 28:13    CallExpr       :: string
   expr 28:13    IdentExpr      :: fn(Direction) -> string
   expr 28:22    DotVariantExpr :: Direction
   expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn($T) -> void
+  expr 28:5     IdentExpr      :: fn(Display) -> void
   expr 30:14    DotVariantExpr :: Op
   expr 31:11    IdentExpr      :: Op
   expr 31:5     MatchExpr      :: void
   expr 32:18    CallExpr       :: void
-  expr 32:18    IdentExpr      :: fn($T) -> void
+  expr 32:18    IdentExpr      :: fn(Display) -> void
   expr 32:26    StringLitExpr  :: string
   expr 33:18    CallExpr       :: void
-  expr 33:18    IdentExpr      :: fn($T) -> void
+  expr 33:18    IdentExpr      :: fn(Display) -> void
   expr 33:26    StringLitExpr  :: string
   expr 34:18    CallExpr       :: void
-  expr 34:18    IdentExpr      :: fn($T) -> void
+  expr 34:18    IdentExpr      :: fn(Display) -> void
   expr 34:26    StringLitExpr  :: string
   expr 35:18    CallExpr       :: void
-  expr 35:18    IdentExpr      :: fn($T) -> void
+  expr 35:18    IdentExpr      :: fn(Display) -> void
   expr 35:26    StringLitExpr  :: string

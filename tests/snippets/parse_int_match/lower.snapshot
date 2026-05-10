@@ -6,7 +6,7 @@
       let __scrut_0#-1: Error | i32 =
         call :Error | i32
           callee:
-            parse_int#64 :fn(string) -> Error | i32
+            parse_int#60 :fn(string) -> Error | i32
           arg0:
             "42" :string
       ~>
@@ -18,9 +18,13 @@
             ~>
               call :void
                 callee:
-                  println#1000094 :void
+                  println#26 :fn(Display) -> void
                 arg0:
-                  "int ok" :string
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      "int ok" :string
           else:
             ~>
               if :void
@@ -31,9 +35,13 @@
                   ~>
                     call :void
                       callee:
-                        println#1000094 :void
+                        println#26 :fn(Display) -> void
                       arg0:
-                        "int err" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "int err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -41,7 +49,7 @@
       let __scrut_1#-2: Error | i32 =
         call :Error | i32
           callee:
-            parse_int#64 :fn(string) -> Error | i32
+            parse_int#60 :fn(string) -> Error | i32
           arg0:
             "nope" :string
       ~>
@@ -53,9 +61,13 @@
             ~>
               call :void
                 callee:
-                  println#1000094 :void
+                  println#26 :fn(Display) -> void
                 arg0:
-                  "int ok" :string
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      "int ok" :string
           else:
             ~>
               if :void
@@ -66,9 +78,13 @@
                   ~>
                     call :void
                       callee:
-                        println#1000094 :void
+                        println#26 :fn(Display) -> void
                       arg0:
-                        "int err" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "int err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -76,7 +92,7 @@
       let __scrut_2#-3: Error | f64 =
         call :Error | f64
           callee:
-            parse_float#65 :fn(string) -> Error | f64
+            parse_float#61 :fn(string) -> Error | f64
           arg0:
             "3.14" :string
       ~>
@@ -88,9 +104,13 @@
             ~>
               call :void
                 callee:
-                  println#1000094 :void
+                  println#26 :fn(Display) -> void
                 arg0:
-                  "float ok" :string
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      "float ok" :string
           else:
             ~>
               if :void
@@ -101,9 +121,13 @@
                   ~>
                     call :void
                       callee:
-                        println#1000094 :void
+                        println#26 :fn(Display) -> void
                       arg0:
-                        "float err" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "float err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -111,7 +135,7 @@
       let __scrut_3#-4: Error | f64 =
         call :Error | f64
           callee:
-            parse_float#65 :fn(string) -> Error | f64
+            parse_float#61 :fn(string) -> Error | f64
           arg0:
             "nope" :string
       ~>
@@ -123,9 +147,13 @@
             ~>
               call :void
                 callee:
-                  println#1000094 :void
+                  println#26 :fn(Display) -> void
                 arg0:
-                  "float ok" :string
+                  call :string
+                    callee:
+                      to_string#1000013 :string
+                    arg0:
+                      "float ok" :string
           else:
             ~>
               if :void
@@ -136,9 +164,13 @@
                   ~>
                     call :void
                       callee:
-                        println#1000094 :void
+                        println#26 :fn(Display) -> void
                       arg0:
-                        "float err" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "float err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

@@ -5,45 +5,53 @@
   fn tests_snippets_closure_pattern_binding__main_vader$greet(v: i32 | P) -> void
     ~>
       block :void
-        let __scrut_0#-1: i32 | P = v#60 :i32 | P
+        let __scrut_0#-1: i32 | P = v#56 :i32 | P
         ~>
           if :void
             cond:
               is P :bool
                 __scrut_0#-1 :i32 | P
             then:
-              let p#61: ? =
+              let p#57: ? =
                 LoweredCellNew
               ~>
                 block :void
-                  let shout#62: fn() -> string =
+                  let shout#58: fn() -> string =
                     LoweredMakeClosure
                   call :void
                     callee:
-                      println#1000090 :void
+                      println#26 :fn(Display) -> void
                     arg0:
                       call :string
                         callee:
-                          shout#62 :fn() -> string
+                          to_string#1000013 :string
+                        arg0:
+                          call :string
+                            callee:
+                              shout#58 :fn() -> string
                   ~>
                     call :void
                       callee:
-                        println#1000090 :void
+                        println#26 :fn(Display) -> void
                       arg0:
-                        block :string
-                          let __sb_4#-10: ? =
-                            @builder.new :?
-                          @builder.append_str :void
-                            __sb_4#-10 :?
-                            "again " :string
-                          @builder.append_display <for string> :void
-                            __sb_4#-10 :?
-                            call :string
-                              callee:
-                                shout#62 :fn() -> string
-                          ~>
-                            @builder.finish :string
-                              __sb_4#-10 :?
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            block :string
+                              let __sb_4#-10: ? =
+                                @builder.new :?
+                              @builder.append_str :void
+                                __sb_4#-10 :?
+                                "again " :string
+                              @builder.append_display <for string> :void
+                                __sb_4#-10 :?
+                                call :string
+                                  callee:
+                                    shout#58 :fn() -> string
+                              ~>
+                                @builder.finish :string
+                                  __sb_4#-10 :?
             else:
               ~>
                 if :void
@@ -51,31 +59,35 @@
                     is i32 :bool
                       __scrut_0#-1 :i32 | P
                   then:
-                    let n#63: ? =
+                    let n#59: ? =
                       LoweredCellNew
                     ~>
                       block :void
-                        let doubled#64: fn() -> i32 =
+                        let doubled#60: fn() -> i32 =
                           LoweredMakeClosure
                         ~>
                           call :void
                             callee:
-                              println#1000090 :void
+                              println#26 :fn(Display) -> void
                             arg0:
-                              block :string
-                                let __sb_2#-5: ? =
-                                  @builder.new :?
-                                @builder.append_str :void
-                                  __sb_2#-5 :?
-                                  "twice = " :string
-                                @builder.append_display <for i32> :void
-                                  __sb_2#-5 :?
-                                  call :i32
-                                    callee:
-                                      doubled#64 :fn() -> i32
-                                ~>
-                                  @builder.finish :string
-                                    __sb_2#-5 :?
+                              call :string
+                                callee:
+                                  to_string#1000013 :string
+                                arg0:
+                                  block :string
+                                    let __sb_2#-5: ? =
+                                      @builder.new :?
+                                    @builder.append_str :void
+                                      __sb_2#-5 :?
+                                      "twice = " :string
+                                    @builder.append_display <for i32> :void
+                                      __sb_2#-5 :?
+                                      call :i32
+                                        callee:
+                                          doubled#60 :fn() -> i32
+                                    ~>
+                                      @builder.finish :string
+                                        __sb_2#-5 :?
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void

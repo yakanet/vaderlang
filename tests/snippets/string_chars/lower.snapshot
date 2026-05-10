@@ -4,14 +4,18 @@
   fn tests_snippets_string_chars__main_vader$main() -> i32
     call :void
       callee:
-        println#1000094 :void
+        println#26 :fn(Display) -> void
       arg0:
-        "-- ascii --" :string
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            "-- ascii --" :string
     block :void
       let __iter_0#-1: StringChars =
         call :StringChars
           callee:
-            chars#54 :StringChars
+            chars#50 :StringChars
           arg0:
             "vader" :string
       loop
@@ -28,33 +32,41 @@
           then:
             break
           else:
-            let c#126: char =
+            let c#122: char =
               .value :char
                 cast → Yielded(char)
                   __step_1#-2 :Done | Yielded(char)
             call :void
               callee:
-                println#1000094 :void
+                println#26 :fn(Display) -> void
               arg0:
-                block :string
-                  let __sb_2#-3: ? =
-                    @builder.new :?
-                  @builder.append_display <for ?> :void
-                    __sb_2#-3 :?
-                    c#126 :?
-                  ~>
-                    @builder.finish :string
-                      __sb_2#-3 :?
+                call :string
+                  callee:
+                    to_string#1000013 :string
+                  arg0:
+                    block :string
+                      let __sb_2#-3: ? =
+                        @builder.new :?
+                      @builder.append_display <for ?> :void
+                        __sb_2#-3 :?
+                        c#122 :?
+                      ~>
+                        @builder.finish :string
+                          __sb_2#-3 :?
     call :void
       callee:
-        println#1000094 :void
+        println#26 :fn(Display) -> void
       arg0:
-        "-- multibyte --" :string
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            "-- multibyte --" :string
     block :void
       let __iter_3#-4: StringChars =
         call :StringChars
           callee:
-            chars#54 :StringChars
+            chars#50 :StringChars
           arg0:
             "你好嗎？" :string
       loop
@@ -71,29 +83,33 @@
           then:
             break
           else:
-            let c#127: char =
+            let c#123: char =
               .value :char
                 cast → Yielded(char)
                   __step_4#-5 :Done | Yielded(char)
             call :void
               callee:
-                println#1000094 :void
+                println#26 :fn(Display) -> void
               arg0:
-                block :string
-                  let __sb_5#-6: ? =
-                    @builder.new :?
-                  @builder.append_display <for ?> :void
-                    __sb_5#-6 :?
-                    c#127 :?
-                  ~>
-                    @builder.finish :string
-                      __sb_5#-6 :?
-    let n#128: i32 = int(0) :i32
+                call :string
+                  callee:
+                    to_string#1000013 :string
+                  arg0:
+                    block :string
+                      let __sb_5#-6: ? =
+                        @builder.new :?
+                      @builder.append_display <for ?> :void
+                        __sb_5#-6 :?
+                        c#123 :?
+                      ~>
+                        @builder.finish :string
+                          __sb_5#-6 :?
+    let n#124: i32 = int(0) :i32
     block :void
       let __iter_6#-7: StringChars =
         call :StringChars
           callee:
-            chars#54 :StringChars
+            chars#50 :StringChars
           arg0:
             "héllo" :string
       loop
@@ -110,55 +126,63 @@
           then:
             break
           else:
-            let c#129: char =
+            let c#125: char =
               .value :char
                 cast → Yielded(char)
                   __step_7#-8 :Done | Yielded(char)
             assign
               target:
-                n#128 :i32
+                n#124 :i32
               value:
                 add :i32
                   l:
-                    n#128 :i32
+                    n#124 :i32
                   r:
                     int(1) :i32
     call :void
       callee:
-        println#1000094 :void
+        println#26 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_8#-9: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_8#-9 :?
-            "codepoints=" :string
-          @builder.append_display <for i32> :void
-            __sb_8#-9 :?
-            n#128 :i32
-          @builder.append_str :void
-            __sb_8#-9 :?
-            " bytes=" :string
-          @builder.append_display <for i32> :void
-            __sb_8#-9 :?
-            call :i32
-              callee:
-                byte_len#43 :fn(string) -> i32
-              arg0:
-                "héllo" :string
-          ~>
-            @builder.finish :string
-              __sb_8#-9 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_8#-9: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_8#-9 :?
+                "codepoints=" :string
+              @builder.append_display <for i32> :void
+                __sb_8#-9 :?
+                n#124 :i32
+              @builder.append_str :void
+                __sb_8#-9 :?
+                " bytes=" :string
+              @builder.append_display <for i32> :void
+                __sb_8#-9 :?
+                call :i32
+                  callee:
+                    byte_len#39 :fn(string) -> i32
+                  arg0:
+                    "héllo" :string
+              ~>
+                @builder.finish :string
+                  __sb_8#-9 :?
     call :void
       callee:
-        println#1000094 :void
+        println#26 :fn(Display) -> void
       arg0:
-        "-- empty --" :string
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            "-- empty --" :string
     block :void
       let __iter_9#-10: StringChars =
         call :StringChars
           callee:
-            chars#54 :StringChars
+            chars#50 :StringChars
           arg0:
             "" :string
       loop
@@ -175,18 +199,26 @@
           then:
             break
           else:
-            let c#130: char =
+            let c#126: char =
               .value :char
                 cast → Yielded(char)
                   __step_10#-11 :Done | Yielded(char)
             call :void
               callee:
-                println#1000094 :void
+                println#26 :fn(Display) -> void
               arg0:
-                "never" :string
+                call :string
+                  callee:
+                    to_string#1000013 :string
+                  arg0:
+                    "never" :string
     call :void
       callee:
-        println#1000094 :void
+        println#26 :fn(Display) -> void
       arg0:
-        "done" :string
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            "done" :string
     return int(0) :i32

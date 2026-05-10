@@ -6,23 +6,23 @@ string 1 "sum mismatch: got "
 string 2 ", expected "
 string 3 "ok: 200 array elements survived GC; sum="
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 import 2 collect std_runtime$collect () -> void
 import 3 collections std_runtime$collections () -> i32
 
 fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32
-  local "list#40" ref
-  local "i#42" i32
-  local "before#48" i32
-  local "diff#51" i32
-  local "__sb_0#55" any
-  local "sum#61" i32
-  local "j#62" i32
-  local "$idx_27#65" i32
-  local "$mul_33#71" i32
-  local "expected#73" i32
-  local "__sb_1#76" any
-  local "__sb_2#82" any
+  local "list#43" ref
+  local "i#45" i32
+  local "before#51" i32
+  local "diff#54" i32
+  local "__sb_0#58" any
+  local "sum#65" i32
+  local "j#66" i32
+  local "$idx_28#69" i32
+  local "$mul_34#75" i32
+  local "expected#77" i32
+  local "__sb_1#80" any
+  local "__sb_2#87" any
   array.new 0 0   ; _main.vader:9:19
   local.set 0   ; _main.vader:9:19
   i32.const 0   ; _main.vader:10:10
@@ -66,7 +66,8 @@ fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32
     intrinsic builder.append_display   ; _main.vader:22:45
     local.get 4   ; _main.vader:22:17
     intrinsic builder.finish   ; _main.vader:22:17
-    call 1   ; _main.vader:22:9
+    call.import 0   ; _main.vader:22:17
+    call.import 1   ; _main.vader:22:9
     i32.const 1   ; _main.vader:23:16
     return   ; _main.vader:23:9
   else   ; _main.vader:21:5
@@ -126,7 +127,8 @@ fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32
       intrinsic builder.append_display   ; _main.vader:35:53
       local.get 10   ; _main.vader:35:17
       intrinsic builder.finish   ; _main.vader:35:17
-      call 1   ; _main.vader:35:9
+      call.import 0   ; _main.vader:35:17
+      call.import 1   ; _main.vader:35:9
       i32.const 2   ; _main.vader:36:16
       return   ; _main.vader:36:9
     else   ; _main.vader:34:5
@@ -140,16 +142,10 @@ fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32
       intrinsic builder.append_display   ; _main.vader:39:54
       local.get 11   ; _main.vader:39:13
       intrinsic builder.finish   ; _main.vader:39:13
-      call 1   ; _main.vader:39:5
+      call.import 0   ; _main.vader:39:13
+      call.import 1   ; _main.vader:39:5
       i32.const 0   ; _main.vader:40:12
       return   ; _main.vader:40:5
     end $L7   ; _main.vader:34:5
   end $L3   ; _main.vader:21:5
-end
-
-fn 1 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

@@ -16,4 +16,4 @@
   expr 6:32     FieldExpr      :: string
   expr 6:32     IdentExpr      :: [i32, string]
   expr 6:9      CallExpr       :: void
-  expr 6:9      IdentExpr      :: fn($T) -> void
+  expr 6:9      IdentExpr      :: fn(Display) -> void

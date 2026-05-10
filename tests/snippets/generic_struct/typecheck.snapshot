@@ -45,16 +45,16 @@
   expr 37:22    FieldExpr      :: fn() -> i32
   expr 37:22    IdentExpr      :: Stack(i32)
   expr 37:5     CallExpr       :: void
-  expr 37:5     IdentExpr      :: fn($T) -> void
+  expr 37:5     IdentExpr      :: fn(Display) -> void
   expr 38:13    StringLitExpr  :: string
   expr 38:22    CallExpr       :: i32
   expr 38:22    FieldExpr      :: fn() -> i32
   expr 38:22    IdentExpr      :: Stack(i32)
   expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn($T) -> void
+  expr 38:5     IdentExpr      :: fn(Display) -> void
   expr 39:13    StringLitExpr  :: string
   expr 39:22    CallExpr       :: i32
   expr 39:22    FieldExpr      :: fn() -> i32
   expr 39:22    IdentExpr      :: Stack(i32)
   expr 39:5     CallExpr       :: void
-  expr 39:5     IdentExpr      :: fn($T) -> void
+  expr 39:5     IdentExpr      :: fn(Display) -> void

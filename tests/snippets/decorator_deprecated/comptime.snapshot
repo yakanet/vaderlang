@@ -7,7 +7,6 @@
   Yielded(i32)
   Range(char)
   Range(i32)
-  println(string)
 
 # Diagnostics
 [19:10] warning[W0001] use of deprecated declaration: `old_helper`: use new_helper instead

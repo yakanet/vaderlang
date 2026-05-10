@@ -12,42 +12,50 @@
       call :[i32, string]
         callee:
           make_pair#2 :fn() -> [i32, string]
-    let n#59: i32 =
+    let n#55: i32 =
       ._0 :i32
         __tup_0#-1 :[i32, string]
-    let s#60: string =
+    let s#56: string =
       ._1 :string
         __tup_0#-1 :[i32, string]
     call :void
       callee:
-        println#1000090 :void
+        println#25 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_1#-2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1#-2 :?
-            "n = " :string
-          @builder.append_display <for i32> :void
-            __sb_1#-2 :?
-            n#59 :i32
-          ~>
-            @builder.finish :string
-              __sb_1#-2 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_1#-2: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_1#-2 :?
+                "n = " :string
+              @builder.append_display <for i32> :void
+                __sb_1#-2 :?
+                n#55 :i32
+              ~>
+                @builder.finish :string
+                  __sb_1#-2 :?
     call :void
       callee:
-        println#1000090 :void
+        println#25 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_2#-3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2#-3 :?
-            "s = " :string
-          @builder.append_display <for string> :void
-            __sb_2#-3 :?
-            s#60 :string
-          ~>
-            @builder.finish :string
-              __sb_2#-3 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_2#-3: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_2#-3 :?
+                "s = " :string
+              @builder.append_display <for string> :void
+                __sb_2#-3 :?
+                s#56 :string
+              ~>
+                @builder.finish :string
+                  __sb_2#-3 :?
     return int(0) :i32

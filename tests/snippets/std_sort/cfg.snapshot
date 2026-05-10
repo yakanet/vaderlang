@@ -23,29 +23,30 @@ fn tests_snippets_std_sort__main_vader$i32_gt(%0: i32, %1: i32) -> bool
 fn tests_snippets_std_sort__main_vader$print_ints(%0: i32[]) -> void
   locals:
     %0 arr: i32[] (param arr)
-    %1 $k_5#23: i32
-    %2 $len_6#24: i32
-    %3 __iter_0#25: ArrayIter(i32) (synthetic __iter_0)
-    %4 sb#26: string (local sb)
-    %5 i#27: i32 (local i)
-    %6 $call_9#28: Done | Yielded(i32)
-    %7 __step_1#29: Done | Yielded(i32) (synthetic __step_1)
-    %8 $type_check_11#30: bool
-    %9 $cast_12#31: Yielded(i32)
-    %10 x#32: i32 (binding x)
-    %11 $k_15#33: i32
-    %12 $gt_16#34: bool
-    %13 $intrinsic_17#35: ?
-    %14 __sb_2#36: ? (synthetic __sb_2)
-    %15 $k_19#37: string
-    %16 $intrinsic_20#38: string
-    %17 sb#40: string (local sb)
-    %18 $intrinsic_21#41: ?
-    %19 __sb_3#42: ? (synthetic __sb_3)
-    %20 $intrinsic_23#43: string
-    %21 sb#44: string (local sb)
-    %22 $k_24#45: i32
-    %23 i#46: i32 (local i)
+    %1 $k_5#24: i32
+    %2 $len_6#25: i32
+    %3 __iter_0#26: ArrayIter(i32) (synthetic __iter_0)
+    %4 sb#27: string (local sb)
+    %5 i#28: i32 (local i)
+    %6 $call_9#29: Done | Yielded(i32)
+    %7 __step_1#30: Done | Yielded(i32) (synthetic __step_1)
+    %8 $type_check_11#31: bool
+    %9 $call_26#32: string
+    %10 $cast_12#33: Yielded(i32)
+    %11 x#34: i32 (binding x)
+    %12 $k_15#35: i32
+    %13 $gt_16#36: bool
+    %14 $intrinsic_17#37: ?
+    %15 __sb_2#38: ? (synthetic __sb_2)
+    %16 $k_19#39: string
+    %17 $intrinsic_20#40: string
+    %18 sb#42: string (local sb)
+    %19 $intrinsic_21#43: ?
+    %20 __sb_3#44: ? (synthetic __sb_3)
+    %21 $intrinsic_23#45: string
+    %22 sb#46: string (local sb)
+    %23 $k_24#47: i32
+    %24 i#48: i32 (local i)
   bb0:
     %4 = const string(#0) :string
     %5 = const int(0) :i32
@@ -61,67 +62,69 @@ fn tests_snippets_std_sort__main_vader$print_ints(%0: i32[]) -> void
     %8 = type_check %7 is Done
     cond_branch %8 ? bb4 : bb5
   bb3:
-    call println(%4) :void
+    %9 = call to_string(%4) :string
+    call println(%9) :void
     return
   bb4:
     branch -> bb3
   bb5:
-    %9 = cast %7 :Yielded(i32)
-    %10 = field_get %9.value :i32
-    %11 = const int(0) :i32
-    %12 = binop gt %5 %11 :bool
-    %17 = move %4
-    cond_branch %12 ? bb7 : bb8
+    %10 = cast %7 :Yielded(i32)
+    %11 = field_get %10.value :i32
+    %12 = const int(0) :i32
+    %13 = binop gt %5 %12 :bool
+    %18 = move %4
+    cond_branch %13 ? bb7 : bb8
   bb6:
-    %4 = move %21
-    %5 = move %23
+    %4 = move %22
+    %5 = move %24
     branch -> bb1
   bb7:
-    %13 = intrinsic builder.new()
-    %14 = move %13
-    intrinsic builder.append_display(%14, %4)
-    %15 = const string(#1) :string
-    intrinsic builder.append_str(%14, %15)
-    %16 = intrinsic builder.finish(%14)
-    %17 = move %16
+    %14 = intrinsic builder.new()
+    %15 = move %14
+    intrinsic builder.append_display(%15, %4)
+    %16 = const string(#1) :string
+    intrinsic builder.append_str(%15, %16)
+    %17 = intrinsic builder.finish(%15)
+    %18 = move %17
     branch -> bb8
   bb8:
-    %18 = intrinsic builder.new()
-    %19 = move %18
-    intrinsic builder.append_display(%19, %17)
-    intrinsic builder.append_display(%19, %10)
-    %20 = intrinsic builder.finish(%19)
-    %21 = move %20
-    %22 = const int(1) :i32
-    %23 = binop add %5 %22 :i32
+    %19 = intrinsic builder.new()
+    %20 = move %19
+    intrinsic builder.append_display(%20, %18)
+    intrinsic builder.append_display(%20, %11)
+    %21 = intrinsic builder.finish(%20)
+    %22 = move %21
+    %23 = const int(1) :i32
+    %24 = binop add %5 %23 :i32
     branch -> bb6
 
 fn tests_snippets_std_sort__main_vader$print_strings(%0: string[]) -> void
   locals:
     %0 arr: string[] (param arr)
-    %1 $k_5#23: i32
-    %2 $len_6#24: i32
-    %3 __iter_0#25: ArrayIter(string) (synthetic __iter_0)
-    %4 sb#26: string (local sb)
-    %5 i#27: i32 (local i)
-    %6 $call_9#28: Done | Yielded(string)
-    %7 __step_1#29: Done | Yielded(string) (synthetic __step_1)
-    %8 $type_check_11#30: bool
-    %9 $cast_12#31: Yielded(string)
-    %10 s#32: string (binding s)
-    %11 $k_15#33: i32
-    %12 $gt_16#34: bool
-    %13 $intrinsic_17#35: ?
-    %14 __sb_2#36: ? (synthetic __sb_2)
-    %15 $k_19#37: string
-    %16 $intrinsic_20#38: string
-    %17 sb#40: string (local sb)
-    %18 $intrinsic_21#41: ?
-    %19 __sb_3#42: ? (synthetic __sb_3)
-    %20 $intrinsic_23#43: string
-    %21 sb#44: string (local sb)
-    %22 $k_24#45: i32
-    %23 i#46: i32 (local i)
+    %1 $k_5#24: i32
+    %2 $len_6#25: i32
+    %3 __iter_0#26: ArrayIter(string) (synthetic __iter_0)
+    %4 sb#27: string (local sb)
+    %5 i#28: i32 (local i)
+    %6 $call_9#29: Done | Yielded(string)
+    %7 __step_1#30: Done | Yielded(string) (synthetic __step_1)
+    %8 $type_check_11#31: bool
+    %9 $call_26#32: string
+    %10 $cast_12#33: Yielded(string)
+    %11 s#34: string (binding s)
+    %12 $k_15#35: i32
+    %13 $gt_16#36: bool
+    %14 $intrinsic_17#37: ?
+    %15 __sb_2#38: ? (synthetic __sb_2)
+    %16 $k_19#39: string
+    %17 $intrinsic_20#40: string
+    %18 sb#42: string (local sb)
+    %19 $intrinsic_21#43: ?
+    %20 __sb_3#44: ? (synthetic __sb_3)
+    %21 $intrinsic_23#45: string
+    %22 sb#46: string (local sb)
+    %23 $k_24#47: i32
+    %24 i#48: i32 (local i)
   bb0:
     %4 = const string(#0) :string
     %5 = const int(0) :i32
@@ -137,39 +140,40 @@ fn tests_snippets_std_sort__main_vader$print_strings(%0: string[]) -> void
     %8 = type_check %7 is Done
     cond_branch %8 ? bb4 : bb5
   bb3:
-    call println(%4) :void
+    %9 = call to_string(%4) :string
+    call println(%9) :void
     return
   bb4:
     branch -> bb3
   bb5:
-    %9 = cast %7 :Yielded(string)
-    %10 = field_get %9.value :string
-    %11 = const int(0) :i32
-    %12 = binop gt %5 %11 :bool
-    %17 = move %4
-    cond_branch %12 ? bb7 : bb8
+    %10 = cast %7 :Yielded(string)
+    %11 = field_get %10.value :string
+    %12 = const int(0) :i32
+    %13 = binop gt %5 %12 :bool
+    %18 = move %4
+    cond_branch %13 ? bb7 : bb8
   bb6:
-    %4 = move %21
-    %5 = move %23
+    %4 = move %22
+    %5 = move %24
     branch -> bb1
   bb7:
-    %13 = intrinsic builder.new()
-    %14 = move %13
-    intrinsic builder.append_display(%14, %4)
-    %15 = const string(#1) :string
-    intrinsic builder.append_str(%14, %15)
-    %16 = intrinsic builder.finish(%14)
-    %17 = move %16
+    %14 = intrinsic builder.new()
+    %15 = move %14
+    intrinsic builder.append_display(%15, %4)
+    %16 = const string(#1) :string
+    intrinsic builder.append_str(%15, %16)
+    %17 = intrinsic builder.finish(%15)
+    %18 = move %17
     branch -> bb8
   bb8:
-    %18 = intrinsic builder.new()
-    %19 = move %18
-    intrinsic builder.append_display(%19, %17)
-    intrinsic builder.append_display(%19, %10)
-    %20 = intrinsic builder.finish(%19)
-    %21 = move %20
-    %22 = const int(1) :i32
-    %23 = binop add %5 %22 :i32
+    %19 = intrinsic builder.new()
+    %20 = move %19
+    intrinsic builder.append_display(%20, %18)
+    intrinsic builder.append_display(%20, %11)
+    %21 = intrinsic builder.finish(%20)
+    %22 = move %21
+    %23 = const int(1) :i32
+    %24 = binop add %5 %23 :i32
     branch -> bb6
 
 fn tests_snippets_std_sort__main_vader$main() -> i32

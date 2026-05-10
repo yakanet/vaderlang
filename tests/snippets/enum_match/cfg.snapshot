@@ -87,209 +87,241 @@ fn tests_snippets_enum_match__main_vader$same_color(%0: Color, %1: Color) -> boo
 
 fn tests_snippets_enum_match__main_vader$main() -> i32
   locals:
-    %0 c#66: Color (local c)
-    %1 $call_2#67: string
-    %2 $k_3#68: i32
-    %3 $call_4#69: string
-    %4 $k_5#70: i32
-    %5 $call_6#71: string
-    %6 $intrinsic_7#72: ?
-    %7 __sb_0#73: ? (synthetic __sb_0)
-    %8 $k_9#74: i32
-    %9 $k_10#75: i32
-    %10 $call_11#76: bool
-    %11 $intrinsic_12#77: string
-    %12 $intrinsic_13#78: ?
-    %13 __sb_1#79: ? (synthetic __sb_1)
-    %14 $k_15#80: i32
-    %15 $k_16#81: i32
-    %16 $call_17#82: bool
-    %17 $intrinsic_18#83: string
-    %18 $intrinsic_19#84: ?
-    %19 __sb_2#85: ? (synthetic __sb_2)
-    %20 $k_21#86: i32
-    %21 $neq_22#87: bool
-    %22 $intrinsic_23#88: string
-    %23 $intrinsic_24#89: ?
-    %24 __sb_3#90: ? (synthetic __sb_3)
-    %25 $k_26#91: i32
-    %26 $neq_27#92: bool
-    %27 $intrinsic_28#93: string
-    %28 $k_29#94: i32
-    %29 $neg_30#95: i32
-    %30 $call_31#96: Severity
-    %31 __scrut_4#97: Severity (synthetic __scrut_4)
-    %32 $k_34#98: i32
-    %33 $eq_35#99: bool
-    %34 $k_36#100: string
-    %35 $k_37#101: i32
-    %36 $eq_38#102: bool
-    %37 $k_39#103: string
-    %38 $k_40#104: i32
-    %39 $eq_41#105: bool
-    %40 $k_42#106: string
-    %41 $k_43#107: i32
-    %42 $call_44#108: Severity
-    %43 __scrut_5#109: Severity (synthetic __scrut_5)
-    %44 $k_47#110: i32
-    %45 $eq_48#111: bool
-    %46 $k_49#112: string
-    %47 $k_50#113: i32
-    %48 $eq_51#114: bool
-    %49 $k_52#115: string
-    %50 $k_53#116: i32
-    %51 $eq_54#117: bool
-    %52 $k_55#118: string
-    %53 $k_56#119: i32
-    %54 $call_57#120: Severity
-    %55 __scrut_6#121: Severity (synthetic __scrut_6)
-    %56 $k_60#122: i32
-    %57 $eq_61#123: bool
-    %58 $k_62#124: string
-    %59 $k_63#125: i32
-    %60 $eq_64#126: bool
-    %61 $k_65#127: string
-    %62 $k_66#128: i32
-    %63 $eq_67#129: bool
-    %64 $k_68#130: string
-    %65 $k_69#131: i32
+    %0 c#82: Color (local c)
+    %1 $call_2#83: string
+    %2 $call_3#84: string
+    %3 $k_4#85: i32
+    %4 $call_5#86: string
+    %5 $call_6#87: string
+    %6 $k_7#88: i32
+    %7 $call_8#89: string
+    %8 $call_9#90: string
+    %9 $intrinsic_10#91: ?
+    %10 __sb_0#92: ? (synthetic __sb_0)
+    %11 $k_12#93: i32
+    %12 $k_13#94: i32
+    %13 $call_14#95: bool
+    %14 $intrinsic_15#96: string
+    %15 $call_16#97: string
+    %16 $intrinsic_17#98: ?
+    %17 __sb_1#99: ? (synthetic __sb_1)
+    %18 $k_19#100: i32
+    %19 $k_20#101: i32
+    %20 $call_21#102: bool
+    %21 $intrinsic_22#103: string
+    %22 $call_23#104: string
+    %23 $intrinsic_24#105: ?
+    %24 __sb_2#106: ? (synthetic __sb_2)
+    %25 $k_26#107: i32
+    %26 $neq_27#108: bool
+    %27 $intrinsic_28#109: string
+    %28 $call_29#110: string
+    %29 $intrinsic_30#111: ?
+    %30 __sb_3#112: ? (synthetic __sb_3)
+    %31 $k_32#113: i32
+    %32 $neq_33#114: bool
+    %33 $intrinsic_34#115: string
+    %34 $call_35#116: string
+    %35 $k_36#117: i32
+    %36 $neg_37#118: i32
+    %37 $call_38#119: Severity
+    %38 __scrut_4#120: Severity (synthetic __scrut_4)
+    %39 $k_41#121: i32
+    %40 $eq_42#122: bool
+    %41 $k_43#123: string
+    %42 $call_44#124: string
+    %43 $k_45#125: i32
+    %44 $eq_46#126: bool
+    %45 $k_47#127: string
+    %46 $call_48#128: string
+    %47 $k_49#129: i32
+    %48 $eq_50#130: bool
+    %49 $k_51#131: string
+    %50 $call_52#132: string
+    %51 $k_53#133: i32
+    %52 $call_54#134: Severity
+    %53 __scrut_5#135: Severity (synthetic __scrut_5)
+    %54 $k_57#136: i32
+    %55 $eq_58#137: bool
+    %56 $k_59#138: string
+    %57 $call_60#139: string
+    %58 $k_61#140: i32
+    %59 $eq_62#141: bool
+    %60 $k_63#142: string
+    %61 $call_64#143: string
+    %62 $k_65#144: i32
+    %63 $eq_66#145: bool
+    %64 $k_67#146: string
+    %65 $call_68#147: string
+    %66 $k_69#148: i32
+    %67 $call_70#149: Severity
+    %68 __scrut_6#150: Severity (synthetic __scrut_6)
+    %69 $k_73#151: i32
+    %70 $eq_74#152: bool
+    %71 $k_75#153: string
+    %72 $call_76#154: string
+    %73 $k_77#155: i32
+    %74 $eq_78#156: bool
+    %75 $k_79#157: string
+    %76 $call_80#158: string
+    %77 $k_81#159: i32
+    %78 $eq_82#160: bool
+    %79 $k_83#161: string
+    %80 $call_84#162: string
+    %81 $k_85#163: i32
   bb0:
     %0 = const int(1) :i32
     %1 = call label(%0) :string
-    call println(%1) :void
-    %2 = const int(0) :i32
-    %3 = call label(%2) :string
-    call println(%3) :void
-    %4 = const int(2) :i32
-    %5 = call label(%4) :string
+    %2 = call to_string(%1) :string
+    call println(%2) :void
+    %3 = const int(0) :i32
+    %4 = call label(%3) :string
+    %5 = call to_string(%4) :string
     call println(%5) :void
-    %6 = intrinsic builder.new()
-    %7 = move %6
-    %8 = const int(0) :i32
-    %9 = const int(0) :i32
-    %10 = call same_color(%8, %9) :bool
-    intrinsic builder.append_display(%7, %10)
-    %11 = intrinsic builder.finish(%7)
-    call println(%11) :void
-    %12 = intrinsic builder.new()
-    %13 = move %12
-    %14 = const int(0) :i32
-    %15 = const int(2) :i32
-    %16 = call same_color(%14, %15) :bool
-    intrinsic builder.append_display(%13, %16)
-    %17 = intrinsic builder.finish(%13)
-    call println(%17) :void
-    %18 = intrinsic builder.new()
-    %19 = move %18
-    %20 = const int(0) :i32
-    %21 = binop neq %0 %20 :bool
-    intrinsic builder.append_display(%19, %21)
-    %22 = intrinsic builder.finish(%19)
+    %6 = const int(2) :i32
+    %7 = call label(%6) :string
+    %8 = call to_string(%7) :string
+    call println(%8) :void
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    %11 = const int(0) :i32
+    %12 = const int(0) :i32
+    %13 = call same_color(%11, %12) :bool
+    intrinsic builder.append_display(%10, %13)
+    %14 = intrinsic builder.finish(%10)
+    %15 = call to_string(%14) :string
+    call println(%15) :void
+    %16 = intrinsic builder.new()
+    %17 = move %16
+    %18 = const int(0) :i32
+    %19 = const int(2) :i32
+    %20 = call same_color(%18, %19) :bool
+    intrinsic builder.append_display(%17, %20)
+    %21 = intrinsic builder.finish(%17)
+    %22 = call to_string(%21) :string
     call println(%22) :void
     %23 = intrinsic builder.new()
     %24 = move %23
-    %25 = const int(1) :i32
+    %25 = const int(0) :i32
     %26 = binop neq %0 %25 :bool
     intrinsic builder.append_display(%24, %26)
     %27 = intrinsic builder.finish(%24)
-    call println(%27) :void
-    %28 = const int(5) :i32
-    %29 = unop neg %28 :i32
-    %30 = call classify(%29) :Severity
-    %31 = move %30
-    %32 = const int(0) :i32
-    %33 = binop eq %31 %32 :bool
-    cond_branch %33 ? bb1 : bb2
-  bb1:
-    %34 = const string(#3) :string
+    %28 = call to_string(%27) :string
+    call println(%28) :void
+    %29 = intrinsic builder.new()
+    %30 = move %29
+    %31 = const int(1) :i32
+    %32 = binop neq %0 %31 :bool
+    intrinsic builder.append_display(%30, %32)
+    %33 = intrinsic builder.finish(%30)
+    %34 = call to_string(%33) :string
     call println(%34) :void
+    %35 = const int(5) :i32
+    %36 = unop neg %35 :i32
+    %37 = call classify(%36) :Severity
+    %38 = move %37
+    %39 = const int(0) :i32
+    %40 = binop eq %38 %39 :bool
+    cond_branch %40 ? bb1 : bb2
+  bb1:
+    %41 = const string(#3) :string
+    %42 = call to_string(%41) :string
+    call println(%42) :void
     branch -> bb3
   bb2:
-    %35 = const int(1) :i32
-    %36 = binop eq %31 %35 :bool
-    cond_branch %36 ? bb4 : bb5
+    %43 = const int(1) :i32
+    %44 = binop eq %38 %43 :bool
+    cond_branch %44 ? bb4 : bb5
   bb3:
-    %41 = const int(0) :i32
-    %42 = call classify(%41) :Severity
-    %43 = move %42
-    %44 = const int(0) :i32
-    %45 = binop eq %43 %44 :bool
-    cond_branch %45 ? bb10 : bb11
+    %51 = const int(0) :i32
+    %52 = call classify(%51) :Severity
+    %53 = move %52
+    %54 = const int(0) :i32
+    %55 = binop eq %53 %54 :bool
+    cond_branch %55 ? bb10 : bb11
   bb4:
-    %37 = const string(#4) :string
-    call println(%37) :void
+    %45 = const string(#4) :string
+    %46 = call to_string(%45) :string
+    call println(%46) :void
     branch -> bb6
   bb5:
-    %38 = const int(2) :i32
-    %39 = binop eq %31 %38 :bool
-    cond_branch %39 ? bb7 : bb8
+    %47 = const int(2) :i32
+    %48 = binop eq %38 %47 :bool
+    cond_branch %48 ? bb7 : bb8
   bb6:
     branch -> bb3
   bb7:
-    %40 = const string(#5) :string
-    call println(%40) :void
+    %49 = const string(#5) :string
+    %50 = call to_string(%49) :string
+    call println(%50) :void
     branch -> bb9
   bb8:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb9:
     branch -> bb6
   bb10:
-    %46 = const string(#3) :string
-    call println(%46) :void
+    %56 = const string(#3) :string
+    %57 = call to_string(%56) :string
+    call println(%57) :void
     branch -> bb12
   bb11:
-    %47 = const int(1) :i32
-    %48 = binop eq %43 %47 :bool
-    cond_branch %48 ? bb13 : bb14
+    %58 = const int(1) :i32
+    %59 = binop eq %53 %58 :bool
+    cond_branch %59 ? bb13 : bb14
   bb12:
-    %53 = const int(1) :i32
-    %54 = call classify(%53) :Severity
-    %55 = move %54
-    %56 = const int(0) :i32
-    %57 = binop eq %55 %56 :bool
-    cond_branch %57 ? bb19 : bb20
+    %66 = const int(1) :i32
+    %67 = call classify(%66) :Severity
+    %68 = move %67
+    %69 = const int(0) :i32
+    %70 = binop eq %68 %69 :bool
+    cond_branch %70 ? bb19 : bb20
   bb13:
-    %49 = const string(#4) :string
-    call println(%49) :void
+    %60 = const string(#4) :string
+    %61 = call to_string(%60) :string
+    call println(%61) :void
     branch -> bb15
   bb14:
-    %50 = const int(2) :i32
-    %51 = binop eq %43 %50 :bool
-    cond_branch %51 ? bb16 : bb17
+    %62 = const int(2) :i32
+    %63 = binop eq %53 %62 :bool
+    cond_branch %63 ? bb16 : bb17
   bb15:
     branch -> bb12
   bb16:
-    %52 = const string(#5) :string
-    call println(%52) :void
+    %64 = const string(#5) :string
+    %65 = call to_string(%64) :string
+    call println(%65) :void
     branch -> bb18
   bb17:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb18:
     branch -> bb15
   bb19:
-    %58 = const string(#3) :string
-    call println(%58) :void
+    %71 = const string(#3) :string
+    %72 = call to_string(%71) :string
+    call println(%72) :void
     branch -> bb21
   bb20:
-    %59 = const int(1) :i32
-    %60 = binop eq %55 %59 :bool
-    cond_branch %60 ? bb22 : bb23
+    %73 = const int(1) :i32
+    %74 = binop eq %68 %73 :bool
+    cond_branch %74 ? bb22 : bb23
   bb21:
-    %65 = const int(0) :i32
-    return %65
+    %81 = const int(0) :i32
+    return %81
   bb22:
-    %61 = const string(#4) :string
-    call println(%61) :void
+    %75 = const string(#4) :string
+    %76 = call to_string(%75) :string
+    call println(%76) :void
     branch -> bb24
   bb23:
-    %62 = const int(2) :i32
-    %63 = binop eq %55 %62 :bool
-    cond_branch %63 ? bb25 : bb26
+    %77 = const int(2) :i32
+    %78 = binop eq %68 %77 :bool
+    cond_branch %78 ? bb25 : bb26
   bb24:
     branch -> bb21
   bb25:
-    %64 = const string(#5) :string
-    call println(%64) :void
+    %79 = const string(#5) :string
+    %80 = call to_string(%79) :string
+    call println(%80) :void
     branch -> bb27
   bb26:
     unreachable ; non-exhaustive match (T3013 should have caught this)

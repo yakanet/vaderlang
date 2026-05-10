@@ -30,7 +30,7 @@ string 4 "cherry"
 string 5 "date"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 at std_core$string$Index$at (string,i32) -> char
-import 2 println_str std_io$println_str (string) -> void
+import 2 println std_io$println (string) -> void
 import 3 byte_len std_string$byte_len (string) -> i32
 
 fn 0 tests_snippets_std_sort__main_vader$i32_lt (i32,i32) -> bool
@@ -48,18 +48,18 @@ fn 1 tests_snippets_std_sort__main_vader$i32_gt (i32,i32) -> bool
 end
 
 fn 2 tests_snippets_std_sort__main_vader$print_ints (ref) -> void
-  local "$len_6#24" i32
-  local "__iter_0#25" ref
-  local "sb#26" string
-  local "i#27" i32
-  local "__step_1#29" ref
-  local "x#32" i32
-  local "$gt_16#34" bool
-  local "__sb_2#36" any
-  local "sb#40" string
-  local "__sb_3#42" any
-  local "sb#44" string
-  local "i#46" i32
+  local "$len_6#25" i32
+  local "__iter_0#26" ref
+  local "sb#27" string
+  local "i#28" i32
+  local "__step_1#30" ref
+  local "x#34" i32
+  local "$gt_16#36" bool
+  local "__sb_2#38" any
+  local "sb#42" string
+  local "__sb_3#44" any
+  local "sb#46" string
+  local "i#48" i32
   string.const 0   ; _main.vader:9:11
   local.set 3   ; _main.vader:9:11
   i32.const 0   ; _main.vader:10:10
@@ -125,24 +125,25 @@ fn 2 tests_snippets_std_sort__main_vader$print_ints (ref) -> void
       end $L2   ; _main.vader:11:5
     end $L1   ; _main.vader:11:5
   end $L0   ; _main.vader:11:5
-  local.get 3   ; _main.vader:16:5
-  call 7   ; _main.vader:16:5
+  local.get 3   ; _main.vader:16:13
+  call.import 0   ; _main.vader:16:13
+  call.import 2   ; _main.vader:16:5
   return   ; _main.vader:8:38
 end
 
 fn 3 tests_snippets_std_sort__main_vader$print_strings (ref) -> void
-  local "$len_6#24" i32
-  local "__iter_0#25" ref
-  local "sb#26" string
-  local "i#27" i32
-  local "__step_1#29" ref
-  local "s#32" string
-  local "$gt_16#34" bool
-  local "__sb_2#36" any
-  local "sb#40" string
-  local "__sb_3#42" any
-  local "sb#44" string
-  local "i#46" i32
+  local "$len_6#25" i32
+  local "__iter_0#26" ref
+  local "sb#27" string
+  local "i#28" i32
+  local "__step_1#30" ref
+  local "s#34" string
+  local "$gt_16#36" bool
+  local "__sb_2#38" any
+  local "sb#42" string
+  local "__sb_3#44" any
+  local "sb#46" string
+  local "i#48" i32
   string.const 0   ; _main.vader:20:11
   local.set 3   ; _main.vader:20:11
   i32.const 0   ; _main.vader:21:10
@@ -208,8 +209,9 @@ fn 3 tests_snippets_std_sort__main_vader$print_strings (ref) -> void
       end $L2   ; _main.vader:22:5
     end $L1   ; _main.vader:22:5
   end $L0   ; _main.vader:22:5
-  local.get 3   ; _main.vader:27:5
-  call 7   ; _main.vader:27:5
+  local.get 3   ; _main.vader:27:13
+  call.import 0   ; _main.vader:27:13
+  call.import 2   ; _main.vader:27:5
   return   ; _main.vader:19:44
 end
 
@@ -238,7 +240,7 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   local.set 1   ; _main.vader:32:23
   local.get 0   ; _main.vader:32:12
   local.get 1   ; _main.vader:32:12
-  call 8   ; _main.vader:32:12
+  call 7   ; _main.vader:32:12
   call 2   ; _main.vader:33:5
   i32.const 1   ; _main.vader:36:17
   i32.const 2   ; _main.vader:36:17
@@ -251,7 +253,7 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   local.set 3   ; _main.vader:36:34
   local.get 2   ; _main.vader:36:12
   local.get 3   ; _main.vader:36:12
-  call 8   ; _main.vader:36:12
+  call 7   ; _main.vader:36:12
   call 2   ; _main.vader:37:5
   i32.const 5   ; _main.vader:38:18
   i32.const 4   ; _main.vader:38:18
@@ -264,7 +266,7 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   local.set 5   ; _main.vader:38:35
   local.get 4   ; _main.vader:38:13
   local.get 5   ; _main.vader:38:13
-  call 8   ; _main.vader:38:13
+  call 7   ; _main.vader:38:13
   call 2   ; _main.vader:39:5
   i32.const 3   ; _main.vader:40:18
   i32.const 1   ; _main.vader:40:18
@@ -283,7 +285,7 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   local.set 7   ; _main.vader:40:53
   local.get 6   ; _main.vader:40:13
   local.get 7   ; _main.vader:40:13
-  call 8   ; _main.vader:40:13
+  call 7   ; _main.vader:40:13
   call 2   ; _main.vader:41:5
   i32.const 1   ; _main.vader:44:24
   i32.const 2   ; _main.vader:44:24
@@ -296,7 +298,7 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   local.set 9   ; _main.vader:44:41
   local.get 8   ; _main.vader:44:19
   local.get 9   ; _main.vader:44:19
-  call 8   ; _main.vader:44:19
+  call 7   ; _main.vader:44:19
   call 2   ; _main.vader:45:5
   i32.const 10   ; _main.vader:49:9
   i32.const 20   ; _main.vader:49:9
@@ -334,7 +336,7 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   local.set 11   ; _main.vader:50:9
   local.get 10   ; _main.vader:48:12
   local.get 11   ; _main.vader:48:12
-  call 8   ; _main.vader:48:12
+  call 7   ; _main.vader:48:12
   call 2   ; _main.vader:52:5
   string.const 2   ; _main.vader:55:18
   string.const 3   ; _main.vader:55:18
@@ -342,11 +344,11 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   string.const 5   ; _main.vader:55:18
   array.new 18 4   ; _main.vader:55:18
   local.set 12   ; _main.vader:55:18
-  fn.ref 14 22   ; _main.vader:55:57
+  fn.ref 13 22   ; _main.vader:55:57
   local.set 13   ; _main.vader:55:57
   local.get 12   ; _main.vader:55:13
   local.get 13   ; _main.vader:55:13
-  call 9   ; _main.vader:55:13
+  call 8   ; _main.vader:55:13
   call 3   ; _main.vader:56:5
   i32.const 3   ; _main.vader:59:14
   i32.const 1   ; _main.vader:59:14
@@ -357,7 +359,7 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   local.set 15   ; _main.vader:60:24
   local.get 14   ; _main.vader:60:12
   local.get 15   ; _main.vader:60:12
-  call 8   ; _main.vader:60:12
+  call 7   ; _main.vader:60:12
   local.set 16   ; _main.vader:60:5
   local.get 14   ; _main.vader:61:5
   call 2   ; _main.vader:61:5
@@ -463,14 +465,42 @@ fn 6 std_core$ArrayIter$Iterator$step__string (ref) -> ref
   end $L0   ; core.vader:153:9
 end
 
-fn 7 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 2   ; io.vader:28:53
-  return   ; io.vader:28:53
+fn 7 std_sort$std_sort$sort__i32 (ref,ref) -> ref
+  local "n#12" i32
+  local "out#15" ref
+  local "buf#20" ref
+  local.get 0   ; sort.vader:19:10
+  array.len   ; sort.vader:19:10
+  local.set 2   ; sort.vader:19:10
+  local.get 0   ; sort.vader:20:12
+  i32.const 0   ; sort.vader:20:12
+  local.get 2   ; sort.vader:20:12
+  call 14   ; sort.vader:20:12
+  local.set 3   ; sort.vader:20:5
+  local.get 2   ; sort.vader:21:8
+  i32.const 2   ; sort.vader:21:8
+  i32.lt   ; sort.vader:21:8
+  if $L0 void   ; sort.vader:21:5
+    local.get 3   ; sort.vader:21:16
+    return   ; sort.vader:21:16
+  else   ; sort.vader:21:5
+    local.get 0   ; sort.vader:25:12
+    i32.const 0   ; sort.vader:25:12
+    local.get 2   ; sort.vader:25:12
+    call 14   ; sort.vader:25:12
+    local.set 4   ; sort.vader:25:5
+    local.get 3   ; sort.vader:26:5
+    local.get 4   ; sort.vader:26:5
+    i32.const 0   ; sort.vader:26:5
+    local.get 2   ; sort.vader:26:5
+    local.get 1   ; sort.vader:26:5
+    call 9   ; sort.vader:26:5
+    local.get 3   ; sort.vader:27:5
+    return   ; sort.vader:27:5
+  end $L0   ; sort.vader:21:5
 end
 
-fn 8 std_sort$std_sort$sort__i32 (ref,ref) -> ref
+fn 8 std_sort$std_sort$sort__string (ref,ref) -> ref
   local "n#12" i32
   local "out#15" ref
   local "buf#20" ref
@@ -505,42 +535,7 @@ fn 8 std_sort$std_sort$sort__i32 (ref,ref) -> ref
   end $L0   ; sort.vader:21:5
 end
 
-fn 9 std_sort$std_sort$sort__string (ref,ref) -> ref
-  local "n#12" i32
-  local "out#15" ref
-  local "buf#20" ref
-  local.get 0   ; sort.vader:19:10
-  array.len   ; sort.vader:19:10
-  local.set 2   ; sort.vader:19:10
-  local.get 0   ; sort.vader:20:12
-  i32.const 0   ; sort.vader:20:12
-  local.get 2   ; sort.vader:20:12
-  call 16   ; sort.vader:20:12
-  local.set 3   ; sort.vader:20:5
-  local.get 2   ; sort.vader:21:8
-  i32.const 2   ; sort.vader:21:8
-  i32.lt   ; sort.vader:21:8
-  if $L0 void   ; sort.vader:21:5
-    local.get 3   ; sort.vader:21:16
-    return   ; sort.vader:21:16
-  else   ; sort.vader:21:5
-    local.get 0   ; sort.vader:25:12
-    i32.const 0   ; sort.vader:25:12
-    local.get 2   ; sort.vader:25:12
-    call 16   ; sort.vader:25:12
-    local.set 4   ; sort.vader:25:5
-    local.get 3   ; sort.vader:26:5
-    local.get 4   ; sort.vader:26:5
-    i32.const 0   ; sort.vader:26:5
-    local.get 2   ; sort.vader:26:5
-    local.get 1   ; sort.vader:26:5
-    call 11   ; sort.vader:26:5
-    local.get 3   ; sort.vader:27:5
-    return   ; sort.vader:27:5
-  end $L0   ; sort.vader:21:5
-end
-
-fn 10 std_sort$std_sort$merge_sort_range__i32 (ref,ref,i32,i32,ref) -> void
+fn 9 std_sort$std_sort$merge_sort_range__i32 (ref,ref,i32,i32,ref) -> void
   local "n#35" i32
   local "$div_12#41" i32
   local "mid#42" i32
@@ -579,7 +574,7 @@ fn 10 std_sort$std_sort$merge_sort_range__i32 (ref,ref,i32,i32,ref) -> void
       local.get 2   ; sort.vader:39:9
       local.get 3   ; sort.vader:39:9
       local.get 4   ; sort.vader:39:9
-      call 12   ; sort.vader:39:9
+      call 11   ; sort.vader:39:9
       return   ; sort.vader:40:9
     else   ; sort.vader:38:5
       local.get 5   ; sort.vader:42:17
@@ -595,13 +590,13 @@ fn 10 std_sort$std_sort$merge_sort_range__i32 (ref,ref,i32,i32,ref) -> void
       local.get 2   ; sort.vader:43:5
       local.get 7   ; sort.vader:43:5
       local.get 4   ; sort.vader:43:5
-      call 10   ; sort.vader:43:5
+      call 9   ; sort.vader:43:5
       local.get 0   ; sort.vader:44:5
       local.get 1   ; sort.vader:44:5
       local.get 7   ; sort.vader:44:5
       local.get 3   ; sort.vader:44:5
       local.get 4   ; sort.vader:44:5
-      call 10   ; sort.vader:44:5
+      call 9   ; sort.vader:44:5
       local.get 2   ; sort.vader:47:5
       local.set 8   ; sort.vader:47:5
       block $L2 void   ; sort.vader:48:5
@@ -755,7 +750,7 @@ fn 10 std_sort$std_sort$merge_sort_range__i32 (ref,ref,i32,i32,ref) -> void
   end $L0   ; sort.vader:37:5
 end
 
-fn 11 std_sort$std_sort$merge_sort_range__string (ref,ref,i32,i32,ref) -> void
+fn 10 std_sort$std_sort$merge_sort_range__string (ref,ref,i32,i32,ref) -> void
   local "n#35" i32
   local "$div_12#41" i32
   local "mid#42" i32
@@ -794,7 +789,7 @@ fn 11 std_sort$std_sort$merge_sort_range__string (ref,ref,i32,i32,ref) -> void
       local.get 2   ; sort.vader:39:9
       local.get 3   ; sort.vader:39:9
       local.get 4   ; sort.vader:39:9
-      call 13   ; sort.vader:39:9
+      call 12   ; sort.vader:39:9
       return   ; sort.vader:40:9
     else   ; sort.vader:38:5
       local.get 5   ; sort.vader:42:17
@@ -810,13 +805,13 @@ fn 11 std_sort$std_sort$merge_sort_range__string (ref,ref,i32,i32,ref) -> void
       local.get 2   ; sort.vader:43:5
       local.get 7   ; sort.vader:43:5
       local.get 4   ; sort.vader:43:5
-      call 11   ; sort.vader:43:5
+      call 10   ; sort.vader:43:5
       local.get 0   ; sort.vader:44:5
       local.get 1   ; sort.vader:44:5
       local.get 7   ; sort.vader:44:5
       local.get 3   ; sort.vader:44:5
       local.get 4   ; sort.vader:44:5
-      call 11   ; sort.vader:44:5
+      call 10   ; sort.vader:44:5
       local.get 2   ; sort.vader:47:5
       local.set 8   ; sort.vader:47:5
       block $L2 void   ; sort.vader:48:5
@@ -970,7 +965,7 @@ fn 11 std_sort$std_sort$merge_sort_range__string (ref,ref,i32,i32,ref) -> void
   end $L0   ; sort.vader:37:5
 end
 
-fn 12 std_sort$std_sort$insertion_sort_range__i32 (ref,i32,i32,ref) -> void
+fn 11 std_sort$std_sort$insertion_sort_range__i32 (ref,i32,i32,ref) -> void
   local "i#22" i32
   local "x#24" i32
   local "j#26" i32
@@ -1060,7 +1055,7 @@ fn 12 std_sort$std_sort$insertion_sort_range__i32 (ref,i32,i32,ref) -> void
   return   ; sort.vader:76:94
 end
 
-fn 13 std_sort$std_sort$insertion_sort_range__string (ref,i32,i32,ref) -> void
+fn 12 std_sort$std_sort$insertion_sort_range__string (ref,i32,i32,ref) -> void
   local "i#22" i32
   local "x#24" string
   local "j#26" i32
@@ -1150,7 +1145,7 @@ fn 13 std_sort$std_sort$insertion_sort_range__string (ref,i32,i32,ref) -> void
   return   ; sort.vader:76:94
 end
 
-fn 14 std_string$compare_ascending (string,string) -> bool
+fn 13 std_string$compare_ascending (string,string) -> bool
   local "la#21" i32
   local "lb#23" i32
   local "n#25" i32
@@ -1165,7 +1160,7 @@ fn 14 std_string$compare_ascending (string,string) -> bool
   local.set 3   ; string.vader:164:5
   local.get 2   ; string.vader:165:10
   local.get 3   ; string.vader:165:10
-  call 17   ; string.vader:165:10
+  call 16   ; string.vader:165:10
   local.set 4   ; string.vader:165:5
   i32.const 0   ; string.vader:166:10
   local.set 5   ; string.vader:166:10
@@ -1214,7 +1209,7 @@ fn 14 std_string$compare_ascending (string,string) -> bool
   return   ; string.vader:174:5
 end
 
-fn 15 std_iter$std_iter$slice__i32 (ref,i32,i32) -> ref
+fn 14 std_iter$std_iter$slice__i32 (ref,i32,i32) -> ref
   local "out#16" ref
   local "len#17" i32
   local "lo#18" i32
@@ -1314,7 +1309,7 @@ fn 15 std_iter$std_iter$slice__i32 (ref,i32,i32) -> ref
   return   ; iter.vader:116:5
 end
 
-fn 16 std_iter$std_iter$slice__string (ref,i32,i32) -> ref
+fn 15 std_iter$std_iter$slice__string (ref,i32,i32) -> ref
   local "out#16" ref
   local "len#17" i32
   local "lo#18" i32
@@ -1414,7 +1409,7 @@ fn 16 std_iter$std_iter$slice__string (ref,i32,i32) -> ref
   return   ; iter.vader:116:5
 end
 
-fn 17 std_math$min_1 (i32,i32) -> i32
+fn 16 std_math$min_1 (i32,i32) -> i32
   local "if_res#7" i32
   local.get 0   ; math.vader:22:39
   local.get 1   ; math.vader:22:39

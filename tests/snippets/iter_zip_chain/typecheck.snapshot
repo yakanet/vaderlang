@@ -18,7 +18,7 @@
   expr 16:20    IdentExpr      :: string
   expr 16:25    IdentExpr      :: i32
   expr 16:9     CallExpr       :: void
-  expr 16:9     IdentExpr      :: fn($T) -> void
+  expr 16:9     IdentExpr      :: fn(Display) -> void
   expr 20:13    SeqLitExpr     :: i32[]
   expr 21:13    SeqLitExpr     :: i32[]
   expr 22:15    CallExpr       :: i32[]
@@ -29,7 +29,7 @@
   expr 24:17    StringLitExpr  :: string
   expr 24:22    IdentExpr      :: i32
   expr 24:9     CallExpr       :: void
-  expr 24:9     IdentExpr      :: fn($T) -> void
+  expr 24:9     IdentExpr      :: fn(Display) -> void
   expr 28:15    SeqLitExpr     :: string[]
   expr 28:16    StringLitExpr  :: string
   expr 28:25    StringLitExpr  :: string
@@ -42,7 +42,7 @@
   expr 30:20    IdentExpr      :: i32
   expr 30:26    IdentExpr      :: string
   expr 30:9     CallExpr       :: void
-  expr 30:9     IdentExpr      :: fn($T) -> void
+  expr 30:9     IdentExpr      :: fn(Display) -> void
   expr 34:15    CallExpr       :: i32[]
   expr 34:15    IdentExpr      :: fn($T[], fn($T) -> $U[]) -> $U[]
   expr 34:24    SeqLitExpr     :: i32[]
@@ -55,14 +55,14 @@
   expr 36:17    StringLitExpr  :: string
   expr 36:22    IdentExpr      :: i32
   expr 36:9     CallExpr       :: void
-  expr 36:9     IdentExpr      :: fn($T) -> void
+  expr 36:9     IdentExpr      :: fn(Display) -> void
   expr 6:13     SeqLitExpr     :: i32[]
   expr 7:13     StringLitExpr  :: string
   expr 7:22     CallExpr       :: i32
   expr 7:22     IdentExpr      :: fn($T[]) -> i32
   expr 7:28     IdentExpr      :: i32[]
   expr 7:5      CallExpr       :: void
-  expr 7:5      IdentExpr      :: fn($T) -> void
+  expr 7:5      IdentExpr      :: fn(Display) -> void
   expr 8:15     CallExpr       :: i32[]
   expr 8:15     IdentExpr      :: fn($T[]) -> $T[]
   expr 8:23     IdentExpr      :: i32[]
@@ -70,4 +70,4 @@
   expr 9:25     IdentExpr      :: i32[]
   expr 9:25     IndexExpr      :: i32
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn($T) -> void
+  expr 9:5      IdentExpr      :: fn(Display) -> void

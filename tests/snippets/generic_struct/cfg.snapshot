@@ -4,28 +4,31 @@
 
 fn tests_snippets_generic_struct__main_vader$main() -> i32
   locals:
-    %0 $arr_0#22: i32[]
-    %1 $k_1#23: i32
-    %2 s#24: Stack(i32) (local s)
-    %3 $k_4#25: i32
-    %4 $k_5#26: i32
-    %5 $k_6#27: i32
-    %6 $intrinsic_7#28: ?
-    %7 __sb_0#29: ? (synthetic __sb_0)
-    %8 $k_9#30: string
-    %9 $call_10#31: i32
-    %10 $intrinsic_11#32: string
-    %11 $intrinsic_12#33: ?
-    %12 __sb_1#34: ? (synthetic __sb_1)
-    %13 $k_14#35: string
-    %14 $call_15#36: i32
-    %15 $intrinsic_16#37: string
-    %16 $intrinsic_17#38: ?
-    %17 __sb_2#39: ? (synthetic __sb_2)
-    %18 $k_19#40: string
-    %19 $call_20#41: i32
-    %20 $intrinsic_21#42: string
-    %21 $k_22#43: i32
+    %0 $arr_0#25: i32[]
+    %1 $k_1#26: i32
+    %2 s#27: Stack(i32) (local s)
+    %3 $k_4#28: i32
+    %4 $k_5#29: i32
+    %5 $k_6#30: i32
+    %6 $intrinsic_7#31: ?
+    %7 __sb_0#32: ? (synthetic __sb_0)
+    %8 $k_9#33: string
+    %9 $call_10#34: i32
+    %10 $intrinsic_11#35: string
+    %11 $call_12#36: string
+    %12 $intrinsic_13#37: ?
+    %13 __sb_1#38: ? (synthetic __sb_1)
+    %14 $k_15#39: string
+    %15 $call_16#40: i32
+    %16 $intrinsic_17#41: string
+    %17 $call_18#42: string
+    %18 $intrinsic_19#43: ?
+    %19 __sb_2#44: ? (synthetic __sb_2)
+    %20 $k_21#45: string
+    %21 $call_22#46: i32
+    %22 $intrinsic_23#47: string
+    %23 $call_24#48: string
+    %24 $k_25#49: i32
   bb0:
     %0 = array_new i32[][0]()
     %1 = const int(0) :i32
@@ -43,25 +46,28 @@ fn tests_snippets_generic_struct__main_vader$main() -> i32
     %9 = call len(%2) :i32
     intrinsic builder.append_display(%7, %9)
     %10 = intrinsic builder.finish(%7)
-    call println(%10) :void
-    %11 = intrinsic builder.new()
-    %12 = move %11
-    %13 = const string(#1) :string
-    intrinsic builder.append_str(%12, %13)
-    %14 = call pop(%2) :i32
-    intrinsic builder.append_display(%12, %14)
-    %15 = intrinsic builder.finish(%12)
-    call println(%15) :void
-    %16 = intrinsic builder.new()
-    %17 = move %16
-    %18 = const string(#0) :string
-    intrinsic builder.append_str(%17, %18)
-    %19 = call len(%2) :i32
-    intrinsic builder.append_display(%17, %19)
-    %20 = intrinsic builder.finish(%17)
-    call println(%20) :void
-    %21 = const int(0) :i32
-    return %21
+    %11 = call to_string(%10) :string
+    call println(%11) :void
+    %12 = intrinsic builder.new()
+    %13 = move %12
+    %14 = const string(#1) :string
+    intrinsic builder.append_str(%13, %14)
+    %15 = call pop(%2) :i32
+    intrinsic builder.append_display(%13, %15)
+    %16 = intrinsic builder.finish(%13)
+    %17 = call to_string(%16) :string
+    call println(%17) :void
+    %18 = intrinsic builder.new()
+    %19 = move %18
+    %20 = const string(#0) :string
+    intrinsic builder.append_str(%19, %20)
+    %21 = call len(%2) :i32
+    intrinsic builder.append_display(%19, %21)
+    %22 = intrinsic builder.finish(%19)
+    %23 = call to_string(%22) :string
+    call println(%23) :void
+    %24 = const int(0) :i32
+    return %24
 
 fn tests_snippets_generic_struct__main_vader$Stack$Stackable$push__i32(%0: Stack(i32), %1: i32) -> void
   locals:

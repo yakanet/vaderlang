@@ -18,14 +18,14 @@
   expr 20:13    IdentExpr      :: fn(null | P | Q) -> string
   expr 20:18    StructLitExpr  :: P
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn($T) -> void
+  expr 20:5     IdentExpr      :: fn(Display) -> void
   expr 21:13    CallExpr       :: string
   expr 21:13    IdentExpr      :: fn(null | P | Q) -> string
   expr 21:18    StructLitExpr  :: Q
   expr 21:27    StringLitExpr  :: string
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn($T) -> void
+  expr 21:5     IdentExpr      :: fn(Display) -> void
   expr 22:13    CallExpr       :: string
   expr 22:13    IdentExpr      :: fn(null | P | Q) -> string
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn($T) -> void
+  expr 22:5     IdentExpr      :: fn(Display) -> void

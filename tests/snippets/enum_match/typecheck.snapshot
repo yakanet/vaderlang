@@ -25,82 +25,82 @@
   expr 31:13    IdentExpr      :: fn(Color) -> string
   expr 31:19    IdentExpr      :: Color
   expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn($T) -> void
+  expr 31:5     IdentExpr      :: fn(Display) -> void
   expr 32:13    CallExpr       :: string
   expr 32:13    IdentExpr      :: fn(Color) -> string
   expr 32:19    DotVariantExpr :: Color
   expr 32:5     CallExpr       :: void
-  expr 32:5     IdentExpr      :: fn($T) -> void
+  expr 32:5     IdentExpr      :: fn(Display) -> void
   expr 33:13    CallExpr       :: string
   expr 33:13    IdentExpr      :: fn(Color) -> string
   expr 33:19    DotVariantExpr :: Color
   expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn($T) -> void
+  expr 33:5     IdentExpr      :: fn(Display) -> void
   expr 36:13    StringLitExpr  :: string
   expr 36:16    CallExpr       :: bool
   expr 36:16    IdentExpr      :: fn(Color, Color) -> bool
   expr 36:27    DotVariantExpr :: Color
   expr 36:33    DotVariantExpr :: Color
   expr 36:5     CallExpr       :: void
-  expr 36:5     IdentExpr      :: fn($T) -> void
+  expr 36:5     IdentExpr      :: fn(Display) -> void
   expr 37:13    StringLitExpr  :: string
   expr 37:16    CallExpr       :: bool
   expr 37:16    IdentExpr      :: fn(Color, Color) -> bool
   expr 37:27    DotVariantExpr :: Color
   expr 37:33    DotVariantExpr :: Color
   expr 37:5     CallExpr       :: void
-  expr 37:5     IdentExpr      :: fn($T) -> void
+  expr 37:5     IdentExpr      :: fn(Display) -> void
   expr 40:13    StringLitExpr  :: string
   expr 40:16    BinaryExpr     :: bool
   expr 40:16    IdentExpr      :: Color
   expr 40:21    DotVariantExpr :: Color
   expr 40:5     CallExpr       :: void
-  expr 40:5     IdentExpr      :: fn($T) -> void
+  expr 40:5     IdentExpr      :: fn(Display) -> void
   expr 41:13    StringLitExpr  :: string
   expr 41:16    BinaryExpr     :: bool
   expr 41:16    IdentExpr      :: Color
   expr 41:21    DotVariantExpr :: Color
   expr 41:5     CallExpr       :: void
-  expr 41:5     IdentExpr      :: fn($T) -> void
+  expr 41:5     IdentExpr      :: fn(Display) -> void
   expr 44:10    CallExpr       :: Severity
   expr 44:10    IdentExpr      :: fn(i32) -> Severity
   expr 44:19    UnaryExpr      :: i32
   expr 45:11    IdentExpr      :: Severity
   expr 45:5     MatchExpr      :: void
   expr 46:21    CallExpr       :: void
-  expr 46:21    IdentExpr      :: fn($T) -> void
+  expr 46:21    IdentExpr      :: fn(Display) -> void
   expr 46:29    StringLitExpr  :: string
   expr 47:21    CallExpr       :: void
-  expr 47:21    IdentExpr      :: fn($T) -> void
+  expr 47:21    IdentExpr      :: fn(Display) -> void
   expr 47:29    StringLitExpr  :: string
   expr 48:21    CallExpr       :: void
-  expr 48:21    IdentExpr      :: fn($T) -> void
+  expr 48:21    IdentExpr      :: fn(Display) -> void
   expr 48:29    StringLitExpr  :: string
   expr 51:11    CallExpr       :: Severity
   expr 51:11    IdentExpr      :: fn(i32) -> Severity
   expr 52:11    IdentExpr      :: Severity
   expr 52:5     MatchExpr      :: void
   expr 53:21    CallExpr       :: void
-  expr 53:21    IdentExpr      :: fn($T) -> void
+  expr 53:21    IdentExpr      :: fn(Display) -> void
   expr 53:29    StringLitExpr  :: string
   expr 54:21    CallExpr       :: void
-  expr 54:21    IdentExpr      :: fn($T) -> void
+  expr 54:21    IdentExpr      :: fn(Display) -> void
   expr 54:29    StringLitExpr  :: string
   expr 55:21    CallExpr       :: void
-  expr 55:21    IdentExpr      :: fn($T) -> void
+  expr 55:21    IdentExpr      :: fn(Display) -> void
   expr 55:29    StringLitExpr  :: string
   expr 58:11    CallExpr       :: Severity
   expr 58:11    IdentExpr      :: fn(i32) -> Severity
   expr 59:11    IdentExpr      :: Severity
   expr 59:5     MatchExpr      :: void
   expr 60:21    CallExpr       :: void
-  expr 60:21    IdentExpr      :: fn($T) -> void
+  expr 60:21    IdentExpr      :: fn(Display) -> void
   expr 60:29    StringLitExpr  :: string
   expr 61:21    CallExpr       :: void
-  expr 61:21    IdentExpr      :: fn($T) -> void
+  expr 61:21    IdentExpr      :: fn(Display) -> void
   expr 61:29    StringLitExpr  :: string
   expr 62:21    CallExpr       :: void
-  expr 62:21    IdentExpr      :: fn($T) -> void
+  expr 62:21    IdentExpr      :: fn(Display) -> void
   expr 62:29    StringLitExpr  :: string
   expr 9:23     DotVariantExpr :: Severity
   expr 9:5      IfExpr         :: void

@@ -11,5 +11,5 @@
   expr 12:29    FieldExpr      :: i32
   expr 12:29    IdentExpr      :: Node(i32)
   expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn($T) -> void
+  expr 12:5     IdentExpr      :: fn(Display) -> void
   expr 9:13     StructLitExpr  :: Node(i32)

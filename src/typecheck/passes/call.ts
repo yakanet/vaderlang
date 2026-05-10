@@ -100,7 +100,10 @@ export function inferCall(
       err(diags, "T3001", arg.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(got)}`);
     }
-    if (expectedTy !== null) recordIterCoercion(arg.value, got, expectedTy, t);
+    if (expectedTy !== null) {
+      recordIterCoercion(arg.value, got, expectedTy, t);
+      recordDisplayCoercion(arg.value, got, expectedTy, t);
+    }
   }
   return calleeType.returnType;
 }
@@ -136,6 +139,7 @@ function inferGenericFnCall(
     }
     if (!typeContainsTypeParam(expectedTy)) {
       recordIterCoercion(expr.args[i]!.value, argTypes[i]!, expectedTy, t);
+      recordDisplayCoercion(expr.args[i]!.value, argTypes[i]!, expectedTy, t);
     }
   }
 
@@ -587,6 +591,7 @@ function inferGenericUfcsCall(
     }
     if (!typeContainsTypeParam(expectedTy)) {
       recordIterCoercion(expr.args[i]!.value, explicitArgTypes[i]!, expectedTy, t);
+      recordDisplayCoercion(expr.args[i]!.value, explicitArgTypes[i]!, expectedTy, t);
     }
   }
 
@@ -607,6 +612,28 @@ export function recordIterCoercion(
   const iter = findGlobalTrait(t, CORE_TRAITS.Iterator);
   if (iter === null || iter.id !== expected.symbol.id) return;
   t.arrayIterCoercions.set(src, got.element);
+}
+
+/** Record a `T` → `Display` coercion at a use site where the parameter slot
+ *  is `Display`-typed and the source has a concrete type implementing it.
+ *  The lowerer reads `displayCoercions` to rewrite the argument into a
+ *  static call to the `<T>.Display.to_string` impl member, so the host hook
+ *  receives a flat string. Free-numeric sources are defaulted to their
+ *  canonical type (`i32` / `f64`) before recording. */
+export function recordDisplayCoercion(
+  src: A.Expr, got: Type, expected: Type, t: MutableTyped,
+): void {
+  if (expected.kind !== "Trait") return;
+  const display = findGlobalTrait(t, CORE_TRAITS.Display);
+  if (display === null || display.id !== expected.symbol.id) return;
+  // Already a Display value (or the param itself is Display) — nothing to do,
+  // the existing virtual dispatch path handles trait-typed sources.
+  if (got.kind === "Trait" && got.symbol.id === display.id) return;
+  const concrete = defaultIfFree(got);
+  // The lowerer needs a concrete impl member to dispatch to ; trait-typed
+  // sources we can't statically resolve are left to the virtual path.
+  if (concrete.kind !== "Primitive" && concrete.kind !== "Struct") return;
+  t.displayCoercions.set(src, concrete);
 }
 
 function recordGenericCallSite(

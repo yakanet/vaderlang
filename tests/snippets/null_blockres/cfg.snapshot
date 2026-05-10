@@ -33,14 +33,16 @@ fn tests_snippets_null_blockres__main_vader$pick(%0: bool) -> null | string
 
 fn tests_snippets_null_blockres__main_vader$main() -> i32
   locals:
-    %0 $k_0#8: bool
-    %1 $call_1#9: null | string
-    %2 __scrut_0#10: null | string (synthetic __scrut_0)
-    %3 $type_check_3#11: bool
-    %4 $k_4#12: string
-    %5 $type_check_5#13: bool
-    %6 $k_6#14: string
-    %7 $k_7#15: i32
+    %0 $k_0#10: bool
+    %1 $call_1#11: null | string
+    %2 __scrut_0#12: null | string (synthetic __scrut_0)
+    %3 $type_check_3#13: bool
+    %4 $k_4#14: string
+    %5 $call_5#15: string
+    %6 $type_check_6#16: bool
+    %7 $k_7#17: string
+    %8 $call_8#18: string
+    %9 $k_9#19: i32
   bb0:
     %0 = const bool(true) :bool
     %1 = call pick(%0) :null | string
@@ -49,17 +51,19 @@ fn tests_snippets_null_blockres__main_vader$main() -> i32
     cond_branch %3 ? bb1 : bb2
   bb1:
     %4 = const string(#1) :string
-    call println(%4) :void
+    %5 = call to_string(%4) :string
+    call println(%5) :void
     branch -> bb3
   bb2:
-    %5 = type_check %2 is null
-    cond_branch %5 ? bb4 : bb5
+    %6 = type_check %2 is null
+    cond_branch %6 ? bb4 : bb5
   bb3:
-    %7 = const int(0) :i32
-    return %7
+    %9 = const int(0) :i32
+    return %9
   bb4:
-    %6 = const string(#2) :string
-    call println(%6) :void
+    %7 = const string(#2) :string
+    %8 = call to_string(%7) :string
+    call println(%8) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)

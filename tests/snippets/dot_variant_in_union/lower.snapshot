@@ -6,7 +6,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#124 :char
           r:
             char(0x4e)
       then:
@@ -15,7 +15,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#124 :char
           r:
             char(0x45)
       then:
@@ -24,7 +24,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#124 :char
           r:
             char(0x53)
       then:
@@ -33,7 +33,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#124 :char
           r:
             char(0x57)
       then:
@@ -45,7 +45,7 @@
   fn tests_snippets_dot_variant_in_union__main_vader$dir_label(d: Direction) -> string
     ~>
       block :string
-        let __scrut_0#-1: Direction = d#129 :Direction
+        let __scrut_0#-1: Direction = d#125 :Direction
         ~>
           if :string
             cond:
@@ -110,19 +110,23 @@
             is Direction :bool
               __scrut_0#-2 :Direction | Error
           then:
-            let d#130: Direction =
+            let d#126: Direction =
               cast → Direction
                 __scrut_0#-2 :Direction | Error
             ~>
               call :void
                 callee:
-                  println#1000094 :void
+                  println#28 :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      dir_label#5 :fn(Direction) -> string
+                      to_string#1000013 :string
                     arg0:
-                      d#130 :Direction
+                      call :string
+                        callee:
+                          dir_label#5 :fn(Direction) -> string
+                        arg0:
+                          d#126 :Direction
           else:
             ~>
               if :void
@@ -133,9 +137,13 @@
                   ~>
                     call :void
                       callee:
-                        println#1000094 :void
+                        println#28 :fn(Display) -> void
                       arg0:
-                        "err" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -152,19 +160,23 @@
             is Direction :bool
               __scrut_1#-3 :Direction | Error
           then:
-            let d#131: Direction =
+            let d#127: Direction =
               cast → Direction
                 __scrut_1#-3 :Direction | Error
             ~>
               call :void
                 callee:
-                  println#1000094 :void
+                  println#28 :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      dir_label#5 :fn(Direction) -> string
+                      to_string#1000013 :string
                     arg0:
-                      d#131 :Direction
+                      call :string
+                        callee:
+                          dir_label#5 :fn(Direction) -> string
+                        arg0:
+                          d#127 :Direction
           else:
             ~>
               if :void
@@ -175,9 +187,13 @@
                   ~>
                     call :void
                       callee:
-                        println#1000094 :void
+                        println#28 :fn(Display) -> void
                       arg0:
-                        "err" :string
+                        call :string
+                          callee:
+                            to_string#1000013 :string
+                          arg0:
+                            "err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

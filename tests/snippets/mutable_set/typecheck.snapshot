@@ -7,13 +7,13 @@
   expr 10:24    FieldExpr      :: fn($T) -> bool
   expr 10:24    IdentExpr      :: MutableSet(i32)
   expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn($T) -> void
+  expr 10:5     IdentExpr      :: fn(Display) -> void
   expr 11:13    StringLitExpr  :: string
   expr 11:24    CallExpr       :: bool
   expr 11:24    FieldExpr      :: fn($T) -> bool
   expr 11:24    IdentExpr      :: MutableSet(i32)
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn($T) -> void
+  expr 11:5     IdentExpr      :: fn(Display) -> void
   expr 5:10     StructLitExpr  :: MutableSet(i32)
   expr 5:37     StructLitExpr  :: MutableMap(i32, bool)
   expr 5:72     SeqLitExpr     :: Entry(i32, bool) | null[]
@@ -22,22 +22,22 @@
   expr 6:21     FieldExpr      :: fn($T) -> bool
   expr 6:21     IdentExpr      :: MutableSet(i32)
   expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn($T) -> void
+  expr 6:5      IdentExpr      :: fn(Display) -> void
   expr 7:13     StringLitExpr  :: string
   expr 7:21     CallExpr       :: bool
   expr 7:21     FieldExpr      :: fn($T) -> bool
   expr 7:21     IdentExpr      :: MutableSet(i32)
   expr 7:5      CallExpr       :: void
-  expr 7:5      IdentExpr      :: fn($T) -> void
+  expr 7:5      IdentExpr      :: fn(Display) -> void
   expr 8:13     StringLitExpr  :: string
   expr 8:21     CallExpr       :: bool
   expr 8:21     FieldExpr      :: fn($T) -> bool
   expr 8:21     IdentExpr      :: MutableSet(i32)
   expr 8:5      CallExpr       :: void
-  expr 8:5      IdentExpr      :: fn($T) -> void
+  expr 8:5      IdentExpr      :: fn(Display) -> void
   expr 9:13     StringLitExpr  :: string
   expr 9:22     CallExpr       :: usize
   expr 9:22     FieldExpr      :: fn() -> usize
   expr 9:22     IdentExpr      :: MutableSet(i32)
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn($T) -> void
+  expr 9:5      IdentExpr      :: fn(Display) -> void

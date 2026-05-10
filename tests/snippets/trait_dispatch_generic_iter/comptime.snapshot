@@ -10,4 +10,3 @@
   Range(char)
   Range(i32)
   Once(i32)
-  println(string)

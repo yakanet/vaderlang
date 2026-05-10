@@ -19,7 +19,7 @@
   expr 22:21    IdentExpr      :: i32
   expr 22:26    IdentExpr      :: i32
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn($T) -> void
+  expr 22:5     IdentExpr      :: fn(Display) -> void
   expr 8:12     BinaryExpr     :: i32
   expr 8:12     IdentExpr      :: i32
 

@@ -23,26 +23,26 @@ string 0 "slice mid len="
 string 1 "slice over len="
 string 2 "slice tail len="
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
-  local "nums#88" ref
-  local "$arr_17#94" ref
-  local "$closure_19#96" ref
-  local "s1#100" i32
-  local "$closure_25#102" ref
-  local "s2#106" i32
-  local "$arr_35#112" ref
-  local "$closure_38#115" ref
-  local "p#117" i32
-  local "s3#122" i32
-  local "s4#127" i32
-  local "__sb_3#129" any
-  local "$len_57#134" i32
-  local "__sb_4#137" any
-  local "$len_65#142" i32
-  local "__sb_5#145" any
-  local "$len_73#150" i32
+  local "nums#91" ref
+  local "$arr_17#97" ref
+  local "$closure_19#99" ref
+  local "s1#103" i32
+  local "$closure_25#105" ref
+  local "s2#109" i32
+  local "$arr_35#115" ref
+  local "$closure_38#118" ref
+  local "p#120" i32
+  local "s3#125" i32
+  local "s4#130" i32
+  local "__sb_3#132" any
+  local "$len_57#137" i32
+  local "__sb_4#141" any
+  local "$len_66#146" i32
+  local "__sb_5#150" any
+  local "$len_75#155" i32
   i32.const 1   ; _main.vader:5:13
   i32.const 2   ; _main.vader:5:13
   i32.const 3   ; _main.vader:5:13
@@ -67,16 +67,16 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   local.set 2   ; _main.vader:8:37
   local.get 1   ; _main.vader:8:16
   local.get 2   ; _main.vader:8:16
-  call 7   ; _main.vader:8:16
-  call 6   ; _main.vader:9:11
+  call 6   ; _main.vader:8:16
+  call 5   ; _main.vader:9:11
   local.set 3   ; _main.vader:9:5
   struct.new 1   ; _main.vader:12:27
   make_closure 2 17   ; _main.vader:12:27
   local.set 4   ; _main.vader:12:27
   local.get 0   ; _main.vader:12:14
   local.get 4   ; _main.vader:12:14
-  call 8   ; _main.vader:12:14
-  call 6   ; _main.vader:13:11
+  call 7   ; _main.vader:12:14
+  call 5   ; _main.vader:13:11
   local.set 5   ; _main.vader:13:5
   i32.const 1   ; _main.vader:16:15
   i32.const 2   ; _main.vader:16:15
@@ -91,17 +91,17 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   local.get 6   ; _main.vader:16:10
   i32.const 1   ; _main.vader:16:10
   local.get 7   ; _main.vader:16:10
-  call 9   ; _main.vader:16:10
+  call 8   ; _main.vader:16:10
   local.set 8   ; _main.vader:16:5
   local.get 0   ; _main.vader:19:14
   i32.const 3   ; _main.vader:19:14
-  call 10   ; _main.vader:19:14
-  call 6   ; _main.vader:20:11
+  call 9   ; _main.vader:19:14
+  call 5   ; _main.vader:20:11
   local.set 9   ; _main.vader:20:5
   local.get 0   ; _main.vader:23:13
   i32.const 7   ; _main.vader:23:13
-  call 11   ; _main.vader:23:13
-  call 6   ; _main.vader:24:11
+  call 10   ; _main.vader:23:13
+  call 5   ; _main.vader:24:11
   local.set 10   ; _main.vader:24:5
   intrinsic builder.new   ; _main.vader:28:13
   local.set 11   ; _main.vader:28:13
@@ -111,7 +111,7 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   local.get 0   ; _main.vader:28:30
   i32.const 3   ; _main.vader:28:30
   i32.const 7   ; _main.vader:28:30
-  call 12   ; _main.vader:28:30
+  call 11   ; _main.vader:28:30
   array.len   ; _main.vader:28:30
   local.set 12   ; _main.vader:28:30
   local.get 11   ; _main.vader:28:28
@@ -119,7 +119,8 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:28:28
   local.get 11   ; _main.vader:28:13
   intrinsic builder.finish   ; _main.vader:28:13
-  call 5   ; _main.vader:28:5
+  call.import 0   ; _main.vader:28:13
+  call.import 1   ; _main.vader:28:5
   intrinsic builder.new   ; _main.vader:29:13
   local.set 13   ; _main.vader:29:13
   local.get 13   ; _main.vader:29:14
@@ -128,7 +129,7 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   local.get 0   ; _main.vader:29:31
   i32.const 100   ; _main.vader:29:31
   i32.const 200   ; _main.vader:29:31
-  call 12   ; _main.vader:29:31
+  call 11   ; _main.vader:29:31
   array.len   ; _main.vader:29:31
   local.set 14   ; _main.vader:29:31
   local.get 13   ; _main.vader:29:29
@@ -136,7 +137,8 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:29:29
   local.get 13   ; _main.vader:29:13
   intrinsic builder.finish   ; _main.vader:29:13
-  call 5   ; _main.vader:29:5
+  call.import 0   ; _main.vader:29:13
+  call.import 1   ; _main.vader:29:5
   intrinsic builder.new   ; _main.vader:30:13
   local.set 15   ; _main.vader:30:13
   local.get 15   ; _main.vader:30:14
@@ -145,7 +147,7 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   local.get 0   ; _main.vader:30:31
   i32.const 8   ; _main.vader:30:31
   i32.const 999   ; _main.vader:30:31
-  call 12   ; _main.vader:30:31
+  call 11   ; _main.vader:30:31
   array.len   ; _main.vader:30:31
   local.set 16   ; _main.vader:30:31
   local.get 15   ; _main.vader:30:29
@@ -153,7 +155,8 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:30:29
   local.get 15   ; _main.vader:30:13
   intrinsic builder.finish   ; _main.vader:30:13
-  call 5   ; _main.vader:30:5
+  call.import 0   ; _main.vader:30:13
+  call.import 1   ; _main.vader:30:5
   local.get 3   ; _main.vader:32:12
   local.get 5   ; _main.vader:32:12
   i32.add   ; _main.vader:32:12
@@ -240,14 +243,7 @@ fn 4 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref
   end $L0   ; core.vader:153:9
 end
 
-fn 5 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
-end
-
-fn 6 std_iter$sum (ref) -> i32
+fn 5 std_iter$sum (ref) -> i32
   local "$len_4#12" i32
   local "__iter_0#13" ref
   local "s#14" i32
@@ -286,7 +282,7 @@ fn 6 std_iter$sum (ref) -> i32
   return   ; iter.vader:69:5
 end
 
-fn 7 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
+fn 6 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
   local "out#12" ref
   local "$len_5#14" i32
   local "__iter_0#15" ref
@@ -326,7 +322,7 @@ fn 7 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
   return   ; iter.vader:38:5
 end
 
-fn 8 std_iter$std_iter$filter__i32 (ref,ref) -> ref
+fn 7 std_iter$std_iter$filter__i32 (ref,ref) -> ref
   local "out#12" ref
   local "$len_5#14" i32
   local "__iter_0#15" ref
@@ -369,7 +365,7 @@ fn 8 std_iter$std_iter$filter__i32 (ref,ref) -> ref
   return   ; iter.vader:49:5
 end
 
-fn 9 std_iter$std_iter$fold__i32__i32 (ref,i32,ref) -> i32
+fn 8 std_iter$std_iter$fold__i32__i32 (ref,i32,ref) -> i32
   local "$len_5#15" i32
   local "__iter_0#16" ref
   local "acc#17" i32
@@ -409,7 +405,7 @@ fn 9 std_iter$std_iter$fold__i32__i32 (ref,i32,ref) -> i32
   return   ; iter.vader:58:5
 end
 
-fn 10 std_iter$std_iter$take__i32 (ref,i32) -> ref
+fn 9 std_iter$std_iter$take__i32 (ref,i32) -> ref
   local "out#14" ref
   local "$len_7#17" i32
   local "__iter_0#18" ref
@@ -462,7 +458,7 @@ fn 10 std_iter$std_iter$take__i32 (ref,i32) -> ref
   return   ; iter.vader:78:13
 end
 
-fn 11 std_iter$std_iter$skip__i32 (ref,i32) -> ref
+fn 10 std_iter$std_iter$skip__i32 (ref,i32) -> ref
   local "out#14" ref
   local "$len_7#17" i32
   local "__iter_0#18" ref
@@ -513,7 +509,7 @@ fn 11 std_iter$std_iter$skip__i32 (ref,i32) -> ref
   return   ; iter.vader:96:5
 end
 
-fn 12 std_iter$std_iter$slice__i32 (ref,i32,i32) -> ref
+fn 11 std_iter$std_iter$slice__i32 (ref,i32,i32) -> ref
   local "out#16" ref
   local "len#17" i32
   local "lo#18" i32

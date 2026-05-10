@@ -2,37 +2,41 @@
 
 ## tests/snippets/self_ref_struct/_main.vader
   fn tests_snippets_self_ref_struct__main_vader$main() -> i32
-    let tail#60: Node(i32) =
+    let tail#56: Node(i32) =
       Node(i32) {
         value: int(30) :i32
         next: null
       }
-    let mid#61: Node(i32) =
+    let mid#57: Node(i32) =
       Node(i32) {
         value: int(20) :i32
-        next: tail#60 :Node(i32)
+        next: tail#56 :Node(i32)
       }
-    let head#62: Node(i32) =
+    let head#58: Node(i32) =
       Node(i32) {
         value: int(10) :i32
-        next: mid#61 :Node(i32)
+        next: mid#57 :Node(i32)
       }
     call :void
       callee:
-        println#1000090 :void
+        println#25 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_0#-1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0#-1 :?
-            "head.value = " :string
-          @builder.append_display <for i32> :void
-            __sb_0#-1 :?
-            .value :i32
-              head#62 :Node(i32)
-          ~>
-            @builder.finish :string
-              __sb_0#-1 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_0#-1: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0#-1 :?
+                "head.value = " :string
+              @builder.append_display <for i32> :void
+                __sb_0#-1 :?
+                .value :i32
+                  head#58 :Node(i32)
+              ~>
+                @builder.finish :string
+                  __sb_0#-1 :?
     return int(0) :i32
   struct tests_snippets_self_ref_struct__main_vader$Node__i32 { value: i32, next: Node(i32) | null }

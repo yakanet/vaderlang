@@ -3,13 +3,13 @@
 ## tests/snippets/op_overload_index/_main.vader
   struct tests_snippets_op_overload_index__main_vader$Cell { keys: string[], vals: i32[] }
   fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(self: Cell, key: string) -> i32
-    let i#61: i32 = int(0) :i32
+    let i#57: i32 = int(0) :i32
     block :void
       let __iter_0#-1: ArrayIter(string) =
         ArrayIter(string) {
           arr:
             .keys :string[]
-              self#59 :Cell
+              self#55 :Cell
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -28,7 +28,7 @@
           then:
             break
           else:
-            let k#62: string =
+            let k#58: string =
               .value :string
                 cast → Yielded(string)
                   __step_1#-2 :Done | Yielded(string)
@@ -36,35 +36,35 @@
               cond:
                 eq :bool
                   l:
-                    k#62 :string
+                    k#58 :string
                   r:
-                    key#60 :string
+                    key#56 :string
               then:
                 return
                   index :i32
                     on:
                       .vals :i32[]
-                        self#59 :Cell
+                        self#55 :Cell
                     ix:
-                      i#61 :i32
+                      i#57 :i32
             assign
               target:
-                i#61 :i32
+                i#57 :i32
               value:
                 add :i32
                   l:
-                    i#61 :i32
+                    i#57 :i32
                   r:
                     int(1) :i32
     return int(0) :i32
   fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(self: Cell, key: string, v: i32) -> void
-    let i#66: i32 = int(0) :i32
+    let i#62: i32 = int(0) :i32
     block :void
       let __iter_0#-3: ArrayIter(string) =
         ArrayIter(string) {
           arr:
             .keys :string[]
-              self#63 :Cell
+              self#59 :Cell
           cursor: int(0) :i32
           length:
             LoweredArrayLen
@@ -83,7 +83,7 @@
           then:
             break
           else:
-            let k#67: string =
+            let k#63: string =
               .value :string
                 cast → Yielded(string)
                   __step_1#-4 :Done | Yielded(string)
@@ -91,35 +91,35 @@
               cond:
                 eq :bool
                   l:
-                    k#67 :string
+                    k#63 :string
                   r:
-                    key#64 :string
+                    key#60 :string
               then:
                 assign
                   target:
                     index :i32
                       on:
                         .vals :i32[]
-                          self#63 :Cell
+                          self#59 :Cell
                       ix:
-                        i#66 :i32
+                        i#62 :i32
                   value:
-                    v#65 :i32
+                    v#61 :i32
                 return
             assign
               target:
-                i#66 :i32
+                i#62 :i32
               value:
                 add :i32
                   l:
-                    i#66 :i32
+                    i#62 :i32
                   r:
                     int(1) :i32
     LoweredArrayPush
     ~>
       LoweredArrayPush
   fn tests_snippets_op_overload_index__main_vader$main() -> i32
-    let c#68: Cell =
+    let c#64: Cell =
       Cell {
         keys:
           array :string[]
@@ -130,7 +130,7 @@
       callee:
         set_at#1000001 :void
       arg0:
-        c#68 :Cell
+        c#64 :Cell
       arg1:
         "a" :string
       arg2:
@@ -139,7 +139,7 @@
       callee:
         set_at#1000001 :void
       arg0:
-        c#68 :Cell
+        c#64 :Cell
       arg1:
         "b" :string
       arg2:
@@ -148,55 +148,59 @@
       callee:
         set_at#1000001 :void
       arg0:
-        c#68 :Cell
+        c#64 :Cell
       arg1:
         "a" :string
       arg2:
         int(100) :i32
     call :void
       callee:
-        println#1000093 :void
+        println#25 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_0#-5: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0#-5 :?
-            "a=" :string
-          @builder.append_display <for i32> :void
-            __sb_0#-5 :?
-            call :i32
-              callee:
-                at#1000000 :i32
-              arg0:
-                c#68 :Cell
-              arg1:
-                "a" :string
-          @builder.append_str :void
-            __sb_0#-5 :?
-            " b=" :string
-          @builder.append_display <for i32> :void
-            __sb_0#-5 :?
-            call :i32
-              callee:
-                at#1000000 :i32
-              arg0:
-                c#68 :Cell
-              arg1:
-                "b" :string
-          @builder.append_str :void
-            __sb_0#-5 :?
-            " c=" :string
-          @builder.append_display <for i32> :void
-            __sb_0#-5 :?
-            call :i32
-              callee:
-                at#1000000 :i32
-              arg0:
-                c#68 :Cell
-              arg1:
-                "c" :string
-          ~>
-            @builder.finish :string
-              __sb_0#-5 :?
+        call :string
+          callee:
+            to_string#1000015 :string
+          arg0:
+            block :string
+              let __sb_0#-5: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0#-5 :?
+                "a=" :string
+              @builder.append_display <for i32> :void
+                __sb_0#-5 :?
+                call :i32
+                  callee:
+                    at#1000000 :i32
+                  arg0:
+                    c#64 :Cell
+                  arg1:
+                    "a" :string
+              @builder.append_str :void
+                __sb_0#-5 :?
+                " b=" :string
+              @builder.append_display <for i32> :void
+                __sb_0#-5 :?
+                call :i32
+                  callee:
+                    at#1000000 :i32
+                  arg0:
+                    c#64 :Cell
+                  arg1:
+                    "b" :string
+              @builder.append_str :void
+                __sb_0#-5 :?
+                " c=" :string
+              @builder.append_display <for i32> :void
+                __sb_0#-5 :?
+                call :i32
+                  callee:
+                    at#1000000 :i32
+                  arg0:
+                    c#64 :Cell
+                  arg1:
+                    "c" :string
+              ~>
+                @builder.finish :string
+                  __sb_0#-5 :?
     return int(0) :i32

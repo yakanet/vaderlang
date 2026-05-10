@@ -4,7 +4,7 @@
   fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_left(self: Direction) -> Direction
     ~>
       block :Direction
-        let __scrut_0#-1: Direction = self#62 :Direction
+        let __scrut_0#-1: Direction = self#58 :Direction
         ~>
           if :Direction
             cond:
@@ -58,7 +58,7 @@
   fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_right(self: Direction) -> Direction
     ~>
       block :Direction
-        let __scrut_0#-2: Direction = self#63 :Direction
+        let __scrut_0#-2: Direction = self#59 :Direction
         ~>
           if :Direction
             cond:
@@ -112,7 +112,7 @@
   fn tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_string(self: Direction) -> ?
     ~>
       block :string
-        let __scrut_0#-3: Direction = self#64 :Direction
+        let __scrut_0#-3: Direction = self#60 :Direction
         ~>
           if :string
             cond:
@@ -164,19 +164,19 @@
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn tests_snippets_enum_trait_self_return__main_vader$main() -> i32
-    let d#65: Direction = int(0) :i32
+    let d#61: Direction = int(0) :i32
     call :void
       callee:
-        println#30 :fn($T) -> void
+        println#26 :fn(Display) -> void
       arg0:
         call :?
           callee:
             to_string#1000002 :?
           arg0:
-            d#65 :Direction
+            d#61 :Direction
     call :void
       callee:
-        println#30 :fn($T) -> void
+        println#26 :fn(Display) -> void
       arg0:
         call :?
           callee:
@@ -186,10 +186,10 @@
               callee:
                 turn_left#1000000 :Direction
               arg0:
-                d#65 :Direction
+                d#61 :Direction
     call :void
       callee:
-        println#30 :fn($T) -> void
+        println#26 :fn(Display) -> void
       arg0:
         call :?
           callee:
@@ -199,5 +199,5 @@
               callee:
                 turn_right#1000001 :Direction
               arg0:
-                d#65 :Direction
+                d#61 :Direction
     return int(0) :i32

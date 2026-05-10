@@ -15,4 +15,3 @@
   ArrayIter(string)
   outer(i32)
   outer(string)
-  println(string)

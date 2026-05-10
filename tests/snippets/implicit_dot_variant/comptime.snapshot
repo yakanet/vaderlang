@@ -9,4 +9,3 @@
   Range(char)
   Range(i32)
   ArrayIter(Day)
-  println(string)

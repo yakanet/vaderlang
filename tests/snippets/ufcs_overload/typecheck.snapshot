@@ -19,10 +19,10 @@
   expr 17:16    FieldExpr      :: fn() -> i32
   expr 17:16    IdentExpr      :: A
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn($T) -> void
+  expr 17:5     IdentExpr      :: fn(Display) -> void
   expr 18:13    StringLitExpr  :: string
   expr 18:16    CallExpr       :: i32
   expr 18:16    FieldExpr      :: fn() -> i32
   expr 18:16    IdentExpr      :: B
   expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn($T) -> void
+  expr 18:5     IdentExpr      :: fn(Display) -> void

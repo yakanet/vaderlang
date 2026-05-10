@@ -9,7 +9,7 @@ string 4 ") q=("
 string 5 ") r=("
 string 6 ")"
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_op_overload_arith__main_vader$Vec$Add$add (ref,ref) -> ref
   local "$field_2#9" i32
@@ -177,24 +177,24 @@ fn 4 tests_snippets_op_overload_arith__main_vader$Vec$Rem$rem (ref,ref) -> ref
 end
 
 fn 5 tests_snippets_op_overload_arith__main_vader$main () -> i32
-  local "a#43" ref
-  local "b#46" ref
-  local "s#48" ref
-  local "d#50" ref
-  local "m#52" ref
-  local "q#54" ref
-  local "r#56" ref
-  local "__sb_0#58" any
-  local "$field_21#60" i32
-  local "$field_23#62" i32
-  local "$field_25#64" i32
-  local "$field_27#66" i32
-  local "$field_29#68" i32
-  local "$field_31#70" i32
-  local "$field_33#72" i32
-  local "$field_35#74" i32
-  local "$field_37#76" i32
-  local "$field_39#78" i32
+  local "a#44" ref
+  local "b#47" ref
+  local "s#49" ref
+  local "d#51" ref
+  local "m#53" ref
+  local "q#55" ref
+  local "r#57" ref
+  local "__sb_0#59" any
+  local "$field_21#61" i32
+  local "$field_23#63" i32
+  local "$field_25#65" i32
+  local "$field_27#67" i32
+  local "$field_29#69" i32
+  local "$field_31#71" i32
+  local "$field_33#73" i32
+  local "$field_35#75" i32
+  local "$field_37#77" i32
+  local "$field_39#79" i32
   i32.const 10   ; _main.vader:18:10
   i32.const 20   ; _main.vader:18:10
   struct.new 0   ; _main.vader:18:10
@@ -320,14 +320,8 @@ fn 5 tests_snippets_op_overload_arith__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:25:102
   local.get 7   ; _main.vader:25:13
   intrinsic builder.finish   ; _main.vader:25:13
-  call 6   ; _main.vader:25:5
+  call.import 0   ; _main.vader:25:13
+  call.import 1   ; _main.vader:25:5
   i32.const 0   ; _main.vader:26:12
   return   ; _main.vader:26:5
-end
-
-fn 6 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

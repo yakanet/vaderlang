@@ -7,5 +7,3 @@
   Yielded(i32)
   Range(char)
   Range(i32)
-  print(string)
-  println(string)

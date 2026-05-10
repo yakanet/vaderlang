@@ -4,19 +4,21 @@
 
 fn tests_snippets_generic_eq__main_vader$main() -> i32
   locals:
-    %0 $intrinsic_0#13: ?
-    %1 __sb_0#14: ? (synthetic __sb_0)
-    %2 $k_2#15: i32
-    %3 $k_3#16: i32
-    %4 $call_4#17: bool
-    %5 $intrinsic_5#18: string
-    %6 $intrinsic_6#19: ?
-    %7 __sb_1#20: ? (synthetic __sb_1)
-    %8 $k_8#21: i32
-    %9 $k_9#22: i32
-    %10 $call_10#23: bool
-    %11 $intrinsic_11#24: string
-    %12 $k_12#25: i32
+    %0 $intrinsic_0#15: ?
+    %1 __sb_0#16: ? (synthetic __sb_0)
+    %2 $k_2#17: i32
+    %3 $k_3#18: i32
+    %4 $call_4#19: bool
+    %5 $intrinsic_5#20: string
+    %6 $call_6#21: string
+    %7 $intrinsic_7#22: ?
+    %8 __sb_1#23: ? (synthetic __sb_1)
+    %9 $k_9#24: i32
+    %10 $k_10#25: i32
+    %11 $call_11#26: bool
+    %12 $intrinsic_12#27: string
+    %13 $call_13#28: string
+    %14 $k_14#29: i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0
@@ -25,17 +27,19 @@ fn tests_snippets_generic_eq__main_vader$main() -> i32
     %4 = call are_eq(%2, %3) :bool
     intrinsic builder.append_display(%1, %4)
     %5 = intrinsic builder.finish(%1)
-    call println(%5) :void
-    %6 = intrinsic builder.new()
-    %7 = move %6
-    %8 = const int(1) :i32
-    %9 = const int(2) :i32
-    %10 = call are_eq(%8, %9) :bool
-    intrinsic builder.append_display(%7, %10)
-    %11 = intrinsic builder.finish(%7)
-    call println(%11) :void
-    %12 = const int(0) :i32
-    return %12
+    %6 = call to_string(%5) :string
+    call println(%6) :void
+    %7 = intrinsic builder.new()
+    %8 = move %7
+    %9 = const int(1) :i32
+    %10 = const int(2) :i32
+    %11 = call are_eq(%9, %10) :bool
+    intrinsic builder.append_display(%8, %11)
+    %12 = intrinsic builder.finish(%8)
+    %13 = call to_string(%12) :string
+    call println(%13) :void
+    %14 = const int(0) :i32
+    return %14
 
 fn tests_snippets_generic_eq__main_vader$tests_snippets_generic_eq__main_vader$are_eq__i32(%0: i32, %1: i32) -> bool
   locals:

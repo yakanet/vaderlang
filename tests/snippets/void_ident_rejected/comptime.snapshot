@@ -7,7 +7,6 @@
   Yielded(i32)
   Range(char)
   Range(i32)
-  println(string)
 
 # Diagnostics
 [5:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`

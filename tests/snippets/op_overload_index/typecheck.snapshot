@@ -58,4 +58,4 @@
   expr 42:42    IndexExpr      :: i32
   expr 42:44    StringLitExpr  :: string
   expr 42:5     CallExpr       :: void
-  expr 42:5     IdentExpr      :: fn($T) -> void
+  expr 42:5     IdentExpr      :: fn(Display) -> void

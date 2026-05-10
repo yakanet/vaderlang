@@ -8,7 +8,7 @@
   expr 5:11     IdentExpr      :: [[i32, string], bool]
   expr 5:5      MatchExpr      :: void
   expr 6:34     CallExpr       :: void
-  expr 6:34     IdentExpr      :: fn($T) -> void
+  expr 6:34     IdentExpr      :: fn(Display) -> void
   expr 6:42     StringLitExpr  :: string
   expr 6:48     IdentExpr      :: ?
   expr 6:60     IdentExpr      :: ?

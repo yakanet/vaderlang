@@ -4,19 +4,27 @@
 
 fn tests_snippets_defer_block__main_vader$main() -> i32
   locals:
-    %0 $k_0#5: string
-    %1 $k_1#6: string
-    %2 $k_3#7: string
-    %3 $k_4#8: string
-    %4 $k_5#9: i32
+    %0 $k_0#9: string
+    %1 $call_1#10: string
+    %2 $k_2#11: string
+    %3 $call_3#12: string
+    %4 $k_5#13: string
+    %5 $call_6#14: string
+    %6 $k_7#15: string
+    %7 $call_8#16: string
+    %8 $k_9#17: i32
   bb0:
     %0 = const string(#0) :string
-    call println(%0) :void
-    %1 = const string(#1) :string
+    %1 = call to_string(%0) :string
     call println(%1) :void
-    %2 = const string(#2) :string
-    call println(%2) :void
-    %3 = const string(#3) :string
+    %2 = const string(#1) :string
+    %3 = call to_string(%2) :string
     call println(%3) :void
-    %4 = const int(0) :i32
-    return %4
+    %4 = const string(#2) :string
+    %5 = call to_string(%4) :string
+    call println(%5) :void
+    %6 = const string(#3) :string
+    %7 = call to_string(%6) :string
+    call println(%7) :void
+    %8 = const int(0) :i32
+    return %8

@@ -18,37 +18,37 @@
   expr 20:16    CallExpr       :: i32
   expr 20:16    IdentExpr      :: fn(i32) -> i32
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn($T) -> void
+  expr 20:5     IdentExpr      :: fn(Display) -> void
   expr 21:13    StringLitExpr  :: string
   expr 21:16    CallExpr       :: f64
   expr 21:16    IdentExpr      :: fn(f64, f64) -> f64
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn($T) -> void
+  expr 21:5     IdentExpr      :: fn(Display) -> void
   expr 22:13    StringLitExpr  :: string
   expr 22:16    CallExpr       :: f64
   expr 22:16    IdentExpr      :: fn(f64, f64) -> f64
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn($T) -> void
+  expr 22:5     IdentExpr      :: fn(Display) -> void
   expr 23:13    StringLitExpr  :: string
   expr 23:16    CallExpr       :: i32
   expr 23:16    IdentExpr      :: fn(i32) -> i32
   expr 23:5     CallExpr       :: void
-  expr 23:5     IdentExpr      :: fn($T) -> void
+  expr 23:5     IdentExpr      :: fn(Display) -> void
   expr 24:13    StringLitExpr  :: string
   expr 24:16    CallExpr       :: i32
   expr 24:16    IdentExpr      :: fn($T) -> $T
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn($T) -> void
+  expr 24:5     IdentExpr      :: fn(Display) -> void
   expr 25:13    StringLitExpr  :: string
   expr 25:16    CallExpr       :: f64
   expr 25:16    IdentExpr      :: fn($T) -> $T
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn($T) -> void
+  expr 25:5     IdentExpr      :: fn(Display) -> void
   expr 26:13    CallExpr       :: string
   expr 26:13    IdentExpr      :: fn($T) -> $T
   expr 26:16    StringLitExpr  :: string
   expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn($T) -> void
+  expr 26:5     IdentExpr      :: fn(Display) -> void
   expr 7:31     BinaryExpr     :: i32
   expr 7:31     IdentExpr      :: i32
   expr 7:35     IdentExpr      :: i32

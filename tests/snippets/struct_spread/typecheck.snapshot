@@ -14,7 +14,7 @@
   expr 12:48    FieldExpr      :: i32
   expr 12:48    IdentExpr      :: P
   expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn($T) -> void
+  expr 12:5     IdentExpr      :: fn(Display) -> void
   expr 13:13    StringLitExpr  :: string
   expr 13:24    FieldExpr      :: i32
   expr 13:24    IdentExpr      :: P
@@ -23,7 +23,7 @@
   expr 13:46    FieldExpr      :: i32
   expr 13:46    IdentExpr      :: P
   expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn($T) -> void
+  expr 13:5     IdentExpr      :: fn(Display) -> void
   expr 16:14    StructLitExpr  :: P
   expr 17:15    StructLitExpr  :: P
   expr 17:22    IdentExpr      :: P
@@ -34,6 +34,6 @@
   expr 18:40    FieldExpr      :: i32
   expr 18:40    IdentExpr      :: P
   expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn($T) -> void
+  expr 18:5     IdentExpr      :: fn(Display) -> void
   expr 18:54    FieldExpr      :: i32
   expr 18:54    IdentExpr      :: P

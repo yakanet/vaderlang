@@ -8,7 +8,7 @@ string 1 "net: "
 string 2 "bad token"
 string 3 "timeout"
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println_str std_io$println_str (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (ref) -> string
   local "__sb_0#7" any
@@ -58,11 +58,13 @@ fn 3 tests_snippets_trait_virtual_dispatch__main_vader$main () -> i32
   string.const 2   ; _main.vader:22:38
   struct.new 0   ; _main.vader:22:20
   call 2   ; _main.vader:22:13
-  call 5   ; _main.vader:22:5
+  call.import 0   ; _main.vader:22:13
+  call.import 1   ; _main.vader:22:5
   string.const 3   ; _main.vader:23:41
   struct.new 2   ; _main.vader:23:20
   call 2   ; _main.vader:23:13
-  call 5   ; _main.vader:23:5
+  call.import 0   ; _main.vader:23:13
+  call.import 1   ; _main.vader:23:5
   i32.const 0   ; _main.vader:24:12
   return   ; _main.vader:24:5
 end
@@ -71,11 +73,4 @@ fn 4 std_io$IOError$Error$message (ref) -> string
   local.get 0   ; io.vader:12:44
   struct.get 3 0   ; io.vader:12:44
   return   ; io.vader:12:37
-end
-
-fn 5 std_io$std_io$println__string (string) -> void
-  local.get 0   ; io.vader:28:65
-  call.import 0   ; io.vader:28:65
-  call.import 1   ; io.vader:28:53
-  return   ; io.vader:28:53
 end

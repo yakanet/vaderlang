@@ -8,42 +8,50 @@
         _1: "answer" :string
       }
   fn tests_snippets_tuple_pair_return__main_vader$main() -> i32
-    let p#59: [i32, string] =
+    let p#55: [i32, string] =
       call :[i32, string]
         callee:
           make_pair#2 :fn() -> [i32, string]
     call :void
       callee:
-        println#1000090 :void
+        println#25 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_0#-1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0#-1 :?
-            "first  = " :string
-          @builder.append_display <for i32> :void
-            __sb_0#-1 :?
-            ._0 :i32
-              p#59 :[i32, string]
-          ~>
-            @builder.finish :string
-              __sb_0#-1 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_0#-1: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0#-1 :?
+                "first  = " :string
+              @builder.append_display <for i32> :void
+                __sb_0#-1 :?
+                ._0 :i32
+                  p#55 :[i32, string]
+              ~>
+                @builder.finish :string
+                  __sb_0#-1 :?
     call :void
       callee:
-        println#1000090 :void
+        println#25 :fn(Display) -> void
       arg0:
-        block :string
-          let __sb_1#-2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1#-2 :?
-            "second = " :string
-          @builder.append_display <for string> :void
-            __sb_1#-2 :?
-            ._1 :string
-              p#59 :[i32, string]
-          ~>
-            @builder.finish :string
-              __sb_1#-2 :?
+        call :string
+          callee:
+            to_string#1000013 :string
+          arg0:
+            block :string
+              let __sb_1#-2: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_1#-2 :?
+                "second = " :string
+              @builder.append_display <for string> :void
+                __sb_1#-2 :?
+                ._1 :string
+                  p#55 :[i32, string]
+              ~>
+                @builder.finish :string
+                  __sb_1#-2 :?
     return int(0) :i32
