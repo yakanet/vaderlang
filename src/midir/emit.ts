@@ -42,6 +42,7 @@ import {
   predecessorsOf, reversePostorder, successorsOf,
 } from "./analyses.ts";
 import { NO_HINTS, scheduleStack, type ScheduleHints } from "./scheduler.ts";
+import { pruneUnusedImports } from "./dce.ts";
 
 // ============================================================================
 // Project-level entry point
@@ -97,6 +98,8 @@ export function emitBytecodeFromCFG(
       (slot as { debug: (DebugPos | null)[] }).debug = fn.debug;
     }
   }
+
+  pruneUnusedImports(ctx);
 
   return {
     name,

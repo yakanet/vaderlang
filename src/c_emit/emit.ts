@@ -308,6 +308,11 @@ function emitFnTrampolines(ctx: EmitCtx, out: string[]): void {
 // =========================================================================
 
 function emitImportShims(ctx: EmitCtx, out: string[]): void {
+  // Unused-import pruning happens upstream in `pruneUnusedImports` (see
+  // `src/midir/emit.ts`) so the bytecode module already carries only the
+  // imports actually referenced by `call.import` ops. Every backend (VM,
+  // C-emit, future WASM) and every serialiser (`.vir` text/binary) gets
+  // the compact table for free.
   for (let i = 0; i < ctx.module.imports.length; i++) {
     const imp = ctx.module.imports[i]!;
     const shim = importShim(ctx, imp, i);

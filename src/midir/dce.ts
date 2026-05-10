@@ -40,6 +40,7 @@ import { isMainMangled } from "../comptime/specialize.ts";
 import { isStdlibModule } from "../resolver/module.ts";
 import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type { Decorator } from "../parser/ast.ts";
+import type { EmitterCtx } from "../bytecode/emit.ts";
 
 const NO_DECORATORS: readonly Decorator[] = [];
 
@@ -411,5 +412,48 @@ function remapTerminator(t: Terminator, m: readonly LocalId[]): Terminator {
     case "CondBranch":  return { ...t, cond: r(m, t.cond) };
     case "Return":      return { ...t, value: t.value === null ? null : r(m, t.value) };
   }
+}
+
+// =============================================================================
+// Bytecode-level DCE — drop imports no `call.import` op references and
+// renumber survivors. Runs after `OP_INTRINSIC_BY_MANGLED` has routed the
+// primitive trait intrinsics (`std_core$i32$Add$add`, `std_core$bool$Eq$equals`,
+// …) to dedicated bytecode ops, leaving the reserved import slots dead.
+// Without this, every backend (VM unbound-import stub, C-emit shim, future
+// WASM import section) propagates ~60 trap stubs for primitive ops the
+// runtime never actually invokes.
+// =============================================================================
+
+export function pruneUnusedImports(ctx: EmitterCtx): void {
+  const used = new Set<number>();
+  for (const fn of ctx.functions) {
+    for (const op of fn.body) {
+      if (op.kind === "call.import") used.add(op.importIndex);
+    }
+  }
+  if (used.size === ctx.imports.length) return;
+
+  const remap = new Int32Array(ctx.imports.length);
+  const kept: typeof ctx.imports = [];
+  for (let i = 0; i < ctx.imports.length; i++) {
+    if (used.has(i)) {
+      remap[i] = kept.length;
+      kept.push(ctx.imports[i]!);
+    } else {
+      remap[i] = -1;
+    }
+  }
+  for (const fn of ctx.functions) {
+    for (let i = 0; i < fn.body.length; i++) {
+      const op = fn.body[i]!;
+      if (op.kind !== "call.import") continue;
+      fn.body[i] = { kind: "call.import", importIndex: remap[op.importIndex]! };
+    }
+  }
+  // `importIndexBySymId` stays untouched — it's owned by the EmitterCtx and
+  // post-emit consumers don't read it. Mutating `ctx.imports` length keeps
+  // the Object identity the BytecodeModule will close over.
+  ctx.imports.length = 0;
+  for (const e of kept) ctx.imports.push(e);
 }
 

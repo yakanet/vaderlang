@@ -21,75 +21,8 @@ string 10 "has hello? "
 string 11 "has missing? "
 string 12 "missing"
 string 13 "hello updated = "
-import 0 equals std_core$i8$Eq$equals (i8,i8) -> bool
-import 1 equals std_core$i16$Eq$equals (i16,i16) -> bool
-import 2 equals std_core$i32$Eq$equals (i32,i32) -> bool
-import 3 equals std_core$i64$Eq$equals (i64,i64) -> bool
-import 4 equals std_core$u8$Eq$equals (u8,u8) -> bool
-import 5 equals std_core$u16$Eq$equals (u16,u16) -> bool
-import 6 equals std_core$u32$Eq$equals (u32,u32) -> bool
-import 7 equals std_core$u64$Eq$equals (u64,u64) -> bool
-import 8 equals std_core$usize$Eq$equals (usize,usize) -> bool
-import 9 equals std_core$f32$Eq$equals (f32,f32) -> bool
-import 10 equals std_core$f64$Eq$equals (f64,f64) -> bool
-import 11 equals std_core$bool$Eq$equals (bool,bool) -> bool
-import 12 equals std_core$char$Eq$equals (char,char) -> bool
-import 13 equals std_core$string$Eq$equals (string,string) -> bool
-import 14 hash std_core$string$Hash$hash (string) -> u64
-import 15 add std_core$i8$Add$add (i8,i8) -> i8
-import 16 sub std_core$i8$Sub$sub (i8,i8) -> i8
-import 17 mul std_core$i8$Mul$mul (i8,i8) -> i8
-import 18 div std_core$i8$Div$div (i8,i8) -> i8
-import 19 add std_core$i16$Add$add (i16,i16) -> i16
-import 20 sub std_core$i16$Sub$sub (i16,i16) -> i16
-import 21 mul std_core$i16$Mul$mul (i16,i16) -> i16
-import 22 div std_core$i16$Div$div (i16,i16) -> i16
-import 23 add std_core$i32$Add$add (i32,i32) -> i32
-import 24 sub std_core$i32$Sub$sub (i32,i32) -> i32
-import 25 mul std_core$i32$Mul$mul (i32,i32) -> i32
-import 26 div std_core$i32$Div$div (i32,i32) -> i32
-import 27 add std_core$i64$Add$add (i64,i64) -> i64
-import 28 sub std_core$i64$Sub$sub (i64,i64) -> i64
-import 29 mul std_core$i64$Mul$mul (i64,i64) -> i64
-import 30 div std_core$i64$Div$div (i64,i64) -> i64
-import 31 add std_core$u8$Add$add (u8,u8) -> u8
-import 32 sub std_core$u8$Sub$sub (u8,u8) -> u8
-import 33 mul std_core$u8$Mul$mul (u8,u8) -> u8
-import 34 div std_core$u8$Div$div (u8,u8) -> u8
-import 35 add std_core$u16$Add$add (u16,u16) -> u16
-import 36 sub std_core$u16$Sub$sub (u16,u16) -> u16
-import 37 mul std_core$u16$Mul$mul (u16,u16) -> u16
-import 38 div std_core$u16$Div$div (u16,u16) -> u16
-import 39 add std_core$u32$Add$add (u32,u32) -> u32
-import 40 sub std_core$u32$Sub$sub (u32,u32) -> u32
-import 41 mul std_core$u32$Mul$mul (u32,u32) -> u32
-import 42 div std_core$u32$Div$div (u32,u32) -> u32
-import 43 add std_core$u64$Add$add (u64,u64) -> u64
-import 44 sub std_core$u64$Sub$sub (u64,u64) -> u64
-import 45 mul std_core$u64$Mul$mul (u64,u64) -> u64
-import 46 div std_core$u64$Div$div (u64,u64) -> u64
-import 47 add std_core$usize$Add$add (usize,usize) -> usize
-import 48 sub std_core$usize$Sub$sub (usize,usize) -> usize
-import 49 mul std_core$usize$Mul$mul (usize,usize) -> usize
-import 50 div std_core$usize$Div$div (usize,usize) -> usize
-import 51 add std_core$f32$Add$add (f32,f32) -> f32
-import 52 sub std_core$f32$Sub$sub (f32,f32) -> f32
-import 53 mul std_core$f32$Mul$mul (f32,f32) -> f32
-import 54 div std_core$f32$Div$div (f32,f32) -> f32
-import 55 add std_core$f64$Add$add (f64,f64) -> f64
-import 56 sub std_core$f64$Sub$sub (f64,f64) -> f64
-import 57 mul std_core$f64$Mul$mul (f64,f64) -> f64
-import 58 div std_core$f64$Div$div (f64,f64) -> f64
-import 59 add std_core$string$Add$add (string,string) -> string
-import 60 at std_core$string$Index$at (string,i32) -> char
-import 61 print std_io$print (string) -> void
-import 62 println std_io$println (string) -> void
-import 63 eprint std_io$eprint (string) -> void
-import 64 eprintln std_io$eprintln (string) -> void
-import 65 read_line std_io$read_line () -> ref
-import 66 read_file std_io$read_file (string) -> ref
-import 67 write_file std_io$write_file (string,string) -> ref
-import 68 exists std_io$exists (string) -> bool
+import 0 hash std_core$string$Hash$hash (string) -> u64
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
   local "$arr_0#77" ref
@@ -185,7 +118,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:10:21
   local.get 9   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
-  call.import 62   ; _main.vader:10:5
+  call.import 1   ; _main.vader:10:5
   string.const 0   ; _main.vader:12:17
   local.set 12   ; _main.vader:12:17
   local.get 2   ; _main.vader:12:11
@@ -196,7 +129,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
   type_check 4   ; _main.vader:14:9
   if $L0 void   ; _main.vader:14:9
     string.const 4   ; _main.vader:14:30
-    call.import 62   ; _main.vader:14:22
+    call.import 1   ; _main.vader:14:22
     string.const 1   ; _main.vader:18:17
     local.set 18   ; _main.vader:18:17
     local.get 2   ; _main.vader:18:11
@@ -207,7 +140,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
     type_check 4   ; _main.vader:20:9
     if $L1 void   ; _main.vader:20:9
       string.const 6   ; _main.vader:20:30
-      call.import 62   ; _main.vader:20:22
+      call.import 1   ; _main.vader:20:22
       string.const 2   ; _main.vader:24:17
       local.set 24   ; _main.vader:24:17
       local.get 2   ; _main.vader:24:11
@@ -218,7 +151,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
       type_check 4   ; _main.vader:26:9
       if $L2 void   ; _main.vader:26:9
         string.const 8   ; _main.vader:26:30
-        call.import 62   ; _main.vader:26:22
+        call.import 1   ; _main.vader:26:22
         intrinsic builder.new   ; _main.vader:30:13
         local.set 30   ; _main.vader:30:13
         string.const 10   ; _main.vader:30:14
@@ -237,7 +170,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:30:25
         local.get 30   ; _main.vader:30:13
         intrinsic builder.finish   ; _main.vader:30:13
-        call.import 62   ; _main.vader:30:5
+        call.import 1   ; _main.vader:30:5
         intrinsic builder.new   ; _main.vader:31:13
         local.set 34   ; _main.vader:31:13
         string.const 11   ; _main.vader:31:14
@@ -256,7 +189,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:31:27
         local.get 34   ; _main.vader:31:13
         intrinsic builder.finish   ; _main.vader:31:13
-        call.import 62   ; _main.vader:31:5
+        call.import 1   ; _main.vader:31:5
         string.const 0   ; _main.vader:34:11
         local.set 38   ; _main.vader:34:11
         i32.const 99   ; _main.vader:34:20
@@ -275,7 +208,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         type_check 4   ; _main.vader:37:9
         if $L3 void   ; _main.vader:37:9
           string.const 4   ; _main.vader:37:30
-          call.import 62   ; _main.vader:37:22
+          call.import 1   ; _main.vader:37:22
           i32.const 0   ; _main.vader:41:12
           return   ; _main.vader:41:5
         else   ; _main.vader:37:9
@@ -297,7 +230,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:38:47
             local.get 43   ; _main.vader:38:30
             intrinsic builder.finish   ; _main.vader:38:30
-            call.import 62   ; _main.vader:38:22
+            call.import 1   ; _main.vader:38:22
             i32.const 0   ; _main.vader:41:12
             return   ; _main.vader:41:5
           else   ; _main.vader:38:9
@@ -323,7 +256,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:27:39
           local.get 27   ; _main.vader:27:30
           intrinsic builder.finish   ; _main.vader:27:30
-          call.import 62   ; _main.vader:27:22
+          call.import 1   ; _main.vader:27:22
           intrinsic builder.new   ; _main.vader:30:13
           local.set 30   ; _main.vader:30:13
           string.const 10   ; _main.vader:30:14
@@ -342,7 +275,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:30:25
           local.get 30   ; _main.vader:30:13
           intrinsic builder.finish   ; _main.vader:30:13
-          call.import 62   ; _main.vader:30:5
+          call.import 1   ; _main.vader:30:5
           intrinsic builder.new   ; _main.vader:31:13
           local.set 34   ; _main.vader:31:13
           string.const 11   ; _main.vader:31:14
@@ -361,7 +294,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:31:27
           local.get 34   ; _main.vader:31:13
           intrinsic builder.finish   ; _main.vader:31:13
-          call.import 62   ; _main.vader:31:5
+          call.import 1   ; _main.vader:31:5
           string.const 0   ; _main.vader:34:11
           local.set 38   ; _main.vader:34:11
           i32.const 99   ; _main.vader:34:20
@@ -380,7 +313,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           type_check 4   ; _main.vader:37:9
           if $L6 void   ; _main.vader:37:9
             string.const 4   ; _main.vader:37:30
-            call.import 62   ; _main.vader:37:22
+            call.import 1   ; _main.vader:37:22
             i32.const 0   ; _main.vader:41:12
             return   ; _main.vader:41:5
           else   ; _main.vader:37:9
@@ -402,7 +335,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
               intrinsic builder.append_display   ; _main.vader:38:47
               local.get 43   ; _main.vader:38:30
               intrinsic builder.finish   ; _main.vader:38:30
-              call.import 62   ; _main.vader:38:22
+              call.import 1   ; _main.vader:38:22
               i32.const 0   ; _main.vader:41:12
               return   ; _main.vader:41:5
             else   ; _main.vader:38:9
@@ -432,7 +365,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:21:39
         local.get 21   ; _main.vader:21:30
         intrinsic builder.finish   ; _main.vader:21:30
-        call.import 62   ; _main.vader:21:22
+        call.import 1   ; _main.vader:21:22
         string.const 2   ; _main.vader:24:17
         local.set 24   ; _main.vader:24:17
         local.get 2   ; _main.vader:24:11
@@ -443,7 +376,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         type_check 4   ; _main.vader:26:9
         if $L9 void   ; _main.vader:26:9
           string.const 8   ; _main.vader:26:30
-          call.import 62   ; _main.vader:26:22
+          call.import 1   ; _main.vader:26:22
           intrinsic builder.new   ; _main.vader:30:13
           local.set 30   ; _main.vader:30:13
           string.const 10   ; _main.vader:30:14
@@ -462,7 +395,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:30:25
           local.get 30   ; _main.vader:30:13
           intrinsic builder.finish   ; _main.vader:30:13
-          call.import 62   ; _main.vader:30:5
+          call.import 1   ; _main.vader:30:5
           intrinsic builder.new   ; _main.vader:31:13
           local.set 34   ; _main.vader:31:13
           string.const 11   ; _main.vader:31:14
@@ -481,7 +414,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:31:27
           local.get 34   ; _main.vader:31:13
           intrinsic builder.finish   ; _main.vader:31:13
-          call.import 62   ; _main.vader:31:5
+          call.import 1   ; _main.vader:31:5
           string.const 0   ; _main.vader:34:11
           local.set 38   ; _main.vader:34:11
           i32.const 99   ; _main.vader:34:20
@@ -500,7 +433,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           type_check 4   ; _main.vader:37:9
           if $L10 void   ; _main.vader:37:9
             string.const 4   ; _main.vader:37:30
-            call.import 62   ; _main.vader:37:22
+            call.import 1   ; _main.vader:37:22
             i32.const 0   ; _main.vader:41:12
             return   ; _main.vader:41:5
           else   ; _main.vader:37:9
@@ -522,7 +455,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
               intrinsic builder.append_display   ; _main.vader:38:47
               local.get 43   ; _main.vader:38:30
               intrinsic builder.finish   ; _main.vader:38:30
-              call.import 62   ; _main.vader:38:22
+              call.import 1   ; _main.vader:38:22
               i32.const 0   ; _main.vader:41:12
               return   ; _main.vader:41:5
             else   ; _main.vader:38:9
@@ -548,7 +481,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:27:39
             local.get 27   ; _main.vader:27:30
             intrinsic builder.finish   ; _main.vader:27:30
-            call.import 62   ; _main.vader:27:22
+            call.import 1   ; _main.vader:27:22
             intrinsic builder.new   ; _main.vader:30:13
             local.set 30   ; _main.vader:30:13
             string.const 10   ; _main.vader:30:14
@@ -567,7 +500,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:30:25
             local.get 30   ; _main.vader:30:13
             intrinsic builder.finish   ; _main.vader:30:13
-            call.import 62   ; _main.vader:30:5
+            call.import 1   ; _main.vader:30:5
             intrinsic builder.new   ; _main.vader:31:13
             local.set 34   ; _main.vader:31:13
             string.const 11   ; _main.vader:31:14
@@ -586,7 +519,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:31:27
             local.get 34   ; _main.vader:31:13
             intrinsic builder.finish   ; _main.vader:31:13
-            call.import 62   ; _main.vader:31:5
+            call.import 1   ; _main.vader:31:5
             string.const 0   ; _main.vader:34:11
             local.set 38   ; _main.vader:34:11
             i32.const 99   ; _main.vader:34:20
@@ -605,7 +538,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             type_check 4   ; _main.vader:37:9
             if $L13 void   ; _main.vader:37:9
               string.const 4   ; _main.vader:37:30
-              call.import 62   ; _main.vader:37:22
+              call.import 1   ; _main.vader:37:22
               i32.const 0   ; _main.vader:41:12
               return   ; _main.vader:41:5
             else   ; _main.vader:37:9
@@ -627,7 +560,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
                 intrinsic builder.append_display   ; _main.vader:38:47
                 local.get 43   ; _main.vader:38:30
                 intrinsic builder.finish   ; _main.vader:38:30
-                call.import 62   ; _main.vader:38:22
+                call.import 1   ; _main.vader:38:22
                 i32.const 0   ; _main.vader:41:12
                 return   ; _main.vader:41:5
               else   ; _main.vader:38:9
@@ -661,7 +594,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
       intrinsic builder.append_display   ; _main.vader:15:39
       local.get 15   ; _main.vader:15:30
       intrinsic builder.finish   ; _main.vader:15:30
-      call.import 62   ; _main.vader:15:22
+      call.import 1   ; _main.vader:15:22
       string.const 1   ; _main.vader:18:17
       local.set 18   ; _main.vader:18:17
       local.get 2   ; _main.vader:18:11
@@ -672,7 +605,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
       type_check 4   ; _main.vader:20:9
       if $L16 void   ; _main.vader:20:9
         string.const 6   ; _main.vader:20:30
-        call.import 62   ; _main.vader:20:22
+        call.import 1   ; _main.vader:20:22
         string.const 2   ; _main.vader:24:17
         local.set 24   ; _main.vader:24:17
         local.get 2   ; _main.vader:24:11
@@ -683,7 +616,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         type_check 4   ; _main.vader:26:9
         if $L17 void   ; _main.vader:26:9
           string.const 8   ; _main.vader:26:30
-          call.import 62   ; _main.vader:26:22
+          call.import 1   ; _main.vader:26:22
           intrinsic builder.new   ; _main.vader:30:13
           local.set 30   ; _main.vader:30:13
           string.const 10   ; _main.vader:30:14
@@ -702,7 +635,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:30:25
           local.get 30   ; _main.vader:30:13
           intrinsic builder.finish   ; _main.vader:30:13
-          call.import 62   ; _main.vader:30:5
+          call.import 1   ; _main.vader:30:5
           intrinsic builder.new   ; _main.vader:31:13
           local.set 34   ; _main.vader:31:13
           string.const 11   ; _main.vader:31:14
@@ -721,7 +654,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:31:27
           local.get 34   ; _main.vader:31:13
           intrinsic builder.finish   ; _main.vader:31:13
-          call.import 62   ; _main.vader:31:5
+          call.import 1   ; _main.vader:31:5
           string.const 0   ; _main.vader:34:11
           local.set 38   ; _main.vader:34:11
           i32.const 99   ; _main.vader:34:20
@@ -740,7 +673,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           type_check 4   ; _main.vader:37:9
           if $L18 void   ; _main.vader:37:9
             string.const 4   ; _main.vader:37:30
-            call.import 62   ; _main.vader:37:22
+            call.import 1   ; _main.vader:37:22
             i32.const 0   ; _main.vader:41:12
             return   ; _main.vader:41:5
           else   ; _main.vader:37:9
@@ -762,7 +695,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
               intrinsic builder.append_display   ; _main.vader:38:47
               local.get 43   ; _main.vader:38:30
               intrinsic builder.finish   ; _main.vader:38:30
-              call.import 62   ; _main.vader:38:22
+              call.import 1   ; _main.vader:38:22
               i32.const 0   ; _main.vader:41:12
               return   ; _main.vader:41:5
             else   ; _main.vader:38:9
@@ -788,7 +721,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:27:39
             local.get 27   ; _main.vader:27:30
             intrinsic builder.finish   ; _main.vader:27:30
-            call.import 62   ; _main.vader:27:22
+            call.import 1   ; _main.vader:27:22
             intrinsic builder.new   ; _main.vader:30:13
             local.set 30   ; _main.vader:30:13
             string.const 10   ; _main.vader:30:14
@@ -807,7 +740,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:30:25
             local.get 30   ; _main.vader:30:13
             intrinsic builder.finish   ; _main.vader:30:13
-            call.import 62   ; _main.vader:30:5
+            call.import 1   ; _main.vader:30:5
             intrinsic builder.new   ; _main.vader:31:13
             local.set 34   ; _main.vader:31:13
             string.const 11   ; _main.vader:31:14
@@ -826,7 +759,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:31:27
             local.get 34   ; _main.vader:31:13
             intrinsic builder.finish   ; _main.vader:31:13
-            call.import 62   ; _main.vader:31:5
+            call.import 1   ; _main.vader:31:5
             string.const 0   ; _main.vader:34:11
             local.set 38   ; _main.vader:34:11
             i32.const 99   ; _main.vader:34:20
@@ -845,7 +778,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             type_check 4   ; _main.vader:37:9
             if $L21 void   ; _main.vader:37:9
               string.const 4   ; _main.vader:37:30
-              call.import 62   ; _main.vader:37:22
+              call.import 1   ; _main.vader:37:22
               i32.const 0   ; _main.vader:41:12
               return   ; _main.vader:41:5
             else   ; _main.vader:37:9
@@ -867,7 +800,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
                 intrinsic builder.append_display   ; _main.vader:38:47
                 local.get 43   ; _main.vader:38:30
                 intrinsic builder.finish   ; _main.vader:38:30
-                call.import 62   ; _main.vader:38:22
+                call.import 1   ; _main.vader:38:22
                 i32.const 0   ; _main.vader:41:12
                 return   ; _main.vader:41:5
               else   ; _main.vader:38:9
@@ -897,7 +830,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           intrinsic builder.append_display   ; _main.vader:21:39
           local.get 21   ; _main.vader:21:30
           intrinsic builder.finish   ; _main.vader:21:30
-          call.import 62   ; _main.vader:21:22
+          call.import 1   ; _main.vader:21:22
           string.const 2   ; _main.vader:24:17
           local.set 24   ; _main.vader:24:17
           local.get 2   ; _main.vader:24:11
@@ -908,7 +841,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
           type_check 4   ; _main.vader:26:9
           if $L24 void   ; _main.vader:26:9
             string.const 8   ; _main.vader:26:30
-            call.import 62   ; _main.vader:26:22
+            call.import 1   ; _main.vader:26:22
             intrinsic builder.new   ; _main.vader:30:13
             local.set 30   ; _main.vader:30:13
             string.const 10   ; _main.vader:30:14
@@ -927,7 +860,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:30:25
             local.get 30   ; _main.vader:30:13
             intrinsic builder.finish   ; _main.vader:30:13
-            call.import 62   ; _main.vader:30:5
+            call.import 1   ; _main.vader:30:5
             intrinsic builder.new   ; _main.vader:31:13
             local.set 34   ; _main.vader:31:13
             string.const 11   ; _main.vader:31:14
@@ -946,7 +879,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             intrinsic builder.append_display   ; _main.vader:31:27
             local.get 34   ; _main.vader:31:13
             intrinsic builder.finish   ; _main.vader:31:13
-            call.import 62   ; _main.vader:31:5
+            call.import 1   ; _main.vader:31:5
             string.const 0   ; _main.vader:34:11
             local.set 38   ; _main.vader:34:11
             i32.const 99   ; _main.vader:34:20
@@ -965,7 +898,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
             type_check 4   ; _main.vader:37:9
             if $L25 void   ; _main.vader:37:9
               string.const 4   ; _main.vader:37:30
-              call.import 62   ; _main.vader:37:22
+              call.import 1   ; _main.vader:37:22
               i32.const 0   ; _main.vader:41:12
               return   ; _main.vader:41:5
             else   ; _main.vader:37:9
@@ -987,7 +920,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
                 intrinsic builder.append_display   ; _main.vader:38:47
                 local.get 43   ; _main.vader:38:30
                 intrinsic builder.finish   ; _main.vader:38:30
-                call.import 62   ; _main.vader:38:22
+                call.import 1   ; _main.vader:38:22
                 i32.const 0   ; _main.vader:41:12
                 return   ; _main.vader:41:5
               else   ; _main.vader:38:9
@@ -1013,7 +946,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
               intrinsic builder.append_display   ; _main.vader:27:39
               local.get 27   ; _main.vader:27:30
               intrinsic builder.finish   ; _main.vader:27:30
-              call.import 62   ; _main.vader:27:22
+              call.import 1   ; _main.vader:27:22
               intrinsic builder.new   ; _main.vader:30:13
               local.set 30   ; _main.vader:30:13
               string.const 10   ; _main.vader:30:14
@@ -1032,7 +965,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
               intrinsic builder.append_display   ; _main.vader:30:25
               local.get 30   ; _main.vader:30:13
               intrinsic builder.finish   ; _main.vader:30:13
-              call.import 62   ; _main.vader:30:5
+              call.import 1   ; _main.vader:30:5
               intrinsic builder.new   ; _main.vader:31:13
               local.set 34   ; _main.vader:31:13
               string.const 11   ; _main.vader:31:14
@@ -1051,7 +984,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
               intrinsic builder.append_display   ; _main.vader:31:27
               local.get 34   ; _main.vader:31:13
               intrinsic builder.finish   ; _main.vader:31:13
-              call.import 62   ; _main.vader:31:5
+              call.import 1   ; _main.vader:31:5
               string.const 0   ; _main.vader:34:11
               local.set 38   ; _main.vader:34:11
               i32.const 99   ; _main.vader:34:20
@@ -1070,7 +1003,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
               type_check 4   ; _main.vader:37:9
               if $L28 void   ; _main.vader:37:9
                 string.const 4   ; _main.vader:37:30
-                call.import 62   ; _main.vader:37:22
+                call.import 1   ; _main.vader:37:22
                 i32.const 0   ; _main.vader:41:12
                 return   ; _main.vader:41:5
               else   ; _main.vader:37:9
@@ -1092,7 +1025,7 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
                   intrinsic builder.append_display   ; _main.vader:38:47
                   local.get 43   ; _main.vader:38:30
                   intrinsic builder.finish   ; _main.vader:38:30
-                  call.import 62   ; _main.vader:38:22
+                  call.import 1   ; _main.vader:38:22
                   i32.const 0   ; _main.vader:41:12
                   return   ; _main.vader:41:5
                 else   ; _main.vader:38:9
@@ -1191,7 +1124,7 @@ fn 2 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   else   ; collections.vader:57:5
   end $L0   ; collections.vader:57:5
   local.get 1   ; collections.vader:64:10
-  call.import 14   ; collections.vader:64:10
+  call.import 0   ; collections.vader:64:10
   call 1   ; collections.vader:65:12
   local.set 10   ; collections.vader:65:5
   local.get 0   ; collections.vader:68:31
@@ -1336,7 +1269,7 @@ fn 3 std_collections$std_collections$get__string__i32 (ref,string) -> ref
     return   ; collections.vader:97:9
   else   ; collections.vader:96:5
     local.get 1   ; collections.vader:99:10
-    call.import 14   ; collections.vader:99:10
+    call.import 0   ; collections.vader:99:10
     call 1   ; collections.vader:100:12
     local.set 4   ; collections.vader:100:5
     local.get 0   ; collections.vader:101:31
@@ -1449,7 +1382,7 @@ fn 4 std_collections$std_collections$contains_key__string__i32 (ref,string) -> b
     return   ; collections.vader:122:9
   else   ; collections.vader:121:5
     local.get 1   ; collections.vader:124:10
-    call.import 14   ; collections.vader:124:10
+    call.import 0   ; collections.vader:124:10
     call 1   ; collections.vader:125:12
     local.set 4   ; collections.vader:125:5
     local.get 0   ; collections.vader:126:31
