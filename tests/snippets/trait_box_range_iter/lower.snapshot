@@ -15,7 +15,7 @@
     let a#65: i32 =
       call :i32
         callee:
-          count#1000128 :i32
+          count#1000168 :i32
         arg0:
           Range(i32) {
             start: int(0) :i32
@@ -26,7 +26,7 @@
     let b#66: i32 =
       call :i32
         callee:
-          count#1000128 :i32
+          count#1000168 :i32
         arg0:
           block :ArrayIter(i32)
             let __arr_0#-1: i32[] =
@@ -44,14 +44,14 @@
     let c#67: i32 =
       call :i32
         callee:
-          invoke#1000129 :i32
+          invoke#1000169 :i32
         arg0:
           Hello {
           }
     let d#68: i32 =
       call :i32
         callee:
-          twice#1000130 :i32
+          twice#1000170 :i32
         arg0:
           int(7) :Doubler(i32)
     return
@@ -74,7 +74,7 @@
     loop while (cont#54 :bool)
       ~>
         block :void
-          let __scrut_0#-14: Done | Yielded(i32) =
+          let __scrut_0#-38: Done | Yielded(i32) =
             vcall Iterator.step :Done | Yielded(i32)
               recv:
                 it#52 :Iterator(i32)
@@ -82,7 +82,7 @@
             if :void
               cond:
                 is Done :bool
-                  __scrut_0#-14 :Done | Yielded(i32)
+                  __scrut_0#-38 :Done | Yielded(i32)
               then:
                 ~>
                   block :void
@@ -96,7 +96,7 @@
                   if :void
                     cond:
                       is Yielded(i32) :bool
-                        __scrut_0#-14 :Done | Yielded(i32)
+                        __scrut_0#-38 :Done | Yielded(i32)
                     then:
                       ~>
                         block :void

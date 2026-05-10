@@ -1,2 +1,0 @@
-# compile errors
-[T3001] type mismatch: range bounds must be `i32`, got u64

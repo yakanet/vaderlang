@@ -191,6 +191,150 @@ Range[usize] implements Iterator[usize] {
     }
 }
 
+Range[i8] implements Contains[i8] {
+    contains :: fn(self, value: i8) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+Range[i8] implements Iterator[i8] {
+    step :: fn(self) -> Done | Yielded(i8) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(i8) { .value = v }
+    }
+}
+
+Range[i16] implements Contains[i16] {
+    contains :: fn(self, value: i16) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+Range[i16] implements Iterator[i16] {
+    step :: fn(self) -> Done | Yielded(i16) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(i16) { .value = v }
+    }
+}
+
+Range[i64] implements Contains[i64] {
+    contains :: fn(self, value: i64) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+Range[i64] implements Iterator[i64] {
+    step :: fn(self) -> Done | Yielded(i64) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(i64) { .value = v }
+    }
+}
+
+Range[isize] implements Contains[isize] {
+    contains :: fn(self, value: isize) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+Range[isize] implements Iterator[isize] {
+    step :: fn(self) -> Done | Yielded(isize) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(isize) { .value = v }
+    }
+}
+
+Range[u8] implements Contains[u8] {
+    contains :: fn(self, value: u8) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+Range[u8] implements Iterator[u8] {
+    step :: fn(self) -> Done | Yielded(u8) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(u8) { .value = v }
+    }
+}
+
+Range[u16] implements Contains[u16] {
+    contains :: fn(self, value: u16) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+Range[u16] implements Iterator[u16] {
+    step :: fn(self) -> Done | Yielded(u16) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(u16) { .value = v }
+    }
+}
+
+Range[u32] implements Contains[u32] {
+    contains :: fn(self, value: u32) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+Range[u32] implements Iterator[u32] {
+    step :: fn(self) -> Done | Yielded(u32) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(u32) { .value = v }
+    }
+}
+
+Range[u64] implements Contains[u64] {
+    contains :: fn(self, value: u64) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+Range[u64] implements Iterator[u64] {
+    step :: fn(self) -> Done | Yielded(u64) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(u64) { .value = v }
+    }
+}
+
 // `char` has no `+ i32` op ; advance via u32 round-trip.
 Range[char] implements Iterator[char] {
     step :: fn(self) -> Done | Yielded(char) {

@@ -14,7 +14,7 @@ import { err, warn } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { EnumType, Type } from "../types.ts";
 import {
-  CORE_STRUCTS, CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, substitute, unionOf,
+  ALL_INTS, CORE_STRUCTS, CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, substitute, unionOf,
 } from "../types.ts";
 import { buildStructSubst } from "../ctx.ts";
 import type { ImplEntry } from "../impls.ts";
@@ -509,8 +509,13 @@ function inferRange(
 }
 
 function pickRangeBound(t: Type): Type | null {
-  if (t.kind === "Primitive" && (t.name === "char" || t.name === "i32" || t.name === "usize")) return t;
-  return null;
+  // Any concrete integer width or `char` is a valid Range bound — std/core
+  // ships a Contains+Iterator impl for each of `i8`/`i16`/`i32`/`i64`/`isize`/
+  // `u8`/`u16`/`u32`/`u64`/`usize`/`char`. FreeInt operands fall through to
+  // the i32 default chosen by the caller.
+  if (t.kind !== "Primitive") return null;
+  if (t.name === "char") return t;
+  return (ALL_INTS as readonly string[]).includes(t.name) ? t : null;
 }
 
 function inferCast(

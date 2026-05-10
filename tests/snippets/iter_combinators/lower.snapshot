@@ -17,7 +17,7 @@
     let squares#77: i32[] =
       call :i32[]
         callee:
-          map#1000135 :i32[]
+          map#1000175 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -36,7 +36,7 @@
     let evens#80: i32[] =
       call :i32[]
         callee:
-          filter#1000136 :i32[]
+          filter#1000176 :i32[]
         arg0:
           nums#75 :i32[]
         arg1:
@@ -50,7 +50,7 @@
     let p#84: i32 =
       call :i32
         callee:
-          fold#1000137 :i32
+          fold#1000177 :i32
         arg0:
           array :i32[]
             int(1) :i32
@@ -65,7 +65,7 @@
     let first#85: i32[] =
       call :i32[]
         callee:
-          take#1000138 :i32[]
+          take#1000178 :i32[]
         arg0:
           nums#75 :i32[]
         arg1:
@@ -79,7 +79,7 @@
     let rest#87: i32[] =
       call :i32[]
         callee:
-          skip#1000139 :i32[]
+          skip#1000179 :i32[]
         arg0:
           nums#75 :i32[]
         arg1:

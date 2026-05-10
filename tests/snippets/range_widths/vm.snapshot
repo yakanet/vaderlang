@@ -1,0 +1,8 @@
+# stdout
+u64 sum=3
+i64 sum=6
+isize sum=10
+u8 sum=15
+i16 sum=10
+# exit
+0

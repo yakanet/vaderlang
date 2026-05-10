@@ -287,7 +287,7 @@
   fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$is_empty__i32(self: Once(i32)) -> bool
     ~>
       block :bool
-        let __scrut_0#-16: Done | Yielded(i32) =
+        let __scrut_0#-40: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
               .step :fn() -> Done | Yielded(i32)
@@ -296,7 +296,7 @@
           if :bool
             cond:
               is Done :bool
-                __scrut_0#-16 :Done | Yielded(i32)
+                __scrut_0#-40 :Done | Yielded(i32)
             then:
               ~>
                 true
@@ -305,7 +305,7 @@
                 if :bool
                   cond:
                     is Yielded(i32) :bool
-                      __scrut_0#-16 :Done | Yielded(i32)
+                      __scrut_0#-40 :Done | Yielded(i32)
                   then:
                     ~>
                       false
@@ -318,7 +318,7 @@
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0#-17: Done | Yielded(i32) =
+          let __scrut_0#-41: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
                 .step :fn() -> Done | Yielded(i32)
@@ -327,7 +327,7 @@
             if :void
               cond:
                 is Done :bool
-                  __scrut_0#-17 :Done | Yielded(i32)
+                  __scrut_0#-41 :Done | Yielded(i32)
               then:
                 ~>
                   block :void
@@ -341,7 +341,7 @@
                   if :void
                     cond:
                       is Yielded(i32) :bool
-                        __scrut_0#-17 :Done | Yielded(i32)
+                        __scrut_0#-41 :Done | Yielded(i32)
                     then:
                       ~>
                         block :void
@@ -364,7 +364,7 @@
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0#-18: Done | Yielded(i32) =
+          let __scrut_0#-42: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
                 .step :fn() -> Done | Yielded(i32)
@@ -373,7 +373,7 @@
             if :void
               cond:
                 is Done :bool
-                  __scrut_0#-18 :Done | Yielded(i32)
+                  __scrut_0#-42 :Done | Yielded(i32)
               then:
                 ~>
                   block :void
@@ -387,11 +387,11 @@
                   if :void
                     cond:
                       is Yielded(i32) :bool
-                        __scrut_0#-18 :Done | Yielded(i32)
+                        __scrut_0#-42 :Done | Yielded(i32)
                     then:
                       let y#78: Yielded(i32) =
                         cast → Yielded(i32)
-                          __scrut_0#-18 :Done | Yielded(i32)
+                          __scrut_0#-42 :Done | Yielded(i32)
                       ~>
                         block :void
                           assign

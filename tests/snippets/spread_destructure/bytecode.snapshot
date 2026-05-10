@@ -2,12 +2,28 @@ module _main
 type 0 struct std_core$Done {  }
 type 1 struct std_core$Yielded__char { value:2 }
 type 2 primitive char
-type 3 struct std_core$Yielded__i32 { value:4 }
-type 4 primitive i32
-type 5 struct std_core$Yielded__usize { value:6 }
-type 6 primitive usize
-type 7 struct std_core$ArrayIter__i32 { arr:8,cursor:6,length:6 }
-type 8 array 4
+type 3 struct std_core$Yielded__i16 { value:4 }
+type 4 primitive i16
+type 5 struct std_core$Yielded__i32 { value:6 }
+type 6 primitive i32
+type 7 struct std_core$Yielded__i64 { value:8 }
+type 8 primitive i64
+type 9 struct std_core$Yielded__i8 { value:10 }
+type 10 primitive i8
+type 11 struct std_core$Yielded__isize { value:12 }
+type 12 primitive isize
+type 13 struct std_core$Yielded__u16 { value:14 }
+type 14 primitive u16
+type 15 struct std_core$Yielded__u32 { value:16 }
+type 16 primitive u32
+type 17 struct std_core$Yielded__u64 { value:18 }
+type 18 primitive u64
+type 19 struct std_core$Yielded__u8 { value:20 }
+type 20 primitive u8
+type 21 struct std_core$Yielded__usize { value:22 }
+type 22 primitive usize
+type 23 struct std_core$ArrayIter__i32 { arr:24,cursor:22,length:22 }
+type 24 array 6
 string 0 "first="
 string 1 " rest.len="
 string 2 "  "
@@ -59,16 +75,16 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   i32.const 30   ; _main.vader:4:12
   i32.const 40   ; _main.vader:4:12
   i32.const 50   ; _main.vader:4:12
-  array.new 8 5   ; _main.vader:4:12
+  array.new 24 5   ; _main.vader:4:12
   local.tee 0   ; _main.vader:4:12
   local.set 1   ; _main.vader:6:5
   local.get 1   ; _main.vader:6:6
   i64.const 0   ; _main.vader:6:6
   i64.to_usize   ; _main.vader:6:6
-  array.get 8   ; _main.vader:6:6
-  ref.cast 4   ; _main.vader:6:6
+  array.get 24   ; _main.vader:6:6
+  ref.cast 6   ; _main.vader:6:6
   local.set 2   ; _main.vader:6:6
-  array.new 8 0   ; _main.vader:6:13
+  array.new 24 0   ; _main.vader:6:13
   local.set 3   ; _main.vader:6:13
   i64.const 1   ; _main.vader:6:5
   local.set 4   ; _main.vader:6:5
@@ -83,12 +99,12 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
       if $L2 void   ; _main.vader:6:5
         local.get 1   ; _main.vader:6:5
         local.get 4   ; _main.vader:6:5
-        array.get 8   ; _main.vader:6:5
-        ref.cast 4   ; _main.vader:6:5
+        array.get 24   ; _main.vader:6:5
+        ref.cast 6   ; _main.vader:6:5
         local.set 6   ; _main.vader:6:5
         local.get 3   ; _main.vader:6:5
         local.get 6   ; _main.vader:6:5
-        array.push 4   ; _main.vader:6:5
+        array.push 6   ; _main.vader:6:5
         local.get 4   ; _main.vader:6:5
         i64.const 1   ; _main.vader:6:5
         i64.to_usize   ; _main.vader:6:5
@@ -127,7 +143,7 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   i64.const 0   ; _main.vader:8:14
   i64.to_usize   ; _main.vader:8:14
   local.get 9   ; _main.vader:8:14
-  struct.new 7   ; _main.vader:8:14
+  struct.new 23   ; _main.vader:8:14
   local.set 10   ; _main.vader:8:14
   block $L3 void   ; _main.vader:8:5
     loop $L4 void   ; _main.vader:8:5
@@ -138,7 +154,7 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
       if $L5 void   ; _main.vader:8:5
       else   ; _main.vader:8:5
         local.get 11   ; _main.vader:8:5
-        struct.get 3 0   ; _main.vader:8:5
+        struct.get 5 0   ; _main.vader:8:5
         local.set 33   ; _main.vader:8:5
         intrinsic builder.new   ; _main.vader:8:29
         local.set 34   ; _main.vader:8:29
@@ -161,16 +177,16 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   local.get 12   ; _main.vader:10:6
   i64.const 0   ; _main.vader:10:6
   i64.to_usize   ; _main.vader:10:6
-  array.get 8   ; _main.vader:10:6
-  ref.cast 4   ; _main.vader:10:6
+  array.get 24   ; _main.vader:10:6
+  ref.cast 6   ; _main.vader:10:6
   local.set 13   ; _main.vader:10:6
   local.get 12   ; _main.vader:10:9
   i64.const 1   ; _main.vader:10:9
   i64.to_usize   ; _main.vader:10:9
-  array.get 8   ; _main.vader:10:9
-  ref.cast 4   ; _main.vader:10:9
+  array.get 24   ; _main.vader:10:9
+  ref.cast 6   ; _main.vader:10:9
   local.set 14   ; _main.vader:10:9
-  array.new 8 0   ; _main.vader:10:12
+  array.new 24 0   ; _main.vader:10:12
   local.set 15   ; _main.vader:10:12
   i64.const 2   ; _main.vader:10:5
   local.set 16   ; _main.vader:10:5
@@ -185,12 +201,12 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
       if $L8 void   ; _main.vader:10:5
         local.get 12   ; _main.vader:10:5
         local.get 16   ; _main.vader:10:5
-        array.get 8   ; _main.vader:10:5
-        ref.cast 4   ; _main.vader:10:5
+        array.get 24   ; _main.vader:10:5
+        ref.cast 6   ; _main.vader:10:5
         local.set 18   ; _main.vader:10:5
         local.get 15   ; _main.vader:10:5
         local.get 18   ; _main.vader:10:5
-        array.push 4   ; _main.vader:10:5
+        array.push 6   ; _main.vader:10:5
         local.get 16   ; _main.vader:10:5
         i64.const 1   ; _main.vader:10:5
         i64.to_usize   ; _main.vader:10:5
@@ -230,7 +246,7 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   call.import 1   ; _main.vader:11:5
   local.get 0   ; _main.vader:14:5
   local.set 21   ; _main.vader:14:5
-  array.new 8 0   ; _main.vader:14:15
+  array.new 24 0   ; _main.vader:14:15
   local.set 22   ; _main.vader:14:15
   i64.const 3   ; _main.vader:14:5
   local.set 23   ; _main.vader:14:5
@@ -245,12 +261,12 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
       if $L11 void   ; _main.vader:14:5
         local.get 21   ; _main.vader:14:5
         local.get 23   ; _main.vader:14:5
-        array.get 8   ; _main.vader:14:5
-        ref.cast 4   ; _main.vader:14:5
+        array.get 24   ; _main.vader:14:5
+        ref.cast 6   ; _main.vader:14:5
         local.set 25   ; _main.vader:14:5
         local.get 22   ; _main.vader:14:5
         local.get 25   ; _main.vader:14:5
-        array.push 4   ; _main.vader:14:5
+        array.push 6   ; _main.vader:14:5
         local.get 23   ; _main.vader:14:5
         i64.const 1   ; _main.vader:14:5
         i64.to_usize   ; _main.vader:14:5
@@ -283,7 +299,7 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   i64.const 0   ; _main.vader:16:14
   i64.to_usize   ; _main.vader:16:14
   local.get 28   ; _main.vader:16:14
-  struct.new 7   ; _main.vader:16:14
+  struct.new 23   ; _main.vader:16:14
   local.set 29   ; _main.vader:16:14
   block $L12 void   ; _main.vader:16:5
     loop $L13 void   ; _main.vader:16:5
@@ -294,7 +310,7 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
       if $L14 void   ; _main.vader:16:5
       else   ; _main.vader:16:5
         local.get 30   ; _main.vader:16:5
-        struct.get 3 0   ; _main.vader:16:5
+        struct.get 5 0   ; _main.vader:16:5
         local.set 31   ; _main.vader:16:5
         intrinsic builder.new   ; _main.vader:16:30
         local.set 32   ; _main.vader:16:30
@@ -324,43 +340,43 @@ fn 1 std_core$ArrayIter$Iterator$step__i32 (ref) -> ref
   local "v#18" i32
   local "$field_9#19" usize
   local "$add_11#21" usize
-  local.get 0   ; core.vader:219:13
-  struct.get 7 1   ; core.vader:219:13
-  local.set 1   ; core.vader:219:13
-  local.get 0   ; core.vader:219:28
-  struct.get 7 2   ; core.vader:219:28
-  local.set 2   ; core.vader:219:28
-  local.get 1   ; core.vader:219:13
-  local.get 2   ; core.vader:219:13
-  usize.ge   ; core.vader:219:13
-  if $L0 void   ; core.vader:219:9
-    struct.new 0   ; core.vader:219:50
-    return   ; core.vader:219:43
-  else   ; core.vader:219:9
-    local.get 0   ; core.vader:220:14
-    struct.get 7 0   ; core.vader:220:14
-    local.set 3   ; core.vader:220:14
-    local.get 0   ; core.vader:220:23
-    struct.get 7 1   ; core.vader:220:23
-    local.set 4   ; core.vader:220:23
-    local.get 3   ; core.vader:220:14
-    local.get 4   ; core.vader:220:14
-    array.get 8   ; core.vader:220:14
-    ref.cast 4   ; core.vader:220:14
-    local.set 5   ; core.vader:220:14
-    local.get 0   ; core.vader:221:23
-    struct.get 7 1   ; core.vader:221:23
-    local.set 6   ; core.vader:221:23
-    local.get 6   ; core.vader:221:23
-    i64.const 1   ; core.vader:221:23
-    i64.to_usize   ; core.vader:221:23
-    usize.add   ; core.vader:221:23
-    local.set 7   ; core.vader:221:23
-    local.get 0   ; core.vader:221:9
-    local.get 7   ; core.vader:221:9
-    struct.set 7 1   ; core.vader:221:9
-    local.get 5   ; core.vader:222:16
-    struct.new 3   ; core.vader:222:16
-    return   ; core.vader:222:9
-  end $L0   ; core.vader:219:9
+  local.get 0   ; core.vader:363:13
+  struct.get 23 1   ; core.vader:363:13
+  local.set 1   ; core.vader:363:13
+  local.get 0   ; core.vader:363:28
+  struct.get 23 2   ; core.vader:363:28
+  local.set 2   ; core.vader:363:28
+  local.get 1   ; core.vader:363:13
+  local.get 2   ; core.vader:363:13
+  usize.ge   ; core.vader:363:13
+  if $L0 void   ; core.vader:363:9
+    struct.new 0   ; core.vader:363:50
+    return   ; core.vader:363:43
+  else   ; core.vader:363:9
+    local.get 0   ; core.vader:364:14
+    struct.get 23 0   ; core.vader:364:14
+    local.set 3   ; core.vader:364:14
+    local.get 0   ; core.vader:364:23
+    struct.get 23 1   ; core.vader:364:23
+    local.set 4   ; core.vader:364:23
+    local.get 3   ; core.vader:364:14
+    local.get 4   ; core.vader:364:14
+    array.get 24   ; core.vader:364:14
+    ref.cast 6   ; core.vader:364:14
+    local.set 5   ; core.vader:364:14
+    local.get 0   ; core.vader:365:23
+    struct.get 23 1   ; core.vader:365:23
+    local.set 6   ; core.vader:365:23
+    local.get 6   ; core.vader:365:23
+    i64.const 1   ; core.vader:365:23
+    i64.to_usize   ; core.vader:365:23
+    usize.add   ; core.vader:365:23
+    local.set 7   ; core.vader:365:23
+    local.get 0   ; core.vader:365:9
+    local.get 7   ; core.vader:365:9
+    struct.set 23 1   ; core.vader:365:9
+    local.get 5   ; core.vader:366:16
+    struct.new 5   ; core.vader:366:16
+    return   ; core.vader:366:9
+  end $L0   ; core.vader:363:9
 end

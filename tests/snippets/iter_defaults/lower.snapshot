@@ -167,7 +167,7 @@
           arg0:
             call :i32
               callee:
-                count#1000120 :i32
+                count#1000125 :i32
               arg0:
                 Range(i32) {
                   start: int(0) :i32
@@ -179,7 +179,7 @@
       let __scrut_0#-4: i32 | null =
         call :i32 | null
           callee:
-            last#1000121 :i32 | null
+            last#1000126 :i32 | null
           arg0:
             Range(i32) {
               start: int(10) :i32
@@ -236,7 +236,7 @@
           arg0:
             call :bool
               callee:
-                is_empty#1000119 :bool
+                is_empty#1000124 :bool
               arg0:
                 Range(i32) {
                   start: int(0) :i32
@@ -254,7 +254,7 @@
           arg0:
             call :bool
               callee:
-                is_empty#1000119 :bool
+                is_empty#1000124 :bool
               arg0:
                 Range(i32) {
                   start: int(0) :i32
