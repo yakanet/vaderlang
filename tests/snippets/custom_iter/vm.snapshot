@@ -1,8 +1,2 @@
-# stdout
-5
-4
-3
-2
-1
-# exit
-0
+# runtime error
+vm: expected string, got i32 (at tests_snippets_custom_iter__main_vader$main+17 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/custom_iter/_main.vader:22:18)

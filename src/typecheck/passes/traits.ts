@@ -19,6 +19,9 @@ export function implementsDisplay(ty: Type, t: MutableTyped, impls: ImplRegistry
   const display = findDisplayTrait(t);
   if (display === null) return false;
   if (ty.kind === "Struct") return impls.hasUser(ty.symbol, display);
+  // Enums opt in by declaring an explicit `implements Display` (the variant
+  // names alone don't carry a textual form — the trait gives the user one).
+  if (ty.kind === "Enum") return impls.hasUser(ty.symbol, display);
   if (ty.kind === "Union") return ty.variants.every((v) => implementsDisplay(v, t, impls));
   return false;
 }

@@ -245,7 +245,7 @@ fn 1 tests_snippets_path_basics__main_vader$main () -> i32
   local.set 16   ; _main.vader:28:31
   local.get 15   ; _main.vader:28:29
   local.get 16   ; _main.vader:28:29
-  intrinsic builder.append_display   ; _main.vader:28:29
+  intrinsic builder.append_str   ; _main.vader:28:29
   local.get 15   ; _main.vader:28:13
   intrinsic builder.finish   ; _main.vader:28:13
   call.import 0   ; _main.vader:28:13
@@ -262,7 +262,7 @@ fn 1 tests_snippets_path_basics__main_vader$main () -> i32
   local.set 18   ; _main.vader:29:27
   local.get 17   ; _main.vader:29:25
   local.get 18   ; _main.vader:29:25
-  intrinsic builder.append_display   ; _main.vader:29:25
+  intrinsic builder.append_str   ; _main.vader:29:25
   local.get 17   ; _main.vader:29:13
   intrinsic builder.finish   ; _main.vader:29:13
   call.import 0   ; _main.vader:29:13

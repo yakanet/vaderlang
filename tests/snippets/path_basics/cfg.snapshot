@@ -236,7 +236,7 @@ fn tests_snippets_path_basics__main_vader$main() -> i32
     %47 = call empty_path() :Path
     %48 = field_get %47.is_empty :?
     %49 = call_indirect %48() :?
-    intrinsic builder.append_display(%45, %49)
+    intrinsic builder.append_str(%45, %49)
     %50 = intrinsic builder.finish(%45)
     %51 = call to_string(%50) :string
     call println(%51) :void
@@ -246,7 +246,7 @@ fn tests_snippets_path_basics__main_vader$main() -> i32
     intrinsic builder.append_str(%53, %54)
     %55 = field_get %2.is_empty :?
     %56 = call_indirect %55() :?
-    intrinsic builder.append_display(%53, %56)
+    intrinsic builder.append_str(%53, %56)
     %57 = intrinsic builder.finish(%53)
     %58 = call to_string(%57) :string
     call println(%58) :void

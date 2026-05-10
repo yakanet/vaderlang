@@ -1,4 +1,2 @@
-# stdout
-id=42 label=answer active=true
-# exit
-0
+# runtime error
+vm: expected string, got i32 (at tests_snippets_tuple_match_nested__main_vader$main+25 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/tuple_match_nested/_main.vader:6:46)

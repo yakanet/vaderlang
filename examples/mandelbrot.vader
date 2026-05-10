@@ -55,7 +55,7 @@ main :: fn() -> i32 {
             cx :: X_MIN + f64(px) * dx
             sb.append_char(shade(iterations(cx, cy)))
         }
-        println(sb.to_string())
+        println(sb)
     }
     return 0
 }

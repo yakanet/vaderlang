@@ -47,7 +47,7 @@
                     block :string
                       let __sb_2#-3: ? =
                         @builder.new :?
-                      @builder.append_display <for ?> :void
+                      @builder.append_str :void
                         __sb_2#-3 :?
                         c#122 :?
                       ~>
@@ -98,7 +98,7 @@
                     block :string
                       let __sb_5#-6: ? =
                         @builder.new :?
-                      @builder.append_display <for ?> :void
+                      @builder.append_str :void
                         __sb_5#-6 :?
                         c#123 :?
                       ~>

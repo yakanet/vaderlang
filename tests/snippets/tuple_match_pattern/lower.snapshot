@@ -30,13 +30,13 @@
                   @builder.append_str :void
                     __sb_1#-2 :?
                     "n=" :string
-                  @builder.append_display <for ?> :void
+                  @builder.append_str :void
                     __sb_1#-2 :?
                     n#55 :?
                   @builder.append_str :void
                     __sb_1#-2 :?
                     " s=" :string
-                  @builder.append_display <for ?> :void
+                  @builder.append_str :void
                     __sb_1#-2 :?
                     s#56 :?
                   ~>

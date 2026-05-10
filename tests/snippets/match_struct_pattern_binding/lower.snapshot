@@ -34,7 +34,7 @@
                         @builder.append_str :void
                           __sb_1#-2 :?
                           "ten alice=" :string
-                        @builder.append_display <for ?> :void
+                        @builder.append_str :void
                           __sb_1#-2 :?
                           name#56 :?
                         ~>

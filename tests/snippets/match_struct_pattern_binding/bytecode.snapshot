@@ -28,7 +28,7 @@ fn 0 tests_snippets_match_struct_pattern_binding__main_vader$main () -> i32
     intrinsic builder.append_str   ; _main.vader:12:42
     local.get 2   ; _main.vader:12:52
     local.get 1   ; _main.vader:12:52
-    intrinsic builder.append_display   ; _main.vader:12:52
+    intrinsic builder.append_str   ; _main.vader:12:52
     local.get 2   ; _main.vader:12:41
     intrinsic builder.finish   ; _main.vader:12:41
     call.import 0   ; _main.vader:12:41

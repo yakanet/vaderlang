@@ -1388,7 +1388,10 @@ Interpolation expressions `${...}` are parsed and **type-checked at compile time
 - Type incompatible with `Display`
 - Malformed expression
 
-Interpolation is **desugared** into calls to `Display.to_string` followed by concatenation via `StringBuilder`.
+Interpolation is **desugared** into a `StringBuilder` chain. Each `${expr}` segment is appended via one of two paths :
+
+- **Primitive segment** (numerics, `bool`, `char`, `string`) → dedicated `builder.append_display_<T>` op. Avoids the trait round-trip and side-steps any infinite recursion when a user overrides a primitive's Display impl with a body that itself interpolates `self` (a primitive Display impl is reachable only via explicit `(value).to_string()`, never from interpolation inside its own body).
+- **Non-primitive segment** (struct, enum, …) → static call to `<T>.Display.to_string`, then `builder.append_str` of the produced string. Single source of truth with explicit `.to_string()` calls — interpolation honours user impls on user types.
 
 ### `Display` trait
 

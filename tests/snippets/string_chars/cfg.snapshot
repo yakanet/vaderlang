@@ -92,7 +92,7 @@ fn tests_snippets_string_chars__main_vader$main() -> i32
     %53 = field_get %52.value :char
     %54 = intrinsic builder.new()
     %55 = move %54
-    intrinsic builder.append_display(%55, %53)
+    intrinsic builder.append_str(%55, %53)
     %56 = intrinsic builder.finish(%55)
     %57 = call to_string(%56) :string
     call println(%57) :void
@@ -119,7 +119,7 @@ fn tests_snippets_string_chars__main_vader$main() -> i32
     %47 = field_get %46.value :char
     %48 = intrinsic builder.new()
     %49 = move %48
-    intrinsic builder.append_display(%49, %47)
+    intrinsic builder.append_str(%49, %47)
     %50 = intrinsic builder.finish(%49)
     %51 = call to_string(%50) :string
     call println(%51) :void

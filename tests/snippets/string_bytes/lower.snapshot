@@ -114,7 +114,7 @@
                     block :string
                       let __sb_5#-6: ? =
                         @builder.new :?
-                      @builder.append_display <for ?> :void
+                      @builder.append_str :void
                         __sb_5#-6 :?
                         b#125 :?
                       ~>

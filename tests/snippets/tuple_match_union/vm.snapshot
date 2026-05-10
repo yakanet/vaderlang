@@ -1,5 +1,2 @@
-# stdout
-n=42 s=match
-no result
-# exit
-0
+# runtime error
+vm: expected string, got i32 (at tests_snippets_tuple_match_union__main_vader$main+73 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/tuple_match_union/_main.vader:18:30)

@@ -227,7 +227,7 @@
               @builder.append_str :void
                 __sb_4#-6 :?
                 "empty.is_empty=" :string
-              @builder.append_display <for ?> :void
+              @builder.append_str :void
                 __sb_4#-6 :?
                 call :?
                   callee:
@@ -252,7 +252,7 @@
               @builder.append_str :void
                 __sb_5#-7 :?
                 "p.is_empty=" :string
-              @builder.append_display <for ?> :void
+              @builder.append_str :void
                 __sb_5#-7 :?
                 call :?
                   callee:
