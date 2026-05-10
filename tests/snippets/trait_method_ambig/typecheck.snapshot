@@ -1,0 +1,21 @@
+# Typecheck
+
+## tests/snippets/trait_method_ambig/_main.vader
+  TraitDecl      Annot                :: Annot
+  StructDecl     Cat                  :: Cat
+  TraitDecl      Greet                :: Greet
+  FnDecl         main                 :: fn() -> i32
+  expr 11:61    StringLitExpr  :: string
+  expr 11:66    FieldExpr      :: string
+  expr 11:66    IdentExpr      :: Cat
+  expr 12:61    StringLitExpr  :: string
+  expr 12:66    FieldExpr      :: string
+  expr 12:66    IdentExpr      :: Cat
+  expr 15:10    StructLitExpr  :: Cat
+  expr 15:24    StringLitExpr  :: string
+  expr 17:10    CallExpr       :: string
+  expr 17:10    FieldExpr      :: fn() -> string
+  expr 17:10    IdentExpr      :: Cat
+
+# Diagnostics
+[17:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot

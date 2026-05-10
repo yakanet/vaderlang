@@ -1,0 +1,12 @@
+# Comptime
+
+## tests/snippets/trait_method_ambig/_main.vader
+
+## generic instances
+  Yielded(char)
+  Yielded(i32)
+  Range(char)
+  Range(i32)
+
+# Diagnostics
+[17:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot

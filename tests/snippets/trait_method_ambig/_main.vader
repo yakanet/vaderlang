@@ -1,0 +1,19 @@
+// Layer 8f — when two distinct traits provide the same method name on the
+// same receiver type, an unqualified `c.method()` is ambiguous and emits
+// T3032. The user has to pick one explicitly (today via direct trait
+// dispatch ; future qualified-call syntax is post-MVP).
+
+Greet :: trait { greet :: fn(self) -> string }
+Annot :: trait { greet :: fn(self) -> string }
+
+Cat :: struct { name: string }
+
+Cat implements Greet { greet :: fn(self) -> string { return "G:${self.name}" } }
+Cat implements Annot { greet :: fn(self) -> string { return "A:${self.name}" } }
+
+main :: fn() -> i32 {
+    c :: Cat { .name = "x" }
+    // Should fire T3032 — `greet` resolves to two different traits' impls.
+    s :: c.greet()
+    return 0
+}

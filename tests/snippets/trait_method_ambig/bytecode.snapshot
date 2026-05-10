@@ -1,0 +1,36 @@
+module _main
+type 0 struct tests_snippets_trait_method_ambig__main_vader$Cat { name:1 }
+type 1 primitive string
+string 0 "G:"
+string 1 "x"
+
+fn 0 tests_snippets_trait_method_ambig__main_vader$Cat$Greet$greet (ref) -> string
+  local "__sb_0#7" any
+  local "$field_4#9" string
+  intrinsic builder.new   ; _main.vader:11:61
+  local.set 1   ; _main.vader:11:61
+  local.get 1   ; _main.vader:11:62
+  string.const 0   ; _main.vader:11:62
+  intrinsic builder.append_str   ; _main.vader:11:62
+  local.get 0   ; _main.vader:11:66
+  struct.get 0 0   ; _main.vader:11:66
+  local.set 2   ; _main.vader:11:66
+  local.get 1   ; _main.vader:11:64
+  local.get 2   ; _main.vader:11:64
+  intrinsic builder.append_display   ; _main.vader:11:64
+  local.get 1   ; _main.vader:11:61
+  intrinsic builder.finish   ; _main.vader:11:61
+  return   ; _main.vader:11:54
+end
+
+fn 1 tests_snippets_trait_method_ambig__main_vader$main () -> i32
+  string.const 1   ; _main.vader:15:24
+  struct.new 0   ; _main.vader:15:10
+  call 0   ; _main.vader:17:10
+  drop   ; _main.vader:17:10
+  i32.const 0   ; _main.vader:18:12
+  return   ; _main.vader:18:5
+end
+
+# Diagnostics
+[17:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot

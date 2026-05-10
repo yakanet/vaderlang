@@ -309,8 +309,9 @@ export function inferField(
 
   // No struct field — try impl-method lookup. Records into `methodResolutions`
   // so the lowerer can rewrite `obj.method(args)` into a direct call of the
-  // specialised impl fn with `obj` as the first arg.
-  const method = findImplMethod(impls, targetType, expr.field, t);
+  // specialised impl fn with `obj` as the first arg. Emits T3032 when two
+  // distinct traits' impls each provide the requested method on this type.
+  const method = findImplMethod(impls, targetType, expr.field, t, expr.fieldSpan, diags);
   if (method !== null) {
     t.methodResolutions.set(expr, method);
     return methodBoundFnType(method, t);
@@ -680,19 +681,50 @@ function recordGenericCallSite(
 /** Walk the impl registry for a method matching the target type + name. */
 function findImplMethod(
   impls: ImplRegistry, targetType: Type, name: string, t: MutableTyped,
+  fieldSpan: import("../../diagnostics/diagnostic.ts").Span | null,
+  diags: DiagnosticCollector | null,
 ): MethodResolution | null {
+  // Collect every impl whose for-type matches the receiver and that
+  // declares a member of the requested name. Ambiguous when ≥ 2 different
+  // traits provide the same method on the same type — pick the first to
+  // keep the AST resolvable, but emit T3032 so the user knows.
+  const matches: { entry: ImplEntry; member: A.FnDecl }[] = [];
   for (const entry of impls.entries()) {
     if (!implMatchesTarget(entry, targetType)) continue;
     const member = entry.decl.members.find((m) => m.name === name);
     if (member === undefined) continue;
-    const traitArgs: Type[] = [];
-    for (const ta of entry.decl.traitArgs) {
-      const arg = t.globals.typeExprTypes.get(ta);
-      if (arg !== undefined) traitArgs.push(arg);
-    }
-    return { impl: entry, member, receiverType: targetType, traitArgs };
+    matches.push({ entry, member });
   }
-  return null;
+  if (matches.length === 0) return null;
+  // Only flag when the matches come from *different* trait symbols. Multiple
+  // impls of the same trait on the same type is a separate (coherence) issue
+  // — user re-impls of e.g. `i32 implements Display` already happen in
+  // tests/snippets/primitive_impl. The first declared one wins for this
+  // dispatch path ; coherence diagnostics are tracked elsewhere.
+  if (fieldSpan !== null && diags !== null) {
+    const traitIds = new Set<number>();
+    for (const m of matches) {
+      const sym = m.entry.traitSymbol;
+      if (sym !== null) traitIds.add(sym.id);
+    }
+    if (traitIds.size > 1) {
+      const seen = new Set<string>();
+      const names: string[] = [];
+      for (const m of matches) {
+        const n = m.entry.traitSymbol?.name ?? "<unknown>";
+        if (!seen.has(n)) { seen.add(n); names.push(n); }
+      }
+      err(diags, "T3032", fieldSpan,
+        `\`${name}\` on ${displayType(targetType)} is ambiguous between traits: ${names.join(", ")}`);
+    }
+  }
+  const { entry, member } = matches[0]!;
+  const traitArgs: Type[] = [];
+  for (const ta of entry.decl.traitArgs) {
+    const arg = t.globals.typeExprTypes.get(ta);
+    if (arg !== undefined) traitArgs.push(arg);
+  }
+  return { impl: entry, member, receiverType: targetType, traitArgs };
 }
 
 function implMatchesTarget(entry: ImplEntry, target: Type): boolean {
