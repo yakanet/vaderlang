@@ -97,9 +97,12 @@ async function buildNative(
   // info, asserts off) for production binaries.
   const optFlags = release ? ["-O3", "-DNDEBUG"] : ["-O0", "-ggdb"];
   const runtimeRoot = runtimeRoots().cRuntimeRoot;
+  // `-lm` is needed on Linux/glibc to satisfy the `floor` / `fmod` references
+  // in the runtime's float-formatting helpers ; macOS clang and Windows
+  // MinGW fold libm into libc so the flag is a no-op there.
   const proc = Bun.spawn([
     cc, "-std=c11", ...optFlags, "-I", runtimeRoot,
-    cFile, join(runtimeRoot, "vader_runtime.c"), "-o", out,
+    cFile, join(runtimeRoot, "vader_runtime.c"), "-o", out, "-lm",
   ], { stderr: "pipe", stdout: "ignore" });
   const code = await proc.exited;
   if (code !== 0) {

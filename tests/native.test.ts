@@ -49,7 +49,7 @@ for (const s of scenarios) {
 
     const buildProc = Bun.spawn([
       "cc", "-std=c11", "-O0", "-I", RUNTIME_ROOT,
-      cFile, join(RUNTIME_ROOT, "vader_runtime.c"), "-o", binFile,
+      cFile, join(RUNTIME_ROOT, "vader_runtime.c"), "-o", binFile, "-lm",
     ], { stderr: "pipe", stdout: "pipe" });
     if ((await buildProc.exited) !== 0) return;
 
