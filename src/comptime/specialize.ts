@@ -138,6 +138,10 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
     const structDecl = inst.symbol.source.decl;
     const matchingImpls = genericImplsByStruct.get(inst.symbol.name) ?? [];
     for (const { decl: d, program: implProgram } of matchingImpls) {
+      // Skip impls whose for-type args don't match this instance — e.g.
+      // `Range[char] implements Iterator` must not produce a member entry
+      // for the `Range[i32]` instance.
+      if (!implForTypeMatches(d.forType, inst.args, implProgram)) continue;
       const subst = buildSubst(structDecl.typeParams, inst.args, program);
       for (const member of d.members) {
         const base = `${inst.symbol.name}$${d.traitName}$${member.name}`;
@@ -271,6 +275,30 @@ function forTypeName(t: A.TypeExpr): string {
   if (t.kind === "IdentExpr") return t.name;
   if (t.kind === "GenericInstExpr" && t.callee.kind === "IdentExpr") return t.callee.name;
   return "?";
+}
+
+/** True when the impl's for-type args are compatible with `instArgs`.
+ *  Concrete-arg impls (`Range[i32]`) match only their exact instance ;
+ *  generic-arg impls (`Foo[T]`) match any concrete instantiation. */
+function implForTypeMatches(
+  forType: A.TypeExpr, instArgs: readonly Type[], program: ResolvedProgram,
+): boolean {
+  if (forType.kind !== "GenericInstExpr") return true;
+  if (forType.typeArgs.length !== instArgs.length) return false;
+  for (let i = 0; i < forType.typeArgs.length; i++) {
+    const declArg = forType.typeArgs[i]!;
+    const queryArg = instArgs[i]!;
+    if (declArg.kind === "IdentExpr") {
+      if (program.typeParamTypes.get(declArg) !== undefined) continue;
+      const sym = program.types.get(declArg);
+      if (sym?.kind === "type-param") continue;
+      if (queryArg.kind === "Primitive" && queryArg.name === declArg.name) continue;
+      if (queryArg.kind === "Struct" && queryArg.symbol.name === declArg.name) continue;
+      return false;
+    }
+    return false;
+  }
+  return true;
 }
 
 function sanitise(raw: string): string {

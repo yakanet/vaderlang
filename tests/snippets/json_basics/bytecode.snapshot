@@ -517,7 +517,7 @@ fn 1 tests_snippets_json_basics__main_vader$main () -> i32
   return   ; _main.vader:47:5
 end
 
-fn 2 std_core$Range$Contains$contains__char_1 (ref,char) -> bool
+fn 2 std_core$Range$Contains$contains__char (ref,char) -> bool
   local "$field_2#10" char
   local "$field_6#14" char
   local "$field_8#16" char

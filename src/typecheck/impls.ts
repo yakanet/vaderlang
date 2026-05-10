@@ -14,9 +14,18 @@ export interface ImplEntry {
   readonly traitSymbol: Symbol;       // Symbol of kind "trait"
   readonly forSymbol: Symbol | null;  // user-defined target Symbol; null when implementing a primitive (e.g. `u32 implements Display`)
   readonly module: Module;
+  /** For struct-targeting impls : a string key matching the for-type's
+   *  concrete args (`"i32"`, `"i32,string"`), or `"*"` for generic-arg
+   *  impls (`Foo[T] implements Bar`). Lets `findFor` distinguish
+   *  `Foo[i32] implements Bar` from `Foo[char] implements Bar` ;
+   *  generic-arg impls match any concrete instantiation. */
+  readonly forArgsKey: string;
 }
 
 export class ImplRegistry {
+  /** Key : `${forSymbol.id}::${traitSymbol.id}::${forArgsKey}`. Concrete-arg
+   *  impls register under the concrete key ; generic-arg impls register under
+   *  `*`. Lookup probes the concrete key first, then the wildcard. */
   private readonly userIndex = new Map<string, ImplEntry>();
   private readonly byTrait = new Map<number, ImplEntry[]>();
   private readonly all: ImplEntry[] = [];
@@ -24,7 +33,7 @@ export class ImplRegistry {
 
   add(entry: ImplEntry): void {
     if (entry.forSymbol !== null) {
-      this.userIndex.set(`${entry.forSymbol.id}::${entry.traitSymbol.id}`, entry);
+      this.userIndex.set(`${entry.forSymbol.id}::${entry.traitSymbol.id}::${entry.forArgsKey}`, entry);
     }
     const bucket = this.byTrait.get(entry.traitSymbol.id);
     if (bucket === undefined) this.byTrait.set(entry.traitSymbol.id, [entry]);
@@ -33,11 +42,24 @@ export class ImplRegistry {
   }
 
   hasUser(forSymbol: Symbol, traitSymbol: Symbol): boolean {
-    return this.userIndex.has(`${forSymbol.id}::${traitSymbol.id}`);
+    const prefix = `${forSymbol.id}::${traitSymbol.id}::`;
+    for (const k of this.userIndex.keys()) if (k.startsWith(prefix)) return true;
+    return false;
   }
 
   findUser(forSymbol: Symbol, traitSymbol: Symbol): ImplEntry | null {
-    return this.userIndex.get(`${forSymbol.id}::${traitSymbol.id}`) ?? null;
+    return this.findUserWithArgs(forSymbol, traitSymbol, "*");
+  }
+
+  /** Look up `forSymbol implements traitSymbol` constrained by the for-type's
+   *  concrete args. Tries the exact match first, falls back to the generic
+   *  `*` impl. */
+  private findUserWithArgs(
+    forSymbol: Symbol, traitSymbol: Symbol, argsKey: string,
+  ): ImplEntry | null {
+    const concrete = this.userIndex.get(`${forSymbol.id}::${traitSymbol.id}::${argsKey}`);
+    if (concrete !== undefined) return concrete;
+    return this.userIndex.get(`${forSymbol.id}::${traitSymbol.id}::*`) ?? null;
   }
 
   forPrimitive(name: string, traitSymbol: Symbol): ImplEntry | null {
@@ -51,10 +73,15 @@ export class ImplRegistry {
   }
 
   /** Resolve `(forType, trait)` regardless of whether `forType` is a struct
-   *  or a primitive. Other shapes (Array, Trait, TypeParam, …) have no impl
-   *  by construction. */
+   *  or a primitive. Struct lookups consider the concrete type-args so
+   *  `Range[i32] implements Iterator` and `Range[char] implements Iterator`
+   *  coexist without clobbering each other. Other shapes (Array, Trait,
+   *  TypeParam, …) have no impl by construction. */
   findFor(forType: Type, traitSymbol: Symbol): ImplEntry | null {
-    if (forType.kind === "Struct") return this.findUser(forType.symbol, traitSymbol);
+    if (forType.kind === "Struct") {
+      const argsKey = forType.args.length === 0 ? "" : forType.args.map(implArgKey).join(",");
+      return this.findUserWithArgs(forType.symbol, traitSymbol, argsKey);
+    }
     if (forType.kind === "Primitive") return this.forPrimitive(forType.name, traitSymbol);
     return null;
   }
@@ -105,7 +132,8 @@ function collectImpls(
                       : null;
     if (traitSymbol === null) continue;       // resolver already reported R2007/R2009
     const forSymbol = forTypeSymbol(decl.forType, program);
-    reg.add({ decl, traitSymbol, forSymbol, module: program.module });
+    const forArgsKey = computeForArgsKey(decl.forType, program);
+    reg.add({ decl, traitSymbol, forSymbol, module: program.module, forArgsKey });
   }
 }
 
@@ -119,4 +147,37 @@ function forTypeSymbol(forType: A.TypeExpr, program: ResolvedProgram): Symbol | 
     if (sym !== undefined && (sym.kind === "struct" || sym.kind === "type-alias")) return sym;
   }
   return null;
+}
+
+/** AST-side counterpart to `findFor`'s structural match. Returns `""` for
+ *  bare `Foo implements ...` (no type-args), `"*"` if any arg is a generic
+ *  type-param, otherwise the comma-joined ident names of the concrete args
+ *  (`"i32"`, `"i32,string"`). The names match the format `implArgKey`
+ *  builds from a runtime `Type`. */
+function computeForArgsKey(forType: A.TypeExpr, program: ResolvedProgram): string {
+  if (forType.kind !== "GenericInstExpr") return "";
+  const parts: string[] = [];
+  for (const arg of forType.typeArgs) {
+    if (arg.kind === "IdentExpr") {
+      // Type-param refs (`Foo[T]`) land in `typeParamTypes`, not `types`.
+      // Either side carrying a type-param symbol means the impl matches any
+      // concrete instantiation.
+      if (program.typeParamTypes.get(arg) !== undefined) return "*";
+      const sym = program.types.get(arg);
+      if (sym?.kind === "type-param") return "*";
+      parts.push(arg.name);
+      continue;
+    }
+    return "*";
+  }
+  return parts.join(",");
+}
+
+/** Runtime-side key matching `computeForArgsKey`'s AST format. Primitive
+ *  args read off their `name` ; struct args render as the bare struct name
+ *  (e.g. `Range[i32]` ⇒ `"Range"`) — the impl side uses the same shape. */
+function implArgKey(t: Type): string {
+  if (t.kind === "Primitive") return t.name;
+  if (t.kind === "Struct") return t.symbol.name;
+  return "*";
 }

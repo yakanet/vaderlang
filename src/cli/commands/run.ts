@@ -3,7 +3,7 @@ import { pipelineBytecode } from "../../pipeline.ts";
 import { parseVir } from "../../bytecode/text.ts";
 import { parseBinary } from "../../bytecode/binary.ts";
 import { BytecodeFormatError, CompilerBugError, formatBytecodeWhere } from "../../diagnostics/errors.ts";
-import { renderAllTextSingle, renderAllJson } from "../../diagnostics/render.ts";
+import { renderAllTextSingle, renderAllJson, renderRuntimeTrap } from "../../diagnostics/render.ts";
 import { defaultHostIO, makeBindings, runProgram, VmError } from "../../vm/index.ts";
 
 export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> {
@@ -31,7 +31,7 @@ export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> 
     return result.exitCode;
   } catch (e) {
     if (e instanceof VmError) {
-      console.error(`vader run: ${e.message}`);
+      await renderVmError(e);
       return 1;
     }
     if (e instanceof BytecodeFormatError) {
@@ -48,6 +48,28 @@ export async function cmdRun(opts: GlobalOpts, args: string[]): Promise<number> 
     else console.error(`vader run: ${msg}`);
     return 1;
   }
+}
+
+/** Render a VM trap with source context. The `debug` field on VmError is
+ *  shaped `<fnName>+<ip> @ <file>:<line>:<col>` (or just `<fnName>+<ip>`
+ *  when the op carries no source mapping). When the source is reachable,
+ *  surface a diagnostic-style snippet ; otherwise fall back to the raw
+ *  message + fn name. */
+async function renderVmError(e: VmError): Promise<void> {
+  const dbg = e.debug;
+  const at = dbg !== undefined ? dbg.match(/^([^@]+) @ (.+):(\d+):(\d+)$/) : null;
+  if (at === null) {
+    console.error(`vader run: ${e.message}`);
+    if (dbg !== undefined) console.error(`  at ${dbg.split(" @ ")[0]?.trim() ?? dbg}`);
+    return;
+  }
+  const [, fn, file, lineStr, colStr] = at as unknown as [string, string, string, string, string];
+  const line = Number(lineStr);
+  const column = Number(colStr);
+  let source = "";
+  try { source = await Bun.file(file).text(); } catch { /* file gone — render without snippet */ }
+  console.error(renderRuntimeTrap(e.rawMessage, file, line, column, source));
+  console.error(`  in ${fn.trim()}`);
 }
 
 async function compileToBytecode(file: string, opts: GlobalOpts) {

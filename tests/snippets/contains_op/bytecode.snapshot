@@ -301,38 +301,38 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   return   ; _main.vader:28:5
 end
 
-fn 2 std_core$Range$Contains$contains__i32_1 (ref,char) -> bool
-  local "$field_2#10" char
-  local "$field_6#14" char
-  local "$field_8#16" char
-  local.get 0   ; core.vader:110:20
-  struct.get 2 0   ; core.vader:110:20
-  local.set 2   ; core.vader:110:20
-  local.get 1   ; core.vader:110:12
-  local.get 2   ; core.vader:110:12
-  char.lt   ; core.vader:110:12
-  if $L0 void   ; core.vader:110:9
-    bool.const false   ; core.vader:110:40
-    return   ; core.vader:110:33
-  else   ; core.vader:110:9
-    local.get 0   ; core.vader:111:12
-    struct.get 2 2   ; core.vader:111:12
-    if $L1 void   ; core.vader:111:9
-      local.get 0   ; core.vader:111:49
-      struct.get 2 1   ; core.vader:111:49
-      local.set 3   ; core.vader:111:49
-      local.get 1   ; core.vader:111:40
-      local.get 3   ; core.vader:111:40
-      char.le   ; core.vader:111:40
-      return   ; core.vader:111:33
-    else   ; core.vader:111:9
-      local.get 0   ; core.vader:112:24
-      struct.get 2 1   ; core.vader:112:24
-      local.set 4   ; core.vader:112:24
-      local.get 1   ; core.vader:112:16
-      local.get 4   ; core.vader:112:16
-      char.lt   ; core.vader:112:16
-      return   ; core.vader:112:9
-    end $L1   ; core.vader:111:9
-  end $L0   ; core.vader:110:9
+fn 2 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
+  local "$field_2#10" i32
+  local "$field_6#14" i32
+  local "$field_8#16" i32
+  local.get 0   ; core.vader:102:20
+  struct.get 5 0   ; core.vader:102:20
+  local.set 2   ; core.vader:102:20
+  local.get 1   ; core.vader:102:12
+  local.get 2   ; core.vader:102:12
+  i32.lt   ; core.vader:102:12
+  if $L0 void   ; core.vader:102:9
+    bool.const false   ; core.vader:102:40
+    return   ; core.vader:102:33
+  else   ; core.vader:102:9
+    local.get 0   ; core.vader:103:12
+    struct.get 5 2   ; core.vader:103:12
+    if $L1 void   ; core.vader:103:9
+      local.get 0   ; core.vader:103:49
+      struct.get 5 1   ; core.vader:103:49
+      local.set 3   ; core.vader:103:49
+      local.get 1   ; core.vader:103:40
+      local.get 3   ; core.vader:103:40
+      i32.le   ; core.vader:103:40
+      return   ; core.vader:103:33
+    else   ; core.vader:103:9
+      local.get 0   ; core.vader:104:24
+      struct.get 5 1   ; core.vader:104:24
+      local.set 4   ; core.vader:104:24
+      local.get 1   ; core.vader:104:16
+      local.get 4   ; core.vader:104:16
+      i32.lt   ; core.vader:104:16
+      return   ; core.vader:104:9
+    end $L1   ; core.vader:103:9
+  end $L0   ; core.vader:102:9
 end

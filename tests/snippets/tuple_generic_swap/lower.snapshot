@@ -5,7 +5,7 @@
     let s#58: [string, i32] =
       call :[string, i32]
         callee:
-          swap#1000080 :[string, i32]
+          swap#1000076 :[string, i32]
         arg0:
           [i32, string] {
             _0: int(1) :i32

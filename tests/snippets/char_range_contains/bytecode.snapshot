@@ -374,7 +374,7 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   return   ; _main.vader:50:5
 end
 
-fn 4 std_core$Range$Contains$contains__char_1 (ref,char) -> bool
+fn 4 std_core$Range$Contains$contains__char (ref,char) -> bool
   local "$field_2#10" char
   local "$field_6#14" char
   local "$field_8#16" char
@@ -410,7 +410,7 @@ fn 4 std_core$Range$Contains$contains__char_1 (ref,char) -> bool
   end $L0   ; core.vader:110:9
 end
 
-fn 5 std_core$Range$Iterator$step__char_1 (ref) -> ref
+fn 5 std_core$Range$Iterator$step__char (ref) -> ref
   local "$field_3#18" char
   local "$field_4#19" char
   local "$field_6#21" char

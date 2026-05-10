@@ -33,6 +33,22 @@ export function renderAllJson(diagnostics: readonly Diagnostic[]): string {
   return JSON.stringify(diagnostics, null, 2);
 }
 
+/** Render a runtime trap with the same source-context format the diagnostic
+ *  renderer uses. Caller supplies the location and the source text ; the
+ *  caret points at the column. */
+export function renderRuntimeTrap(
+  message: string, file: string, line: number, column: number, source: string,
+): string {
+  const head = `error: ${message}`;
+  const loc = `  --> ${file}:${line}:${column}`;
+  const span = {
+    start: { line, column, offset: 0 },
+    end:   { line, column: column + 1, offset: 0 },
+  };
+  const snippet = renderSnippet(span, source);
+  return [head, loc, snippet].filter((s) => s.length > 0).join("\n");
+}
+
 const CONTEXT = 2;
 
 function renderSnippet(span: { start: { line: number; column: number; offset: number }; end: { line: number; column: number; offset: number } }, source: string): string {

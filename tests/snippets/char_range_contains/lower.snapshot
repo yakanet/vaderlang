@@ -5,7 +5,7 @@
     return
       call :bool
         callee:
-          contains#1000073 :bool
+          contains#1000072 :bool
         arg0:
           Range(char) {
             start: char(0x30)
@@ -19,7 +19,7 @@
     return
       call :bool
         callee:
-          contains#1000073 :bool
+          contains#1000072 :bool
         arg0:
           Range(char) {
             start: char(0x61)
@@ -35,7 +35,7 @@
         l:
           call :bool
             callee:
-              contains#1000073 :bool
+              contains#1000072 :bool
             arg0:
               Range(char) {
                 start: char(0x61)
@@ -48,7 +48,7 @@
         r:
           call :bool
             callee:
-              contains#1000073 :bool
+              contains#1000072 :bool
             arg0:
               Range(char) {
                 start: char(0x41)
@@ -206,7 +206,7 @@
         let __step_1#-2: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step#1000075 :?
+              step#1000073 :?
             arg0:
               __iter_0#-1 :Range(char)
         if :void
@@ -258,7 +258,7 @@
         let __step_4#-5: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step#1000075 :?
+              step#1000073 :?
             arg0:
               __iter_3#-4 :Range(char)
         if :void

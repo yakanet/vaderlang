@@ -34,8 +34,10 @@ export interface RunResult {
 }
 
 export class VmError extends Error {
+  readonly rawMessage: string;
   constructor(message: string, readonly debug?: string) {
     super(debug !== undefined ? `${message} (at ${debug})` : message);
+    this.rawMessage = message;
   }
 }
 
@@ -139,12 +141,12 @@ function invoke(ctx: RunCtx, fnIndex: number, args: Value[], opts: RunOptions): 
       if (++executed > opLimit) {
         throw new VmError(`vm: op limit exceeded (${opLimit})`, debugOf(fn, frame.ip - 1));
       }
-      const r = step(ctx, frame, fn.body[frame.ip]!, opts);
+      const r = stepWithDebug(ctx, frame, opts);
       if (r !== undefined) return r;
     }
   } else {
     while (frame.ip < fn.body.length) {
-      const r = step(ctx, frame, fn.body[frame.ip]!, opts);
+      const r = stepWithDebug(ctx, frame, opts);
       if (r !== undefined) return r;
     }
   }
@@ -650,6 +652,27 @@ function debugOf(fn: BcFunction, ip: number): string {
   const dbg = fn.debug[ip];
   if (dbg === undefined || dbg === null) return `${fn.name}+${ip}`;
   return `${fn.name}+${ip} @ ${dbg.file}:${dbg.line}:${dbg.column}`;
+}
+
+/** Attach the current frame's debug info to any trap that doesn't already
+ *  carry one. Without this, plain `Error("vm: expected char, got i32")`
+ *  thrown deep in `value.ts` (or a `VmError` thrown without a debug arg,
+ *  like the div-by-zero in `binaryOp`) reaches the CLI without a source
+ *  location. */
+function stepWithDebug(
+  ctx: RunCtx, frame: Frame, opts: RunOptions,
+): Value | undefined {
+  const ip = frame.ip;
+  try {
+    return step(ctx, frame, frame.fn.body[ip]!, opts);
+  } catch (e) {
+    if (e instanceof VmError) {
+      if (e.debug !== undefined) throw e;
+      throw new VmError(e.rawMessage, debugOf(frame.fn, ip));
+    }
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new VmError(msg, debugOf(frame.fn, ip));
+  }
 }
 
 function getJumps(fn: BcFunction): JumpInfo {
