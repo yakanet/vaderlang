@@ -188,11 +188,43 @@ bun src/index.ts build --target=ir examples/hello.vader
 
 ```sh
 # Native binary (writes ./hello and ./hello.c)
-bun src/index.ts build examples/hello.vader --target=native --out=/tmp/hello
+vader build examples/hello.vader --target=native --out=/tmp/hello
 
 # Just the C, no cc
-bun src/index.ts build examples/hello.vader --target=c --out=/tmp/hello.c
+vader build examples/hello.vader --target=c --out=/tmp/hello.c
 ```
+
+#### Picking a different C compiler
+
+`--cc=<path>` overrides the default `cc`. The `CC` env var is a lower-priority fallback. `strip` (on `--release`) follows the same toolchain when the compiler triple matches `*-strip`.
+
+```sh
+vader build foo.vader --target=native --cc=clang --out=/tmp/foo
+CC=gcc-14 vader build foo.vader --target=native --out=/tmp/foo
+```
+
+#### Cross-compile to Windows from macOS/Linux
+
+Install [mingw-w64](https://www.mingw-w64.org/) and [Wine](https://www.winehq.org/) (Wine optional — only needed to *run* the produced `.exe`) :
+
+```sh
+# macOS
+brew install mingw-w64
+brew install --cask wine-stable
+
+# Debian/Ubuntu
+sudo apt install mingw-w64 wine
+```
+
+Then point `vader build` at the cross-compiler — the `.exe` extension is added automatically when the triplet ends in `mingw32-gcc` :
+
+```sh
+vader build examples/hello.vader --target=native --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win
+file /tmp/hello-win.exe          # → PE32+ executable (console) x86-64, for MS Windows
+wine /tmp/hello-win.exe          # → Hello, World!
+```
+
+`std/process.spawn` is implemented on Windows via `CreateProcess` + `CreatePipe` ; it accepts a Windows-style argv (`spawn(["cmd", "/c", "echo", "hi"])`). Unicode paths and `CreateProcessW` are not yet wired — argv strings flow through `CreateProcessA` (ANSI).
 
 ---
 

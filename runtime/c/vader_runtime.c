@@ -15,11 +15,16 @@
 #include <inttypes.h>
 
 #include <errno.h>
-#include <spawn.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
+#if defined(_WIN32)
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+#else
+#  include <spawn.h>
+#  include <sys/wait.h>
+#  include <unistd.h>
 extern char** environ;
+#endif
 
 /* ----------------------------------------------------------------- gc arena */
 
@@ -807,6 +812,209 @@ static size_t g_spawn_stdout_len = 0;
 static char*  g_spawn_stderr_buf = NULL;
 static size_t g_spawn_stderr_len = 0;
 
+static void capture_spawn_output(char** dst_buf, size_t* dst_len, char* src, size_t src_len) {
+    if (src == NULL || src_len == 0) {
+        *dst_buf = NULL; *dst_len = 0;
+        if (src != NULL) free(src);
+        return;
+    }
+    char* copy = (char*) vader_string_alloc(src_len);
+    memcpy(copy, src, src_len);
+    free(src);
+    *dst_buf = copy;
+    *dst_len = src_len;
+}
+
+#if defined(_WIN32)
+
+/* Win32 spawn : pipes via CreatePipe, child via CreateProcessA. Pipes are
+ * drained concurrently by two worker threads — serial reads would deadlock if
+ * the child saturates one pipe buffer (~4 KB by default) while we're blocked
+ * waiting on the other. */
+
+typedef struct {
+    HANDLE read_end;
+    char*  buf;     /* malloc'd; caller frees */
+    size_t len;
+    int    failed;
+} win_drain_ctx_t;
+
+static DWORD WINAPI win_drain_pipe(LPVOID arg) {
+    win_drain_ctx_t* ctx = (win_drain_ctx_t*) arg;
+    size_t cap = 4096, len = 0;
+    char*  buf = (char*) malloc(cap);
+    if (buf == NULL) { ctx->failed = 1; return 0; }
+    for (;;) {
+        if (len + 4096 > cap) {
+            cap *= 2;
+            char* grown = (char*) realloc(buf, cap);
+            if (grown == NULL) { free(buf); ctx->failed = 1; return 0; }
+            buf = grown;
+        }
+        DWORD n = 0;
+        BOOL ok = ReadFile(ctx->read_end, buf + len, (DWORD)(cap - len), &n, NULL);
+        if (!ok) {
+            /* ERROR_BROKEN_PIPE = child closed its write end : normal EOF. */
+            if (GetLastError() == ERROR_BROKEN_PIPE) break;
+            free(buf); ctx->failed = 1; return 0;
+        }
+        if (n == 0) break;
+        len += n;
+    }
+    ctx->buf = buf;
+    ctx->len = len;
+    return 0;
+}
+
+/* Quote a single argv element per the CommandLineToArgvW round-trip rules
+ * (see Daniel Colascione's "Everyone quotes command line arguments the wrong
+ * way" + MS docs). Writes to `dst` and returns the number of bytes written.
+ * `dst` must have room for `2 + 2 * strlen(arg)` bytes worst case. */
+static size_t win_argv_quote(char* dst, const char* arg) {
+    size_t out = 0;
+    int needs_quote = (arg[0] == '\0') || (strpbrk(arg, " \t\n\v\"") != NULL);
+    if (!needs_quote) {
+        size_t l = strlen(arg);
+        memcpy(dst, arg, l);
+        return l;
+    }
+    dst[out++] = '"';
+    for (const char* p = arg; *p != '\0'; ) {
+        size_t bs = 0;
+        while (*p == '\\') { bs++; p++; }
+        if (*p == '\0') {
+            /* Trailing backslashes before the closing quote : double them so
+             * the closing quote isn't escaped. */
+            for (size_t i = 0; i < 2*bs; i++) dst[out++] = '\\';
+            break;
+        } else if (*p == '"') {
+            /* Backslashes preceding a quote : each doubled, plus escape the quote. */
+            for (size_t i = 0; i < 2*bs + 1; i++) dst[out++] = '\\';
+            dst[out++] = '"';
+            p++;
+        } else {
+            /* Mid-arg backslashes : literal. */
+            for (size_t i = 0; i < bs; i++) dst[out++] = '\\';
+            dst[out++] = *p;
+            p++;
+        }
+    }
+    dst[out++] = '"';
+    return out;
+}
+
+vader_i32_t vader_spawn_run(vader_array_t* argv) {
+    if (argv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    size_t n = vader_array_len(argv);
+    if (n == 0) return VADER_SPAWN_LAUNCH_FAIL;
+
+    /* Build the command-line string. Upper bound per arg : 2*len + 3 (quotes
+     * + worst-case escape doubling + space separator). */
+    size_t cap = 1;  /* terminator */
+    for (size_t i = 0; i < n; i++) {
+        vader_box_t b = vader_array_get(argv, i);
+        cap += b.payload.s.len * 2 + 3;
+    }
+    char* cmdline = (char*) malloc(cap);
+    if (cmdline == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    size_t pos = 0;
+    for (size_t i = 0; i < n; i++) {
+        vader_box_t b = vader_array_get(argv, i);
+        vader_string_t s = b.payload.s;
+        char* z = (char*) malloc(s.len + 1);
+        if (z == NULL) { free(cmdline); return VADER_SPAWN_LAUNCH_FAIL; }
+        memcpy(z, s.ptr, s.len); z[s.len] = '\0';
+        if (i > 0) cmdline[pos++] = ' ';
+        pos += win_argv_quote(cmdline + pos, z);
+        free(z);
+    }
+    cmdline[pos] = '\0';
+
+    SECURITY_ATTRIBUTES sa;
+    sa.nLength = sizeof(sa);
+    sa.lpSecurityDescriptor = NULL;
+    sa.bInheritHandle = TRUE;
+
+    HANDLE out_read = NULL, out_write = NULL;
+    HANDLE err_read = NULL, err_write = NULL;
+    if (!CreatePipe(&out_read, &out_write, &sa, 0)) {
+        free(cmdline);
+        return VADER_SPAWN_LAUNCH_FAIL;
+    }
+    if (!CreatePipe(&err_read, &err_write, &sa, 0)) {
+        CloseHandle(out_read); CloseHandle(out_write);
+        free(cmdline);
+        return VADER_SPAWN_LAUNCH_FAIL;
+    }
+    /* Parent's read ends must NOT be inherited by the child. */
+    SetHandleInformation(out_read, HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(err_read, HANDLE_FLAG_INHERIT, 0);
+
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    ZeroMemory(&pi, sizeof(pi));
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdOutput = out_write;
+    si.hStdError  = err_write;
+    si.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
+
+    BOOL ok = CreateProcessA(
+        NULL,        /* application : NULL → parse first token of cmdline, search %PATH% */
+        cmdline,
+        NULL,        /* process security */
+        NULL,        /* thread security */
+        TRUE,        /* inherit handles (the three std redirections) */
+        0,           /* creation flags */
+        NULL,        /* env : inherit parent's */
+        NULL,        /* cwd : inherit parent's */
+        &si, &pi
+    );
+    free(cmdline);
+
+    /* Parent closes the write ends — only the child holds them now. */
+    CloseHandle(out_write);
+    CloseHandle(err_write);
+
+    if (!ok) {
+        CloseHandle(out_read);
+        CloseHandle(err_read);
+        capture_spawn_output(&g_spawn_stdout_buf, &g_spawn_stdout_len, NULL, 0);
+        capture_spawn_output(&g_spawn_stderr_buf, &g_spawn_stderr_len, NULL, 0);
+        return VADER_SPAWN_LAUNCH_FAIL;
+    }
+
+    /* Drain both pipes concurrently to avoid the saturated-pipe deadlock. */
+    win_drain_ctx_t out_ctx = { out_read, NULL, 0, 0 };
+    win_drain_ctx_t err_ctx = { err_read, NULL, 0, 0 };
+    HANDLE out_th = CreateThread(NULL, 0, win_drain_pipe, &out_ctx, 0, NULL);
+    HANDLE err_th = CreateThread(NULL, 0, win_drain_pipe, &err_ctx, 0, NULL);
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    DWORD exit_code = 0;
+    GetExitCodeProcess(pi.hProcess, &exit_code);
+
+    if (out_th != NULL) { WaitForSingleObject(out_th, INFINITE); CloseHandle(out_th); }
+    if (err_th != NULL) { WaitForSingleObject(err_th, INFINITE); CloseHandle(err_th); }
+
+    CloseHandle(out_read);
+    CloseHandle(err_read);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    capture_spawn_output(&g_spawn_stdout_buf, &g_spawn_stdout_len, out_ctx.buf, out_ctx.len);
+    capture_spawn_output(&g_spawn_stderr_buf, &g_spawn_stderr_len, err_ctx.buf, err_ctx.len);
+
+    /* NTSTATUS abnormal-termination codes (0xC0000000+) flag a crash ; the
+     * normal exit-code range is 0..0x7FFFFFFF. Map crashes onto the SIGNALED
+     * sentinel so callers can distinguish them from a normal exit. */
+    if ((exit_code & 0xC0000000u) == 0xC0000000u) return VADER_SPAWN_SIGNALED;
+    return (vader_i32_t) (int32_t) exit_code;
+}
+
+#else  /* POSIX */
+
 /* Drain a fd into a freshly-malloc'd buffer. Caller frees. NULL on read error. */
 static char* drain_fd(int fd, size_t* out_len) {
     size_t cap = 4096, len = 0;
@@ -829,19 +1037,6 @@ static char* drain_fd(int fd, size_t* out_len) {
     }
     *out_len = len;
     return buf;
-}
-
-static void capture_spawn_output(char** dst_buf, size_t* dst_len, char* src, size_t src_len) {
-    if (src == NULL || src_len == 0) {
-        *dst_buf = NULL; *dst_len = 0;
-        if (src != NULL) free(src);
-        return;
-    }
-    char* copy = (char*) vader_string_alloc(src_len);
-    memcpy(copy, src, src_len);
-    free(src);
-    *dst_buf = copy;
-    *dst_len = src_len;
 }
 
 vader_i32_t vader_spawn_run(vader_array_t* argv) {
@@ -930,6 +1125,8 @@ fail_free_cargv:
     free(cargv);
     return VADER_SPAWN_LAUNCH_FAIL;
 }
+
+#endif  /* _WIN32 / POSIX */
 
 vader_string_t vader_spawn_last_stdout(void) {
     /* Before any spawn ran, both buf and len are 0 — hand back the empty

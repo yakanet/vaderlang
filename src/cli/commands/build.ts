@@ -27,6 +27,13 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
   const useManifest = flags.includes("--manifest");
   const outFlag = flags.find((f) => f.startsWith("--out="))?.slice("--out=".length);
   const release = flags.includes("--release");
+  // C compiler selection : --cc=<path> wins over the CC env var, both fall back
+  // to "cc" (POSIX default). The chosen compiler is used as-is — pass a
+  // cross-compiler like `x86_64-w64-mingw32-gcc` to target Windows.
+  const ccFlag =
+    flags.find((f) => f.startsWith("--cc="))?.slice("--cc=".length) ??
+    process.env.CC ??
+    "cc";
 
   if (!isTarget(targetRaw)) {
     console.error(`vader build: unknown target "${targetRaw}"`);
@@ -53,7 +60,7 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
       console.error("vader build --target=native: --manifest mode not yet implemented");
       return 2;
     }
-    return await buildNative(opts, file, outFlag, release);
+    return await buildNative(opts, file, outFlag, release, ccFlag);
   }
 
   if (target === "c") {
@@ -69,17 +76,19 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
 }
 
 async function buildNative(
-  opts: GlobalOpts, file: string, outPath: string | undefined, release: boolean,
+  opts: GlobalOpts, file: string, outPath: string | undefined, release: boolean, cc: string,
 ): Promise<number> {
   const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   if (!flushDiagnostics(r, opts, file)) return 1;
 
   // Emit the .c next to the binary so it's inspectable. Naming: `<out>.c` so
   // `vader build foo.vader --target=native` produces both `foo` and `foo.c`.
-  // On Windows append `.exe` if no extension was provided so MSVC/MinGW link
-  // produces a runnable binary; non-Windows platforms keep the bare path.
+  // We append `.exe` when (a) the host is Windows, or (b) the user pointed at
+  // a mingw cross-compiler — its triplet ends in `mingw32-gcc` /
+  // `mingw32-cc` so the output is a Windows binary regardless of host.
   let out = outPath ?? file.replace(/\.vader$/, "");
-  if (process.platform === "win32" && !/\.[A-Za-z0-9]+$/.test(out)) out += ".exe";
+  const isWindowsOut = process.platform === "win32" || /mingw32-(gcc|cc|g\+\+)?$/.test(cc);
+  if (isWindowsOut && !/\.[A-Za-z0-9]+$/.test(out)) out += ".exe";
   const cFile = `${out}.c`;
   await Bun.write(cFile, emitC(r.bytecode));
 
@@ -89,26 +98,29 @@ async function buildNative(
   const optFlags = release ? ["-O3", "-DNDEBUG"] : ["-O0", "-ggdb"];
   const runtimeRoot = runtimeRoots().cRuntimeRoot;
   const proc = Bun.spawn([
-    "cc", "-std=c11", ...optFlags, "-I", runtimeRoot,
+    cc, "-std=c11", ...optFlags, "-I", runtimeRoot,
     cFile, join(runtimeRoot, "vader_runtime.c"), "-o", out,
   ], { stderr: "pipe", stdout: "ignore" });
   const code = await proc.exited;
   if (code !== 0) {
     const err = await new Response(proc.stderr).text();
-    console.error(`vader build: cc failed (exit ${code})`);
+    console.error(`vader build: ${cc} failed (exit ${code})`);
     console.error(err);
     console.error(`(generated C kept at ${cFile})`);
     return 1;
   }
 
   // Best-effort post-link strip on release : matches Cargo ≥1.77 / Go
-  // convention. `strip` is in PATH on every Unix-like system that has `cc`
-  // (binutils on Linux, llvm-tools on macOS), and absent on bare Windows.
-  // We swallow any failure — spawn-not-found OR non-zero exit — because the
-  // binary is already valid ; this is purely a size optimisation.
+  // convention. We pick `strip` from the same toolchain as `cc` when the user
+  // pointed at a cross-compiler (e.g. `x86_64-w64-mingw32-gcc` →
+  // `x86_64-w64-mingw32-strip`) ; fall back to plain `strip` otherwise. The
+  // call is best-effort — failure means the binary is just larger, never
+  // broken.
   if (release) {
+    const stripCmd = cc.replace(/-(gcc|cc|g\+\+)$/, "-strip");
+    const stripExe = stripCmd === cc ? "strip" : stripCmd;
     try {
-      const stripProc = Bun.spawn(["strip", out], { stderr: "ignore", stdout: "ignore" });
+      const stripProc = Bun.spawn([stripExe, out], { stderr: "ignore", stdout: "ignore" });
       await stripProc.exited;
     } catch {}
   }
