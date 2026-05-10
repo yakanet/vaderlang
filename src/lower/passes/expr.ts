@@ -223,12 +223,8 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       // variant-dispatch cascade.
       const unionRes = ctx.typed.unionFieldResolutions.get(expr);
       if (unionRes !== undefined) return lowerUnionFieldAccess(ctx, expr, exprType, unionRes);
-      // Disambiguate `Enum.Variant` from `e.method` on an enum value — both
-      // leave the FieldExpr's `targetType` as the enum, but only the variant
-      // form has a name that's actually in `indices`. Method calls (`d.show()`)
-      // on enums that implement a trait fall through to the regular
-      // FieldAccess lowering ; the CallExpr branch above caught them via
-      // methodResolutions, so we only land here for genuine variant access.
+      // Both `Enum.Variant` and `e.method` leave targetType as the enum ;
+      // only the variant form has a name that's actually in `indices`.
       const targetType = ctx.types.exprType(expr.target);
       if (targetType.kind === "Enum" && targetType.indices.has(expr.field)) {
         return loweredEnumVariant(targetType, expr.field, expr.span);

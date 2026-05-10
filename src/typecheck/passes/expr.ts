@@ -12,7 +12,7 @@ import { declOf } from "../../resolver/symbol.ts";
 
 import { err, warn } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
-import type { Type } from "../types.ts";
+import type { EnumType, Type } from "../types.ts";
 import {
   CORE_STRUCTS, CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, substitute, unionOf,
 } from "../types.ts";
@@ -517,20 +517,16 @@ function inferDotVariant(
       checkEnumVariant(expected, expr.variant, expr.variantSpan, diags);
       return expected;
     }
-    // Union expected (e.g. `Direction!` = `Direction | Error`) — descend
-    // into the variants and pick the unique Enum that carries this name.
-    // Two enums in the same union both carrying the variant would be an
-    // ambiguity ; we report it instead of arbitrating.
+    // Union expected (e.g. `Direction!` = `Direction | Error`) : pick the
+    // unique enum variant carrying this name ; two matches → ambiguous.
     if (expected.kind === "Union") {
-      const matches: Type[] = [];
+      const matches: EnumType[] = [];
       for (const v of expected.variants) {
         if (v.kind === "Enum" && v.indices.has(expr.variant)) matches.push(v);
       }
       if (matches.length === 1) {
         const enumTy = matches[0]!;
-        if (enumTy.kind === "Enum") {
-          checkEnumVariant(enumTy, expr.variant, expr.variantSpan, diags);
-        }
+        checkEnumVariant(enumTy, expr.variant, expr.variantSpan, diags);
         return enumTy;
       }
       if (matches.length > 1) {

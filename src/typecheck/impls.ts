@@ -142,13 +142,17 @@ function collectImpls(
 function forTypeSymbol(forType: A.TypeExpr, program: ResolvedProgram): Symbol | null {
   if (forType.kind === "IdentExpr") {
     const sym = program.types.get(forType);
-    if (sym !== undefined && (sym.kind === "struct" || sym.kind === "enum" || sym.kind === "type-alias")) return sym;
+    if (sym !== undefined && isImplTargetKind(sym.kind)) return sym;
   }
   if (forType.kind === "GenericInstExpr" && forType.callee.kind === "IdentExpr") {
     const sym = program.types.get(forType.callee);
-    if (sym !== undefined && (sym.kind === "struct" || sym.kind === "enum" || sym.kind === "type-alias")) return sym;
+    if (sym !== undefined && isImplTargetKind(sym.kind)) return sym;
   }
   return null;
+}
+
+function isImplTargetKind(kind: Symbol["kind"]): boolean {
+  return kind === "struct" || kind === "enum" || kind === "type-alias";
 }
 
 /** AST-side counterpart to `findFor`'s structural match. Returns `""` for
