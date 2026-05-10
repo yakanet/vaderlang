@@ -4,13 +4,13 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:24    CallExpr       :: bool
-  expr 10:24    FieldExpr      :: fn($T) -> bool
+  expr 10:24    FieldExpr      :: fn(i32) -> bool
   expr 10:24    IdentExpr      :: MutableSet(i32)
   expr 10:5     CallExpr       :: void
   expr 10:5     IdentExpr      :: fn(Display) -> void
   expr 11:13    StringLitExpr  :: string
   expr 11:24    CallExpr       :: bool
-  expr 11:24    FieldExpr      :: fn($T) -> bool
+  expr 11:24    FieldExpr      :: fn(i32) -> bool
   expr 11:24    IdentExpr      :: MutableSet(i32)
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(Display) -> void

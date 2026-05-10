@@ -6,6 +6,8 @@
   Entry(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   MutableMap(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   put(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  get(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
+  contains_key(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   len(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   keys(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)
   values(string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)

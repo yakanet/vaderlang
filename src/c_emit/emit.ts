@@ -1081,12 +1081,17 @@ function emitFnRef(s: FnState, op: Extract<Op, { kind: "fn.ref" }>): void {
 function emitVirtualCall(s: FnState, op: Extract<Op, { kind: "virtual.call" }>): void {
   // Stack at entry: …args, receiver. Pop receiver first, then args (reverse
   // order); the dispatch helper takes (receiver, ...args) in source order.
+  // Tail args are boxed to `vader_box_t` before the call so impls with
+  // divergent monomorphised signatures (e.g. `Contains[K=string]` and
+  // `Contains[T=i32]`) can share a single dispatcher — each arm unboxes to
+  // its concrete impl signature.
   const recv = pop(s);
   const recvBoxed = coerce(s, recv.name, recv.val, "any");
   const tailCount = op.paramCount - 1;
-  const args: string[] = [];
-  for (let i = 0; i < tailCount; i++) args.push(pop(s).name);
+  const args: { name: string; val: ValType }[] = [];
+  for (let i = 0; i < tailCount; i++) args.push(pop(s));
   args.reverse();
+  const boxedArgs = args.map((a) => coerce(s, a.name, a.val, "any"));
 
   const helper = vtableHelperName(op.vtableKey);
   const sig = vtableSignatures(s.ctx).get(op.vtableKey);
@@ -1095,11 +1100,11 @@ function emitVirtualCall(s: FnState, op: Extract<Op, { kind: "virtual.call" }>):
     return;
   }
   if (sig.result === "void") {
-    line(s, `${helper}(${[recvBoxed, ...args].join(", ")});`);
+    line(s, `${helper}(${[recvBoxed, ...boxedArgs].join(", ")});`);
     return;
   }
   const tmp = newTmp(s, sig.result);
-  line(s, `${decl(s, sig.result, tmp)} = ${helper}(${[recvBoxed, ...args].join(", ")});`);
+  line(s, `${decl(s, sig.result, tmp)} = ${helper}(${[recvBoxed, ...boxedArgs].join(", ")});`);
 }
 
 function vtableHelperName(key: string): string {
@@ -1131,10 +1136,12 @@ function emitVtableForwardDecls(ctx: EmitCtx, out: string[]): void {
     const firstFnIdx = table.values().next().value;
     if (firstFnIdx === undefined) continue;
     const sig = ctx.module.functions[firstFnIdx]!.signature;
-    const tailParams = sig.params.slice(1);
-    const formal = tailParams.length > 0
-      ? `vader_box_t recv, ${tailParams.map((t, i) => `${cTypeForVal(ctx, t)} a${i}`).join(", ")}`
-      : `vader_box_t recv`;
+    // Tail params are typed `vader_box_t` so the dispatcher can host arms
+    // with divergent monomorphised signatures. Each arm unboxes to its
+    // concrete impl signature.
+    const tailCount = sig.params.length - 1;
+    const tailParamDecls = Array.from({ length: tailCount }, (_, i) => `vader_box_t a${i}`).join(", ");
+    const formal = tailCount > 0 ? `vader_box_t recv, ${tailParamDecls}` : `vader_box_t recv`;
     out.push(`static ${cTypeForVal(ctx, sig.result)} ${vtableHelperName(key)}(${formal});`);
   }
 }
@@ -1153,11 +1160,9 @@ function emitVtableDispatchers(ctx: EmitCtx, out: string[]): void {
     if (firstFnIdx === undefined) continue;
     const sig = ctx.module.functions[firstFnIdx]!.signature;
     const helper = vtableHelperName(key);
-    const tailParams = sig.params.slice(1);
-    const tailParamDecls = tailParams.map((t, i) => `${cTypeForVal(ctx, t)} a${i}`).join(", ");
-    const formal = tailParams.length > 0
-      ? `vader_box_t recv, ${tailParamDecls}`
-      : `vader_box_t recv`;
+    const tailCount = sig.params.length - 1;
+    const tailParamDecls = Array.from({ length: tailCount }, (_, i) => `vader_box_t a${i}`).join(", ");
+    const formal = tailCount > 0 ? `vader_box_t recv, ${tailParamDecls}` : `vader_box_t recv`;
     const cret = cTypeForVal(ctx, sig.result);
     out.push(`static ${cret} ${helper}(${formal}) {`);
     out.push(`    switch (recv.tag) {`);
@@ -1166,7 +1171,8 @@ function emitVtableDispatchers(ctx: EmitCtx, out: string[]): void {
       const calleeSig = ctx.module.functions[fnIdx]!.signature;
       const recvParam = calleeSig.params[0]!;
       const recvCArg = coerceExpr(ctx, "recv", "any", recvParam);
-      const allArgs = [recvCArg, ...tailParams.map((_, i) => `a${i}`)].join(", ");
+      const tailArgs = calleeSig.params.slice(1).map((target, i) => coerceExpr(ctx, `a${i}`, "any", target));
+      const allArgs = [recvCArg, ...tailArgs].join(", ");
       if (sig.result === "void") {
         out.push(`        case ${tag}u: ${calleeName}(${allArgs}); return;`);
       } else {

@@ -516,7 +516,39 @@ function observeImplMembers(
       const pt = typed.paramTypes.get(p);
       if (pt !== undefined) registry.observe(substitute(pt, subst));
     }
+    // Walk the body to chain transitive monomorphisation : when the impl
+    // member calls a generic fn (`self.put(key, v)` from `IndexSet.set_at`),
+    // the inner call site's typeArgs need to be substituted from the impl's
+    // own type-args and observed so the called fn gets materialised at the
+    // matching instance. Without this, generic-impl members that nest
+    // generic calls hit `unreachable` at the un-mono'd call.
+    if (member.body !== null) walkImplBodyForCalls(member.body, typed, registry, subst);
   }
+}
+
+function walkImplBodyForCalls(
+  body: A.BlockExpr, typed: TypedProgram,
+  registry: InstanceRegistry, subst: Substitution,
+): void {
+  walkBlock(body, {
+    expr(e) {
+      const ty = typed.exprTypes.get(e);
+      if (ty !== undefined) registry.observe(substitute(ty, subst));
+    },
+    call(callExpr) {
+      const innerArgs = typed.genericFnCalls.get(callExpr);
+      if (innerArgs === undefined) return;
+      const sub = innerArgs.map((a) => substitute(a, subst));
+      let calleeSym: Symbol | undefined;
+      if (callExpr.callee.kind === "IdentExpr") {
+        calleeSym = typed.directCallOverloads.get(callExpr)
+                 ?? typed.resolved.idents.get(callExpr.callee);
+      } else if (callExpr.callee.kind === "FieldExpr") {
+        calleeSym = typed.ufcsFreeResolutions.get(callExpr.callee);
+      }
+      if (calleeSym !== undefined) registry.observeFnCall(calleeSym, sub);
+    },
+  });
 }
 
 /** Walk a generic fn instance's body once, dispatching three observation

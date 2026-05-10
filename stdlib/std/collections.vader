@@ -150,6 +150,22 @@ export len :: fn[K, V](self: MutableMap(K, V)) -> usize { return self.size }
 
 export is_empty :: fn[K, V](self: MutableMap(K, V)) -> bool { return self.size == 0 }
 
+// Operator sugar — `m[key]` reads via Index, `m[key] = v` writes via
+// IndexSet, `key in m` dispatches via Contains. K's `Hash & Equals` bound is
+// auto-inherited from the struct decl ; the impl bodies reuse `get` / `put`
+// / `contains_key` so all the dispatch machinery is shared.
+MutableMap[K, V] implements Index[K, V | null] {
+    at :: fn(self, key: K) -> V | null { return self.get(key) }
+}
+
+MutableMap[K, V] implements IndexSet[K, V] {
+    set_at :: fn(self, key: K, v: V) { self.put(key, v) }
+}
+
+MutableMap[K, V] implements Contains[K] {
+    contains :: fn(self, key: K) -> bool { return self.contains_key(key) }
+}
+
 // Snapshot of every key in insertion-independent order (bucket-walk order).
 // Calls allocate a fresh `[K]`. Suitable for stringification / iteration.
 export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
@@ -223,3 +239,10 @@ export contains :: fn[T](self: MutableSet(T), value: T) -> bool {
 export len :: fn[T](self: MutableSet(T)) -> usize { return self.inner.size }
 
 export is_empty :: fn[T](self: MutableSet(T)) -> bool { return self.inner.size == 0 }
+
+// `value in set` / `value !in set` dispatch through Contains. No
+// Index/IndexSet impl — sets have no value-at-key semantics, and `s.add(v)`
+// reads more clearly than a hypothetical `s[v] = true`.
+MutableSet[T] implements Contains[T] {
+    contains :: fn(self, value: T) -> bool { return self.inner.contains_key(value) }
+}
