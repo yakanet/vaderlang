@@ -17,6 +17,7 @@
     "dist:darwin-arm64": "bun scripts/dist.ts darwin-arm64",
     "dist:darwin-x64": "bun scripts/dist.ts darwin-x64",
     "dist:linux-x64": "bun scripts/dist.ts linux-x64",
+    "dist:windows-x64": "bun scripts/dist.ts windows-x64",
     "dist:all": "bun scripts/dist.ts all"
   },
   "devDependencies": {

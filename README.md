@@ -35,6 +35,12 @@ tar -xzf vader-darwin-x64.tar.gz
 # Linux x64
 tar -xzf vader-linux-x64.tar.gz
 ./vader-linux-x64/vader --version
+
+# Windows x64 (Explorer-extractable .zip)
+# Right-click → Extract All, or from a terminal:
+#   tar -xf vader-windows-x64.zip   (Windows 10+ ships tar natively)
+#   unzip vader-windows-x64.zip     (macOS/Linux)
+vader-windows-x64\vader.exe --version
 ```
 
 The binary discovers `stdlib/` and `runtime/c/` next to itself, so keep the extracted folder intact (or symlink `vader` only if you preserve the original sidecar tree).
@@ -72,7 +78,7 @@ bun src/index.ts
 bun src/index.ts --help
 ```
 
-Build the standalone binary for your host (writes `dist/vader-<os>-<arch>/` and `dist/vader-<os>-<arch>.tar.gz`) :
+Build the standalone binary for your host (writes `dist/vader-<os>-<arch>/` and an archive — `.tar.gz` for Unix targets, `.zip` for Windows) :
 
 ```sh
 bun run dist:current
@@ -81,6 +87,7 @@ bun run dist:current
 bun run dist:linux-x64
 bun run dist:darwin-arm64
 bun run dist:darwin-x64
+bun run dist:windows-x64
 bun run dist:all
 ```
 
