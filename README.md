@@ -19,7 +19,33 @@ A self-host port of the compiler in Vader itself is underway: the lexer (102/104
 
 ---
 
-## Getting started
+## Install
+
+Prebuilt archives ship the `vader` binary alongside its stdlib and C runtime. Extract anywhere, then run `vader` directly (or add the folder to your `PATH`, or symlink `vader-<os>-<arch>/vader` into `~/.local/bin/vader`).
+
+```sh
+# macOS arm64
+tar -xzf vader-darwin-arm64.tar.gz
+./vader-darwin-arm64/vader --version
+
+# macOS x64
+tar -xzf vader-darwin-x64.tar.gz
+./vader-darwin-x64/vader --version
+
+# Linux x64
+tar -xzf vader-linux-x64.tar.gz
+./vader-linux-x64/vader --version
+```
+
+The binary discovers `stdlib/` and `runtime/c/` next to itself, so keep the extracted folder intact (or symlink `vader` only if you preserve the original sidecar tree).
+
+On macOS, Gatekeeper will block the unsigned binary on first launch. Strip the quarantine attribute :
+
+```sh
+xattr -d com.apple.quarantine ./vader-darwin-arm64/vader
+```
+
+## Build from source
 
 ### Prerequisites
 
@@ -36,9 +62,7 @@ cd vaderlang
 bun install
 ```
 
-There is no compiled binary yet — invoke the TypeScript entry point directly through Bun.
-
-### Run the compiler
+Run the compiler directly through Bun :
 
 ```sh
 # REPL
@@ -46,6 +70,18 @@ bun src/index.ts
 
 # Show CLI help
 bun src/index.ts --help
+```
+
+Build the standalone binary for your host (writes `dist/vader-<os>-<arch>/` and `dist/vader-<os>-<arch>.tar.gz`) :
+
+```sh
+bun run dist:current
+
+# Or cross-compile a specific target / all of them:
+bun run dist:linux-x64
+bun run dist:darwin-arm64
+bun run dist:darwin-x64
+bun run dist:all
 ```
 
 ### Hello, Vader
@@ -64,14 +100,20 @@ main :: fn() -> i32 {
 Run it via the bytecode VM:
 
 ```sh
+# From a prebuilt binary
+./vader-darwin-arm64/vader run examples/hello.vader
+
+# Or from a source checkout
 bun src/index.ts run examples/hello.vader
+
 # → Hello, World!
 ```
 
 Or compile it to a native binary (requires a C compiler in `PATH`):
 
 ```sh
-bun src/index.ts build examples/hello.vader --target=native --out=/tmp/hello
+./vader-darwin-arm64/vader build examples/hello.vader --target=native --out=/tmp/hello
+# (or: bun src/index.ts build …)
 /tmp/hello
 # → Hello, World!
 ```
@@ -83,7 +125,7 @@ You can also inspect every compilation stage via the `dump` subcommand or emit t
 
 ## CLI
 
-Invoke as `bun src/index.ts <command>` (or via the `vader` wrapper script: `bun vader <command>`).
+Invoke as `vader <command>` (prebuilt binary) or `bun src/index.ts <command>` (source checkout — both are equivalent).
 
 | Command                                        | Status  | What it does                                                                                                                                                                                                                                                              |
 |------------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

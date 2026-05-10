@@ -11,6 +11,7 @@ import type { Span } from "../diagnostics/diagnostic.ts";
 import type { Program } from "../parser/ast.ts";
 import { parseSource } from "../parser/pipeline.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
+import { runtimeRoots } from "../runtime-resources.ts";
 
 import type { ModuleId, Symbol, SymbolFactory } from "./symbol.ts";
 
@@ -117,14 +118,9 @@ export function resolveStdlibRoot(projectRoot: string | null, manifest: VaderMan
     const p = isAbsolute(manifest.stdlib) ? manifest.stdlib : join(projectRoot, manifest.stdlib);
     if (existsSync(p)) return resolvePath(p);
   }
-  // Fallback: <repo-root>/stdlib (where the compiler lives) — works during dev.
-  // import.meta.dir points at this source file's directory: src/resolver/
-  // Repo root is two levels up.
-  const compilerRoot = resolvePath(import.meta.dir, "..", "..");
-  const candidate = join(compilerRoot, "stdlib");
-  if (existsSync(candidate)) return candidate;
-  // Last resort: cwd/stdlib.
-  return resolvePath(process.cwd(), "stdlib");
+  // The helper probes sidecar (compiled binary) and dev layouts, with a
+  // cwd-relative fallback as a last resort.
+  return runtimeRoots().stdlibRoot;
 }
 
 // -------------------------------------------------------- module discovery

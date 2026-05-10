@@ -1,4 +1,4 @@
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 
 import type { GlobalOpts } from "../options.ts";
 import { renderAllJson, renderAllTextSingle } from "../../diagnostics/render.ts";
@@ -6,6 +6,7 @@ import { pipelineBytecode, type BytecodeResult } from "../../pipeline.ts";
 import { writeVir } from "../../bytecode/text.ts";
 import { writeBinary } from "../../bytecode/binary.ts";
 import { emitC } from "../../c_emit/emit.ts";
+import { runtimeRoots } from "../../runtime-resources.ts";
 
 type Target = "native" | "wasm" | "ir" | "ir-text" | "c";
 
@@ -86,7 +87,7 @@ async function buildNative(
   // line tables and locals. `--release` flips to `-O3 -DNDEBUG` (no debug
   // info, asserts off) for production binaries.
   const optFlags = release ? ["-O3", "-DNDEBUG"] : ["-O0", "-ggdb"];
-  const runtimeRoot = resolve(import.meta.dir, "../../../runtime/c");
+  const runtimeRoot = runtimeRoots().cRuntimeRoot;
   const proc = Bun.spawn([
     "cc", "-std=c11", ...optFlags, "-I", runtimeRoot,
     cFile, join(runtimeRoot, "vader_runtime.c"), "-o", out,

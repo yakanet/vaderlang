@@ -11,7 +11,13 @@
     "test:leak": "bun run ./tests/leaks_check.ts",
     "build": "bun build src/index.ts --target=bun --outdir=dist",
     "build:cli": "bun src/index.ts build vader/cli/main.vader --release --target=native --out=build/vader",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dist": "bun scripts/dist.ts current",
+    "dist:current": "bun scripts/dist.ts current",
+    "dist:darwin-arm64": "bun scripts/dist.ts darwin-arm64",
+    "dist:darwin-x64": "bun scripts/dist.ts darwin-x64",
+    "dist:linux-x64": "bun scripts/dist.ts linux-x64",
+    "dist:all": "bun scripts/dist.ts all"
   },
   "devDependencies": {
     "@types/bun": "latest",
