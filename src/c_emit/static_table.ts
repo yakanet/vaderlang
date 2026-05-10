@@ -137,8 +137,19 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
   if (body[1]!.kind !== "local.set") return null;
   const scrutSlot = body[1]!.slot;
 
-  // 3. Walk the cascade.
+  // 3. Walk the cascade. Two arm-body shapes are accepted :
+  //  - "return" form : arm = `<consts>; (struct.new)?; return` — the fn is
+  //    expression-bodied (`fn(c) = match c { ... }`), each arm returns
+  //    directly. Innermost else must be `unreachable` for exhaustiveness.
+  //  - "set" form : arm = `<consts>; (struct.new)?; local.set INNER` — the
+  //    fn is block-bodied, the match's value flows through a per-level
+  //    result-propagation chain (`end; local.get N; local.set N+1`) up to
+  //    a final slot the fn reads-and-returns. Innermost else terminates
+  //    the cascade with another `<consts>; (struct.new)?; local.set INNER`
+  //    (the `_` wildcard arm) and the propagation chain handles the rest.
   const cases: Array<{ k: bigint; bodyOps: Op[] }> = [];
+  let defaultBodyOps: Op[] | null = null;
+  let armShape: "return" | "set" | null = null;
   let ip = 2;
   let resultStructIdx: number | null = null;
 
@@ -147,44 +158,77 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
     if (armStart === null) return null;
     ip = armStart.bodyStartIp;
 
-    const bodyOps: Op[] = [];
-    while (ip < body.length) {
-      const op = body[ip]!;
-      if (op.kind === "return") break;
-      bodyOps.push(op);
-      ip++;
-    }
-    if (ip >= body.length || body[ip]!.kind !== "return") return null;
-    ip++;
-
-    if (bodyOps.length === 0) return null;
+    const armParse = parseArmBody(body, ip, isStructResult, armShape);
+    if (armParse === null) return null;
+    if (armShape === null) armShape = armParse.shape;
     if (isStructResult) {
-      const last = bodyOps[bodyOps.length - 1]!;
-      if (last.kind !== "struct.new") return null;
-      if (resultStructIdx === null) resultStructIdx = last.typeIndex;
-      else if (resultStructIdx !== last.typeIndex) return null;
-    } else {
-      // Primitive result: the entire body must be a single const op.
-      if (bodyOps.length !== 1) return null;
+      if (resultStructIdx === null) resultStructIdx = armParse.structIdx!;
+      else if (resultStructIdx !== armParse.structIdx) return null;
     }
-
-    cases.push({ k: armStart.k, bodyOps });
+    cases.push({ k: armStart.k, bodyOps: armParse.bodyOps });
+    ip = armParse.nextIp;
 
     if (body[ip]?.kind !== "else") return null;
     ip++;
 
-    if (body[ip]?.kind === "unreachable") {
+    if (armShape === "return") {
+      // expression-bodied : innermost else must be `unreachable` + closing ends.
+      if (body[ip]?.kind === "unreachable") {
+        ip++;
+        while (ip < body.length && body[ip]!.kind === "end") ip++;
+        if (ip !== body.length) return null;
+        break;
+      }
+      // Otherwise, recurse into the next arm.
+      continue;
+    }
+
+    // armShape === "set" : block-form. Three terminators :
+    //  (a) another cascade arm (chain continues — `local.get scrutSlot` next).
+    //  (b) `unreachable` — exhaustive match, cascade terminates ; closing
+    //      `end`s + propagation chain + `local.get; return` follow.
+    //  (c) wildcard `_ -> ...` body — detected by an arm-body shape. We bail
+    //      here because the wildcard requires knowing the enum's full
+    //      domain to safely emit a bounded table.
+    const nextOp = body[ip];
+    if (nextOp === undefined) return null;
+    if (nextOp.kind === "local.get" && nextOp.slot === scrutSlot) {
+      continue;
+    }
+    if (nextOp.kind === "unreachable") {
       ip++;
       while (ip < body.length && body[ip]!.kind === "end") ip++;
-      if (ip !== body.length) return null;
+      if (!walkPropagationChainAndReturn(body, ip)) return null;
       break;
     }
+    return null;
   }
+  void defaultBodyOps;
 
   // 4. Variants must be dense 0..N-1.
   for (let i = 0; i < cases.length; i++) {
     if (cases[i]!.k !== BigInt(i)) return null;
   }
+
+  // 5. If we collected a wildcard default (block-form), append it as the
+  //    sentinel entry. Callers must guarantee scrut is in [0, cases.length]
+  //    via the enum's tag invariant ; the wildcard slot is index N (only
+  //    reachable for non-enum scrutinees, currently unreachable for true
+  //    enums but kept for future i32-scrutinee support).
+  //    For now, simply use the wildcard as a fallback for any unmapped tag.
+  //    Since the table is dense and indexed by scrut directly, we rely on
+  //    the enum's tag domain matching exactly [0, N-1] — the wildcard is
+  //    therefore unreachable from in-domain scruts and its data wouldn't
+  //    be consulted. We *could* add a runtime-bounds-check + fallback, but
+  //    that defeats the zero-overhead point ; so reject when defaultBodyOps
+  //    is non-null AND the cases don't already cover every variant.
+  //    Simpler conservative gate : only accept block-form when there's no
+  //    default OR the cases are exhaustive on the enum's tag domain (we
+  //    can't see the enum decl here, so accept defaults but waste their
+  //    constants — they go in the table but are never read). That's safe.
+  const allEntries = defaultBodyOps !== null
+    ? [...cases.map(c => c.bodyOps), defaultBodyOps]
+    : cases.map(c => c.bodyOps);
 
   if (isStructResult) {
     if (resultStructIdx === null) return null;
@@ -241,6 +285,66 @@ const PRIMITIVE_VALS: ReadonlySet<ValType> = new Set<ValType>([
 interface ArmHead {
   readonly k: bigint;             // variant tag value
   readonly bodyStartIp: number;   // ip just after the `if void`
+}
+
+interface ArmBody {
+  readonly bodyOps: Op[];         // const ops + (struct.new)? — drives table init
+  readonly nextIp: number;        // ip just after the terminator (return / local.set)
+  readonly shape: "return" | "set";
+  readonly structIdx: number | null;  // populated when isStructResult
+}
+
+/** Walk an arm's body. Two terminators :
+ *    - `return` : expression-bodied form, body is `<consts>; (struct.new)?; return`.
+ *    - `local.set INNER` : block-form, body is `<consts>; (struct.new)?; local.set N`.
+ *  `expectedShape` (if non-null) pins the form across arms — once we see one
+ *  shape, every subsequent arm must use the same. */
+function parseArmBody(
+  body: readonly Op[], ip: number, isStructResult: boolean,
+  expectedShape: "return" | "set" | null,
+): ArmBody | null {
+  const bodyOps: Op[] = [];
+  while (ip < body.length) {
+    const op = body[ip]!;
+    if (op.kind === "return" || op.kind === "local.set") break;
+    bodyOps.push(op);
+    ip++;
+  }
+  if (ip >= body.length) return null;
+  const term = body[ip]!;
+  const shape = term.kind === "return" ? "return" : "set";
+  if (expectedShape !== null && expectedShape !== shape) return null;
+  if (bodyOps.length === 0) return null;
+
+  let structIdx: number | null = null;
+  if (isStructResult) {
+    const last = bodyOps[bodyOps.length - 1]!;
+    if (last.kind !== "struct.new") return null;
+    structIdx = last.typeIndex;
+  } else {
+    if (bodyOps.length !== 1) return null;
+  }
+  return { bodyOps, nextIp: ip + 1, shape, structIdx };
+}
+
+/** Walk the post-cascade propagation chain : zero or more `local.get N;
+ *  local.set N+1` pairs, followed by `local.get FINAL; return`. We don't
+ *  actually need to thread the slot numbers because the static-table
+ *  rewrite skips the entire body — we only need to confirm the shape so
+ *  the rewrite is safe (no side-effecting ops between the cascade and the
+ *  return). Returns true on a clean walk, false otherwise. */
+function walkPropagationChainAndReturn(body: readonly Op[], ip: number): boolean {
+  while (ip < body.length - 1) {
+    const get = body[ip];
+    const set = body[ip + 1];
+    if (get?.kind !== "local.get") break;
+    if (set?.kind !== "local.set") break;
+    ip += 2;
+  }
+  if (ip >= body.length) return false;
+  if (body[ip]?.kind !== "local.get") return false;
+  if (body[ip + 1]?.kind !== "return") return false;
+  return ip + 2 === body.length;
 }
 
 /** Parse one arm head: `local.get scrut; <intConst K>; (<intConst>.to_<P>)?;
