@@ -10,6 +10,22 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 
 ---
 
+## Priority — next up
+
+Items here jump the queue ahead of the phased roadmap below. They reflect a deliberate shift: stabilise the surface area people can touch (binary, formatter, perf signal) before extending the language further, and pay down two concrete pieces of internal debt (SSA, monoliths) before they harden.
+
+- [ ] **Single-binary distribution.** Compile the CLI into a standalone `vader` binary via `bun build --compile` so the entry point is no longer `bun src/index.ts`. Wire a `bun run dist` script, ship one binary per platform (linux-x64, darwin-arm64, darwin-x64 to start), and update the README install instructions. Acceptance: a fresh machine with no Bun installed can download one file, `chmod +x`, and run `vader run examples/hello.vader`.
+- [ ] **`vader fmt` MVP.** Promote the `fmt` stub into a real subcommand. Print canonical source from the parser AST (re-using span trivia where possible for comments). Scope: indentation, spacing around operators, trailing commas, blank-line rules. No config flags in v1 — opinionated, single style. Acceptance: `vader fmt stdlib/` is a no-op (idempotent) and the result round-trips through the parser unchanged.
+- [ ] **Reference benchmark.** Pick `examples/mandelbrot.vader` and `examples/primes.vader` as the two reference workloads. Add `bun run bench` that times each through (a) the bytecode VM, (b) `--target=native` (C-emitted), and compares against a hand-written equivalent in Bun/TS and Go. Commit baseline numbers in `bench/README.md` and update the top-level README with a small results table. Acceptance: a perf regression of >10% on either workload causes the bench script to exit non-zero in CI.
+- [ ] **SSA round-trip — keep-or-remove decision.** Today `pipelineCfg` does `toSSA → annotateEscape → fromSSA` and the in-tree comment calls the round-trip "behaviour-neutral". The only consumer that exploits SSA form is escape analysis. Investigate: (a) can escape analysis run on the non-SSA CFG via plain dataflow? (b) which SSA-only optimisation would justify keeping the round-trip — GVN, copy-prop, sparse conditional constant prop? Decide either to land at least one such pass that materially improves bytecode/perf, or to delete `toSSA`/`fromSSA` and fold escape analysis onto the flat CFG. Don't keep SSA "just in case".
+- [ ] **Break up the three monoliths.** Same logical structure, smaller files, cheaper edits.
+  - `src/c_emit/emit.ts` (1894 lines) → split into `types.ts`, `functions.ts`, `main.ts`, `vtables.ts`, plus a thin `emit.ts` that orchestrates.
+  - `src/typecheck/passes/call.ts` (886 lines) → one file per call form: `cast.ts` (`Type(value)`), `direct.ts` (plain fn call + overload), `ufcs.ts`, `ufcs-generic.ts`.
+  - `src/resolver/resolve.ts` (1114 lines) → at minimum extract module/import resolution and identifier resolution into siblings.
+  No behaviour change; snapshot suite must stay green throughout.
+
+---
+
 ## Phase 0 — Project bootstrap
 
 - [x] `bun init` to scaffold the TypeScript compiler under `src/`

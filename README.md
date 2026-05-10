@@ -4,13 +4,15 @@
 
 Vader is a general-purpose, statically-typed language with type inference, targeting native binaries and WebAssembly. The compiler is being bootstrapped in TypeScript and will later self-host in Vader.
 
-**Status:** pre-MVP. Frontend (lexer → parser → resolver → type-checker → comptime → monomorphizer → lowerer)
-feeds **midir** — a CFG/SSA mid-IR (build → SSA + peephole → DCE → escape analysis → stack-allocation →
-scheduler → fromSSA) — which then emits the stack-machine **bytecode** (`.vir` text I/O round-trippable).
-The **bytecode VM** (powering `vader run`) and the **C emitter** (powering `vader build --target=native`,
-backed by a precise Cheney semi-space GC) are both production-ready. The legacy `LoweredAST → bytecode`
-walker was retired on 2026-05-09; midir is now the single backend backbone. WASM emitter is next. See
-[`TODO.md`](./TODO.md) for the live roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
+**Status:** pre-MVP, hobby project. Frontend (lexer → parser → resolver → type-checker → comptime →
+monomorphizer → lowerer) feeds **midir** — a CFG/SSA mid-IR (build → SSA + peephole → DCE → escape
+analysis → stack-allocation → scheduler → fromSSA) — which then emits the stack-machine **bytecode**
+(`.vir` text I/O round-trippable). The **bytecode VM** (powering `vader run`) and the **C emitter**
+(powering `vader build --target=native`, backed by a precise Cheney semi-space GC) both run the
+example programs end-to-end, but they are not battle-tested and should not be relied on for anything
+beyond experimentation. The legacy `LoweredAST → bytecode` walker was retired on 2026-05-09; midir is
+now the single backend backbone. WASM emitter is next. See [`TODO.md`](./TODO.md) for the live roadmap
+and [`SPEC.md`](./SPEC.md) for the language reference.
 
 A self-host port of the compiler in Vader itself is underway: the lexer (102/104 parity) and parser
 (128/130 byte-for-byte parity with the TS reference) are ported, plus a top-level-decl resolver MVP.
@@ -223,4 +225,4 @@ The full roadmap lives in [`TODO.md`](./TODO.md). The high-level milestones are:
 
 ## License
 
-Not yet decided. The repo is shared for review only at this stage.
+MIT — see [`LICENSE`](./LICENSE).
