@@ -4,6 +4,7 @@ import {BUILTIN_MODULE_ID, BUILTIN_TYPE_NAMES, isBuiltinTypeName, makeBuiltinSco
 import {discoverLayout, loadProject} from "./loader.ts";
 import {resolveModule} from "./resolve.ts";
 import {wireImports} from "./wire.ts";
+import type {ImportTargetTable} from "./wire.ts";
 import type {ModuleId, Symbol} from "./symbol.ts";
 import {SymbolFactory} from "./symbol.ts";
 import type {LoadedProject, Module} from "./module.ts";
@@ -33,6 +34,14 @@ export function resolveProject(opts: ResolveProjectOptions): ResolvedProject {
 export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCollector): ResolvedProject {
   const builtins = makeBuiltinScope(project.factory);
   const importTargets = wireImports(project.modules, diags);
+  // Now that imports are wired, follow each import-binding in every module's
+  // fnOverloads bucket to its concrete fn target. Lets UFCS dispatch see
+  // imported fns alongside local ones for overload-by-receiver-type ; in
+  // particular, `std/path::is_empty(self: Path)` and the imported
+  // `std/string::is_empty(s: string)` end up as two entries in path's
+  // `is_empty` overload set, and `self.repr.is_empty()` picks the string
+  // version while `path.is_empty()` picks the local one.
+  resolveImportOverloads(project.modules, importTargets);
   const coreModule = findCoreModule(project.modules);
   // Shared cross-module typeParam table — populated as each module's
   // resolver binds its struct/fn typeParams. Generic impls need this to
@@ -62,6 +71,44 @@ export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCo
     if (merged !== null) resolved.set(id, merged);
   }
   return { modules: resolved, importTargets, typeParamSymbols, typeParamBounds, factory: project.factory };
+}
+
+/** Walk every module's `fnOverloads` map and replace any import-binding
+ *  entries with their resolved fn target (when the target is a fn). Lets
+ *  UFCS dispatch in the typechecker treat imported fns as overloads of
+ *  same-named local fns — `std/path::is_empty(self: Path)` and the
+ *  imported `std/string::is_empty(s: string)` end up sitting side-by-side
+ *  in path's `is_empty` overload set, ranked by receiver type at every
+ *  use site. Entries whose target isn't a fn (missing imports, struct or
+ *  trait imports under the same name, …) are dropped from the bucket — the
+ *  original errors still flow through `wireImports`'s diagnostics. */
+function resolveImportOverloads(
+  modules: ReadonlyMap<ModuleId, Module>,
+  importTargets: ImportTargetTable,
+): void {
+  for (const mod of modules.values()) {
+    const buckets = mod.fnOverloads as Map<string, Symbol[]>;
+    for (const [name, bucket] of buckets) {
+      let changed = false;
+      const next: Symbol[] = [];
+      for (const sym of bucket) {
+        if (sym.kind !== "import-binding") {
+          next.push(sym);
+          continue;
+        }
+        const target = importTargets.get(sym.id);
+        if (target?.kind === "symbol" && target.symbol.kind === "fn") {
+          next.push(target.symbol);
+          changed = true;
+        } else {
+          // Unwireable / non-fn import — drop from the overload set. The
+          // import-target diagnostic was already emitted.
+          changed = true;
+        }
+      }
+      if (changed) buckets.set(name, next);
+    }
+  }
 }
 
 /** Fold the per-file `ResolvedProgram`s of a multi-file module into one.

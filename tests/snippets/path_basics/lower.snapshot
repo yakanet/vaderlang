@@ -227,14 +227,15 @@
               @builder.append_str :void
                 __sb_4#-6 :?
                 "empty.is_empty=" :string
-              @builder.append_str :void
+              @builder.append_display <for bool> :void
                 __sb_4#-6 :?
-                call :?
+                call :bool
                   callee:
-                    .is_empty :?
-                      call :Path
-                        callee:
-                          empty_path#59 :fn() -> Path
+                    is_empty#61 :bool
+                  arg0:
+                    call :Path
+                      callee:
+                        empty_path#59 :fn() -> Path
               ~>
                 @builder.finish :string
                   __sb_4#-6 :?
@@ -252,12 +253,13 @@
               @builder.append_str :void
                 __sb_5#-7 :?
                 "p.is_empty=" :string
-              @builder.append_str :void
+              @builder.append_display <for bool> :void
                 __sb_5#-7 :?
-                call :?
+                call :bool
                   callee:
-                    .is_empty :?
-                      p#160 :Path
+                    is_empty#61 :bool
+                  arg0:
+                    p#160 :Path
               ~>
                 @builder.finish :string
                   __sb_5#-7 :?
@@ -539,9 +541,3 @@
               arg0:
                 "/a//b" :string
     return int(0) :i32
-
-# Diagnostics
-[36:8] error[R2004] duplicate top-level symbol in module: `is_empty` already declared in this module
-[4:16] error[R2008] symbol is not exported from its module: `is_empty` is not exported from `std/path`
-[28:44] error[T3009] field does not exist on this type: `is_empty` on Path
-[29:29] error[T3009] field does not exist on this type: `is_empty` on Path

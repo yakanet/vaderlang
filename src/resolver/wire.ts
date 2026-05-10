@@ -24,7 +24,29 @@ export function wireImports(
   for (const mod of modules.values()) {
     const pathToModule = buildImportIndex(mod, modules);
 
+    // Collect every import-binding to wire — `symbols` covers the common
+    // case, but a same-named local fn pushes the import-binding into the
+    // `fnOverloads` bucket instead (Layer 8h overload-with-imports). Walk
+    // both ; dedupe by symbol id so we don't wire the same binding twice
+    // when it lives in both places.
+    const seen = new Set<SymbolId>();
+    const imports: Symbol[] = [];
     for (const sym of mod.symbols.values()) {
+      if (sym.source.kind === "import" && !seen.has(sym.id)) {
+        seen.add(sym.id);
+        imports.push(sym);
+      }
+    }
+    for (const bucket of mod.fnOverloads.values()) {
+      for (const sym of bucket) {
+        if (sym.source.kind === "import" && !seen.has(sym.id)) {
+          seen.add(sym.id);
+          imports.push(sym);
+        }
+      }
+    }
+
+    for (const sym of imports) {
       if (sym.source.kind !== "import") continue;
       const decl = sym.source.decl;
       const targetModule = pathToModule.get(decl.path) ?? null;

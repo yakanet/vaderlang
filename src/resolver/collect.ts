@@ -104,6 +104,18 @@ function addFnSymbol(
     return;
   }
   const existing = symbols.get(decl.name)!;
+  if (existing.kind === "import-binding") {
+    // Local fn coexists with a same-named import : the local takes the
+    // primary slot in `symbols` so unqualified references resolve to it,
+    // and the import-binding joins `fnOverloads` so UFCS dispatch can pick
+    // it when the receiver matches the imported fn's first param. The
+    // import-binding's target is wired up only later (in `wireImports`) ;
+    // a post-collect pass in `resolveLoadedProject` follows the redirect
+    // and replaces each entry with its concrete fn before typecheck runs.
+    fnOverloads.get(decl.name)!.push(existing);
+    symbols.set(decl.name, sym);
+    return;
+  }
   if (existing.kind !== "fn") {
     // Name already taken by a non-fn (e.g. a struct/const). Real conflict.
     err(input.diags, "R2004", decl.nameSpan, `\`${decl.name}\` already declared in this module`,
