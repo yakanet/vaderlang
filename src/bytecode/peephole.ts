@@ -210,7 +210,7 @@ function propagateConstSingleUse(fn: MutFn): void {
   }
 
   const toDelete = new Set<number>();
-  const replaceWith = new Map<number, Op>();
+  const replaceWith = new Map<number, Op[]>();
   for (let s = paramCount; s < totalSlots; s++) {
     const stat = stats[s]!;
     if (stat.tees !== 0 || stat.sets !== 1 || stat.gets !== 1) continue;
@@ -220,10 +220,24 @@ function propagateConstSingleUse(fn: MutFn): void {
     const constOp = fn.body[setIdx - 1]!;
     const constValType = constOpValType(constOp);
     if (constValType === null) continue;
-    if (constValType !== fn.locals[s - paramCount]!.val) continue;
-    toDelete.add(setIdx - 1);
-    toDelete.add(setIdx);
-    replaceWith.set(getIdx, constOp);
+    const slotVal = fn.locals[s - paramCount]!.val;
+    if (constValType === slotVal) {
+      toDelete.add(setIdx - 1);
+      toDelete.add(setIdx);
+      replaceWith.set(getIdx, [constOp]);
+      continue;
+    }
+    // Integer-narrowing case: the original `local.set` performed an implicit
+    // coerce (e.g. `i32.const 3; local.set N (u8)`). To keep the consumer's
+    // typed eq/cmp happy at the get site we emit `<const>; <from>.to_<slot>`.
+    // The lowerer already validated the value fit at the original set, so we
+    // trust the convert here.
+    if (canNumericConvert(constValType, slotVal)) {
+      toDelete.add(setIdx - 1);
+      toDelete.add(setIdx);
+      const convert: Op = { kind: `${constValType}.to_${slotVal}` } as Op;
+      replaceWith.set(getIdx, [constOp, convert]);
+    }
   }
 
   if (toDelete.size === 0) return;
@@ -234,8 +248,10 @@ function propagateConstSingleUse(fn: MutFn): void {
     if (toDelete.has(i)) continue;
     const replacement = replaceWith.get(i);
     if (replacement !== undefined) {
-      newBody.push(replacement);
-      newDbg.push(fn.debug[i]!);
+      for (const op of replacement) {
+        newBody.push(op);
+        newDbg.push(fn.debug[i]!);
+      }
     } else {
       newBody.push(fn.body[i]!);
       newDbg.push(fn.debug[i]!);
@@ -246,6 +262,17 @@ function propagateConstSingleUse(fn: MutFn): void {
   fn.debug.length = 0;
   for (const d of newDbg) fn.debug.push(d);
 }
+
+/** True iff `from` and `to` are both numeric (or char) widths the
+ *  `${from}.to_${to}` ConvertOpKind covers. */
+function canNumericConvert(from: ValType, to: ValType): boolean {
+  return NUMERIC_OR_CHAR.has(from) && NUMERIC_OR_CHAR.has(to);
+}
+
+const NUMERIC_OR_CHAR: ReadonlySet<ValType> = new Set<ValType>([
+  "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "usize",
+  "f32", "f64", "char",
+]);
 
 /** Val type produced by a constant op, or null if `op` isn't a constant. */
 function constOpValType(op: Op): ValType | null {
