@@ -67,7 +67,7 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
 
   const buildProc = Bun.spawn([
     "cc", "-std=c11", "-O0", "-g", "-I", RUNTIME_ROOT,
-    cFile, join(RUNTIME_ROOT, "vader_runtime.c"), "-o", binFile,
+    cFile, join(RUNTIME_ROOT, "vader_runtime.c"), "-o", binFile, "-lm",
   ], { stderr: "pipe", stdout: "pipe" });
   const buildErr = await new Response(buildProc.stderr).text();
   if ((await buildProc.exited) !== 0) return { name: s.name, status: "build_fail", detail: buildErr.slice(0, 200) };
