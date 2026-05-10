@@ -46,12 +46,17 @@ import type { BcFunction, BytecodeModule } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
 
-/** Two flavours of static-table emission, picked by the fn's result type :
- *  - `struct` — fn returns a struct ref. Table holds full struct values
- *    (header + fields), boxed at the call site via `vader_box_obj`.
- *  - `primitive` — fn returns a scalar (string, int, bool, char, float).
- *    Table holds the bare values, returned directly. */
-type StaticTableInfo = StaticTableStructInfo | StaticTablePrimitiveInfo;
+/** Three emission flavours :
+ *  - `struct` — fn returns a struct ref, dense 0..N-1 cases, no wildcard.
+ *    Table holds full struct values, boxed at the call site.
+ *  - `primitive` — fn returns a scalar, dense 0..N-1 cases, no wildcard.
+ *    Table holds the bare values, returned directly.
+ *  - `switch` — fn returns a primitive, but cases are sparse (variant
+ *    tags non-contiguous) or a wildcard `_` arm exists. Emit a C
+ *    `switch (l0)` with one `case K:` per arm + a `default:` for the
+ *    wildcard (or `vader_unreachable` if exhaustive). The C compiler
+ *    folds dense switches into a jump table on its own. */
+type StaticTableInfo = StaticTableStructInfo | StaticTablePrimitiveInfo | StaticSwitchInfo;
 
 interface StaticTableStructInfo {
   readonly kind: "struct";
@@ -68,6 +73,15 @@ interface StaticTablePrimitiveInfo {
   readonly resultValType: ValType;        // string / i32 / bool / etc.
   readonly resultCType: string;
   readonly entries: readonly ConstValue[];  // one per variant
+}
+
+interface StaticSwitchInfo {
+  readonly kind: "switch";
+  readonly scrutValType: ValType;
+  readonly resultValType: ValType;
+  readonly resultCType: string;
+  readonly cases: ReadonlyArray<{ k: bigint; value: ConstValue }>;
+  readonly defaultValue: ConstValue | null;   // null → exhaustive (emit unreachable)
 }
 
 interface StaticField {
@@ -108,11 +122,33 @@ export function tryEmitStaticTable(
     out.push(`static vader_box_t ${fnName}(${paramCType} l0) {`);
     out.push(`    return vader_box_obj(${tag}u, (void*)(uintptr_t)&${tableName}[l0]);`);
     out.push(`}`);
-  } else {
+  } else if (info.kind === "primitive") {
     const inits = info.entries.map((cv) => renderConstValue(cv, info.resultValType, info.resultCType)).join(", ");
     out.push(`static const ${info.resultCType} ${tableName}[${info.entries.length}] = { ${inits} };`);
     out.push(`static ${info.resultCType} ${fnName}(${paramCType} l0) {`);
     out.push(`    return ${tableName}[l0];`);
+    out.push(`}`);
+  } else {
+    // switch form — sparse cases or wildcard. C compiler folds dense
+    // switches into jump tables on its own ; for sparse cases the tradeoff
+    // depends on density and -O3 picks the best dispatch.
+    out.push(`static ${info.resultCType} ${fnName}(${paramCType} l0) {`);
+    out.push(`    switch (l0) {`);
+    for (const c of info.cases) {
+      const v = renderConstValue(c.value, info.resultValType, info.resultCType);
+      out.push(`        case ${c.k.toString()}u: return ${v};`);
+    }
+    if (info.defaultValue !== null) {
+      const v = renderConstValue(info.defaultValue, info.resultValType, info.resultCType);
+      out.push(`        default: return ${v};`);
+    } else {
+      out.push(`        default: vader_unreachable("${fnName}");`);
+    }
+    out.push(`    }`);
+    // Belt-and-suspenders : Clang occasionally complains about the
+    // missing return path even when every case returns. Re-emit the
+    // unreachable here to silence it.
+    out.push(`    vader_unreachable("${fnName}");`);
     out.push(`}`);
   }
   return true;
@@ -172,14 +208,27 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
     ip++;
 
     if (armShape === "return") {
-      // expression-bodied : innermost else must be `unreachable` + closing ends.
+      // expression-bodied : innermost else must be `unreachable` + closing
+      // ends, OR a wildcard arm body (consts + return) followed by ends.
       if (body[ip]?.kind === "unreachable") {
         ip++;
         while (ip < body.length && body[ip]!.kind === "end") ip++;
         if (ip !== body.length) return null;
         break;
       }
-      // Otherwise, recurse into the next arm.
+      if (body[ip]?.kind !== "local.get" ||
+          (body[ip] as Extract<Op, { kind: "local.get" }>).slot !== scrutSlot) {
+        // Try the wildcard form : the next ops are an arm body that ends
+        // in `return` (no preceding cmp head).
+        const wildParse = parseArmBody(body, ip, isStructResult, "return");
+        if (wildParse === null) return null;
+        if (isStructResult) return null;   // sparse/wildcard struct unsupported
+        defaultBodyOps = wildParse.bodyOps;
+        ip = wildParse.nextIp;
+        while (ip < body.length && body[ip]!.kind === "end") ip++;
+        if (ip !== body.length) return null;
+        break;
+      }
       continue;
     }
 
@@ -187,9 +236,10 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
     //  (a) another cascade arm (chain continues — `local.get scrutSlot` next).
     //  (b) `unreachable` — exhaustive match, cascade terminates ; closing
     //      `end`s + propagation chain + `local.get; return` follow.
-    //  (c) wildcard `_ -> ...` body — detected by an arm-body shape. We bail
-    //      here because the wildcard requires knowing the enum's full
-    //      domain to safely emit a bounded table.
+    //  (c) wildcard `_ -> ...` body — same shape as a real arm but no cmp
+    //      head. We accept this for primitive results (emits `switch` with
+    //      `default:`) but reject for struct results (would need a sparse
+    //      struct table — future work).
     const nextOp = body[ip];
     if (nextOp === undefined) return null;
     if (nextOp.kind === "local.get" && nextOp.slot === scrutSlot) {
@@ -201,35 +251,57 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
       if (!walkPropagationChainAndReturn(body, ip)) return null;
       break;
     }
-    return null;
+    // Wildcard arm body (set form).
+    if (isStructResult) return null;
+    const wildParse = parseArmBody(body, ip, isStructResult, "set");
+    if (wildParse === null) return null;
+    defaultBodyOps = wildParse.bodyOps;
+    ip = wildParse.nextIp;
+    while (ip < body.length && body[ip]!.kind === "end") ip++;
+    if (!walkPropagationChainAndReturn(body, ip)) return null;
+    break;
   }
-  void defaultBodyOps;
 
-  // 4. Variants must be dense 0..N-1.
-  for (let i = 0; i < cases.length; i++) {
-    if (cases[i]!.k !== BigInt(i)) return null;
+  // 4. Decide table vs switch :
+  //    - Cases dense 0..N-1 AND no wildcard → table mode.
+  //    - Otherwise (sparse cases or wildcard) → switch mode (primitive only).
+  let dense = defaultBodyOps === null;
+  if (dense) {
+    for (let i = 0; i < cases.length; i++) {
+      if (cases[i]!.k !== BigInt(i)) { dense = false; break; }
+    }
   }
 
-  // 5. If we collected a wildcard default (block-form), append it as the
-  //    sentinel entry. Callers must guarantee scrut is in [0, cases.length]
-  //    via the enum's tag invariant ; the wildcard slot is index N (only
-  //    reachable for non-enum scrutinees, currently unreachable for true
-  //    enums but kept for future i32-scrutinee support).
-  //    For now, simply use the wildcard as a fallback for any unmapped tag.
-  //    Since the table is dense and indexed by scrut directly, we rely on
-  //    the enum's tag domain matching exactly [0, N-1] — the wildcard is
-  //    therefore unreachable from in-domain scruts and its data wouldn't
-  //    be consulted. We *could* add a runtime-bounds-check + fallback, but
-  //    that defeats the zero-overhead point ; so reject when defaultBodyOps
-  //    is non-null AND the cases don't already cover every variant.
-  //    Simpler conservative gate : only accept block-form when there's no
-  //    default OR the cases are exhaustive on the enum's tag domain (we
-  //    can't see the enum decl here, so accept defaults but waste their
-  //    constants — they go in the table but are never read). That's safe.
-  const allEntries = defaultBodyOps !== null
-    ? [...cases.map(c => c.bodyOps), defaultBodyOps]
-    : cases.map(c => c.bodyOps);
+  if (!dense) {
+    // Sparse/wildcard switch mode. Currently primitive-result only — sparse
+    // struct returns would need a per-case `static const T VAL_K = ...;`
+    // and a switch returning boxed refs ; tracked as Prop 2 follow-up.
+    if (isStructResult) return null;
+    const switchCases: Array<{ k: bigint; value: ConstValue }> = [];
+    for (const c of cases) {
+      const cv = constValueFromOp(c.bodyOps[0]!);
+      if (cv === null) return null;
+      if (!constMatchesField(cv, resultVal)) return null;
+      switchCases.push({ k: c.k, value: cv });
+    }
+    let defaultValue: ConstValue | null = null;
+    if (defaultBodyOps !== null) {
+      const cv = constValueFromOp(defaultBodyOps[0]!);
+      if (cv === null) return null;
+      if (!constMatchesField(cv, resultVal)) return null;
+      defaultValue = cv;
+    }
+    return {
+      kind: "switch",
+      scrutValType: paramVal,
+      resultValType: resultVal,
+      resultCType: cTypeForPrim(resultVal),
+      cases: switchCases,
+      defaultValue,
+    };
+  }
 
+  // Dense + no wildcard : table mode.
   if (isStructResult) {
     if (resultStructIdx === null) return null;
     const structType = m.types[resultStructIdx]!;
@@ -327,19 +399,19 @@ function parseArmBody(
   return { bodyOps, nextIp: ip + 1, shape, structIdx };
 }
 
-/** Walk the post-cascade propagation chain : zero or more `local.get N;
- *  local.set N+1` pairs, followed by `local.get FINAL; return`. We don't
- *  actually need to thread the slot numbers because the static-table
- *  rewrite skips the entire body — we only need to confirm the shape so
- *  the rewrite is safe (no side-effecting ops between the cascade and the
- *  return). Returns true on a clean walk, false otherwise. */
+/** Walk the post-cascade propagation chain. The lower interleaves `end`
+ *  ops (closing the nested if/else scopes) with `local.get N; local.set
+ *  N+1` propagation pairs, finishing with a single `local.get FINAL;
+ *  return`. We don't thread the slot numbers — the static-table rewrite
+ *  drops the entire body — but we DO confirm no side-effecting op slips
+ *  in between cascade end and return. Returns true on a clean walk. */
 function walkPropagationChainAndReturn(body: readonly Op[], ip: number): boolean {
   while (ip < body.length - 1) {
+    if (body[ip]!.kind === "end") { ip++; continue; }
     const get = body[ip];
     const set = body[ip + 1];
-    if (get?.kind !== "local.get") break;
-    if (set?.kind !== "local.set") break;
-    ip += 2;
+    if (get?.kind === "local.get" && set?.kind === "local.set") { ip += 2; continue; }
+    break;
   }
   if (ip >= body.length) return false;
   if (body[ip]?.kind !== "local.get") return false;
