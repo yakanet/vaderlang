@@ -1,0 +1,238 @@
+// MowItNow — drive a fleet of automatic lawn mowers across a rectangular grid.
+//
+// Showcases a broad slice of Vader's surface area:
+//   - enums (`Direction`, `Command`) with dot-shorthand and exhaustive `match`
+//   - struct + trait impl (`Mower implements Display`)
+//   - tuple destructuring of a function result
+//   - `!T` errors propagated through `?`
+//   - top-level `@file` baking the canonical test input at compile time
+//   - argv handling so the same binary accepts an external file at runtime
+//   - UFCS chained calls (`s.trim().split_where(is_white_char)`, `m.dir.show()`)
+
+import "std/io" { println, eprintln, read_file }
+import "std/string" {
+    byte_len, char_at, chars, is_white_char, parse_int,
+    split_where, trim, ParseError,
+}
+import "std/string_builder" { new_builder, append, to_string }
+
+// Compile-time bake: the canonical test input is embedded next to the source.
+DEFAULT_INPUT :: @file("mowitnow_input.txt")
+
+// --- Domain types ---------------------------------------------------------
+
+Direction :: enum { North, East, South, West }
+
+// Free-function `show(Direction)` — overloads with `Mower::show` below via
+// UFCS first-param dispatch ; both reachable as `x.show()`.
+show :: fn(self: Direction) -> string {
+    match self {
+        .North -> "N"
+        .East  -> "E"
+        .South -> "S"
+        .West  -> "W"
+    }
+}
+
+turn_left :: fn(d: Direction) -> Direction {
+    match d {
+        .North -> .West
+        .West  -> .South
+        .South -> .East
+        .East  -> .North
+    }
+}
+
+turn_right :: fn(d: Direction) -> Direction {
+    match d {
+        .North -> .East
+        .East  -> .South
+        .South -> .West
+        .West  -> .North
+    }
+}
+
+Command :: enum { Advance, Left, Right }
+
+// Lawn upper-right corner — the lower-left corner is fixed at (0, 0).
+Lawn :: struct {
+    width:  i32
+    height: i32
+}
+
+contains :: fn(self: Lawn, x: i32, y: i32) -> bool {
+    return x >= 0 && y >= 0 && x <= self.width && y <= self.height
+}
+
+Mower :: struct {
+    x:   i32
+    y:   i32
+    dir: Direction
+}
+
+Mower implements Display {
+    fn show(self) -> string {
+        return "${self.x} ${self.y} ${self.dir.show()}"
+    }
+}
+
+// --- Movement -------------------------------------------------------------
+
+// Hypothetical next position one cell ahead of `m` (no bounds checking).
+step :: fn(m: Mower) -> [i32, i32] {
+    match m.dir {
+        .North -> [m.x,     m.y + 1]
+        .East  -> [m.x + 1, m.y]
+        .South -> [m.x,     m.y - 1]
+        .West  -> [m.x - 1, m.y]
+    }
+}
+
+advance :: fn(m: Mower, lawn: Lawn) -> Mower {
+    [nx, ny] :: step(m)
+    if !lawn.contains(nx, ny) {
+        return m
+    }
+    return Mower { .x = nx, .y = ny, .dir = m.dir }
+}
+
+apply :: fn(m: Mower, lawn: Lawn, cmd: Command) -> Mower {
+    match cmd {
+        .Advance -> advance(m, lawn)
+        .Left    -> Mower { .x = m.x, .y = m.y, .dir = m.dir.turn_left() }
+        .Right   -> Mower { .x = m.x, .y = m.y, .dir = m.dir.turn_right() }
+    }
+}
+
+run_mower :: fn(start: Mower, lawn: Lawn, commands: Command[]) -> Mower {
+    m := start
+    for cmd in commands {
+        m = apply(m, lawn, cmd)
+    }
+    return m
+}
+
+// --- Parsing --------------------------------------------------------------
+
+// Dot-shorthand requires the expected type to be a bare enum ; here the
+// return type is `Direction!` (= `Direction | Error`), so the variant must
+// be written `Direction.North` rather than `.North`.
+parse_direction :: fn(c: char) -> Direction! {
+    if c == 'N' { return Direction.North }
+    if c == 'E' { return Direction.East }
+    if c == 'S' { return Direction.South }
+    if c == 'W' { return Direction.West }
+    return ParseError { .msg = "unknown direction: '${c}'" }
+}
+
+parse_command :: fn(c: char) -> Command! {
+    if c == 'A' { return Command.Advance }
+    if c == 'G' { return Command.Left }
+    if c == 'D' { return Command.Right }
+    return ParseError { .msg = "unknown command: '${c}'" }
+}
+
+parse_lawn :: fn(line: string) -> Lawn! {
+    parts :: line.trim().split_where(is_white_char)
+    if parts.len() != 2 {
+        return ParseError { .msg = "expected '<w> <h>', got '${line}'" }
+    }
+    w :: parse_int(parts[0])?
+    h :: parse_int(parts[1])?
+    if w < 0 || h < 0 {
+        return ParseError { .msg = "lawn dimensions must be non-negative, got '${line}'" }
+    }
+    return Lawn { .width = w, .height = h }
+}
+
+parse_position :: fn(line: string, lawn: Lawn) -> Mower! {
+    parts :: line.trim().split_where(is_white_char)
+    if parts.len() != 3 {
+        return ParseError { .msg = "expected '<x> <y> <dir>', got '${line}'" }
+    }
+    x :: parse_int(parts[0])?
+    y :: parse_int(parts[1])?
+    if parts[2].byte_len() != 1 {
+        return ParseError { .msg = "expected single direction char, got '${parts[2]}'" }
+    }
+    d :: parse_direction(parts[2].char_at(0))?
+    if !lawn.contains(x, y) {
+        return ParseError { .msg = "starting position '${line}' is outside the lawn" }
+    }
+    return Mower { .x = x, .y = y, .dir = d }
+}
+
+parse_commands :: fn(line: string) -> Command[]! {
+    out: Command[] = []
+    for c in line.trim().chars() {
+        out.push(parse_command(c)?)
+    }
+    return out
+}
+
+// --- Driver ---------------------------------------------------------------
+
+is_newline :: fn(c: char) -> bool { return c == '\n' || c == '\r' }
+
+run :: fn(input: string) -> string! {
+    lines :: input.split_where(is_newline)
+    if lines.len() == 0 {
+        return ParseError { .msg = "input is empty" }
+    }
+    lawn :: parse_lawn(lines[0])?
+
+    out :: new_builder()
+    i := 1
+    first := true
+    for i < lines.len() {
+        if i + 1 >= lines.len() {
+            return ParseError { .msg = "missing command line for mower at '${lines[i]}'" }
+        }
+        mower :: parse_position(lines[i], lawn)?
+        cmds  :: parse_commands(lines[i + 1])?
+        final :: run_mower(mower, lawn, cmds)
+        if !first {
+            out.append("\n")
+        }
+        out.append(final.show())
+        first = false
+        i = i + 2
+    }
+    return out.to_string()
+}
+
+// --- Entrypoint -----------------------------------------------------------
+
+load_input :: fn(argv: string[]) -> string! {
+    if argv.len() > 1 {
+        return read_file(argv[1])?
+    }
+    return DEFAULT_INPUT
+}
+
+main :: fn(argv: string[]) -> i32 {
+    raw :: load_input(argv)
+    match raw {
+        is Error -> {
+            // The IO error from `read_file` is currently host-tagged ; calling
+            // `.message()` on it would round-trip through a vtable that the VM
+            // bootstrap does not always populate, so we report a generic note.
+            eprintln(if argv.len() > 1 {
+                "io error: cannot read '${argv[1]}'"
+            } else {
+                "io error reading the embedded input"
+            })
+            return 1
+        }
+        is string -> {
+            match run(raw) {
+                is string as out -> println(out)
+                is Error  as err -> {
+                    eprintln("parse error: ${err.message()}")
+                    return 1
+                }
+            }
+        }
+    }
+    return 0
+}
