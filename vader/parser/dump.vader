@@ -314,6 +314,8 @@ write_struct_fields :: fn(sb: StringBuilder, fields: StructField[], level: i32) 
         write_type(sb, f.ty, level + 2)
         entry(sb, false, level + 2, "visibility")
         write_visibility(sb, f.visibility)
+        entry(sb, false, level + 2, "default")
+        write_optional_expr(sb, f.default, level + 2)
         close_obj(sb, level + 1)
     }
     close_arr(sb, level)
@@ -874,8 +876,8 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             kind_entry(sb, level + 1, "StructLitExpr")
             entry(sb, false, level + 1, "typeName")
             write_type(sb, e.type_name, level + 1)
-            entry(sb, false, level + 1, "fields")
-            write_struct_lit_fields(sb, e.fields, level + 1)
+            entry(sb, false, level + 1, "items")
+            write_struct_lit_items(sb, e.items, level + 1)
             close_obj(sb, level)
         }
         is SeqLitExpr -> {
@@ -1016,23 +1018,33 @@ write_call_args :: fn(sb: StringBuilder, args: CallArg[], level: i32) -> void {
     close_arr(sb, level)
 }
 
-write_struct_lit_fields :: fn(sb: StringBuilder, fields: StructLitField[], level: i32) -> void {
-    if fields.len() == 0 {
+write_struct_lit_items :: fn(sb: StringBuilder, items: (StructLitField | StructLitSpread)[], level: i32) -> void {
+    if items.len() == 0 {
         close_arr_empty(sb)
         return
     }
     open_arr(sb)
     first := true
-    for f in fields {
+    for it in items {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
         indent(sb, level + 1)
         open_obj(sb)
-        entry(sb, true, level + 2, "name")
-        write_string(sb, f.name)
-        entry(sb, false, level + 2, "value")
-        write_expr(sb, f.value, level + 2)
+        match it {
+            is StructLitField -> {
+                kind_entry(sb, level + 2, "field")
+                entry(sb, false, level + 2, "name")
+                write_string(sb, it.name)
+                entry(sb, false, level + 2, "value")
+                write_expr(sb, it.value, level + 2)
+            }
+            is StructLitSpread -> {
+                kind_entry(sb, level + 2, "spread")
+                entry(sb, false, level + 2, "expr")
+                write_expr(sb, it.expr, level + 2)
+            }
+        }
         close_obj(sb, level + 1)
     }
     close_arr(sb, level)
@@ -1081,6 +1093,13 @@ write_let_binding :: fn(sb: StringBuilder, b: LetBinding, level: i32) -> void {
         is WildcardBinding -> {
             open_obj(sb)
             kind_entry(sb, level + 1, "WildcardBinding")
+            close_obj(sb, level)
+        }
+        is RestBinding -> {
+            open_obj(sb)
+            kind_entry(sb, level + 1, "RestBinding")
+            entry(sb, false, level + 1, "name")
+            write_string(sb, b.name)
             close_obj(sb, level)
         }
     }

@@ -74,6 +74,7 @@ export const RESOLVER = {
   R2016: "short impl form requires a trait with exactly one method",
   R2017: "feature not yet implemented",
   R2018: "orphan impl forbidden",
+  R2019: "`void` is reserved and cannot be used as an identifier",
 } as const;
 
 export type ResolverCode = keyof typeof RESOLVER;
@@ -115,6 +116,8 @@ export const TYPECHECK = {
   T3034: "recursive expression-bodied function requires an explicit `-> Type` annotation",
   T3035: "type-valued slot is not yet supported in this position",
   T3036: "impl block missing required trait method",
+  T3037: "missing required field in struct literal",
+  T3038: "field already provided in struct literal",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

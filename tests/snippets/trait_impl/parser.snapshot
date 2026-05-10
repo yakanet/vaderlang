@@ -44,7 +44,8 @@
             "kind": "IdentExpr",
             "name": "f64"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         },
         {
           "name": "y",
@@ -52,7 +53,8 @@
             "kind": "IdentExpr",
             "name": "f64"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         }
       ],
       "decorators": []

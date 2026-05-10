@@ -33,7 +33,7 @@ const SUPPRESS_AFTER: ReadonlySet<TokenKind> = new Set<TokenKind>([
   "amp", "pipe", "caret", "shl", "shr",
   "eq", "neq", "lt", "lte", "gt", "gte",
   "and_and", "or_or",
-  "range_excl", "range_incl",
+  "range_excl", "range_incl", "dotdotdot",
   "assign", "plus_assign", "minus_assign", "star_assign", "slash_assign", "percent_assign",
   "colon", "arrow", "fat_arrow",
   "comma",
@@ -577,6 +577,12 @@ class Lexer {
         const start = this.posHere();
         this.advance(3);
         this.push(c3 === "<" ? "range_excl" : "range_incl", c + c2 + c3, start);
+        return true;
+      }
+      if (c3 === ".") {
+        const start = this.posHere();
+        this.advance(3);
+        this.push("dotdotdot", c + c2 + c3, start);
         return true;
       }
     }

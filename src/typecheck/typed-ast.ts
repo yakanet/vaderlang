@@ -86,8 +86,9 @@ export interface TypedProgram {
   readonly exprTypes: ReadonlyMap<A.Expr, Type>;
 
   /** Type of every `:=` / `::` local in this module. Keyed per leaf
-   *  `SimpleBinding`, so destructured-let leaves each carry their own type. */
-  readonly localTypes: ReadonlyMap<A.SimpleBinding, Type>;
+   *  `SimpleBinding` or `RestBinding`, so destructured-let leaves each
+   *  carry their own type. */
+  readonly localTypes: ReadonlyMap<A.SimpleBinding | A.RestBinding, Type>;
 
   /** Globally-shared decl/param/type-expr tables; lookup works cross-module. */
   readonly declTypes: ReadonlyMap<A.Decl, Type>;

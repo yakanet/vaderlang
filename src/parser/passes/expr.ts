@@ -438,7 +438,7 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
     }
     const rp = p.expect("rparen", "`)` to close generic argument list");
     p.expect("lbrace", "`{` to open generic struct literal");
-    const fields = parseStructLitFields(p);
+    const items = parseStructLitFields(p);
     const rb = p.expect("rbrace", "`}` to close struct literal");
     return {
       kind: "StructLitExpr",
@@ -449,19 +449,19 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
         callee: { kind: "IdentExpr", span: t.span, name: t.text },
         typeArgs: args,
       },
-      fields,
+      items,
     };
   }
 
   if (p.allowStructLit && p.check("lbrace") && looksLikeStructLitBody(p.tokens, p.pos)) {
     p.advance();
-    const fields = parseStructLitFields(p);
+    const items = parseStructLitFields(p);
     const rb = p.expect("rbrace", "`}` to close struct literal");
     return {
       kind: "StructLitExpr",
       span: p.spanOf(t, rb),
       typeName: { kind: "IdentExpr", span: t.span, name: t.text },
-      fields,
+      items,
     };
   }
   return { kind: "IdentExpr", span: t.span, name: t.text };
@@ -492,21 +492,31 @@ function peekGenericStructLit(p: Parser): boolean {
   return looksLikeStructLitBody(p.tokens, k);
 }
 
-function parseStructLitFields(p: Parser): A.StructLitField[] {
-  const out: A.StructLitField[] = [];
+function parseStructLitFields(p: Parser): A.StructLitItem[] {
+  const out: A.StructLitItem[] = [];
   p.skipNewlines();
   while (!p.check("rbrace") && !p.check("eof")) {
-    p.expect("dot", "`.` before struct literal field name");
-    const start = p.peek(-1);
-    const name = p.expect("ident", "struct literal field name");
-    p.expect("assign", "`=` after struct literal field name");
-    const value = parseExpr(p, 0);
-    out.push({
-      span: p.spanOf(start, p.peek(-1)),
-      name: name.text,
-      nameSpan: name.span,
-      value,
-    });
+    const start = p.peek();
+    if (p.match("dotdotdot") !== null) {
+      const expr = parseExpr(p, 0);
+      out.push({
+        kind: "spread",
+        span: p.spanOf(start, p.peek(-1)),
+        expr,
+      });
+    } else {
+      p.expect("dot", "`.` before struct literal field name");
+      const name = p.expect("ident", "struct literal field name");
+      p.expect("assign", "`=` after struct literal field name");
+      const value = parseExpr(p, 0);
+      out.push({
+        kind: "field",
+        span: p.spanOf(start, p.peek(-1)),
+        name: name.text,
+        nameSpan: name.span,
+        value,
+      });
+    }
     p.skipNewlines();
     if (p.match("comma") === null) break;
     p.skipNewlines();

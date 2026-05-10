@@ -102,6 +102,20 @@ export function checkProgram(
       case "TraitDecl":
         // Trait member bodies are sketches; nothing to check yet.
         break;
+      case "StructDecl":
+        // Defaults are validated here against the *unsubstituted* field type ;
+        // type-param defaults (`acc: T = T()`) need the bounded-type-param
+        // dispatch infra, so they fall through with Unresolved.
+        for (const f of decl.fields) {
+          if (f.default === null) continue;
+          const fieldTy = t.globals.typeExprTypes.get(f.type) ?? TY.unresolved;
+          const got = checkExpr(f.default, fieldTy, t, impls, diags, /*fn*/ null);
+          if (fieldTy.kind !== "Unresolved" && !isAssignable(got, fieldTy, impls)) {
+            err(diags, "T3001", f.default.span,
+              `field default has type ${displayType(got)}, expected ${displayType(fieldTy)}`);
+          }
+        }
+        break;
       case "ConstDecl": {
         // Layer 4-sugar — implicit type alias : `declareType` already
         // pre-resolved the body via `lowerExprAsType` and stashed it in

@@ -1,0 +1,6 @@
+# stdout
+minimal: timeout=30 debug=false
+loud: timeout=30 debug=true
+tight: timeout=5 debug=true
+# exit
+0

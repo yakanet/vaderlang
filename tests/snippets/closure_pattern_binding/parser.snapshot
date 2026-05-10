@@ -28,7 +28,8 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         }
       ],
       "decorators": []
@@ -304,8 +305,9 @@
                       "kind": "IdentExpr",
                       "name": "P"
                     },
-                    "fields": [
+                    "items": [
                       {
+                        "kind": "field",
                         "name": "name",
                         "value": {
                           "kind": "StringLitExpr",

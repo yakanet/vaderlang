@@ -10,7 +10,7 @@ import { unreachableTypeExprInValuePosition } from "../parser/ast.ts";
 import type { BuiltinScope } from "./builtins.ts";
 import { isKnownDecorator } from "../parser/decorators.ts";
 import { intrinsicSpec } from "../parser/intrinsics.ts";
-import { err } from "./diag.ts";
+import { checkReservedIdent, err } from "./diag.ts";
 import type { Module } from "./module.ts";
 import type { ResolvedProgram } from "./resolved-ast.ts";
 import type { BindingOrigin, ModuleId, Symbol, SymbolFactory } from "./symbol.ts";
@@ -49,10 +49,10 @@ interface MutableProgram {
    *  for expr-position vs type-position references. */
   types: Map<A.IdentExpr, Symbol>;
   params: Map<A.FnParam, Symbol>;
-  /** Symbol per leaf SimpleBinding. For a simple `x := expr` the LetStmt's
-   *  `binding` IS the SimpleBinding key ; for tuple destructure each leaf is
-   *  keyed individually. */
-  locals: Map<A.SimpleBinding, Symbol>;
+  /** Symbol per leaf SimpleBinding (or RestBinding for `...name`). For a
+   *  simple `x := expr` the LetStmt's `binding` IS the SimpleBinding key ;
+   *  for tuple destructure each leaf is keyed individually. */
+  locals: Map<A.SimpleBinding | A.RestBinding, Symbol>;
   forIns: Map<A.ForStmt, Symbol>;
   typeParams: Map<A.TypeParam, Symbol>;
   typeParamTypes: Map<A.IdentExpr, Symbol>;
@@ -168,7 +168,10 @@ function resolveFnDecl(decl: A.FnDecl, parent: Scope, p: MutableProgram, input: 
 function resolveStructDecl(decl: A.StructDecl, parent: Scope, p: MutableProgram, input: ResolveModuleInput): void {
   const scope = newScope(parent);
   for (const tp of decl.typeParams) bindTypeParam(tp, scope, p, input);
-  for (const field of decl.fields) resolveType(field.type, scope, p, input);
+  for (const field of decl.fields) {
+    resolveType(field.type, scope, p, input);
+    if (field.default !== null) resolveExpr(field.default, scope, p, input);
+  }
 }
 
 function resolveTraitDecl(decl: A.TraitDecl, parent: Scope, p: MutableProgram, input: ResolveModuleInput): void {
@@ -387,6 +390,7 @@ function resolveConstDecl(decl: A.ConstDecl, scope: Scope, p: MutableProgram, in
 function bindParam(
   param: A.FnParam, fn: A.FnDecl | A.LambdaExpr, scope: Scope, p: MutableProgram, input: ResolveModuleInput,
 ): void {
+  checkReservedIdent(param.name, param.span, input.diags);
   if (param.type !== null) resolveType(param.type, scope, p, input);
   if (param.defaultValue !== null) resolveExpr(param.defaultValue, scope, p, input);
   const sym = input.factory.make({
@@ -402,6 +406,7 @@ function bindParam(
 }
 
 function bindTypeParam(tp: A.TypeParam, scope: Scope, p: MutableProgram, input: ResolveModuleInput): void {
+  checkReservedIdent(tp.name, tp.span, input.diags);
   if (tp.bound !== null) resolveType(tp.bound, scope, p, input);
   const sym = input.factory.make({
     kind: "type-param",
@@ -456,6 +461,7 @@ function bindLetBinding(
 ): void {
   switch (b.kind) {
     case "SimpleBinding": {
+      checkReservedIdent(b.name, b.nameSpan, input.diags);
       const sym = input.factory.make({
         kind: "local",
         name: b.name,
@@ -473,6 +479,17 @@ function bindLetBinding(
       return;
     case "WildcardBinding":
       return;
+    case "RestBinding": {
+      checkReservedIdent(b.name, b.nameSpan, input.diags);
+      const sym = input.factory.make({
+        kind: "local", name: b.name, module: input.module.id,
+        visibility: "private", definedAt: b.nameSpan,
+        source: { kind: "local", stmt, binding: b },
+      });
+      scope.bindings.set(b.name, sym);
+      p.locals.set(b, sym);
+      return;
+    }
   }
 }
 
@@ -503,6 +520,7 @@ function bindBinding(
   name: string, span: Span, origin: BindingOrigin,
   scope: Scope, input: ResolveModuleInput,
 ): Symbol {
+  checkReservedIdent(name, span, input.diags);
   const sym = input.factory.make({
     kind: "binding",
     name,
@@ -681,7 +699,10 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       return;
     case "StructLitExpr":
       resolveType(expr.typeName, scope, p, input);
-      for (const f of expr.fields) resolveExpr(f.value, scope, p, input);
+      for (const item of expr.items) {
+        if (item.kind === "field") resolveExpr(item.value, scope, p, input);
+        else resolveExpr(item.expr, scope, p, input);
+      }
       return;
     case "SeqLitExpr":
       for (const el of expr.elements) resolveExpr(el, scope, p, input);

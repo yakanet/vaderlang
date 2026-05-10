@@ -91,6 +91,10 @@ export interface StructField {
   readonly name: string;
   readonly type: TypeExpr;
   readonly visibility: Visibility;
+  /** Optional default value used when a struct literal omits this field.
+   *  Re-lowered at every literal site (comptime-folding is an optimisation,
+   *  not a correctness requirement). */
+  readonly default: Expr | null;
 }
 
 export interface EnumDecl {
@@ -253,7 +257,7 @@ export interface LetStmt {
 /** Recursive let-binding tree. Leaves are `SimpleBinding` (introduces a name)
  *  or `WildcardBinding` (ignores the slot). `TupleBinding` matches tuple-typed
  *  values element-wise. */
-export type LetBinding = SimpleBinding | TupleBinding | WildcardBinding;
+export type LetBinding = SimpleBinding | TupleBinding | WildcardBinding | RestBinding;
 
 export interface SimpleBinding {
   readonly kind: "SimpleBinding";
@@ -273,10 +277,19 @@ export interface WildcardBinding {
   readonly span: Span;
 }
 
-/** Walk a let-binding and visit every leaf that introduces a name. Mirrors
- *  `forEachPatternBindingKey` for `match` patterns. */
+/** `...name` rest-element of a bracketed binding — collects the tail into
+ *  a fresh array. Only valid as the last element of an array-typed source. */
+export interface RestBinding {
+  readonly kind: "RestBinding";
+  readonly span: Span;
+  readonly name: string;
+  readonly nameSpan: Span;
+}
+
+/** Visit every leaf that introduces a name. Leaves are passed by their
+ *  original AST identity so callers can key into `resolved.locals`. */
 export function forEachLetBindingLeaf(
-  binding: LetBinding, visit: (leaf: SimpleBinding) => void,
+  binding: LetBinding, visit: (leaf: SimpleBinding | RestBinding) => void,
 ): void {
   switch (binding.kind) {
     case "SimpleBinding":
@@ -286,6 +299,9 @@ export function forEachLetBindingLeaf(
       for (const e of binding.elements) forEachLetBindingLeaf(e, visit);
       return;
     case "WildcardBinding":
+      return;
+    case "RestBinding":
+      visit(binding);
       return;
   }
 }
@@ -570,14 +586,25 @@ export interface StructLitExpr {
   readonly kind: "StructLitExpr";
   readonly span: Span;
   readonly typeName: TypeExpr;
-  readonly fields: readonly StructLitField[];
+  readonly items: readonly StructLitItem[];
 }
 
+export type StructLitItem = StructLitField | StructLitSpread;
+
 export interface StructLitField {
+  readonly kind: "field";
   readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
   readonly value: Expr;
+}
+
+/** `...expr` clause in a struct literal — copies every field of `expr` into
+ *  the literal, with subsequent named fields overriding the spread. */
+export interface StructLitSpread {
+  readonly kind: "spread";
+  readonly span: Span;
+  readonly expr: Expr;
 }
 
 /** Bracketed literal `[e1, e2, ...]`. The parser does not commit to "array"

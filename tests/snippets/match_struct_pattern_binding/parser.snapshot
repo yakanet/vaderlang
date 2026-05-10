@@ -28,7 +28,8 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         },
         {
           "name": "name",
@@ -36,7 +37,8 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         }
       ],
       "decorators": []
@@ -68,8 +70,9 @@
                 "kind": "IdentExpr",
                 "name": "P"
               },
-              "fields": [
+              "items": [
                 {
+                  "kind": "field",
                   "name": "x",
                   "value": {
                     "kind": "IntLitExpr",
@@ -78,6 +81,7 @@
                   }
                 },
                 {
+                  "kind": "field",
                   "name": "name",
                   "value": {
                     "kind": "StringLitExpr",

@@ -684,11 +684,17 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
         fname :: p.expect(.Ident, "field name")
         p.expect(.Colon, "`:` after field name")
         ftype :: p.parse_type()
+        fdefault: Expr | null = null
+        if p.match_kind(.Assign).matched {
+            p.skip_newlines()
+            fdefault = p.parse_expr(0)
+        }
         fields.push(StructField {
             .span       = p.span_of(start, p.peek_at(-1)),
             .name       = fname.text,
             .ty         = ftype,
             .visibility = field_visibility,
+            .default    = fdefault,
         })
         if !p.check(.RBrace) {
             p.match_kind(.Comma)
@@ -1450,7 +1456,17 @@ parse_let_binding :: fn(p: Parser) -> LetBinding {
             for {
                 p.skip_newlines()
                 if p.check(.RBracket) { break }
-                elements.push(p.parse_let_binding())
+                sub_start :: p.peek()
+                if p.match_kind(.DotDotDot).matched {
+                    name_tok :: p.expect(.Ident, "name after `...` in destructure pattern")
+                    elements.push(RestBinding {
+                        .span      = p.span_of(sub_start, name_tok),
+                        .name      = name_tok.text,
+                        .name_span = name_tok.span,
+                    })
+                } else {
+                    elements.push(p.parse_let_binding())
+                }
                 p.skip_newlines()
                 if !p.match_kind(.Comma).matched { break }
                 p.skip_newlines()
@@ -1685,6 +1701,7 @@ infix_for :: fn(k: TokenKind) = match k {
     .KwIn      -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .In,     .non_assoc = true  }
     .RangeExcl -> InfixOpDescr { .has = true, .left_bp = 30, .right_bp = 30, .op = .Lt,     .non_assoc = true  }
     .RangeIncl -> InfixOpDescr { .has = true, .left_bp = 30, .right_bp = 30, .op = .Lte,    .non_assoc = true  }
+    .DotDotDot    -> no_infix()
     .Pipe      -> InfixOpDescr { .has = true, .left_bp = 40, .right_bp = 41, .op = .BitOr,  .non_assoc = false }
     .Caret     -> InfixOpDescr { .has = true, .left_bp = 50, .right_bp = 51, .op = .BitXor, .non_assoc = false }
     .Amp       -> InfixOpDescr { .has = true, .left_bp = 60, .right_bp = 61, .op = .BitAnd, .non_assoc = false }
@@ -1800,6 +1817,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .DeclVar      -> -1
     .RangeExcl    -> -1
     .RangeIncl    -> -1
+    .DotDotDot    -> -1
     .Arrow        -> -1
     .FatArrow     -> -1
     .At           -> -1
@@ -2105,7 +2123,7 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         }
         rp :: p.expect(.RParen, "`)` to close generic argument list")
         p.expect(.LBrace, "`{` to open generic struct literal")
-        fields :: p.parse_struct_lit_fields()
+        items :: p.parse_struct_lit_fields()
         rb :: p.expect(.RBrace, "`}` to close struct literal")
         return StructLitExpr {
             .span      = p.span_of(t, rb),
@@ -2114,18 +2132,18 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
                 .callee    = ident_expr(t.span, t.text),
                 .type_args = args,
             },
-            .fields    = fields,
+            .items     = items,
         }
     }
 
     if p.allow_struct_lit && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
         p.advance()
-        fields :: p.parse_struct_lit_fields()
+        items :: p.parse_struct_lit_fields()
         rb :: p.expect(.RBrace, "`}` to close struct literal")
         return StructLitExpr {
             .span      = p.span_of(t, rb),
             .type_name = ident_expr(t.span, t.text),
-            .fields    = fields,
+            .items     = items,
         }
     }
     return ident_expr(t.span, t.text)
@@ -2168,26 +2186,34 @@ looks_like_struct_lit_body :: fn(tokens: Token[], pos_at_lbrace: i32) -> bool {
             i = i + 1
             continue
         }
-        return t.kind == .Dot || t.kind == .RBrace
+        return t.kind == .Dot || t.kind == .DotDotDot || t.kind == .RBrace
     }
     return false
 }
 
-parse_struct_lit_fields :: fn(p: Parser) -> StructLitField[] {
-    out: StructLitField[] = []
+parse_struct_lit_fields :: fn(p: Parser) -> (StructLitField | StructLitSpread)[] {
+    out: (StructLitField | StructLitSpread)[] = []
     p.skip_newlines()
     for !p.check(.RBrace) && !p.check(.Eof) {
-        p.expect(.Dot, "`.` before struct literal field name")
-        start :: p.peek_at(-1)
-        name :: p.expect(.Ident, "struct literal field name")
-        p.expect(.Assign, "`=` after struct literal field name")
-        value :: p.parse_expr(0)
-        out.push(StructLitField {
-            .span      = p.span_of(start, p.peek_at(-1)),
-            .name      = name.text,
-            .name_span = name.span,
-            .value     = value,
-        })
+        start :: p.peek()
+        if p.match_kind(.DotDotDot).matched {
+            spread_expr :: p.parse_expr(0)
+            out.push(StructLitSpread {
+                .span = p.span_of(start, p.peek_at(-1)),
+                .expr = spread_expr,
+            })
+        } else {
+            p.expect(.Dot, "`.` before struct literal field name")
+            name :: p.expect(.Ident, "struct literal field name")
+            p.expect(.Assign, "`=` after struct literal field name")
+            value :: p.parse_expr(0)
+            out.push(StructLitField {
+                .span      = p.span_of(start, p.peek_at(-1)),
+                .name      = name.text,
+                .name_span = name.span,
+                .value     = value,
+            })
+        }
         p.skip_newlines()
         if !p.match_kind(.Comma).matched { break }
         p.skip_newlines()

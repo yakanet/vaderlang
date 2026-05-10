@@ -1,0 +1,38 @@
+# Typecheck
+
+## tests/snippets/struct_defaults/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Settings             :: Settings
+  expr 10:11    StructLitExpr  :: Settings
+  expr 10:30    StringLitExpr  :: string
+  expr 11:11    StructLitExpr  :: Settings
+  expr 11:30    StringLitExpr  :: string
+  expr 12:11    StructLitExpr  :: Settings
+  expr 12:30    StringLitExpr  :: string
+  expr 13:13    StringLitExpr  :: string
+  expr 13:16    FieldExpr      :: string
+  expr 13:16    IdentExpr      :: Settings
+  expr 13:36    FieldExpr      :: i32
+  expr 13:36    IdentExpr      :: Settings
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(string) -> void
+  expr 13:56    FieldExpr      :: bool
+  expr 13:56    IdentExpr      :: Settings
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    FieldExpr      :: string
+  expr 14:16    IdentExpr      :: Settings
+  expr 14:36    FieldExpr      :: i32
+  expr 14:36    IdentExpr      :: Settings
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(string) -> void
+  expr 14:56    FieldExpr      :: bool
+  expr 14:56    IdentExpr      :: Settings
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    FieldExpr      :: string
+  expr 15:16    IdentExpr      :: Settings
+  expr 15:36    FieldExpr      :: i32
+  expr 15:36    IdentExpr      :: Settings
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 15:56    FieldExpr      :: bool
+  expr 15:56    IdentExpr      :: Settings

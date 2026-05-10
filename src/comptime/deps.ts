@@ -116,7 +116,12 @@ function walkExpr(expr: A.Expr, visit: (e: A.Expr) => void): void {
       for (const stmt of expr.stmts) walkStmt(stmt, visit);
       if (expr.trailing !== null) walkExpr(expr.trailing, visit);
       return;
-    case "StructLitExpr": for (const f of expr.fields) walkExpr(f.value, visit); return;
+    case "StructLitExpr":
+      for (const item of expr.items) {
+        if (item.kind === "field") walkExpr(item.value, visit);
+        else walkExpr(item.expr, visit);
+      }
+      return;
     case "SeqLitExpr":    for (const e of expr.elements) walkExpr(e, visit); return;
     case "StringLitExpr": for (const p of expr.parts) if (p.kind === "interp") walkExpr(p.expr, visit); return;
     case "RangeExpr":  walkExpr(expr.lower, visit); walkExpr(expr.upper, visit); return;

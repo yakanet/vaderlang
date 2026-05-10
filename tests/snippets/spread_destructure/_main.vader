@@ -1,0 +1,19 @@
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    arr :: [10, 20, 30, 40, 50]
+
+    [first, ...rest] := arr
+    println("first=${first} rest.len=${rest.len()}")
+    for x in rest { println("  ${x}") }
+
+    [a, b, ...tail] := arr
+    println("a=${a} b=${b} tail.len=${tail.len()}")
+
+    // wildcards combine with rest
+    [_, _, _, ...short] := arr
+    println("short.len=${short.len()}")
+    for x in short { println("  ${x}") }
+
+    return 0
+}

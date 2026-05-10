@@ -93,6 +93,7 @@ suppresses_newline_after :: fn(k: TokenKind) = match k {
     .OrOr      -> true
     .RangeExcl -> true
     .RangeIncl -> true
+    .DotDotDot -> true
     .Assign        -> true
     .PlusAssign    -> true
     .MinusAssign   -> true
@@ -718,11 +719,12 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     c := l.peek()
     c2 := l.peek_at(1)
 
-    // Range ops: `..<` and `..=`.
+    // Range ops: `..<` and `..=`. Spread: `...`.
     if c == '.' && c2 == '.' {
         c3 := l.peek_at(2)
         if c3 == '<' { return l.emit_and_advance(.RangeExcl, "..<") }
         if c3 == '=' { return l.emit_and_advance(.RangeIncl, "..=") }
+        if c3 == '.' { return l.emit_and_advance(.DotDotDot, "...") }
     }
 
     // Two-char ops.

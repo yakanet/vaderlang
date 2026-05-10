@@ -1,0 +1,17 @@
+import "std/io" { println }
+
+Settings :: struct {
+    name:    string
+    timeout: i32  = 30
+    debug:   bool = false
+}
+
+main :: fn() -> i32 {
+    s1 :: Settings { .name = "minimal" }
+    s2 :: Settings { .name = "loud", .debug = true }
+    s3 :: Settings { .name = "tight", .timeout = 5, .debug = true }
+    println("${s1.name}: timeout=${s1.timeout} debug=${s1.debug}")
+    println("${s2.name}: timeout=${s2.timeout} debug=${s2.debug}")
+    println("${s3.name}: timeout=${s3.timeout} debug=${s3.debug}")
+    return 0
+}

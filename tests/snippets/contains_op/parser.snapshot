@@ -28,7 +28,8 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         }
       ],
       "decorators": []
@@ -379,8 +380,9 @@
                 "kind": "IdentExpr",
                 "name": "DigitSet"
               },
-              "fields": [
+              "items": [
                 {
+                  "kind": "field",
                   "name": "bits",
                   "value": {
                     "kind": "BinaryExpr",

@@ -1,0 +1,12 @@
+// `void` is reserved (R2019) — any binding site that introduces it errors.
+import "std/io" { println }
+
+mk :: fn() {
+    void :: 42
+    println("${void}")
+}
+
+main :: fn() -> i32 {
+    mk()
+    return 0
+}

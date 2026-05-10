@@ -262,12 +262,7 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
     case "LambdaExpr":
       return lowerLambda(ctx, expr);
     case "StructLitExpr":
-      return {
-        kind: "LoweredStructLit", span: expr.span, type: exprType,
-        fields: expr.fields.map<LoweredStructLitField>((f) => ({
-          name: f.name, value: lowerExpr(ctx, f.value),
-        })),
-      };
+      return lowerStructLit(ctx, expr, exprType);
     case "SeqLitExpr":
       // Branch on the typecheck'd type :
       //   - Array(T) → LoweredArrayLit (existing path)
@@ -713,4 +708,78 @@ function sameOffsetShortcutApplies(
     }
   }
   return true;
+}
+
+/** Reorder fields to declaration order (struct.new is positional),
+ *  materialise defaults for omitted fields, and bind each `...spread`
+ *  source to a synthetic local so it's evaluated exactly once even if
+ *  multiple fields inherit from it. T3037 in the typechecker guarantees
+ *  every required field has a source ; the LoweredUnreachable fallback
+ *  is reached only when prior errors let lowering continue. */
+function lowerStructLit(ctx: FnLowerCtx, expr: A.StructLitExpr, exprType: Type): LoweredExpr {
+  const decl = exprType.kind === "Struct" ? sourceStructDecl(exprType.symbol) : null;
+  if (decl === null) return passthroughStructLit(ctx, expr, exprType);
+
+  const namedItems = new Map<string, A.StructLitField>();
+  const spreadItems: A.StructLitSpread[] = [];
+  for (const item of expr.items) {
+    if (item.kind === "field") namedItems.set(item.name, item);
+    else spreadItems.push(item);
+  }
+
+  const stmts: import("../lowered-ast.ts").LoweredStmt[] = [];
+  let spreadSym: Symbol | null = null;
+  for (const sp of spreadItems) {
+    const value = lowerExpr(ctx, sp.expr);
+    spreadSym = freshSyntheticSymbol(ctx, "spread");
+    stmts.push({
+      kind: "LoweredLet", span: sp.span,
+      name: spreadSym.name, symbol: spreadSym, type: exprType, value,
+    });
+  }
+
+  const loweredFields: LoweredStructLitField[] = decl.fields.map((sf) => {
+    const provided = namedItems.get(sf.name);
+    if (provided !== undefined) return { name: sf.name, value: lowerExpr(ctx, provided.value) };
+    if (spreadSym !== null) {
+      const fieldType = ctx.types.typeExprType(sf.type);
+      return {
+        name: sf.name,
+        value: {
+          kind: "LoweredFieldAccess", span: expr.span, type: fieldType,
+          target: { kind: "LoweredIdent", span: expr.span, type: exprType, symbol: spreadSym },
+          field: sf.name,
+        },
+      };
+    }
+    if (sf.default !== null) return { name: sf.name, value: lowerExpr(ctx, sf.default) };
+    return {
+      name: sf.name,
+      value: {
+        kind: "LoweredUnreachable", span: expr.span, type: ctx.types.typeExprType(sf.type),
+        reason: `missing required field \`${sf.name}\``,
+      },
+    };
+  });
+
+  const lit: LoweredExpr = {
+    kind: "LoweredStructLit", span: expr.span, type: exprType, fields: loweredFields,
+  };
+  if (stmts.length === 0) return lit;
+  return { kind: "LoweredBlock", span: expr.span, type: exprType, stmts, trailing: lit };
+}
+
+/** Fallback for literals whose type didn't resolve to a known struct decl —
+ *  emit fields in source order without reordering or default injection.
+ *  Spread items are silently dropped (the typechecker already errored). */
+function passthroughStructLit(
+  ctx: FnLowerCtx, expr: A.StructLitExpr, exprType: Type,
+): LoweredExpr {
+  return {
+    kind: "LoweredStructLit", span: expr.span, type: exprType,
+    fields: expr.items.flatMap<LoweredStructLitField>((item) =>
+      item.kind === "field"
+        ? [{ name: item.name, value: lowerExpr(ctx, item.value) }]
+        : []),
+  };
 }

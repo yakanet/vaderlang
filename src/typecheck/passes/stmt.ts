@@ -231,12 +231,13 @@ function forInElementType(iter: A.Expr, t: MutableTyped): Type | null {
   return null;     // user-defined iterators handled when we wire a richer trait lookup
 }
 
-/** When a let-binding is destructuring (TupleBinding), synthesise a TupleType
- *  shape with `Unresolved` slots — the inferSeqLit / value-side check fills
- *  them in. Returns null for SimpleBinding (let inferSeqLit infer freely)
- *  and for fully-wildcard tuples. */
+/** Synthesise a TupleType skeleton with Unresolved slots for a tuple-shaped
+ *  binding so the value side can fill it in. Returns null when no shape
+ *  constraint applies — including the `...rest` form, where the value is
+ *  array-typed and inferred freely. */
 function expectedFromBinding(b: A.LetBinding): TupleType | null {
   if (b.kind !== "TupleBinding") return null;
+  if (b.elements.some((e) => e.kind === "RestBinding")) return null;
   const elements: Type[] = b.elements.map((e) => {
     if (e.kind === "TupleBinding") return expectedFromBinding(e) ?? TY.unresolved;
     return TY.unresolved;
@@ -245,18 +246,48 @@ function expectedFromBinding(b: A.LetBinding): TupleType | null {
 }
 
 /** After inferring the value's type, walk the let-binding tree and record a
- *  type for each leaf SimpleBinding so downstream phases (lower, c-emit) can
- *  query `localTypes.get(binding)`. */
+ *  type for each leaf so downstream phases can query `localTypes.get(binding)`. */
 function assignBindingTypes(
   b: A.LetBinding, declared: Type, t: MutableTyped, diags: DiagnosticCollector,
 ): void {
   switch (b.kind) {
     case "SimpleBinding":
+    case "RestBinding":
       t.localTypes.set(b, declared);
       return;
     case "WildcardBinding":
       return;
     case "TupleBinding": {
+      const restIdx = b.elements.findIndex((e) => e.kind === "RestBinding");
+      const lastIdx = b.elements.length - 1;
+      if (restIdx >= 0) {
+        if (restIdx !== lastIdx) {
+          err(diags, "T3001", b.elements[restIdx]!.span,
+            "`...rest` must be the last element of a destructuring pattern");
+        }
+        const extraRest = b.elements.slice(restIdx + 1).find((e) => e.kind === "RestBinding");
+        if (extraRest !== undefined) {
+          err(diags, "T3001", extraRest.span,
+            "only one `...rest` is allowed per destructuring pattern");
+        }
+        if (declared.kind === "Array") {
+          const elemTy = declared.element;
+          for (let i = 0; i < b.elements.length; i++) {
+            const leaf = b.elements[i]!;
+            if (leaf.kind === "RestBinding") assignBindingTypes(leaf, declared, t, diags);
+            else assignBindingTypes(leaf, elemTy, t, diags);
+          }
+          return;
+        }
+        if (declared.kind === "Unresolved") {
+          for (const leaf of b.elements) assignBindingTypes(leaf, TY.unresolved, t, diags);
+          return;
+        }
+        err(diags, "T3001", b.span,
+          `cannot destructure ${displayType(declared)} with a \`...rest\` pattern (only arrays support spread destructure)`);
+        for (const leaf of b.elements) assignBindingTypes(leaf, TY.unresolved, t, diags);
+        return;
+      }
       if (declared.kind === "Tuple") {
         if (declared.elements.length !== b.elements.length) {
           err(diags, "T3001", b.span,

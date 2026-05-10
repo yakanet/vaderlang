@@ -42,6 +42,7 @@ export type TokenKind =
   | "decl_var"      // :=
   | "range_excl"    // ..<
   | "range_incl"    // ..=
+  | "dotdotdot"     // ...   (struct spread)
   | "question"      // ?
   | "arrow"         // ->
   | "fat_arrow"     // =>  (reserved for future use)

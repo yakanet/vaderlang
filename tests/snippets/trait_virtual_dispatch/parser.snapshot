@@ -28,7 +28,8 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         }
       ],
       "decorators": []
@@ -45,7 +46,8 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         }
       ],
       "decorators": []
@@ -252,8 +254,9 @@
                             "kind": "IdentExpr",
                             "name": "ParseErr"
                           },
-                          "fields": [
+                          "items": [
                             {
+                              "kind": "field",
                               "name": "msg",
                               "value": {
                                 "kind": "StringLitExpr",
@@ -302,8 +305,9 @@
                             "kind": "IdentExpr",
                             "name": "NetErr"
                           },
-                          "fields": [
+                          "items": [
                             {
+                              "kind": "field",
                               "name": "reason",
                               "value": {
                                 "kind": "StringLitExpr",

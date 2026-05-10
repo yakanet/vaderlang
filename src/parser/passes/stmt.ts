@@ -207,7 +207,18 @@ function parseLetBinding(p: Parser): A.LetBinding {
       while (true) {
         p.skipNewlines();
         if (p.check("rbracket")) break;
-        elements.push(parseLetBinding(p));
+        const subStart = p.peek();
+        if (p.match("dotdotdot") !== null) {
+          const nameTok = p.expect("ident", "name after `...` in destructure pattern");
+          elements.push({
+            kind: "RestBinding",
+            span: p.spanOf(subStart, nameTok),
+            name: nameTok.text,
+            nameSpan: nameTok.span,
+          });
+        } else {
+          elements.push(parseLetBinding(p));
+        }
         p.skipNewlines();
         if (p.match("comma") === null) break;
         p.skipNewlines();

@@ -1,0 +1,6 @@
+# stdout
+base: a=1 b=2 c=3
+upd:  a=1 b=99 c=3
+merged: a=10 b=7 c=30
+# exit
+0

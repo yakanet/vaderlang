@@ -1,0 +1,12 @@
+# stdout
+first=10 rest.len=4
+  20
+  30
+  40
+  50
+a=10 b=20 tail.len=3
+short.len=2
+  40
+  50
+# exit
+0

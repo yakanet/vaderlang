@@ -24,21 +24,48 @@ export function inferStructLit(
   if (ty.kind !== "Struct") {
     err(diags, "T3001", expr.typeName.span,
       `${displayType(ty)} is not a struct`);
-    for (const f of expr.fields) checkExpr(f.value, null, t, impls, diags, fn);
+    for (const item of expr.items) {
+      if (item.kind === "field") checkExpr(item.value, null, t, impls, diags, fn);
+      else checkExpr(item.expr, null, t, impls, diags, fn);
+    }
     return ty;
   }
   const decl = sourceStructDecl(ty.symbol);
   const subst = buildStructSubst(decl?.typeParams ?? [], ty.args, t.globals.typeParamSymbols);
-  for (const f of expr.fields) {
-    const field = decl?.fields.find((sf) => sf.name === f.name);
+  const hasSpread = expr.items.some((i) => i.kind === "spread");
+  const provided = new Set<string>();
+  for (const item of expr.items) {
+    if (item.kind === "spread") {
+      const got = checkExpr(item.expr, ty, t, impls, diags, fn);
+      if (!isAssignable(got, ty, impls)) {
+        err(diags, "T3001", item.span,
+          `spread source must be assignable to ${displayType(ty)}, got ${displayType(got)}`);
+      }
+      continue;
+    }
+    const field = decl?.fields.find((sf) => sf.name === item.name);
     const fieldRaw = field !== undefined ? t.globals.typeExprTypes.get(field.type) ?? null : null;
     const expected = fieldRaw !== null ? substitute(fieldRaw, subst) : null;
-    const got = checkExpr(f.value, expected, t, impls, diags, fn);
+    const got = checkExpr(item.value, expected, t, impls, diags, fn);
     if (field === undefined) {
-      err(diags, "T3009", f.nameSpan, `\`${f.name}\` on ${displayType(ty)}`);
-    } else if (expected !== null && !isAssignable(got, expected, impls)) {
-      err(diags, "T3001", f.span,
-        `expected ${displayType(expected)}, got ${displayType(got)}`);
+      err(diags, "T3009", item.nameSpan, `\`${item.name}\` on ${displayType(ty)}`);
+    } else {
+      if (provided.has(item.name)) {
+        err(diags, "T3038", item.nameSpan,
+          `field \`${item.name}\` already provided in this struct literal`);
+      }
+      provided.add(item.name);
+      if (expected !== null && !isAssignable(got, expected, impls)) {
+        err(diags, "T3001", item.span,
+          `expected ${displayType(expected)}, got ${displayType(got)}`);
+      }
+    }
+  }
+  if (decl !== null && !hasSpread) {
+    const missing = decl.fields.filter((sf) => !provided.has(sf.name) && sf.default === null);
+    if (missing.length > 0) {
+      err(diags, "T3037", expr.span,
+        `missing required field${missing.length === 1 ? "" : "s"} on ${displayType(ty)}: ${missing.map((sf) => `\`${sf.name}\``).join(", ")}`);
     }
   }
   return ty;

@@ -24,7 +24,7 @@ export interface EntryTypes {
    *  has no recorded type — same convention as the inline lookups they
    *  replaced. */
   exprType(expr: A.Expr): Type;
-  localType(binding: A.SimpleBinding): Type;
+  localType(binding: A.SimpleBinding | A.RestBinding): Type;
   paramType(param: A.FnParam): Type;
   typeExprType(typeExpr: A.TypeExpr): Type;
   declType(decl: A.FnDecl | A.StructDecl | A.ConstDecl | A.EnumDecl | A.TypeAliasDecl): Type;

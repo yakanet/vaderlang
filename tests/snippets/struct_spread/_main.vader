@@ -1,0 +1,20 @@
+import "std/io" { println }
+
+P :: struct {
+    a: i32
+    b: i32
+    c: i32
+}
+
+main :: fn() -> i32 {
+    base :: P { .a = 1, .b = 2, .c = 3 }
+    upd  :: P { ...base, .b = 99 }
+    println("base: a=${base.a} b=${base.b} c=${base.c}")
+    println("upd:  a=${upd.a} b=${upd.b} c=${upd.c}")
+
+    // multi-spread : last spread wins for fields it covers
+    other :: P { .a = 10, .b = 20, .c = 30 }
+    merged :: P { ...base, ...other, .b = 7 }
+    println("merged: a=${merged.a} b=${merged.b} c=${merged.c}")
+    return 0
+}

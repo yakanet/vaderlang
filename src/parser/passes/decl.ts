@@ -534,11 +534,17 @@ function parseStructDecl(
     const fname = p.expect("ident", "field name");
     p.expect("colon", "`:` after field name");
     const ftype = parseType(p);
+    let fdefault: A.Expr | null = null;
+    if (p.match("assign") !== null) {
+      p.skipNewlines();
+      fdefault = parseExpr(p, 0);
+    }
     fields.push({
       span: p.spanOf(start, p.peek(-1)),
       name: fname.text,
       type: ftype,
       visibility: fieldVisibility,
+      default: fdefault,
     });
     // Field separator: newline or comma.
     if (!p.check("rbrace")) {

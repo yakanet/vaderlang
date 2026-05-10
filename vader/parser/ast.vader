@@ -31,7 +31,7 @@ export IfElse :: IfElseIf | IfElseBlock
 
 export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern
 
-export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding
+export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding | RestBinding
 
 export PatternFieldValue :: PatternBinding | PatternLiteral
 
@@ -145,6 +145,8 @@ export StructField :: struct {
     name:       string
     ty:         TypeExpr
     visibility: Visibility
+    // Optional default value used when a struct literal omits this field.
+    default:    Expr | null
 }
 
 // ---- Enum -----------------------------------------------------------------
@@ -262,6 +264,15 @@ export TupleBinding :: struct {
 
 export WildcardBinding :: struct {
     span: Span
+}
+
+// `...name` rest-element of a bracketed binding — collects every slot not
+// consumed by sibling SimpleBindings into a fresh array. Only valid as the
+// last element of a TupleBinding whose source is array-typed.
+export RestBinding :: struct {
+    span:      Span
+    name:      string
+    name_span: Span
 }
 
 export AssignStmt :: struct {
@@ -478,14 +489,22 @@ export LambdaExpr :: struct {
 export StructLitExpr :: struct {
     span:      Span
     type_name: TypeExpr
-    fields:    StructLitField[]
+    items:     (StructLitField | StructLitSpread)[]
 }
+
+export StructLitItem :: StructLitField | StructLitSpread
 
 export StructLitField :: struct {
     span:      Span
     name:      string
     name_span: Span
     value:     Expr
+}
+
+// `...expr` clause in a struct literal.
+export StructLitSpread :: struct {
+    span: Span
+    expr: Expr
 }
 
 // Bracketed literal `[e1, e2, ...]`. The parser does not commit to "array"

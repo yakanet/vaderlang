@@ -5,7 +5,7 @@
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type * as A from "../parser/ast.ts";
 
-import { err } from "./diag.ts";
+import { checkReservedIdent, err } from "./diag.ts";
 import type { ImportEntry, SourceFile } from "./module.ts";
 import { resolveImportPath } from "./module.ts";
 import type { ModuleId, Symbol } from "./symbol.ts";
@@ -81,6 +81,7 @@ function addFnSymbol(
   input: CollectInput,
   decl: A.FnDecl,
 ): void {
+  checkReservedIdent(decl.name, decl.nameSpan, input.diags);
   // `main` is the program entry point and is always treated as exported,
   // so consumers (runtime, embedders, cross-module references) can reach it
   // without a redundant `export` keyword.
@@ -119,6 +120,7 @@ function addSymbol(
   kind: "fn" | "struct" | "enum" | "trait" | "type-alias" | "const",
   source: Symbol["source"],
 ): void {
+  checkReservedIdent(name, span, input.diags);
   const existing = symbols.get(name);
   if (existing !== undefined) {
     err(input.diags, "R2004", span, `\`${name}\` already declared in this module`,
@@ -177,6 +179,7 @@ function bindImport(
   importedName: string | null,
   span: A.ImportDecl["span"],
 ): void {
+  checkReservedIdent(localName, span, input.diags);
   const existing = symbols.get(localName);
   if (existing !== undefined) {
     err(input.diags, "R2011", span, `\`${localName}\``,

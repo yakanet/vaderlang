@@ -215,6 +215,7 @@ export kind_name :: fn(k: TokenKind) = match k {
     .DeclVar       -> "decl_var"
     .RangeExcl -> "range_excl"
     .RangeIncl -> "range_incl"
+    .DotDotDot -> "dotdotdot"
     .Question  -> "question"
     .Arrow     -> "arrow"
     .FatArrow  -> "fat_arrow"

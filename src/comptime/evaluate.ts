@@ -261,7 +261,12 @@ function walkExpr(expr: A.Expr, v: BlockVisitor): void {
       }
       return;
     case "SeqLitExpr":    for (const e of expr.elements) walkExpr(e, v); return;
-    case "StructLitExpr": for (const f of expr.fields) walkExpr(f.value, v); return;
+    case "StructLitExpr":
+      for (const item of expr.items) {
+        if (item.kind === "field") walkExpr(item.value, v);
+        else walkExpr(item.expr, v);
+      }
+      return;
     case "GenericInstExpr": walkExpr(expr.callee, v); return;
     default: return;
   }

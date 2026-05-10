@@ -1,0 +1,12 @@
+# Comptime
+
+## tests/snippets/void_ident_rejected/_main.vader
+
+## generic instances
+  Yielded(char)
+  Yielded(i32)
+  Range(char)
+  Range(i32)
+
+# Diagnostics
+[5:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`

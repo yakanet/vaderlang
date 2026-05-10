@@ -37,7 +37,8 @@
               "name": "T"
             }
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         },
         {
           "name": "size",
@@ -45,7 +46,8 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         }
       ],
       "decorators": []
@@ -463,8 +465,9 @@
                   }
                 ]
               },
-              "fields": [
+              "items": [
                 {
+                  "kind": "field",
                   "name": "data",
                   "value": {
                     "kind": "SeqLitExpr",
@@ -472,6 +475,7 @@
                   }
                 },
                 {
+                  "kind": "field",
                   "name": "size",
                   "value": {
                     "kind": "IntLitExpr",

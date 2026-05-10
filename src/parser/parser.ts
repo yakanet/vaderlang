@@ -176,17 +176,18 @@ export function collectTypeParams(t: A.TypeExpr, out: A.TypeParam[]): void {
 /**
  * After consuming an ident, decide whether the following `{` opens a struct
  * literal. The shape we accept: `{ .field = ... }` — the very first significant
- * token inside the braces must be `.`.
+ * token inside the braces must be `.`. Also accepts `...expr` (spread) and an
+ * empty `{}`.
  */
 export function looksLikeStructLitBody(tokens: readonly Token[], posAfterLbrace: number): boolean {
   // posAfterLbrace points at the `{` itself (we haven't consumed it). The
   // body looks like a struct lit if the first non-whitespace token is `.`
-  // (a field key) or `}` (an empty struct literal).
+  // (a field key), `...` (a spread clause), or `}` (an empty struct literal).
   let i = posAfterLbrace + 1;
   while (i < tokens.length) {
     const t = tokens[i]!;
     if (t.kind === "newline") { i++; continue; }
-    return t.kind === "dot" || t.kind === "rbrace";
+    return t.kind === "dot" || t.kind === "dotdotdot" || t.kind === "rbrace";
   }
   return false;
 }

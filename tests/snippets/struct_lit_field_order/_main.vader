@@ -1,0 +1,17 @@
+// Regression : struct literals must produce declaration-order layout
+// regardless of the order fields appear in the source. Pre-fix, the
+// lowerer passed values positionally to `struct.new`, so writing
+// `{ .c = 3, .a = 1, .b = 2 }` produced `c=3, a=1, b=2`.
+import "std/io" { println }
+
+P :: struct {
+    a: i32
+    b: i32
+    c: i32
+}
+
+main :: fn() -> i32 {
+    p :: P { .c = 3, .a = 1, .b = 2 }
+    println("a=${p.a} b=${p.b} c=${p.c}")
+    return 0
+}

@@ -12,6 +12,7 @@ import { lowerExpr, lowerIndexTraitCall } from "./expr.ts";
 import { lowerForIn } from "./for-in.ts";
 import { freshSyntheticSymbol, lowerCellInit, wrapStmts } from "./helpers.ts";
 import type {Span} from "../../diagnostics/diagnostic.ts";
+import type { Symbol } from "../../resolver/symbol.ts";
 
 export function lowerBlock(
   ctx: FnLowerCtx, block: A.BlockExpr, isFnRoot: boolean, isLoopBody: boolean,
@@ -246,22 +247,30 @@ function emitLetBindingLeaves(
   targetType: Type, span: Span,
   out: LoweredStmt[],
 ): void {
-  if (binding.kind !== "TupleBinding") {
-    if (binding.kind === "SimpleBinding") {
-      const sym = ctx.typed.resolved.locals.get(binding);
-      if (sym === undefined) return;
-      const slotType = ctx.types.apply(ctx.typed.localTypes.get(binding) ?? targetType);
-      const init = lowerCellInit(ctx, sym, target, slotType, span);
-      out.push({
-        kind: "LoweredLet", span, name: binding.name, symbol: sym,
-        type: init.slotType, value: init.value,
-      });
-    }
+  if (binding.kind === "WildcardBinding") return;
+  if (binding.kind === "SimpleBinding") {
+    const sym = ctx.typed.resolved.locals.get(binding);
+    if (sym === undefined) return;
+    const slotType = ctx.types.apply(ctx.typed.localTypes.get(binding) ?? targetType);
+    const init = lowerCellInit(ctx, sym, target, slotType, span);
+    out.push({
+      kind: "LoweredLet", span, name: binding.name, symbol: sym,
+      type: init.slotType, value: init.value,
+    });
+    return;
+  }
+  if (binding.kind === "RestBinding") {
+    throw new Error("lower: RestBinding reached emitLetBindingLeaves outside its TupleBinding parent");
+  }
+  const restIdx = binding.elements.findIndex((e) => e.kind === "RestBinding");
+  if (restIdx >= 0 && targetType.kind === "Array") {
+    emitArrayDestructure(ctx, binding, target, targetType, span, out);
     return;
   }
   for (let i = 0; i < binding.elements.length; i++) {
     const leaf = binding.elements[i]!;
     if (leaf.kind === "WildcardBinding") continue;
+    if (leaf.kind === "RestBinding") continue;  // typecheck already errored
     const elemType = targetType.kind === "Tuple"
       ? ctx.types.apply(targetType.elements[i] ?? TY.unresolved)
       : TY.unresolved;
@@ -271,6 +280,83 @@ function emitLetBindingLeaves(
     };
     emitLetBindingLeaves(ctx, leaf, access, elemType, leaf.span, out);
   }
+}
+
+/** Desugar `let [a, b, ...rest] = arr` into N direct index reads for the
+ *  fixed leaves followed by a fresh-array + loop-push for the rest leaf.
+ *  `rest` is routed through `lowerCellInit` so capture by an inner closure
+ *  promotes the slot to a heap cell ; reads inside our synthetic loop
+ *  become CellGet automatically. */
+function emitArrayDestructure(
+  ctx: FnLowerCtx, binding: A.TupleBinding, target: LoweredExpr,
+  targetType: Type & { kind: "Array" }, span: Span,
+  out: LoweredStmt[],
+): void {
+  const elemType = ctx.types.apply(targetType.element);
+  const restIdx = binding.elements.findIndex((e) => e.kind === "RestBinding");
+  for (let i = 0; i < restIdx; i++) {
+    const leaf = binding.elements[i]!;
+    if (leaf.kind === "WildcardBinding") continue;
+    const access: LoweredExpr = {
+      kind: "LoweredIndex", span: leaf.span, type: elemType,
+      target, index: { kind: "LoweredIntLit", span: leaf.span, type: TY.i32, value: BigInt(i) },
+    };
+    emitLetBindingLeaves(ctx, leaf, access, elemType, leaf.span, out);
+  }
+  const restLeaf = binding.elements[restIdx] as A.RestBinding;
+  const restSym = ctx.typed.resolved.locals.get(restLeaf);
+  if (restSym === undefined) return;
+  const emptyArr: LoweredExpr = {
+    kind: "LoweredArrayLit", span: restLeaf.span, type: targetType, elements: [],
+  };
+  const restInit = lowerCellInit(ctx, restSym, emptyArr, targetType, restLeaf.span);
+  out.push({
+    kind: "LoweredLet", span: restLeaf.span, name: restLeaf.name, symbol: restSym,
+    type: restInit.slotType, value: restInit.value,
+  });
+  const idxSym = freshSyntheticSymbol(ctx, "i");
+  out.push({
+    kind: "LoweredLet", span, name: idxSym.name, symbol: idxSym, type: TY.i32,
+    value: { kind: "LoweredIntLit", span, type: TY.i32, value: BigInt(restIdx) },
+  });
+  const idxRef: LoweredExpr = { kind: "LoweredIdent", span, type: TY.i32, symbol: idxSym };
+  const restRef = readLocal(ctx, restSym, targetType, span);
+  const pushStmt: LoweredStmt = {
+    kind: "LoweredExprStmt", span,
+    expr: {
+      kind: "LoweredArrayPush", span, type: TY.void, target: restRef,
+      value: { kind: "LoweredIndex", span, type: elemType, target, index: idxRef },
+    },
+  };
+  const incStmt: LoweredStmt = {
+    kind: "LoweredAssign", span, target: idxRef,
+    value: {
+      kind: "LoweredBinary", span, type: TY.i32, op: "add",
+      left: idxRef,
+      right: { kind: "LoweredIntLit", span, type: TY.i32, value: 1n },
+    },
+  };
+  out.push({
+    kind: "LoweredLoop", span, label: null, cond: {
+      kind: "LoweredBinary", span, type: TY.bool, op: "lt",
+      left: idxRef,
+      right: { kind: "LoweredArrayLen", span, type: TY.i32, target },
+    },
+    body: { kind: "LoweredBlock", span, type: TY.void, stmts: [pushStmt, incStmt], trailing: null },
+  });
+}
+
+/** Read a local symbol respecting closure-cell promotion. Mirrors the read
+ *  path in `lowerIdent` but for synthetic call sites that don't have an
+ *  IdentExpr to dispatch from. */
+function readLocal(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span): LoweredExpr {
+  if (ctx.project.closures.capturedSymbols.has(sym.id)) {
+    const cellRef: LoweredExpr = {
+      kind: "LoweredIdent", span, type: TY.unresolved, symbol: sym,
+    };
+    return { kind: "LoweredCellGet", span, type, target: cellRef, valueType: type };
+  }
+  return { kind: "LoweredIdent", span, type, symbol: sym };
 }
 
 /** Collect defers from the current block out to either the fn root (for return)

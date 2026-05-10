@@ -13,7 +13,7 @@
 // Otherwise the outer would have no way to pass them to the inner closure.
 
 import type * as A from "../../parser/ast.ts";
-import { forEachPatternBindingKey, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
+import { forEachLetBindingLeaf, forEachPatternBindingKey, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import { intrinsicSpec } from "../../parser/intrinsics.ts";
 import type { ResolvedProgram } from "../../resolver/resolved-ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
@@ -224,7 +224,10 @@ function walkExpr(
       processLambda(expr, scope, outCaptures, outSeen, ctx);
       return;
     case "StructLitExpr":
-      for (const f of expr.fields) walkExpr(f.value, scope, outCaptures, outSeen, ctx);
+      for (const item of expr.items) {
+        if (item.kind === "field") walkExpr(item.value, scope, outCaptures, outSeen, ctx);
+        else walkExpr(item.expr, scope, outCaptures, outSeen, ctx);
+      }
       return;
     case "SeqLitExpr":
       for (const e of expr.elements) walkExpr(e, scope, outCaptures, outSeen, ctx);
@@ -332,21 +335,10 @@ function typeOfCapturedSymbol(sym: Symbol, identExpr: A.IdentExpr, program: Type
 }
 
 function addLocalToScope(stmt: A.LetStmt, scope: Set<number>, resolved: ResolvedProgram): void {
-  // Walk the let-binding tree so destructured leaves all join the scope.
-  visitLetLeaves(stmt.binding, (leaf) => {
+  forEachLetBindingLeaf(stmt.binding, (leaf) => {
     const sym = resolved.locals.get(leaf);
     if (sym !== undefined) scope.add(sym.id);
   });
-}
-
-function visitLetLeaves(b: A.LetBinding, visit: (leaf: A.SimpleBinding) => void): void {
-  switch (b.kind) {
-    case "SimpleBinding": visit(b); return;
-    case "TupleBinding":
-      for (const e of b.elements) visitLetLeaves(e, visit);
-      return;
-    case "WildcardBinding": return;
-  }
 }
 
 /** Add the pattern's bindings to `scope` and return the list of ids actually

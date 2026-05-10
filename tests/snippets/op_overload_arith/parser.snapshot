@@ -28,7 +28,8 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         },
         {
           "name": "y",
@@ -36,7 +37,8 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "visibility": "private"
+          "visibility": "private",
+          "default": null
         }
       ],
       "decorators": []
@@ -87,8 +89,9 @@
                     "kind": "IdentExpr",
                     "name": "Vec"
                   },
-                  "fields": [
+                  "items": [
                     {
+                      "kind": "field",
                       "name": "x",
                       "value": {
                         "kind": "BinaryExpr",
@@ -112,6 +115,7 @@
                       }
                     },
                     {
+                      "kind": "field",
                       "name": "y",
                       "value": {
                         "kind": "BinaryExpr",
@@ -191,8 +195,9 @@
                     "kind": "IdentExpr",
                     "name": "Vec"
                   },
-                  "fields": [
+                  "items": [
                     {
+                      "kind": "field",
                       "name": "x",
                       "value": {
                         "kind": "BinaryExpr",
@@ -216,6 +221,7 @@
                       }
                     },
                     {
+                      "kind": "field",
                       "name": "y",
                       "value": {
                         "kind": "BinaryExpr",
@@ -295,8 +301,9 @@
                     "kind": "IdentExpr",
                     "name": "Vec"
                   },
-                  "fields": [
+                  "items": [
                     {
+                      "kind": "field",
                       "name": "x",
                       "value": {
                         "kind": "BinaryExpr",
@@ -320,6 +327,7 @@
                       }
                     },
                     {
+                      "kind": "field",
                       "name": "y",
                       "value": {
                         "kind": "BinaryExpr",
@@ -399,8 +407,9 @@
                     "kind": "IdentExpr",
                     "name": "Vec"
                   },
-                  "fields": [
+                  "items": [
                     {
+                      "kind": "field",
                       "name": "x",
                       "value": {
                         "kind": "BinaryExpr",
@@ -424,6 +433,7 @@
                       }
                     },
                     {
+                      "kind": "field",
                       "name": "y",
                       "value": {
                         "kind": "BinaryExpr",
@@ -503,8 +513,9 @@
                     "kind": "IdentExpr",
                     "name": "Vec"
                   },
-                  "fields": [
+                  "items": [
                     {
+                      "kind": "field",
                       "name": "x",
                       "value": {
                         "kind": "BinaryExpr",
@@ -528,6 +539,7 @@
                       }
                     },
                     {
+                      "kind": "field",
                       "name": "y",
                       "value": {
                         "kind": "BinaryExpr",
@@ -588,8 +600,9 @@
                 "kind": "IdentExpr",
                 "name": "Vec"
               },
-              "fields": [
+              "items": [
                 {
+                  "kind": "field",
                   "name": "x",
                   "value": {
                     "kind": "IntLitExpr",
@@ -598,6 +611,7 @@
                   }
                 },
                 {
+                  "kind": "field",
                   "name": "y",
                   "value": {
                     "kind": "IntLitExpr",
@@ -622,8 +636,9 @@
                 "kind": "IdentExpr",
                 "name": "Vec"
               },
-              "fields": [
+              "items": [
                 {
+                  "kind": "field",
                   "name": "x",
                   "value": {
                     "kind": "IntLitExpr",
@@ -632,6 +647,7 @@
                   }
                 },
                 {
+                  "kind": "field",
                   "name": "y",
                   "value": {
                     "kind": "IntLitExpr",

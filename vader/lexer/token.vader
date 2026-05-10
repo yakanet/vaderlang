@@ -49,6 +49,7 @@ export TokenKind :: enum(u8) {
     DeclVar,       // :=
     RangeExcl,     // ..<
     RangeIncl,     // ..=
+    DotDotDot,     // ...   (struct spread)
     Question,      // ?
     Arrow,         // ->
     FatArrow,      // =>
