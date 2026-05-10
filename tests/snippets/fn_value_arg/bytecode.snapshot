@@ -10,24 +10,18 @@ fn 0 tests_snippets_fn_value_arg__main_vader$apply (ref,i32) -> i32
 end
 
 fn 1 tests_snippets_fn_value_arg__main_vader$inc (i32) -> i32
-  local "$k_1#3" i32
-  i32.const 1   ; _main.vader:6:16
-  local.set 1   ; _main.vader:6:16
   local.get 0   ; _main.vader:6:12
-  local.get 1   ; _main.vader:6:12
+  i32.const 1   ; _main.vader:6:12
   i32.add   ; _main.vader:6:12
   return   ; _main.vader:6:5
 end
 
 fn 2 tests_snippets_fn_value_arg__main_vader$main () -> i32
   local "$fn_ref_0#3" ref
-  local "$k_1#4" i32
   fn.ref 1 0   ; _main.vader:10:18
   local.set 0   ; _main.vader:10:18
-  i32.const 41   ; _main.vader:10:23
-  local.set 1   ; _main.vader:10:23
   local.get 0   ; _main.vader:10:12
-  local.get 1   ; _main.vader:10:12
+  i32.const 41   ; _main.vader:10:12
   call 0   ; _main.vader:10:12
   return   ; _main.vader:10:5
 end

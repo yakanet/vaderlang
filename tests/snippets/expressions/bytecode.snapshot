@@ -13,62 +13,41 @@ fn 0 tests_snippets_expressions__main_vader$add (i32,i32) -> i32
 end
 
 fn 1 tests_snippets_expressions__main_vader$demo () -> i32
-  local "$k_0#15" i32
-  local "$k_1#16" i32
-  local "$k_2#17" i32
   local "$mul_3#18" i32
   local "a#19" i32
   local "and_res#24" bool
-  local "$k_38#25" i32
-  local "$k_39#26" i32
-  local "$k_42#28" i32
-  local "$k_43#29" i32
-  i32.const 1   ; _main.vader:6:10
-  local.set 0   ; _main.vader:6:10
   i32.const 2   ; _main.vader:6:14
-  local.set 1   ; _main.vader:6:14
-  i32.const 3   ; _main.vader:6:18
-  local.set 2   ; _main.vader:6:18
-  local.get 1   ; _main.vader:6:14
-  local.get 2   ; _main.vader:6:14
+  i32.const 3   ; _main.vader:6:14
   i32.mul   ; _main.vader:6:14
-  local.set 3   ; _main.vader:6:14
+  local.set 0   ; _main.vader:6:14
+  i32.const 1   ; _main.vader:6:10
   local.get 0   ; _main.vader:6:10
-  local.get 3   ; _main.vader:6:10
   i32.add   ; _main.vader:6:10
-  local.set 4   ; _main.vader:6:10
+  local.set 1   ; _main.vader:6:10
   bool.const false   ; _main.vader:9:11
   if $L0 void   ; _main.vader:9:10
     bool.const false   ; _main.vader:9:19
-    local.set 5   ; _main.vader:9:19
+    local.set 2   ; _main.vader:9:19
   else   ; _main.vader:9:10
     bool.const false   ; _main.vader:9:10
-    local.set 5   ; _main.vader:9:10
+    local.set 2   ; _main.vader:9:10
   end $L0   ; _main.vader:9:10
-  local.get 5   ; _main.vader:9:10
+  local.get 2   ; _main.vader:9:10
   if $L1 void   ; _main.vader:9:10
   else   ; _main.vader:9:10
   end $L1   ; _main.vader:9:10
-  i32.const 1   ; _main.vader:13:14
-  local.set 6   ; _main.vader:13:14
-  i32.const 2   ; _main.vader:13:17
-  local.set 7   ; _main.vader:13:17
-  local.get 6   ; _main.vader:13:10
-  local.get 7   ; _main.vader:13:10
+  i32.const 1   ; _main.vader:13:10
+  i32.const 2   ; _main.vader:13:10
   call 0   ; _main.vader:13:10
   drop   ; _main.vader:13:10
-  i32.const 10   ; _main.vader:14:18
-  local.set 8   ; _main.vader:14:18
-  i32.const 20   ; _main.vader:14:26
-  local.set 9   ; _main.vader:14:26
-  local.get 8   ; _main.vader:14:10
-  local.get 9   ; _main.vader:14:10
+  i32.const 10   ; _main.vader:14:10
+  i32.const 20   ; _main.vader:14:10
   call 0   ; _main.vader:14:10
   drop   ; _main.vader:14:10
   bool.const true   ; _main.vader:15:13
   if $L2 void   ; _main.vader:16:10
   else   ; _main.vader:16:10
   end $L2   ; _main.vader:16:10
-  local.get 4   ; _main.vader:17:5
+  local.get 1   ; _main.vader:17:5
   return   ; _main.vader:17:5
 end

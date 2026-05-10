@@ -176,11 +176,7 @@ fn 4 tests_snippets_op_overload_arith__main_vader$Vec$Rem$rem (ref,ref) -> ref
 end
 
 fn 5 tests_snippets_op_overload_arith__main_vader$main () -> i32
-  local "$k_0#41" i32
-  local "$k_1#42" i32
   local "a#43" ref
-  local "$k_4#44" i32
-  local "$k_5#45" i32
   local "b#46" ref
   local "s#48" ref
   local "d#50" ref
@@ -188,181 +184,140 @@ fn 5 tests_snippets_op_overload_arith__main_vader$main () -> i32
   local "q#54" ref
   local "r#56" ref
   local "__sb_0#58" any
-  local "$k_20#59" string
   local "$field_21#60" i32
-  local "$k_22#61" string
   local "$field_23#62" i32
-  local "$k_24#63" string
   local "$field_25#64" i32
-  local "$k_26#65" string
   local "$field_27#66" i32
-  local "$k_28#67" string
   local "$field_29#68" i32
-  local "$k_30#69" string
   local "$field_31#70" i32
-  local "$k_32#71" string
   local "$field_33#72" i32
-  local "$k_34#73" string
   local "$field_35#74" i32
-  local "$k_36#75" string
   local "$field_37#76" i32
-  local "$k_38#77" string
   local "$field_39#78" i32
-  local "$k_40#79" string
-  i32.const 10   ; _main.vader:18:21
-  local.set 0   ; _main.vader:18:21
-  i32.const 20   ; _main.vader:18:30
-  local.set 1   ; _main.vader:18:30
-  local.get 0   ; _main.vader:18:10
-  local.get 1   ; _main.vader:18:10
+  i32.const 10   ; _main.vader:18:10
+  i32.const 20   ; _main.vader:18:10
   struct.new 0   ; _main.vader:18:10
-  local.set 2   ; _main.vader:18:10
-  i32.const 3   ; _main.vader:19:21
-  local.set 3   ; _main.vader:19:21
-  i32.const 4   ; _main.vader:19:30
-  local.set 4   ; _main.vader:19:30
-  local.get 3   ; _main.vader:19:10
-  local.get 4   ; _main.vader:19:10
+  local.set 0   ; _main.vader:18:10
+  i32.const 3   ; _main.vader:19:10
+  i32.const 4   ; _main.vader:19:10
   struct.new 0   ; _main.vader:19:10
-  local.set 5   ; _main.vader:19:10
-  local.get 2   ; _main.vader:20:10
-  local.get 5   ; _main.vader:20:10
+  local.set 1   ; _main.vader:19:10
+  local.get 0   ; _main.vader:20:10
+  local.get 1   ; _main.vader:20:10
   call 0   ; _main.vader:20:10
-  local.set 6   ; _main.vader:20:5
-  local.get 2   ; _main.vader:21:10
-  local.get 5   ; _main.vader:21:10
+  local.set 2   ; _main.vader:20:5
+  local.get 0   ; _main.vader:21:10
+  local.get 1   ; _main.vader:21:10
   call 1   ; _main.vader:21:10
-  local.set 7   ; _main.vader:21:5
-  local.get 2   ; _main.vader:22:10
-  local.get 5   ; _main.vader:22:10
+  local.set 3   ; _main.vader:21:5
+  local.get 0   ; _main.vader:22:10
+  local.get 1   ; _main.vader:22:10
   call 2   ; _main.vader:22:10
-  local.set 8   ; _main.vader:22:5
-  local.get 2   ; _main.vader:23:10
-  local.get 5   ; _main.vader:23:10
+  local.set 4   ; _main.vader:22:5
+  local.get 0   ; _main.vader:23:10
+  local.get 1   ; _main.vader:23:10
   call 3   ; _main.vader:23:10
-  local.set 9   ; _main.vader:23:5
-  local.get 2   ; _main.vader:24:10
-  local.get 5   ; _main.vader:24:10
+  local.set 5   ; _main.vader:23:5
+  local.get 0   ; _main.vader:24:10
+  local.get 1   ; _main.vader:24:10
   call 4   ; _main.vader:24:10
-  local.set 10   ; _main.vader:24:5
+  local.set 6   ; _main.vader:24:5
   intrinsic builder.new   ; _main.vader:25:13
-  local.set 11   ; _main.vader:25:13
+  local.set 7   ; _main.vader:25:13
+  local.get 7   ; _main.vader:25:14
   string.const 0   ; _main.vader:25:14
-  local.set 12   ; _main.vader:25:14
-  local.get 11   ; _main.vader:25:14
-  local.get 12   ; _main.vader:25:14
   intrinsic builder.append_str   ; _main.vader:25:14
-  local.get 6   ; _main.vader:25:19
+  local.get 2   ; _main.vader:25:19
   struct.get 0 0   ; _main.vader:25:19
-  local.set 13   ; _main.vader:25:19
-  local.get 11   ; _main.vader:25:17
-  local.get 13   ; _main.vader:25:17
+  local.set 8   ; _main.vader:25:19
+  local.get 7   ; _main.vader:25:17
+  local.get 8   ; _main.vader:25:17
   intrinsic builder.append_display   ; _main.vader:25:17
+  local.get 7   ; _main.vader:25:23
   string.const 1   ; _main.vader:25:23
-  local.set 14   ; _main.vader:25:23
-  local.get 11   ; _main.vader:25:23
-  local.get 14   ; _main.vader:25:23
   intrinsic builder.append_str   ; _main.vader:25:23
-  local.get 6   ; _main.vader:25:26
+  local.get 2   ; _main.vader:25:26
   struct.get 0 1   ; _main.vader:25:26
-  local.set 15   ; _main.vader:25:26
-  local.get 11   ; _main.vader:25:24
-  local.get 15   ; _main.vader:25:24
+  local.set 9   ; _main.vader:25:26
+  local.get 7   ; _main.vader:25:24
+  local.get 9   ; _main.vader:25:24
   intrinsic builder.append_display   ; _main.vader:25:24
+  local.get 7   ; _main.vader:25:30
   string.const 2   ; _main.vader:25:30
-  local.set 16   ; _main.vader:25:30
-  local.get 11   ; _main.vader:25:30
-  local.get 16   ; _main.vader:25:30
   intrinsic builder.append_str   ; _main.vader:25:30
-  local.get 7   ; _main.vader:25:37
+  local.get 3   ; _main.vader:25:37
   struct.get 0 0   ; _main.vader:25:37
-  local.set 17   ; _main.vader:25:37
-  local.get 11   ; _main.vader:25:35
-  local.get 17   ; _main.vader:25:35
+  local.set 10   ; _main.vader:25:37
+  local.get 7   ; _main.vader:25:35
+  local.get 10   ; _main.vader:25:35
   intrinsic builder.append_display   ; _main.vader:25:35
+  local.get 7   ; _main.vader:25:41
   string.const 1   ; _main.vader:25:41
-  local.set 18   ; _main.vader:25:41
-  local.get 11   ; _main.vader:25:41
-  local.get 18   ; _main.vader:25:41
   intrinsic builder.append_str   ; _main.vader:25:41
-  local.get 7   ; _main.vader:25:44
+  local.get 3   ; _main.vader:25:44
   struct.get 0 1   ; _main.vader:25:44
-  local.set 19   ; _main.vader:25:44
+  local.set 11   ; _main.vader:25:44
+  local.get 7   ; _main.vader:25:42
   local.get 11   ; _main.vader:25:42
-  local.get 19   ; _main.vader:25:42
   intrinsic builder.append_display   ; _main.vader:25:42
+  local.get 7   ; _main.vader:25:48
   string.const 3   ; _main.vader:25:48
-  local.set 20   ; _main.vader:25:48
-  local.get 11   ; _main.vader:25:48
-  local.get 20   ; _main.vader:25:48
   intrinsic builder.append_str   ; _main.vader:25:48
-  local.get 8   ; _main.vader:25:55
+  local.get 4   ; _main.vader:25:55
   struct.get 0 0   ; _main.vader:25:55
-  local.set 21   ; _main.vader:25:55
-  local.get 11   ; _main.vader:25:53
-  local.get 21   ; _main.vader:25:53
+  local.set 12   ; _main.vader:25:55
+  local.get 7   ; _main.vader:25:53
+  local.get 12   ; _main.vader:25:53
   intrinsic builder.append_display   ; _main.vader:25:53
+  local.get 7   ; _main.vader:25:59
   string.const 1   ; _main.vader:25:59
-  local.set 22   ; _main.vader:25:59
-  local.get 11   ; _main.vader:25:59
-  local.get 22   ; _main.vader:25:59
   intrinsic builder.append_str   ; _main.vader:25:59
-  local.get 8   ; _main.vader:25:62
+  local.get 4   ; _main.vader:25:62
   struct.get 0 1   ; _main.vader:25:62
-  local.set 23   ; _main.vader:25:62
-  local.get 11   ; _main.vader:25:60
-  local.get 23   ; _main.vader:25:60
+  local.set 13   ; _main.vader:25:62
+  local.get 7   ; _main.vader:25:60
+  local.get 13   ; _main.vader:25:60
   intrinsic builder.append_display   ; _main.vader:25:60
+  local.get 7   ; _main.vader:25:66
   string.const 4   ; _main.vader:25:66
-  local.set 24   ; _main.vader:25:66
-  local.get 11   ; _main.vader:25:66
-  local.get 24   ; _main.vader:25:66
   intrinsic builder.append_str   ; _main.vader:25:66
-  local.get 9   ; _main.vader:25:73
+  local.get 5   ; _main.vader:25:73
   struct.get 0 0   ; _main.vader:25:73
-  local.set 25   ; _main.vader:25:73
-  local.get 11   ; _main.vader:25:71
-  local.get 25   ; _main.vader:25:71
+  local.set 14   ; _main.vader:25:73
+  local.get 7   ; _main.vader:25:71
+  local.get 14   ; _main.vader:25:71
   intrinsic builder.append_display   ; _main.vader:25:71
+  local.get 7   ; _main.vader:25:77
   string.const 1   ; _main.vader:25:77
-  local.set 26   ; _main.vader:25:77
-  local.get 11   ; _main.vader:25:77
-  local.get 26   ; _main.vader:25:77
   intrinsic builder.append_str   ; _main.vader:25:77
-  local.get 9   ; _main.vader:25:80
+  local.get 5   ; _main.vader:25:80
   struct.get 0 1   ; _main.vader:25:80
-  local.set 27   ; _main.vader:25:80
-  local.get 11   ; _main.vader:25:78
-  local.get 27   ; _main.vader:25:78
+  local.set 15   ; _main.vader:25:80
+  local.get 7   ; _main.vader:25:78
+  local.get 15   ; _main.vader:25:78
   intrinsic builder.append_display   ; _main.vader:25:78
+  local.get 7   ; _main.vader:25:84
   string.const 5   ; _main.vader:25:84
-  local.set 28   ; _main.vader:25:84
-  local.get 11   ; _main.vader:25:84
-  local.get 28   ; _main.vader:25:84
   intrinsic builder.append_str   ; _main.vader:25:84
-  local.get 10   ; _main.vader:25:91
+  local.get 6   ; _main.vader:25:91
   struct.get 0 0   ; _main.vader:25:91
-  local.set 29   ; _main.vader:25:91
-  local.get 11   ; _main.vader:25:89
-  local.get 29   ; _main.vader:25:89
+  local.set 16   ; _main.vader:25:91
+  local.get 7   ; _main.vader:25:89
+  local.get 16   ; _main.vader:25:89
   intrinsic builder.append_display   ; _main.vader:25:89
+  local.get 7   ; _main.vader:25:95
   string.const 1   ; _main.vader:25:95
-  local.set 30   ; _main.vader:25:95
-  local.get 11   ; _main.vader:25:95
-  local.get 30   ; _main.vader:25:95
   intrinsic builder.append_str   ; _main.vader:25:95
-  local.get 10   ; _main.vader:25:98
+  local.get 6   ; _main.vader:25:98
   struct.get 0 1   ; _main.vader:25:98
-  local.set 31   ; _main.vader:25:98
-  local.get 11   ; _main.vader:25:96
-  local.get 31   ; _main.vader:25:96
+  local.set 17   ; _main.vader:25:98
+  local.get 7   ; _main.vader:25:96
+  local.get 17   ; _main.vader:25:96
   intrinsic builder.append_display   ; _main.vader:25:96
+  local.get 7   ; _main.vader:25:102
   string.const 6   ; _main.vader:25:102
-  local.set 32   ; _main.vader:25:102
-  local.get 11   ; _main.vader:25:102
-  local.get 32   ; _main.vader:25:102
   intrinsic builder.append_str   ; _main.vader:25:102
-  local.get 11   ; _main.vader:25:13
+  local.get 7   ; _main.vader:25:13
   intrinsic builder.finish   ; _main.vader:25:13
   call.import 0   ; _main.vader:25:5
   i32.const 0   ; _main.vader:26:12

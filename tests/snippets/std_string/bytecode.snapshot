@@ -29,42 +29,20 @@ fn 0 tests_snippets_std_string__main_vader$main () -> i32
   local "__sb_0#69" any
   local "$call_4#70" i32
   local "__sb_1#78" any
-  local "$k_13#79" string
-  local "$k_14#80" string
   local "$call_15#81" bool
   local "__sb_2#84" any
-  local "$k_19#85" string
-  local "$k_20#86" string
   local "$call_21#87" bool
   local "__sb_3#90" any
-  local "$k_25#91" string
-  local "$k_26#92" string
   local "$call_27#93" bool
-  local "$k_29#95" string
-  local "$k_30#96" i32
-  local "$k_31#97" i32
   local "__sb_4#100" any
-  local "$k_35#101" string
-  local "$k_36#102" i32
   local "$call_37#103" char
   local "__sb_5#106" any
-  local "$k_41#107" string
-  local "$k_42#108" i32
   local "$call_43#109" char
   local "__sb_6#112" any
-  local "$k_47#113" string
-  local "$k_48#114" i32
   local "$call_49#115" char
   local "__sb_7#118" any
-  local "$k_53#119" string
-  local "$k_54#120" i32
   local "$call_55#121" char
-  local "$k_57#123" string
-  local "$k_58#124" string
   local "parts#126" ref
-  local "$k_61#127" i32
-  local "$k_63#129" i32
-  local "$k_65#131" i32
   string.const 0   ; _main.vader:5:10
   local.set 0   ; _main.vader:5:10
   intrinsic builder.new   ; _main.vader:6:13
@@ -90,152 +68,108 @@ fn 0 tests_snippets_std_string__main_vader$main () -> i32
   intrinsic builder.new   ; _main.vader:10:13
   local.set 3   ; _main.vader:10:13
   string.const 3   ; _main.vader:10:16
-  local.set 4   ; _main.vader:10:16
-  string.const 4   ; _main.vader:10:34
-  local.set 5   ; _main.vader:10:34
-  local.get 4   ; _main.vader:10:16
-  local.get 5   ; _main.vader:10:16
+  string.const 4   ; _main.vader:10:16
   call.import 4   ; _main.vader:10:16
-  local.set 6   ; _main.vader:10:16
+  local.set 4   ; _main.vader:10:16
   local.get 3   ; _main.vader:10:14
-  local.get 6   ; _main.vader:10:14
+  local.get 4   ; _main.vader:10:14
   intrinsic builder.append_display   ; _main.vader:10:14
   local.get 3   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
   call.import 1   ; _main.vader:10:5
   intrinsic builder.new   ; _main.vader:11:13
-  local.set 7   ; _main.vader:11:13
+  local.set 5   ; _main.vader:11:13
   string.const 3   ; _main.vader:11:16
-  local.set 8   ; _main.vader:11:16
-  string.const 5   ; _main.vader:11:37
-  local.set 9   ; _main.vader:11:37
-  local.get 8   ; _main.vader:11:16
-  local.get 9   ; _main.vader:11:16
+  string.const 5   ; _main.vader:11:16
   call.import 5   ; _main.vader:11:16
-  local.set 10   ; _main.vader:11:16
-  local.get 7   ; _main.vader:11:14
-  local.get 10   ; _main.vader:11:14
+  local.set 6   ; _main.vader:11:16
+  local.get 5   ; _main.vader:11:14
+  local.get 6   ; _main.vader:11:14
   intrinsic builder.append_display   ; _main.vader:11:14
-  local.get 7   ; _main.vader:11:13
+  local.get 5   ; _main.vader:11:13
   intrinsic builder.finish   ; _main.vader:11:13
   call.import 1   ; _main.vader:11:5
   intrinsic builder.new   ; _main.vader:12:13
-  local.set 11   ; _main.vader:12:13
+  local.set 7   ; _main.vader:12:13
   string.const 3   ; _main.vader:12:16
-  local.set 12   ; _main.vader:12:16
-  string.const 6   ; _main.vader:12:35
-  local.set 13   ; _main.vader:12:35
-  local.get 12   ; _main.vader:12:16
-  local.get 13   ; _main.vader:12:16
+  string.const 6   ; _main.vader:12:16
   call.import 6   ; _main.vader:12:16
-  local.set 14   ; _main.vader:12:16
-  local.get 11   ; _main.vader:12:14
-  local.get 14   ; _main.vader:12:14
+  local.set 8   ; _main.vader:12:16
+  local.get 7   ; _main.vader:12:14
+  local.get 8   ; _main.vader:12:14
   intrinsic builder.append_display   ; _main.vader:12:14
-  local.get 11   ; _main.vader:12:13
+  local.get 7   ; _main.vader:12:13
   intrinsic builder.finish   ; _main.vader:12:13
   call.import 1   ; _main.vader:12:5
   string.const 7   ; _main.vader:13:13
-  local.set 15   ; _main.vader:13:13
-  i32.const 6   ; _main.vader:13:33
-  local.set 16   ; _main.vader:13:33
-  i32.const 11   ; _main.vader:13:36
-  local.set 17   ; _main.vader:13:36
-  local.get 15   ; _main.vader:13:13
-  local.get 16   ; _main.vader:13:13
-  local.get 17   ; _main.vader:13:13
+  i32.const 6   ; _main.vader:13:13
+  i32.const 11   ; _main.vader:13:13
   call.import 3   ; _main.vader:13:13
   call.import 1   ; _main.vader:13:5
   intrinsic builder.new   ; _main.vader:14:13
-  local.set 18   ; _main.vader:14:13
+  local.set 9   ; _main.vader:14:13
   string.const 1   ; _main.vader:14:16
-  local.set 19   ; _main.vader:14:16
-  i32.const 1   ; _main.vader:14:24
-  local.set 20   ; _main.vader:14:24
-  local.get 19   ; _main.vader:14:16
-  local.get 20   ; _main.vader:14:16
+  i32.const 1   ; _main.vader:14:16
   call.import 0   ; _main.vader:14:16
-  local.set 21   ; _main.vader:14:16
-  local.get 18   ; _main.vader:14:14
-  local.get 21   ; _main.vader:14:14
+  local.set 10   ; _main.vader:14:16
+  local.get 9   ; _main.vader:14:14
+  local.get 10   ; _main.vader:14:14
   intrinsic builder.append_display   ; _main.vader:14:14
-  local.get 18   ; _main.vader:14:13
+  local.get 9   ; _main.vader:14:13
   intrinsic builder.finish   ; _main.vader:14:13
   call.import 1   ; _main.vader:14:5
   intrinsic builder.new   ; _main.vader:15:13
-  local.set 22   ; _main.vader:15:13
+  local.set 11   ; _main.vader:15:13
   string.const 8   ; _main.vader:15:16
-  local.set 23   ; _main.vader:15:16
-  i32.const 0   ; _main.vader:15:23
-  local.set 24   ; _main.vader:15:23
-  local.get 23   ; _main.vader:15:16
-  local.get 24   ; _main.vader:15:16
+  i32.const 0   ; _main.vader:15:16
   call.import 0   ; _main.vader:15:16
-  local.set 25   ; _main.vader:15:16
-  local.get 22   ; _main.vader:15:14
-  local.get 25   ; _main.vader:15:14
+  local.set 12   ; _main.vader:15:16
+  local.get 11   ; _main.vader:15:14
+  local.get 12   ; _main.vader:15:14
   intrinsic builder.append_display   ; _main.vader:15:14
-  local.get 22   ; _main.vader:15:13
+  local.get 11   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
   call.import 1   ; _main.vader:15:5
   intrinsic builder.new   ; _main.vader:16:13
-  local.set 26   ; _main.vader:16:13
+  local.set 13   ; _main.vader:16:13
   string.const 8   ; _main.vader:16:16
-  local.set 27   ; _main.vader:16:16
-  i32.const 1   ; _main.vader:16:23
-  local.set 28   ; _main.vader:16:23
-  local.get 27   ; _main.vader:16:16
-  local.get 28   ; _main.vader:16:16
+  i32.const 1   ; _main.vader:16:16
   call.import 0   ; _main.vader:16:16
-  local.set 29   ; _main.vader:16:16
-  local.get 26   ; _main.vader:16:14
-  local.get 29   ; _main.vader:16:14
+  local.set 14   ; _main.vader:16:16
+  local.get 13   ; _main.vader:16:14
+  local.get 14   ; _main.vader:16:14
   intrinsic builder.append_display   ; _main.vader:16:14
-  local.get 26   ; _main.vader:16:13
+  local.get 13   ; _main.vader:16:13
   intrinsic builder.finish   ; _main.vader:16:13
   call.import 1   ; _main.vader:16:5
   intrinsic builder.new   ; _main.vader:17:13
-  local.set 30   ; _main.vader:17:13
+  local.set 15   ; _main.vader:17:13
   string.const 8   ; _main.vader:17:16
-  local.set 31   ; _main.vader:17:16
-  i32.const 3   ; _main.vader:17:23
-  local.set 32   ; _main.vader:17:23
-  local.get 31   ; _main.vader:17:16
-  local.get 32   ; _main.vader:17:16
+  i32.const 3   ; _main.vader:17:16
   call.import 0   ; _main.vader:17:16
-  local.set 33   ; _main.vader:17:16
-  local.get 30   ; _main.vader:17:14
-  local.get 33   ; _main.vader:17:14
+  local.set 16   ; _main.vader:17:16
+  local.get 15   ; _main.vader:17:14
+  local.get 16   ; _main.vader:17:14
   intrinsic builder.append_display   ; _main.vader:17:14
-  local.get 30   ; _main.vader:17:13
+  local.get 15   ; _main.vader:17:13
   intrinsic builder.finish   ; _main.vader:17:13
   call.import 1   ; _main.vader:17:5
   string.const 9   ; _main.vader:18:14
-  local.set 34   ; _main.vader:18:14
-  string.const 10   ; _main.vader:18:28
-  local.set 35   ; _main.vader:18:28
-  local.get 34   ; _main.vader:18:14
-  local.get 35   ; _main.vader:18:14
+  string.const 10   ; _main.vader:18:14
   call.import 7   ; _main.vader:18:14
-  local.set 36   ; _main.vader:18:5
-  i32.const 0   ; _main.vader:19:19
-  local.set 37   ; _main.vader:19:19
-  local.get 36   ; _main.vader:19:13
-  local.get 37   ; _main.vader:19:13
+  local.set 17   ; _main.vader:18:5
+  local.get 17   ; _main.vader:19:13
+  i32.const 0   ; _main.vader:19:13
   array.get 0   ; _main.vader:19:13
   ref.cast 1   ; _main.vader:19:13
   call.import 1   ; _main.vader:19:5
-  i32.const 1   ; _main.vader:20:19
-  local.set 38   ; _main.vader:20:19
-  local.get 36   ; _main.vader:20:13
-  local.get 38   ; _main.vader:20:13
+  local.get 17   ; _main.vader:20:13
+  i32.const 1   ; _main.vader:20:13
   array.get 0   ; _main.vader:20:13
   ref.cast 1   ; _main.vader:20:13
   call.import 1   ; _main.vader:20:5
-  i32.const 2   ; _main.vader:21:19
-  local.set 39   ; _main.vader:21:19
-  local.get 36   ; _main.vader:21:13
-  local.get 39   ; _main.vader:21:13
+  local.get 17   ; _main.vader:21:13
+  i32.const 2   ; _main.vader:21:13
   array.get 0   ; _main.vader:21:13
   ref.cast 1   ; _main.vader:21:13
   call.import 1   ; _main.vader:21:5

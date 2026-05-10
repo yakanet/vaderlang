@@ -14,11 +14,9 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
   local "__scrut_0#20" ref
   local "p#24" ref
   local "__sb_2#26" any
-  local "$k_11#27" string
   local "$field_12#28" i32
   local "q#32" ref
   local "__sb_1#34" any
-  local "$k_20#35" string
   local "$field_21#36" string
   local.get 0   ; _main.vader:12:18
   local.tee 1   ; _main.vader:12:18
@@ -34,16 +32,14 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
       local.set 2   ; _main.vader:14:9
       intrinsic builder.new   ; _main.vader:14:22
       local.set 3   ; _main.vader:14:22
-      string.const 1   ; _main.vader:14:23
-      local.set 4   ; _main.vader:14:23
       local.get 3   ; _main.vader:14:23
-      local.get 4   ; _main.vader:14:23
+      string.const 1   ; _main.vader:14:23
       intrinsic builder.append_str   ; _main.vader:14:23
       local.get 2   ; _main.vader:14:31
       struct.get 0 0   ; _main.vader:14:31
-      local.set 5   ; _main.vader:14:31
+      local.set 4   ; _main.vader:14:31
       local.get 3   ; _main.vader:14:29
-      local.get 5   ; _main.vader:14:29
+      local.get 4   ; _main.vader:14:29
       intrinsic builder.append_display   ; _main.vader:14:29
       local.get 3   ; _main.vader:14:22
       intrinsic builder.finish   ; _main.vader:14:22
@@ -53,21 +49,19 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
       type_check 2   ; _main.vader:15:9
       if $L2 void   ; _main.vader:15:9
         local.get 1   ; _main.vader:15:9
-        local.set 6   ; _main.vader:15:9
+        local.set 5   ; _main.vader:15:9
         intrinsic builder.new   ; _main.vader:15:22
-        local.set 7   ; _main.vader:15:22
+        local.set 6   ; _main.vader:15:22
+        local.get 6   ; _main.vader:15:23
         string.const 2   ; _main.vader:15:23
-        local.set 8   ; _main.vader:15:23
-        local.get 7   ; _main.vader:15:23
-        local.get 8   ; _main.vader:15:23
         intrinsic builder.append_str   ; _main.vader:15:23
-        local.get 6   ; _main.vader:15:31
+        local.get 5   ; _main.vader:15:31
         struct.get 2 0   ; _main.vader:15:31
-        local.set 9   ; _main.vader:15:31
+        local.set 7   ; _main.vader:15:31
+        local.get 6   ; _main.vader:15:29
         local.get 7   ; _main.vader:15:29
-        local.get 9   ; _main.vader:15:29
         intrinsic builder.append_display   ; _main.vader:15:29
-        local.get 7   ; _main.vader:15:22
+        local.get 6   ; _main.vader:15:22
         intrinsic builder.finish   ; _main.vader:15:22
         return   ; _main.vader:12:5
       else   ; _main.vader:15:9

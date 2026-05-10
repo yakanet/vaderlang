@@ -38,7 +38,6 @@ end
 fn 1 __lambda_1 (ref) -> void
   local "$field_1#6" any
   local "$cell_get_3#8" i32
-  local "$k_4#9" i32
   local "$add_5#10" i32
   local.get 0   ; _main.vader:4:9
   struct.get 0 0   ; _main.vader:4:9
@@ -47,14 +46,12 @@ fn 1 __lambda_1 (ref) -> void
   struct.get 0 0   ; _main.vader:4:13
   struct.get 4 0   ; _main.vader:4:13
   local.set 2   ; _main.vader:4:13
-  i32.const 1   ; _main.vader:4:17
-  local.set 3   ; _main.vader:4:17
   local.get 2   ; _main.vader:4:13
-  local.get 3   ; _main.vader:4:13
+  i32.const 1   ; _main.vader:4:13
   i32.add   ; _main.vader:4:13
-  local.set 4   ; _main.vader:4:13
+  local.set 3   ; _main.vader:4:13
   local.get 1   ; _main.vader:4:9
-  local.get 4   ; _main.vader:4:9
+  local.get 3   ; _main.vader:4:9
   struct.set 4 0   ; _main.vader:4:9
   return   ; _main.vader:3:17
 end

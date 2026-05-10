@@ -22,9 +22,16 @@
 //      renumbered so surviving `local.{get,set,tee}` indices stay dense.
 //      Massive savings on the CFG-emit path which materialises every sub-
 //      expression into a tmp slot — most of those become dead after rule 1.
+//   6. Const-prop through single-use primitive locals — when slot N has
+//      exactly 1 set and 1 get (no tees) AND the set is fed by a constant
+//      op (`<T>.const K`) of a matching val type, propagate the const to
+//      the get site. Eliminates the temp local entirely (Rule 5 then drops
+//      the slot). Massive on struct-literal lowering, where each field
+//      expr is stashed in a fresh slot for evaluation-order safety.
 
 import type { Op } from "./ops.ts";
 import type { BcLocal, DebugPos } from "./module.ts";
+import type { ValType } from "./types.ts";
 
 const INVERSE_VERB: Record<string, string> = {
   lt: "ge", le: "gt", gt: "le", ge: "lt",
@@ -40,6 +47,7 @@ interface MutFn {
 
 export function runPeepholes(fn: MutFn): void {
   applyLocalRules(fn);
+  propagateConstSingleUse(fn);
   dropDeadStores(fn);
 }
 
@@ -154,6 +162,106 @@ function dropDeadStores(fn: MutFn): void {
   }
   fn.locals.length = 0;
   fn.locals.push(...newLocals);
+}
+
+/** Rule 6 — propagate a constant op through a single-use primitive local.
+ *
+ *  Detects:                      Becomes:
+ *      <T>.const K                   <ops between>          // const + set both gone
+ *      local.set N                   <T>.const K            // pushed at the get site
+ *      <ops between>                 <T>.const K
+ *      local.get N
+ *
+ *  Conditions :
+ *    - Slot N is a non-param local (params can't be eliminated — ABI fixes
+ *      their indices).
+ *    - Slot N has exactly 1 `local.set`, 1 `local.get`, 0 `local.tee`.
+ *    - The op immediately preceding the `local.set N` is a constant op
+ *      whose val type matches the slot's val type (avoids losing an
+ *      implicit numeric coercion that the original `local.set` performed).
+ *    - The set's IP is strictly before the get's IP (no backward dataflow).
+ *
+ *  Why it's safe to "move" the const past arbitrary intervening ops :
+ *  pure constants have no observable effect on the value stack at the
+ *  set-IP (they push K then are immediately popped by the set), and pushing
+ *  the same K at the get-IP yields the identical stack effect as the
+ *  original `local.get N` (same value, same type). Stack discipline
+ *  preserved. Branch targets are depth-relative, so deleting two ops
+ *  doesn't invalidate them.
+ *
+ *  After this pass the slot has 0 reads and 0 writes ; `dropDeadStores`
+ *  collects it and renumbers surviving slots dense.
+ */
+function propagateConstSingleUse(fn: MutFn): void {
+  const paramCount = fn.signature.params.length;
+  const totalSlots = paramCount + fn.locals.length;
+  if (totalSlots <= paramCount) return;
+
+  type SlotStat = { setIdx: number; getIdx: number; sets: number; gets: number; tees: number };
+  const stats: SlotStat[] = [];
+  for (let s = 0; s < totalSlots; s++) {
+    stats.push({ setIdx: -1, getIdx: -1, sets: 0, gets: 0, tees: 0 });
+  }
+  for (let i = 0; i < fn.body.length; i++) {
+    const op = fn.body[i]!;
+    if (op.kind === "local.set") { stats[op.slot]!.sets++; stats[op.slot]!.setIdx = i; }
+    else if (op.kind === "local.get") { stats[op.slot]!.gets++; stats[op.slot]!.getIdx = i; }
+    else if (op.kind === "local.tee") { stats[op.slot]!.tees++; }
+  }
+
+  const toDelete = new Set<number>();
+  const replaceWith = new Map<number, Op>();
+  for (let s = paramCount; s < totalSlots; s++) {
+    const stat = stats[s]!;
+    if (stat.tees !== 0 || stat.sets !== 1 || stat.gets !== 1) continue;
+    const setIdx = stat.setIdx;
+    const getIdx = stat.getIdx;
+    if (setIdx === 0 || getIdx <= setIdx) continue;
+    const constOp = fn.body[setIdx - 1]!;
+    const constValType = constOpValType(constOp);
+    if (constValType === null) continue;
+    if (constValType !== fn.locals[s - paramCount]!.val) continue;
+    toDelete.add(setIdx - 1);
+    toDelete.add(setIdx);
+    replaceWith.set(getIdx, constOp);
+  }
+
+  if (toDelete.size === 0) return;
+
+  const newBody: Op[] = [];
+  const newDbg: (DebugPos | null)[] = [];
+  for (let i = 0; i < fn.body.length; i++) {
+    if (toDelete.has(i)) continue;
+    const replacement = replaceWith.get(i);
+    if (replacement !== undefined) {
+      newBody.push(replacement);
+      newDbg.push(fn.debug[i]!);
+    } else {
+      newBody.push(fn.body[i]!);
+      newDbg.push(fn.debug[i]!);
+    }
+  }
+  fn.body.length = 0;
+  for (const op of newBody) fn.body.push(op);
+  fn.debug.length = 0;
+  for (const d of newDbg) fn.debug.push(d);
+}
+
+/** Val type produced by a constant op, or null if `op` isn't a constant. */
+function constOpValType(op: Op): ValType | null {
+  switch (op.kind) {
+    case "i32.const":    return "i32";
+    case "i64.const":    return "i64";
+    case "f32.const":    return "f32";
+    case "f64.const":    return "f64";
+    case "bool.const":   return "bool";
+    case "char.const":   return "char";
+    case "string.const": return "string";
+    // null.const pushes "any" via vader_box_obj — skip ; the type-match
+    // guard wouldn't fire on `any` slots in practice (any is for ref/trait
+    // boxes which the lowerer pins as GC roots).
+    default:             return null;
+  }
 }
 
 /** If `op` is a `<type>.<verb>` shape with `verb ∈ {lt,le,gt,ge,eq,ne}`,

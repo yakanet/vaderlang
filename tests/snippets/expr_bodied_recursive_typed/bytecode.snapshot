@@ -4,103 +4,82 @@ string 1 " fib(10)="
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_expr_bodied_recursive_typed__main_vader$fact (i32) -> i32
-  local "$k_1#7" i32
-  local "$k_5#10" i32
   local "$call_7#12" i32
   local "if_res#14" i32
-  i32.const 1   ; _main.vader:8:37
-  local.set 1   ; _main.vader:8:37
   local.get 0   ; _main.vader:8:32
-  local.get 1   ; _main.vader:8:32
+  i32.const 1   ; _main.vader:8:32
   i32.le   ; _main.vader:8:32
   if $L0 void   ; _main.vader:8:29
     i32.const 1   ; _main.vader:8:41
-    local.set 4   ; _main.vader:8:41
+    local.set 2   ; _main.vader:8:41
   else   ; _main.vader:8:29
-    i32.const 1   ; _main.vader:8:65
-    local.set 2   ; _main.vader:8:65
     local.get 0   ; _main.vader:8:61
-    local.get 2   ; _main.vader:8:61
+    i32.const 1   ; _main.vader:8:61
     i32.sub   ; _main.vader:8:61
     call 0   ; _main.vader:8:56
-    local.set 3   ; _main.vader:8:56
+    local.set 1   ; _main.vader:8:56
     local.get 0   ; _main.vader:8:52
-    local.get 3   ; _main.vader:8:52
+    local.get 1   ; _main.vader:8:52
     i32.mul   ; _main.vader:8:52
-    local.set 4   ; _main.vader:8:52
+    local.set 2   ; _main.vader:8:52
   end $L0   ; _main.vader:8:29
-  local.get 4   ; _main.vader:8:29
+  local.get 2   ; _main.vader:8:29
   return   ; _main.vader:8:29
 end
 
 fn 1 tests_snippets_expr_bodied_recursive_typed__main_vader$fib (i32) -> i32
-  local "$k_1#10" i32
-  local "$k_4#13" i32
   local "$call_6#15" i32
-  local "$k_7#16" i32
   local "$call_9#18" i32
   local "if_res#20" i32
-  i32.const 2   ; _main.vader:10:35
-  local.set 1   ; _main.vader:10:35
   local.get 0   ; _main.vader:10:31
-  local.get 1   ; _main.vader:10:31
+  i32.const 2   ; _main.vader:10:31
   i32.lt   ; _main.vader:10:31
   if $L0 void   ; _main.vader:10:28
     local.get 0   ; _main.vader:10:37
-    local.set 6   ; _main.vader:10:37
+    local.set 3   ; _main.vader:10:37
   else   ; _main.vader:10:28
-    i32.const 1   ; _main.vader:10:58
-    local.set 2   ; _main.vader:10:58
     local.get 0   ; _main.vader:10:54
-    local.get 2   ; _main.vader:10:54
+    i32.const 1   ; _main.vader:10:54
     i32.sub   ; _main.vader:10:54
     call 1   ; _main.vader:10:50
-    local.set 3   ; _main.vader:10:50
-    i32.const 2   ; _main.vader:10:71
-    local.set 4   ; _main.vader:10:71
+    local.set 1   ; _main.vader:10:50
     local.get 0   ; _main.vader:10:67
-    local.get 4   ; _main.vader:10:67
+    i32.const 2   ; _main.vader:10:67
     i32.sub   ; _main.vader:10:67
     call 1   ; _main.vader:10:63
-    local.set 5   ; _main.vader:10:63
-    local.get 3   ; _main.vader:10:50
-    local.get 5   ; _main.vader:10:50
+    local.set 2   ; _main.vader:10:63
+    local.get 1   ; _main.vader:10:50
+    local.get 2   ; _main.vader:10:50
     i32.add   ; _main.vader:10:50
-    local.set 6   ; _main.vader:10:50
+    local.set 3   ; _main.vader:10:50
   end $L0   ; _main.vader:10:28
-  local.get 6   ; _main.vader:10:28
+  local.get 3   ; _main.vader:10:28
   return   ; _main.vader:10:28
 end
 
 fn 2 tests_snippets_expr_bodied_recursive_typed__main_vader$main () -> i32
   local "__sb_0#11" any
-  local "$k_2#12" string
   local "$call_4#14" i32
-  local "$k_5#15" string
   local "$call_7#17" i32
   intrinsic builder.new   ; _main.vader:13:13
   local.set 0   ; _main.vader:13:13
-  string.const 0   ; _main.vader:13:14
-  local.set 1   ; _main.vader:13:14
   local.get 0   ; _main.vader:13:14
-  local.get 1   ; _main.vader:13:14
+  string.const 0   ; _main.vader:13:14
   intrinsic builder.append_str   ; _main.vader:13:14
   i32.const 5   ; _main.vader:13:29
   call 0   ; _main.vader:13:24
-  local.set 2   ; _main.vader:13:24
+  local.set 1   ; _main.vader:13:24
   local.get 0   ; _main.vader:13:22
-  local.get 2   ; _main.vader:13:22
+  local.get 1   ; _main.vader:13:22
   intrinsic builder.append_display   ; _main.vader:13:22
-  string.const 1   ; _main.vader:13:32
-  local.set 3   ; _main.vader:13:32
   local.get 0   ; _main.vader:13:32
-  local.get 3   ; _main.vader:13:32
+  string.const 1   ; _main.vader:13:32
   intrinsic builder.append_str   ; _main.vader:13:32
   i32.const 10   ; _main.vader:13:47
   call 1   ; _main.vader:13:43
-  local.set 4   ; _main.vader:13:43
+  local.set 2   ; _main.vader:13:43
   local.get 0   ; _main.vader:13:41
-  local.get 4   ; _main.vader:13:41
+  local.get 2   ; _main.vader:13:41
   intrinsic builder.append_display   ; _main.vader:13:41
   local.get 0   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13

@@ -8,21 +8,15 @@ string 5 "error"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_enum_match__main_vader$classify (i32) -> i32
-  local "$k_1#8" i32
-  local "$k_4#11" i32
-  i32.const 0   ; _main.vader:9:12
-  local.set 1   ; _main.vader:9:12
   local.get 0   ; _main.vader:9:8
-  local.get 1   ; _main.vader:9:8
+  i32.const 0   ; _main.vader:9:8
   i32.lt   ; _main.vader:9:8
   if $L0 void   ; _main.vader:9:5
     i32.const 2   ; _main.vader:9:23
     return   ; _main.vader:9:16
   else   ; _main.vader:9:5
-    i32.const 0   ; _main.vader:10:13
-    local.set 2   ; _main.vader:10:13
     local.get 0   ; _main.vader:10:8
-    local.get 2   ; _main.vader:10:8
+    i32.const 0   ; _main.vader:10:8
     i32.eq   ; _main.vader:10:8
     if $L1 void   ; _main.vader:10:5
       i32.const 1   ; _main.vader:10:24
@@ -36,33 +30,24 @@ end
 
 fn 1 tests_snippets_enum_match__main_vader$label (i32) -> string
   local "__scrut_0#11" i32
-  local "$k_2#12" i32
-  local "$k_6#15" i32
-  local "$k_10#18" i32
   local.get 0   ; _main.vader:16:11
   local.set 1   ; _main.vader:16:11
-  i32.const 0   ; _main.vader:17:9
-  local.set 2   ; _main.vader:17:9
   local.get 1   ; _main.vader:17:9
-  local.get 2   ; _main.vader:17:9
+  i32.const 0   ; _main.vader:17:9
   i32.eq   ; _main.vader:17:9
   if $L0 void   ; _main.vader:17:9
     string.const 0   ; _main.vader:17:19
     return   ; _main.vader:15:40
   else   ; _main.vader:17:9
-    i32.const 1   ; _main.vader:18:9
-    local.set 3   ; _main.vader:18:9
     local.get 1   ; _main.vader:18:9
-    local.get 3   ; _main.vader:18:9
+    i32.const 1   ; _main.vader:18:9
     i32.eq   ; _main.vader:18:9
     if $L1 void   ; _main.vader:18:9
       string.const 1   ; _main.vader:18:19
       return   ; _main.vader:15:40
     else   ; _main.vader:18:9
-      i32.const 2   ; _main.vader:19:9
-      local.set 4   ; _main.vader:19:9
       local.get 1   ; _main.vader:19:9
-      local.get 4   ; _main.vader:19:9
+      i32.const 2   ; _main.vader:19:9
       i32.eq   ; _main.vader:19:9
       if $L2 void   ; _main.vader:19:9
         string.const 2   ; _main.vader:19:19
@@ -84,23 +69,14 @@ end
 fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   local "c#66" i32
   local "__sb_0#73" any
-  local "$k_9#74" i32
-  local "$k_10#75" i32
   local "$call_11#76" bool
   local "__sb_1#79" any
-  local "$k_15#80" i32
-  local "$k_16#81" i32
   local "$call_17#82" bool
   local "__sb_2#85" any
-  local "$k_21#86" i32
   local "$neq_22#87" bool
   local "__sb_3#90" any
-  local "$k_26#91" i32
   local "$neq_27#92" bool
   local "__scrut_4#97" i32
-  local "$k_34#98" i32
-  local "$k_37#101" i32
-  local "$k_40#104" i32
   local "__scrut_5#109" i32
   local "$k_47#110" i32
   local "$k_50#113" i32
@@ -121,94 +97,80 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
   call.import 0   ; _main.vader:33:5
   intrinsic builder.new   ; _main.vader:36:13
   local.set 1   ; _main.vader:36:13
-  i32.const 0   ; _main.vader:36:27
-  local.set 2   ; _main.vader:36:27
-  i32.const 0   ; _main.vader:36:33
-  local.set 3   ; _main.vader:36:33
-  local.get 2   ; _main.vader:36:16
-  local.get 3   ; _main.vader:36:16
+  i32.const 0   ; _main.vader:36:16
+  i32.const 0   ; _main.vader:36:16
   call 2   ; _main.vader:36:16
-  local.set 4   ; _main.vader:36:16
+  local.set 2   ; _main.vader:36:16
   local.get 1   ; _main.vader:36:14
-  local.get 4   ; _main.vader:36:14
+  local.get 2   ; _main.vader:36:14
   intrinsic builder.append_display   ; _main.vader:36:14
   local.get 1   ; _main.vader:36:13
   intrinsic builder.finish   ; _main.vader:36:13
   call.import 0   ; _main.vader:36:5
   intrinsic builder.new   ; _main.vader:37:13
-  local.set 5   ; _main.vader:37:13
-  i32.const 0   ; _main.vader:37:27
-  local.set 6   ; _main.vader:37:27
-  i32.const 2   ; _main.vader:37:33
-  local.set 7   ; _main.vader:37:33
-  local.get 6   ; _main.vader:37:16
-  local.get 7   ; _main.vader:37:16
+  local.set 3   ; _main.vader:37:13
+  i32.const 0   ; _main.vader:37:16
+  i32.const 2   ; _main.vader:37:16
   call 2   ; _main.vader:37:16
-  local.set 8   ; _main.vader:37:16
-  local.get 5   ; _main.vader:37:14
-  local.get 8   ; _main.vader:37:14
+  local.set 4   ; _main.vader:37:16
+  local.get 3   ; _main.vader:37:14
+  local.get 4   ; _main.vader:37:14
   intrinsic builder.append_display   ; _main.vader:37:14
-  local.get 5   ; _main.vader:37:13
+  local.get 3   ; _main.vader:37:13
   intrinsic builder.finish   ; _main.vader:37:13
   call.import 0   ; _main.vader:37:5
   intrinsic builder.new   ; _main.vader:40:13
-  local.set 9   ; _main.vader:40:13
-  i32.const 0   ; _main.vader:40:21
-  local.set 10   ; _main.vader:40:21
+  local.set 5   ; _main.vader:40:13
   local.get 0   ; _main.vader:40:16
-  local.get 10   ; _main.vader:40:16
+  i32.const 0   ; _main.vader:40:16
   i32.ne   ; _main.vader:40:16
-  local.set 11   ; _main.vader:40:16
-  local.get 9   ; _main.vader:40:14
-  local.get 11   ; _main.vader:40:14
+  local.set 6   ; _main.vader:40:16
+  local.get 5   ; _main.vader:40:14
+  local.get 6   ; _main.vader:40:14
   intrinsic builder.append_display   ; _main.vader:40:14
-  local.get 9   ; _main.vader:40:13
+  local.get 5   ; _main.vader:40:13
   intrinsic builder.finish   ; _main.vader:40:13
   call.import 0   ; _main.vader:40:5
   intrinsic builder.new   ; _main.vader:41:13
-  local.set 12   ; _main.vader:41:13
-  i32.const 1   ; _main.vader:41:21
-  local.set 13   ; _main.vader:41:21
+  local.set 7   ; _main.vader:41:13
   local.get 0   ; _main.vader:41:16
-  local.get 13   ; _main.vader:41:16
+  i32.const 1   ; _main.vader:41:16
   i32.ne   ; _main.vader:41:16
-  local.set 14   ; _main.vader:41:16
-  local.get 12   ; _main.vader:41:14
-  local.get 14   ; _main.vader:41:14
+  local.set 8   ; _main.vader:41:16
+  local.get 7   ; _main.vader:41:14
+  local.get 8   ; _main.vader:41:14
   intrinsic builder.append_display   ; _main.vader:41:14
-  local.get 12   ; _main.vader:41:13
+  local.get 7   ; _main.vader:41:13
   intrinsic builder.finish   ; _main.vader:41:13
   call.import 0   ; _main.vader:41:5
   i32.const 5   ; _main.vader:44:20
   i32.neg   ; _main.vader:44:19
   call 0   ; _main.vader:44:10
-  local.set 15   ; _main.vader:44:5
+  local.set 9   ; _main.vader:44:5
+  local.get 9   ; _main.vader:46:9
   i32.const 0   ; _main.vader:46:9
-  local.set 16   ; _main.vader:46:9
-  local.get 15   ; _main.vader:46:9
-  local.get 16   ; _main.vader:46:9
   i32.eq   ; _main.vader:46:9
   if $L0 void   ; _main.vader:46:9
     string.const 3   ; _main.vader:46:29
     call.import 0   ; _main.vader:46:21
     i32.const 0   ; _main.vader:51:20
     call 0   ; _main.vader:51:11
-    local.set 19   ; _main.vader:51:5
+    local.set 10   ; _main.vader:51:5
     i32.const 0   ; _main.vader:53:9
-    local.set 20   ; _main.vader:53:9
-    local.get 19   ; _main.vader:53:9
-    local.get 20   ; _main.vader:53:9
+    local.set 11   ; _main.vader:53:9
+    local.get 10   ; _main.vader:53:9
+    local.get 11   ; _main.vader:53:9
     i32.eq   ; _main.vader:53:9
     if $L1 void   ; _main.vader:53:9
       string.const 3   ; _main.vader:53:29
       call.import 0   ; _main.vader:53:21
       i32.const 1   ; _main.vader:58:20
       call 0   ; _main.vader:58:11
-      local.set 23   ; _main.vader:58:5
+      local.set 14   ; _main.vader:58:5
       i32.const 0   ; _main.vader:60:9
-      local.set 24   ; _main.vader:60:9
-      local.get 23   ; _main.vader:60:9
-      local.get 24   ; _main.vader:60:9
+      local.set 15   ; _main.vader:60:9
+      local.get 14   ; _main.vader:60:9
+      local.get 15   ; _main.vader:60:9
       i32.eq   ; _main.vader:60:9
       if $L2 void   ; _main.vader:60:9
         string.const 3   ; _main.vader:60:29
@@ -217,9 +179,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
         return   ; _main.vader:65:5
       else   ; _main.vader:60:9
         i32.const 1   ; _main.vader:61:9
-        local.set 25   ; _main.vader:61:9
-        local.get 23   ; _main.vader:61:9
-        local.get 25   ; _main.vader:61:9
+        local.set 16   ; _main.vader:61:9
+        local.get 14   ; _main.vader:61:9
+        local.get 16   ; _main.vader:61:9
         i32.eq   ; _main.vader:61:9
         if $L3 void   ; _main.vader:61:9
           string.const 4   ; _main.vader:61:29
@@ -228,9 +190,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
           return   ; _main.vader:65:5
         else   ; _main.vader:61:9
           i32.const 2   ; _main.vader:62:9
-          local.set 26   ; _main.vader:62:9
-          local.get 23   ; _main.vader:62:9
-          local.get 26   ; _main.vader:62:9
+          local.set 17   ; _main.vader:62:9
+          local.get 14   ; _main.vader:62:9
+          local.get 17   ; _main.vader:62:9
           i32.eq   ; _main.vader:62:9
           if $L4 void   ; _main.vader:62:9
             string.const 5   ; _main.vader:62:29
@@ -244,20 +206,20 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
       end $L2   ; _main.vader:60:9
     else   ; _main.vader:53:9
       i32.const 1   ; _main.vader:54:9
-      local.set 21   ; _main.vader:54:9
-      local.get 19   ; _main.vader:54:9
-      local.get 21   ; _main.vader:54:9
+      local.set 12   ; _main.vader:54:9
+      local.get 10   ; _main.vader:54:9
+      local.get 12   ; _main.vader:54:9
       i32.eq   ; _main.vader:54:9
       if $L5 void   ; _main.vader:54:9
         string.const 4   ; _main.vader:54:29
         call.import 0   ; _main.vader:54:21
         i32.const 1   ; _main.vader:58:20
         call 0   ; _main.vader:58:11
-        local.set 23   ; _main.vader:58:5
+        local.set 14   ; _main.vader:58:5
         i32.const 0   ; _main.vader:60:9
-        local.set 24   ; _main.vader:60:9
-        local.get 23   ; _main.vader:60:9
-        local.get 24   ; _main.vader:60:9
+        local.set 15   ; _main.vader:60:9
+        local.get 14   ; _main.vader:60:9
+        local.get 15   ; _main.vader:60:9
         i32.eq   ; _main.vader:60:9
         if $L6 void   ; _main.vader:60:9
           string.const 3   ; _main.vader:60:29
@@ -266,9 +228,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
           return   ; _main.vader:65:5
         else   ; _main.vader:60:9
           i32.const 1   ; _main.vader:61:9
-          local.set 25   ; _main.vader:61:9
-          local.get 23   ; _main.vader:61:9
-          local.get 25   ; _main.vader:61:9
+          local.set 16   ; _main.vader:61:9
+          local.get 14   ; _main.vader:61:9
+          local.get 16   ; _main.vader:61:9
           i32.eq   ; _main.vader:61:9
           if $L7 void   ; _main.vader:61:9
             string.const 4   ; _main.vader:61:29
@@ -277,9 +239,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
             return   ; _main.vader:65:5
           else   ; _main.vader:61:9
             i32.const 2   ; _main.vader:62:9
-            local.set 26   ; _main.vader:62:9
-            local.get 23   ; _main.vader:62:9
-            local.get 26   ; _main.vader:62:9
+            local.set 17   ; _main.vader:62:9
+            local.get 14   ; _main.vader:62:9
+            local.get 17   ; _main.vader:62:9
             i32.eq   ; _main.vader:62:9
             if $L8 void   ; _main.vader:62:9
               string.const 5   ; _main.vader:62:29
@@ -293,20 +255,20 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
         end $L6   ; _main.vader:60:9
       else   ; _main.vader:54:9
         i32.const 2   ; _main.vader:55:9
-        local.set 22   ; _main.vader:55:9
-        local.get 19   ; _main.vader:55:9
-        local.get 22   ; _main.vader:55:9
+        local.set 13   ; _main.vader:55:9
+        local.get 10   ; _main.vader:55:9
+        local.get 13   ; _main.vader:55:9
         i32.eq   ; _main.vader:55:9
         if $L9 void   ; _main.vader:55:9
           string.const 5   ; _main.vader:55:29
           call.import 0   ; _main.vader:55:21
           i32.const 1   ; _main.vader:58:20
           call 0   ; _main.vader:58:11
-          local.set 23   ; _main.vader:58:5
+          local.set 14   ; _main.vader:58:5
           i32.const 0   ; _main.vader:60:9
-          local.set 24   ; _main.vader:60:9
-          local.get 23   ; _main.vader:60:9
-          local.get 24   ; _main.vader:60:9
+          local.set 15   ; _main.vader:60:9
+          local.get 14   ; _main.vader:60:9
+          local.get 15   ; _main.vader:60:9
           i32.eq   ; _main.vader:60:9
           if $L10 void   ; _main.vader:60:9
             string.const 3   ; _main.vader:60:29
@@ -315,9 +277,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
             return   ; _main.vader:65:5
           else   ; _main.vader:60:9
             i32.const 1   ; _main.vader:61:9
-            local.set 25   ; _main.vader:61:9
-            local.get 23   ; _main.vader:61:9
-            local.get 25   ; _main.vader:61:9
+            local.set 16   ; _main.vader:61:9
+            local.get 14   ; _main.vader:61:9
+            local.get 16   ; _main.vader:61:9
             i32.eq   ; _main.vader:61:9
             if $L11 void   ; _main.vader:61:9
               string.const 4   ; _main.vader:61:29
@@ -326,9 +288,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
               return   ; _main.vader:65:5
             else   ; _main.vader:61:9
               i32.const 2   ; _main.vader:62:9
-              local.set 26   ; _main.vader:62:9
-              local.get 23   ; _main.vader:62:9
-              local.get 26   ; _main.vader:62:9
+              local.set 17   ; _main.vader:62:9
+              local.get 14   ; _main.vader:62:9
+              local.get 17   ; _main.vader:62:9
               i32.eq   ; _main.vader:62:9
               if $L12 void   ; _main.vader:62:9
                 string.const 5   ; _main.vader:62:29
@@ -346,32 +308,30 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
       end $L5   ; _main.vader:54:9
     end $L1   ; _main.vader:53:9
   else   ; _main.vader:46:9
+    local.get 9   ; _main.vader:47:9
     i32.const 1   ; _main.vader:47:9
-    local.set 17   ; _main.vader:47:9
-    local.get 15   ; _main.vader:47:9
-    local.get 17   ; _main.vader:47:9
     i32.eq   ; _main.vader:47:9
     if $L13 void   ; _main.vader:47:9
       string.const 4   ; _main.vader:47:29
       call.import 0   ; _main.vader:47:21
       i32.const 0   ; _main.vader:51:20
       call 0   ; _main.vader:51:11
-      local.set 19   ; _main.vader:51:5
+      local.set 10   ; _main.vader:51:5
       i32.const 0   ; _main.vader:53:9
-      local.set 20   ; _main.vader:53:9
-      local.get 19   ; _main.vader:53:9
-      local.get 20   ; _main.vader:53:9
+      local.set 11   ; _main.vader:53:9
+      local.get 10   ; _main.vader:53:9
+      local.get 11   ; _main.vader:53:9
       i32.eq   ; _main.vader:53:9
       if $L14 void   ; _main.vader:53:9
         string.const 3   ; _main.vader:53:29
         call.import 0   ; _main.vader:53:21
         i32.const 1   ; _main.vader:58:20
         call 0   ; _main.vader:58:11
-        local.set 23   ; _main.vader:58:5
+        local.set 14   ; _main.vader:58:5
         i32.const 0   ; _main.vader:60:9
-        local.set 24   ; _main.vader:60:9
-        local.get 23   ; _main.vader:60:9
-        local.get 24   ; _main.vader:60:9
+        local.set 15   ; _main.vader:60:9
+        local.get 14   ; _main.vader:60:9
+        local.get 15   ; _main.vader:60:9
         i32.eq   ; _main.vader:60:9
         if $L15 void   ; _main.vader:60:9
           string.const 3   ; _main.vader:60:29
@@ -380,9 +340,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
           return   ; _main.vader:65:5
         else   ; _main.vader:60:9
           i32.const 1   ; _main.vader:61:9
-          local.set 25   ; _main.vader:61:9
-          local.get 23   ; _main.vader:61:9
-          local.get 25   ; _main.vader:61:9
+          local.set 16   ; _main.vader:61:9
+          local.get 14   ; _main.vader:61:9
+          local.get 16   ; _main.vader:61:9
           i32.eq   ; _main.vader:61:9
           if $L16 void   ; _main.vader:61:9
             string.const 4   ; _main.vader:61:29
@@ -391,9 +351,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
             return   ; _main.vader:65:5
           else   ; _main.vader:61:9
             i32.const 2   ; _main.vader:62:9
-            local.set 26   ; _main.vader:62:9
-            local.get 23   ; _main.vader:62:9
-            local.get 26   ; _main.vader:62:9
+            local.set 17   ; _main.vader:62:9
+            local.get 14   ; _main.vader:62:9
+            local.get 17   ; _main.vader:62:9
             i32.eq   ; _main.vader:62:9
             if $L17 void   ; _main.vader:62:9
               string.const 5   ; _main.vader:62:29
@@ -407,20 +367,20 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
         end $L15   ; _main.vader:60:9
       else   ; _main.vader:53:9
         i32.const 1   ; _main.vader:54:9
-        local.set 21   ; _main.vader:54:9
-        local.get 19   ; _main.vader:54:9
-        local.get 21   ; _main.vader:54:9
+        local.set 12   ; _main.vader:54:9
+        local.get 10   ; _main.vader:54:9
+        local.get 12   ; _main.vader:54:9
         i32.eq   ; _main.vader:54:9
         if $L18 void   ; _main.vader:54:9
           string.const 4   ; _main.vader:54:29
           call.import 0   ; _main.vader:54:21
           i32.const 1   ; _main.vader:58:20
           call 0   ; _main.vader:58:11
-          local.set 23   ; _main.vader:58:5
+          local.set 14   ; _main.vader:58:5
           i32.const 0   ; _main.vader:60:9
-          local.set 24   ; _main.vader:60:9
-          local.get 23   ; _main.vader:60:9
-          local.get 24   ; _main.vader:60:9
+          local.set 15   ; _main.vader:60:9
+          local.get 14   ; _main.vader:60:9
+          local.get 15   ; _main.vader:60:9
           i32.eq   ; _main.vader:60:9
           if $L19 void   ; _main.vader:60:9
             string.const 3   ; _main.vader:60:29
@@ -429,9 +389,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
             return   ; _main.vader:65:5
           else   ; _main.vader:60:9
             i32.const 1   ; _main.vader:61:9
-            local.set 25   ; _main.vader:61:9
-            local.get 23   ; _main.vader:61:9
-            local.get 25   ; _main.vader:61:9
+            local.set 16   ; _main.vader:61:9
+            local.get 14   ; _main.vader:61:9
+            local.get 16   ; _main.vader:61:9
             i32.eq   ; _main.vader:61:9
             if $L20 void   ; _main.vader:61:9
               string.const 4   ; _main.vader:61:29
@@ -440,9 +400,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
               return   ; _main.vader:65:5
             else   ; _main.vader:61:9
               i32.const 2   ; _main.vader:62:9
-              local.set 26   ; _main.vader:62:9
-              local.get 23   ; _main.vader:62:9
-              local.get 26   ; _main.vader:62:9
+              local.set 17   ; _main.vader:62:9
+              local.get 14   ; _main.vader:62:9
+              local.get 17   ; _main.vader:62:9
               i32.eq   ; _main.vader:62:9
               if $L21 void   ; _main.vader:62:9
                 string.const 5   ; _main.vader:62:29
@@ -456,20 +416,20 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
           end $L19   ; _main.vader:60:9
         else   ; _main.vader:54:9
           i32.const 2   ; _main.vader:55:9
-          local.set 22   ; _main.vader:55:9
-          local.get 19   ; _main.vader:55:9
-          local.get 22   ; _main.vader:55:9
+          local.set 13   ; _main.vader:55:9
+          local.get 10   ; _main.vader:55:9
+          local.get 13   ; _main.vader:55:9
           i32.eq   ; _main.vader:55:9
           if $L22 void   ; _main.vader:55:9
             string.const 5   ; _main.vader:55:29
             call.import 0   ; _main.vader:55:21
             i32.const 1   ; _main.vader:58:20
             call 0   ; _main.vader:58:11
-            local.set 23   ; _main.vader:58:5
+            local.set 14   ; _main.vader:58:5
             i32.const 0   ; _main.vader:60:9
-            local.set 24   ; _main.vader:60:9
-            local.get 23   ; _main.vader:60:9
-            local.get 24   ; _main.vader:60:9
+            local.set 15   ; _main.vader:60:9
+            local.get 14   ; _main.vader:60:9
+            local.get 15   ; _main.vader:60:9
             i32.eq   ; _main.vader:60:9
             if $L23 void   ; _main.vader:60:9
               string.const 3   ; _main.vader:60:29
@@ -478,9 +438,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
               return   ; _main.vader:65:5
             else   ; _main.vader:60:9
               i32.const 1   ; _main.vader:61:9
-              local.set 25   ; _main.vader:61:9
-              local.get 23   ; _main.vader:61:9
-              local.get 25   ; _main.vader:61:9
+              local.set 16   ; _main.vader:61:9
+              local.get 14   ; _main.vader:61:9
+              local.get 16   ; _main.vader:61:9
               i32.eq   ; _main.vader:61:9
               if $L24 void   ; _main.vader:61:9
                 string.const 4   ; _main.vader:61:29
@@ -489,9 +449,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
                 return   ; _main.vader:65:5
               else   ; _main.vader:61:9
                 i32.const 2   ; _main.vader:62:9
-                local.set 26   ; _main.vader:62:9
-                local.get 23   ; _main.vader:62:9
-                local.get 26   ; _main.vader:62:9
+                local.set 17   ; _main.vader:62:9
+                local.get 14   ; _main.vader:62:9
+                local.get 17   ; _main.vader:62:9
                 i32.eq   ; _main.vader:62:9
                 if $L25 void   ; _main.vader:62:9
                   string.const 5   ; _main.vader:62:29
@@ -509,32 +469,30 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
         end $L18   ; _main.vader:54:9
       end $L14   ; _main.vader:53:9
     else   ; _main.vader:47:9
+      local.get 9   ; _main.vader:48:9
       i32.const 2   ; _main.vader:48:9
-      local.set 18   ; _main.vader:48:9
-      local.get 15   ; _main.vader:48:9
-      local.get 18   ; _main.vader:48:9
       i32.eq   ; _main.vader:48:9
       if $L26 void   ; _main.vader:48:9
         string.const 5   ; _main.vader:48:29
         call.import 0   ; _main.vader:48:21
         i32.const 0   ; _main.vader:51:20
         call 0   ; _main.vader:51:11
-        local.set 19   ; _main.vader:51:5
+        local.set 10   ; _main.vader:51:5
         i32.const 0   ; _main.vader:53:9
-        local.set 20   ; _main.vader:53:9
-        local.get 19   ; _main.vader:53:9
-        local.get 20   ; _main.vader:53:9
+        local.set 11   ; _main.vader:53:9
+        local.get 10   ; _main.vader:53:9
+        local.get 11   ; _main.vader:53:9
         i32.eq   ; _main.vader:53:9
         if $L27 void   ; _main.vader:53:9
           string.const 3   ; _main.vader:53:29
           call.import 0   ; _main.vader:53:21
           i32.const 1   ; _main.vader:58:20
           call 0   ; _main.vader:58:11
-          local.set 23   ; _main.vader:58:5
+          local.set 14   ; _main.vader:58:5
           i32.const 0   ; _main.vader:60:9
-          local.set 24   ; _main.vader:60:9
-          local.get 23   ; _main.vader:60:9
-          local.get 24   ; _main.vader:60:9
+          local.set 15   ; _main.vader:60:9
+          local.get 14   ; _main.vader:60:9
+          local.get 15   ; _main.vader:60:9
           i32.eq   ; _main.vader:60:9
           if $L28 void   ; _main.vader:60:9
             string.const 3   ; _main.vader:60:29
@@ -543,9 +501,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
             return   ; _main.vader:65:5
           else   ; _main.vader:60:9
             i32.const 1   ; _main.vader:61:9
-            local.set 25   ; _main.vader:61:9
-            local.get 23   ; _main.vader:61:9
-            local.get 25   ; _main.vader:61:9
+            local.set 16   ; _main.vader:61:9
+            local.get 14   ; _main.vader:61:9
+            local.get 16   ; _main.vader:61:9
             i32.eq   ; _main.vader:61:9
             if $L29 void   ; _main.vader:61:9
               string.const 4   ; _main.vader:61:29
@@ -554,9 +512,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
               return   ; _main.vader:65:5
             else   ; _main.vader:61:9
               i32.const 2   ; _main.vader:62:9
-              local.set 26   ; _main.vader:62:9
-              local.get 23   ; _main.vader:62:9
-              local.get 26   ; _main.vader:62:9
+              local.set 17   ; _main.vader:62:9
+              local.get 14   ; _main.vader:62:9
+              local.get 17   ; _main.vader:62:9
               i32.eq   ; _main.vader:62:9
               if $L30 void   ; _main.vader:62:9
                 string.const 5   ; _main.vader:62:29
@@ -570,20 +528,20 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
           end $L28   ; _main.vader:60:9
         else   ; _main.vader:53:9
           i32.const 1   ; _main.vader:54:9
-          local.set 21   ; _main.vader:54:9
-          local.get 19   ; _main.vader:54:9
-          local.get 21   ; _main.vader:54:9
+          local.set 12   ; _main.vader:54:9
+          local.get 10   ; _main.vader:54:9
+          local.get 12   ; _main.vader:54:9
           i32.eq   ; _main.vader:54:9
           if $L31 void   ; _main.vader:54:9
             string.const 4   ; _main.vader:54:29
             call.import 0   ; _main.vader:54:21
             i32.const 1   ; _main.vader:58:20
             call 0   ; _main.vader:58:11
-            local.set 23   ; _main.vader:58:5
+            local.set 14   ; _main.vader:58:5
             i32.const 0   ; _main.vader:60:9
-            local.set 24   ; _main.vader:60:9
-            local.get 23   ; _main.vader:60:9
-            local.get 24   ; _main.vader:60:9
+            local.set 15   ; _main.vader:60:9
+            local.get 14   ; _main.vader:60:9
+            local.get 15   ; _main.vader:60:9
             i32.eq   ; _main.vader:60:9
             if $L32 void   ; _main.vader:60:9
               string.const 3   ; _main.vader:60:29
@@ -592,9 +550,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
               return   ; _main.vader:65:5
             else   ; _main.vader:60:9
               i32.const 1   ; _main.vader:61:9
-              local.set 25   ; _main.vader:61:9
-              local.get 23   ; _main.vader:61:9
-              local.get 25   ; _main.vader:61:9
+              local.set 16   ; _main.vader:61:9
+              local.get 14   ; _main.vader:61:9
+              local.get 16   ; _main.vader:61:9
               i32.eq   ; _main.vader:61:9
               if $L33 void   ; _main.vader:61:9
                 string.const 4   ; _main.vader:61:29
@@ -603,9 +561,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
                 return   ; _main.vader:65:5
               else   ; _main.vader:61:9
                 i32.const 2   ; _main.vader:62:9
-                local.set 26   ; _main.vader:62:9
-                local.get 23   ; _main.vader:62:9
-                local.get 26   ; _main.vader:62:9
+                local.set 17   ; _main.vader:62:9
+                local.get 14   ; _main.vader:62:9
+                local.get 17   ; _main.vader:62:9
                 i32.eq   ; _main.vader:62:9
                 if $L34 void   ; _main.vader:62:9
                   string.const 5   ; _main.vader:62:29
@@ -619,20 +577,20 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
             end $L32   ; _main.vader:60:9
           else   ; _main.vader:54:9
             i32.const 2   ; _main.vader:55:9
-            local.set 22   ; _main.vader:55:9
-            local.get 19   ; _main.vader:55:9
-            local.get 22   ; _main.vader:55:9
+            local.set 13   ; _main.vader:55:9
+            local.get 10   ; _main.vader:55:9
+            local.get 13   ; _main.vader:55:9
             i32.eq   ; _main.vader:55:9
             if $L35 void   ; _main.vader:55:9
               string.const 5   ; _main.vader:55:29
               call.import 0   ; _main.vader:55:21
               i32.const 1   ; _main.vader:58:20
               call 0   ; _main.vader:58:11
-              local.set 23   ; _main.vader:58:5
+              local.set 14   ; _main.vader:58:5
               i32.const 0   ; _main.vader:60:9
-              local.set 24   ; _main.vader:60:9
-              local.get 23   ; _main.vader:60:9
-              local.get 24   ; _main.vader:60:9
+              local.set 15   ; _main.vader:60:9
+              local.get 14   ; _main.vader:60:9
+              local.get 15   ; _main.vader:60:9
               i32.eq   ; _main.vader:60:9
               if $L36 void   ; _main.vader:60:9
                 string.const 3   ; _main.vader:60:29
@@ -641,9 +599,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
                 return   ; _main.vader:65:5
               else   ; _main.vader:60:9
                 i32.const 1   ; _main.vader:61:9
-                local.set 25   ; _main.vader:61:9
-                local.get 23   ; _main.vader:61:9
-                local.get 25   ; _main.vader:61:9
+                local.set 16   ; _main.vader:61:9
+                local.get 14   ; _main.vader:61:9
+                local.get 16   ; _main.vader:61:9
                 i32.eq   ; _main.vader:61:9
                 if $L37 void   ; _main.vader:61:9
                   string.const 4   ; _main.vader:61:29
@@ -652,9 +610,9 @@ fn 3 tests_snippets_enum_match__main_vader$main () -> i32
                   return   ; _main.vader:65:5
                 else   ; _main.vader:61:9
                   i32.const 2   ; _main.vader:62:9
-                  local.set 26   ; _main.vader:62:9
-                  local.get 23   ; _main.vader:62:9
-                  local.get 26   ; _main.vader:62:9
+                  local.set 17   ; _main.vader:62:9
+                  local.get 14   ; _main.vader:62:9
+                  local.get 17   ; _main.vader:62:9
                   i32.eq   ; _main.vader:62:9
                   if $L38 void   ; _main.vader:62:9
                     string.const 5   ; _main.vader:62:29

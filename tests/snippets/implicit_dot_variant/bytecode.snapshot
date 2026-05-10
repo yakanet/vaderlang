@@ -19,33 +19,24 @@ import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_implicit_dot_variant__main_vader$show_day (i32) -> string
   local "__scrut_0#11" i32
-  local "$k_2#12" i32
-  local "$k_6#15" i32
-  local "$k_10#18" i32
   local.get 0   ; _main.vader:17:18
   local.set 1   ; _main.vader:17:18
-  i32.const 0   ; _main.vader:18:9
-  local.set 2   ; _main.vader:18:9
   local.get 1   ; _main.vader:18:9
-  local.get 2   ; _main.vader:18:9
+  i32.const 0   ; _main.vader:18:9
   i32.eq   ; _main.vader:18:9
   if $L0 void   ; _main.vader:18:9
     string.const 0   ; _main.vader:18:23
     return   ; _main.vader:17:5
   else   ; _main.vader:18:9
-    i32.const 1   ; _main.vader:19:9
-    local.set 3   ; _main.vader:19:9
     local.get 1   ; _main.vader:19:9
-    local.get 3   ; _main.vader:19:9
+    i32.const 1   ; _main.vader:19:9
     i32.eq   ; _main.vader:19:9
     if $L1 void   ; _main.vader:19:9
       string.const 1   ; _main.vader:19:23
       return   ; _main.vader:17:5
     else   ; _main.vader:19:9
-      i32.const 2   ; _main.vader:20:9
-      local.set 4   ; _main.vader:20:9
       local.get 1   ; _main.vader:20:9
-      local.get 4   ; _main.vader:20:9
+      i32.const 2   ; _main.vader:20:9
       i32.eq   ; _main.vader:20:9
       if $L2 void   ; _main.vader:20:9
         string.const 2   ; _main.vader:20:23
@@ -58,17 +49,13 @@ fn 0 tests_snippets_implicit_dot_variant__main_vader$show_day (i32) -> string
 end
 
 fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
-  local "$k_3#40" i32
-  local "$k_4#41" i32
   local "days#42" ref
-  local "$k_7#43" i32
   local "$len_8#44" i32
   local "__iter_0#45" ref
   local "__step_1#47" ref
   local "m#50" ref
   local "__scrut_2#51" ref
   local "__sb_3#54" any
-  local "$k_25#55" string
   local "$field_27#57" i32
   local "n#61" ref
   local "__scrut_4#62" ref
@@ -78,33 +65,27 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   i32.const 0   ; _main.vader:26:14
   call 0   ; _main.vader:27:13
   call.import 0   ; _main.vader:27:5
-  i32.const 0   ; _main.vader:30:20
-  local.set 0   ; _main.vader:30:20
-  i32.const 2   ; _main.vader:30:29
-  local.set 1   ; _main.vader:30:29
-  local.get 0   ; _main.vader:30:19
-  local.get 1   ; _main.vader:30:19
+  i32.const 0   ; _main.vader:30:19
+  i32.const 2   ; _main.vader:30:19
   array.new 10 2   ; _main.vader:30:19
-  local.set 2   ; _main.vader:30:19
-  i32.const 0   ; _main.vader:31:5
-  local.set 3   ; _main.vader:31:5
-  local.get 2   ; _main.vader:31:5
+  local.set 0   ; _main.vader:30:19
+  local.get 0   ; _main.vader:31:5
   array.len   ; _main.vader:31:5
-  local.set 4   ; _main.vader:31:5
-  local.get 2   ; _main.vader:31:14
-  local.get 3   ; _main.vader:31:14
-  local.get 4   ; _main.vader:31:14
+  local.set 1   ; _main.vader:31:5
+  local.get 0   ; _main.vader:31:14
+  i32.const 0   ; _main.vader:31:14
+  local.get 1   ; _main.vader:31:14
   struct.new 9   ; _main.vader:31:14
-  local.set 5   ; _main.vader:31:14
+  local.set 2   ; _main.vader:31:14
   block $L0 void   ; _main.vader:31:5
     loop $L1 void   ; _main.vader:31:5
-      local.get 5   ; _main.vader:31:5
+      local.get 2   ; _main.vader:31:5
       call 2   ; _main.vader:31:5
-      local.tee 6   ; _main.vader:31:5
+      local.tee 3   ; _main.vader:31:5
       type_check 3   ; _main.vader:31:5
       if $L2 void   ; _main.vader:31:5
       else   ; _main.vader:31:5
-        local.get 6   ; _main.vader:31:5
+        local.get 3   ; _main.vader:31:5
         struct.get 6 0   ; _main.vader:31:5
         call 0   ; _main.vader:31:29
         call.import 0   ; _main.vader:31:21
@@ -114,51 +95,49 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   end $L0   ; _main.vader:31:5
   i32.const 42   ; _main.vader:34:32
   struct.new_stack 0   ; _main.vader:34:16
-  local.tee 7   ; _main.vader:34:16
-  local.tee 8   ; _main.vader:35:11
+  local.tee 4   ; _main.vader:34:16
+  local.tee 5   ; _main.vader:35:11
   type_check 0   ; _main.vader:36:9
   if $L3 void   ; _main.vader:36:9
     intrinsic builder.new   ; _main.vader:36:29
-    local.set 9   ; _main.vader:36:29
+    local.set 6   ; _main.vader:36:29
+    local.get 6   ; _main.vader:36:30
     string.const 3   ; _main.vader:36:30
-    local.set 10   ; _main.vader:36:30
-    local.get 9   ; _main.vader:36:30
-    local.get 10   ; _main.vader:36:30
     intrinsic builder.append_str   ; _main.vader:36:30
-    local.get 7   ; _main.vader:36:36
+    local.get 4   ; _main.vader:36:36
     struct.get 0 0   ; _main.vader:36:36
-    local.set 11   ; _main.vader:36:36
-    local.get 9   ; _main.vader:36:34
-    local.get 11   ; _main.vader:36:34
+    local.set 7   ; _main.vader:36:36
+    local.get 6   ; _main.vader:36:34
+    local.get 7   ; _main.vader:36:34
     intrinsic builder.append_display   ; _main.vader:36:34
-    local.get 9   ; _main.vader:36:29
+    local.get 6   ; _main.vader:36:29
     intrinsic builder.finish   ; _main.vader:36:29
     call.import 0   ; _main.vader:36:21
     struct.new_stack 2   ; _main.vader:39:16
-    local.tee 12   ; _main.vader:39:16
-    local.tee 13   ; _main.vader:40:11
+    local.tee 8   ; _main.vader:39:16
+    local.tee 9   ; _main.vader:40:11
     type_check 0   ; _main.vader:41:9
     if $L4 void   ; _main.vader:41:9
       intrinsic builder.new   ; _main.vader:41:29
-      local.set 14   ; _main.vader:41:29
+      local.set 10   ; _main.vader:41:29
       string.const 3   ; _main.vader:41:30
-      local.set 15   ; _main.vader:41:30
-      local.get 14   ; _main.vader:41:30
-      local.get 15   ; _main.vader:41:30
+      local.set 11   ; _main.vader:41:30
+      local.get 10   ; _main.vader:41:30
+      local.get 11   ; _main.vader:41:30
       intrinsic builder.append_str   ; _main.vader:41:30
-      local.get 12   ; _main.vader:41:36
+      local.get 8   ; _main.vader:41:36
       struct.get 0 0   ; _main.vader:41:36
-      local.set 16   ; _main.vader:41:36
-      local.get 14   ; _main.vader:41:34
-      local.get 16   ; _main.vader:41:34
+      local.set 12   ; _main.vader:41:36
+      local.get 10   ; _main.vader:41:34
+      local.get 12   ; _main.vader:41:34
       intrinsic builder.append_display   ; _main.vader:41:34
-      local.get 14   ; _main.vader:41:29
+      local.get 10   ; _main.vader:41:29
       intrinsic builder.finish   ; _main.vader:41:29
       call.import 0   ; _main.vader:41:21
       i32.const 0   ; _main.vader:44:12
       return   ; _main.vader:44:5
     else   ; _main.vader:41:9
-      local.get 13   ; _main.vader:42:9
+      local.get 9   ; _main.vader:42:9
       type_check 2   ; _main.vader:42:9
       if $L5 void   ; _main.vader:42:9
         string.const 4   ; _main.vader:42:29
@@ -170,36 +149,36 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
       end $L5   ; _main.vader:42:9
     end $L4   ; _main.vader:41:9
   else   ; _main.vader:36:9
-    local.get 8   ; _main.vader:37:9
+    local.get 5   ; _main.vader:37:9
     type_check 2   ; _main.vader:37:9
     if $L6 void   ; _main.vader:37:9
       string.const 4   ; _main.vader:37:29
       call.import 0   ; _main.vader:37:21
       struct.new_stack 2   ; _main.vader:39:16
-      local.tee 12   ; _main.vader:39:16
-      local.tee 13   ; _main.vader:40:11
+      local.tee 8   ; _main.vader:39:16
+      local.tee 9   ; _main.vader:40:11
       type_check 0   ; _main.vader:41:9
       if $L7 void   ; _main.vader:41:9
         intrinsic builder.new   ; _main.vader:41:29
-        local.set 14   ; _main.vader:41:29
+        local.set 10   ; _main.vader:41:29
         string.const 3   ; _main.vader:41:30
-        local.set 15   ; _main.vader:41:30
-        local.get 14   ; _main.vader:41:30
-        local.get 15   ; _main.vader:41:30
+        local.set 11   ; _main.vader:41:30
+        local.get 10   ; _main.vader:41:30
+        local.get 11   ; _main.vader:41:30
         intrinsic builder.append_str   ; _main.vader:41:30
-        local.get 12   ; _main.vader:41:36
+        local.get 8   ; _main.vader:41:36
         struct.get 0 0   ; _main.vader:41:36
-        local.set 16   ; _main.vader:41:36
-        local.get 14   ; _main.vader:41:34
-        local.get 16   ; _main.vader:41:34
+        local.set 12   ; _main.vader:41:36
+        local.get 10   ; _main.vader:41:34
+        local.get 12   ; _main.vader:41:34
         intrinsic builder.append_display   ; _main.vader:41:34
-        local.get 14   ; _main.vader:41:29
+        local.get 10   ; _main.vader:41:29
         intrinsic builder.finish   ; _main.vader:41:29
         call.import 0   ; _main.vader:41:21
         i32.const 0   ; _main.vader:44:12
         return   ; _main.vader:44:5
       else   ; _main.vader:41:9
-        local.get 13   ; _main.vader:42:9
+        local.get 9   ; _main.vader:42:9
         type_check 2   ; _main.vader:42:9
         if $L8 void   ; _main.vader:42:9
           string.const 4   ; _main.vader:42:29
@@ -223,7 +202,6 @@ fn 2 std_core$ArrayIter$Iterator$step__Day (ref) -> ref
   local "$field_6#17" i32
   local "v#18" i32
   local "$field_9#19" i32
-  local "$k_10#20" i32
   local "$add_11#21" i32
   local.get 0   ; core.vader:152:13
   struct.get 9 1   ; core.vader:152:13
@@ -252,14 +230,12 @@ fn 2 std_core$ArrayIter$Iterator$step__Day (ref) -> ref
     local.get 0   ; core.vader:154:23
     struct.get 9 1   ; core.vader:154:23
     local.set 6   ; core.vader:154:23
-    i32.const 1   ; core.vader:154:37
-    local.set 7   ; core.vader:154:37
     local.get 6   ; core.vader:154:23
-    local.get 7   ; core.vader:154:23
+    i32.const 1   ; core.vader:154:23
     i32.add   ; core.vader:154:23
-    local.set 8   ; core.vader:154:23
+    local.set 7   ; core.vader:154:23
     local.get 0   ; core.vader:154:9
-    local.get 8   ; core.vader:154:9
+    local.get 7   ; core.vader:154:9
     struct.set 9 1   ; core.vader:154:9
     local.get 5   ; core.vader:155:16
     struct.new 6   ; core.vader:155:16

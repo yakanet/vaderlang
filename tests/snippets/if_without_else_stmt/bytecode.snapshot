@@ -6,13 +6,10 @@ import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_if_without_else_stmt__main_vader$expect_lparen (string) -> string
   local "__sb_0#6" any
-  local "$k_3#7" string
   intrinsic builder.new   ; _main.vader:10:12
   local.set 1   ; _main.vader:10:12
-  string.const 0   ; _main.vader:10:13
-  local.set 2   ; _main.vader:10:13
   local.get 1   ; _main.vader:10:13
-  local.get 2   ; _main.vader:10:13
+  string.const 0   ; _main.vader:10:13
   intrinsic builder.append_str   ; _main.vader:10:13
   local.get 1   ; _main.vader:10:17
   local.get 0   ; _main.vader:10:17

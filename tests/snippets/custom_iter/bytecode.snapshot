@@ -9,18 +9,14 @@ import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_custom_iter__main_vader$Countdown$Iterator$step (ref) -> ref
   local "$field_1#10" i32
-  local "$k_2#11" i32
   local "v#14" i32
   local "$field_7#15" i32
-  local "$k_8#16" i32
   local "$sub_9#17" i32
   local.get 0   ; _main.vader:10:13
   struct.get 0 0   ; _main.vader:10:13
   local.set 1   ; _main.vader:10:13
-  i32.const 0   ; _main.vader:10:29
-  local.set 2   ; _main.vader:10:29
   local.get 1   ; _main.vader:10:13
-  local.get 2   ; _main.vader:10:13
+  i32.const 0   ; _main.vader:10:13
   i32.le   ; _main.vader:10:13
   if $L0 void   ; _main.vader:10:9
     struct.new 2   ; _main.vader:11:20
@@ -28,20 +24,18 @@ fn 0 tests_snippets_custom_iter__main_vader$Countdown$Iterator$step (ref) -> ref
   else   ; _main.vader:10:9
     local.get 0   ; _main.vader:13:14
     struct.get 0 0   ; _main.vader:13:14
-    local.set 3   ; _main.vader:13:14
+    local.set 2   ; _main.vader:13:14
     local.get 0   ; _main.vader:14:24
     struct.get 0 0   ; _main.vader:14:24
-    local.set 4   ; _main.vader:14:24
-    i32.const 1   ; _main.vader:14:39
-    local.set 5   ; _main.vader:14:39
-    local.get 4   ; _main.vader:14:24
-    local.get 5   ; _main.vader:14:24
+    local.set 3   ; _main.vader:14:24
+    local.get 3   ; _main.vader:14:24
+    i32.const 1   ; _main.vader:14:24
     i32.sub   ; _main.vader:14:24
-    local.set 6   ; _main.vader:14:24
+    local.set 4   ; _main.vader:14:24
     local.get 0   ; _main.vader:14:9
-    local.get 6   ; _main.vader:14:9
+    local.get 4   ; _main.vader:14:9
     struct.set 0 0   ; _main.vader:14:9
-    local.get 3   ; _main.vader:15:16
+    local.get 2   ; _main.vader:15:16
     struct.new 5   ; _main.vader:15:16
     return   ; _main.vader:15:9
   end $L0   ; _main.vader:10:9
