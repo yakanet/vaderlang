@@ -5,7 +5,7 @@
     return
       mul :i32
         l:
-          x#45 :i32
+          x#46 :i32
         r:
           int(2) :i32
   fn tests_snippets_decorator_assert__main_vader$main() -> i32

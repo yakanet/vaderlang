@@ -22,8 +22,8 @@
   expr 4:12     IdentExpr      :: $T
   expr 8:5      IfExpr         :: void
   expr 8:8      BinaryExpr     :: bool
-  expr 8:8      CallExpr       :: i32
-  expr 8:8      FieldExpr      :: fn() -> i32
+  expr 8:8      CallExpr       :: usize
+  expr 8:8      FieldExpr      :: fn() -> usize
   expr 8:8      IdentExpr      :: $T[]
   expr 9:16     IdentExpr      :: $T[]
   expr 9:16     IndexExpr      :: $T

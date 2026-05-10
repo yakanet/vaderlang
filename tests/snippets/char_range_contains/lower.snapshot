@@ -5,7 +5,7 @@
     return
       call :bool
         callee:
-          contains#1000100 :bool
+          contains#1000108 :bool
         arg0:
           Range(char) {
             start: char(0x30)
@@ -14,12 +14,12 @@
             cursor: char(0x30)
           }
         arg1:
-          c#57 :char
+          c#58 :char
   fn tests_snippets_char_range_contains__main_vader$is_lower(c: char) -> bool
     return
       call :bool
         callee:
-          contains#1000100 :bool
+          contains#1000108 :bool
         arg0:
           Range(char) {
             start: char(0x61)
@@ -28,14 +28,14 @@
             cursor: char(0x61)
           }
         arg1:
-          c#58 :char
+          c#59 :char
   fn tests_snippets_char_range_contains__main_vader$is_alpha(c: char) -> bool
     return
       or :bool
         l:
           call :bool
             callee:
-              contains#1000100 :bool
+              contains#1000108 :bool
             arg0:
               Range(char) {
                 start: char(0x61)
@@ -44,11 +44,11 @@
                 cursor: char(0x61)
               }
             arg1:
-              c#59 :char
+              c#60 :char
         r:
           call :bool
             callee:
-              contains#1000100 :bool
+              contains#1000108 :bool
             arg0:
               Range(char) {
                 start: char(0x41)
@@ -57,7 +57,7 @@
                 cursor: char(0x41)
               }
             arg1:
-              c#59 :char
+              c#60 :char
   fn tests_snippets_char_range_contains__main_vader$main() -> i32
     if :void
       cond:
@@ -73,7 +73,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "5 is digit" :string
     if :void
@@ -91,7 +91,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "a is not digit" :string
     if :void
@@ -108,7 +108,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "0 is digit" :string
     if :void
@@ -125,7 +125,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "9 is digit" :string
     if :void
@@ -143,7 +143,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 ": is not digit" :string
     if :void
@@ -160,7 +160,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "m is lower" :string
     if :void
@@ -178,7 +178,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "M is not lower" :string
     if :void
@@ -195,7 +195,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "z is alpha" :string
     if :void
@@ -212,7 +212,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "Z is alpha" :string
     if :void
@@ -230,10 +230,10 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "5 is not alpha" :string
-    let n#60: i32 = int(0) :i32
+    let n#61: i32 = int(0) :i32
     block :void
       let __iter_0#-1: Range(char) =
         Range(char) {
@@ -246,7 +246,7 @@
         let __step_1#-2: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step#1000101 :?
+              step#1000109 :?
             arg0:
               __iter_0#-1 :Range(char)
         if :void
@@ -256,17 +256,17 @@
           then:
             break
           else:
-            let c#61: char =
+            let c#62: char =
               .value :char
                 cast → Yielded(char)
                   __step_1#-2 :Done | Yielded(char)
             assign
               target:
-                n#60 :i32
+                n#61 :i32
               value:
                 add :i32
                   l:
-                    n#60 :i32
+                    n#61 :i32
                   r:
                     int(1) :i32
     call :void
@@ -275,7 +275,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_2#-3: ? =
@@ -285,11 +285,11 @@
                 "a..=e count = " :string
               @builder.append_display <for i32> :void
                 __sb_2#-3 :?
-                n#60 :i32
+                n#61 :i32
               ~>
                 @builder.finish :string
                   __sb_2#-3 :?
-    let m#62: i32 = int(0) :i32
+    let m#63: i32 = int(0) :i32
     block :void
       let __iter_3#-4: Range(char) =
         Range(char) {
@@ -302,7 +302,7 @@
         let __step_4#-5: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step#1000101 :?
+              step#1000109 :?
             arg0:
               __iter_3#-4 :Range(char)
         if :void
@@ -312,17 +312,17 @@
           then:
             break
           else:
-            let c#63: char =
+            let c#64: char =
               .value :char
                 cast → Yielded(char)
                   __step_4#-5 :Done | Yielded(char)
             assign
               target:
-                m#62 :i32
+                m#63 :i32
               value:
                 add :i32
                   l:
-                    m#62 :i32
+                    m#63 :i32
                   r:
                     int(1) :i32
     call :void
@@ -331,7 +331,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_5#-6: ? =
@@ -341,7 +341,7 @@
                 "0..<5 count = " :string
               @builder.append_display <for i32> :void
                 __sb_5#-6 :?
-                m#62 :i32
+                m#63 :i32
               ~>
                 @builder.finish :string
                   __sb_5#-6 :?

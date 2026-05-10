@@ -6,7 +6,7 @@
       cond:
         eq :bool
           l:
-            key#55 :string
+            key#56 :string
           r:
             "found" :string
       then:
@@ -17,14 +17,14 @@
           }
     return null
   fn tests_snippets_tuple_match_union__main_vader$main() -> i32
-    let a#56: [i32, string] | null =
+    let a#57: [i32, string] | null =
       call :[i32, string] | null
         callee:
           lookup#2 :fn(string) -> [i32, string] | null
         arg0:
           "found" :string
     block :void
-      let __scrut_0#-1: [i32, string] | null = a#56 :[i32, string] | null
+      let __scrut_0#-1: [i32, string] | null = a#57 :[i32, string] | null
       ~>
         if :void
           cond:
@@ -38,7 +38,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "no result" :string
           else:
@@ -48,11 +48,11 @@
                   is [i32, string] :bool
                     __scrut_0#-1 :[i32, string] | null
                 then:
-                  let n#57: i32 =
+                  let n#58: i32 =
                     ._0 :i32
                       cast → [i32, string]
                         __scrut_0#-1 :[i32, string] | null
-                  let s#58: string =
+                  let s#59: string =
                     ._1 :string
                       cast → [i32, string]
                         __scrut_0#-1 :[i32, string] | null
@@ -63,7 +63,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             block :string
                               let __sb_1#-2: ? =
@@ -73,27 +73,27 @@
                                 "n=" :string
                               @builder.append_str :void
                                 __sb_1#-2 :?
-                                n#57 :?
+                                n#58 :?
                               @builder.append_str :void
                                 __sb_1#-2 :?
                                 " s=" :string
                               @builder.append_str :void
                                 __sb_1#-2 :?
-                                s#58 :?
+                                s#59 :?
                               ~>
                                 @builder.finish :string
                                   __sb_1#-2 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let b#59: [i32, string] | null =
+    let b#60: [i32, string] | null =
       call :[i32, string] | null
         callee:
           lookup#2 :fn(string) -> [i32, string] | null
         arg0:
           "missing" :string
     block :void
-      let __scrut_2#-3: [i32, string] | null = b#59 :[i32, string] | null
+      let __scrut_2#-3: [i32, string] | null = b#60 :[i32, string] | null
       ~>
         if :void
           cond:
@@ -107,7 +107,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "no result" :string
           else:
@@ -117,11 +117,11 @@
                   is [i32, string] :bool
                     __scrut_2#-3 :[i32, string] | null
                 then:
-                  let n#60: i32 =
+                  let n#61: i32 =
                     ._0 :i32
                       cast → [i32, string]
                         __scrut_2#-3 :[i32, string] | null
-                  let s#61: string =
+                  let s#62: string =
                     ._1 :string
                       cast → [i32, string]
                         __scrut_2#-3 :[i32, string] | null
@@ -132,7 +132,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             block :string
                               let __sb_3#-4: ? =
@@ -142,13 +142,13 @@
                                 "n=" :string
                               @builder.append_str :void
                                 __sb_3#-4 :?
-                                n#60 :?
+                                n#61 :?
                               @builder.append_str :void
                                 __sb_3#-4 :?
                                 " s=" :string
                               @builder.append_str :void
                                 __sb_3#-4 :?
-                                s#61 :?
+                                s#62 :?
                               ~>
                                 @builder.finish :string
                                   __sb_3#-4 :?

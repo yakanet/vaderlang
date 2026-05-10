@@ -5,14 +5,14 @@
     return
       mul :i32
         l:
-          self#47 :i32
+          self#48 :i32
         r:
           int(10) :i32
   fn tests_snippets_trait_dispatch_struct__main_vader$main() -> i32
     return
       call :i32
         callee:
-          apply_tag#1000110 :i32
+          apply_tag#1000123 :i32
         arg0:
           int(7) :i32
   fn tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32(x: i32) -> i32
@@ -23,10 +23,10 @@
             callee:
               tag#1000000 :i32
             arg0:
-              x#49 :i32
+              x#50 :i32
         r:
           call :i32
             callee:
               tag#1000000 :i32
             arg0:
-              x#49 :i32
+              x#50 :i32

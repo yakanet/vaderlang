@@ -30,7 +30,7 @@ import { isIntegerVal, isNumericVal } from "./types.ts";
  *  `@intrinsic`-declared in `std/core` and routed here to the matching
  *  WASM-style numeric op. Mirrors the `NumWidth` set in `bytecode/ops.ts`. */
 const NUMERIC_INTRINSIC_TYPES: readonly string[] = [
-  "i8", "i16", "i32", "i64",
+  "i8", "i16", "i32", "i64", "isize",
   "u8", "u16", "u32", "u64", "usize",
   "f32", "f64",
 ];
@@ -397,7 +397,7 @@ export function cmpKind(lt: ValType, op: "eq" | "ne" | "lt" | "le" | "gt" | "ge"
 }
 
 export function emitIntConst(fn: FnEmitCtx, value: bigint, t: ValType, span: Span): void {
-  if (t === "i64" || t === "u64" || t === "usize") {
+  if (t === "i64" || t === "u64" || t === "usize" || t === "isize") {
     pushOp(fn, { kind: "i64.const", value }, span);
   } else {
     pushOp(fn, { kind: "i32.const", value: Number(value) }, span);

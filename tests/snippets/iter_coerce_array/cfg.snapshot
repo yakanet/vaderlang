@@ -58,15 +58,15 @@ fn tests_snippets_iter_coerce_array__main_vader$make_iter() -> Iterator(i32)
     %1 $k_1#8: i32
     %2 $k_2#9: i32
     %3 arr#10: i32[] (local arr)
-    %4 $k_5#11: i32
-    %5 $len_6#12: i32
+    %4 $k_5#11: usize
+    %5 $len_6#12: usize
     %6 $struct_7#13: ArrayIter(i32)
   bb0:
     %0 = const int(100) :i32
     %1 = const int(200) :i32
     %2 = const int(300) :i32
     %3 = array_new i32[][3](%0, %1, %2)
-    %4 = const int(0) :i32
+    %4 = const int(0) :usize
     %5 = array_len %3
     %6 = struct_new ArrayIter(i32)(%3, %4, %5)
     return %6
@@ -77,8 +77,8 @@ fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
     %1 $k_1#39: i32
     %2 $k_2#40: i32
     %3 __arr_0#41: i32[] (synthetic __arr_0)
-    %4 $k_5#42: i32
-    %5 $len_6#43: i32
+    %4 $k_5#42: usize
+    %5 $len_6#43: usize
     %6 $struct_7#44: ArrayIter(i32)
     %7 $call_8#45: i32
     %8 a#46: i32 (local a)
@@ -87,15 +87,15 @@ fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
     %11 $k_12#49: i32
     %12 $k_13#50: i32
     %13 __arr_1#51: i32[] (synthetic __arr_1)
-    %14 $k_16#52: i32
-    %15 $len_17#53: i32
+    %14 $k_16#52: usize
+    %15 $len_17#53: usize
     %16 typed_iter_mut#54: Iterator(i32) (local typed_iter_mut)
     %17 $k_20#55: i32
     %18 $k_21#56: i32
     %19 $k_22#57: i32
     %20 __arr_2#58: i32[] (synthetic __arr_2)
-    %21 $k_25#59: i32
-    %22 $len_26#60: i32
+    %21 $k_25#59: usize
+    %22 $len_26#60: usize
     %23 typed_iter_immut#61: Iterator(i32) (local typed_iter_immut)
     %24 $call_29#62: i32
     %25 $call_30#63: i32
@@ -116,7 +116,7 @@ fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
     %1 = const int(20) :i32
     %2 = const int(30) :i32
     %3 = array_new i32[][3](%0, %1, %2)
-    %4 = const int(0) :i32
+    %4 = const int(0) :usize
     %5 = array_len %3
     %6 = struct_new ArrayIter(i32)(%3, %4, %5)
     %7 = call walk(%6) :i32
@@ -126,14 +126,14 @@ fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
     %11 = const int(3) :i32
     %12 = const int(4) :i32
     %13 = array_new i32[][4](%9, %10, %11, %12)
-    %14 = const int(0) :i32
+    %14 = const int(0) :usize
     %15 = array_len %13
     %16 = struct_new ArrayIter(i32)(%13, %14, %15)
     %17 = const int(5) :i32
     %18 = const int(6) :i32
     %19 = const int(7) :i32
     %20 = array_new i32[][3](%17, %18, %19)
-    %21 = const int(0) :i32
+    %21 = const int(0) :usize
     %22 = array_len %20
     %23 = struct_new ArrayIter(i32)(%20, %21, %22)
     %24 = call walk(%16) :i32

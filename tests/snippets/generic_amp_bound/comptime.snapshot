@@ -7,5 +7,7 @@
   bar(i32, i32)
   Yielded(char)
   Yielded(i32)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)

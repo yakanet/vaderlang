@@ -311,7 +311,7 @@ function emitArrayDestructure(
     if (leaf.kind === "WildcardBinding") continue;
     const access: LoweredExpr = {
       kind: "LoweredIndex", span: leaf.span, type: elemType,
-      target, index: { kind: "LoweredIntLit", span: leaf.span, type: TY.i32, value: BigInt(i) },
+      target, index: { kind: "LoweredIntLit", span: leaf.span, type: TY.usize, value: BigInt(i) },
     };
     emitLetBindingLeaves(ctx, leaf, access, elemType, leaf.span, out);
   }
@@ -328,10 +328,10 @@ function emitArrayDestructure(
   });
   const idxSym = freshSyntheticSymbol(ctx, "i");
   out.push({
-    kind: "LoweredLet", span, name: idxSym.name, symbol: idxSym, type: TY.i32,
-    value: { kind: "LoweredIntLit", span, type: TY.i32, value: BigInt(restIdx) },
+    kind: "LoweredLet", span, name: idxSym.name, symbol: idxSym, type: TY.usize,
+    value: { kind: "LoweredIntLit", span, type: TY.usize, value: BigInt(restIdx) },
   });
-  const idxRef: LoweredExpr = { kind: "LoweredIdent", span, type: TY.i32, symbol: idxSym };
+  const idxRef: LoweredExpr = { kind: "LoweredIdent", span, type: TY.usize, symbol: idxSym };
   const restRef = readLocal(ctx, restSym, targetType, span);
   const pushStmt: LoweredStmt = {
     kind: "LoweredExprStmt", span,
@@ -343,16 +343,16 @@ function emitArrayDestructure(
   const incStmt: LoweredStmt = {
     kind: "LoweredAssign", span, target: idxRef,
     value: {
-      kind: "LoweredBinary", span, type: TY.i32, op: "add",
+      kind: "LoweredBinary", span, type: TY.usize, op: "add",
       left: idxRef,
-      right: { kind: "LoweredIntLit", span, type: TY.i32, value: 1n },
+      right: { kind: "LoweredIntLit", span, type: TY.usize, value: 1n },
     },
   };
   out.push({
     kind: "LoweredLoop", span, label: null, cond: {
       kind: "LoweredBinary", span, type: TY.bool, op: "lt",
       left: idxRef,
-      right: { kind: "LoweredArrayLen", span, type: TY.i32, target },
+      right: { kind: "LoweredArrayLen", span, type: TY.usize, target },
     },
     body: { kind: "LoweredBlock", span, type: TY.void, stmts: [pushStmt, incStmt], trailing: null },
   });

@@ -11,8 +11,8 @@
   expr 11:5     FieldExpr      :: fn(Node(i32) | null) -> void
   expr 11:5     IdentExpr      :: Node(i32) | null[]
   expr 12:13    StringLitExpr  :: string
-  expr 12:22    CallExpr       :: i32
-  expr 12:22    FieldExpr      :: fn() -> i32
+  expr 12:22    CallExpr       :: usize
+  expr 12:22    FieldExpr      :: fn() -> usize
   expr 12:22    IdentExpr      :: Node(i32) | null[]
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn(Display) -> void

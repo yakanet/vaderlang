@@ -158,7 +158,7 @@ export function typeFromSymbol(
 
 export function primitiveFromName(name: string): Type | null {
   switch (name) {
-    case "i8": case "i16": case "i32": case "i64":
+    case "i8": case "i16": case "i32": case "i64": case "isize":
     case "u8": case "u16": case "u32": case "u64": case "usize":
     case "f32": case "f64":
     case "bool": case "char": case "string": case "void": case "null":

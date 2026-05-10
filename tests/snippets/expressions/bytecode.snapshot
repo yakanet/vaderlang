@@ -4,6 +4,8 @@ type 1 primitive char
 type 2 primitive bool
 type 3 struct std_core$Range__i32 { start:4,end:4,inclusive:2,cursor:4 }
 type 4 primitive i32
+type 5 struct std_core$Range__usize { start:6,end:6,inclusive:2,cursor:6 }
+type 6 primitive usize
 
 fn 0 tests_snippets_expressions__main_vader$add (i32,i32) -> i32
   local.get 0   ; _main.vader:2:12

@@ -32,7 +32,7 @@
 // first put so the struct-literal constructor stays simple.
 // ===========================================================================
 
-BUCKET_COUNT :: 16
+BUCKET_COUNT :: usize(16)
 
 Entry :: struct[K, V] {
     key:   K
@@ -59,7 +59,7 @@ export put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
     // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
     // helper would not get materialised at the right K/V instantiation.
     if self.buckets.len() == 0 {
-        bi := 0
+        bi: usize = 0
         for bi < BUCKET_COUNT {
             self.buckets.push(null)
             bi = bi + 1
@@ -173,7 +173,7 @@ export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
     if self.buckets.len() == 0 {
         return out
     }
-    bi := 0
+    bi: usize = 0
     for bi < self.buckets.len() {
         cur: Entry(K, V) | null = self.buckets[bi]
         done := false
@@ -197,7 +197,7 @@ export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
     if self.buckets.len() == 0 {
         return out
     }
-    bi := 0
+    bi: usize = 0
     for bi < self.buckets.len() {
         cur: Entry(K, V) | null = self.buckets[bi]
         done := false

@@ -149,7 +149,7 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         const arrayOp = ctx.typed.arrayOps.get(expr.callee);
         if (arrayOp === "len") {
           return {
-            kind: "LoweredArrayLen", span: expr.span, type: TY.i32,
+            kind: "LoweredArrayLen", span: expr.span, type: TY.usize,
             target: lowerExpr(ctx, expr.callee.target),
           };
         }

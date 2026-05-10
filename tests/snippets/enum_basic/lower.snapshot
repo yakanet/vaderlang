@@ -4,7 +4,7 @@
   fn tests_snippets_enum_basic__main_vader$describe(d: Direction) -> string
     ~>
       block :string
-        let __scrut_0#-1: Direction = d#56 :Direction
+        let __scrut_0#-1: Direction = d#57 :Direction
         ~>
           if :string
             cond:
@@ -56,27 +56,27 @@
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn tests_snippets_enum_basic__main_vader$main() -> void
-    let d#57: Direction = int(2) :i32
+    let d#58: Direction = int(2) :i32
     call :void
       callee:
         println#26 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
                 describe#3 :fn(Direction) -> string
               arg0:
-                d#57 :Direction
+                d#58 :Direction
     call :void
       callee:
         println#26 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
@@ -87,7 +87,7 @@
       cond:
         eq :bool
           l:
-            d#57 :Direction
+            d#58 :Direction
           r:
             int(2) :i32
       then:
@@ -97,14 +97,14 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "d is East" :string
     if :void
       cond:
         eq :bool
           l:
-            d#57 :Direction
+            d#58 :Direction
           r:
             int(3) :i32
       then:
@@ -114,7 +114,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "d is West" :string
     call :void
@@ -123,7 +123,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_0#-2: ? =
@@ -135,7 +135,7 @@
                 __sb_0#-2 :?
                 eq :bool
                   l:
-                    d#57 :Direction
+                    d#58 :Direction
                   r:
                     int(2) :i32
               ~>
@@ -148,7 +148,7 @@
         arg0:
           call :string
             callee:
-              to_string#1000013 :string
+              to_string#1000014 :string
             arg0:
               block :string
                 let __sb_1#-3: ? =
@@ -160,7 +160,7 @@
                   __sb_1#-3 :?
                   eq :bool
                     l:
-                      d#57 :Direction
+                      d#58 :Direction
                     r:
                       int(3) :i32
                 ~>

@@ -8,8 +8,8 @@ fn tests_snippets_seq_lit_inference__main_vader$main() -> i32
     %1 $k_1#34: i32
     %2 $k_2#35: i32
     %3 scores#36: i32[] (local scores)
-    %4 $k_5#37: i32
-    %5 $len_6#38: i32
+    %4 $k_5#37: usize
+    %5 $len_6#38: usize
     %6 __iter_0#39: ArrayIter(i32) (synthetic __iter_0)
     %7 $call_9#40: Done | Yielded(i32)
     %8 __step_1#41: Done | Yielded(i32) (synthetic __step_1)
@@ -42,7 +42,7 @@ fn tests_snippets_seq_lit_inference__main_vader$main() -> i32
     %1 = const int(20) :i32
     %2 = const int(30) :i32
     %3 = array_new i32[][3](%0, %1, %2)
-    %4 = const int(0) :i32
+    %4 = const int(0) :usize
     %5 = array_len %3
     %6 = struct_new ArrayIter(i32)(%3, %4, %5)
     branch -> bb1

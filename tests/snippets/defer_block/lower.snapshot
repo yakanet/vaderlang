@@ -8,7 +8,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             "hi" :string
     block :void
@@ -19,7 +19,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "nested" :string
       call :void
@@ -28,7 +28,7 @@
         arg0:
           call :string
             callee:
-              to_string#1000013 :string
+              to_string#1000014 :string
             arg0:
               "inner cleanup" :string
       ~>
@@ -40,7 +40,7 @@
         arg0:
           call :string
             callee:
-              to_string#1000013 :string
+              to_string#1000014 :string
             arg0:
               "outer cleanup" :string
       return int(0) :i32

@@ -6,7 +6,7 @@
       cond:
         lt :bool
           l:
-            n#59 :i32
+            n#60 :i32
           r:
             int(0) :i32
       then:
@@ -15,7 +15,7 @@
       cond:
         eq :bool
           l:
-            n#59 :i32
+            n#60 :i32
           r:
             int(0) :i32
       then:
@@ -24,7 +24,7 @@
   fn tests_snippets_enum_match__main_vader$label(c: Color) -> string
     ~>
       block :string
-        let __scrut_0#-1: Color = c#60 :Color
+        let __scrut_0#-1: Color = c#61 :Color
         ~>
           if :string
             cond:
@@ -67,31 +67,31 @@
     ~>
       eq :bool
         l:
-          a#61 :Color
+          a#62 :Color
         r:
-          b#62 :Color
+          b#63 :Color
   fn tests_snippets_enum_match__main_vader$main() -> i32
-    let c#63: Color = int(1) :i32
+    let c#64: Color = int(1) :i32
     call :void
       callee:
         println#29 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
                 label#5 :fn(Color) -> string
               arg0:
-                c#63 :Color
+                c#64 :Color
     call :void
       callee:
         println#29 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
@@ -104,7 +104,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
@@ -117,7 +117,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_0#-2: ? =
@@ -140,7 +140,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_1#-3: ? =
@@ -163,7 +163,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_2#-4: ? =
@@ -172,7 +172,7 @@
                 __sb_2#-4 :?
                 neq :bool
                   l:
-                    c#63 :Color
+                    c#64 :Color
                   r:
                     int(0) :i32
               ~>
@@ -184,7 +184,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_3#-5: ? =
@@ -193,13 +193,13 @@
                 __sb_3#-5 :?
                 neq :bool
                   l:
-                    c#63 :Color
+                    c#64 :Color
                   r:
                     int(1) :i32
               ~>
                 @builder.finish :string
                   __sb_3#-5 :?
-    let s#64: Severity =
+    let s#65: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
@@ -207,7 +207,7 @@
           neg :i32
             int(5) :i32
     block :void
-      let __scrut_4#-6: Severity = s#64 :Severity
+      let __scrut_4#-6: Severity = s#65 :Severity
       ~>
         if :void
           cond:
@@ -224,7 +224,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "info" :string
           else:
@@ -244,7 +244,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "warning" :string
                 else:
@@ -264,20 +264,20 @@
                             arg0:
                               call :string
                                 callee:
-                                  to_string#1000013 :string
+                                  to_string#1000014 :string
                                 arg0:
                                   "error" :string
                       else:
                         ~>
                           unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let s2#65: Severity =
+    let s2#66: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
         arg0:
           int(0) :i32
     block :void
-      let __scrut_5#-7: Severity = s2#65 :Severity
+      let __scrut_5#-7: Severity = s2#66 :Severity
       ~>
         if :void
           cond:
@@ -294,7 +294,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "info" :string
           else:
@@ -314,7 +314,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "warning" :string
                 else:
@@ -334,20 +334,20 @@
                             arg0:
                               call :string
                                 callee:
-                                  to_string#1000013 :string
+                                  to_string#1000014 :string
                                 arg0:
                                   "error" :string
                       else:
                         ~>
                           unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let s3#66: Severity =
+    let s3#67: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
         arg0:
           int(1) :i32
     block :void
-      let __scrut_6#-8: Severity = s3#66 :Severity
+      let __scrut_6#-8: Severity = s3#67 :Severity
       ~>
         if :void
           cond:
@@ -364,7 +364,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "info" :string
           else:
@@ -384,7 +384,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "warning" :string
                 else:
@@ -404,7 +404,7 @@
                             arg0:
                               call :string
                                 callee:
-                                  to_string#1000013 :string
+                                  to_string#1000014 :string
                                 arg0:
                                   "error" :string
                       else:

@@ -5,8 +5,10 @@
 ## generic instances
   Yielded(char)
   Yielded(i32)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)
 
 # Diagnostics
 [17:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot

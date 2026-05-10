@@ -22,7 +22,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "int ok" :string
           else:
@@ -39,7 +39,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "int err" :string
                 else:
@@ -65,7 +65,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "int ok" :string
           else:
@@ -82,7 +82,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "int err" :string
                 else:
@@ -108,7 +108,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "float ok" :string
           else:
@@ -125,7 +125,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "float err" :string
                 else:
@@ -151,7 +151,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "float ok" :string
           else:
@@ -168,7 +168,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "float err" :string
                 else:

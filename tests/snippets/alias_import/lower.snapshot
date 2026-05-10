@@ -8,7 +8,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             "aliased" :string
     return int(0) :i32

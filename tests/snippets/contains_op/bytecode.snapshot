@@ -5,6 +5,8 @@ type 2 struct std_core$Range__char { start:3,end:3,inclusive:4,cursor:3 }
 type 3 primitive char
 type 4 primitive bool
 type 5 struct std_core$Range__i32 { start:1,end:1,inclusive:4,cursor:1 }
+type 6 struct std_core$Range__usize { start:7,end:7,inclusive:4,cursor:7 }
+type 7 primitive usize
 string 0 "range yes"
 string 1 "range !in yes"
 string 2 "range incl yes"

@@ -896,7 +896,7 @@ fn 14 std_path$normalize (ref) -> ref
   local "n#73" i32
   local "if_res#76" i32
   local "i#77" i32
-  local "count#79" i32
+  local "count#79" usize
   local "i#80" i32
   local "seg_start#81" i32
   local "at_end#83" bool
@@ -905,20 +905,20 @@ fn 14 std_path$normalize (ref) -> ref
   local "or_res#94" bool
   local "seg#97" string
   local "or_res#102" bool
-  local "$sub_44#108" i32
+  local "$sub_44#108" usize
   local "$idx_45#109" string
   local "and_res#113" bool
   local "$not_52#117" bool
-  local "$len_53#118" i32
-  local "count#122" i32
-  local "count#123" i32
-  local "$len_57#124" i32
-  local "count#128" i32
-  local "count#129" i32
-  local "count#132" i32
+  local "$len_53#118" usize
+  local "count#122" usize
+  local "count#123" usize
+  local "$len_57#124" usize
+  local "count#128" usize
+  local "count#129" usize
+  local "count#132" usize
   local "seg_start#133" i32
   local "sb#137" ref
-  local "j#140" i32
+  local "j#140" usize
   local "$idx_74#145" string
   local "out#149" string
   local "and_res#153" bool
@@ -949,7 +949,8 @@ fn 14 std_path$normalize (ref) -> ref
     local.get 4   ; path.vader:163:5
     local.tee 5   ; path.vader:163:5
     local.set 8   ; path.vader:164:5
-    i32.const 0   ; path.vader:165:5
+    i64.const 0   ; path.vader:165:5
+    i64.to_usize   ; path.vader:165:5
     local.set 6   ; path.vader:165:5
     local.get 5   ; path.vader:165:5
     local.set 7   ; path.vader:165:5
@@ -1018,12 +1019,14 @@ fn 14 std_path$normalize (ref) -> ref
               string.eq   ; path.vader:172:23
               if $L10 void   ; path.vader:172:20
                 local.get 6   ; path.vader:173:28
-                i32.const 0   ; path.vader:173:28
-                i32.gt   ; path.vader:173:28
+                i64.const 0   ; path.vader:173:28
+                i64.to_usize   ; path.vader:173:28
+                usize.gt   ; path.vader:173:28
                 if $L11 void   ; path.vader:173:28
                   local.get 6   ; path.vader:173:50
-                  i32.const 1   ; path.vader:173:50
-                  i32.sub   ; path.vader:173:50
+                  i64.const 1   ; path.vader:173:50
+                  i64.to_usize   ; path.vader:173:50
+                  usize.sub   ; path.vader:173:50
                   local.set 15   ; path.vader:173:50
                   local.get 2   ; path.vader:173:41
                   local.get 15   ; path.vader:173:41
@@ -1041,8 +1044,9 @@ fn 14 std_path$normalize (ref) -> ref
                 local.get 17   ; path.vader:173:17
                 if $L12 void   ; path.vader:174:17
                   local.get 6   ; path.vader:175:29
-                  i32.const 1   ; path.vader:175:29
-                  i32.sub   ; path.vader:175:29
+                  i64.const 1   ; path.vader:175:29
+                  i64.to_usize   ; path.vader:175:29
+                  usize.sub   ; path.vader:175:29
                   local.set 21   ; path.vader:175:29
                 else   ; path.vader:174:17
                   local.get 1   ; path.vader:176:27
@@ -1057,7 +1061,7 @@ fn 14 std_path$normalize (ref) -> ref
                     local.set 19   ; path.vader:177:32
                     local.get 6   ; path.vader:177:24
                     local.get 19   ; path.vader:177:24
-                    i32.lt   ; path.vader:177:24
+                    usize.lt   ; path.vader:177:24
                     if $L14 void   ; path.vader:177:21
                       local.get 2   ; path.vader:178:25
                       local.get 6   ; path.vader:178:25
@@ -1069,8 +1073,9 @@ fn 14 std_path$normalize (ref) -> ref
                       array.push 1   ; path.vader:180:25
                     end $L14   ; path.vader:177:21
                     local.get 6   ; path.vader:182:29
-                    i32.const 1   ; path.vader:182:29
-                    i32.add   ; path.vader:182:29
+                    i64.const 1   ; path.vader:182:29
+                    i64.to_usize   ; path.vader:182:29
+                    usize.add   ; path.vader:182:29
                     local.set 20   ; path.vader:182:29
                   else   ; path.vader:176:24
                   end $L13   ; path.vader:176:24
@@ -1085,7 +1090,7 @@ fn 14 std_path$normalize (ref) -> ref
                 local.set 22   ; path.vader:185:28
                 local.get 6   ; path.vader:185:20
                 local.get 22   ; path.vader:185:20
-                i32.lt   ; path.vader:185:20
+                usize.lt   ; path.vader:185:20
                 if $L15 void   ; path.vader:185:17
                   local.get 2   ; path.vader:186:21
                   local.get 6   ; path.vader:186:21
@@ -1097,8 +1102,9 @@ fn 14 std_path$normalize (ref) -> ref
                   array.push 1   ; path.vader:188:21
                 end $L15   ; path.vader:185:17
                 local.get 6   ; path.vader:190:25
-                i32.const 1   ; path.vader:190:25
-                i32.add   ; path.vader:190:25
+                i64.const 1   ; path.vader:190:25
+                i64.to_usize   ; path.vader:190:25
+                usize.add   ; path.vader:190:25
                 local.set 23   ; path.vader:190:25
               end $L10   ; path.vader:172:20
               local.get 23   ; path.vader:170:13
@@ -1134,17 +1140,18 @@ fn 14 std_path$normalize (ref) -> ref
       call 18   ; path.vader:198:9
     else   ; path.vader:197:5
     end $L16   ; path.vader:197:5
-    i32.const 0   ; path.vader:200:10
-    local.set 28   ; path.vader:200:10
+    i64.const 0   ; path.vader:200:16
+    local.set 28   ; path.vader:200:16
     block $L17 void   ; path.vader:201:5
       loop $L18 void   ; path.vader:201:5
         local.get 28   ; path.vader:201:9
         local.get 6   ; path.vader:201:9
-        i32.lt   ; path.vader:201:9
+        usize.lt   ; path.vader:201:9
         if $L19 void   ; path.vader:201:9
           local.get 28   ; path.vader:202:12
-          i32.const 0   ; path.vader:202:12
-          i32.gt   ; path.vader:202:12
+          i64.const 0   ; path.vader:202:12
+          i64.to_usize   ; path.vader:202:12
+          usize.gt   ; path.vader:202:12
           if $L20 void   ; path.vader:202:9
             local.get 27   ; path.vader:203:13
             string.const 44   ; path.vader:203:13
@@ -1160,8 +1167,9 @@ fn 14 std_path$normalize (ref) -> ref
           local.get 29   ; path.vader:205:9
           call 18   ; path.vader:205:9
           local.get 28   ; path.vader:206:13
-          i32.const 1   ; path.vader:206:13
-          i32.add   ; path.vader:206:13
+          i64.const 1   ; path.vader:206:13
+          i64.to_usize   ; path.vader:206:13
+          usize.add   ; path.vader:206:13
           local.set 28   ; path.vader:206:13
           br $L18   ; path.vader:201:5
         else   ; path.vader:201:9

@@ -6,7 +6,7 @@
   fn tests_snippets_match_is_as_binding__main_vader$show(a: null | P | Q) -> string
     return
       block :string
-        let __scrut_0#-1: null | P | Q = a#57 :null | P | Q
+        let __scrut_0#-1: null | P | Q = a#58 :null | P | Q
         ~>
           if :string
             cond:
@@ -22,7 +22,7 @@
                     is P :bool
                       __scrut_0#-1 :null | P | Q
                   then:
-                    let p#58: P =
+                    let p#59: P =
                       cast → P
                         __scrut_0#-1 :null | P | Q
                     ~>
@@ -35,7 +35,7 @@
                         @builder.append_display <for i32> :void
                           __sb_2#-3 :?
                           .x :i32
-                            p#58 :P
+                            p#59 :P
                         ~>
                           @builder.finish :string
                             __sb_2#-3 :?
@@ -46,7 +46,7 @@
                           is Q :bool
                             __scrut_0#-1 :null | P | Q
                         then:
-                          let q#59: Q =
+                          let q#60: Q =
                             cast → Q
                               __scrut_0#-1 :null | P | Q
                           ~>
@@ -59,7 +59,7 @@
                               @builder.append_display <for string> :void
                                 __sb_1#-2 :?
                                 .y :string
-                                  q#59 :Q
+                                  q#60 :Q
                               ~>
                                 @builder.finish :string
                                   __sb_1#-2 :?
@@ -73,7 +73,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
@@ -88,7 +88,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
@@ -103,7 +103,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:

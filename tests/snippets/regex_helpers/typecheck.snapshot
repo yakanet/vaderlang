@@ -42,25 +42,25 @@
   expr 22:26    StringLitExpr  :: string
   expr 22:57    IdentExpr      :: fn(char) -> bool
   expr 23:13    StringLitExpr  :: string
-  expr 23:22    CallExpr       :: i32
-  expr 23:22    FieldExpr      :: fn() -> i32
+  expr 23:22    CallExpr       :: usize
+  expr 23:22    FieldExpr      :: fn() -> usize
   expr 23:22    IdentExpr      :: string[]
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(Display) -> void
-  expr 24:10    CallExpr       :: i32
-  expr 24:10    FieldExpr      :: fn() -> i32
+  expr 24:10    CallExpr       :: usize
+  expr 24:10    FieldExpr      :: fn() -> usize
   expr 24:10    IdentExpr      :: string[]
-  expr 26:13    IdentExpr      :: i32
+  expr 26:13    IdentExpr      :: usize
   expr 26:9     BinaryExpr     :: bool
-  expr 26:9     IdentExpr      :: i32
+  expr 26:9     IdentExpr      :: usize
   expr 27:17    IdentExpr      :: string[]
   expr 27:17    IndexExpr      :: string
-  expr 27:23    IdentExpr      :: i32
+  expr 27:23    IdentExpr      :: usize
   expr 27:9     CallExpr       :: void
   expr 27:9     IdentExpr      :: fn(Display) -> void
-  expr 28:13    BinaryExpr     :: i32
-  expr 28:13    IdentExpr      :: i32
-  expr 28:9     IdentExpr      :: i32
+  expr 28:13    BinaryExpr     :: usize
+  expr 28:13    IdentExpr      :: usize
+  expr 28:9     IdentExpr      :: usize
   expr 7:20     BinaryExpr     :: bool
   expr 7:20     IdentExpr      :: char
   expr 7:5      IfExpr         :: void

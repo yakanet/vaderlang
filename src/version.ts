@@ -21,7 +21,7 @@ export const CLI_VERSION = "0.0.0-pre-mvp";
 
 export const BYTECODE_VERSION_MAJOR = 0;
 export const BYTECODE_VERSION_MINOR = 1;
-export const BYTECODE_VERSION_PATCH = 0;
+export const BYTECODE_VERSION_PATCH = 1;
 
 export const BYTECODE_VERSION =
   (BYTECODE_VERSION_MAJOR << 16) |

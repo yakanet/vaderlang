@@ -4,7 +4,7 @@
   fn tests_snippets_match_partial__main_vader$weekend_only(d: Day) -> string
     return
       block :string
-        let __scrut_0#-1: Day = d#56 :Day
+        let __scrut_0#-1: Day = d#57 :Day
         ~>
           if :string
             cond:
@@ -98,7 +98,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
@@ -111,7 +111,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:

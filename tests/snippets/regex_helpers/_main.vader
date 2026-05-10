@@ -22,7 +22,7 @@ main :: fn() -> i32 {
     parts := split_where("  hello  world\tfoo\n bar  ", is_white_char)
     println("count=${parts.len()}")
     n := parts.len()
-    i := 0
+    i: usize = 0
     for i < n {
         println(parts[i])
         i = i + 1

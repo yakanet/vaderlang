@@ -377,7 +377,7 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
     }
     case "array.len": {
       const v = asArray(f.stack.pop()!);
-      f.stack.push(num("i32", v.elements.length));
+      f.stack.push(i64("usize", BigInt(v.elements.length)));
       f.ip++; return;
     }
     case "array.push": {
@@ -424,8 +424,8 @@ function applyParsedOp(f: Frame, kind: string): void {
   applyTyped(f, t, verb as ArithVerb);
 }
 
-function isBigTag(t: ValType): t is "i64" | "u64" | "usize" {
-  return t === "i64" || t === "u64" || t === "usize";
+function isBigTag(t: ValType): t is "i64" | "u64" | "usize" | "isize" {
+  return t === "i64" || t === "u64" || t === "usize" || t === "isize";
 }
 
 /** Coerce a JS number to the host-tag's integer range. u32 needs Uint32
@@ -640,7 +640,8 @@ function zeroFor(val: string): Value {
     case "u8": case "u16": case "u32":
     case "f32": case "f64": case "char":
       return num(val as NumTag, 0);
-    case "i64": case "u64": case "usize": return i64(val as "i64" | "u64" | "usize", 0n);
+    case "i64": case "u64": case "usize": case "isize":
+      return i64(val as "i64" | "u64" | "usize" | "isize", 0n);
     case "bool":   return FALSE;
     case "string": return makeStr("");
     case "void":   return VOID;

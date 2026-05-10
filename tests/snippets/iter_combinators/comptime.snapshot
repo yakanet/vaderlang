@@ -5,8 +5,10 @@
 ## generic instances
   Yielded(char)
   Yielded(i32)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)
   ArrayIter($T)
   ArrayIter($U)
   ArrayIter(i32)

@@ -18,8 +18,8 @@
   expr 7:5      FieldExpr      :: fn(?) -> void
   expr 7:5      IdentExpr      :: ?[]
   expr 8:13     StringLitExpr  :: string
-  expr 8:16     CallExpr       :: i32
-  expr 8:16     FieldExpr      :: fn() -> i32
+  expr 8:16     CallExpr       :: usize
+  expr 8:16     FieldExpr      :: fn() -> usize
   expr 8:16     IdentExpr      :: ?[]
   expr 8:5      CallExpr       :: void
   expr 8:5      IdentExpr      :: fn(Display) -> void

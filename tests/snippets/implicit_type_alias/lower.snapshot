@@ -4,7 +4,7 @@
   fn tests_snippets_implicit_type_alias__main_vader$classify(x: i32 | string) -> i32
     return
       block :i32
-        let __scrut_0#-1: i32 | string = x#46 :i32 | string
+        let __scrut_0#-1: i32 | string = x#47 :i32 | string
         ~>
           if :i32
             cond:
@@ -26,10 +26,10 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :i32
   fn tests_snippets_implicit_type_alias__main_vader$main() -> i32
-    let n#47: i32 = int(42) :i32
+    let n#48: i32 = int(42) :i32
     return
       call :i32
         callee:
           classify#2 :fn(i32 | string) -> i32
         arg0:
-          n#47 :i32
+          n#48 :i32

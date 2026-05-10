@@ -350,7 +350,7 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
 }
 
 const PRIMITIVE_VALS: ReadonlySet<ValType> = new Set<ValType>([
-  "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "usize",
+  "i8", "i16", "i32", "i64", "isize", "u8", "u16", "u32", "u64", "usize",
   "f32", "f64", "bool", "char",
 ]);
 
@@ -481,7 +481,7 @@ function renderConstValue(cv: ConstValue, targetVal: ValType, targetCType: strin
   switch (cv.kind) {
     case "int": {
       const v = cv.value.toString();
-      if (targetVal === "i64") return `INT64_C(${v})`;
+      if (targetVal === "i64" || targetVal === "isize") return `INT64_C(${v})`;
       if (targetVal === "u64" || targetVal === "usize") return `UINT64_C(${v})`;
       return `(${targetCType})${v}`;
     }
@@ -507,6 +507,7 @@ function cTypeForPrim(v: ValType): string {
     case "u32":   return "uint32_t";
     case "u64":   return "uint64_t";
     case "usize": return "size_t";
+    case "isize": return "ptrdiff_t";
     case "f32":   return "float";
     case "f64":   return "double";
     case "bool":  return "bool";
@@ -533,5 +534,5 @@ function sanitiseStructName(name: string): string {
 }
 
 const INT_VALS: ReadonlySet<ValType> = new Set<ValType>([
-  "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "usize",
+  "i8", "i16", "i32", "i64", "isize", "u8", "u16", "u32", "u64", "usize",
 ]);

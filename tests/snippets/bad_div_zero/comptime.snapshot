@@ -5,8 +5,10 @@
 ## generic instances
   Yielded(char)
   Yielded(i32)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)
 
 # Diagnostics
 [2:16] error[C4005] comptime division by zero

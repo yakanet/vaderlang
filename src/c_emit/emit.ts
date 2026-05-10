@@ -444,7 +444,8 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_core$i32$Display$to_string":
       return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i32(sb, (int32_t) a0); return vader_builder_finish(sb); }`;
     case "std_core$i64$Display$to_string":
-      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i64(sb, a0); return vader_builder_finish(sb); }`;
+    case "std_core$isize$Display$to_string":
+      return `${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i64(sb, (int64_t) a0); return vader_builder_finish(sb); }`;
     case "std_core$u8$Display$to_string":
     case "std_core$u16$Display$to_string":
     case "std_core$u32$Display$to_string":
@@ -903,8 +904,8 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "array.set":    return emitArraySet(s, op);
     case "array.len": {
       const arr = pop(s);
-      const t = newTmp(s, "i32");
-      line(s, `int32_t ${t} = (int32_t) vader_array_len((vader_array_t*) ${asObjPtr(arr)});`);
+      const t = newTmp(s, "usize");
+      line(s, `size_t ${t} = vader_array_len((vader_array_t*) ${asObjPtr(arr)});`);
       return;
     }
     case "array.push": {
@@ -1265,7 +1266,7 @@ function displayFnFor(v: ValType): string {
   switch (v) {
     case "i8": case "i16": case "i32":  return "vader_builder_append_display_i32";
     case "u8": case "u16": case "u32":  return "vader_builder_append_display_u32";
-    case "i64":   return "vader_builder_append_display_i64";
+    case "i64": case "isize": return "vader_builder_append_display_i64";
     case "u64": case "usize": return "vader_builder_append_display_u64";
     case "f32":   return "vader_builder_append_display_f32";
     case "f64":   return "vader_builder_append_display_f64";
@@ -1630,6 +1631,7 @@ function boxExpr(_ctx: EmitCtx, name: string, val: ValType, typeIndex: number): 
     case "i8": case "i16": case "i32": return `vader_box_i32(${typeIndex}u, ${name})`;
     case "u8": case "u16": case "u32": return `vader_box_i32(${typeIndex}u, (int32_t)(uint32_t) ${name})`;
     case "i64":  return `vader_box_i64(${typeIndex}u, ${name})`;
+    case "isize": return `vader_box_i64(${typeIndex}u, (int64_t) ${name})`;
     case "u64": case "usize": return `vader_box_i64(${typeIndex}u, (int64_t)(uint64_t) ${name})`;
     case "f32":  return `vader_box_f64(${typeIndex}u, (double) ${name})`;
     case "f64":  return `vader_box_f64(${typeIndex}u, ${name})`;
@@ -1655,7 +1657,7 @@ function boxExprUnknown(ctx: EmitCtx, name: string, val: ValType): string {
 function unboxExpr(name: string, target: ValType): string {
   switch (target) {
     case "i8": case "i16": case "i32": case "u8": case "u16": case "u32":
-    case "i64": case "u64": case "usize": case "char":
+    case "i64": case "isize": case "u64": case "usize": case "char":
       return `((${cTypeForValBare(target)}) ${name}.payload.i)`;
     case "f32": case "f64":
       return `((${cTypeForValBare(target)}) ${name}.payload.f)`;
@@ -1678,6 +1680,7 @@ function cTypeForValBare(v: ValType): string {
     case "u32": return "uint32_t";
     case "u64": return "uint64_t";
     case "usize": return "size_t";
+    case "isize": return "ptrdiff_t";
     case "f32": return "float";
     case "f64": return "double";
     case "bool":return "bool";
@@ -1736,7 +1739,7 @@ function primitiveMatchesType(ctx: EmitCtx, slotVal: ValType, typeIndex: number)
 function zeroInit(_ctx: EmitCtx, v: ValType): string {
   switch (v) {
     case "i8": case "i16": case "i32": case "u8": case "u16": case "u32":
-    case "i64": case "u64": case "usize": case "char":
+    case "i64": case "isize": case "u64": case "usize": case "char":
       return "0";
     case "f32": case "f64": return "0.0";
     case "bool": return "false";

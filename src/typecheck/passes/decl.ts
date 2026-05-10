@@ -142,6 +142,7 @@ const REPR_RANGES: Record<PrimitiveName, { min: bigint; max: bigint } | null> = 
   i16:   { min: -32_768n, max: 32_767n },
   i32:   { min: -2_147_483_648n, max: 2_147_483_647n },
   i64:   { min: -9_223_372_036_854_775_808n, max: 9_223_372_036_854_775_807n },
+  isize: { min: -9_223_372_036_854_775_808n, max: 9_223_372_036_854_775_807n },
   u8:    { min: 0n, max: 255n },
   u16:   { min: 0n, max: 65_535n },
   u32:   { min: 0n, max: 4_294_967_295n },

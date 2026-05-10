@@ -6,23 +6,23 @@
       cond:
         call :bool
           callee:
-            needs_hash#1000109 :bool
+            needs_hash#1000122 :bool
           arg0:
             "foo" :string
       then:
         return int(0) :i32
     return int(1) :i32
   fn tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string(x: string) -> bool
-    let h#47: u64 =
+    let h#48: u64 =
       call :u64
         callee:
-          hash#1000052 :u64
+          hash#1000056 :u64
         arg0:
-          x#46 :string
+          x#47 :string
     return
       gt :bool
         l:
-          h#47 :u64
+          h#48 :u64
         r:
           cast → u64
             int(0) :i32

@@ -476,15 +476,25 @@ function inferRange(
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   // Range is generic over the bound type since std/core's `Range :: struct[T]`.
-  // Today only `i32` and `char` are wired end-to-end (Iterator[char] is
-  // deferred until char arithmetic for the cursor advance lands ; Contains[char]
-  // works so `c in 'a'..='z'` is supported).
-  // The lower bound's type drives `T` ; the upper bound is checked against it.
+  // i32, char, and usize ship Iterator/Contains impls today. Other widths
+  // (i64/u64/...) parse syntactically but emit T3001 since no impl backs
+  // them yet.
+  // Bound type is driven by the lower bound when concrete ; if lower is a
+  // free literal we probe the upper to pick up a non-i32 width (e.g.
+  // `0..<arr.len()` where arr.len() is usize).
   const lower = checkExpr(expr.lower, null, t, impls, diags, fn);
-  const elementType: Type = lower.kind === "Primitive" && lower.name === "char"
-    ? TY.char
-    : TY.i32;
-  const upper = checkExpr(expr.upper, elementType, t, impls, diags, fn);
+  let elementType: Type = pickRangeBound(lower) ?? TY.i32;
+  let upper: Type;
+  if (lower.kind === "FreeInt") {
+    const upperProbe = checkExpr(expr.upper, null, t, impls, diags, fn);
+    elementType = pickRangeBound(upperProbe) ?? TY.i32;
+    upper = upperProbe.kind === "FreeInt" && elementType !== upperProbe
+      ? (t.exprTypes.set(expr.upper, elementType), elementType)
+      : upperProbe;
+    if (isAssignable(lower, elementType, impls)) t.exprTypes.set(expr.lower, elementType);
+  } else {
+    upper = checkExpr(expr.upper, elementType, t, impls, diags, fn);
+  }
   if (!isAssignable(lower, elementType, impls)) {
     err(diags, "T3001", expr.lower.span,
       `range bounds must be \`${displayType(elementType)}\`, got ${displayType(lower)}`);
@@ -496,6 +506,11 @@ function inferRange(
   const rangeSym = t.globals.coreSymbols?.get(CORE_STRUCTS.Range);
   if (rangeSym === undefined || rangeSym.kind !== "struct") return TY.unresolved;
   return { kind: "Struct", symbol: rangeSym, args: [elementType] };
+}
+
+function pickRangeBound(t: Type): Type | null {
+  if (t.kind === "Primitive" && (t.name === "char" || t.name === "i32" || t.name === "usize")) return t;
+  return null;
 }
 
 function inferCast(

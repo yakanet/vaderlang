@@ -406,7 +406,7 @@ write_array :: fn(sb: StringBuilder, a: JsonArray, indent: i32, depth: i32) -> v
     }
     sb.append_char('[')
     n := a.items.len()
-    i := 0
+    i: usize = 0
     for i < n {
         if i > 0 {
             sb.append_char(',')
@@ -430,7 +430,7 @@ write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) ->
     ks := o.entries.keys()
     vs := o.entries.values()
     n := ks.len()
-    i := 0
+    i: usize = 0
     for i < n {
         if i > 0 {
             sb.append_char(',')

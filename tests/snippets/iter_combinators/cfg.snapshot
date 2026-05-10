@@ -44,12 +44,12 @@ fn tests_snippets_iter_combinators__main_vader$main() -> i32
     %37 $closure_38#118: fn(i32, i32) -> i32
     %38 $call_39#119: i32
     %39 p#120: i32 (local p)
-    %40 $k_41#121: i32
+    %40 $k_41#121: usize
     %41 $call_42#122: i32[]
     %42 first#123: i32[] (local first)
     %43 $call_44#124: i32
     %44 s3#125: i32 (local s3)
-    %45 $k_46#126: i32
+    %45 $k_46#126: usize
     %46 $call_47#127: i32[]
     %47 rest#128: i32[] (local rest)
     %48 $call_49#129: i32
@@ -57,28 +57,28 @@ fn tests_snippets_iter_combinators__main_vader$main() -> i32
     %50 $intrinsic_51#131: ?
     %51 __sb_3#132: ? (synthetic __sb_3)
     %52 $k_53#133: string
-    %53 $k_54#134: i32
-    %54 $k_55#135: i32
+    %53 $k_54#134: usize
+    %54 $k_55#135: usize
     %55 $call_56#136: i32[]
-    %56 $len_57#137: i32
+    %56 $len_57#137: usize
     %57 $intrinsic_58#138: string
     %58 $call_59#139: string
     %59 $intrinsic_60#140: ?
     %60 __sb_4#141: ? (synthetic __sb_4)
     %61 $k_62#142: string
-    %62 $k_63#143: i32
-    %63 $k_64#144: i32
+    %62 $k_63#143: usize
+    %63 $k_64#144: usize
     %64 $call_65#145: i32[]
-    %65 $len_66#146: i32
+    %65 $len_66#146: usize
     %66 $intrinsic_67#147: string
     %67 $call_68#148: string
     %68 $intrinsic_69#149: ?
     %69 __sb_5#150: ? (synthetic __sb_5)
     %70 $k_71#151: string
-    %71 $k_72#152: i32
-    %72 $k_73#153: i32
+    %71 $k_72#152: usize
+    %72 $k_73#153: usize
     %73 $call_74#154: i32[]
-    %74 $len_75#155: i32
+    %74 $len_75#155: usize
     %75 $intrinsic_76#156: string
     %76 $call_77#157: string
     %77 $add_78#158: i32
@@ -126,12 +126,12 @@ fn tests_snippets_iter_combinators__main_vader$main() -> i32
     %37 = make_closure __lambda_7 env=%36 :fn(i32, i32) -> i32
     %38 = call fold(%34, %35, %37) :i32
     %39 = move %38
-    %40 = const int(3) :i32
+    %40 = const int(3) :usize
     %41 = call take(%10, %40) :i32[]
     %42 = move %41
     %43 = call sum(%42) :i32
     %44 = move %43
-    %45 = const int(7) :i32
+    %45 = const int(7) :usize
     %46 = call skip(%10, %45) :i32[]
     %47 = move %46
     %48 = call sum(%47) :i32
@@ -140,8 +140,8 @@ fn tests_snippets_iter_combinators__main_vader$main() -> i32
     %51 = move %50
     %52 = const string(#0) :string
     intrinsic builder.append_str(%51, %52)
-    %53 = const int(3) :i32
-    %54 = const int(7) :i32
+    %53 = const int(3) :usize
+    %54 = const int(7) :usize
     %55 = call slice(%10, %53, %54) :i32[]
     %56 = array_len %55
     intrinsic builder.append_display(%51, %56)
@@ -152,8 +152,8 @@ fn tests_snippets_iter_combinators__main_vader$main() -> i32
     %60 = move %59
     %61 = const string(#1) :string
     intrinsic builder.append_str(%60, %61)
-    %62 = const int(100) :i32
-    %63 = const int(200) :i32
+    %62 = const int(100) :usize
+    %63 = const int(200) :usize
     %64 = call slice(%10, %62, %63) :i32[]
     %65 = array_len %64
     intrinsic builder.append_display(%60, %65)
@@ -164,8 +164,8 @@ fn tests_snippets_iter_combinators__main_vader$main() -> i32
     %69 = move %68
     %70 = const string(#2) :string
     intrinsic builder.append_str(%69, %70)
-    %71 = const int(8) :i32
-    %72 = const int(999) :i32
+    %71 = const int(8) :usize
+    %72 = const int(999) :usize
     %73 = call slice(%10, %71, %72) :i32[]
     %74 = array_len %73
     intrinsic builder.append_display(%69, %74)

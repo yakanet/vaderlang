@@ -22,13 +22,13 @@ export type Type =
   | NeverType;
 
 export type PrimitiveName =
-  | "i8" | "i16" | "i32" | "i64"
+  | "i8" | "i16" | "i32" | "i64" | "isize"
   | "u8" | "u16" | "u32" | "u64" | "usize"
   | "f32" | "f64"
   | "bool" | "char" | "string" | "void" | "null";
 
 export const PRIMITIVE_NAMES: readonly PrimitiveName[] = [
-  "i8", "i16", "i32", "i64",
+  "i8", "i16", "i32", "i64", "isize",
   "u8", "u16", "u32", "u64", "usize",
   "f32", "f64",
   "bool", "char", "string", "void", "null",
@@ -161,6 +161,7 @@ export const TY = {
   i16:    primitive("i16"),
   i32:    primitive("i32"),
   i64:    primitive("i64"),
+  isize:  primitive("isize"),
   u8:     primitive("u8"),
   u16:    primitive("u16"),
   u32:    primitive("u32"),
@@ -181,7 +182,7 @@ export const TY = {
   freeFloat: { kind: "FreeFloat" } as FreeFloatType,
 } as const;
 
-export const SIGNED_INTS: readonly PrimitiveName[]   = ["i8", "i16", "i32", "i64"];
+export const SIGNED_INTS: readonly PrimitiveName[]   = ["i8", "i16", "i32", "i64", "isize"];
 export const UNSIGNED_INTS: readonly PrimitiveName[] = ["u8", "u16", "u32", "u64", "usize"];
 export const ALL_INTS: readonly PrimitiveName[]      = [...SIGNED_INTS, ...UNSIGNED_INTS];
 export const FLOATS: readonly PrimitiveName[]        = ["f32", "f64"];
@@ -217,7 +218,8 @@ export function sizeOfType(t: Type): number {
         case "i16": case "u16":                 return 2;
         case "i32": case "u32": case "f32":
         case "char":                            return 4;     // char is u32 in Vader
-        case "i64": case "u64": case "usize":
+        case "i64": case "isize":
+        case "u64": case "usize":
         case "f64":                             return 8;
         case "string":                          return 16;    // vader_string_t {data, len}
         case "null":                            return 16;    // tagged box
@@ -314,7 +316,8 @@ export function alignOfType(t: Type): number {
         case "i16": case "u16":                 return 2;
         case "i32": case "u32": case "f32":
         case "char":                            return 4;
-        case "i64": case "u64": case "usize":
+        case "i64": case "isize":
+        case "u64": case "usize":
         case "f64":                             return 8;
         case "string": case "null":             return 8;
         case "void":                            return 1;

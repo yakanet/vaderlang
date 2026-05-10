@@ -2,7 +2,7 @@
 
 ## tests/snippets/collection_index_sugar/_main.vader
   fn tests_snippets_collection_index_sugar__main_vader$main() -> i32
-    let m#73: MutableMap(string, i32) =
+    let m#74: MutableMap(string, i32) =
       MutableMap(string, i32) {
         buckets:
           array :Entry(string, i32) | null[]
@@ -10,27 +10,27 @@
       }
     call :void
       callee:
-        set_at#1000114 :void
+        set_at#1000127 :void
       arg0:
-        m#73 :MutableMap(string, i32)
+        m#74 :MutableMap(string, i32)
       arg1:
         "a" :string
       arg2:
         int(10) :i32
     call :void
       callee:
-        set_at#1000114 :void
+        set_at#1000127 :void
       arg0:
-        m#73 :MutableMap(string, i32)
+        m#74 :MutableMap(string, i32)
       arg1:
         "b" :string
       arg2:
         int(20) :i32
     call :void
       callee:
-        set_at#1000114 :void
+        set_at#1000127 :void
       arg0:
-        m#73 :MutableMap(string, i32)
+        m#74 :MutableMap(string, i32)
       arg1:
         "a" :string
       arg2:
@@ -39,9 +39,9 @@
       let __scrut_0#-1: i32 | null =
         call :i32 | null
           callee:
-            at#1000113 :i32 | null
+            at#1000126 :i32 | null
           arg0:
-            m#73 :MutableMap(string, i32)
+            m#74 :MutableMap(string, i32)
           arg1:
             "a" :string
       ~>
@@ -50,7 +50,7 @@
             is i32 :bool
               __scrut_0#-1 :i32 | null
           then:
-            let v#74: i32 =
+            let v#75: i32 =
               cast → i32
                 __scrut_0#-1 :i32 | null
             ~>
@@ -60,7 +60,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       block :string
                         let __sb_1#-2: ? =
@@ -70,7 +70,7 @@
                           "a=" :string
                         @builder.append_display <for i32> :void
                           __sb_1#-2 :?
-                          v#74 :i32
+                          v#75 :i32
                         ~>
                           @builder.finish :string
                             __sb_1#-2 :?
@@ -88,7 +88,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "a missing" :string
                 else:
@@ -98,9 +98,9 @@
       let __scrut_2#-3: i32 | null =
         call :i32 | null
           callee:
-            at#1000113 :i32 | null
+            at#1000126 :i32 | null
           arg0:
-            m#73 :MutableMap(string, i32)
+            m#74 :MutableMap(string, i32)
           arg1:
             "c" :string
       ~>
@@ -116,7 +116,7 @@
                 arg0:
                   call :string
                     callee:
-                      to_string#1000013 :string
+                      to_string#1000014 :string
                     arg0:
                       "c found?!" :string
           else:
@@ -133,7 +133,7 @@
                       arg0:
                         call :string
                           callee:
-                            to_string#1000013 :string
+                            to_string#1000014 :string
                           arg0:
                             "c missing" :string
                 else:
@@ -143,9 +143,9 @@
       cond:
         call :bool
           callee:
-            contains#1000115 :bool
+            contains#1000128 :bool
           arg0:
-            m#73 :MutableMap(string, i32)
+            m#74 :MutableMap(string, i32)
           arg1:
             "a" :string
       then:
@@ -155,7 +155,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "a in m" :string
     if :void
@@ -163,9 +163,9 @@
         not :bool
           call :bool
             callee:
-              contains#1000115 :bool
+              contains#1000128 :bool
             arg0:
-              m#73 :MutableMap(string, i32)
+              m#74 :MutableMap(string, i32)
             arg1:
               "z" :string
       then:
@@ -175,10 +175,10 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "z not in m" :string
-    let s#75: MutableSet(i32) =
+    let s#76: MutableSet(i32) =
       MutableSet(i32) {
         inner:
           MutableMap(i32, bool) {
@@ -189,25 +189,25 @@
       }
     call :bool
       callee:
-        add#1000123 :bool
+        add#1000136 :bool
       arg0:
-        s#75 :MutableSet(i32)
+        s#76 :MutableSet(i32)
       arg1:
         int(1) :i32
     call :bool
       callee:
-        add#1000123 :bool
+        add#1000136 :bool
       arg0:
-        s#75 :MutableSet(i32)
+        s#76 :MutableSet(i32)
       arg1:
         int(2) :i32
     if :void
       cond:
         call :bool
           callee:
-            contains#1000116 :bool
+            contains#1000129 :bool
           arg0:
-            s#75 :MutableSet(i32)
+            s#76 :MutableSet(i32)
           arg1:
             int(1) :i32
       then:
@@ -217,7 +217,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "1 in s" :string
     if :void
@@ -225,9 +225,9 @@
         not :bool
           call :bool
             callee:
-              contains#1000116 :bool
+              contains#1000129 :bool
             arg0:
-              s#75 :MutableSet(i32)
+              s#76 :MutableSet(i32)
             arg1:
               int(3) :i32
       then:
@@ -237,7 +237,7 @@
           arg0:
             call :string
               callee:
-                to_string#1000013 :string
+                to_string#1000014 :string
               arg0:
                 "3 not in s" :string
     return int(0) :i32

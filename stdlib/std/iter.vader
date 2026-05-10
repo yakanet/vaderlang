@@ -14,7 +14,7 @@
 // boxing + vtable dispatch land (TODO §3.5), keep one obvious shape.
 
 // count — number of items in the array.
-export count :: fn[T](arr: T[]) -> i32 {
+export count :: fn[T](arr: T[]) -> usize {
     return arr.len()
 }
 
@@ -70,9 +70,9 @@ export sum :: fn(arr: i32[]) -> i32 {
 }
 
 // take — copy at most `n` items from the array into a fresh array.
-export take :: fn[T](arr: T[], n: i32) -> T[] {
+export take :: fn[T](arr: T[], n: usize) -> T[] {
     out: T[] = []
-    i := 0
+    i: usize = 0
     for x in arr {
         if i >= n {
             return out
@@ -84,9 +84,9 @@ export take :: fn[T](arr: T[], n: i32) -> T[] {
 }
 
 // skip — drop the first `n` items, return the remaining ones as an array.
-export skip :: fn[T](arr: T[], n: i32) -> T[] {
+export skip :: fn[T](arr: T[], n: usize) -> T[] {
     out: T[] = []
-    i := 0
+    i: usize = 0
     for x in arr {
         if i >= n {
             out.push(x)
@@ -98,12 +98,12 @@ export skip :: fn[T](arr: T[], n: i32) -> T[] {
 
 // slice — copy `arr[start..<end]` into a fresh array. Bounds are clamped
 // (start to [0, len], end to [start, len]), so out-of-range indices yield a
-// shorter result rather than panicking. Negative indices are not supported.
-export slice :: fn[T](arr: T[], start: i32, end: i32) -> T[] {
+// shorter result rather than panicking. `start`/`end` are unsigned ; reverse
+// the order or use 0 to skip from the front.
+export slice :: fn[T](arr: T[], start: usize, end: usize) -> T[] {
     out: T[] = []
     len := arr.len()
     lo := start
-    if lo < 0 { lo = 0 }
     if lo > len { lo = len }
     hi := end
     if hi < lo { hi = lo }
@@ -124,7 +124,7 @@ export zip :: fn[T, U](a: T[], b: U[]) -> [T, U][] {
     n :: a.len()
     m :: b.len()
     k :: if n < m { n } else { m }
-    i := 0
+    i: usize = 0
     for i < k {
         out.push([a[i], b[i]])
         i = i + 1
@@ -143,11 +143,11 @@ export chain :: fn[T](a: T[], b: T[]) -> T[] {
 }
 
 // enumerate — pair each element with its index, starting at 0. Returns
-// `[i32, T]` tuples so callers can `for [i, x] in arr.enumerate()` — pairs
+// `[usize, T]` tuples so callers can `for [i, x] in arr.enumerate()` — pairs
 // nicely with the for-in destructure form.
-export enumerate :: fn[T](arr: T[]) -> [i32, T][] {
-    out: [i32, T][] = []
-    i := 0
+export enumerate :: fn[T](arr: T[]) -> [usize, T][] {
+    out: [usize, T][] = []
+    i: usize = 0
     for x in arr {
         out.push([i, x])
         i = i + 1

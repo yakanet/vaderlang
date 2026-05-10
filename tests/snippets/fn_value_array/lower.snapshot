@@ -5,18 +5,18 @@
     return
       add :i32
         l:
-          x#46 :i32
+          x#47 :i32
         r:
           int(1) :i32
   fn tests_snippets_fn_value_array__main_vader$double(x: i32) -> i32
     return
       mul :i32
         l:
-          x#47 :i32
+          x#48 :i32
         r:
           int(2) :i32
   fn tests_snippets_fn_value_array__main_vader$main() -> i32
-    let fs#48: fn(i32) -> i32[] =
+    let fs#49: fn(i32) -> i32[] =
       array :fn(i32) -> i32[]
         inc#1 :fn(i32) -> i32
         double#2 :fn(i32) -> i32
@@ -27,7 +27,7 @@
             callee:
               index :fn(i32) -> i32
                 on:
-                  fs#48 :fn(i32) -> i32[]
+                  fs#49 :fn(i32) -> i32[]
                 ix:
                   int(0) :i32
             arg0:
@@ -37,7 +37,7 @@
             callee:
               index :fn(i32) -> i32
                 on:
-                  fs#48 :fn(i32) -> i32[]
+                  fs#49 :fn(i32) -> i32[]
                 ix:
                   int(1) :i32
             arg0:

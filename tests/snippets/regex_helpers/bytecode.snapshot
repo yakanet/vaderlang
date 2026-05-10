@@ -99,9 +99,9 @@ fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
   local "$fn_ref_22#60" ref
   local "parts#62" ref
   local "__sb_0#64" any
-  local "$len_28#66" i32
-  local "n#69" i32
-  local "i#71" i32
+  local "$len_28#66" usize
+  local "n#69" usize
+  local "i#71" usize
   string.const 0   ; _main.vader:15:13
   string.const 1   ; _main.vader:15:13
   call 3   ; _main.vader:15:13
@@ -154,13 +154,13 @@ fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
   local.get 2   ; _main.vader:24:10
   array.len   ; _main.vader:24:10
   local.set 5   ; _main.vader:24:10
-  i32.const 0   ; _main.vader:25:10
-  local.set 6   ; _main.vader:25:10
+  i64.const 0   ; _main.vader:25:16
+  local.set 6   ; _main.vader:25:16
   block $L0 void   ; _main.vader:26:5
     loop $L1 void   ; _main.vader:26:5
       local.get 6   ; _main.vader:26:9
       local.get 5   ; _main.vader:26:9
-      i32.lt   ; _main.vader:26:9
+      usize.lt   ; _main.vader:26:9
       if $L2 void   ; _main.vader:26:9
         local.get 2   ; _main.vader:27:17
         local.get 6   ; _main.vader:27:17
@@ -169,8 +169,9 @@ fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
         call.import 0   ; _main.vader:27:17
         call.import 2   ; _main.vader:27:9
         local.get 6   ; _main.vader:28:13
-        i32.const 1   ; _main.vader:28:13
-        i32.add   ; _main.vader:28:13
+        i64.const 1   ; _main.vader:28:13
+        i64.to_usize   ; _main.vader:28:13
+        usize.add   ; _main.vader:28:13
         local.set 6   ; _main.vader:28:13
         br $L1   ; _main.vader:26:5
       else   ; _main.vader:26:9

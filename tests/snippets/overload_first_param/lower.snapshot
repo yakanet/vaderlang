@@ -14,7 +14,7 @@
         @builder.append_display <for i32> :void
           __sb_0#-1 :?
           .v :i32
-            b#81 :Box
+            b#82 :Box
         ~>
           @builder.finish :string
             __sb_0#-1 :?
@@ -29,16 +29,16 @@
         @builder.append_display <for string> :void
           __sb_0#-2 :?
           .v :string
-            b#82 :Bag
+            b#83 :Bag
         ~>
           @builder.finish :string
             __sb_0#-2 :?
   fn tests_snippets_overload_first_param__main_vader$main() -> i32
-    let a#83: Box =
+    let a#84: Box =
       Box {
         v: int(42) :i32
       }
-    let b#84: Bag =
+    let b#85: Bag =
       Bag {
         v: "hi" :string
       }
@@ -48,59 +48,59 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
                 describe#8 :fn(Box) -> string
               arg0:
-                a#83 :Box
+                a#84 :Box
     call :void
       callee:
         println#32 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
                 describe#9 :string
               arg0:
-                b#84 :Bag
+                b#85 :Bag
     call :void
       callee:
         println#32 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
                 describe#8 :string
               arg0:
-                a#83 :Box
+                a#84 :Box
     call :void
       callee:
         println#32 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             call :string
               callee:
                 describe#9 :string
               arg0:
-                b#84 :Bag
+                b#85 :Bag
     call :void
       callee:
         println#32 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_0#-3: ? =
@@ -126,7 +126,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_1#-4: ? =
@@ -152,7 +152,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_2#-5: ? =
@@ -179,7 +179,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_3#-6: ? =
@@ -204,7 +204,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_4#-7: ? =
@@ -229,7 +229,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_5#-8: ? =
@@ -257,7 +257,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_6#-9: ? =

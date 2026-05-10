@@ -4,7 +4,7 @@
   fn tests_snippets_enum_implements_trait__main_vader$Direction$Display$to_string(self: Direction) -> string
     ~>
       block :string
-        let __scrut_0#-1: Direction = self#55 :Direction
+        let __scrut_0#-1: Direction = self#56 :Direction
         ~>
           if :string
             cond:
@@ -56,45 +56,45 @@
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn tests_snippets_enum_implements_trait__main_vader$main() -> i32
-    let d#56: Direction = int(0) :i32
+    let d#57: Direction = int(0) :i32
     call :void
       callee:
         println#25 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string#1000015 :string
           arg0:
             call :string
               callee:
                 to_string#1000000 :string
               arg0:
-                d#56 :Direction
+                d#57 :Direction
     call :void
       callee:
         println#25 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string#1000015 :string
           arg0:
             call :string
               callee:
                 to_string#1000000 :string
               arg0:
                 int(1) :i32
-    let s#57: Direction = int(2) :i32
+    let s#58: Direction = int(2) :i32
     call :void
       callee:
         println#25 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string#1000015 :string
           arg0:
             call :string
               callee:
                 to_string#1000000 :string
               arg0:
-                s#57 :Direction
+                s#58 :Direction
     return int(0) :i32

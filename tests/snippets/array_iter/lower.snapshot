@@ -2,18 +2,18 @@
 
 ## tests/snippets/array_iter/_main.vader
   fn tests_snippets_array_iter__main_vader$main() -> i32
-    let arr#54: i32[] =
+    let arr#55: i32[] =
       array :i32[]
         int(10) :i32
         int(20) :i32
         int(30) :i32
         int(40) :i32
-    let sum#55: i32 = int(0) :i32
+    let sum#56: i32 = int(0) :i32
     block :void
       let __iter_0#-1: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: arr#54 :i32[]
-          cursor: int(0) :i32
+          arr: arr#55 :i32[]
+          cursor: int(0) :usize
           length:
             LoweredArrayLen
         }
@@ -21,7 +21,7 @@
         let __step_1#-2: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000110 :?
+              step#1000123 :?
             arg0:
               __iter_0#-1 :ArrayIter(i32)
         if :void
@@ -31,26 +31,26 @@
           then:
             break
           else:
-            let x#56: i32 =
+            let x#57: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_1#-2 :Done | Yielded(i32)
             assign
               target:
-                sum#55 :i32
+                sum#56 :i32
               value:
                 add :i32
                   l:
-                    sum#55 :i32
+                    sum#56 :i32
                   r:
-                    x#56 :i32
+                    x#57 :i32
     call :void
       callee:
         println#24 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_2#-3: ? =
@@ -60,21 +60,21 @@
                 "sum = " :string
               @builder.append_display <for i32> :void
                 __sb_2#-3 :?
-                sum#55 :i32
+                sum#56 :i32
               ~>
                 @builder.finish :string
                   __sb_2#-3 :?
-    let empty#57: i32[] =
+    let empty#58: i32[] =
       array :i32[]
         int(0) :i32
         int(0) :i32
         int(0) :i32
-    let n#58: i32 = int(0) :i32
+    let n#59: i32 = int(0) :i32
     block :void
       let __iter_3#-4: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: empty#57 :i32[]
-          cursor: int(0) :i32
+          arr: empty#58 :i32[]
+          cursor: int(0) :usize
           length:
             LoweredArrayLen
         }
@@ -82,7 +82,7 @@
         let __step_4#-5: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000110 :?
+              step#1000123 :?
             arg0:
               __iter_3#-4 :ArrayIter(i32)
         if :void
@@ -92,17 +92,17 @@
           then:
             break
           else:
-            let _y#59: i32 =
+            let _y#60: i32 =
               .value :i32
                 cast → Yielded(i32)
                   __step_4#-5 :Done | Yielded(i32)
             assign
               target:
-                n#58 :i32
+                n#59 :i32
               value:
                 add :i32
                   l:
-                    n#58 :i32
+                    n#59 :i32
                   r:
                     int(1) :i32
     call :void
@@ -111,7 +111,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_5#-6: ? =
@@ -121,7 +121,7 @@
                 "count = " :string
               @builder.append_display <for i32> :void
                 __sb_5#-6 :?
-                n#58 :i32
+                n#59 :i32
               ~>
                 @builder.finish :string
                   __sb_5#-6 :?

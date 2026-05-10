@@ -158,7 +158,7 @@ export normalize :: fn(self: Path) -> Path {
     }
     abs := self.is_absolute()
     segments: string[] = []
-    count := 0
+    count: usize = 0
     n := self.repr.byte_len()
     i := if abs { 1 } else { 0 }
     seg_start := i
@@ -197,7 +197,7 @@ export normalize :: fn(self: Path) -> Path {
     if abs {
         sb.append(SEP_STR)
     }
-    j := 0
+    j: usize = 0
     for j < count {
         if j > 0 {
             sb.append(SEP_STR)

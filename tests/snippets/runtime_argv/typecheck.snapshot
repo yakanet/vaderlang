@@ -9,9 +9,9 @@
   expr 13:13    IdentExpr      :: fn(Display) -> void
   expr 13:21    IdentExpr      :: string
   expr 7:13     StringLitExpr  :: string
-  expr 7:21     BinaryExpr     :: i32
-  expr 7:21     CallExpr       :: i32
-  expr 7:21     FieldExpr      :: fn() -> i32
+  expr 7:21     BinaryExpr     :: usize
+  expr 7:21     CallExpr       :: usize
+  expr 7:21     FieldExpr      :: fn() -> usize
   expr 7:21     IdentExpr      :: string[]
   expr 7:5      CallExpr       :: void
   expr 7:5      IdentExpr      :: fn(Display) -> void

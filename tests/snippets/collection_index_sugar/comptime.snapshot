@@ -5,8 +5,10 @@
 ## generic instances
   Yielded(char)
   Yielded(i32)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)
   Entry(i32, bool)
   Entry(string, i32)
   MutableMap(i32, bool)

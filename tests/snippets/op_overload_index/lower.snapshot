@@ -3,14 +3,14 @@
 ## tests/snippets/op_overload_index/_main.vader
   struct tests_snippets_op_overload_index__main_vader$Cell { keys: string[], vals: i32[] }
   fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(self: Cell, key: string) -> i32
-    let i#57: i32 = int(0) :i32
+    let i#58: i32 = int(0) :i32
     block :void
       let __iter_0#-1: ArrayIter(string) =
         ArrayIter(string) {
           arr:
             .keys :string[]
-              self#55 :Cell
-          cursor: int(0) :i32
+              self#56 :Cell
+          cursor: int(0) :usize
           length:
             LoweredArrayLen
         }
@@ -18,7 +18,7 @@
         let __step_1#-2: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000112 :?
+              step#1000125 :?
             arg0:
               __iter_0#-1 :ArrayIter(string)
         if :void
@@ -28,7 +28,7 @@
           then:
             break
           else:
-            let k#58: string =
+            let k#59: string =
               .value :string
                 cast → Yielded(string)
                   __step_1#-2 :Done | Yielded(string)
@@ -36,36 +36,36 @@
               cond:
                 eq :bool
                   l:
-                    k#58 :string
+                    k#59 :string
                   r:
-                    key#56 :string
+                    key#57 :string
               then:
                 return
                   index :i32
                     on:
                       .vals :i32[]
-                        self#55 :Cell
+                        self#56 :Cell
                     ix:
-                      i#57 :i32
+                      i#58 :i32
             assign
               target:
-                i#57 :i32
+                i#58 :i32
               value:
                 add :i32
                   l:
-                    i#57 :i32
+                    i#58 :i32
                   r:
                     int(1) :i32
     return int(0) :i32
   fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(self: Cell, key: string, v: i32) -> void
-    let i#62: i32 = int(0) :i32
+    let i#63: i32 = int(0) :i32
     block :void
       let __iter_0#-3: ArrayIter(string) =
         ArrayIter(string) {
           arr:
             .keys :string[]
-              self#59 :Cell
-          cursor: int(0) :i32
+              self#60 :Cell
+          cursor: int(0) :usize
           length:
             LoweredArrayLen
         }
@@ -73,7 +73,7 @@
         let __step_1#-4: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000112 :?
+              step#1000125 :?
             arg0:
               __iter_0#-3 :ArrayIter(string)
         if :void
@@ -83,7 +83,7 @@
           then:
             break
           else:
-            let k#63: string =
+            let k#64: string =
               .value :string
                 cast → Yielded(string)
                   __step_1#-4 :Done | Yielded(string)
@@ -91,35 +91,35 @@
               cond:
                 eq :bool
                   l:
-                    k#63 :string
+                    k#64 :string
                   r:
-                    key#60 :string
+                    key#61 :string
               then:
                 assign
                   target:
                     index :i32
                       on:
                         .vals :i32[]
-                          self#59 :Cell
+                          self#60 :Cell
                       ix:
-                        i#62 :i32
+                        i#63 :i32
                   value:
-                    v#61 :i32
+                    v#62 :i32
                 return
             assign
               target:
-                i#62 :i32
+                i#63 :i32
               value:
                 add :i32
                   l:
-                    i#62 :i32
+                    i#63 :i32
                   r:
                     int(1) :i32
     LoweredArrayPush
     ~>
       LoweredArrayPush
   fn tests_snippets_op_overload_index__main_vader$main() -> i32
-    let c#64: Cell =
+    let c#65: Cell =
       Cell {
         keys:
           array :string[]
@@ -130,7 +130,7 @@
       callee:
         set_at#1000001 :void
       arg0:
-        c#64 :Cell
+        c#65 :Cell
       arg1:
         "a" :string
       arg2:
@@ -139,7 +139,7 @@
       callee:
         set_at#1000001 :void
       arg0:
-        c#64 :Cell
+        c#65 :Cell
       arg1:
         "b" :string
       arg2:
@@ -148,7 +148,7 @@
       callee:
         set_at#1000001 :void
       arg0:
-        c#64 :Cell
+        c#65 :Cell
       arg1:
         "a" :string
       arg2:
@@ -159,7 +159,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000015 :string
+            to_string#1000016 :string
           arg0:
             block :string
               let __sb_0#-5: ? =
@@ -173,7 +173,7 @@
                   callee:
                     at#1000000 :i32
                   arg0:
-                    c#64 :Cell
+                    c#65 :Cell
                   arg1:
                     "a" :string
               @builder.append_str :void
@@ -185,7 +185,7 @@
                   callee:
                     at#1000000 :i32
                   arg0:
-                    c#64 :Cell
+                    c#65 :Cell
                   arg1:
                     "b" :string
               @builder.append_str :void
@@ -197,7 +197,7 @@
                   callee:
                     at#1000000 :i32
                   arg0:
-                    c#64 :Cell
+                    c#65 :Cell
                   arg1:
                     "c" :string
               ~>

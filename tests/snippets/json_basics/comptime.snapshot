@@ -14,5 +14,7 @@
   Yielded(char)
   Yielded(i32)
   Yielded(u8)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)

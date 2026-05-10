@@ -8,7 +8,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_0#-1: ? =
@@ -42,7 +42,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_1#-2: ? =
@@ -76,7 +76,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_2#-3: ? =
@@ -110,7 +110,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_3#-4: ? =
@@ -144,7 +144,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_4#-5: ? =
@@ -172,27 +172,27 @@
               ~>
                 @builder.finish :string
                   __sb_4#-5 :?
-    let s#122: string = "你好" :string
-    let n#123: i32 =
+    let s#123: string = "你好" :string
+    let n#124: i32 =
       call :i32
         callee:
           byte_len#41 :fn(string) -> i32
         arg0:
-          s#122 :string
-    let i#124: i32 = int(0) :i32
+          s#123 :string
+    let i#125: i32 = int(0) :i32
     loop while (<…>)
       let __tup_5#-6: [char, i32] =
         call :[char, i32]
           callee:
             decode_codepoint#53 :fn(string, i32) -> [char, i32]
           arg0:
-            s#122 :string
+            s#123 :string
           arg1:
-            i#124 :i32
-      let c#125: char =
+            i#125 :i32
+      let c#126: char =
         ._0 :char
           __tup_5#-6 :[char, i32]
-      let w#126: i32 =
+      let w#127: i32 =
         ._1 :i32
           __tup_5#-6 :[char, i32]
       call :void
@@ -201,7 +201,7 @@
         arg0:
           call :string
             callee:
-              to_string#1000013 :string
+              to_string#1000014 :string
             arg0:
               block :string
                 let __sb_6#-7: ? =
@@ -211,19 +211,19 @@
                   "at " :string
                 @builder.append_display <for i32> :void
                   __sb_6#-7 :?
-                  i#124 :i32
+                  i#125 :i32
                 @builder.append_str :void
                   __sb_6#-7 :?
                   ": '" :string
                 @builder.append_display <for char> :void
                   __sb_6#-7 :?
-                  c#125 :char
+                  c#126 :char
                 @builder.append_str :void
                   __sb_6#-7 :?
                   "' (" :string
                 @builder.append_display <for i32> :void
                   __sb_6#-7 :?
-                  w#126 :i32
+                  w#127 :i32
                 @builder.append_str :void
                   __sb_6#-7 :?
                   " bytes)" :string
@@ -232,20 +232,20 @@
                     __sb_6#-7 :?
       assign
         target:
-          i#124 :i32
+          i#125 :i32
         value:
           add :i32
             l:
-              i#124 :i32
+              i#125 :i32
             r:
-              w#126 :i32
+              w#127 :i32
     call :void
       callee:
         println#28 :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_7#-8: ? =
@@ -269,7 +269,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_8#-9: ? =
@@ -293,7 +293,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_9#-10: ? =
@@ -317,7 +317,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_10#-11: ? =

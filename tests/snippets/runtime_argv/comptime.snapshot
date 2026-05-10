@@ -6,6 +6,8 @@
   Yielded(char)
   Yielded(i32)
   Yielded(string)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)
   ArrayIter(string)

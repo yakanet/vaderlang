@@ -11,7 +11,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %4 $intrinsic_5#114: ?
     %5 __sb_0#115: ? (synthetic __sb_0)
     %6 $k_7#116: string
-    %7 $call_8#117: i32
+    %7 $call_8#117: usize
     %8 $intrinsic_9#118: string
     %9 $call_10#119: string
     %10 $call_11#120: i32[]
@@ -34,8 +34,8 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %27 vals#137: i32[] (local vals)
     %28 $call_31#138: [string, i32][]
     %29 pairs#139: [string, i32][] (local pairs)
-    %30 $k_33#140: i32
-    %31 $len_34#141: i32
+    %30 $k_33#140: usize
+    %31 $len_34#141: usize
     %32 __iter_2#142: ArrayIter([string, i32]) (synthetic __iter_2)
     %33 $call_37#143: Done | Yielded([string, i32])
     %34 __step_3#144: Done | Yielded([string, i32]) (synthetic __step_3)
@@ -49,8 +49,8 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %42 tail#152: i32[] (local tail)
     %43 $call_62#153: i32[]
     %44 joined#154: i32[] (local joined)
-    %45 $k_64#155: i32
-    %46 $len_65#156: i32
+    %45 $k_64#155: usize
+    %46 $len_65#156: usize
     %47 __iter_6#157: ArrayIter(i32) (synthetic __iter_6)
     %48 $call_68#158: Done | Yielded(i32)
     %49 __step_7#159: Done | Yielded(i32) (synthetic __step_7)
@@ -59,13 +59,13 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %52 $k_80#162: string
     %53 $k_81#163: string
     %54 fruits#164: string[] (local fruits)
-    %55 $call_84#165: [i32, string][]
-    %56 __arr_9#166: [i32, string][] (synthetic __arr_9)
-    %57 $k_86#167: i32
-    %58 $len_87#168: i32
-    %59 __iter_10#169: ArrayIter([i32, string]) (synthetic __iter_10)
-    %60 $call_90#170: Done | Yielded([i32, string])
-    %61 __step_11#171: Done | Yielded([i32, string]) (synthetic __step_11)
+    %55 $call_84#165: [usize, string][]
+    %56 __arr_9#166: [usize, string][] (synthetic __arr_9)
+    %57 $k_86#167: usize
+    %58 $len_87#168: usize
+    %59 __iter_10#169: ArrayIter([usize, string]) (synthetic __iter_10)
+    %60 $call_90#170: Done | Yielded([usize, string])
+    %61 __step_11#171: Done | Yielded([usize, string]) (synthetic __step_11)
     %62 $type_check_92#172: bool
     %63 $k_106#173: i32
     %64 $k_107#174: i32
@@ -75,8 +75,8 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %68 $closure_111#178: fn(i32) -> i32[]
     %69 $call_112#179: i32[]
     %70 bursts#180: i32[] (local bursts)
-    %71 $k_114#181: i32
-    %72 $len_115#182: i32
+    %71 $k_114#181: usize
+    %72 $len_115#182: usize
     %73 __iter_15#183: ArrayIter(i32) (synthetic __iter_15)
     %74 $call_118#184: Done | Yielded(i32)
     %75 __step_16#185: Done | Yielded(i32) (synthetic __step_16)
@@ -89,9 +89,9 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %82 $k_126#192: string
     %83 $intrinsic_127#193: string
     %84 $call_128#194: string
-    %85 $cast_93#195: Yielded([i32, string])
-    %86 __tup_12#196: [i32, string] (synthetic __tup_12)
-    %87 i#197: i32 (local i)
+    %85 $cast_93#195: Yielded([usize, string])
+    %86 __tup_12#196: [usize, string] (synthetic __tup_12)
+    %87 i#197: usize (local i)
     %88 f#198: string (local f)
     %89 $intrinsic_101#199: ?
     %90 __sb_13#200: ? (synthetic __sb_13)
@@ -123,7 +123,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %5 = move %4
     %6 = const string(#0) :string
     intrinsic builder.append_str(%5, %6)
-    %7 = call count(%3) :i32
+    %7 = call count(%3) :usize
     intrinsic builder.append_display(%5, %7)
     %8 = intrinsic builder.finish(%5)
     %9 = call to_string(%8) :string
@@ -151,7 +151,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %27 = array_new i32[][3](%24, %25, %26)
     %28 = call zip(%23, %27) :[string, i32][]
     %29 = move %28
-    %30 = const int(0) :i32
+    %30 = const int(0) :usize
     %31 = array_len %29
     %32 = struct_new ArrayIter([string, i32])(%29, %30, %31)
     branch -> bb1
@@ -172,7 +172,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %42 = array_new i32[][2](%40, %41)
     %43 = call chain(%39, %42) :i32[]
     %44 = move %43
-    %45 = const int(0) :i32
+    %45 = const int(0) :usize
     %46 = array_len %44
     %47 = struct_new ArrayIter(i32)(%44, %45, %46)
     branch -> bb7
@@ -207,11 +207,11 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %52 = const string(#9) :string
     %53 = const string(#10) :string
     %54 = array_new string[][3](%51, %52, %53)
-    %55 = call enumerate(%54) :[i32, string][]
+    %55 = call enumerate(%54) :[usize, string][]
     %56 = move %55
-    %57 = const int(0) :i32
+    %57 = const int(0) :usize
     %58 = array_len %56
-    %59 = struct_new ArrayIter([i32, string])(%56, %57, %58)
+    %59 = struct_new ArrayIter([usize, string])(%56, %57, %58)
     branch -> bb13
   bb10:
     branch -> bb9
@@ -232,7 +232,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb13:
     branch -> bb14
   bb14:
-    %60 = call step(%59) :Done | Yielded([i32, string])
+    %60 = call step(%59) :Done | Yielded([usize, string])
     %61 = move %60
     %62 = type_check %61 is Done
     cond_branch %62 ? bb16 : bb17
@@ -245,16 +245,16 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %68 = make_closure __lambda_15 env=%67 :fn(i32) -> i32[]
     %69 = call flat_map(%66, %68) :i32[]
     %70 = move %69
-    %71 = const int(0) :i32
+    %71 = const int(0) :usize
     %72 = array_len %70
     %73 = struct_new ArrayIter(i32)(%70, %71, %72)
     branch -> bb19
   bb16:
     branch -> bb15
   bb17:
-    %85 = cast %61 :Yielded([i32, string])
-    %86 = field_get %85.value :[i32, string]
-    %87 = field_get %86._0 :i32
+    %85 = cast %61 :Yielded([usize, string])
+    %86 = field_get %85.value :[usize, string]
+    %87 = field_get %86._0 :usize
     %88 = field_get %86._1 :string
     %89 = intrinsic builder.new()
     %90 = move %89

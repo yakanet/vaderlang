@@ -258,9 +258,9 @@ function buildArrayIterLit(
     kind: "LoweredStructLit", span: outerSpan, type: arrayIterType,
     fields: [
       { name: "arr",    value: arrField },
-      { name: "cursor", value: { kind: "LoweredIntLit", span: innerSpan, type: TY.i32, value: 0n } },
+      { name: "cursor", value: { kind: "LoweredIntLit", span: innerSpan, type: TY.usize, value: 0n } },
       { name: "length", value: {
-        kind: "LoweredArrayLen", span: innerSpan, type: TY.i32, target: arrForLen,
+        kind: "LoweredArrayLen", span: innerSpan, type: TY.usize, target: arrForLen,
       } },
     ],
   };

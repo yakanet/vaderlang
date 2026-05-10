@@ -6,6 +6,8 @@
   Yielded(char)
   Yielded(Day)
   Yielded(i32)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)
   ArrayIter(Day)

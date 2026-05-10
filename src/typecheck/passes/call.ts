@@ -138,6 +138,16 @@ function inferGenericFnCall(
         `expected ${displayType(expectedTy)}, got ${displayType(argTypes[i]!)}`);
     }
     if (!typeContainsTypeParam(expectedTy)) {
+      // Pin FreeInt/FreeFloat arg literals to the substituted expected type so
+      // the lowerer emits the right width (`take(nums, 3)` with `n: usize`
+      // → 3 must lower as `i64.const`, not `i32.const`). Mirrors the
+      // bidirectional defaulting in `checkExpr` ; step 1's `checkExpr(.., null)`
+      // couldn't apply it yet because the substitution wasn't built.
+      const got = argTypes[i]!;
+      if ((got.kind === "FreeInt" && isAssignable(got, expectedTy, impls))
+       || (got.kind === "FreeFloat" && isAssignable(got, expectedTy, impls))) {
+        t.exprTypes.set(expr.args[i]!.value, expectedTy);
+      }
       recordIterCoercion(expr.args[i]!.value, argTypes[i]!, expectedTy, t);
       recordDisplayCoercion(expr.args[i]!.value, argTypes[i]!, expectedTy, t);
     }
@@ -233,7 +243,7 @@ export function inferField(
   if (targetType.kind === "Array") {
     if (expr.field === "len") {
       t.arrayOps.set(expr, "len");
-      return { kind: "Fn", params: [], returnType: TY.i32 };
+      return { kind: "Fn", params: [], returnType: TY.usize };
     }
     if (expr.field === "push") {
       t.arrayOps.set(expr, "push");

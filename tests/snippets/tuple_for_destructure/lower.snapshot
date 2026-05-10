@@ -2,7 +2,7 @@
 
 ## tests/snippets/tuple_for_destructure/_main.vader
   fn tests_snippets_tuple_for_destructure__main_vader$main() -> i32
-    let pairs#54: [string, i32][] =
+    let pairs#55: [string, i32][] =
       array :[string, i32][]
         [string, i32] {
           _0: "a" :string
@@ -19,8 +19,8 @@
     block :void
       let __iter_0#-1: ArrayIter([string, i32]) =
         ArrayIter([string, i32]) {
-          arr: pairs#54 :[string, i32][]
-          cursor: int(0) :i32
+          arr: pairs#55 :[string, i32][]
+          cursor: int(0) :usize
           length:
             LoweredArrayLen
         }
@@ -28,7 +28,7 @@
         let __step_1#-2: Done | Yielded([string, i32]) =
           call :Done | Yielded([string, i32])
             callee:
-              step#1000110 :?
+              step#1000123 :?
             arg0:
               __iter_0#-1 :ArrayIter([string, i32])
         if :void
@@ -38,15 +38,15 @@
           then:
             break
           else:
-            let __for_9_5#55: [string, i32] =
+            let __for_9_5#56: [string, i32] =
               .value :[string, i32]
                 cast → Yielded([string, i32])
                   __step_1#-2 :Done | Yielded([string, i32])
-            let __tup_2#-3: [string, i32] = __for_9_5#55 :[string, i32]
-            let k#56: string =
+            let __tup_2#-3: [string, i32] = __for_9_5#56 :[string, i32]
+            let k#57: string =
               ._0 :string
                 __tup_2#-3 :[string, i32]
-            let v#57: i32 =
+            let v#58: i32 =
               ._1 :i32
                 __tup_2#-3 :[string, i32]
             call :void
@@ -55,20 +55,20 @@
               arg0:
                 call :string
                   callee:
-                    to_string#1000013 :string
+                    to_string#1000014 :string
                   arg0:
                     block :string
                       let __sb_3#-4: ? =
                         @builder.new :?
                       @builder.append_display <for string> :void
                         __sb_3#-4 :?
-                        k#56 :string
+                        k#57 :string
                       @builder.append_str :void
                         __sb_3#-4 :?
                         "=" :string
                       @builder.append_display <for i32> :void
                         __sb_3#-4 :?
-                        v#57 :i32
+                        v#58 :i32
                       ~>
                         @builder.finish :string
                           __sb_3#-4 :?

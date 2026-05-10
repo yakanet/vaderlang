@@ -245,8 +245,16 @@ function makeDiscardSymbol(stmt: A.ForStmt, t: MutableTyped): Symbol {
 }
 
 function forInElementType(iter: A.Expr, t: MutableTyped): Type | null {
-  // Range has a known element type by construction.
-  if (iter.kind === "RangeExpr") return TY.i32;
+  // Range has a known element type by construction — pull it from the
+  // resolved Range[T] struct args so usize / char / i32 ranges all narrow
+  // their binding to the right type.
+  if (iter.kind === "RangeExpr") {
+    const rangeTy = t.exprTypes.get(iter);
+    if (rangeTy !== undefined && rangeTy.kind === "Struct" && rangeTy.args.length === 1) {
+      return rangeTy.args[0]!;
+    }
+    return TY.i32;
+  }
   // Other iterables: query the Iterator impl on the iter's static type and
   // pull the element type from its trait args.
   const iterType = t.exprTypes.get(iter);

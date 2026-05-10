@@ -126,7 +126,7 @@ function valueToComptime(v: Value, expected: Type, input: RunComptimeInput): Com
     case "i8": case "i16": case "i32":
     case "u8": case "u16": case "u32":
       return intVal(BigInt(Math.trunc(v.n)), v.tag);
-    case "i64": case "u64": case "usize": return intVal(v.n, v.tag);
+    case "i64": case "u64": case "usize": case "isize": return intVal(v.n, v.tag);
     case "f32": case "f64": return floatVal(v.n, v.tag);
     case "bool":   return v.n ? TRUE : FALSE;
     case "char":   return { kind: "char", value: v.n };
@@ -209,7 +209,7 @@ function arrayValueToComptime(
 function comptimeToValue(v: ComptimeValue): Value {
   switch (v.kind) {
     case "int":
-      if (v.typeName === "i64" || v.typeName === "u64")
+      if (v.typeName === "i64" || v.typeName === "u64" || v.typeName === "usize" || v.typeName === "isize")
         return { tag: v.typeName, n: v.value };
       return { tag: v.typeName as "i32", n: Number(v.value) };
     case "float":

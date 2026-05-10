@@ -5,6 +5,8 @@ type 2 struct std_core$Done {  }
 type 3 struct std_core$Yielded__char { value:4 }
 type 4 primitive char
 type 5 struct std_core$Yielded__i32 { value:1 }
+type 6 struct std_core$Yielded__usize { value:7 }
+type 7 primitive usize
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 println std_io$println (string) -> void
 

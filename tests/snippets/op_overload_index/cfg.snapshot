@@ -7,9 +7,9 @@ fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: stri
     %0 self: Cell (param self)
     %1 key: string (param key)
     %2 $field_4#19: string[]
-    %3 $k_5#20: i32
+    %3 $k_5#20: usize
     %4 $field_6#21: string[]
-    %5 $len_7#22: i32
+    %5 $len_7#22: usize
     %6 __iter_0#23: ArrayIter(string) (synthetic __iter_0)
     %7 i#24: i32 (local i)
     %8 $call_10#25: Done | Yielded(string)
@@ -26,7 +26,7 @@ fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: stri
   bb0:
     %7 = const int(0) :i32
     %2 = field_get %0.keys :string[]
-    %3 = const int(0) :i32
+    %3 = const int(0) :usize
     %4 = field_get %0.keys :string[]
     %5 = array_len %4
     %6 = struct_new ArrayIter(string)(%2, %3, %5)
@@ -66,9 +66,9 @@ fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %
     %1 key: string (param key)
     %2 v: i32 (param v)
     %3 $field_5#20: string[]
-    %4 $k_6#21: i32
+    %4 $k_6#21: usize
     %5 $field_7#22: string[]
-    %6 $len_8#23: i32
+    %6 $len_8#23: usize
     %7 __iter_0#24: ArrayIter(string) (synthetic __iter_0)
     %8 i#25: i32 (local i)
     %9 $call_11#26: Done | Yielded(string)
@@ -85,7 +85,7 @@ fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %
   bb0:
     %8 = const int(0) :i32
     %3 = field_get %0.keys :string[]
-    %4 = const int(0) :i32
+    %4 = const int(0) :usize
     %5 = field_get %0.keys :string[]
     %6 = array_len %5
     %7 = struct_new ArrayIter(string)(%3, %4, %6)

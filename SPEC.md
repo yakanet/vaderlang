@@ -340,7 +340,7 @@ x := a + \
 |----------|-------|
 | Boolean | `bool` |
 | Unsigned integers | `u8`, `u16`, `u32`, `u64`, `usize` |
-| Signed integers | `i8`, `i16`, `i32`, `i64` |
+| Signed integers | `i8`, `i16`, `i32`, `i64`, `isize` |
 | Floats | `f32`, `f64` |
 | Text | `char` (32-bit codepoint), `string` (UTF-8 sequence) |
 | Null | `null` |
@@ -363,6 +363,10 @@ To ease migration from Java/Kotlin and reduce typing in everyday code, the compi
 `char` and `string` are already first-class names in the primitive table, so they need no alias.
 
 `usize` is a **target-dependent** unsigned integer used for sizes and indexes (analogous to C's `size_t`, Rust's `usize`). It maps to `size_t` in the C backend (typically 64-bit on modern hosts). The bytecode/VM bootstrap treats it as a 64-bit value. The WASM backend will choose the platform-native width when implemented (likely WASM64 only at first).
+
+`isize` is its **signed** counterpart — a target-dependent signed integer used for pointer differences and signed indexing (analogous to C's `ptrdiff_t`, Rust's `isize`). Maps to `ptrdiff_t` in the C backend and is 64-bit in the bytecode/VM bootstrap. Use `isize` when you need a signed offset (e.g. iterating backwards), `usize` when the value is a count or index that can't be negative.
+
+Array `len()` returns `usize`, and array indexing accepts `usize` (the runtime also accepts narrower integer types for ergonomic literals — `arr[2]` compiles, `arr.len() == 12` compiles, no explicit casts needed).
 
 These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases. Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
 

@@ -14,8 +14,8 @@ fn tests_snippets_tuple_for_destructure__main_vader$main() -> i32
     %7 $k_7#33: i32
     %8 $struct_8#34: [string, i32]
     %9 pairs#35: [string, i32][] (local pairs)
-    %10 $k_11#36: i32
-    %11 $len_12#37: i32
+    %10 $k_11#36: usize
+    %11 $len_12#37: usize
     %12 __iter_0#38: ArrayIter([string, i32]) (synthetic __iter_0)
     %13 $call_15#39: Done | Yielded([string, i32])
     %14 __step_1#40: Done | Yielded([string, i32]) (synthetic __step_1)
@@ -41,7 +41,7 @@ fn tests_snippets_tuple_for_destructure__main_vader$main() -> i32
     %7 = const int(3) :i32
     %8 = struct_new [string, i32](%6, %7)
     %9 = array_new [string, i32][][3](%2, %5, %8)
-    %10 = const int(0) :i32
+    %10 = const int(0) :usize
     %11 = array_len %9
     %12 = struct_new ArrayIter([string, i32])(%9, %10, %11)
     branch -> bb1

@@ -7,7 +7,7 @@
         cond:
           gt :bool
             l:
-              n#44 :i32
+              n#45 :i32
             r:
               int(0) :i32
         then:
@@ -19,7 +19,7 @@
               cond:
                 lt :bool
                   l:
-                    n#44 :i32
+                    n#45 :i32
                   r:
                     int(0) :i32
               then:

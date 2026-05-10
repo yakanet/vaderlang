@@ -20,38 +20,38 @@
   expr 16:72    IdentExpr      :: i32
   expr 16:78    IdentExpr      :: i32
   expr 19:14    CallExpr       :: i32[]
-  expr 19:14    IdentExpr      :: fn($T[], i32) -> $T[]
+  expr 19:14    IdentExpr      :: fn($T[], usize) -> $T[]
   expr 19:19    IdentExpr      :: i32[]
   expr 20:11    CallExpr       :: i32
   expr 20:11    IdentExpr      :: fn(i32[]) -> i32
   expr 20:15    IdentExpr      :: i32[]
   expr 23:13    CallExpr       :: i32[]
-  expr 23:13    IdentExpr      :: fn($T[], i32) -> $T[]
+  expr 23:13    IdentExpr      :: fn($T[], usize) -> $T[]
   expr 23:18    IdentExpr      :: i32[]
   expr 24:11    CallExpr       :: i32
   expr 24:11    IdentExpr      :: fn(i32[]) -> i32
   expr 24:15    IdentExpr      :: i32[]
   expr 28:13    StringLitExpr  :: string
-  expr 28:30    CallExpr       :: i32
   expr 28:30    CallExpr       :: i32[]
-  expr 28:30    FieldExpr      :: fn() -> i32
-  expr 28:30    IdentExpr      :: fn($T[], i32, i32) -> $T[]
+  expr 28:30    CallExpr       :: usize
+  expr 28:30    FieldExpr      :: fn() -> usize
+  expr 28:30    IdentExpr      :: fn($T[], usize, usize) -> $T[]
   expr 28:36    IdentExpr      :: i32[]
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(Display) -> void
   expr 29:13    StringLitExpr  :: string
-  expr 29:31    CallExpr       :: i32
   expr 29:31    CallExpr       :: i32[]
-  expr 29:31    FieldExpr      :: fn() -> i32
-  expr 29:31    IdentExpr      :: fn($T[], i32, i32) -> $T[]
+  expr 29:31    CallExpr       :: usize
+  expr 29:31    FieldExpr      :: fn() -> usize
+  expr 29:31    IdentExpr      :: fn($T[], usize, usize) -> $T[]
   expr 29:37    IdentExpr      :: i32[]
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(Display) -> void
   expr 30:13    StringLitExpr  :: string
-  expr 30:31    CallExpr       :: i32
   expr 30:31    CallExpr       :: i32[]
-  expr 30:31    FieldExpr      :: fn() -> i32
-  expr 30:31    IdentExpr      :: fn($T[], i32, i32) -> $T[]
+  expr 30:31    CallExpr       :: usize
+  expr 30:31    FieldExpr      :: fn() -> usize
+  expr 30:31    IdentExpr      :: fn($T[], usize, usize) -> $T[]
   expr 30:37    IdentExpr      :: i32[]
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(Display) -> void

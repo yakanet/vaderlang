@@ -155,6 +155,7 @@ export function stdStringBindings(): Record<string, HostFn> {
     "std_core$i16$Display$to_string":    (args) => str(displayValue(args[0]!)),
     "std_core$i32$Display$to_string":    (args) => str(displayValue(args[0]!)),
     "std_core$i64$Display$to_string":    (args) => str(displayValue(args[0]!)),
+    "std_core$isize$Display$to_string":  (args) => str(displayValue(args[0]!)),
     "std_core$u8$Display$to_string":     (args) => str(displayValue(args[0]!)),
     "std_core$u16$Display$to_string":    (args) => str(displayValue(args[0]!)),
     "std_core$u32$Display$to_string":    (args) => str(displayValue(args[0]!)),

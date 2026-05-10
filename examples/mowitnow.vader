@@ -179,7 +179,7 @@ run :: fn(input: string) -> string! {
     lawn :: parse_lawn(lines[0])?
 
     out :: new_builder()
-    i := 1
+    i: usize = 1
     first := true
     for i < lines.len() {
         if i + 1 >= lines.len() {

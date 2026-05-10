@@ -16,15 +16,15 @@
       call :[[i32, string], bool]
         callee:
           make_record#2 :fn() -> [[i32, string], bool]
-    let id#55: i32 =
+    let id#56: i32 =
       ._0 :i32
         ._0 :[i32, string]
           __tup_0#-1 :[[i32, string], bool]
-    let label#56: string =
+    let label#57: string =
       ._1 :string
         ._0 :[i32, string]
           __tup_0#-1 :[[i32, string], bool]
-    let active#57: bool =
+    let active#58: bool =
       ._1 :bool
         __tup_0#-1 :[[i32, string], bool]
     call :void
@@ -33,7 +33,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_1#-2: ? =
@@ -43,7 +43,7 @@
                 "id=" :string
               @builder.append_display <for i32> :void
                 __sb_1#-2 :?
-                id#55 :i32
+                id#56 :i32
               ~>
                 @builder.finish :string
                   __sb_1#-2 :?
@@ -53,7 +53,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_2#-3: ? =
@@ -63,7 +63,7 @@
                 "label=" :string
               @builder.append_display <for string> :void
                 __sb_2#-3 :?
-                label#56 :string
+                label#57 :string
               ~>
                 @builder.finish :string
                   __sb_2#-3 :?
@@ -73,7 +73,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_3#-4: ? =
@@ -83,7 +83,7 @@
                 "active=" :string
               @builder.append_display <for bool> :void
                 __sb_3#-4 :?
-                active#57 :bool
+                active#58 :bool
               ~>
                 @builder.finish :string
                   __sb_3#-4 :?

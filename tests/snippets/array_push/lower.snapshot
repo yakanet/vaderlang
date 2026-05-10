@@ -2,7 +2,7 @@
 
 ## tests/snippets/array_push/_main.vader
   fn tests_snippets_array_push__main_vader$main() -> i32
-    let arr#54: ?[] =
+    let arr#55: ?[] =
       array :?[]
     LoweredArrayPush
     LoweredArrayPush
@@ -13,12 +13,12 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_0#-1: ? =
                 @builder.new :?
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_0#-1 :?
                 LoweredArrayLen
               ~>
@@ -30,7 +30,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_1#-2: ? =
@@ -39,7 +39,7 @@
                 __sb_1#-2 :?
                 index :?
                   on:
-                    arr#54 :?[]
+                    arr#55 :?[]
                   ix:
                     int(0) :i32
               ~>
@@ -51,7 +51,7 @@
       arg0:
         call :string
           callee:
-            to_string#1000013 :string
+            to_string#1000014 :string
           arg0:
             block :string
               let __sb_2#-3: ? =
@@ -60,7 +60,7 @@
                 __sb_2#-3 :?
                 index :?
                   on:
-                    arr#54 :?[]
+                    arr#55 :?[]
                   ix:
                     int(2) :i32
               ~>

@@ -48,6 +48,7 @@ const VAL_TYPES: readonly ValType[] = [
   "u8",     "u16",    "u32",    "u64",    "usize",
   "f32",    "f64",
   "ref",    "any",
+  "isize",
 ];
 
 const VAL_TYPE_BY_TAG = new Map<number, ValType>(VAL_TYPES.map((v, i) => [i, v]));
@@ -68,7 +69,7 @@ function valTypeFromTag(r: Reader, t: number): ValType {
 // Op kind → u16 tag. Order is stable: appending is safe across patch bumps,
 // removing or reordering requires a version bump.
 
-const INT_WIDTHS: readonly string[] = ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "usize"];
+const INT_WIDTHS: readonly string[] = ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "usize", "isize"];
 const FLOAT_WIDTHS: readonly string[] = ["f32", "f64"];
 const NUM_WIDTHS: readonly string[] = [...INT_WIDTHS, ...FLOAT_WIDTHS];
 const CONVERT_WIDTHS: readonly string[] = [...NUM_WIDTHS, "char"];

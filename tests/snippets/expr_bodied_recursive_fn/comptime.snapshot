@@ -5,8 +5,10 @@
 ## generic instances
   Yielded(char)
   Yielded(i32)
+  Yielded(usize)
   Range(char)
   Range(i32)
+  Range(usize)
 
 # Diagnostics
 [6:8] error[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`

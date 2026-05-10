@@ -48,7 +48,7 @@ export show :: fn(label: string, source: string) -> void {
     println("# ${label}")
     l := tokenize(source, "t.v")
     n := l.tokens.len()
-    i := 0
+    i: usize = 0
     for i < n {
         t := l.tokens[i]
         if t.kind == .Newline {

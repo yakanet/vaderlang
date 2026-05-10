@@ -172,6 +172,25 @@ Range[i32] implements Iterator[i32] {
     }
 }
 
+Range[usize] implements Contains[usize] {
+    contains :: fn(self, value: usize) -> bool {
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
+    }
+}
+
+Range[usize] implements Iterator[usize] {
+    step :: fn(self) -> Done | Yielded(usize) {
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
+        if (done) { return Done {} }
+        v :: self.cursor
+        self.cursor = self.cursor + 1
+        return Yielded(usize) { .value = v }
+    }
+}
+
 // `char` has no `+ i32` op ; advance via u32 round-trip.
 Range[char] implements Iterator[char] {
     step :: fn(self) -> Done | Yielded(char) {
@@ -191,8 +210,8 @@ Range[char] implements Iterator[char] {
 // deferred).
 export ArrayIter :: struct[T] {
     arr:    T[]
-    cursor: i32
-    length: i32
+    cursor: usize
+    length: usize
 }
 
 ArrayIter[T] implements Iterator[T] {
@@ -225,6 +244,7 @@ ArrayIter[T] implements Iterator[T] {
 @intrinsic i16    implements Display
 @intrinsic i32    implements Display
 @intrinsic i64    implements Display
+@intrinsic isize  implements Display
 @intrinsic u8     implements Display
 @intrinsic u16    implements Display
 @intrinsic u32    implements Display
@@ -242,6 +262,7 @@ ArrayIter[T] implements Iterator[T] {
 @intrinsic i16    implements Equals
 @intrinsic i32    implements Equals
 @intrinsic i64    implements Equals
+@intrinsic isize  implements Equals
 @intrinsic u8     implements Equals
 @intrinsic u16    implements Equals
 @intrinsic u32    implements Equals
@@ -262,6 +283,7 @@ i8    implements Hash -> u64(self)
 i16   implements Hash -> u64(self)
 i32   implements Hash -> u64(self)
 i64   implements Hash -> u64(self)
+isize implements Hash -> u64(self)
 u8    implements Hash -> u64(self)
 u16   implements Hash -> u64(self)
 u32   implements Hash -> u64(self)
@@ -296,6 +318,11 @@ char  implements Hash -> u64(self)
 @intrinsic i64 implements Sub
 @intrinsic i64 implements Mul
 @intrinsic i64 implements Div
+
+@intrinsic isize implements Add
+@intrinsic isize implements Sub
+@intrinsic isize implements Mul
+@intrinsic isize implements Div
 
 @intrinsic u8 implements Add
 @intrinsic u8 implements Sub
