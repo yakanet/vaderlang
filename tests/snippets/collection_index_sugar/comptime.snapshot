@@ -1,0 +1,21 @@
+# Comptime
+
+## tests/snippets/collection_index_sugar/_main.vader
+
+## generic instances
+  Yielded(char)
+  Yielded(i32)
+  Range(char)
+  Range(i32)
+  Entry(i32, bool)
+  Entry(string, i32)
+  MutableMap(i32, bool)
+  MutableMap(string, i32)
+  put(i32, bool)
+  put(string, i32)
+  get(i32, bool)
+  get(string, i32)
+  contains_key(i32, bool)
+  contains_key(string, i32)
+  MutableSet(i32)
+  add(i32)

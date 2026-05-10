@@ -1,0 +1,9 @@
+# stdout
+a=99
+c missing
+a in m
+z not in m
+1 in s
+3 not in s
+# exit
+0

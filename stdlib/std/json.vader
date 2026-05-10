@@ -10,7 +10,7 @@
 
 import "std/string" { byte_len, slice, parse_float, pad_start }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
-import "std/collections" { MutableMap, put, get, contains_key, len, keys, values }
+import "std/collections" { MutableMap, len, keys, values }
 import "std/numbers" { hex_digit_value, to_hex, to_compact_str }
 
 // ---- value tree -----------------------------------------------------------
@@ -314,7 +314,7 @@ parse_object :: fn(p: Parser) -> JsonObject | JsonError {
         skip_ws(p)
         expect_byte(p, ':')?
         value := parse_value(p)?
-        entries.put(key, value)
+        entries[key] = value
         skip_ws(p)
         if at_end(p) {
             return fail(p, "unterminated object")

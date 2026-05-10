@@ -227,13 +227,13 @@ export MutableSet :: struct[T: Hash & Equals] {
 
 // Returns true if the value was newly added, false if it was already present.
 export add :: fn[T](self: MutableSet(T), value: T) -> bool {
-    if self.inner.contains_key(value) { return false }
-    self.inner.put(value, true)
+    if value in self.inner { return false }
+    self.inner[value] = true
     return true
 }
 
 export contains :: fn[T](self: MutableSet(T), value: T) -> bool {
-    return self.inner.contains_key(value)
+    return value in self.inner
 }
 
 export len :: fn[T](self: MutableSet(T)) -> usize { return self.inner.size }
@@ -244,5 +244,5 @@ export is_empty :: fn[T](self: MutableSet(T)) -> bool { return self.inner.size =
 // Index/IndexSet impl — sets have no value-at-key semantics, and `s.add(v)`
 // reads more clearly than a hypothetical `s[v] = true`.
 MutableSet[T] implements Contains[T] {
-    contains :: fn(self, value: T) -> bool { return self.inner.contains_key(value) }
+    contains :: fn(self, value: T) -> bool { return value in self.inner }
 }

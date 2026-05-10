@@ -1885,6 +1885,19 @@ len      :: fn(self: MutableSet(T)) -> usize
 is_empty :: fn(self: MutableSet(T)) -> bool
 ```
 
+`MutableMap` carries `Index[K, V | null]` / `IndexSet[K, V]` / `Contains[K]`
+impls, so the trait operators (§4 *Operator overloading*) work directly :
+
+```vader
+m["a"] = 10              // IndexSet — same as `m.put("a", 10)`
+match m["a"] { … }       // Index   — same as `m.get("a")`, returns `V | null`
+if "a" in m { … }        // Contains — same as `m.contains_key("a")`
+```
+
+`MutableSet` carries a `Contains[T]` impl ; `value in set` / `value !in set`
+both work. No `Index` / `IndexSet` impl on Set : sets have no value-at-key
+semantics, and `s.add(v)` reads more clearly than `s[v] = true` ever could.
+
 ### `std/math`
 
 ```vader
