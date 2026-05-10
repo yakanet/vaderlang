@@ -5,7 +5,7 @@
     let n#61: i32 =
       call :i32
         callee:
-          identity#1000090 :i32
+          identity#1000104 :i32
         arg0:
           int(42) :i32
     call :void
@@ -36,7 +36,7 @@
     let v#63: i32 =
       call :i32
         callee:
-          first#1000091 :i32
+          first#1000105 :i32
         arg0:
           arr#62 :i32[]
         arg1:

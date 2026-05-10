@@ -24,6 +24,11 @@
   expr 24:10    StructLitExpr  :: Money
   expr 25:10    StructLitExpr  :: Money
   expr 26:10    StructLitExpr  :: Money
+  expr 27:58    UnaryExpr      :: bool
+  expr 27:59    CallExpr       :: bool
+  expr 27:59    FieldExpr      :: fn(Money) -> bool
+  expr 27:59    IdentExpr      :: Money
+  expr 27:71    IdentExpr      :: Money
   expr 29:13    StringLitExpr  :: string
   expr 29:21    BinaryExpr     :: bool
   expr 29:21    IdentExpr      :: Money
@@ -48,3 +53,23 @@
   expr 31:65    BinaryExpr     :: bool
   expr 31:65    IdentExpr      :: Money
   expr 31:70    IdentExpr      :: Money
+  expr 35:51    BinaryExpr     :: bool
+  expr 35:51    CallExpr       :: i32
+  expr 35:51    FieldExpr      :: fn(Money) -> i32
+  expr 35:51    IdentExpr      :: Money
+  expr 35:64    IdentExpr      :: Money
+  expr 36:51    BinaryExpr     :: bool
+  expr 36:51    CallExpr       :: i32
+  expr 36:51    FieldExpr      :: fn(Money) -> i32
+  expr 36:51    IdentExpr      :: Money
+  expr 36:64    IdentExpr      :: Money
+  expr 37:51    BinaryExpr     :: bool
+  expr 37:51    CallExpr       :: i32
+  expr 37:51    FieldExpr      :: fn(Money) -> i32
+  expr 37:51    IdentExpr      :: Money
+  expr 37:64    IdentExpr      :: Money
+  expr 38:51    BinaryExpr     :: bool
+  expr 38:51    CallExpr       :: i32
+  expr 38:51    FieldExpr      :: fn(Money) -> i32
+  expr 38:51    IdentExpr      :: Money
+  expr 38:64    IdentExpr      :: Money

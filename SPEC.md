@@ -923,7 +923,35 @@ ArrayIter($T) implements Iterator(T) {
 
 - Detection: the impl body starts with `->` (arrow), or with `{` whose first significant token is **not** the start of a member declaration (`name :: fn`). Anything else inside the braces is treated as a SAM block body.
 - The classic form (`{ name :: fn(...) ... }`) remains valid and is **required** for multi-method traits.
-- `R2016` is emitted when the short forms are used on a trait with 0 or ≥ 2 methods.
+- "Single-method" here means a single *required* (body-less) method ; a trait can declare additional methods with default bodies (see *Default methods* below) and still accept the SAM short forms.
+- `R2016` is emitted when the short forms are used on a trait with 0 or ≥ 2 required methods.
+
+#### Default methods
+
+A trait method may carry a body :
+
+```vader
+Equals :: trait {
+    equals     :: fn(self, other: Self) -> bool
+    not_equals :: fn(self, other: Self) -> bool { return !self.equals(other) }
+}
+```
+
+Any impl that doesn't override `not_equals` automatically inherits the body
+above — the resolver clones the trait method's body into the impl at
+declaration time, with `Self → forType` substituted (and trait type-params
+substituted by impl trait-args). References inside the body to other trait
+methods (`self.equals(other)`) resolve through UFCS against the impl scope,
+so they pick up the impl's own member when the user provides one.
+
+```vader
+Money implements Equals -> self.amount == other.amount
+// Money.not_equals exists implicitly, derived from the cloned default.
+```
+
+Stdlib traits that ship with default methods :
+- `Equals.not_equals` (derived from `equals`).
+- `Comparable.lt` / `.lte` / `.gt` / `.gte` (derived from `compare`).
 
 #### Operator overloading
 

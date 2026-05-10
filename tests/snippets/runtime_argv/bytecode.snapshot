@@ -91,42 +91,42 @@ fn 1 std_core$ArrayIter$Iterator$step__string (ref) -> ref
   local "v#18" string
   local "$field_9#19" i32
   local "$add_11#21" i32
-  local.get 0   ; core.vader:153:13
-  struct.get 7 1   ; core.vader:153:13
-  local.set 1   ; core.vader:153:13
-  local.get 0   ; core.vader:153:28
-  struct.get 7 2   ; core.vader:153:28
-  local.set 2   ; core.vader:153:28
-  local.get 1   ; core.vader:153:13
-  local.get 2   ; core.vader:153:13
-  i32.ge   ; core.vader:153:13
-  if $L0 void   ; core.vader:153:9
-    struct.new 0   ; core.vader:153:50
-    return   ; core.vader:153:43
-  else   ; core.vader:153:9
-    local.get 0   ; core.vader:154:14
-    struct.get 7 0   ; core.vader:154:14
-    local.set 3   ; core.vader:154:14
-    local.get 0   ; core.vader:154:23
-    struct.get 7 1   ; core.vader:154:23
-    local.set 4   ; core.vader:154:23
-    local.get 3   ; core.vader:154:14
-    local.get 4   ; core.vader:154:14
-    array.get 8   ; core.vader:154:14
-    ref.cast 6   ; core.vader:154:14
-    local.set 5   ; core.vader:154:14
-    local.get 0   ; core.vader:155:23
-    struct.get 7 1   ; core.vader:155:23
-    local.set 6   ; core.vader:155:23
-    local.get 6   ; core.vader:155:23
-    i32.const 1   ; core.vader:155:23
-    i32.add   ; core.vader:155:23
-    local.set 7   ; core.vader:155:23
-    local.get 0   ; core.vader:155:9
-    local.get 7   ; core.vader:155:9
-    struct.set 7 1   ; core.vader:155:9
-    local.get 5   ; core.vader:156:16
-    struct.new 5   ; core.vader:156:16
-    return   ; core.vader:156:9
-  end $L0   ; core.vader:153:9
+  local.get 0   ; core.vader:161:13
+  struct.get 7 1   ; core.vader:161:13
+  local.set 1   ; core.vader:161:13
+  local.get 0   ; core.vader:161:28
+  struct.get 7 2   ; core.vader:161:28
+  local.set 2   ; core.vader:161:28
+  local.get 1   ; core.vader:161:13
+  local.get 2   ; core.vader:161:13
+  i32.ge   ; core.vader:161:13
+  if $L0 void   ; core.vader:161:9
+    struct.new 0   ; core.vader:161:50
+    return   ; core.vader:161:43
+  else   ; core.vader:161:9
+    local.get 0   ; core.vader:162:14
+    struct.get 7 0   ; core.vader:162:14
+    local.set 3   ; core.vader:162:14
+    local.get 0   ; core.vader:162:23
+    struct.get 7 1   ; core.vader:162:23
+    local.set 4   ; core.vader:162:23
+    local.get 3   ; core.vader:162:14
+    local.get 4   ; core.vader:162:14
+    array.get 8   ; core.vader:162:14
+    ref.cast 6   ; core.vader:162:14
+    local.set 5   ; core.vader:162:14
+    local.get 0   ; core.vader:163:23
+    struct.get 7 1   ; core.vader:163:23
+    local.set 6   ; core.vader:163:23
+    local.get 6   ; core.vader:163:23
+    i32.const 1   ; core.vader:163:23
+    i32.add   ; core.vader:163:23
+    local.set 7   ; core.vader:163:23
+    local.get 0   ; core.vader:163:9
+    local.get 7   ; core.vader:163:9
+    struct.set 7 1   ; core.vader:163:9
+    local.get 5   ; core.vader:164:16
+    struct.new 5   ; core.vader:164:16
+    return   ; core.vader:164:9
+  end $L0   ; core.vader:161:9
 end

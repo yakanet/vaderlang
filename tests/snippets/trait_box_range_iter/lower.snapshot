@@ -15,7 +15,7 @@
     let a#64: i32 =
       call :i32
         callee:
-          count#1000092 :i32
+          count#1000106 :i32
         arg0:
           Range(i32) {
             start: int(0) :i32
@@ -26,7 +26,7 @@
     let b#65: i32 =
       call :i32
         callee:
-          count#1000092 :i32
+          count#1000106 :i32
         arg0:
           block :ArrayIter(i32)
             let __arr_0#-1: i32[] =
@@ -44,14 +44,14 @@
     let c#66: i32 =
       call :i32
         callee:
-          invoke#1000093 :i32
+          invoke#1000107 :i32
         arg0:
           Hello {
           }
     let d#67: i32 =
       call :i32
         callee:
-          twice#1000094 :i32
+          twice#1000108 :i32
         arg0:
           int(7) :i32
     return

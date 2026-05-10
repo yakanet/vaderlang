@@ -20,14 +20,22 @@ export Display :: trait {
     to_string :: fn(self) -> string
 }
 
-// Equals — for == and !=.
+// Equals — for == and !=. `not_equals` is a default method derived from
+// `equals` (Layer 8d) ; impls that don't override it inherit the negation.
 export Equals :: trait {
-    equals :: fn(self, other: Self) -> bool
+    equals     :: fn(self, other: Self) -> bool
+    not_equals :: fn(self, other: Self) -> bool { return !self.equals(other) }
 }
 
-// Comparable — for <, <=, >, >=.
+// Comparable — for <, <=, >, >=. The four comparison-by-zero helpers are
+// default methods derived from `compare` ; impls only have to provide
+// `compare` and the rest follow.
 export Comparable :: trait {
     compare :: fn(self, other: Self) -> i32
+    lt  :: fn(self, other: Self) -> bool { return self.compare(other) <  0 }
+    lte :: fn(self, other: Self) -> bool { return self.compare(other) <= 0 }
+    gt  :: fn(self, other: Self) -> bool { return self.compare(other) >  0 }
+    gte :: fn(self, other: Self) -> bool { return self.compare(other) >= 0 }
 }
 
 // Hash — for Map / Set keys.

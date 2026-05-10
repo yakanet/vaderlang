@@ -233,6 +233,11 @@ function resolveImplDecl(decl: A.ImplDecl, parent: Scope, p: MutableProgram, inp
   if (traitSym !== null && traitSym.source.kind === "trait") {
     materializeSamMembers(decl, traitSym.source.decl, input);
     materializeIntrinsicMembers(decl, traitSym.source.decl);
+    // Layer 8d — fill in trait-default methods the impl didn't override.
+    // Runs after the SAM / intrinsic materialisations so user-supplied
+    // members and host-provided ones are already in `decl.members` and
+    // `provided` (inside the helper) sees them.
+    materializeDefaultMembers(decl, traitSym.source.decl);
   }
 
   for (const member of decl.members) resolveFnDecl(member, scope, p, input);
@@ -277,6 +282,55 @@ function materializeIntrinsicMembers(decl: A.ImplDecl, trait: A.TraitDecl): void
   }
 }
 
+/** Layer 8d — inject default-bearing trait methods the impl didn't override.
+ *  For every trait member with a body, if no user-provided member with the
+ *  same name lives in the impl yet, push a fresh FnDecl whose body is a deep
+ *  clone of the trait's. The clone is `structuredClone`-based so the AST node
+ *  identities are fresh — the resolver's per-node side-tables stay distinct
+ *  between the trait's own resolution and each impl's injected copy.
+ *
+ *  Signatures are substituted via `substituteTypeExpr` (Self → forType,
+ *  trait type-params → impl trait-args) so bodies type-check against the
+ *  concrete impl context. References inside the body to other trait methods
+ *  (`self.equals(other)` from a default `not_equals`) resolve through UFCS
+ *  against the impl's scope, picking up the impl's own member when present. */
+function materializeDefaultMembers(decl: A.ImplDecl, trait: A.TraitDecl): void {
+  // Trait has no defaults at all — common case, return without allocating.
+  if (!trait.members.some((m) => m.body !== null)) return;
+  const provided = new Set<string>();
+  for (const m of decl.members) provided.add(m.name);
+  const subst = new Map<string, A.TypeExpr>();
+  subst.set("Self", decl.forType);
+  for (let i = 0; i < trait.typeParams.length && i < decl.traitArgs.length; i++) {
+    subst.set(trait.typeParams[i]!.name, decl.traitArgs[i]!);
+  }
+  const slot = decl.members as A.FnDecl[];
+  for (const method of trait.members) {
+    if (method.body === null) continue;
+    if (provided.has(method.name)) continue;
+    slot.push({
+      kind: "FnDecl",
+      span: decl.span,
+      name: method.name,
+      nameSpan: decl.traitNameSpan,
+      visibility: "public",
+      typeParams: [],
+      params: method.params.map((mp) => ({
+        span: decl.span,
+        name: mp.name,
+        type: mp.type !== null ? substituteTypeExpr(mp.type, subst) : null,
+        defaultValue: mp.defaultValue,
+        variadic: mp.variadic,
+      })),
+      returnType: method.returnType !== null
+        ? substituteTypeExpr(method.returnType, subst) : null,
+      body: structuredClone(method.body),
+      decorators: [],
+      isExpressionBodied: method.isExpressionBodied,
+    });
+  }
+}
+
 /** Fill in `name`, `params`, and `returnType` on each SAM-synthetic member of
  *  `decl` from the trait's single method, applying the trait-arg substitution
  *  at the TypeExpr level so the body type-checks against concrete types. */
@@ -285,16 +339,21 @@ function materializeSamMembers(
 ): void {
   const synthetics = decl.members.filter((m) => m.samSynthetic !== undefined);
   if (synthetics.length === 0) return;
-  if (trait.members.length !== 1) {
+  // Only methods *without* a default body count as "required" for the
+  // single-method-trait gate — Layer 8d defaults fill the rest in. So a
+  // trait like `Equals { equals ; not_equals = !self.equals }` still
+  // accepts the SAM form for `equals`.
+  const required = trait.members.filter((m) => m.body === null);
+  if (required.length !== 1) {
     for (const fn of synthetics) {
       err(input.diags, "R2016", fn.span,
-        `\`${decl.traitName}\` has ${trait.members.length} methods`);
+        `\`${decl.traitName}\` has ${required.length} required methods`);
     }
-    if (trait.members.length === 0) return;
-    // Fall through with `members[0]` to keep the body resolvable and avoid
+    if (required.length === 0) return;
+    // Fall through with `required[0]` to keep the body resolvable and avoid
     // a T3020 cascade — the primary R2016 is already emitted.
   }
-  const method = trait.members[0]!;
+  const method = required[0]!;
   const subst = new Map<string, A.TypeExpr>();
   subst.set("Self", decl.forType);
   for (let i = 0; i < trait.typeParams.length && i < decl.traitArgs.length; i++) {
