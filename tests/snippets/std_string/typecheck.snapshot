@@ -24,7 +24,7 @@
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn(Display) -> void
   expr 13:13    CallExpr       :: string
-  expr 13:13    FieldExpr      :: fn(i32, i32) -> string
+  expr 13:13    FieldExpr      :: fn(usize, usize) -> string
   expr 13:13    StringLitExpr  :: string
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(Display) -> void
@@ -66,8 +66,8 @@
   expr 21:5     IdentExpr      :: fn(Display) -> void
   expr 5:10     StringLitExpr  :: string
   expr 6:13     StringLitExpr  :: string
-  expr 6:16     CallExpr       :: i32
-  expr 6:16     IdentExpr      :: fn(string) -> i32
+  expr 6:16     CallExpr       :: usize
+  expr 6:16     IdentExpr      :: fn(string) -> usize
   expr 6:25     IdentExpr      :: string
   expr 6:5      CallExpr       :: void
   expr 6:5      IdentExpr      :: fn(Display) -> void

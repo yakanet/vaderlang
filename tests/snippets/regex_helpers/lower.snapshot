@@ -8,13 +8,13 @@
           l:
             gte :bool
               l:
-                c#125 :char
+                c#128 :char
               r:
                 char(0x30)
           r:
             lte :bool
               l:
-                c#125 :char
+                c#128 :char
               r:
                 char(0x39)
       then:
@@ -25,13 +25,13 @@
           l:
             gte :bool
               l:
-                c#125 :char
+                c#128 :char
               r:
                 char(0x61)
           r:
             lte :bool
               l:
-                c#125 :char
+                c#128 :char
               r:
                 char(0x7a)
       then:
@@ -42,13 +42,13 @@
           l:
             gte :bool
               l:
-                c#125 :char
+                c#128 :char
               r:
                 char(0x41)
           r:
             lte :bool
               l:
-                c#125 :char
+                c#128 :char
               r:
                 char(0x5a)
       then:
@@ -57,7 +57,7 @@
       cond:
         eq :bool
           l:
-            c#125 :char
+            c#128 :char
           r:
             char(0x5f)
       then:
@@ -141,7 +141,7 @@
                 is_non_id#7 :fn(char) -> bool
               arg2:
                 "_" :string
-    let parts#126: string[] =
+    let parts#129: string[] =
       call :string[]
         callee:
           split_where#75 :fn(string, fn(char) -> bool) -> string[]
@@ -169,9 +169,9 @@
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?
-    let n#127: usize =
+    let n#130: usize =
       LoweredArrayLen
-    let i#128: usize = int(0) :usize
+    let i#131: usize = int(0) :usize
     loop while (<…>)
       call :void
         callee:
@@ -183,16 +183,16 @@
             arg0:
               index :string
                 on:
-                  parts#126 :string[]
+                  parts#129 :string[]
                 ix:
-                  i#128 :usize
+                  i#131 :usize
       assign
         target:
-          i#128 :usize
+          i#131 :usize
         value:
           add :usize
             l:
-              i#128 :usize
+              i#131 :usize
             r:
               int(1) :usize
     return int(0) :i32

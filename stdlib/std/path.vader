@@ -56,7 +56,7 @@ export parent :: fn(self: Path) -> Path {
         // Root: keep the leading "/" so parent of "/foo" is "/".
         return Path { .repr = SEP_STR }
     }
-    return Path { .repr = self.repr.slice(0, idx) }
+    return Path { .repr = self.repr.slice(0, usize(idx)) }
 }
 
 // Last segment (filename or directory name).
@@ -65,7 +65,7 @@ export filename :: fn(self: Path) -> string {
     if idx < 0 {
         return self.repr
     }
-    return self.repr.slice(idx + 1, self.repr.byte_len())
+    return self.repr.slice(usize(idx) + 1, self.repr.byte_len())
 }
 
 // File extension without the leading dot, or empty when there's no extension.
@@ -76,7 +76,7 @@ export extension :: fn(self: Path) -> string {
     if idx < 0 {
         return ""
     }
-    return name.slice(idx + 1, name.byte_len())
+    return name.slice(usize(idx) + 1, name.byte_len())
 }
 
 // Filename without the extension. For names without an extension, returns
@@ -87,7 +87,7 @@ export stem :: fn(self: Path) -> string {
     if idx < 0 {
         return name
     }
-    return name.slice(0, idx)
+    return name.slice(0, usize(idx))
 }
 
 // ---- combinators ----------------------------------------------------------
@@ -160,7 +160,7 @@ export normalize :: fn(self: Path) -> Path {
     segments: string[] = []
     count: usize = 0
     n := self.repr.byte_len()
-    i := if abs { 1 } else { 0 }
+    i: usize = if abs { 1 } else { 0 }
     seg_start := i
     for i <= n {
         at_end := i == n

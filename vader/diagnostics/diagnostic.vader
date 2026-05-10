@@ -20,7 +20,7 @@ export Severity :: enum {
 // needed.
 export Position :: struct {
     file: string
-    offset: i32
+    offset: usize
     line: i32
     column: i32
 }

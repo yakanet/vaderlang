@@ -16,16 +16,20 @@ export sin :: fn(x: f64) -> f64
 export cos :: fn(x: f64) -> f64
 export tan :: fn(x: f64) -> f64
 
-// Comparison + helpers. `min` / `max` / `abs` / `clamp` come in i32 + f64
-// flavours, dispatched via first-param-type overloading (§1.18c).
+// Comparison + helpers. `min` / `max` / `clamp` come in i32 / usize / f64
+// flavours, `abs` in i32 + f64 (unsigned types can't be negative), all
+// dispatched via first-param-type overloading (§1.18c).
 export min :: fn(a: f64, b: f64) = if a < b { a } else { b }
 export min :: fn(a: i32, b: i32) = if a < b { a } else { b }
+export min :: fn(a: usize, b: usize) = if a < b { a } else { b }
 export max :: fn(a: f64, b: f64) = if a > b { a } else { b }
 export max :: fn(a: i32, b: i32) = if a > b { a } else { b }
+export max :: fn(a: usize, b: usize) = if a > b { a } else { b }
 export abs :: fn(x: f64) = if x < 0.0 { -x } else { x }
 export abs :: fn(x: i32) = if x < 0 { -x } else { x }
 export clamp :: fn(x: f64, lo: f64, hi: f64) = min(max(x, lo), hi)
 export clamp :: fn(x: i32, lo: i32, hi: i32) = min(max(x, lo), hi)
+export clamp :: fn(x: usize, lo: usize, hi: usize) = min(max(x, lo), hi)
 
 // lerp — linear interpolation between `a` (t=0) and `b` (t=1). `t` is
 // clamped to `[0, 1]` so callers don't accidentally extrapolate.

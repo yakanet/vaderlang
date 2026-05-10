@@ -7,7 +7,7 @@
 import { accessSync, readFileSync as fsReadFile, writeFileSync as fsWriteFile } from "node:fs";
 
 import type { Value } from "./value.ts";
-import { NULL, VOID, bool, ch, displayValue, err, num, str, asNum, i64 } from "./value.ts";
+import { NULL, VOID, bool, ch, displayValue, err, num, str, asNum, asIndex, i64 } from "./value.ts";
 
 const UTF8_ENC = new TextEncoder();
 const UTF8_DEC = new TextDecoder();
@@ -95,12 +95,12 @@ function fnv1a64(s: string): bigint {
 
 export function stdStringBindings(): Record<string, HostFn> {
   return {
-    std_string$byte_len:    (args) => num("i32", UTF8_ENC.encode(stringArg(args, 0)).length),
+    std_string$byte_len:    (args) => i64("usize", BigInt(UTF8_ENC.encode(stringArg(args, 0)).length)),
     std_string$slice:       (args) => {
       const s = stringArg(args, 0);
       const bytes = UTF8_ENC.encode(s);
-      const start = Math.max(0, numArg(args, 1));
-      const end   = Math.min(bytes.length, numArg(args, 2));
+      const start = Math.max(0, indexArg(args, 1));
+      const end   = Math.min(bytes.length, indexArg(args, 2));
       return str(UTF8_DEC.decode(bytes.slice(start, end)));
     },
     std_string$contains:    (args) => bool(stringArg(args, 0).includes(stringArg(args, 1))),
@@ -111,21 +111,21 @@ export function stdStringBindings(): Record<string, HostFn> {
     std_string$to_lower:    (args) => str(stringArg(args, 0).toLowerCase()),
     std_string$char_at: (args) => {
       const bytes = UTF8_ENC.encode(stringArg(args, 0));
-      const i = numArg(args, 1);
+      const i = indexArg(args, 1);
       if (i < 0 || i >= bytes.length) return ch(0);
       return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
     },
     std_string$byte_at: (args) => {
       const bytes = UTF8_ENC.encode(stringArg(args, 0));
-      const i = numArg(args, 1);
+      const i = indexArg(args, 1);
       if (i < 0 || i >= bytes.length) return num("u8", 0);
       return num("u8", bytes[i]!);
     },
-    // `string implements Index(i32, char)` is `@intrinsic`-impl in std/core,
+    // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
     // so the host provides the body under the impl-method mangled name.
     "std_core$string$Index$at": (args) => {
       const bytes = UTF8_ENC.encode(stringArg(args, 0));
-      const i = numArg(args, 1);
+      const i = indexArg(args, 1);
       if (i < 0 || i >= bytes.length) return ch(0);
       return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
     },
@@ -265,6 +265,16 @@ function numArg(args: Value[], i: number): number {
   if (v === undefined) throw new Error(`vm: missing host arg ${i}`);
   try { return asNum(v); }
   catch { throw new Error(`vm: expected numeric at host arg ${i}, got ${v.tag}`); }
+}
+
+/** Tag-agnostic integer projection — accepts i32/i64/u64/usize/isize and
+ *  narrows to a JS number. Use for indices/lengths flowing in from the VM
+ *  where the source type may be `i32` (legacy) or `usize` (post-migration). */
+function indexArg(args: Value[], i: number): number {
+  const v = args[i];
+  if (v === undefined) throw new Error(`vm: missing host arg ${i}`);
+  try { return asIndex(v); }
+  catch { throw new Error(`vm: expected integer at host arg ${i}, got ${v.tag}`); }
 }
 
 function messageOf(e: unknown): string {

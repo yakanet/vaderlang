@@ -33,24 +33,24 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
     %26 $intrinsic_40#104: ?
     %27 __sb_6#105: ? (synthetic __sb_6)
     %28 $k_42#106: string
-    %29 $k_43#107: i32
+    %29 $k_43#107: usize
     %30 $call_44#108: u8
     %31 $k_45#109: string
-    %32 $k_46#110: i32
+    %32 $k_46#110: usize
     %33 $call_47#111: u8
     %34 $k_48#112: string
-    %35 $k_49#113: i32
+    %35 $k_49#113: usize
     %36 $call_50#114: u8
     %37 $intrinsic_51#115: string
     %38 $call_52#116: string
     %39 $intrinsic_53#117: ?
     %40 __sb_7#118: ? (synthetic __sb_7)
     %41 $k_55#119: string
-    %42 $k_56#120: i32
+    %42 $k_56#120: usize
     %43 $call_57#121: u8
     %44 $k_58#122: string
     %45 $k_59#123: string
-    %46 $k_60#124: i32
+    %46 $k_60#124: usize
     %47 $call_61#125: u8
     %48 $intrinsic_62#126: string
     %49 $call_63#127: string
@@ -66,7 +66,7 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
     %59 __sb_10#137: ? (synthetic __sb_10)
     %60 $k_79#138: string
     %61 $k_80#139: string
-    %62 $call_81#140: i32
+    %62 $call_81#140: usize
     %63 $intrinsic_82#141: string
     %64 $call_83#142: string
     %65 $k_84#143: i32
@@ -142,17 +142,17 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
     %27 = move %26
     %28 = const string(#7) :string
     intrinsic builder.append_str(%27, %28)
-    %29 = const int(0) :i32
+    %29 = const int(0) :usize
     %30 = call byte_at(%23, %29) :u8
     intrinsic builder.append_display(%27, %30)
     %31 = const string(#8) :string
     intrinsic builder.append_str(%27, %31)
-    %32 = const int(1) :i32
+    %32 = const int(1) :usize
     %33 = call byte_at(%23, %32) :u8
     intrinsic builder.append_display(%27, %33)
     %34 = const string(#9) :string
     intrinsic builder.append_str(%27, %34)
-    %35 = const int(2) :i32
+    %35 = const int(2) :usize
     %36 = call byte_at(%23, %35) :u8
     intrinsic builder.append_display(%27, %36)
     %37 = intrinsic builder.finish(%27)
@@ -162,13 +162,13 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
     %40 = move %39
     %41 = const string(#10) :string
     intrinsic builder.append_str(%40, %41)
-    %42 = const int(3) :i32
+    %42 = const int(3) :usize
     %43 = call byte_at(%23, %42) :u8
     intrinsic builder.append_display(%40, %43)
     %44 = const string(#11) :string
     intrinsic builder.append_str(%40, %44)
     %45 = const string(#12) :string
-    %46 = const int(0) :i32
+    %46 = const int(0) :usize
     %47 = call byte_at(%45, %46) :u8
     intrinsic builder.append_display(%40, %47)
     %48 = intrinsic builder.finish(%40)
@@ -208,7 +208,7 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
     %60 = const string(#16) :string
     intrinsic builder.append_str(%59, %60)
     %61 = const string(#14) :string
-    %62 = call byte_len(%61) :i32
+    %62 = call byte_len(%61) :usize
     intrinsic builder.append_display(%59, %62)
     %63 = intrinsic builder.finish(%59)
     %64 = call to_string(%63) :string

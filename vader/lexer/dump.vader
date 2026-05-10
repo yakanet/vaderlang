@@ -129,7 +129,7 @@ quote_simple :: fn(s: string) -> string {
     sb := new_builder()
     sb.append_char('"')
     n :: s.byte_len()
-    i := 0
+    i: usize = 0
     for i < n {
         // Walk by codepoint so multi-byte sequences pass through cleanly
         // (byte-walking would synthesise U+FFFD on continuation bytes).

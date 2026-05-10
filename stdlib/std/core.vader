@@ -506,10 +506,10 @@ char  implements Hash -> u64(self)
 // ---- String ---------------------------------------------------------------
 //
 // `Add` is wired here in std/core (auto-imported) so concat works without
-// `import "std/string"`. `Index(i32, char)` returns the Unicode codepoint
+// `import "std/string"`. `Index(usize, char)` returns the Unicode codepoint
 // at byte offset `i` — strings are immutable so there's no `IndexSet` to
 // pair with. Number formatting (`to_hex`, `to_bin`) lives in `std/numbers`
 // so it can use `std/string_builder`.
 
 @intrinsic string implements Add
-@intrinsic string implements Index(i32, char)
+@intrinsic string implements Index(usize, char)

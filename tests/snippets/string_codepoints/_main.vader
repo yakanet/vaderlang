@@ -14,7 +14,7 @@ main :: fn() -> i32 {
     // what `chars()` does internally, demonstrating the [char, i32] return.
     s :: "你好"
     n :: byte_len(s)
-    i := 0
+    i: usize = 0
     for i < n {
         [c, w] :: decode_codepoint(s, i)
         println("at ${i}: '${c}' (${w} bytes)")

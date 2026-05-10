@@ -20,8 +20,8 @@
   expr 20:9     IdentExpr      :: i32
   expr 22:13    StringLitExpr  :: string
   expr 22:27    IdentExpr      :: i32
-  expr 22:38    CallExpr       :: i32
-  expr 22:38    IdentExpr      :: fn(string) -> i32
+  expr 22:38    CallExpr       :: usize
+  expr 22:38    IdentExpr      :: fn(string) -> usize
   expr 22:47    StringLitExpr  :: string
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(Display) -> void

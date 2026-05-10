@@ -35,7 +35,7 @@ indent :: fn(sb: StringBuilder, level: i32) -> void {
 write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
     n :: s.byte_len()
-    i := 0
+    i: usize = 0
     for i < n {
         // Walk by codepoint so multi-byte sequences emit cleanly (a byte
         // walk would surface FFFD on continuation bytes).

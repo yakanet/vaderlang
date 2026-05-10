@@ -56,8 +56,8 @@ type 53 union 51,49,50,47,54,45
 type 54 ref JsonObject
 type 55 struct std_json$JsonObject { entries:56 }
 type 56 ref MutableMap
-type 57 struct std_json$JsonError { msg:46,pos:10 }
-type 58 struct std_json$Parser { src:46,pos:10,eof:10 }
+type 57 struct std_json$JsonError { msg:46,pos:26 }
+type 58 struct std_json$Parser { src:46,pos:26,eof:26 }
 type 59 struct std_string_builder$StringBuilder { parts:60 }
 type 60 array 46
 type 61 struct std_collections$Entry__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { key:46,value:53,next:4 }
@@ -125,10 +125,10 @@ string 57 "0"
 string 58 ".0"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 hash std_core$string$Hash$hash (string) -> u64
-import 2 at std_core$string$Index$at (string,i32) -> char
+import 2 at std_core$string$Index$at (string,usize) -> char
 import 3 println std_io$println (string) -> void
-import 4 byte_len std_string$byte_len (string) -> i32
-import 5 slice std_string$slice (string,i32,i32) -> string
+import 4 byte_len std_string$byte_len (string) -> usize
+import 5 slice std_string$slice (string,usize,usize) -> string
 import 6 ends_with std_string$ends_with (string,string) -> bool
 import 7 parse_float std_string$parse_float (string) -> ref
 import 8 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
@@ -452,20 +452,21 @@ fn 3 std_core$ArrayIter$Iterator$step__Entry_string__JsonArray___JsonBool___Json
 end
 
 fn 4 std_json$new_parser (string) -> ref
-  local "$call_2#5" i32
+  local "$call_2#5" usize
   local.get 0   ; json.vader:47:48
   call.import 4   ; json.vader:47:48
   local.set 1   ; json.vader:47:48
   local.get 0   ; json.vader:47:12
-  i32.const 0   ; json.vader:47:12
+  i64.const 0   ; json.vader:47:12
+  i64.to_usize   ; json.vader:47:12
   local.get 1   ; json.vader:47:12
   struct.new 58   ; json.vader:47:12
   return   ; json.vader:47:5
 end
 
 fn 5 std_json$at_end (ref) -> bool
-  local "$field_1#4" i32
-  local "$field_2#5" i32
+  local "$field_1#4" usize
+  local "$field_2#5" usize
   local.get 0   ; json.vader:51:12
   struct.get 58 1   ; json.vader:51:12
   local.set 1   ; json.vader:51:12
@@ -474,15 +475,15 @@ fn 5 std_json$at_end (ref) -> bool
   local.set 2   ; json.vader:51:21
   local.get 1   ; json.vader:51:12
   local.get 2   ; json.vader:51:12
-  i32.ge   ; json.vader:51:12
+  usize.ge   ; json.vader:51:12
   return   ; json.vader:51:5
 end
 
 fn 6 std_json$peek_byte (ref) -> char
-  local "$field_1#8" i32
-  local "$field_2#9" i32
+  local "$field_1#8" usize
+  local "$field_2#9" usize
   local "$field_5#12" string
-  local "$field_6#13" i32
+  local "$field_6#13" usize
   local.get 0   ; json.vader:55:8
   struct.get 58 1   ; json.vader:55:8
   local.set 1   ; json.vader:55:8
@@ -491,7 +492,7 @@ fn 6 std_json$peek_byte (ref) -> char
   local.set 2   ; json.vader:55:17
   local.get 1   ; json.vader:55:8
   local.get 2   ; json.vader:55:8
-  i32.ge   ; json.vader:55:8
+  usize.ge   ; json.vader:55:8
   if $L0 void   ; json.vader:55:5
     char.const 0   ; json.vader:56:16
     return   ; json.vader:56:9
@@ -510,14 +511,15 @@ fn 6 std_json$peek_byte (ref) -> char
 end
 
 fn 7 std_json$advance (ref) -> void
-  local "$field_1#4" i32
-  local "$add_3#6" i32
+  local "$field_1#4" usize
+  local "$add_3#6" usize
   local.get 0   ; json.vader:62:13
   struct.get 58 1   ; json.vader:62:13
   local.set 1   ; json.vader:62:13
   local.get 1   ; json.vader:62:13
-  i32.const 1   ; json.vader:62:13
-  i32.add   ; json.vader:62:13
+  i64.const 1   ; json.vader:62:13
+  i64.to_usize   ; json.vader:62:13
+  usize.add   ; json.vader:62:13
   local.set 2   ; json.vader:62:13
   local.get 0   ; json.vader:62:5
   local.get 2   ; json.vader:62:5
@@ -550,7 +552,7 @@ fn 8 std_json$skip_ws (ref) -> void
 end
 
 fn 9 std_json$fail (ref,string) -> ref
-  local "$field_2#4" i32
+  local "$field_2#4" usize
   local.get 0   ; json.vader:76:43
   struct.get 58 1   ; json.vader:76:43
   local.set 2   ; json.vader:76:43
@@ -588,40 +590,40 @@ fn 10 std_json$expect_byte (ref,char) -> ref
 end
 
 fn 11 std_json$match_keyword (ref,string) -> bool
-  local "n#23" i32
-  local "$add_5#25" i32
-  local "$field_6#26" i32
-  local "i#30" i32
+  local "n#23" usize
+  local "$add_5#25" usize
+  local "$field_6#26" usize
+  local "i#30" usize
   local "$field_12#32" string
-  local "$add_14#34" i32
+  local "$add_14#34" usize
   local "$call_15#35" char
   local "$call_16#36" char
-  local "$add_22#42" i32
+  local "$add_22#42" usize
   local.get 1   ; json.vader:91:10
   call.import 4   ; json.vader:91:10
   local.set 2   ; json.vader:91:5
   local.get 0   ; json.vader:92:8
   struct.get 58 1   ; json.vader:92:8
   local.get 2   ; json.vader:92:8
-  i32.add   ; json.vader:92:8
+  usize.add   ; json.vader:92:8
   local.set 3   ; json.vader:92:8
   local.get 0   ; json.vader:92:20
   struct.get 58 2   ; json.vader:92:20
   local.set 4   ; json.vader:92:20
   local.get 3   ; json.vader:92:8
   local.get 4   ; json.vader:92:8
-  i32.gt   ; json.vader:92:8
+  usize.gt   ; json.vader:92:8
   if $L0 void   ; json.vader:92:5
     bool.const false   ; json.vader:93:16
     return   ; json.vader:93:9
   else   ; json.vader:92:5
-    i32.const 0   ; json.vader:95:10
-    local.set 5   ; json.vader:95:10
+    i64.const 0   ; json.vader:95:16
+    local.set 5   ; json.vader:95:16
     block $L1 void   ; json.vader:96:5
       loop $L2 void   ; json.vader:96:5
         local.get 5   ; json.vader:96:9
         local.get 2   ; json.vader:96:9
-        i32.lt   ; json.vader:96:9
+        usize.lt   ; json.vader:96:9
         if $L3 void   ; json.vader:96:9
           local.get 0   ; json.vader:97:12
           struct.get 58 0   ; json.vader:97:12
@@ -629,7 +631,7 @@ fn 11 std_json$match_keyword (ref,string) -> bool
           local.get 0   ; json.vader:97:18
           struct.get 58 1   ; json.vader:97:18
           local.get 5   ; json.vader:97:18
-          i32.add   ; json.vader:97:18
+          usize.add   ; json.vader:97:18
           local.set 7   ; json.vader:97:18
           local.get 6   ; json.vader:97:12
           local.get 7   ; json.vader:97:12
@@ -647,8 +649,9 @@ fn 11 std_json$match_keyword (ref,string) -> bool
             return   ; json.vader:98:13
           else   ; json.vader:97:9
             local.get 5   ; json.vader:100:13
-            i32.const 1   ; json.vader:100:13
-            i32.add   ; json.vader:100:13
+            i64.const 1   ; json.vader:100:13
+            i64.to_usize   ; json.vader:100:13
+            usize.add   ; json.vader:100:13
             local.set 5   ; json.vader:100:13
             br $L2   ; json.vader:96:5
           end $L4   ; json.vader:97:9
@@ -659,7 +662,7 @@ fn 11 std_json$match_keyword (ref,string) -> bool
     local.get 0   ; json.vader:102:13
     struct.get 58 1   ; json.vader:102:13
     local.get 2   ; json.vader:102:13
-    i32.add   ; json.vader:102:13
+    usize.add   ; json.vader:102:13
     local.set 10   ; json.vader:102:13
     local.get 0   ; json.vader:102:5
     local.get 10   ; json.vader:102:5
@@ -864,7 +867,7 @@ fn 14 std_json$parse_bool (ref) -> ref
 end
 
 fn 15 std_json$parse_number (ref) -> ref
-  local "start#76" i32
+  local "start#76" usize
   local "$call_3#77" char
   local "or_res#85" bool
   local "and_res#94" bool
@@ -888,7 +891,7 @@ fn 15 std_json$parse_number (ref) -> ref
   local "$k_71#149" string
   local "and_res#157" bool
   local "$field_79#158" string
-  local "$field_80#159" i32
+  local "$field_80#159" usize
   local "parsed#163" ref
   local "__scrut_0#164" ref
   local "$k_91#169" string
@@ -1396,16 +1399,16 @@ fn 16 std_json$parse_string (ref) -> ref
   local "esc#102" char
   local "$cast_45#125" char
   local "$cast_50#130" char
-  local "$field_53#133" i32
-  local "$add_55#135" i32
-  local "$field_56#136" i32
+  local "$field_53#133" usize
+  local "$add_55#135" usize
+  local "$field_56#136" usize
   local "cp#142" i32
-  local "k#143" i32
+  local "k#143" usize
   local "$field_66#146" string
-  local "$add_68#148" i32
+  local "$add_68#148" usize
   local "d#151" i32
-  local "$field_81#161" i32
-  local "$add_83#163" i32
+  local "$field_81#161" usize
+  local "$add_83#163" usize
   local "$cast_84#164" char
   local.get 0   ; json.vader:206:5
   char.const 34   ; json.vader:206:5
@@ -1544,15 +1547,16 @@ fn 16 std_json$parse_string (ref) -> ref
                                   struct.get 58 1   ; json.vader:238:20
                                   local.set 7   ; json.vader:238:20
                                   local.get 7   ; json.vader:238:20
-                                  i32.const 4   ; json.vader:238:20
-                                  i32.add   ; json.vader:238:20
+                                  i64.const 4   ; json.vader:238:20
+                                  i64.to_usize   ; json.vader:238:20
+                                  usize.add   ; json.vader:238:20
                                   local.set 8   ; json.vader:238:20
                                   local.get 0   ; json.vader:238:32
                                   struct.get 58 2   ; json.vader:238:32
                                   local.set 9   ; json.vader:238:32
                                   local.get 8   ; json.vader:238:20
                                   local.get 9   ; json.vader:238:20
-                                  i32.gt   ; json.vader:238:20
+                                  usize.gt   ; json.vader:238:20
                                   if $L16 void   ; json.vader:238:17
                                     local.get 0   ; json.vader:239:28
                                     string.const 39   ; json.vader:239:28
@@ -1561,13 +1565,14 @@ fn 16 std_json$parse_string (ref) -> ref
                                   else   ; json.vader:238:17
                                     i32.const 0   ; json.vader:241:23
                                     local.set 10   ; json.vader:241:23
-                                    i32.const 0   ; json.vader:242:22
-                                    local.set 11   ; json.vader:242:22
+                                    i64.const 0   ; json.vader:242:28
+                                    local.set 11   ; json.vader:242:28
                                     block $L17 void   ; json.vader:243:17
                                       loop $L18 void   ; json.vader:243:17
                                         local.get 11   ; json.vader:243:21
-                                        i32.const 4   ; json.vader:243:21
-                                        i32.lt   ; json.vader:243:21
+                                        i64.const 4   ; json.vader:243:21
+                                        i64.to_usize   ; json.vader:243:21
+                                        usize.lt   ; json.vader:243:21
                                         if $L19 void   ; json.vader:243:21
                                           local.get 0   ; json.vader:244:42
                                           struct.get 58 0   ; json.vader:244:42
@@ -1575,7 +1580,7 @@ fn 16 std_json$parse_string (ref) -> ref
                                           local.get 0   ; json.vader:244:48
                                           struct.get 58 1   ; json.vader:244:48
                                           local.get 11   ; json.vader:244:48
-                                          i32.add   ; json.vader:244:48
+                                          usize.add   ; json.vader:244:48
                                           local.set 13   ; json.vader:244:48
                                           local.get 12   ; json.vader:244:42
                                           local.get 13   ; json.vader:244:42
@@ -1598,8 +1603,9 @@ fn 16 std_json$parse_string (ref) -> ref
                                             i32.add   ; json.vader:248:26
                                             local.set 10   ; json.vader:248:26
                                             local.get 11   ; json.vader:249:25
-                                            i32.const 1   ; json.vader:249:25
-                                            i32.add   ; json.vader:249:25
+                                            i64.const 1   ; json.vader:249:25
+                                            i64.to_usize   ; json.vader:249:25
+                                            usize.add   ; json.vader:249:25
                                             local.set 11   ; json.vader:249:25
                                             br $L18   ; json.vader:243:17
                                           end $L20   ; json.vader:245:21
@@ -1611,8 +1617,9 @@ fn 16 std_json$parse_string (ref) -> ref
                                     struct.get 58 1   ; json.vader:251:25
                                     local.set 15   ; json.vader:251:25
                                     local.get 15   ; json.vader:251:25
-                                    i32.const 4   ; json.vader:251:25
-                                    i32.add   ; json.vader:251:25
+                                    i64.const 4   ; json.vader:251:25
+                                    i64.to_usize   ; json.vader:251:25
+                                    usize.add   ; json.vader:251:25
                                     local.set 16   ; json.vader:251:25
                                     local.get 0   ; json.vader:251:17
                                     local.get 16   ; json.vader:251:17
@@ -1960,8 +1967,8 @@ fn 19 std_json$parse (string) -> ref
 end
 
 fn 20 std_json$write_string (ref,string) -> void
-  local "n#38" i32
-  local "i#40" i32
+  local "n#38" usize
+  local "i#40" usize
   local "c#43" char
   local "cp#45" i32
   local "$call_32#65" string
@@ -1972,13 +1979,13 @@ fn 20 std_json$write_string (ref,string) -> void
   local.get 1   ; json.vader:347:10
   call.import 4   ; json.vader:347:10
   local.set 2   ; json.vader:347:5
-  i32.const 0   ; json.vader:348:10
-  local.set 3   ; json.vader:348:10
+  i64.const 0   ; json.vader:348:16
+  local.set 3   ; json.vader:348:16
   block $L0 void   ; json.vader:349:5
     loop $L1 void   ; json.vader:349:5
       local.get 3   ; json.vader:349:9
       local.get 2   ; json.vader:349:9
-      i32.lt   ; json.vader:349:9
+      usize.lt   ; json.vader:349:9
       if $L2 void   ; json.vader:349:9
         local.get 1   ; json.vader:350:14
         local.get 3   ; json.vader:350:14
@@ -2039,7 +2046,8 @@ fn 20 std_json$write_string (ref,string) -> void
                     call 42   ; json.vader:359:23
                     local.set 6   ; json.vader:359:23
                     local.get 6   ; json.vader:359:23
-                    i32.const 4   ; json.vader:359:23
+                    i64.const 4   ; json.vader:359:23
+                    i64.to_usize   ; json.vader:359:23
                     char.const 48   ; json.vader:359:23
                     call 27   ; json.vader:359:23
                     local.set 7   ; json.vader:359:23
@@ -2057,8 +2065,9 @@ fn 20 std_json$write_string (ref,string) -> void
           end $L4   ; json.vader:353:9
         end $L3   ; json.vader:352:9
         local.get 3   ; json.vader:363:13
-        i32.const 1   ; json.vader:363:13
-        i32.add   ; json.vader:363:13
+        i64.const 1   ; json.vader:363:13
+        i64.to_usize   ; json.vader:363:13
+        usize.add   ; json.vader:363:13
         local.set 3   ; json.vader:363:13
         br $L1   ; json.vader:349:5
       else   ; json.vader:349:9
@@ -2412,99 +2421,100 @@ fn 26 std_json$stringify (ref) -> string
   return   ; json.vader:454:5
 end
 
-fn 27 std_string$pad_start (string,i32,char) -> string
-  local "n#13" i32
+fn 27 std_string$pad_start (string,usize,char) -> string
+  local "n#13" usize
   local "sb#16" ref
-  local "i#18" i32
-  local.get 0   ; string.vader:212:10
-  call.import 4   ; string.vader:212:10
-  local.tee 3   ; string.vader:212:5
-  local.get 1   ; string.vader:213:8
-  i32.ge   ; string.vader:213:8
-  if $L0 void   ; string.vader:213:5
-    local.get 0   ; string.vader:214:9
-    return   ; string.vader:214:9
-  else   ; string.vader:213:5
-    call 30   ; string.vader:216:11
-    local.set 4   ; string.vader:216:5
-    local.get 3   ; string.vader:217:5
-    local.set 5   ; string.vader:217:5
-    block $L1 void   ; string.vader:218:5
-      loop $L2 void   ; string.vader:218:5
-        local.get 5   ; string.vader:218:9
-        local.get 1   ; string.vader:218:9
-        i32.lt   ; string.vader:218:9
-        if $L3 void   ; string.vader:218:9
-          local.get 4   ; string.vader:219:9
-          local.get 2   ; string.vader:219:9
-          call 32   ; string.vader:219:9
-          local.get 5   ; string.vader:220:13
-          i32.const 1   ; string.vader:220:13
-          i32.add   ; string.vader:220:13
-          local.set 5   ; string.vader:220:13
-          br $L2   ; string.vader:218:5
-        else   ; string.vader:218:9
-        end $L3   ; string.vader:218:9
-      end $L2   ; string.vader:218:5
-    end $L1   ; string.vader:218:5
-    local.get 4   ; string.vader:222:5
-    local.get 0   ; string.vader:222:5
-    call 31   ; string.vader:222:5
-    local.get 4   ; string.vader:223:12
-    call.import 8   ; string.vader:223:12
-    return   ; string.vader:223:5
-  end $L0   ; string.vader:213:5
+  local "i#18" usize
+  local.get 0   ; string.vader:216:10
+  call.import 4   ; string.vader:216:10
+  local.tee 3   ; string.vader:216:5
+  local.get 1   ; string.vader:217:8
+  usize.ge   ; string.vader:217:8
+  if $L0 void   ; string.vader:217:5
+    local.get 0   ; string.vader:218:9
+    return   ; string.vader:218:9
+  else   ; string.vader:217:5
+    call 30   ; string.vader:220:11
+    local.set 4   ; string.vader:220:5
+    local.get 3   ; string.vader:221:5
+    local.set 5   ; string.vader:221:5
+    block $L1 void   ; string.vader:222:5
+      loop $L2 void   ; string.vader:222:5
+        local.get 5   ; string.vader:222:9
+        local.get 1   ; string.vader:222:9
+        usize.lt   ; string.vader:222:9
+        if $L3 void   ; string.vader:222:9
+          local.get 4   ; string.vader:223:9
+          local.get 2   ; string.vader:223:9
+          call 32   ; string.vader:223:9
+          local.get 5   ; string.vader:224:13
+          i64.const 1   ; string.vader:224:13
+          i64.to_usize   ; string.vader:224:13
+          usize.add   ; string.vader:224:13
+          local.set 5   ; string.vader:224:13
+          br $L2   ; string.vader:222:5
+        else   ; string.vader:222:9
+        end $L3   ; string.vader:222:9
+      end $L2   ; string.vader:222:5
+    end $L1   ; string.vader:222:5
+    local.get 4   ; string.vader:226:5
+    local.get 0   ; string.vader:226:5
+    call 31   ; string.vader:226:5
+    local.get 4   ; string.vader:227:12
+    call.import 8   ; string.vader:227:12
+    return   ; string.vader:227:5
+  end $L0   ; string.vader:217:5
 end
 
 fn 28 std_string$is_white_char (char) -> bool
   local "or_res#14" bool
   local "or_res#18" bool
   local "or_res#22" bool
-  local.get 0   ; string.vader:243:39
-  char.const 32   ; string.vader:243:39
-  char.eq   ; string.vader:243:39
-  if $L0 void   ; string.vader:243:39
-    bool.const true   ; string.vader:243:39
-    local.set 1   ; string.vader:243:39
-  else   ; string.vader:243:39
-    local.get 0   ; string.vader:243:51
-    char.const 9   ; string.vader:243:51
-    char.eq   ; string.vader:243:51
-    local.set 1   ; string.vader:243:51
-  end $L0   ; string.vader:243:39
-  local.get 1   ; string.vader:243:39
-  if $L1 void   ; string.vader:243:39
-    bool.const true   ; string.vader:243:39
-    local.set 2   ; string.vader:243:39
-  else   ; string.vader:243:39
-    local.get 0   ; string.vader:243:64
-    char.const 10   ; string.vader:243:64
-    char.eq   ; string.vader:243:64
-    local.set 2   ; string.vader:243:64
-  end $L1   ; string.vader:243:39
-  local.get 2   ; string.vader:243:39
-  if $L2 void   ; string.vader:243:39
-    bool.const true   ; string.vader:243:39
-    local.set 3   ; string.vader:243:39
-  else   ; string.vader:243:39
-    local.get 0   ; string.vader:243:77
-    char.const 13   ; string.vader:243:77
-    char.eq   ; string.vader:243:77
-    local.set 3   ; string.vader:243:77
-  end $L2   ; string.vader:243:39
-  local.get 3   ; string.vader:243:39
-  return   ; string.vader:243:39
+  local.get 0   ; string.vader:247:39
+  char.const 32   ; string.vader:247:39
+  char.eq   ; string.vader:247:39
+  if $L0 void   ; string.vader:247:39
+    bool.const true   ; string.vader:247:39
+    local.set 1   ; string.vader:247:39
+  else   ; string.vader:247:39
+    local.get 0   ; string.vader:247:51
+    char.const 9   ; string.vader:247:51
+    char.eq   ; string.vader:247:51
+    local.set 1   ; string.vader:247:51
+  end $L0   ; string.vader:247:39
+  local.get 1   ; string.vader:247:39
+  if $L1 void   ; string.vader:247:39
+    bool.const true   ; string.vader:247:39
+    local.set 2   ; string.vader:247:39
+  else   ; string.vader:247:39
+    local.get 0   ; string.vader:247:64
+    char.const 10   ; string.vader:247:64
+    char.eq   ; string.vader:247:64
+    local.set 2   ; string.vader:247:64
+  end $L1   ; string.vader:247:39
+  local.get 2   ; string.vader:247:39
+  if $L2 void   ; string.vader:247:39
+    bool.const true   ; string.vader:247:39
+    local.set 3   ; string.vader:247:39
+  else   ; string.vader:247:39
+    local.get 0   ; string.vader:247:77
+    char.const 13   ; string.vader:247:77
+    char.eq   ; string.vader:247:77
+    local.set 3   ; string.vader:247:77
+  end $L2   ; string.vader:247:39
+  local.get 3   ; string.vader:247:39
+  return   ; string.vader:247:39
 end
 
 fn 29 std_string$is_digit (char) -> bool
-  char.const 48   ; string.vader:248:39
-  char.const 57   ; string.vader:248:39
-  bool.const true   ; string.vader:248:39
-  char.const 48   ; string.vader:248:39
-  struct.new 27   ; string.vader:248:39
-  local.get 0   ; string.vader:248:34
-  call 2   ; string.vader:248:34
-  return   ; string.vader:248:34
+  char.const 48   ; string.vader:252:39
+  char.const 57   ; string.vader:252:39
+  bool.const true   ; string.vader:252:39
+  char.const 48   ; string.vader:252:39
+  struct.new 27   ; string.vader:252:39
+  local.get 0   ; string.vader:252:34
+  call 2   ; string.vader:252:34
+  return   ; string.vader:252:34
 end
 
 fn 30 std_string_builder$new_builder () -> ref
@@ -3195,8 +3205,8 @@ end
 fn 43 std_numbers$to_compact_str (f64) -> string
   local "__sb_0#13" any
   local "s#15" string
-  local "$call_8#19" i32
-  local "$sub_10#21" i32
+  local "$call_8#19" usize
+  local "$sub_10#21" usize
   intrinsic builder.new   ; numbers.vader:132:10
   local.tee 1   ; numbers.vader:132:10
   local.get 0   ; numbers.vader:132:11
@@ -3212,11 +3222,13 @@ fn 43 std_numbers$to_compact_str (f64) -> string
     call.import 4   ; numbers.vader:133:46
     local.set 3   ; numbers.vader:133:46
     local.get 3   ; numbers.vader:133:46
-    i32.const 2   ; numbers.vader:133:46
-    i32.sub   ; numbers.vader:133:46
+    i64.const 2   ; numbers.vader:133:46
+    i64.to_usize   ; numbers.vader:133:46
+    usize.sub   ; numbers.vader:133:46
     local.set 4   ; numbers.vader:133:46
     local.get 2   ; numbers.vader:133:35
-    i32.const 0   ; numbers.vader:133:35
+    i64.const 0   ; numbers.vader:133:35
+    i64.to_usize   ; numbers.vader:133:35
     local.get 4   ; numbers.vader:133:35
     call.import 5   ; numbers.vader:133:35
     return   ; numbers.vader:133:28

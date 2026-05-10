@@ -45,7 +45,7 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64! {
     }
     acc: i64 = i64(0)
     b: i64 = i64(base)
-    i := 0
+    i: usize = 0
     for i < n {
         d := hex_digit_value(s[i])
         if d < 0 || d >= base {

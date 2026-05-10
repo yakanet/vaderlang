@@ -38,7 +38,7 @@ export InterpFrame :: struct {
 export Lexer :: struct {
     src: string
     file: string
-    pos: i32
+    pos: usize
     line: i32
     col: i32
     paren_depth: i32          // unclosed `(` and `[` (NOT `{`)
@@ -118,7 +118,7 @@ peek :: fn(l: Lexer) -> char {
     return l.src[l.pos]
 }
 
-peek_at :: fn(l: Lexer, n: i32) -> char {
+peek_at :: fn(l: Lexer, n: usize) -> char {
     p := l.pos + n
     if p >= l.src.byte_len() {
         return '\0'
@@ -133,8 +133,8 @@ position_here :: fn(l: Lexer) =
 // the TS lexer's UTF-16 code-unit count for BMP source) — UTF-8
 // continuation bytes (0x80..0xBF) don't increment the column, only leading
 // bytes do. Newlines reset col to 1 as usual.
-advance :: fn(l: Lexer, n: i32) -> void {
-    i := 0
+advance :: fn(l: Lexer, n: usize) -> void {
+    i: usize = 0
     for i < n {
         if l.pos >= l.src.byte_len() {
             return
@@ -387,7 +387,7 @@ lex_number :: fn(l: Lexer) -> void {
 // Returns digits-only text, ready to be fed to `parse_int_in_base` /
 // `parse_float`.
 strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> string {
-    start :: if base == 10 { 0 } else { 2 }
+    start: usize = if base == 10 { 0 } else { 2 }
     has_suffix :: !suffix.is_empty()
     end_no_suffix :: text.byte_len() - suffix.byte_len()
     end :: if has_suffix && end_no_suffix > start && text[end_no_suffix - 1] == '_' {
@@ -487,7 +487,7 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
         return u32(0)
     }
     cp: u32 = u32(0)
-    i := 0
+    i: usize = 0
     for i < hex_len {
         d :: hex_digit_value(l.src[hex_start + i])
         cp = cp * u32(16) + u32(d)

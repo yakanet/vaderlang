@@ -16,21 +16,21 @@
               @builder.append_str :void
                 __sb_0#-1 :?
                 "ascii  cp=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_0#-1 :?
-                call :i32
+                call :usize
                   callee:
-                    count_chars#54 :fn(string) -> i32
+                    count_chars#54 :fn(string) -> usize
                   arg0:
                     "vader" :string
               @builder.append_str :void
                 __sb_0#-1 :?
                 " bytes=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_0#-1 :?
-                call :i32
+                call :usize
                   callee:
-                    byte_len#41 :fn(string) -> i32
+                    byte_len#41 :fn(string) -> usize
                   arg0:
                     "vader" :string
               ~>
@@ -50,21 +50,21 @@
               @builder.append_str :void
                 __sb_1#-2 :?
                 "mixed  cp=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_1#-2 :?
-                call :i32
+                call :usize
                   callee:
-                    count_chars#54 :fn(string) -> i32
+                    count_chars#54 :fn(string) -> usize
                   arg0:
                     "héllo" :string
               @builder.append_str :void
                 __sb_1#-2 :?
                 " bytes=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_1#-2 :?
-                call :i32
+                call :usize
                   callee:
-                    byte_len#41 :fn(string) -> i32
+                    byte_len#41 :fn(string) -> usize
                   arg0:
                     "héllo" :string
               ~>
@@ -84,21 +84,21 @@
               @builder.append_str :void
                 __sb_2#-3 :?
                 "cjk    cp=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_2#-3 :?
-                call :i32
+                call :usize
                   callee:
-                    count_chars#54 :fn(string) -> i32
+                    count_chars#54 :fn(string) -> usize
                   arg0:
                     "你好嗎？" :string
               @builder.append_str :void
                 __sb_2#-3 :?
                 " bytes=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_2#-3 :?
-                call :i32
+                call :usize
                   callee:
-                    byte_len#41 :fn(string) -> i32
+                    byte_len#41 :fn(string) -> usize
                   arg0:
                     "你好嗎？" :string
               ~>
@@ -118,21 +118,21 @@
               @builder.append_str :void
                 __sb_3#-4 :?
                 "emoji  cp=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_3#-4 :?
-                call :i32
+                call :usize
                   callee:
-                    count_chars#54 :fn(string) -> i32
+                    count_chars#54 :fn(string) -> usize
                   arg0:
                     "a😀b" :string
               @builder.append_str :void
                 __sb_3#-4 :?
                 " bytes=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_3#-4 :?
-                call :i32
+                call :usize
                   callee:
-                    byte_len#41 :fn(string) -> i32
+                    byte_len#41 :fn(string) -> usize
                   arg0:
                     "a😀b" :string
               ~>
@@ -152,49 +152,49 @@
               @builder.append_str :void
                 __sb_4#-5 :?
                 "empty  cp=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_4#-5 :?
-                call :i32
+                call :usize
                   callee:
-                    count_chars#54 :fn(string) -> i32
+                    count_chars#54 :fn(string) -> usize
                   arg0:
                     "" :string
               @builder.append_str :void
                 __sb_4#-5 :?
                 " bytes=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_4#-5 :?
-                call :i32
+                call :usize
                   callee:
-                    byte_len#41 :fn(string) -> i32
+                    byte_len#41 :fn(string) -> usize
                   arg0:
                     "" :string
               ~>
                 @builder.finish :string
                   __sb_4#-5 :?
-    let s#123: string = "你好" :string
-    let n#124: i32 =
-      call :i32
+    let s#126: string = "你好" :string
+    let n#127: usize =
+      call :usize
         callee:
-          byte_len#41 :fn(string) -> i32
+          byte_len#41 :fn(string) -> usize
         arg0:
-          s#123 :string
-    let i#125: i32 = int(0) :i32
+          s#126 :string
+    let i#128: usize = int(0) :usize
     loop while (<…>)
-      let __tup_5#-6: [char, i32] =
-        call :[char, i32]
+      let __tup_5#-6: [char, usize] =
+        call :[char, usize]
           callee:
-            decode_codepoint#53 :fn(string, i32) -> [char, i32]
+            decode_codepoint#53 :fn(string, usize) -> [char, usize]
           arg0:
-            s#123 :string
+            s#126 :string
           arg1:
-            i#125 :i32
-      let c#126: char =
+            i#128 :usize
+      let c#129: char =
         ._0 :char
-          __tup_5#-6 :[char, i32]
-      let w#127: i32 =
-        ._1 :i32
-          __tup_5#-6 :[char, i32]
+          __tup_5#-6 :[char, usize]
+      let w#130: usize =
+        ._1 :usize
+          __tup_5#-6 :[char, usize]
       call :void
         callee:
           println#28 :fn(Display) -> void
@@ -209,21 +209,21 @@
                 @builder.append_str :void
                   __sb_6#-7 :?
                   "at " :string
-                @builder.append_display <for i32> :void
+                @builder.append_display <for usize> :void
                   __sb_6#-7 :?
-                  i#125 :i32
+                  i#128 :usize
                 @builder.append_str :void
                   __sb_6#-7 :?
                   ": '" :string
                 @builder.append_display <for char> :void
                   __sb_6#-7 :?
-                  c#126 :char
+                  c#129 :char
                 @builder.append_str :void
                   __sb_6#-7 :?
                   "' (" :string
-                @builder.append_display <for i32> :void
+                @builder.append_display <for usize> :void
                   __sb_6#-7 :?
-                  w#127 :i32
+                  w#130 :usize
                 @builder.append_str :void
                   __sb_6#-7 :?
                   " bytes)" :string
@@ -232,13 +232,13 @@
                     __sb_6#-7 :?
       assign
         target:
-          i#125 :i32
+          i#128 :usize
         value:
-          add :i32
+          add :usize
             l:
-              i#125 :i32
+              i#128 :usize
             r:
-              w#127 :i32
+              w#130 :usize
     call :void
       callee:
         println#28 :fn(Display) -> void
@@ -253,11 +253,11 @@
               @builder.append_str :void
                 __sb_7#-8 :?
                 "'a' width=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_7#-8 :?
-                call :i32
+                call :usize
                   callee:
-                    codepoint_byte_len#74 :fn(char) -> i32
+                    codepoint_byte_len#74 :fn(char) -> usize
                   arg0:
                     char(0x61)
               ~>
@@ -277,11 +277,11 @@
               @builder.append_str :void
                 __sb_8#-9 :?
                 "'é' width=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_8#-9 :?
-                call :i32
+                call :usize
                   callee:
-                    codepoint_byte_len#74 :fn(char) -> i32
+                    codepoint_byte_len#74 :fn(char) -> usize
                   arg0:
                     char(0xe9)
               ~>
@@ -301,11 +301,11 @@
               @builder.append_str :void
                 __sb_9#-10 :?
                 "'你' width=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_9#-10 :?
-                call :i32
+                call :usize
                   callee:
-                    codepoint_byte_len#74 :fn(char) -> i32
+                    codepoint_byte_len#74 :fn(char) -> usize
                   arg0:
                     char(0x4f60)
               ~>
@@ -325,11 +325,11 @@
               @builder.append_str :void
                 __sb_10#-11 :?
                 "emoji width=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_display <for usize> :void
                 __sb_10#-11 :?
-                call :i32
+                call :usize
                   callee:
-                    codepoint_byte_len#74 :fn(char) -> i32
+                    codepoint_byte_len#74 :fn(char) -> usize
                   arg0:
                     char(0x1f600)
               ~>

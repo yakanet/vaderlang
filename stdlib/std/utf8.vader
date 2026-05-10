@@ -20,7 +20,7 @@
  * after decoding the codepoint at the current position. Codepoints above
  * U+10FFFF are clamped to a 4-byte length — they're invalid Unicode anyway.
  */
-export codepoint_byte_len :: fn(c: char) -> i32 {
+export codepoint_byte_len :: fn(c: char) -> usize {
     cp :: u32(c)
     if cp < u32(0x80)    { return 1 }
     if cp < u32(0x800)   { return 2 }

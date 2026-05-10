@@ -45,9 +45,9 @@ string 3 "apple"
 string 4 "cherry"
 string 5 "date"
 import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 at std_core$string$Index$at (string,i32) -> char
+import 1 at std_core$string$Index$at (string,usize) -> char
 import 2 println std_io$println (string) -> void
-import 3 byte_len std_string$byte_len (string) -> i32
+import 3 byte_len std_string$byte_len (string) -> usize
 
 fn 0 tests_snippets_std_sort__main_vader$i32_lt (i32,i32) -> bool
   local.get 0   ; _main.vader:5:47
@@ -1208,10 +1208,10 @@ fn 12 std_sort$std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> vo
 end
 
 fn 13 std_string$compare_ascending (string,string) -> bool
-  local "la#21" i32
-  local "lb#23" i32
-  local "n#25" i32
-  local "i#27" i32
+  local "la#21" usize
+  local "lb#23" usize
+  local "n#25" usize
+  local "i#27" usize
   local "ca#30" char
   local "cb#32" char
   local.get 0   ; string.vader:163:11
@@ -1224,13 +1224,13 @@ fn 13 std_string$compare_ascending (string,string) -> bool
   local.get 3   ; string.vader:165:10
   call 16   ; string.vader:165:10
   local.set 4   ; string.vader:165:5
-  i32.const 0   ; string.vader:166:10
-  local.set 5   ; string.vader:166:10
+  i64.const 0   ; string.vader:166:16
+  local.set 5   ; string.vader:166:16
   block $L0 void   ; string.vader:167:5
     loop $L1 void   ; string.vader:167:5
       local.get 5   ; string.vader:167:9
       local.get 4   ; string.vader:167:9
-      i32.lt   ; string.vader:167:9
+      usize.lt   ; string.vader:167:9
       if $L2 void   ; string.vader:167:9
         local.get 0   ; string.vader:168:15
         local.get 5   ; string.vader:168:15
@@ -1255,8 +1255,9 @@ fn 13 std_string$compare_ascending (string,string) -> bool
             return   ; string.vader:171:22
           else   ; string.vader:171:9
             local.get 5   ; string.vader:172:13
-            i32.const 1   ; string.vader:172:13
-            i32.add   ; string.vader:172:13
+            i64.const 1   ; string.vader:172:13
+            i64.to_usize   ; string.vader:172:13
+            usize.add   ; string.vader:172:13
             local.set 5   ; string.vader:172:13
             br $L1   ; string.vader:167:5
           end $L4   ; string.vader:171:9
@@ -1267,7 +1268,7 @@ fn 13 std_string$compare_ascending (string,string) -> bool
   end $L0   ; string.vader:167:5
   local.get 2   ; string.vader:174:12
   local.get 3   ; string.vader:174:12
-  i32.lt   ; string.vader:174:12
+  usize.lt   ; string.vader:174:12
   return   ; string.vader:174:5
 end
 
@@ -1443,18 +1444,18 @@ fn 15 std_iter$std_iter$slice__string (ref,usize,usize) -> ref
   return   ; iter.vader:116:5
 end
 
-fn 16 std_math$min_1 (i32,i32) -> i32
-  local "if_res#7" i32
-  local.get 0   ; math.vader:22:39
-  local.get 1   ; math.vader:22:39
-  i32.lt   ; math.vader:22:39
-  if $L0 void   ; math.vader:22:36
-    local.get 0   ; math.vader:22:45
-    local.set 2   ; math.vader:22:45
-  else   ; math.vader:22:36
-    local.get 1   ; math.vader:22:56
-    local.set 2   ; math.vader:22:56
-  end $L0   ; math.vader:22:36
-  local.get 2   ; math.vader:22:36
-  return   ; math.vader:22:36
+fn 16 std_math$min_2 (usize,usize) -> usize
+  local "if_res#7" usize
+  local.get 0   ; math.vader:24:43
+  local.get 1   ; math.vader:24:43
+  usize.lt   ; math.vader:24:43
+  if $L0 void   ; math.vader:24:40
+    local.get 0   ; math.vader:24:49
+    local.set 2   ; math.vader:24:49
+  else   ; math.vader:24:40
+    local.get 1   ; math.vader:24:60
+    local.set 2   ; math.vader:24:60
+  end $L0   ; math.vader:24:40
+  local.get 2   ; math.vader:24:40
+  return   ; math.vader:24:40
 end

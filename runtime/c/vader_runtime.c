@@ -385,15 +385,14 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
 
 /* ----------------------------------------------------------------- std/string */
 
-vader_i32_t vader_string_byte_len(vader_string_t s) {
-    return (vader_i32_t) s.len;
+size_t vader_string_byte_len(vader_string_t s) {
+    return s.len;
 }
 
-vader_string_t vader_string_slice(vader_string_t s, vader_i32_t start, vader_i32_t end) {
-    if (start < 0) start = 0;
-    if (end < 0 || (size_t) end > s.len) end = (vader_i32_t) s.len;
+vader_string_t vader_string_slice(vader_string_t s, size_t start, size_t end) {
+    if (end > s.len) end = s.len;
     if (start >= end) return vader_string_new("", 0);
-    return vader_string_new(s.ptr + start, (size_t) (end - start));
+    return vader_string_new(s.ptr + start, end - start);
 }
 
 vader_bool_t vader_string_contains(vader_string_t s, vader_string_t sub) {
@@ -465,14 +464,14 @@ vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t
     return vader_box_f64(ok_tag, v);
 }
 
-vader_char_t vader_string_char_at(vader_string_t s, vader_i32_t i) {
+vader_char_t vader_string_char_at(vader_string_t s, size_t i) {
     /* Trap on OOB to match `vader_array_get`'s contract — silently returning
      * 0 made callers confuse "real NUL byte" with "out of bounds". The
      * truncated-UTF-8 returns below stay as `0` / `0xFFFD` because they
      * surface mid-codepoint encoding errors, not access violations. */
-    if (i < 0 || (size_t)i >= s.len) vader_trap("string index out of bounds");
+    if (i >= s.len) vader_trap("string index out of bounds");
     const uint8_t* p = (const uint8_t*)(s.ptr + i);
-    size_t rem = s.len - (size_t)i;
+    size_t rem = s.len - i;
     uint8_t b = *p;
     if (b < 0x80) return b;
     if (b < 0xC0) return 0xFFFDu;  /* continuation byte as lead: invalid UTF-8 */
@@ -488,8 +487,8 @@ vader_char_t vader_string_char_at(vader_string_t s, vader_i32_t i) {
     return (vader_char_t)(((b & 0x07u) << 18) | ((p[1] & 0x3Fu) << 12) | ((p[2] & 0x3Fu) << 6) | (p[3] & 0x3Fu));
 }
 
-vader_u8_t vader_string_byte_at(vader_string_t s, vader_i32_t i) {
-    if (i < 0 || (size_t)i >= s.len) vader_trap("string index out of bounds");
+vader_u8_t vader_string_byte_at(vader_string_t s, size_t i) {
+    if (i >= s.len) vader_trap("string index out of bounds");
     return (vader_u8_t)(uint8_t) s.ptr[i];
 }
 

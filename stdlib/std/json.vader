@@ -28,7 +28,7 @@ export JsonObject :: struct { entries: MutableMap(string, JsonValue) }
 
 export JsonError :: struct {
     msg: string
-    pos: i32
+    pos: usize
 }
 
 JsonError implements Error {
@@ -39,8 +39,8 @@ JsonError implements Error {
 
 Parser :: struct {
     src: string
-    pos: i32
-    eof: i32
+    pos: usize
+    eof: usize
 }
 
 new_parser :: fn(s: string) -> Parser {
@@ -92,7 +92,7 @@ match_keyword :: fn(p: Parser, kw: string) -> bool {
     if p.pos + n > p.eof {
         return false
     }
-    i := 0
+    i: usize = 0
     for i < n {
         if p.src[p.pos + i] != kw[i] {
             return false
@@ -239,7 +239,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
                     return fail(p, "incomplete \\u escape")
                 }
                 cp := 0
-                k := 0
+                k: usize = 0
                 for k < 4 {
                     d := hex_digit_value(p.src[p.pos + k])
                     if d < 0 {
@@ -345,7 +345,7 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
     n := s.byte_len()
-    i := 0
+    i: usize = 0
     for i < n {
         c := s[i]
         cp := i32(u32(c))
