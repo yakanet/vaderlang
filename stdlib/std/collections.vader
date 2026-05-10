@@ -40,7 +40,7 @@ Entry :: struct[K, V] {
     next:  Entry(K, V) | null
 }
 
-export MutableMap :: struct[K, V] {
+export MutableMap :: struct[K: Hash & Eq, V] {
     buckets: (Entry(K, V) | null)[]
     size:    usize
 }
@@ -201,7 +201,7 @@ export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
 // from MutableMap. `where T: Hash + Eq` mirrors MutableMap's own bound.
 // ===========================================================================
 
-export MutableSet :: struct[T] {
+export MutableSet :: struct[T: Hash & Eq] {
     inner: MutableMap(T, bool)
 }
 

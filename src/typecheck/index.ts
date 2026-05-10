@@ -6,6 +6,7 @@ import type { ModuleId } from "../resolver/symbol.ts";
 import { checkProgram, declareModule, inferExprBodiedReturns, newGlobals } from "./check.ts";
 import { findCoreSymbols } from "./ctx.ts";
 import { buildImplRegistry } from "./impls.ts";
+import { validateStructBounds } from "./passes/struct-bounds.ts";
 import type { TypedProject, TypedProgram } from "./typed-ast.ts";
 
 export type { TypedProgram, TypedProject } from "./typed-ast.ts";
@@ -39,5 +40,13 @@ export function checkProject(project: ResolvedProject, diags: DiagnosticCollecto
   for (const [id, resolved] of project.modules) {
     modules.set(id, checkProgram(resolved, globals, impls, diags));
   }
+
+  // Pass 3: validate struct-level bounds at every instantiation site.
+  // Runs once per project ; reads `globals.typeExprTypes` to find every
+  // struct-with-args reference (annotations, struct lits, generic-impl
+  // for-types, …) and emits T3006 when a concrete arg doesn't satisfy
+  // the declared bound on its formal type-param.
+  validateStructBounds(globals, impls, diags);
+
   return { resolved: project, modules };
 }
