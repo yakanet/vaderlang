@@ -423,6 +423,17 @@ These items unblock porting the TS compiler to Vader.
 - [x] **`parse_int` / `parse_float` C shim tagged success boxes with the string type's index**. Found while building `std/json` — `match r { is i32 -> ... }` would never fire on the native target. Fixed by adding `primTagOrTrap` to look up the right primitive type's BcType index. Audit complete (2026-05-07) : the only other result-bearing shims (`read_file`, `write_file`, `read_line`, `split`) box their success with the correct type tag. Regression : `tests/snippets/parse_int_match/`.
 - [x] **`Range` is i32-only ; non-i32 bounds now error at compile time** (2026-05-07). `inferRange` (`src/typecheck/passes/expr.ts:240-258`) explicitly checks `isAssignable(.., TY.i32)` on each bound and emits `T3001` instead of letting a u64/usize slip through to a VM trap. Regression : `tests/snippets/range_bound_u64/`. **Proper fix (still deferred)** : generalise `Range :: struct($T)` over the integer type with impls for i32/u64/usize, mirroring `Yielded(T)` and `ArrayIter(T)` (cf. SPEC §1442). Bigger lift — touches `std/core`, `inferRange`, `lowerRangeExpr`, and the resolver's `CORE_STRUCTS` registration. Tracked under §1.18b "Generic `Range`".
 
+### 1.13d Stdlib consolidation passes
+
+Audits across the stdlib modules to eliminate duplicate helpers and pull
+helpers into the right module. Each pass is small but cumulative — the
+goal is one canonical home per concern so any future port of the stdlib
+(self-host, alternate target) inherits a clean shape.
+
+- [x] **hex/base helpers centralised in `std/numbers`** (2026-05-10). `is_hex_digit` and `is_digit_in_base` moved from `std/string` to `std/numbers` (where `hex_digit_value` / `parse_int_in_base` / `to_hex` / `to_bin` already live). `parse_hex_digit` private fn in `std/json` was a byte-for-byte copy of `numbers.hex_digit_value` — dropped, json now imports the canonical helper. Dead alias imports (`contains as str_contains`, `starts_with as str_starts_with`) removed from `std/json`.
+- [x] **char-predicate duplicates in `std/json` removed** (2026-05-10). The private `is_digit :: fn(c: char) -> bool { c in '0'..='9' }` declared in `std/json` was a copy of `std/string.is_digit` — dropped, import added. `skip_ws`'s inline `c == ' ' || c == '\t' || c == '\n' || c == '\r'` replaced with `is_white_char`. `parse_value`'s leading-digit check (`c in '0'..='9'`) replaced with `is_digit(c)`.
+- [ ] **Future audits** : revisit when new stdlib modules land, especially any module that hand-rolls its own cursor / parser scaffolding (today `std/json` and `vader/lexer` both carry one ; not duplicates of each other since they're per-struct, but a future shared `Cursor(T)` trait could unify both).
+
 ### 1.14 Snapshot test infrastructure
 
 - [x] Test directory layout: `tests/snippets/{name}/_main.vader` (single source per test, `_main` sorts first in IDEs) + `{phase}.snapshot` files alongside it.

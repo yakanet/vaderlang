@@ -8,7 +8,7 @@
 // (manifests, diagnostics) but loses precision past 2^53. Cf. TODO §3.4
 // for the post-MVP compile-time-generated parser à la kotlinx-serialization.
 
-import "std/string" { byte_len, slice, parse_float, pad_start }
+import "std/string" { byte_len, slice, parse_float, pad_start, is_digit, is_white_char }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, len, keys, values }
 import "std/numbers" { hex_digit_value, to_hex, to_compact_str }
@@ -64,8 +64,7 @@ advance :: fn(p: Parser) -> void {
 
 skip_ws :: fn(p: Parser) -> void {
     for !at_end(p) {
-        c := peek_byte(p)
-        if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
+        if is_white_char(peek_byte(p)) {
             advance(p)
         } else {
             return
@@ -128,7 +127,7 @@ parse_value :: fn(p: Parser) -> JsonValue | JsonError {
     if c == 'n' {
         return parse_null(p)?
     }
-    if c == '-' || c in '0'..='9' {
+    if c == '-' || is_digit(c) {
         return parse_number(p)?
     }
     return fail(p, "unexpected character")
@@ -154,10 +153,6 @@ parse_bool :: fn(p: Parser) -> JsonBool | JsonError {
 }
 
 // ---- number parser --------------------------------------------------------
-
-is_digit :: fn(c: char) -> bool {
-    return c in '0'..='9'
-}
 
 parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
     start := p.pos

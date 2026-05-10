@@ -1180,6 +1180,7 @@ Rules :
 - Overload candidates must differ in their first parameter type. Differing only on later parameters is **not** an overload (post-MVP — see TODO).
 - Type-param receivers (`fn(self: $T)`) are wildcards and conflict with every concrete-receiver overload of the same name.
 - Resolution is performed at typecheck after the receiver type is known. Errors out with `R2004` if two candidates match.
+- A **local fn coexists with a same-named imported fn** as overloads. The local fn takes the primary slot in the module's symbol table (so unqualified references pick it), and the imported fn stays reachable through UFCS dispatch by receiver type. So `std/path` legally both imports `is_empty` from `std/string` and exports its own `is_empty(self: Path)` — `self.repr.is_empty()` picks the string version inside the module while `p.is_empty()` at a call site picks the Path version.
 
 ### Visibility
 
