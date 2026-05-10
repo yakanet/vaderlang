@@ -1,10 +1,17 @@
 import { test } from "bun:test";
 import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import { errMsg, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { pipelineBytecode } from "../src/pipeline.ts";
 import { VmError, runProgram, makeBindings, type HostIO } from "../src/vm/index.ts";
+
+// VM error messages embed the absolute path of the offending source file
+// (`... @ /abs/path/_main.vader:LINE:COL`). Strip the project-root prefix so
+// snapshots stay portable across machines and CI runners.
+const PROJECT_ROOT = resolve(import.meta.dir, "..");
+const stripRoot = (s: string): string => s.replaceAll(PROJECT_ROOT + "/", "");
 
 interface Captured {
   readonly out: string[];
@@ -35,21 +42,21 @@ async function dumpVm(mainPath: string): Promise<string> {
   try {
     r = await pipelineBytecode(mainPath);
   } catch (e) {
-    return `# pipeline error\n${errMsg(e)}\n`;
+    return stripRoot(`# pipeline error\n${errMsg(e)}\n`);
   }
   const errors = r.diagnostics.sorted().filter((d) => d.severity === "error");
   if (errors.length > 0) {
-    return "# compile errors\n" + errors.map((e) => `[${e.code}] ${e.message}`).join("\n") + "\n";
+    return stripRoot("# compile errors\n" + errors.map((e) => `[${e.code}] ${e.message}`).join("\n") + "\n");
   }
   try {
     const cap = captureIO();
     // Pass argv[0] (script path) so snippets that take `main(argv)` see at
     // least one element — mirrors the native binary which always gets argv[0].
     const result = runProgram(r.bytecode, { host: makeBindings(cap.io), opLimit: 1_000_000, argv: [mainPath] });
-    return formatRun(cap.out.join(""), cap.err.join(""), result.exitCode);
+    return stripRoot(formatRun(cap.out.join(""), cap.err.join(""), result.exitCode));
   } catch (e) {
     if (e instanceof VmError && e.message.startsWith("vm: no main function")) return "# no main function\n";
-    return `# runtime error\n${errMsg(e)}\n`;
+    return stripRoot(`# runtime error\n${errMsg(e)}\n`);
   }
 }
 

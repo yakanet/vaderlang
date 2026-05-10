@@ -1,2 +1,2 @@
 # runtime error
-vm: expected string, got i32 (at tests_snippets_array_push__main_vader$main+37 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/array_push/_main.vader:9:14)
+vm: expected string, got i32 (at tests_snippets_array_push__main_vader$main+37 @ tests/snippets/array_push/_main.vader:9:14)

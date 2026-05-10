@@ -1,2 +1,2 @@
 # runtime error
-vm: expected string, got char (at tests_snippets_string_chars__main_vader$main+20 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/string_chars/_main.vader:8:18)
+vm: expected string, got char (at tests_snippets_string_chars__main_vader$main+20 @ tests/snippets/string_chars/_main.vader:8:18)

@@ -1,2 +1,2 @@
 # runtime error
-vm: expected string, got u8 (at tests_snippets_string_bytes__main_vader$main+61 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/string_bytes/_main.vader:16:18)
+vm: expected string, got u8 (at tests_snippets_string_bytes__main_vader$main+61 @ tests/snippets/string_bytes/_main.vader:16:18)

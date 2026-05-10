@@ -1,2 +1,2 @@
 # runtime error
-vm: expected string, got i32 (at tests_snippets_tuple_match_pattern__main_vader$main+16 @ /Users/mbroutin/Developments/default/vaderlang2/tests/snippets/tuple_match_pattern/_main.vader:6:30)
+vm: expected string, got i32 (at tests_snippets_tuple_match_pattern__main_vader$main+16 @ tests/snippets/tuple_match_pattern/_main.vader:6:30)
