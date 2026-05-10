@@ -10,9 +10,10 @@ import { isTypeReferenceSymbol } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
 import type { PrimitiveName, Type } from "../types.ts";
-import { ALL_INTS, TY } from "../types.ts";
+import { ALL_INTS, TY, substitute } from "../types.ts";
 
 import type { MutableTyped } from "../ctx.ts";
+import { buildStructSubst } from "../ctx.ts";
 import { lowerExprAsType } from "./type-expr.ts";
 
 /** Syntactic predicate : does `expr` look like a type expression in the
@@ -211,6 +212,35 @@ function declareImpl(decl: A.ImplDecl, t: MutableTyped, diags: DiagnosticCollect
       err(diags, "T3036", decl.traitNameSpan,
         `\`${traitDecl.name}\` requires method \`${required.name}\` — not provided in this impl block`);
     }
+  }
+
+  // Inherit the trait's return type onto expression-bodied impl members
+  // that omit `-> T`. Without this, `fn turn_left(self) = match self { ... }`
+  // inside `Direction implements Turnable` (where the trait says
+  // `fn turn_left(self) -> Self`) leaves the return type Unresolved, and the
+  // dot-shorthand arms `.West` / `.North` ... can't find their enum context.
+  // Substitution applies Self → forType plus any trait-typeparam → traitArg.
+  const forType = t.globals.typeExprTypes.get(decl.forType) ?? TY.unresolved;
+  const traitArgTypes = decl.traitArgs.map(
+    (ta) => t.globals.typeExprTypes.get(ta) ?? TY.unresolved,
+  );
+  const traitParamSubst = buildStructSubst(
+    traitDecl.typeParams, traitArgTypes, t.globals.typeParamSymbols,
+  );
+  for (const member of decl.members) {
+    if (member.returnType !== null) continue;
+    const traitMember = traitDecl.members.find((m) => m.name === member.name);
+    if (traitMember === undefined || traitMember.returnType === null) continue;
+    const traitFnType = t.globals.declTypes.get(traitMember);
+    if (traitFnType === undefined || traitFnType.kind !== "Fn") continue;
+    if (traitFnType.returnType.kind === "Unresolved") continue;
+    const inherited = substitute(traitFnType.returnType,
+      { self: forType, typeParams: traitParamSubst.typeParams });
+    const implFnType = t.globals.declTypes.get(member);
+    if (implFnType === undefined || implFnType.kind !== "Fn") continue;
+    if (implFnType.returnType.kind !== "Unresolved") continue;
+    t.globals.declTypes.set(member,
+      { kind: "Fn", params: implFnType.params, returnType: inherited });
   }
 }
 

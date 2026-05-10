@@ -1,0 +1,203 @@
+# Lower
+
+## tests/snippets/enum_trait_self_return/_main.vader
+  fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_left(self: Direction) -> Direction
+    ~>
+      block :Direction
+        let __scrut_0#-1: Direction = self#58 :Direction
+        ~>
+          if :Direction
+            cond:
+              eq :bool
+                l:
+                  __scrut_0#-1 :Direction
+                r:
+                  int(0) :i32
+            then:
+              ~>
+                int(3) :i32
+            else:
+              ~>
+                if :Direction
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0#-1 :Direction
+                      r:
+                        int(3) :i32
+                  then:
+                    ~>
+                      int(2) :i32
+                  else:
+                    ~>
+                      if :Direction
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0#-1 :Direction
+                            r:
+                              int(2) :i32
+                        then:
+                          ~>
+                            int(1) :i32
+                        else:
+                          ~>
+                            if :Direction
+                              cond:
+                                eq :bool
+                                  l:
+                                    __scrut_0#-1 :Direction
+                                  r:
+                                    int(1) :i32
+                              then:
+                                ~>
+                                  int(0) :i32
+                              else:
+                                ~>
+                                  unreachable("non-exhaustive match (T3013 should have caught this)") :Direction
+  fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_right(self: Direction) -> Direction
+    ~>
+      block :Direction
+        let __scrut_0#-2: Direction = self#59 :Direction
+        ~>
+          if :Direction
+            cond:
+              eq :bool
+                l:
+                  __scrut_0#-2 :Direction
+                r:
+                  int(0) :i32
+            then:
+              ~>
+                int(1) :i32
+            else:
+              ~>
+                if :Direction
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0#-2 :Direction
+                      r:
+                        int(1) :i32
+                  then:
+                    ~>
+                      int(2) :i32
+                  else:
+                    ~>
+                      if :Direction
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0#-2 :Direction
+                            r:
+                              int(2) :i32
+                        then:
+                          ~>
+                            int(3) :i32
+                        else:
+                          ~>
+                            if :Direction
+                              cond:
+                                eq :bool
+                                  l:
+                                    __scrut_0#-2 :Direction
+                                  r:
+                                    int(3) :i32
+                              then:
+                                ~>
+                                  int(0) :i32
+                              else:
+                                ~>
+                                  unreachable("non-exhaustive match (T3013 should have caught this)") :Direction
+  fn tests_snippets_enum_trait_self_return__main_vader$Direction$Display$show(self: Direction) -> ?
+    ~>
+      block :string
+        let __scrut_0#-3: Direction = self#60 :Direction
+        ~>
+          if :string
+            cond:
+              eq :bool
+                l:
+                  __scrut_0#-3 :Direction
+                r:
+                  int(0) :i32
+            then:
+              ~>
+                "N" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0#-3 :Direction
+                      r:
+                        int(1) :i32
+                  then:
+                    ~>
+                      "E" :string
+                  else:
+                    ~>
+                      if :string
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0#-3 :Direction
+                            r:
+                              int(2) :i32
+                        then:
+                          ~>
+                            "S" :string
+                        else:
+                          ~>
+                            if :string
+                              cond:
+                                eq :bool
+                                  l:
+                                    __scrut_0#-3 :Direction
+                                  r:
+                                    int(3) :i32
+                              then:
+                                ~>
+                                  "W" :string
+                              else:
+                                ~>
+                                  unreachable("non-exhaustive match (T3013 should have caught this)") :string
+  fn tests_snippets_enum_trait_self_return__main_vader$main() -> i32
+    let d#61: Direction = int(0) :i32
+    call :void
+      callee:
+        println#26 :fn(string) -> void
+      arg0:
+        call :?
+          callee:
+            show#1000002 :?
+          arg0:
+            d#61 :Direction
+    call :void
+      callee:
+        println#26 :fn(string) -> void
+      arg0:
+        call :?
+          callee:
+            show#1000002 :?
+          arg0:
+            call :Direction
+              callee:
+                turn_left#1000000 :Direction
+              arg0:
+                d#61 :Direction
+    call :void
+      callee:
+        println#26 :fn(string) -> void
+      arg0:
+        call :?
+          callee:
+            show#1000002 :?
+          arg0:
+            call :Direction
+              callee:
+                turn_right#1000001 :Direction
+              arg0:
+                d#61 :Direction
+    return int(0) :i32

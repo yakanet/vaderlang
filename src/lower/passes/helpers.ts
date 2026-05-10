@@ -53,17 +53,24 @@ export function blockStmtsWithTrailing(block: LoweredBlock): readonly LoweredStm
 }
 
 /** `.Variant` / `Enum.Variant` / arm pattern → integer literal of the variant's
- *  resolved index, typed as the enum's backing repr. The type-checker has
- *  already validated `name` against `enumType` (T3027) and populated `indices`
- *  in `declareEnum`, so a missing variant here is a compiler invariant
- *  violation. */
+ *  resolved index, typed as the enum's backing repr. When upstream phases
+ *  reported errors, `enumType` may arrive as `Unresolved` or the variant may
+ *  be missing from `indices` ; emit a `LoweredUnreachable` so the lower can
+ *  finish (the diagnostic collector already carries the real error and the
+ *  driver bails before bytecode emission). */
 export function loweredEnumVariant(enumType: Type, name: string, span: Span): LoweredExpr {
   if (enumType.kind !== "Enum") {
-    throw new Error(`loweredEnumVariant: expected Enum type, got ${enumType.kind}`);
+    return {
+      kind: "LoweredUnreachable", span, type: TY.unresolved,
+      reason: `\`.${name}\` against unresolved type — earlier diagnostics apply`,
+    };
   }
   const value = enumType.indices.get(name);
   if (value === undefined) {
-    throw new Error(`loweredEnumVariant: variant ${name} not found on ${enumType.symbol.name} (indices not populated — declareEnum did not run?)`);
+    return {
+      kind: "LoweredUnreachable", span, type: TY.unresolved,
+      reason: `unknown variant \`${name}\` on \`${enumType.symbol.name}\` — earlier diagnostics apply`,
+    };
   }
   return {
     kind: "LoweredIntLit", span,

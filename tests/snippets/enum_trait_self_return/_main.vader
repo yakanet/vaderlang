@@ -1,0 +1,46 @@
+// Trait method returning `Self`, implemented by an enum, with an
+// expression-bodied impl method that needs the trait's return type
+// (Self → forType, here Direction) propagated as the body's expected type
+// so the dot-shorthand arms (`.West`, `.South`, ...) can resolve.
+
+import "std/io" { println }
+
+Direction :: enum { North, East, South, West }
+
+Turnable :: trait {
+    fn turn_left(self) -> Self
+    fn turn_right(self) -> Self
+}
+
+Direction implements Turnable {
+    fn turn_left(self) = match self {
+        .North -> .West
+        .West  -> .South
+        .South -> .East
+        .East  -> .North
+    }
+
+    fn turn_right(self) = match self {
+        .North -> .East
+        .East  -> .South
+        .South -> .West
+        .West  -> .North
+    }
+}
+
+Direction implements Display {
+    fn show(self) = match self {
+        .North -> "N"
+        .East  -> "E"
+        .South -> "S"
+        .West  -> "W"
+    }
+}
+
+main :: fn() -> i32 {
+    d :: Direction.North
+    println(d.show())
+    println(d.turn_left().show())
+    println(d.turn_right().show())
+    return 0
+}

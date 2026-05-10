@@ -1,0 +1,202 @@
+# CFG
+
+## tests/snippets/enum_trait_self_return/_main.vader
+
+fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_left(%0: Direction) -> Direction
+  locals:
+    %0 self: Direction (param self)
+    %1 __scrut_0#14: Direction (synthetic __scrut_0)
+    %2 $k_2#15: i32
+    %3 $eq_3#16: bool
+    %4 $k_6#18: i32
+    %5 $eq_7#19: bool
+    %6 $k_10#21: i32
+    %7 $eq_11#22: bool
+    %8 $k_14#24: i32
+    %9 $eq_15#25: bool
+    %10 if_res#26: Direction
+    %11 if_res#28: Direction
+    %12 if_res#30: Direction
+    %13 if_res#32: Direction
+  bb0:
+    %1 = move %0
+    %2 = const int(0) :i32
+    %3 = binop eq %1 %2 :bool
+    cond_branch %3 ? bb1 : bb2
+  bb1:
+    %13 = const int(3) :i32
+    branch -> bb3
+  bb2:
+    %4 = const int(3) :i32
+    %5 = binop eq %1 %4 :bool
+    cond_branch %5 ? bb4 : bb5
+  bb3:
+    return %13
+  bb4:
+    %12 = const int(2) :i32
+    branch -> bb6
+  bb5:
+    %6 = const int(2) :i32
+    %7 = binop eq %1 %6 :bool
+    cond_branch %7 ? bb7 : bb8
+  bb6:
+    %13 = move %12
+    branch -> bb3
+  bb7:
+    %11 = const int(1) :i32
+    branch -> bb9
+  bb8:
+    %8 = const int(1) :i32
+    %9 = binop eq %1 %8 :bool
+    cond_branch %9 ? bb10 : bb11
+  bb9:
+    %12 = move %11
+    branch -> bb6
+  bb10:
+    %10 = const int(0) :i32
+    branch -> bb12
+  bb11:
+    unreachable ; non-exhaustive match (T3013 should have caught this)
+  bb12:
+    %11 = move %10
+    branch -> bb9
+
+fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_right(%0: Direction) -> Direction
+  locals:
+    %0 self: Direction (param self)
+    %1 __scrut_0#14: Direction (synthetic __scrut_0)
+    %2 $k_2#15: i32
+    %3 $eq_3#16: bool
+    %4 $k_6#18: i32
+    %5 $eq_7#19: bool
+    %6 $k_10#21: i32
+    %7 $eq_11#22: bool
+    %8 $k_14#24: i32
+    %9 $eq_15#25: bool
+    %10 if_res#26: Direction
+    %11 if_res#28: Direction
+    %12 if_res#30: Direction
+    %13 if_res#32: Direction
+  bb0:
+    %1 = move %0
+    %2 = const int(0) :i32
+    %3 = binop eq %1 %2 :bool
+    cond_branch %3 ? bb1 : bb2
+  bb1:
+    %13 = const int(1) :i32
+    branch -> bb3
+  bb2:
+    %4 = const int(1) :i32
+    %5 = binop eq %1 %4 :bool
+    cond_branch %5 ? bb4 : bb5
+  bb3:
+    return %13
+  bb4:
+    %12 = const int(2) :i32
+    branch -> bb6
+  bb5:
+    %6 = const int(2) :i32
+    %7 = binop eq %1 %6 :bool
+    cond_branch %7 ? bb7 : bb8
+  bb6:
+    %13 = move %12
+    branch -> bb3
+  bb7:
+    %11 = const int(3) :i32
+    branch -> bb9
+  bb8:
+    %8 = const int(3) :i32
+    %9 = binop eq %1 %8 :bool
+    cond_branch %9 ? bb10 : bb11
+  bb9:
+    %12 = move %11
+    branch -> bb6
+  bb10:
+    %10 = const int(0) :i32
+    branch -> bb12
+  bb11:
+    unreachable ; non-exhaustive match (T3013 should have caught this)
+  bb12:
+    %11 = move %10
+    branch -> bb9
+
+fn tests_snippets_enum_trait_self_return__main_vader$Direction$Display$show(%0: Direction) -> ?
+  locals:
+    %0 self: Direction (param self)
+    %1 __scrut_0#14: Direction (synthetic __scrut_0)
+    %2 $k_2#15: i32
+    %3 $eq_3#16: bool
+    %4 $k_6#18: i32
+    %5 $eq_7#19: bool
+    %6 $k_10#21: i32
+    %7 $eq_11#22: bool
+    %8 $k_14#24: i32
+    %9 $eq_15#25: bool
+    %10 if_res#26: string
+    %11 if_res#28: string
+    %12 if_res#30: string
+    %13 if_res#32: string
+  bb0:
+    %1 = move %0
+    %2 = const int(0) :i32
+    %3 = binop eq %1 %2 :bool
+    cond_branch %3 ? bb1 : bb2
+  bb1:
+    %13 = const string(#0) :string
+    branch -> bb3
+  bb2:
+    %4 = const int(1) :i32
+    %5 = binop eq %1 %4 :bool
+    cond_branch %5 ? bb4 : bb5
+  bb3:
+    return %13
+  bb4:
+    %12 = const string(#1) :string
+    branch -> bb6
+  bb5:
+    %6 = const int(2) :i32
+    %7 = binop eq %1 %6 :bool
+    cond_branch %7 ? bb7 : bb8
+  bb6:
+    %13 = move %12
+    branch -> bb3
+  bb7:
+    %11 = const string(#2) :string
+    branch -> bb9
+  bb8:
+    %8 = const int(3) :i32
+    %9 = binop eq %1 %8 :bool
+    cond_branch %9 ? bb10 : bb11
+  bb9:
+    %12 = move %11
+    branch -> bb6
+  bb10:
+    %10 = const string(#3) :string
+    branch -> bb12
+  bb11:
+    unreachable ; non-exhaustive match (T3013 should have caught this)
+  bb12:
+    %11 = move %10
+    branch -> bb9
+
+fn tests_snippets_enum_trait_self_return__main_vader$main() -> i32
+  locals:
+    %0 d#7: Direction (local d)
+    %1 $call_2#8: ?
+    %2 $call_3#9: Direction
+    %3 $call_4#10: ?
+    %4 $call_5#11: Direction
+    %5 $call_6#12: ?
+    %6 $k_7#13: i32
+  bb0:
+    %0 = const int(0) :i32
+    %1 = call show(%0) :?
+    call println(%1) :void
+    %2 = call turn_left(%0) :Direction
+    %3 = call show(%2) :?
+    call println(%3) :void
+    %4 = call turn_right(%0) :Direction
+    %5 = call show(%4) :?
+    call println(%5) :void
+    %6 = const int(0) :i32
+    return %6
