@@ -858,6 +858,10 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [x] **`@partial` on `match`** (2026-05-08). Opt-out of exhaustiveness for a single match expression. Parser recognises `@partial` in expression position (rejects any other `@`-prefix there with P1014) and flips a `partial: true` flag on `MatchExpr` ; typecheck skips the T3013 exhaustiveness check when the flag is set. Default stays exhaustive — the flag has to be opted into per match. Snippet : `tests/snippets/match_partial/`. Self-host parser ported same day — `KNOWN_FAILURES` is back to empty.
 - [x] **`@deprecated("reason")` decorator** (2026-05-08). Recognised on any decl ; every IdentExpr that resolves to it emits warning W0001 with the reason. Adds the `WARNING` registry + `makeWarn` factory + `warn` helper in typecheck — first warning-severity diagnostic, paving the way for future lints. Optional `since: "1.2"` arg deferred (named decorator args don't yet exist). Snippet : `tests/snippets/decorator_deprecated/`.
 
+### 3.9 Companion projects
+
+- [ ] **Brainfuck compiler in Vader, targeting the Vader VM.** Once the Vader compilation API is stable enough to be consumed from user code, write a Brainfuck → Vader-bytecode compiler **in Vader**. Goals : (a) lean as hard as possible on Vader's own building blocks (lexer/parser conventions, `MutableMap`, error-as-value, `match`, …) instead of reinventing them, (b) emit native Vader VM bytecode rather than going through a textual Vader source pass, (c) double as a worked example of "host language using its own compiler infrastructure" — useful pressure on the public compilation API design. Lives in a separate repo, not under `examples/`.
+
 ---
 
 ## Reference
