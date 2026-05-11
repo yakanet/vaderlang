@@ -250,6 +250,28 @@ ArrayIterator[T] implements Iterator[T] {
     }
 }
 
+// Blanket `Into` impls — Phase 2 of the coercion roadmap. Declared here
+// (in `std/core`) so the orphan rule passes : `Into` is the canonical
+// trait owner. Today the typer's `findIntoImpl` only matches concrete
+// source types (Struct / Enum / Primitive) ; these blanket forms are
+// effectively documentation until the lookup is broadened to recognise
+// `T[]` source (array → Iterator) and bounded-TypeParam source (`T:
+// Display` → string).
+
+[T]
+T[] implements Into(Iterator(T)) {
+    into :: fn(self) -> Iterator(T) {
+        return ArrayIterator(T) { .arr = self, .cursor = usize(0), .length = self.len() }
+    }
+}
+
+[T: Display]
+T implements Into(string) {
+    into :: fn(self) -> string {
+        return self.to_string()
+    }
+}
+
 // ============================================================================
 // 3. Primitive type impls
 // ============================================================================

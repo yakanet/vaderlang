@@ -281,29 +281,29 @@ end
 fn 1 std_core$i16$Comparable$compare (i16,i16) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:332:35
-  local.get 1   ; core.vader:332:35
-  i16.lt   ; core.vader:332:35
-  if $L0 void   ; core.vader:332:32
-    i32.const 1   ; core.vader:332:51
-    i32.neg   ; core.vader:332:50
-    local.set 3   ; core.vader:332:50
-  else   ; core.vader:332:32
-    local.get 0   ; core.vader:332:63
-    local.get 1   ; core.vader:332:63
-    i16.gt   ; core.vader:332:63
-    if $L1 void   ; core.vader:332:60
-      i32.const 1   ; core.vader:332:78
-      local.set 2   ; core.vader:332:78
-    else   ; core.vader:332:60
-      i32.const 0   ; core.vader:332:89
-      local.set 2   ; core.vader:332:89
-    end $L1   ; core.vader:332:60
-    local.get 2   ; core.vader:332:60
-    local.set 3   ; core.vader:332:60
-  end $L0   ; core.vader:332:32
-  local.get 3   ; core.vader:332:29
-  return   ; core.vader:332:29
+  local.get 0   ; core.vader:354:35
+  local.get 1   ; core.vader:354:35
+  i16.lt   ; core.vader:354:35
+  if $L0 void   ; core.vader:354:32
+    i32.const 1   ; core.vader:354:51
+    i32.neg   ; core.vader:354:50
+    local.set 3   ; core.vader:354:50
+  else   ; core.vader:354:32
+    local.get 0   ; core.vader:354:63
+    local.get 1   ; core.vader:354:63
+    i16.gt   ; core.vader:354:63
+    if $L1 void   ; core.vader:354:60
+      i32.const 1   ; core.vader:354:78
+      local.set 2   ; core.vader:354:78
+    else   ; core.vader:354:60
+      i32.const 0   ; core.vader:354:89
+      local.set 2   ; core.vader:354:89
+    end $L1   ; core.vader:354:60
+    local.get 2   ; core.vader:354:60
+    local.set 3   ; core.vader:354:60
+  end $L0   ; core.vader:354:32
+  local.get 3   ; core.vader:354:29
+  return   ; core.vader:354:29
 end
 
 fn 2 std_core$i16$Comparable$gt (i16,i16) -> bool
@@ -333,29 +333,29 @@ end
 fn 4 std_core$i64$Comparable$compare (i64,i64) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:334:35
-  local.get 1   ; core.vader:334:35
-  i64.lt   ; core.vader:334:35
-  if $L0 void   ; core.vader:334:32
-    i32.const 1   ; core.vader:334:51
-    i32.neg   ; core.vader:334:50
-    local.set 3   ; core.vader:334:50
-  else   ; core.vader:334:32
-    local.get 0   ; core.vader:334:63
-    local.get 1   ; core.vader:334:63
-    i64.gt   ; core.vader:334:63
-    if $L1 void   ; core.vader:334:60
-      i32.const 1   ; core.vader:334:78
-      local.set 2   ; core.vader:334:78
-    else   ; core.vader:334:60
-      i32.const 0   ; core.vader:334:89
-      local.set 2   ; core.vader:334:89
-    end $L1   ; core.vader:334:60
-    local.get 2   ; core.vader:334:60
-    local.set 3   ; core.vader:334:60
-  end $L0   ; core.vader:334:32
-  local.get 3   ; core.vader:334:29
-  return   ; core.vader:334:29
+  local.get 0   ; core.vader:356:35
+  local.get 1   ; core.vader:356:35
+  i64.lt   ; core.vader:356:35
+  if $L0 void   ; core.vader:356:32
+    i32.const 1   ; core.vader:356:51
+    i32.neg   ; core.vader:356:50
+    local.set 3   ; core.vader:356:50
+  else   ; core.vader:356:32
+    local.get 0   ; core.vader:356:63
+    local.get 1   ; core.vader:356:63
+    i64.gt   ; core.vader:356:63
+    if $L1 void   ; core.vader:356:60
+      i32.const 1   ; core.vader:356:78
+      local.set 2   ; core.vader:356:78
+    else   ; core.vader:356:60
+      i32.const 0   ; core.vader:356:89
+      local.set 2   ; core.vader:356:89
+    end $L1   ; core.vader:356:60
+    local.get 2   ; core.vader:356:60
+    local.set 3   ; core.vader:356:60
+  end $L0   ; core.vader:356:32
+  local.get 3   ; core.vader:356:29
+  return   ; core.vader:356:29
 end
 
 fn 5 std_core$i64$Comparable$gt (i64,i64) -> bool
@@ -385,29 +385,29 @@ end
 fn 7 std_core$isize$Comparable$compare (isize,isize) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:335:35
-  local.get 1   ; core.vader:335:35
-  isize.lt   ; core.vader:335:35
-  if $L0 void   ; core.vader:335:32
-    i32.const 1   ; core.vader:335:51
-    i32.neg   ; core.vader:335:50
-    local.set 3   ; core.vader:335:50
-  else   ; core.vader:335:32
-    local.get 0   ; core.vader:335:63
-    local.get 1   ; core.vader:335:63
-    isize.gt   ; core.vader:335:63
-    if $L1 void   ; core.vader:335:60
-      i32.const 1   ; core.vader:335:78
-      local.set 2   ; core.vader:335:78
-    else   ; core.vader:335:60
-      i32.const 0   ; core.vader:335:89
-      local.set 2   ; core.vader:335:89
-    end $L1   ; core.vader:335:60
-    local.get 2   ; core.vader:335:60
-    local.set 3   ; core.vader:335:60
-  end $L0   ; core.vader:335:32
-  local.get 3   ; core.vader:335:29
-  return   ; core.vader:335:29
+  local.get 0   ; core.vader:357:35
+  local.get 1   ; core.vader:357:35
+  isize.lt   ; core.vader:357:35
+  if $L0 void   ; core.vader:357:32
+    i32.const 1   ; core.vader:357:51
+    i32.neg   ; core.vader:357:50
+    local.set 3   ; core.vader:357:50
+  else   ; core.vader:357:32
+    local.get 0   ; core.vader:357:63
+    local.get 1   ; core.vader:357:63
+    isize.gt   ; core.vader:357:63
+    if $L1 void   ; core.vader:357:60
+      i32.const 1   ; core.vader:357:78
+      local.set 2   ; core.vader:357:78
+    else   ; core.vader:357:60
+      i32.const 0   ; core.vader:357:89
+      local.set 2   ; core.vader:357:89
+    end $L1   ; core.vader:357:60
+    local.get 2   ; core.vader:357:60
+    local.set 3   ; core.vader:357:60
+  end $L0   ; core.vader:357:32
+  local.get 3   ; core.vader:357:29
+  return   ; core.vader:357:29
 end
 
 fn 8 std_core$isize$Comparable$gt (isize,isize) -> bool
@@ -437,29 +437,29 @@ end
 fn 10 std_core$u8$Comparable$compare (u8,u8) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:336:35
-  local.get 1   ; core.vader:336:35
-  u8.lt   ; core.vader:336:35
-  if $L0 void   ; core.vader:336:32
-    i32.const 1   ; core.vader:336:51
-    i32.neg   ; core.vader:336:50
-    local.set 3   ; core.vader:336:50
-  else   ; core.vader:336:32
-    local.get 0   ; core.vader:336:63
-    local.get 1   ; core.vader:336:63
-    u8.gt   ; core.vader:336:63
-    if $L1 void   ; core.vader:336:60
-      i32.const 1   ; core.vader:336:78
-      local.set 2   ; core.vader:336:78
-    else   ; core.vader:336:60
-      i32.const 0   ; core.vader:336:89
-      local.set 2   ; core.vader:336:89
-    end $L1   ; core.vader:336:60
-    local.get 2   ; core.vader:336:60
-    local.set 3   ; core.vader:336:60
-  end $L0   ; core.vader:336:32
-  local.get 3   ; core.vader:336:29
-  return   ; core.vader:336:29
+  local.get 0   ; core.vader:358:35
+  local.get 1   ; core.vader:358:35
+  u8.lt   ; core.vader:358:35
+  if $L0 void   ; core.vader:358:32
+    i32.const 1   ; core.vader:358:51
+    i32.neg   ; core.vader:358:50
+    local.set 3   ; core.vader:358:50
+  else   ; core.vader:358:32
+    local.get 0   ; core.vader:358:63
+    local.get 1   ; core.vader:358:63
+    u8.gt   ; core.vader:358:63
+    if $L1 void   ; core.vader:358:60
+      i32.const 1   ; core.vader:358:78
+      local.set 2   ; core.vader:358:78
+    else   ; core.vader:358:60
+      i32.const 0   ; core.vader:358:89
+      local.set 2   ; core.vader:358:89
+    end $L1   ; core.vader:358:60
+    local.get 2   ; core.vader:358:60
+    local.set 3   ; core.vader:358:60
+  end $L0   ; core.vader:358:32
+  local.get 3   ; core.vader:358:29
+  return   ; core.vader:358:29
 end
 
 fn 11 std_core$u8$Comparable$gt (u8,u8) -> bool
@@ -489,29 +489,29 @@ end
 fn 13 std_core$u64$Comparable$compare (u64,u64) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:339:35
-  local.get 1   ; core.vader:339:35
-  u64.lt   ; core.vader:339:35
-  if $L0 void   ; core.vader:339:32
-    i32.const 1   ; core.vader:339:51
-    i32.neg   ; core.vader:339:50
-    local.set 3   ; core.vader:339:50
-  else   ; core.vader:339:32
-    local.get 0   ; core.vader:339:63
-    local.get 1   ; core.vader:339:63
-    u64.gt   ; core.vader:339:63
-    if $L1 void   ; core.vader:339:60
-      i32.const 1   ; core.vader:339:78
-      local.set 2   ; core.vader:339:78
-    else   ; core.vader:339:60
-      i32.const 0   ; core.vader:339:89
-      local.set 2   ; core.vader:339:89
-    end $L1   ; core.vader:339:60
-    local.get 2   ; core.vader:339:60
-    local.set 3   ; core.vader:339:60
-  end $L0   ; core.vader:339:32
-  local.get 3   ; core.vader:339:29
-  return   ; core.vader:339:29
+  local.get 0   ; core.vader:361:35
+  local.get 1   ; core.vader:361:35
+  u64.lt   ; core.vader:361:35
+  if $L0 void   ; core.vader:361:32
+    i32.const 1   ; core.vader:361:51
+    i32.neg   ; core.vader:361:50
+    local.set 3   ; core.vader:361:50
+  else   ; core.vader:361:32
+    local.get 0   ; core.vader:361:63
+    local.get 1   ; core.vader:361:63
+    u64.gt   ; core.vader:361:63
+    if $L1 void   ; core.vader:361:60
+      i32.const 1   ; core.vader:361:78
+      local.set 2   ; core.vader:361:78
+    else   ; core.vader:361:60
+      i32.const 0   ; core.vader:361:89
+      local.set 2   ; core.vader:361:89
+    end $L1   ; core.vader:361:60
+    local.get 2   ; core.vader:361:60
+    local.set 3   ; core.vader:361:60
+  end $L0   ; core.vader:361:32
+  local.get 3   ; core.vader:361:29
+  return   ; core.vader:361:29
 end
 
 fn 14 std_core$u64$Comparable$gt (u64,u64) -> bool
@@ -539,42 +539,42 @@ fn 15 std_core$u64$Comparable$gte (u64,u64) -> bool
 end
 
 fn 16 std_core$i16$Step$step (i16) -> i16
-  local.get 0   ; core.vader:350:26
-  i32.const 1   ; core.vader:350:26
-  i32.to_i16   ; core.vader:350:26
-  i16.add   ; core.vader:350:26
-  return   ; core.vader:350:23
+  local.get 0   ; core.vader:372:26
+  i32.const 1   ; core.vader:372:26
+  i32.to_i16   ; core.vader:372:26
+  i16.add   ; core.vader:372:26
+  return   ; core.vader:372:23
 end
 
 fn 17 std_core$i64$Step$step (i64) -> i64
-  local.get 0   ; core.vader:352:26
-  i64.const 1   ; core.vader:352:26
-  i64.add   ; core.vader:352:26
-  return   ; core.vader:352:23
+  local.get 0   ; core.vader:374:26
+  i64.const 1   ; core.vader:374:26
+  i64.add   ; core.vader:374:26
+  return   ; core.vader:374:23
 end
 
 fn 18 std_core$isize$Step$step (isize) -> isize
-  local.get 0   ; core.vader:353:26
-  i64.const 1   ; core.vader:353:26
-  i64.to_isize   ; core.vader:353:26
-  isize.add   ; core.vader:353:26
-  return   ; core.vader:353:23
+  local.get 0   ; core.vader:375:26
+  i64.const 1   ; core.vader:375:26
+  i64.to_isize   ; core.vader:375:26
+  isize.add   ; core.vader:375:26
+  return   ; core.vader:375:23
 end
 
 fn 19 std_core$u8$Step$step (u8) -> u8
-  local.get 0   ; core.vader:354:26
-  i32.const 1   ; core.vader:354:26
-  i32.to_u8   ; core.vader:354:26
-  u8.add   ; core.vader:354:26
-  return   ; core.vader:354:23
+  local.get 0   ; core.vader:376:26
+  i32.const 1   ; core.vader:376:26
+  i32.to_u8   ; core.vader:376:26
+  u8.add   ; core.vader:376:26
+  return   ; core.vader:376:23
 end
 
 fn 20 std_core$u64$Step$step (u64) -> u64
-  local.get 0   ; core.vader:357:26
-  i64.const 1   ; core.vader:357:26
-  i64.to_u64   ; core.vader:357:26
-  u64.add   ; core.vader:357:26
-  return   ; core.vader:357:23
+  local.get 0   ; core.vader:379:26
+  i64.const 1   ; core.vader:379:26
+  i64.to_u64   ; core.vader:379:26
+  u64.add   ; core.vader:379:26
+  return   ; core.vader:379:23
 end
 
 fn 21 std_core$Range$Iterator$next__i16 (ref) -> ref
