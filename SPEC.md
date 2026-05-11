@@ -936,6 +936,31 @@ print_it :: fn[T: Display](x: T) {
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in an `impl Foo` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
 
+#### Bounded-generic impls
+
+When the impl introduces its own type parameters (with optional bounds), the `[T]` list follows the `implements` keyword — same position as it does after `fn` / `struct` / `trait`. This is the canonical place for any typeParam that's local to the impl (not borrowed from the for-type's struct head).
+
+```vader
+// Borrowing T from the struct head — no impl-level typeParams.
+ArrayIterator[T] implements Iterator[T] {
+    next :: fn(self) -> Done | Yielded(T) { /* … */ }
+}
+
+// Bounded blanket impl — Range[T] coerces into an Iterator when T
+// satisfies both Comparable and Step.
+Range[T] implements[T: Comparable & Step] Iterator[T] {
+    next :: fn(self) -> Done | Yielded(T) { /* … */ }
+}
+
+// Blanket on a structural source (any array, any Display-bound type).
+T[] implements[T]          Into(Iterator(T)) { /* … */ }
+T   implements[T: Display] Into(string)      { /* … */ }
+```
+
+The bracket list after `implements` introduces the typeParams *for the entire impl block* — the for-type, the trait args, and every method body resolve against them. Multi-bound (`[T: A & B]`) is identical to the bound grammar on fn / struct heads.
+
+Compared to the borrowing form (`Foo[T] implements Trait[T]` without an impl-level `[T]`, where `T` aliases the struct's own type-param), the bounded form lets the impl declare *its own* `T` whose bounds are scoped to this block — the struct itself stays unbounded.
+
 #### Trait composition
 
 A trait can compose other traits — i.e. require its implementor to satisfy each of them — through one of two declaration shapes :

@@ -228,29 +228,29 @@ end
 fn 3 std_core$i32$Comparable$compare (i32,i32) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:355:35
-  local.get 1   ; core.vader:355:35
-  i32.lt   ; core.vader:355:35
-  if $L0 void   ; core.vader:355:32
-    i32.const 1   ; core.vader:355:51
-    i32.neg   ; core.vader:355:50
-    local.set 3   ; core.vader:355:50
-  else   ; core.vader:355:32
-    local.get 0   ; core.vader:355:63
-    local.get 1   ; core.vader:355:63
-    i32.gt   ; core.vader:355:63
-    if $L1 void   ; core.vader:355:60
-      i32.const 1   ; core.vader:355:78
-      local.set 2   ; core.vader:355:78
-    else   ; core.vader:355:60
-      i32.const 0   ; core.vader:355:89
-      local.set 2   ; core.vader:355:89
-    end $L1   ; core.vader:355:60
-    local.get 2   ; core.vader:355:60
-    local.set 3   ; core.vader:355:60
-  end $L0   ; core.vader:355:32
-  local.get 3   ; core.vader:355:29
-  return   ; core.vader:355:29
+  local.get 0   ; core.vader:351:35
+  local.get 1   ; core.vader:351:35
+  i32.lt   ; core.vader:351:35
+  if $L0 void   ; core.vader:351:32
+    i32.const 1   ; core.vader:351:51
+    i32.neg   ; core.vader:351:50
+    local.set 3   ; core.vader:351:50
+  else   ; core.vader:351:32
+    local.get 0   ; core.vader:351:63
+    local.get 1   ; core.vader:351:63
+    i32.gt   ; core.vader:351:63
+    if $L1 void   ; core.vader:351:60
+      i32.const 1   ; core.vader:351:78
+      local.set 2   ; core.vader:351:78
+    else   ; core.vader:351:60
+      i32.const 0   ; core.vader:351:89
+      local.set 2   ; core.vader:351:89
+    end $L1   ; core.vader:351:60
+    local.get 2   ; core.vader:351:60
+    local.set 3   ; core.vader:351:60
+  end $L0   ; core.vader:351:32
+  local.get 3   ; core.vader:351:29
+  return   ; core.vader:351:29
 end
 
 fn 4 std_core$i32$Comparable$gt (i32,i32) -> bool
@@ -278,10 +278,10 @@ fn 5 std_core$i32$Comparable$gte (i32,i32) -> bool
 end
 
 fn 6 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; core.vader:373:26
-  i32.const 1   ; core.vader:373:26
-  i32.add   ; core.vader:373:26
-  return   ; core.vader:373:23
+  local.get 0   ; core.vader:369:26
+  i32.const 1   ; core.vader:369:26
+  i32.add   ; core.vader:369:26
+  return   ; core.vader:369:23
 end
 
 fn 7 std_core$Range$Iterator$next__i32 (ref) -> ref
@@ -292,50 +292,50 @@ fn 7 std_core$Range$Iterator$next__i32 (ref) -> ref
   local "if_res#24" bool
   local "v#27" i32
   local "$call_14#29" i32
-  local.get 0   ; core.vader:225:21
-  struct.get 4 2   ; core.vader:225:21
-  if $L0 void   ; core.vader:225:17
-    local.get 0   ; core.vader:225:39
-    struct.get 4 3   ; core.vader:225:39
-    local.set 1   ; core.vader:225:39
-    local.get 0   ; core.vader:225:54
-    struct.get 4 1   ; core.vader:225:54
-    local.set 2   ; core.vader:225:54
-    local.get 1   ; core.vader:225:39
-    local.get 2   ; core.vader:225:39
-    call 4   ; core.vader:225:39
-    local.set 5   ; core.vader:225:37
-  else   ; core.vader:225:17
-    local.get 0   ; core.vader:226:40
-    struct.get 4 3   ; core.vader:226:40
-    local.set 3   ; core.vader:226:40
-    local.get 0   ; core.vader:226:56
-    struct.get 4 1   ; core.vader:226:56
-    local.set 4   ; core.vader:226:56
-    local.get 3   ; core.vader:226:40
-    local.get 4   ; core.vader:226:40
-    call 5   ; core.vader:226:40
-    local.set 5   ; core.vader:226:38
-  end $L0   ; core.vader:225:17
-  local.get 5   ; core.vader:225:9
-  if $L1 void   ; core.vader:227:9
-    struct.new 2   ; core.vader:227:28
-    return   ; core.vader:227:21
-  else   ; core.vader:227:9
-    local.get 0   ; core.vader:228:14
-    struct.get 4 3   ; core.vader:228:14
-    local.set 6   ; core.vader:228:14
-    local.get 0   ; core.vader:229:23
-    struct.get 4 3   ; core.vader:229:23
-    call 6   ; core.vader:229:23
-    local.set 7   ; core.vader:229:23
-    local.get 0   ; core.vader:229:9
-    local.get 7   ; core.vader:229:9
-    struct.set 4 3   ; core.vader:229:9
-    local.get 6   ; core.vader:230:16
-    struct.new 3   ; core.vader:230:16
-    return   ; core.vader:230:9
-  end $L1   ; core.vader:227:9
+  local.get 0   ; core.vader:223:21
+  struct.get 4 2   ; core.vader:223:21
+  if $L0 void   ; core.vader:223:17
+    local.get 0   ; core.vader:223:39
+    struct.get 4 3   ; core.vader:223:39
+    local.set 1   ; core.vader:223:39
+    local.get 0   ; core.vader:223:54
+    struct.get 4 1   ; core.vader:223:54
+    local.set 2   ; core.vader:223:54
+    local.get 1   ; core.vader:223:39
+    local.get 2   ; core.vader:223:39
+    call 4   ; core.vader:223:39
+    local.set 5   ; core.vader:223:37
+  else   ; core.vader:223:17
+    local.get 0   ; core.vader:224:40
+    struct.get 4 3   ; core.vader:224:40
+    local.set 3   ; core.vader:224:40
+    local.get 0   ; core.vader:224:56
+    struct.get 4 1   ; core.vader:224:56
+    local.set 4   ; core.vader:224:56
+    local.get 3   ; core.vader:224:40
+    local.get 4   ; core.vader:224:40
+    call 5   ; core.vader:224:40
+    local.set 5   ; core.vader:224:38
+  end $L0   ; core.vader:223:17
+  local.get 5   ; core.vader:223:9
+  if $L1 void   ; core.vader:225:9
+    struct.new 2   ; core.vader:225:28
+    return   ; core.vader:225:21
+  else   ; core.vader:225:9
+    local.get 0   ; core.vader:226:14
+    struct.get 4 3   ; core.vader:226:14
+    local.set 6   ; core.vader:226:14
+    local.get 0   ; core.vader:227:23
+    struct.get 4 3   ; core.vader:227:23
+    call 6   ; core.vader:227:23
+    local.set 7   ; core.vader:227:23
+    local.get 0   ; core.vader:227:9
+    local.get 7   ; core.vader:227:9
+    struct.set 4 3   ; core.vader:227:9
+    local.get 6   ; core.vader:228:16
+    struct.new 3   ; core.vader:228:16
+    return   ; core.vader:228:9
+  end $L1   ; core.vader:225:9
 end
 
 fn 8 std_core$Range$Iterator$is_empty__i32 (ref) -> bool

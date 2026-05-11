@@ -223,30 +223,12 @@ function parseLhsGenericAliasDecl(
 function isImplDecl(p: Parser): boolean {
   let i = p.pos;
   let depth = 0;
-  // The bounded-impl prefix `[T: Bound] Foo[T] implements ...` puts a
-  // newline-terminated `]` between `Bound` and `Foo`. We allow exactly one
-  // newline immediately following a depth-0 `]` so the multi-line prefix
-  // form parses ; arbitrary newlines elsewhere still break the lookahead
-  // (preserves the existing top-level / non-impl-decl boundary).
-  let allowNewlineAfterRBracket = false;
   while (i < p.tokens.length) {
     const t = p.tokens[i]!;
-    if (t.kind === "eof") return false;
-    if (t.kind === "newline") {
-      if (allowNewlineAfterRBracket && depth === 0) {
-        allowNewlineAfterRBracket = false;
-        i++;
-        continue;
-      }
-      return false;
-    }
-    allowNewlineAfterRBracket = false;
+    if (t.kind === "eof" || t.kind === "newline") return false;
     if (t.kind === "kw_implements" && depth === 0) return true;
     if (t.kind === "lparen" || t.kind === "lbracket" || t.kind === "lbrace") depth++;
-    if (t.kind === "rparen" || t.kind === "rbracket" || t.kind === "rbrace") {
-      depth--;
-      if (t.kind === "rbracket" && depth === 0) allowNewlineAfterRBracket = true;
-    }
+    if (t.kind === "rparen" || t.kind === "rbracket" || t.kind === "rbrace") depth--;
     if (depth < 0) return false;
     i++;
   }
@@ -255,18 +237,16 @@ function isImplDecl(p: Parser): boolean {
 
 function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDecl {
   const startTok = p.peek();
-  // Optional bounded-generic impl prefix : `[T: Bound, U: Bound] Foo[T] ...`.
-  // When present, these type-params are the impl's own (with local bounds)
-  // ; references inside `forType` / `traitArgs` / member bodies resolve to
-  // them rather than to identifiers in the outer scope. Reuses the same
-  // `parseBracketedTypeParams` helper that fn/struct/trait heads use, so
-  // the `[T: A & B]` grammar matches everywhere it appears.
+  const forType = parseType(p);
+  p.expect("kw_implements", "`implements` keyword");
+  // Optional bounded-generic typeParam list immediately after `implements` :
+  // `Foo[T] implements[T: Bound] Trait[T] { … }`. Mirrors the `fn[T]` /
+  // `struct[T]` / `trait[T]` pattern — `[T]` always follows the keyword
+  // that introduces a typeParam scope. References inside `forType` /
+  // `traitArgs` / member bodies resolve against the bound symbols.
   const typeParams: readonly A.TypeParam[] = p.check("lbracket")
     ? parseBracketedTypeParams(p)
     : [];
-  p.skipNewlines();
-  const forType = parseType(p);
-  p.expect("kw_implements", "`implements` keyword");
   const traitTok = p.expect("ident", "trait name");
 
   // Optional generic args on the trait reference. Two forms during the

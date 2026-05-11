@@ -15,8 +15,7 @@ Wrap :: struct[T] { value: T }
 
 // Bounded generic impl. The body does NOT call any T method — we just
 // verify the syntax parses + resolves + monomorphises.
-[T: Tag]
-Wrap[T] implements Display {
+Wrap[T] implements[T: Tag] Display {
     to_string :: fn(self) -> string {
         return "wrapped"
     }

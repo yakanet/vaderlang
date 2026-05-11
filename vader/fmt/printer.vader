@@ -772,9 +772,11 @@ compute_fn_alignment_widths :: fn(members: FnDecl[]) -> usize[] {
 
 emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
     self.emit_decorators(d.decorators, expr_span(d.for_type).start.line)
-    // Bounded-generic impl prefix : `[T: Bound, U: Bound] Foo[T, U] implements …`.
-    // The prefix is emitted on its own line followed by the for-type/trait
-    // on the next, matching the SPEC-canonical layout for multi-bound impls.
+    self.emit_type_expr(d.for_type)
+    self.write(" implements")
+    // Bounded-generic typeParam list — `Foo[T] implements[T: Bound] Trait`.
+    // `[T]` always follows the keyword that opens its scope (here
+    // `implements`), mirroring `fn[T]` / `struct[T]` / `trait[T]`.
     if d.type_params.len() > usize(0) {
         self.write("[")
         i: usize = 0
@@ -792,10 +794,8 @@ emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
             i = i + usize(1)
         }
         self.write("]")
-        self.newline()
     }
-    self.emit_type_expr(d.for_type)
-    self.write(" implements ")
+    self.write(" ")
     self.write(d.trait_name)
     if d.trait_args.len() > usize(0) {
         self.write("[")
