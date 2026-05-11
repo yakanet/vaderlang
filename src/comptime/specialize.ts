@@ -142,7 +142,19 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
       // `Range[char] implements Iterator` must not produce a member entry
       // for the `Range[i32]` instance.
       if (!implForTypeMatches(d.forType, inst.args, implProgram)) continue;
-      const subst = buildSubst(structDecl.typeParams, inst.args, program);
+      // Two routes for building the call-site substitution :
+      //   - Legacy form `Foo[T] implements ...` with no impl-level
+      //     type-params : `T` aliases the *struct*'s type-param symbol, so
+      //     we substitute against `structDecl.typeParams` (resolved in the
+      //     struct's own program — `program` here).
+      //   - Bounded form `[T: Bound] Foo[T] implements ...` : `T` is the
+      //     impl's own type-param symbol (bound by `bindTypeParam` in
+      //     `resolveImplDecl`). Substitute against `decl.typeParams`, and
+      //     resolve symbols from `implProgram` since that's where the
+      //     impl-side typeParam symbols live.
+      const subst = d.typeParams.length > 0
+        ? buildSubst(d.typeParams, inst.args, implProgram)
+        : buildSubst(structDecl.typeParams, inst.args, program);
       for (const member of d.members) {
         const base = `${inst.symbol.name}$${d.traitName}$${member.name}`;
         const memberEntry = makeImplMemberEntry(

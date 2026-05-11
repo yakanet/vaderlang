@@ -54,8 +54,8 @@
                 b :Wrap(Dog)
     return int(0) :i32
   struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Cat { value: Cat }
-  fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat(self: Wrap($T)) -> string
+  fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat(self: Wrap(Cat)) -> string
     return "wrapped" :string
   struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Dog { value: Dog }
-  fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Dog(self: Wrap($T)) -> string
+  fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Dog(self: Wrap(Dog)) -> string
     return "wrapped" :string
