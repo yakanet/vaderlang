@@ -28,7 +28,7 @@
         let __step_1: Done | Yielded([string, i32]) =
           call :Done | Yielded([string, i32])
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :ArrayIter([string, i32])
         if :void

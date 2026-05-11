@@ -2,7 +2,7 @@
 
 ## tests/snippets/iter_defaults/_main.vader
 
-fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$step(%0: Countdown) -> Done | Yielded(i32)
+fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$next(%0: Countdown) -> Done | Yielded(i32)
   locals:
     %0 self: Countdown (param self)
     %1 $field_1#10: i32
@@ -53,7 +53,7 @@ fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$count(%0: Countdo
     %3 = unop not %2 :bool
     cond_branch %3 ? bb2 : bb3
   bb2:
-    %4 = call step(%0) :Done | Yielded(i32)
+    %4 = call next(%0) :Done | Yielded(i32)
     %5 = move %4
     %6 = type_check %5 is Done
     cond_branch %6 ? bb4 : bb5

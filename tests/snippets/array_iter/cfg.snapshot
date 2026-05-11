@@ -57,7 +57,7 @@ fn tests_snippets_array_iter__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %9 = call step(%7) :Done | Yielded(i32)
+    %9 = call next(%7) :Done | Yielded(i32)
     %10 = move %9
     %11 = type_check %10 is Done
     cond_branch %11 ? bb4 : bb5
@@ -92,7 +92,7 @@ fn tests_snippets_array_iter__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %25 = call step(%23) :Done | Yielded(i32)
+    %25 = call next(%23) :Done | Yielded(i32)
     %26 = move %25
     %27 = type_check %26 is Done
     cond_branch %27 ? bb10 : bb11

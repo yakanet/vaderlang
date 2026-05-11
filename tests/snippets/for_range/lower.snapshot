@@ -15,7 +15,7 @@
         let __step_1: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :Range(i32)
         if :void
@@ -71,7 +71,7 @@
         let __step_4: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_3 :Range(i32)
         if :void
@@ -127,7 +127,7 @@
         let __step_7: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_6 :Range(i32)
         if :void

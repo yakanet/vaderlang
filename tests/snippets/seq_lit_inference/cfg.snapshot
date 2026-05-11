@@ -49,7 +49,7 @@ fn tests_snippets_seq_lit_inference__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %7 = call step(%6) :Done | Yielded(i32)
+    %7 = call next(%6) :Done | Yielded(i32)
     %8 = move %7
     %9 = type_check %8 is Done
     cond_branch %9 ? bb4 : bb5

@@ -16,7 +16,7 @@
         let __step_1: Done | Yielded(u64) =
           call :Done | Yielded(u64)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :Range(u64)
         if :void
@@ -73,7 +73,7 @@
         let __step_4: Done | Yielded(i64) =
           call :Done | Yielded(i64)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_3 :Range(i64)
         if :void
@@ -130,7 +130,7 @@
         let __step_7: Done | Yielded(isize) =
           call :Done | Yielded(isize)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_6 :Range(isize)
         if :void
@@ -191,7 +191,7 @@
         let __step_10: Done | Yielded(u8) =
           call :Done | Yielded(u8)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_9 :Range(u8)
         if :void
@@ -254,7 +254,7 @@
         let __step_13: Done | Yielded(i16) =
           call :Done | Yielded(i16)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_12 :Range(i16)
         if :void

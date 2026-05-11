@@ -184,7 +184,7 @@ function findIteratorStepImpl(ctx: FnLowerCtx, iterType: Type): StepImpl | null 
   const structArgs = iterType.kind === "Struct" ? iterType.args : [];
   const entry = lookupImplFor(ctx.project, iterType, iteratorSym);
   if (entry === null) return null;
-  const stepDecl = entry.decl.members.find((m) => m.name === "step");
+  const stepDecl = entry.decl.members.find((m) => m.name === "next");
   if (stepDecl === undefined) return null;
   const monoEntry = lookupImplEntry(ctx, stepDecl, structArgs);
   if (monoEntry === null || monoEntry.symbol === null) return null;

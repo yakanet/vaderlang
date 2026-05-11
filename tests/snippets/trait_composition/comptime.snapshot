@@ -1,27 +1,3 @@
 # Comptime
 
 ## tests/snippets/trait_composition/_main.vader
-
-## generic instances
-  Yielded(char)
-  Yielded(i16)
-  Yielded(i32)
-  Yielded(i64)
-  Yielded(i8)
-  Yielded(isize)
-  Yielded(u16)
-  Yielded(u32)
-  Yielded(u64)
-  Yielded(u8)
-  Yielded(usize)
-  Range(char)
-  Range(i16)
-  Range(i32)
-  Range(i64)
-  Range(i8)
-  Range(isize)
-  Range(u16)
-  Range(u32)
-  Range(u64)
-  Range(u8)
-  Range(usize)

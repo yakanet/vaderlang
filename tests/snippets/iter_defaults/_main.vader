@@ -7,7 +7,7 @@ import "std/io" { println }
 Countdown :: struct { remaining: i32 }
 
 Countdown implements Iterator(i32) {
-    step :: fn(self) -> Done | Yielded(i32) {
+    next :: fn(self) -> Done | Yielded(i32) {
         if self.remaining <= 0 { return Done {} }
         v :: self.remaining
         self.remaining = self.remaining - 1

@@ -770,7 +770,19 @@ function methodBoundFnType(method: MethodResolution, t: MutableTyped): Type {
   const recv = method.receiverType;
   if (recv.kind === "Struct") {
     const structDecl = sourceStructDecl(recv.symbol);
-    const subst = structDecl !== null ? tryStructSubst(structDecl, recv.args, t.globals) : null;
+    const structSubst = structDecl !== null
+      ? tryStructSubst(structDecl, recv.args, t.globals) : null;
+    // Bounded-generic impl bodies reference the impl's own type-params,
+    // not the struct's. Layer the impl-side substitution on top so signature
+    // / return types written in terms of impl-T (e.g. `Range[T]`'s default
+    // `last(self) -> T | null` after trait-arg propagation) resolve to the
+    // concrete struct args at the call site.
+    const implDecl = method.impl.decl;
+    let implSubst: Substitution | null = null;
+    if (implDecl.typeParams.length > 0) {
+      implSubst = buildStructSubst(implDecl.typeParams, recv.args, t.globals.typeParamSymbols);
+    }
+    const subst = mergeSubst(structSubst, implSubst);
     if (subst !== null) {
       return {
         kind: "Fn",
@@ -781,6 +793,15 @@ function methodBoundFnType(method: MethodResolution, t: MutableTyped): Type {
   }
 
   return { kind: "Fn", params, returnType: fnType.returnType };
+}
+
+function mergeSubst(a: Substitution | null, b: Substitution | null): Substitution | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  const map = new Map<number, Type>();
+  if (a.typeParams !== undefined) for (const [k, v] of a.typeParams) map.set(k, v);
+  if (b.typeParams !== undefined) for (const [k, v] of b.typeParams) map.set(k, v);
+  return { typeParams: map, self: a.self ?? b.self };
 }
 
 /** True if `t` contains at least one `TypeParam` node. */

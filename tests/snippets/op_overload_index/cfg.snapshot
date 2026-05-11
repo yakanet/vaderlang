@@ -34,7 +34,7 @@ fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: stri
   bb1:
     branch -> bb2
   bb2:
-    %8 = call step(%6) :Done | Yielded(string)
+    %8 = call next(%6) :Done | Yielded(string)
     %9 = move %8
     %10 = type_check %9 is Done
     cond_branch %10 ? bb4 : bb5
@@ -93,7 +93,7 @@ fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %
   bb1:
     branch -> bb2
   bb2:
-    %9 = call step(%7) :Done | Yielded(string)
+    %9 = call next(%7) :Done | Yielded(string)
     %10 = move %9
     %11 = type_check %10 is Done
     cond_branch %11 ? bb4 : bb5

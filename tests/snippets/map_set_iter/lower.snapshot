@@ -47,7 +47,7 @@
         let __step_1: Done | Yielded(Entry(string, i32)) =
           call :Done | Yielded(Entry(string, i32))
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :MapIter(string, i32)
         if :void
@@ -133,7 +133,7 @@
         let __step_4: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_3 :SetIter(i32)
         if :void

@@ -109,7 +109,7 @@ fn tests_snippets_implicit_dot_variant__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %9 = call step(%8) :Done | Yielded(Day)
+    %9 = call next(%8) :Done | Yielded(Day)
     %10 = move %9
     %11 = type_check %10 is Done
     cond_branch %11 ? bb4 : bb5

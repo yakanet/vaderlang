@@ -162,7 +162,13 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         }
         const method = ctx.typed.methodResolutions.get(expr.callee);
         if (method !== undefined) {
-          const recv = method.receiverType;
+          // Apply the current entry's substitution to the receiver so that
+          // when this call lives inside a generic impl member (e.g. a default
+          // `count` cloned into `Range[T]`), the lookup sees concrete args
+          // like `[i32]` rather than `[TypeParam($T)]`. Without this, the
+          // mono entry indexed by `i32` was never reached and the call fell
+          // into the empty virtual-dispatch fallback.
+          const recv = ctx.types.apply(method.receiverType);
           const args = recv.kind === "Struct" ? recv.args : [];
           const entry = lookupImplEntry(ctx, method.member, args);
           if (entry !== null && entry.symbol !== null) {

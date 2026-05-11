@@ -22,7 +22,7 @@
         let __step_1: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :StringChars
         if :void
@@ -73,7 +73,7 @@
         let __step_4: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_3 :StringChars
         if :void
@@ -116,7 +116,7 @@
         let __step_7: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_6 :StringChars
         if :void
@@ -189,7 +189,7 @@
         let __step_10: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_9 :StringChars
         if :void

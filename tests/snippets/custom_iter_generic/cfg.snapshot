@@ -28,7 +28,7 @@ fn tests_snippets_custom_iter_generic__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %4 = call step(%2) :Done | Yielded(i32)
+    %4 = call next(%2) :Done | Yielded(i32)
     %5 = move %4
     %6 = type_check %5 is Done
     cond_branch %6 ? bb4 : bb5
@@ -52,7 +52,7 @@ fn tests_snippets_custom_iter_generic__main_vader$main() -> i32
     %3 = move %14
     branch -> bb1
 
-fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$step__i32(%0: Repeat(i32)) -> Done | Yielded(i32)
+fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$next__i32(%0: Repeat(i32)) -> Done | Yielded(i32)
   locals:
     %0 self: Repeat(i32) (param self)
     %1 $field_1#10: i32

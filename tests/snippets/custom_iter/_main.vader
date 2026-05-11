@@ -6,7 +6,7 @@ export Countdown :: struct {
 }
 
 Countdown implements Iterator(i32) {
-    step :: fn(self) -> Done | Yielded(i32) {
+    next :: fn(self) -> Done | Yielded(i32) {
         if (self.current <= 0) {
             return Done {}
         }

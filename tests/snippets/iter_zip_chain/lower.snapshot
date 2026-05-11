@@ -92,7 +92,7 @@
         let __step_3: Done | Yielded([string, i32]) =
           call :Done | Yielded([string, i32])
             callee:
-              step :?
+              next :?
             arg0:
               __iter_2 :ArrayIter([string, i32])
         if :void
@@ -165,7 +165,7 @@
         let __step_7: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_6 :ArrayIter(i32)
         if :void
@@ -224,7 +224,7 @@
         let __step_11: Done | Yielded([usize, string]) =
           call :Done | Yielded([usize, string])
             callee:
-              step :?
+              next :?
             arg0:
               __iter_10 :ArrayIter([usize, string])
         if :void
@@ -291,7 +291,7 @@
         let __step_16: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_15 :ArrayIter(i32)
         if :void

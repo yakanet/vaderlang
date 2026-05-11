@@ -76,7 +76,7 @@
         let __step_1: Done | Yielded(Day) =
           call :Done | Yielded(Day)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :ArrayIter(Day)
         if :void

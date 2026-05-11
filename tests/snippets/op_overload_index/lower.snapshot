@@ -18,7 +18,7 @@
         let __step_1: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :ArrayIter(string)
         if :void
@@ -73,7 +73,7 @@
         let __step_1: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :ArrayIter(string)
         if :void

@@ -3,27 +3,3 @@
 ## tests/snippets/tuple_comptime/_main.vader
   @comptime  DIM                  = [i32, i32] { ._0 = 10_i32, ._1 = 20_i32 }
   @comptime  ORIGIN               = [f64, f64, string] { ._0 = 0_f64, ._1 = 0_f64, ._2 = "origin" }
-
-## generic instances
-  Yielded(char)
-  Yielded(i16)
-  Yielded(i32)
-  Yielded(i64)
-  Yielded(i8)
-  Yielded(isize)
-  Yielded(u16)
-  Yielded(u32)
-  Yielded(u64)
-  Yielded(u8)
-  Yielded(usize)
-  Range(char)
-  Range(i16)
-  Range(i32)
-  Range(i64)
-  Range(i8)
-  Range(isize)
-  Range(u16)
-  Range(u32)
-  Range(u64)
-  Range(u8)
-  Range(usize)

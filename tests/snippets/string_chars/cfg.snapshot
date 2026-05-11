@@ -73,7 +73,7 @@ fn tests_snippets_string_chars__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %5 = call step(%4) :Done | Yielded(char)
+    %5 = call next(%4) :Done | Yielded(char)
     %6 = move %5
     %7 = type_check %6 is Done
     cond_branch %7 ? bb4 : bb5
@@ -102,7 +102,7 @@ fn tests_snippets_string_chars__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %13 = call step(%12) :Done | Yielded(char)
+    %13 = call next(%12) :Done | Yielded(char)
     %14 = move %13
     %15 = type_check %14 is Done
     cond_branch %15 ? bb10 : bb11
@@ -129,7 +129,7 @@ fn tests_snippets_string_chars__main_vader$main() -> i32
   bb13:
     branch -> bb14
   bb14:
-    %20 = call step(%18) :Done | Yielded(char)
+    %20 = call next(%18) :Done | Yielded(char)
     %21 = move %20
     %22 = type_check %21 is Done
     cond_branch %22 ? bb16 : bb17
@@ -166,7 +166,7 @@ fn tests_snippets_string_chars__main_vader$main() -> i32
   bb19:
     branch -> bb20
   bb20:
-    %36 = call step(%35) :Done | Yielded(char)
+    %36 = call next(%35) :Done | Yielded(char)
     %37 = move %36
     %38 = type_check %37 is Done
     cond_branch %38 ? bb22 : bb23

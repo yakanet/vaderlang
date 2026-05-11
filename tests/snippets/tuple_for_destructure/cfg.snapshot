@@ -48,7 +48,7 @@ fn tests_snippets_tuple_for_destructure__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %13 = call step(%12) :Done | Yielded([string, i32])
+    %13 = call next(%12) :Done | Yielded([string, i32])
     %14 = move %13
     %15 = type_check %14 is Done
     cond_branch %15 ? bb4 : bb5

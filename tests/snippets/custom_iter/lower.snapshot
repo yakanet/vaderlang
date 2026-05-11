@@ -2,7 +2,7 @@
 
 ## tests/snippets/custom_iter/_main.vader
   struct tests_snippets_custom_iter__main_vader$Countdown { current: i32 }
-  fn tests_snippets_custom_iter__main_vader$Countdown$Iterator$step(self: Countdown) -> Done | Yielded(i32)
+  fn tests_snippets_custom_iter__main_vader$Countdown$Iterator$next(self: Countdown) -> Done | Yielded(i32)
     if :void
       cond:
         lte :bool
@@ -39,7 +39,7 @@
         let __scrut_0: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :Done | Yielded(i32)
+              next :Done | Yielded(i32)
             arg0:
               self :Countdown
         ~>
@@ -71,7 +71,7 @@
           let __scrut_0: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
-                step :Done | Yielded(i32)
+                next :Done | Yielded(i32)
               arg0:
                 self :Countdown
           ~>
@@ -118,7 +118,7 @@
           let __scrut_0: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
-                step :Done | Yielded(i32)
+                next :Done | Yielded(i32)
               arg0:
                 self :Countdown
           ~>
@@ -167,7 +167,7 @@
         let __step_1: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :Countdown
         if :void

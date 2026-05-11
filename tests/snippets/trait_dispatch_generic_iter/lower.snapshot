@@ -8,7 +8,7 @@
       ~>
         block :void
           let __scrut_0: Done | Yielded(i32) =
-            vcall Iterator.step :Done | Yielded(i32)
+            vcall Iterator.next :Done | Yielded(i32)
               recv:
                 it :Iterator(i32)
           ~>
@@ -111,7 +111,7 @@
                   __sb_1 :?
     return int(0) :i32
   struct tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat__i32 { value: i32, remaining: i32 }
-  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$step__i32(self: Repeat(i32)) -> Done | Yielded(i32)
+  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$next__i32(self: Repeat(i32)) -> Done | Yielded(i32)
     if :void
       cond:
         lte :bool
@@ -148,8 +148,9 @@
         let __scrut_0: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              .step :fn() -> Done | Yielded(i32)
-                self :Repeat(i32)
+              next :Done | Yielded(i32)
+            arg0:
+              self :Repeat(i32)
         ~>
           if :bool
             cond:
@@ -179,8 +180,9 @@
           let __scrut_0: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
-                .step :fn() -> Done | Yielded(i32)
-                  self :Repeat(i32)
+                next :Done | Yielded(i32)
+              arg0:
+                self :Repeat(i32)
           ~>
             if :void
               cond:
@@ -225,8 +227,9 @@
           let __scrut_0: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
-                .step :fn() -> Done | Yielded(i32)
-                  self :Repeat(i32)
+                next :Done | Yielded(i32)
+              arg0:
+                self :Repeat(i32)
           ~>
             if :void
               cond:
@@ -263,7 +266,7 @@
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return result :i32 | null
   struct tests_snippets_trait_dispatch_generic_iter__main_vader$Once__i32 { value: i32, yielded: bool }
-  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$step__i32(self: Once(i32)) -> Done | Yielded(i32)
+  fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$next__i32(self: Once(i32)) -> Done | Yielded(i32)
     if :void
       cond:
         .yielded :bool
@@ -290,8 +293,9 @@
         let __scrut_0: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              .step :fn() -> Done | Yielded(i32)
-                self :Once(i32)
+              next :Done | Yielded(i32)
+            arg0:
+              self :Once(i32)
         ~>
           if :bool
             cond:
@@ -321,8 +325,9 @@
           let __scrut_0: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
-                .step :fn() -> Done | Yielded(i32)
-                  self :Once(i32)
+                next :Done | Yielded(i32)
+              arg0:
+                self :Once(i32)
           ~>
             if :void
               cond:
@@ -367,8 +372,9 @@
           let __scrut_0: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
-                .step :fn() -> Done | Yielded(i32)
-                  self :Once(i32)
+                next :Done | Yielded(i32)
+              arg0:
+                self :Once(i32)
           ~>
             if :void
               cond:

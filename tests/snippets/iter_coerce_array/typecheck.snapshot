@@ -5,8 +5,8 @@
   FnDecl         make_iter            :: fn() -> Iterator(i32)
   FnDecl         walk                 :: fn(Iterator(i32)) -> i32
   expr 15:9     IdentExpr      :: bool
-  expr 16:15    CallExpr       :: Done | Yielded(i32)
-  expr 16:15    FieldExpr      :: fn() -> Done | Yielded(i32)
+  expr 16:15    CallExpr       :: ?
+  expr 16:15    FieldExpr      :: ?
   expr 16:15    IdentExpr      :: Iterator(i32)
   expr 16:9     MatchExpr      :: void
   expr 17:26    IdentExpr      :: bool
@@ -40,3 +40,6 @@
   expr 41:32    IdentExpr      :: i32
   expr 41:5     CallExpr       :: void
   expr 41:5     IdentExpr      :: fn(Display) -> void
+
+# Diagnostics
+[16:18] error[T3009] field does not exist on this type: `step` on Iterator(i32)

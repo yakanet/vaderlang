@@ -249,7 +249,7 @@ export iter :: fn[K, V](self: MutableMap(K, V)) -> MapIter(K, V) {
 }
 
 MapIter[K, V] implements Iterator[Entry(K, V)] {
-    step :: fn(self) -> Done | Yielded(Entry(K, V)) {
+    next :: fn(self) -> Done | Yielded(Entry(K, V)) {
         finished := false
         for !finished {
             // Bind the chain cursor to a local so match narrowing applies —
@@ -339,7 +339,7 @@ export iter :: fn[T](self: MutableSet(T)) -> SetIter(T) {
 }
 
 SetIter[T] implements Iterator[T] {
-    step :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Done | Yielded(T) {
         finished := false
         for !finished {
             // Mirror MapIter's narrowing dance — match needs a local binding,

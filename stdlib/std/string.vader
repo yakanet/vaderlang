@@ -53,7 +53,7 @@ export StringBytes :: struct {
 }
 
 StringBytes implements Iterator(u8) {
-    step :: fn(self) -> Done | Yielded(u8) {
+    next :: fn(self) -> Done | Yielded(u8) {
         if (self.cursor >= self.length) {
             return Done {}
         }
@@ -87,7 +87,7 @@ export StringChars :: struct {
 }
 
 StringChars implements Iterator(char) {
-    step :: fn(self) -> Done | Yielded(char) {
+    next :: fn(self) -> Done | Yielded(char) {
         if (self.cursor >= self.length) {
             return Done {}
         }

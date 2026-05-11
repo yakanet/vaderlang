@@ -246,7 +246,7 @@
         let __step_1: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :Range(char)
         if :void
@@ -302,7 +302,7 @@
         let __step_4: Done | Yielded(char) =
           call :Done | Yielded(char)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_3 :Range(char)
         if :void

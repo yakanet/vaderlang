@@ -7,15 +7,16 @@
     loop while (cont :bool)
       ~>
         block :void
-          let __scrut_0: Done | Yielded(i32) =
-            vcall Iterator.step :Done | Yielded(i32)
-              recv:
-                it :Iterator(i32)
+          let __scrut_0: ? =
+            call :?
+              callee:
+                .step :?
+                  it :Iterator(i32)
           ~>
             if :void
               cond:
                 is Done :bool
-                  __scrut_0 :Done | Yielded(i32)
+                  __scrut_0 :?
               then:
                 ~>
                   block :void
@@ -29,11 +30,11 @@
                   if :void
                     cond:
                       is Yielded(i32) :bool
-                        __scrut_0 :Done | Yielded(i32)
+                        __scrut_0 :?
                     then:
                       let y: Yielded(i32) =
                         cast → Yielded(i32)
-                          __scrut_0 :Done | Yielded(i32)
+                          __scrut_0 :?
                       ~>
                         block :void
                           assign
@@ -166,3 +167,6 @@
                 @builder.finish :string
                   __sb_3 :?
     return int(0) :i32
+
+# Diagnostics
+[16:18] error[T3009] field does not exist on this type: `step` on Iterator(i32)

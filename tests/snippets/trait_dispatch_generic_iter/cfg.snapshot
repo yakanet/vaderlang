@@ -23,7 +23,7 @@ fn tests_snippets_trait_dispatch_generic_iter__main_vader$walk(%0: Iterator(i32)
   bb1:
     cond_branch %2 ? bb2 : bb3
   bb2:
-    %3 = vcall Iterator.step(recv=%0) :Done | Yielded(i32)
+    %3 = vcall Iterator.next(recv=%0) :Done | Yielded(i32)
     %4 = move %3
     %5 = type_check %4 is Done
     cond_branch %5 ? bb4 : bb5
@@ -101,7 +101,7 @@ fn tests_snippets_trait_dispatch_generic_iter__main_vader$main() -> i32
     %18 = const int(0) :i32
     return %18
 
-fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$step__i32(%0: Repeat(i32)) -> Done | Yielded(i32)
+fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$next__i32(%0: Repeat(i32)) -> Done | Yielded(i32)
   locals:
     %0 self: Repeat(i32) (param self)
     %1 $field_1#10: i32
@@ -130,7 +130,7 @@ fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$step__
     %9 = struct_new Yielded(i32)(%5)
     return %9
 
-fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$step__i32(%0: Once(i32)) -> Done | Yielded(i32)
+fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$next__i32(%0: Once(i32)) -> Done | Yielded(i32)
   locals:
     %0 self: Once(i32) (param self)
     %1 $field_1#6: bool

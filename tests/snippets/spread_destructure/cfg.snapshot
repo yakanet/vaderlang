@@ -128,7 +128,7 @@ fn tests_snippets_spread_destructure__main_vader$main() -> i32
   bb4:
     branch -> bb5
   bb5:
-    %25 = call step(%24) :Done | Yielded(i32)
+    %25 = call next(%24) :Done | Yielded(i32)
     %26 = move %25
     %27 = type_check %26 is Done
     cond_branch %27 ? bb7 : bb8
@@ -214,7 +214,7 @@ fn tests_snippets_spread_destructure__main_vader$main() -> i32
   bb16:
     branch -> bb17
   bb17:
-    %63 = call step(%62) :Done | Yielded(i32)
+    %63 = call next(%62) :Done | Yielded(i32)
     %64 = move %63
     %65 = type_check %64 is Done
     cond_branch %65 ? bb19 : bb20

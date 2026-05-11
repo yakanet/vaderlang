@@ -158,7 +158,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %33 = call step(%32) :Done | Yielded([string, i32])
+    %33 = call next(%32) :Done | Yielded([string, i32])
     %34 = move %33
     %35 = type_check %34 is Done
     cond_branch %35 ? bb4 : bb5
@@ -198,7 +198,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %48 = call step(%47) :Done | Yielded(i32)
+    %48 = call next(%47) :Done | Yielded(i32)
     %49 = move %48
     %50 = type_check %49 is Done
     cond_branch %50 ? bb10 : bb11
@@ -232,7 +232,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb13:
     branch -> bb14
   bb14:
-    %60 = call step(%59) :Done | Yielded([usize, string])
+    %60 = call next(%59) :Done | Yielded([usize, string])
     %61 = move %60
     %62 = type_check %61 is Done
     cond_branch %62 ? bb16 : bb17
@@ -271,7 +271,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb19:
     branch -> bb20
   bb20:
-    %74 = call step(%73) :Done | Yielded(i32)
+    %74 = call next(%73) :Done | Yielded(i32)
     %75 = move %74
     %76 = type_check %75 is Done
     cond_branch %76 ? bb22 : bb23

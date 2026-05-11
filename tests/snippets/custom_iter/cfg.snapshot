@@ -2,7 +2,7 @@
 
 ## tests/snippets/custom_iter/_main.vader
 
-fn tests_snippets_custom_iter__main_vader$Countdown$Iterator$step(%0: Countdown) -> Done | Yielded(i32)
+fn tests_snippets_custom_iter__main_vader$Countdown$Iterator$next(%0: Countdown) -> Done | Yielded(i32)
   locals:
     %0 self: Countdown (param self)
     %1 $field_1#10: i32
@@ -52,7 +52,7 @@ fn tests_snippets_custom_iter__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %2 = call step(%1) :Done | Yielded(i32)
+    %2 = call next(%1) :Done | Yielded(i32)
     %3 = move %2
     %4 = type_check %3 is Done
     cond_branch %4 ? bb4 : bb5

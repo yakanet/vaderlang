@@ -25,7 +25,7 @@
         let __step_1: Done | Yielded(u8) =
           call :Done | Yielded(u8)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :StringBytes
         if :void
@@ -89,7 +89,7 @@
         let __step_4: Done | Yielded(u8) =
           call :Done | Yielded(u8)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_3 :StringBytes
         if :void
@@ -238,7 +238,7 @@
         let __step_9: Done | Yielded(u8) =
           call :Done | Yielded(u8)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_8 :StringBytes
         if :void

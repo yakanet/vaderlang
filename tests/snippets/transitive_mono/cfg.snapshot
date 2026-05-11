@@ -74,7 +74,7 @@ fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__ma
   bb1:
     branch -> bb2
   bb2:
-    %5 = call step(%3) :Done | Yielded(i32)
+    %5 = call next(%3) :Done | Yielded(i32)
     %6 = move %5
     %7 = type_check %6 is Done
     cond_branch %7 ? bb4 : bb5
@@ -111,7 +111,7 @@ fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__ma
   bb1:
     branch -> bb2
   bb2:
-    %5 = call step(%3) :Done | Yielded(string)
+    %5 = call next(%3) :Done | Yielded(string)
     %6 = move %5
     %7 = type_check %6 is Done
     cond_branch %7 ? bb4 : bb5

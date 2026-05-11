@@ -73,7 +73,7 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %12 = call step(%10) :Done | Yielded(Entry(string, i32))
+    %12 = call next(%10) :Done | Yielded(Entry(string, i32))
     %13 = move %12
     %14 = type_check %13 is Done
     cond_branch %14 ? bb4 : bb5
@@ -114,7 +114,7 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %33 = call step(%31) :Done | Yielded(i32)
+    %33 = call next(%31) :Done | Yielded(i32)
     %34 = move %33
     %35 = type_check %34 is Done
     cond_branch %35 ? bb10 : bb11

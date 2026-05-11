@@ -7,7 +7,7 @@ export Repeat :: struct[T] {
 }
 
 Repeat[T] implements Iterator[T] {
-    step :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Done | Yielded(T) {
         if (self.remaining <= 0) {
             return Done {}
         }

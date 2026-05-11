@@ -5,17 +5,18 @@
 fn tests_snippets_iter_coerce_array__main_vader$walk(%0: Iterator(i32)) -> i32
   locals:
     %0 it: Iterator(i32) (param it)
-    %1 sum#11: i32 (local sum)
-    %2 cont#12: bool (local cont)
-    %3 $vcall_5#13: Done | Yielded(i32)
-    %4 __scrut_0#14: Done | Yielded(i32) (synthetic __scrut_0)
-    %5 $type_check_7#15: bool
-    %6 $type_check_9#17: bool
-    %7 y#18: Yielded(i32) (binding y)
-    %8 $field_12#19: i32
-    %9 sum#20: i32 (local sum)
-    %10 sum#21: i32 (local sum)
-    %11 cont#22: bool (local cont)
+    %1 sum#12: i32 (local sum)
+    %2 cont#13: bool (local cont)
+    %3 $field_5#14: ?
+    %4 $call_ind_6#15: ?
+    %5 __scrut_0#16: ? (synthetic __scrut_0)
+    %6 $type_check_8#17: bool
+    %7 $type_check_10#19: bool
+    %8 y#20: Yielded(i32) (binding y)
+    %9 $field_13#21: i32
+    %10 sum#22: i32 (local sum)
+    %11 sum#23: i32 (local sum)
+    %12 cont#24: bool (local cont)
   bb0:
     %1 = const int(0) :i32
     %2 = const bool(true) :bool
@@ -23,33 +24,34 @@ fn tests_snippets_iter_coerce_array__main_vader$walk(%0: Iterator(i32)) -> i32
   bb1:
     cond_branch %2 ? bb2 : bb3
   bb2:
-    %3 = vcall Iterator.step(recv=%0) :Done | Yielded(i32)
-    %4 = move %3
-    %5 = type_check %4 is Done
-    cond_branch %5 ? bb4 : bb5
+    %3 = field_get %0.step :?
+    %4 = call_indirect %3() :?
+    %5 = move %4
+    %6 = type_check %5 is Done
+    cond_branch %6 ? bb4 : bb5
   bb3:
     return %1
   bb4:
-    %11 = const bool(false) :bool
-    %10 = move %1
+    %12 = const bool(false) :bool
+    %11 = move %1
     branch -> bb6
   bb5:
-    %6 = type_check %4 is Yielded(i32)
-    cond_branch %6 ? bb7 : bb8
+    %7 = type_check %5 is Yielded(i32)
+    cond_branch %7 ? bb7 : bb8
   bb6:
-    %1 = move %10
-    %2 = move %11
+    %1 = move %11
+    %2 = move %12
     branch -> bb1
   bb7:
-    %7 = cast %4 :Yielded(i32)
-    %8 = field_get %7.value :i32
-    %9 = binop add %1 %8 :i32
+    %8 = cast %5 :Yielded(i32)
+    %9 = field_get %8.value :i32
+    %10 = binop add %1 %9 :i32
     branch -> bb9
   bb8:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb9:
-    %10 = move %9
-    %11 = move %2
+    %11 = move %10
+    %12 = move %2
     branch -> bb6
 
 fn tests_snippets_iter_coerce_array__main_vader$make_iter() -> Iterator(i32)
@@ -158,3 +160,6 @@ fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
     call println(%36) :void
     %37 = const int(0) :i32
     return %37
+
+# Diagnostics
+[16:18] error[T3009] field does not exist on this type: `step` on Iterator(i32)

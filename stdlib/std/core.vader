@@ -52,6 +52,15 @@ export Hash :: trait {
     hash :: fn(self) -> u64
 }
 
+/// Advance one position along a discrete sequence. Sole obligation : `step()`
+/// returns the *next* value after `self`. Used by `Range[T : Step & Comparable]
+/// implements Iterator[T]` so a single generic impl covers every integer
+/// width plus `char` — concrete `+ 1` / codepoint-bump logic lives in each
+/// primitive's `Step` impl instead of being repeated per `Range[T]` impl.
+export Step :: trait {
+    step :: fn(self) -> Self
+}
+
 /// Explicit deep copy. `clone(x)` (free function) dispatches into this
 /// when `T: Clone` ; primitive types don't need it (value-typed by
 /// default).
@@ -90,20 +99,21 @@ export Contains :: trait[T] {
 }
 
 /// Pull-based iterator. The lowerer dispatches `for x in iter` through
-/// the impl table — users never call `step` directly. `count` / `last` /
-/// `is_empty` are default methods derived from `step` (Layer 8d) ; every
+/// the impl table — users never call `next` directly. `count` / `last` /
+/// `is_empty` are default methods derived from `next` (Layer 8d) ; every
 /// `Iterator` impl picks them up without re-implementing.
 ///
-/// `step()` returns `Done` when the iteration is exhausted, or
+/// `next()` returns `Done` when the iteration is exhausted, or
 /// `Yielded(T)` carrying the next value.
 export Iterator :: trait[T] {
-    step :: fn(self) -> Done | Yielded(T)
+    next :: fn(self) -> Done | Yielded(T)
 
-    // True iff the next `step()` returns `Done`. Drains exactly one step ;
-    // a `false` result has *consumed* the first yielded item already (the
-    // iterator is one step ahead from the caller's perspective). Reflects
-    // the pull-based shape — there's no peek without an internal buffer.
-    is_empty :: fn(self) -> bool = match self.step() {
+    // True iff the next `next()` call returns `Done`. Drains exactly one
+    // step ; a `false` result has *consumed* the first yielded item already
+    // (the iterator is one step ahead from the caller's perspective).
+    // Reflects the pull-based shape — there's no peek without an internal
+    // buffer.
+    is_empty :: fn(self) -> bool = match self.next() {
         is Done       -> true
         is Yielded(T) -> false
     }
@@ -114,7 +124,7 @@ export Iterator :: trait[T] {
         total: usize = 0
         finished := false
         for !finished {
-            match self.step() {
+            match self.next() {
                 is Done       -> { finished = true }
                 is Yielded(T) -> { total = total + 1 }
             }
@@ -128,7 +138,7 @@ export Iterator :: trait[T] {
         result: T | null = null
         finished := false
         for !finished {
-            match self.step() {
+            match self.next() {
                 is Done            -> { finished = true }
                 is Yielded(T) as y -> { result = y.value }
             }
@@ -172,205 +182,33 @@ export Range :: struct[T] {
     cursor:    T
 }
 
-Range[i32] implements Contains[i32] {
-    contains :: fn(self, value: i32) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
+// Single bounded generic impl pair covering every integer width plus `char`.
+// `T : Comparable & Step` lets the bodies dispatch `lt`/`lte`/`gt`/`gte`
+// to T's `Comparable` impl and the advance step to T's `Step` impl —
+// concrete `+ 1` / codepoint-bump logic lives in those per-primitive impls
+// in this same file (search for `implements Step` and `implements
+// Comparable`). The mono pass materialises one specialisation per concrete
+// `Range[T]` instance the program uses ; the lowerer routes each method
+// call to the right primitive impl statically.
+
+[T: Comparable & Step]
+Range[T] implements Contains[T] {
+    contains :: fn(self, value: T) -> bool {
+        if value.lt(self.start) { return false }
+        if self.inclusive       { return value.lte(self.end) }
+        return value.lt(self.end)
     }
 }
 
-Range[char] implements Contains[char] {
-    contains :: fn(self, value: char) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-
-Range[i32] implements Iterator[i32] {
-    step :: fn(self) -> Done | Yielded(i32) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
+[T: Comparable & Step]
+Range[T] implements Iterator[T] {
+    next :: fn(self) -> Done | Yielded(T) {
+        done :: if (self.inclusive) { self.cursor.gt(self.end) }
+                else                 { self.cursor.gte(self.end) }
         if (done) { return Done {} }
         v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(i32) { .value = v }
-    }
-}
-
-Range[usize] implements Contains[usize] {
-    contains :: fn(self, value: usize) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-
-Range[usize] implements Iterator[usize] {
-    step :: fn(self) -> Done | Yielded(usize) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(usize) { .value = v }
-    }
-}
-
-Range[i8] implements Contains[i8] {
-    contains :: fn(self, value: i8) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-Range[i8] implements Iterator[i8] {
-    step :: fn(self) -> Done | Yielded(i8) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(i8) { .value = v }
-    }
-}
-
-Range[i16] implements Contains[i16] {
-    contains :: fn(self, value: i16) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-Range[i16] implements Iterator[i16] {
-    step :: fn(self) -> Done | Yielded(i16) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(i16) { .value = v }
-    }
-}
-
-Range[i64] implements Contains[i64] {
-    contains :: fn(self, value: i64) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-Range[i64] implements Iterator[i64] {
-    step :: fn(self) -> Done | Yielded(i64) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(i64) { .value = v }
-    }
-}
-
-Range[isize] implements Contains[isize] {
-    contains :: fn(self, value: isize) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-Range[isize] implements Iterator[isize] {
-    step :: fn(self) -> Done | Yielded(isize) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(isize) { .value = v }
-    }
-}
-
-Range[u8] implements Contains[u8] {
-    contains :: fn(self, value: u8) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-Range[u8] implements Iterator[u8] {
-    step :: fn(self) -> Done | Yielded(u8) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(u8) { .value = v }
-    }
-}
-
-Range[u16] implements Contains[u16] {
-    contains :: fn(self, value: u16) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-Range[u16] implements Iterator[u16] {
-    step :: fn(self) -> Done | Yielded(u16) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(u16) { .value = v }
-    }
-}
-
-Range[u32] implements Contains[u32] {
-    contains :: fn(self, value: u32) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-Range[u32] implements Iterator[u32] {
-    step :: fn(self) -> Done | Yielded(u32) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(u32) { .value = v }
-    }
-}
-
-Range[u64] implements Contains[u64] {
-    contains :: fn(self, value: u64) -> bool {
-        if value < self.start { return false }
-        if self.inclusive     { return value <= self.end }
-        return value < self.end
-    }
-}
-Range[u64] implements Iterator[u64] {
-    step :: fn(self) -> Done | Yielded(u64) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = self.cursor + 1
-        return Yielded(u64) { .value = v }
-    }
-}
-
-// `char` has no `+ i32` op ; advance via u32 round-trip.
-Range[char] implements Iterator[char] {
-    step :: fn(self) -> Done | Yielded(char) {
-        done :: if (self.inclusive) { self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        if (done) { return Done {} }
-        v :: self.cursor
-        self.cursor = char(u32(self.cursor) + u32(1))
-        return Yielded(char) { .value = v }
+        self.cursor = self.cursor.step()
+        return Yielded(T) { .value = v }
     }
 }
 
@@ -385,7 +223,7 @@ export ArrayIter :: struct[T] {
 }
 
 ArrayIter[T] implements Iterator[T] {
-    step :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Done | Yielded(T) {
         if (self.cursor >= self.length) { return Done {} }
         v :: self.arr[self.cursor]
         self.cursor = self.cursor + 1
@@ -462,6 +300,44 @@ usize implements Hash -> u64(self)
 char  implements Hash -> u64(self)
 
 @intrinsic string implements Hash
+
+// ---- Comparable -----------------------------------------------------------
+//
+// Three-way `compare` for every integer width plus `char`. Floats are
+// excluded — IEEE-754's NaN breaks total ordering, so an `Ord`-style trait
+// is the right shape for f32/f64 and is deferred. `lt`/`lte`/`gt`/`gte`
+// come from Comparable's default-method injection ; impls only provide
+// `compare`.
+
+i8    implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+i16   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+i32   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+i64   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+isize implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+u8    implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+u16   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+u32   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+u64   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+usize implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+char  implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+
+// ---- Step -----------------------------------------------------------------
+//
+// Discrete-successor logic per primitive. Every integer width bumps by 1 ;
+// `char` round-trips through u32 since it has no native `+ i32` op. Floats
+// are intentionally excluded — there's no canonical `next float` semantics.
+
+i8    implements Step -> self + 1
+i16   implements Step -> self + 1
+i32   implements Step -> self + 1
+i64   implements Step -> self + 1
+isize implements Step -> self + 1
+u8    implements Step -> self + 1
+u16   implements Step -> self + 1
+u32   implements Step -> self + 1
+u64   implements Step -> self + 1
+usize implements Step -> self + 1
+char  implements Step -> char(u32(self) + u32(1))
 
 // ---- Numeric arithmetic ---------------------------------------------------
 //

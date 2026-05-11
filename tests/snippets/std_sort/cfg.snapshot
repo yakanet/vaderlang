@@ -57,7 +57,7 @@ fn tests_snippets_std_sort__main_vader$print_ints(%0: i32[]) -> void
   bb1:
     branch -> bb2
   bb2:
-    %6 = call step(%3) :Done | Yielded(i32)
+    %6 = call next(%3) :Done | Yielded(i32)
     %7 = move %6
     %8 = type_check %7 is Done
     cond_branch %8 ? bb4 : bb5
@@ -135,7 +135,7 @@ fn tests_snippets_std_sort__main_vader$print_strings(%0: string[]) -> void
   bb1:
     branch -> bb2
   bb2:
-    %6 = call step(%3) :Done | Yielded(string)
+    %6 = call next(%3) :Done | Yielded(string)
     %7 = move %6
     %8 = type_check %7 is Done
     cond_branch %8 ? bb4 : bb5

@@ -15,7 +15,7 @@
     let a: i32 =
       call :i32
         callee:
-          count :i32
+          count :fn(Iterator($T)) -> i32
         arg0:
           Range(i32) {
             start: int(0) :i32
@@ -74,15 +74,16 @@
     loop while (cont :bool)
       ~>
         block :void
-          let __scrut_0: Done | Yielded(i32) =
-            vcall Iterator.step :Done | Yielded(i32)
-              recv:
-                it :Iterator(i32)
+          let __scrut_0: ? =
+            call :?
+              callee:
+                .step :?
+                  it :Iterator(i32)
           ~>
             if :void
               cond:
                 is Done :bool
-                  __scrut_0 :Done | Yielded(i32)
+                  __scrut_0 :?
               then:
                 ~>
                   block :void
@@ -96,7 +97,7 @@
                   if :void
                     cond:
                       is Yielded(i32) :bool
-                        __scrut_0 :Done | Yielded(i32)
+                        __scrut_0 :?
                     then:
                       ~>
                         block :void
@@ -123,3 +124,6 @@
       vcall Doubler.doubled :i32
         recv:
           x :Doubler(i32)
+
+# Diagnostics
+[15:18] error[T3009] field does not exist on this type: `step` on Iterator($T)

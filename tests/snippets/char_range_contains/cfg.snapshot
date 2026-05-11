@@ -261,7 +261,7 @@ fn tests_snippets_char_range_contains__main_vader$main() -> i32
   bb21:
     branch -> bb22
   bb22:
-    %50 = call step(%48) :Done | Yielded(char)
+    %50 = call next(%48) :Done | Yielded(char)
     %51 = move %50
     %52 = type_check %51 is Done
     cond_branch %52 ? bb24 : bb25
@@ -293,7 +293,7 @@ fn tests_snippets_char_range_contains__main_vader$main() -> i32
   bb27:
     branch -> bb28
   bb28:
-    %64 = call step(%62) :Done | Yielded(char)
+    %64 = call next(%62) :Done | Yielded(char)
     %65 = move %64
     %66 = type_check %65 is Done
     cond_branch %66 ? bb30 : bb31

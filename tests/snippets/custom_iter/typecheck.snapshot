@@ -3,34 +3,34 @@
 ## tests/snippets/custom_iter/_main.vader
   StructDecl     Countdown            :: Countdown
   FnDecl         main                 :: fn() -> i32
-  expr 106:36   MatchExpr      :: bool
-  expr 106:42   CallExpr       :: Done | Yielded(i32)
-  expr 106:42   FieldExpr      :: fn() -> Done | Yielded(i32)
-  expr 106:42   IdentExpr      :: Countdown
   expr 10:13    BinaryExpr     :: bool
   expr 10:13    FieldExpr      :: i32
   expr 10:13    IdentExpr      :: Countdown
   expr 10:9     IfExpr         :: void
-  expr 116:13   UnaryExpr      :: bool
-  expr 116:14   IdentExpr      :: bool
-  expr 117:13   MatchExpr      :: void
-  expr 117:19   CallExpr       :: Done | Yielded(i32)
-  expr 119:44   BinaryExpr     :: usize
+  expr 116:36   MatchExpr      :: bool
+  expr 116:42   CallExpr       :: Done | Yielded(i32)
+  expr 116:42   FieldExpr      :: fn() -> Done | Yielded(i32)
+  expr 116:42   IdentExpr      :: Countdown
   expr 11:20    StructLitExpr  :: Done
-  expr 122:16   IdentExpr      :: usize
-  expr 130:13   UnaryExpr      :: bool
-  expr 130:14   IdentExpr      :: bool
-  expr 131:13   MatchExpr      :: void
-  expr 131:19   CallExpr       :: Done | Yielded(i32)
-  expr 131:19   FieldExpr      :: fn() -> Done | Yielded(i32)
-  expr 131:19   IdentExpr      :: Countdown
-  expr 132:41   IdentExpr      :: bool
-  expr 133:41   IdentExpr      :: i32 | null
-  expr 133:50   FieldExpr      :: i32
-  expr 133:50   IdentExpr      :: Yielded(i32)
-  expr 136:16   IdentExpr      :: i32 | null
+  expr 126:13   UnaryExpr      :: bool
+  expr 126:14   IdentExpr      :: bool
+  expr 127:13   MatchExpr      :: void
+  expr 127:19   CallExpr       :: Done | Yielded(i32)
+  expr 129:44   BinaryExpr     :: usize
+  expr 132:16   IdentExpr      :: usize
   expr 13:14    FieldExpr      :: i32
   expr 13:14    IdentExpr      :: Countdown
+  expr 140:13   UnaryExpr      :: bool
+  expr 140:14   IdentExpr      :: bool
+  expr 141:13   MatchExpr      :: void
+  expr 141:19   CallExpr       :: Done | Yielded(i32)
+  expr 141:19   FieldExpr      :: fn() -> Done | Yielded(i32)
+  expr 141:19   IdentExpr      :: Countdown
+  expr 142:41   IdentExpr      :: bool
+  expr 143:41   IdentExpr      :: i32 | null
+  expr 143:50   FieldExpr      :: i32
+  expr 143:50   IdentExpr      :: Yielded(i32)
+  expr 146:16   IdentExpr      :: i32 | null
   expr 14:24    BinaryExpr     :: i32
   expr 14:24    FieldExpr      :: i32
   expr 14:24    IdentExpr      :: Countdown

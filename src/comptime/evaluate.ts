@@ -505,7 +505,15 @@ function observeImplMembers(
   project: TypedProject, registry: InstanceRegistry,
   inst: { args: readonly Type[] }, site: ImplSite,
 ): void {
-  const subst = buildStructSubst(site.structDecl.typeParams, inst.args, site.program.typeParams);
+  // Bounded-generic impls (`[T: Bound] Foo[T] implements ...`) declare
+  // their own type-params with local bounds. Member bodies reference
+  // those impl-side symbols ; substituting via the struct's typeParams
+  // misses them entirely (e.g. `Yielded(T)` in `Range[T]`'s step body
+  // would stay un-substituted, and `Yielded(i32)` never gets registered
+  // as an instance). Mirror `monomorphizeProject`'s pass-2 routing.
+  const subst = site.impl.typeParams.length > 0
+    ? buildStructSubst(site.impl.typeParams, inst.args, site.program.typeParams)
+    : buildStructSubst(site.structDecl.typeParams, inst.args, site.program.typeParams);
   if (subst.typeParams === undefined || subst.typeParams.size === 0) return;
   const typed = project.modules.get(site.program.module.id);
   if (typed === undefined) return;

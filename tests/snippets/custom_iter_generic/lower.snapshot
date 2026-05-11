@@ -14,7 +14,7 @@
         let __step_1: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step :?
+              next :?
             arg0:
               __iter_0 :Repeat(i32)
         if :void
@@ -56,7 +56,7 @@
                   __sb_2 :?
     return int(0) :i32
   struct tests_snippets_custom_iter_generic__main_vader$Repeat__i32 { value: i32, remaining: i32 }
-  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$step__i32(self: Repeat(i32)) -> Done | Yielded(i32)
+  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$next__i32(self: Repeat(i32)) -> Done | Yielded(i32)
     if :void
       cond:
         lte :bool
@@ -93,8 +93,9 @@
         let __scrut_0: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              .step :fn() -> Done | Yielded(i32)
-                self :Repeat(i32)
+              next :Done | Yielded(i32)
+            arg0:
+              self :Repeat(i32)
         ~>
           if :bool
             cond:
@@ -124,8 +125,9 @@
           let __scrut_0: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
-                .step :fn() -> Done | Yielded(i32)
-                  self :Repeat(i32)
+                next :Done | Yielded(i32)
+              arg0:
+                self :Repeat(i32)
           ~>
             if :void
               cond:
@@ -170,8 +172,9 @@
           let __scrut_0: Done | Yielded(i32) =
             call :Done | Yielded(i32)
               callee:
-                .step :fn() -> Done | Yielded(i32)
-                  self :Repeat(i32)
+                next :Done | Yielded(i32)
+              arg0:
+                self :Repeat(i32)
           ~>
             if :void
               cond:

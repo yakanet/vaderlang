@@ -66,7 +66,7 @@ fn tests_snippets_for_range__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %6 = call step(%4) :Done | Yielded(i32)
+    %6 = call next(%4) :Done | Yielded(i32)
     %7 = move %6
     %8 = type_check %7 is Done
     cond_branch %8 ? bb4 : bb5
@@ -99,7 +99,7 @@ fn tests_snippets_for_range__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %20 = call step(%18) :Done | Yielded(i32)
+    %20 = call next(%18) :Done | Yielded(i32)
     %21 = move %20
     %22 = type_check %21 is Done
     cond_branch %22 ? bb10 : bb11
@@ -132,7 +132,7 @@ fn tests_snippets_for_range__main_vader$main() -> i32
   bb13:
     branch -> bb14
   bb14:
-    %34 = call step(%32) :Done | Yielded(i32)
+    %34 = call next(%32) :Done | Yielded(i32)
     %35 = move %34
     %36 = type_check %35 is Done
     cond_branch %36 ? bb16 : bb17

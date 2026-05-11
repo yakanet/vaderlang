@@ -1,6 +1,6 @@
 // Virtual trait-method dispatch over a generic-struct receiver. Two distinct
 // generic iterators (`Repeat(i32)` and `Once(i32)`) implement `Iterator(i32)`.
-// `walk` takes an `Iterator(i32)` trait-typed parameter and calls `.step()`
+// `walk` takes an `Iterator(i32)` trait-typed parameter and calls `.next()`
 // directly — the lowerer must enumerate every concrete (struct, args)
 // instance observed at compile time and emit one `is Struct(args)` arm per.
 //
@@ -18,7 +18,7 @@ export Repeat :: struct[T] {
 }
 
 Repeat[T] implements Iterator[T] {
-    step :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Done | Yielded(T) {
         if self.remaining <= 0 { return Done {} }
         v :: self.value
         self.remaining = self.remaining - 1
@@ -32,7 +32,7 @@ export Once :: struct[T] {
 }
 
 Once[T] implements Iterator[T] {
-    step :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Done | Yielded(T) {
         if self.yielded { return Done {} }
         self.yielded = true
         return Yielded(T) { .value = self.value }
@@ -43,7 +43,7 @@ walk :: fn(it: Iterator(i32)) -> i32 {
     sum := 0
     cont := true
     for cont {
-        match it.step() {
+        match it.next() {
             is Done -> { cont = false }
             is Yielded(i32) as y -> { sum = sum + y.value }
         }

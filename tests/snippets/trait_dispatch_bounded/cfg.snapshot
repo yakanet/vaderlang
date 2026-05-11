@@ -92,7 +92,7 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
   bb1:
     branch -> bb2
   bb2:
-    %6 = call step(%4) :Done | Yielded(i32)
+    %6 = call next(%4) :Done | Yielded(i32)
     %7 = move %6
     %8 = type_check %7 is Done
     cond_branch %8 ? bb4 : bb5
@@ -156,7 +156,7 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
   bb1:
     branch -> bb2
   bb2:
-    %6 = call step(%4) :Done | Yielded(string)
+    %6 = call next(%4) :Done | Yielded(string)
     %7 = move %6
     %8 = type_check %7 is Done
     cond_branch %8 ? bb4 : bb5

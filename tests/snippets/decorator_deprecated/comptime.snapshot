@@ -2,30 +2,6 @@
 
 ## tests/snippets/decorator_deprecated/_main.vader
 
-## generic instances
-  Yielded(char)
-  Yielded(i16)
-  Yielded(i32)
-  Yielded(i64)
-  Yielded(i8)
-  Yielded(isize)
-  Yielded(u16)
-  Yielded(u32)
-  Yielded(u64)
-  Yielded(u8)
-  Yielded(usize)
-  Range(char)
-  Range(i16)
-  Range(i32)
-  Range(i64)
-  Range(i8)
-  Range(isize)
-  Range(u16)
-  Range(u32)
-  Range(u64)
-  Range(u8)
-  Range(usize)
-
 # Diagnostics
 [19:10] warning[W0001] use of deprecated declaration: `old_helper`: use new_helper instead
 [19:21] warning[W0001] use of deprecated declaration: `KING`: KING is too dramatic, prefer THE_BEST
