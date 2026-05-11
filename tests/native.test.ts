@@ -33,7 +33,7 @@ test("native: at least one snippet", () => {
 });
 
 for (const s of scenarios) {
-  test.concurrent(`native: ${s.name}`, async () => {
+  test(`native: ${s.name}`, async () => {
     if (!CC_AVAILABLE) return;
 
     let r: Awaited<ReturnType<typeof pipelineBytecode>>;

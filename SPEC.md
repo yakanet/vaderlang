@@ -433,6 +433,49 @@ A literal float with no suffix **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
 
 There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `let x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
 
+### Type coercion via `Into`
+
+User-defined cross-type conversions go through the `Into[Target]` trait in `std/core`. The trait is single-method :
+
+```vader
+Into :: trait[Target] {
+    into :: fn(self) -> Target
+}
+```
+
+The compiler probes `S implements Into(T)` whenever a value of type `S` is about to reach a slot expecting `T` and `isAssignable(S, T)` already failed. When the impl is found the typer records the site and the lowerer inserts the matching `value.into()` call before the consumer sees the value.
+
+**Sites of implicit coercion**
+- A call argument whose corresponding parameter has a typed annotation.
+- A `return v` (or block-trailing expression) of a fn with an annotated return type.
+- A `let x: T = v` with an annotation.
+- A struct-literal field whose declared type differs from the argument's.
+
+**Explicit form**
+The existing `Target(value)` syntax — used today for primitive numeric casts (`u32(x)`, `i64(x)`) — is the explicit coercion surface for non-numeric targets. (Routing the call-form through `Into` when `Target` is not a primitive numeric type is staged for a follow-up ; the syntax is reserved but currently only the numeric path is wired.)
+
+**Rules**
+- **Target must be concrete.** Only `Struct`, `Enum`, and `Primitive` targets trigger the probe ; `Union`, `TypeParam`, and `Trait` slots are excluded. A union target leaves the typer unable to pick a variant ; a `TypeParam` slot resolves after mono ; a `Trait` slot goes through virtual dispatch instead.
+- **No identity.** `T implements Into(T)` is forbidden (diagnostic **T3039** at the impl site) — it would shadow simple assignment and clutter the registry.
+- **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes ; if both impls exist, the user must declare `S implements Into(T)` explicitly to bridge them. (Mirrors Rust's `Into` strictness ; prevents the "where did this allocation come from?" debugging trap.)
+- **One impl per `(Source, Target)`.** Duplicate impls are caught by the standard resolver duplicate-impl diagnostic.
+- **Overload resolution is decided first.** When a call has overloaded candidates, the typer ranks them *without* `Into` ; the second-pass with `Into` only fires if no exact-match overload was found.
+
+**Built-in coercions (compiler-driven, not via `Into`)**
+- `T[] → Iterator(T)` — raw arrays auto-wrap into `ArrayIterator(T)` on entry to an `Iterator(T)` slot. (Phase 2 of the `Into` rollout will fold this into a user-visible `[T] implements Into(Iterator(T))` blanket impl.)
+- `T → string` when `T: Display` — string-interpolation `${value}` and `Display`-typed slots dispatch through `to_string`. (Same migration target as the array case.)
+- `FreeInt → i32` / `FreeFloat → f64` and friends — unsuffixed literals defaulting to their canonical width at the typer level. Unrelated to `Into` ; happens before any coercion lookup.
+- Concrete `S → Trait` when `S` impl `Trait` — virtual dispatch boxing. Distinct from `Into` ; the value flows in unchanged and runtime dispatch resolves the method by tag.
+
+**Resolution order at a coercion site**
+1. `isAssignable(S, T)` — accepted (subtype, trait widening, numeric defaulting) → no work.
+2. `tryInto(S, T)` — registry probe with the rules above.
+3. Otherwise, `T3001` / `T3020` mismatch fires.
+
+**Diagnostics**
+- `T3039` — `Into(T)` identity impl rejected (emitted at the impl site, not at the call site).
+- `T3001` / `T3020` — type mismatch ; the message indicates no coercion was found.
+
 ### Signed overflow
 
 `a + b` that overflows **panics in debug, wraps in release** (Rust-style). Behavior not configurable in MVP.
@@ -1775,7 +1818,7 @@ Future intrinsics planned for Layer 6 of the type-first design (`docs/DESIGN_TYP
 
 ### `std/core` (auto-imported)
 
-Traits : `Display`, `Equals`, `Comparable`, `Step`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Index(I, T)`, `IndexSet(I, T)`, `Error`.
+Traits : `Display`, `Equals`, `Comparable`, `Step`, `Into(Target)`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Index(I, T)`, `IndexSet(I, T)`, `Error`.
 
 Types : `Done`, `Yielded(T)`, `Range`, `ArrayIterator(T)`.
 

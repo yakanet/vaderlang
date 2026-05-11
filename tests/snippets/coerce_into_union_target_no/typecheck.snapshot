@@ -1,0 +1,12 @@
+# Typecheck
+
+## tests/snippets/coerce_into_union_target_no/_main.vader
+  StructDecl     Foo                  :: Foo
+  FnDecl         main                 :: fn() -> i32
+  expr 13:10    StructLitExpr  :: Foo
+  expr 14:23    IdentExpr      :: Foo
+  expr 9:38     FieldExpr      :: i32
+  expr 9:38     IdentExpr      :: Foo
+
+# Diagnostics
+[14:5] error[T3001] type mismatch: expected i32 | string, got Foo

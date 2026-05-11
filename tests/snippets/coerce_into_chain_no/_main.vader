@@ -1,0 +1,21 @@
+// `Into` coercion is non-transitive. `A → B` and `B → C` registered, but
+// `let c: C = a` does NOT auto-compose them. T3001 fires at the let site.
+// # compile errors
+
+A :: struct { value: i32 }
+B :: struct { value: i32 }
+C :: struct { value: i32 }
+
+A implements Into(B) {
+    into :: fn(self) -> B { return B { .value = self.value } }
+}
+
+B implements Into(C) {
+    into :: fn(self) -> C { return C { .value = self.value } }
+}
+
+main :: fn() -> i32 {
+    a :: A { .value = 1 }
+    c: C = a   // should fail — no `A implements Into(C)` ; chain not auto-composed
+    return c.value
+}

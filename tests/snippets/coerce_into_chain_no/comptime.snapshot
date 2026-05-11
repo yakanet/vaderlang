@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/coerce_into_chain_no/_main.vader
+
+# Diagnostics
+[19:5] error[T3001] type mismatch: expected C, got A

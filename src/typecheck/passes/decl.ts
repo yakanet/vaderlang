@@ -10,7 +10,7 @@ import { isTypeReferenceSymbol } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
 import type { PrimitiveName, Type } from "../types.ts";
-import { ALL_INTS, TY, substitute } from "../types.ts";
+import { ALL_INTS, CORE_TRAITS, TY, displayType, equalsType, substitute } from "../types.ts";
 
 import type { MutableTyped } from "../ctx.ts";
 import { buildStructSubst } from "../ctx.ts";
@@ -198,6 +198,22 @@ function declareImpl(decl: A.ImplDecl, t: MutableTyped, diags: DiagnosticCollect
   lowerExprAsType(decl.forType, t, diags);
   for (const ta of decl.traitArgs) lowerExprAsType(ta, t, diags);
   for (const member of decl.members) declareFn(member, t, diags);
+
+  // R2020 — reject `T implements Into(T)`. Identity coercions are
+  // forbidden by SPEC §X *Type coercion* (would shadow simple assignment
+  // and add registry noise without semantic value). Caught here rather
+  // than at `findIntoImpl` time so the user sees the diagnostic at the
+  // impl site, not at the first call that fails to find a coercion.
+  if (decl.traitName === CORE_TRAITS.Into && decl.traitArgs.length === 1) {
+    const forType = t.globals.typeExprTypes.get(decl.forType);
+    const targetType = t.globals.typeExprTypes.get(decl.traitArgs[0]!);
+    if (forType !== undefined && targetType !== undefined
+        && forType.kind !== "Unresolved" && targetType.kind !== "Unresolved"
+        && equalsType(forType, targetType)) {
+      err(diags, "T3039", decl.span,
+        `\`${displayType(forType)} implements Into(${displayType(targetType)})\` — source and target must differ`);
+    }
+  }
 
   // Layer 8b — verify the impl block provides every method the trait
   // requires. SAM-synthetic and `@intrinsic` impls already materialise

@@ -1,0 +1,16 @@
+// Coercion targets must be concrete (Struct / Enum / Primitive). A Union
+// target leaves the typer unable to decide which variant to coerce into,
+// so `tryInto` returns false and the standard T3001 mismatch fires.
+// # compile errors
+
+Foo :: struct { value: i32 }
+
+Foo implements Into(i32) {
+    into :: fn(self) -> i32 { return self.value }
+}
+
+main :: fn() -> i32 {
+    f :: Foo { .value = 42 }
+    x: i32 | string = f   // Union target — no Into probe, plain T3001
+    return 0
+}

@@ -1,0 +1,32 @@
+# Lower
+
+## tests/snippets/coerce_into_chain_no/_main.vader
+  struct tests_snippets_coerce_into_chain_no__main_vader$A { value: i32 }
+  struct tests_snippets_coerce_into_chain_no__main_vader$B { value: i32 }
+  struct tests_snippets_coerce_into_chain_no__main_vader$C { value: i32 }
+  fn tests_snippets_coerce_into_chain_no__main_vader$A$Into$into(self: A) -> B
+    return
+      B {
+        value:
+          .value :i32
+            self :A
+      }
+  fn tests_snippets_coerce_into_chain_no__main_vader$B$Into$into(self: B) -> C
+    return
+      C {
+        value:
+          .value :i32
+            self :B
+      }
+  fn tests_snippets_coerce_into_chain_no__main_vader$main() -> i32
+    let a: A =
+      A {
+        value: int(1) :i32
+      }
+    let c: C = a :A
+    return
+      .value :i32
+        c :C
+
+# Diagnostics
+[19:5] error[T3001] type mismatch: expected C, got A

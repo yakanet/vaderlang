@@ -1,0 +1,2 @@
+# compile errors
+[T3001] type mismatch: expected i32 | string, got Foo
