@@ -8,10 +8,9 @@
   expr 10:23    IdentExpr      :: MutableMap(string, i32)
   expr 10:5     CallExpr       :: void
   expr 10:5     IdentExpr      :: fn(Display) -> void
-  expr 12:11    CallExpr       :: i32 | null
-  expr 12:11    FieldExpr      :: fn($K) -> $V | null
   expr 12:11    IdentExpr      :: MutableMap(string, i32)
-  expr 12:17    StringLitExpr  :: string
+  expr 12:11    IndexExpr      :: i32 | null
+  expr 12:13    StringLitExpr  :: string
   expr 13:11    IdentExpr      :: i32 | null
   expr 13:5     MatchExpr      :: void
   expr 14:22    CallExpr       :: void
@@ -21,10 +20,9 @@
   expr 15:22    IdentExpr      :: fn(Display) -> void
   expr 15:30    StringLitExpr  :: string
   expr 15:41    IdentExpr      :: i32
-  expr 18:11    CallExpr       :: i32 | null
-  expr 18:11    FieldExpr      :: fn($K) -> $V | null
   expr 18:11    IdentExpr      :: MutableMap(string, i32)
-  expr 18:17    StringLitExpr  :: string
+  expr 18:11    IndexExpr      :: i32 | null
+  expr 18:13    StringLitExpr  :: string
   expr 19:11    IdentExpr      :: i32 | null
   expr 19:5     MatchExpr      :: void
   expr 20:22    CallExpr       :: void
@@ -34,10 +32,9 @@
   expr 21:22    IdentExpr      :: fn(Display) -> void
   expr 21:30    StringLitExpr  :: string
   expr 21:41    IdentExpr      :: i32
-  expr 24:11    CallExpr       :: i32 | null
-  expr 24:11    FieldExpr      :: fn($K) -> $V | null
   expr 24:11    IdentExpr      :: MutableMap(string, i32)
-  expr 24:17    StringLitExpr  :: string
+  expr 24:11    IndexExpr      :: i32 | null
+  expr 24:13    StringLitExpr  :: string
   expr 25:11    IdentExpr      :: i32 | null
   expr 25:5     MatchExpr      :: void
   expr 26:22    CallExpr       :: void
@@ -48,27 +45,22 @@
   expr 27:30    StringLitExpr  :: string
   expr 27:41    IdentExpr      :: i32
   expr 30:13    StringLitExpr  :: string
-  expr 30:27    CallExpr       :: bool
-  expr 30:27    FieldExpr      :: fn($K) -> bool
-  expr 30:27    IdentExpr      :: MutableMap(string, i32)
-  expr 30:42    StringLitExpr  :: string
+  expr 30:27    BinaryExpr     :: bool
+  expr 30:27    StringLitExpr  :: string
+  expr 30:38    IdentExpr      :: MutableMap(string, i32)
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(Display) -> void
   expr 31:13    StringLitExpr  :: string
-  expr 31:29    CallExpr       :: bool
-  expr 31:29    FieldExpr      :: fn($K) -> bool
-  expr 31:29    IdentExpr      :: MutableMap(string, i32)
-  expr 31:44    StringLitExpr  :: string
+  expr 31:29    BinaryExpr     :: bool
+  expr 31:29    StringLitExpr  :: string
+  expr 31:42    IdentExpr      :: MutableMap(string, i32)
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn(Display) -> void
-  expr 34:11    StringLitExpr  :: string
-  expr 34:5     CallExpr       :: void
-  expr 34:5     FieldExpr      :: fn($K, $V) -> void
   expr 34:5     IdentExpr      :: MutableMap(string, i32)
-  expr 35:12    CallExpr       :: i32 | null
-  expr 35:12    FieldExpr      :: fn($K) -> $V | null
+  expr 34:7     StringLitExpr  :: string
   expr 35:12    IdentExpr      :: MutableMap(string, i32)
-  expr 35:18    StringLitExpr  :: string
+  expr 35:12    IndexExpr      :: i32 | null
+  expr 35:14    StringLitExpr  :: string
   expr 36:11    IdentExpr      :: i32 | null
   expr 36:5     MatchExpr      :: void
   expr 37:22    CallExpr       :: void
@@ -80,15 +72,9 @@
   expr 38:49    IdentExpr      :: i32
   expr 5:10     StructLitExpr  :: MutableMap(string, i32)
   expr 5:47     SeqLitExpr     :: Entry(string, i32) | null[]
-  expr 7:11     StringLitExpr  :: string
-  expr 7:5      CallExpr       :: void
-  expr 7:5      FieldExpr      :: fn($K, $V) -> void
   expr 7:5      IdentExpr      :: MutableMap(string, i32)
-  expr 8:11     StringLitExpr  :: string
-  expr 8:5      CallExpr       :: void
-  expr 8:5      FieldExpr      :: fn($K, $V) -> void
+  expr 7:7      StringLitExpr  :: string
   expr 8:5      IdentExpr      :: MutableMap(string, i32)
-  expr 9:11     StringLitExpr  :: string
-  expr 9:5      CallExpr       :: void
-  expr 9:5      FieldExpr      :: fn($K, $V) -> void
+  expr 8:7      StringLitExpr  :: string
   expr 9:5      IdentExpr      :: MutableMap(string, i32)
+  expr 9:7      StringLitExpr  :: string

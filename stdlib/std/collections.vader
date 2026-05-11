@@ -64,7 +64,7 @@ bucket_index :: fn(h: u64) -> i32 {
 /// @param self   the map receiver.
 /// @param key    key with which `value` is associated.
 /// @param value  the new value.
-export put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
+put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
     // Lazy bucket init — inlined here because nested generic calls aren't
     // observed by the comptime InstanceRegistry yet (transitive
     // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
@@ -109,7 +109,7 @@ export put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
 /// @param self  the map receiver.
 /// @param key   key to look up.
 /// @return      `V` when present, `null` otherwise.
-export get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null {
+get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null {
     if self.buckets.len() == 0 {
         return null
     }
@@ -138,7 +138,7 @@ export get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null {
 /// "key maps to a null-typed value" — `get` collapses both to `null`.
 /// @param self  the map receiver.
 /// @param key   key to test.
-export contains_key :: fn[K, V](self: MutableMap(K, V), key: K) -> bool {
+contains_key :: fn[K, V](self: MutableMap(K, V), key: K) -> bool {
     if self.buckets.len() == 0 {
         return false
     }

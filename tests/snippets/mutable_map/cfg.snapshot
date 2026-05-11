@@ -84,13 +84,13 @@ fn tests_snippets_mutable_map__main_vader$main() -> i32
     %2 = struct_new MutableMap(i32, i32)(%0, %1)
     %3 = const int(1) :i32
     %4 = const int(10) :i32
-    call put(%2, %3, %4) :void
+    call set_at(%2, %3, %4) :void
     %5 = const int(2) :i32
     %6 = const int(20) :i32
-    call put(%2, %5, %6) :void
+    call set_at(%2, %5, %6) :void
     %7 = const int(17) :i32
     %8 = const int(170) :i32
-    call put(%2, %7, %8) :void
+    call set_at(%2, %7, %8) :void
     %9 = intrinsic builder.new()
     %10 = move %9
     %11 = const string(#0) :string
@@ -101,7 +101,7 @@ fn tests_snippets_mutable_map__main_vader$main() -> i32
     %14 = call to_string(%13) :string
     call println(%14) :void
     %15 = const int(1) :i32
-    %16 = call get(%2, %15) :i32 | null
+    %16 = call at(%2, %15) :i32 | null
     %17 = move %16
     %18 = move %17
     %19 = type_check %18 is null
@@ -116,7 +116,7 @@ fn tests_snippets_mutable_map__main_vader$main() -> i32
     cond_branch %22 ? bb4 : bb5
   bb3:
     %29 = const int(17) :i32
-    %30 = call get(%2, %29) :i32 | null
+    %30 = call at(%2, %29) :i32 | null
     %31 = move %30
     %32 = move %31
     %33 = type_check %32 is null
@@ -150,7 +150,7 @@ fn tests_snippets_mutable_map__main_vader$main() -> i32
     %45 = const string(#5) :string
     intrinsic builder.append_str(%44, %45)
     %46 = const int(2) :i32
-    %47 = call contains_key(%2, %46) :bool
+    %47 = call contains(%2, %46) :bool
     intrinsic builder.append_display(%44, %47)
     %48 = intrinsic builder.finish(%44)
     %49 = call to_string(%48) :string
@@ -160,16 +160,16 @@ fn tests_snippets_mutable_map__main_vader$main() -> i32
     %52 = const string(#6) :string
     intrinsic builder.append_str(%51, %52)
     %53 = const int(99) :i32
-    %54 = call contains_key(%2, %53) :bool
+    %54 = call contains(%2, %53) :bool
     intrinsic builder.append_display(%51, %54)
     %55 = intrinsic builder.finish(%51)
     %56 = call to_string(%55) :string
     call println(%56) :void
     %57 = const int(1) :i32
     %58 = const int(999) :i32
-    call put(%2, %57, %58) :void
+    call set_at(%2, %57, %58) :void
     %59 = const int(1) :i32
-    %60 = call get(%2, %59) :i32 | null
+    %60 = call at(%2, %59) :i32 | null
     %61 = move %60
     %62 = move %61
     %63 = type_check %62 is null

@@ -1,32 +1,32 @@
 import "std/io" { println }
-import "std/collections" { MutableMap, put, get, contains_key, len }
+import "std/collections" { MutableMap, len }
 
 main :: fn() -> i32 {
     m := MutableMap(i32, i32) { .buckets = [], .size = 0 }
 
-    m.put(1, 10)
-    m.put(2, 20)
-    m.put(17, 170)
+    m[1] = 10
+    m[2] = 20
+    m[17] = 170
     println("size = ${m.len()}")
 
-    v1 :: m.get(1)
+    v1 :: m[1]
     match v1 {
         is null -> { println("v1: missing") }
         is i32  -> { println("v1 = ${v1}") }
     }
 
-    v17 :: m.get(17)
+    v17 :: m[17]
     match v17 {
         is null -> { println("v17: missing") }
         is i32  -> { println("v17 = ${v17}") }
     }
 
-    println("has 2? ${m.contains_key(2)}")
-    println("has 99? ${m.contains_key(99)}")
+    println("has 2? ${2 in m}")
+    println("has 99? ${99 in m}")
 
     // Update existing key
-    m.put(1, 999)
-    v1b :: m.get(1)
+    m[1] = 999
+    v1b :: m[1]
     match v1b {
         is null -> { println("v1b: missing") }
         is i32  -> { println("v1b = ${v1b}") }

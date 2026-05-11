@@ -445,7 +445,7 @@ fn 7 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
     local.get 0   ; collections.vader:105:5
     local.get 22   ; collections.vader:105:5
     struct.set 38 1   ; collections.vader:105:5
-    return   ; collections.vader:67:74
+    return   ; collections.vader:67:67
   end $L10   ; collections.vader:98:5
 end
 
