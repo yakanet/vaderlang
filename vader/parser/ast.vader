@@ -57,6 +57,7 @@ export Visibility :: enum(u8) {
 export Program :: struct {
     file:  string
     span:  Span
+    id:  usize
     decls: Decl[]
 }
 
@@ -66,6 +67,7 @@ export Program :: struct {
 
 export TypeParam :: struct {
     span:               Span
+    id:               usize
     name:               string
     bound:              TypeExpr | null
     is_comptime_value:  bool
@@ -73,6 +75,7 @@ export TypeParam :: struct {
 
 export Decorator :: struct {
     span: Span
+    id: usize
     name: string
     args: Expr[]
 }
@@ -85,6 +88,7 @@ export Decorator :: struct {
 
 export ImportDecl :: struct {
     span:       Span
+    id:       usize
     path:       string
     binding:    ImportBinding
     decorators: Decorator[]
@@ -98,6 +102,7 @@ export ImportName :: struct {
     name:  string
     alias: string | null
     span:  Span
+    id:  usize
 }
 
 // ---- Fn -------------------------------------------------------------------
@@ -107,6 +112,7 @@ export ImportName :: struct {
 // them only when `true` to match the TS shape.
 export FnDecl :: struct {
     span:                  Span
+    id:                  usize
     name:                  string
     name_span:             Span
     visibility:            Visibility
@@ -121,6 +127,7 @@ export FnDecl :: struct {
 
 export FnParam :: struct {
     span:          Span
+    id:          usize
     name:          string
     // Optional in lambdas.
     ty:            TypeExpr | null
@@ -132,6 +139,7 @@ export FnParam :: struct {
 
 export StructDecl :: struct {
     span:          Span
+    id:          usize
     name:          string
     name_span:     Span
     visibility:    Visibility
@@ -142,6 +150,7 @@ export StructDecl :: struct {
 
 export StructField :: struct {
     span:       Span
+    id:       usize
     name:       string
     ty:         TypeExpr
     visibility: Visibility
@@ -153,6 +162,7 @@ export StructField :: struct {
 
 export EnumDecl :: struct {
     span:       Span
+    id:       usize
     name:       string
     name_span:  Span
     visibility: Visibility
@@ -164,6 +174,7 @@ export EnumDecl :: struct {
 
 export EnumVariant :: struct {
     span:        Span
+    id:        usize
     name:        string
     // `null` means "previous + 1" (or 0 for the first variant). Stored as i64
     // so the parser can carry the parsed literal verbatim until the
@@ -182,6 +193,7 @@ export EnumVariant :: struct {
 // plain `trait { ... }` declaration without composition.
 export TraitDecl :: struct {
     span:        Span
+    id:        usize
     name:        string
     name_span:   Span
     visibility:  Visibility
@@ -195,6 +207,7 @@ export TraitDecl :: struct {
 
 export ImplDecl :: struct {
     span:             Span
+    id:             usize
     type_params:      TypeParam[]
     for_type:         TypeExpr
     trait_name:       string
@@ -208,6 +221,7 @@ export ImplDecl :: struct {
 
 export TypeAliasDecl :: struct {
     span:        Span
+    id:        usize
     name:        string
     name_span:   Span
     visibility:  Visibility
@@ -220,6 +234,7 @@ export TypeAliasDecl :: struct {
 
 export ConstDecl :: struct {
     span:       Span
+    id:       usize
     name:       string
     name_span:  Span
     visibility: Visibility
@@ -233,6 +248,7 @@ export ConstDecl :: struct {
 // the result is `false`. No runtime emission.
 export AssertDecl :: struct {
     span:       Span
+    id:       usize
     condition:  Expr
     decorators: Decorator[]
 }
@@ -243,6 +259,7 @@ export AssertDecl :: struct {
 
 export LetStmt :: struct {
     span:    Span
+    id:    usize
     mutable: bool
     binding: LetBinding
     ty:      TypeExpr | null
@@ -254,17 +271,20 @@ export LetStmt :: struct {
 // values element-wise.
 export SimpleBinding :: struct {
     span:      Span
+    id:      usize
     name:      string
     name_span: Span
 }
 
 export TupleBinding :: struct {
     span:     Span
+    id:     usize
     elements: LetBinding[]
 }
 
 export WildcardBinding :: struct {
     span: Span
+    id: usize
 }
 
 // `...name` rest-element of a bracketed binding — collects every slot not
@@ -272,28 +292,33 @@ export WildcardBinding :: struct {
 // last element of a TupleBinding whose source is array-typed.
 export RestBinding :: struct {
     span:      Span
+    id:      usize
     name:      string
     name_span: Span
 }
 
 export AssignStmt :: struct {
     span:   Span
+    id:   usize
     target: Expr
     value:  Expr
 }
 
 export ExprStmt :: struct {
     span: Span
+    id: usize
     expr: Expr
 }
 
 export ReturnStmt :: struct {
     span:  Span
+    id:  usize
     value: Expr | null
 }
 
 export ForStmt :: struct {
     span:  Span
+    id:  usize
     label: string | null
     form:  ForForm
     body:  BlockExpr
@@ -309,16 +334,19 @@ export InFor       :: struct {
 
 export BreakStmt :: struct {
     span:  Span
+    id:  usize
     label: string | null
 }
 
 export ContinueStmt :: struct {
     span:  Span
+    id:  usize
     label: string | null
 }
 
 export DeferStmt :: struct {
     span: Span
+    id: usize
     body: DeferBody
 }
 
@@ -333,6 +361,7 @@ export DeferBlockBody :: struct { block: BlockExpr }
 
 export IntLitExpr :: struct {
     span:   Span
+    id:   usize
     // i64 carries every parsed literal up to 9.2e18 ; u64 literals beyond
     // that lose top bits (matches the TS BigInt mapping inside the snapshot
     // format which renders bigints as decimal strings).
@@ -342,31 +371,36 @@ export IntLitExpr :: struct {
 
 export FloatLitExpr :: struct {
     span:   Span
+    id:   usize
     value:  f64
     suffix: string | null
 }
 
 export BoolLitExpr :: struct {
     span:  Span
+    id:  usize
     value: bool
 }
 
 export NullLitExpr :: struct {
     span: Span
+    id: usize
 }
 
 export CharLitExpr :: struct {
     span:  Span
+    id:  usize
     value: u32
 }
 
 export StringLitExpr :: struct {
     span:  Span
+    id:  usize
     parts: StringLitPart[]
 }
 
-export StringLitText   :: struct { value: string, span: Span }
-export StringLitInterp :: struct { expr:  Expr,   span: Span }
+export StringLitText   :: struct { value: string, span: Span, id: usize }
+export StringLitInterp :: struct { expr:  Expr,   span: Span, id: usize }
 
 // ---- naming / access ------------------------------------------------------
 
@@ -379,6 +413,7 @@ export StringLitInterp :: struct { expr:  Expr,   span: Span }
 // `JSON.stringify`-of-`undefined` shape.
 export IdentExpr :: struct {
     span:                Span
+    id:                usize
     name:                string
     implicit_dot:        bool
     is_type_param_intro: bool
@@ -386,12 +421,14 @@ export IdentExpr :: struct {
 
 export CallExpr :: struct {
     span:   Span
+    id:   usize
     callee: Expr
     args:   CallArg[]
 }
 
 export CallArg :: struct {
     span:   Span
+    id:   usize
     name:   string | null
     value:  Expr
     spread: bool
@@ -399,6 +436,7 @@ export CallArg :: struct {
 
 export FieldExpr :: struct {
     span:       Span
+    id:       usize
     target:     Expr
     field:      string
     field_span: Span
@@ -409,6 +447,7 @@ export FieldExpr :: struct {
 
 export IndexExpr :: struct {
     span:   Span
+    id:   usize
     target: Expr
     index:  Expr
 }
@@ -423,6 +462,7 @@ export UnaryOp :: enum(u8) {
 
 export UnaryExpr :: struct {
     span:    Span
+    id:    usize
     op:      UnaryOp
     operand: Expr
 }
@@ -437,6 +477,7 @@ export BinaryOp :: enum(u8) {
 
 export BinaryExpr :: struct {
     span:  Span
+    id:  usize
     op:    BinaryOp
     left:  Expr
     right: Expr
@@ -446,6 +487,7 @@ export BinaryExpr :: struct {
 
 export IfExpr :: struct {
     span:        Span
+    id:        usize
     cond:        Expr
     then_block:  BlockExpr
     else_branch: IfElse | null
@@ -456,6 +498,7 @@ export IfElseBlock :: struct { block:  BlockExpr }
 
 export MatchExpr :: struct {
     span:      Span
+    id:      usize
     scrutinee: Expr
     arms:      MatchArm[]
     // `@partial match x { … }` opts out of exhaustiveness — no T3013
@@ -467,6 +510,7 @@ export MatchExpr :: struct {
 
 export MatchArm :: struct {
     span:    Span
+    id:    usize
     pattern: Pattern
     guard:   Expr | null
     body:    Expr
@@ -474,6 +518,7 @@ export MatchArm :: struct {
 
 export BlockExpr :: struct {
     span:     Span
+    id:     usize
     stmts:    Stmt[]
     trailing: Expr | null
 }
@@ -482,6 +527,7 @@ export BlockExpr :: struct {
 
 export LambdaExpr :: struct {
     span:        Span
+    id:        usize
     params:      FnParam[]
     return_type: TypeExpr | null
     body:        BlockExpr
@@ -489,6 +535,7 @@ export LambdaExpr :: struct {
 
 export StructLitExpr :: struct {
     span:      Span
+    id:      usize
     type_name: TypeExpr
     items:     (StructLitField | StructLitSpread)[]
 }
@@ -497,6 +544,7 @@ export StructLitItem :: StructLitField | StructLitSpread
 
 export StructLitField :: struct {
     span:      Span
+    id:      usize
     name:      string
     name_span: Span
     value:     Expr
@@ -505,6 +553,7 @@ export StructLitField :: struct {
 // `...expr` clause in a struct literal.
 export StructLitSpread :: struct {
     span: Span
+    id: usize
     expr: Expr
 }
 
@@ -512,11 +561,13 @@ export StructLitSpread :: struct {
 // vs "tuple" — the typechecker decides via contextual disambiguation.
 export SeqLitExpr :: struct {
     span:     Span
+    id:     usize
     elements: Expr[]
 }
 
 export RangeExpr :: struct {
     span:      Span
+    id:      usize
     inclusive: bool
     lower:     Expr
     upper:     Expr
@@ -526,17 +577,20 @@ export RangeExpr :: struct {
 
 export TryExpr :: struct {
     span:  Span
+    id:  usize
     inner: Expr
 }
 
 export CastExpr :: struct {
     span:   Span
+    id:   usize
     target: TypeExpr
     value:  Expr
 }
 
 export GenericInstExpr :: struct {
     span:      Span
+    id:      usize
     callee:    Expr
     type_args: TypeExpr[]
 }
@@ -549,6 +603,7 @@ export GenericInstExpr :: struct {
 // P1014.
 export IntrinsicCallExpr :: struct {
     span:      Span
+    id:      usize
     name:      string
     name_span: Span
     args:      Expr[]
@@ -556,6 +611,7 @@ export IntrinsicCallExpr :: struct {
 
 export DotVariantExpr :: struct {
     span:         Span
+    id:         usize
     variant:      string
     variant_span: Span
 }
@@ -566,6 +622,7 @@ export DotVariantExpr :: struct {
 
 export IsPattern :: struct {
     span:    Span
+    id:    usize
     ty:      TypeExpr
     inner:   Pattern | null
     bind_as: string | null
@@ -573,34 +630,39 @@ export IsPattern :: struct {
 
 export StructPattern :: struct {
     span:   Span
+    id:   usize
     fields: StructPatternField[]
 }
 
 // Tuple destructure pattern `[p1, p2, ...]`. Element-wise sub-patterns.
 export TuplePattern :: struct {
     span:     Span
+    id:     usize
     elements: Pattern[]
 }
 
 export StructPatternField :: struct {
     span:      Span
+    id:      usize
     name:      string
     name_span: Span
     value:     PatternFieldValue
 }
 
-export PatternBinding :: struct { name: string, span: Span }
+export PatternBinding :: struct { name: string, span: Span, id: usize }
 export PatternLiteral :: struct { value: Expr }
 
-export WildcardPattern :: struct { span: Span }
+export WildcardPattern :: struct { span: Span, id: usize }
 
 export BindingPattern :: struct {
     span: Span
+    id: usize
     name: string
 }
 
 export EnumVariantPattern :: struct {
     span:    Span
+    id:    usize
     variant: string
 }
 
@@ -612,6 +674,7 @@ export EnumVariantPattern :: struct {
 // counterpart).
 export FnTypeExpr :: struct {
     span:        Span
+    id:        usize
     params:      TypeExpr[]
     return_type: TypeExpr | null
 }
@@ -620,5 +683,6 @@ export FnTypeExpr :: struct {
 // `[T1, T2]` parses as `SeqLitExpr` (tuple type) instead.
 export ArrayTypeExpr :: struct {
     span:    Span
+    id:    usize
     element: TypeExpr
 }
