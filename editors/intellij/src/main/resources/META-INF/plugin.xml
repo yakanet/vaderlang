@@ -4,19 +4,20 @@
     <vendor email="mbroutin@sedona.fr" url="https://github.com/vaderlang">vaderlang</vendor>
 
     <description><![CDATA[
-        Syntax highlighting plus semantic-tokens LSP integration for the
+        Syntax highlighting plus full LSP-driven editor features for the
         <a href="https://github.com/vaderlang">Vader</a> programming language.<br>
-        TextMate grammar is shared with the official VS Code extension. Semantic
-        highlighting (richer VaderDoc tags, parameters, decorators) is delivered
-        by the Vader Language Server, spawned via the <code>vader lsp</code>
-        subcommand — requires an IDE that bundles the platform LSP module
-        (IntelliJ IDEA Ultimate, RustRover, GoLand, …). On Community editions
-        the plugin still loads and provides TextMate highlighting only.
+        TextMate grammar is shared with the official VS Code extension.
+        Semantic features — goto-definition, hover with VaderDoc, semantic
+        tokens, diagnostics — are delivered by the Vader Language Server,
+        spawned via the <code>vader lsp</code> subcommand and wired through
+        <a href="https://plugins.jetbrains.com/plugin/23257-lsp4ij">LSP4IJ</a>.
+        Works on IntelliJ IDEA Community and Ultimate (as well as every
+        other IntelliJ-based IDE that supports LSP4IJ).
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.plugins.textmate</depends>
-    <depends optional="true" config-file="vader-lsp.xml">com.intellij.modules.lsp</depends>
+    <depends>com.redhat.devtools.lsp4ij</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <textmate.bundleProvider implementation="dev.vaderlang.intellij.VaderBundleProvider"/>
@@ -26,5 +27,25 @@
             id="dev.vaderlang.intellij.config"
             displayName="Vader"
             parentId="tools"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <server id="dev.vaderlang.vader-lsp"
+                name="Vader Language Server"
+                factoryClass="dev.vaderlang.intellij.VaderLanguageServerFactory">
+            <description><![CDATA[
+                LSP server backing the Vader plugin. Spawned via the
+                <code>vader lsp</code> subcommand ; binary path is
+                configurable under <i>Settings → Tools → Vader</i>.
+            ]]></description>
+        </server>
+        <!-- TextMate-only language — no PSI Language registered, so we
+             map by filename glob. `languageId="vader"` is what the
+             server receives in `textDocument/didOpen`'s `languageId`
+             field ; downstream code uses it for diagnostics filtering
+             but the LSP server itself doesn't gate on it today. -->
+        <fileNamePatternMapping patterns="*.vader"
+                                serverId="dev.vaderlang.vader-lsp"
+                                languageId="vader"/>
     </extensions>
 </idea-plugin>

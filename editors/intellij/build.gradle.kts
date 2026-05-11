@@ -8,14 +8,16 @@ version = "0.1.0"
 
 dependencies {
     intellijPlatform {
-        // Ultimate (free for plugin development) ships the LSP API
-        // (`com.intellij.platform.lsp`), which the Community edition
-        // doesn't bundle. Compiling against Ultimate gives us access to
-        // `LspServerSupportProvider` ; at runtime the plugin gracefully
-        // skips its LSP extension on IDEs that lack the module thanks
-        // to the `<depends optional="true">` declaration in plugin.xml.
-        intellijIdeaUltimate("2024.2")
+        // Community is enough now : we no longer rely on the bundled
+        // `com.intellij.platform.lsp` module (which only ships with
+        // commercial IDEs). LSP integration is delegated to LSP4IJ —
+        // a third-party plugin (EPL-2.0, Red Hat) that works on every
+        // IntelliJ-based IDE, Community included. The user installs
+        // LSP4IJ once from the Marketplace and our plugin layers on
+        // top of it.
+        intellijIdeaCommunity("2024.2")
         bundledPlugin("org.jetbrains.plugins.textmate")
+        plugin("com.redhat.devtools.lsp4ij:0.13.0")
     }
 }
 
