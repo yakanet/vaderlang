@@ -147,6 +147,13 @@ export interface TypedProgram {
    *  produces the string the host hook receives. Populated when a value with
    *  a concrete Display-implementing type flows into a `Display`-typed slot. */
   readonly displayCoercions: ReadonlyMap<A.Expr, Type>;
+  /** User-defined `Into(Target)` coercion sites. Key: the source-position
+   *  expression ; value: the impl entry whose `into` method must be inserted
+   *  by the lowerer + the source type so the lowerer can route through the
+   *  right monomorphised entry for generic-struct sources. Populated by the
+   *  typechecker when a value of type `S` flows into a slot expecting `T`,
+   *  `S != T`, and `S implements Into(T)` is found in the impl registry. */
+  readonly intoCoercions: ReadonlyMap<A.Expr, IntoCoercion>;
   /** Operator overload resolutions. See `BinaryOpResolution`. */
   readonly binaryOpResolutions: ReadonlyMap<A.BinaryExpr, BinaryOpResolution>;
   /** `a[i]` read dispatch through `Index($I, $T)::at` when `a` isn't a
@@ -166,4 +173,10 @@ export interface TypedProgram {
 export interface TypedProject {
   readonly resolved: ResolvedProject;
   readonly modules: ReadonlyMap<string, TypedProgram>;
+}
+
+/** Recorded `S implements Into(T)` coercion site — see `TypedProgram.intoCoercions`. */
+export interface IntoCoercion {
+  readonly entry: ImplEntry;
+  readonly sourceType: Type;
 }

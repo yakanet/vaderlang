@@ -14,7 +14,7 @@ import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
-import { wrapAsDisplay } from "./display-coerce.ts";
+import { wrapAsDisplay, wrapAsInto } from "./display-coerce.ts";
 import { lookupImplEntry, lookupImplFor, lowerRangeExpr, wrapArrayAsIter } from "./for-in.ts";
 import { blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
@@ -34,6 +34,13 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
     const wrapped = wrapAsDisplay(ctx, lowered, ctx.types.apply(displaySource), expr.span);
     if (wrapped !== null) return wrapped;
   }
+  const intoCoercion = ctx.typed.intoCoercions.get(expr);
+  if (intoCoercion !== undefined) {
+    const wrapped = wrapAsInto(ctx, lowered, intoCoercion, expr.span);
+    if (wrapped !== null) return wrapped;
+  }
+  // (`wrapAsInto` imported below from display-coerce.ts — same file already
+  // hosts wrapAsDisplay so they share the impl-entry lookup machinery.)
   return lowered;
 }
 

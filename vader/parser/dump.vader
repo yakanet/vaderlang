@@ -380,6 +380,8 @@ write_trait_decl :: fn(sb: StringBuilder, d: TraitDecl, level: i32) -> void {
 write_impl_decl :: fn(sb: StringBuilder, d: ImplDecl, level: i32) -> void {
     open_obj(sb)
     kind_entry(sb, level + 1, "ImplDecl")
+    entry(sb, false, level + 1, "typeParams")
+    write_type_params(sb, d.type_params, level + 1)
     entry(sb, false, level + 1, "forType")
     write_type(sb, d.for_type, level + 1)
     entry(sb, false, level + 1, "traitName")

@@ -367,54 +367,54 @@ fn 2 std_string$StringChars$Iterator$count (ref) -> usize
   local "__scrut_0#15" ref
   local "total#21" usize
   local "finished#22" bool
-  i64.const 0   ; core.vader:124:24
-  local.set 1   ; core.vader:124:24
-  bool.const false   ; core.vader:125:21
-  local.set 2   ; core.vader:125:21
-  block $L0 void   ; core.vader:126:9
-    loop $L1 void   ; core.vader:126:9
-      local.get 2   ; core.vader:126:13
-      bool.not   ; core.vader:126:13
-      if $L2 void   ; core.vader:126:13
-        local.get 0   ; core.vader:127:19
-        call 1   ; core.vader:127:19
-        local.tee 3   ; core.vader:127:19
+  i64.const 0   ; core.vader:143:24
+  local.set 1   ; core.vader:143:24
+  bool.const false   ; core.vader:144:21
+  local.set 2   ; core.vader:144:21
+  block $L0 void   ; core.vader:145:9
+    loop $L1 void   ; core.vader:145:9
+      local.get 2   ; core.vader:145:13
+      bool.not   ; core.vader:145:13
+      if $L2 void   ; core.vader:145:13
+        local.get 0   ; core.vader:146:19
+        call 1   ; core.vader:146:19
+        local.tee 3   ; core.vader:146:19
         type_check 0   ; undefined:undefined:undefined
-        if $L3 void   ; core.vader:128:17
-          bool.const true   ; core.vader:128:47
-          local.set 5   ; core.vader:128:47
-          local.get 1   ; core.vader:128:17
-          local.tee 4   ; core.vader:128:17
-          local.set 1   ; core.vader:126:9
-          local.get 5   ; core.vader:126:9
-          local.set 2   ; core.vader:126:9
-          br $L1   ; core.vader:126:9
-        else   ; core.vader:128:17
+        if $L3 void   ; core.vader:147:17
+          bool.const true   ; core.vader:147:47
+          local.set 5   ; core.vader:147:47
+          local.get 1   ; core.vader:147:17
+          local.tee 4   ; core.vader:147:17
+          local.set 1   ; core.vader:145:9
+          local.get 5   ; core.vader:145:9
+          local.set 2   ; core.vader:145:9
+          br $L1   ; core.vader:145:9
+        else   ; core.vader:147:17
           local.get 3   ; undefined:undefined:undefined
           type_check 1   ; undefined:undefined:undefined
-          if $L4 void   ; core.vader:129:17
-            local.get 1   ; core.vader:129:44
-            i64.const 1   ; core.vader:129:44
-            i64.to_usize   ; core.vader:129:44
-            usize.add   ; core.vader:129:44
-            local.set 4   ; core.vader:128:17
-            local.get 2   ; core.vader:128:17
-            local.set 5   ; core.vader:128:17
-            local.get 4   ; core.vader:126:9
-            local.set 1   ; core.vader:126:9
-            local.get 5   ; core.vader:126:9
-            local.set 2   ; core.vader:126:9
-            br $L1   ; core.vader:126:9
-          else   ; core.vader:129:17
-            unreachable   ; core.vader:127:13
-          end $L4   ; core.vader:129:17
-        end $L3   ; core.vader:128:17
-      else   ; core.vader:126:13
-      end $L2   ; core.vader:126:13
-    end $L1   ; core.vader:126:9
-  end $L0   ; core.vader:126:9
-  local.get 1   ; core.vader:132:9
-  return   ; core.vader:132:9
+          if $L4 void   ; core.vader:148:17
+            local.get 1   ; core.vader:148:44
+            i64.const 1   ; core.vader:148:44
+            i64.to_usize   ; core.vader:148:44
+            usize.add   ; core.vader:148:44
+            local.set 4   ; core.vader:147:17
+            local.get 2   ; core.vader:147:17
+            local.set 5   ; core.vader:147:17
+            local.get 4   ; core.vader:145:9
+            local.set 1   ; core.vader:145:9
+            local.get 5   ; core.vader:145:9
+            local.set 2   ; core.vader:145:9
+            br $L1   ; core.vader:145:9
+          else   ; core.vader:148:17
+            unreachable   ; core.vader:146:13
+          end $L4   ; core.vader:148:17
+        end $L3   ; core.vader:147:17
+      else   ; core.vader:145:13
+      end $L2   ; core.vader:145:13
+    end $L1   ; core.vader:145:9
+  end $L0   ; core.vader:145:9
+  local.get 1   ; core.vader:151:9
+  return   ; core.vader:151:9
 end
 
 fn 3 std_string$chars (string) -> ref

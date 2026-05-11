@@ -76,7 +76,7 @@ The pipeline is therefore **incremental**: to evaluate a `@comptime`, its depend
 
 Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List(i32)`, `Map(string, User)`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct(args)` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
 
-Registry collection is **transitive**: when `outer<i32>` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn<i32>`), every `for x in arr` over `T[]` (registers `ArrayIter(i32)`), and every substituted struct/trait reference inside the body (so e.g. `Yielded(string)` materialises when `step` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
+Registry collection is **transitive**: when `outer<i32>` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn<i32>`), every `for x in arr` over `T[]` (registers `ArrayIterator(i32)`), and every substituted struct/trait reference inside the body (so e.g. `Yielded(string)` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
 
 Lowering and every downstream phase therefore see only concrete types — they never have to invent dispatch logic for `$T`.
 
@@ -95,7 +95,7 @@ The Lowered AST is the input to the dead-code elimination pass. It is dumpable a
 
 ### Dead-code elimination
 
-Between the lowerer and the bytecode emitter, a DCE pass prunes lowered declarations that are not transitively reachable from a small set of roots. This keeps unused stdlib machinery out of the final artifact: `std/core` is auto-imported in every program, but a `hello world` doesn't need `Range`, `ArrayIter`, `Done`, `Yielded`, `IOError`, or their impls — DCE drops them before emission.
+Between the lowerer and the bytecode emitter, a DCE pass prunes lowered declarations that are not transitively reachable from a small set of roots. This keeps unused stdlib machinery out of the final artifact: `std/core` is auto-imported in every program, but a `hello world` doesn't need `Range`, `ArrayIterator`, `Done`, `Yielded`, `IOError`, or their impls — DCE drops them before emission.
 
 Roots — preserved unconditionally:
 
@@ -919,7 +919,7 @@ report :: fn(e: Error) -> string {
 }
 ```
 
-The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each ; generic impls (`Foo($T) implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo(i32)`, `is Foo(string)`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator(i32); it.step()` returns `Done | Yielded(i32)` — not the unsubstituted `Done | Yielded($T)`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
+The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each ; generic impls (`Foo($T) implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo(i32)`, `is Foo(string)`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator(i32); it.next()` returns `Done | Yielded(i32)` — not the unsubstituted `Done | Yielded($T)`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
 
 Inside a generic body, `key.method()` where `key: $T` and `T: Trait` resolves at typecheck and is monomorphised statically — each call site gets a direct call to the concrete impl member after substitution. No runtime dispatch.
 
@@ -948,8 +948,8 @@ string implements Hash {
 }
 
 // Classic form — required for traits with two or more methods.
-ArrayIter($T) implements Iterator(T) {
-    step :: fn(self) -> Done | Yielded(T) { ... }
+ArrayIterator($T) implements Iterator(T) {
+    next :: fn(self) -> Done | Yielded(T) { ... }
 }
 ```
 
@@ -1305,11 +1305,11 @@ The single-expression form `for <expr> { body }` is dispatched by the type of `<
 `T3019` fires when the expression is neither — the diagnostic catches a misplaced struct cond as well as a non-`Iterator` user type.
 
 The iteration form `for x in expr` accepts three shapes for `expr`:
-1. A built-in array `T[]` — auto-wrapped in `ArrayIter(T)`.
+1. A built-in array `T[]` — auto-wrapped in `ArrayIterator(T)`.
 2. A value of type `Iterator(T)` — used directly.
 3. A value implementing `Iterable(T)` — `expr.iter()` is auto-called and the result drives the loop.
 
-Raw `T[]` arrays are auto-wrapped in `ArrayIter(T)`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable(T)` so `for x in coll { ... }` works without an explicit `coll.iter()`.
+Raw `T[]` arrays are auto-wrapped in `ArrayIterator(T)`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable(T)` so `for x in coll { ... }` works without an explicit `coll.iter()`.
 
 The same auto-wrap fires at any *concrete* `Iterator(T)` slot — function arguments, `return` expressions, and typed `let` bindings — so `T[]` flows transparently :
 
@@ -1320,7 +1320,7 @@ fold :: fn() -> Iterator(i32) { return [1, 2, 3] }   // return coercion
 buf: Iterator(i32) : [4, 5, 6]                // typed-let coercion
 ```
 
-The coercion is gated on **canonical symbol identity** of `std/core::Iterator` ; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator($T)` parameter — type-arg inference can't bind `T` from a `T[]` argument across the widening, so combinators that take `Iterator($T)` still need an explicit `ArrayIter(T) { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator(i32)`, `Iterator(string)`, …) are unaffected.
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator` ; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator($T)` parameter — type-arg inference can't bind `T` from a `T[]` argument across the widening, so combinators that take `Iterator($T)` still need an explicit `ArrayIterator(T) { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator(i32)`, `Iterator(string)`, …) are unaffected.
 
 ```vader
 Iterable :: trait($T) {
@@ -1775,11 +1775,11 @@ Future intrinsics planned for Layer 6 of the type-first design (`docs/DESIGN_TYP
 
 ### `std/core` (auto-imported)
 
-Traits : `Display`, `Equals`, `Comparable`, `Add`, `Sub`, `Mul`, `Div`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Index(I, T)`, `IndexSet(I, T)`, `Error`.
+Traits : `Display`, `Equals`, `Comparable`, `Step`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Index(I, T)`, `IndexSet(I, T)`, `Error`.
 
-Types : `Done`, `Yielded(T)`, `Range`, `ArrayIter(T)`.
+Types : `Done`, `Yielded(T)`, `Range`, `ArrayIterator(T)`.
 
-Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index(i32, char)` (powers `s[i]`), and `Equals`/`Hash` on the integer primitives. All marked `@intrinsic` — bodies are host-provided.
+Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index(i32, char)` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. `Comparable` and `Step` impls are written in Vader (arrow form) ; the rest are `@intrinsic` and bodies are host-provided.
 
 The `Contains(T)` trait powers the `in` / `!in` operators :
 
@@ -1992,28 +1992,28 @@ const e:  f64
 
 ### `std/iter`
 
-The iterator trait lives in `std/core` (auto-imported), using a `Done | Yielded(T)` step result rather than `T | null` so iterators over nullable element types stay unambiguous:
+The iterator trait lives in `std/core` (auto-imported), using a `Done | Yielded(T)` `next()` result rather than `T | null` so iterators over nullable element types stay unambiguous:
 
 ```vader
 Done    :: struct {}
 Yielded :: struct($T) { value: T }
 
 Iterator(T) :: trait {
-    step     :: fn(self) -> Done | Yielded(T)
-    is_empty :: fn(self) -> bool                  // default — derives from step
+    next     :: fn(self) -> Done | Yielded(T)
+    is_empty :: fn(self) -> bool                  // default — derives from next
     count    :: fn(self) -> i32                   // default — drains, returns total
     last     :: fn(self) -> T | null              // default — drains, last yielded
 }
 ```
 
 `is_empty` / `count` / `last` are default methods (Layer 8d) — every
-Iterator impl inherits the bodies derived from `step`, the user only has
-to provide `step`.
+Iterator impl inherits the bodies derived from `next`, the user only has
+to provide `next`.
 
 `std/iter` provides combinators on top of it. Two flavours coexist :
 
 ```vader
-// Iterator-driven, concrete trait instance — `it.step()` dispatches via the
+// Iterator-driven, concrete trait instance — `it.next()` dispatches via the
 // virtual chain over each materialised impl :
 walk :: fn(it: Iterator(i32)) -> i32
 

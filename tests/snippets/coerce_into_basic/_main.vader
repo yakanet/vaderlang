@@ -1,0 +1,43 @@
+import "std/io" { println }
+
+// User newtype with an explicit Into impl. Tests the four implicit-coercion
+// sites : call arg with a typed parameter, struct field, typed let, return.
+UserId :: struct { value: i32 }
+
+UserId implements Into(i32) {
+    into :: fn(self) -> i32 { return self.value }
+}
+
+UserId implements Into(string) {
+    into :: fn(self) -> string { return "user_${self.value}" }
+}
+
+// Site 1 : call arg.
+take_i32 :: fn(x: i32) -> i32 { return x + 1 }
+
+// Site 2 : typed let.
+// Site 3 : return.
+get_id :: fn(u: UserId) -> i32 { return u }
+
+// Site 4 : struct field.
+Pair :: struct { tag: string, n: i32 }
+
+main :: fn() -> i32 {
+    u :: UserId { .value = 42 }
+
+    // Site 1 : pass UserId where i32 expected.
+    println("call ${take_i32(u)}")          // 43
+
+    // Site 2 : typed let.
+    n: i32 = u
+    println("let ${n}")                     // 42
+
+    // Site 3 : return.
+    println("ret ${get_id(u)}")             // 42
+
+    // Site 4 : struct field with explicit types.
+    p :: Pair { .tag = u, .n = u }
+    println("field tag=${p.tag} n=${p.n}")  // tag=user_42 n=42
+
+    return 0
+}

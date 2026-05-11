@@ -14,6 +14,7 @@ import { displayType, isAssignable, substitute } from "../types.ts";
 import { buildStructSubst } from "../ctx.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkExpr } from "./expr.ts";
+import { tryInto } from "./coerce.ts";
 import { lowerExprAsType } from "./type-expr.ts";
 
 export function inferStructLit(
@@ -56,8 +57,10 @@ export function inferStructLit(
       }
       provided.add(item.name);
       if (expected !== null && !isAssignable(got, expected, impls)) {
-        err(diags, "T3001", item.span,
-          `expected ${displayType(expected)}, got ${displayType(got)}`);
+        if (!tryInto(got, expected, item.value, t, impls)) {
+          err(diags, "T3001", item.span,
+            `expected ${displayType(expected)}, got ${displayType(got)}`);
+        }
       }
     }
   }

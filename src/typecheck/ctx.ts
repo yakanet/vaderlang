@@ -8,6 +8,7 @@
 
 import type * as A from "../parser/ast.ts";
 import type { Module } from "../resolver/module.ts";
+import type { IntoCoercion } from "./typed-ast.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { ModuleId, Symbol } from "../resolver/symbol.ts";
 import type {
@@ -119,6 +120,8 @@ export interface MutableTyped {
   readonly arrayIterCoercions: Map<A.Expr, Type>;
   /** `T` → `Display` coercion sites. See `TypedProgram.displayCoercions`. */
   readonly displayCoercions: Map<A.Expr, Type>;
+  /** User `Into(Target)` coercion sites. See `TypedProgram.intoCoercions`. */
+  readonly intoCoercions: Map<A.Expr, IntoCoercion>;
   /** Operator-overload dispatch sites. See `TypedProgram.binaryOpResolutions`. */
   readonly binaryOpResolutions: Map<A.BinaryExpr, BinaryOpResolution>;
   /** Index trait dispatch sites for `a[i]` reads. */

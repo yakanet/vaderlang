@@ -195,6 +195,7 @@ export TraitDecl :: struct {
 
 export ImplDecl :: struct {
     span:             Span
+    type_params:      TypeParam[]
     for_type:         TypeExpr
     trait_name:       string
     trait_name_span:  Span

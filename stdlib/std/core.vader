@@ -68,6 +68,25 @@ export Clone :: trait {
     clone :: fn(self) -> Self
 }
 
+/// Type-to-type conversion. Two surfaces :
+///   - **Implicit** : when a value of type `S` flows into a slot
+///     expecting `Target` and `S implements Into(Target)`, the compiler
+///     inserts `value.into()` at the boundary. Sites : call args with a
+///     typed parameter, `return` values, `let x: T = …`, and struct-
+///     literal fields.
+///   - **Explicit** : `Target(value)` — the same `Type(value)` syntax
+///     that performs primitive numeric casts (`u32(x)`, `i64(x)`). When
+///     `Target` is a user type, the compiler routes the call through
+///     the matching `Into` impl instead of emitting a primitive cast.
+///
+/// Coercion is **not** transitive (`A → B → C` never auto-chains), the
+/// target must be a concrete type (not a union, type-param or unresolved
+/// type), and `T implements Into(T)` is forbidden (would shadow identity
+/// assignments). See SPEC §11 *Type coercion* for the full rules.
+export Into :: trait[Target] {
+    into :: fn(self) -> Target
+}
+
 /// `+` dispatch. Numeric primitives use the built-in bytecode op directly ;
 /// user types implement `Add` to opt into the operator form.
 export Add :: trait { add :: fn(self, other: Self) -> Self }

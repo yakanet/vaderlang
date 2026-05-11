@@ -14,6 +14,7 @@ import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute }
 import { buildStructSubst, tryStructSubst, type FnContext, type MutableTyped } from "../ctx.ts";
 import { sourceStructDecl } from "../../resolver/symbol.ts";
 import { recordIterCoercion } from "./call.ts";
+import { tryInto } from "./coerce.ts";
 import { looksLikeTypeExpression } from "./decl.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
 import { lowerExprAsType } from "./type-expr.ts";
@@ -57,8 +58,10 @@ export function checkFnBody(
   // (already handled). If the trailing expr is incompatible the diagnostic
   // already fired.
   if (body.trailing !== null && !isAssignable(got, ctx.returnType, impls)) {
-    err(diags, "T3020", body.trailing.span,
-      `expected ${displayType(ctx.returnType)}, got ${displayType(got)}`);
+    if (!tryInto(got, ctx.returnType, body.trailing, t, impls)) {
+      err(diags, "T3020", body.trailing.span,
+        `expected ${displayType(ctx.returnType)}, got ${displayType(got)}`);
+    }
   }
   if (body.trailing !== null) recordIterCoercion(body.trailing, got, ctx.returnType, t);
 }
@@ -92,8 +95,10 @@ function checkStmt(
       const got = checkExpr(stmt.value, valueHint, t, impls, diags, fn);
       const declared = expectedAnn ?? defaultIfFree(got);
       if (expectedAnn !== null && !isAssignable(got, expectedAnn, impls)) {
-        err(diags, "T3001", stmt.span,
-          `expected ${displayType(expectedAnn)}, got ${displayType(got)}`);
+        if (!tryInto(got, expectedAnn, stmt.value, t, impls)) {
+          err(diags, "T3001", stmt.span,
+            `expected ${displayType(expectedAnn)}, got ${displayType(got)}`);
+        }
       }
       // Layer 5b — `t :: <type-expr>` inside a fn body is an in-fn type
       // alias : pre-resolve the underlying Type and stash it ; lower will
@@ -167,8 +172,10 @@ function checkStmt(
       }
       const got = checkExpr(stmt.value, fn.returnType, t, impls, diags, fn);
       if (!isAssignable(got, fn.returnType, impls)) {
-        err(diags, "T3020", stmt.span,
-          `expected ${displayType(fn.returnType)}, got ${displayType(got)}`);
+        if (!tryInto(got, fn.returnType, stmt.value, t, impls)) {
+          err(diags, "T3020", stmt.span,
+            `expected ${displayType(fn.returnType)}, got ${displayType(got)}`);
+        }
       }
       recordIterCoercion(stmt.value, got, fn.returnType, t);
       return;

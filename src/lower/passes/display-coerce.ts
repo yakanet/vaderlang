@@ -5,10 +5,15 @@
 // Display` declarations in `std/core` and `std/string_builder` so calls like
 // `print(42)` lower to `print(<i32_to_string>(42))` without a generic Vader
 // wrapper getting monomorphised per-type.
+//
+// Sibling helper `wrapAsInto` covers user-defined `Into(Target)` coercions
+// — same pattern (find the impl member, emit a direct call) but the impl is
+// recorded explicitly at typecheck rather than discovered from the trait.
 
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { CORE_TRAITS, TY } from "../../typecheck/types.ts";
+import type { IntoCoercion } from "../../typecheck/typed-ast.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredExpr } from "../lowered-ast.ts";
@@ -39,6 +44,35 @@ export function wrapAsDisplay(
   return {
     kind: "LoweredCall", span, type: TY.string,
     callee: { kind: "LoweredIdent", span, type: TY.string, symbol: entry.symbol },
+    args: [value],
+  };
+}
+
+/** Wrap `value` (lowered, type matches `coercion.sourceType`) in a static
+ *  call to the `into` member of `coercion.entry`. The trait arg recorded on
+ *  the impl gives the target type ; we substitute the source's struct args
+ *  through `lookupImplEntry` to land on the right monomorphised member.
+ *  Returns null when the entry can't be reached (defensive — typecheck
+ *  already validated the impl exists). */
+export function wrapAsInto(
+  ctx: FnLowerCtx, value: LoweredExpr, coercion: IntoCoercion, span: Span,
+): LoweredExpr | null {
+  const member = coercion.entry.decl.members.find((m) => m.name === "into");
+  if (member === undefined) return null;
+  const source = ctx.types.apply(coercion.sourceType);
+  const structArgs = source.kind === "Struct" ? source.args : [];
+  const entry = lookupImplEntry(ctx, member, structArgs);
+  if (entry === null || entry.symbol === null) return null;
+  // The target type lives on the impl's first trait-arg ; recover it so the
+  // LoweredCall has the correct type for downstream consumers (coerce-args
+  // / boxing, debug dumps).
+  const targetExpr = coercion.entry.decl.traitArgs[0];
+  const targetType = targetExpr !== undefined
+    ? ctx.types.apply(ctx.typed.typeExprTypes.get(targetExpr) ?? TY.unresolved)
+    : TY.unresolved;
+  return {
+    kind: "LoweredCall", span, type: targetType,
+    callee: { kind: "LoweredIdent", span, type: targetType, symbol: entry.symbol },
     args: [value],
   };
 }

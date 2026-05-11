@@ -349,12 +349,28 @@ is_impl_decl :: fn(p: Parser) -> bool {
     i := p.pos
     depth := 0
     n :: i32(p.tokens.len())
+    // Allow a single newline immediately after a depth-0 `]` so the
+    // bounded-impl multi-line prefix `[T: Bound]\n Foo[T] implements ...`
+    // parses ; arbitrary newlines elsewhere still break the lookahead.
+    allow_newline_after_rbracket := false
     for i < n {
         t :: p.tokens[usize(i)]
-        if t.kind == .Eof || t.kind == .Newline { return false }
+        if t.kind == .Eof { return false }
+        if t.kind == .Newline {
+            if allow_newline_after_rbracket && depth == 0 {
+                allow_newline_after_rbracket = false
+                i = i + 1
+                continue
+            }
+            return false
+        }
+        allow_newline_after_rbracket = false
         if t.kind == .KwImplements && depth == 0 { return true }
         if t.kind == .LParen || t.kind == .LBracket || t.kind == .LBrace { depth = depth + 1 }
-        if t.kind == .RParen || t.kind == .RBracket || t.kind == .RBrace { depth = depth - 1 }
+        if t.kind == .RParen || t.kind == .RBracket || t.kind == .RBrace {
+            depth = depth - 1
+            if t.kind == .RBracket && depth == 0 { allow_newline_after_rbracket = true }
+        }
         if depth < 0 { return false }
         i = i + 1
     }
@@ -411,6 +427,16 @@ parse_lhs_generic_alias_decl :: fn(p: Parser, decorators: Decorator[], visibilit
 
 parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     start_tok :: p.peek()
+    // Optional bounded-generic impl prefix `[T: Bound] Foo[T] implements ...`.
+    // Mirrors the TS parser : when present, these are the impl's own
+    // type-params with local bounds, distinct from the type-args inside
+    // `for_type` / `trait_args` which *use* these names. Empty for the
+    // legacy form that borrows type-params from the struct transparently.
+    type_params: TypeParam[] = []
+    if p.check(.LBracket) {
+        type_params = p.parse_bracketed_type_params()
+    }
+    p.skip_newlines()
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
     trait_tok :: p.expect(.Ident, "trait name")
@@ -461,6 +487,7 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     }
     return ImplDecl {
         .span            = p.span_of(start_tok, end_tok),
+        .type_params     = type_params,
         .for_type        = for_type,
         .trait_name      = trait_tok.text,
         .trait_name_span = trait_tok.span,

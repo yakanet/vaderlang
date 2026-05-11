@@ -1,0 +1,7 @@
+# stdout
+call 43
+let 42
+ret 42
+field tag=user_42 n=42
+# exit
+0

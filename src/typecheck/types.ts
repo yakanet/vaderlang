@@ -51,6 +51,8 @@ export const CORE_TRAITS = {
   Rem:        "Rem",
   Hash:       "Hash",
   Clone:      "Clone",
+  Step:       "Step",
+  Into:       "Into",
   Iterator:   "Iterator",
   Iterable:   "Iterable",
   Contains:   "Contains",

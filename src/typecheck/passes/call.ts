@@ -17,6 +17,7 @@ import type { Substitution, Type } from "../types.ts";
 import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isNumeric, isPrimitive, substitute, unionOf } from "../types.ts";
 
 import { buildStructSubst, tryStructSubst } from "../ctx.ts";
+import { tryInto } from "./coerce.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr, typeOfSymbol } from "./expr.ts";
@@ -97,8 +98,10 @@ export function inferCall(
     const expectedTy = i < calleeType.params.length ? calleeType.params[i]! : null;
     const got = checkExpr(arg.value, expectedTy, t, impls, diags, fn);
     if (expectedTy !== null && !isAssignable(got, expectedTy, impls)) {
-      err(diags, "T3001", arg.value.span,
-        `expected ${displayType(expectedTy)}, got ${displayType(got)}`);
+      if (!tryInto(got, expectedTy, arg.value, t, impls)) {
+        err(diags, "T3001", arg.value.span,
+          `expected ${displayType(expectedTy)}, got ${displayType(got)}`);
+      }
     }
     if (expectedTy !== null) {
       recordIterCoercion(arg.value, got, expectedTy, t);
