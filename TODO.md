@@ -15,7 +15,18 @@ Each item is sized to be actionable. Cross items off as they're completed. Reord
 Items here jump the queue ahead of the phased roadmap below. They reflect a deliberate shift: stabilise the surface area people can touch (binary, formatter, perf signal) before extending the language further, and pay down two concrete pieces of internal debt (SSA, monoliths) before they harden.
 
 - [x] **Single-binary distribution** (2026-05-10). `bun build --compile` produces a standalone `vader` binary ; the CLI no longer needs `bun src/index.ts`. Shipped as one tarball per OS (`vader-<os>-<arch>.tar.gz`) containing the binary alongside `stdlib/` and `runtime/c/` — the binary locates these sidecars via `dirname(process.execPath)`, with a dev fallback via `import.meta.dir`-relative paths (`src/runtime-resources.ts`). Resolved both `import.meta.dir`-based lookups : `src/resolver/module.ts:resolveStdlibRoot` and `src/cli/commands/build.ts:buildNative`'s `runtimeRoot`. Packaging via `scripts/dist.ts` ; npm scripts `dist:current` / `dist:darwin-arm64` / `dist:darwin-x64` / `dist:linux-x64` / `dist:all`. Acceptance verified : extract `vader-darwin-arm64.tar.gz`, run `./vader-darwin-arm64/vader run hello.vader` ✓ ; `vader build --target=native` produces a working binary ✓ ; orphan binary (sidecars stripped) fails cleanly with R2001 instead of crashing. Cross-compile from macOS-arm64 → linux-x64 (38 MiB) + darwin-x64 (24 MiB) works out of the box. README updated.
-- [ ] **`vader fmt` MVP.** Promote the `fmt` stub into a real subcommand. Print canonical source from the parser AST (re-using span trivia where possible for comments). Scope: indentation, spacing around operators, trailing commas, blank-line rules. No config flags in v1 — opinionated, single style. Acceptance: `vader fmt stdlib/` is a no-op (idempotent) and the result round-trips through the parser unchanged.
+- [~] **`vader fmt` MVP.** First working pass landed 2026-05-11. Written in **Vader** (not TS) — lives under `vader/fmt/` and exercises the self-host parser end-to-end. Modules : `style.vader` (constants + op tables), `comments.vader` (independent offset-keyed pre-scan since the lexer drops `//` + `/* */`), `printer.vader` (~1000 lines of per-node emitters, dispatches `Decl`/`Stmt`/`Expr`/`Pattern`), `format.vader` (parse + emit pipeline), `cli.vader` (argv + dir walk + `FileResult` enum). The TS `vader fmt` command (`src/cli/commands/fmt.ts`) is a thin shim that runs `vader/cli/main.vader fmt <args>` through the bytecode VM ; the Vader CLI dispatches to `run_fmt`. The `vader/` tree ships in the dist archive (extended `scripts/dist.ts` + `runtimeRoots().vaderRoot` probe) so the formatter is reachable from both `bun src/index.ts fmt …` and the native `./vader fmt …`.
+
+  Pre-requisites that landed alongside : `std/io.read_dir` / `std/io.is_dir` (runtime C + VM host + C-emit shims), plus surgical `usize`/`i32` casts in `vader/parser/parser.vader` to dodge VM tag-mismatch traps that the compiled-native CLI was tolerating.
+
+  Surface preservation : `T!` shorthand recovered by detecting `BinaryExpr.BitOr` whose source slice ends with `!` ; precedence-grouping parens recovered by ranking child vs parent `BinaryOp` ; integer / float / string / char / `GenericInstExpr` literals emitted verbatim from the source slice (preserves `0x` / underscores / raw / triple-quoted / `[T]` vs `(T)`). Layout choices respect the source : multi-line vs inline structs / imports / blocks, `if-else if` cascade breaks, decorator inline-vs-block, blank lines between comment groups and between commented declarations.
+
+  Acceptance status :
+  - **Idempotency `fmt(fmt(src)) == fmt(src)`** ✓ verified on `stdlib/std/{io,path,json}.vader`.
+  - **Parse round-trip** ✓ — formatted output reparses to an AST equivalent to the original.
+  - **Stdlib byte-for-byte no-op** ✗ not yet. Three known stylistic gaps : (a) decorative column alignment of `::` in declaration groups, (b) per-line item grouping inside multi-line imports (my formatter is one-per-line ; the stdlib has 2-3 per line), (c) cap at 1 blank line between decls vs the stdlib's occasional double-blank section dividers. None of these are correctness bugs ; they're authority-of-the-formatter decisions to make.
+
+  Open items : (a) column-alignment of `::` if we decide the stdlib style is the canonical one ; (b) hand-curated snapshot scenarios under `tests/snapshots/formatter/` ; (c) `tests/formatter.test.ts` driving `fmt(snippet) == fmt(fmt(snippet))` + AST-equality on every `tests/snippets/*/_main.vader` ; (d) `tests/formatter_stdlib.test.ts` once we've reconciled the three style gaps.
 - [ ] **Reference benchmark.** Pick `examples/mandelbrot.vader` and `examples/primes.vader` as the two reference workloads. Add `bun run bench` that times each through (a) the bytecode VM, (b) `--target=native` (C-emitted), and compares against a hand-written equivalent in Bun/TS and Go. Commit baseline numbers in `bench/README.md` and update the top-level README with a small results table. Acceptance: a perf regression of >10% on either workload causes the bench script to exit non-zero in CI.
 - [ ] **SSA round-trip — keep-or-remove decision.** Today `pipelineCfg` does `toSSA → annotateEscape → fromSSA` and the in-tree comment calls the round-trip "behaviour-neutral". The only consumer that exploits SSA form is escape analysis. Investigate: (a) can escape analysis run on the non-SSA CFG via plain dataflow? (b) which SSA-only optimisation would justify keeping the round-trip — GVN, copy-prop, sparse conditional constant prop? Decide either to land at least one such pass that materially improves bytecode/perf, or to delete `toSSA`/`fromSSA` and fold escape analysis onto the flat CFG. Don't keep SSA "just in case".
 - [ ] **Break up the three monoliths.** Same logical structure, smaller files, cheaper edits.
@@ -383,7 +394,7 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [ ] `vader build --target=wasm`
 - [ ] `vader build --target=ir` — emits `.vir`
 - [ ] `vader test [path]` — discovers and executes `@test` functions
-- [ ] `vader fmt [path]` — opinionated formatter, no config
+- [~] `vader fmt [path]` — opinionated formatter, no config. See top "Priority — next up" entry for status ; first pass landed 2026-05-11.
 - [ ] `vader dump --stage=<ast|typed-ast|bytecode|c|wasm> <file>`
 - [ ] `--allow-env` flag for comptime sandbox
 
@@ -907,3 +918,4 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - `stdlib/` — standard library source (Vader)
 - `src/` — TypeScript compiler (to be created in Phase 0)
 - `tests/` — snapshot tests (to be created in Phase 1)
+- `docs/IMPROVEMENT.md` — review-driven improvement plan (2026-05-11)
