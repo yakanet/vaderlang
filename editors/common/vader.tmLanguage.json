@@ -48,16 +48,16 @@
     "vaderdoc-tags": {
       "patterns": [
         {
-          "comment": "Tag with following name (e.g. `@param msg`)",
+          "comment": "Tag with following name (e.g. `@param msg`). The tag itself carries multiple parent scopes so both engines pick it up : `keyword.control.documentation.vader` covers IntelliJ's TextMate mapping (which falls back to `keyword.control` for the IDE keyword color) ; VSCode themes typically style any `storage.type.*` or `keyword.*` scope distinctly inside a doc-comment block.",
           "match": "@(param)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
           "captures": {
-            "1": { "name": "storage.type.documentation.vader" },
+            "1": { "name": "keyword.control.documentation.vader" },
             "2": { "name": "variable.parameter.documentation.vader" }
           }
         },
         {
-          "comment": "Bare tag (`@return`, `@error`, `@example`)",
-          "name": "storage.type.documentation.vader",
+          "comment": "Bare tag (`@return`, `@error`, `@example`).",
+          "name": "keyword.control.documentation.vader",
           "match": "@(return|error|example)\\b"
         }
       ]
