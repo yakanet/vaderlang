@@ -3,94 +3,94 @@
 ## tests/snippets/gc_chain_survive/_main.vader
   struct tests_snippets_gc_chain_survive__main_vader$Node { value: i32, next: Node | null }
   fn tests_snippets_gc_chain_survive__main_vader$main() -> i32
-    let head#65: Node | null =
+    let head: Node | null =
       Node {
         value: int(0) :i32
         next: null
       }
-    let i#66: i32 = int(1) :i32
+    let i: i32 = int(1) :i32
     loop while (<…>)
       assign
         target:
-          head#65 :Node | null
+          head :Node | null
         value:
           Node {
-            value: i#66 :i32
-            next: head#65 :Node | null
+            value: i :i32
+            next: head :Node | null
           }
       assign
         target:
-          i#66 :i32
+          i :i32
         value:
           add :i32
             l:
-              i#66 :i32
+              i :i32
             r:
               int(1) :i32
-    let before#67: i32 =
+    let before: i32 =
       call :i32
         callee:
-          collections#38 :fn() -> i32
+          collections :fn() -> i32
     call :void
       callee:
-        collect#37 :fn() -> void
-    let after#68: i32 =
+        collect :fn() -> void
+    let after: i32 =
       call :i32
         callee:
-          collections#38 :fn() -> i32
-    let diff#69: i32 =
+          collections :fn() -> i32
+    let diff: i32 =
       sub :i32
         l:
-          after#68 :i32
+          after :i32
         r:
-          before#67 :i32
+          before :i32
     if :void
       cond:
         neq :bool
           l:
-            diff#69 :i32
+            diff :i32
           r:
             int(1) :i32
       then:
         call :void
           callee:
-            println#27 :fn(Display) -> void
+            println :fn(Display) -> void
           arg0:
             call :string
               callee:
-                to_string#1000014 :string
+                to_string :string
               arg0:
                 block :string
-                  let __sb_0#-1: ? =
+                  let __sb_0: ? =
                     @builder.new :?
                   @builder.append_str :void
-                    __sb_0#-1 :?
+                    __sb_0 :?
                     "expected 1 collection, got " :string
                   @builder.append_display <for i32> :void
-                    __sb_0#-1 :?
-                    diff#69 :i32
+                    __sb_0 :?
+                    diff :i32
                   ~>
                     @builder.finish :string
-                      __sb_0#-1 :?
+                      __sb_0 :?
         return int(1) :i32
-    let sum#70: i32 = int(0) :i32
-    let cur#71: Node | null = head#65 :Node | null
-    let done#72: bool = false
+    let sum: i32 = int(0) :i32
+    let cur: Node | null = head :Node | null
+    let done: bool = false
     loop while (<…>)
       ~>
         block :void
-          let __scrut_1#-2: Node | null = cur#71 :Node | null
+          let __scrut_1: Node | null = cur :Node | null
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_1#-2 :Node | null
+                  __scrut_1 :Node | null
               then:
                 ~>
                   block :void
                     assign
                       target:
-                        done#72 :bool
+                        done :bool
                       value:
                         true
               else:
@@ -98,32 +98,32 @@
                   if :void
                     cond:
                       is Node :bool
-                        __scrut_1#-2 :Node | null
+                        __scrut_1 :Node | null
                     then:
                       ~>
                         block :void
                           assign
                             target:
-                              sum#70 :i32
+                              sum :i32
                             value:
                               add :i32
                                 l:
-                                  sum#70 :i32
+                                  sum :i32
                                 r:
                                   .value :i32
                                     cast → Node
-                                      cur#71 :Node | null
+                                      cur :Node | null
                           assign
                             target:
-                              cur#71 :Node
+                              cur :Node
                             value:
                               .next :Node | null
                                 cast → Node
-                                  cur#71 :Node | null
+                                  cur :Node | null
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let expected#73: i32 =
+    let expected: i32 =
       div :{integer}
         l:
           mul :{integer}
@@ -137,55 +137,55 @@
       cond:
         neq :bool
           l:
-            sum#70 :i32
+            sum :i32
           r:
-            expected#73 :i32
+            expected :i32
       then:
         call :void
           callee:
-            println#27 :fn(Display) -> void
+            println :fn(Display) -> void
           arg0:
             call :string
               callee:
-                to_string#1000014 :string
+                to_string :string
               arg0:
                 block :string
-                  let __sb_2#-3: ? =
+                  let __sb_2: ? =
                     @builder.new :?
                   @builder.append_str :void
-                    __sb_2#-3 :?
+                    __sb_2 :?
                     "sum mismatch: got " :string
                   @builder.append_display <for i32> :void
-                    __sb_2#-3 :?
-                    sum#70 :i32
+                    __sb_2 :?
+                    sum :i32
                   @builder.append_str :void
-                    __sb_2#-3 :?
+                    __sb_2 :?
                     ", expected " :string
                   @builder.append_display <for i32> :void
-                    __sb_2#-3 :?
-                    expected#73 :i32
+                    __sb_2 :?
+                    expected :i32
                   ~>
                     @builder.finish :string
-                      __sb_2#-3 :?
+                      __sb_2 :?
         return int(2) :i32
     call :void
       callee:
-        println#27 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_3#-4: ? =
+              let __sb_3: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_3#-4 :?
+                __sb_3 :?
                 "ok: 200 nodes survived GC; sum=" :string
               @builder.append_display <for i32> :void
-                __sb_3#-4 :?
-                sum#70 :i32
+                __sb_3 :?
+                sum :i32
               ~>
                 @builder.finish :string
-                  __sb_3#-4 :?
+                  __sb_3 :?
     return int(0) :i32

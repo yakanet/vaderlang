@@ -202,12 +202,6 @@ export function stdStringBindings(): Record<string, HostFn> {
     std_string$trim:        (args) => str(stringArg(args, 0).trim()),
     std_string$to_upper:    (args) => str(stringArg(args, 0).toUpperCase()),
     std_string$to_lower:    (args) => str(stringArg(args, 0).toLowerCase()),
-    std_string$char_at: (args) => {
-      const bytes = UTF8_ENC.encode(stringArg(args, 0));
-      const i = indexArg(args, 1);
-      if (i < 0 || i >= bytes.length) return ch(0);
-      return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
-    },
     std_string$byte_at: (args) => {
       const bytes = UTF8_ENC.encode(stringArg(args, 0));
       const i = indexArg(args, 1);

@@ -2,52 +2,52 @@
 
 ## tests/snippets/array_of_union/_main.vader
   fn tests_snippets_array_of_union__main_vader$main() -> i32
-    let arr#60: Node(i32) | null[] =
+    let arr: Node(i32) | null[] =
       array :Node(i32) | null[]
     LoweredArrayPush
     LoweredArrayPush
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "len = " :string
               @builder.append_display <for usize> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 LoweredArrayLen
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
-    let cell#61: Node(i32) | null =
+                  __sb_0 :?
+    let cell: Node(i32) | null =
       index :Node(i32) | null
         on:
-          arr#60 :Node(i32) | null[]
+          arr :Node(i32) | null[]
         ix:
           int(1) :i32
     block :void
-      let __scrut_1#-2: Node(i32) | null = cell#61 :Node(i32) | null
+      let __scrut_1: Node(i32) | null = cell :Node(i32) | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_1#-2 :Node(i32) | null
+              __scrut_1 :Node(i32) | null
           then:
             ~>
               call :void
                 callee:
-                  println#25 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       "none" :string
           else:
@@ -55,16 +55,16 @@
               if :void
                 cond:
                   is Node(i32) :bool
-                    __scrut_1#-2 :Node(i32) | null
+                    __scrut_1 :Node(i32) | null
                 then:
                   ~>
                     call :void
                       callee:
-                        println#25 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "got value" :string
                 else:

@@ -9,7 +9,8 @@ import "std/math" { min }
 import "std/utf8" { codepoint_byte_len }
 
 /// Length in bytes. The string API is intentionally byte-indexed
-/// (`slice`, `char_at`, `contains` all operate on byte offsets) — naming
+/// (`slice`, `byte_at`, `contains` all operate on byte offsets ; `s[i]`
+/// from `std/core` decodes the codepoint at byte offset `i`) — naming
 /// this `byte_len` forces the reader to acknowledge the byte/codepoint
 /// distinction and pick `count_chars` deliberately if they want the
 /// codepoint count.
@@ -37,17 +38,12 @@ export starts_with :: fn(s: string, prefix: string) -> bool
 /// True iff `s` ends with `suffix`. Byte-wise comparison.
 export ends_with :: fn(s: string, suffix: string) -> bool
 
-/// Decode the Unicode codepoint at byte offset `i`. `i` must land on a
-/// UTF-8 leading byte ; landing on a continuation byte returns U+FFFD.
-/// For sequential iteration use `chars()` (cursor-aware) instead.
-export char_at :: fn(s: string, i: usize) -> char
-
 /// Raw byte at offset `i`. Useful for ASCII fast paths and binary-format
 /// scanning (BOM detection, magic bytes). For UTF-8-aware iteration use
 /// `chars()`.
 export byte_at :: fn(s: string, i: usize) -> u8
 
-/// Iterator yielding raw bytes — the UTF-8 byte sequence as-is. Use for
+/// Iterator yielding raw bytes - the UTF-8 byte sequence as-is. Use for
 /// ASCII data, binary protocols carried in strings, or when computing a
 /// byte-level digest. For codepoint iteration use `chars()` instead.
 export StringBytes :: struct {

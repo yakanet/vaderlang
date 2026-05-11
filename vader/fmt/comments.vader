@@ -7,7 +7,7 @@
 // map at every AST-node boundary and interleaves matching comments at the
 // right indentation.
 
-import "std/string" { byte_len, byte_at, char_at, slice as slice_text }
+import "std/string" { byte_len, byte_at, slice as slice_text }
 
 /// Classification of a scanned comment. VaderDoc is `///` only ; `/**` is
 /// recognised as a plain `Block` since SPEC §3 dropped the block-form

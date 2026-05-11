@@ -6,165 +6,165 @@
   fn tests_snippets_overload_first_param__main_vader$describe(b: Box) -> string
     return
       block :string
-        let __sb_0#-1: ? =
+        let __sb_0: ? =
           @builder.new :?
         @builder.append_str :void
-          __sb_0#-1 :?
+          __sb_0 :?
           "box " :string
         @builder.append_display <for i32> :void
-          __sb_0#-1 :?
+          __sb_0 :?
           .v :i32
-            b#88 :Box
+            b :Box
         ~>
           @builder.finish :string
-            __sb_0#-1 :?
+            __sb_0 :?
   fn tests_snippets_overload_first_param__main_vader$describe_1(b: Bag) -> string
     return
       block :string
-        let __sb_0#-2: ? =
+        let __sb_0: ? =
           @builder.new :?
         @builder.append_str :void
-          __sb_0#-2 :?
+          __sb_0 :?
           "bag " :string
         @builder.append_display <for string> :void
-          __sb_0#-2 :?
+          __sb_0 :?
           .v :string
-            b#89 :Bag
+            b :Bag
         ~>
           @builder.finish :string
-            __sb_0#-2 :?
+            __sb_0 :?
   fn tests_snippets_overload_first_param__main_vader$main() -> i32
-    let a#90: Box =
+    let a: Box =
       Box {
         v: int(42) :i32
       }
-    let b#91: Bag =
+    let b: Bag =
       Bag {
         v: "hi" :string
       }
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                describe#8 :fn(Box) -> string
+                describe :fn(Box) -> string
               arg0:
-                a#90 :Box
+                a :Box
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                describe#9 :string
+                describe :string
               arg0:
-                b#91 :Bag
+                b :Bag
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                describe#8 :string
+                describe :string
               arg0:
-                a#90 :Box
+                a :Box
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                describe#9 :string
+                describe :string
               arg0:
-                b#91 :Bag
+                b :Bag
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-3: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-3 :?
+                __sb_0 :?
                 "min(3, 5)     = " :string
               @builder.append_display <for i32> :void
-                __sb_0#-3 :?
+                __sb_0 :?
                 call :i32
                   callee:
-                    min#53 :i32
+                    min :i32
                   arg0:
                     int(3) :i32
                   arg1:
                     int(5) :i32
               ~>
                 @builder.finish :string
-                  __sb_0#-3 :?
+                  __sb_0 :?
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-4: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_1#-4 :?
+                __sb_1 :?
                 "min(3.5, 5.0) = " :string
               @builder.append_display <for f64> :void
-                __sb_1#-4 :?
+                __sb_1 :?
                 call :f64
                   callee:
-                    min#52 :fn(f64, f64) -> f64
+                    min :fn(f64, f64) -> f64
                   arg0:
                     float(3.5) :f64
                   arg1:
                     float(5) :f64
               ~>
                 @builder.finish :string
-                  __sb_1#-4 :?
+                  __sb_1 :?
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-5: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_2#-5 :?
+                __sb_2 :?
                 "max(-2, 8)    = " :string
               @builder.append_display <for i32> :void
-                __sb_2#-5 :?
+                __sb_2 :?
                 call :i32
                   callee:
-                    max#56 :i32
+                    max :i32
                   arg0:
                     neg :i32
                       int(2) :i32
@@ -172,76 +172,76 @@
                     int(8) :i32
               ~>
                 @builder.finish :string
-                  __sb_2#-5 :?
+                  __sb_2 :?
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_3#-6: ? =
+              let __sb_3: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_3#-6 :?
+                __sb_3 :?
                 "abs(-7)       = " :string
               @builder.append_display <for i32> :void
-                __sb_3#-6 :?
+                __sb_3 :?
                 call :i32
                   callee:
-                    abs#59 :i32
+                    abs :i32
                   arg0:
                     neg :i32
                       int(7) :i32
               ~>
                 @builder.finish :string
-                  __sb_3#-6 :?
+                  __sb_3 :?
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_4#-7: ? =
+              let __sb_4: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_4#-7 :?
+                __sb_4 :?
                 "abs(-7.5)     = " :string
               @builder.append_display <for f64> :void
-                __sb_4#-7 :?
+                __sb_4 :?
                 call :f64
                   callee:
-                    abs#58 :fn(f64) -> f64
+                    abs :fn(f64) -> f64
                   arg0:
                     neg :f64
                       float(7.5) :f64
               ~>
                 @builder.finish :string
-                  __sb_4#-7 :?
+                  __sb_4 :?
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_5#-8: ? =
+              let __sb_5: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_5#-8 :?
+                __sb_5 :?
                 "clamp(15, 0, 10)      = " :string
               @builder.append_display <for i32> :void
-                __sb_5#-8 :?
+                __sb_5 :?
                 call :i32
                   callee:
-                    clamp#61 :i32
+                    clamp :i32
                   arg0:
                     int(15) :i32
                   arg1:
@@ -250,26 +250,26 @@
                     int(10) :i32
               ~>
                 @builder.finish :string
-                  __sb_5#-8 :?
+                  __sb_5 :?
     call :void
       callee:
-        println#32 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_6#-9: ? =
+              let __sb_6: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_6#-9 :?
+                __sb_6 :?
                 "clamp(1.5, 0.0, 1.0)  = " :string
               @builder.append_display <for f64> :void
-                __sb_6#-9 :?
+                __sb_6 :?
                 call :f64
                   callee:
-                    clamp#60 :fn(f64, f64, f64) -> f64
+                    clamp :fn(f64, f64, f64) -> f64
                   arg0:
                     float(1.5) :f64
                   arg1:
@@ -278,5 +278,5 @@
                     float(1) :f64
               ~>
                 @builder.finish :string
-                  __sb_6#-9 :?
+                  __sb_6 :?
     return int(0) :i32

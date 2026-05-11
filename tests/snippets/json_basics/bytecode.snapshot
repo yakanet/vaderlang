@@ -2678,158 +2678,158 @@ fn 31 std_string$StringChars$Iterator$step (ref) -> ref
   local "$field_9#21" usize
   local "$call_10#22" usize
   local "$add_11#23" usize
-  local.get 0   ; string.vader:95:13
-  struct.get 78 1   ; string.vader:95:13
-  local.set 1   ; string.vader:95:13
-  local.get 0   ; string.vader:95:28
-  struct.get 78 2   ; string.vader:95:28
-  local.set 2   ; string.vader:95:28
-  local.get 1   ; string.vader:95:13
-  local.get 2   ; string.vader:95:13
-  usize.ge   ; string.vader:95:13
-  if $L0 void   ; string.vader:95:9
-    struct.new 0   ; string.vader:96:20
-    return   ; string.vader:96:13
-  else   ; string.vader:95:9
-    local.get 0   ; string.vader:98:14
-    struct.get 78 0   ; string.vader:98:14
-    local.set 3   ; string.vader:98:14
-    local.get 0   ; string.vader:98:21
-    struct.get 78 1   ; string.vader:98:21
-    local.set 4   ; string.vader:98:21
-    local.get 3   ; string.vader:98:14
-    local.get 4   ; string.vader:98:14
-    call.import 2   ; string.vader:98:14
-    local.set 5   ; string.vader:98:9
-    local.get 0   ; string.vader:99:23
-    struct.get 78 1   ; string.vader:99:23
-    local.set 6   ; string.vader:99:23
-    local.get 5   ; string.vader:99:37
-    call 51   ; string.vader:99:37
-    local.set 7   ; string.vader:99:37
-    local.get 6   ; string.vader:99:23
-    local.get 7   ; string.vader:99:23
-    usize.add   ; string.vader:99:23
-    local.set 8   ; string.vader:99:23
-    local.get 0   ; string.vader:99:9
-    local.get 8   ; string.vader:99:9
-    struct.set 78 1   ; string.vader:99:9
-    local.get 5   ; string.vader:100:16
-    struct.new 11   ; string.vader:100:16
-    return   ; string.vader:100:9
-  end $L0   ; string.vader:95:9
+  local.get 0   ; string.vader:91:13
+  struct.get 78 1   ; string.vader:91:13
+  local.set 1   ; string.vader:91:13
+  local.get 0   ; string.vader:91:28
+  struct.get 78 2   ; string.vader:91:28
+  local.set 2   ; string.vader:91:28
+  local.get 1   ; string.vader:91:13
+  local.get 2   ; string.vader:91:13
+  usize.ge   ; string.vader:91:13
+  if $L0 void   ; string.vader:91:9
+    struct.new 0   ; string.vader:92:20
+    return   ; string.vader:92:13
+  else   ; string.vader:91:9
+    local.get 0   ; string.vader:94:14
+    struct.get 78 0   ; string.vader:94:14
+    local.set 3   ; string.vader:94:14
+    local.get 0   ; string.vader:94:21
+    struct.get 78 1   ; string.vader:94:21
+    local.set 4   ; string.vader:94:21
+    local.get 3   ; string.vader:94:14
+    local.get 4   ; string.vader:94:14
+    call.import 2   ; string.vader:94:14
+    local.set 5   ; string.vader:94:9
+    local.get 0   ; string.vader:95:23
+    struct.get 78 1   ; string.vader:95:23
+    local.set 6   ; string.vader:95:23
+    local.get 5   ; string.vader:95:37
+    call 51   ; string.vader:95:37
+    local.set 7   ; string.vader:95:37
+    local.get 6   ; string.vader:95:23
+    local.get 7   ; string.vader:95:23
+    usize.add   ; string.vader:95:23
+    local.set 8   ; string.vader:95:23
+    local.get 0   ; string.vader:95:9
+    local.get 8   ; string.vader:95:9
+    struct.set 78 1   ; string.vader:95:9
+    local.get 5   ; string.vader:96:16
+    struct.new 11   ; string.vader:96:16
+    return   ; string.vader:96:9
+  end $L0   ; string.vader:91:9
 end
 
 fn 32 std_string$chars (string) -> ref
   local "$cast_2#6" usize
   local "$call_3#7" usize
-  i32.const 0   ; string.vader:114:50
-  i32.to_usize   ; string.vader:114:44
-  local.set 1   ; string.vader:114:44
-  local.get 0   ; string.vader:114:64
-  call.import 4   ; string.vader:114:64
-  local.set 2   ; string.vader:114:64
-  local.get 0   ; string.vader:114:12
-  local.get 1   ; string.vader:114:12
-  local.get 2   ; string.vader:114:12
-  struct.new 78   ; string.vader:114:12
-  return   ; string.vader:114:5
+  i32.const 0   ; string.vader:110:50
+  i32.to_usize   ; string.vader:110:44
+  local.set 1   ; string.vader:110:44
+  local.get 0   ; string.vader:110:64
+  call.import 4   ; string.vader:110:64
+  local.set 2   ; string.vader:110:64
+  local.get 0   ; string.vader:110:12
+  local.get 1   ; string.vader:110:12
+  local.get 2   ; string.vader:110:12
+  struct.new 78   ; string.vader:110:12
+  return   ; string.vader:110:5
 end
 
 fn 33 std_string$pad_start (string,usize,char) -> string
   local "n#13" usize
   local "sb#16" ref
   local "i#18" usize
-  local.get 0   ; string.vader:247:10
-  call.import 4   ; string.vader:247:10
-  local.tee 3   ; string.vader:247:5
-  local.get 1   ; string.vader:248:8
-  usize.ge   ; string.vader:248:8
-  if $L0 void   ; string.vader:248:5
-    local.get 0   ; string.vader:249:9
-    return   ; string.vader:249:9
-  else   ; string.vader:248:5
-    call 37   ; string.vader:251:11
-    local.set 4   ; string.vader:251:5
-    local.get 3   ; string.vader:252:5
-    local.set 5   ; string.vader:252:5
-    block $L1 void   ; string.vader:253:5
-      loop $L2 void   ; string.vader:253:5
-        local.get 5   ; string.vader:253:9
-        local.get 1   ; string.vader:253:9
-        usize.lt   ; string.vader:253:9
-        if $L3 void   ; string.vader:253:9
-          local.get 4   ; string.vader:254:9
-          local.get 2   ; string.vader:254:9
-          call 39   ; string.vader:254:9
-          local.get 5   ; string.vader:255:13
-          i64.const 1   ; string.vader:255:13
-          i64.to_usize   ; string.vader:255:13
-          usize.add   ; string.vader:255:13
-          local.set 5   ; string.vader:255:13
-          br $L2   ; string.vader:253:5
-        else   ; string.vader:253:9
-        end $L3   ; string.vader:253:9
-      end $L2   ; string.vader:253:5
-    end $L1   ; string.vader:253:5
-    local.get 4   ; string.vader:257:5
-    local.get 0   ; string.vader:257:5
-    call 38   ; string.vader:257:5
-    local.get 4   ; string.vader:258:12
-    call.import 8   ; string.vader:258:12
-    return   ; string.vader:258:5
-  end $L0   ; string.vader:248:5
+  local.get 0   ; string.vader:243:10
+  call.import 4   ; string.vader:243:10
+  local.tee 3   ; string.vader:243:5
+  local.get 1   ; string.vader:244:8
+  usize.ge   ; string.vader:244:8
+  if $L0 void   ; string.vader:244:5
+    local.get 0   ; string.vader:245:9
+    return   ; string.vader:245:9
+  else   ; string.vader:244:5
+    call 37   ; string.vader:247:11
+    local.set 4   ; string.vader:247:5
+    local.get 3   ; string.vader:248:5
+    local.set 5   ; string.vader:248:5
+    block $L1 void   ; string.vader:249:5
+      loop $L2 void   ; string.vader:249:5
+        local.get 5   ; string.vader:249:9
+        local.get 1   ; string.vader:249:9
+        usize.lt   ; string.vader:249:9
+        if $L3 void   ; string.vader:249:9
+          local.get 4   ; string.vader:250:9
+          local.get 2   ; string.vader:250:9
+          call 39   ; string.vader:250:9
+          local.get 5   ; string.vader:251:13
+          i64.const 1   ; string.vader:251:13
+          i64.to_usize   ; string.vader:251:13
+          usize.add   ; string.vader:251:13
+          local.set 5   ; string.vader:251:13
+          br $L2   ; string.vader:249:5
+        else   ; string.vader:249:9
+        end $L3   ; string.vader:249:9
+      end $L2   ; string.vader:249:5
+    end $L1   ; string.vader:249:5
+    local.get 4   ; string.vader:253:5
+    local.get 0   ; string.vader:253:5
+    call 38   ; string.vader:253:5
+    local.get 4   ; string.vader:254:12
+    call.import 8   ; string.vader:254:12
+    return   ; string.vader:254:5
+  end $L0   ; string.vader:244:5
 end
 
 fn 34 std_string$is_white_char (char) -> bool
   local "or_res#14" bool
   local "or_res#18" bool
   local "or_res#22" bool
-  local.get 0   ; string.vader:280:39
-  char.const 32   ; string.vader:280:39
-  char.eq   ; string.vader:280:39
-  if $L0 void   ; string.vader:280:39
-    bool.const true   ; string.vader:280:39
-    local.set 1   ; string.vader:280:39
-  else   ; string.vader:280:39
-    local.get 0   ; string.vader:280:51
-    char.const 9   ; string.vader:280:51
-    char.eq   ; string.vader:280:51
-    local.set 1   ; string.vader:280:51
-  end $L0   ; string.vader:280:39
-  local.get 1   ; string.vader:280:39
-  if $L1 void   ; string.vader:280:39
-    bool.const true   ; string.vader:280:39
-    local.set 2   ; string.vader:280:39
-  else   ; string.vader:280:39
-    local.get 0   ; string.vader:280:64
-    char.const 10   ; string.vader:280:64
-    char.eq   ; string.vader:280:64
-    local.set 2   ; string.vader:280:64
-  end $L1   ; string.vader:280:39
-  local.get 2   ; string.vader:280:39
-  if $L2 void   ; string.vader:280:39
-    bool.const true   ; string.vader:280:39
-    local.set 3   ; string.vader:280:39
-  else   ; string.vader:280:39
-    local.get 0   ; string.vader:280:77
-    char.const 13   ; string.vader:280:77
-    char.eq   ; string.vader:280:77
-    local.set 3   ; string.vader:280:77
-  end $L2   ; string.vader:280:39
-  local.get 3   ; string.vader:280:39
-  return   ; string.vader:280:39
+  local.get 0   ; string.vader:276:39
+  char.const 32   ; string.vader:276:39
+  char.eq   ; string.vader:276:39
+  if $L0 void   ; string.vader:276:39
+    bool.const true   ; string.vader:276:39
+    local.set 1   ; string.vader:276:39
+  else   ; string.vader:276:39
+    local.get 0   ; string.vader:276:51
+    char.const 9   ; string.vader:276:51
+    char.eq   ; string.vader:276:51
+    local.set 1   ; string.vader:276:51
+  end $L0   ; string.vader:276:39
+  local.get 1   ; string.vader:276:39
+  if $L1 void   ; string.vader:276:39
+    bool.const true   ; string.vader:276:39
+    local.set 2   ; string.vader:276:39
+  else   ; string.vader:276:39
+    local.get 0   ; string.vader:276:64
+    char.const 10   ; string.vader:276:64
+    char.eq   ; string.vader:276:64
+    local.set 2   ; string.vader:276:64
+  end $L1   ; string.vader:276:39
+  local.get 2   ; string.vader:276:39
+  if $L2 void   ; string.vader:276:39
+    bool.const true   ; string.vader:276:39
+    local.set 3   ; string.vader:276:39
+  else   ; string.vader:276:39
+    local.get 0   ; string.vader:276:77
+    char.const 13   ; string.vader:276:77
+    char.eq   ; string.vader:276:77
+    local.set 3   ; string.vader:276:77
+  end $L2   ; string.vader:276:39
+  local.get 3   ; string.vader:276:39
+  return   ; string.vader:276:39
 end
 
 fn 35 std_string$is_digit (char) -> bool
-  char.const 48   ; string.vader:284:39
-  char.const 57   ; string.vader:284:39
-  bool.const true   ; string.vader:284:39
-  char.const 48   ; string.vader:284:39
-  struct.new 38   ; string.vader:284:39
-  local.get 0   ; string.vader:284:34
-  call 2   ; string.vader:284:34
-  return   ; string.vader:284:34
+  char.const 48   ; string.vader:280:39
+  char.const 57   ; string.vader:280:39
+  bool.const true   ; string.vader:280:39
+  char.const 48   ; string.vader:280:39
+  struct.new 38   ; string.vader:280:39
+  local.get 0   ; string.vader:280:34
+  call 2   ; string.vader:280:34
+  return   ; string.vader:280:34
 end
 
 fn 36 std_iter$std_iter$zip__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref,ref) -> ref

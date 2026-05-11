@@ -2,10 +2,10 @@
 
 ## tests/snippets/null_blockres/_main.vader
   fn tests_snippets_null_blockres__main_vader$pick(c: bool) -> null | string
-    let x#60: null =
+    let x: null =
       if :null
         cond:
-          c#59 :bool
+          c :bool
         then:
           ~>
             null
@@ -16,7 +16,7 @@
       cond:
         eq :bool
           l:
-            x#60 :null
+            x :null
           r:
             null
       then:
@@ -24,26 +24,26 @@
     return null
   fn tests_snippets_null_blockres__main_vader$main() -> i32
     block :void
-      let __scrut_0#-1: null | string =
+      let __scrut_0: null | string =
         call :null | string
           callee:
-            pick#2 :fn(bool) -> null | string
+            pick :fn(bool) -> null | string
           arg0:
             true
       ~>
         if :void
           cond:
             is string :bool
-              __scrut_0#-1 :null | string
+              __scrut_0 :null | string
           then:
             ~>
               call :void
                 callee:
-                  println#25 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       "got string" :string
           else:
@@ -51,16 +51,16 @@
               if :void
                 cond:
                   is null :bool
-                    __scrut_0#-1 :null | string
+                    __scrut_0 :null | string
                 then:
                   ~>
                     call :void
                       callee:
-                        println#25 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "nothing" :string
                 else:

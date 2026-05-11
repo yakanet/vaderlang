@@ -2,13 +2,13 @@
 
 ## tests/snippets/intrinsic_size_of/_main.vader
   fn tests_snippets_intrinsic_size_of__main_vader$main() -> i32
-    let s8#45: usize = int(1) :usize
-    let s32#46: usize = int(4) :usize
-    let s64#47: usize = int(8) :usize
-    let sstr#48: usize = int(16) :usize
-    let a32#49: usize = int(4) :usize
-    let a64#50: usize = int(8) :usize
-    let name#51: string = "i32" :string
+    let s8: usize = int(1) :usize
+    let s32: usize = int(4) :usize
+    let s64: usize = int(8) :usize
+    let sstr: usize = int(16) :usize
+    let a32: usize = int(4) :usize
+    let a64: usize = int(8) :usize
+    let name: string = "i32" :string
     return
       cast → i32
         add :usize
@@ -21,14 +21,14 @@
                       l:
                         add :usize
                           l:
-                            s8#45 :usize
+                            s8 :usize
                           r:
-                            s32#46 :usize
+                            s32 :usize
                       r:
-                        s64#47 :usize
+                        s64 :usize
                   r:
-                    sstr#48 :usize
+                    sstr :usize
               r:
-                a32#49 :usize
+                a32 :usize
           r:
-            a64#50 :usize
+            a64 :usize

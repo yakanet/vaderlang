@@ -2,29 +2,29 @@
 
 ## tests/snippets/void_ident_rejected/_main.vader
   fn tests_snippets_void_ident_rejected__main_vader$mk() -> void
-    let void#59: i32 = int(42) :i32
+    let void: i32 = int(42) :i32
     ~>
       call :void
         callee:
-          println#25 :fn(Display) -> void
+          println :fn(Display) -> void
         arg0:
           call :string
             callee:
-              to_string#1000014 :string
+              to_string :string
             arg0:
               block :string
-                let __sb_0#-1: ? =
+                let __sb_0: ? =
                   @builder.new :?
                 @builder.append_display <for i32> :void
-                  __sb_0#-1 :?
-                  void#59 :i32
+                  __sb_0 :?
+                  void :i32
                 ~>
                   @builder.finish :string
-                    __sb_0#-1 :?
+                    __sb_0 :?
   fn tests_snippets_void_ident_rejected__main_vader$main() -> i32
     call :void
       callee:
-        mk#2 :fn() -> void
+        mk :fn() -> void
     return int(0) :i32
 
 # Diagnostics

@@ -5,35 +5,35 @@
     ~>
       if :void
         cond:
-          ok#60 :bool
+          ok :bool
         then:
           ~>
             call :void
               callee:
-                println#25 :fn(Display) -> void
+                println :fn(Display) -> void
               arg0:
                 call :string
                   callee:
-                    to_string#1000014 :string
+                    to_string :string
                   arg0:
-                    name#59 :string
+                    name :string
         else:
           ~>
             call :void
               callee:
-                println#25 :fn(Display) -> void
+                println :fn(Display) -> void
               arg0:
                 call :string
                   callee:
-                    to_string#1000014 :string
+                    to_string :string
                   arg0:
                     "BAD" :string
   fn tests_snippets_u32_bitops__main_vader$main() -> i32
-    let a#61: u32 = int(4294967295) :u32
-    let b#62: u32 = int(2147483648) :u32
+    let a: u32 = int(4294967295) :u32
+    let b: u32 = int(2147483648) :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "shr_high" :string
       arg1:
@@ -41,14 +41,14 @@
           l:
             shr :u32
               l:
-                a#61 :u32
+                a :u32
               r:
                 int(1) :u32
           r:
             int(2147483647) :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "shr_top_bit" :string
       arg1:
@@ -56,14 +56,14 @@
           l:
             shr :u32
               l:
-                b#62 :u32
+                b :u32
               r:
                 int(31) :u32
           r:
             int(1) :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "shl_top" :string
       arg1:
@@ -75,10 +75,10 @@
               r:
                 int(31) :u32
           r:
-            b#62 :u32
+            b :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "shl_wrap" :string
       arg1:
@@ -86,14 +86,14 @@
           l:
             shl :u32
               l:
-                b#62 :u32
+                b :u32
               r:
                 int(1) :u32
           r:
             int(0) :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "and" :string
       arg1:
@@ -101,14 +101,14 @@
           l:
             bitand :u32
               l:
-                a#61 :u32
+                a :u32
               r:
-                a#61 :u32
+                a :u32
           r:
-            a#61 :u32
+            a :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "or" :string
       arg1:
@@ -116,14 +116,14 @@
           l:
             bitor :u32
               l:
-                b#62 :u32
+                b :u32
               r:
                 int(1) :u32
           r:
             int(2147483649) :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "xor" :string
       arg1:
@@ -131,14 +131,14 @@
           l:
             bitxor :u32
               l:
-                a#61 :u32
+                a :u32
               r:
-                b#62 :u32
+                b :u32
           r:
             int(2147483647) :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "not_zero" :string
       arg1:
@@ -147,17 +147,17 @@
             bitnot :u32
               int(0) :u32
           r:
-            a#61 :u32
+            a :u32
     call :void
       callee:
-        check#2 :fn(string, bool) -> void
+        check :fn(string, bool) -> void
       arg0:
         "not_top" :string
       arg1:
         eq :bool
           l:
             bitnot :u32
-              b#62 :u32
+              b :u32
           r:
             int(2147483647) :u32
     return int(0) :i32

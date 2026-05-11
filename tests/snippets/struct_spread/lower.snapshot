@@ -3,148 +3,148 @@
 ## tests/snippets/struct_spread/_main.vader
   struct tests_snippets_struct_spread__main_vader$P { a: i32, b: i32, c: i32 }
   fn tests_snippets_struct_spread__main_vader$main() -> i32
-    let base#59: P =
+    let base: P =
       P {
         a: int(1) :i32
         b: int(2) :i32
         c: int(3) :i32
       }
-    let upd#60: P =
+    let upd: P =
       block :P
-        let __spread_0#-1: P = base#59 :P
+        let __spread_0: P = base :P
         ~>
           P {
             a:
               .a :i32
-                __spread_0#-1 :P
+                __spread_0 :P
             b: int(99) :i32
             c:
               .c :i32
-                __spread_0#-1 :P
+                __spread_0 :P
           }
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-2: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "base: a=" :string
               @builder.append_display <for i32> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 .a :i32
-                  base#59 :P
+                  base :P
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 " b=" :string
               @builder.append_display <for i32> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 .b :i32
-                  base#59 :P
+                  base :P
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 " c=" :string
               @builder.append_display <for i32> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 .c :i32
-                  base#59 :P
+                  base :P
               ~>
                 @builder.finish :string
-                  __sb_1#-2 :?
+                  __sb_1 :?
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-3: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 "upd:  a=" :string
               @builder.append_display <for i32> :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 .a :i32
-                  upd#60 :P
+                  upd :P
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 " b=" :string
               @builder.append_display <for i32> :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 .b :i32
-                  upd#60 :P
+                  upd :P
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 " c=" :string
               @builder.append_display <for i32> :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 .c :i32
-                  upd#60 :P
+                  upd :P
               ~>
                 @builder.finish :string
-                  __sb_2#-3 :?
-    let other#61: P =
+                  __sb_2 :?
+    let other: P =
       P {
         a: int(10) :i32
         b: int(20) :i32
         c: int(30) :i32
       }
-    let merged#62: P =
+    let merged: P =
       block :P
-        let __spread_3#-4: P = base#59 :P
-        let __spread_4#-5: P = other#61 :P
+        let __spread_3: P = base :P
+        let __spread_4: P = other :P
         ~>
           P {
             a:
               .a :i32
-                __spread_4#-5 :P
+                __spread_4 :P
             b: int(7) :i32
             c:
               .c :i32
-                __spread_4#-5 :P
+                __spread_4 :P
           }
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_5#-6: ? =
+              let __sb_5: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 "merged: a=" :string
               @builder.append_display <for i32> :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 .a :i32
-                  merged#62 :P
+                  merged :P
               @builder.append_str :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 " b=" :string
               @builder.append_display <for i32> :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 .b :i32
-                  merged#62 :P
+                  merged :P
               @builder.append_str :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 " c=" :string
               @builder.append_display <for i32> :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 .c :i32
-                  merged#62 :P
+                  merged :P
               ~>
                 @builder.finish :string
-                  __sb_5#-6 :?
+                  __sb_5 :?
     return int(0) :i32

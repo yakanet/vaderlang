@@ -14,7 +14,7 @@
 // equals the codepoint count, which Vader's `Position.column` already
 // gives us — adjusted from 1-based to 0-based.
 
-import "std/string" { byte_len, byte_at, char_at, slice }
+import "std/string" { byte_len, byte_at, slice }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
@@ -337,7 +337,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
     // 0 = start of the comment which begins with `///` (3 bytes). For
     // simplicity we use byte offset as column — ASCII-safe.
     for i < n {
-        c :: text.char_at(i)
+        c :: text[i]
         if c != '@' {
             i = i + usize(1)
             continue
@@ -367,7 +367,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             // Skip whitespace then capture an identifier.
             j: usize = i
             for j < n {
-                bb :: text.char_at(j)
+                bb :: text[j]
                 if is_ascii_space(bb) { j = j + usize(1) } else { break }
             }
             name_end :: scan_ident_end(text, j)
@@ -389,7 +389,7 @@ scan_ident_end :: fn(s: string, start: usize) -> usize {
     n :: s.byte_len()
     j := start
     for j < n {
-        if !is_ident_char(s.char_at(j)) { break }
+        if !is_ident_char(s[j]) { break }
         j = j + usize(1)
     }
     return j

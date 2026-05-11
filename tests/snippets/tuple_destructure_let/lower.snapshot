@@ -8,54 +8,54 @@
         _1: "hello" :string
       }
   fn tests_snippets_tuple_destructure_let__main_vader$main() -> i32
-    let __tup_0#-1: [i32, string] =
+    let __tup_0: [i32, string] =
       call :[i32, string]
         callee:
-          make_pair#2 :fn() -> [i32, string]
-    let n#59: i32 =
+          make_pair :fn() -> [i32, string]
+    let n: i32 =
       ._0 :i32
-        __tup_0#-1 :[i32, string]
-    let s#60: string =
+        __tup_0 :[i32, string]
+    let s: string =
       ._1 :string
-        __tup_0#-1 :[i32, string]
+        __tup_0 :[i32, string]
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-2: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "n = " :string
               @builder.append_display <for i32> :void
-                __sb_1#-2 :?
-                n#59 :i32
+                __sb_1 :?
+                n :i32
               ~>
                 @builder.finish :string
-                  __sb_1#-2 :?
+                  __sb_1 :?
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-3: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 "s = " :string
               @builder.append_display <for string> :void
-                __sb_2#-3 :?
-                s#60 :string
+                __sb_2 :?
+                s :string
               ~>
                 @builder.finish :string
-                  __sb_2#-3 :?
+                  __sb_2 :?
     return int(0) :i32

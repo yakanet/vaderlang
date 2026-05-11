@@ -4,13 +4,13 @@
   fn tests_snippets_enum_typed__main_vader$describe(d: Direction) -> string
     return
       block :string
-        let __scrut_0#-1: Direction = d#61 :Direction
+        let __scrut_0: Direction = d :Direction
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0#-1 :Direction
+                  __scrut_0 :Direction
                 r:
                   int(1) :u8
             then:
@@ -22,7 +22,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0#-1 :Direction
+                        __scrut_0 :Direction
                       r:
                         int(2) :u8
                   then:
@@ -34,7 +34,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0#-1 :Direction
+                              __scrut_0 :Direction
                             r:
                               int(4) :u8
                         then:
@@ -46,7 +46,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0#-1 :Direction
+                                    __scrut_0 :Direction
                                   r:
                                     int(8) :u8
                               then:
@@ -58,50 +58,50 @@
   fn tests_snippets_enum_typed__main_vader$main() -> i32
     call :void
       callee:
-        println#27 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                describe#4 :fn(Direction) -> string
+                describe :fn(Direction) -> string
               arg0:
                 int(1) :u8
     call :void
       callee:
-        println#27 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                describe#4 :fn(Direction) -> string
+                describe :fn(Direction) -> string
               arg0:
                 int(8) :u8
-    let op#62: Op = int(101) :u16
+    let op: Op = int(101) :u16
     block :void
-      let __scrut_0#-2: Op = op#62 :Op
+      let __scrut_0: Op = op :Op
       ~>
         if :void
           cond:
             eq :bool
               l:
-                __scrut_0#-2 :Op
+                __scrut_0 :Op
               r:
                 int(0) :u16
           then:
             ~>
               call :void
                 callee:
-                  println#27 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       "halt" :string
           else:
@@ -110,18 +110,18 @@
                 cond:
                   eq :bool
                     l:
-                      __scrut_0#-2 :Op
+                      __scrut_0 :Op
                     r:
                       int(100) :u16
                 then:
                   ~>
                     call :void
                       callee:
-                        println#27 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "push" :string
                 else:
@@ -130,18 +130,18 @@
                       cond:
                         eq :bool
                           l:
-                            __scrut_0#-2 :Op
+                            __scrut_0 :Op
                           r:
                             int(101) :u16
                       then:
                         ~>
                           call :void
                             callee:
-                              println#27 :fn(Display) -> void
+                              println :fn(Display) -> void
                             arg0:
                               call :string
                                 callee:
-                                  to_string#1000014 :string
+                                  to_string :string
                                 arg0:
                                   "pop" :string
                       else:
@@ -150,18 +150,18 @@
                             cond:
                               eq :bool
                                 l:
-                                  __scrut_0#-2 :Op
+                                  __scrut_0 :Op
                                 r:
                                   int(102) :u16
                             then:
                               ~>
                                 call :void
                                   callee:
-                                    println#27 :fn(Display) -> void
+                                    println :fn(Display) -> void
                                   arg0:
                                     call :string
                                       callee:
-                                        to_string#1000014 :string
+                                        to_string :string
                                       arg0:
                                         "add" :string
                             else:

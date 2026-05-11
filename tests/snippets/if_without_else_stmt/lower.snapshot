@@ -4,40 +4,40 @@
   fn tests_snippets_if_without_else_stmt__main_vader$expect_lparen(s: string) -> string
     return
       block :string
-        let __sb_0#-1: ? =
+        let __sb_0: ? =
           @builder.new :?
         @builder.append_str :void
-          __sb_0#-1 :?
+          __sb_0 :?
           "ok: " :string
         @builder.append_display <for string> :void
-          __sb_0#-1 :?
-          s#59 :string
+          __sb_0 :?
+          s :string
         ~>
           @builder.finish :string
-            __sb_0#-1 :?
+            __sb_0 :?
   fn tests_snippets_if_without_else_stmt__main_vader$main() -> i32
-    let matched#60: bool = false
+    let matched: bool = false
     if :void
       cond:
-        matched#60 :bool
+        matched :bool
       then:
         call :string
           callee:
-            expect_lparen#2 :fn(string) -> string
+            expect_lparen :fn(string) -> string
           arg0:
             ")" :string
     if :void
       cond:
         not :bool
-          matched#60 :bool
+          matched :bool
       then:
         call :void
           callee:
-            println#25 :fn(Display) -> void
+            println :fn(Display) -> void
           arg0:
             call :string
               callee:
-                to_string#1000014 :string
+                to_string :string
               arg0:
                 "not matched" :string
     return int(0) :i32

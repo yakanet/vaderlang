@@ -5,193 +5,193 @@
     ~>
       mul :i32
         l:
-          x#63 :i32
+          x :i32
         r:
-          x#63 :i32
+          x :i32
   fn tests_snippets_expr_bodied_fn__main_vader$max(a: f64, b: f64) -> f64
     ~>
       if :f64
         cond:
           gt :bool
             l:
-              a#64 :f64
+              a :f64
             r:
-              b#65 :f64
+              b :f64
         then:
           ~>
-            a#64 :f64
+            a :f64
         else:
           ~>
-            b#65 :f64
+            b :f64
   fn tests_snippets_expr_bodied_fn__main_vader$b(x: i32) -> i32
     ~>
       add :i32
         l:
           call :i32
             callee:
-              a#5 :fn(i32) -> i32
+              a :fn(i32) -> i32
             arg0:
-              x#66 :i32
+              x :i32
         r:
           int(1) :i32
   fn tests_snippets_expr_bodied_fn__main_vader$a(x: i32) -> i32
     ~>
       mul :i32
         l:
-          x#67 :i32
+          x :i32
         r:
           int(10) :i32
   fn tests_snippets_expr_bodied_fn__main_vader$main() -> i32
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_display <for i32> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 call :i32
                   callee:
-                    square#2 :fn(i32) -> i32
+                    square :fn(i32) -> i32
                   arg0:
                     int(7) :i32
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
+                  __sb_0 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-2: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_display <for f64> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 call :f64
                   callee:
-                    max#3 :fn(f64, f64) -> f64
+                    max :fn(f64, f64) -> f64
                   arg0:
                     float(3.5) :f64
                   arg1:
                     float(7.2) :f64
               ~>
                 @builder.finish :string
-                  __sb_1#-2 :?
+                  __sb_1 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-3: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_display <for f64> :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 call :f64
                   callee:
-                    max#3 :fn(f64, f64) -> f64
+                    max :fn(f64, f64) -> f64
                   arg0:
                     float(10) :f64
                   arg1:
                     float(4) :f64
               ~>
                 @builder.finish :string
-                  __sb_2#-3 :?
+                  __sb_2 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_3#-4: ? =
+              let __sb_3: ? =
                 @builder.new :?
               @builder.append_display <for i32> :void
-                __sb_3#-4 :?
+                __sb_3 :?
                 call :i32
                   callee:
-                    b#4 :fn(i32) -> i32
+                    b :fn(i32) -> i32
                   arg0:
                     int(5) :i32
               ~>
                 @builder.finish :string
-                  __sb_3#-4 :?
+                  __sb_3 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_4#-5: ? =
+              let __sb_4: ? =
                 @builder.new :?
               @builder.append_display <for i32> :void
-                __sb_4#-5 :?
+                __sb_4 :?
                 call :i32
                   callee:
-                    id#1000164 :i32
+                    id :i32
                   arg0:
                     int(42) :i32
               ~>
                 @builder.finish :string
-                  __sb_4#-5 :?
+                  __sb_4 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_5#-6: ? =
+              let __sb_5: ? =
                 @builder.new :?
               @builder.append_display <for f64> :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 call :f64
                   callee:
-                    id#1000163 :f64
+                    id :f64
                   arg0:
                     float(7.5) :f64
               ~>
                 @builder.finish :string
-                  __sb_5#-6 :?
+                  __sb_5 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                id#1000165 :string
+                id :string
               arg0:
                 "hello" :string
     return int(0) :i32
   fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__f64(x: f64) -> f64
     ~>
-      x#69 :f64
+      x :f64
   fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__i32(x: i32) -> i32
     ~>
-      x#69 :i32
+      x :i32
   fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__string(x: string) -> string
     ~>
-      x#69 :string
+      x :string

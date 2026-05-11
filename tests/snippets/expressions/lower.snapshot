@@ -5,11 +5,11 @@
     return
       add :i32
         l:
-          x#46 :i32
+          x :i32
         r:
-          y#47 :i32
+          y :i32
   fn tests_snippets_expressions__main_vader$demo() -> i32
-    let a#48: i32 =
+    let a: i32 =
       add :{integer}
         l:
           int(1) :i32
@@ -19,7 +19,7 @@
               int(2) :i32
             r:
               int(3) :i32
-    let b#49: i32 =
+    let b: i32 =
       mul :{integer}
         l:
           add :{integer}
@@ -29,14 +29,14 @@
               int(2) :i32
         r:
           int(3) :i32
-    let c#50: i32 =
+    let c: i32 =
       add :i32
         l:
           neg :i32
-            a#48 :i32
+            a :i32
         r:
-          b#49 :i32
-    let d#51: bool =
+          b :i32
+    let d: bool =
       or :bool
         l:
           and :bool
@@ -47,49 +47,49 @@
               false
         r:
           true
-    let e#52: Range(i32) =
+    let e: Range(i32) =
       Range(i32) {
         start: int(0) :i32
         end: int(10) :i32
         inclusive: false
         cursor: int(0) :i32
       }
-    let arr#53: i32[] =
+    let arr: i32[] =
       array :i32[]
         int(1) :i32
         int(2) :i32
         int(3) :i32
-    let f#54: i32 =
+    let f: i32 =
       index :i32
         on:
-          arr#53 :i32[]
+          arr :i32[]
         ix:
           int(0) :i32
-    let h#55: i32 =
+    let h: i32 =
       call :i32
         callee:
-          add#1 :fn(i32, i32) -> i32
+          add :fn(i32, i32) -> i32
         arg0:
           int(1) :i32
         arg1:
           int(2) :i32
-    let i#56: i32 =
+    let i: i32 =
       call :i32
         callee:
-          add#1 :fn(i32, i32) -> i32
+          add :fn(i32, i32) -> i32
         arg0:
           int(10) :i32
         arg1:
           int(20) :i32
-    let cond#57: bool = true
-    let j#58: i32 =
+    let cond: bool = true
+    let j: i32 =
       if :{integer}
         cond:
-          cond#57 :bool
+          cond :bool
         then:
           ~>
             int(1) :i32
         else:
           ~>
             int(2) :i32
-    return a#48 :i32
+    return a :i32

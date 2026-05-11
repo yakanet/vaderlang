@@ -2,100 +2,100 @@
 
 ## tests/snippets/process_spawn/_main.vader
   fn tests_snippets_process_spawn__main_vader$main() -> i32
-    let r#68: Error | ProcessResult =
+    let r: Error | ProcessResult =
       call :Error | ProcessResult
         callee:
-          spawn#43 :fn(string[]) -> Error | ProcessResult
+          spawn :fn(string[]) -> Error | ProcessResult
         arg0:
           array :string[]
             "/bin/echo" :string
             "ok" :string
     block :void
-      let __scrut_0#-1: Error | ProcessResult = r#68 :Error | ProcessResult
+      let __scrut_0: Error | ProcessResult = r :Error | ProcessResult
       ~>
         if :void
           cond:
             is ProcessResult :bool
-              __scrut_0#-1 :Error | ProcessResult
+              __scrut_0 :Error | ProcessResult
           then:
             ~>
               block :void
                 call :void
                   callee:
-                    println#26 :fn(Display) -> void
+                    println :fn(Display) -> void
                   arg0:
                     call :string
                       callee:
-                        to_string#1000014 :string
+                        to_string :string
                       arg0:
                         block :string
-                          let __sb_2#-3: ? =
+                          let __sb_2: ? =
                             @builder.new :?
                           @builder.append_str :void
-                            __sb_2#-3 :?
+                            __sb_2 :?
                             "exit=" :string
                           @builder.append_display <for i32> :void
-                            __sb_2#-3 :?
+                            __sb_2 :?
                             .exit :i32
                               cast → ProcessResult
-                                r#68 :Error | ProcessResult
+                                r :Error | ProcessResult
                           ~>
                             @builder.finish :string
-                              __sb_2#-3 :?
+                              __sb_2 :?
                 ~>
                   call :void
                     callee:
-                      println#26 :fn(Display) -> void
+                      println :fn(Display) -> void
                     arg0:
                       call :string
                         callee:
-                          to_string#1000014 :string
+                          to_string :string
                         arg0:
                           block :string
-                            let __sb_3#-4: ? =
+                            let __sb_3: ? =
                               @builder.new :?
                             @builder.append_str :void
-                              __sb_3#-4 :?
+                              __sb_3 :?
                               "out=" :string
                             @builder.append_display <for string> :void
-                              __sb_3#-4 :?
+                              __sb_3 :?
                               .stdout :string
                                 cast → ProcessResult
-                                  r#68 :Error | ProcessResult
+                                  r :Error | ProcessResult
                             ~>
                               @builder.finish :string
-                                __sb_3#-4 :?
+                                __sb_3 :?
           else:
             ~>
               if :void
                 cond:
                   is Error :bool
-                    __scrut_0#-1 :Error | ProcessResult
+                    __scrut_0 :Error | ProcessResult
                 then:
                   ~>
                     call :void
                       callee:
-                        println#26 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             block :string
-                              let __sb_1#-2: ? =
+                              let __sb_1: ? =
                                 @builder.new :?
                               @builder.append_str :void
-                                __sb_1#-2 :?
+                                __sb_1 :?
                                 "err: " :string
                               @builder.append_display <for string> :void
-                                __sb_1#-2 :?
+                                __sb_1 :?
                                 vcall Error.message :string
                                   recv:
                                     cast → Error
-                                      r#68 :Error | ProcessResult
+                                      r :Error | ProcessResult
                               ~>
                                 @builder.finish :string
-                                  __sb_1#-2 :?
+                                  __sb_1 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

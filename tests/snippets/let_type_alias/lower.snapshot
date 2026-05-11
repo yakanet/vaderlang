@@ -4,82 +4,82 @@
   fn tests_snippets_let_type_alias__main_vader$main() -> i32
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "size i32      = " :string
               @builder.append_display <for usize> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 int(4) :usize
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
+                  __sb_0 :?
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-2: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "size i64      = " :string
               @builder.append_display <for usize> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 int(8) :usize
               ~>
                 @builder.finish :string
-                  __sb_1#-2 :?
+                  __sb_1 :?
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-3: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 "size union    = " :string
               @builder.append_display <for usize> :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 int(16) :usize
               ~>
                 @builder.finish :string
-                  __sb_2#-3 :?
+                  __sb_2 :?
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_3#-4: ? =
+              let __sb_3: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_3#-4 :?
+                __sb_3 :?
                 "size array    = " :string
               @builder.append_display <for usize> :void
-                __sb_3#-4 :?
+                __sb_3 :?
                 int(16) :usize
               ~>
                 @builder.finish :string
-                  __sb_3#-4 :?
+                  __sb_3 :?
     return int(0) :i32

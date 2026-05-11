@@ -4,20 +4,20 @@
   fn tests_snippets_runtime_argv__main_vader$main(argv: string[]) -> i32
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "argc=" :string
               @builder.append_display <for usize> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 sub :usize
                   l:
                     LoweredArrayLen
@@ -25,52 +25,52 @@
                     int(1) :usize
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
-    let first#59: bool = true
+                  __sb_0 :?
+    let first: bool = true
     block :void
-      let __iter_1#-2: ArrayIter(string) =
+      let __iter_1: ArrayIter(string) =
         ArrayIter(string) {
-          arr: argv#58 :string[]
+          arr: argv :string[]
           cursor: int(0) :usize
           length:
             LoweredArrayLen
         }
       loop
-        let __step_2#-3: Done | Yielded(string) =
+        let __step_2: Done | Yielded(string) =
           call :Done | Yielded(string)
             callee:
-              step#1000163 :?
+              step :?
             arg0:
-              __iter_1#-2 :ArrayIter(string)
+              __iter_1 :ArrayIter(string)
         if :void
           cond:
             is Done :bool
-              __step_2#-3 :Done | Yielded(string)
+              __step_2 :Done | Yielded(string)
           then:
             break
           else:
-            let s#60: string =
+            let s: string =
               .value :string
                 cast → Yielded(string)
-                  __step_2#-3 :Done | Yielded(string)
+                  __step_2 :Done | Yielded(string)
             if :void
               cond:
-                first#59 :bool
+                first :bool
               then:
                 assign
                   target:
-                    first#59 :bool
+                    first :bool
                   value:
                     false
               else:
                 ~>
                   call :void
                     callee:
-                      println#24 :fn(Display) -> void
+                      println :fn(Display) -> void
                     arg0:
                       call :string
                         callee:
-                          to_string#1000014 :string
+                          to_string :string
                         arg0:
-                          s#60 :string
+                          s :string
     return int(0) :i32

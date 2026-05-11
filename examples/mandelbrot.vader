@@ -1,5 +1,4 @@
 import "std/io" { println }
-import "std/string" { char_at }
 import "std/string_builder" { new_builder, append_char }
 
 WIDTH    :: 80
@@ -39,7 +38,7 @@ iterations :: fn(cx: f64, cy: f64) -> i32 {
 
 shade :: fn(iters: i32) -> char {
     idx :: (iters * (PALETTE_N - 1)) / MAX_ITER
-    return char_at(PALETTE, usize(idx))
+    return PALETTE[usize(idx)]
 }
 
 main :: fn() -> i32 {

@@ -7,30 +7,30 @@
       eq :bool
         l:
           .amount :i32
-            self#59 :Money
+            self :Money
         r:
           .amount :i32
-            other#60 :Money
+            other :Money
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$not_equals(self: Money, other: Money) -> bool
     return
       not :bool
         call :bool
           callee:
-            equals#1000000 :bool
+            equals :bool
           arg0:
-            self#61 :Money
+            self :Money
           arg1:
-            other#62 :Money
+            other :Money
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare(self: Money, other: Money) -> i32
     if :void
       cond:
         lt :bool
           l:
             .amount :i32
-              self#63 :Money
+              self :Money
           r:
             .amount :i32
-              other#64 :Money
+              other :Money
       then:
         return
           neg :i32
@@ -40,10 +40,10 @@
         gt :bool
           l:
             .amount :i32
-              self#63 :Money
+              self :Money
           r:
             .amount :i32
-              other#64 :Money
+              other :Money
       then:
         return int(1) :i32
     return int(0) :i32
@@ -53,11 +53,11 @@
         l:
           call :i32
             callee:
-              compare#1000002 :i32
+              compare :i32
             arg0:
-              self#65 :Money
+              self :Money
             arg1:
-              other#66 :Money
+              other :Money
         r:
           int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$lte(self: Money, other: Money) -> bool
@@ -66,11 +66,11 @@
         l:
           call :i32
             callee:
-              compare#1000002 :i32
+              compare :i32
             arg0:
-              self#67 :Money
+              self :Money
             arg1:
-              other#68 :Money
+              other :Money
         r:
           int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$gt(self: Money, other: Money) -> bool
@@ -79,11 +79,11 @@
         l:
           call :i32
             callee:
-              compare#1000002 :i32
+              compare :i32
             arg0:
-              self#69 :Money
+              self :Money
             arg1:
-              other#70 :Money
+              other :Money
         r:
           int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$gte(self: Money, other: Money) -> bool
@@ -92,141 +92,141 @@
         l:
           call :i32
             callee:
-              compare#1000002 :i32
+              compare :i32
             arg0:
-              self#71 :Money
+              self :Money
             arg1:
-              other#72 :Money
+              other :Money
         r:
           int(0) :i32
   fn tests_snippets_op_overload_eq_ord__main_vader$main() -> i32
-    let a#73: Money =
+    let a: Money =
       Money {
         amount: int(100) :i32
       }
-    let b#74: Money =
+    let b: Money =
       Money {
         amount: int(100) :i32
       }
-    let c#75: Money =
+    let c: Money =
       Money {
         amount: int(200) :i32
       }
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000021 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "a==b " :string
               @builder.append_display <for bool> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 call :bool
                   callee:
-                    equals#1000000 :bool
+                    equals :bool
                   arg0:
-                    a#73 :Money
+                    a :Money
                   arg1:
-                    b#74 :Money
+                    b :Money
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "  a!=c " :string
               @builder.append_display <for bool> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 not :bool
                   call :bool
                     callee:
-                      equals#1000000 :bool
+                      equals :bool
                     arg0:
-                      a#73 :Money
+                      a :Money
                     arg1:
-                      c#75 :Money
+                      c :Money
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
+                  __sb_0 :?
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000021 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-2: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "a<c " :string
               @builder.append_display <for bool> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 lt :bool
                   l:
                     call :i32
                       callee:
-                        compare#1000002 :i32
+                        compare :i32
                       arg0:
-                        a#73 :Money
+                        a :Money
                       arg1:
-                        c#75 :Money
+                        c :Money
                   r:
                     int(0) :i32
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "  c>a " :string
               @builder.append_display <for bool> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 gt :bool
                   l:
                     call :i32
                       callee:
-                        compare#1000002 :i32
+                        compare :i32
                       arg0:
-                        c#75 :Money
+                        c :Money
                       arg1:
-                        a#73 :Money
+                        a :Money
                   r:
                     int(0) :i32
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "  a>=b " :string
               @builder.append_display <for bool> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 gte :bool
                   l:
                     call :i32
                       callee:
-                        compare#1000002 :i32
+                        compare :i32
                       arg0:
-                        a#73 :Money
+                        a :Money
                       arg1:
-                        b#74 :Money
+                        b :Money
                   r:
                     int(0) :i32
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "  c<=c " :string
               @builder.append_display <for bool> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 lte :bool
                   l:
                     call :i32
                       callee:
-                        compare#1000002 :i32
+                        compare :i32
                       arg0:
-                        c#75 :Money
+                        c :Money
                       arg1:
-                        c#75 :Money
+                        c :Money
                   r:
                     int(0) :i32
               ~>
                 @builder.finish :string
-                  __sb_1#-2 :?
+                  __sb_1 :?
     return int(0) :i32

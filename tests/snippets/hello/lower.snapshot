@@ -4,11 +4,11 @@
   fn tests_snippets_hello__main_vader$main() -> i32
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             "Hello, World!" :string
     return int(0) :i32

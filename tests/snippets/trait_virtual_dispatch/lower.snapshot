@@ -6,65 +6,65 @@
   fn tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message(self: ParseErr) -> string
     return
       block :string
-        let __sb_0#-1: ? =
+        let __sb_0: ? =
           @builder.new :?
         @builder.append_str :void
-          __sb_0#-1 :?
+          __sb_0 :?
           "parse: " :string
         @builder.append_display <for string> :void
-          __sb_0#-1 :?
+          __sb_0 :?
           .msg :string
-            self#61 :ParseErr
+            self :ParseErr
         ~>
           @builder.finish :string
-            __sb_0#-1 :?
+            __sb_0 :?
   fn tests_snippets_trait_virtual_dispatch__main_vader$NetErr$Error$message(self: NetErr) -> string
     return
       block :string
-        let __sb_0#-2: ? =
+        let __sb_0: ? =
           @builder.new :?
         @builder.append_str :void
-          __sb_0#-2 :?
+          __sb_0 :?
           "net: " :string
         @builder.append_display <for string> :void
-          __sb_0#-2 :?
+          __sb_0 :?
           .reason :string
-            self#62 :NetErr
+            self :NetErr
         ~>
           @builder.finish :string
-            __sb_0#-2 :?
+            __sb_0 :?
   fn tests_snippets_trait_virtual_dispatch__main_vader$report(e: Error) -> string
     return
       vcall Error.message :string
         recv:
-          e#63 :Error
+          e :Error
   fn tests_snippets_trait_virtual_dispatch__main_vader$main() -> i32
     call :void
       callee:
-        println#27 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000016 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                report#4 :fn(Error) -> string
+                report :fn(Error) -> string
               arg0:
                 ParseErr {
                   msg: "bad token" :string
                 }
     call :void
       callee:
-        println#27 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000016 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                report#4 :fn(Error) -> string
+                report :fn(Error) -> string
               arg0:
                 NetErr {
                   reason: "timeout" :string

@@ -12,7 +12,7 @@
 // framing.
 
 import "std/io" { read_stdin, print, eprintln }
-import "std/string" { byte_len, char_at, starts_with, slice, parse_int }
+import "std/string" { byte_len, starts_with, slice, parse_int }
 import "std/string_builder" { new_builder, append }
 
 export TransportError :: struct {
@@ -99,10 +99,10 @@ trim_ascii :: fn(s: string) -> string {
     start: usize = 0
     end := n
     for start < end {
-        if is_ascii_space(s.char_at(start)) { start = start + usize(1) } else { break }
+        if is_ascii_space(s[start]) { start = start + usize(1) } else { break }
     }
     for end > start {
-        if is_ascii_space(s.char_at(end - usize(1))) { end = end - usize(1) } else { break }
+        if is_ascii_space(s[end - usize(1)]) { end = end - usize(1) } else { break }
     }
     return s.slice(start, end)
 }

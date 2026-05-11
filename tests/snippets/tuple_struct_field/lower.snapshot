@@ -3,7 +3,7 @@
 ## tests/snippets/tuple_struct_field/_main.vader
   struct tests_snippets_tuple_struct_field__main_vader$Entry { id: i32, coord: [f64, f64] }
   fn tests_snippets_tuple_struct_field__main_vader$main() -> i32
-    let e#59: Entry =
+    let e: Entry =
       Entry {
         id: int(1) :i32
         coord:
@@ -14,39 +14,39 @@
       }
     call :void
       callee:
-        println#25 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "id=" :string
               @builder.append_display <for i32> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 .id :i32
-                  e#59 :Entry
+                  e :Entry
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 " x=" :string
               @builder.append_display <for f64> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 ._0 :f64
                   .coord :[f64, f64]
-                    e#59 :Entry
+                    e :Entry
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 " y=" :string
               @builder.append_display <for f64> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 ._1 :f64
                   .coord :[f64, f64]
-                    e#59 :Entry
+                    e :Entry
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
+                  __sb_0 :?
     return int(0) :i32

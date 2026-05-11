@@ -6,7 +6,7 @@
       cond:
         eq :bool
           l:
-            c#129 :char
+            c :char
           r:
             char(0x4e)
       then:
@@ -15,7 +15,7 @@
       cond:
         eq :bool
           l:
-            c#129 :char
+            c :char
           r:
             char(0x45)
       then:
@@ -24,7 +24,7 @@
       cond:
         eq :bool
           l:
-            c#129 :char
+            c :char
           r:
             char(0x53)
       then:
@@ -33,7 +33,7 @@
       cond:
         eq :bool
           l:
-            c#129 :char
+            c :char
           r:
             char(0x57)
       then:
@@ -45,13 +45,13 @@
   fn tests_snippets_dot_variant_in_union__main_vader$dir_label(d: Direction) -> string
     ~>
       block :string
-        let __scrut_0#-1: Direction = d#130 :Direction
+        let __scrut_0: Direction = d :Direction
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0#-1 :Direction
+                  __scrut_0 :Direction
                 r:
                   int(0) :i32
             then:
@@ -63,7 +63,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0#-1 :Direction
+                        __scrut_0 :Direction
                       r:
                         int(1) :i32
                   then:
@@ -75,7 +75,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0#-1 :Direction
+                              __scrut_0 :Direction
                             r:
                               int(2) :i32
                         then:
@@ -87,7 +87,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0#-1 :Direction
+                                    __scrut_0 :Direction
                                   r:
                                     int(3) :i32
                               then:
@@ -98,100 +98,100 @@
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn tests_snippets_dot_variant_in_union__main_vader$main() -> i32
     block :void
-      let __scrut_0#-2: Direction | Error =
+      let __scrut_0: Direction | Error =
         call :Direction | Error
           callee:
-            parse#4 :fn(char) -> Direction | Error
+            parse :fn(char) -> Direction | Error
           arg0:
             char(0x4e)
       ~>
         if :void
           cond:
             is Direction :bool
-              __scrut_0#-2 :Direction | Error
+              __scrut_0 :Direction | Error
           then:
-            let d#131: Direction =
+            let d: Direction =
               cast → Direction
-                __scrut_0#-2 :Direction | Error
+                __scrut_0 :Direction | Error
             ~>
               call :void
                 callee:
-                  println#28 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       call :string
                         callee:
-                          dir_label#5 :fn(Direction) -> string
+                          dir_label :fn(Direction) -> string
                         arg0:
-                          d#131 :Direction
+                          d :Direction
           else:
             ~>
               if :void
                 cond:
                   is Error :bool
-                    __scrut_0#-2 :Direction | Error
+                    __scrut_0 :Direction | Error
                 then:
                   ~>
                     call :void
                       callee:
-                        println#28 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
-      let __scrut_1#-3: Direction | Error =
+      let __scrut_1: Direction | Error =
         call :Direction | Error
           callee:
-            parse#4 :fn(char) -> Direction | Error
+            parse :fn(char) -> Direction | Error
           arg0:
             char(0x3f)
       ~>
         if :void
           cond:
             is Direction :bool
-              __scrut_1#-3 :Direction | Error
+              __scrut_1 :Direction | Error
           then:
-            let d#132: Direction =
+            let d: Direction =
               cast → Direction
-                __scrut_1#-3 :Direction | Error
+                __scrut_1 :Direction | Error
             ~>
               call :void
                 callee:
-                  println#28 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       call :string
                         callee:
-                          dir_label#5 :fn(Direction) -> string
+                          dir_label :fn(Direction) -> string
                         arg0:
-                          d#132 :Direction
+                          d :Direction
           else:
             ~>
               if :void
                 cond:
                   is Error :bool
-                    __scrut_1#-3 :Direction | Error
+                    __scrut_1 :Direction | Error
                 then:
                   ~>
                     call :void
                       callee:
-                        println#28 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "err" :string
                 else:

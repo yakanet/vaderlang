@@ -307,9 +307,9 @@ function emitStmt(lines: string[], s: LoweredStmt, indent: string): void {
   switch (s.kind) {
     case "LoweredLet": {
       const single = exprInline(s.value);
-      if (single !== null) lines.push(`${indent}let ${s.name}#${s.symbol.id}: ${displayType(s.type)} = ${single}`);
+      if (single !== null) lines.push(`${indent}let ${s.name}: ${displayType(s.type)} = ${single}`);
       else {
-        lines.push(`${indent}let ${s.name}#${s.symbol.id}: ${displayType(s.type)} =`);
+        lines.push(`${indent}let ${s.name}: ${displayType(s.type)} =`);
         emitExpr(lines, s.value, indent + "  ");
       }
       return;
@@ -444,7 +444,7 @@ function exprInline(e: LoweredExpr): string | null {
     case "LoweredNullLit":   return `null`;
     case "LoweredCharLit":   return `char(0x${e.value.toString(16)})`;
     case "LoweredStringLit": return `${JSON.stringify(e.value)} :string`;
-    case "LoweredIdent":     return `${e.symbol.name}#${e.symbol.id} :${displayType(e.type)}`;
+    case "LoweredIdent":     return `${e.symbol.name} :${displayType(e.type)}`;
     case "LoweredUnreachable": return `unreachable("${e.reason}") :${displayType(e.type)}`;
     default:                 return null;
   }

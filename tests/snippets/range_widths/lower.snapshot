@@ -2,242 +2,242 @@
 
 ## tests/snippets/range_widths/_main.vader
   fn tests_snippets_range_widths__main_vader$main() -> i32
-    let nu#58: u64 = int(3) :u64
-    let su#59: u64 = int(0) :u64
+    let nu: u64 = int(3) :u64
+    let su: u64 = int(0) :u64
     block :void
-      let __iter_0#-1: Range(u64) =
+      let __iter_0: Range(u64) =
         Range(u64) {
           start: int(0) :u64
-          end: nu#58 :u64
+          end: nu :u64
           inclusive: false
           cursor: int(0) :u64
         }
       loop
-        let __step_1#-2: Done | Yielded(u64) =
+        let __step_1: Done | Yielded(u64) =
           call :Done | Yielded(u64)
             callee:
-              step#1000149 :?
+              step :?
             arg0:
-              __iter_0#-1 :Range(u64)
+              __iter_0 :Range(u64)
         if :void
           cond:
             is Done :bool
-              __step_1#-2 :Done | Yielded(u64)
+              __step_1 :Done | Yielded(u64)
           then:
             break
           else:
-            let i#60: u64 =
+            let i: u64 =
               .value :u64
                 cast → Yielded(u64)
-                  __step_1#-2 :Done | Yielded(u64)
+                  __step_1 :Done | Yielded(u64)
             assign
               target:
-                su#59 :u64
+                su :u64
               value:
                 add :u64
                   l:
-                    su#59 :u64
+                    su :u64
                   r:
-                    i#60 :u64
+                    i :u64
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-3: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 "u64 sum=" :string
               @builder.append_display <for u64> :void
-                __sb_2#-3 :?
-                su#59 :u64
+                __sb_2 :?
+                su :u64
               ~>
                 @builder.finish :string
-                  __sb_2#-3 :?
-    let ni#61: i64 = int(4) :i64
-    let si#62: i64 = int(0) :i64
+                  __sb_2 :?
+    let ni: i64 = int(4) :i64
+    let si: i64 = int(0) :i64
     block :void
-      let __iter_3#-4: Range(i64) =
+      let __iter_3: Range(i64) =
         Range(i64) {
           start: int(0) :i64
-          end: ni#61 :i64
+          end: ni :i64
           inclusive: false
           cursor: int(0) :i64
         }
       loop
-        let __step_4#-5: Done | Yielded(i64) =
+        let __step_4: Done | Yielded(i64) =
           call :Done | Yielded(i64)
             callee:
-              step#1000124 :?
+              step :?
             arg0:
-              __iter_3#-4 :Range(i64)
+              __iter_3 :Range(i64)
         if :void
           cond:
             is Done :bool
-              __step_4#-5 :Done | Yielded(i64)
+              __step_4 :Done | Yielded(i64)
           then:
             break
           else:
-            let i#63: i64 =
+            let i: i64 =
               .value :i64
                 cast → Yielded(i64)
-                  __step_4#-5 :Done | Yielded(i64)
+                  __step_4 :Done | Yielded(i64)
             assign
               target:
-                si#62 :i64
+                si :i64
               value:
                 add :i64
                   l:
-                    si#62 :i64
+                    si :i64
                   r:
-                    i#63 :i64
+                    i :i64
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_5#-6: ? =
+              let __sb_5: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 "i64 sum=" :string
               @builder.append_display <for i64> :void
-                __sb_5#-6 :?
-                si#62 :i64
+                __sb_5 :?
+                si :i64
               ~>
                 @builder.finish :string
-                  __sb_5#-6 :?
-    let nis#64: isize = int(5) :isize
-    let sis#65: isize = int(0) :isize
+                  __sb_5 :?
+    let nis: isize = int(5) :isize
+    let sis: isize = int(0) :isize
     block :void
-      let __iter_6#-7: Range(isize) =
+      let __iter_6: Range(isize) =
         Range(isize) {
           start: int(0) :isize
-          end: nis#64 :isize
+          end: nis :isize
           inclusive: false
           cursor: int(0) :isize
         }
       loop
-        let __step_7#-8: Done | Yielded(isize) =
+        let __step_7: Done | Yielded(isize) =
           call :Done | Yielded(isize)
             callee:
-              step#1000134 :?
+              step :?
             arg0:
-              __iter_6#-7 :Range(isize)
+              __iter_6 :Range(isize)
         if :void
           cond:
             is Done :bool
-              __step_7#-8 :Done | Yielded(isize)
+              __step_7 :Done | Yielded(isize)
           then:
             break
           else:
-            let i#66: isize =
+            let i: isize =
               .value :isize
                 cast → Yielded(isize)
-                  __step_7#-8 :Done | Yielded(isize)
+                  __step_7 :Done | Yielded(isize)
             assign
               target:
-                sis#65 :isize
+                sis :isize
               value:
                 add :isize
                   l:
-                    sis#65 :isize
+                    sis :isize
                   r:
-                    i#66 :isize
+                    i :isize
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_8#-9: ? =
+              let __sb_8: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_8#-9 :?
+                __sb_8 :?
                 "isize sum=" :string
               @builder.append_display <for isize> :void
-                __sb_8#-9 :?
-                sis#65 :isize
+                __sb_8 :?
+                sis :isize
               ~>
                 @builder.finish :string
-                  __sb_8#-9 :?
-    let nb#67: u8 = int(6) :u8
-    let sb#68: u32 = int(0) :u32
+                  __sb_8 :?
+    let nb: u8 = int(6) :u8
+    let sb: u32 = int(0) :u32
     block :void
-      let __iter_9#-10: Range(u8) =
+      let __iter_9: Range(u8) =
         Range(u8) {
           start:
             cast → u8
               int(0) :i32
-          end: nb#67 :u8
+          end: nb :u8
           inclusive: false
           cursor:
             cast → u8
               int(0) :i32
         }
       loop
-        let __step_10#-11: Done | Yielded(u8) =
+        let __step_10: Done | Yielded(u8) =
           call :Done | Yielded(u8)
             callee:
-              step#1000154 :?
+              step :?
             arg0:
-              __iter_9#-10 :Range(u8)
+              __iter_9 :Range(u8)
         if :void
           cond:
             is Done :bool
-              __step_10#-11 :Done | Yielded(u8)
+              __step_10 :Done | Yielded(u8)
           then:
             break
           else:
-            let i#69: u8 =
+            let i: u8 =
               .value :u8
                 cast → Yielded(u8)
-                  __step_10#-11 :Done | Yielded(u8)
+                  __step_10 :Done | Yielded(u8)
             assign
               target:
-                sb#68 :u32
+                sb :u32
               value:
                 add :u32
                   l:
-                    sb#68 :u32
+                    sb :u32
                   r:
                     cast → u32
-                      i#69 :u8
+                      i :u8
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_11#-12: ? =
+              let __sb_11: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_11#-12 :?
+                __sb_11 :?
                 "u8 sum=" :string
               @builder.append_display <for u32> :void
-                __sb_11#-12 :?
-                sb#68 :u32
+                __sb_11 :?
+                sb :u32
               ~>
                 @builder.finish :string
-                  __sb_11#-12 :?
-    let sh#70: i32 = int(0) :i32
+                  __sb_11 :?
+    let sh: i32 = int(0) :i32
     block :void
-      let __iter_12#-13: Range(i16) =
+      let __iter_12: Range(i16) =
         Range(i16) {
           start:
             cast → i16
@@ -251,51 +251,51 @@
               int(1) :i32
         }
       loop
-        let __step_13#-14: Done | Yielded(i16) =
+        let __step_13: Done | Yielded(i16) =
           call :Done | Yielded(i16)
             callee:
-              step#1000114 :?
+              step :?
             arg0:
-              __iter_12#-13 :Range(i16)
+              __iter_12 :Range(i16)
         if :void
           cond:
             is Done :bool
-              __step_13#-14 :Done | Yielded(i16)
+              __step_13 :Done | Yielded(i16)
           then:
             break
           else:
-            let i#71: i16 =
+            let i: i16 =
               .value :i16
                 cast → Yielded(i16)
-                  __step_13#-14 :Done | Yielded(i16)
+                  __step_13 :Done | Yielded(i16)
             assign
               target:
-                sh#70 :i32
+                sh :i32
               value:
                 add :i32
                   l:
-                    sh#70 :i32
+                    sh :i32
                   r:
                     cast → i32
-                      i#71 :i16
+                      i :i16
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_14#-15: ? =
+              let __sb_14: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_14#-15 :?
+                __sb_14 :?
                 "i16 sum=" :string
               @builder.append_display <for i32> :void
-                __sb_14#-15 :?
-                sh#70 :i32
+                __sb_14 :?
+                sh :i32
               ~>
                 @builder.finish :string
-                  __sb_14#-15 :?
+                  __sb_14 :?
     return int(0) :i32

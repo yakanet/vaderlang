@@ -4,19 +4,19 @@
   fn tests_snippets_match_expr__main_vader$classify(x: i32 | null | string) -> string
     return
       block :string
-        let __scrut_0#-1: i32 | null | string = x#45 :i32 | null | string
+        let __scrut_0: i32 | null | string = x :i32 | null | string
         ~>
           if :string
             cond:
               and :bool
                 l:
                   is i32 :bool
-                    __scrut_0#-1 :i32 | null | string
+                    __scrut_0 :i32 | null | string
                 r:
                   gt :bool
                     l:
                       cast → i32
-                        x#45 :i32 | null | string
+                        x :i32 | null | string
                     r:
                       int(0) :i32
             then:
@@ -27,7 +27,7 @@
                 if :string
                   cond:
                     is i32 :bool
-                      __scrut_0#-1 :i32 | null | string
+                      __scrut_0 :i32 | null | string
                   then:
                     ~>
                       "non-positive" :string
@@ -36,17 +36,17 @@
                       if :string
                         cond:
                           is string :bool
-                            __scrut_0#-1 :i32 | null | string
+                            __scrut_0 :i32 | null | string
                         then:
                           ~>
                             cast → string
-                              x#45 :i32 | null | string
+                              x :i32 | null | string
                         else:
                           ~>
                             if :string
                               cond:
                                 is null :bool
-                                  __scrut_0#-1 :i32 | null | string
+                                  __scrut_0 :i32 | null | string
                               then:
                                 ~>
                                   "nothing" :string

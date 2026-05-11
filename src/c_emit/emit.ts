@@ -424,9 +424,7 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_string$trim":        return `${head} { return vader_string_trim(a0); }`;
     case "std_string$to_upper":    return `${head} { return vader_string_to_upper(a0); }`;
     case "std_string$to_lower":    return `${head} { return vader_string_to_lower(a0); }`;
-    case "std_string$char_at":
-      return `${head} { return vader_string_char_at(a0, a1); }`;
-    // `string implements Index(i32, char)` is `@intrinsic`-impl in std/core,
+    // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
     // so the host provides the body under the impl-method mangled name.
     case "std_core$string$Index$at":
       return `${head} { return vader_string_char_at(a0, a1); }`;

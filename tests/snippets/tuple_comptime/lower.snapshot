@@ -15,67 +15,67 @@
   fn tests_snippets_tuple_comptime__main_vader$main() -> i32
     call :void
       callee:
-        println#26 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "dim " :string
               @builder.append_display <for i32> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 ._0 :i32
-                  DIM#2 :[i32, i32]
+                  DIM :[i32, i32]
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "x" :string
               @builder.append_display <for i32> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 ._1 :i32
-                  DIM#2 :[i32, i32]
+                  DIM :[i32, i32]
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
+                  __sb_0 :?
     call :void
       callee:
-        println#26 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-2: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "origin (" :string
               @builder.append_display <for f64> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 ._0 :f64
-                  ORIGIN#3 :[f64, f64, string]
+                  ORIGIN :[f64, f64, string]
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 ", " :string
               @builder.append_display <for f64> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 ._1 :f64
-                  ORIGIN#3 :[f64, f64, string]
+                  ORIGIN :[f64, f64, string]
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 ") = " :string
               @builder.append_display <for string> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 ._2 :string
-                  ORIGIN#3 :[f64, f64, string]
+                  ORIGIN :[f64, f64, string]
               ~>
                 @builder.finish :string
-                  __sb_1#-2 :?
+                  __sb_1 :?
     return
       ._0 :i32
-        DIM#2 :[i32, i32]
+        DIM :[i32, i32]

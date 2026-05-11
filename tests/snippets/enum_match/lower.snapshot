@@ -6,7 +6,7 @@
       cond:
         lt :bool
           l:
-            n#63 :i32
+            n :i32
           r:
             int(0) :i32
       then:
@@ -15,7 +15,7 @@
       cond:
         eq :bool
           l:
-            n#63 :i32
+            n :i32
           r:
             int(0) :i32
       then:
@@ -24,13 +24,13 @@
   fn tests_snippets_enum_match__main_vader$label(c: Color) -> string
     ~>
       block :string
-        let __scrut_0#-1: Color = c#64 :Color
+        let __scrut_0: Color = c :Color
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0#-1 :Color
+                  __scrut_0 :Color
                 r:
                   int(0) :i32
             then:
@@ -42,7 +42,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0#-1 :Color
+                        __scrut_0 :Color
                       r:
                         int(1) :i32
                   then:
@@ -54,7 +54,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0#-1 :Color
+                              __scrut_0 :Color
                             r:
                               int(2) :i32
                         then:
@@ -67,164 +67,164 @@
     ~>
       eq :bool
         l:
-          a#65 :Color
+          a :Color
         r:
-          b#66 :Color
+          b :Color
   fn tests_snippets_enum_match__main_vader$main() -> i32
-    let c#67: Color = int(1) :i32
+    let c: Color = int(1) :i32
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                label#5 :fn(Color) -> string
+                label :fn(Color) -> string
               arg0:
-                c#67 :Color
+                c :Color
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                label#5 :fn(Color) -> string
+                label :fn(Color) -> string
               arg0:
                 int(0) :i32
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                label#5 :fn(Color) -> string
+                label :fn(Color) -> string
               arg0:
                 int(2) :i32
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-2: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_display <for bool> :void
-                __sb_0#-2 :?
+                __sb_0 :?
                 call :bool
                   callee:
-                    same_color#6 :fn(Color, Color) -> bool
+                    same_color :fn(Color, Color) -> bool
                   arg0:
                     int(0) :i32
                   arg1:
                     int(0) :i32
               ~>
                 @builder.finish :string
-                  __sb_0#-2 :?
+                  __sb_0 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-3: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_display <for bool> :void
-                __sb_1#-3 :?
+                __sb_1 :?
                 call :bool
                   callee:
-                    same_color#6 :fn(Color, Color) -> bool
+                    same_color :fn(Color, Color) -> bool
                   arg0:
                     int(0) :i32
                   arg1:
                     int(2) :i32
               ~>
                 @builder.finish :string
-                  __sb_1#-3 :?
+                  __sb_1 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-4: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_display <for bool> :void
-                __sb_2#-4 :?
+                __sb_2 :?
                 neq :bool
                   l:
-                    c#67 :Color
+                    c :Color
                   r:
                     int(0) :i32
               ~>
                 @builder.finish :string
-                  __sb_2#-4 :?
+                  __sb_2 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_3#-5: ? =
+              let __sb_3: ? =
                 @builder.new :?
               @builder.append_display <for bool> :void
-                __sb_3#-5 :?
+                __sb_3 :?
                 neq :bool
                   l:
-                    c#67 :Color
+                    c :Color
                   r:
                     int(1) :i32
               ~>
                 @builder.finish :string
-                  __sb_3#-5 :?
-    let s#68: Severity =
+                  __sb_3 :?
+    let s: Severity =
       call :Severity
         callee:
-          classify#4 :fn(i32) -> Severity
+          classify :fn(i32) -> Severity
         arg0:
           neg :i32
             int(5) :i32
     block :void
-      let __scrut_4#-6: Severity = s#68 :Severity
+      let __scrut_4: Severity = s :Severity
       ~>
         if :void
           cond:
             eq :bool
               l:
-                __scrut_4#-6 :Severity
+                __scrut_4 :Severity
               r:
                 int(0) :i32
           then:
             ~>
               call :void
                 callee:
-                  println#29 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       "info" :string
           else:
@@ -233,18 +233,18 @@
                 cond:
                   eq :bool
                     l:
-                      __scrut_4#-6 :Severity
+                      __scrut_4 :Severity
                     r:
                       int(1) :i32
                 then:
                   ~>
                     call :void
                       callee:
-                        println#29 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "warning" :string
                 else:
@@ -253,48 +253,48 @@
                       cond:
                         eq :bool
                           l:
-                            __scrut_4#-6 :Severity
+                            __scrut_4 :Severity
                           r:
                             int(2) :i32
                       then:
                         ~>
                           call :void
                             callee:
-                              println#29 :fn(Display) -> void
+                              println :fn(Display) -> void
                             arg0:
                               call :string
                                 callee:
-                                  to_string#1000014 :string
+                                  to_string :string
                                 arg0:
                                   "error" :string
                       else:
                         ~>
                           unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let s2#69: Severity =
+    let s2: Severity =
       call :Severity
         callee:
-          classify#4 :fn(i32) -> Severity
+          classify :fn(i32) -> Severity
         arg0:
           int(0) :i32
     block :void
-      let __scrut_5#-7: Severity = s2#69 :Severity
+      let __scrut_5: Severity = s2 :Severity
       ~>
         if :void
           cond:
             eq :bool
               l:
-                __scrut_5#-7 :Severity
+                __scrut_5 :Severity
               r:
                 int(0) :i32
           then:
             ~>
               call :void
                 callee:
-                  println#29 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       "info" :string
           else:
@@ -303,18 +303,18 @@
                 cond:
                   eq :bool
                     l:
-                      __scrut_5#-7 :Severity
+                      __scrut_5 :Severity
                     r:
                       int(1) :i32
                 then:
                   ~>
                     call :void
                       callee:
-                        println#29 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "warning" :string
                 else:
@@ -323,48 +323,48 @@
                       cond:
                         eq :bool
                           l:
-                            __scrut_5#-7 :Severity
+                            __scrut_5 :Severity
                           r:
                             int(2) :i32
                       then:
                         ~>
                           call :void
                             callee:
-                              println#29 :fn(Display) -> void
+                              println :fn(Display) -> void
                             arg0:
                               call :string
                                 callee:
-                                  to_string#1000014 :string
+                                  to_string :string
                                 arg0:
                                   "error" :string
                       else:
                         ~>
                           unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let s3#70: Severity =
+    let s3: Severity =
       call :Severity
         callee:
-          classify#4 :fn(i32) -> Severity
+          classify :fn(i32) -> Severity
         arg0:
           int(1) :i32
     block :void
-      let __scrut_6#-8: Severity = s3#70 :Severity
+      let __scrut_6: Severity = s3 :Severity
       ~>
         if :void
           cond:
             eq :bool
               l:
-                __scrut_6#-8 :Severity
+                __scrut_6 :Severity
               r:
                 int(0) :i32
           then:
             ~>
               call :void
                 callee:
-                  println#29 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       "info" :string
           else:
@@ -373,18 +373,18 @@
                 cond:
                   eq :bool
                     l:
-                      __scrut_6#-8 :Severity
+                      __scrut_6 :Severity
                     r:
                       int(1) :i32
                 then:
                   ~>
                     call :void
                       callee:
-                        println#29 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "warning" :string
                 else:
@@ -393,18 +393,18 @@
                       cond:
                         eq :bool
                           l:
-                            __scrut_6#-8 :Severity
+                            __scrut_6 :Severity
                           r:
                             int(2) :i32
                       then:
                         ~>
                           call :void
                             callee:
-                              println#29 :fn(Display) -> void
+                              println :fn(Display) -> void
                             arg0:
                               call :string
                                 callee:
-                                  to_string#1000014 :string
+                                  to_string :string
                                 arg0:
                                   "error" :string
                       else:

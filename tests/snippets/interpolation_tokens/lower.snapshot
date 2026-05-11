@@ -3,26 +3,26 @@
 ## tests/snippets/interpolation_tokens/_main.vader
   const tests_snippets_interpolation_tokens__main_vader$simple: string =
     block :string
-      let __sb_0#-1: ? =
+      let __sb_0: ? =
         @builder.new :?
       @builder.append_str :void
-        __sb_0#-1 :?
+        __sb_0 :?
         "hello " :string
       @builder.append_str :void
-        __sb_0#-1 :?
+        __sb_0 :?
         unreachable("unresolved ident name") :?
       ~>
         @builder.finish :string
-          __sb_0#-1 :?
+          __sb_0 :?
   const tests_snippets_interpolation_tokens__main_vader$expr: string =
     block :string
-      let __sb_0#-2: ? =
+      let __sb_0: ? =
         @builder.new :?
       @builder.append_str :void
-        __sb_0#-2 :?
+        __sb_0 :?
         "result: " :string
       @builder.append_str :void
-        __sb_0#-2 :?
+        __sb_0 :?
         add :?
           l:
             unreachable("unresolved ident x") :?
@@ -30,31 +30,31 @@
             int(1) :i32
       ~>
         @builder.finish :string
-          __sb_0#-2 :?
+          __sb_0 :?
   const tests_snippets_interpolation_tokens__main_vader$nested: string =
     block :string
-      let __sb_0#-3: ? =
+      let __sb_0: ? =
         @builder.new :?
       @builder.append_str :void
-        __sb_0#-3 :?
+        __sb_0 :?
         "outer " :string
       @builder.append_display <for string> :void
-        __sb_0#-3 :?
+        __sb_0 :?
         block :string
-          let __sb_1#-4: ? =
+          let __sb_1: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_1#-4 :?
+            __sb_1 :?
             "inner " :string
           @builder.append_str :void
-            __sb_1#-4 :?
+            __sb_1 :?
             unreachable("unresolved ident y") :?
           ~>
             @builder.finish :string
-              __sb_1#-4 :?
+              __sb_1 :?
       ~>
         @builder.finish :string
-          __sb_0#-3 :?
+          __sb_0 :?
 
 # Diagnostics
 [1:26] error[R2006] unresolved identifier: `name`

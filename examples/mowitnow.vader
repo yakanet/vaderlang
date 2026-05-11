@@ -12,7 +12,7 @@
 
 import "std/io" { println, eprintln, read_file }
 import "std/string" {
-    byte_len, char_at, chars, is_white_char, parse_int,
+    byte_len, chars, is_white_char, parse_int,
     split_where, trim, ParseError,
 }
 import "std/string_builder" { new_builder, append }
@@ -152,7 +152,7 @@ parse_position :: fn(line: string, lawn: Lawn) -> Mower! {
     if parts[2].byte_len() != 1 {
         return ParseError { .msg = "expected single direction char, got '${parts[2]}'" }
     }
-    d :: parse_direction(parts[2].char_at(0))?
+    d :: parse_direction(parts[2][0])?
     if !lawn.contains(x, y) {
         return ParseError { .msg = "starting position '${line}' is outside the lawn" }
     }

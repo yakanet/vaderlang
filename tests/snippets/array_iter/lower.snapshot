@@ -2,127 +2,127 @@
 
 ## tests/snippets/array_iter/_main.vader
   fn tests_snippets_array_iter__main_vader$main() -> i32
-    let arr#58: i32[] =
+    let arr: i32[] =
       array :i32[]
         int(10) :i32
         int(20) :i32
         int(30) :i32
         int(40) :i32
-    let sum#59: i32 = int(0) :i32
+    let sum: i32 = int(0) :i32
     block :void
-      let __iter_0#-1: ArrayIter(i32) =
+      let __iter_0: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: arr#58 :i32[]
+          arr: arr :i32[]
           cursor: int(0) :usize
           length:
             LoweredArrayLen
         }
       loop
-        let __step_1#-2: Done | Yielded(i32) =
+        let __step_1: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000163 :?
+              step :?
             arg0:
-              __iter_0#-1 :ArrayIter(i32)
+              __iter_0 :ArrayIter(i32)
         if :void
           cond:
             is Done :bool
-              __step_1#-2 :Done | Yielded(i32)
+              __step_1 :Done | Yielded(i32)
           then:
             break
           else:
-            let x#60: i32 =
+            let x: i32 =
               .value :i32
                 cast → Yielded(i32)
-                  __step_1#-2 :Done | Yielded(i32)
+                  __step_1 :Done | Yielded(i32)
             assign
               target:
-                sum#59 :i32
+                sum :i32
               value:
                 add :i32
                   l:
-                    sum#59 :i32
+                    sum :i32
                   r:
-                    x#60 :i32
+                    x :i32
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-3: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 "sum = " :string
               @builder.append_display <for i32> :void
-                __sb_2#-3 :?
-                sum#59 :i32
+                __sb_2 :?
+                sum :i32
               ~>
                 @builder.finish :string
-                  __sb_2#-3 :?
-    let empty#61: i32[] =
+                  __sb_2 :?
+    let empty: i32[] =
       array :i32[]
         int(0) :i32
         int(0) :i32
         int(0) :i32
-    let n#62: i32 = int(0) :i32
+    let n: i32 = int(0) :i32
     block :void
-      let __iter_3#-4: ArrayIter(i32) =
+      let __iter_3: ArrayIter(i32) =
         ArrayIter(i32) {
-          arr: empty#61 :i32[]
+          arr: empty :i32[]
           cursor: int(0) :usize
           length:
             LoweredArrayLen
         }
       loop
-        let __step_4#-5: Done | Yielded(i32) =
+        let __step_4: Done | Yielded(i32) =
           call :Done | Yielded(i32)
             callee:
-              step#1000163 :?
+              step :?
             arg0:
-              __iter_3#-4 :ArrayIter(i32)
+              __iter_3 :ArrayIter(i32)
         if :void
           cond:
             is Done :bool
-              __step_4#-5 :Done | Yielded(i32)
+              __step_4 :Done | Yielded(i32)
           then:
             break
           else:
-            let _y#63: i32 =
+            let _y: i32 =
               .value :i32
                 cast → Yielded(i32)
-                  __step_4#-5 :Done | Yielded(i32)
+                  __step_4 :Done | Yielded(i32)
             assign
               target:
-                n#62 :i32
+                n :i32
               value:
                 add :i32
                   l:
-                    n#62 :i32
+                    n :i32
                   r:
                     int(1) :i32
     call :void
       callee:
-        println#24 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_5#-6: ? =
+              let __sb_5: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 "count = " :string
               @builder.append_display <for i32> :void
-                __sb_5#-6 :?
-                n#62 :i32
+                __sb_5 :?
+                n :i32
               ~>
                 @builder.finish :string
-                  __sb_5#-6 :?
+                  __sb_5 :?
     return int(0) :i32

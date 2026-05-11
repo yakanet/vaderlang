@@ -4,23 +4,23 @@
   fn tests_snippets_format_helpers__main_vader$main() -> i32
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "[" :string
               @builder.append_display <for string> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 call :string
                   callee:
-                    pad_start#68 :string
+                    pad_start :string
                   arg0:
                     "42" :string
                   arg1:
@@ -28,30 +28,30 @@
                   arg2:
                     char(0x30)
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "]" :string
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
+                  __sb_0 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_1#-2: ? =
+              let __sb_1: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "[" :string
               @builder.append_display <for string> :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 call :string
                   callee:
-                    pad_end#69 :string
+                    pad_end :string
                   arg0:
                     "42" :string
                   arg1:
@@ -59,30 +59,30 @@
                   arg2:
                     char(0x2e)
               @builder.append_str :void
-                __sb_1#-2 :?
+                __sb_1 :?
                 "]" :string
               ~>
                 @builder.finish :string
-                  __sb_1#-2 :?
+                  __sb_1 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_2#-3: ? =
+              let __sb_2: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 "[" :string
               @builder.append_display <for string> :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 call :string
                   callee:
-                    pad_start#68 :string
+                    pad_start :string
                   arg0:
                     "hello" :string
                   arg1:
@@ -90,187 +90,187 @@
                   arg2:
                     char(0x20)
               @builder.append_str :void
-                __sb_2#-3 :?
+                __sb_2 :?
                 "]" :string
               ~>
                 @builder.finish :string
-                  __sb_2#-3 :?
-    let n#150: u64 = int(255) :u64
+                  __sb_2 :?
+    let n: u64 = int(255) :u64
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_3#-4: ? =
+              let __sb_3: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_3#-4 :?
+                __sb_3 :?
                 "hex=" :string
               @builder.append_display <for string> :void
-                __sb_3#-4 :?
+                __sb_3 :?
                 call :string
                   callee:
-                    to_hex#93 :string
+                    to_hex :string
                   arg0:
-                    n#150 :u64
+                    n :u64
               ~>
                 @builder.finish :string
-                  __sb_3#-4 :?
+                  __sb_3 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_4#-5: ? =
+              let __sb_4: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_4#-5 :?
+                __sb_4 :?
                 "bin=" :string
               @builder.append_display <for string> :void
-                __sb_4#-5 :?
+                __sb_4 :?
                 call :string
                   callee:
-                    to_bin#94 :string
+                    to_bin :string
                   arg0:
-                    n#150 :u64
+                    n :u64
               ~>
                 @builder.finish :string
-                  __sb_4#-5 :?
+                  __sb_4 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_5#-6: ? =
+              let __sb_5: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 "hex_padded=" :string
               @builder.append_display <for string> :void
-                __sb_5#-6 :?
+                __sb_5 :?
                 call :string
                   callee:
-                    pad_start#68 :string
+                    pad_start :string
                   arg0:
                     call :string
                       callee:
-                        to_hex#93 :string
+                        to_hex :string
                       arg0:
-                        n#150 :u64
+                        n :u64
                   arg1:
                     int(4) :usize
                   arg2:
                     char(0x30)
               ~>
                 @builder.finish :string
-                  __sb_5#-6 :?
-    let zero#151: u64 = int(0) :u64
+                  __sb_5 :?
+    let zero: u64 = int(0) :u64
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_6#-7: ? =
+              let __sb_6: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_6#-7 :?
+                __sb_6 :?
                 "zero_bin=" :string
               @builder.append_display <for string> :void
-                __sb_6#-7 :?
+                __sb_6 :?
                 call :string
                   callee:
-                    to_bin#94 :string
+                    to_bin :string
                   arg0:
-                    zero#151 :u64
+                    zero :u64
               ~>
                 @builder.finish :string
-                  __sb_6#-7 :?
+                  __sb_6 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_7#-8: ? =
+              let __sb_7: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_7#-8 :?
+                __sb_7 :?
                 "ws_space=" :string
               @builder.append_display <for bool> :void
-                __sb_7#-8 :?
+                __sb_7 :?
                 call :bool
                   callee:
-                    is_white_char#70 :bool
+                    is_white_char :bool
                   arg0:
                     char(0x20)
               ~>
                 @builder.finish :string
-                  __sb_7#-8 :?
+                  __sb_7 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_8#-9: ? =
+              let __sb_8: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_8#-9 :?
+                __sb_8 :?
                 "ws_a=" :string
               @builder.append_display <for bool> :void
-                __sb_8#-9 :?
+                __sb_8 :?
                 call :bool
                   callee:
-                    is_white_char#70 :bool
+                    is_white_char :bool
                   arg0:
                     char(0x61)
               ~>
                 @builder.finish :string
-                  __sb_8#-9 :?
+                  __sb_8 :?
     call :void
       callee:
-        println#29 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_9#-10: ? =
+              let __sb_9: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_9#-10 :?
+                __sb_9 :?
                 "ws_tab=" :string
               @builder.append_display <for bool> :void
-                __sb_9#-10 :?
+                __sb_9 :?
                 call :bool
                   callee:
-                    is_white_char#70 :bool
+                    is_white_char :bool
                   arg0:
                     char(0x9)
               ~>
                 @builder.finish :string
-                  __sb_9#-10 :?
+                  __sb_9 :?
     return int(0) :i32

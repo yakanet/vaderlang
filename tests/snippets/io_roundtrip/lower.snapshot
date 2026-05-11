@@ -2,89 +2,89 @@
 
 ## tests/snippets/io_roundtrip/_main.vader
   fn tests_snippets_io_roundtrip__main_vader$main() -> i32
-    let path#61: string = "/tmp/vader_io_roundtrip.txt" :string
+    let path: string = "/tmp/vader_io_roundtrip.txt" :string
     call :Error | null
       callee:
-        write_file#33 :fn(string, string) -> Error | null
+        write_file :fn(string, string) -> Error | null
       arg0:
-        path#61 :string
+        path :string
       arg1:
         "hello from vader" :string
     call :void
       callee:
-        println#27 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "exists: " :string
               @builder.append_display <for bool> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 call :bool
                   callee:
-                    exists#34 :fn(string) -> bool
+                    exists :fn(string) -> bool
                   arg0:
-                    path#61 :string
+                    path :string
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
-    let contents#62: Error | string =
+                  __sb_0 :?
+    let contents: Error | string =
       call :Error | string
         callee:
-          read_file#32 :fn(string) -> Error | string
+          read_file :fn(string) -> Error | string
         arg0:
-          path#61 :string
+          path :string
     block :void
-      let __scrut_1#-2: Error | string = contents#62 :Error | string
+      let __scrut_1: Error | string = contents :Error | string
       ~>
         if :void
           cond:
             is string :bool
-              __scrut_1#-2 :Error | string
+              __scrut_1 :Error | string
           then:
             ~>
               call :void
                 callee:
-                  println#27 :fn(Display) -> void
+                  println :fn(Display) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string#1000014 :string
+                      to_string :string
                     arg0:
                       block :string
-                        let __sb_2#-3: ? =
+                        let __sb_2: ? =
                           @builder.new :?
                         @builder.append_str :void
-                          __sb_2#-3 :?
+                          __sb_2 :?
                           "read: " :string
                         @builder.append_display <for string> :void
-                          __sb_2#-3 :?
+                          __sb_2 :?
                           cast → string
-                            contents#62 :Error | string
+                            contents :Error | string
                         ~>
                           @builder.finish :string
-                            __sb_2#-3 :?
+                            __sb_2 :?
           else:
             ~>
               if :void
                 cond:
                   is Error :bool
-                    __scrut_1#-2 :Error | string
+                    __scrut_1 :Error | string
                 then:
                   ~>
                     call :void
                       callee:
-                        println#27 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             "read failed" :string
                 else:

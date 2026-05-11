@@ -2,189 +2,189 @@
 
 ## tests/snippets/std_string_builder/_main.vader
   fn tests_snippets_std_string_builder__main_vader$main() -> i32
-    let sb#67: StringBuilder =
+    let sb: StringBuilder =
       call :StringBuilder
         callee:
-          new_builder#39 :fn() -> StringBuilder
+          new_builder :fn() -> StringBuilder
     call :void
       callee:
-        append#40 :void
+        append :void
       arg0:
-        sb#67 :StringBuilder
+        sb :StringBuilder
       arg1:
         "Hello" :string
     call :void
       callee:
-        append#40 :void
+        append :void
       arg0:
-        sb#67 :StringBuilder
+        sb :StringBuilder
       arg1:
         ", " :string
     call :void
       callee:
-        append#40 :void
+        append :void
       arg0:
-        sb#67 :StringBuilder
+        sb :StringBuilder
       arg1:
         "World" :string
     call :void
       callee:
-        append_char#41 :void
+        append_char :void
       arg0:
-        sb#67 :StringBuilder
+        sb :StringBuilder
       arg1:
         char(0x21)
     call :void
       callee:
-        println#28 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                to_string#1000108 :string
+                to_string :string
               arg0:
-                sb#67 :StringBuilder
-    let sb2#68: StringBuilder =
+                sb :StringBuilder
+    let sb2: StringBuilder =
       call :StringBuilder
         callee:
-          new_builder#39 :fn() -> StringBuilder
+          new_builder :fn() -> StringBuilder
     call :void
       callee:
-        append#40 :void
+        append :void
       arg0:
-        sb2#68 :StringBuilder
+        sb2 :StringBuilder
       arg1:
         "foo" :string
     call :void
       callee:
-        append#40 :void
+        append :void
       arg0:
-        sb2#68 :StringBuilder
+        sb2 :StringBuilder
       arg1:
         "bar" :string
     call :void
       callee:
-        append#40 :void
+        append :void
       arg0:
-        sb2#68 :StringBuilder
+        sb2 :StringBuilder
       arg1:
         "baz" :string
     call :void
       callee:
-        println#28 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                to_string#1000108 :string
+                to_string :string
               arg0:
-                sb2#68 :StringBuilder
-    let sb3#69: StringBuilder =
+                sb2 :StringBuilder
+    let sb3: StringBuilder =
       call :StringBuilder
         callee:
-          new_builder#39 :fn() -> StringBuilder
+          new_builder :fn() -> StringBuilder
     call :void
       callee:
-        println#28 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             block :string
-              let __sb_0#-1: ? =
+              let __sb_0: ? =
                 @builder.new :?
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "empty='" :string
               @builder.append_display <for string> :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 call :string
                   callee:
-                    to_string#1000108 :string
+                    to_string :string
                   arg0:
-                    sb3#69 :StringBuilder
+                    sb3 :StringBuilder
               @builder.append_str :void
-                __sb_0#-1 :?
+                __sb_0 :?
                 "'" :string
               ~>
                 @builder.finish :string
-                  __sb_0#-1 :?
-    let sb4#70: StringBuilder =
+                  __sb_0 :?
+    let sb4: StringBuilder =
       call :StringBuilder
         callee:
-          new_builder#39 :fn() -> StringBuilder
+          new_builder :fn() -> StringBuilder
     call :void
       callee:
-        append_char#41 :void
+        append_char :void
       arg0:
-        sb4#70 :StringBuilder
+        sb4 :StringBuilder
       arg1:
         char(0x20ac)
     call :void
       callee:
-        append_char#41 :void
+        append_char :void
       arg0:
-        sb4#70 :StringBuilder
+        sb4 :StringBuilder
       arg1:
         char(0x29)
     call :void
       callee:
-        println#28 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                to_string#1000108 :string
+                to_string :string
               arg0:
-                sb4#70 :StringBuilder
-    let n#71: i32 = int(42) :i32
-    let sb5#72: StringBuilder =
+                sb4 :StringBuilder
+    let n: i32 = int(42) :i32
+    let sb5: StringBuilder =
       call :StringBuilder
         callee:
-          new_builder#39 :fn() -> StringBuilder
+          new_builder :fn() -> StringBuilder
     call :void
       callee:
-        append#40 :void
+        append :void
       arg0:
-        sb5#72 :StringBuilder
+        sb5 :StringBuilder
       arg1:
         "n=" :string
     call :void
       callee:
-        append#40 :void
+        append :void
       arg0:
-        sb5#72 :StringBuilder
+        sb5 :StringBuilder
       arg1:
         block :string
-          let __sb_1#-2: ? =
+          let __sb_1: ? =
             @builder.new :?
           @builder.append_display <for i32> :void
-            __sb_1#-2 :?
-            n#71 :i32
+            __sb_1 :?
+            n :i32
           ~>
             @builder.finish :string
-              __sb_1#-2 :?
+              __sb_1 :?
     call :void
       callee:
-        println#28 :fn(Display) -> void
+        println :fn(Display) -> void
       arg0:
         call :string
           callee:
-            to_string#1000014 :string
+            to_string :string
           arg0:
             call :string
               callee:
-                to_string#1000108 :string
+                to_string :string
               arg0:
-                sb5#72 :StringBuilder
+                sb5 :StringBuilder
     return int(0) :i32

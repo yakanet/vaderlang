@@ -6,4 +6,4 @@
   const tests_snippets_comptime_const__main_vader$GREETING: string =
     "hello, world" :string
   fn tests_snippets_comptime_const__main_vader$main() -> i32
-    return ANSWER#1 :i32
+    return ANSWER :i32

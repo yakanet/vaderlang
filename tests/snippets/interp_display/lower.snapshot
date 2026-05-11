@@ -4,23 +4,23 @@
   fn tests_snippets_interp_display__main_vader$greet(name: string, age: i32) -> string
     return
       block :string
-        let __sb_0#-1: ? =
+        let __sb_0: ? =
           @builder.new :?
         @builder.append_str :void
-          __sb_0#-1 :?
+          __sb_0 :?
           "Hello, " :string
         @builder.append_display <for string> :void
-          __sb_0#-1 :?
-          name#45 :string
+          __sb_0 :?
+          name :string
         @builder.append_str :void
-          __sb_0#-1 :?
+          __sb_0 :?
           "! You are " :string
         @builder.append_display <for i32> :void
-          __sb_0#-1 :?
-          age#46 :i32
+          __sb_0 :?
+          age :i32
         @builder.append_str :void
-          __sb_0#-1 :?
+          __sb_0 :?
           " years old." :string
         ~>
           @builder.finish :string
-            __sb_0#-1 :?
+            __sb_0 :?

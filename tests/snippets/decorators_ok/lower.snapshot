@@ -7,7 +7,7 @@
     ~>
       call :void
         callee:
-          log#1 :fn(i32, i32) -> void
+          log :fn(i32, i32) -> void
         arg0:
           int(0) :i32
         arg1:

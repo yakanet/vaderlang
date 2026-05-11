@@ -3,10 +3,10 @@
 ## tests/snippets/intrinsic_type_kind/_main.vader
   struct tests_snippets_intrinsic_type_kind__main_vader$Pair { first: i32, second: i32 }
   fn tests_snippets_intrinsic_type_kind__main_vader$main() -> i32
-    let kp#46: string = "primitive" :string
-    let ks#47: string = "struct" :string
-    let ka#48: string = "array" :string
-    let kt#49: string = "tuple" :string
+    let kp: string = "primitive" :string
+    let ks: string = "struct" :string
+    let ka: string = "array" :string
+    let kt: string = "tuple" :string
     if :void
       cond:
         and :bool
@@ -17,25 +17,25 @@
                   l:
                     eq :bool
                       l:
-                        kp#46 :string
+                        kp :string
                       r:
                         "primitive" :string
                   r:
                     eq :bool
                       l:
-                        ks#47 :string
+                        ks :string
                       r:
                         "struct" :string
               r:
                 eq :bool
                   l:
-                    ka#48 :string
+                    ka :string
                   r:
                     "array" :string
           r:
             eq :bool
               l:
-                kt#49 :string
+                kt :string
               r:
                 "tuple" :string
       then:

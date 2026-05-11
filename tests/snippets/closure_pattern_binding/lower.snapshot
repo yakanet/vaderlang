@@ -5,103 +5,103 @@
   fn tests_snippets_closure_pattern_binding__main_vader$greet(v: i32 | P) -> void
     ~>
       block :void
-        let __scrut_0#-1: i32 | P = v#60 :i32 | P
+        let __scrut_0: i32 | P = v :i32 | P
         ~>
           if :void
             cond:
               is P :bool
-                __scrut_0#-1 :i32 | P
+                __scrut_0 :i32 | P
             then:
-              let p#61: ? =
+              let p: ? =
                 LoweredCellNew
               ~>
                 block :void
-                  let shout#62: fn() -> string =
+                  let shout: fn() -> string =
                     LoweredMakeClosure
                   call :void
                     callee:
-                      println#26 :fn(Display) -> void
+                      println :fn(Display) -> void
                     arg0:
                       call :string
                         callee:
-                          to_string#1000014 :string
+                          to_string :string
                         arg0:
                           call :string
                             callee:
-                              shout#62 :fn() -> string
+                              shout :fn() -> string
                   ~>
                     call :void
                       callee:
-                        println#26 :fn(Display) -> void
+                        println :fn(Display) -> void
                       arg0:
                         call :string
                           callee:
-                            to_string#1000014 :string
+                            to_string :string
                           arg0:
                             block :string
-                              let __sb_4#-10: ? =
+                              let __sb_4: ? =
                                 @builder.new :?
                               @builder.append_str :void
-                                __sb_4#-10 :?
+                                __sb_4 :?
                                 "again " :string
                               @builder.append_display <for string> :void
-                                __sb_4#-10 :?
+                                __sb_4 :?
                                 call :string
                                   callee:
-                                    shout#62 :fn() -> string
+                                    shout :fn() -> string
                               ~>
                                 @builder.finish :string
-                                  __sb_4#-10 :?
+                                  __sb_4 :?
             else:
               ~>
                 if :void
                   cond:
                     is i32 :bool
-                      __scrut_0#-1 :i32 | P
+                      __scrut_0 :i32 | P
                   then:
-                    let n#63: ? =
+                    let n: ? =
                       LoweredCellNew
                     ~>
                       block :void
-                        let doubled#64: fn() -> i32 =
+                        let doubled: fn() -> i32 =
                           LoweredMakeClosure
                         ~>
                           call :void
                             callee:
-                              println#26 :fn(Display) -> void
+                              println :fn(Display) -> void
                             arg0:
                               call :string
                                 callee:
-                                  to_string#1000014 :string
+                                  to_string :string
                                 arg0:
                                   block :string
-                                    let __sb_2#-5: ? =
+                                    let __sb_2: ? =
                                       @builder.new :?
                                     @builder.append_str :void
-                                      __sb_2#-5 :?
+                                      __sb_2 :?
                                       "twice = " :string
                                     @builder.append_display <for i32> :void
-                                      __sb_2#-5 :?
+                                      __sb_2 :?
                                       call :i32
                                         callee:
-                                          doubled#64 :fn() -> i32
+                                          doubled :fn() -> i32
                                     ~>
                                       @builder.finish :string
-                                        __sb_2#-5 :?
+                                        __sb_2 :?
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
   fn tests_snippets_closure_pattern_binding__main_vader$main() -> i32
     call :void
       callee:
-        greet#3 :fn(i32 | P) -> void
+        greet :fn(i32 | P) -> void
       arg0:
         P {
           name: "world" :string
         }
     call :void
       callee:
-        greet#3 :fn(i32 | P) -> void
+        greet :fn(i32 | P) -> void
       arg0:
         int(21) :i32 | P
     return int(0) :i32
@@ -117,15 +117,15 @@
   fn __lambda_6(__env_3: __lambda_env_7) -> string
     ~>
       block :string
-        let __sb_0#-9: ? =
+        let __sb_0: ? =
           @builder.new :?
         @builder.append_str :void
-          __sb_0#-9 :?
+          __sb_0 :?
           "HELLO " :string
         @builder.append_display <for string> :void
-          __sb_0#-9 :?
+          __sb_0 :?
           .name :string
             LoweredCellGet
         ~>
           @builder.finish :string
-            __sb_0#-9 :?
+            __sb_0 :?
