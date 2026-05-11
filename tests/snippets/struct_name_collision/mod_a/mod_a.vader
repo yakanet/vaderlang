@@ -1,0 +1,8 @@
+// Module A : its `Box` carries a numeric `id`.
+export Box :: struct {
+    id: i32
+}
+
+export make_a :: fn() -> Box {
+    return Box { .id = 42 }
+}

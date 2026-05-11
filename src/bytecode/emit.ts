@@ -217,8 +217,31 @@ export function declareLocal(fn: FnEmitCtx, name: string, val: ValType): number 
 
 // ----------------------------------------------------------- interning
 
+// Key for `ctx.typeKey`. For named types (Struct/Trait/Enum) we use the
+// symbol's stable id rather than its bare `name`, because `displayType`
+// strips the module qualifier and two same-named decls in different
+// modules would otherwise alias into the same type slot — silently
+// inheriting each other's field layout (the bug behind the cross-module
+// struct collision regression in `tests/snippets/struct_name_collision`).
+// Generic instances key on `(symbol.id, args…)` so `List(i32)` and
+// `List(i64)` keep distinct slots ; recursive args reuse this helper so
+// nested same-name structs still disambiguate.
+function typeInternKey(t: Type): string {
+  switch (t.kind) {
+    case "Struct": return `Struct#${t.symbol.id}<${t.args.map(typeInternKey).join("|")}>`;
+    case "Trait":  return `Trait#${t.symbol.id}<${t.args.map(typeInternKey).join("|")}>`;
+    case "Enum":   return `Enum#${t.symbol.id}`;
+    case "Array":  return `Array<${typeInternKey(t.element)}>`;
+    case "Union":  return `Union<${t.variants.map(typeInternKey).join("|")}>`;
+    case "Tuple":  return `Tuple<${t.elements.map(typeInternKey).join("|")}>`;
+    case "Fn":
+      return `Fn(${t.params.map(typeInternKey).join(",")})->${typeInternKey(t.returnType)}`;
+    default:       return displayType(t);
+  }
+}
+
 export function internType(ctx: EmitterCtx, t: Type): number {
-  const key = displayType(t);
+  const key = typeInternKey(t);
   const cached = ctx.typeKey.get(key);
   if (cached !== undefined) return cached;
   // Reserve placeholder so recursive/self types don't loop.
@@ -270,7 +293,7 @@ function bcTypeOf(t: Type, ctx: EmitterCtx, slotIdx: number): BcType {
  *  type-info entry, the GC scans the slot if it's a ref). */
 export function internCellType(ctx: EmitterCtx, slotType: Type): number {
   const slotIdx = internType(ctx, slotType);
-  const key = `$Cell<${displayType(slotType)}>`;
+  const key = `$Cell<${typeInternKey(slotType)}>`;
   const cached = ctx.typeKey.get(key);
   if (cached !== undefined) return cached;
   const idx = ctx.types.length;
@@ -284,11 +307,13 @@ export function internCellType(ctx: EmitterCtx, slotType: Type): number {
 }
 
 function internStructDecl(d: L.LoweredStructDecl, ctx: EmitterCtx): number {
-  // Key by the same displayType form `internType` uses for Struct types so a
-  // generic instantiation `List(i32)` doesn't collide with `List(i64)`.
+  // Key on `(symbol.id, args…)` via `typeInternKey` — same key
+  // `internType` uses for Struct types, so a generic instantiation
+  // `List(i32)` doesn't collide with `List(i64)` AND two same-named
+  // structs in different modules get distinct slots.
   if (d.origin.symbol === null) return -1;
   const structType: Type = { kind: "Struct", symbol: d.origin.symbol, args: d.origin.typeArgs };
-  const key = displayType(structType);
+  const key = typeInternKey(structType);
   const cached = ctx.typeKey.get(key);
   if (cached !== undefined && ctx.types[cached]?.kind === "struct") return cached;
 

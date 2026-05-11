@@ -1,0 +1,71 @@
+# Lower
+
+## tests/snippets/struct_name_collision/_main.vader
+  fn tests_snippets_struct_name_collision__main_vader$main() -> i32
+    let a#64: Box =
+      call :Box
+        callee:
+          make_a#37 :fn() -> Box
+    let b#65: Box =
+      call :Box
+        callee:
+          make_b#39 :fn() -> Box
+    call :void
+      callee:
+        println#26 :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string#1000014 :string
+          arg0:
+            block :string
+              let __sb_0#-1: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0#-1 :?
+                "a.id = " :string
+              @builder.append_display <for i32> :void
+                __sb_0#-1 :?
+                .id :i32
+                  a#64 :Box
+              ~>
+                @builder.finish :string
+                  __sb_0#-1 :?
+    call :void
+      callee:
+        println#26 :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string#1000014 :string
+          arg0:
+            block :string
+              let __sb_1#-2: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_1#-2 :?
+                "b.label = " :string
+              @builder.append_display <for string> :void
+                __sb_1#-2 :?
+                .label :string
+                  b#65 :Box
+              ~>
+                @builder.finish :string
+                  __sb_1#-2 :?
+    return int(0) :i32
+
+## tests/snippets/struct_name_collision/mod_a
+  struct tests_snippets_struct_name_collision_mod_a$Box { id: i32 }
+  fn tests_snippets_struct_name_collision_mod_a$make_a() -> Box
+    return
+      Box {
+        id: int(42) :i32
+      }
+
+## tests/snippets/struct_name_collision/mod_b
+  struct tests_snippets_struct_name_collision_mod_b$Box { label: string }
+  fn tests_snippets_struct_name_collision_mod_b$make_b() -> Box
+    return
+      Box {
+        label: "hello" :string
+      }

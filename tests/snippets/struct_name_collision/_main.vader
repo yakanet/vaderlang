@@ -1,0 +1,20 @@
+// Two modules each export a `Box` struct with a DIFFERENT shape.
+// Pre-fix, the bytecode emit keyed struct types by `displayType` which
+// stripped the module qualifier, so the second `Box` collided with the
+// first in `ctx.typeKey` and inherited the wrong field layout — every
+// `.field` access on the second type's instances lowered to a runtime
+// `unreachable` trap.
+//
+// This snippet pins the fix : both `Box`es must round-trip their data
+// through `make_*` + field access without collision.
+import "std/io" { println }
+import "./mod_a" { make_a }
+import "./mod_b" { make_b }
+
+main :: fn() -> i32 {
+    a :: make_a()
+    b :: make_b()
+    println("a.id = ${a.id}")
+    println("b.label = ${b.label}")
+    return 0
+}

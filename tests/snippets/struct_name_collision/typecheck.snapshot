@@ -1,0 +1,29 @@
+# Typecheck
+
+## tests/snippets/struct_name_collision/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 15:10    CallExpr       :: Box
+  expr 15:10    IdentExpr      :: fn() -> Box
+  expr 16:10    CallExpr       :: Box
+  expr 16:10    IdentExpr      :: fn() -> Box
+  expr 17:13    StringLitExpr  :: string
+  expr 17:23    FieldExpr      :: i32
+  expr 17:23    IdentExpr      :: Box
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(Display) -> void
+  expr 18:13    StringLitExpr  :: string
+  expr 18:26    FieldExpr      :: string
+  expr 18:26    IdentExpr      :: Box
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(Display) -> void
+
+## tests/snippets/struct_name_collision/mod_a
+  StructDecl     Box                  :: Box
+  FnDecl         make_a               :: fn() -> Box
+  expr 7:12     StructLitExpr  :: Box
+
+## tests/snippets/struct_name_collision/mod_b
+  StructDecl     Box                  :: Box
+  FnDecl         make_b               :: fn() -> Box
+  expr 9:12     StructLitExpr  :: Box
+  expr 9:27     StringLitExpr  :: string
