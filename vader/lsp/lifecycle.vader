@@ -13,6 +13,7 @@ import "std/json" {
 import "std/collections" { MutableMap }
 import "vader/lsp/state" { ServerState }
 import "vader/lsp/semantic_tokens" { TOKEN_TYPES, TOKEN_MODIFIERS }
+import "vader/lsp/log" { log_info }
 
 /// Build the response payload for `initialize` and remember the
 /// client-side capability flags that downstream handlers care about
@@ -29,6 +30,7 @@ import "vader/lsp/semantic_tokens" { TOKEN_TYPES, TOKEN_MODIFIERS }
 /// @return        the JSON value to ship back as the `result` field.
 export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     state.definition_link_support = read_definition_link_support(params)
+    log_info("vader-lsp: client.linkSupport=${state.definition_link_support}")
 
     capabilities :: server_capabilities()
 
