@@ -563,7 +563,10 @@ top_interp :: fn(l: Lexer) -> InterpFrame | null {
 pop_interp :: fn(l: Lexer) -> void {
     n :: l.interp_stack.len()
     if n == 0 { return }
-    l.interp_stack = l.interp_stack.slice_array(0, n - 1) // FIXME: use `pop`
+    // `usize(0)` because FreeInt repinning doesn't cross the `slice as
+    // slice_array` import alias — the literal stays i32 and the VM traps
+    // on the i32-vs-usize comparison inside iter.slice's body.
+    l.interp_stack = l.interp_stack.slice_array(usize(0), n - 1) // FIXME: use `pop`
 }
 
 // Open a `"` / `r"` / `"""` / `r"""` literal. Emits StringBegin, then drives

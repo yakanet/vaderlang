@@ -425,6 +425,13 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
         p.expect(.RParen, "`)` to close trait argument list")
     }
 
+    // `@intrinsic Type implements Trait` (no body) — resolver synthesises
+    // body-less members from the trait's methods.
+    is_intrinsic := false
+    for deco in decorators {
+        if deco.name == "intrinsic" { is_intrinsic = true }
+    }
+
     members: FnDecl[] = []
     end_tok: Token = trait_tok
     if p.check(.Arrow) {
@@ -444,6 +451,8 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
         end_tok = p.expect(.RBrace, "`}` to close impl body")
     } else if p.check(.LBrace) {
         members.push(p.parse_sam_block_member())
+        end_tok = p.peek_at(-1)
+    } else if is_intrinsic {
         end_tok = p.peek_at(-1)
     } else {
         t :: p.peek()
@@ -1010,6 +1019,48 @@ ident_expr :: fn(span: Span, name: string) -> IdentExpr {
 }
 
 parse_type :: fn(p: Parser) -> TypeExpr {
+    // Precedence : postfix `[]` `!` (tightest), then `&` intersection,
+    // then `|` union (loosest). Mirrors the value-side Pratt table.
+    head := p.parse_type_intersection()
+    // `T | U | V` — left-associative `bitor` chain.
+    if p.check(.Pipe) {
+        head_span :: head.span
+        for p.match_kind(.Pipe).matched {
+            next :: p.parse_type_intersection()
+            next_span :: next.span
+            head = BinaryExpr {
+                .span  = Span { .start = head_span.start, .end = next_span.end },
+                .op    = .BitOr,
+                .left  = head,
+                .right = next,
+            }
+        }
+    }
+    return head
+}
+
+// `T & U & V` — left-associative `bitand` chain, tighter than `|` and
+// looser than the postfix operators. Same node shape as value-side trait
+// composition (e.g. `[T: Hash & Eq]`).
+parse_type_intersection :: fn(p: Parser) -> TypeExpr {
+    head := p.parse_type_postfix()
+    if p.check(.Amp) {
+        head_span :: head.span
+        for p.match_kind(.Amp).matched {
+            next :: p.parse_type_postfix()
+            next_span :: next.span
+            head = BinaryExpr {
+                .span  = Span { .start = head_span.start, .end = next_span.end },
+                .op    = .BitAnd,
+                .left  = head,
+                .right = next,
+            }
+        }
+    }
+    return head
+}
+
+parse_type_postfix :: fn(p: Parser) -> TypeExpr {
     head := p.parse_type_primary()
     // Postfix `T[]` loop : `T[]`, `T[][]`, ... wraps `head` into an
     // ArrayTypeExpr. Two-token lookahead `[ ]` keeps us from consuming a `[`
@@ -1045,21 +1096,6 @@ parse_type :: fn(p: Parser) -> TypeExpr {
             .op    = .BitOr,
             .left  = success,
             .right = error_ident,
-        }
-    }
-    // `T | U | V` — left-associative `bitor` chain (mirroring the
-    // value-side Pratt tree).
-    if p.check(.Pipe) {
-        head_span :: head.span
-        for p.match_kind(.Pipe).matched {
-            next :: p.parse_type_primary()
-            next_span :: next.span
-            head = BinaryExpr {
-                .span  = Span { .start = head_span.start, .end = next_span.end },
-                .op    = .BitOr,
-                .left  = head,
-                .right = next,
-            }
         }
     }
     return head

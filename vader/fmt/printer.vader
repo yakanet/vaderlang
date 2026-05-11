@@ -105,23 +105,23 @@ source_slice :: fn(self: Printer, span: Span) -> string {
 // AND between the last comment and the node that follows (caller passes
 // `node_line` — the source line where the AST node starts ; if there's a
 // gap > 1 line, emit one extra newline as the visual separator).
+// `prev_end_line` tracks where the previous comment FINISHED — needed for
+// multi-line block comments whose `start_line` is well before `end_line`.
 flush_leading_comments :: fn(self: Printer, before: usize, node_line: i32) -> void {
     cs :: self.comments.take_before(before)
-    prev_line: i32 = 0
+    prev_end_line: i32 = 0
     has_prev := false
     for c in cs {
-        if has_prev && c.line > prev_line + 1 {
+        if has_prev && c.line > prev_end_line + 1 {
             self.newline()
         }
         self.indent()
         self.write(c.text)
         self.newline()
-        prev_line = c.line
+        prev_end_line = c.end_line
         has_prev = true
     }
-    // Trailing gap before the node body. Only kicks in when the last
-    // comment was at least 2 lines before `node_line`.
-    if has_prev && node_line > prev_line + 1 {
+    if has_prev && node_line > prev_end_line + 1 {
         self.newline()
     }
 }
@@ -158,7 +158,8 @@ export emit_program :: fn(self: Printer, p: Program) -> string {
             // Where this decl logically starts : the first queued leading
             // comment's line if any, else the first decorator's line (since
             // decorators sit outside the decl's own span), else the decl's
-            // own start line.
+            // own start line. Block comments use `.line` (their start) for
+            // adjacency to the previous decl's closing line.
             first_line := decl_first_line(d)
             if self.comments.has_before(before) {
                 cs :: self.comments.peek_before(before)
@@ -547,7 +548,7 @@ emit_trait_decl :: fn(self: Printer, d: TraitDecl) -> void {
 }
 
 emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
-    self.emit_decorators(d.decorators, d.for_type.span.start.line)
+    self.emit_decorators(d.decorators, expr_span(d.for_type).start.line)
     self.emit_type_expr(d.for_type)
     self.write(" implements ")
     self.write(d.trait_name)
@@ -562,6 +563,16 @@ emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
         self.write("]")
     }
     if d.members.len() == usize(0) {
+        // `@intrinsic Type implements Trait` (no body) is a valid form
+        // for host-provided impls. Skip the empty `{}` so we round-trip
+        // the source layout exactly.
+        is_intrinsic := false
+        for deco in d.decorators {
+            if deco.name == "intrinsic" { is_intrinsic = true }
+        }
+        if is_intrinsic {
+            return
+        }
         self.write(" {}")
         return
     }
@@ -1123,17 +1134,17 @@ nl_indent_before :: fn(self: Printer, _next_offset: usize) -> void {
 // is the line of the stmt / trailing expr the comments precede.
 flush_leading_comments_inline :: fn(self: Printer, before: usize, node_line: i32) -> void {
     cs :: self.comments.take_before(before)
-    prev_line: i32 = 0
+    prev_end_line: i32 = 0
     has_prev := false
     for c in cs {
-        if has_prev && c.line > prev_line + 1 { self.newline() }
+        if has_prev && c.line > prev_end_line + 1 { self.newline() }
         self.indent()
         self.write(c.text)
         self.newline()
-        prev_line = c.line
+        prev_end_line = c.end_line
         has_prev = true
     }
-    if has_prev && node_line > prev_line + 1 {
+    if has_prev && node_line > prev_end_line + 1 {
         self.newline()
     }
 }
