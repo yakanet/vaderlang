@@ -1,51 +1,51 @@
 module _main
 type 0 struct std_core$Done {  }
-type 1 struct std_core$Yielded___string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_ { value:2 }
-type 2 struct __Tuple_2 { _0:3,_1:4 }
-type 3 primitive string
-type 4 union 5,6,7,8,9,10
-type 5 ref JsonArray
-type 6 ref JsonBool
-type 7 ref JsonNull
-type 8 ref JsonNumber
-type 9 ref JsonObject
-type 10 ref JsonString
-type 11 struct std_core$Yielded__char { value:12 }
-type 12 primitive char
-type 13 struct std_core$Yielded__Entry_string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString____null { value:14 }
-type 14 union 15,16
-type 15 ref Entry
-type 16 primitive null
-type 17 struct std_core$Yielded__i32 { value:18 }
-type 18 primitive i32
-type 19 struct std_core$Yielded__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { value:4 }
-type 20 struct std_core$Yielded__u8 { value:21 }
-type 21 primitive u8
-type 22 struct std_core$Yielded__usize { value:23 }
-type 23 primitive usize
-type 24 struct std_core$Range__char { start:12,end:12,inclusive:25,cursor:12 }
+type 1 struct std_core$Yielded__char { value:2 }
+type 2 primitive char
+type 3 struct std_core$Yielded__i32 { value:4 }
+type 4 primitive i32
+type 5 struct std_core$Yielded__u8 { value:6 }
+type 6 primitive u8
+type 7 struct std_core$Yielded__usize { value:8 }
+type 8 primitive usize
+type 9 struct std_core$Yielded___string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_ { value:10 }
+type 10 struct __Tuple_10 { _0:11,_1:12 }
+type 11 primitive string
+type 12 union 13,14,15,16,17,18
+type 13 ref JsonArray
+type 14 ref JsonBool
+type 15 ref JsonNull
+type 16 ref JsonNumber
+type 17 ref JsonObject
+type 18 ref JsonString
+type 19 struct std_core$Yielded__Entry_string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString____null { value:20 }
+type 20 union 21,22
+type 21 ref Entry
+type 22 primitive null
+type 23 struct std_core$Yielded__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { value:12 }
+type 24 struct std_core$Range__char { start:2,end:2,inclusive:25,cursor:2 }
 type 25 primitive bool
-type 26 struct std_core$Range__i32 { start:18,end:18,inclusive:25,cursor:18 }
-type 27 struct std_core$Range__usize { start:23,end:23,inclusive:25,cursor:23 }
-type 28 struct std_core$ArrayIterator___string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_ { arr:29,cursor:23,length:23 }
-type 29 array 2
-type 30 struct std_core$ArrayIterator___T { arr:31,cursor:23,length:23 }
-type 31 array 32
-type 32 ref _
-type 33 struct std_core$ArrayIterator___U { arr:34,cursor:23,length:23 }
-type 34 array 35
-type 35 ref _
-type 36 struct std_core$ArrayIterator__Entry__K___V____null { arr:37,cursor:23,length:23 }
-type 37 array 38
-type 38 union 39,16
-type 39 ref Entry
-type 40 struct std_core$ArrayIterator__Entry_string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString____null { arr:41,cursor:23,length:23 }
-type 41 array 14
-type 42 struct std_core$ArrayIterator__i32 { arr:43,cursor:23,length:23 }
-type 43 array 18
-type 44 struct std_core$ArrayIterator__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { arr:45,cursor:23,length:23 }
-type 45 array 4
-type 46 struct std_json$JsonString { value:3 }
+type 26 struct std_core$Range__i32 { start:4,end:4,inclusive:25,cursor:4 }
+type 27 struct std_core$Range__usize { start:8,end:8,inclusive:25,cursor:8 }
+type 28 struct std_core$ArrayIterator___T { arr:29,cursor:8,length:8 }
+type 29 array 30
+type 30 ref _
+type 31 struct std_core$ArrayIterator___U { arr:32,cursor:8,length:8 }
+type 32 array 33
+type 33 ref _
+type 34 struct std_core$ArrayIterator__i32 { arr:35,cursor:8,length:8 }
+type 35 array 4
+type 36 struct std_core$ArrayIterator___string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_ { arr:37,cursor:8,length:8 }
+type 37 array 10
+type 38 struct std_core$ArrayIterator__Entry__K___V____null { arr:39,cursor:8,length:8 }
+type 39 array 40
+type 40 union 41,22
+type 41 ref Entry
+type 42 struct std_core$ArrayIterator__Entry_string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString____null { arr:43,cursor:8,length:8 }
+type 43 array 20
+type 44 struct std_core$ArrayIterator__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { arr:45,cursor:8,length:8 }
+type 45 array 12
+type 46 struct std_json$JsonString { value:11 }
 type 47 struct std_json$JsonNumber { value:48 }
 type 48 primitive f64
 type 49 struct std_json$JsonBool { value:25 }
@@ -53,15 +53,15 @@ type 50 struct std_json$JsonNull {  }
 type 51 struct std_json$JsonArray { items:45 }
 type 52 struct std_json$JsonObject { entries:53 }
 type 53 ref MutableMap
-type 54 struct std_json$JsonError { msg:3,pos:23 }
-type 55 struct std_json$Parser { src:3,pos:23,eof:23 }
-type 56 struct std_string$StringChars { s:3,cursor:23,length:23 }
+type 54 struct std_json$JsonError { msg:11,pos:8 }
+type 55 struct std_json$Parser { src:11,pos:8,eof:8 }
+type 56 struct std_string$StringChars { s:11,cursor:8,length:8 }
 type 57 struct std_string_builder$StringBuilder { parts:58 }
-type 58 array 3
-type 59 struct std_collections$Entry__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { key:3,value:4,next:14 }
-type 60 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { buckets:41,size:23 }
+type 58 array 11
+type 59 struct std_collections$Entry__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { key:11,value:12,next:20 }
+type 60 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { buckets:43,size:8 }
 type 61 ref Error
-type 62 array 12
+type 62 array 2
 string 0 ": error: "
 string 1 ": "
 string 2 "null"
@@ -621,7 +621,7 @@ fn 14 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.get 7   ; core.vader:227:9
     struct.set 26 3   ; core.vader:227:9
     local.get 6   ; core.vader:228:16
-    struct.new 17   ; core.vader:228:16
+    struct.new 3   ; core.vader:228:16
     return   ; core.vader:228:9
   end $L1   ; core.vader:225:9
 end
@@ -675,7 +675,7 @@ fn 15 std_core$Range$Iterator$next__usize (ref) -> ref
     local.get 7   ; core.vader:227:9
     struct.set 27 3   ; core.vader:227:9
     local.get 6   ; core.vader:228:16
-    struct.new 22   ; core.vader:228:16
+    struct.new 7   ; core.vader:228:16
     return   ; core.vader:228:9
   end $L1   ; core.vader:225:9
 end
@@ -689,10 +689,10 @@ fn 16 std_core$ArrayIterator$Iterator$next___string__JsonArray___JsonBool___Json
   local "$field_9#19" usize
   local "$add_11#21" usize
   local.get 0   ; core.vader:244:13
-  struct.get 28 1   ; core.vader:244:13
+  struct.get 36 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13
   local.get 0   ; core.vader:244:28
-  struct.get 28 2   ; core.vader:244:28
+  struct.get 36 2   ; core.vader:244:28
   local.set 2   ; core.vader:244:28
   local.get 1   ; core.vader:244:13
   local.get 2   ; core.vader:244:13
@@ -702,17 +702,17 @@ fn 16 std_core$ArrayIterator$Iterator$next___string__JsonArray___JsonBool___Json
     return   ; core.vader:244:43
   else   ; core.vader:244:9
     local.get 0   ; core.vader:245:14
-    struct.get 28 0   ; core.vader:245:14
+    struct.get 36 0   ; core.vader:245:14
     local.set 3   ; core.vader:245:14
     local.get 0   ; core.vader:245:23
-    struct.get 28 1   ; core.vader:245:23
+    struct.get 36 1   ; core.vader:245:23
     local.set 4   ; core.vader:245:23
     local.get 3   ; core.vader:245:14
     local.get 4   ; core.vader:245:14
-    array.get 29   ; core.vader:245:14
+    array.get 37   ; core.vader:245:14
     local.set 5   ; core.vader:245:14
     local.get 0   ; core.vader:246:23
-    struct.get 28 1   ; core.vader:246:23
+    struct.get 36 1   ; core.vader:246:23
     local.set 6   ; core.vader:246:23
     local.get 6   ; core.vader:246:23
     i64.const 1   ; core.vader:246:23
@@ -721,9 +721,9 @@ fn 16 std_core$ArrayIterator$Iterator$next___string__JsonArray___JsonBool___Json
     local.set 7   ; core.vader:246:23
     local.get 0   ; core.vader:246:9
     local.get 7   ; core.vader:246:9
-    struct.set 28 1   ; core.vader:246:9
+    struct.set 36 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
-    struct.new 1   ; core.vader:247:16
+    struct.new 9   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end
@@ -737,10 +737,10 @@ fn 17 std_core$ArrayIterator$Iterator$next__Entry_string__JsonArray___JsonBool__
   local "$field_9#19" usize
   local "$add_11#21" usize
   local.get 0   ; core.vader:244:13
-  struct.get 40 1   ; core.vader:244:13
+  struct.get 42 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13
   local.get 0   ; core.vader:244:28
-  struct.get 40 2   ; core.vader:244:28
+  struct.get 42 2   ; core.vader:244:28
   local.set 2   ; core.vader:244:28
   local.get 1   ; core.vader:244:13
   local.get 2   ; core.vader:244:13
@@ -750,17 +750,17 @@ fn 17 std_core$ArrayIterator$Iterator$next__Entry_string__JsonArray___JsonBool__
     return   ; core.vader:244:43
   else   ; core.vader:244:9
     local.get 0   ; core.vader:245:14
-    struct.get 40 0   ; core.vader:245:14
+    struct.get 42 0   ; core.vader:245:14
     local.set 3   ; core.vader:245:14
     local.get 0   ; core.vader:245:23
-    struct.get 40 1   ; core.vader:245:23
+    struct.get 42 1   ; core.vader:245:23
     local.set 4   ; core.vader:245:23
     local.get 3   ; core.vader:245:14
     local.get 4   ; core.vader:245:14
-    array.get 41   ; core.vader:245:14
+    array.get 43   ; core.vader:245:14
     local.set 5   ; core.vader:245:14
     local.get 0   ; core.vader:246:23
-    struct.get 40 1   ; core.vader:246:23
+    struct.get 42 1   ; core.vader:246:23
     local.set 6   ; core.vader:246:23
     local.get 6   ; core.vader:246:23
     i64.const 1   ; core.vader:246:23
@@ -769,9 +769,9 @@ fn 17 std_core$ArrayIterator$Iterator$next__Entry_string__JsonArray___JsonBool__
     local.set 7   ; core.vader:246:23
     local.get 0   ; core.vader:246:9
     local.get 7   ; core.vader:246:9
-    struct.set 40 1   ; core.vader:246:9
+    struct.set 42 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
-    struct.new 13   ; core.vader:247:16
+    struct.new 19   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end
@@ -819,7 +819,7 @@ fn 18 std_core$ArrayIterator$Iterator$next__JsonArray___JsonBool___JsonNull___Js
     local.get 7   ; core.vader:246:9
     struct.set 44 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
-    struct.new 19   ; core.vader:247:16
+    struct.new 23   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end
@@ -1019,7 +1019,7 @@ fn 26 std_json$match_keyword (ref,string) -> bool
           return   ; json.vader:121:5
         else   ; json.vader:115:5
           local.get 6   ; json.vader:115:5
-          struct.get 22 0   ; json.vader:115:5
+          struct.get 7 0   ; json.vader:115:5
           local.set 8   ; json.vader:115:5
           local.get 0   ; json.vader:116:12
           struct.get 55 0   ; json.vader:116:12
@@ -1088,7 +1088,7 @@ fn 27 std_json$parse_value (ref) -> ref
         return   ; json.vader:133:14
       else   ; json.vader:133:14
         local.get 2   ; json.vader:133:14
-        ref.cast 3   ; json.vader:133:14
+        ref.cast 11   ; json.vader:133:14
         struct.new 46   ; json.vader:134:16
         return   ; json.vader:134:9
       end $L2   ; json.vader:133:14
@@ -2109,7 +2109,7 @@ fn 32 std_json$parse_array (ref) -> ref
               local.set 6   ; json.vader:293:9
               local.get 2   ; json.vader:294:9
               local.get 6   ; json.vader:294:9
-              array.push 4   ; json.vader:294:9
+              array.push 12   ; json.vader:294:9
               local.get 0   ; json.vader:295:9
               call 23   ; json.vader:295:9
               local.get 0   ; json.vader:296:12
@@ -2184,7 +2184,7 @@ fn 33 std_json$parse_object (ref) -> ref
     local.get 1   ; json.vader:317:5
     return   ; json.vader:317:5
   else   ; json.vader:317:5
-    array.new 41 0   ; json.vader:318:59
+    array.new 43 0   ; json.vader:318:59
     local.set 2   ; json.vader:318:59
     local.get 2   ; json.vader:318:16
     i64.const 0   ; json.vader:318:16
@@ -2233,7 +2233,7 @@ fn 33 std_json$parse_object (ref) -> ref
               return   ; json.vader:326:16
             else   ; json.vader:326:16
               local.get 6   ; json.vader:326:16
-              ref.cast 3   ; json.vader:326:16
+              ref.cast 11   ; json.vader:326:16
               local.set 7   ; json.vader:326:9
               local.get 0   ; json.vader:327:9
               call 23   ; json.vader:327:9
@@ -2368,7 +2368,7 @@ fn 35 std_json$write_string (ref,string) -> void
       if $L2 void   ; json.vader:372:5
       else   ; json.vader:372:5
         local.get 3   ; json.vader:372:5
-        struct.get 11 0   ; json.vader:372:5
+        struct.get 1 0   ; json.vader:372:5
         local.tee 4   ; json.vader:372:5
         char.to_u32   ; json.vader:373:19
         u32.to_i32   ; json.vader:373:15
@@ -2624,7 +2624,7 @@ fn 39 std_json$write_array (ref,ref,i32,i32) -> void
         if $L3 void   ; json.vader:430:5
         else   ; json.vader:430:5
           local.get 9   ; json.vader:430:5
-          struct.get 19 0   ; json.vader:430:5
+          struct.get 23 0   ; json.vader:430:5
           local.set 10   ; json.vader:430:5
           local.get 8   ; json.vader:431:12
           bool.not   ; json.vader:431:12
@@ -2720,7 +2720,7 @@ fn 40 std_json$write_object (ref,ref,i32,i32) -> void
     i64.const 0   ; json.vader:453:19
     i64.to_usize   ; json.vader:453:19
     local.get 8   ; json.vader:453:19
-    struct.new 28   ; json.vader:453:19
+    struct.new 36   ; json.vader:453:19
     local.set 9   ; json.vader:453:19
     block $L1 void   ; json.vader:453:5
       loop $L2 void   ; json.vader:453:5
@@ -2731,12 +2731,12 @@ fn 40 std_json$write_object (ref,ref,i32,i32) -> void
         if $L3 void   ; json.vader:453:5
         else   ; json.vader:453:5
           local.get 11   ; json.vader:453:5
-          struct.get 1 0   ; json.vader:453:5
+          struct.get 9 0   ; json.vader:453:5
           local.tee 12   ; json.vader:453:5
-          struct.get 2 0   ; json.vader:453:10
+          struct.get 10 0   ; json.vader:453:10
           local.set 13   ; json.vader:453:10
           local.get 12   ; json.vader:453:13
-          struct.get 2 1   ; json.vader:453:13
+          struct.get 10 1   ; json.vader:453:13
           local.set 14   ; json.vader:453:13
           local.get 10   ; json.vader:454:12
           bool.not   ; json.vader:454:12
@@ -2855,7 +2855,7 @@ fn 42 std_string$StringChars$Iterator$next (ref) -> ref
     local.get 8   ; string.vader:95:9
     struct.set 56 1   ; string.vader:95:9
     local.get 5   ; string.vader:96:16
-    struct.new 11   ; string.vader:96:16
+    struct.new 1   ; string.vader:96:16
     return   ; string.vader:96:9
   end $L0   ; string.vader:91:9
 end
@@ -2984,7 +2984,7 @@ fn 47 std_iter$std_iter$zip__string__JsonArray___JsonBool___JsonNull___JsonNumbe
   local "$idx_22#37" string
   local "$idx_23#38" ref
   local "$struct_24#39" ref
-  array.new 29 0   ; iter.vader:164:21
+  array.new 37 0   ; iter.vader:164:21
   local.set 2   ; iter.vader:164:21
   local.get 0   ; iter.vader:165:10
   array.len   ; iter.vader:165:10
@@ -3021,12 +3021,12 @@ fn 47 std_iter$std_iter$zip__string__JsonArray___JsonBool___JsonNull___JsonNumbe
       if $L3 void   ; iter.vader:168:5
       else   ; iter.vader:168:5
         local.get 8   ; iter.vader:168:5
-        struct.get 22 0   ; iter.vader:168:5
+        struct.get 7 0   ; iter.vader:168:5
         local.set 9   ; iter.vader:168:5
         local.get 0   ; iter.vader:169:19
         local.get 9   ; iter.vader:169:19
         array.get 58   ; iter.vader:169:19
-        ref.cast 3   ; iter.vader:169:19
+        ref.cast 11   ; iter.vader:169:19
         local.set 10   ; iter.vader:169:19
         local.get 1   ; iter.vader:169:25
         local.get 9   ; iter.vader:169:25
@@ -3034,11 +3034,11 @@ fn 47 std_iter$std_iter$zip__string__JsonArray___JsonBool___JsonNull___JsonNumbe
         local.set 11   ; iter.vader:169:25
         local.get 10   ; iter.vader:169:18
         local.get 11   ; iter.vader:169:18
-        struct.new 2   ; iter.vader:169:18
+        struct.new 10   ; iter.vader:169:18
         local.set 12   ; iter.vader:169:18
         local.get 2   ; iter.vader:169:9
         local.get 12   ; iter.vader:169:9
-        array.push 2   ; iter.vader:169:9
+        array.push 10   ; iter.vader:169:9
         br $L2   ; iter.vader:168:5
       end $L3   ; iter.vader:168:5
     end $L2   ; iter.vader:168:5
@@ -3057,7 +3057,7 @@ fn 49 std_string_builder$append (ref,string) -> void
   local.get 0   ; string_builder.vader:33:5
   struct.get 57 0   ; string_builder.vader:33:5
   local.get 1   ; string_builder.vader:33:5
-  array.push 3   ; string_builder.vader:33:5
+  array.push 11   ; string_builder.vader:33:5
   return   ; string_builder.vader:32:61
 end
 
@@ -3077,7 +3077,7 @@ fn 50 std_string_builder$append_char (ref,char) -> void
   local.set 4   ; string_builder.vader:40:21
   local.get 2   ; string_builder.vader:40:5
   local.get 4   ; string_builder.vader:40:5
-  array.push 3   ; string_builder.vader:40:5
+  array.push 11   ; string_builder.vader:40:5
   return   ; string_builder.vader:39:64
 end
 
@@ -3182,7 +3182,7 @@ fn 54 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
           local.set 7   ; collections.vader:74:31
           local.get 6   ; collections.vader:74:13
           local.get 7   ; collections.vader:74:13
-          array.push 16   ; collections.vader:74:13
+          array.push 22   ; collections.vader:74:13
           br $L2   ; collections.vader:73:9
         end $L3   ; collections.vader:73:9
       end $L2   ; collections.vader:73:9
@@ -3196,7 +3196,7 @@ fn 54 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
   local.get 0   ; collections.vader:81:31
   struct.get 60 0   ; collections.vader:81:31
   local.get 8   ; collections.vader:81:31
-  array.get 41   ; collections.vader:81:31
+  array.get 43   ; collections.vader:81:31
   local.set 9   ; collections.vader:81:31
   bool.const false   ; collections.vader:82:13
   local.set 10   ; collections.vader:82:13
@@ -3209,7 +3209,7 @@ fn 54 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
       if $L6 void   ; collections.vader:84:9
         local.get 9   ; collections.vader:85:15
         local.tee 12   ; collections.vader:85:15
-        type_check 16   ; collections.vader:86:13
+        type_check 22   ; collections.vader:86:13
         if $L7 void   ; collections.vader:86:13
           bool.const true   ; collections.vader:86:33
           local.set 17   ; collections.vader:86:33
@@ -3279,7 +3279,7 @@ fn 54 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
     local.get 0   ; collections.vader:103:68
     struct.get 60 0   ; collections.vader:103:68
     local.get 8   ; collections.vader:103:68
-    array.get 41   ; collections.vader:103:68
+    array.get 43   ; collections.vader:103:68
     local.set 19   ; collections.vader:103:68
     local.get 1   ; collections.vader:103:18
     local.get 2   ; collections.vader:103:18
@@ -3290,7 +3290,7 @@ fn 54 std_collections$std_collections$put__string__JsonArray___JsonBool___JsonNu
     struct.get 60 0   ; collections.vader:104:5
     local.get 8   ; collections.vader:104:5
     local.get 20   ; collections.vader:104:5
-    array.set 41   ; collections.vader:104:5
+    array.set 43   ; collections.vader:104:5
     local.get 0   ; collections.vader:105:17
     struct.get 60 1   ; collections.vader:105:17
     local.set 21   ; collections.vader:105:17
@@ -3337,7 +3337,7 @@ fn 56 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
   i64.const 0   ; collections.vader:194:19
   i64.to_usize   ; collections.vader:194:19
   local.get 3   ; collections.vader:194:19
-  struct.new 40   ; collections.vader:194:19
+  struct.new 42   ; collections.vader:194:19
   local.set 4   ; collections.vader:194:19
   block $L0 void   ; collections.vader:194:5
     loop $L1 void   ; collections.vader:194:5
@@ -3350,7 +3350,7 @@ fn 56 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
         return   ; collections.vader:207:5
       else   ; collections.vader:194:5
         local.get 5   ; collections.vader:194:5
-        struct.get 13 0   ; collections.vader:194:5
+        struct.get 19 0   ; collections.vader:194:5
         local.set 6   ; collections.vader:194:5
         bool.const false   ; collections.vader:196:17
         local.set 7   ; collections.vader:196:17
@@ -3361,7 +3361,7 @@ fn 56 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
             if $L5 void   ; collections.vader:197:13
               local.get 6   ; collections.vader:198:19
               local.tee 8   ; collections.vader:198:19
-              type_check 16   ; collections.vader:199:17
+              type_check 22   ; collections.vader:199:17
               if $L6 void   ; collections.vader:199:17
                 bool.const true   ; collections.vader:199:37
                 local.set 11   ; collections.vader:199:37
@@ -3380,7 +3380,7 @@ fn 56 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
                   local.set 9   ; collections.vader:201:30
                   local.get 1   ; collections.vader:201:21
                   local.get 9   ; collections.vader:201:21
-                  array.push 3   ; collections.vader:201:21
+                  array.push 11   ; collections.vader:201:21
                   local.get 6   ; collections.vader:202:27
                   struct.get 59 2   ; collections.vader:202:27
                   local.set 10   ; collections.vader:199:17
@@ -3431,7 +3431,7 @@ fn 57 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
   i64.const 0   ; collections.vader:217:19
   i64.to_usize   ; collections.vader:217:19
   local.get 3   ; collections.vader:217:19
-  struct.new 40   ; collections.vader:217:19
+  struct.new 42   ; collections.vader:217:19
   local.set 4   ; collections.vader:217:19
   block $L0 void   ; collections.vader:217:5
     loop $L1 void   ; collections.vader:217:5
@@ -3444,7 +3444,7 @@ fn 57 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
         return   ; collections.vader:230:5
       else   ; collections.vader:217:5
         local.get 5   ; collections.vader:217:5
-        struct.get 13 0   ; collections.vader:217:5
+        struct.get 19 0   ; collections.vader:217:5
         local.set 6   ; collections.vader:217:5
         bool.const false   ; collections.vader:219:17
         local.set 7   ; collections.vader:219:17
@@ -3455,7 +3455,7 @@ fn 57 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
             if $L5 void   ; collections.vader:220:13
               local.get 6   ; collections.vader:221:19
               local.tee 8   ; collections.vader:221:19
-              type_check 16   ; collections.vader:222:17
+              type_check 22   ; collections.vader:222:17
               if $L6 void   ; collections.vader:222:17
                 bool.const true   ; collections.vader:222:37
                 local.set 11   ; collections.vader:222:37
@@ -3474,7 +3474,7 @@ fn 57 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
                   local.set 9   ; collections.vader:224:30
                   local.get 1   ; collections.vader:224:21
                   local.get 9   ; collections.vader:224:21
-                  array.push 4   ; collections.vader:224:21
+                  array.push 12   ; collections.vader:224:21
                   local.get 6   ; collections.vader:225:27
                   struct.get 59 2   ; collections.vader:225:27
                   local.set 10   ; collections.vader:222:17
@@ -3679,7 +3679,7 @@ fn 60 std_numbers$to_hex (u64) -> string
           local.set 4   ; numbers.vader:90:18
           local.get 1   ; numbers.vader:90:9
           local.get 4   ; numbers.vader:90:9
-          array.push 12   ; numbers.vader:90:9
+          array.push 2   ; numbers.vader:90:9
           local.get 3   ; numbers.vader:91:13
           local.get 2   ; numbers.vader:91:13
           u64.div   ; numbers.vader:91:13
@@ -3712,7 +3712,7 @@ fn 60 std_numbers$to_hex (u64) -> string
           local.get 1   ; numbers.vader:97:24
           local.get 8   ; numbers.vader:97:24
           array.get 62   ; numbers.vader:97:24
-          ref.cast 12   ; numbers.vader:97:24
+          ref.cast 2   ; numbers.vader:97:24
           local.set 9   ; numbers.vader:97:24
           local.get 5   ; numbers.vader:97:9
           local.get 9   ; numbers.vader:97:9

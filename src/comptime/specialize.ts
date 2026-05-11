@@ -15,7 +15,7 @@
 import type * as A from "../parser/ast.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
-import { displayType, type Substitution, type Type } from "../typecheck/types.ts";
+import { canonicalArgsKey, displayType, type Substitution, type Type } from "../typecheck/types.ts";
 import type { EvaluatedProject } from "./evaluated-ast.ts";
 import type { GenericInstance } from "./instances.ts";
 
@@ -56,14 +56,15 @@ export interface MonoProject {
   readonly entries: readonly MonoEntry[];
   /** Lookup by `(declIdentity, typeArgsKey)` returning the entry's mangled name. */
   readonly lookupByInstance: ReadonlyMap<string, MonoEntry>;
-  /** Lookup by impl member FnDecl, then by the struct args' display key. The
-   *  inner key is `""` for non-generic impls; for generic impls it's
-   *  `displayType(arg).join(",")` so each `(member, struct args)` pair
-   *  resolves to its specialised entry. */
+  /** Lookup by impl member FnDecl, then by the struct args' canonical key.
+   *  Inner key is `""` for non-generic impls ; for generic impls it's
+   *  `canonicalArgsKey(args)` (structurally stable, insensitive to
+   *  `displayType` rewrites, symbol-id-anchored). Each `(member, struct
+   *  args)` pair resolves to its specialised entry. */
   readonly implMethodEntries: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>;
-  /** Lookup by generic FnDecl, then by the concrete type-args key (`displayType`
-   *  joined by `,`). Populated by the fn-instance pass for call sites of the
-   *  form `foo(T)(args)`. */
+  /** Lookup by generic FnDecl, then by the concrete type-args canonical
+   *  key. Populated by the fn-instance pass for call sites of the form
+   *  `foo(T)(args)`. */
   readonly fnInstanceEntries: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>;
 }
 
@@ -203,7 +204,7 @@ function putImplEntry(
 }
 
 function argsKey(args: readonly Type[]): string {
-  return args.map(displayType).join(",");
+  return canonicalArgsKey(args);
 }
 
 /** Build an impl-member entry. Synthesises a `fn` symbol so the bytecode

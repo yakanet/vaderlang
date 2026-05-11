@@ -6,7 +6,7 @@ import { staticStringValue, unreachableTypeExprInValuePosition } from "../../par
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_TRAITS, TY, alignOfType, defaultIfFree, displayType, equalsType, fieldCountOfType, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
+import { CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStructLitField } from "../lowered-ast.ts";
@@ -555,7 +555,7 @@ import type { MonoEntry } from "../../comptime/specialize.ts";
 import type {BinaryOpResolution, IndexResolution, UnionFieldResolution} from "../../typecheck/typed-ast.ts";
 
 function lookupFnInstance(ctx: FnLowerCtx, fnDecl: A.FnDecl, typeArgs: readonly Type[]): MonoEntry | null {
-  const key = typeArgs.map((ta) => displayType(ctx.types.apply(ta))).join(",");
+  const key = canonicalArgsKey(typeArgs.map((ta) => ctx.types.apply(ta)));
   const entry = ctx.project.mono.fnInstanceEntries.get(fnDecl)?.get(key) ?? null;
   return entry !== null && entry.symbol !== null ? entry : null;
 }

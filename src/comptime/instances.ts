@@ -5,7 +5,7 @@
 // concrete specializations to materialize.
 
 import type { Type, StructType, TraitType } from "../typecheck/types.ts";
-import { displayType, forEachType } from "../typecheck/types.ts";
+import { canonicalArgsKey, forEachType } from "../typecheck/types.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 
 export interface GenericInstance {
@@ -30,7 +30,7 @@ export class InstanceRegistry {
   }
 
   add(symbol: Symbol, args: readonly Type[]): GenericInstance {
-    const displayKey = `${symbol.id}(${args.map(displayType).join(",")})`;
+    const displayKey = `${symbol.id}(${canonicalArgsKey(args)})`;
     const existing = this.byKey.get(displayKey);
     if (existing !== undefined) return existing;
     const inst: GenericInstance = { symbol, args, displayKey };

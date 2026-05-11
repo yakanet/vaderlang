@@ -8,7 +8,7 @@ import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { ImplEntry } from "../../typecheck/impls.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_STRUCTS, CORE_TRAITS, TY, displayType, substitute } from "../../typecheck/types.ts";
+import { CORE_STRUCTS, CORE_TRAITS, TY, canonicalArgsKey, displayType, substitute } from "../../typecheck/types.ts";
 import type { MonoEntry } from "../../comptime/specialize.ts";
 
 import type { FnLowerCtx, LowerProjectCtx } from "../ctx.ts";
@@ -208,8 +208,7 @@ export function lookupImplFor(
 export function lookupImplEntry(ctx: FnLowerCtx, member: A.FnDecl, args: readonly Type[]): MonoEntry | null {
   const inner = ctx.project.mono.implMethodEntries.get(member);
   if (inner === undefined) return null;
-  const key = args.map(displayType).join(",");
-  return inner.get(key) ?? null;
+  return inner.get(canonicalArgsKey(args)) ?? null;
 }
 
 /** Wrap a `[T]`-typed lowered expression into an `ArrayIter(T)` struct

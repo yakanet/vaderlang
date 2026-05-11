@@ -1,26 +1,26 @@
 module _main
 type 0 struct std_core$Done {  }
-type 1 struct std_core$Yielded__Entry_string__i32_ { value:2 }
-type 2 ref Entry
-type 3 struct std_core$Yielded__i32 { value:4 }
-type 4 primitive i32
-type 5 struct std_core$Yielded__usize { value:6 }
-type 6 primitive usize
-type 7 struct std_core$Range__usize { start:6,end:6,inclusive:8,cursor:6 }
+type 1 struct std_core$Yielded__i32 { value:2 }
+type 2 primitive i32
+type 3 struct std_core$Yielded__usize { value:4 }
+type 4 primitive usize
+type 5 struct std_core$Yielded__Entry_string__i32_ { value:6 }
+type 6 ref Entry
+type 7 struct std_core$Range__usize { start:4,end:4,inclusive:8,cursor:4 }
 type 8 primitive bool
-type 9 struct std_collections$Entry__i32__bool { key:4,value:8,next:10 }
+type 9 struct std_collections$Entry__i32__bool { key:2,value:8,next:10 }
 type 10 union 9,11
 type 11 primitive null
-type 12 struct std_collections$Entry__string__i32 { key:13,value:4,next:14 }
+type 12 struct std_collections$Entry__string__i32 { key:13,value:2,next:14 }
 type 13 primitive string
 type 14 union 12,11
-type 15 struct std_collections$MutableMap__i32__bool { buckets:16,size:6 }
+type 15 struct std_collections$MutableMap__i32__bool { buckets:16,size:4 }
 type 16 array 10
-type 17 struct std_collections$MutableMap__string__i32 { buckets:18,size:6 }
+type 17 struct std_collections$MutableMap__string__i32 { buckets:18,size:4 }
 type 18 array 14
-type 19 struct std_collections$MapIterator__string__i32 { map:17,bucket_cursor:6,chain_cursor:14 }
+type 19 struct std_collections$MapIterator__string__i32 { map:17,bucket_cursor:4,chain_cursor:14 }
 type 20 struct std_collections$MutableSet__i32 { inner:15 }
-type 21 struct std_collections$SetIterator__i32 { set:20,bucket_cursor:6,chain_cursor:10 }
+type 21 struct std_collections$SetIterator__i32 { set:20,bucket_cursor:4,chain_cursor:10 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -78,7 +78,7 @@ fn 0 tests_snippets_map_set_iter__main_vader$main () -> i32
       if $L2 void   ; _main.vader:11:5
       else   ; _main.vader:11:5
         local.get 4   ; _main.vader:11:5
-        struct.get 1 0   ; _main.vader:11:5
+        struct.get 5 0   ; _main.vader:11:5
         struct.get 12 1   ; _main.vader:12:25
         local.set 13   ; _main.vader:12:25
         local.get 3   ; _main.vader:12:17
@@ -135,7 +135,7 @@ fn 0 tests_snippets_map_set_iter__main_vader$main () -> i32
       if $L5 void   ; _main.vader:22:5
       else   ; _main.vader:22:5
         local.get 10   ; _main.vader:22:5
-        struct.get 3 0   ; _main.vader:22:5
+        struct.get 1 0   ; _main.vader:22:5
         local.set 12   ; _main.vader:22:5
         local.get 9   ; _main.vader:23:15
         local.get 12   ; _main.vader:23:15
@@ -276,7 +276,7 @@ fn 6 std_core$Range$Iterator$next__usize (ref) -> ref
     local.get 7   ; core.vader:227:9
     struct.set 7 3   ; core.vader:227:9
     local.get 6   ; core.vader:228:16
-    struct.new 5   ; core.vader:228:16
+    struct.new 3   ; core.vader:228:16
     return   ; core.vader:228:9
   end $L1   ; core.vader:225:9
 end
@@ -350,7 +350,7 @@ fn 11 std_collections$MapIterator$Iterator$next__string__i32 (ref) -> ref
           local.get 4   ; collections.vader:261:21
           struct.set 19 2   ; collections.vader:261:21
           local.get 2   ; collections.vader:262:60
-          struct.new 1   ; collections.vader:262:28
+          struct.new 5   ; collections.vader:262:28
           return   ; collections.vader:262:21
         else   ; collections.vader:260:17
           local.get 3   ; collections.vader:264:17
@@ -448,7 +448,7 @@ fn 12 std_collections$SetIterator$Iterator$next__i32 (ref) -> ref
           struct.set 21 2   ; collections.vader:350:21
           local.get 2   ; collections.vader:351:50
           struct.get 9 0   ; collections.vader:351:50
-          struct.new 3   ; collections.vader:351:28
+          struct.new 1   ; collections.vader:351:28
           return   ; collections.vader:351:21
         else   ; collections.vader:349:17
           local.get 3   ; collections.vader:353:17

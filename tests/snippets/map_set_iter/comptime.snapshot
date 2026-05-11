@@ -3,10 +3,11 @@
 ## tests/snippets/map_set_iter/_main.vader
 
 ## generic instances
-  Yielded(Entry(string, i32))
   Yielded(i32)
   Yielded(usize)
+  Yielded(Entry(string, i32))
   Range(usize)
+  ArrayIterator(Entry($K, $V) | null)
   ArrayIterator(Entry($K, $V) | null)
   Entry(i32, bool)
   Entry(string, i32)

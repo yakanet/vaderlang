@@ -6,6 +6,7 @@
   Yielded(usize)
   Range(usize)
   ArrayIterator(Entry($K, $V) | null)
+  ArrayIterator(Entry($K, $V) | null)
   Entry(string, i32)
   MutableMap(string, i32)
   put(string, i32)

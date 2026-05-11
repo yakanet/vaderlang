@@ -154,9 +154,175 @@ export interface NeverType {
   readonly kind: "Never";
 }
 
+// ---------------------------------------------------------------- interning
+//
+// Composite Type constructors below funnel through a global cache so two
+// structurally-equal types share one JS reference (`Type` hash-consing).
+// Side-benefits :
+//   - `equalsType(a, b)` short-circuits on `a === b` for interned types.
+//   - Maps keyed by Type / Type[] become O(1) via reference identity
+//     (used by `specialize.ts`'s `implMethodEntries` post-Phase-B).
+//
+// Each interned Type carries a monotone `internId: number` (via WeakMap)
+// so composite keys can be built from arg ids — avoids re-walking the
+// tree at every lookup site.
+//
+// Convention : every Type production in the typecheck / lower phases
+// should go through `mkStruct` / `mkArray` / etc. Direct object literals
+// (`{ kind: "Struct", ... }`) bypass the cache and break reference
+// equality. The migration is staged — `src/typecheck/types.ts` itself
+// is fully interned ; hot consumers (`passes/call.ts`, `passes/expr.ts`,
+// `specialize.ts`) flip to constructors as they're touched.
+
+const internIds = new WeakMap<object, number>();
+let nextInternId = 0;
+
+/** Lazily assign a monotone id to `t`. Idempotent — once a Type is
+ *  cached, its id never changes. Anchored on the JS reference, so
+ *  un-interned types still get an id, but they won't share it with their
+ *  structural siblings. */
+export function internId(t: Type): number {
+  let id = internIds.get(t);
+  if (id === undefined) { id = nextInternId++; internIds.set(t, id); }
+  return id;
+}
+
+/** Structurally-stable key for use as a Map key (or argsKey component).
+ *  Two `equalsType`-equal types always produce the same key, regardless
+ *  of whether they were interned. Distinct from `displayType` :
+ *  user-facing rendering can be rewritten without breaking lookups, and
+ *  the symbol id (not the name) anchors struct / enum / typeParam
+ *  identity so name collisions in different modules are safely
+ *  distinguished. */
+export function canonicalKey(t: Type): string {
+  switch (t.kind) {
+    case "Primitive":  return `p${t.name}`;
+    case "Struct":     return `s${t.symbol.id}<${t.args.map(canonicalKey).join(",")}>`;
+    case "Trait":      return `t${t.symbol.id}<${t.args.map(canonicalKey).join(",")}>`;
+    case "Array":      return `a(${canonicalKey(t.element)})`;
+    case "Tuple":      return `T<${t.elements.map(canonicalKey).join(",")}>`;
+    case "Fn":         return `F<${t.params.map(canonicalKey).join(",")}>>${canonicalKey(t.returnType)}`;
+    case "Union":      return `U<${t.variants.map(canonicalKey).join(",")}>`;
+    case "TypeParam":  return `P${t.symbol.id}`;
+    case "Enum":       return `e${t.symbol.id}`;
+    case "TypeMeta":   return "M";
+    case "Self":       return "S";
+    case "Unresolved": return "?";
+    case "Never":      return "!";
+    case "FreeInt":    return "FI";
+    case "FreeFloat":  return "FF";
+  }
+}
+
+/** Compose an arg-list canonical key — used as the inner key in
+ *  `specialize.ts:implMethodEntries` etc. */
+export function canonicalArgsKey(args: readonly Type[]): string {
+  if (args.length === 0) return "";
+  return args.map(canonicalKey).join(",");
+}
+
+const primitive = (name: PrimitiveName): PrimitiveType => {
+  const t: PrimitiveType = { kind: "Primitive", name };
+  internId(t);
+  return t;
+};
+
+const structCache = new Map<string, StructType>();
+const traitCache  = new Map<string, TraitType>();
+const arrayCache  = new Map<number, ArrayType>();
+const tupleCache  = new Map<string, TupleType>();
+const fnCache     = new Map<string, FnType>();
+const unionCache  = new Map<string, UnionType>();
+const typeParamCache = new Map<number, TypeParamType>();
+const enumCache   = new Map<number, EnumType>();
+
+/** Hash-cons a Struct type. Args must themselves be interned (or
+ *  singletons from `TY`) so their `internId`s are stable. */
+export function mkStruct(symbol: Symbol, args: readonly Type[]): StructType {
+  const key = `${symbol.id}:${args.map(internId).join(",")}`;
+  const cached = structCache.get(key);
+  if (cached !== undefined) return cached;
+  const t: StructType = { kind: "Struct", symbol, args };
+  structCache.set(key, t);
+  internId(t);
+  return t;
+}
+
+export function mkTrait(symbol: Symbol, args: readonly Type[]): TraitType {
+  const key = `${symbol.id}:${args.map(internId).join(",")}`;
+  const cached = traitCache.get(key);
+  if (cached !== undefined) return cached;
+  const t: TraitType = { kind: "Trait", symbol, args };
+  traitCache.set(key, t);
+  internId(t);
+  return t;
+}
+
+export function mkArray(element: Type): ArrayType {
+  const key = internId(element);
+  const cached = arrayCache.get(key);
+  if (cached !== undefined) return cached;
+  const t: ArrayType = { kind: "Array", element };
+  arrayCache.set(key, t);
+  internId(t);
+  return t;
+}
+
+export function mkTuple(elements: readonly Type[]): TupleType {
+  const key = elements.map(internId).join(",");
+  const cached = tupleCache.get(key);
+  if (cached !== undefined) return cached;
+  const t: TupleType = { kind: "Tuple", elements };
+  tupleCache.set(key, t);
+  internId(t);
+  return t;
+}
+
+export function mkFn(params: readonly Type[], returnType: Type): FnType {
+  const key = `${params.map(internId).join(",")}>${internId(returnType)}`;
+  const cached = fnCache.get(key);
+  if (cached !== undefined) return cached;
+  const t: FnType = { kind: "Fn", params, returnType };
+  fnCache.set(key, t);
+  internId(t);
+  return t;
+}
+
+/** Hash-cons a Union from already-canonicalised variants. Callers that
+ *  need flattening + dedup go through `unionOf` (which calls this). */
+export function mkUnion(variants: readonly Type[]): UnionType {
+  const key = variants.map(internId).join(",");
+  const cached = unionCache.get(key);
+  if (cached !== undefined) return cached;
+  const t: UnionType = { kind: "Union", variants };
+  unionCache.set(key, t);
+  internId(t);
+  return t;
+}
+
+export function mkTypeParam(symbol: Symbol): TypeParamType {
+  const cached = typeParamCache.get(symbol.id);
+  if (cached !== undefined) return cached;
+  const t: TypeParamType = { kind: "TypeParam", symbol };
+  typeParamCache.set(symbol.id, t);
+  internId(t);
+  return t;
+}
+
+export function mkEnum(symbol: Symbol, repr: PrimitiveName, indices: ReadonlyMap<string, bigint>): EnumType {
+  // Enum identity is by symbol — `repr`/`indices` are properties of the
+  // decl, not part of the cache key. Re-declaring an enum is a resolver
+  // error elsewhere, so a single cache entry per symbol is safe.
+  const cached = enumCache.get(symbol.id);
+  if (cached !== undefined) return cached;
+  const t: EnumType = { kind: "Enum", symbol, repr, indices };
+  enumCache.set(symbol.id, t);
+  internId(t);
+  return t;
+}
+
 // ---------------------------------------------------------------- constants
 
-const primitive = (name: PrimitiveName): PrimitiveType => ({ kind: "Primitive", name });
 
 export const TY = {
   i8:     primitive("i8"),
