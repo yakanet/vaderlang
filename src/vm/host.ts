@@ -24,6 +24,10 @@ export interface HostIO {
   writeError(s: string): void;
   /** Read one line from stdin (without the trailing newline), or null on EOF. */
   readLine(): string | null;
+  /** Read exactly `n` bytes from stdin. Returns the bytes as a UTF-8
+   *  string ; throws on EOF or partial read (the caller boxes into Error
+   *  like `readFile`). */
+  readStdin(n: number): string;
   /** Read a file as UTF-8. Throws on I/O error; the caller boxes into Error. */
   readFile(path: string): string;
   writeFile(path: string, content: string): void;
@@ -49,25 +53,49 @@ export interface HostBindings {
 }
 
 export function defaultHostIO(): HostIO {
-  let stdinBuffer: string[] | null = null;
+  // Lazily slurped stdin contents. Bun has no sync partial-read API, so
+  // we materialise the whole stream on first access and serve subsequent
+  // reads from the buffer. `stdinBytes` carries the raw byte view used
+  // by `readStdin(n)` ; `stdinLines` keeps the line-split for `readLine`.
+  let stdinBytes: Uint8Array | null = null;
+  let stdinCursor = 0;
+  let stdinLines: string[] | null = null;
 
-  function ensureStdin(): string[] {
-    if (stdinBuffer !== null) return stdinBuffer;
-    // Bun has no sync stdin API; slurp once at first read. Interactive use
-    // shows a blank prompt — acceptable for MVP.
-    let raw = "";
-    try { raw = fsReadFile(0, "utf8"); } catch { raw = ""; }
-    stdinBuffer = raw.length === 0 ? [] : raw.split("\n");
-    if (stdinBuffer.length > 0 && stdinBuffer[stdinBuffer.length - 1] === "") {
-      stdinBuffer.pop();
+  function ensureStdinBytes(): Uint8Array {
+    if (stdinBytes !== null) return stdinBytes;
+    try {
+      const raw = fsReadFile(0);   // returns a Buffer
+      stdinBytes = new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength);
+    } catch {
+      stdinBytes = new Uint8Array(0);
     }
-    return stdinBuffer;
+    return stdinBytes;
+  }
+
+  function ensureStdinLines(): string[] {
+    if (stdinLines !== null) return stdinLines;
+    const bytes = ensureStdinBytes();
+    const raw = UTF8_DEC.decode(bytes);
+    stdinLines = raw.length === 0 ? [] : raw.split("\n");
+    if (stdinLines.length > 0 && stdinLines[stdinLines.length - 1] === "") {
+      stdinLines.pop();
+    }
+    return stdinLines;
   }
 
   return {
     write(s)            { process.stdout.write(s); },
     writeError(s)       { process.stderr.write(s); },
-    readLine()          { return ensureStdin().shift() ?? null; },
+    readLine()          { return ensureStdinLines().shift() ?? null; },
+    readStdin(n) {
+      const bytes = ensureStdinBytes();
+      if (stdinCursor + n > bytes.length) {
+        throw new Error("EOF");
+      }
+      const slice = bytes.subarray(stdinCursor, stdinCursor + n);
+      stdinCursor += n;
+      return UTF8_DEC.decode(slice);
+    },
     readFile(path)      { return fsReadFile(path, "utf8"); },
     writeFile(p, c)     { fsWriteFile(p, c, "utf8"); },
     exists(p) {
@@ -91,6 +119,10 @@ export function stdIoBindings(io: HostIO): Record<string, HostFn> {
     std_io$read_line:  ()     => {
       const line = io.readLine();
       return line === null ? err("EOF") : str(line);
+    },
+    std_io$read_stdin: (args) => {
+      try { return str(io.readStdin(indexArg(args, 0))); }
+      catch (e) { return err(messageOf(e)); }
     },
     std_io$read_file:  (args) => {
       try { return str(io.readFile(stringArg(args, 0))); }

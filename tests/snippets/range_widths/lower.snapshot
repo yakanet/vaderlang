@@ -2,13 +2,13 @@
 
 ## tests/snippets/range_widths/_main.vader
   fn tests_snippets_range_widths__main_vader$main() -> i32
-    let nu#57: u64 = int(3) :u64
-    let su#58: u64 = int(0) :u64
+    let nu#58: u64 = int(3) :u64
+    let su#59: u64 = int(0) :u64
     block :void
       let __iter_0#-1: Range(u64) =
         Range(u64) {
           start: int(0) :u64
-          end: nu#57 :u64
+          end: nu#58 :u64
           inclusive: false
           cursor: int(0) :u64
         }
@@ -26,19 +26,19 @@
           then:
             break
           else:
-            let i#59: u64 =
+            let i#60: u64 =
               .value :u64
                 cast → Yielded(u64)
                   __step_1#-2 :Done | Yielded(u64)
             assign
               target:
-                su#58 :u64
+                su#59 :u64
               value:
                 add :u64
                   l:
-                    su#58 :u64
+                    su#59 :u64
                   r:
-                    i#59 :u64
+                    i#60 :u64
     call :void
       callee:
         println#24 :fn(Display) -> void
@@ -55,17 +55,17 @@
                 "u64 sum=" :string
               @builder.append_display <for u64> :void
                 __sb_2#-3 :?
-                su#58 :u64
+                su#59 :u64
               ~>
                 @builder.finish :string
                   __sb_2#-3 :?
-    let ni#60: i64 = int(4) :i64
-    let si#61: i64 = int(0) :i64
+    let ni#61: i64 = int(4) :i64
+    let si#62: i64 = int(0) :i64
     block :void
       let __iter_3#-4: Range(i64) =
         Range(i64) {
           start: int(0) :i64
-          end: ni#60 :i64
+          end: ni#61 :i64
           inclusive: false
           cursor: int(0) :i64
         }
@@ -83,19 +83,19 @@
           then:
             break
           else:
-            let i#62: i64 =
+            let i#63: i64 =
               .value :i64
                 cast → Yielded(i64)
                   __step_4#-5 :Done | Yielded(i64)
             assign
               target:
-                si#61 :i64
+                si#62 :i64
               value:
                 add :i64
                   l:
-                    si#61 :i64
+                    si#62 :i64
                   r:
-                    i#62 :i64
+                    i#63 :i64
     call :void
       callee:
         println#24 :fn(Display) -> void
@@ -112,17 +112,17 @@
                 "i64 sum=" :string
               @builder.append_display <for i64> :void
                 __sb_5#-6 :?
-                si#61 :i64
+                si#62 :i64
               ~>
                 @builder.finish :string
                   __sb_5#-6 :?
-    let nis#63: isize = int(5) :isize
-    let sis#64: isize = int(0) :isize
+    let nis#64: isize = int(5) :isize
+    let sis#65: isize = int(0) :isize
     block :void
       let __iter_6#-7: Range(isize) =
         Range(isize) {
           start: int(0) :isize
-          end: nis#63 :isize
+          end: nis#64 :isize
           inclusive: false
           cursor: int(0) :isize
         }
@@ -140,19 +140,19 @@
           then:
             break
           else:
-            let i#65: isize =
+            let i#66: isize =
               .value :isize
                 cast → Yielded(isize)
                   __step_7#-8 :Done | Yielded(isize)
             assign
               target:
-                sis#64 :isize
+                sis#65 :isize
               value:
                 add :isize
                   l:
-                    sis#64 :isize
+                    sis#65 :isize
                   r:
-                    i#65 :isize
+                    i#66 :isize
     call :void
       callee:
         println#24 :fn(Display) -> void
@@ -169,19 +169,19 @@
                 "isize sum=" :string
               @builder.append_display <for isize> :void
                 __sb_8#-9 :?
-                sis#64 :isize
+                sis#65 :isize
               ~>
                 @builder.finish :string
                   __sb_8#-9 :?
-    let nb#66: u8 = int(6) :u8
-    let sb#67: u32 = int(0) :u32
+    let nb#67: u8 = int(6) :u8
+    let sb#68: u32 = int(0) :u32
     block :void
       let __iter_9#-10: Range(u8) =
         Range(u8) {
           start:
             cast → u8
               int(0) :i32
-          end: nb#66 :u8
+          end: nb#67 :u8
           inclusive: false
           cursor:
             cast → u8
@@ -201,20 +201,20 @@
           then:
             break
           else:
-            let i#68: u8 =
+            let i#69: u8 =
               .value :u8
                 cast → Yielded(u8)
                   __step_10#-11 :Done | Yielded(u8)
             assign
               target:
-                sb#67 :u32
+                sb#68 :u32
               value:
                 add :u32
                   l:
-                    sb#67 :u32
+                    sb#68 :u32
                   r:
                     cast → u32
-                      i#68 :u8
+                      i#69 :u8
     call :void
       callee:
         println#24 :fn(Display) -> void
@@ -231,11 +231,11 @@
                 "u8 sum=" :string
               @builder.append_display <for u32> :void
                 __sb_11#-12 :?
-                sb#67 :u32
+                sb#68 :u32
               ~>
                 @builder.finish :string
                   __sb_11#-12 :?
-    let sh#69: i32 = int(0) :i32
+    let sh#70: i32 = int(0) :i32
     block :void
       let __iter_12#-13: Range(i16) =
         Range(i16) {
@@ -264,20 +264,20 @@
           then:
             break
           else:
-            let i#70: i16 =
+            let i#71: i16 =
               .value :i16
                 cast → Yielded(i16)
                   __step_13#-14 :Done | Yielded(i16)
             assign
               target:
-                sh#69 :i32
+                sh#70 :i32
               value:
                 add :i32
                   l:
-                    sh#69 :i32
+                    sh#70 :i32
                   r:
                     cast → i32
-                      i#70 :i16
+                      i#71 :i16
     call :void
       callee:
         println#24 :fn(Display) -> void
@@ -294,7 +294,7 @@
                 "i16 sum=" :string
               @builder.append_display <for i32> :void
                 __sb_14#-15 :?
-                sh#69 :i32
+                sh#70 :i32
               ~>
                 @builder.finish :string
                   __sb_14#-15 :?

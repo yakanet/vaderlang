@@ -38,6 +38,15 @@ IOError implements Error {
 /// @error       `IOError` on EOF or stdin read failure.
 @intrinsic export read_line :: fn() -> string!
 
+/// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops
+/// until `n` bytes are accumulated ; EOF before `n` is an error. Forces
+/// stdin into binary mode on Windows so `\r\n` survives the read —
+/// required by length-prefixed transports (LSP, MCP, custom RPC).
+/// @param n     number of bytes to consume.
+/// @return      a string of exactly `n` bytes (interpreted as UTF-8).
+/// @error       `IOError` on EOF, partial read, or stream error.
+@intrinsic export read_stdin :: fn(n: usize) -> string!
+
 /// Read a file fully into a UTF-8 string.
 /// @param path  filesystem path (absolute or cwd-relative).
 /// @return      file contents as a UTF-8 string.

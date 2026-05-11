@@ -413,6 +413,8 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_write_file(a0, a1, 0u, ${tagOrTrap(ctx, "error")}); }`;
     case "std_io$read_line":
       return `${head} { return vader_read_line(${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
+    case "std_io$read_stdin":
+      return `${head} { return vader_read_stdin(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
 
     case "std_string$byte_len":    return `${head} { return vader_string_byte_len(a0); }`;
     case "std_string$slice":       return `${head} { return vader_string_slice(a0, a1, a2); }`;

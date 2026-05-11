@@ -15,7 +15,7 @@
       let __iter_0#-1: StringChars =
         call :StringChars
           callee:
-            chars#52 :StringChars
+            chars#53 :StringChars
           arg0:
             "vader" :string
       loop
@@ -32,7 +32,7 @@
           then:
             break
           else:
-            let c#126: char =
+            let c#127: char =
               .value :char
                 cast → Yielded(char)
                   __step_1#-2 :Done | Yielded(char)
@@ -49,7 +49,7 @@
                         @builder.new :?
                       @builder.append_str :void
                         __sb_2#-3 :?
-                        c#126 :?
+                        c#127 :?
                       ~>
                         @builder.finish :string
                           __sb_2#-3 :?
@@ -66,7 +66,7 @@
       let __iter_3#-4: StringChars =
         call :StringChars
           callee:
-            chars#52 :StringChars
+            chars#53 :StringChars
           arg0:
             "你好嗎？" :string
       loop
@@ -83,7 +83,7 @@
           then:
             break
           else:
-            let c#127: char =
+            let c#128: char =
               .value :char
                 cast → Yielded(char)
                   __step_4#-5 :Done | Yielded(char)
@@ -100,16 +100,16 @@
                         @builder.new :?
                       @builder.append_str :void
                         __sb_5#-6 :?
-                        c#127 :?
+                        c#128 :?
                       ~>
                         @builder.finish :string
                           __sb_5#-6 :?
-    let n#128: i32 = int(0) :i32
+    let n#129: i32 = int(0) :i32
     block :void
       let __iter_6#-7: StringChars =
         call :StringChars
           callee:
-            chars#52 :StringChars
+            chars#53 :StringChars
           arg0:
             "héllo" :string
       loop
@@ -126,17 +126,17 @@
           then:
             break
           else:
-            let c#129: char =
+            let c#130: char =
               .value :char
                 cast → Yielded(char)
                   __step_7#-8 :Done | Yielded(char)
             assign
               target:
-                n#128 :i32
+                n#129 :i32
               value:
                 add :i32
                   l:
-                    n#128 :i32
+                    n#129 :i32
                   r:
                     int(1) :i32
     call :void
@@ -155,7 +155,7 @@
                 "codepoints=" :string
               @builder.append_display <for i32> :void
                 __sb_8#-9 :?
-                n#128 :i32
+                n#129 :i32
               @builder.append_str :void
                 __sb_8#-9 :?
                 " bytes=" :string
@@ -163,7 +163,7 @@
                 __sb_8#-9 :?
                 call :usize
                   callee:
-                    byte_len#41 :fn(string) -> usize
+                    byte_len#42 :fn(string) -> usize
                   arg0:
                     "héllo" :string
               ~>
@@ -182,7 +182,7 @@
       let __iter_9#-10: StringChars =
         call :StringChars
           callee:
-            chars#52 :StringChars
+            chars#53 :StringChars
           arg0:
             "" :string
       loop
@@ -199,7 +199,7 @@
           then:
             break
           else:
-            let c#130: char =
+            let c#131: char =
               .value :char
                 cast → Yielded(char)
                   __step_10#-11 :Done | Yielded(char)

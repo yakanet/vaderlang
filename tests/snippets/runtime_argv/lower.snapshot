@@ -26,11 +26,11 @@
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?
-    let first#58: bool = true
+    let first#59: bool = true
     block :void
       let __iter_1#-2: ArrayIter(string) =
         ArrayIter(string) {
-          arr: argv#57 :string[]
+          arr: argv#58 :string[]
           cursor: int(0) :usize
           length:
             LoweredArrayLen
@@ -49,17 +49,17 @@
           then:
             break
           else:
-            let s#59: string =
+            let s#60: string =
               .value :string
                 cast → Yielded(string)
                   __step_2#-3 :Done | Yielded(string)
             if :void
               cond:
-                first#58 :bool
+                first#59 :bool
               then:
                 assign
                   target:
-                    first#58 :bool
+                    first#59 :bool
                   value:
                     false
               else:
@@ -72,5 +72,5 @@
                         callee:
                           to_string#1000014 :string
                         arg0:
-                          s#59 :string
+                          s#60 :string
     return int(0) :i32

@@ -2,7 +2,7 @@
 
 ## tests/snippets/tuple_generic_swap/_main.vader
   fn tests_snippets_tuple_generic_swap__main_vader$main() -> i32
-    let s#61: [string, i32] =
+    let s#62: [string, i32] =
       call :[string, i32]
         callee:
           swap#1000163 :[string, i32]
@@ -28,14 +28,14 @@
               @builder.append_display <for string> :void
                 __sb_0#-1 :?
                 ._0 :string
-                  s#61 :[string, i32]
+                  s#62 :[string, i32]
               @builder.append_str :void
                 __sb_0#-1 :?
                 " second=" :string
               @builder.append_display <for i32> :void
                 __sb_0#-1 :?
                 ._1 :i32
-                  s#61 :[string, i32]
+                  s#62 :[string, i32]
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?
@@ -45,8 +45,8 @@
       [string, i32] {
         _0:
           ._1 :string
-            p#60 :[i32, string]
+            p#61 :[i32, string]
         _1:
           ._0 :i32
-            p#60 :[i32, string]
+            p#61 :[i32, string]
       }

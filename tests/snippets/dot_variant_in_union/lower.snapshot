@@ -6,7 +6,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#129 :char
           r:
             char(0x4e)
       then:
@@ -15,7 +15,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#129 :char
           r:
             char(0x45)
       then:
@@ -24,7 +24,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#129 :char
           r:
             char(0x53)
       then:
@@ -33,7 +33,7 @@
       cond:
         eq :bool
           l:
-            c#128 :char
+            c#129 :char
           r:
             char(0x57)
       then:
@@ -45,7 +45,7 @@
   fn tests_snippets_dot_variant_in_union__main_vader$dir_label(d: Direction) -> string
     ~>
       block :string
-        let __scrut_0#-1: Direction = d#129 :Direction
+        let __scrut_0#-1: Direction = d#130 :Direction
         ~>
           if :string
             cond:
@@ -110,7 +110,7 @@
             is Direction :bool
               __scrut_0#-2 :Direction | Error
           then:
-            let d#130: Direction =
+            let d#131: Direction =
               cast → Direction
                 __scrut_0#-2 :Direction | Error
             ~>
@@ -126,7 +126,7 @@
                         callee:
                           dir_label#5 :fn(Direction) -> string
                         arg0:
-                          d#130 :Direction
+                          d#131 :Direction
           else:
             ~>
               if :void
@@ -160,7 +160,7 @@
             is Direction :bool
               __scrut_1#-3 :Direction | Error
           then:
-            let d#131: Direction =
+            let d#132: Direction =
               cast → Direction
                 __scrut_1#-3 :Direction | Error
             ~>
@@ -176,7 +176,7 @@
                         callee:
                           dir_label#5 :fn(Direction) -> string
                         arg0:
-                          d#131 :Direction
+                          d#132 :Direction
           else:
             ~>
               if :void

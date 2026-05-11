@@ -19,6 +19,8 @@
 #if defined(_WIN32)
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
+#  include <io.h>      /* _setmode, _fileno */
+#  include <fcntl.h>   /* _O_BINARY */
 #else
 #  include <spawn.h>
 #  include <sys/wait.h>
@@ -775,6 +777,51 @@ vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
     char* copy = (char*) vader_string_alloc(n);
     memcpy(copy, buf, n);
     return vader_box_string(ok_tag, vader_string_new(copy, n));
+}
+
+/* Switch stdin/stdout to binary mode on Windows. The CRT default is
+ * text mode, which silently translates `\r\n` ↔ `\n` and breaks any
+ * length-prefixed binary transport (LSP, MCP, custom RPC). Called once
+ * at the first `vader_read_stdin` invocation ; idempotent via the
+ * static flag. POSIX has no such concept — the helper is a no-op there. */
+static int g_stdio_binary_ready = 0;
+
+static void vader_ensure_stdio_binary(void) {
+    if (g_stdio_binary_ready) return;
+    g_stdio_binary_ready = 1;
+#if defined(_WIN32)
+    _setmode(_fileno(stdin),  _O_BINARY);
+    _setmode(_fileno(stdout), _O_BINARY);
+#endif
+}
+
+/* Read EXACTLY `n` bytes from stdin into a fresh string. Loops over
+ * `fread` until `n` bytes have been accumulated or EOF is reached. EOF
+ * before `n` bytes is an error — the LSP transport relies on this
+ * "exactly N bytes" contract for Content-Length framing. Forces binary
+ * mode on first call so `\r\n` survives the read on Windows. */
+vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
+    vader_ensure_stdio_binary();
+    if (n == 0) {
+        return vader_box_string(ok_tag, vader_string_new("", 0));
+    }
+    char* buf = (char*) vader_string_alloc(n);
+    size_t got = 0;
+    while (got < n) {
+        size_t r = fread(buf + got, 1, n - got, stdin);
+        if (r == 0) {
+            if (feof(stdin)) {
+                return vader_box_string(err_tag, vader_string_new("EOF", 3));
+            }
+            if (ferror(stdin)) {
+                return vader_box_string(err_tag, vader_string_new("stdin read error", 16));
+            }
+            /* No data, no EOF, no error — interrupted read. Retry. */
+            continue;
+        }
+        got += r;
+    }
+    return vader_box_string(ok_tag, vader_string_new(buf, n));
 }
 
 vader_bool_t vader_exists(vader_string_t path) {

@@ -20,7 +20,7 @@
                 __sb_0#-1 :?
                 call :usize
                   callee:
-                    count_chars#56 :fn(string) -> usize
+                    count_chars#57 :fn(string) -> usize
                   arg0:
                     "vader" :string
               @builder.append_str :void
@@ -30,7 +30,7 @@
                 __sb_0#-1 :?
                 call :usize
                   callee:
-                    byte_len#43 :fn(string) -> usize
+                    byte_len#44 :fn(string) -> usize
                   arg0:
                     "vader" :string
               ~>
@@ -54,7 +54,7 @@
                 __sb_1#-2 :?
                 call :usize
                   callee:
-                    count_chars#56 :fn(string) -> usize
+                    count_chars#57 :fn(string) -> usize
                   arg0:
                     "héllo" :string
               @builder.append_str :void
@@ -64,7 +64,7 @@
                 __sb_1#-2 :?
                 call :usize
                   callee:
-                    byte_len#43 :fn(string) -> usize
+                    byte_len#44 :fn(string) -> usize
                   arg0:
                     "héllo" :string
               ~>
@@ -88,7 +88,7 @@
                 __sb_2#-3 :?
                 call :usize
                   callee:
-                    count_chars#56 :fn(string) -> usize
+                    count_chars#57 :fn(string) -> usize
                   arg0:
                     "你好嗎？" :string
               @builder.append_str :void
@@ -98,7 +98,7 @@
                 __sb_2#-3 :?
                 call :usize
                   callee:
-                    byte_len#43 :fn(string) -> usize
+                    byte_len#44 :fn(string) -> usize
                   arg0:
                     "你好嗎？" :string
               ~>
@@ -122,7 +122,7 @@
                 __sb_3#-4 :?
                 call :usize
                   callee:
-                    count_chars#56 :fn(string) -> usize
+                    count_chars#57 :fn(string) -> usize
                   arg0:
                     "a😀b" :string
               @builder.append_str :void
@@ -132,7 +132,7 @@
                 __sb_3#-4 :?
                 call :usize
                   callee:
-                    byte_len#43 :fn(string) -> usize
+                    byte_len#44 :fn(string) -> usize
                   arg0:
                     "a😀b" :string
               ~>
@@ -156,7 +156,7 @@
                 __sb_4#-5 :?
                 call :usize
                   callee:
-                    count_chars#56 :fn(string) -> usize
+                    count_chars#57 :fn(string) -> usize
                   arg0:
                     "" :string
               @builder.append_str :void
@@ -166,33 +166,33 @@
                 __sb_4#-5 :?
                 call :usize
                   callee:
-                    byte_len#43 :fn(string) -> usize
+                    byte_len#44 :fn(string) -> usize
                   arg0:
                     "" :string
               ~>
                 @builder.finish :string
                   __sb_4#-5 :?
-    let s#128: string = "你好" :string
-    let n#129: usize =
+    let s#129: string = "你好" :string
+    let n#130: usize =
       call :usize
         callee:
-          byte_len#43 :fn(string) -> usize
+          byte_len#44 :fn(string) -> usize
         arg0:
-          s#128 :string
-    let i#130: usize = int(0) :usize
+          s#129 :string
+    let i#131: usize = int(0) :usize
     loop while (<…>)
       let __tup_5#-6: [char, usize] =
         call :[char, usize]
           callee:
-            decode_codepoint#55 :fn(string, usize) -> [char, usize]
+            decode_codepoint#56 :fn(string, usize) -> [char, usize]
           arg0:
-            s#128 :string
+            s#129 :string
           arg1:
-            i#130 :usize
-      let c#131: char =
+            i#131 :usize
+      let c#132: char =
         ._0 :char
           __tup_5#-6 :[char, usize]
-      let w#132: usize =
+      let w#133: usize =
         ._1 :usize
           __tup_5#-6 :[char, usize]
       call :void
@@ -211,19 +211,19 @@
                   "at " :string
                 @builder.append_display <for usize> :void
                   __sb_6#-7 :?
-                  i#130 :usize
+                  i#131 :usize
                 @builder.append_str :void
                   __sb_6#-7 :?
                   ": '" :string
                 @builder.append_display <for char> :void
                   __sb_6#-7 :?
-                  c#131 :char
+                  c#132 :char
                 @builder.append_str :void
                   __sb_6#-7 :?
                   "' (" :string
                 @builder.append_display <for usize> :void
                   __sb_6#-7 :?
-                  w#132 :usize
+                  w#133 :usize
                 @builder.append_str :void
                   __sb_6#-7 :?
                   " bytes)" :string
@@ -232,13 +232,13 @@
                     __sb_6#-7 :?
       assign
         target:
-          i#130 :usize
+          i#131 :usize
         value:
           add :usize
             l:
-              i#130 :usize
+              i#131 :usize
             r:
-              w#132 :usize
+              w#133 :usize
     call :void
       callee:
         println#28 :fn(Display) -> void
@@ -257,7 +257,7 @@
                 __sb_7#-8 :?
                 call :usize
                   callee:
-                    codepoint_byte_len#76 :fn(char) -> usize
+                    codepoint_byte_len#77 :fn(char) -> usize
                   arg0:
                     char(0x61)
               ~>
@@ -281,7 +281,7 @@
                 __sb_8#-9 :?
                 call :usize
                   callee:
-                    codepoint_byte_len#76 :fn(char) -> usize
+                    codepoint_byte_len#77 :fn(char) -> usize
                   arg0:
                     char(0xe9)
               ~>
@@ -305,7 +305,7 @@
                 __sb_9#-10 :?
                 call :usize
                   callee:
-                    codepoint_byte_len#76 :fn(char) -> usize
+                    codepoint_byte_len#77 :fn(char) -> usize
                   arg0:
                     char(0x4f60)
               ~>
@@ -329,7 +329,7 @@
                 __sb_10#-11 :?
                 call :usize
                   callee:
-                    codepoint_byte_len#76 :fn(char) -> usize
+                    codepoint_byte_len#77 :fn(char) -> usize
                   arg0:
                     char(0x1f600)
               ~>

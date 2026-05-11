@@ -2,7 +2,7 @@
 
 ## tests/snippets/void_ident_rejected/_main.vader
   fn tests_snippets_void_ident_rejected__main_vader$mk() -> void
-    let void#58: i32 = int(42) :i32
+    let void#59: i32 = int(42) :i32
     ~>
       call :void
         callee:
@@ -17,7 +17,7 @@
                   @builder.new :?
                 @builder.append_display <for i32> :void
                   __sb_0#-1 :?
-                  void#58 :i32
+                  void#59 :i32
                 ~>
                   @builder.finish :string
                     __sb_0#-1 :?

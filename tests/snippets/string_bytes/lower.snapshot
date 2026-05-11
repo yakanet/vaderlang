@@ -11,14 +11,14 @@
             to_string#1000014 :string
           arg0:
             "-- ascii --" :string
-    let sum#127: u32 =
+    let sum#128: u32 =
       cast → u32
         int(0) :i32
     block :void
       let __iter_0#-1: StringBytes =
         call :StringBytes
           callee:
-            bytes#51 :StringBytes
+            bytes#52 :StringBytes
           arg0:
             "vader" :string
       loop
@@ -35,20 +35,20 @@
           then:
             break
           else:
-            let b#128: u8 =
+            let b#129: u8 =
               .value :u8
                 cast → Yielded(u8)
                   __step_1#-2 :Done | Yielded(u8)
             assign
               target:
-                sum#127 :u32
+                sum#128 :u32
               value:
                 add :u32
                   l:
-                    sum#127 :u32
+                    sum#128 :u32
                   r:
                     cast → u32
-                      b#128 :?
+                      b#129 :?
     call :void
       callee:
         println#27 :fn(Display) -> void
@@ -65,7 +65,7 @@
                 "sum=" :string
               @builder.append_display <for u32> :void
                 __sb_2#-3 :?
-                sum#127 :u32
+                sum#128 :u32
               ~>
                 @builder.finish :string
                   __sb_2#-3 :?
@@ -82,7 +82,7 @@
       let __iter_3#-4: StringBytes =
         call :StringBytes
           callee:
-            bytes#51 :StringBytes
+            bytes#52 :StringBytes
           arg0:
             "你" :string
       loop
@@ -99,7 +99,7 @@
           then:
             break
           else:
-            let b#129: u8 =
+            let b#130: u8 =
               .value :u8
                 cast → Yielded(u8)
                   __step_4#-5 :Done | Yielded(u8)
@@ -116,11 +116,11 @@
                         @builder.new :?
                       @builder.append_str :void
                         __sb_5#-6 :?
-                        b#129 :?
+                        b#130 :?
                       ~>
                         @builder.finish :string
                           __sb_5#-6 :?
-    let bom#130: string = "﻿data" :string
+    let bom#131: string = "﻿data" :string
     call :void
       callee:
         println#27 :fn(Display) -> void
@@ -148,9 +148,9 @@
                 __sb_6#-7 :?
                 call :u8
                   callee:
-                    byte_at#49 :u8
+                    byte_at#50 :u8
                   arg0:
-                    bom#130 :string
+                    bom#131 :string
                   arg1:
                     int(0) :usize
               @builder.append_str :void
@@ -160,9 +160,9 @@
                 __sb_6#-7 :?
                 call :u8
                   callee:
-                    byte_at#49 :u8
+                    byte_at#50 :u8
                   arg0:
-                    bom#130 :string
+                    bom#131 :string
                   arg1:
                     int(1) :usize
               @builder.append_str :void
@@ -172,9 +172,9 @@
                 __sb_6#-7 :?
                 call :u8
                   callee:
-                    byte_at#49 :u8
+                    byte_at#50 :u8
                   arg0:
-                    bom#130 :string
+                    bom#131 :string
                   arg1:
                     int(2) :usize
               ~>
@@ -198,9 +198,9 @@
                 __sb_7#-8 :?
                 call :u8
                   callee:
-                    byte_at#49 :u8
+                    byte_at#50 :u8
                   arg0:
-                    bom#130 :string
+                    bom#131 :string
                   arg1:
                     int(3) :usize
               @builder.append_str :void
@@ -210,7 +210,7 @@
                 __sb_7#-8 :?
                 call :u8
                   callee:
-                    byte_at#49 :u8
+                    byte_at#50 :u8
                   arg0:
                     "d" :string
                   arg1:
@@ -231,7 +231,7 @@
       let __iter_8#-9: StringBytes =
         call :StringBytes
           callee:
-            bytes#51 :StringBytes
+            bytes#52 :StringBytes
           arg0:
             "" :string
       loop
@@ -248,7 +248,7 @@
           then:
             break
           else:
-            let b#131: u8 =
+            let b#132: u8 =
               .value :u8
                 cast → Yielded(u8)
                   __step_9#-10 :Done | Yielded(u8)
@@ -279,7 +279,7 @@
                 __sb_10#-11 :?
                 call :usize
                   callee:
-                    byte_len#42 :fn(string) -> usize
+                    byte_len#43 :fn(string) -> usize
                   arg0:
                     "" :string
               ~>

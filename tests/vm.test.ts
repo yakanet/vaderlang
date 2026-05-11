@@ -28,6 +28,7 @@ function captureIO(): Captured {
       write(s)        { out.push(s); },
       writeError(s)   { err.push(s); },
       readLine()      { return null; },
+      readStdin()     { throw new Error("EOF"); },
       readFile(path)  { return readFileSync(path, "utf8"); },
       writeFile(p, c) { writeFileSync(p, c, "utf8"); },
       exists(p) {

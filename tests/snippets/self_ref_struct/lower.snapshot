@@ -2,20 +2,20 @@
 
 ## tests/snippets/self_ref_struct/_main.vader
   fn tests_snippets_self_ref_struct__main_vader$main() -> i32
-    let tail#59: Node(i32) =
+    let tail#60: Node(i32) =
       Node(i32) {
         value: int(30) :i32
         next: null
       }
-    let mid#60: Node(i32) =
+    let mid#61: Node(i32) =
       Node(i32) {
         value: int(20) :i32
-        next: tail#59 :Node(i32)
+        next: tail#60 :Node(i32)
       }
-    let head#61: Node(i32) =
+    let head#62: Node(i32) =
       Node(i32) {
         value: int(10) :i32
-        next: mid#60 :Node(i32)
+        next: mid#61 :Node(i32)
       }
     call :void
       callee:
@@ -34,7 +34,7 @@
               @builder.append_display <for i32> :void
                 __sb_0#-1 :?
                 .value :i32
-                  head#61 :Node(i32)
+                  head#62 :Node(i32)
               ~>
                 @builder.finish :string
                   __sb_0#-1 :?

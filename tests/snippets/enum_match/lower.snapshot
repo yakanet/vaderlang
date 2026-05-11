@@ -6,7 +6,7 @@
       cond:
         lt :bool
           l:
-            n#62 :i32
+            n#63 :i32
           r:
             int(0) :i32
       then:
@@ -15,7 +15,7 @@
       cond:
         eq :bool
           l:
-            n#62 :i32
+            n#63 :i32
           r:
             int(0) :i32
       then:
@@ -24,7 +24,7 @@
   fn tests_snippets_enum_match__main_vader$label(c: Color) -> string
     ~>
       block :string
-        let __scrut_0#-1: Color = c#63 :Color
+        let __scrut_0#-1: Color = c#64 :Color
         ~>
           if :string
             cond:
@@ -67,11 +67,11 @@
     ~>
       eq :bool
         l:
-          a#64 :Color
+          a#65 :Color
         r:
-          b#65 :Color
+          b#66 :Color
   fn tests_snippets_enum_match__main_vader$main() -> i32
-    let c#66: Color = int(1) :i32
+    let c#67: Color = int(1) :i32
     call :void
       callee:
         println#29 :fn(Display) -> void
@@ -84,7 +84,7 @@
               callee:
                 label#5 :fn(Color) -> string
               arg0:
-                c#66 :Color
+                c#67 :Color
     call :void
       callee:
         println#29 :fn(Display) -> void
@@ -172,7 +172,7 @@
                 __sb_2#-4 :?
                 neq :bool
                   l:
-                    c#66 :Color
+                    c#67 :Color
                   r:
                     int(0) :i32
               ~>
@@ -193,13 +193,13 @@
                 __sb_3#-5 :?
                 neq :bool
                   l:
-                    c#66 :Color
+                    c#67 :Color
                   r:
                     int(1) :i32
               ~>
                 @builder.finish :string
                   __sb_3#-5 :?
-    let s#67: Severity =
+    let s#68: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
@@ -207,7 +207,7 @@
           neg :i32
             int(5) :i32
     block :void
-      let __scrut_4#-6: Severity = s#67 :Severity
+      let __scrut_4#-6: Severity = s#68 :Severity
       ~>
         if :void
           cond:
@@ -270,14 +270,14 @@
                       else:
                         ~>
                           unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let s2#68: Severity =
+    let s2#69: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
         arg0:
           int(0) :i32
     block :void
-      let __scrut_5#-7: Severity = s2#68 :Severity
+      let __scrut_5#-7: Severity = s2#69 :Severity
       ~>
         if :void
           cond:
@@ -340,14 +340,14 @@
                       else:
                         ~>
                           unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let s3#69: Severity =
+    let s3#70: Severity =
       call :Severity
         callee:
           classify#4 :fn(i32) -> Severity
         arg0:
           int(1) :i32
     block :void
-      let __scrut_6#-8: Severity = s3#69 :Severity
+      let __scrut_6#-8: Severity = s3#70 :Severity
       ~>
         if :void
           cond:
