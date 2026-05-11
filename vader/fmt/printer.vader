@@ -31,7 +31,8 @@ import "vader/parser" {
     MatchExpr, MatchArm,
     BlockExpr, LambdaExpr,
     StructLitExpr, StructLitField, StructLitSpread,
-    SeqLitExpr, RangeExpr, TryExpr, CastExpr, GenericInstExpr, DotVariantExpr,
+    SeqLitExpr, RangeExpr, TryExpr, CastExpr, GenericInstExpr,
+    IntrinsicCallExpr, DotVariantExpr,
     FnTypeExpr, ArrayTypeExpr,
     Pattern, IsPattern, StructPattern, StructPatternField, TuplePattern,
     PatternFieldValue, PatternBinding, PatternLiteral,
@@ -237,6 +238,7 @@ expr_span :: fn(e: Expr | null) -> Span {
         is TryExpr         as x -> x.span
         is CastExpr        as x -> x.span
         is GenericInstExpr as x -> x.span
+        is IntrinsicCallExpr as x -> x.span
         is DotVariantExpr  as x -> x.span
         is FnTypeExpr      as x -> x.span
         is ArrayTypeExpr   as x -> x.span
@@ -498,6 +500,19 @@ emit_enum_decl :: fn(self: Printer, d: EnumDecl) -> void {
     }
     if d.variants.len() == usize(0) {
         self.write(" {}")
+        return
+    }
+    // Inline rendering when the source was single-line — matches stdlib
+    // idiom `Color :: enum { Red, Green, Blue }`. No trailing comma.
+    if d.span.start.line == d.span.end.line {
+        self.write(" { ")
+        i: usize = 0
+        for i < d.variants.len() {
+            if i > usize(0) { self.write(", ") }
+            self.emit_enum_variant(d.variants[i])
+            i = i + usize(1)
+        }
+        self.write(" }")
         return
     }
     self.write(" {")
@@ -786,6 +801,7 @@ emit_expr :: fn(self: Printer, e: Expr | null) -> void {
         is TryExpr           as x -> self.emit_try(x)
         is CastExpr          as x -> self.emit_cast(x)
         is GenericInstExpr   as x -> self.emit_generic_inst(x)
+        is IntrinsicCallExpr as x -> self.emit_intrinsic_call(x)
         is DotVariantExpr    as x -> {
             self.write(".")
             self.write(x.variant)
@@ -1246,6 +1262,19 @@ emit_generic_inst :: fn(self: Printer, x: GenericInstExpr) -> void {
     // shapes collapse to the same AST node and the surrounding context drives
     // the surface form.
     self.write(self.source_slice(x.span))
+}
+
+emit_intrinsic_call :: fn(self: Printer, x: IntrinsicCallExpr) -> void {
+    self.write("@")
+    self.write(x.name)
+    self.write("(")
+    i: usize = 0
+    for i < x.args.len() {
+        if i > usize(0) { self.write(", ") }
+        self.emit_expr(x.args[i])
+        i = i + usize(1)
+    }
+    self.write(")")
 }
 
 emit_fn_type :: fn(self: Printer, x: FnTypeExpr) -> void {

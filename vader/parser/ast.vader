@@ -23,7 +23,7 @@ export ForForm :: InfiniteFor | WhileFor | InFor
 
 export DeferBody :: DeferStmtBody | DeferBlockBody
 
-export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 export StringLitPart :: StringLitText | StringLitInterp
 
@@ -39,7 +39,7 @@ export PatternFieldValue :: PatternBinding | PatternLiteral
 // as a « type expression » is determined by *position* (the slot demanding
 // a type) rather than by AST shape. The alias documents intent at slot
 // declarations (e.g. `StructField.ty: TypeExpr`) ; variants mirror `Expr`.
-export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 // ============================================================================
 // Visibility / shared shapes
@@ -538,6 +538,19 @@ export GenericInstExpr :: struct {
     span:      Span
     callee:    Expr
     type_args: TypeExpr[]
+}
+
+// Compiler-built reflection / introspection call : `@size_of(T)`,
+// `@type_name(T)`, `@file("path")`, etc. `name` is the intrinsic ident
+// *without* the leading `@`. The set of recognised names lives in
+// `vader/parser/intrinsics.vader` ; the parser only produces this node for
+// known names — unknown `@name(...)` in expression position still raises
+// P1014.
+export IntrinsicCallExpr :: struct {
+    span:      Span
+    name:      string
+    name_span: Span
+    args:      Expr[]
 }
 
 export DotVariantExpr :: struct {

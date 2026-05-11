@@ -2058,22 +2058,73 @@ parse_prefix :: fn(p: Parser) -> Expr {
         p.advance()
         return ident_expr(t.span, "self")
     }
-    // `@partial match ...` — opt-out of exhaustiveness for one match.
-    // Other `@<ident>` heads in expression position are rejected as
-    // P1014 (mirrors the TS parser).
+    // Two expression-position `@` forms :
+    //   `@partial match x { ... }`  — opt-out of exhaustiveness for a match
+    //   `@<intrinsic>(args)`        — compiler reflection / introspection call
+    //                                 (`@size_of`, `@type_name`, `@file`, …).
+    //                                 The set of recognised names lives in
+    //                                 `vader/parser/intrinsics.vader`.
+    // Anything else is P1014.
     if t.kind == .At {
         at_tok :: p.advance()
         name_tok :: p.expect(.Ident, "decorator name after `@`")
-        if name_tok.text != "partial" {
-            p.error(.UnknownDecoratorPlacement,
-                p.span_of(at_tok, name_tok),
-                "`@${name_tok.text}` is not allowed in expression position")
+        if name_tok.text == "partial" {
+            if !p.check(.KwMatch) {
+                p.error(.UnknownDecoratorPlacement, name_tok.span,
+                    "`@${name_tok.text}` must precede a `match` expression")
+            }
+            return p.parse_match_expr(true)
         }
-        if !p.check(.KwMatch) {
-            p.error(.UnknownDecoratorPlacement, name_tok.span,
-                "`@${name_tok.text}` must precede a `match` expression")
+        spec :: intrinsic_spec(name_tok.text)
+        match spec {
+            is null -> {
+                p.error(.UnknownDecoratorPlacement,
+                    p.span_of(at_tok, name_tok),
+                    "`@${name_tok.text}` is not allowed in expression position")
+                // Fall through to recover with the same shape — consume a
+                // trailing `(...)` if present so we don't cascade errors.
+                if p.check(.LParen) {
+                    p.advance()  // (
+                    for !p.check(.RParen) && !p.check(.Eof) { p.advance() }
+                    if p.check(.RParen) { p.advance() }
+                }
+                return ident_expr(p.span_of(at_tok, name_tok), name_tok.text)
+            }
+            is IntrinsicSpec as sp -> {
+                p.expect(.LParen, "`(` after `@${sp.name}`")
+                args: Expr[] = []
+                p.skip_newlines()
+                if !p.check(.RParen) {
+                    for true {
+                        p.skip_newlines()
+                        if p.check(.RParen) { break }
+                        idx :: args.len()
+                        // Type-shape args go through parse_type so postfix
+                        // `[]`, `|` etc. parse with type semantics ;
+                        // value-shape args go through the regular expr
+                        // parser.
+                        is_type := false
+                        if idx < sp.args.len() && sp.args[idx] == IntrinsicArgKind.Type {
+                            is_type = true
+                        }
+                        if is_type {
+                            args.push(p.parse_type())
+                        } else {
+                            args.push(p.parse_expr(0))
+                        }
+                        p.skip_newlines()
+                        if !p.match_kind(.Comma).matched { break }
+                    }
+                }
+                end :: p.expect(.RParen, "`)` to close `@${sp.name}(...)`")
+                return IntrinsicCallExpr {
+                    .span      = p.span_of(at_tok, end),
+                    .name      = sp.name,
+                    .name_span = name_tok.span,
+                    .args      = args,
+                }
+            }
         }
-        return p.parse_match_expr(true)
     }
     if t.kind == .Dot {
         p.advance()

@@ -1,0 +1,46 @@
+// vader/parser/intrinsics — registry of compiler-built `@name(...)` calls.
+//
+// Mirrors `src/parser/intrinsics.ts` : every entry here matches an entry
+// there one-for-one. Used by the parser to decide whether `@name(...)`
+// in expression position lowers to an `IntrinsicCallExpr` or surfaces
+// P1014 (unknown decorator placement).
+
+export IntrinsicArgKind :: enum(u8) {
+    Type,
+    Value,
+}
+
+export IntrinsicSpec :: struct {
+    name:   string
+    args:   IntrinsicArgKind[]
+    // Result kind is informative — the typechecker / lower passes have
+    // their own per-name dispatch and don't consult this. Stored here for
+    // completeness so the registry matches the TS layout exactly.
+    result: string
+}
+
+// Full set of recognised intrinsics. Add new entries here in lock-step
+// with `src/parser/intrinsics.ts:INTRINSICS`.
+INTRINSICS :: [
+    IntrinsicSpec { .name = "size_of",       .args = [.Type],          .result = "usize"  },
+    IntrinsicSpec { .name = "align_of",      .args = [.Type],          .result = "usize"  },
+    IntrinsicSpec { .name = "type_name",     .args = [.Type],          .result = "string" },
+    IntrinsicSpec { .name = "type_kind",     .args = [.Type],          .result = "string" },
+    IntrinsicSpec { .name = "field_count",   .args = [.Type],          .result = "usize"  },
+    IntrinsicSpec { .name = "variant_count", .args = [.Type],          .result = "usize"  },
+    IntrinsicSpec { .name = "field_index",   .args = [.Type, .Value],  .result = "usize"  },
+    IntrinsicSpec { .name = "satisfies",     .args = [.Type, .Type],   .result = "bool"   },
+    // `@file("path")` reads the file at compile time and bakes its UTF-8
+    // contents as a string literal. The sandbox confines the path to the
+    // project root.
+    IntrinsicSpec { .name = "file",          .args = [.Value],         .result = "string" },
+]
+
+// Returns the spec for `name`, or `null` if `@name(...)` is not a
+// recognised intrinsic (the caller surfaces P1014 in that case).
+export intrinsic_spec :: fn(name: string) -> IntrinsicSpec | null {
+    for s in INTRINSICS {
+        if s.name == name { return s }
+    }
+    return null
+}
