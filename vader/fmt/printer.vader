@@ -299,27 +299,13 @@ decl_alignable_name :: fn(d: Decl) -> string {
     return ""   // unreachable
 }
 
-// Decorator-set fingerprint for group-alignability. Two decls only join
-// the same alignment group when their decorator lists carry the same set
-// of names — a stray `@deprecated` or differently-shaped decorator stack
-// otherwise breaks the visual grouping.
-fn_decl_decorator_names :: fn(d: FnDecl) -> string[] {
-    out: string[] = []
-    for deco in d.decorators { out.push(deco.name) }
-    return out
-}
-
-const_decl_decorator_names :: fn(d: ConstDecl) -> string[] {
-    out: string[] = []
-    for deco in d.decorators { out.push(deco.name) }
-    return out
-}
-
-string_lists_equal :: fn(a: string[], b: string[]) -> bool {
+// True iff `a` and `b` carry the same ordered list of decorator names.
+// Walks both lists in lock-step — no intermediate `string[]` allocation.
+decorators_equal :: fn(a: Decorator[], b: Decorator[]) -> bool {
     if a.len() != b.len() { return false }
     i: usize = 0
     for i < a.len() {
-        if a[i] != b[i] { return false }
+        if a[i].name != b[i].name { return false }
         i = i + usize(1)
     }
     return true
@@ -331,14 +317,14 @@ string_lists_equal :: fn(a: string[], b: string[]) -> bool {
 // between `prev.end` and `cur.first_line`).
 decls_in_same_group :: fn(prev: Decl, cur: Decl) -> bool {
     if !decl_is_alignable(prev) { return false }
-    if !decl_is_alignable(cur) { return false }
+    if !decl_is_alignable(cur)  { return false }
     if decl_first_line(cur) != decl_span(prev).end.line + 1 { return false }
     match prev {
         is FnDecl as pf -> {
             match cur {
                 is FnDecl as cf -> {
                     if pf.visibility != cf.visibility { return false }
-                    return string_lists_equal(fn_decl_decorator_names(pf), fn_decl_decorator_names(cf))
+                    return decorators_equal(pf.decorators, cf.decorators)
                 }
                 _ -> { return false }
             }
@@ -347,7 +333,7 @@ decls_in_same_group :: fn(prev: Decl, cur: Decl) -> bool {
             match cur {
                 is ConstDecl as cc -> {
                     if pc.visibility != cc.visibility { return false }
-                    return string_lists_equal(const_decl_decorator_names(pc), const_decl_decorator_names(cc))
+                    return decorators_equal(pc.decorators, cc.decorators)
                 }
                 _ -> { return false }
             }
@@ -772,7 +758,7 @@ compute_fn_alignment_widths :: fn(members: FnDecl[]) -> usize[] {
             if !cur_sig { break }
             if cur.span.start.line != prev.span.end.line + 1 { break }
             if prev.visibility != cur.visibility { break }
-            if !string_lists_equal(fn_decl_decorator_names(prev), fn_decl_decorator_names(cur)) { break }
+            if !decorators_equal(prev.decorators, cur.decorators) { break }
             w :: cur.name.byte_len()
             if w > width { width = w }
             end = end + usize(1)
@@ -807,9 +793,38 @@ emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
         for deco in d.decorators {
             if deco.name == "intrinsic" { is_intrinsic = true }
         }
-        if is_intrinsic {
-            return
+        if is_intrinsic { return }
+        self.write(" {}")
+        return
+    }
+    // SAM-sugar forms — the parser synthesises a single fn member with
+    // `sam_synthetic = true` for `Type implements Trait -> expr` and
+    // `Type implements Trait { stmts }`. Re-emit the user-facing surface
+    // rather than the synthesised `name :: fn(args) { … }` shape.
+    if d.members.len() == usize(1) && d.members[0].sam_synthetic {
+        m :: d.members[0]
+        match m.body {
+            is null -> {}
+            is BlockExpr as b -> {
+                // Arrow form : block body is a no-stmt wrapper around the
+                // trailing expr.
+                if b.stmts.len() == usize(0) {
+                    match b.trailing {
+                        is null -> {}
+                        _ -> {
+                            self.write(" -> ")
+                            self.emit_expr(b.trailing)
+                            return
+                        }
+                    }
+                }
+                // Block form : `Type implements Trait { stmts… }`.
+                self.write(" ")
+                self.emit_block_expr(b)
+                return
+            }
         }
+        // Fallthrough : malformed SAM (body null) — emit `{}` to keep parse.
         self.write(" {}")
         return
     }
