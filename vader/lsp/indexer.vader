@@ -28,6 +28,7 @@ import "vader/parser" {
     ImportDecl, ImportBinding, AliasImport, DestructureImport, NamespaceImport,
     FnDecl, StructDecl, EnumDecl, TraitDecl, TypeAliasDecl, ConstDecl,
     ImplDecl, AssertDecl,
+    Decorator,
     Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt,
     BreakStmt, ContinueStmt, DeferStmt,
     LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
@@ -168,35 +169,35 @@ collect_decl :: fn(
 ) -> void {
     match d {
         is FnDecl as f -> {
-            entries.push(top_entry(f.name, .Fn, f.name_span, f.span, source, cmap))
+            entries.push(top_entry(f.name, .Fn, f.name_span, f.span, f.decorators, source, cmap))
             walk_fn_body(f, source, entries)
         }
         is StructDecl as s -> {
-            entries.push(top_entry(s.name, .Struct, s.name_span, s.span, source, cmap))
+            entries.push(top_entry(s.name, .Struct, s.name_span, s.span, s.decorators, source, cmap))
         }
         is EnumDecl as e -> {
-            entries.push(top_entry(e.name, .Enum, e.name_span, e.span, source, cmap))
+            entries.push(top_entry(e.name, .Enum, e.name_span, e.span, e.decorators, source, cmap))
         }
         is TraitDecl as t -> {
-            entries.push(top_entry(t.name, .Trait, t.name_span, t.span, source, cmap))
+            entries.push(top_entry(t.name, .Trait, t.name_span, t.span, t.decorators, source, cmap))
             // Trait members are fn decls — index their names too so
             // goto-def on a method-name reference can land somewhere.
             for m in t.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, source, cmap))
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, source, cmap))
             }
         }
         is TypeAliasDecl as ta -> {
-            entries.push(top_entry(ta.name, .TypeAlias, ta.name_span, ta.span, source, cmap))
+            entries.push(top_entry(ta.name, .TypeAlias, ta.name_span, ta.span, ta.decorators, source, cmap))
         }
         is ConstDecl as c -> {
-            entries.push(top_entry(c.name, .Const, c.name_span, c.span, source, cmap))
+            entries.push(top_entry(c.name, .Const, c.name_span, c.span, c.decorators, source, cmap))
         }
         is ImplDecl as ib -> {
             // Impl members are fn decls on the target type. They
             // contribute method names (for UFCS goto-def) and their
             // own params + body bindings.
             for m in ib.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, source, cmap))
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, source, cmap))
                 walk_fn_body(m, source, entries)
             }
         }
@@ -207,10 +208,16 @@ collect_decl :: fn(
 
 top_entry :: fn(
     name: string, kind: DeclKind, name_span: Span, full_span: Span,
+    decorators: Decorator[],
     source: string, cmap: CommentMap,
 ) -> DeclEntry {
     sig :: head_signature(full_span, source)
-    doc :: leading_doc(cmap, full_span.start.offset, source)
+    // `///` doc-comments sit above the decorators in the source ; the
+    // decl's own `span.start` only covers the keyword + identifier,
+    // not the `@deco(...)` lines. Use the earliest offset among the
+    // decl and its decorators so `leading_doc` can scan past them.
+    doc_boundary :: doc_boundary_offset(full_span.start.offset, decorators)
+    doc :: leading_doc(cmap, doc_boundary, source)
     return DeclEntry {
         .name       = name,
         .kind       = kind,
@@ -220,6 +227,17 @@ top_entry :: fn(
         .doc        = doc,
         .scope_span = null,
     }
+}
+
+// Smallest start-offset among the decl itself and every decorator
+// stacked above it. `///` comments contiguous with this offset are
+// the decl's vaderdoc.
+doc_boundary_offset :: fn(decl_start: usize, decorators: Decorator[]) -> usize {
+    best :: decl_start
+    for d in decorators {
+        if d.span.start.offset < best { best = d.span.start.offset }
+    }
+    return best
 }
 
 binding_entry :: fn(
@@ -291,7 +309,8 @@ walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[])
             // enclosing block. Anything before the let in the same
             // block stays unresolved against this name.
             local_scope :: Span { .start = l.span.start, .end = block_span.end }
-            collect_let_binding(l.binding, local_scope, source, entries)
+            type_hint :: local_type_hint(l, source)
+            collect_let_binding(l.binding, local_scope, source, type_hint, entries)
             walk_expr(l.value, source, entries)
         }
         is AssignStmt as a -> {
@@ -318,24 +337,122 @@ walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[])
 }
 
 collect_let_binding :: fn(
-    b: LetBinding, scope: Span, source: string, entries: DeclEntry[],
+    b: LetBinding, scope: Span, source: string, type_hint: string,
+    entries: DeclEntry[],
 ) -> void {
     match b {
         is SimpleBinding as sb -> {
-            sig :: slice_to_eol(source, sb.span.start.offset, scope.end.offset)
+            sig :: local_sig(sb.name, type_hint, sb.span.start.offset, scope.end.offset, source)
             entries.push(binding_entry(sb.name, .Local, sb.name_span, scope, sig))
         }
         is RestBinding as rb -> {
-            sig :: slice_to_eol(source, rb.span.start.offset, scope.end.offset)
+            sig :: local_sig(rb.name, type_hint, rb.span.start.offset, scope.end.offset, source)
             entries.push(binding_entry(rb.name, .Local, rb.name_span, scope, sig))
         }
         is TupleBinding as tb -> {
+            // Destructuring : we can't decompose a single annotation/
+            // literal-suffix into per-element types without the
+            // typechecker, so every element gets the fallback source
+            // slice as its signature.
             for elt in tb.elements {
-                collect_let_binding(elt, scope, source, entries)
+                collect_let_binding(elt, scope, source, "", entries)
             }
         }
         is WildcardBinding -> {}
     }
+}
+
+// Build a hover-friendly signature for a local binding. When the
+// caller passed a `type_hint` (extracted from `LetStmt.ty` annotation
+// or a literal `1_u64` suffix), render `<name>: <type>` like a
+// fn-parameter signature. Otherwise fall back to slicing the source
+// line for `<name> := <expr>` — readable, just less precise.
+local_sig :: fn(
+    name: string, type_hint: string,
+    decl_start: usize, scope_end: usize, source: string,
+) -> string {
+    if type_hint.byte_len() > usize(0) {
+        return name + ": " + type_hint
+    }
+    return slice_to_eol(source, decl_start, scope_end)
+}
+
+// Best-effort type hint for a `LetStmt` without consulting the
+// typechecker :
+//   1. Explicit annotation `let a: T = …` → slice `T` from the AST.
+//   2. Literal RHS with numeric suffix (`1_u64`, `2.5_f32`, …) → use
+//      the suffix as the type name.
+//   3. Otherwise return `""` — the caller falls back to a source
+//      slice that includes the expression.
+local_type_hint :: fn(l: LetStmt, source: string) -> string {
+    match l.ty {
+        is null -> {}
+        _       -> {
+            return type_expr_slice(l.ty, source)
+        }
+    }
+    return literal_suffix_type(l.value, source)
+}
+
+// Slice the source for a `TypeExpr` reference. The parser tags every
+// node with `span`, so a verbatim re-slice keeps annotations like
+// `MyType(i32)` or `T?` intact.
+type_expr_slice :: fn(t: Expr, source: string) -> string {
+    // Every Expr variant shares a `.span` field, but `Expr` is a
+    // union — match exhaustively and slice the corresponding span.
+    sp: Span = match t {
+        is IntLitExpr as x       -> x.span
+        is FloatLitExpr as x     -> x.span
+        is BoolLitExpr as x      -> x.span
+        is NullLitExpr as x      -> x.span
+        is CharLitExpr as x      -> x.span
+        is StringLitExpr as x    -> x.span
+        is IdentExpr as x        -> x.span
+        is CallExpr as x         -> x.span
+        is FieldExpr as x        -> x.span
+        is IndexExpr as x        -> x.span
+        is UnaryExpr as x        -> x.span
+        is BinaryExpr as x       -> x.span
+        is IfExpr as x           -> x.span
+        is MatchExpr as x        -> x.span
+        is BlockExpr as x        -> x.span
+        is LambdaExpr as x       -> x.span
+        is StructLitExpr as x    -> x.span
+        is SeqLitExpr as x       -> x.span
+        is RangeExpr as x        -> x.span
+        is TryExpr as x          -> x.span
+        is CastExpr as x         -> x.span
+        is GenericInstExpr as x  -> x.span
+        is IntrinsicCallExpr as x -> x.span
+        is DotVariantExpr as x   -> x.span
+        is FnTypeExpr as x       -> x.span
+        is ArrayTypeExpr as x    -> x.span
+    }
+    if sp.end.offset > sp.start.offset {
+        return source.slice(sp.start.offset, sp.end.offset).trim()
+    }
+    return ""
+}
+
+// Extract `suffix` from `1_u64` / `2.5_f32` style literals. Other
+// expr shapes return `""` — caller falls back to the source slice.
+literal_suffix_type :: fn(e: Expr, _source: string) -> string {
+    match e {
+        is IntLitExpr as x -> {
+            match x.suffix {
+                is null            -> { return "" }
+                is string as suf   -> { return suf }
+            }
+        }
+        is FloatLitExpr as x -> {
+            match x.suffix {
+                is null            -> { return "" }
+                is string as suf   -> { return suf }
+            }
+        }
+        _ -> { return "" }
+    }
+    return ""
 }
 
 walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
