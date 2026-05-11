@@ -326,6 +326,76 @@ main :: fn() -> i32 {
   expect(results[0]!.result).toBeNull();
 }, { timeout: 60_000 });
 
+// Cross-file goto-def : the indexer scans `import { ... }` bindings, the
+// resolver maps `std/*` / `vader/*` module paths to absolute file
+// paths via `stdlib_root` / `vader_root` (seeded by the host shim),
+// opens the source file, and returns the LSP Location pointing at the
+// origin's name_span. Hover renders the source decl's signature + doc
+// the same way.
+
+const CROSSFILE_SOURCE = `import "std/io" { println, eprintln }
+import "std/collections" { MutableMap }
+
+main :: fn() -> i32 {
+    println("hi")
+    eprintln("hello")
+    m :: MutableMap(string, i32) { .buckets = [], .size = 0 }
+    return 0
+}
+`;
+
+test("lsp: goto-def follows imports across files (std/io)", async () => {
+  if (!ENABLED) return;
+  // Click on `println` call inside the body at line 4 char 4.
+  const results = await driveLsp(CROSSFILE_SOURCE, [
+    { method: "textDocument/definition", position: { line: 4, character: 4 } },
+  ]);
+  const loc = results[0]!.result as Location;
+  expect(loc.uri).toMatch(/stdlib\/std\/io\.vader$/);
+  // We don't pin the exact line — `std/io.vader` evolves and the test
+  // would churn on every stdlib edit. The contract is "lands in
+  // io.vader on a non-zero line".
+  expect(loc.range.start.line).toBeGreaterThan(0);
+}, { timeout: 60_000 });
+
+test("lsp: goto-def follows imports across files (collections)", async () => {
+  if (!ENABLED) return;
+  // Click on `MutableMap` type ref at line 6 char 12.
+  const results = await driveLsp(CROSSFILE_SOURCE, [
+    { method: "textDocument/definition", position: { line: 6, character: 12 } },
+  ]);
+  const loc = results[0]!.result as Location;
+  expect(loc.uri).toMatch(/stdlib\/std\/collections\.vader$/);
+  expect(loc.range.start.line).toBeGreaterThan(0);
+}, { timeout: 60_000 });
+
+test("lsp: hover on imported symbol surfaces its origin signature", async () => {
+  if (!ENABLED) return;
+  const results = await driveLsp(CROSSFILE_SOURCE, [
+    { method: "textDocument/hover", position: { line: 4, character: 4 } },
+  ]);
+  const hov = results[0]!.result as Hover;
+  expect(hov.contents.kind).toBe("markdown");
+  // Signature comes from the source decl, not the importing file.
+  expect(hov.contents.value).toContain("println");
+  expect(hov.contents.value).toContain("```vader");
+}, { timeout: 60_000 });
+
+test("lsp: cross-file resolution doesn't bleed for non-imported names", async () => {
+  if (!ENABLED) return;
+  // `MutableSet` exists in `std/collections` but isn't imported here,
+  // so a click on a bare `MutableSet` identifier should still miss.
+  const src = `main :: fn() -> i32 {
+    MutableSet
+    return 0
+}
+`;
+  const results = await driveLsp(src, [
+    { method: "textDocument/definition", position: { line: 1, character: 6 } },
+  ]);
+  expect(results[0]!.result).toBeNull();
+}, { timeout: 60_000 });
+
 test("lsp: initialize advertises definition + hover providers", async () => {
   if (!ENABLED) return;
 

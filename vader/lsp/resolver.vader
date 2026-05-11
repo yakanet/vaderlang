@@ -1,0 +1,195 @@
+// vader/lsp/resolver — cross-file goto-def + hover support.
+//
+// When a click falls on a name that doesn't resolve in the current
+// document, we check whether the name was imported. If so, we map the
+// `import "..."` path back to an absolute file (or directory of
+// files), parse + index each candidate, and return the location of
+// the matching exported decl in the source module.
+//
+// Scope: the host shim seeds `stdlib_root` and `vader_root` so
+// `std/<...>` and `vader/<...>` imports resolve. Project-relative
+// imports (`./mod`, `../lib/foo`) resolve relative to the importing
+// file's path (extracted from its `file://` URI).
+
+import "std/io" { read_file, read_dir, is_dir }
+import "std/string" { byte_len, byte_at, slice, starts_with, contains }
+import "vader/lsp/state" { ServerState }
+import "vader/lsp/indexer" {
+    DocIndex, DeclEntry, ImportEntry,
+    build_index, find_toplevel, find_import,
+}
+
+/// Where a cross-file goto-def landed : a file URI + the target's
+/// `name_span` so the handler can encode an LSP `Location`. Returns
+/// `null` from `resolve` when no candidate file held the symbol.
+export ExternalHit :: struct {
+    uri:    string
+    target: DeclEntry
+}
+
+/// Resolve `name` against `idx`'s import table. Returns the
+/// `ExternalHit` for the source decl, or `null` when :
+///   - `name` isn't an imported name in this document ;
+///   - the import path doesn't map to a known root (`stdlib_root` /
+///     `vader_root` unset, relative outside the project, …) ;
+///   - the candidate file(s) parsed but didn't export the original
+///     name.
+export resolve :: fn(state: ServerState, idx: DocIndex, name: string) -> ExternalHit | null {
+    if name.byte_len() == usize(0) { return null }
+    imp :: idx.find_import(name)
+    match imp {
+        is null -> { return null }
+        is ImportEntry as entry -> {
+            return resolve_imported(state, idx, entry)
+        }
+    }
+    return null
+}
+
+resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> ExternalHit | null {
+    abs :: module_path_to_absolute(imp.module_path, state, idx.uri)
+    if abs.byte_len() == usize(0) { return null }
+
+    // Folder-form module : every `*.vader` file under the dir is
+    // merged into one logical module. Walk them, return on first hit.
+    if is_dir(abs) {
+        files_or :: read_dir(abs)
+        match files_or {
+            is Error -> { return null }
+            is string[] as files -> {
+                for fname in files {
+                    if !fname.ends_with_vader() { continue }
+                    full :: path_join(abs, fname)
+                    hit :: lookup_in_file(full, imp.original_name)
+                    match hit {
+                        is ExternalHit as h -> { return h }
+                        is null -> {}
+                    }
+                }
+                return null
+            }
+        }
+    }
+
+    // File-form module : single `<abs>.vader`.
+    with_ext :: ensure_vader_ext(abs)
+    return lookup_in_file(with_ext, imp.original_name)
+}
+
+// Read `path` from disk, parse + index it, hunt for `name` among the
+// top-level decls. Returns `null` when the file doesn't exist, fails
+// to read, or doesn't export `name`. The returned URI is `file://`
+// + the absolute path so editors jump correctly.
+lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
+    src_or :: read_file(path)
+    match src_or {
+        is Error -> { return null }
+        is string as src -> {
+            uri :: "file://" + path
+            sub :: build_index(uri, src)
+            match sub.find_toplevel(name) {
+                is null -> { return null }
+                is DeclEntry as d -> { return ExternalHit { .uri = uri, .target = d } }
+            }
+        }
+    }
+    return null
+}
+
+// ---- path resolution -----------------------------------------------------
+
+// Turn an `import "..."` path into an absolute filesystem path. Returns
+// `""` (empty string) for unrecognised forms — caller treats that as
+// "couldn't resolve, fall through to null".
+module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string) -> string {
+    if raw.starts_with("std/") {
+        if state.stdlib_root.byte_len() == usize(0) { return "" }
+        return path_join(state.stdlib_root, raw)
+    }
+    if raw.starts_with("vader/") {
+        if state.vader_root.byte_len() == usize(0) { return "" }
+        // `vader/X` strips the `vader/` prefix because `vader_root`
+        // already points at the `vader/` directory.
+        suffix :: raw.slice(usize(6), raw.byte_len())
+        return path_join(state.vader_root, suffix)
+    }
+    if raw.starts_with("./") || raw.starts_with("../") {
+        from_path :: uri_to_path(from_uri)
+        if from_path.byte_len() == usize(0) { return "" }
+        // Join with the file's parent dir.
+        dir :: dirname_path(from_path)
+        return path_join(dir, raw)
+    }
+    // Unrecognised prefix — likely a third-party / project-root import.
+    // Project-root resolution would need the workspace root from the
+    // LSP `initialize` params ; that's a follow-up.
+    return ""
+}
+
+// Strip the `file://` scheme from a URI. Returns `""` for non-file URIs.
+uri_to_path :: fn(uri: string) -> string {
+    prefix :: "file://"
+    if uri.starts_with(prefix) {
+        return uri.slice(prefix.byte_len(), uri.byte_len())
+    }
+    return ""
+}
+
+// Drop the last path segment. Returns the input verbatim when no
+// separator is present.
+dirname_path :: fn(p: string) -> string {
+    n :: p.byte_len()
+    if n == usize(0) { return p }
+    i: i32 = i32(n) - 1
+    sep :: u8(u32('/'))
+    for i >= 0 {
+        if p.byte_at(usize(i)) == sep {
+            if i == 0 { return "/" }
+            return p.slice(usize(0), usize(i))
+        }
+        i = i - 1
+    }
+    return p
+}
+
+// Simple POSIX-style join. Falls back to bare concatenation if `a` is
+// empty. Doesn't normalise `..` segments — the OS resolves those at
+// read-time.
+path_join :: fn(a: string, b: string) -> string {
+    if a.byte_len() == usize(0) { return b }
+    if b.byte_len() == usize(0) { return a }
+    sep :: u8(u32('/'))
+    a_ends_sep :: a.byte_at(a.byte_len() - usize(1)) == sep
+    b_starts_sep :: b.byte_at(0) == sep
+    if a_ends_sep && b_starts_sep {
+        return a + b.slice(usize(1), b.byte_len())
+    }
+    if a_ends_sep || b_starts_sep {
+        return a + b
+    }
+    return a + "/" + b
+}
+
+ensure_vader_ext :: fn(p: string) -> string {
+    suffix :: ".vader"
+    if p.ends_with_vader() { return p }
+    return p + suffix
+}
+
+// String helper — `s.ends_with(".vader")`. We avoid the stdlib
+// `ends_with` because the public surface might rename or repackage it ;
+// keeping this inline keeps the resolver standalone.
+ends_with_vader :: fn(s: string) -> bool {
+    n :: s.byte_len()
+    suffix :: ".vader"
+    sn :: suffix.byte_len()
+    if n < sn { return false }
+    i: usize = 0
+    for i < sn {
+        if s.byte_at(n - sn + i) != suffix.byte_at(i) {
+            return false
+        }
+        i = i + usize(1)
+    }
+    return true
+}

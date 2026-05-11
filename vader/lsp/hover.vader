@@ -16,7 +16,8 @@ import "std/json" {
 }
 import "std/collections" { MutableMap }
 import "vader/lsp/state" { ServerState, index_for }
-import "vader/lsp/indexer" { DocIndex, DeclEntry, find_at }
+import "vader/lsp/indexer" { DocIndex, DeclEntry, find_at, name_at }
+import "vader/lsp/resolver" { ExternalHit, resolve }
 
 /// Build the hover response payload for the position carried in `params`.
 /// Returns a `Hover` object on hit, `JsonNull` on miss.
@@ -32,8 +33,17 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
         is DocIndex as index -> {
             entry :: index.find_at(line, character)
             match entry {
-                is null               -> { return JsonNull {} }
                 is DeclEntry as found -> { return hover_json(found) }
+                is null               -> {
+                    // Local miss : surface the imported decl's
+                    // signature + vaderdoc by cross-file resolution.
+                    nm :: index.name_at(line, character)
+                    ext :: resolve(state, index, nm)
+                    match ext {
+                        is null -> { return JsonNull {} }
+                        is ExternalHit as hit -> { return hover_json(hit.target) }
+                    }
+                }
             }
         }
     }

@@ -128,6 +128,38 @@ export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | nu
     return lookup_innermost(idx.decls, name, offset)
 }
 
+/// Return the identifier name at the click position, or `""` if no
+/// Ident token covers it. Exposed for the cross-file resolver — it
+/// needs the bare name after `find_at` returned `null` so it can
+/// match against the import table.
+export name_at :: fn(idx: DocIndex, line: i32, character: i32) -> string {
+    offset :: lsp_to_offset(idx.source, line, character)
+    return token_name_at(idx.tokens, offset)
+}
+
+/// Look up a top-level decl by name (ignores scope). Used by the
+/// cross-file resolver to find the target decl inside the imported
+/// module's freshly-built index.
+export find_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
+    for d in idx.decls {
+        match d.scope_span {
+            is null -> {
+                if d.name == name { return d }
+            }
+            is Span -> {}  // skip intra-file bindings — only top-level decls are exportable
+        }
+    }
+    return null
+}
+
+/// Find the import entry whose local name matches. Returns null on miss.
+export find_import :: fn(idx: DocIndex, name: string) -> ImportEntry | null {
+    for i in idx.imports {
+        if i.local_name == name { return i }
+    }
+    return null
+}
+
 // ---- top-level decl collection -------------------------------------------
 
 collect_decl :: fn(

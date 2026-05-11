@@ -16,7 +16,8 @@ import "std/json" {
 }
 import "std/collections" { MutableMap }
 import "vader/lsp/state" { ServerState, index_for }
-import "vader/lsp/indexer" { DocIndex, DeclEntry, find_at, span_to_range_json, SpanRange }
+import "vader/lsp/indexer" { DocIndex, DeclEntry, find_at, name_at, span_to_range_json, SpanRange }
+import "vader/lsp/resolver" { ExternalHit, resolve }
 
 /// Resolve goto-def for the position carried in `params`. Returns a
 /// JSON-encoded `Location` or `JsonNull` for "no result".
@@ -32,8 +33,20 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
         is DocIndex as index -> {
             entry :: index.find_at(line, character)
             match entry {
-                is null                -> { return JsonNull {} }
                 is DeclEntry as found  -> { return location_json(uri, found.name_span.span_to_range_json()) }
+                is null                -> {
+                    // Local miss : the name might be imported from
+                    // another file. Walk the import table, parse the
+                    // target module, and surface its decl's location.
+                    nm :: index.name_at(line, character)
+                    ext :: resolve(state, index, nm)
+                    match ext {
+                        is null -> { return JsonNull {} }
+                        is ExternalHit as hit -> {
+                            return location_json(hit.uri, hit.target.name_span.span_to_range_json())
+                        }
+                    }
+                }
             }
         }
     }
