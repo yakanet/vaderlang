@@ -38,10 +38,17 @@ export DeclKind :: enum(u8) {
     Trait,
     TypeAlias,
     Const,
+    // Intra-file bindings — visible only within `scope_span`.
+    Param,        // fn parameter
+    Local,        // `name :: expr` / `name := expr` inside a body
+    ForIn,        // `for x in iter` loop binding
 }
 
-/// One indexed declaration. `name_span` is what goto-def jumps to ;
-/// `signature` + `doc` feed the hover.
+/// One indexed declaration or binding. `name_span` is what goto-def
+/// jumps to ; `signature` + `doc` feed the hover. `scope_span` is
+/// `null` for file-wide visibility (top-level decls) and `Span` for
+/// intra-file bindings that should only match clicks within their
+/// containing block.
 export DeclEntry :: struct {
     name:       string
     kind:       DeclKind
@@ -49,6 +56,7 @@ export DeclEntry :: struct {
     full_span:  Span
     signature:  string
     doc:        string
+    scope_span: Span | null
 }
 
 /// Per-document index, rebuilt on every didOpen / didChange.
@@ -74,12 +82,14 @@ export build_index :: fn(uri: string, source: string) -> DocIndex {
 
 /// Find the decl whose name matches the identifier under (line, character).
 /// Both are 0-based per LSP. Returns null when no Ident token covers
-/// the position, or when the name is not a top-level decl.
+/// the position. Innermost scope wins : an intra-file binding whose
+/// `scope_span` contains the click is preferred over the file-wide
+/// top-level decl with the same name.
 export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | null {
     offset :: lsp_to_offset(idx.source, line, character)
     name :: token_name_at(idx.tokens, offset)
     if name.byte_len() == usize(0) { return null }
-    return lookup_by_name(idx.decls, name)
+    return lookup_innermost(idx.decls, name, offset)
 }
 
 // ---- decl collection (token-stream scan) ---------------------------------
@@ -87,10 +97,14 @@ export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | nu
 // Walk the token stream looking for top-level `IDENT :: <kw|expr>` decls.
 // `brace_depth == 0` gates the match so we don't mistake a fn body's
 // inner `name :: ...` for a top-level decl. Bracketed groups (`[...]`)
-// don't gate ; they appear in generic params and stay shallow.
+// don't gate ; they appear in generic params and stay shallow. For
+// every top-level `fn` we also collect its params + intra-body
+// bindings (locals, for-in) into the same flat table, distinguished
+// by their `scope_span` field.
 collect_decls :: fn(tokens: Token[], source: string, cmap: CommentMap) -> DeclEntry[] {
     out: DeclEntry[] = []
     n :: tokens.len()
+    brace_match :: build_brace_match(tokens)
     brace_depth: i32 = 0
     i: usize = 0
     for i < n {
@@ -111,7 +125,14 @@ collect_decls :: fn(tokens: Token[], source: string, cmap: CommentMap) -> DeclEn
                 .full_span = full_span,
                 .signature = sig,
                 .doc       = doc,
+                .scope_span = null,
             })
+            // For fns, harvest params + intra-body bindings into the
+            // same flat table — the scope_span field gates them to
+            // their visibility region.
+            if kind == .Fn {
+                collect_fn_bindings(out, tokens, brace_match, source, kind_tok_idx)
+            }
             // Jump past the decl head to avoid re-matching inner names.
             i = kind_tok_idx
             continue
@@ -119,6 +140,282 @@ collect_decls :: fn(tokens: Token[], source: string, cmap: CommentMap) -> DeclEn
         i = i + usize(1)
     }
     return out
+}
+
+// Build a table mapping each LBrace token index to its matching RBrace
+// index. Unmatched braces (e.g., inside a comment-eaten region — but
+// the lexer already strips comments — or malformed source) leave the
+// entry as -1. Linear ; one walk over the token stream.
+build_brace_match :: fn(tokens: Token[]) -> i32[] {
+    n :: tokens.len()
+    out: i32[] = []
+    j: usize = 0
+    for j < n {
+        out.push(-1)
+        j = j + usize(1)
+    }
+    // Forward scan : for each `{` we walk forward to its matching
+    // `}` and write the pair into `out`. Quadratic in the worst case
+    // (deeply nested file) but fine on real Vader sources where brace
+    // depth stays shallow ; preferred over a stack here because
+    // indexed array mutation is the simplest way to update `out`.
+    i: usize = 0
+    for i < n {
+        if tokens[i].kind == .LBrace {
+            depth: i32 = 1
+            k: usize = i + usize(1)
+            for k < n {
+                kt :: tokens[k].kind
+                if kt == .LBrace { depth = depth + 1 }
+                if kt == .RBrace {
+                    depth = depth - 1
+                    if depth == 0 {
+                        out[i] = i32(k)
+                        k = n
+                        continue
+                    }
+                }
+                k = k + usize(1)
+            }
+        }
+        i = i + usize(1)
+    }
+    return out
+}
+
+// Collect params + locals + for-in bindings for the fn whose `fn`
+// keyword token is at `fn_kw_idx`. Walks the param list and body
+// block ; appends DeclEntries with appropriate `scope_span`.
+collect_fn_bindings :: fn(
+    out: DeclEntry[], tokens: Token[], brace_match: i32[],
+    source: string, fn_kw_idx: usize,
+) -> void {
+    n :: tokens.len()
+
+    // Find LParen after `fn`. Skip generic-param `[ ... ]` between
+    // `fn` and `(` if any (eg `fn[T]`).
+    lp_idx :: find_next_kind(tokens, fn_kw_idx + usize(1), n, .LParen)
+    if lp_idx < 0 { return }
+    rp_idx :: find_matching_rparen(tokens, lp_idx, n)
+    if rp_idx < 0 { return }
+
+    // Determine body scope : first `{` after `)`, matched to its `}`.
+    // Signature-only fns (extern/intrinsic) and expression-bodied fns
+    // (`-> T = expr`) don't open a body block — params still aren't
+    // useful for goto-def in those cases.
+    body_l :: find_next_kind(tokens, usize(rp_idx) + usize(1), n, .LBrace)
+    if body_l < 0 { return }
+    body_r :: brace_match[usize(body_l)]
+    if body_r < 0 { return }
+
+    body_scope :: Span {
+        .start = tokens[usize(body_l)].span.start,
+        .end   = tokens[usize(body_r)].span.end,
+    }
+
+    // Walk the param list : every `IDENT :` at paren depth 0 is a
+    // param. Skip nested parens (rare in Vader, but lambda-typed
+    // params can contain them).
+    paren_depth: i32 = 0
+    j: usize = usize(lp_idx) + usize(1)
+    rp_u :: usize(rp_idx)
+    for j < rp_u {
+        t :: tokens[j]
+        if t.kind == .LParen { paren_depth = paren_depth + 1 }
+        if t.kind == .RParen { paren_depth = paren_depth - 1 }
+        if paren_depth == 0 && t.kind == .Ident && j + usize(1) < rp_u &&
+                tokens[j + usize(1)].kind == .Colon {
+            sig_end :: find_param_sig_end(tokens, j + usize(2), rp_u)
+            sig :: source.slice(t.span.start.offset, tokens[sig_end].span.end.offset).trim()
+            out.push(DeclEntry {
+                .name       = t.text,
+                .kind       = .Param,
+                .name_span  = t.span,
+                .full_span  = t.span,
+                .signature  = sig,
+                .doc        = "",
+                .scope_span = body_scope,
+            })
+            j = sig_end + usize(1)
+            continue
+        }
+        j = j + usize(1)
+    }
+
+    // Walk the body : collect locals (`IDENT ::` / `IDENT :=`) and
+    // for-in bindings (`for IDENT in ...`). Each binding's
+    // `scope_span` is the brace-balanced region that immediately
+    // encloses it ; for for-in we use the loop's own body block.
+    body_l_u :: usize(body_l)
+    body_r_u :: usize(body_r)
+    j = body_l_u + usize(1)
+    for j < body_r_u {
+        t :: tokens[j]
+
+        // `for IDENT in ...` — binding is the Ident following `for`.
+        if t.kind == .KwFor && j + usize(1) < body_r_u &&
+                tokens[j + usize(1)].kind == .Ident {
+            ident_idx :: j + usize(1)
+            next_l :: find_next_kind(tokens, ident_idx + usize(1), body_r_u, .LBrace)
+            if next_l >= 0 {
+                next_r :: brace_match[usize(next_l)]
+                if next_r > 0 {
+                    out.push(DeclEntry {
+                        .name       = tokens[ident_idx].text,
+                        .kind       = .ForIn,
+                        .name_span  = tokens[ident_idx].span,
+                        .full_span  = tokens[ident_idx].span,
+                        .signature  = "for " + tokens[ident_idx].text + " in ...",
+                        .doc        = "",
+                        .scope_span = Span {
+                            .start = tokens[usize(next_l)].span.start,
+                            .end   = tokens[usize(next_r)].span.end,
+                        },
+                    })
+                }
+            }
+            j = ident_idx + usize(1)
+            continue
+        }
+
+        // Local : `IDENT ::` or `IDENT :=`. Defensive — skip when
+        // the RHS would start with a top-level decl keyword (fn /
+        // struct / enum / trait), which Vader doesn't allow inside a
+        // body anyway but the heuristic stays robust against
+        // parser-error states.
+        if t.kind == .Ident && j + usize(1) < body_r_u {
+            nk :: tokens[j + usize(1)].kind
+            if nk == .DeclConst || nk == .DeclVar {
+                rhs_ok := true
+                if j + usize(2) < body_r_u {
+                    rhs :: tokens[j + usize(2)].kind
+                    if rhs == .KwFn     { rhs_ok = false }
+                    if rhs == .KwStruct { rhs_ok = false }
+                    if rhs == .KwEnum   { rhs_ok = false }
+                    if rhs == .KwTrait  { rhs_ok = false }
+                }
+                if rhs_ok {
+                    enc_r :: find_enclosing_rbrace(tokens, brace_match, j)
+                    if enc_r >= 0 {
+                        scope :: Span {
+                            .start = t.span.start,
+                            .end   = tokens[usize(enc_r)].span.end,
+                        }
+                        local_end :: find_local_end(tokens, j, body_r_u)
+                        sig :: source.slice(
+                            t.span.start.offset,
+                            tokens[local_end].span.end.offset,
+                        ).trim()
+                        out.push(DeclEntry {
+                            .name       = t.text,
+                            .kind       = .Local,
+                            .name_span  = t.span,
+                            .full_span  = t.span,
+                            .signature  = sig,
+                            .doc        = "",
+                            .scope_span = scope,
+                        })
+                    }
+                }
+            }
+        }
+        j = j + usize(1)
+    }
+}
+
+// Find the index of the first token with `kind` in `[start, end)`,
+// or -1 when none.
+find_next_kind :: fn(tokens: Token[], start: usize, end: usize, kind: TokenKind) -> i32 {
+    i: usize = start
+    for i < end {
+        if tokens[i].kind == kind { return i32(i) }
+        i = i + usize(1)
+    }
+    return -1
+}
+
+// Find the `)` matching the `(` at `lp_idx`. Returns -1 on imbalance.
+find_matching_rparen :: fn(tokens: Token[], lp_idx: i32, n: usize) -> i32 {
+    depth: i32 = 0
+    i: usize = usize(lp_idx)
+    for i < n {
+        k :: tokens[i].kind
+        if k == .LParen { depth = depth + 1 }
+        if k == .RParen {
+            depth = depth - 1
+            if depth == 0 { return i32(i) }
+        }
+        i = i + usize(1)
+    }
+    return -1
+}
+
+// Locate the end of a param's signature slice : walk forward from
+// `start` until we hit a top-level `,` or `)` at the param-list's
+// own paren depth. The returned index is the token BEFORE the
+// terminator so the slice reads cleanly.
+find_param_sig_end :: fn(tokens: Token[], start: usize, rp_u: usize) -> usize {
+    depth: i32 = 0
+    last :: start
+    i: usize = start
+    last_solid: usize = start
+    for i < rp_u {
+        t :: tokens[i]
+        if t.kind == .LParen { depth = depth + 1 }
+        if t.kind == .RParen { depth = depth - 1 }
+        if depth == 0 && t.kind == .Comma { return last_solid }
+        if t.kind != .Newline { last_solid = i }
+        i = i + usize(1)
+    }
+    if last_solid >= start { return last_solid }
+    return last
+}
+
+// Walk backward from `idx` to find the `}` of the nearest enclosing
+// brace block. Returns -1 if the search runs out of tokens before
+// finding one. Cheap : bounded by the local nesting depth.
+find_enclosing_rbrace :: fn(tokens: Token[], brace_match: i32[], idx: usize) -> i32 {
+    skip: i32 = 0
+    j: i32 = i32(idx) - 1
+    for j >= 0 {
+        k :: tokens[usize(j)].kind
+        if k == .RBrace { skip = skip + 1 }
+        if k == .LBrace {
+            if skip == 0 {
+                r :: brace_match[usize(j)]
+                if r > 0 { return r }
+                return -1
+            }
+            skip = skip - 1
+        }
+        j = j - 1
+    }
+    return -1
+}
+
+// End of a local binding's source : forward from its IDENT until the
+// first newline or `}` at depth 0. The slice gives a one-line sig
+// for hover. Falls back to `start` when nothing usable was found.
+find_local_end :: fn(tokens: Token[], start: usize, body_r_u: usize) -> usize {
+    depth: i32 = 0
+    last :: start
+    i: usize = start
+    last_solid: usize = start
+    for i < body_r_u {
+        t :: tokens[i]
+        if t.kind == .LBrace { depth = depth + 1 }
+        if t.kind == .RBrace {
+            if depth == 0 { return last_solid }
+            depth = depth - 1
+        }
+        if depth == 0 && t.kind == .Newline && i > start {
+            return last_solid
+        }
+        if t.kind != .Newline { last_solid = i }
+        i = i + usize(1)
+    }
+    if last_solid >= start { return last_solid }
+    return last
 }
 
 // True when `tokens[i]` is followed by `::` (with an optional preceding
@@ -283,13 +580,52 @@ token_name_at :: fn(tokens: Token[], offset: usize) -> string {
     return ""
 }
 
-// Linear scan of the decl table. The first match wins (Vader doesn't
-// allow overload at the top level for two same-named non-fn decls).
-lookup_by_name :: fn(decls: DeclEntry[], name: string) -> DeclEntry | null {
-    for d in decls {
-        if d.name == name { return d }
+// Linear scan of the decl table : among entries matching `name`,
+// pick the one whose visibility region most tightly contains `offset`.
+// Top-level decls (`scope_span = null`) act as the file-wide fallback ;
+// any intra-file binding with a containing scope wins over them
+// (innermost-scope semantics). Among intra-file bindings, the
+// smallest scope wins — that gives the right answer for nested
+// blocks where an inner binding shadows an outer one.
+lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclEntry | null {
+    has_best := false
+    best_idx: usize = 0
+    best_size: usize = usize(0)
+    i: usize = 0
+    n :: decls.len()
+    for i < n {
+        d :: decls[i]
+        if d.name != name {
+            i = i + usize(1)
+            continue
+        }
+        match d.scope_span {
+            is null -> {
+                // File-wide fallback : record only if no scoped match
+                // has won yet (we'll prefer a scoped match below).
+                if !has_best {
+                    best_idx = i
+                    best_size = usize(0) // sentinel : null-scope
+                    has_best = true
+                }
+            }
+            is Span as sp -> {
+                if sp.start.offset <= offset && offset < sp.end.offset {
+                    size :: sp.end.offset - sp.start.offset
+                    // Prefer this scoped match over a null-scope
+                    // baseline, or over a larger scoped match.
+                    if !has_best || best_size == usize(0) || size < best_size {
+                        best_idx = i
+                        best_size = size
+                        has_best = true
+                    }
+                }
+            }
+        }
+        i = i + usize(1)
     }
-    return null
+    if !has_best { return null }
+    return decls[best_idx]
 }
 
 // ---- LSP position conversion ---------------------------------------------

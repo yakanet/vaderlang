@@ -230,6 +230,102 @@ test("lsp: empty document doesn't crash, returns null on lookups", async () => {
   expect(results[1]!.result).toBeNull();
 }, { timeout: 60_000 });
 
+// Bindings : params + locals + for-in. Each runs in its own session so
+// the assertion failures point at a single concept.
+const BINDINGS_SOURCE = `import "std/io" { println }
+
+double :: fn(x: i32) -> i32 {
+    y :: x * 2
+    return y
+}
+
+main :: fn() -> i32 {
+    nums :: [1, 2, 3]
+    for n in nums {
+        println("\${double(n)}")
+    }
+    return 0
+}
+`;
+
+test("lsp: goto-def jumps to fn param", async () => {
+  if (!ENABLED) return;
+  // Position of `x` inside `y :: x * 2` at line 3.
+  // Line content : "    y :: x * 2"  → `x` at character 9.
+  const results = await driveLsp(BINDINGS_SOURCE, [
+    { method: "textDocument/definition", position: { line: 3, character: 9 } },
+  ]);
+  const loc = results[0]!.result as Location;
+  // Param `x` lives in the fn signature on line 2 : `double :: fn(x: i32) ...`
+  // → `x` at character 13.
+  expect(loc.range.start).toEqual({ line: 2, character: 13 });
+  expect(loc.range.end).toEqual({ line: 2, character: 14 });
+}, { timeout: 60_000 });
+
+test("lsp: hover on fn param shows its type", async () => {
+  if (!ENABLED) return;
+  const results = await driveLsp(BINDINGS_SOURCE, [
+    { method: "textDocument/hover", position: { line: 3, character: 9 } },
+  ]);
+  const hov = results[0]!.result as Hover;
+  expect(hov.contents.kind).toBe("markdown");
+  expect(hov.contents.value).toContain("```vader\nx: i32\n```");
+}, { timeout: 60_000 });
+
+test("lsp: goto-def jumps to local let-binding", async () => {
+  if (!ENABLED) return;
+  // `return y` on line 4 — `y` at character 11.
+  // Local `y` is declared on line 3 at character 4 : `    y :: x * 2`.
+  const results = await driveLsp(BINDINGS_SOURCE, [
+    { method: "textDocument/definition", position: { line: 4, character: 11 } },
+  ]);
+  const loc = results[0]!.result as Location;
+  expect(loc.range.start).toEqual({ line: 3, character: 4 });
+  expect(loc.range.end).toEqual({ line: 3, character: 5 });
+}, { timeout: 60_000 });
+
+test("lsp: hover on local shows its binding form", async () => {
+  if (!ENABLED) return;
+  const results = await driveLsp(BINDINGS_SOURCE, [
+    { method: "textDocument/hover", position: { line: 4, character: 11 } },
+  ]);
+  const hov = results[0]!.result as Hover;
+  expect(hov.contents.value).toContain("```vader\ny :: x * 2\n```");
+}, { timeout: 60_000 });
+
+test("lsp: goto-def jumps to for-in binding", async () => {
+  if (!ENABLED) return;
+  // Inside the for body : `println("${double(n)}")` on line 10.
+  // `n` sits at character 26 (inside `double(n)`).
+  // The binding `n` is on line 9 : `    for n in nums {` → `n` at character 8.
+  const results = await driveLsp(BINDINGS_SOURCE, [
+    { method: "textDocument/definition", position: { line: 10, character: 26 } },
+  ]);
+  const loc = results[0]!.result as Location;
+  expect(loc.range.start).toEqual({ line: 9, character: 8 });
+  expect(loc.range.end).toEqual({ line: 9, character: 9 });
+}, { timeout: 60_000 });
+
+test("lsp: param goto-def is not visible outside its fn body", async () => {
+  if (!ENABLED) return;
+  // `x` is a param of `double` (lines 2-5). Click on the `x` of `i32`
+  // type name later in `main` — there's no `x` named there, so the
+  // lookup should NOT bleed through to the param.
+  const src = `double :: fn(x: i32) -> i32 {
+    return x * 2
+}
+
+main :: fn() -> i32 {
+    return 0
+}
+`;
+  // Click on `0` literal on line 5 char 11 — definitely not on any identifier.
+  const results = await driveLsp(src, [
+    { method: "textDocument/definition", position: { line: 5, character: 11 } },
+  ]);
+  expect(results[0]!.result).toBeNull();
+}, { timeout: 60_000 });
+
 test("lsp: initialize advertises definition + hover providers", async () => {
   if (!ENABLED) return;
 
