@@ -232,7 +232,7 @@ export function wrapArrayAsIter(
   ctx: FnLowerCtx, arrLowered: LoweredExpr, element: Type,
   outerSpan: Span, innerSpan: Span = outerSpan,
 ): LoweredExpr | null {
-  const arrayIterType = findCoreType(ctx, CORE_STRUCTS.ArrayIter, [element]);
+  const arrayIterType = findCoreType(ctx, CORE_STRUCTS.ArrayIterator, [element]);
   if (arrayIterType === null) return null;
   const ref = isIdempotentRead(arrLowered) ? arrLowered : null;
   if (ref !== null) return buildArrayIterLit(arrayIterType, ref, ref, outerSpan, innerSpan);

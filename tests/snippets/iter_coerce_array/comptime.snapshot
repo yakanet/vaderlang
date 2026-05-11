@@ -5,7 +5,4 @@
 ## generic instances
   Iterator(i32)
   Yielded(i32)
-  ArrayIter(i32)
-
-# Diagnostics
-[16:18] error[T3009] field does not exist on this type: `step` on Iterator(i32)
+  ArrayIterator(i32)

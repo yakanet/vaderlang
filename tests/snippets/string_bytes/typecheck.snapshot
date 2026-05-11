@@ -13,7 +13,7 @@
   expr 15:14    FieldExpr      :: fn() -> StringBytes
   expr 15:14    StringLitExpr  :: string
   expr 16:17    StringLitExpr  :: string
-  expr 16:20    IdentExpr      :: ?
+  expr 16:20    IdentExpr      :: u8
   expr 16:9     CallExpr       :: void
   expr 16:9     IdentExpr      :: fn(Display) -> void
   expr 21:12    StringLitExpr  :: string
@@ -68,5 +68,5 @@
   expr 9:15     IdentExpr      :: u32
   expr 9:21     CallExpr       :: u32
   expr 9:21     IdentExpr      :: type
-  expr 9:25     IdentExpr      :: ?
+  expr 9:25     IdentExpr      :: u8
   expr 9:9      IdentExpr      :: u32

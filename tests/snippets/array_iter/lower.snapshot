@@ -10,8 +10,8 @@
         int(40) :i32
     let sum: i32 = int(0) :i32
     block :void
-      let __iter_0: ArrayIter(i32) =
-        ArrayIter(i32) {
+      let __iter_0: ArrayIterator(i32) =
+        ArrayIterator(i32) {
           arr: arr :i32[]
           cursor: int(0) :usize
           length:
@@ -23,7 +23,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :ArrayIter(i32)
+              __iter_0 :ArrayIterator(i32)
         if :void
           cond:
             is Done :bool
@@ -71,8 +71,8 @@
         int(0) :i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_3: ArrayIter(i32) =
-        ArrayIter(i32) {
+      let __iter_3: ArrayIterator(i32) =
+        ArrayIterator(i32) {
           arr: empty :i32[]
           cursor: int(0) :usize
           length:
@@ -84,7 +84,7 @@
             callee:
               next :?
             arg0:
-              __iter_3 :ArrayIter(i32)
+              __iter_3 :ArrayIterator(i32)
         if :void
           cond:
             is Done :bool

@@ -28,8 +28,8 @@
                   __sb_0 :?
     let first: bool = true
     block :void
-      let __iter_1: ArrayIter(string) =
-        ArrayIter(string) {
+      let __iter_1: ArrayIterator(string) =
+        ArrayIterator(string) {
           arr: argv :string[]
           cursor: int(0) :usize
           length:
@@ -41,7 +41,7 @@
             callee:
               next :?
             arg0:
-              __iter_1 :ArrayIter(string)
+              __iter_1 :ArrayIterator(string)
         if :void
           cond:
             is Done :bool

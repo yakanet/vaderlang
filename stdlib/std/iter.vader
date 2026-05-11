@@ -1,17 +1,32 @@
-// std/iter — array-based combinators.
+// std/iter — array-based eager combinators + lazy iterator chains.
 //
-// All functions here take `T[]` as their primary input and return either a
-// fresh array or a folded value. They run eagerly — there's no lazy
-// pipeline yet — but `for x in arr` and `for i in 0..<n` keep iteration
-// idiomatic at the call site.
+// Two shapes coexist :
 //
-// Why no `Iterator($T)` parameter forms today : the lowerer can dispatch
-// `for x in it` through a static `step` impl when `it`'s static type is a
-// known struct (Range, ArrayIter, user iterators), but it can't yet box a
-// concrete iterator into a trait-object `Iterator(T)` value or call its
-// `step` through dynamic dispatch — both required to make a fn signature
-// `fn(it: Iterator($T))` actually work at runtime. Until trait-object
-// boxing + vtable dispatch land (TODO §3.5), keep one obvious shape.
+//   1. **Eager** : functions like `map` / `filter` / `take` / `skip` /
+//      `fold` / `sum` take a `T[]` array, allocate a fresh result array
+//      (or fold to a single value), and return immediately. Best for
+//      one-shot transformations where the result lives anyway.
+//
+//   2. **Lazy** : the `*Iterator` structs at the bottom of this file
+//      (`MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator`)
+//      wrap a source `Iterator(T)` and produce one element at a time via
+//      their `Iterator(U)` impl. Useful when chaining transformations
+//      without materialising intermediate arrays. Construct directly
+//      with the struct literal :
+//
+//          mi :: MapIterator(i32, i32) {
+//              .source = 0..<10,
+//              .f      = fn(x: i32) -> i32 { return x * x },
+//          }
+//          for sq in mi { /* … */ }
+//
+//      No `lazy_map(it, f)` constructor helper — generic-fn inference on
+//      a trait-typed parameter (`fn[T](it: Iterator(T))`) doesn't unify
+//      `T` from the concrete arg today, so the explicit type-args on the
+//      struct literal carry the substitution instead. The trade-off is
+//      one extra `(T, U)` per call site ; the upside is zero new compiler
+//      support beyond what already works (struct lit with a trait-typed
+//      field auto-boxes the source).
 
 /// Number of items in the array. Trivial wrapper over `arr.len()` ;
 /// exposed for symmetry with the future Iterator-driven `count(it)`.
@@ -196,4 +211,113 @@ export flat_map :: fn[T, U](arr: T[], f: fn(T) -> U[]) -> U[] {
         }
     }
     return out
+}
+
+// ============================================================================
+// Lazy iterator chains
+// ============================================================================
+//
+// Each combinator below is a struct that *wraps* a source `Iterator(T)` and
+// implements `Iterator(U)` itself. Chained transformations stay lazy : an
+// element only flows through the chain when the downstream consumer calls
+// `next()` (or `for x in chain {…}` does).
+//
+// Construction goes through the struct literal — see the module header for
+// the rationale (no fn helper because of a generic-inference limitation on
+// trait-typed parameters).
+
+/// Lazy map. `next()` pulls one item from `source`, transforms it via `f`,
+/// and yields it. Stops when the source is exhausted.
+/// Construct as `MapIterator(T, U) { .source = it, .f = mapper }`.
+export MapIterator :: struct[T, U] {
+    source: Iterator(T)
+    f:      fn(T) -> U
+}
+
+MapIterator[T, U] implements Iterator[U] {
+    next :: fn(self) -> Done | Yielded(U) {
+        match self.source.next() {
+            is Done            -> { return Done {} }
+            is Yielded(T) as y -> { return Yielded(U) { .value = self.f(y.value) } }
+        }
+        return Done {}
+    }
+}
+
+/// Lazy filter. `next()` pulls items from `source` until `pred` returns
+/// `true` ; that one is yielded, the next call resumes the search.
+/// Construct as `FilterIterator(T) { .source = it, .pred = predicate }`.
+export FilterIterator :: struct[T] {
+    source: Iterator(T)
+    pred:   fn(T) -> bool
+}
+
+FilterIterator[T] implements Iterator[T] {
+    next :: fn(self) -> Done | Yielded(T) {
+        finished := false
+        for !finished {
+            match self.source.next() {
+                is Done            -> { finished = true }
+                is Yielded(T) as y -> {
+                    if self.pred(y.value) {
+                        return Yielded(T) { .value = y.value }
+                    }
+                }
+            }
+        }
+        return Done {}
+    }
+}
+
+/// Lazy take. Yields the first `remaining` items from `source` and then
+/// stops. `remaining` counts down across calls — once it hits zero the
+/// iterator returns `Done` even if `source` still has items.
+/// Construct as `TakeIterator(T) { .source = it, .remaining = n }`.
+export TakeIterator :: struct[T] {
+    source:    Iterator(T)
+    remaining: usize
+}
+
+TakeIterator[T] implements Iterator[T] {
+    next :: fn(self) -> Done | Yielded(T) {
+        if self.remaining == 0 { return Done {} }
+        match self.source.next() {
+            is Done            -> { return Done {} }
+            is Yielded(T) as y -> {
+                self.remaining = self.remaining - 1
+                return Yielded(T) { .value = y.value }
+            }
+        }
+        return Done {}
+    }
+}
+
+/// Lazy skip. Drops the first `remaining` items from `source` on the first
+/// `next()` call, then forwards every subsequent item. After the prefix is
+/// consumed `remaining` stays at zero so the steady state is a pass-through.
+/// Construct as `SkipIterator(T) { .source = it, .remaining = n }`.
+export SkipIterator :: struct[T] {
+    source:    Iterator(T)
+    remaining: usize
+}
+
+SkipIterator[T] implements Iterator[T] {
+    next :: fn(self) -> Done | Yielded(T) {
+        for self.remaining > 0 {
+            match self.source.next() {
+                is Done       -> {
+                    self.remaining = 0
+                    return Done {}
+                }
+                is Yielded(T) -> {
+                    self.remaining = self.remaining - 1
+                }
+            }
+        }
+        match self.source.next() {
+            is Done            -> { return Done {} }
+            is Yielded(T) as y -> { return Yielded(T) { .value = y.value } }
+        }
+        return Done {}
+    }
 }

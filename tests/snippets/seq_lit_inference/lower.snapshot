@@ -8,8 +8,8 @@
         int(20) :i32
         int(30) :i32
     block :void
-      let __iter_0: ArrayIter(i32) =
-        ArrayIter(i32) {
+      let __iter_0: ArrayIterator(i32) =
+        ArrayIterator(i32) {
           arr: scores :i32[]
           cursor: int(0) :usize
           length:
@@ -21,7 +21,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :ArrayIter(i32)
+              __iter_0 :ArrayIterator(i32)
         if :void
           cond:
             is Done :bool

@@ -18,9 +18,9 @@ type 15 struct std_collections$MutableMap__i32__bool { buckets:16,size:6 }
 type 16 array 10
 type 17 struct std_collections$MutableMap__string__i32 { buckets:18,size:6 }
 type 18 array 14
-type 19 struct std_collections$MapIter__string__i32 { map:17,bucket_cursor:6,chain_cursor:14 }
+type 19 struct std_collections$MapIterator__string__i32 { map:17,bucket_cursor:6,chain_cursor:14 }
 type 20 struct std_collections$MutableSet__i32 { inner:15 }
-type 21 struct std_collections$SetIter__i32 { set:20,bucket_cursor:6,chain_cursor:10 }
+type 21 struct std_collections$SetIterator__i32 { set:20,bucket_cursor:6,chain_cursor:10 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -44,7 +44,7 @@ fn 0 tests_snippets_map_set_iter__main_vader$main () -> i32
   local "__step_4#83" ref
   local "__sb_5#86" any
   local "v#92" i32
-  local "$field_20#96" any
+  local "$field_20#96" i32
   array.new 18 0   ; _main.vader:6:47
   local.set 0   ; _main.vader:6:47
   local.get 0   ; _main.vader:6:10
@@ -317,7 +317,7 @@ fn 10 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) -
   return   ; collections.vader:181:38
 end
 
-fn 11 std_collections$MapIter$Iterator$next__string__i32 (ref) -> ref
+fn 11 std_collections$MapIterator$Iterator$next__string__i32 (ref) -> ref
   local "finished#25" bool
   local "cur#27" ref
   local "__scrut_0#28" ref
@@ -414,7 +414,7 @@ fn 11 std_collections$MapIter$Iterator$next__string__i32 (ref) -> ref
   return   ; collections.vader:274:9
 end
 
-fn 12 std_collections$SetIter$Iterator$next__i32 (ref) -> ref
+fn 12 std_collections$SetIterator$Iterator$next__i32 (ref) -> ref
   local "finished#28" bool
   local "cur#30" ref
   local "__scrut_0#31" ref
@@ -984,8 +984,8 @@ end
 
 fn 16 std_collections$std_collections$iter__string__i32 (ref) -> ref
   local "$k_2#5" null
-  null.const   ; collections.vader:248:77
-  local.set 1   ; collections.vader:248:77
+  null.const   ; collections.vader:248:81
+  local.set 1   ; collections.vader:248:81
   local.get 0   ; collections.vader:248:12
   i64.const 0   ; collections.vader:248:12
   i64.to_usize   ; collections.vader:248:12
@@ -1018,8 +1018,8 @@ end
 
 fn 18 std_collections$std_collections$iter__i32 (ref) -> ref
   local "$k_2#5" null
-  null.const   ; collections.vader:338:74
-  local.set 1   ; collections.vader:338:74
+  null.const   ; collections.vader:338:78
+  local.set 1   ; collections.vader:338:78
   local.get 0   ; collections.vader:338:12
   i64.const 0   ; collections.vader:338:12
   i64.to_usize   ; collections.vader:338:12

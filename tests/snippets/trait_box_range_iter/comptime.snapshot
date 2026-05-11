@@ -8,10 +8,7 @@
   Iterator(i32)
   Yielded(i32)
   Range(i32)
-  ArrayIter(i32)
+  ArrayIterator(i32)
   Doubler(i32)
   invoke(i32)
   twice(i32)
-
-# Diagnostics
-[15:18] error[T3009] field does not exist on this type: `step` on Iterator($T)

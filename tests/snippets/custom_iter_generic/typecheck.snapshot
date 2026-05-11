@@ -40,9 +40,9 @@
   expr 16:38    IdentExpr      :: $T
   expr 22:11    StructLitExpr  :: Repeat(i32)
   expr 24:14    IdentExpr      :: Repeat(i32)
-  expr 25:15    BinaryExpr     :: ?
+  expr 25:15    BinaryExpr     :: i32
   expr 25:15    IdentExpr      :: i32
-  expr 25:21    IdentExpr      :: ?
+  expr 25:21    IdentExpr      :: i32
   expr 25:9     IdentExpr      :: i32
   expr 28:13    StringLitExpr  :: string
   expr 28:16    IdentExpr      :: i32

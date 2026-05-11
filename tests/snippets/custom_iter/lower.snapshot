@@ -192,9 +192,9 @@
                     block :string
                       let __sb_2: ? =
                         @builder.new :?
-                      @builder.append_str :void
+                      @builder.append_display <for i32> :void
                         __sb_2 :?
-                        x :?
+                        x :i32
                       ~>
                         @builder.finish :string
                           __sb_2 :?

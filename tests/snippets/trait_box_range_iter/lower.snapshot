@@ -28,14 +28,14 @@
         callee:
           count :i32
         arg0:
-          block :ArrayIter(i32)
+          block :ArrayIterator(i32)
             let __arr_0: i32[] =
               array :i32[]
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
             ~>
-              ArrayIter(i32) {
+              ArrayIterator(i32) {
                 arr: __arr_0 :i32[]
                 cursor: int(0) :usize
                 length:
@@ -74,16 +74,15 @@
     loop while (cont :bool)
       ~>
         block :void
-          let __scrut_0: ? =
-            call :?
-              callee:
-                .step :?
-                  it :Iterator(i32)
+          let __scrut_0: Done | Yielded(i32) =
+            vcall Iterator.next :Done | Yielded(i32)
+              recv:
+                it :Iterator(i32)
           ~>
             if :void
               cond:
                 is Done :bool
-                  __scrut_0 :?
+                  __scrut_0 :Done | Yielded(i32)
               then:
                 ~>
                   block :void
@@ -97,7 +96,7 @@
                   if :void
                     cond:
                       is Yielded(i32) :bool
-                        __scrut_0 :?
+                        __scrut_0 :Done | Yielded(i32)
                     then:
                       ~>
                         block :void
@@ -124,6 +123,3 @@
       vcall Doubler.doubled :i32
         recv:
           x :Doubler(i32)
-
-# Diagnostics
-[15:18] error[T3009] field does not exist on this type: `step` on Iterator($T)

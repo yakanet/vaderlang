@@ -1,10 +1,10 @@
 // Implicit `[T]` → `Iterator(T)` coercion at three slot kinds: call arg,
 // `let` with explicit type annotation, and `return` from a fn typed
 // `Iterator(T)`. Without the coercion the typecheck would emit T3001 and
-// the lowerer would never wrap the array into `ArrayIter(T)`. The
+// the lowerer would never wrap the array into `ArrayIterator(T)`. The
 // `arrayIterCoercions` side-table populated by the typechecker (`call.ts`,
 // `stmt.ts`) is consumed by `lowerExpr` (`expr.ts`) to materialise the
-// wrap; the comptime engine pre-registers the matching `ArrayIter(T)`
+// wrap; the comptime engine pre-registers the matching `ArrayIterator(T)`
 // instance so mono materialises the specialised step impl.
 
 import "std/io" { println }
@@ -13,7 +13,7 @@ walk :: fn(it: Iterator(i32)) -> i32 {
     sum := 0
     cont := true
     for cont {
-        match it.step() {
+        match it.next() {
             is Done -> { cont = false }
             is Yielded(i32) as y -> { sum = sum + y.value }
         }

@@ -2,13 +2,13 @@
 
 ## tests/snippets/map_set_iter/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 11:18    CallExpr       :: MapIter(string, i32)
-  expr 11:18    FieldExpr      :: fn() -> MapIter($K, $V)
+  expr 11:18    CallExpr       :: MapIterator(string, i32)
+  expr 11:18    FieldExpr      :: fn() -> MapIterator($K, $V)
   expr 11:18    IdentExpr      :: MutableMap(string, i32)
-  expr 12:17    BinaryExpr     :: ?
+  expr 12:17    BinaryExpr     :: i32
   expr 12:17    IdentExpr      :: i32
-  expr 12:25    FieldExpr      :: ?
-  expr 12:25    IdentExpr      :: ?
+  expr 12:25    FieldExpr      :: i32
+  expr 12:25    IdentExpr      :: Entry(string, i32)
   expr 12:9     IdentExpr      :: i32
   expr 14:13    StringLitExpr  :: string
   expr 14:24    IdentExpr      :: i32
@@ -26,12 +26,12 @@
   expr 20:5     CallExpr       :: bool
   expr 20:5     FieldExpr      :: fn($T) -> bool
   expr 20:5     IdentExpr      :: MutableSet(i32)
-  expr 22:14    CallExpr       :: SetIter(i32)
-  expr 22:14    FieldExpr      :: fn() -> SetIter($T)
+  expr 22:14    CallExpr       :: SetIterator(i32)
+  expr 22:14    FieldExpr      :: fn() -> SetIterator($T)
   expr 22:14    IdentExpr      :: MutableSet(i32)
-  expr 23:15    BinaryExpr     :: ?
+  expr 23:15    BinaryExpr     :: i32
   expr 23:15    IdentExpr      :: i32
-  expr 23:21    IdentExpr      :: ?
+  expr 23:21    IdentExpr      :: i32
   expr 23:9     IdentExpr      :: i32
   expr 25:13    StringLitExpr  :: string
   expr 25:24    IdentExpr      :: i32

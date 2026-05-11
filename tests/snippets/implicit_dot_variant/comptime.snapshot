@@ -4,4 +4,4 @@
 
 ## generic instances
   Yielded(Day)
-  ArrayIter(Day)
+  ArrayIterator(Day)

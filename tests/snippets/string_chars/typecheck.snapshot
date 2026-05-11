@@ -9,7 +9,7 @@
   expr 13:14    FieldExpr      :: fn() -> StringChars
   expr 13:14    StringLitExpr  :: string
   expr 14:17    StringLitExpr  :: string
-  expr 14:20    IdentExpr      :: ?
+  expr 14:20    IdentExpr      :: char
   expr 14:9     CallExpr       :: void
   expr 14:9     IdentExpr      :: fn(Display) -> void
   expr 19:14    CallExpr       :: StringChars
@@ -44,6 +44,6 @@
   expr 7:14     FieldExpr      :: fn() -> StringChars
   expr 7:14     StringLitExpr  :: string
   expr 8:17     StringLitExpr  :: string
-  expr 8:20     IdentExpr      :: ?
+  expr 8:20     IdentExpr      :: char
   expr 8:9      CallExpr       :: void
   expr 8:9      IdentExpr      :: fn(Display) -> void

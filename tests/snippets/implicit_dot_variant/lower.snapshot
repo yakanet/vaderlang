@@ -65,8 +65,8 @@
         int(0) :i32
         int(2) :i32
     block :void
-      let __iter_0: ArrayIter(Day) =
-        ArrayIter(Day) {
+      let __iter_0: ArrayIterator(Day) =
+        ArrayIterator(Day) {
           arr: days :Day[]
           cursor: int(0) :usize
           length:
@@ -78,7 +78,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :ArrayIter(Day)
+              __iter_0 :ArrayIterator(Day)
         if :void
           cond:
             is Done :bool

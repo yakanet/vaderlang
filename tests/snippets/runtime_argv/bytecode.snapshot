@@ -2,7 +2,7 @@ module _main
 type 0 struct std_core$Done {  }
 type 1 struct std_core$Yielded__string { value:2 }
 type 2 primitive string
-type 3 struct std_core$ArrayIter__string { arr:4,cursor:5,length:5 }
+type 3 struct std_core$ArrayIterator__string { arr:4,cursor:5,length:5 }
 type 4 array 2
 type 5 primitive usize
 string 0 "argc="
@@ -82,7 +82,7 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   return   ; _main.vader:16:5
 end
 
-fn 1 std_core$ArrayIter$Iterator$next__string (ref) -> ref
+fn 1 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local "$field_1#12" usize
   local "$field_2#13" usize
   local "$field_5#16" ref

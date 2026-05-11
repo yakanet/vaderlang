@@ -62,7 +62,7 @@ fn 1 tests_snippets_custom_iter__main_vader$main () -> i32
         intrinsic builder.new   ; _main.vader:22:17
         local.tee 3   ; _main.vader:22:17
         local.get 2   ; _main.vader:22:18
-        intrinsic builder.append_str   ; _main.vader:22:18
+        intrinsic builder.append_display   ; _main.vader:22:18
         local.get 3   ; _main.vader:22:17
         intrinsic builder.finish   ; _main.vader:22:17
         call.import 0   ; _main.vader:22:17

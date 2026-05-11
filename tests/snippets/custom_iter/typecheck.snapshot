@@ -41,7 +41,7 @@
   expr 20:11    StructLitExpr  :: Countdown
   expr 21:14    IdentExpr      :: Countdown
   expr 22:17    StringLitExpr  :: string
-  expr 22:20    IdentExpr      :: ?
+  expr 22:20    IdentExpr      :: i32
   expr 22:9     CallExpr       :: void
   expr 22:9     IdentExpr      :: fn(Display) -> void
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded(i32)

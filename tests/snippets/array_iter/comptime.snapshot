@@ -4,4 +4,4 @@
 
 ## generic instances
   Yielded(i32)
-  ArrayIter(i32)
+  ArrayIterator(i32)

@@ -4,7 +4,7 @@
 //   1. Trait declarations (Display, Equals, Comparable, Hash, Clone,
 //      arithmetic, indexing, containment, iteration, error)
 //   2. Core struct definitions and their impls (Done, Yielded, Range,
-//      ArrayIter)
+//      ArrayIterator)
 //   3. Primitive type impls (Equals, Hash, numeric arithmetic, string)
 //
 // The base `Error` trait powering the `!T` and `?` sugar lives in §1 ; the
@@ -216,13 +216,13 @@ Range[T] implements Iterator[T] {
 /// `for x in arr`, so direct construction is rarely needed. `length` is
 /// pre-computed at construction time so `step` avoids re-querying
 /// `arr.len()` per iteration.
-export ArrayIter :: struct[T] {
+export ArrayIterator :: struct[T] {
     arr:    T[]
     cursor: usize
     length: usize
 }
 
-ArrayIter[T] implements Iterator[T] {
+ArrayIterator[T] implements Iterator[T] {
     next :: fn(self) -> Done | Yielded(T) {
         if (self.cursor >= self.length) { return Done {} }
         v :: self.arr[self.cursor]

@@ -4,13 +4,13 @@ type 1 struct std_core$Yielded__i32 { value:2 }
 type 2 primitive i32
 type 3 struct std_core$Yielded__string { value:4 }
 type 4 primitive string
-type 5 struct std_core$ArrayIter___T { arr:6,cursor:8,length:8 }
+type 5 struct std_core$ArrayIterator___T { arr:6,cursor:8,length:8 }
 type 6 array 7
 type 7 ref _
 type 8 primitive usize
-type 9 struct std_core$ArrayIter__i32 { arr:10,cursor:8,length:8 }
+type 9 struct std_core$ArrayIterator__i32 { arr:10,cursor:8,length:8 }
 type 10 array 2
-type 11 struct std_core$ArrayIter__string { arr:12,cursor:8,length:8 }
+type 11 struct std_core$ArrayIterator__string { arr:12,cursor:8,length:8 }
 type 12 array 4
 string 0 "a"
 string 1 "b"
@@ -139,7 +139,7 @@ fn 4 tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__
   return   ; _main.vader:17:5
 end
 
-fn 5 std_core$ArrayIter$Iterator$next__i32 (ref) -> ref
+fn 5 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local "$field_1#12" usize
   local "$field_2#13" usize
   local "$field_5#16" ref
@@ -188,7 +188,7 @@ fn 5 std_core$ArrayIter$Iterator$next__i32 (ref) -> ref
   end $L0   ; core.vader:227:9
 end
 
-fn 6 std_core$ArrayIter$Iterator$next__string (ref) -> ref
+fn 6 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local "$field_1#12" usize
   local "$field_2#13" usize
   local "$field_5#16" ref

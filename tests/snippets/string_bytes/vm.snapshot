@@ -1,2 +1,14 @@
-# runtime error
-vm: expected string, got u8 (at tests_snippets_string_bytes__main_vader$main+61 @ tests/snippets/string_bytes/_main.vader:16:18)
+# stdout
+-- ascii --
+sum=530
+-- multibyte --
+228
+189
+160
+-- bom --
+b0=239 b1=187 b2=191
+after bom: 100=100
+-- empty --
+done bytes=0
+# exit
+0

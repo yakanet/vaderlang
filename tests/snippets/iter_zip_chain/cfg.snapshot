@@ -36,7 +36,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %29 pairs#139: [string, i32][] (local pairs)
     %30 $k_33#140: usize
     %31 $len_34#141: usize
-    %32 __iter_2#142: ArrayIter([string, i32]) (synthetic __iter_2)
+    %32 __iter_2#142: ArrayIterator([string, i32]) (synthetic __iter_2)
     %33 $call_37#143: Done | Yielded([string, i32])
     %34 __step_3#144: Done | Yielded([string, i32]) (synthetic __step_3)
     %35 $type_check_39#145: bool
@@ -51,7 +51,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %44 joined#154: i32[] (local joined)
     %45 $k_64#155: usize
     %46 $len_65#156: usize
-    %47 __iter_6#157: ArrayIter(i32) (synthetic __iter_6)
+    %47 __iter_6#157: ArrayIterator(i32) (synthetic __iter_6)
     %48 $call_68#158: Done | Yielded(i32)
     %49 __step_7#159: Done | Yielded(i32) (synthetic __step_7)
     %50 $type_check_70#160: bool
@@ -63,7 +63,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %56 __arr_9#166: [usize, string][] (synthetic __arr_9)
     %57 $k_86#167: usize
     %58 $len_87#168: usize
-    %59 __iter_10#169: ArrayIter([usize, string]) (synthetic __iter_10)
+    %59 __iter_10#169: ArrayIterator([usize, string]) (synthetic __iter_10)
     %60 $call_90#170: Done | Yielded([usize, string])
     %61 __step_11#171: Done | Yielded([usize, string]) (synthetic __step_11)
     %62 $type_check_92#172: bool
@@ -77,7 +77,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %70 bursts#180: i32[] (local bursts)
     %71 $k_114#181: usize
     %72 $len_115#182: usize
-    %73 __iter_15#183: ArrayIter(i32) (synthetic __iter_15)
+    %73 __iter_15#183: ArrayIterator(i32) (synthetic __iter_15)
     %74 $call_118#184: Done | Yielded(i32)
     %75 __step_16#185: Done | Yielded(i32) (synthetic __step_16)
     %76 $type_check_120#186: bool
@@ -153,7 +153,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %29 = move %28
     %30 = const int(0) :usize
     %31 = array_len %29
-    %32 = struct_new ArrayIter([string, i32])(%29, %30, %31)
+    %32 = struct_new ArrayIterator([string, i32])(%29, %30, %31)
     branch -> bb1
   bb1:
     branch -> bb2
@@ -174,7 +174,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %44 = move %43
     %45 = const int(0) :usize
     %46 = array_len %44
-    %47 = struct_new ArrayIter(i32)(%44, %45, %46)
+    %47 = struct_new ArrayIterator(i32)(%44, %45, %46)
     branch -> bb7
   bb4:
     branch -> bb3
@@ -211,7 +211,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %56 = move %55
     %57 = const int(0) :usize
     %58 = array_len %56
-    %59 = struct_new ArrayIter([usize, string])(%56, %57, %58)
+    %59 = struct_new ArrayIterator([usize, string])(%56, %57, %58)
     branch -> bb13
   bb10:
     branch -> bb9
@@ -247,7 +247,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %70 = move %69
     %71 = const int(0) :usize
     %72 = array_len %70
-    %73 = struct_new ArrayIter(i32)(%70, %71, %72)
+    %73 = struct_new ArrayIterator(i32)(%70, %71, %72)
     branch -> bb19
   bb16:
     branch -> bb15

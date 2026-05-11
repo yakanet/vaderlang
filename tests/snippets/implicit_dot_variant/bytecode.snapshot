@@ -5,7 +5,7 @@ type 2 struct tests_snippets_implicit_dot_variant__main_vader$None {  }
 type 3 struct std_core$Done {  }
 type 4 struct std_core$Yielded__Day { value:5 }
 type 5 primitive i32
-type 6 struct std_core$ArrayIter__Day { arr:7,cursor:8,length:8 }
+type 6 struct std_core$ArrayIterator__Day { arr:7,cursor:8,length:8 }
 type 7 array 5
 type 8 primitive usize
 string 0 "Mon"
@@ -203,7 +203,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
   end $L3   ; _main.vader:36:9
 end
 
-fn 2 std_core$ArrayIter$Iterator$next__Day (ref) -> ref
+fn 2 std_core$ArrayIterator$Iterator$next__Day (ref) -> ref
   local "$field_1#12" usize
   local "$field_2#13" usize
   local "$field_5#16" ref

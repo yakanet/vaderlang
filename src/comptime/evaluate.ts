@@ -328,7 +328,7 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry, dia
   let arrayIterSymbol: Symbol | null = null;
   for (const m of project.modules.values()) {
     if (m.resolved.module.displayPath === "std/core") {
-      const s = m.resolved.module.symbols.get(CORE_STRUCTS.ArrayIter);
+      const s = m.resolved.module.symbols.get(CORE_STRUCTS.ArrayIterator);
       if (s !== undefined) arrayIterSymbol = s;
       break;
     }

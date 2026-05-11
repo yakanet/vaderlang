@@ -12,7 +12,7 @@ count :: fn[T](it: Iterator(T)) -> i32 {
     n := 0
     cont := true
     for cont {
-        match it.step() {
+        match it.next() {
             is Done -> { cont = false }
             is Yielded(T) -> { n = n + 1 }
         }

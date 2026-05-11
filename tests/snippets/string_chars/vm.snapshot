@@ -1,2 +1,17 @@
-# runtime error
-vm: expected string, got char (at tests_snippets_string_chars__main_vader$main+20 @ tests/snippets/string_chars/_main.vader:8:18)
+# stdout
+-- ascii --
+v
+a
+d
+e
+r
+-- multibyte --
+你
+好
+嗎
+？
+codepoints=5 bytes=6
+-- empty --
+done
+# exit
+0

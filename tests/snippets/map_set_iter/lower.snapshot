@@ -37,10 +37,10 @@
         int(3) :i32
     let total: i32 = int(0) :i32
     block :void
-      let __iter_0: MapIter(string, i32) =
-        call :MapIter(string, i32)
+      let __iter_0: MapIterator(string, i32) =
+        call :MapIterator(string, i32)
           callee:
-            iter :MapIter(string, i32)
+            iter :MapIterator(string, i32)
           arg0:
             m :MutableMap(string, i32)
       loop
@@ -49,7 +49,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :MapIter(string, i32)
+              __iter_0 :MapIterator(string, i32)
         if :void
           cond:
             is Done :bool
@@ -65,12 +65,12 @@
               target:
                 total :i32
               value:
-                add :?
+                add :i32
                   l:
                     total :i32
                   r:
-                    .value :?
-                      entry :?
+                    .value :i32
+                      entry :Entry(string, i32)
     call :void
       callee:
         println :fn(Display) -> void
@@ -123,10 +123,10 @@
         int(30) :i32
     let sum: i32 = int(0) :i32
     block :void
-      let __iter_3: SetIter(i32) =
-        call :SetIter(i32)
+      let __iter_3: SetIterator(i32) =
+        call :SetIterator(i32)
           callee:
-            iter :SetIter(i32)
+            iter :SetIterator(i32)
           arg0:
             s :MutableSet(i32)
       loop
@@ -135,7 +135,7 @@
             callee:
               next :?
             arg0:
-              __iter_3 :SetIter(i32)
+              __iter_3 :SetIterator(i32)
         if :void
           cond:
             is Done :bool
@@ -151,11 +151,11 @@
               target:
                 sum :i32
               value:
-                add :?
+                add :i32
                   l:
                     sum :i32
                   r:
-                    v :?
+                    v :i32
     call :void
       callee:
         println :fn(Display) -> void

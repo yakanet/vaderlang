@@ -1,0 +1,315 @@
+# Lower
+
+## tests/snippets/iter_lazy/_main.vader
+  fn tests_snippets_iter_lazy__main_vader$main() -> i32
+    let sq: fn(i32) -> i32 =
+      LoweredMakeClosure
+    let mi: MapIterator(i32, i32) =
+      MapIterator(i32, i32) {
+        source:
+          Range(i32) {
+            start: int(0) :i32
+            end: int(5) :i32
+            inclusive: false
+            cursor: int(0) :i32
+          }
+        f: sq :fn(i32) -> i32
+      }
+    let total: i32 = int(0) :i32
+    block :void
+      let __iter_1: MapIterator(i32, i32) = mi :MapIterator(i32, i32)
+      loop
+        let __step_2: Done | Yielded(i32) =
+          call :Done | Yielded(i32)
+            callee:
+              next :?
+            arg0:
+              __iter_1 :MapIterator(i32, i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_2 :Done | Yielded(i32)
+          then:
+            break
+          else:
+            let v: i32 =
+              .value :i32
+                cast → Yielded(i32)
+                  __step_2 :Done | Yielded(i32)
+            assign
+              target:
+                total :i32
+              value:
+                add :i32
+                  l:
+                    total :i32
+                  r:
+                    v :i32
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_3: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_3 :?
+                "map_sum=" :string
+              @builder.append_display <for i32> :void
+                __sb_3 :?
+                total :i32
+              ~>
+                @builder.finish :string
+                  __sb_3 :?
+    let is_even: fn(i32) -> bool =
+      LoweredMakeClosure
+    let fi: FilterIterator(i32) =
+      FilterIterator(i32) {
+        source:
+          Range(i32) {
+            start: int(0) :i32
+            end: int(10) :i32
+            inclusive: false
+            cursor: int(0) :i32
+          }
+        pred: is_even :fn(i32) -> bool
+      }
+    let even_count: i32 = int(0) :i32
+    let even_sum: i32 = int(0) :i32
+    block :void
+      let __iter_5: FilterIterator(i32) = fi :FilterIterator(i32)
+      loop
+        let __step_6: Done | Yielded(i32) =
+          call :Done | Yielded(i32)
+            callee:
+              next :?
+            arg0:
+              __iter_5 :FilterIterator(i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_6 :Done | Yielded(i32)
+          then:
+            break
+          else:
+            let v: i32 =
+              .value :i32
+                cast → Yielded(i32)
+                  __step_6 :Done | Yielded(i32)
+            assign
+              target:
+                even_count :i32
+              value:
+                add :i32
+                  l:
+                    even_count :i32
+                  r:
+                    int(1) :i32
+            assign
+              target:
+                even_sum :i32
+              value:
+                add :i32
+                  l:
+                    even_sum :i32
+                  r:
+                    v :i32
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_7: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_7 :?
+                "evens count=" :string
+              @builder.append_display <for i32> :void
+                __sb_7 :?
+                even_count :i32
+              @builder.append_str :void
+                __sb_7 :?
+                " sum=" :string
+              @builder.append_display <for i32> :void
+                __sb_7 :?
+                even_sum :i32
+              ~>
+                @builder.finish :string
+                  __sb_7 :?
+    let ti: TakeIterator(i32) =
+      TakeIterator(i32) {
+        source:
+          Range(i32) {
+            start: int(0) :i32
+            end: int(100) :i32
+            inclusive: false
+            cursor: int(0) :i32
+          }
+        remaining:
+          cast → usize
+            int(3) :i32
+      }
+    let take_sum: i32 = int(0) :i32
+    block :void
+      let __iter_8: TakeIterator(i32) = ti :TakeIterator(i32)
+      loop
+        let __step_9: Done | Yielded(i32) =
+          call :Done | Yielded(i32)
+            callee:
+              next :?
+            arg0:
+              __iter_8 :TakeIterator(i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_9 :Done | Yielded(i32)
+          then:
+            break
+          else:
+            let v: i32 =
+              .value :i32
+                cast → Yielded(i32)
+                  __step_9 :Done | Yielded(i32)
+            assign
+              target:
+                take_sum :i32
+              value:
+                add :i32
+                  l:
+                    take_sum :i32
+                  r:
+                    v :i32
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_10: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_10 :?
+                "take_sum=" :string
+              @builder.append_display <for i32> :void
+                __sb_10 :?
+                take_sum :i32
+              ~>
+                @builder.finish :string
+                  __sb_10 :?
+    let si: SkipIterator(i32) =
+      SkipIterator(i32) {
+        source:
+          Range(i32) {
+            start: int(0) :i32
+            end: int(10) :i32
+            inclusive: false
+            cursor: int(0) :i32
+          }
+        remaining:
+          cast → usize
+            int(7) :i32
+      }
+    let skip_count: i32 = int(0) :i32
+    let skip_first: i32 =
+      neg :{integer}
+        int(1) :i32
+    block :void
+      let __iter_11: SkipIterator(i32) = si :SkipIterator(i32)
+      loop
+        let __step_12: Done | Yielded(i32) =
+          call :Done | Yielded(i32)
+            callee:
+              next :?
+            arg0:
+              __iter_11 :SkipIterator(i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_12 :Done | Yielded(i32)
+          then:
+            break
+          else:
+            let v: i32 =
+              .value :i32
+                cast → Yielded(i32)
+                  __step_12 :Done | Yielded(i32)
+            if :void
+              cond:
+                lt :bool
+                  l:
+                    skip_first :i32
+                  r:
+                    int(0) :i32
+              then:
+                assign
+                  target:
+                    skip_first :i32
+                  value:
+                    v :i32
+            assign
+              target:
+                skip_count :i32
+              value:
+                add :i32
+                  l:
+                    skip_count :i32
+                  r:
+                    int(1) :i32
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_13: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_13 :?
+                "skip count=" :string
+              @builder.append_display <for i32> :void
+                __sb_13 :?
+                skip_count :i32
+              @builder.append_str :void
+                __sb_13 :?
+                " first=" :string
+              @builder.append_display <for i32> :void
+                __sb_13 :?
+                skip_first :i32
+              ~>
+                @builder.finish :string
+                  __sb_13 :?
+    return int(0) :i32
+  struct __lambda_env_2 {  }
+  fn __lambda_1(__env_0: __lambda_env_2, x: i32) -> i32
+    return
+      mul :i32
+        l:
+          x :i32
+        r:
+          x :i32
+  struct __lambda_env_8 {  }
+  fn __lambda_7(__env_4: __lambda_env_8, x: i32) -> bool
+    return
+      eq :bool
+        l:
+          mod :i32
+            l:
+              x :i32
+            r:
+              int(2) :i32
+        r:
+          int(0) :i32

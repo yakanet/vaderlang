@@ -81,8 +81,8 @@
         arg1:
           vals :i32[]
     block :void
-      let __iter_2: ArrayIter([string, i32]) =
-        ArrayIter([string, i32]) {
+      let __iter_2: ArrayIterator([string, i32]) =
+        ArrayIterator([string, i32]) {
           arr: pairs :[string, i32][]
           cursor: int(0) :usize
           length:
@@ -94,7 +94,7 @@
             callee:
               next :?
             arg0:
-              __iter_2 :ArrayIter([string, i32])
+              __iter_2 :ArrayIterator([string, i32])
         if :void
           cond:
             is Done :bool
@@ -154,8 +154,8 @@
         arg1:
           tail :i32[]
     block :void
-      let __iter_6: ArrayIter(i32) =
-        ArrayIter(i32) {
+      let __iter_6: ArrayIterator(i32) =
+        ArrayIterator(i32) {
           arr: joined :i32[]
           cursor: int(0) :usize
           length:
@@ -167,7 +167,7 @@
             callee:
               next :?
             arg0:
-              __iter_6 :ArrayIter(i32)
+              __iter_6 :ArrayIterator(i32)
         if :void
           cond:
             is Done :bool
@@ -205,8 +205,8 @@
         "banana" :string
         "cherry" :string
     block :void
-      let __iter_10: ArrayIter([usize, string]) =
-        block :ArrayIter([usize, string])
+      let __iter_10: ArrayIterator([usize, string]) =
+        block :ArrayIterator([usize, string])
           let __arr_9: [usize, string][] =
             call :[usize, string][]
               callee:
@@ -214,7 +214,7 @@
               arg0:
                 fruits :string[]
           ~>
-            ArrayIter([usize, string]) {
+            ArrayIterator([usize, string]) {
               arr: __arr_9 :[usize, string][]
               cursor: int(0) :usize
               length:
@@ -226,7 +226,7 @@
             callee:
               next :?
             arg0:
-              __iter_10 :ArrayIter([usize, string])
+              __iter_10 :ArrayIterator([usize, string])
         if :void
           cond:
             is Done :bool
@@ -280,8 +280,8 @@
         arg1:
           LoweredMakeClosure
     block :void
-      let __iter_15: ArrayIter(i32) =
-        ArrayIter(i32) {
+      let __iter_15: ArrayIterator(i32) =
+        ArrayIterator(i32) {
           arr: bursts :i32[]
           cursor: int(0) :usize
           length:
@@ -293,7 +293,7 @@
             callee:
               next :?
             arg0:
-              __iter_15 :ArrayIter(i32)
+              __iter_15 :ArrayIterator(i32)
         if :void
           cond:
             is Done :bool

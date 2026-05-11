@@ -48,7 +48,7 @@
                     sum :u32
                   r:
                     cast → u32
-                      b :?
+                      b :u8
     call :void
       callee:
         println :fn(Display) -> void
@@ -114,9 +114,9 @@
                     block :string
                       let __sb_5: ? =
                         @builder.new :?
-                      @builder.append_str :void
+                      @builder.append_display <for u8> :void
                         __sb_5 :?
-                        b :?
+                        b :u8
                       ~>
                         @builder.finish :string
                           __sb_5 :?

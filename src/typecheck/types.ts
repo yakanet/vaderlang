@@ -60,10 +60,10 @@ export const CORE_TRAITS = {
 
 /** Names of stdlib core structs the compiler refers to by symbol. */
 export const CORE_STRUCTS = {
-  Range:     "Range",
-  ArrayIter: "ArrayIter",
-  Done:      "Done",
-  Yielded:   "Yielded",
+  Range:          "Range",
+  ArrayIterator:  "ArrayIterator",
+  Done:           "Done",
+  Yielded:        "Yielded",
 } as const;
 
 export interface PrimitiveType {

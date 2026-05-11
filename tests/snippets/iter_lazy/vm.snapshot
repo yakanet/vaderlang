@@ -1,0 +1,7 @@
+# stdout
+map_sum=30
+evens count=5 sum=20
+take_sum=3
+skip count=3 first=7
+# exit
+0

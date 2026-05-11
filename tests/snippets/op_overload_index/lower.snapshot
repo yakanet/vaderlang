@@ -5,8 +5,8 @@
   fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(self: Cell, key: string) -> i32
     let i: i32 = int(0) :i32
     block :void
-      let __iter_0: ArrayIter(string) =
-        ArrayIter(string) {
+      let __iter_0: ArrayIterator(string) =
+        ArrayIterator(string) {
           arr:
             .keys :string[]
               self :Cell
@@ -20,7 +20,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :ArrayIter(string)
+              __iter_0 :ArrayIterator(string)
         if :void
           cond:
             is Done :bool
@@ -60,8 +60,8 @@
   fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(self: Cell, key: string, v: i32) -> void
     let i: i32 = int(0) :i32
     block :void
-      let __iter_0: ArrayIter(string) =
-        ArrayIter(string) {
+      let __iter_0: ArrayIterator(string) =
+        ArrayIterator(string) {
           arr:
             .keys :string[]
               self :Cell
@@ -75,7 +75,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :ArrayIter(string)
+              __iter_0 :ArrayIterator(string)
         if :void
           cond:
             is Done :bool

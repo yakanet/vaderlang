@@ -1,2 +1,4 @@
-# compile errors
-[T3009] field does not exist on this type: `step` on Iterator(i32)
+# stdout
+a=60 b=28 c=600
+# exit
+0

@@ -13,8 +13,8 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
     %6 $k_7#53: i32
     %7 $k_8#54: string
     %8 $k_9#55: i32
-    %9 $call_12#57: MapIter(string, i32)
-    %10 __iter_0#58: MapIter(string, i32) (synthetic __iter_0)
+    %9 $call_12#57: MapIterator(string, i32)
+    %10 __iter_0#58: MapIterator(string, i32) (synthetic __iter_0)
     %11 total#59: i32 (local total)
     %12 $call_14#60: Done | Yielded(Entry(string, i32))
     %13 __step_1#61: Done | Yielded(Entry(string, i32)) (synthetic __step_1)
@@ -34,8 +34,8 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
     %27 $call_35#75: bool
     %28 $k_36#76: i32
     %29 $call_37#77: bool
-    %30 $call_40#79: SetIter(i32)
-    %31 __iter_3#80: SetIter(i32) (synthetic __iter_3)
+    %30 $call_40#79: SetIterator(i32)
+    %31 __iter_3#80: SetIterator(i32) (synthetic __iter_3)
     %32 sum#81: i32 (local sum)
     %33 $call_42#82: Done | Yielded(i32)
     %34 __step_4#83: Done | Yielded(i32) (synthetic __step_4)
@@ -51,7 +51,7 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
     %44 sum#93: i32 (local sum)
     %45 $cast_17#94: Yielded(Entry(string, i32))
     %46 entry#95: Entry(string, i32) (binding entry)
-    %47 $field_20#96: ?
+    %47 $field_20#96: i32
     %48 total#97: i32 (local total)
   bb0:
     %0 = array_new Entry(string, i32) | null[][0]()
@@ -67,7 +67,7 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
     %8 = const int(3) :i32
     call set_at(%2, %7, %8) :void
     %11 = const int(0) :i32
-    %9 = call iter(%2) :MapIter(string, i32)
+    %9 = call iter(%2) :MapIterator(string, i32)
     %10 = move %9
     branch -> bb1
   bb1:
@@ -97,7 +97,7 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
     %28 = const int(30) :i32
     %29 = call add(%23, %28) :bool
     %32 = const int(0) :i32
-    %30 = call iter(%23) :SetIter(i32)
+    %30 = call iter(%23) :SetIterator(i32)
     %31 = move %30
     branch -> bb7
   bb4:
@@ -105,8 +105,8 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
   bb5:
     %45 = cast %13 :Yielded(Entry(string, i32))
     %46 = field_get %45.value :Entry(string, i32)
-    %47 = field_get %46.value :?
-    %48 = binop add %11 %47 :?
+    %47 = field_get %46.value :i32
+    %48 = binop add %11 %47 :i32
     branch -> bb6
   bb6:
     %11 = move %48
@@ -134,7 +134,7 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
   bb11:
     %42 = cast %34 :Yielded(i32)
     %43 = field_get %42.value :i32
-    %44 = binop add %32 %43 :?
+    %44 = binop add %32 %43 :i32
     branch -> bb12
   bb12:
     %32 = move %44

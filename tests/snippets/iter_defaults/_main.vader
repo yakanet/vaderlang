@@ -1,5 +1,5 @@
 // `Iterator` defaults injected via Layer 8d — `count`, `last`, `is_empty`
-// derive from the user's `step`. Every Iterator impl (Range, ArrayIter,
+// derive from the user's `step`. Every Iterator impl (Range, ArrayIterator,
 // StringChars, …) inherits the three methods without writing a body.
 
 import "std/io" { println }

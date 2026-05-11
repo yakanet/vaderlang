@@ -229,8 +229,8 @@
                 @builder.finish :string
                   __sb_7 :?
     block :void
-      let __iter_8: ArrayIter(string) =
-        ArrayIter(string) {
+      let __iter_8: ArrayIterator(string) =
+        ArrayIterator(string) {
           arr:
             .errors :string[]
               bad :ParsedArgs
@@ -244,7 +244,7 @@
             callee:
               next :?
             arg0:
-              __iter_8 :ArrayIter(string)
+              __iter_8 :ArrayIterator(string)
         if :void
           cond:
             is Done :bool

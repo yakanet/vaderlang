@@ -33,7 +33,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
     %10 __arr_0#35: i32[] (synthetic __arr_0)
     %11 $k_12#36: usize
     %12 $len_13#37: usize
-    %13 $struct_14#38: ArrayIter(i32)
+    %13 $struct_14#38: ArrayIterator(i32)
     %14 $call_15#39: i32
     %15 b#40: i32 (local b)
     %16 $struct_17#41: Hello
@@ -59,7 +59,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
     %10 = array_new i32[][3](%7, %8, %9)
     %11 = const int(0) :usize
     %12 = array_len %10
-    %13 = struct_new ArrayIter(i32)(%10, %11, %12)
+    %13 = struct_new ArrayIterator(i32)(%10, %11, %12)
     %14 = call count(%13) :i32
     %15 = move %14
     %16 = struct_new Hello()
@@ -76,17 +76,16 @@ fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
 fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32(%0: Iterator(i32)) -> i32
   locals:
     %0 it: Iterator(i32) (param it)
-    %1 n#11: i32 (local n)
-    %2 cont#12: bool (local cont)
-    %3 $field_5#13: ?
-    %4 $call_ind_6#14: ?
-    %5 __scrut_0#15: ? (synthetic __scrut_0)
-    %6 $type_check_8#16: bool
-    %7 $type_check_10#18: bool
-    %8 $k_11#19: i32
-    %9 n#20: i32 (local n)
-    %10 n#21: i32 (local n)
-    %11 cont#22: bool (local cont)
+    %1 n#10: i32 (local n)
+    %2 cont#11: bool (local cont)
+    %3 $vcall_5#12: Done | Yielded(i32)
+    %4 __scrut_0#13: Done | Yielded(i32) (synthetic __scrut_0)
+    %5 $type_check_7#14: bool
+    %6 $type_check_9#16: bool
+    %7 $k_10#17: i32
+    %8 n#18: i32 (local n)
+    %9 n#19: i32 (local n)
+    %10 cont#20: bool (local cont)
   bb0:
     %1 = const int(0) :i32
     %2 = const bool(true) :bool
@@ -94,33 +93,32 @@ fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_rang
   bb1:
     cond_branch %2 ? bb2 : bb3
   bb2:
-    %3 = field_get %0.step :?
-    %4 = call_indirect %3() :?
-    %5 = move %4
-    %6 = type_check %5 is Done
-    cond_branch %6 ? bb4 : bb5
+    %3 = vcall Iterator.next(recv=%0) :Done | Yielded(i32)
+    %4 = move %3
+    %5 = type_check %4 is Done
+    cond_branch %5 ? bb4 : bb5
   bb3:
     return %1
   bb4:
-    %11 = const bool(false) :bool
-    %10 = move %1
+    %10 = const bool(false) :bool
+    %9 = move %1
     branch -> bb6
   bb5:
-    %7 = type_check %5 is Yielded(i32)
-    cond_branch %7 ? bb7 : bb8
+    %6 = type_check %4 is Yielded(i32)
+    cond_branch %6 ? bb7 : bb8
   bb6:
-    %1 = move %10
-    %2 = move %11
+    %1 = move %9
+    %2 = move %10
     branch -> bb1
   bb7:
-    %8 = const int(1) :i32
-    %9 = binop add %1 %8 :i32
+    %7 = const int(1) :i32
+    %8 = binop add %1 %7 :i32
     branch -> bb9
   bb8:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb9:
-    %10 = move %9
-    %11 = move %2
+    %9 = move %8
+    %10 = move %2
     branch -> bb6
 
 fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32(%0: Greeter(i32)) -> i32
@@ -138,6 +136,3 @@ fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_rang
   bb0:
     %1 = vcall Doubler.doubled(recv=%0) :i32
     return %1
-
-# Diagnostics
-[15:18] error[T3009] field does not exist on this type: `step` on Iterator($T)

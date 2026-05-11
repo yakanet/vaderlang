@@ -57,8 +57,8 @@
                 @builder.finish :string
                   __sb_2 :?
     block :void
-      let __iter_3: ArrayIter(i32) =
-        ArrayIter(i32) {
+      let __iter_3: ArrayIterator(i32) =
+        ArrayIterator(i32) {
           arr: rest :i32[]
           cursor: int(0) :usize
           length:
@@ -70,7 +70,7 @@
             callee:
               next :?
             arg0:
-              __iter_3 :ArrayIter(i32)
+              __iter_3 :ArrayIterator(i32)
         if :void
           cond:
             is Done :bool
@@ -197,8 +197,8 @@
                 @builder.finish :string
                   __sb_11 :?
     block :void
-      let __iter_12: ArrayIter(i32) =
-        ArrayIter(i32) {
+      let __iter_12: ArrayIterator(i32) =
+        ArrayIterator(i32) {
           arr: short :i32[]
           cursor: int(0) :usize
           length:
@@ -210,7 +210,7 @@
             callee:
               next :?
             arg0:
-              __iter_12 :ArrayIter(i32)
+              __iter_12 :ArrayIterator(i32)
         if :void
           cond:
             is Done :bool

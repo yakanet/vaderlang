@@ -1,2 +1,2 @@
-# compile errors
-[T3009] field does not exist on this type: `step` on Iterator($T)
+# runtime error
+vm: reached unreachable (at tests_snippets_trait_box_range_iter__main_vader$main+6 @ tests/snippets/trait_box_range_iter/_main.vader:47:10)

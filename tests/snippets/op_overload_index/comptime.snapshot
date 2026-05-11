@@ -4,4 +4,4 @@
 
 ## generic instances
   Yielded(string)
-  ArrayIter(string)
+  ArrayIterator(string)

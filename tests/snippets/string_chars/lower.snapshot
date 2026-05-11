@@ -47,9 +47,9 @@
                     block :string
                       let __sb_2: ? =
                         @builder.new :?
-                      @builder.append_str :void
+                      @builder.append_display <for char> :void
                         __sb_2 :?
-                        c :?
+                        c :char
                       ~>
                         @builder.finish :string
                           __sb_2 :?
@@ -98,9 +98,9 @@
                     block :string
                       let __sb_5: ? =
                         @builder.new :?
-                      @builder.append_str :void
+                      @builder.append_display <for char> :void
                         __sb_5 :?
-                        c :?
+                        c :char
                       ~>
                         @builder.finish :string
                           __sb_5 :?

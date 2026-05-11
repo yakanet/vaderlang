@@ -11,7 +11,8 @@ import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type, TupleType } from "../types.ts";
 import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute } from "../types.ts";
 
-import type { FnContext, MutableTyped } from "../ctx.ts";
+import { buildStructSubst, tryStructSubst, type FnContext, type MutableTyped } from "../ctx.ts";
+import { sourceStructDecl } from "../../resolver/symbol.ts";
 import { recordIterCoercion } from "./call.ts";
 import { looksLikeTypeExpression } from "./decl.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
@@ -211,7 +212,7 @@ function checkForStmt(
       // else, so the typecheck just narrows the binding when we recognise
       // the range form.
       const bindingSym = t.resolved.forIns.get(stmt);
-      const elementTy = forInElementType(stmt.form.iter, t);
+      const elementTy = forInElementType(stmt.form.iter, t, impls);
       if (bindingSym !== undefined && elementTy !== null) {
         t.narrowed.set(bindingSym.id, elementTy);
       }
@@ -244,7 +245,7 @@ function makeDiscardSymbol(stmt: A.ForStmt, t: MutableTyped): Symbol {
   });
 }
 
-function forInElementType(iter: A.Expr, t: MutableTyped): Type | null {
+function forInElementType(iter: A.Expr, t: MutableTyped, impls: ImplRegistry): Type | null {
   // Range has a known element type by construction — pull it from the
   // resolved Range[T] struct args so usize / char / i32 ranges all narrow
   // their binding to the right type.
@@ -255,14 +256,36 @@ function forInElementType(iter: A.Expr, t: MutableTyped): Type | null {
     }
     return TY.i32;
   }
-  // Other iterables: query the Iterator impl on the iter's static type and
-  // pull the element type from its trait args.
   const iterType = t.exprTypes.get(iter);
   if (iterType === undefined) return null;
   if (iterType.kind === "Array") return iterType.element;
+  // Other iterables: query the `Iterator` impl on the iter's static type and
+  // pull the element type from its trait args. Handles user iterators like
+  // `MapIterator(i32, i32) implements Iterator(i32)` — the trait-arg `i32`
+  // becomes the binding's narrowed type so `${v}` inside the body sees
+  // `Primitive(i32)` rather than `Unresolved` (which would default the
+  // `${…}` lowering to `append_str` and trap at runtime).
   const iteratorSym = t.globals.coreSymbols?.get(CORE_TRAITS.Iterator);
   if (iteratorSym === undefined) return null;
-  return null;     // user-defined iterators handled when we wire a richer trait lookup
+  const impl = impls.findFor(iterType, iteratorSym);
+  if (impl === null) return null;
+  if (impl.decl.traitArgs.length === 0) return null;
+  const rawElement = t.globals.typeExprTypes.get(impl.decl.traitArgs[0]!);
+  if (rawElement === undefined) return null;
+  // The impl is generic in the receiver's typeParams (e.g. `MapIterator[T,
+  // U] implements Iterator[U]`). Substitute the impl's typeParams against
+  // the iter's concrete args so `Iterator[U]` resolves to `Iterator[i32]`.
+  if (iterType.kind !== "Struct") return rawElement;
+  const implDecl = impl.decl;
+  const subst = implDecl.typeParams.length > 0
+    ? buildStructSubst(implDecl.typeParams, iterType.args, t.globals.typeParamSymbols)
+    : (() => {
+        const structDecl = sourceStructDecl(iterType.symbol);
+        if (structDecl === null) return null;
+        return tryStructSubst(structDecl, iterType.args, t.globals);
+      })();
+  if (subst === null) return rawElement;
+  return substitute(rawElement, subst);
 }
 
 /** Synthesise a TupleType skeleton with Unresolved slots for a tuple-shaped

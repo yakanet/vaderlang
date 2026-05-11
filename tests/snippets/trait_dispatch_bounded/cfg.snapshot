@@ -69,7 +69,7 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
     %1 target: i32 (param target)
     %2 $k_4#18: usize
     %3 $len_5#19: usize
-    %4 __iter_0#20: ArrayIter(i32) (synthetic __iter_0)
+    %4 __iter_0#20: ArrayIterator(i32) (synthetic __iter_0)
     %5 n#21: i32 (local n)
     %6 $call_8#22: Done | Yielded(i32)
     %7 __step_1#23: Done | Yielded(i32) (synthetic __step_1)
@@ -87,7 +87,7 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
     %5 = const int(0) :i32
     %2 = const int(0) :usize
     %3 = array_len %0
-    %4 = struct_new ArrayIter(i32)(%0, %2, %3)
+    %4 = struct_new ArrayIterator(i32)(%0, %2, %3)
     branch -> bb1
   bb1:
     branch -> bb2
@@ -133,7 +133,7 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
     %1 target: string (param target)
     %2 $k_4#18: usize
     %3 $len_5#19: usize
-    %4 __iter_0#20: ArrayIter(string) (synthetic __iter_0)
+    %4 __iter_0#20: ArrayIterator(string) (synthetic __iter_0)
     %5 n#21: i32 (local n)
     %6 $call_8#22: Done | Yielded(string)
     %7 __step_1#23: Done | Yielded(string) (synthetic __step_1)
@@ -151,7 +151,7 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
     %5 = const int(0) :i32
     %2 = const int(0) :usize
     %3 = array_len %0
-    %4 = struct_new ArrayIter(string)(%0, %2, %3)
+    %4 = struct_new ArrayIterator(string)(%0, %2, %3)
     branch -> bb1
   bb1:
     branch -> bb2

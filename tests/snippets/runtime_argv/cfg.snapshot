@@ -15,7 +15,7 @@ fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
     %8 $call_8#27: string
     %9 $k_11#29: usize
     %10 $len_12#30: usize
-    %11 __iter_1#31: ArrayIter(string) (synthetic __iter_1)
+    %11 __iter_1#31: ArrayIterator(string) (synthetic __iter_1)
     %12 first#32: bool (local first)
     %13 $call_15#33: Done | Yielded(string)
     %14 __step_2#34: Done | Yielded(string) (synthetic __step_2)
@@ -40,7 +40,7 @@ fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
     %12 = const bool(true) :bool
     %9 = const int(0) :usize
     %10 = array_len %0
-    %11 = struct_new ArrayIter(string)(%0, %9, %10)
+    %11 = struct_new ArrayIterator(string)(%0, %9, %10)
     branch -> bb1
   bb1:
     branch -> bb2

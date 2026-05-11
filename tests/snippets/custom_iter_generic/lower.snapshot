@@ -32,11 +32,11 @@
               target:
                 sum :i32
               value:
-                add :?
+                add :i32
                   l:
                     sum :i32
                   r:
-                    x :?
+                    x :i32
     call :void
       callee:
         println :fn(Display) -> void

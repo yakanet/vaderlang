@@ -17,8 +17,8 @@
           _1: "three" :string
         }
     block :void
-      let __iter_0: ArrayIter([i32, string]) =
-        ArrayIter([i32, string]) {
+      let __iter_0: ArrayIterator([i32, string]) =
+        ArrayIterator([i32, string]) {
           arr: rows :[i32, string][]
           cursor: int(0) :usize
           length:
@@ -30,7 +30,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :ArrayIter([i32, string])
+              __iter_0 :ArrayIterator([i32, string])
         if :void
           cond:
             is Done :bool

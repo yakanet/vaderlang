@@ -56,8 +56,8 @@
   fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__i32(arr: i32[]) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: ArrayIter(i32) =
-        ArrayIter(i32) {
+      let __iter_0: ArrayIterator(i32) =
+        ArrayIterator(i32) {
           arr: arr :i32[]
           cursor: int(0) :usize
           length:
@@ -69,7 +69,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :ArrayIter(i32)
+              __iter_0 :ArrayIterator(i32)
         if :void
           cond:
             is Done :bool
@@ -94,8 +94,8 @@
   fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__string(arr: string[]) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: ArrayIter(string) =
-        ArrayIter(string) {
+      let __iter_0: ArrayIterator(string) =
+        ArrayIterator(string) {
           arr: arr :string[]
           cursor: int(0) :usize
           length:
@@ -107,7 +107,7 @@
             callee:
               next :?
             arg0:
-              __iter_0 :ArrayIter(string)
+              __iter_0 :ArrayIterator(string)
         if :void
           cond:
             is Done :bool
