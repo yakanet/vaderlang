@@ -243,16 +243,16 @@ classify_token :: fn(t: Token) -> i32 {
     if k == .InterpOpen   { return token_type_int(.Operator) }
     if k == .InterpClose  { return token_type_int(.Operator) }
 
-    // Identifiers — heuristic dispatch based on the spelling (no
-    // resolver run yet ; we'd need a full semantic pass for true class /
-    // function / parameter / variable distinction). UpperCase → type ;
-    // otherwise variable.
-    if k == .Ident {
-        if t.text.byte_len() == usize(0) { return token_type_int(.Variable) }
-        first :: t.text.char_at(usize(0))
-        if first in 'A'..='Z' { return token_type_int(.Type) }
-        return token_type_int(.Variable)
-    }
+    // Identifiers — skip. With only the lexer to work from we can't
+    // tell `function` from `parameter` from `variable` reliably, and
+    // emitting the wrong type makes clients (LSP4IJ in particular)
+    // decorate every word with the `variable` / `type` color scheme
+    // (which underlines all of them in IntelliJ's defaults). The
+    // shared TextMate grammar already paints idents correctly ;
+    // letting it own that surface keeps the editor clean. A proper
+    // AST-driven classification is tracked at TODO §priority "LSP
+    // semantic classification via the AST".
+    if k == .Ident { return -1 }
 
     // Operators.
     if k == .Plus || k == .Minus || k == .Star || k == .Slash || k == .Percent { return token_type_int(.Operator) }
