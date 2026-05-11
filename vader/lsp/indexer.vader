@@ -1,29 +1,54 @@
 // vader/lsp/indexer — per-document index for goto-def + hover.
 //
-// The LSP server lives behind a deliberately narrow module surface
-// (`vader/lsp/main_entry.vader`) to dodge a generic-mono conflict that
-// the unified CLI triggers — that excludes `vader/parser` from the
-// reachable graph. So this indexer runs on the lexer's token stream
-// alone, scanning for top-level `IDENT :: <kw>` patterns to populate
-// a flat declaration table.
+// AST-based since the cross-module struct-collision fix unblocked
+// `parse_source` from the LSP module surface (cf. fix(bytecode) commit).
+// Each `build_index` call parses the document and walks `Program.decls`
+// + every nested block to harvest :
 //
-// MVP scope :
-//   - top-level decls (fn / struct / enum / trait / type-alias /
-//     constant), detected on a brace-depth = 0 boundary.
-//   - lookup is by name within the SAME document only ; cross-module
-//     imports are not resolved.
-//   - param / local / match-binding lookups are not supported.
-//   - signature is the verbatim source slice from the name up to the
-//     first `{` or `=` ; doc is the contiguous run of `///` comments
-//     immediately preceding the decl.
+//   * Top-level decls (`Fn`, `Struct`, `Enum`, `Trait`, `TypeAlias`,
+//     `Const`) — `scope_span = null` → visible file-wide.
+//   * Fn parameters (`FnDecl.params`) — `scope_span = body.span`.
+//   * Local let-bindings (`LetStmt.binding`'s `SimpleBinding` /
+//     `RestBinding` leaves, recursing through `TupleBinding`) — scope
+//     starts at the LetStmt and runs to the end of the enclosing block.
+//   * For-in loop bindings (`ForStmt.form == InFor`) — scope = loop
+//     body block.
+//   * Import bindings (`ImportDecl` destructure form) — recorded in
+//     `imports[]` for cross-file goto-def to consume.
+//
+// Match-as bindings (`is X as y`), lambda captures, and pattern
+// destructuring inside match arms aren't indexed yet — straightforward
+// follow-ups since the AST already exposes the shapes (`IsPattern.bind_as`,
+// `LambdaExpr.params`, etc.).
 
 import "std/string" { byte_len, byte_at, slice, trim }
-import "vader/lexer" { Token, TokenKind, tokenize }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/parser" {
+    parse_source,
+    Decl,
+    ImportDecl, ImportBinding, AliasImport, DestructureImport, NamespaceImport,
+    FnDecl, StructDecl, EnumDecl, TraitDecl, TypeAliasDecl, ConstDecl,
+    ImplDecl, AssertDecl,
+    Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt,
+    BreakStmt, ContinueStmt, DeferStmt,
+    LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
+    InfiniteFor, WhileFor, InFor,
+    DeferStmtBody, DeferBlockBody,
+    Expr,
+    IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr, StringLitExpr,
+    IdentExpr, CallExpr, FieldExpr, IndexExpr, UnaryExpr, BinaryExpr,
+    IfExpr, IfElseIf, IfElseBlock,
+    MatchExpr,
+    BlockExpr, LambdaExpr, StructLitExpr, SeqLitExpr,
+    RangeExpr, TryExpr, CastExpr, GenericInstExpr,
+    IntrinsicCallExpr, DotVariantExpr, FnTypeExpr, ArrayTypeExpr,
+    StringLitText, StringLitInterp,
+    StructLitField, StructLitSpread,
+}
+import "vader/lexer" { Token, tokenize }
+import "vader/diagnostics/diagnostic" { Span, Position }
 import "vader/fmt/comments" { Comment, CommentKind, CommentMap, scan_comments }
 
-// ASCII byte constants used while slicing the source for signatures
-// and stripping vaderdoc prefixes.
+// ASCII byte constants for vaderdoc extraction.
 BYTE_LF      :: u8(u32('\n'))
 BYTE_SPACE   :: u8(u32(' '))
 BYTE_TAB     :: u8(u32('\t'))
@@ -39,16 +64,15 @@ export DeclKind :: enum(u8) {
     TypeAlias,
     Const,
     // Intra-file bindings — visible only within `scope_span`.
-    Param,        // fn parameter
-    Local,        // `name :: expr` / `name := expr` inside a body
-    ForIn,        // `for x in iter` loop binding
+    Param,
+    Local,
+    ForIn,
 }
 
 /// One indexed declaration or binding. `name_span` is what goto-def
 /// jumps to ; `signature` + `doc` feed the hover. `scope_span` is
 /// `null` for file-wide visibility (top-level decls) and `Span` for
-/// intra-file bindings that should only match clicks within their
-/// containing block.
+/// intra-file bindings.
 export DeclEntry :: struct {
     name:       string
     kind:       DeclKind
@@ -59,15 +83,12 @@ export DeclEntry :: struct {
     scope_span: Span | null
 }
 
-/// One imported name : `import "<module>" { name [as alias], ... }`
-/// records each (local-name, module-path, original-name) triple so a
-/// goto-def click on the local name can land in the source file the
-/// name was exported from.
+/// One imported name : `import "<module>" { name [as alias], ... }`.
 export ImportEntry :: struct {
-    local_name:    string   // what the importing file calls it (alias or name)
-    original_name: string   // the export's name in the source module
-    module_path:   string   // raw path as written in `import "..."`
-    name_span:     Span     // span of `local_name` in the importing file
+    local_name:    string
+    original_name: string
+    module_path:   string
+    name_span:     Span
 }
 
 /// Per-document index, rebuilt on every didOpen / didChange.
@@ -81,14 +102,17 @@ export DocIndex :: struct {
 
 /// Build the index for a freshly-opened or modified document.
 export build_index :: fn(uri: string, source: string) -> DocIndex {
-    l :: tokenize(source, uri)
+    parsed :: parse_source(source, uri)
     cmap :: scan_comments(source)
-    entries :: collect_decls(l.tokens, source, cmap)
-    imports :: collect_imports(l.tokens)
+    entries: DeclEntry[] = []
+    imports: ImportEntry[] = []
+    for d in parsed.program.decls {
+        collect_decl(d, source, cmap, entries, imports)
+    }
     return DocIndex {
         .uri     = uri,
         .source  = source,
-        .tokens  = l.tokens,
+        .tokens  = parsed.tokens,
         .decls   = entries,
         .imports = imports,
     }
@@ -96,9 +120,7 @@ export build_index :: fn(uri: string, source: string) -> DocIndex {
 
 /// Find the decl whose name matches the identifier under (line, character).
 /// Both are 0-based per LSP. Returns null when no Ident token covers
-/// the position. Innermost scope wins : an intra-file binding whose
-/// `scope_span` contains the click is preferred over the file-wide
-/// top-level decl with the same name.
+/// the position. Innermost scope wins.
 export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | null {
     offset :: lsp_to_offset(idx.source, line, character)
     name :: token_name_at(idx.tokens, offset)
@@ -106,481 +128,321 @@ export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | nu
     return lookup_innermost(idx.decls, name, offset)
 }
 
-// ---- import collection ----------------------------------------------------
+// ---- top-level decl collection -------------------------------------------
 
-// Walk the tokens for every top-level `import "<path>" { name [as alias], ... }`
-// or `import "<path>" as <alias>` form and surface every imported
-// name. Namespace imports (`import "<path>"`) are skipped — there's no
-// local name to map back to a source decl ; the surface is meant for
-// `m.foo` access which is out of MVP scope.
-collect_imports :: fn(tokens: Token[]) -> ImportEntry[] {
-    out: ImportEntry[] = []
-    n :: tokens.len()
-    brace_depth: i32 = 0
-    i: usize = 0
-    for i < n {
-        t :: tokens[i]
-        if t.kind == .LBrace { brace_depth = brace_depth + 1 }
-        if t.kind == .RBrace { brace_depth = brace_depth - 1 }
-        if brace_depth == 0 && t.kind == .KwImport {
-            // Expect : KwImport <StringBegin StringPart StringEnd> [KwAs IDENT] | [LBrace ... RBrace]
-            j :: i + usize(1)
-            // Skip the module path's string-literal tokens. Module-string
-            // shape is StringBegin (StringPart)* StringEnd ; the path
-            // value lives in the StringPart's text.
-            mod_path := ""
-            k: usize = j
-            for k < n {
-                kt :: tokens[k].kind
-                if kt == .StringPart { mod_path = tokens[k].text }
-                if kt == .StringEnd {
-                    k = k + usize(1)
-                    break
-                }
-                if kt == .Newline && k > j { break }
-                k = k + usize(1)
-            }
-            // Now `k` points just past `StringEnd`. Look for `{` (destructure)
-            // or `as` (alias) or newline (namespace import).
-            // Skip a possible newline between `"path"` and `{`.
-            for k < n && tokens[k].kind == .Newline {
-                k = k + usize(1)
-            }
-            if k < n && tokens[k].kind == .LBrace {
-                // Destructure form : iterate idents up to RBrace.
-                m: usize = k + usize(1)
-                for m < n {
-                    mt :: tokens[m].kind
-                    if mt == .RBrace { break }
-                    if mt == .Ident {
-                        orig_name :: tokens[m].text
-                        local_name := orig_name
-                        local_span := tokens[m].span
-                        // Optional `as` alias renames the binding.
-                        if m + usize(2) < n &&
-                                tokens[m + usize(1)].kind == .KwAs &&
-                                tokens[m + usize(2)].kind == .Ident {
-                            local_name = tokens[m + usize(2)].text
-                            local_span = tokens[m + usize(2)].span
-                            m = m + usize(2)
-                        }
-                        out.push(ImportEntry {
-                            .local_name    = local_name,
-                            .original_name = orig_name,
-                            .module_path   = mod_path,
-                            .name_span     = local_span,
-                        })
-                    }
-                    m = m + usize(1)
-                }
-                i = m + usize(1)
-                continue
-            }
-            i = k
-            continue
-        }
-        i = i + usize(1)
-    }
-    return out
-}
-
-// ---- decl collection (token-stream scan) ---------------------------------
-
-// Walk the token stream looking for top-level `IDENT :: <kw|expr>` decls.
-// `brace_depth == 0` gates the match so we don't mistake a fn body's
-// inner `name :: ...` for a top-level decl. Bracketed groups (`[...]`)
-// don't gate ; they appear in generic params and stay shallow. For
-// every top-level `fn` we also collect its params + intra-body
-// bindings (locals, for-in) into the same flat table, distinguished
-// by their `scope_span` field.
-collect_decls :: fn(tokens: Token[], source: string, cmap: CommentMap) -> DeclEntry[] {
-    out: DeclEntry[] = []
-    n :: tokens.len()
-    brace_match :: build_brace_match(tokens)
-    brace_depth: i32 = 0
-    i: usize = 0
-    for i < n {
-        t :: tokens[i]
-        if t.kind == .LBrace { brace_depth = brace_depth + 1 }
-        if t.kind == .RBrace { brace_depth = brace_depth - 1 }
-        if brace_depth == 0 && t.kind == .Ident && is_decl_after(tokens, i) {
-            kind_tok_idx :: skip_export(tokens, i + usize(2))
-            kind :: classify_decl(tokens, kind_tok_idx)
-            full_end :: find_decl_end(tokens, kind_tok_idx, n)
-            full_span :: Span { .start = t.span.start, .end = tokens[full_end].span.end }
-            sig :: signature_slice(source, t.span.start.offset, full_span.end.offset)
-            doc :: leading_doc(cmap, t.span.start.offset, source)
-            out.push(DeclEntry {
-                .name      = t.text,
-                .kind      = kind,
-                .name_span = t.span,
-                .full_span = full_span,
-                .signature = sig,
-                .doc       = doc,
-                .scope_span = null,
-            })
-            // For fns, harvest params + intra-body bindings into the
-            // same flat table — the scope_span field gates them to
-            // their visibility region.
-            if kind == .Fn {
-                collect_fn_bindings(out, tokens, brace_match, source, kind_tok_idx)
-            }
-            // Jump past the decl head to avoid re-matching inner names.
-            i = kind_tok_idx
-            continue
-        }
-        i = i + usize(1)
-    }
-    return out
-}
-
-// Build a table mapping each LBrace token index to its matching RBrace
-// index. Unmatched braces (e.g., inside a comment-eaten region — but
-// the lexer already strips comments — or malformed source) leave the
-// entry as -1. Linear ; one walk over the token stream.
-build_brace_match :: fn(tokens: Token[]) -> i32[] {
-    n :: tokens.len()
-    out: i32[] = []
-    j: usize = 0
-    for j < n {
-        out.push(-1)
-        j = j + usize(1)
-    }
-    // Forward scan : for each `{` we walk forward to its matching
-    // `}` and write the pair into `out`. Quadratic in the worst case
-    // (deeply nested file) but fine on real Vader sources where brace
-    // depth stays shallow ; preferred over a stack here because
-    // indexed array mutation is the simplest way to update `out`.
-    i: usize = 0
-    for i < n {
-        if tokens[i].kind == .LBrace {
-            depth: i32 = 1
-            k: usize = i + usize(1)
-            for k < n {
-                kt :: tokens[k].kind
-                if kt == .LBrace { depth = depth + 1 }
-                if kt == .RBrace {
-                    depth = depth - 1
-                    if depth == 0 {
-                        out[i] = i32(k)
-                        k = n
-                        continue
-                    }
-                }
-                k = k + usize(1)
-            }
-        }
-        i = i + usize(1)
-    }
-    return out
-}
-
-// Collect params + locals + for-in bindings for the fn whose `fn`
-// keyword token is at `fn_kw_idx`. Walks the param list and body
-// block ; appends DeclEntries with appropriate `scope_span`.
-collect_fn_bindings :: fn(
-    out: DeclEntry[], tokens: Token[], brace_match: i32[],
-    source: string, fn_kw_idx: usize,
+collect_decl :: fn(
+    d: Decl, source: string, cmap: CommentMap,
+    entries: DeclEntry[], imports: ImportEntry[],
 ) -> void {
-    n :: tokens.len()
-
-    // Find LParen after `fn`. Skip generic-param `[ ... ]` between
-    // `fn` and `(` if any (eg `fn[T]`).
-    lp_idx :: find_next_kind(tokens, fn_kw_idx + usize(1), n, .LParen)
-    if lp_idx < 0 { return }
-    rp_idx :: find_matching_rparen(tokens, lp_idx, n)
-    if rp_idx < 0 { return }
-
-    // Determine body scope : first `{` after `)`, matched to its `}`.
-    // Signature-only fns (extern/intrinsic) and expression-bodied fns
-    // (`-> T = expr`) don't open a body block — params still aren't
-    // useful for goto-def in those cases.
-    body_l :: find_next_kind(tokens, usize(rp_idx) + usize(1), n, .LBrace)
-    if body_l < 0 { return }
-    body_r :: brace_match[usize(body_l)]
-    if body_r < 0 { return }
-
-    body_scope :: Span {
-        .start = tokens[usize(body_l)].span.start,
-        .end   = tokens[usize(body_r)].span.end,
-    }
-
-    // Walk the param list : every `IDENT :` at paren depth 0 is a
-    // param. Skip nested parens (rare in Vader, but lambda-typed
-    // params can contain them).
-    paren_depth: i32 = 0
-    j: usize = usize(lp_idx) + usize(1)
-    rp_u :: usize(rp_idx)
-    for j < rp_u {
-        t :: tokens[j]
-        if t.kind == .LParen { paren_depth = paren_depth + 1 }
-        if t.kind == .RParen { paren_depth = paren_depth - 1 }
-        if paren_depth == 0 && t.kind == .Ident && j + usize(1) < rp_u &&
-                tokens[j + usize(1)].kind == .Colon {
-            sig_end :: find_param_sig_end(tokens, j + usize(2), rp_u)
-            sig :: source.slice(t.span.start.offset, tokens[sig_end].span.end.offset).trim()
-            out.push(DeclEntry {
-                .name       = t.text,
-                .kind       = .Param,
-                .name_span  = t.span,
-                .full_span  = t.span,
-                .signature  = sig,
-                .doc        = "",
-                .scope_span = body_scope,
-            })
-            j = sig_end + usize(1)
-            continue
+    match d {
+        is FnDecl as f -> {
+            entries.push(top_entry(f.name, .Fn, f.name_span, f.span, source, cmap))
+            walk_fn_body(f, source, entries)
         }
-        j = j + usize(1)
+        is StructDecl as s -> {
+            entries.push(top_entry(s.name, .Struct, s.name_span, s.span, source, cmap))
+        }
+        is EnumDecl as e -> {
+            entries.push(top_entry(e.name, .Enum, e.name_span, e.span, source, cmap))
+        }
+        is TraitDecl as t -> {
+            entries.push(top_entry(t.name, .Trait, t.name_span, t.span, source, cmap))
+            // Trait members are fn decls — index their names too so
+            // goto-def on a method-name reference can land somewhere.
+            for m in t.members {
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, source, cmap))
+            }
+        }
+        is TypeAliasDecl as ta -> {
+            entries.push(top_entry(ta.name, .TypeAlias, ta.name_span, ta.span, source, cmap))
+        }
+        is ConstDecl as c -> {
+            entries.push(top_entry(c.name, .Const, c.name_span, c.span, source, cmap))
+        }
+        is ImplDecl as ib -> {
+            // Impl members are fn decls on the target type. They
+            // contribute method names (for UFCS goto-def) and their
+            // own params + body bindings.
+            for m in ib.members {
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, source, cmap))
+                walk_fn_body(m, source, entries)
+            }
+        }
+        is ImportDecl as i -> { collect_import(i, imports) }
+        is AssertDecl -> {}
     }
+}
 
-    // Walk the body : collect locals (`IDENT ::` / `IDENT :=`) and
-    // for-in bindings (`for IDENT in ...`). Each binding's
-    // `scope_span` is the brace-balanced region that immediately
-    // encloses it ; for for-in we use the loop's own body block.
-    body_l_u :: usize(body_l)
-    body_r_u :: usize(body_r)
-    j = body_l_u + usize(1)
-    for j < body_r_u {
-        t :: tokens[j]
+top_entry :: fn(
+    name: string, kind: DeclKind, name_span: Span, full_span: Span,
+    source: string, cmap: CommentMap,
+) -> DeclEntry {
+    sig :: head_signature(full_span, source)
+    doc :: leading_doc(cmap, full_span.start.offset, source)
+    return DeclEntry {
+        .name       = name,
+        .kind       = kind,
+        .name_span  = name_span,
+        .full_span  = full_span,
+        .signature  = sig,
+        .doc        = doc,
+        .scope_span = null,
+    }
+}
 
-        // `for IDENT in ...` — binding is the Ident following `for`.
-        if t.kind == .KwFor && j + usize(1) < body_r_u &&
-                tokens[j + usize(1)].kind == .Ident {
-            ident_idx :: j + usize(1)
-            next_l :: find_next_kind(tokens, ident_idx + usize(1), body_r_u, .LBrace)
-            if next_l >= 0 {
-                next_r :: brace_match[usize(next_l)]
-                if next_r > 0 {
-                    out.push(DeclEntry {
-                        .name       = tokens[ident_idx].text,
-                        .kind       = .ForIn,
-                        .name_span  = tokens[ident_idx].span,
-                        .full_span  = tokens[ident_idx].span,
-                        .signature  = "for " + tokens[ident_idx].text + " in ...",
-                        .doc        = "",
-                        .scope_span = Span {
-                            .start = tokens[usize(next_l)].span.start,
-                            .end   = tokens[usize(next_r)].span.end,
-                        },
-                    })
+binding_entry :: fn(
+    name: string, kind: DeclKind, name_span: Span, scope: Span, signature: string,
+) -> DeclEntry {
+    return DeclEntry {
+        .name       = name,
+        .kind       = kind,
+        .name_span  = name_span,
+        .full_span  = name_span,
+        .signature  = signature,
+        .doc        = "",
+        .scope_span = scope,
+    }
+}
+
+// ---- fn body walk : params + locals + for-in -----------------------------
+
+walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
+    match f.body {
+        is null -> {}
+        is BlockExpr as body -> {
+            scope :: body.span
+            // Params live for the whole body. `FnParam.span` covers
+            // the whole `name: T = default` form ; goto-def should
+            // land on the name alone, so we synthesise a narrower
+            // span by stretching `name.byte_len()` past the start.
+            for p in f.params {
+                name_span :: name_span_from(p.span.start, p.name)
+                sig :: param_signature_slice(p.span, p.name, source)
+                entries.push(binding_entry(p.name, .Param, name_span, scope, sig))
+            }
+            walk_block(body, source, entries)
+        }
+    }
+}
+
+// Synthesise a `Span` covering exactly `name` starting at `start`.
+// ASCII-only — non-ASCII identifier names would need codepoint
+// arithmetic, which the parser doesn't currently do here either.
+name_span_from :: fn(start: Position, name: string) -> Span {
+    width :: name.byte_len()
+    end :: Position {
+        .file   = start.file,
+        .offset = start.offset + width,
+        .line   = start.line,
+        .column = start.column + i32(width),
+    }
+    return Span { .start = start, .end = end }
+}
+
+// `b` is the block being walked. Locals it declares scope from their
+// declaration point to `b.span.end`. Nested blocks (if/match arms,
+// inner BlockExprs) recurse and get their own narrower scope.
+walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]) -> void {
+    for s in b.stmts {
+        walk_stmt(s, b.span, source, entries)
+    }
+    match b.trailing {
+        is null -> {}
+        _       -> { walk_expr(b.trailing, source, entries) }
+    }
+}
+
+walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[]) -> void {
+    match s {
+        is LetStmt as l -> {
+            // Local scope : from the let down to the end of the
+            // enclosing block. Anything before the let in the same
+            // block stays unresolved against this name.
+            local_scope :: Span { .start = l.span.start, .end = block_span.end }
+            collect_let_binding(l.binding, local_scope, source, entries)
+            walk_expr(l.value, source, entries)
+        }
+        is AssignStmt as a -> {
+            walk_expr(a.target, source, entries)
+            walk_expr(a.value, source, entries)
+        }
+        is ExprStmt as e -> { walk_expr(e.expr, source, entries) }
+        is ReturnStmt as r -> {
+            match r.value {
+                is null -> {}
+                _       -> { walk_expr(r.value, source, entries) }
+            }
+        }
+        is ForStmt as f -> { walk_for(f, source, entries) }
+        is BreakStmt -> {}
+        is ContinueStmt -> {}
+        is DeferStmt as d -> {
+            match d.body {
+                is DeferStmtBody as ds -> { walk_stmt(ds.stmt, block_span, source, entries) }
+                is DeferBlockBody as db -> { walk_block(db.block, source, entries) }
+            }
+        }
+    }
+}
+
+collect_let_binding :: fn(
+    b: LetBinding, scope: Span, source: string, entries: DeclEntry[],
+) -> void {
+    match b {
+        is SimpleBinding as sb -> {
+            sig :: slice_to_eol(source, sb.span.start.offset, scope.end.offset)
+            entries.push(binding_entry(sb.name, .Local, sb.name_span, scope, sig))
+        }
+        is RestBinding as rb -> {
+            sig :: slice_to_eol(source, rb.span.start.offset, scope.end.offset)
+            entries.push(binding_entry(rb.name, .Local, rb.name_span, scope, sig))
+        }
+        is TupleBinding as tb -> {
+            for elt in tb.elements {
+                collect_let_binding(elt, scope, source, entries)
+            }
+        }
+        is WildcardBinding -> {}
+    }
+}
+
+walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
+    match f.form {
+        is InfiniteFor -> {}
+        is WhileFor as w -> { walk_expr(w.cond, source, entries) }
+        is InFor as i -> {
+            // for-in binding scope = the loop's body block.
+            sig :: "for " + i.binding + " in ..."
+            entries.push(binding_entry(i.binding, .ForIn, i.binding_span, f.body.span, sig))
+            walk_expr(i.iter, source, entries)
+        }
+    }
+    walk_block(f.body, source, entries)
+}
+
+// Recurse through expressions to reach nested blocks / matches / ifs /
+// lambdas. Leaf expression variants are no-ops ; container ones recurse
+// into every child that might host a binding.
+walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
+    match e {
+        is BlockExpr as b -> { walk_block(b, source, entries) }
+        is IfExpr as i -> {
+            walk_expr(i.cond, source, entries)
+            walk_block(i.then_block, source, entries)
+            match i.else_branch {
+                is null -> {}
+                is IfElseIf as ei -> { walk_expr(ei.branch, source, entries) }
+                is IfElseBlock as eb -> { walk_block(eb.block, source, entries) }
+            }
+        }
+        is MatchExpr as m -> {
+            walk_expr(m.scrutinee, source, entries)
+            for arm in m.arms {
+                match arm.guard {
+                    is null -> {}
+                    _       -> { walk_expr(arm.guard, source, entries) }
+                }
+                walk_expr(arm.body, source, entries)
+            }
+        }
+        is LambdaExpr as l -> {
+            // Lambdas open a fresh scope ; their params live for the
+            // lambda body just like a fn's params do.
+            scope :: l.body.span
+            for p in l.params {
+                sig :: param_signature_slice(p.span, p.name, source)
+                entries.push(binding_entry(p.name, .Param, p.span, scope, sig))
+            }
+            walk_block(l.body, source, entries)
+        }
+        is CallExpr as c -> {
+            walk_expr(c.callee, source, entries)
+            for a in c.args { walk_expr(a.value, source, entries) }
+        }
+        is FieldExpr as fe -> { walk_expr(fe.target, source, entries) }
+        is IndexExpr as ie -> {
+            walk_expr(ie.target, source, entries)
+            walk_expr(ie.index, source, entries)
+        }
+        is UnaryExpr as u -> { walk_expr(u.operand, source, entries) }
+        is BinaryExpr as b -> {
+            walk_expr(b.left, source, entries)
+            walk_expr(b.right, source, entries)
+        }
+        is StructLitExpr as sl -> {
+            for it in sl.items {
+                match it {
+                    is StructLitField as fl -> { walk_expr(fl.value, source, entries) }
+                    is StructLitSpread as sp -> { walk_expr(sp.expr, source, entries) }
                 }
             }
-            j = ident_idx + usize(1)
-            continue
         }
-
-        // Local : `IDENT ::` or `IDENT :=`. Defensive — skip when
-        // the RHS would start with a top-level decl keyword (fn /
-        // struct / enum / trait), which Vader doesn't allow inside a
-        // body anyway but the heuristic stays robust against
-        // parser-error states.
-        if t.kind == .Ident && j + usize(1) < body_r_u {
-            nk :: tokens[j + usize(1)].kind
-            if nk == .DeclConst || nk == .DeclVar {
-                rhs_ok := true
-                if j + usize(2) < body_r_u {
-                    rhs :: tokens[j + usize(2)].kind
-                    if rhs == .KwFn     { rhs_ok = false }
-                    if rhs == .KwStruct { rhs_ok = false }
-                    if rhs == .KwEnum   { rhs_ok = false }
-                    if rhs == .KwTrait  { rhs_ok = false }
-                }
-                if rhs_ok {
-                    enc_r :: find_enclosing_rbrace(tokens, brace_match, j)
-                    if enc_r >= 0 {
-                        scope :: Span {
-                            .start = t.span.start,
-                            .end   = tokens[usize(enc_r)].span.end,
-                        }
-                        local_end :: find_local_end(tokens, j, body_r_u)
-                        sig :: source.slice(
-                            t.span.start.offset,
-                            tokens[local_end].span.end.offset,
-                        ).trim()
-                        out.push(DeclEntry {
-                            .name       = t.text,
-                            .kind       = .Local,
-                            .name_span  = t.span,
-                            .full_span  = t.span,
-                            .signature  = sig,
-                            .doc        = "",
-                            .scope_span = scope,
-                        })
-                    }
+        is SeqLitExpr as sq -> {
+            for elt in sq.elements { walk_expr(elt, source, entries) }
+        }
+        is RangeExpr as r -> {
+            walk_expr(r.lower, source, entries)
+            walk_expr(r.upper, source, entries)
+        }
+        is TryExpr as t -> { walk_expr(t.inner, source, entries) }
+        is CastExpr as cs -> { walk_expr(cs.value, source, entries) }
+        is GenericInstExpr as gi -> { walk_expr(gi.callee, source, entries) }
+        is IntrinsicCallExpr as ic -> {
+            for a in ic.args { walk_expr(a, source, entries) }
+        }
+        is StringLitExpr as st -> {
+            for p in st.parts {
+                match p {
+                    is StringLitText -> {}
+                    is StringLitInterp as si -> { walk_expr(si.expr, source, entries) }
                 }
             }
         }
-        j = j + usize(1)
+        is IntLitExpr     -> {}
+        is FloatLitExpr   -> {}
+        is BoolLitExpr    -> {}
+        is NullLitExpr    -> {}
+        is CharLitExpr    -> {}
+        is IdentExpr      -> {}
+        is DotVariantExpr -> {}
+        is FnTypeExpr     -> {}
+        is ArrayTypeExpr  -> {}
     }
 }
 
-// Find the index of the first token with `kind` in `[start, end)`,
-// or -1 when none.
-find_next_kind :: fn(tokens: Token[], start: usize, end: usize, kind: TokenKind) -> i32 {
-    i: usize = start
-    for i < end {
-        if tokens[i].kind == kind { return i32(i) }
-        i = i + usize(1)
-    }
-    return -1
-}
+// ---- import collection ---------------------------------------------------
 
-// Find the `)` matching the `(` at `lp_idx`. Returns -1 on imbalance.
-find_matching_rparen :: fn(tokens: Token[], lp_idx: i32, n: usize) -> i32 {
-    depth: i32 = 0
-    i: usize = usize(lp_idx)
-    for i < n {
-        k :: tokens[i].kind
-        if k == .LParen { depth = depth + 1 }
-        if k == .RParen {
-            depth = depth - 1
-            if depth == 0 { return i32(i) }
-        }
-        i = i + usize(1)
-    }
-    return -1
-}
-
-// Locate the end of a param's signature slice : walk forward from
-// `start` until we hit a top-level `,` or `)` at the param-list's
-// own paren depth. The returned index is the token BEFORE the
-// terminator so the slice reads cleanly.
-find_param_sig_end :: fn(tokens: Token[], start: usize, rp_u: usize) -> usize {
-    depth: i32 = 0
-    last :: start
-    i: usize = start
-    last_solid: usize = start
-    for i < rp_u {
-        t :: tokens[i]
-        if t.kind == .LParen { depth = depth + 1 }
-        if t.kind == .RParen { depth = depth - 1 }
-        if depth == 0 && t.kind == .Comma { return last_solid }
-        if t.kind != .Newline { last_solid = i }
-        i = i + usize(1)
-    }
-    if last_solid >= start { return last_solid }
-    return last
-}
-
-// Walk backward from `idx` to find the `}` of the nearest enclosing
-// brace block. Returns -1 if the search runs out of tokens before
-// finding one. Cheap : bounded by the local nesting depth.
-find_enclosing_rbrace :: fn(tokens: Token[], brace_match: i32[], idx: usize) -> i32 {
-    skip: i32 = 0
-    j: i32 = i32(idx) - 1
-    for j >= 0 {
-        k :: tokens[usize(j)].kind
-        if k == .RBrace { skip = skip + 1 }
-        if k == .LBrace {
-            if skip == 0 {
-                r :: brace_match[usize(j)]
-                if r > 0 { return r }
-                return -1
-            }
-            skip = skip - 1
-        }
-        j = j - 1
-    }
-    return -1
-}
-
-// End of a local binding's source : forward from its IDENT until the
-// first newline or `}` at depth 0. The slice gives a one-line sig
-// for hover. Falls back to `start` when nothing usable was found.
-find_local_end :: fn(tokens: Token[], start: usize, body_r_u: usize) -> usize {
-    depth: i32 = 0
-    last :: start
-    i: usize = start
-    last_solid: usize = start
-    for i < body_r_u {
-        t :: tokens[i]
-        if t.kind == .LBrace { depth = depth + 1 }
-        if t.kind == .RBrace {
-            if depth == 0 { return last_solid }
-            depth = depth - 1
-        }
-        if depth == 0 && t.kind == .Newline && i > start {
-            return last_solid
-        }
-        if t.kind != .Newline { last_solid = i }
-        i = i + usize(1)
-    }
-    if last_solid >= start { return last_solid }
-    return last
-}
-
-// True when `tokens[i]` is followed by `::` (with an optional preceding
-// `export` keyword absorbed by `skip_export`). Top-level form :
-//   [export] IDENT ::
-is_decl_after :: fn(tokens: Token[], i: usize) -> bool {
-    if i + usize(1) >= tokens.len() { return false }
-    return tokens[i + usize(1)].kind == .DeclConst
-}
-
-// Move past the `IDENT ::` pair and an optional leading `export`
-// keyword that may sit BEFORE the IDENT in the surface syntax.
-skip_export :: fn(tokens: Token[], i: usize) -> usize {
-    n :: tokens.len()
-    j: usize = i
-    for j < n && (tokens[j].kind == .Newline) {
-        j = j + usize(1)
-    }
-    return j
-}
-
-// Decide a decl's kind by peeking at the token that follows `::`.
-//   fn     → Fn
-//   struct → Struct
-//   enum   → Enum
-//   trait  → Trait
-// Otherwise default to Const ; TypeAliasDecl shares the surface
-// `name :: <type-expr>` so it can't be distinguished without parsing.
-classify_decl :: fn(tokens: Token[], i: usize) -> DeclKind {
-    if i >= tokens.len() { return .Const }
-    k :: tokens[i].kind
-    if k == .KwFn     { return .Fn }
-    if k == .KwStruct { return .Struct }
-    if k == .KwEnum   { return .Enum }
-    if k == .KwTrait  { return .Trait }
-    return .Const
-}
-
-// Find the last token of the decl that started at `kind_tok_idx`.
-// Strategy : walk until brace depth returns to its pre-decl level AND
-// we hit a newline OR EOF. For decls without braces (consts, type
-// aliases) the first newline at depth-0 ends the decl.
-find_decl_end :: fn(tokens: Token[], start: usize, n: usize) -> usize {
-    depth: i32 = 0
-    last: usize = start
-    i: usize = start
-    for i < n {
-        t :: tokens[i]
-        if t.kind == .LBrace { depth = depth + 1 }
-        if t.kind == .RBrace {
-            depth = depth - 1
-            if depth == 0 {
-                last = i
-                return last
+collect_import :: fn(d: ImportDecl, imports: ImportEntry[]) -> void {
+    match d.binding {
+        is NamespaceImport -> {}     // `import "x"` — no local name
+        is AliasImport as a -> {}    // `import "x" as Y` — Y is a namespace, not a value
+        is DestructureImport as de -> {
+            for n in de.names {
+                local_name := n.name
+                local_span := n.span
+                match n.alias {
+                    is null -> {}
+                    is string as alias -> { local_name = alias }
+                }
+                imports.push(ImportEntry {
+                    .local_name    = local_name,
+                    .original_name = n.name,
+                    .module_path   = d.path,
+                    .name_span     = local_span,
+                })
             }
         }
-        if depth == 0 && t.kind == .Newline && i > start {
-            return last
-        }
-        if t.kind != .Newline {
-            last = i
-        }
-        i = i + usize(1)
     }
-    if last < n { return last }
-    if n == usize(0) { return 0 }
-    return n - usize(1)
 }
 
-// Hover signature : the source slice from the decl's start up to the
-// first `{` or `=` byte found, trimmed. Keeps it readable (no body).
-signature_slice :: fn(source: string, start: usize, end: usize) -> string {
-    cap :: source.byte_len()
+// ---- signature helpers ---------------------------------------------------
+
+// Slice the source from a decl's start up to the first `{` or `=` (or
+// EOL for `Const :: <expr>` body-less forms), then trim.
+head_signature :: fn(span: Span, source: string) -> string {
+    start :: span.start.offset
+    end   :: span.end.offset
+    cap   :: source.byte_len()
     upper :: if end > cap { cap } else { end }
     cursor: usize = start
     for cursor < upper {
@@ -593,11 +455,36 @@ signature_slice :: fn(source: string, start: usize, end: usize) -> string {
     return source.slice(start, cursor).trim()
 }
 
+// Slice up to the end of the current line — used for local-binding
+// signatures (`x :: expr` form). Caps at `upper` so we don't read past
+// the enclosing block.
+slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
+    cap :: source.byte_len()
+    up: usize = if upper > cap { cap } else { upper }
+    cursor: usize = start
+    for cursor < up {
+        b :: source.byte_at(cursor)
+        if b == BYTE_LF { break }
+        cursor = cursor + usize(1)
+    }
+    return source.slice(start, cursor).trim()
+}
+
+// Slice the source for a span — used to render `x: T` for params and
+// `for x in ...` for for-in bindings. Falls back to the bare name on
+// degenerate spans.
+param_signature_slice :: fn(span: Span, fallback: string, source: string) -> string {
+    if span.end.offset > span.start.offset {
+        return source.slice(span.start.offset, span.end.offset).trim()
+    }
+    return fallback
+}
+
 // ---- vaderdoc extraction --------------------------------------------------
 
 // Collect every `///` comment whose end is contiguous (only whitespace
-// between) with the decl's start. Strips the leading `/// ` (or `///`)
-// prefix from each line and joins with `\n`.
+// between) with the decl's start. Strips the leading `/// ` prefix and
+// joins with `\n`.
 leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string {
     n :: cmap.comments.len()
     if n == usize(0) { return "" }
@@ -634,7 +521,6 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
     return out
 }
 
-// True when [start, end) in `source` contains only whitespace bytes.
 whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
     cursor: usize = start
     for cursor < end {
@@ -647,7 +533,6 @@ whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
     return true
 }
 
-// Drop the `///` (or `/// `) prefix from a single comment line.
 strip_doc_prefix :: fn(text: string) -> string {
     n :: text.byte_len()
     if n < usize(3) { return text }
@@ -658,10 +543,8 @@ strip_doc_prefix :: fn(text: string) -> string {
     return text.slice(cursor, n)
 }
 
-// ---- token-based identifier lookup at a source offset --------------------
+// ---- token-based position resolution -------------------------------------
 
-// Linear scan ; per-file token counts stay well below 10k so binary
-// search isn't worth the complexity for the MVP.
 token_name_at :: fn(tokens: Token[], offset: usize) -> string {
     for t in tokens {
         if t.kind != .Ident { continue }
@@ -672,13 +555,8 @@ token_name_at :: fn(tokens: Token[], offset: usize) -> string {
     return ""
 }
 
-// Linear scan of the decl table : among entries matching `name`,
-// pick the one whose visibility region most tightly contains `offset`.
-// Top-level decls (`scope_span = null`) act as the file-wide fallback ;
-// any intra-file binding with a containing scope wins over them
-// (innermost-scope semantics). Among intra-file bindings, the
-// smallest scope wins — that gives the right answer for nested
-// blocks where an inner binding shadows an outer one.
+// Find the entry matching `name` whose scope most tightly contains
+// `offset`. Top-level (scope_span = null) acts as a fallback.
 lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclEntry | null {
     has_best := false
     best_idx: usize = 0
@@ -693,19 +571,15 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
         }
         match d.scope_span {
             is null -> {
-                // File-wide fallback : record only if no scoped match
-                // has won yet (we'll prefer a scoped match below).
                 if !has_best {
                     best_idx = i
-                    best_size = usize(0) // sentinel : null-scope
+                    best_size = usize(0)
                     has_best = true
                 }
             }
             is Span as sp -> {
                 if sp.start.offset <= offset && offset < sp.end.offset {
                     size :: sp.end.offset - sp.start.offset
-                    // Prefer this scoped match over a null-scope
-                    // baseline, or over a larger scoped match.
                     if !has_best || best_size == usize(0) || size < best_size {
                         best_idx = i
                         best_size = size
@@ -720,13 +594,9 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
     return decls[best_idx]
 }
 
-// ---- LSP position conversion ---------------------------------------------
-
-// LSP positions are 0-based (line + character). `character` is supposed
-// to be UTF-16 code units, but the MVP treats it as a UTF-8 byte offset
-// within the line. ASCII names round-trip cleanly ; non-ASCII identifiers
-// (rare in Vader code) may misalign by a few bytes — acceptable for the
-// MVP.
+// LSP positions are 0-based (line + character). MVP treats `character`
+// as a UTF-8 byte offset within the line — ASCII identifiers round-trip
+// cleanly, non-ASCII may misalign by a few bytes.
 lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
     n :: source.byte_len()
     cur_line: i32 = 0
@@ -742,8 +612,6 @@ lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
 }
 
 /// Convert a Span to an LSP-style range (0-based line + character).
-/// Exposed because both `definition` and `hover` need it to ship the
-/// jump target / hover bounds back to the client.
 export span_to_range_json :: fn(s: Span) -> SpanRange {
     return SpanRange {
         .start_line      = s.start.line - 1,
@@ -753,8 +621,7 @@ export span_to_range_json :: fn(s: Span) -> SpanRange {
     }
 }
 
-/// LSP-encoded range : 0-based line + character pairs. The handler
-/// modules wrap this into JSON before sending it back over the wire.
+/// LSP-encoded range : 0-based line + character pairs.
 export SpanRange :: struct {
     start_line:      i32
     start_character: i32
