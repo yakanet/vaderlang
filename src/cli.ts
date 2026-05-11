@@ -24,7 +24,10 @@ COMMANDS:
                                      --release          Optimise ; default builds carry debug info
                                      --manifest         Read vader.json instead of a single file
                                      --out=<path>       Override the default output path
-  fmt [path]                       Format Vader sources in place
+  fmt [path] [options]             Format Vader sources (single file or recursive directory walk)
+                                     --check          Read-only ; exit 1 if any file would change
+                                     --stdout         Write formatted output to stdout (single file)
+                                   Default rewrites every .vader under <path> in place ; <path> defaults to the cwd.
   test [path]                      Run @test functions
   dump --stage=<stage> <file>      Dump an IR stage as JSON/text
                                      ast            Parser AST (JSON, spans elided)

@@ -8,9 +8,12 @@
 //     vader              <- compiled binary; process.execPath points here
 //     stdlib/std/*.vader
 //     runtime/c/{vader.h, vader_runtime.c}
-//     vader/{cli,fmt,parser,lexer,…}      <- self-host sources loaded by the
+//     vader-src/{cli,fmt,parser,lexer,…}  <- self-host sources loaded by the
 //                                            TS host to run `vader fmt` (and
 //                                            future tools) through the VM.
+//                                            Named `vader-src` (not `vader`)
+//                                            to avoid colliding with the
+//                                            binary sitting in the same dir.
 
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -34,7 +37,7 @@ function probe(): RuntimeRoots {
   const binDir = dirname(process.execPath);
   const sidecarStdlib = resolve(binDir, "stdlib");
   const sidecarCRuntime = resolve(binDir, "runtime", "c");
-  const sidecarVader = resolve(binDir, "vader");
+  const sidecarVader = resolve(binDir, "vader-src");
   if (
     existsSync(resolve(sidecarStdlib, "std", "io.vader")) &&
     existsSync(resolve(sidecarCRuntime, "vader.h"))

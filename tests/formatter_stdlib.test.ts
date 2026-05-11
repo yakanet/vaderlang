@@ -33,6 +33,7 @@ function listStdlibFiles(): string[] {
 // weaker idempotency check below.
 const NO_OP_FILES = new Set([
   "iter.vader",
+  "math.vader",
   "runtime.vader",
   "sort.vader",
   "string_builder.vader",

@@ -53,6 +53,12 @@ export Printer :: struct {
     // Set to true after the first character has been written ; used by
     // `flush_leading_comments` to skip an initial empty line.
     has_written: bool
+    // Active column-alignment target for `::`. The decl-group loop in
+    // `emit_program` sets this to the max-name-width of the current
+    // contiguous group of alignable decls (signature-only fns + consts) ;
+    // emit_fn_decl / emit_const_decl pad the name to this width. `0`
+    // disables alignment (single-space `::`).
+    align_name_width: usize
 }
 
 export new_printer :: fn(source: string, comments: CommentMap) -> Printer {
@@ -62,6 +68,7 @@ export new_printer :: fn(source: string, comments: CommentMap) -> Printer {
         .source = source,
         .comments = comments,
         .has_written = false,
+        .align_name_width = usize(0),
     }
 }
 
@@ -97,6 +104,24 @@ nl_indent :: fn(self: Printer) -> void {
 
 source_slice :: fn(self: Printer, span: Span) -> string {
     return self.source.str_slice(span.start.offset, span.end.offset)
+}
+
+// Write `name` followed by enough trailing spaces to reach
+// `self.align_name_width`. No-op padding when `align_name_width == 0`
+// (single decl, not in an alignment group) or when the name already
+// matches / exceeds the target (uniform-length group).
+write_name_padded :: fn(self: Printer, name: string) -> void {
+    self.write(name)
+    target :: self.align_name_width
+    n :: name.byte_len()
+    if target > n {
+        pad :: target - n
+        k: usize = 0
+        for k < pad {
+            self.write(" ")
+            k = k + usize(1)
+        }
+    }
 }
 
 // ----- comment interleaving -----
@@ -144,6 +169,10 @@ flush_remaining_comments :: fn(self: Printer) -> void {
 
 export emit_program :: fn(self: Printer, p: Program) -> string {
     decls :: p.decls
+    // Group-alignment pre-pass. Resolved here once so `emit_fn_decl` /
+    // `emit_const_decl` can look up their group's max-name width without
+    // re-scanning siblings each time.
+    align_widths :: compute_decl_alignment_widths(decls)
     i: usize = 0
     for i < decls.len() {
         d :: decls[i]
@@ -156,11 +185,6 @@ export emit_program :: fn(self: Printer, p: Program) -> string {
         if i > usize(0) {
             self.newline()
             prev_end_line :: decl_span(decls[i - usize(1)]).end.line
-            // Where this decl logically starts : the first queued leading
-            // comment's line if any, else the first decorator's line (since
-            // decorators sit outside the decl's own span), else the decl's
-            // own start line. Block comments use `.line` (their start) for
-            // adjacency to the previous decl's closing line.
             first_line := decl_first_line(d)
             if self.comments.has_before(before) {
                 cs :: self.comments.peek_before(before)
@@ -170,11 +194,12 @@ export emit_program :: fn(self: Printer, p: Program) -> string {
         }
         self.flush_leading_comments(before, decl_first_line(d))
         self.indent()
+        self.align_name_width = align_widths[i]
         self.emit_decl(d)
+        self.align_name_width = usize(0)
         i = i + usize(1)
     }
     self.flush_remaining_comments()
-    // Enforce exactly one trailing newline.
     self.newline()
     return self.finish()
 }
@@ -243,6 +268,125 @@ expr_span :: fn(e: Expr | null) -> Span {
         is FnTypeExpr      as x -> x.span
         is ArrayTypeExpr   as x -> x.span
     }
+}
+
+// True when the decl's name is in a `name :: …` slot eligible for column
+// alignment within a group. Signature-only fns and consts both fit ;
+// fns with a body (block or expression) don't — the existing stdlib
+// convention is single-space `::` for those.
+decl_is_alignable :: fn(d: Decl) -> bool {
+    match d {
+        is FnDecl as x -> {
+            if x.sam_synthetic        { return false }
+            if x.is_expression_bodied { return false }
+            match x.body {
+                is null -> { return true }
+                _       -> { return false }
+            }
+        }
+        is ConstDecl -> { return true }
+        _            -> { return false }
+    }
+    return false   // unreachable, see note in cli.vader
+}
+
+decl_alignable_name :: fn(d: Decl) -> string {
+    match d {
+        is FnDecl     as x -> { return x.name }
+        is ConstDecl  as x -> { return x.name }
+        _                  -> { return "" }
+    }
+    return ""   // unreachable
+}
+
+// Decorator-set fingerprint for group-alignability. Two decls only join
+// the same alignment group when their decorator lists carry the same set
+// of names — a stray `@deprecated` or differently-shaped decorator stack
+// otherwise breaks the visual grouping.
+fn_decl_decorator_names :: fn(d: FnDecl) -> string[] {
+    out: string[] = []
+    for deco in d.decorators { out.push(deco.name) }
+    return out
+}
+
+const_decl_decorator_names :: fn(d: ConstDecl) -> string[] {
+    out: string[] = []
+    for deco in d.decorators { out.push(deco.name) }
+    return out
+}
+
+string_lists_equal :: fn(a: string[], b: string[]) -> bool {
+    if a.len() != b.len() { return false }
+    i: usize = 0
+    for i < a.len() {
+        if a[i] != b[i] { return false }
+        i = i + usize(1)
+    }
+    return true
+}
+
+// True when `cur` can extend a group anchored on `prev` : same decl kind,
+// same body shape (only signature-only fns are alignable), same
+// visibility, same decorator names, and visually adjacent (no blank line
+// between `prev.end` and `cur.first_line`).
+decls_in_same_group :: fn(prev: Decl, cur: Decl) -> bool {
+    if !decl_is_alignable(prev) { return false }
+    if !decl_is_alignable(cur) { return false }
+    if decl_first_line(cur) != decl_span(prev).end.line + 1 { return false }
+    match prev {
+        is FnDecl as pf -> {
+            match cur {
+                is FnDecl as cf -> {
+                    if pf.visibility != cf.visibility { return false }
+                    return string_lists_equal(fn_decl_decorator_names(pf), fn_decl_decorator_names(cf))
+                }
+                _ -> { return false }
+            }
+        }
+        is ConstDecl as pc -> {
+            match cur {
+                is ConstDecl as cc -> {
+                    if pc.visibility != cc.visibility { return false }
+                    return string_lists_equal(const_decl_decorator_names(pc), const_decl_decorator_names(cc))
+                }
+                _ -> { return false }
+            }
+        }
+        _ -> { return false }
+    }
+    return false   // unreachable
+}
+
+// Pre-pass over the project's decls : for each decl, return the
+// alignment width that its emitter should use for the `name :: ` slot.
+// Decls outside an alignable group (or that are the sole member of one)
+// get `0`, which disables padding. Groups extending across two or more
+// decls all see the same width — the max name length in the group — so
+// every name in the group aligns to the same column.
+compute_decl_alignment_widths :: fn(decls: Decl[]) -> usize[] {
+    out: usize[] = []
+    i: usize = 0
+    for i < decls.len() {
+        if !decl_is_alignable(decls[i]) {
+            out.push(usize(0))
+            i = i + usize(1)
+            continue
+        }
+        end := i + usize(1)
+        width: usize = decl_alignable_name(decls[i]).byte_len()
+        for end < decls.len() {
+            if !decls_in_same_group(decls[end - usize(1)], decls[end]) { break }
+            w :: decl_alignable_name(decls[end]).byte_len()
+            if w > width { width = w }
+            end = end + usize(1)
+        }
+        // Solo groups (`end == i + 1`) skip alignment — `pad_end` of a
+        // name to its own width is a no-op, just wasted work.
+        group_width :: if end == i + usize(1) { usize(0) } else { width }
+        for k in i..<end { out.push(group_width) }
+        i = end
+    }
+    return out
 }
 
 decl_span :: fn(d: Decl) -> Span {
@@ -385,7 +529,7 @@ emit_fn_decl :: fn(self: Printer, d: FnDecl) -> void {
 
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
-    self.write(d.name)
+    self.write_name_padded(d.name)
     self.write(" :: fn")
     self.emit_type_params(d.type_params)
     self.emit_fn_params(d.params)
@@ -551,15 +695,93 @@ emit_trait_decl :: fn(self: Printer, d: TraitDecl) -> void {
         self.write(" {}")
         return
     }
+    // Inline single-line trait body — matches the stdlib idiom
+    // `Add :: trait { add :: fn(self, other: Self) -> Self }`. Single-stmt
+    // bodies stay on one line ; multi-stmt bodies break.
+    if d.span.start.line == d.span.end.line && d.members.len() == usize(1) {
+        self.write(" { ")
+        self.emit_fn_decl(d.members[0])
+        self.write(" }")
+        return
+    }
     self.write(" {")
     self.depth = self.depth + 1
-    for m in d.members {
-        self.nl_indent()
+    member_widths :: compute_fn_alignment_widths(d.members)
+    i: usize = 0
+    for i < d.members.len() {
+        m :: d.members[i]
+        first :: m.span.start
+        // Preserve blank lines between members + interleave inner comments.
+        if i > usize(0) {
+            prev_end :: d.members[i - usize(1)].span.end.line
+            self.newline()
+            if first.line > prev_end + 1 { self.newline() }
+        } else {
+            self.newline()
+        }
+        self.flush_leading_comments_inline(first.offset, first.line)
+        self.indent()
+        self.align_name_width = member_widths[i]
         self.emit_fn_decl(m)
+        self.align_name_width = usize(0)
+        i = i + usize(1)
     }
+    // Trailing comments before the closing brace.
+    inner_trailing :: self.comments.has_before(d.span.end.offset)
+    self.flush_leading_comments_inline(d.span.end.offset, d.span.end.line)
     self.depth = self.depth - 1
-    self.nl_indent()
+    if inner_trailing { self.indent() } else { self.nl_indent() }
     self.write("}")
+}
+
+// Mirror of `compute_decl_alignment_widths` for `FnDecl[]` — drives the
+// `::` column alignment inside trait / impl bodies. Same group rule :
+// consecutive signature-only fns with matching visibility and decorator
+// set share a group.
+compute_fn_alignment_widths :: fn(members: FnDecl[]) -> usize[] {
+    out: usize[] = []
+    i: usize = 0
+    for i < members.len() {
+        m :: members[i]
+        if m.sam_synthetic || m.is_expression_bodied {
+            out.push(usize(0))
+            i = i + usize(1)
+            continue
+        }
+        is_sig :: match m.body {
+            is null -> true
+            _       -> false
+        }
+        if !is_sig {
+            out.push(usize(0))
+            i = i + usize(1)
+            continue
+        }
+        // Group : consecutive sig-only members, adjacent lines, same
+        // visibility, same decorator set.
+        end := i + usize(1)
+        width: usize = m.name.byte_len()
+        for end < members.len() {
+            prev :: members[end - usize(1)]
+            cur :: members[end]
+            if cur.sam_synthetic || cur.is_expression_bodied { break }
+            cur_sig :: match cur.body {
+                is null -> true
+                _       -> false
+            }
+            if !cur_sig { break }
+            if cur.span.start.line != prev.span.end.line + 1 { break }
+            if prev.visibility != cur.visibility { break }
+            if !string_lists_equal(fn_decl_decorator_names(prev), fn_decl_decorator_names(cur)) { break }
+            w :: cur.name.byte_len()
+            if w > width { width = w }
+            end = end + usize(1)
+        }
+        group_width :: if end == i + usize(1) { usize(0) } else { width }
+        for k in i..<end { out.push(group_width) }
+        i = end
+    }
+    return out
 }
 
 emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
@@ -593,12 +815,29 @@ emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
     }
     self.write(" {")
     self.depth = self.depth + 1
-    for m in d.members {
-        self.nl_indent()
+    impl_widths :: compute_fn_alignment_widths(d.members)
+    i: usize = 0
+    for i < d.members.len() {
+        m :: d.members[i]
+        first :: m.span.start
+        if i > usize(0) {
+            prev_end :: d.members[i - usize(1)].span.end.line
+            self.newline()
+            if first.line > prev_end + 1 { self.newline() }
+        } else {
+            self.newline()
+        }
+        self.flush_leading_comments_inline(first.offset, first.line)
+        self.indent()
+        self.align_name_width = impl_widths[i]
         self.emit_fn_decl(m)
+        self.align_name_width = usize(0)
+        i = i + usize(1)
     }
+    inner_trailing :: self.comments.has_before(d.span.end.offset)
+    self.flush_leading_comments_inline(d.span.end.offset, d.span.end.line)
     self.depth = self.depth - 1
-    self.nl_indent()
+    if inner_trailing { self.indent() } else { self.nl_indent() }
     self.write("}")
 }
 
@@ -617,10 +856,16 @@ emit_type_alias :: fn(self: Printer, d: TypeAliasDecl) -> void {
 emit_const_decl :: fn(self: Printer, d: ConstDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
-    self.write(d.name)
+    // Typed const-decls (`NAME: T :: value`) skip name-column alignment :
+    // the `: T` segment breaks the per-name column anyway, so a uniform
+    // single-space `::` reads cleaner.
     match d.ty {
-        is null -> self.write(" :: ")
+        is null -> {
+            self.write_name_padded(d.name)
+            self.write(" :: ")
+        }
         _ -> {
+            self.write(d.name)
             self.write(": ")
             self.emit_type_expr(d.ty)
             self.write(" :: ")

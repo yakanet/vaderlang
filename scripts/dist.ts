@@ -6,11 +6,14 @@
 //     vader (or vader.exe on Windows)    <- compiled binary
 //     stdlib/std/*.vader
 //     runtime/c/{vader.h, vader_runtime.c}
-//     vader/                              <- self-host sources (cli, fmt, parser, …)
+//     vader-src/                          <- self-host sources (cli, fmt, parser, …)
 //                                            shipped because `vader fmt` (and
 //                                            future Vader-implemented tools)
 //                                            are loaded from disk by the TS host
 //                                            until the full self-host lands.
+//                                            Renamed from `vader/` to avoid
+//                                            colliding with the `vader` binary
+//                                            in the same directory.
 //
 // then gzipped into dist/vader-<os>-<arch>.tar.gz.
 
@@ -81,10 +84,12 @@ async function buildOne(target: Target, repoRoot: string): Promise<void> {
   await run(["cp", "-R", join(repoRoot, "stdlib"), join(outDir, "stdlib")]);
   mkdirSync(join(outDir, "runtime"), { recursive: true });
   await run(["cp", "-R", join(repoRoot, "runtime", "c"), join(outDir, "runtime", "c")]);
-  // Self-host Vader sources. The TS host invokes `vader/cli/main.vader fmt …`
-  // through the VM for the `fmt` subcommand ; future Vader-implemented tools
-  // (`test`, eventually the full compiler) reuse the same tree.
-  await run(["cp", "-R", join(repoRoot, "vader"), join(outDir, "vader")]);
+  // Self-host Vader sources. The TS host invokes `<vaderRoot>/cli/main.vader
+  // fmt …` through the VM for the `fmt` subcommand ; future Vader-implemented
+  // tools (`test`, eventually the full compiler) reuse the same tree. The
+  // shipped directory is named `vader-src` rather than `vader` because the
+  // compiled binary already occupies the `vader` name in the same directory.
+  await run(["cp", "-R", join(repoRoot, "vader"), join(outDir, "vader-src")]);
 
   // 3. Archive : `.zip` for Windows (extractable via Explorer out of the
   // box ; exec bit is irrelevant on NTFS), `.tar.gz` for Unix targets
