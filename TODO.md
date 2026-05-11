@@ -40,6 +40,7 @@ Items here jump the queue ahead of the phased roadmap below. They reflect a deli
   - `src/typecheck/passes/call.ts` (886 lines) → one file per call form: `cast.ts` (`Type(value)`), `direct.ts` (plain fn call + overload), `ufcs.ts`, `ufcs-generic.ts`.
   - `src/resolver/resolve.ts` (1114 lines) → at minimum extract module/import resolution and identifier resolution into siblings.
   No behaviour change; snapshot suite must stay green throughout.
+- [ ] **LSP semantic classification via the AST.** Today `vader/lsp/semantic_tokens.vader` classifies identifiers from the **lexer stream alone** with a `is-uppercase?` heuristic : `MutableMap` → `Type`, every lowercase ident → `Variable`. Consequences : function names (`double :: fn(...)`) ship as `Variable`, primitive types (`i32`, `usize`, `string`, `bool`) ship as `Variable`, fields and locals are indistinguishable, etc. Replace with a pass that runs the parser + resolver and walks the AST so each `IdentExpr` is tagged with its actual kind (`FnDecl` → `Function`, `TypeRef` → `Type`, `FieldAccess` → `Property`, …). Same trick as `vader/fmt/` does today — call into `vader/parser/parser.vader` and `vader/resolver/`. Adds a real semantic-token pipeline ; throws away the lexer-only shortcut. Acceptance : `vader fmt` regression suite still green, and Inspect Editor Tokens on `double`/`i32`/`self`/struct fields shows the correct token type and color.
 
 ---
 
