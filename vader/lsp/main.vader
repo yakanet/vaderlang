@@ -24,6 +24,7 @@ import "vader/lsp/lifecycle" { handle_initialize, server_capabilities }
 import "vader/lsp/state" { ServerState, new_state, handle_did_open, handle_did_change, handle_did_close }
 import "vader/lsp/semantic_tokens" { handle_semantic_tokens_full }
 import "vader/lsp/rpc" { request_id, method_name, params_value, encode_response, encode_method_not_found, encode_error, is_json_null }
+import "vader/lsp/log" { log_info, log_warn }
 
 /// LSP server entry. Blocks reading frames until EOF or `exit`
 /// notification. `args` is currently ignored — reserved for `--log` etc.
@@ -78,14 +79,18 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
     if method == "initialize" {
         result :: handle_initialize(params)
         write_frame(encode_response(id, result))
+        // First log emitted *after* the response so the client has already
+        // installed its trace listener — earlier log lines are sometimes
+        // dropped by clients that buffer pre-initialize traffic.
+        log_info("vader-lsp: initialize complete")
         return DispatchResult.Continue
     }
     if method == "initialized" {
-        // Notification — no response.
         return DispatchResult.Continue
     }
     if method == "shutdown" {
         write_frame(encode_response(id, JsonNull {}))
+        log_info("vader-lsp: shutdown requested")
         return DispatchResult.ShutdownRequested
     }
     if method == "exit" {
@@ -96,6 +101,7 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
     }
     if method == "textDocument/didOpen" {
         handle_did_open(state, params)
+        log_info("didOpen ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/didChange" {
@@ -104,11 +110,13 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
     }
     if method == "textDocument/didClose" {
         handle_did_close(state, params)
+        log_info("didClose ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/semanticTokens/full" {
         result :: handle_semantic_tokens_full(state, params)
         write_frame(encode_response(id, result))
+        log_info("semanticTokens/full ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     // Unknown method. Respond with MethodNotFound for requests (have an
@@ -116,6 +124,31 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
     // convention).
     if !is_json_null(id) {
         write_frame(encode_method_not_found(id, method))
+        log_warn("unknown request method: ${method}")
     }
     return DispatchResult.Continue
+}
+
+// Best-effort URI extraction for log lines — handles the
+// `{ textDocument: { uri } }` shape used by every textDocument/* request.
+// Returns "" when params doesn't carry a textDocument, which keeps the
+// log line readable rather than aborting the dispatch.
+doc_uri :: fn(params: JsonValue) -> string {
+    match params {
+        is JsonObject as o -> {
+            td :: o.entries["textDocument"]
+            match td {
+                is JsonObject as tdo -> {
+                    uri :: tdo.entries["uri"]
+                    match uri {
+                        is JsonString as s -> { return s.value }
+                        _ -> { return "" }
+                    }
+                }
+                _ -> { return "" }
+            }
+        }
+        _ -> { return "" }
+    }
+    return ""   // unreachable
 }

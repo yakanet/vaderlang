@@ -90,6 +90,17 @@ export encode_method_not_found :: fn(id: JsonValue, method: string) -> string {
     return encode_error(id, -32601, "Method not found: ${method}")
 }
 
+/// Encode a server-pushed notification : `{ jsonrpc, method, params }`,
+/// no `id`. Used for `window/logMessage`, `textDocument/publishDiagnostics`,
+/// etc. — anything the server emits unprompted.
+export encode_notification :: fn(method: string, params: JsonValue) -> string {
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["jsonrpc"] = JsonString { .value = "2.0" }
+    obj["method"]  = JsonString { .value = method }
+    obj["params"]  = params
+    return stringify(JsonObject { .entries = obj })
+}
+
 // ---- internal helpers -----------------------------------------------------
 
 get_field_or_null :: fn(o: JsonObject, key: string) -> JsonValue {

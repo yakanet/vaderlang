@@ -1,0 +1,48 @@
+// vader/lsp/log — server-side logging via LSP `window/logMessage`.
+//
+// The client (VSCode, IntelliJ, …) renders these as plain lines in the
+// `Vader Language Server` output channel, alongside the JSON-RPC trace.
+// This lets us surface server-side state without polluting stdout
+// (which is reserved for the JSON-RPC stream) or stderr (which most
+// clients don't display).
+
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber }
+import "std/collections" { MutableMap }
+import "vader/lsp/transport" { write_frame }
+import "vader/lsp/rpc" { encode_notification }
+
+/// Severity tag per LSP spec. The integer wire-format is derived through
+/// `level_code` rather than a direct enum-to-int cast, because Vader's
+/// typechecker forbids the latter on `enum(i32)` types.
+export LogLevel :: enum(i32) {
+    Error = 1,
+    Warning = 2,
+    Info = 3,
+    Log = 4,
+    Debug = 5,
+}
+
+level_code :: fn(l: LogLevel) -> i32 {
+    match l {
+        .Error   -> { return 1 }
+        .Warning -> { return 2 }
+        .Info    -> { return 3 }
+        .Log     -> { return 4 }
+        .Debug   -> { return 5 }
+    }
+    return 4
+}
+
+/// Emit a `window/logMessage` notification.
+export log :: fn(level: LogLevel, message: string) -> void {
+    params_map :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    params_map["type"]    = JsonNumber { .value = f64(level_code(level)) }
+    params_map["message"] = JsonString { .value = message }
+    params :: JsonObject { .entries = params_map }
+    write_frame(encode_notification("window/logMessage", params))
+}
+
+export log_error :: fn(message: string) -> void { log(LogLevel.Error, message) }
+export log_warn  :: fn(message: string) -> void { log(LogLevel.Warning, message) }
+export log_info  :: fn(message: string) -> void { log(LogLevel.Info, message) }
+export log_debug :: fn(message: string) -> void { log(LogLevel.Debug, message) }
