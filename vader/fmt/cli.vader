@@ -9,6 +9,7 @@
 import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprintln }
 import "std/string" { byte_len, ends_with, starts_with }
 import "std/path" { Path, join, to_path, as_string }
+import "vader/diagnostics/diagnostic" { Diagnostic, render }
 import "vader/fmt/format" { format_source, FormatResult, ParseFailure, Formatted }
 
 // Per-file outcome. Typed so call sites can pattern-match instead of
@@ -142,8 +143,11 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
 
     out :: format_source(src, path)
     match out {
-        is ParseFailure -> {
+        is ParseFailure as pf -> {
             eprintln("vader fmt: skipped (parse errors): ${path}")
+            for d in pf.diagnostics {
+                eprintln("  ${d.render()}")
+            }
             return FileResult.ParseSkip
         }
         is Formatted as f -> {
@@ -182,8 +186,11 @@ run_one_stdout :: fn(path: string) -> FileResult {
     }
     out :: format_source(src, path)
     match out {
-        is ParseFailure -> {
+        is ParseFailure as pf -> {
             eprintln("vader fmt: skipped (parse errors): ${path}")
+            for d in pf.diagnostics {
+                eprintln("  ${d.render()}")
+            }
             return FileResult.ParseSkip
         }
         is Formatted as f -> {

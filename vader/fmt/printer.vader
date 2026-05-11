@@ -792,9 +792,31 @@ emit_expr :: fn(self: Printer, e: Expr | null) -> void {
         }
         is FnTypeExpr        as x -> self.emit_fn_type(x)
         is ArrayTypeExpr     as x -> {
-            self.emit_type_expr(x.element)
+            // Postfix `[]` binds tighter than `|` / `&` — `A | B[]` parses
+            // as `A | (B[])`. If the element is a union/intersection
+            // BinaryExpr, wrap it so the round-trip stays semantically
+            // identical : source `(A | B)[]` must round-trip verbatim.
+            self.emit_array_or_union_element(x.element)
             self.write("[]")
         }
+    }
+}
+
+// Wraps the element of an `ArrayTypeExpr` (or any other tighter-than-pipe
+// postfix) in parens iff it's a `BinaryExpr.BitOr` or `BinaryExpr.BitAnd`,
+// preserving the source-level precedence.
+emit_array_or_union_element :: fn(self: Printer, e: Expr) -> void {
+    match e {
+        is BinaryExpr as b -> {
+            if b.op == .BitOr || b.op == .BitAnd {
+                self.write("(")
+                self.emit_expr(e)
+                self.write(")")
+                return
+            }
+            self.emit_expr(e)
+        }
+        _ -> self.emit_expr(e)
     }
 }
 
