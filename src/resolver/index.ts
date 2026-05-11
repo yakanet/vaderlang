@@ -144,8 +144,7 @@ function mergeFilePrograms(programs: readonly ResolvedProgram[]): ResolvedProgra
     forIns: merge(programs.map((p) => p.forIns)),
     typeParams: merge(programs.map((p) => p.typeParams)),
     typeParamTypes: merge(programs.map((p) => p.typeParamTypes)),
-    fields: merge(programs.map((p) => p.fields)),
-    ufcsFreeResolutions: merge(programs.map((p) => p.ufcsFreeResolutions)),
+    fieldRefs: merge(programs.map((p) => p.fieldRefs)),
     patternBindings: merge(programs.map((p) => p.patternBindings)),
   };
 }

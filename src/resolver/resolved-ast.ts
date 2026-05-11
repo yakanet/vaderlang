@@ -54,14 +54,21 @@ export interface ResolvedProgram {
    *  value is the same symbol as the matching entry in `typeParams`. */
   readonly typeParamTypes: ReadonlyMap<A.IdentExpr, Symbol>;
 
-  /** When `obj.field` resolves through a module import, the field is bound here. */
-  readonly fields: ReadonlyMap<A.FieldExpr, Symbol>;
-
-  /** When `obj.method(args)` is UFCS on a free imported function, the resolved
-   *  function symbol is recorded here (after import-redirect). The typechecker
-   *  validates first-param compatibility and records into `MutableTyped.ufcsFreeResolutions`. */
-  readonly ufcsFreeResolutions: ReadonlyMap<A.FieldExpr, Symbol>;
+  /** Per-`FieldExpr` resolution — exactly one of the two kinds holds for
+   *  any given node, by construction of the resolver (namespace exports
+   *  and UFCS-free-fn candidates are matched in different code paths and
+   *  never both populate the same node). Replaces the former two parallel
+   *  Maps (`fields` + `ufcsFreeResolutions`). */
+  readonly fieldRefs: ReadonlyMap<A.FieldExpr, FieldRef>;
 }
+
+/** Resolution recorded by the name-resolver for a `FieldExpr`. The typer
+ *  reads this to decide whether `obj.x` is a re-exported namespace member
+ *  (rewrite to a direct reference) or a UFCS candidate against a free fn
+ *  (validate first-param compatibility, then rewrite the call). */
+export type FieldRef =
+  | { readonly kind: "namespace"; readonly symbol: Symbol }
+  | { readonly kind: "ufcs-free"; readonly symbol: Symbol };
 
 export interface ResolvedProject {
   readonly modules: ReadonlyMap<string, ResolvedProgram>;     // keyed by ModuleId

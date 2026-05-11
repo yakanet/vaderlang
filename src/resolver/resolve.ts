@@ -12,7 +12,7 @@ import { isKnownDecorator } from "../parser/decorators.ts";
 import { intrinsicSpec } from "../parser/intrinsics.ts";
 import { checkReservedIdent, err } from "./diag.ts";
 import type { Module } from "./module.ts";
-import type { ResolvedProgram } from "./resolved-ast.ts";
+import type { FieldRef, ResolvedProgram } from "./resolved-ast.ts";
 import type { BindingOrigin, ModuleId, Symbol, SymbolFactory } from "./symbol.ts";
 import type { ImportTargetTable } from "./wire.ts";
 
@@ -56,8 +56,7 @@ interface MutableProgram {
   forIns: Map<A.ForStmt, Symbol>;
   typeParams: Map<A.TypeParam, Symbol>;
   typeParamTypes: Map<A.IdentExpr, Symbol>;
-  fields: Map<A.FieldExpr, Symbol>;
-  ufcsFreeResolutions: Map<A.FieldExpr, Symbol>;
+  fieldRefs: Map<A.FieldExpr, FieldRef>;
   patternBindings: Map<A.IsPattern | A.BindingPattern | A.StructPatternField, Symbol>;
 }
 
@@ -102,8 +101,7 @@ export function resolveModule(input: ResolveModuleInput): ResolvedProgram[] {
       forIns: new Map(),
       typeParams: new Map(),
       typeParamTypes: new Map(),
-      fields: new Map(),
-      ufcsFreeResolutions: new Map(),
+      fieldRefs: new Map(),
       patternBindings: new Map(),
     };
     for (const decl of file.program.decls) {
@@ -1048,7 +1046,7 @@ function resolveFieldExpr(expr: A.FieldExpr, scope: Scope, p: MutableProgram, in
           err(input.diags, "R2008", expr.fieldSpan, `\`${expr.field}\``);
           return;
         }
-        p.fields.set(expr, exported);
+        p.fieldRefs.set(expr, { kind: "namespace", symbol: exported });
         return;
       }
     }
@@ -1058,7 +1056,7 @@ function resolveFieldExpr(expr: A.FieldExpr, scope: Scope, p: MutableProgram, in
   // Type validation (first-param compatibility) is deferred to the typechecker.
   const freeSym = lookup(scope, expr.field);
   if (freeSym !== null && (freeSym.kind === "fn" || freeSym.kind === "import-binding")) {
-    p.ufcsFreeResolutions.set(expr, resolveImportRedirect(freeSym, input));
+    p.fieldRefs.set(expr, { kind: "ufcs-free", symbol: resolveImportRedirect(freeSym, input) });
   }
 }
 

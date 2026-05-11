@@ -90,7 +90,7 @@ async function runResolvedAst(file: string) {
       imports: p.module.imports.map((i) => ({ path: i.path, resolved: i.resolvedTo !== null })),
       counts: {
         idents: p.idents.size, types: p.types.size, params: p.params.size,
-        locals: p.locals.size, typeParams: p.typeParams.size, fields: p.fields.size,
+        locals: p.locals.size, typeParams: p.typeParams.size, fieldRefs: p.fieldRefs.size,
       },
     })),
   };

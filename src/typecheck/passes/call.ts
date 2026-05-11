@@ -243,8 +243,8 @@ export function inferField(
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   // Module-namespace field: resolver already wired the export.
-  const exported = t.resolved.fields.get(expr);
-  if (exported !== undefined) return typeOfSymbol(exported, t);
+  const fieldRef = t.resolved.fieldRefs.get(expr);
+  if (fieldRef?.kind === "namespace") return typeOfSymbol(fieldRef.symbol, t);
 
   const targetType = checkExpr(expr.target, null, t, impls, diags, fn);
   if (targetType.kind === "Array") {
@@ -384,9 +384,9 @@ export function inferField(
   }
 
   // UFCS for free functions: resolver recorded a candidate if the name was in scope.
-  const freeSym = t.resolved.ufcsFreeResolutions.get(expr);
-  if (freeSym !== undefined) {
-    const boundType = inferUfcsFreeBound(expr, freeSym, targetType, t, impls, diags);
+  const ufcsRef = t.resolved.fieldRefs.get(expr);
+  if (ufcsRef?.kind === "ufcs-free") {
+    const boundType = inferUfcsFreeBound(expr, ufcsRef.symbol, targetType, t, impls, diags);
     if (boundType !== null) return boundType;
   }
 

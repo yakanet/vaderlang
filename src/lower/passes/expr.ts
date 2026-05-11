@@ -126,7 +126,8 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         // top-level call. Without this the FieldExpr falls through to the
         // generic LoweredFieldAccess path and the bytecode emit crashes
         // looking for a struct.
-        const exported = ctx.typed.resolved.fields.get(expr.callee);
+        const calleeRef = ctx.typed.resolved.fieldRefs.get(expr.callee);
+        const exported = calleeRef?.kind === "namespace" ? calleeRef.symbol : undefined;
         if (exported !== undefined && exported.kind === "fn") {
           const typeArgs = ctx.typed.genericFnCalls.get(expr);
           const fnDecl = declOf(exported);
@@ -229,9 +230,9 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       // Module-namespace member used as a value (rare — most are calls,
       // which the CallExpr branch above intercepts). Lower to the exported
       // symbol's identifier directly.
-      const exported = ctx.typed.resolved.fields.get(expr);
-      if (exported !== undefined) {
-        return { kind: "LoweredIdent", span: expr.span, type: exprType, symbol: exported };
+      const fieldRef = ctx.typed.resolved.fieldRefs.get(expr);
+      if (fieldRef?.kind === "namespace") {
+        return { kind: "LoweredIdent", span: expr.span, type: exprType, symbol: fieldRef.symbol };
       }
       // Common-field access on a union receiver (§1.18d) — typecheck
       // recorded the per-variant `(type, fieldType)` pairs ; emit the
