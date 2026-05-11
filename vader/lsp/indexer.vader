@@ -212,11 +212,18 @@ top_entry :: fn(
     source: string, cmap: CommentMap,
 ) -> DeclEntry {
     sig :: head_signature(full_span, source)
-    // `///` doc-comments sit above the decorators in the source ; the
-    // decl's own `span.start` only covers the keyword + identifier,
-    // not the `@deco(...)` lines. Use the earliest offset among the
-    // decl and its decorators so `leading_doc` can scan past them.
-    doc_boundary :: doc_boundary_offset(full_span.start.offset, decorators)
+    // `///` doc-comments sit above the decorators in the source. The
+    // decl's `span.start` covers neither :
+    //   - decorator stack (`@intrinsic`, `@deprecated`, …) sits on
+    //     lines ABOVE the decl ;
+    //   - the `export` keyword sits on the SAME line as the decl but
+    //     BEFORE `name :: …`, and the parser anchors `span.start`
+    //     at the identifier rather than at `export`.
+    // Walking back to the start of the line absorbs `export` ; then
+    // we take the min of that and every decorator's `span.start` so
+    // both gaps close before `leading_doc` scans for `///` runs.
+    line_start :: line_start_offset(source, full_span.start.offset)
+    doc_boundary :: doc_boundary_offset(line_start, decorators)
     doc :: leading_doc(cmap, doc_boundary, source)
     return DeclEntry {
         .name       = name,
@@ -233,11 +240,24 @@ top_entry :: fn(
 // stacked above it. `///` comments contiguous with this offset are
 // the decl's vaderdoc.
 doc_boundary_offset :: fn(decl_start: usize, decorators: Decorator[]) -> usize {
-    best :: decl_start
+    best := decl_start
     for d in decorators {
         if d.span.start.offset < best { best = d.span.start.offset }
     }
     return best
+}
+
+// Offset of the first byte on the source line that contains `pos`.
+// Used to absorb `export`/visibility prefixes that the parser doesn't
+// include in a decl's `span.start`.
+line_start_offset :: fn(source: string, pos: usize) -> usize {
+    if pos == usize(0) { return 0 }
+    i: i32 = i32(pos) - 1
+    for i >= 0 {
+        if source.byte_at(usize(i)) == BYTE_LF { return usize(i) + usize(1) }
+        i = i - 1
+    }
+    return 0
 }
 
 binding_entry :: fn(

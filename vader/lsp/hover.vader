@@ -10,7 +10,7 @@
 // We omit `range` for now — the client falls back to highlighting the
 // word under the cursor on its own.
 
-import "std/string" { byte_len }
+import "std/string" { byte_len, byte_at, split, trim, starts_with, slice }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }
@@ -53,13 +53,14 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
 // ---- payload encoding ----------------------------------------------------
 
 // Compose the Markdown body : a `vader` code-fenced signature, then a
-// blank line, then the (already-stripped) vaderdoc text. The blank
-// line keeps the two blocks visually separated in the client's
-// renderer ; clients that show plain text join them with a space.
+// blank line, then the formatted vaderdoc. `format_vaderdoc` lifts
+// `@param` / `@return` / `@error` tags out of the running prose and
+// renders them as a Markdown bullet list so VSCode's hover doesn't
+// collapse everything onto a single line.
 hover_json :: fn(d: DeclEntry) -> JsonValue {
     body := "```vader\n" + d.signature + "\n```"
     if d.doc.byte_len() > usize(0) {
-        body = body + "\n\n" + d.doc
+        body = body + "\n\n" + format_vaderdoc(d.doc)
     }
     contents :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
     contents["kind"]  = JsonString { .value = "markdown" }
@@ -68,6 +69,101 @@ hover_json :: fn(d: DeclEntry) -> JsonValue {
     obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
     obj["contents"] = JsonObject { .entries = contents }
     return JsonObject { .entries = obj }
+}
+
+// Re-flow vaderdoc text into Markdown the way VSCode renders it cleanly.
+// Two output sections compose into the final blob :
+//
+//   1. **Body** — prose, plus `@example` headers rendered inline as
+//      bold so the continuation lines (typically indented code samples
+//      already wrapped in backticks) stay visually attached.
+//   2. **Tags** — `@param` / `@return` / `@error`, lifted out as a
+//      bullet list separated from the body by a blank line so the
+//      paragraph break survives the Markdown→hover renderer.
+//
+// Tag recognition is anchored — `@params` or `@returns` would NOT
+// trigger the rewrite, matching the vaderdoc convention. Each tag
+// must sit on its own line ; multi-line @tag continuations are kept
+// verbatim in the body for now.
+format_vaderdoc :: fn(raw: string) -> string {
+    if raw.byte_len() == usize(0) { return raw }
+    lines :: raw.split("\n")
+    body: string[] = []
+    tags: string[] = []
+    for ln in lines {
+        rest :: ln.trim()
+        if rest.starts_with("@param ") || rest == "@param" {
+            payload :: rest.slice(usize(6), rest.byte_len()).trim()
+            tags.push("- **param** " + format_param_payload(payload))
+            continue
+        }
+        if rest.starts_with("@return ") || rest == "@return" {
+            payload :: rest.slice(usize(7), rest.byte_len()).trim()
+            tags.push("- **returns** " + payload)
+            continue
+        }
+        if rest.starts_with("@error ") || rest == "@error" {
+            payload :: rest.slice(usize(6), rest.byte_len()).trim()
+            tags.push("- **error** " + payload)
+            continue
+        }
+        if rest == "@example" || rest.starts_with("@example ") {
+            // Keep `@example` in the body flow — the continuation
+            // lines (often indented backtick-quoted snippets) follow
+            // it visually. Insert a blank line before the header so
+            // it stands out as its own paragraph.
+            payload :: rest.slice(usize(8), rest.byte_len()).trim()
+            if body.len() > usize(0) { body.push("") }
+            if payload.byte_len() > usize(0) {
+                body.push("**Example** " + payload)
+            } else {
+                body.push("**Example**")
+            }
+            continue
+        }
+        body.push(ln)
+    }
+    out := join_lines(body)
+    if tags.len() > usize(0) {
+        if out.byte_len() > usize(0) { out = out + "\n\n" }
+        out = out + join_lines(tags)
+    }
+    return out
+}
+
+// `@param NAME  description` → format the leading name as code, drop
+// the description into running text. Falls back to the bare payload
+// when no whitespace separates name from description.
+format_param_payload :: fn(payload: string) -> string {
+    n :: payload.byte_len()
+    if n == usize(0) { return payload }
+    space :: u8(u32(' '))
+    tab   :: u8(u32('\t'))
+    i: usize = 0
+    for i < n {
+        b :: payload.byte_at(i)
+        if b == space || b == tab { break }
+        i = i + usize(1)
+    }
+    if i == 0 || i >= n { return payload }
+    name :: payload.slice(usize(0), i)
+    desc :: payload.slice(i, n).trim()
+    if desc.byte_len() == usize(0) { return "`" + name + "`" }
+    return "`" + name + "` — " + desc
+}
+
+join_lines :: fn(lines: string[]) -> string {
+    out := ""
+    first := true
+    for l in lines {
+        if first {
+            out = l
+            first = false
+        } else {
+            out = out + "\n" + l
+        }
+    }
+    return out
 }
 
 // ---- params extraction (mirrors definition.vader) ------------------------
