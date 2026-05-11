@@ -6,7 +6,6 @@
 import type { BytecodeModule, BcFunction } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
-import { isMainMangled } from "../comptime/specialize.ts";
 import { isFloatVal } from "../bytecode/types.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
 
@@ -69,7 +68,7 @@ export function findEntry(m: BytecodeModule, override?: string): number {
     if (idx < 0) throw new VmError(`vm: entry function "${override}" not found`);
     return idx;
   }
-  const idx = m.functions.findIndex((f) => isMainMangled(f.name) && f.body.length > 0);
+  const idx = m.functions.findIndex((f) => f.isMain && f.body.length > 0);
   if (idx < 0) throw new VmError(`vm: no main function found in module ${m.name}`);
   return idx;
 }

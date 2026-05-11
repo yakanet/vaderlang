@@ -36,7 +36,6 @@ import {
 import { forEachReference, type RefVisitor, type VirtualCallVisitor } from "./lowered_walk.ts";
 
 import type { LoweredDecl, LoweredModule, LoweredProject } from "../lower/index.ts";
-import { isMainMangled } from "../comptime/specialize.ts";
 import { isStdlibModule } from "../resolver/module.ts";
 import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type { Decorator } from "../parser/ast.ts";
@@ -116,7 +115,7 @@ function isRoot(d: LoweredDecl, fromStdlib: boolean, hasMain: boolean): boolean 
   if (!fromStdlib && !hasMain) return true;
   if (d.kind === "LoweredFnDecl") {
     if (d.body === null) return true;                    // @extern import
-    if (isMainMangled(d.mangled)) return true;
+    if (d.origin.isMain) return true;
   }
   const decs = d.origin.decl.kind === "ImplDecl" ? NO_DECORATORS : d.origin.decl.decorators;
   return hasDecorator(decs, DEC.export)
@@ -127,7 +126,7 @@ function isRoot(d: LoweredDecl, fromStdlib: boolean, hasMain: boolean): boolean 
 function projectHasMain(lp: LoweredProject): boolean {
   for (const m of lp.modules.values()) {
     for (const d of m.decls) {
-      if (d.kind === "LoweredFnDecl" && d.body !== null && isMainMangled(d.mangled)) {
+      if (d.kind === "LoweredFnDecl" && d.body !== null && d.origin.isMain) {
         return true;
       }
     }

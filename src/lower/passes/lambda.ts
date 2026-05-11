@@ -180,6 +180,8 @@ function freshLiftedEnvSymbol(ctx: FnLowerCtx): Symbol {
   };
 }
 
+let synthLambdaEntryId = 2_000_000_000;
+
 function synthMonoEntry(
   ctx: FnLowerCtx, symbol: Symbol, kind: "fn" | "struct",
 ): MonoEntry {
@@ -191,6 +193,8 @@ function synthMonoEntry(
     : makeStubStructDecl(symbol);
   const subst: Substitution = { typeParams: new Map() };
   return {
+    id: synthLambdaEntryId++,
+    isMain: false,
     mangled: symbol.name,
     decl,
     symbol,

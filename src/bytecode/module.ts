@@ -27,6 +27,11 @@ export interface BytecodeModule {
 
 export interface BcFunction {
   readonly name: string;
+  /** True iff this fn is the program's entry point (`fn main` in the
+   *  source). Propagated from `MonoEntry.isMain` through the IR layers
+   *  so the VM and the C emitter can locate `main` without re-parsing
+   *  the mangled name. */
+  readonly isMain: boolean;
   readonly signature: BcSignature;
   /** Locals declared in addition to the params. Slot index = `params.length + i`. */
   readonly locals: readonly BcLocal[];

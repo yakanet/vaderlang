@@ -150,8 +150,19 @@ function entryFor(sym: Symbol, owner: TypedProgram): MonoEntry | null {
 function makeMonoEntry(
   mangled: string, decl: MonoEntry["decl"], symbol: Symbol, owner: TypedProgram,
 ): MonoEntry {
-  return { mangled, decl, symbol, subst: EMPTY_SUBST, typeArgs: [], module: owner.resolved };
+  // Synthetic entries scoped to a comptime sub-pipeline ; they live in
+  // their own bytecode module separate from the main `MonoProject`, so
+  // `id` collisions with the project's entries are impossible. The id
+  // counter (`synthEntryId`) is per-process — safe even across multiple
+  // comptime invocations.
+  return {
+    id: synthEntryId++,
+    isMain: false,
+    mangled, decl, symbol, subst: EMPTY_SUBST, typeArgs: [], module: owner.resolved,
+  };
 }
+
+let synthEntryId = 1_000_000_000;
 
 // ---------------------------------------------------------- LoweredProject build
 

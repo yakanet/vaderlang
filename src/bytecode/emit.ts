@@ -126,6 +126,7 @@ export interface EmitterCtx {
  *  readonly external shape via covariant assignment. */
 interface MutableFn {
   readonly name: string;
+  readonly isMain: boolean;
   readonly signature: BcSignature;
   locals: BcLocal[];
   body: Op[];
@@ -182,7 +183,7 @@ function reserveFn(d: L.LoweredFnDecl, ctx: EmitterCtx): void {
   const fnIndex = ctx.functions.length;
   if (d.origin.symbol !== null) ctx.fnIndexBySymId.set(d.origin.symbol.id, fnIndex);
   ctx.functions.push({
-    name: d.mangled, signature: sig, locals: [], body: [], debug: [],
+    name: d.mangled, isMain: d.origin.isMain, signature: sig, locals: [], body: [], debug: [],
   });
   if (hasDecorator(decoratorList, DEC.export)) {
     ctx.exports.push({ externName, fnIndex });

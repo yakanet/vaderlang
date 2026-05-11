@@ -23,17 +23,22 @@ import type { GenericInstance } from "./instances.ts";
 // Specialised AST shape
 // ============================================================================
 
-/** Mangled-name suffix produced for any fn named `main`. The DCE root finder,
- *  the VM's entry-point lookup, and the C emitter's `main()` shim all key off
- *  this. Centralised so they stay in sync. */
-export const MAIN_MANGLED_SUFFIX = "$main";
-
-export function isMainMangled(mangled: string): boolean {
-  return mangled.endsWith(MAIN_MANGLED_SUFFIX);
-}
-
 export interface MonoEntry {
-  /** Stable mangled name, e.g. `main` or `List$i32`. Used as the lowered decl's identity. */
+  /** Pipeline-stable numeric identity. Used by DCE root detection, VM
+   *  entry-point lookup, and the C emitter's `main()` shim — none of
+   *  them re-parse `mangled` to recover the entry's role. Assigned
+   *  monotonically at construction ; preserved through every IR layer. */
+  readonly id: number;
+  /** True iff the origin decl is the top-level `main` fn. The
+   *  pipeline-wide entry-point flag — replaces the older
+   *  `mangled.endsWith("$main")` heuristic so the C-emit (or any other
+   *  back-end) is free to rename the externalised symbol without
+   *  breaking routing. */
+  readonly isMain: boolean;
+  /** External / human-readable name : `main`, `List$i32`, etc. Used by
+   *  the C emitter for the C symbol, the binary writer for the section
+   *  header, and `vader dump` for diagnostics. **Not** used as a
+   *  routing identity by any compiler phase. */
   readonly mangled: string;
   /** Origin decl in the source AST. Multiple MonoEntry can share the same origin (different specialisations). */
   readonly decl: A.FnDecl | A.StructDecl | A.ImplDecl | A.ConstDecl;
@@ -74,6 +79,7 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
   const implMethodEntries = new Map<A.FnDecl, Map<string, MonoEntry>>();
   const seenMangled = new Set<string>();
   const synthIds = { next: 1_000_000 };
+  const entryIds = { next: 0 };
 
   // Pass 1: every non-generic top-level decl gets one entry. Generic impls
   // defer to pass 2 — one entry per `(impl member, concrete struct args)`.
@@ -82,22 +88,22 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
       switch (decl.kind) {
         case "FnDecl":
           if (decl.typeParams.length === 0) {
-            entries.push(makeEntry(decl, decl.name, typed.resolved, EMPTY_SUBST, [], seenMangled));
+            entries.push(makeEntry(decl, decl.name, typed.resolved, EMPTY_SUBST, [], seenMangled, entryIds));
           }
           break;
         case "StructDecl":
           if (decl.typeParams.length === 0) {
-            entries.push(makeEntry(decl, decl.name, typed.resolved, EMPTY_SUBST, [], seenMangled));
+            entries.push(makeEntry(decl, decl.name, typed.resolved, EMPTY_SUBST, [], seenMangled, entryIds));
           }
           break;
         case "ConstDecl":
-          entries.push(makeEntry(decl, decl.name, typed.resolved, EMPTY_SUBST, [], seenMangled));
+          entries.push(makeEntry(decl, decl.name, typed.resolved, EMPTY_SUBST, [], seenMangled, entryIds));
           break;
         case "ImplDecl":
           if (decl.forType.kind === "GenericInstExpr") break;     // handled per-instance in pass 2
           for (const member of decl.members) {
             const base = `${forTypeName(decl.forType)}$${decl.traitName}$${member.name}`;
-            const entry = makeImplMemberEntry(member, base, typed.resolved, EMPTY_SUBST, [], seenMangled, synthIds);
+            const entry = makeImplMemberEntry(member, base, typed.resolved, EMPTY_SUBST, [], seenMangled, synthIds, entryIds);
             entries.push(entry);
             putImplEntry(implMethodEntries, member, [], entry);
           }
@@ -126,7 +132,7 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
   // Pass 2: every concrete struct instance from the registry gets one entry.
   // Plus one entry per impl member for each generic impl on that struct.
   for (const inst of evaluated.instances) {
-    const entry = makeInstanceEntry(inst, evaluated, seenMangled);
+    const entry = makeInstanceEntry(inst, evaluated, seenMangled, entryIds);
     if (entry === null) continue;
     entries.push(entry);
     byInstance.set(inst.displayKey, entry);
@@ -158,7 +164,7 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
       for (const member of d.members) {
         const base = `${inst.symbol.name}$${d.traitName}$${member.name}`;
         const memberEntry = makeImplMemberEntry(
-          member, base, implProgram, subst, inst.args, seenMangled, synthIds,
+          member, base, implProgram, subst, inst.args, seenMangled, synthIds, entryIds,
         );
         entries.push(memberEntry);
         putImplEntry(implMethodEntries, member, inst.args, memberEntry);
@@ -176,7 +182,7 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
     const program = evaluated.typed.modules.get(inst.symbol.module)?.resolved ?? null;
     if (program === null) continue;
     const subst = buildSubst(fnDecl.typeParams, inst.args, program);
-    const entry = makeImplMemberEntry(fnDecl, mangle(inst.symbol.name, program, []), program, subst, inst.args, seenMangled, synthIds);
+    const entry = makeImplMemberEntry(fnDecl, mangle(inst.symbol.name, program, []), program, subst, inst.args, seenMangled, synthIds, entryIds);
     entries.push(entry);
     putImplEntry(fnInstanceEntries, fnDecl, inst.args, entry);
   }
@@ -206,7 +212,7 @@ function argsKey(args: readonly Type[]): string {
 function makeImplMemberEntry(
   member: A.FnDecl, baseName: string, program: ResolvedProgram,
   subst: Substitution, typeArgs: readonly Type[],
-  seen: Set<string>, synthIds: { next: number },
+  seen: Set<string>, synthIds: { next: number }, entryIds: { next: number },
 ): MonoEntry {
   const sym: Symbol = {
     id: synthIds.next++,
@@ -218,6 +224,8 @@ function makeImplMemberEntry(
     source: { kind: "fn", decl: member },
   };
   return {
+    id: entryIds.next++,
+    isMain: false,         // impl members can't be the program entry-point
     mangled: uniq(seen, mangle(baseName, program, typeArgs)),
     decl: member, symbol: sym, subst, typeArgs, module: program,
   };
@@ -225,10 +233,13 @@ function makeImplMemberEntry(
 
 function makeEntry(
   decl: MonoEntry["decl"], baseName: string, program: ResolvedProgram,
-  subst: Substitution, typeArgs: readonly Type[], seen: Set<string>,
+  subst: Substitution, typeArgs: readonly Type[],
+  seen: Set<string>, entryIds: { next: number },
 ): MonoEntry {
   const sym = symbolForDecl(decl, program);
   return {
+    id: entryIds.next++,
+    isMain: decl.kind === "FnDecl" && decl.name === "main",
     mangled: uniq(seen, mangle(baseName, program, typeArgs)),
     decl, symbol: sym, subst, typeArgs, module: program,
   };
@@ -251,7 +262,8 @@ function symbolForDecl(decl: MonoEntry["decl"], program: ResolvedProgram): Symbo
 }
 
 function makeInstanceEntry(
-  inst: GenericInstance, evaluated: EvaluatedProject, seen: Set<string>,
+  inst: GenericInstance, evaluated: EvaluatedProject,
+  seen: Set<string>, entryIds: { next: number },
 ): MonoEntry | null {
   const sym = inst.symbol;
   if (sym.source.kind !== "struct") return null;     // trait instances aren't directly emitted
@@ -259,7 +271,7 @@ function makeInstanceEntry(
   const program = evaluated.typed.modules.get(sym.module)?.resolved ?? null;
   if (program === null) return null;
   if (decl.typeParams.length !== inst.args.length) return null;     // registry would have rejected
-  return makeEntry(decl, decl.name, program, buildSubst(decl.typeParams, inst.args, program), inst.args, seen);
+  return makeEntry(decl, decl.name, program, buildSubst(decl.typeParams, inst.args, program), inst.args, seen, entryIds);
 }
 
 function buildSubst(

@@ -652,7 +652,13 @@ function readFunctions(r: Reader, debugFiles: readonly string[]): BcFunction[] {
         debug.push({ file, line, column });
       }
     }
-    out.push({ name, signature, locals, body, debug });
+    // Binary format predates the `isMain` flag — recover it from the name
+    // suffix until the format gains a per-fn flags byte. The convention
+    // matches what the bytecode emitter writes (`$main` suffix for the
+    // user's main fn, plus the unsuffixed `main` produced by single-
+    // module mode).
+    const isMain = name === "main" || name.endsWith("$main");
+    out.push({ name, isMain, signature, locals, body, debug });
   }
   return out;
 }

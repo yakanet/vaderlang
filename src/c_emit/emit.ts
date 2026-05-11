@@ -20,7 +20,6 @@ import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecod
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
-import { isMainMangled } from "../comptime/specialize.ts";
 import { tryEmitStaticTable } from "./static_table.ts";
 
 export function emitC(m: BytecodeModule): string {
@@ -1771,7 +1770,7 @@ function signatureFor(ctx: EmitCtx, fn: BcFunction): string {
 // =========================================================================
 
 function emitMain(ctx: EmitCtx, out: string[]): void {
-  const main = ctx.module.functions.findIndex((f) => isMainMangled(f.name) && f.body.length > 0);
+  const main = ctx.module.functions.findIndex((f) => f.isMain && f.body.length > 0);
   if (main < 0) {
     out.push(`int main(int argc, char** argv) { (void)argc; (void)argv; return 0; }`);
     return;
