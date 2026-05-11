@@ -1,36 +1,81 @@
 // std/math — basic numeric operations and constants.
 
-// Constants.
+/// π (3.141592653589793).
 export pi :: 3.141592653589793
-export e  :: 2.718281828459045
+/// Euler's number, e (2.718281828459045).
+export e :: 2.718281828459045
 
-// Float operations.
-export sqrt  :: fn(x: f64) -> f64
-export pow   :: fn(x: f64, n: f64) -> f64
+// ---- Float operations -----------------------------------------------------
+
+/// Square root. Host-provided ; routes to `sqrt` in libm on native, native
+/// JS `Math.sqrt` in the VM.
+/// @param x  non-negative finite input.
+/// @return   `sqrt(x)`. `NaN` when `x < 0`.
+export sqrt :: fn(x: f64) -> f64
+
+/// Power — `x^n`. Both base and exponent are floats ; for integer exponents
+/// the caller is expected to cast.
+/// @param x  base.
+/// @param n  exponent.
+/// @return   `x` raised to the `n`-th power.
+export pow :: fn(x: f64, n: f64) -> f64
+
+/// Largest integer `n` such that `n <= x`. `floor(-1.2)` → `-2.0`.
 export floor :: fn(x: f64) -> f64
-export ceil  :: fn(x: f64) -> f64
+/// Smallest integer `n` such that `n >= x`. `ceil(-1.2)` → `-1.0`.
+export ceil :: fn(x: f64) -> f64
+/// Round to the nearest integer, ties away from zero. `round(0.5)` → `1.0`.
 export round :: fn(x: f64) -> f64
 
-// Trigonometry.
+// ---- Trigonometry ---------------------------------------------------------
+
+/// Sine of `x` in radians.
 export sin :: fn(x: f64) -> f64
+/// Cosine of `x` in radians.
 export cos :: fn(x: f64) -> f64
+/// Tangent of `x` in radians.
 export tan :: fn(x: f64) -> f64
 
-// Comparison + helpers. `min` / `max` / `clamp` come in i32 / usize / f64
-// flavours, `abs` in i32 + f64 (unsigned types can't be negative), all
-// dispatched via first-param-type overloading (§1.18c).
+// ---- Comparison + helpers -------------------------------------------------
+//
+// `min` / `max` / `clamp` ship in `i32` / `usize` / `f64` flavours, `abs`
+// in `i32` + `f64` (unsigned types can't be negative). All dispatched via
+// first-param-type overloading (cf. SPEC §6 *Function overloading* and the
+// TODO §1.18c entry).
+
+/// Smaller of two `f64`s. `min(NaN, x) == NaN` (NaN propagates).
 export min :: fn(a: f64, b: f64) = if a < b { a } else { b }
+/// Smaller of two `i32`s.
 export min :: fn(a: i32, b: i32) = if a < b { a } else { b }
+/// Smaller of two `usize`s.
 export min :: fn(a: usize, b: usize) = if a < b { a } else { b }
+
+/// Larger of two `f64`s. `max(NaN, x) == NaN`.
 export max :: fn(a: f64, b: f64) = if a > b { a } else { b }
+/// Larger of two `i32`s.
 export max :: fn(a: i32, b: i32) = if a > b { a } else { b }
+/// Larger of two `usize`s.
 export max :: fn(a: usize, b: usize) = if a > b { a } else { b }
+
+/// Absolute value of an `f64`. Preserves the sign of zero (`abs(-0.0)` →
+/// `-0.0`) — caller normalises if needed.
 export abs :: fn(x: f64) = if x < 0.0 { -x } else { x }
+/// Absolute value of an `i32`. `abs(i32::MIN)` overflows (panics in debug,
+/// wraps in release).
 export abs :: fn(x: i32) = if x < 0 { -x } else { x }
+
+/// Clamp `x` to `[lo, hi]`. Equivalent to `min(max(x, lo), hi)`. Behaviour
+/// when `lo > hi` matches the underlying calls — `lo` wins.
 export clamp :: fn(x: f64, lo: f64, hi: f64) = min(max(x, lo), hi)
+/// Clamp an `i32` to `[lo, hi]`.
 export clamp :: fn(x: i32, lo: i32, hi: i32) = min(max(x, lo), hi)
+/// Clamp a `usize` to `[lo, hi]`.
 export clamp :: fn(x: usize, lo: usize, hi: usize) = min(max(x, lo), hi)
 
-// lerp — linear interpolation between `a` (t=0) and `b` (t=1). `t` is
-// clamped to `[0, 1]` so callers don't accidentally extrapolate.
+/// Linear interpolation between `a` (`t = 0`) and `b` (`t = 1`). `t` is
+/// clamped to `[0, 1]` so callers don't accidentally extrapolate.
+/// @param a  the value at `t = 0`.
+/// @param b  the value at `t = 1`.
+/// @param t  blend factor, clamped to `[0, 1]`.
+/// @return   `a + (b - a) * clamp(t, 0, 1)`.
 export lerp :: fn(a: f64, b: f64, t: f64) = a + (b - a) * clamp(t, 0.0, 1.0)

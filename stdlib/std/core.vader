@@ -14,22 +14,30 @@
 // 1. Trait declarations
 // ============================================================================
 
-// Display — for compile-time string interpolation and println(). Method
-// `to_string` returns the value's textual form.
+/// Convert a value to its canonical string form. Drives compile-time
+/// string interpolation (`"${value}"`) and the `print` / `println` family
+/// in `std/io`. Every primitive type ships an `@intrinsic` impl ; user
+/// types opt in by declaring their own `to_string`.
 export Display :: trait {
     to_string :: fn(self) -> string
 }
 
-// Equals — for == and !=. `not_equals` is a default method derived from
-// `equals` (Layer 8d) ; impls that don't override it inherit the negation.
+/// Structural equality. Powers the `==` and `!=` operators (the latter
+/// via the default `not_equals` derived from `equals`, Layer 8d — impls
+/// that don't override `not_equals` inherit the negation).
 export Equals :: trait {
     equals     :: fn(self, other: Self) -> bool
     not_equals :: fn(self, other: Self) -> bool { return !self.equals(other) }
 }
 
-// Comparable — for <, <=, >, >=. The four comparison-by-zero helpers are
-// default methods derived from `compare` ; impls only have to provide
-// `compare` and the rest follow.
+/// Total ordering. Powers `<` / `<=` / `>` / `>=` via the four
+/// `compare`-by-zero helpers ; impls only need to provide `compare` and
+/// the rest follow (Layer 8d default-method injection).
+///
+/// `compare(a, b)` must return :
+///   `< 0` when `a` is strictly less than `b`,
+///   `= 0` when they're equal,
+///   `> 0` when `a` is strictly greater than `b`.
 export Comparable :: trait {
     compare :: fn(self, other: Self) -> i32
     lt  :: fn(self, other: Self) -> bool { return self.compare(other) <  0 }
@@ -38,44 +46,56 @@ export Comparable :: trait {
     gte :: fn(self, other: Self) -> bool { return self.compare(other) >= 0 }
 }
 
-// Hash — for Map / Set keys.
+/// Hash codes for `MutableMap` / `MutableSet` keys. Must be consistent
+/// with `Equals` — `a.equals(b) == true` implies `a.hash() == b.hash()`.
 export Hash :: trait {
     hash :: fn(self) -> u64
 }
 
-// Clone — explicit deep copy. Free function `clone(x)` calls into this.
+/// Explicit deep copy. `clone(x)` (free function) dispatches into this
+/// when `T: Clone` ; primitive types don't need it (value-typed by
+/// default).
 export Clone :: trait {
     clone :: fn(self) -> Self
 }
 
-// Arithmetic operator traits. `+` `-` `*` `/` `%` dispatch through these
-// when the operands aren't primitive numerics (numerics use the built-in
-// bytecode ops directly).
+/// `+` dispatch. Numeric primitives use the built-in bytecode op directly ;
+/// user types implement `Add` to opt into the operator form.
 export Add :: trait { add :: fn(self, other: Self) -> Self }
+/// `-` dispatch. See `Add`.
 export Sub :: trait { sub :: fn(self, other: Self) -> Self }
+/// `*` dispatch. See `Add`.
 export Mul :: trait { mul :: fn(self, other: Self) -> Self }
+/// `/` dispatch. See `Add`.
 export Div :: trait { div :: fn(self, other: Self) -> Self }
+/// `%` dispatch. See `Add`.
 export Rem :: trait { rem :: fn(self, other: Self) -> Self }
 
-// Index / IndexSet — dispatch for `a[i]` (read) and `a[i] = v` (write) when
-// `a` isn't a built-in array. `I` is the index type, `T` the element type.
+/// Indexed read — `a[i]` dispatches through this when `a` isn't a built-in
+/// array. `I` is the index type, `T` the element type.
 export Index :: trait[I, T] {
     at :: fn(self, i: I) -> T
 }
+/// Indexed write — `a[i] = v`. Symmetric with `Index`.
 export IndexSet :: trait[I, T] {
     set_at :: fn(self, i: I, v: T)
 }
 
-// Contains — `x in coll` desugars to `coll.contains(x)`. `x !in coll`
-// desugars to `!coll.contains(x)`.
+/// Membership test. `x in coll` desugars to `coll.contains(x)` ;
+/// `x !in coll` desugars to `!coll.contains(x)`. Implemented by `Range`
+/// (for the integer / char ranges), `MutableMap`, `MutableSet`, and any
+/// user type that wants infix `in` support.
 export Contains :: trait[T] {
     contains :: fn(self, value: T) -> bool
 }
 
-// Iterator — pull-based. The lowerer dispatches `for x in iter` through
-// the impl table ; users never call `step` directly. The `count` / `last`
-// / `is_empty` defaults derive from `step` (Layer 8d), so every Iterator
-// impl picks them up without writing a body.
+/// Pull-based iterator. The lowerer dispatches `for x in iter` through
+/// the impl table — users never call `step` directly. `count` / `last` /
+/// `is_empty` are default methods derived from `step` (Layer 8d) ; every
+/// `Iterator` impl picks them up without re-implementing.
+///
+/// `step()` returns `Done` when the iteration is exhausted, or
+/// `Yielded(T)` carrying the next value.
 export Iterator :: trait[T] {
     step :: fn(self) -> Done | Yielded(T)
 
@@ -117,8 +137,12 @@ export Iterator :: trait[T] {
     }
 }
 
-// Error — base trait for any value usable in `!T` returns and the `?`
-// operator.
+/// Base trait for every error type usable in `!T` returns and the `?`
+/// operator. Any struct implementing `Error` participates in `T!`
+/// (`T | Error`) unions ; `?` re-raises by matching the trait.
+///
+/// @return  short human-readable message — used by `Display`-style
+///          renderers, never parsed.
 export Error :: trait {
     message :: fn(self) -> string
 }
@@ -127,17 +151,20 @@ export Error :: trait {
 // 2. Core struct definitions
 // ============================================================================
 
-// Iterator step result. `Done` signals end-of-iteration ; `Yielded(T)`
-// carries the next value. The discriminator avoids the sentinel collision
-// that `T | null` would have for lists whose element type itself includes
-// `null`.
-export Done    :: struct {}
+/// `Iterator.step` end-of-iteration marker. No payload — just signals
+/// "no more values".
+export Done :: struct {}
+
+/// `Iterator.step` continuation marker, carrying the next value.
+/// Discriminating against `Done` avoids the sentinel collision that
+/// `T | null` would have for lists whose element type itself includes
+/// `null`.
 export Yielded :: struct[T] { value: T }
 
-// Range — produced by `0..<n` / `0..=n` and `'a'..='z'`. Generic over
-// the bound type so integer ranges, char ranges, etc. all share one
-// struct. `cursor` advances each iteration via implicit struct-ref
-// mutation inside `step` (Iterator impl is per concrete `T`).
+/// Range produced by `0..<n` / `0..=n` and `'a'..='z'`. Generic over the
+/// bound type so integer ranges (every signed / unsigned width plus
+/// `usize` / `isize`) and char ranges share a single struct. The `cursor`
+/// field is advanced by each `step` call via implicit struct-ref mutation.
 export Range :: struct[T] {
     start:     T
     end:       T
@@ -347,11 +374,10 @@ Range[char] implements Iterator[char] {
     }
 }
 
-// ArrayIter — iterator over a `[T]`. The lowerer auto-wraps array exprs
-// flowing into `for x in arr`, so callers rarely need to construct one.
-// The `length` field is pre-computed at construction time so `step` can
-// avoid calling a generic `len(arr)` (generic-fn dispatch is still
-// deferred).
+/// Iterator over a `T[]`. The lowerer auto-wraps array exprs flowing into
+/// `for x in arr`, so direct construction is rarely needed. `length` is
+/// pre-computed at construction time so `step` avoids re-querying
+/// `arr.len()` per iteration.
 export ArrayIter :: struct[T] {
     arr:    T[]
     cursor: usize

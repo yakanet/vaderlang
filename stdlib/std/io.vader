@@ -3,7 +3,8 @@
 // MVP scope: stdin/stdout/stderr, file read/write, existence check.
 // No async, no networking, no streaming primitives.
 
-// IOError — raised by every fallible operation in this module.
+/// Raised by every fallible operation in this module — `read_file`,
+/// `write_file`, `read_line`, `read_dir`. Carries a short diagnostic.
 export IOError :: struct {
     msg: string
 }
@@ -12,25 +13,50 @@ IOError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-// print / println — write to stdout. Accept anything implementing
-// `Display` ; the lowerer coerces the argument through the matching
-// `to_string` impl before reaching the host hook (no per-type wrapper
-// monomorphisation, no virtual dispatch — see `lower/passes/display-coerce.ts`).
-@intrinsic export print   :: fn(msg: Display) -> void
+/// Write `msg` to stdout without a trailing newline. Accepts anything
+/// implementing `Display` — the lowerer routes through the matching
+/// `to_string` impl before reaching the host (no virtual dispatch).
+@intrinsic export print :: fn(msg: Display) -> void
+
+/// Write `msg` to stdout followed by a `\n`. Same `Display` coercion as
+/// `print`.
 @intrinsic export println :: fn(msg: Display) -> void
 
-// eprint / eprintln — same for stderr.
-@intrinsic export eprint   :: fn(msg: Display) -> void
+/// Write `msg` to stderr without a trailing newline.
+@intrinsic export eprint :: fn(msg: Display) -> void
+
+/// Write `msg` to stderr followed by a `\n`.
 @intrinsic export eprintln :: fn(msg: Display) -> void
 
-// read_line — block on stdin until newline.
+/// Read one line from stdin, blocking until a newline arrives. The
+/// returned string does NOT include the trailing `\n`.
+/// @return      the line text.
+/// @error       `IOError` on EOF or stdin read failure.
 @intrinsic export read_line :: fn() -> string!
 
-// File operations.
-@intrinsic export read_file  :: fn(path: string) -> string!
+/// Read a file fully into a UTF-8 string.
+/// @param path  filesystem path (absolute or cwd-relative).
+/// @return      file contents as a UTF-8 string.
+/// @error       `IOError` if the file can't be opened or read.
+@intrinsic export read_file :: fn(path: string) -> string!
+
+/// Write `content` to `path`, replacing any existing file.
+/// @param path     filesystem path.
+/// @param content  the UTF-8 string to write.
+/// @error          `IOError` if the file can't be opened or written.
 @intrinsic export write_file :: fn(path: string, content: string) -> void!
-@intrinsic export exists     :: fn(path: string) -> bool
-@intrinsic export is_dir     :: fn(path: string) -> bool
-// `read_dir` lists immediate entries (relative names, no `.` / `..`) in
-// OS-provided order. Caller joins against `path` if absolute paths are wanted.
+
+/// True iff `path` resolves to an existing filesystem entry (file or
+/// directory). Errors (e.g. permission denied) collapse to `false`.
+@intrinsic export exists :: fn(path: string) -> bool
+
+/// True iff `path` exists AND is a directory. Errors collapse to `false`.
+@intrinsic export is_dir :: fn(path: string) -> bool
+
+/// List the immediate entries of `path` in OS-provided order. Excludes
+/// `.` and `..`. Names are relative — join against `path` (e.g. via
+/// `std/path`) for full paths.
+/// @param path  the directory to list.
+/// @return      entry names (no path prefix).
+/// @error       `IOError` if `path` isn't a directory or can't be opened.
 @intrinsic export read_dir :: fn(path: string) -> string[]!

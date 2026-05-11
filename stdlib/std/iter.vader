@@ -13,14 +13,17 @@
 // `fn(it: Iterator($T))` actually work at runtime. Until trait-object
 // boxing + vtable dispatch land (TODO §3.5), keep one obvious shape.
 
-// count — number of items in the array.
+/// Number of items in the array. Trivial wrapper over `arr.len()` ;
+/// exposed for symmetry with the future Iterator-driven `count(it)`.
 export count :: fn[T](arr: T[]) -> usize {
     return arr.len()
 }
 
-// collect — clone the array into a fresh allocation. Symmetric with the
-// future Iterator-driven form ; for arrays today it's a deep copy at the
-// element-reference level (elements aren't recursively cloned).
+/// Clone `arr` into a fresh allocation. Elements are NOT recursively
+/// cloned — for reference types the new array shares element references
+/// with the input. Symmetric with the future Iterator-driven `collect(it)`.
+/// @param arr  source array.
+/// @return     a fresh array with the same elements in the same order.
 export collect :: fn[T](arr: T[]) -> T[] {
     out: T[] = []
     for x in arr {
@@ -29,7 +32,11 @@ export collect :: fn[T](arr: T[]) -> T[] {
     return out
 }
 
-// map — apply `f` to every element, returning a fresh array of the results.
+/// Apply `f` to every element, returning a fresh array of the results.
+/// Stable (preserves input order).
+/// @param arr  source array.
+/// @param f    mapper applied to each element.
+/// @return     a new array with `f` applied per element.
 export map :: fn[T, U](arr: T[], f: fn(T) -> U) -> U[] {
     out: U[] = []
     for x in arr {
@@ -38,7 +45,10 @@ export map :: fn[T, U](arr: T[], f: fn(T) -> U) -> U[] {
     return out
 }
 
-// filter — keep only the elements for which `pred` returns true.
+/// Keep only the elements for which `pred` returns `true`. Stable.
+/// @param arr   source array.
+/// @param pred  predicate invoked on each element ; truthy → kept.
+/// @return      a fresh array of the kept elements.
 export filter :: fn[T](arr: T[], pred: fn(T) -> bool) -> T[] {
     out: T[] = []
     for x in arr {
@@ -49,7 +59,13 @@ export filter :: fn[T](arr: T[], pred: fn(T) -> bool) -> T[] {
     return out
 }
 
-// fold — left-reduce the array with seed `init`.
+/// Left-fold the array with seed `init`. `f(acc, x)` is called for every
+/// element in order ; the final accumulator is returned.
+/// @param arr   source array.
+/// @param init  initial accumulator value.
+/// @param f     reducer ; takes the running accumulator and the next
+///              element.
+/// @return      the accumulator after consuming the entire array.
 export fold :: fn[T, U](arr: T[], init: U, f: fn(U, T) -> U) -> U {
     acc := init
     for x in arr {
@@ -58,9 +74,9 @@ export fold :: fn[T, U](arr: T[], init: U, f: fn(U, T) -> U) -> U {
     return acc
 }
 
-// sum — sum the elements of an `[i32]`. A generic Sum-trait variant is
-// deferred until either trait-method dispatch on `$T : Add + Default` works
-// or we expose a `T()` zero-init form.
+/// Sum the elements of an `[i32]`. A generic `Sum`-trait variant is
+/// deferred until trait-method dispatch on `$T: Add + Default` works
+/// or a `T()` zero-init form is exposed.
 export sum :: fn(arr: i32[]) -> i32 {
     s := 0
     for x in arr {
@@ -69,7 +85,10 @@ export sum :: fn(arr: i32[]) -> i32 {
     return s
 }
 
-// take — copy at most `n` items from the array into a fresh array.
+/// Copy at most the first `n` items into a fresh array. Stops early when
+/// the source has fewer than `n` elements.
+/// @param arr  source array.
+/// @param n    upper bound on the result length.
 export take :: fn[T](arr: T[], n: usize) -> T[] {
     out: T[] = []
     i: usize = 0
@@ -83,7 +102,10 @@ export take :: fn[T](arr: T[], n: usize) -> T[] {
     return out
 }
 
-// skip — drop the first `n` items, return the remaining ones as an array.
+/// Drop the first `n` items, return the remainder as a fresh array.
+/// `n >= arr.len()` yields an empty array.
+/// @param arr  source array.
+/// @param n    number of leading items to skip.
 export skip :: fn[T](arr: T[], n: usize) -> T[] {
     out: T[] = []
     i: usize = 0
@@ -96,10 +118,13 @@ export skip :: fn[T](arr: T[], n: usize) -> T[] {
     return out
 }
 
-// slice — copy `arr[start..<end]` into a fresh array. Bounds are clamped
-// (start to [0, len], end to [start, len]), so out-of-range indices yield a
-// shorter result rather than panicking. `start`/`end` are unsigned ; reverse
-// the order or use 0 to skip from the front.
+/// Copy `arr[start..<end]` into a fresh array. Bounds are clamped (start
+/// to `[0, len]`, end to `[start, len]`) so out-of-range indices yield a
+/// shorter result rather than panicking. `start` / `end` are unsigned —
+/// reverse them or use `0` to skip from the front.
+/// @param arr    source array.
+/// @param start  inclusive lower bound (clamped to `[0, len]`).
+/// @param end    exclusive upper bound (clamped to `[start, len]`).
 export slice :: fn[T](arr: T[], start: usize, end: usize) -> T[] {
     out: T[] = []
     len := arr.len()
@@ -114,9 +139,12 @@ export slice :: fn[T](arr: T[], start: usize, end: usize) -> T[] {
     return out
 }
 
-// zip — pair elements of `a` and `b` into tuples, stopping at the shorter
-// of the two. Mirrors Python `zip` and JS `Array.prototype.entries`-style
-// pairing for parallel arrays (e.g. keys + values).
+/// Pair elements of `a` and `b` into tuples, stopping at the shorter of
+/// the two. Mirrors Python `zip` ; useful for stepping parallel arrays
+/// (e.g. keys + values from a map).
+/// @param a  left source array.
+/// @param b  right source array.
+/// @return   `[a[0], b[0]], [a[1], b[1]], …` capped at `min(len(a), len(b))`.
 export zip :: fn[T, U](a: T[], b: U[]) -> [T, U][] {
     out: [T, U][] = []
     n :: a.len()
@@ -128,9 +156,11 @@ export zip :: fn[T, U](a: T[], b: U[]) -> [T, U][] {
     return out
 }
 
-// chain — concatenate `a` followed by `b` into a fresh array. Equivalent to
-// pushing every element of each in order ; useful when building a flat
-// stream out of two homogeneous sources.
+/// Concatenate `a` followed by `b` into a fresh array. Useful when
+/// building a flat stream out of two homogeneous sources.
+/// @param a  first source array.
+/// @param b  second source array, appended after `a`.
+/// @return   a fresh array of `a.len() + b.len()` elements.
 export chain :: fn[T](a: T[], b: T[]) -> T[] {
     out: T[] = []
     for x in a { out.push(x) }
@@ -138,9 +168,10 @@ export chain :: fn[T](a: T[], b: T[]) -> T[] {
     return out
 }
 
-// enumerate — pair each element with its index, starting at 0. Returns
-// `[usize, T]` tuples so callers can `for [i, x] in arr.enumerate()` — pairs
-// nicely with the for-in destructure form.
+/// Pair each element with its index, starting at 0. Returns `[usize, T]`
+/// tuples so callers can `for [i, x] in arr.enumerate() { … }`.
+/// @param arr  source array.
+/// @return     `[[0, arr[0]], [1, arr[1]], …]`.
 export enumerate :: fn[T](arr: T[]) -> [usize, T][] {
     out: [usize, T][] = []
     i: usize = 0
@@ -151,9 +182,12 @@ export enumerate :: fn[T](arr: T[]) -> [usize, T][] {
     return out
 }
 
-// flat_map — apply `f` to each element and concatenate the resulting
-// arrays. Useful when each input expands to zero-or-more outputs (parsing,
-// tree flattening).
+/// Apply `f` to each element and concatenate the resulting arrays.
+/// Useful when each input expands to zero-or-more outputs (parsing,
+/// tree flattening).
+/// @param arr  source array.
+/// @param f    mapper from one element to an array of outputs.
+/// @return     concatenation of `f(arr[0]) ++ f(arr[1]) ++ …`.
 export flat_map :: fn[T, U](arr: T[], f: fn(T) -> U[]) -> U[] {
     out: U[] = []
     for x in arr {

@@ -11,18 +11,30 @@
 //   sb.append_char('!')
 //   result := sb.to_string()  // "Hello!"
 
+/// Amortised-O(1) string accumulator. Pushes UTF-8 parts onto an internal
+/// `[string]` buffer ; flushed in one allocation by `Display::to_string`
+/// (called automatically through `${sb}` interpolation).
 export StringBuilder :: struct {
     parts: string[]
 }
 
+/// Create an empty builder. Callers typically chain through UFCS :
+/// `sb := new_builder() ; sb.append("…")`.
 export new_builder :: fn() -> StringBuilder {
     return StringBuilder { .parts = [] }
 }
 
+/// Append a string slice. The slice's backing memory is referenced — not
+/// copied — until the builder is finalised.
+/// @param self  builder receiver.
+/// @param s     UTF-8 string to append.
 export append :: fn(self: StringBuilder, s: string) -> void {
     self.parts.push(s)
 }
 
+/// Append a single Unicode codepoint, UTF-8-encoded.
+/// @param self  builder receiver.
+/// @param c     codepoint to encode (`u32(c)` ≤ `0x10FFFF`).
 export append_char :: fn(self: StringBuilder, c: char) -> void {
     self.parts.push("${c}")
 }

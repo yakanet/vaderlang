@@ -40,6 +40,11 @@ Entry :: struct[K, V] {
     next:  Entry(K, V) | null
 }
 
+/// Chaining hash map keyed by any `K` that implements `Hash & Equals`.
+/// Buckets are a fixed `BUCKET_COUNT`-wide array of singly-linked chains ;
+/// MVP doesn't resize, so the load factor is bounded above by the chain
+/// length. `K`'s `hash()` is queried on insert / lookup, `equals()` on
+/// chain walks.
 export MutableMap :: struct[K: Hash & Equals, V] {
     buckets: (Entry(K, V) | null)[]
     size:    usize
@@ -53,6 +58,12 @@ bucket_index :: fn(h: u64) -> i32 {
     return i32(h % u64(BUCKET_COUNT))
 }
 
+/// Insert or overwrite `key → value`. The chain at `bucket_index(hash(key))`
+/// is walked ; if `key` is already present its value is replaced in place,
+/// otherwise a fresh entry is prepended to the chain head.
+/// @param self   the map receiver.
+/// @param key    key with which `value` is associated.
+/// @param value  the new value.
 export put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
     // Lazy bucket init — inlined here because nested generic calls aren't
     // observed by the comptime InstanceRegistry yet (transitive
@@ -94,6 +105,10 @@ export put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
     self.size = self.size + 1
 }
 
+/// Look up `key`. Returns the stored value or `null` if absent.
+/// @param self  the map receiver.
+/// @param key   key to look up.
+/// @return      `V` when present, `null` otherwise.
 export get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null {
     if self.buckets.len() == 0 {
         return null
@@ -119,6 +134,10 @@ export get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null {
     return result
 }
 
+/// True iff `key` has an entry in the map. Distinguishes "key absent" from
+/// "key maps to a null-typed value" — `get` collapses both to `null`.
+/// @param self  the map receiver.
+/// @param key   key to test.
 export contains_key :: fn[K, V](self: MutableMap(K, V), key: K) -> bool {
     if self.buckets.len() == 0 {
         return false
@@ -144,8 +163,10 @@ export contains_key :: fn[K, V](self: MutableMap(K, V), key: K) -> bool {
     return found
 }
 
+/// Number of `(key, value)` entries currently stored in `self`. O(1).
 export len :: fn[K, V](self: MutableMap(K, V)) -> usize { return self.size }
 
+/// True iff no entries have been inserted (or all were removed). O(1).
 export is_empty :: fn[K, V](self: MutableMap(K, V)) -> bool { return self.size == 0 }
 
 // Operator sugar — `m[key]` reads via Index, `m[key] = v` writes via
@@ -164,8 +185,10 @@ MutableMap[K, V] implements Contains[K] {
     contains :: fn(self, key: K) -> bool { return self.contains_key(key) }
 }
 
-// Snapshot of every key in insertion-independent order (bucket-walk order).
-// Calls allocate a fresh `[K]`. Suitable for stringification / iteration.
+/// Snapshot of every key in bucket-walk order (NOT insertion order — the
+/// hash distributes them across buckets). Allocates a fresh `[K]`.
+/// @param self  the map receiver.
+/// @return      a new array of every stored key.
 export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
     out: K[] = []
     for bucket in self.buckets {
@@ -184,7 +207,11 @@ export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
     return out
 }
 
-// Snapshot of every value matching `keys()` order.
+/// Snapshot of every value matching the order of `keys()`. Allocates a
+/// fresh `[V]`. Pairing keys and values index-by-index gives a stable
+/// view of the map's contents.
+/// @param self  the map receiver.
+/// @return      a new array of every stored value.
 export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
     out: V[] = []
     for bucket in self.buckets {
@@ -209,23 +236,34 @@ export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
 // from MutableMap. `where T: Hash + Equals` mirrors MutableMap's own bound.
 // ===========================================================================
 
+/// Hash set keyed by any `T` that implements `Hash & Equals`. Backed by a
+/// `MutableMap(T, bool)` — every member is stored as a `(T → true)` entry,
+/// so lookups inherit the chained-bucket O(1)-average behaviour.
 export MutableSet :: struct[T: Hash & Equals] {
     inner: MutableMap(T, bool)
 }
 
-// Returns true if the value was newly added, false if it was already present.
+/// Insert `value`. Returns `true` if `value` was newly added, `false` if it
+/// was already present (the set is unchanged in the latter case).
+/// @param self   the set receiver.
+/// @param value  the element to add.
+/// @return       `true` on insertion, `false` on duplicate.
 export add :: fn[T](self: MutableSet(T), value: T) -> bool {
     if value in self.inner { return false }
     self.inner[value] = true
     return true
 }
 
+/// True iff `value` is a member of the set. Same dispatch path as the
+/// `value in set` infix operator (which lowers to this method).
 export contains :: fn[T](self: MutableSet(T), value: T) -> bool {
     return value in self.inner
 }
 
+/// Number of members in the set. O(1).
 export len :: fn[T](self: MutableSet(T)) -> usize { return self.inner.size }
 
+/// True iff no members have been added (or all were removed). O(1).
 export is_empty :: fn[T](self: MutableSet(T)) -> bool { return self.inner.size == 0 }
 
 // `value in set` / `value !in set` dispatch through Contains. No

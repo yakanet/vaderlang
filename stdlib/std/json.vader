@@ -16,17 +16,36 @@ import "std/numbers" { hex_digit_value, to_hex, to_compact_str }
 
 // ---- value tree -----------------------------------------------------------
 
+/// Tagged union covering every JSON shape (`null`, `true`/`false`, numbers,
+/// strings, arrays, objects). Discriminated via `is JsonString` etc. in
+/// `match`. Numbers carry an `f64` ; precision past 2^53 is lost (MVP
+/// limitation — cf. TODO §3.4).
 export JsonValue :: JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
 
+/// JSON string variant — UTF-8 decoded, escape-resolved.
 export JsonString :: struct { value: string }
+
+/// JSON number variant — `f64`. Integer-valued numbers round-trip
+/// through `to_compact_str` for cleaner output.
 export JsonNumber :: struct { value: f64 }
-export JsonBool   :: struct { value: bool }
-export JsonNull   :: struct {}
-export JsonArray  :: struct { items: JsonValue[] }
+
+/// JSON `true`/`false`.
+export JsonBool :: struct { value: bool }
+
+/// JSON `null`. No payload.
+export JsonNull :: struct {}
+
+/// JSON array — ordered list of `JsonValue`s.
+export JsonArray :: struct { items: JsonValue[] }
+
+/// JSON object — string-keyed map of `JsonValue`s. Insertion order is
+/// preserved by the parser ; lookup is O(1) average via `MutableMap`.
 export JsonObject :: struct { entries: MutableMap(string, JsonValue) }
 
 // ---- error ----------------------------------------------------------------
 
+/// Error raised by `parse` when the input isn't valid JSON. `pos` is the
+/// byte offset of the offending character.
 export JsonError :: struct {
     msg: string
     pos: usize
@@ -329,6 +348,13 @@ parse_object :: fn(p: Parser) -> JsonObject | JsonError {
 
 // ---- public parse ---------------------------------------------------------
 
+/// Parse a complete JSON document. The input must contain exactly one
+/// JSON value optionally surrounded by whitespace ; trailing non-whitespace
+/// is an error.
+/// @param input  the JSON text.
+/// @return       the parsed `JsonValue` on success.
+/// @error        `JsonError` carrying a short message and the byte offset
+///               of the offending character.
 export parse :: fn(input: string) -> JsonValue | JsonError {
     p := new_parser(input)
     v := parse_value(p)?
@@ -441,12 +467,23 @@ write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) ->
     sb.append_char('}')
 }
 
+/// Serialise `v` to a compact JSON string — no spaces, no newlines, the
+/// smallest valid encoding. For pretty-printed output with indentation
+/// use `stringify_pretty`.
+/// @param v   the value to serialise.
+/// @return    a JSON document string.
 export stringify :: fn(v: JsonValue) -> string {
     sb := new_builder()
     write_value(sb, v, 0, 0)
     return sb.to_string()
 }
 
+/// Serialise `v` with indentation. `indent` is the number of spaces per
+/// nesting level ; pass 2 for human-readable output, 0 for the same
+/// effect as `stringify`.
+/// @param v       the value to serialise.
+/// @param indent  spaces per nesting level (0 → no spaces / no newlines).
+/// @return        a JSON document string.
 export stringify_pretty :: fn(v: JsonValue, indent: i32) -> string {
     sb := new_builder()
     write_value(sb, v, indent, 0)

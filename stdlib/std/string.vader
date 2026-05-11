@@ -8,34 +8,43 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/math" { min }
 import "std/utf8" { codepoint_byte_len }
 
-// Length in bytes — see `count_chars` for the codepoint count.
-//
-// The string API is intentionally byte-indexed (`slice`, `char_at`, `contains`
-// all operate on byte offsets), so the natural pairing is `byte_len` rather
-// than `len`. Naming it `byte_len` forces the reader to acknowledge what
-// they're getting and pick `count_chars` deliberately when they wanted the
-// codepoint count instead.
+/// Length in bytes. The string API is intentionally byte-indexed
+/// (`slice`, `char_at`, `contains` all operate on byte offsets) — naming
+/// this `byte_len` forces the reader to acknowledge the byte/codepoint
+/// distinction and pick `count_chars` deliberately if they want the
+/// codepoint count.
 export byte_len :: fn(s: string) -> usize
 
-// True for the empty string. Equivalent to `s.byte_len() == 0` but reads
-// cleanly at call sites where the byte/codepoint distinction is irrelevant
-// — emptiness is the same in both views.
+/// True for the empty string. Equivalent to `s.byte_len() == 0` but
+/// reads cleanly at call sites — emptiness is the same in byte and
+/// codepoint views.
 export is_empty :: fn(s: string) = s.byte_len() == 0
 
-// Substring extraction (bytes-based, exclusive end).
+/// Substring `[start, end)` — exclusive upper bound, byte-indexed.
+/// `start` and `end` should land on UTF-8 leading bytes ; landing mid-
+/// codepoint produces a malformed-UTF-8 slice.
+/// @param s      source string.
+/// @param start  byte offset of the first char (inclusive).
+/// @param end    byte offset just past the last char (exclusive).
 export slice :: fn(s: string, start: usize, end: usize) -> string
 
-// Predicates.
-export contains    :: fn(s: string, sub: string) -> bool
-export starts_with :: fn(s: string, prefix: string) -> bool
-export ends_with   :: fn(s: string, suffix: string) -> bool
+/// True iff `sub` appears anywhere in `s`. Byte-wise scan.
+export contains :: fn(s: string, sub: string) -> bool
 
-// Character access (byte index → Unicode codepoint).
+/// True iff `s` starts with `prefix`. Byte-wise comparison.
+export starts_with :: fn(s: string, prefix: string) -> bool
+
+/// True iff `s` ends with `suffix`. Byte-wise comparison.
+export ends_with :: fn(s: string, suffix: string) -> bool
+
+/// Decode the Unicode codepoint at byte offset `i`. `i` must land on a
+/// UTF-8 leading byte ; landing on a continuation byte returns U+FFFD.
+/// For sequential iteration use `chars()` (cursor-aware) instead.
 export char_at :: fn(s: string, i: usize) -> char
 
-// Raw byte at offset `i`. For UTF-8-aware iteration, prefer `chars()` —
-// `byte_at` is the right tool for ASCII fast paths and binary-format
-// scanning where the underlying bytes matter (BOM detection, magic bytes).
+/// Raw byte at offset `i`. Useful for ASCII fast paths and binary-format
+/// scanning (BOM detection, magic bytes). For UTF-8-aware iteration use
+/// `chars()`.
 export byte_at :: fn(s: string, i: usize) -> u8
 
 /**
@@ -145,10 +154,13 @@ export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] {
  */
 export count_chars :: fn(s: string) = s.chars().count()
 
-// Comparator suitable for `sort(arr, compare_ascending)` : returns true when
-// `a` lexicographically precedes `b` (byte-wise). Mirrors JS `s1 < s2`.
-// Will become `Comparable(string)::less` once trait-method dispatch on bounded type
-// parameters lands (TODO §1.18b).
+/// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`
+/// when `a` lexicographically precedes `b` (byte-wise). Mirrors JS
+/// `s1 < s2`. Will become `Comparable(string)::less` once trait-method
+/// dispatch on bounded type parameters lands (TODO §1.18b).
+/// @param a  left string.
+/// @param b  right string.
+/// @return   `true` iff `a` strictly precedes `b` ; equal strings → `false`.
 export compare_ascending :: fn(a: string, b: string) -> bool {
     la :: a.byte_len()
     lb :: b.byte_len()
@@ -162,9 +174,15 @@ export compare_ascending :: fn(a: string, b: string) -> bool {
     return la < lb
 }
 
-// Last byte-index of `c` at or after `min_index`, or -1 if not found. Uses
-// `isize` so the -1 sentinel survives the unsigned/signed split — callers
-// pattern-match on `result < 0` rather than `null`.
+/// Byte-index of the LAST occurrence of `c` at or after `min_index`,
+/// scanning from the right. Returns `-1` when not found. The signed
+/// `isize` return type lets callers branch on `result < 0` ; `usize` would
+/// have collapsed "absent" into "0" ambiguously.
+/// @param s          source string.
+/// @param c          codepoint to find.
+/// @param min_index  earliest position considered (inclusive). Pass `0`
+///                   to search the whole string.
+/// @return           byte offset of the match, or `-1` if absent.
 export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
     n :: s.byte_len()
     if n == 0 { return -1 }
@@ -178,15 +196,28 @@ export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
     return -1
 }
 
-// Splitting and trimming.
+/// Split `s` on every occurrence of `sep`, returning the resulting
+/// segments. Empty segments are preserved (between consecutive `sep`
+/// runs and at the ends). For predicate-based splitting see
+/// `split_where`.
+/// @param s    source string.
+/// @param sep  separator (matched byte-wise). Empty `sep` is undefined.
+/// @return     array of segments ; never empty (at minimum, `[""]`).
 export split :: fn(s: string, sep: string) -> string[]
-export trim  :: fn(s: string) -> string
 
-// Case conversion.
+/// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
+/// `'\r'`). Unicode whitespace is not recognised in MVP.
+export trim :: fn(s: string) -> string
+
+/// ASCII-uppercase every letter (`a..z` → `A..Z`). Non-ASCII bytes pass
+/// through unchanged.
 export to_upper :: fn(s: string) -> string
+
+/// ASCII-lowercase every letter (`A..Z` → `a..z`). Non-ASCII bytes pass
+/// through unchanged.
 export to_lower :: fn(s: string) -> string
 
-// Parsing.
+/// Error raised by `parse_int` / `parse_float` on malformed input.
 export ParseError :: struct {
     msg: string
 }
@@ -195,11 +226,26 @@ ParseError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-export parse_int   :: fn(s: string) -> i32!
+/// Parse `s` as a base-10 `i32`. No prefix, no underscores, no leading
+/// `+` sign ; a leading `-` is accepted.
+/// @param s   the digits-only input.
+/// @return    the parsed integer.
+/// @error     `ParseError` on empty input, malformed digit, or overflow.
+export parse_int :: fn(s: string) -> i32!
+
+/// Parse `s` as an `f64`. Accepts mantissa + optional exponent.
+/// @param s   the float input.
+/// @return    the parsed float.
+/// @error     `ParseError` on malformed input.
 export parse_float :: fn(s: string) -> f64!
 
-// Pad `s` on the left with `fill` until its byte length reaches `width`.
-// Returns `s` unchanged when it's already at least `width` bytes.
+/// Pad `s` on the LEFT with copies of `fill` until its byte length
+/// reaches `width`. Returns `s` unchanged when it's already at least
+/// `width` bytes long. Width counts bytes ; accurate for ASCII,
+/// approximate for non-ASCII content.
+/// @param s      source string.
+/// @param width  target byte length.
+/// @param fill   pad character (ASCII recommended).
 export pad_start :: fn(s: string, width: usize, fill: char) -> string {
     n := s.byte_len()
     if n >= width {
@@ -215,7 +261,8 @@ export pad_start :: fn(s: string, width: usize, fill: char) -> string {
     return sb.to_string()
 }
 
-// Pad `s` on the right with `fill` until its byte length reaches `width`.
+/// Pad `s` on the RIGHT with copies of `fill` until its byte length
+/// reaches `width`. Symmetric with `pad_start`.
 export pad_end :: fn(s: string, width: usize, fill: char) -> string {
     n := s.byte_len()
     if n >= width {
@@ -231,12 +278,12 @@ export pad_end :: fn(s: string, width: usize, fill: char) -> string {
     return sb.to_string()
 }
 
-// True for ASCII whitespace: space, tab, newline, carriage return.
+/// True for an ASCII whitespace codepoint — space, tab, newline, or
+/// carriage return. Unicode whitespace is not recognised in MVP.
 export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
-// True for ASCII decimal digit `0..9`. Base-aware predicates
-// (`is_hex_digit`, `is_digit_in_base`) live in `std/numbers` alongside
-// `hex_digit_value` and `parse_int_in_base`.
+/// True for an ASCII decimal digit `0..9`. Base-aware predicates
+/// (`is_hex_digit`, `is_digit_in_base`) live in `std/numbers`.
 export is_digit :: fn(c: char) = c in '0'..='9'
 
 /**
@@ -251,7 +298,8 @@ export is_alpha :: fn(c: char) = c in 'a'..='z' || c in 'A'..='Z'
  */
 export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
 
-// Strip a `suffix` if `s` ends with it; otherwise return `s` unchanged.
+/// Strip `suffix` if `s` ends with it ; otherwise return `s` unchanged.
+/// Trims at most one occurrence.
 export trim_suffix :: fn(s: string, suffix: string) -> string {
     if s.ends_with(suffix) {
         return s.slice(0, s.byte_len() - suffix.byte_len())
@@ -259,7 +307,8 @@ export trim_suffix :: fn(s: string, suffix: string) -> string {
     return s
 }
 
-// Strip a `prefix` if `s` starts with it; otherwise return `s` unchanged.
+/// Strip `prefix` if `s` starts with it ; otherwise return `s` unchanged.
+/// Trims at most one occurrence.
 export trim_prefix :: fn(s: string, prefix: string) -> string {
     if s.starts_with(prefix) {
         return s.slice(prefix.byte_len(), s.byte_len())
@@ -267,8 +316,12 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
     return s
 }
 
-// Replace every char that satisfies `pred` with `replacement`. Subsumes
-// the regex pattern `replace(/[<class>]/g, "<replacement>")`.
+/// Replace every codepoint that satisfies `pred` with `replacement`.
+/// Subsumes the regex pattern `replace(/[<class>]/g, "…")`.
+/// @param s            source string.
+/// @param pred         predicate over each codepoint.
+/// @param replacement  string to substitute for each match.
+/// @return             a fresh string.
 export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
     sb := new_builder()
     for c in s.chars() {

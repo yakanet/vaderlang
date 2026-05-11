@@ -12,9 +12,16 @@
 
 import "std/iter" { slice }
 
-// sort — return a new array containing `arr`'s elements in sorted order.
-// `compare(a, b)` returns true iff `a` should come strictly before `b` in
-// the result ; equal elements keep their input order so the sort is stable.
+/// Return a fresh array containing `arr`'s elements in sorted order. The
+/// input is never mutated. Equal elements keep their input order, so the
+/// sort is stable. Complexity O(n log n) (top-down merge sort with an
+/// insertion-sort fallback below `INSERTION_CUTOFF` items).
+///
+/// @param arr      the input array. Untouched ; the returned array is a new allocation.
+/// @param compare  strict predicate : `compare(a, b)` is `true` iff `a` must
+///                 come strictly before `b` in the result. Reflexivity
+///                 (`compare(x, x) == false`) is required for stability.
+/// @return         a new array with the same elements in sorted order.
 export sort :: fn[T](arr: T[], compare: fn(T, T) -> bool) -> T[] {
     n :: arr.len()
     out :: slice(arr, 0, n)

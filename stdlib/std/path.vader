@@ -10,33 +10,45 @@ import "std/string" {
 }
 import "std/string_builder" { StringBuilder, new_builder, append }
 
+/// Path separator codepoint. POSIX-only in MVP (`/`).
 export SEP :: '/'
+/// Path separator as a string — useful for direct concatenation.
 export SEP_STR :: "/"
 
+/// An immutable filesystem path. The underlying `repr` is a UTF-8 string ;
+/// every combinator returns a fresh `Path` rather than mutating in place.
 export Path :: struct {
     repr: string
 }
 
 // ---- constructors ---------------------------------------------------------
 
+/// Wrap an existing string as a `Path`. No validation — assumes the caller
+/// has produced a syntactically valid path.
+/// @param s  the path string.
 export to_path :: fn(s: string) -> Path {
     return Path { .repr = s }
 }
 
+/// The empty path (`""`). Useful as an identity for `join` / as a default.
 export empty_path :: fn() -> Path {
     return Path { .repr = "" }
 }
 
 // ---- accessors ------------------------------------------------------------
 
+/// Return the underlying string representation. Inverse of `to_path`.
 export as_string :: fn(self: Path) -> string {
     return self.repr
 }
 
+/// True iff the path is the empty path (`""`).
 export is_empty :: fn(self: Path) -> bool {
     return self.repr.is_empty()
 }
 
+/// True iff the path starts with the separator (`/foo`). Empty paths are
+/// considered NOT absolute.
 export is_absolute :: fn(self: Path) -> bool {
     if self.repr.is_empty() {
         return false
@@ -45,8 +57,11 @@ export is_absolute :: fn(self: Path) -> bool {
 }
 
 
-// Parent directory — everything before the last separator. Returns the empty
-// path when there's no separator.
+/// Parent directory — everything before the last separator. Returns the
+/// empty path when there's no separator, or `/` when the path is at the
+/// filesystem root.
+/// @param self  the path receiver.
+/// @return      the parent path.
 export parent :: fn(self: Path) -> Path {
     idx := self.repr.last_index_of(SEP, 0)
     if idx < 0 {
@@ -59,7 +74,10 @@ export parent :: fn(self: Path) -> Path {
     return Path { .repr = self.repr.slice(0, usize(idx)) }
 }
 
-// Last segment (filename or directory name).
+/// Last segment (filename or directory name). For a path with no
+/// separator, returns the whole path's string repr.
+/// @param self  the path receiver.
+/// @return      the filename string (no leading separator).
 export filename :: fn(self: Path) -> string {
     idx := self.repr.last_index_of(SEP, 0)
     if idx < 0 {
@@ -68,8 +86,11 @@ export filename :: fn(self: Path) -> string {
     return self.repr.slice(usize(idx) + 1, self.repr.byte_len())
 }
 
-// File extension without the leading dot, or empty when there's no extension.
-// A leading-dot name (e.g. `.gitignore`) has no extension — `min_index = 1`.
+/// File extension without the leading dot. Empty when there's no
+/// extension, or when the filename starts with a dot
+/// (`.gitignore` → `""`).
+/// @param self  the path receiver.
+/// @return      e.g. `to_path("foo.tar.gz").extension()` → `"gz"`.
 export extension :: fn(self: Path) -> string {
     name := self.filename()
     idx := name.last_index_of('.', 1)
@@ -79,8 +100,10 @@ export extension :: fn(self: Path) -> string {
     return name.slice(usize(idx) + 1, name.byte_len())
 }
 
-// Filename without the extension. For names without an extension, returns
-// the filename as-is.
+/// Filename without the extension. For names without an extension,
+/// returns the filename as-is. Inverse of `extension` w.r.t. the
+/// trailing dot (`foo.tar.gz` → `"foo.tar"`).
+/// @param self  the path receiver.
 export stem :: fn(self: Path) -> string {
     name := self.filename()
     idx := name.last_index_of('.', 1)
@@ -92,8 +115,12 @@ export stem :: fn(self: Path) -> string {
 
 // ---- combinators ----------------------------------------------------------
 
-// Append a sub-path. Adds a separator between segments unless one is already
-// present. If `other` is absolute, it replaces `self` (Java-style resolve).
+/// Append a sub-path. Adds a separator between segments unless one is
+/// already present. If `other` is absolute (starts with `/`), it
+/// REPLACES `self` (Java `Path.resolve` semantics).
+/// @param self   the base path.
+/// @param other  the segment to append (may itself contain separators).
+/// @return       a fresh `Path`.
 export join :: fn(self: Path, other: string) -> Path {
     if other.is_empty() {
         return self
@@ -112,8 +139,11 @@ export join :: fn(self: Path, other: string) -> Path {
 
 // ---- predicates -----------------------------------------------------------
 
-// True when `self` starts with `prefix` on a segment boundary (so `/foo`
-// starts with `/foo` but `/foobar` does not).
+/// True when `self` starts with `prefix` on a segment boundary — so
+/// `/foo/bar` starts with `/foo` but `/foobar` does NOT. Useful for
+/// "is this under that directory" checks.
+/// @param self    the path receiver.
+/// @param prefix  the candidate prefix path.
 export starts_with :: fn(self: Path, prefix: Path) -> bool {
     if !self.repr.str_starts_with(prefix.repr) {
         return false
@@ -129,7 +159,10 @@ export starts_with :: fn(self: Path, prefix: Path) -> bool {
     return self.repr[prefix.repr.byte_len()] == SEP
 }
 
-// True when `self` ends with `suffix` on a segment boundary.
+/// True when `self` ends with `suffix` on a segment boundary. Same
+/// segment-aware rule as `starts_with`.
+/// @param self    the path receiver.
+/// @param suffix  the candidate suffix path.
 export ends_with :: fn(self: Path, suffix: Path) -> bool {
     if !self.repr.str_ends_with(suffix.repr) {
         return false
@@ -146,12 +179,18 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
 
 // ---- normalization --------------------------------------------------------
 
-// Collapse `.` and `..` segments. Does not touch the filesystem (no symlink
-// resolution). Preserves an absolute prefix when present.
-//
-// Maintains the kept-segments stack via an explicit `count` cursor and
-// overwrites `segments[count]` in place — avoids the O(N²) of rebuilding
-// a fresh array on every `..` collapse.
+/// Collapse `.` and `..` segments. Purely lexical — does NOT touch the
+/// filesystem (no symlink resolution, no existence check). Preserves an
+/// absolute prefix when present.
+///
+/// Examples :
+///   `to_path("a/./b").normalize()       → "a/b"`
+///   `to_path("a/b/..").normalize()      → "a"`
+///   `to_path("/a/../b").normalize()     → "/b"`
+///   `to_path("../foo").normalize()      → "../foo"` (can't escape rel root)
+///
+/// @param self  the path receiver.
+/// @return      a fresh, lexically-normalised `Path`.
 export normalize :: fn(self: Path) -> Path {
     if self.repr.is_empty() {
         return self

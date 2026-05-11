@@ -10,6 +10,9 @@
 LAUNCH_FAIL :: -1
 SIGNALED    :: -2
 
+/// Error returned by `spawn` when the child can't be launched or terminates
+/// abnormally (signal / non-zero exit codes are NOT errors — they're reported
+/// through `ProcessResult.exit`).
 export ProcessError :: struct {
     msg: string
 }
@@ -18,6 +21,9 @@ ProcessError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
+/// Outcome of a successful spawn — the child ran to completion (signal or
+/// not) and the runtime captured both pipes. `exit` carries the OS exit
+/// status ; `stdout` / `stderr` hold the full drained pipe contents.
 export ProcessResult :: struct {
     exit:   i32
     stdout: string
@@ -28,8 +34,20 @@ spawn_run         :: fn(argv: string[]) -> i32
 spawn_last_stdout :: fn() -> string
 spawn_last_stderr :: fn() -> string
 
-// spawn — run `argv[0]` with `argv[1..]` as arguments, block until exit,
-// return the exit code plus captured stdout/stderr.
+/// Run `argv[0]` with `argv[1..]` as arguments, block until exit, and
+/// return the exit code plus captured stdout/stderr. Native-only — on
+/// `--target=wasm` the underlying `vader_spawn_run` import is unbound
+/// and the linker will refuse the build.
+///
+/// @param argv   the command line. `argv[0]` is the program ; the rest is
+///               passed unmodified to the child. Empty `argv` is an error.
+/// @return       a `ProcessResult` containing the exit code plus drained
+///               stdout/stderr buffers. The child is fully waited-on before
+///               this returns ; no daemon process leaks.
+/// @error        `ProcessError` when the child couldn't be launched
+///               (`spawn: failed to launch …`), terminated by a signal
+///               (`… terminated by signal`), or `argv` was empty
+///               (`spawn: empty argv`).
 export spawn :: fn(argv: string[]) -> ProcessResult! {
     if argv.len() == 0 {
         return ProcessError { .msg = "spawn: empty argv" }

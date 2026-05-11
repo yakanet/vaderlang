@@ -6,19 +6,21 @@
 import "std/string" { byte_len, chars, ends_with, is_digit, is_empty, slice }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
-// ParseError — raised by every fallible parser in this module. The shape
-// mirrors `std/string.ParseError` so callers can match on either as `Error`.
+/// Raised by every fallible parser in this module. The shape mirrors
+/// `std/string.ParseError` so callers can match on either as `Error`.
 export ParseError :: struct { msg: string }
 ParseError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-// True for ASCII hex digit `0..9 a..f A..F`.
+/// True for an ASCII hex digit — `0`..`9`, `a`..`f`, `A`..`F`.
 export is_hex_digit :: fn(c: char) =
     c.is_digit() || c in 'a'..='f' || c in 'A'..='F'
 
-// True for any digit in `base` (2 / 8 / 10 / 16). Caller is expected to
-// pass a supported base ; unsupported bases fall through to base-10.
+/// True when `c` is a valid digit in `base`. Supported bases : 2, 8, 10, 16.
+/// Unsupported bases fall through to base-10.
+/// @param c     codepoint to classify.
+/// @param base  the numeric base ; 2, 8, 10, or 16.
 export is_digit_in_base :: fn(c: char, base: i32) -> bool {
     if base == 2 { return c == '0' || c == '1' }
     if base == 8 { return c in '0'..='7' }
@@ -26,7 +28,9 @@ export is_digit_in_base :: fn(c: char, base: i32) -> bool {
     return c.is_digit()
 }
 
-// 0..15 for an ASCII hex digit, -1 otherwise.
+/// 0..15 for an ASCII hex digit, -1 for anything else. Case-insensitive.
+/// @param c  codepoint to decode.
+/// @return   the digit's numeric value, or `-1` if `c` isn't `0..9a..fA..F`.
 export hex_digit_value :: fn(c: char) -> i32 {
     if c in '0'..='9' { return i32(u32(c) - u32('0')) }
     if c in 'a'..='f' { return i32(u32(c) - u32('a') + u32(10)) }
@@ -34,10 +38,13 @@ export hex_digit_value :: fn(c: char) -> i32 {
     return -1
 }
 
-// Parse `s` as an `i64` in the given base (2 / 8 / 10 / 16). `s` must be
-// pure digits in that base — no `0x`/`0b`/`0o` prefix, no `_` separators,
-// no leading sign. Empty input or any non-digit character yields an error.
-// Caller is responsible for stripping syntactic decoration.
+/// Parse `s` as an `i64` in the given base. `s` must be pure digits in
+/// that base — no `0x`/`0b`/`0o` prefix, no `_` separators, no leading
+/// sign. Empty input or any non-digit character yields an error.
+/// @param s     the digits-only input.
+/// @param base  one of 2 / 8 / 10 / 16.
+/// @return      the parsed `i64`.
+/// @error       `ParseError` on empty input or any out-of-base digit.
 export parse_int_in_base :: fn(s: string, base: i32) -> i64! {
     if s.is_empty() {
         return ParseError { .msg = "empty input" }
@@ -61,8 +68,13 @@ hex_digit :: fn(n: u64) -> char {
     return char(u32('A') + u32(n) - u32(10))
 }
 
-// Hexadecimal stringification of a u64 — lowercase, no `0x` prefix, no leading
-// zeros. Caller pads via `std/string.pad_start` if a fixed width is needed.
+/// Hexadecimal stringification of a `u64` — uppercase, no `0x` prefix, no
+/// leading zeros (special-cases `0` to `"0"`). Pair with
+/// `std/string.pad_start` for a fixed-width hex column.
+///
+/// UFCS-callable as `n.to_hex()`.
+/// @param self  the integer to render.
+/// @return      e.g. `255_u64.to_hex()` → `"FF"`.
 export to_hex :: fn(self: u64) -> string {
     if self == 0 {
         return "0"
@@ -86,7 +98,10 @@ export to_hex :: fn(self: u64) -> string {
     return sb.to_string()
 }
 
-// Binary stringification of a u64 — no prefix, no leading zeros.
+/// Binary stringification of a `u64` — no `0b` prefix, no leading zeros.
+/// Pair with `std/string.pad_start` for a fixed-width bit column.
+/// @param self  the integer to render.
+/// @return      e.g. `5_u64.to_bin()` → `"101"`.
 export to_bin :: fn(self: u64) -> string {
     if self == 0 {
         return "0"
