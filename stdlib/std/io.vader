@@ -24,19 +24,13 @@ IOError implements Error {
 @intrinsic export eprintln :: fn(msg: Display) -> void
 
 // read_line — block on stdin until newline.
-@intrinsic
-export read_line :: fn() -> string!
+@intrinsic export read_line :: fn() -> string!
 
 // File operations.
-@intrinsic
-export read_file  :: fn(path: string) -> string!
-@intrinsic
-export write_file :: fn(path: string, content: string) -> void!
-@intrinsic
-export exists     :: fn(path: string) -> bool
-@intrinsic
-export is_dir     :: fn(path: string) -> bool
+@intrinsic export read_file  :: fn(path: string) -> string!
+@intrinsic export write_file :: fn(path: string, content: string) -> void!
+@intrinsic export exists     :: fn(path: string) -> bool
+@intrinsic export is_dir     :: fn(path: string) -> bool
 // `read_dir` lists immediate entries (relative names, no `.` / `..`) in
 // OS-provided order. Caller joins against `path` if absolute paths are wanted.
-@intrinsic
-export read_dir   :: fn(path: string) -> string[]!
+@intrinsic export read_dir   :: fn(path: string) -> string[]!
