@@ -1,0 +1,31 @@
+import "std/io" { println }
+
+// User trait that we'll bound on (just a marker, not invoked here).
+Tag :: trait {
+    tag :: fn(self) -> string
+}
+
+Cat :: struct { name: string }
+Cat implements Tag { tag :: fn(self) -> string { return self.name } }
+
+Dog :: struct { name: string }
+Dog implements Tag { tag :: fn(self) -> string { return self.name } }
+
+Wrap :: struct[T] { value: T }
+
+// Bounded generic impl. The body does NOT call any T method — we just
+// verify the syntax parses + resolves + monomorphises.
+[T: Tag]
+Wrap[T] implements Display {
+    to_string :: fn(self) -> string {
+        return "wrapped"
+    }
+}
+
+main :: fn() -> i32 {
+    a :: Wrap(Cat) { .value = Cat { .name = "Mira" } }
+    b :: Wrap(Dog) { .value = Dog { .name = "Rex" } }
+    println(a.to_string())
+    println(b.to_string())
+    return 0
+}

@@ -181,13 +181,23 @@ function resolveTraitDecl(decl: A.TraitDecl, parent: Scope, p: MutableProgram, i
 }
 
 function resolveImplDecl(decl: A.ImplDecl, parent: Scope, p: MutableProgram, input: ResolveModuleInput): void {
-  // Generic impls (`Foo(T) implements Trait(T) { ... }`) reuse the base
-  // struct's type parameters. Look up the EXISTING typeParam symbols (don't
-  // re-bind, which would clobber `p.typeParams[tp]` and break the struct's
-  // own field references) and expose them under their names in the impl
-  // scope so references in forType / trait args / member bodies resolve.
+  // Two impl shapes :
+  //   (1) Legacy : `Foo[T] implements Trait[T] { ... }` — `T` is borrowed
+  //       transparently from the base struct's typeParams ; the impl has no
+  //       typeParams of its own (`decl.typeParams.length === 0`).
+  //   (2) Bounded generic (Option (a) of TODO §1.18b) : `[T: Bound] Foo[T]
+  //       implements Trait[T] { ... }` — `T` is declared *here* with a
+  //       local bound. Used to dedupe per-primitive impl families like
+  //       `Range[T]`'s `Iterator` and `Contains` impls in std/core.
+  //
+  // For (1), we look up the base struct's existing typeParam symbols and
+  // expose them under their names in the impl scope. For (2), we bind the
+  // impl's own typeParams via `bindTypeParam` (same machinery as fn/struct
+  // heads) so bounds flow into `typeParamBounds` for downstream dispatch.
   const scope = newScope(parent);
-  if (decl.forType.kind === "GenericInstExpr" && decl.forType.callee.kind === "IdentExpr") {
+  if (decl.typeParams.length > 0) {
+    for (const tp of decl.typeParams) bindTypeParam(tp, scope, p, input);
+  } else if (decl.forType.kind === "GenericInstExpr" && decl.forType.callee.kind === "IdentExpr") {
     const baseSym = lookup(parent, decl.forType.callee.name);
     if (baseSym !== null && baseSym.source.kind === "struct") {
       for (const tp of baseSym.source.decl.typeParams) {

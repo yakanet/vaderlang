@@ -36,6 +36,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "DigitSet"

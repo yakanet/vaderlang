@@ -1,0 +1,29 @@
+# Typecheck
+
+## tests/snippets/impl_bounded_typeparam/_main.vader
+  StructDecl     Cat                  :: Cat
+  StructDecl     Dog                  :: Dog
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Tag                  :: Tag
+  StructDecl     Wrap                 :: Wrap($T)
+  expr 12:57    FieldExpr      :: string
+  expr 12:57    IdentExpr      :: Dog
+  expr 21:16    StringLitExpr  :: string
+  expr 26:10    StructLitExpr  :: Wrap(Cat)
+  expr 26:31    StructLitExpr  :: Cat
+  expr 26:45    StringLitExpr  :: string
+  expr 27:10    StructLitExpr  :: Wrap(Dog)
+  expr 27:31    StructLitExpr  :: Dog
+  expr 27:45    StringLitExpr  :: string
+  expr 28:13    CallExpr       :: string
+  expr 28:13    FieldExpr      :: fn() -> string
+  expr 28:13    IdentExpr      :: Wrap(Cat)
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(Display) -> void
+  expr 29:13    CallExpr       :: string
+  expr 29:13    FieldExpr      :: fn() -> string
+  expr 29:13    IdentExpr      :: Wrap(Dog)
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(Display) -> void
+  expr 9:57     FieldExpr      :: string
+  expr 9:57     IdentExpr      :: Cat

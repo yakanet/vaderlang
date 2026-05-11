@@ -45,6 +45,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "Vec"
@@ -151,6 +152,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "Vec"
@@ -257,6 +259,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "Vec"
@@ -363,6 +366,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "Vec"
@@ -469,6 +473,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "Vec"

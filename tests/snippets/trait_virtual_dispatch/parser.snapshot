@@ -54,6 +54,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "ParseErr"
@@ -114,6 +115,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "NetErr"

@@ -159,6 +159,7 @@
     },
     {
       "kind": "ImplDecl",
+      "typeParams": [],
       "forType": {
         "kind": "GenericInstExpr",
         "callee": {

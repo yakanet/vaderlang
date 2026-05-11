@@ -1,0 +1,44 @@
+module _main
+type 0 struct tests_snippets_impl_bounded_typeparam__main_vader$Cat { name:1 }
+type 1 primitive string
+type 2 struct tests_snippets_impl_bounded_typeparam__main_vader$Dog { name:1 }
+type 3 struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Cat { value:0 }
+type 4 struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Dog { value:2 }
+string 0 "Mira"
+string 1 "Rex"
+string 2 "wrapped"
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 println std_io$println (string) -> void
+
+fn 0 tests_snippets_impl_bounded_typeparam__main_vader$main () -> i32
+  local "a#13" ref
+  local "b#16" ref
+  string.const 0   ; _main.vader:26:45
+  struct.new 0   ; _main.vader:26:31
+  struct.new 3   ; _main.vader:26:10
+  local.set 0   ; _main.vader:26:10
+  string.const 1   ; _main.vader:27:45
+  struct.new 2   ; _main.vader:27:31
+  struct.new 4   ; _main.vader:27:10
+  local.set 1   ; _main.vader:27:10
+  local.get 0   ; _main.vader:28:13
+  call 1   ; _main.vader:28:13
+  call.import 0   ; _main.vader:28:13
+  call.import 1   ; _main.vader:28:5
+  local.get 1   ; _main.vader:29:13
+  call 2   ; _main.vader:29:13
+  call.import 0   ; _main.vader:29:13
+  call.import 1   ; _main.vader:29:5
+  i32.const 0   ; _main.vader:30:12
+  return   ; _main.vader:30:5
+end
+
+fn 1 tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat (ref) -> string
+  string.const 2   ; _main.vader:21:16
+  return   ; _main.vader:21:9
+end
+
+fn 2 tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Dog (ref) -> string
+  string.const 2   ; _main.vader:21:16
+  return   ; _main.vader:21:9
+end

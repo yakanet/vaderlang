@@ -146,6 +146,13 @@ export interface TraitDecl {
 export interface ImplDecl {
   readonly kind: "ImplDecl";
   readonly span: Span;
+  /** Optional bracketed type-param prefix for bounded generic impls —
+   *  e.g. `[T: Add & Comparable] Range[T] implements Iterator[T] { ... }`.
+   *  These are *the impl's own* type-params, with bounds local to this block.
+   *  Distinct from type-args appearing inside `forType` / `traitArgs` (which
+   *  *use* these names). Empty when the impl is non-generic or inherits its
+   *  type-params transparently from the struct (legacy form). */
+  readonly typeParams: readonly TypeParam[];
   readonly forType: TypeExpr;
   readonly traitName: string;
   readonly traitNameSpan: Span;
