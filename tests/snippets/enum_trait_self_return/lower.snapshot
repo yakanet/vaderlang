@@ -167,7 +167,7 @@
     let d: Direction = int(0) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :?
           callee:
@@ -176,7 +176,7 @@
             d :Direction
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :?
           callee:
@@ -189,7 +189,7 @@
                 d :Direction
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :?
           callee:

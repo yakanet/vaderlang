@@ -16,21 +16,20 @@ string 6 "spawn: failed to launch \""
 string 7 "\""
 string 8 "spawn: \""
 string 9 "\" terminated by signal"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
-import 2 spawn_run std_process$spawn_run (ref) -> i32
-import 3 spawn_last_stdout std_process$spawn_last_stdout () -> string
-import 4 spawn_last_stderr std_process$spawn_last_stderr () -> string
+import 0 println std_io$println (string) -> void
+import 1 spawn_run std_process$spawn_run (ref) -> i32
+import 2 spawn_last_stdout std_process$spawn_last_stdout () -> string
+import 3 spawn_last_stderr std_process$spawn_last_stderr () -> string
 
 fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
-  local "r#34" ref
-  local "__scrut_0#35" ref
-  local "__sb_2#38" any
-  local "$field_11#41" i32
-  local "__sb_3#45" any
-  local "$field_18#48" string
-  local "__sb_1#53" any
-  local "$vcall_26#56" string
+  local "r#31" ref
+  local "__scrut_0#32" ref
+  local "__sb_2#35" any
+  local "$field_11#38" i32
+  local "__sb_3#41" any
+  local "$field_17#44" string
+  local "__sb_1#48" any
+  local "$vcall_24#51" string
   string.const 0   ; _main.vader:9:16
   string.const 1   ; _main.vader:9:16
   array.new 5 2   ; _main.vader:9:16
@@ -52,8 +51,7 @@ fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
     intrinsic builder.append_display   ; _main.vader:12:27
     local.get 2   ; _main.vader:12:21
     intrinsic builder.finish   ; _main.vader:12:21
-    call.import 0   ; _main.vader:12:21
-    call.import 1   ; _main.vader:12:13
+    call.import 0   ; _main.vader:12:13
     intrinsic builder.new   ; _main.vader:13:21
     local.set 4   ; _main.vader:13:21
     local.get 4   ; _main.vader:13:22
@@ -67,8 +65,7 @@ fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
     intrinsic builder.append_display   ; _main.vader:13:26
     local.get 4   ; _main.vader:13:21
     intrinsic builder.finish   ; _main.vader:13:21
-    call.import 0   ; _main.vader:13:21
-    call.import 1   ; _main.vader:13:13
+    call.import 0   ; _main.vader:13:13
     i32.const 0   ; _main.vader:17:12
     return   ; _main.vader:17:5
   else   ; _main.vader:11:9
@@ -88,8 +85,7 @@ fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
       intrinsic builder.append_display   ; _main.vader:15:35
       local.get 6   ; _main.vader:15:29
       intrinsic builder.finish   ; _main.vader:15:29
-      call.import 0   ; _main.vader:15:29
-      call.import 1   ; _main.vader:15:21
+      call.import 0   ; _main.vader:15:21
       i32.const 0   ; _main.vader:17:12
       return   ; _main.vader:17:5
     else   ; _main.vader:15:9
@@ -134,11 +130,11 @@ fn 3 std_process$spawn (ref) -> ref
     return   ; process.vader:53:9
   else   ; process.vader:52:5
     local.get 0   ; process.vader:55:13
-    call.import 2   ; process.vader:55:13
+    call.import 1   ; process.vader:55:13
     local.set 2   ; process.vader:55:5
-    call.import 3   ; process.vader:56:13
+    call.import 2   ; process.vader:56:13
     local.set 3   ; process.vader:56:5
-    call.import 4   ; process.vader:57:13
+    call.import 3   ; process.vader:57:13
     local.set 4   ; process.vader:57:5
     i32.const 1   ; process.vader:10:17
     i32.neg   ; process.vader:10:16

@@ -20,31 +20,29 @@ fn tests_snippets_trait_box_range_iter__main_vader$i32$Doubler$doubled(%0: i32) 
 
 fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
   locals:
-    %0 $k_0#25: i32
-    %1 $k_1#26: i32
-    %2 $k_2#27: bool
-    %3 $k_3#28: i32
-    %4 $struct_4#29: Range(i32)
-    %5 $call_5#30: i32
-    %6 a#31: i32 (local a)
-    %7 $k_7#32: i32
-    %8 $k_8#33: i32
-    %9 $k_9#34: i32
-    %10 __arr_0#35: i32[] (synthetic __arr_0)
-    %11 $k_12#36: usize
-    %12 $len_13#37: usize
-    %13 $struct_14#38: ArrayIterator(i32)
-    %14 $call_15#39: i32
-    %15 b#40: i32 (local b)
-    %16 $struct_17#41: Hello
-    %17 $call_18#42: i32
-    %18 c#43: i32 (local c)
-    %19 $k_20#44: Doubler(i32)
-    %20 $call_21#45: i32
-    %21 d#46: i32 (local d)
-    %22 $add_23#47: i32
-    %23 $add_24#48: i32
-    %24 $add_25#49: i32
+    %0 $k_0#23: i32
+    %1 $k_1#24: i32
+    %2 $k_2#25: bool
+    %3 $k_3#26: i32
+    %4 $struct_4#27: Range(i32)
+    %5 $call_5#28: i32
+    %6 a#29: i32 (local a)
+    %7 $k_7#30: i32
+    %8 $k_8#31: i32
+    %9 $k_9#32: i32
+    %10 $arr_10#33: i32[]
+    %11 $call_11#34: Iterator(i32)
+    %12 $call_12#35: i32
+    %13 b#36: i32 (local b)
+    %14 $struct_14#37: Hello
+    %15 $call_15#38: i32
+    %16 c#39: i32 (local c)
+    %17 $k_17#40: Doubler(i32)
+    %18 $call_18#41: i32
+    %19 d#42: i32 (local d)
+    %20 $add_20#43: i32
+    %21 $add_21#44: i32
+    %22 $add_22#45: i32
   bb0:
     %0 = const int(0) :i32
     %1 = const int(5) :i32
@@ -57,21 +55,19 @@ fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
     %8 = const int(20) :i32
     %9 = const int(30) :i32
     %10 = array_new i32[][3](%7, %8, %9)
-    %11 = const int(0) :usize
-    %12 = array_len %10
-    %13 = struct_new ArrayIterator(i32)(%10, %11, %12)
-    %14 = call count(%13) :i32
-    %15 = move %14
-    %16 = struct_new Hello()
-    %17 = call invoke(%16) :i32
-    %18 = move %17
-    %19 = const int(7) :Doubler(i32)
-    %20 = call twice(%19) :i32
-    %21 = move %20
-    %22 = binop add %6 %15 :i32
-    %23 = binop add %22 %18 :i32
-    %24 = binop add %23 %21 :i32
-    return %24
+    %11 = call into(%10) :Iterator(i32)
+    %12 = call count(%11) :i32
+    %13 = move %12
+    %14 = struct_new Hello()
+    %15 = call invoke(%14) :i32
+    %16 = move %15
+    %17 = const int(7) :Doubler(i32)
+    %18 = call twice(%17) :i32
+    %19 = move %18
+    %20 = binop add %6 %13 :i32
+    %21 = binop add %20 %16 :i32
+    %22 = binop add %21 %19 :i32
+    return %22
 
 fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32(%0: Iterator(i32)) -> i32
   locals:

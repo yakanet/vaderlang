@@ -9,61 +9,49 @@
     LoweredArrayPush
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_display <for usize> :void
-                __sb_0 :?
-                LoweredArrayLen
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_display <for usize> :void
+            __sb_0 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_1: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_1 :?
-                index :?
-                  on:
-                    arr :?[]
-                  ix:
-                    int(0) :i32
-              ~>
-                @builder.finish :string
-                  __sb_1 :?
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            index :?
+              on:
+                arr :?[]
+              ix:
+                int(0) :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_2: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_2 :?
-                index :?
-                  on:
-                    arr :?[]
-                  ix:
-                    int(2) :i32
-              ~>
-                @builder.finish :string
-                  __sb_2 :?
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            index :?
+              on:
+                arr :?[]
+              ix:
+                int(2) :i32
+          ~>
+            @builder.finish :string
+              __sb_2 :?
     return int(0) :i32

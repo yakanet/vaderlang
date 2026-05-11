@@ -22,7 +22,7 @@
   expr 14:9     IdentExpr      :: i32
   expr 16:13    IdentExpr      :: string
   expr 16:5     CallExpr       :: void
-  expr 16:5     IdentExpr      :: fn(Display) -> void
+  expr 16:5     IdentExpr      :: fn(string) -> void
   expr 20:11    StringLitExpr  :: string
   expr 22:14    IdentExpr      :: string[]
   expr 23:12    BinaryExpr     :: bool
@@ -40,7 +40,7 @@
   expr 25:9     IdentExpr      :: i32
   expr 27:13    IdentExpr      :: string
   expr 27:5     CallExpr       :: void
-  expr 27:5     IdentExpr      :: fn(Display) -> void
+  expr 27:5     IdentExpr      :: fn(string) -> void
   expr 32:12    CallExpr       :: i32[]
   expr 32:12    IdentExpr      :: fn($T[], fn($T, $T) -> bool) -> $T[]
   expr 32:17    SeqLitExpr     :: i32[]

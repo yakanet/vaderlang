@@ -8,8 +8,7 @@ string 0 "seven"
 string 1 "id="
 string 2 "label="
 string 3 "active="
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_tuple_destructure_nested__main_vader$make_record () -> ref
   local "$struct_2#7" ref
@@ -24,13 +23,13 @@ fn 0 tests_snippets_tuple_destructure_nested__main_vader$make_record () -> ref
 end
 
 fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
-  local "__tup_0#24" ref
-  local "id#26" i32
-  local "label#28" string
-  local "active#29" bool
-  local "__sb_1#31" any
-  local "__sb_2#36" any
-  local "__sb_3#41" any
+  local "__tup_0#21" ref
+  local "id#23" i32
+  local "label#25" string
+  local "active#26" bool
+  local "__sb_1#28" any
+  local "__sb_2#32" any
+  local "__sb_3#36" any
   call 0   ; _main.vader:10:30
   local.tee 0   ; _main.vader:10:5
   struct.get 3 0   ; _main.vader:10:6
@@ -53,8 +52,7 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:11:17
   local.get 4   ; _main.vader:11:13
   intrinsic builder.finish   ; _main.vader:11:13
-  call.import 0   ; _main.vader:11:13
-  call.import 1   ; _main.vader:11:5
+  call.import 0   ; _main.vader:11:5
   intrinsic builder.new   ; _main.vader:12:13
   local.set 5   ; _main.vader:12:13
   local.get 5   ; _main.vader:12:14
@@ -65,8 +63,7 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:12:20
   local.get 5   ; _main.vader:12:13
   intrinsic builder.finish   ; _main.vader:12:13
-  call.import 0   ; _main.vader:12:13
-  call.import 1   ; _main.vader:12:5
+  call.import 0   ; _main.vader:12:5
   intrinsic builder.new   ; _main.vader:13:13
   local.set 6   ; _main.vader:13:13
   local.get 6   ; _main.vader:13:14
@@ -77,8 +74,7 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:13:21
   local.get 6   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
-  call.import 0   ; _main.vader:13:13
-  call.import 1   ; _main.vader:13:5
+  call.import 0   ; _main.vader:13:5
   i32.const 0   ; _main.vader:14:12
   return   ; _main.vader:14:5
 end

@@ -51,25 +51,21 @@
                 __tup_2 :[string, i32]
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_3: ? =
-                        @builder.new :?
-                      @builder.append_display <for string> :void
-                        __sb_3 :?
-                        k :string
-                      @builder.append_str :void
-                        __sb_3 :?
-                        "=" :string
-                      @builder.append_display <for i32> :void
-                        __sb_3 :?
-                        v :i32
-                      ~>
-                        @builder.finish :string
-                          __sb_3 :?
+                block :string
+                  let __sb_3: ? =
+                    @builder.new :?
+                  @builder.append_display <for string> :void
+                    __sb_3 :?
+                    k :string
+                  @builder.append_str :void
+                    __sb_3 :?
+                    "=" :string
+                  @builder.append_display <for i32> :void
+                    __sb_3 :?
+                    v :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_3 :?
     return int(0) :i32

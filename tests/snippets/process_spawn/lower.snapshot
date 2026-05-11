@@ -22,49 +22,41 @@
               block :void
                 call :void
                   callee:
-                    println :fn(Display) -> void
+                    println :fn(string) -> void
                   arg0:
-                    call :string
-                      callee:
-                        to_string :string
-                      arg0:
-                        block :string
-                          let __sb_2: ? =
-                            @builder.new :?
-                          @builder.append_str :void
-                            __sb_2 :?
-                            "exit=" :string
-                          @builder.append_display <for i32> :void
-                            __sb_2 :?
-                            .exit :i32
-                              cast → ProcessResult
-                                r :Error | ProcessResult
-                          ~>
-                            @builder.finish :string
-                              __sb_2 :?
+                    block :string
+                      let __sb_2: ? =
+                        @builder.new :?
+                      @builder.append_str :void
+                        __sb_2 :?
+                        "exit=" :string
+                      @builder.append_display <for i32> :void
+                        __sb_2 :?
+                        .exit :i32
+                          cast → ProcessResult
+                            r :Error | ProcessResult
+                      ~>
+                        @builder.finish :string
+                          __sb_2 :?
                 ~>
                   call :void
                     callee:
-                      println :fn(Display) -> void
+                      println :fn(string) -> void
                     arg0:
-                      call :string
-                        callee:
-                          to_string :string
-                        arg0:
-                          block :string
-                            let __sb_3: ? =
-                              @builder.new :?
-                            @builder.append_str :void
-                              __sb_3 :?
-                              "out=" :string
-                            @builder.append_display <for string> :void
-                              __sb_3 :?
-                              .stdout :string
-                                cast → ProcessResult
-                                  r :Error | ProcessResult
-                            ~>
-                              @builder.finish :string
-                                __sb_3 :?
+                      block :string
+                        let __sb_3: ? =
+                          @builder.new :?
+                        @builder.append_str :void
+                          __sb_3 :?
+                          "out=" :string
+                        @builder.append_display <for string> :void
+                          __sb_3 :?
+                          .stdout :string
+                            cast → ProcessResult
+                              r :Error | ProcessResult
+                        ~>
+                          @builder.finish :string
+                            __sb_3 :?
           else:
             ~>
               if :void
@@ -75,27 +67,23 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            block :string
-                              let __sb_1: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_1 :?
-                                "err: " :string
-                              @builder.append_display <for string> :void
-                                __sb_1 :?
-                                vcall Error.message :string
-                                  recv:
-                                    cast → Error
-                                      r :Error | ProcessResult
-                              ~>
-                                @builder.finish :string
-                                  __sb_1 :?
+                        block :string
+                          let __sb_1: ? =
+                            @builder.new :?
+                          @builder.append_str :void
+                            __sb_1 :?
+                            "err: " :string
+                          @builder.append_display <for string> :void
+                            __sb_1 :?
+                            vcall Error.message :string
+                              recv:
+                                cast → Error
+                                  r :Error | ProcessResult
+                          ~>
+                            @builder.finish :string
+                              __sb_1 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

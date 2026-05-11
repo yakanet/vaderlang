@@ -4,20 +4,19 @@
 
 fn tests_snippets_self_ref_struct__main_vader$main() -> i32
   locals:
-    %0 $k_0#14: i32
-    %1 $k_1#15: null
-    %2 tail#16: Node(i32) (local tail)
-    %3 $k_4#17: i32
-    %4 mid#18: Node(i32) (local mid)
-    %5 $k_7#19: i32
-    %6 head#20: Node(i32) (local head)
-    %7 $intrinsic_10#21: ?
-    %8 __sb_0#22: ? (synthetic __sb_0)
-    %9 $k_12#23: string
-    %10 $field_13#24: i32
-    %11 $intrinsic_14#25: string
-    %12 $call_15#26: string
-    %13 $k_16#27: i32
+    %0 $k_0#13: i32
+    %1 $k_1#14: null
+    %2 tail#15: Node(i32) (local tail)
+    %3 $k_4#16: i32
+    %4 mid#17: Node(i32) (local mid)
+    %5 $k_7#18: i32
+    %6 head#19: Node(i32) (local head)
+    %7 $intrinsic_10#20: ?
+    %8 __sb_0#21: ? (synthetic __sb_0)
+    %9 $k_12#22: string
+    %10 $field_13#23: i32
+    %11 $intrinsic_14#24: string
+    %12 $k_15#25: i32
   bb0:
     %0 = const int(30) :i32
     %1 = const null :null
@@ -33,7 +32,6 @@ fn tests_snippets_self_ref_struct__main_vader$main() -> i32
     %10 = field_get %6.value :i32
     intrinsic builder.append_display(%8, %10)
     %11 = intrinsic builder.finish(%8)
-    %12 = call to_string(%11) :string
-    call println(%12) :void
-    %13 = const int(0) :i32
-    return %13
+    call println(%11) :void
+    %12 = const int(0) :i32
+    return %12

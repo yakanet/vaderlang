@@ -5,242 +5,194 @@
     let s: string = "  Hello, World!  " :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_display <for usize> :void
-                __sb_0 :?
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    s :string
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
-    call :void
-      callee:
-        println :fn(Display) -> void
-      arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            call :string
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_display <for usize> :void
+            __sb_0 :?
+            call :usize
               callee:
-                trim :string
+                byte_len :fn(string) -> usize
               arg0:
                 s :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            trim :string
           arg0:
-            call :string
+            s :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            to_upper :string
+          arg0:
+            "hello" :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            to_lower :string
+          arg0:
+            "VADER" :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_display <for bool> :void
+            __sb_1 :?
+            call :bool
               callee:
-                to_upper :string
+                contains :bool
+              arg0:
+                "foobar" :string
+              arg1:
+                "oba" :string
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_display <for bool> :void
+            __sb_2 :?
+            call :bool
+              callee:
+                starts_with :bool
+              arg0:
+                "foobar" :string
+              arg1:
+                "foo" :string
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_display <for bool> :void
+            __sb_3 :?
+            call :bool
+              callee:
+                ends_with :bool
+              arg0:
+                "foobar" :string
+              arg1:
+                "bar" :string
+          ~>
+            @builder.finish :string
+              __sb_3 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            slice :string
+          arg0:
+            "hello world" :string
+          arg1:
+            int(6) :usize
+          arg2:
+            int(11) :usize
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_4: ? =
+            @builder.new :?
+          @builder.append_display <for char> :void
+            __sb_4 :?
+            call :char
+              callee:
+                at :char
               arg0:
                 "hello" :string
-    call :void
-      callee:
-        println :fn(Display) -> void
-      arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            call :string
-              callee:
-                to_lower :string
-              arg0:
-                "VADER" :string
-    call :void
-      callee:
-        println :fn(Display) -> void
-      arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_1: ? =
-                @builder.new :?
-              @builder.append_display <for bool> :void
-                __sb_1 :?
-                call :bool
-                  callee:
-                    contains :bool
-                  arg0:
-                    "foobar" :string
-                  arg1:
-                    "oba" :string
-              ~>
-                @builder.finish :string
-                  __sb_1 :?
-    call :void
-      callee:
-        println :fn(Display) -> void
-      arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_2: ? =
-                @builder.new :?
-              @builder.append_display <for bool> :void
-                __sb_2 :?
-                call :bool
-                  callee:
-                    starts_with :bool
-                  arg0:
-                    "foobar" :string
-                  arg1:
-                    "foo" :string
-              ~>
-                @builder.finish :string
-                  __sb_2 :?
-    call :void
-      callee:
-        println :fn(Display) -> void
-      arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_3: ? =
-                @builder.new :?
-              @builder.append_display <for bool> :void
-                __sb_3 :?
-                call :bool
-                  callee:
-                    ends_with :bool
-                  arg0:
-                    "foobar" :string
-                  arg1:
-                    "bar" :string
-              ~>
-                @builder.finish :string
-                  __sb_3 :?
-    call :void
-      callee:
-        println :fn(Display) -> void
-      arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            call :string
-              callee:
-                slice :string
-              arg0:
-                "hello world" :string
               arg1:
-                int(6) :usize
-              arg2:
-                int(11) :usize
+                int(1) :i32
+          ~>
+            @builder.finish :string
+              __sb_4 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_4: ? =
-                @builder.new :?
-              @builder.append_display <for char> :void
-                __sb_4 :?
-                call :char
-                  callee:
-                    at :char
-                  arg0:
-                    "hello" :string
-                  arg1:
-                    int(1) :i32
-              ~>
-                @builder.finish :string
-                  __sb_4 :?
+        block :string
+          let __sb_5: ? =
+            @builder.new :?
+          @builder.append_display <for char> :void
+            __sb_5 :?
+            call :char
+              callee:
+                at :char
+              arg0:
+                "你好嗎？" :string
+              arg1:
+                int(0) :i32
+          ~>
+            @builder.finish :string
+              __sb_5 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_5: ? =
-                @builder.new :?
-              @builder.append_display <for char> :void
-                __sb_5 :?
-                call :char
-                  callee:
-                    at :char
-                  arg0:
-                    "你好嗎？" :string
-                  arg1:
-                    int(0) :i32
-              ~>
-                @builder.finish :string
-                  __sb_5 :?
+        block :string
+          let __sb_6: ? =
+            @builder.new :?
+          @builder.append_display <for char> :void
+            __sb_6 :?
+            call :char
+              callee:
+                at :char
+              arg0:
+                "你好嗎？" :string
+              arg1:
+                int(1) :i32
+          ~>
+            @builder.finish :string
+              __sb_6 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_6: ? =
-                @builder.new :?
-              @builder.append_display <for char> :void
-                __sb_6 :?
-                call :char
-                  callee:
-                    at :char
-                  arg0:
-                    "你好嗎？" :string
-                  arg1:
-                    int(1) :i32
-              ~>
-                @builder.finish :string
-                  __sb_6 :?
-    call :void
-      callee:
-        println :fn(Display) -> void
-      arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_7: ? =
-                @builder.new :?
-              @builder.append_display <for char> :void
-                __sb_7 :?
-                call :char
-                  callee:
-                    at :char
-                  arg0:
-                    "你好嗎？" :string
-                  arg1:
-                    int(3) :i32
-              ~>
-                @builder.finish :string
-                  __sb_7 :?
+        block :string
+          let __sb_7: ? =
+            @builder.new :?
+          @builder.append_display <for char> :void
+            __sb_7 :?
+            call :char
+              callee:
+                at :char
+              arg0:
+                "你好嗎？" :string
+              arg1:
+                int(3) :i32
+          ~>
+            @builder.finish :string
+              __sb_7 :?
     let parts: string[] =
       call :string[]
         callee:
@@ -251,41 +203,29 @@
           "," :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            index :string
-              on:
-                parts :string[]
-              ix:
-                int(0) :i32
+        index :string
+          on:
+            parts :string[]
+          ix:
+            int(0) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            index :string
-              on:
-                parts :string[]
-              ix:
-                int(1) :i32
+        index :string
+          on:
+            parts :string[]
+          ix:
+            int(1) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            index :string
-              on:
-                parts :string[]
-              ix:
-                int(2) :i32
+        index :string
+          on:
+            parts :string[]
+          ix:
+            int(2) :i32
     return int(0) :i32

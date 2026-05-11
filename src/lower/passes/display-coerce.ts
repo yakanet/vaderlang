@@ -1,18 +1,21 @@
-// Coerces a value flowing into a `Display`-typed slot through a static call
-// to `<T>.Display.to_string`. The typechecker records the source type at the
-// use site (`displayCoercions`) ; this helper resolves the matching impl
-// member and synthesises the call. Pairs with `@intrinsic <T> implements
-// Display` declarations in `std/core` and `std/string_builder` so calls like
-// `print(42)` lower to `print(<i32_to_string>(42))` without a generic Vader
-// wrapper getting monomorphised per-type.
+// Static calls to a type's `Display.to_string` impl member, used by the
+// string-interpolation lowering for non-primitive `${value}` parts
+// (`"hello ${user}"` lowers to a builder chain whose middle segments call
+// `<User>.Display.to_string(user)` and feed the result into
+// `builder.append_str`). Primitives keep the dedicated
+// `builder.append_display` op (no allocation needed).
 //
 // Sibling helper `wrapAsInto` covers user-defined `Into(Target)` coercions
-// — same pattern (find the impl member, emit a direct call) but the impl is
-// recorded explicitly at typecheck rather than discovered from the trait.
+// — same pattern (find the impl member, emit a direct call) but the impl
+// is recorded explicitly at typecheck rather than discovered from the
+// trait. The legacy `print(value: Display)` → string conversion that
+// `wrapAsDisplay` originally handled has migrated to `Into` via the
+// blanket `T implements[T: Display] Into(string)` in `std/core` ; only
+// the string-interp use site remains here.
 
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_TRAITS, TY } from "../../typecheck/types.ts";
+import { CORE_TRAITS, TY, substitute } from "../../typecheck/types.ts";
 import type { IntoCoercion } from "../../typecheck/typed-ast.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
@@ -59,17 +62,46 @@ export function wrapAsInto(
 ): LoweredExpr | null {
   const member = coercion.entry.decl.members.find((m) => m.name === "into");
   if (member === undefined) return null;
-  const source = ctx.types.apply(coercion.sourceType);
-  const structArgs = source.kind === "Struct" ? source.args : [];
-  const entry = lookupImplEntry(ctx, member, structArgs);
+  // Two impl shapes :
+  //   - Concrete-source impls (`UserId implements Into(i32)`) — no impl
+  //     typeParams ; the mono entry is keyed under `""` (the same path
+  //     that non-generic struct impls take). For generic-struct sources
+  //     (`Foo($T) implements Into(...)`), `source.args` carries the
+  //     receiver's concrete type-args.
+  //   - Blanket impls (`T[] implements[T] Into(Iterator(T))`) — the
+  //     impl's own typeParams are bound by `coercion.implSubst`. We
+  //     re-order them into `decl.typeParams` order so the lookup
+  //     matches the key the mono pass wrote (see `collectIntoMembers`
+  //     in `comptime/evaluate.ts`).
+  const implDecl = coercion.entry.decl;
+  const typeParamSymbols = ctx.project.evaluated.typed.resolved.typeParamSymbols;
+  let args: readonly Type[];
+  if (implDecl.typeParams.length > 0) {
+    const ordered: Type[] = [];
+    for (const tp of implDecl.typeParams) {
+      const sym = typeParamSymbols.get(tp);
+      if (sym === undefined) return null;
+      const ty = coercion.implSubst.typeParams?.get(sym.id);
+      if (ty === undefined) return null;
+      ordered.push(ctx.types.apply(ty));
+    }
+    args = ordered;
+  } else {
+    const source = ctx.types.apply(coercion.sourceType);
+    args = source.kind === "Struct" ? source.args : [];
+  }
+  const entry = lookupImplEntry(ctx, member, args);
   if (entry === null || entry.symbol === null) return null;
-  // The target type lives on the impl's first trait-arg ; recover it so the
-  // LoweredCall has the correct type for downstream consumers (coerce-args
-  // / boxing, debug dumps).
-  const targetExpr = coercion.entry.decl.traitArgs[0];
-  const targetType = targetExpr !== undefined
-    ? ctx.types.apply(ctx.typed.typeExprTypes.get(targetExpr) ?? TY.unresolved)
+  // Recover the target type from the impl's first trait-arg, then apply
+  // the impl substitution so e.g. `Iterator(T)` becomes `Iterator(i32)`.
+  const targetExpr = implDecl.traitArgs[0];
+  const targetRaw = targetExpr !== undefined
+    ? ctx.typed.typeExprTypes.get(targetExpr) ?? TY.unresolved
     : TY.unresolved;
+  const targetSubstituted = implDecl.typeParams.length > 0
+    ? substitute(targetRaw, coercion.implSubst)
+    : targetRaw;
+  const targetType = ctx.types.apply(targetSubstituted);
   return {
     kind: "LoweredCall", span, type: targetType,
     callee: { kind: "LoweredIdent", span, type: targetType, symbol: entry.symbol },

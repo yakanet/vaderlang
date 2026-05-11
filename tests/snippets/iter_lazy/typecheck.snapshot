@@ -9,7 +9,7 @@
   expr 12:13    StringLitExpr  :: string
   expr 12:24    IdentExpr      :: i32
   expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn(Display) -> void
+  expr 12:5     IdentExpr      :: fn(string) -> void
   expr 15:16    LambdaExpr     :: fn(i32) -> bool
   expr 15:44    BinaryExpr     :: bool
   expr 15:44    BinaryExpr     :: i32
@@ -29,7 +29,7 @@
   expr 23:28    IdentExpr      :: i32
   expr 23:46    IdentExpr      :: i32
   expr 23:5     CallExpr       :: void
-  expr 23:5     IdentExpr      :: fn(Display) -> void
+  expr 23:5     IdentExpr      :: fn(string) -> void
   expr 26:11    StructLitExpr  :: TakeIterator(i32)
   expr 26:41    RangeExpr      :: Range(i32)
   expr 26:63    CallExpr       :: usize
@@ -42,7 +42,7 @@
   expr 31:13    StringLitExpr  :: string
   expr 31:25    IdentExpr      :: i32
   expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(Display) -> void
+  expr 31:5     IdentExpr      :: fn(string) -> void
   expr 34:11    StructLitExpr  :: SkipIterator(i32)
   expr 34:41    RangeExpr      :: Range(i32)
   expr 34:62    CallExpr       :: usize
@@ -61,7 +61,7 @@
   expr 41:27    IdentExpr      :: i32
   expr 41:47    IdentExpr      :: i32
   expr 41:5     CallExpr       :: void
-  expr 41:5     IdentExpr      :: fn(Display) -> void
+  expr 41:5     IdentExpr      :: fn(string) -> void
   expr 6:11     LambdaExpr     :: fn(i32) -> i32
   expr 6:38     BinaryExpr     :: i32
   expr 6:38     IdentExpr      :: i32

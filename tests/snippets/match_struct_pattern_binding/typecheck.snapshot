@@ -8,9 +8,9 @@
   expr 11:11    IdentExpr      :: P
   expr 11:5     MatchExpr      :: void
   expr 12:33    CallExpr       :: void
-  expr 12:33    IdentExpr      :: fn(Display) -> void
+  expr 12:33    IdentExpr      :: fn(string) -> void
   expr 12:41    StringLitExpr  :: string
   expr 12:54    IdentExpr      :: ?
   expr 13:14    CallExpr       :: void
-  expr 13:14    IdentExpr      :: fn(Display) -> void
+  expr 13:14    IdentExpr      :: fn(string) -> void
   expr 13:22    StringLitExpr  :: string

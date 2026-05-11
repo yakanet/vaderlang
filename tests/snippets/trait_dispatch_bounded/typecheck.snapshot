@@ -26,7 +26,7 @@
   expr 19:16    IdentExpr      :: fn($T[], $T) -> i32
   expr 19:31    IdentExpr      :: i32[]
   expr 19:5     CallExpr       :: void
-  expr 19:5     IdentExpr      :: fn(Display) -> void
+  expr 19:5     IdentExpr      :: fn(string) -> void
   expr 21:14    SeqLitExpr     :: string[]
   expr 21:15    StringLitExpr  :: string
   expr 21:22    StringLitExpr  :: string
@@ -39,5 +39,5 @@
   expr 22:31    IdentExpr      :: string[]
   expr 22:38    StringLitExpr  :: string
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(Display) -> void
+  expr 22:5     IdentExpr      :: fn(string) -> void
   expr 9:14     IdentExpr      :: $T[]

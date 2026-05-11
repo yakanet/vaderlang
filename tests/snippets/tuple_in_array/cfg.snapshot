@@ -4,32 +4,31 @@
 
 fn tests_snippets_tuple_in_array__main_vader$main() -> i32
   locals:
-    %0 $k_0#26: i32
-    %1 $k_1#27: string
-    %2 $struct_2#28: [i32, string]
-    %3 $k_3#29: i32
-    %4 $k_4#30: string
-    %5 $struct_5#31: [i32, string]
-    %6 $k_6#32: i32
-    %7 $k_7#33: string
-    %8 $struct_8#34: [i32, string]
-    %9 rows#35: [i32, string][] (local rows)
-    %10 $k_11#36: usize
-    %11 $len_12#37: usize
-    %12 __iter_0#38: ArrayIterator([i32, string]) (synthetic __iter_0)
-    %13 $call_15#39: Done | Yielded([i32, string])
-    %14 __step_1#40: Done | Yielded([i32, string]) (synthetic __step_1)
-    %15 $type_check_17#41: bool
-    %16 $k_28#42: i32
-    %17 $cast_18#43: Yielded([i32, string])
-    %18 row#44: [i32, string] (binding row)
-    %19 $intrinsic_21#45: ?
-    %20 __sb_2#46: ? (synthetic __sb_2)
-    %21 $field_23#47: i32
-    %22 $k_24#48: string
-    %23 $field_25#49: string
-    %24 $intrinsic_26#50: string
-    %25 $call_27#51: string
+    %0 $k_0#25: i32
+    %1 $k_1#26: string
+    %2 $struct_2#27: [i32, string]
+    %3 $k_3#28: i32
+    %4 $k_4#29: string
+    %5 $struct_5#30: [i32, string]
+    %6 $k_6#31: i32
+    %7 $k_7#32: string
+    %8 $struct_8#33: [i32, string]
+    %9 rows#34: [i32, string][] (local rows)
+    %10 $k_11#35: usize
+    %11 $len_12#36: usize
+    %12 __iter_0#37: ArrayIterator([i32, string]) (synthetic __iter_0)
+    %13 $call_15#38: Done | Yielded([i32, string])
+    %14 __step_1#39: Done | Yielded([i32, string]) (synthetic __step_1)
+    %15 $type_check_17#40: bool
+    %16 $k_27#41: i32
+    %17 $cast_18#42: Yielded([i32, string])
+    %18 row#43: [i32, string] (binding row)
+    %19 $intrinsic_21#44: ?
+    %20 __sb_2#45: ? (synthetic __sb_2)
+    %21 $field_23#46: i32
+    %22 $k_24#47: string
+    %23 $field_25#48: string
+    %24 $intrinsic_26#49: string
   bb0:
     %0 = const int(1) :i32
     %1 = const string(#0) :string
@@ -69,8 +68,7 @@ fn tests_snippets_tuple_in_array__main_vader$main() -> i32
     %23 = field_get %18._1 :string
     intrinsic builder.append_display(%20, %23)
     %24 = intrinsic builder.finish(%20)
-    %25 = call to_string(%24) :string
-    call println(%25) :void
+    call println(%24) :void
     branch -> bb6
   bb6:
     branch -> bb1

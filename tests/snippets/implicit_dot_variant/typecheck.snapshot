@@ -17,13 +17,13 @@
   expr 27:13    IdentExpr      :: fn(Day) -> string
   expr 27:22    IdentExpr      :: Day
   expr 27:5     CallExpr       :: void
-  expr 27:5     IdentExpr      :: fn(Display) -> void
+  expr 27:5     IdentExpr      :: fn(string) -> void
   expr 30:19    SeqLitExpr     :: Day[]
   expr 30:20    DotVariantExpr :: Day
   expr 30:29    DotVariantExpr :: Day
   expr 31:14    IdentExpr      :: Day[]
   expr 31:21    CallExpr       :: void
-  expr 31:21    IdentExpr      :: fn(Display) -> void
+  expr 31:21    IdentExpr      :: fn(string) -> void
   expr 31:29    CallExpr       :: string
   expr 31:29    IdentExpr      :: fn(Day) -> string
   expr 31:38    IdentExpr      :: Day
@@ -31,21 +31,21 @@
   expr 35:11    IdentExpr      :: None | Some
   expr 35:5     MatchExpr      :: void
   expr 36:21    CallExpr       :: void
-  expr 36:21    IdentExpr      :: fn(Display) -> void
+  expr 36:21    IdentExpr      :: fn(string) -> void
   expr 36:29    StringLitExpr  :: string
   expr 36:36    FieldExpr      :: i32
   expr 36:36    IdentExpr      :: Some
   expr 37:21    CallExpr       :: void
-  expr 37:21    IdentExpr      :: fn(Display) -> void
+  expr 37:21    IdentExpr      :: fn(string) -> void
   expr 37:29    StringLitExpr  :: string
   expr 39:16    StructLitExpr  :: None
   expr 40:11    IdentExpr      :: None | Some
   expr 40:5     MatchExpr      :: void
   expr 41:21    CallExpr       :: void
-  expr 41:21    IdentExpr      :: fn(Display) -> void
+  expr 41:21    IdentExpr      :: fn(string) -> void
   expr 41:29    StringLitExpr  :: string
   expr 41:36    FieldExpr      :: i32
   expr 41:36    IdentExpr      :: Some
   expr 42:21    CallExpr       :: void
-  expr 42:21    IdentExpr      :: fn(Display) -> void
+  expr 42:21    IdentExpr      :: fn(string) -> void
   expr 42:29    StringLitExpr  :: string

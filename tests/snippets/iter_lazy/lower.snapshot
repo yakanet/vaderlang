@@ -47,24 +47,20 @@
                     v :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_3: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_3 :?
-                "map_sum=" :string
-              @builder.append_display <for i32> :void
-                __sb_3 :?
-                total :i32
-              ~>
-                @builder.finish :string
-                  __sb_3 :?
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "map_sum=" :string
+          @builder.append_display <for i32> :void
+            __sb_3 :?
+            total :i32
+          ~>
+            @builder.finish :string
+              __sb_3 :?
     let is_even: fn(i32) -> bool =
       LoweredMakeClosure
     let fi: FilterIterator(i32) =
@@ -120,30 +116,26 @@
                     v :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_7: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_7 :?
-                "evens count=" :string
-              @builder.append_display <for i32> :void
-                __sb_7 :?
-                even_count :i32
-              @builder.append_str :void
-                __sb_7 :?
-                " sum=" :string
-              @builder.append_display <for i32> :void
-                __sb_7 :?
-                even_sum :i32
-              ~>
-                @builder.finish :string
-                  __sb_7 :?
+        block :string
+          let __sb_7: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_7 :?
+            "evens count=" :string
+          @builder.append_display <for i32> :void
+            __sb_7 :?
+            even_count :i32
+          @builder.append_str :void
+            __sb_7 :?
+            " sum=" :string
+          @builder.append_display <for i32> :void
+            __sb_7 :?
+            even_sum :i32
+          ~>
+            @builder.finish :string
+              __sb_7 :?
     let ti: TakeIterator(i32) =
       TakeIterator(i32) {
         source:
@@ -189,24 +181,20 @@
                     v :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_10: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_10 :?
-                "take_sum=" :string
-              @builder.append_display <for i32> :void
-                __sb_10 :?
-                take_sum :i32
-              ~>
-                @builder.finish :string
-                  __sb_10 :?
+        block :string
+          let __sb_10: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_10 :?
+            "take_sum=" :string
+          @builder.append_display <for i32> :void
+            __sb_10 :?
+            take_sum :i32
+          ~>
+            @builder.finish :string
+              __sb_10 :?
     let si: SkipIterator(i32) =
       SkipIterator(i32) {
         source:
@@ -268,30 +256,26 @@
                     int(1) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_13: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_13 :?
-                "skip count=" :string
-              @builder.append_display <for i32> :void
-                __sb_13 :?
-                skip_count :i32
-              @builder.append_str :void
-                __sb_13 :?
-                " first=" :string
-              @builder.append_display <for i32> :void
-                __sb_13 :?
-                skip_first :i32
-              ~>
-                @builder.finish :string
-                  __sb_13 :?
+        block :string
+          let __sb_13: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_13 :?
+            "skip count=" :string
+          @builder.append_display <for i32> :void
+            __sb_13 :?
+            skip_count :i32
+          @builder.append_str :void
+            __sb_13 :?
+            " first=" :string
+          @builder.append_display <for i32> :void
+            __sb_13 :?
+            skip_first :i32
+          ~>
+            @builder.finish :string
+              __sb_13 :?
     return int(0) :i32
   struct __lambda_env_2 {  }
   fn __lambda_1(__env_0: __lambda_env_2, x: i32) -> i32

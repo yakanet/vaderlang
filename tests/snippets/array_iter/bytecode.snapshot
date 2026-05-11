@@ -7,22 +7,21 @@ type 4 array 2
 type 5 primitive usize
 string 0 "sum = "
 string 1 "count = "
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_array_iter__main_vader$main () -> i32
-  local "arr#41" ref
-  local "$len_9#44" usize
-  local "__iter_0#45" ref
-  local "sum#46" i32
-  local "__step_1#48" ref
-  local "__sb_2#51" any
-  local "empty#58" ref
-  local "$len_32#61" usize
-  local "__iter_3#62" ref
-  local "n#63" i32
-  local "__sb_5#68" any
-  local "x#76" i32
+  local "arr#39" ref
+  local "$len_9#42" usize
+  local "__iter_0#43" ref
+  local "sum#44" i32
+  local "__step_1#46" ref
+  local "__sb_2#49" any
+  local "empty#55" ref
+  local "$len_31#58" usize
+  local "__iter_3#59" ref
+  local "n#60" i32
+  local "__sb_5#65" any
+  local "x#72" i32
   i32.const 10   ; _main.vader:4:12
   i32.const 20   ; _main.vader:4:12
   i32.const 30   ; _main.vader:4:12
@@ -69,8 +68,7 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:9:20
   local.get 5   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
-  call.import 0   ; _main.vader:9:13
-  call.import 1   ; _main.vader:9:5
+  call.import 0   ; _main.vader:9:5
   i32.const 0   ; _main.vader:12:14
   i32.const 0   ; _main.vader:12:14
   i32.const 0   ; _main.vader:12:14
@@ -112,8 +110,7 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:17:22
   local.get 10   ; _main.vader:17:13
   intrinsic builder.finish   ; _main.vader:17:13
-  call.import 0   ; _main.vader:17:13
-  call.import 1   ; _main.vader:17:5
+  call.import 0   ; _main.vader:17:5
   i32.const 0   ; _main.vader:18:12
   return   ; _main.vader:18:5
 end

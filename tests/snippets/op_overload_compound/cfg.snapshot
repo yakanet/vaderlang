@@ -46,41 +46,40 @@ fn tests_snippets_op_overload_compound__main_vader$Vec$Sub$sub(%0: Vec, %1: Vec)
 
 fn tests_snippets_op_overload_compound__main_vader$main() -> i32
   locals:
-    %0 n#28: i32 (local n)
-    %1 $k_2#29: i32
-    %2 n#30: i32 (local n)
-    %3 $k_4#31: i32
-    %4 n#32: i32 (local n)
-    %5 $k_6#33: i32
-    %6 n#34: i32 (local n)
-    %7 $k_8#35: i32
-    %8 n#36: i32 (local n)
-    %9 $k_10#37: i32
-    %10 n#38: i32 (local n)
-    %11 $k_12#39: i32
-    %12 $k_13#40: i32
-    %13 v#41: Vec (local v)
-    %14 $k_16#42: i32
-    %15 $k_17#43: i32
-    %16 $struct_18#44: Vec
-    %17 $call_19#45: Vec
-    %18 v#46: Vec (local v)
-    %19 $k_20#47: i32
-    %20 $k_21#48: i32
-    %21 $struct_22#49: Vec
-    %22 $call_23#50: Vec
-    %23 v#51: Vec (local v)
-    %24 $intrinsic_24#52: ?
-    %25 __sb_0#53: ? (synthetic __sb_0)
-    %26 $k_26#54: string
-    %27 $k_27#55: string
-    %28 $field_28#56: i32
-    %29 $k_29#57: string
-    %30 $field_30#58: i32
-    %31 $k_31#59: string
-    %32 $intrinsic_32#60: string
-    %33 $call_33#61: string
-    %34 $k_34#62: i32
+    %0 n#27: i32 (local n)
+    %1 $k_2#28: i32
+    %2 n#29: i32 (local n)
+    %3 $k_4#30: i32
+    %4 n#31: i32 (local n)
+    %5 $k_6#32: i32
+    %6 n#33: i32 (local n)
+    %7 $k_8#34: i32
+    %8 n#35: i32 (local n)
+    %9 $k_10#36: i32
+    %10 n#37: i32 (local n)
+    %11 $k_12#38: i32
+    %12 $k_13#39: i32
+    %13 v#40: Vec (local v)
+    %14 $k_16#41: i32
+    %15 $k_17#42: i32
+    %16 $struct_18#43: Vec
+    %17 $call_19#44: Vec
+    %18 v#45: Vec (local v)
+    %19 $k_20#46: i32
+    %20 $k_21#47: i32
+    %21 $struct_22#48: Vec
+    %22 $call_23#49: Vec
+    %23 v#50: Vec (local v)
+    %24 $intrinsic_24#51: ?
+    %25 __sb_0#52: ? (synthetic __sb_0)
+    %26 $k_26#53: string
+    %27 $k_27#54: string
+    %28 $field_28#55: i32
+    %29 $k_29#56: string
+    %30 $field_30#57: i32
+    %31 $k_31#58: string
+    %32 $intrinsic_32#59: string
+    %33 $k_33#60: i32
   bb0:
     %0 = const int(5) :i32
     %1 = const int(3) :i32
@@ -122,7 +121,6 @@ fn tests_snippets_op_overload_compound__main_vader$main() -> i32
     %31 = const string(#3) :string
     intrinsic builder.append_str(%25, %31)
     %32 = intrinsic builder.finish(%25)
-    %33 = call to_string(%32) :string
-    call println(%33) :void
-    %34 = const int(0) :i32
-    return %34
+    call println(%32) :void
+    %33 = const int(0) :i32
+    return %33

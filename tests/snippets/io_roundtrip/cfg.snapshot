@@ -4,29 +4,26 @@
 
 fn tests_snippets_io_roundtrip__main_vader$main() -> i32
   locals:
-    %0 path#23: string (local path)
-    %1 $k_2#24: string
-    %2 $call_3#25: Error | null
-    %3 $intrinsic_4#26: ?
-    %4 __sb_0#27: ? (synthetic __sb_0)
-    %5 $k_6#28: string
-    %6 $call_7#29: bool
-    %7 $intrinsic_8#30: string
-    %8 $call_9#31: string
-    %9 $call_10#32: Error | string
-    %10 contents#33: Error | string (local contents)
-    %11 __scrut_1#34: Error | string (synthetic __scrut_1)
-    %12 $type_check_13#35: bool
-    %13 $intrinsic_14#36: ?
-    %14 __sb_2#37: ? (synthetic __sb_2)
-    %15 $k_16#38: string
-    %16 $cast_17#39: string
-    %17 $intrinsic_18#40: string
-    %18 $call_19#41: string
-    %19 $type_check_20#42: bool
-    %20 $k_21#43: string
-    %21 $call_22#44: string
-    %22 $k_23#45: i32
+    %0 path#20: string (local path)
+    %1 $k_2#21: string
+    %2 $call_3#22: Error | null
+    %3 $intrinsic_4#23: ?
+    %4 __sb_0#24: ? (synthetic __sb_0)
+    %5 $k_6#25: string
+    %6 $call_7#26: bool
+    %7 $intrinsic_8#27: string
+    %8 $call_9#28: Error | string
+    %9 contents#29: Error | string (local contents)
+    %10 __scrut_1#30: Error | string (synthetic __scrut_1)
+    %11 $type_check_12#31: bool
+    %12 $intrinsic_13#32: ?
+    %13 __sb_2#33: ? (synthetic __sb_2)
+    %14 $k_15#34: string
+    %15 $cast_16#35: string
+    %16 $intrinsic_17#36: string
+    %17 $type_check_18#37: bool
+    %18 $k_19#38: string
+    %19 $k_20#39: i32
   bb0:
     %0 = const string(#0) :string
     %1 = const string(#1) :string
@@ -38,34 +35,31 @@ fn tests_snippets_io_roundtrip__main_vader$main() -> i32
     %6 = call exists(%0) :bool
     intrinsic builder.append_display(%4, %6)
     %7 = intrinsic builder.finish(%4)
-    %8 = call to_string(%7) :string
-    call println(%8) :void
-    %9 = call read_file(%0) :Error | string
+    call println(%7) :void
+    %8 = call read_file(%0) :Error | string
+    %9 = move %8
     %10 = move %9
-    %11 = move %10
-    %12 = type_check %11 is string
-    cond_branch %12 ? bb1 : bb2
+    %11 = type_check %10 is string
+    cond_branch %11 ? bb1 : bb2
   bb1:
-    %13 = intrinsic builder.new()
-    %14 = move %13
-    %15 = const string(#3) :string
-    intrinsic builder.append_str(%14, %15)
-    %16 = cast %10 :string
-    intrinsic builder.append_display(%14, %16)
-    %17 = intrinsic builder.finish(%14)
-    %18 = call to_string(%17) :string
-    call println(%18) :void
+    %12 = intrinsic builder.new()
+    %13 = move %12
+    %14 = const string(#3) :string
+    intrinsic builder.append_str(%13, %14)
+    %15 = cast %9 :string
+    intrinsic builder.append_display(%13, %15)
+    %16 = intrinsic builder.finish(%13)
+    call println(%16) :void
     branch -> bb3
   bb2:
-    %19 = type_check %11 is Error
-    cond_branch %19 ? bb4 : bb5
+    %17 = type_check %10 is Error
+    cond_branch %17 ? bb4 : bb5
   bb3:
-    %22 = const int(0) :i32
-    return %22
+    %19 = const int(0) :i32
+    return %19
   bb4:
-    %20 = const string(#4) :string
-    %21 = call to_string(%20) :string
-    call println(%21) :void
+    %18 = const string(#4) :string
+    call println(%18) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)

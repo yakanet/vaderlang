@@ -116,10 +116,6 @@ export interface MutableTyped {
    *  right specialisation. Empty when the resolver's primary already matched
    *  (single overload, or first overload picked unambiguously). */
   readonly directCallOverloads: Map<A.CallExpr, Symbol>;
-  /** `[T]` → `Iterator(T)` coercion sites. See `TypedProgram.arrayIterCoercions`. */
-  readonly arrayIterCoercions: Map<A.Expr, Type>;
-  /** `T` → `Display` coercion sites. See `TypedProgram.displayCoercions`. */
-  readonly displayCoercions: Map<A.Expr, Type>;
   /** User `Into(Target)` coercion sites. See `TypedProgram.intoCoercions`. */
   readonly intoCoercions: Map<A.Expr, IntoCoercion>;
   /** Operator-overload dispatch sites. See `TypedProgram.binaryOpResolutions`. */

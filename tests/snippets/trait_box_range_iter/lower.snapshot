@@ -28,19 +28,14 @@
         callee:
           count :i32
         arg0:
-          block :ArrayIterator(i32)
-            let __arr_0: i32[] =
+          call :Iterator(i32)
+            callee:
+              into :Iterator(i32)
+            arg0:
               array :i32[]
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
-            ~>
-              ArrayIterator(i32) {
-                arr: __arr_0 :i32[]
-                cursor: int(0) :usize
-                length:
-                  LoweredArrayLen
-              }
     let c: i32 =
       call :i32
         callee:

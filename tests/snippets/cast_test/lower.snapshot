@@ -8,19 +8,15 @@
         n :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_display <for u64> :void
-                __sb_0 :?
-                m :u64
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_display <for u64> :void
+            __sb_0 :?
+            m :u64
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     return int(0) :i32

@@ -59,30 +59,22 @@
     let d: Direction = int(2) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            describe :fn(Direction) -> string
           arg0:
-            call :string
-              callee:
-                describe :fn(Direction) -> string
-              arg0:
-                d :Direction
+            d :Direction
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            describe :fn(Direction) -> string
           arg0:
-            call :string
-              callee:
-                describe :fn(Direction) -> string
-              arg0:
-                int(0) :i32
+            int(0) :i32
     if :void
       cond:
         eq :bool
@@ -93,13 +85,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "d is East" :string
+            "d is East" :string
     if :void
       cond:
         eq :bool
@@ -110,62 +98,50 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "d is West" :string
+            "d is West" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "Is EAST: " :string
-              @builder.append_display <for bool> :void
-                __sb_0 :?
-                eq :bool
-                  l:
-                    d :Direction
-                  r:
-                    int(2) :i32
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "Is EAST: " :string
+          @builder.append_display <for bool> :void
+            __sb_0 :?
+            eq :bool
+              l:
+                d :Direction
+              r:
+                int(2) :i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     ~>
       call :void
         callee:
-          println :fn(Display) -> void
+          println :fn(string) -> void
         arg0:
-          call :string
-            callee:
-              to_string :string
-            arg0:
-              block :string
-                let __sb_1: ? =
-                  @builder.new :?
-                @builder.append_str :void
-                  __sb_1 :?
-                  "Is WEST: " :string
-                @builder.append_display <for bool> :void
-                  __sb_1 :?
-                  eq :bool
-                    l:
-                      d :Direction
-                    r:
-                      int(3) :i32
-                ~>
-                  @builder.finish :string
-                    __sb_1 :?
+          block :string
+            let __sb_1: ? =
+              @builder.new :?
+            @builder.append_str :void
+              __sb_1 :?
+              "Is WEST: " :string
+            @builder.append_display <for bool> :void
+              __sb_1 :?
+              eq :bool
+                l:
+                  d :Direction
+                r:
+                  int(3) :i32
+            ~>
+              @builder.finish :string
+                __sb_1 :?
 
 # Diagnostics
 [19:1] error[T3033] invalid `main` signature: main must return i32

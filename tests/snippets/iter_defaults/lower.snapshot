@@ -159,11 +159,11 @@
   fn tests_snippets_iter_defaults__main_vader$main() -> i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            into :string
           arg0:
             call :usize
               callee:
@@ -199,11 +199,11 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string :string
+                      into :string
                     arg0:
                       v :i32
           else:
@@ -216,23 +216,19 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "none" :string
+                        "none" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            into :string
           arg0:
             call :bool
               callee:
@@ -246,11 +242,11 @@
                 }
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            into :string
           arg0:
             call :bool
               callee:
@@ -264,11 +260,11 @@
                 }
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            into :string
           arg0:
             call :usize
               callee:

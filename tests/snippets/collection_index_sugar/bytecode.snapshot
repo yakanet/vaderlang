@@ -28,27 +28,26 @@ string 8 "z"
 string 9 "z not in m"
 string 10 "1 in s"
 string 11 "3 not in s"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 hash std_core$string$Hash$hash (string) -> u64
-import 2 println std_io$println (string) -> void
+import 0 hash std_core$string$Hash$hash (string) -> u64
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
-  local "$arr_0#58" ref
-  local "m#60" ref
-  local "__scrut_0#69" ref
-  local "v#71" i32
-  local "__sb_1#73" any
-  local "$k_24#80" string
-  local "__scrut_2#82" ref
-  local "$k_33#89" string
-  local "$k_37#93" string
-  local "$arr_42#98" ref
-  local "$k_43#99" usize
-  local "s#101" ref
-  local "$k_47#102" i32
-  local "$k_49#104" i32
-  local "$k_51#106" i32
-  local "$k_55#110" i32
+  local "$arr_0#50" ref
+  local "m#52" ref
+  local "__scrut_0#61" ref
+  local "v#63" i32
+  local "__sb_1#65" any
+  local "$k_22#70" string
+  local "__scrut_2#72" ref
+  local "$k_29#77" string
+  local "$k_32#80" string
+  local "$arr_36#84" ref
+  local "$k_37#85" usize
+  local "s#87" ref
+  local "$k_41#88" i32
+  local "$k_43#90" i32
+  local "$k_45#92" i32
+  local "$k_48#95" i32
   array.new 15 0   ; _main.vader:9:47
   local.set 0   ; _main.vader:9:47
   local.get 0   ; _main.vader:9:10
@@ -87,8 +86,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
     intrinsic builder.append_display   ; _main.vader:16:35
     local.get 4   ; _main.vader:16:32
     intrinsic builder.finish   ; _main.vader:16:32
-    call.import 0   ; _main.vader:16:32
-    call.import 2   ; _main.vader:16:24
+    call.import 1   ; _main.vader:16:24
     string.const 4   ; _main.vader:19:13
     local.set 5   ; _main.vader:19:13
     local.get 1   ; _main.vader:19:11
@@ -98,8 +96,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
     type_check 6   ; _main.vader:20:9
     if $L1 void   ; _main.vader:20:9
       string.const 5   ; _main.vader:20:28
-      call.import 0   ; _main.vader:20:28
-      call.import 2   ; _main.vader:20:20
+      call.import 1   ; _main.vader:20:20
       string.const 0   ; _main.vader:25:8
       local.set 7   ; _main.vader:25:8
       local.get 1   ; _main.vader:25:8
@@ -107,8 +104,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       call 12   ; _main.vader:25:8
       if $L2 void   ; _main.vader:25:5
         string.const 7   ; _main.vader:25:28
-        call.import 0   ; _main.vader:25:28
-        call.import 2   ; _main.vader:25:20
+        call.import 1   ; _main.vader:25:20
       else   ; _main.vader:25:5
       end $L2   ; _main.vader:25:5
       string.const 8   ; _main.vader:26:8
@@ -119,8 +115,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       bool.not   ; _main.vader:26:8
       if $L3 void   ; _main.vader:26:5
         string.const 9   ; _main.vader:26:28
-        call.import 0   ; _main.vader:26:28
-        call.import 2   ; _main.vader:26:20
+        call.import 1   ; _main.vader:26:20
       else   ; _main.vader:26:5
       end $L3   ; _main.vader:26:5
       array.new 13 0   ; _main.vader:29:72
@@ -151,8 +146,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       call 13   ; _main.vader:32:8
       if $L4 void   ; _main.vader:32:5
         string.const 10   ; _main.vader:32:26
-        call.import 0   ; _main.vader:32:26
-        call.import 2   ; _main.vader:32:18
+        call.import 1   ; _main.vader:32:18
       else   ; _main.vader:32:5
       end $L4   ; _main.vader:32:5
       i32.const 3   ; _main.vader:33:8
@@ -163,8 +157,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       bool.not   ; _main.vader:33:8
       if $L5 void   ; _main.vader:33:5
         string.const 11   ; _main.vader:33:26
-        call.import 0   ; _main.vader:33:26
-        call.import 2   ; _main.vader:33:18
+        call.import 1   ; _main.vader:33:18
       else   ; _main.vader:33:5
       end $L5   ; _main.vader:33:5
       i32.const 0   ; _main.vader:35:12
@@ -174,8 +167,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       type_check 8   ; _main.vader:21:9
       if $L6 void   ; _main.vader:21:9
         string.const 6   ; _main.vader:21:28
-        call.import 0   ; _main.vader:21:28
-        call.import 2   ; _main.vader:21:20
+        call.import 1   ; _main.vader:21:20
         string.const 0   ; _main.vader:25:8
         local.set 7   ; _main.vader:25:8
         local.get 1   ; _main.vader:25:8
@@ -183,8 +175,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         call 12   ; _main.vader:25:8
         if $L7 void   ; _main.vader:25:5
           string.const 7   ; _main.vader:25:28
-          call.import 0   ; _main.vader:25:28
-          call.import 2   ; _main.vader:25:20
+          call.import 1   ; _main.vader:25:20
         else   ; _main.vader:25:5
         end $L7   ; _main.vader:25:5
         string.const 8   ; _main.vader:26:8
@@ -195,8 +186,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         bool.not   ; _main.vader:26:8
         if $L8 void   ; _main.vader:26:5
           string.const 9   ; _main.vader:26:28
-          call.import 0   ; _main.vader:26:28
-          call.import 2   ; _main.vader:26:20
+          call.import 1   ; _main.vader:26:20
         else   ; _main.vader:26:5
         end $L8   ; _main.vader:26:5
         array.new 13 0   ; _main.vader:29:72
@@ -227,8 +217,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         call 13   ; _main.vader:32:8
         if $L9 void   ; _main.vader:32:5
           string.const 10   ; _main.vader:32:26
-          call.import 0   ; _main.vader:32:26
-          call.import 2   ; _main.vader:32:18
+          call.import 1   ; _main.vader:32:18
         else   ; _main.vader:32:5
         end $L9   ; _main.vader:32:5
         i32.const 3   ; _main.vader:33:8
@@ -239,8 +228,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         bool.not   ; _main.vader:33:8
         if $L10 void   ; _main.vader:33:5
           string.const 11   ; _main.vader:33:26
-          call.import 0   ; _main.vader:33:26
-          call.import 2   ; _main.vader:33:18
+          call.import 1   ; _main.vader:33:18
         else   ; _main.vader:33:5
         end $L10   ; _main.vader:33:5
         i32.const 0   ; _main.vader:35:12
@@ -254,8 +242,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
     type_check 8   ; _main.vader:17:9
     if $L11 void   ; _main.vader:17:9
       string.const 3   ; _main.vader:17:32
-      call.import 0   ; _main.vader:17:32
-      call.import 2   ; _main.vader:17:24
+      call.import 1   ; _main.vader:17:24
       string.const 4   ; _main.vader:19:13
       local.set 5   ; _main.vader:19:13
       local.get 1   ; _main.vader:19:11
@@ -265,8 +252,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       type_check 6   ; _main.vader:20:9
       if $L12 void   ; _main.vader:20:9
         string.const 5   ; _main.vader:20:28
-        call.import 0   ; _main.vader:20:28
-        call.import 2   ; _main.vader:20:20
+        call.import 1   ; _main.vader:20:20
         string.const 0   ; _main.vader:25:8
         local.set 7   ; _main.vader:25:8
         local.get 1   ; _main.vader:25:8
@@ -274,8 +260,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         call 12   ; _main.vader:25:8
         if $L13 void   ; _main.vader:25:5
           string.const 7   ; _main.vader:25:28
-          call.import 0   ; _main.vader:25:28
-          call.import 2   ; _main.vader:25:20
+          call.import 1   ; _main.vader:25:20
         else   ; _main.vader:25:5
         end $L13   ; _main.vader:25:5
         string.const 8   ; _main.vader:26:8
@@ -286,8 +271,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         bool.not   ; _main.vader:26:8
         if $L14 void   ; _main.vader:26:5
           string.const 9   ; _main.vader:26:28
-          call.import 0   ; _main.vader:26:28
-          call.import 2   ; _main.vader:26:20
+          call.import 1   ; _main.vader:26:20
         else   ; _main.vader:26:5
         end $L14   ; _main.vader:26:5
         array.new 13 0   ; _main.vader:29:72
@@ -318,8 +302,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         call 13   ; _main.vader:32:8
         if $L15 void   ; _main.vader:32:5
           string.const 10   ; _main.vader:32:26
-          call.import 0   ; _main.vader:32:26
-          call.import 2   ; _main.vader:32:18
+          call.import 1   ; _main.vader:32:18
         else   ; _main.vader:32:5
         end $L15   ; _main.vader:32:5
         i32.const 3   ; _main.vader:33:8
@@ -330,8 +313,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         bool.not   ; _main.vader:33:8
         if $L16 void   ; _main.vader:33:5
           string.const 11   ; _main.vader:33:26
-          call.import 0   ; _main.vader:33:26
-          call.import 2   ; _main.vader:33:18
+          call.import 1   ; _main.vader:33:18
         else   ; _main.vader:33:5
         end $L16   ; _main.vader:33:5
         i32.const 0   ; _main.vader:35:12
@@ -341,8 +323,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         type_check 8   ; _main.vader:21:9
         if $L17 void   ; _main.vader:21:9
           string.const 6   ; _main.vader:21:28
-          call.import 0   ; _main.vader:21:28
-          call.import 2   ; _main.vader:21:20
+          call.import 1   ; _main.vader:21:20
           string.const 0   ; _main.vader:25:8
           local.set 7   ; _main.vader:25:8
           local.get 1   ; _main.vader:25:8
@@ -350,8 +331,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
           call 12   ; _main.vader:25:8
           if $L18 void   ; _main.vader:25:5
             string.const 7   ; _main.vader:25:28
-            call.import 0   ; _main.vader:25:28
-            call.import 2   ; _main.vader:25:20
+            call.import 1   ; _main.vader:25:20
           else   ; _main.vader:25:5
           end $L18   ; _main.vader:25:5
           string.const 8   ; _main.vader:26:8
@@ -362,8 +342,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
           bool.not   ; _main.vader:26:8
           if $L19 void   ; _main.vader:26:5
             string.const 9   ; _main.vader:26:28
-            call.import 0   ; _main.vader:26:28
-            call.import 2   ; _main.vader:26:20
+            call.import 1   ; _main.vader:26:20
           else   ; _main.vader:26:5
           end $L19   ; _main.vader:26:5
           array.new 13 0   ; _main.vader:29:72
@@ -394,8 +373,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
           call 13   ; _main.vader:32:8
           if $L20 void   ; _main.vader:32:5
             string.const 10   ; _main.vader:32:26
-            call.import 0   ; _main.vader:32:26
-            call.import 2   ; _main.vader:32:18
+            call.import 1   ; _main.vader:32:18
           else   ; _main.vader:32:5
           end $L20   ; _main.vader:32:5
           i32.const 3   ; _main.vader:33:8
@@ -406,8 +384,7 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
           bool.not   ; _main.vader:33:8
           if $L21 void   ; _main.vader:33:5
             string.const 11   ; _main.vader:33:26
-            call.import 0   ; _main.vader:33:26
-            call.import 2   ; _main.vader:33:18
+            call.import 1   ; _main.vader:33:18
           else   ; _main.vader:33:5
           end $L21   ; _main.vader:33:5
           i32.const 0   ; _main.vader:35:12
@@ -423,37 +400,37 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
 end
 
 fn 1 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:324:26
-  i32.to_u64   ; core.vader:324:26
-  return   ; core.vader:324:23
+  local.get 0   ; core.vader:325:26
+  i32.to_u64   ; core.vader:325:26
+  return   ; core.vader:325:23
 end
 
 fn 2 std_core$usize$Comparable$compare (usize,usize) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:353:35
-  local.get 1   ; core.vader:353:35
-  usize.lt   ; core.vader:353:35
-  if $L0 void   ; core.vader:353:32
-    i32.const 1   ; core.vader:353:51
-    i32.neg   ; core.vader:353:50
-    local.set 3   ; core.vader:353:50
-  else   ; core.vader:353:32
-    local.get 0   ; core.vader:353:63
-    local.get 1   ; core.vader:353:63
-    usize.gt   ; core.vader:353:63
-    if $L1 void   ; core.vader:353:60
-      i32.const 1   ; core.vader:353:78
-      local.set 2   ; core.vader:353:78
-    else   ; core.vader:353:60
-      i32.const 0   ; core.vader:353:89
-      local.set 2   ; core.vader:353:89
-    end $L1   ; core.vader:353:60
-    local.get 2   ; core.vader:353:60
-    local.set 3   ; core.vader:353:60
-  end $L0   ; core.vader:353:32
-  local.get 3   ; core.vader:353:29
-  return   ; core.vader:353:29
+  local.get 0   ; core.vader:354:35
+  local.get 1   ; core.vader:354:35
+  usize.lt   ; core.vader:354:35
+  if $L0 void   ; core.vader:354:32
+    i32.const 1   ; core.vader:354:51
+    i32.neg   ; core.vader:354:50
+    local.set 3   ; core.vader:354:50
+  else   ; core.vader:354:32
+    local.get 0   ; core.vader:354:63
+    local.get 1   ; core.vader:354:63
+    usize.gt   ; core.vader:354:63
+    if $L1 void   ; core.vader:354:60
+      i32.const 1   ; core.vader:354:78
+      local.set 2   ; core.vader:354:78
+    else   ; core.vader:354:60
+      i32.const 0   ; core.vader:354:89
+      local.set 2   ; core.vader:354:89
+    end $L1   ; core.vader:354:60
+    local.get 2   ; core.vader:354:60
+    local.set 3   ; core.vader:354:60
+  end $L0   ; core.vader:354:32
+  local.get 3   ; core.vader:354:29
+  return   ; core.vader:354:29
 end
 
 fn 3 std_core$usize$Comparable$gt (usize,usize) -> bool
@@ -481,11 +458,11 @@ fn 4 std_core$usize$Comparable$gte (usize,usize) -> bool
 end
 
 fn 5 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; core.vader:371:26
-  i64.const 1   ; core.vader:371:26
-  i64.to_usize   ; core.vader:371:26
-  usize.add   ; core.vader:371:26
-  return   ; core.vader:371:23
+  local.get 0   ; core.vader:372:26
+  i64.const 1   ; core.vader:372:26
+  i64.to_usize   ; core.vader:372:26
+  usize.add   ; core.vader:372:26
+  return   ; core.vader:372:23
 end
 
 fn 6 std_core$Range$Iterator$next__usize (ref) -> ref
@@ -842,7 +819,7 @@ fn 15 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   else   ; collections.vader:72:5
   end $L0   ; collections.vader:72:5
   local.get 1   ; collections.vader:77:10
-  call.import 1   ; collections.vader:77:10
+  call.import 0   ; collections.vader:77:10
   call 7   ; collections.vader:78:12
   local.set 8   ; collections.vader:78:5
   local.get 0   ; collections.vader:81:31
@@ -984,7 +961,7 @@ fn 16 std_collections$std_collections$get__string__i32 (ref,string) -> ref
     return   ; collections.vader:114:9
   else   ; collections.vader:113:5
     local.get 1   ; collections.vader:116:10
-    call.import 1   ; collections.vader:116:10
+    call.import 0   ; collections.vader:116:10
     call 7   ; collections.vader:117:12
     local.set 3   ; collections.vader:117:5
     local.get 0   ; collections.vader:118:31
@@ -1205,7 +1182,7 @@ fn 18 std_collections$std_collections$contains_key__string__i32 (ref,string) -> 
     return   ; collections.vader:143:9
   else   ; collections.vader:142:5
     local.get 1   ; collections.vader:145:10
-    call.import 1   ; collections.vader:145:10
+    call.import 0   ; collections.vader:145:10
     call 7   ; collections.vader:146:12
     local.set 3   ; collections.vader:146:5
     local.get 0   ; collections.vader:147:31

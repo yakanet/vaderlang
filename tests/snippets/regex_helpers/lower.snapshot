@@ -66,81 +66,61 @@
   fn tests_snippets_regex_helpers__main_vader$main() -> i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            trim_suffix :fn(string, string) -> string
           arg0:
-            call :string
-              callee:
-                trim_suffix :fn(string, string) -> string
-              arg0:
-                "foo.vader" :string
-              arg1:
-                ".vader" :string
+            "foo.vader" :string
+          arg1:
+            ".vader" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            trim_suffix :fn(string, string) -> string
           arg0:
-            call :string
-              callee:
-                trim_suffix :fn(string, string) -> string
-              arg0:
-                "foo.bar" :string
-              arg1:
-                ".vader" :string
+            "foo.bar" :string
+          arg1:
+            ".vader" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            trim_prefix :fn(string, string) -> string
           arg0:
-            call :string
-              callee:
-                trim_prefix :fn(string, string) -> string
-              arg0:
-                "std/io" :string
-              arg1:
-                "std/" :string
+            "std/io" :string
+          arg1:
+            "std/" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            trim_prefix :fn(string, string) -> string
           arg0:
-            call :string
-              callee:
-                trim_prefix :fn(string, string) -> string
-              arg0:
-                "foo" :string
-              arg1:
-                "std/" :string
+            "foo" :string
+          arg1:
+            "std/" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            replace_chars_where :fn(string, fn(char) -> bool, string) -> string
           arg0:
-            call :string
-              callee:
-                replace_chars_where :fn(string, fn(char) -> bool, string) -> string
-              arg0:
-                "std::io.print!" :string
-              arg1:
-                is_non_id :fn(char) -> bool
-              arg2:
-                "_" :string
+            "std::io.print!" :string
+          arg1:
+            is_non_id :fn(char) -> bool
+          arg2:
+            "_" :string
     let parts: string[] =
       call :string[]
         callee:
@@ -151,41 +131,33 @@
           is_white_char :fn(char) -> bool
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "count=" :string
-              @builder.append_display <for usize> :void
-                __sb_0 :?
-                LoweredArrayLen
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "count=" :string
+          @builder.append_display <for usize> :void
+            __sb_0 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     let n: usize =
       LoweredArrayLen
     let i: usize = int(0) :usize
     loop while (<…>)
       call :void
         callee:
-          println :fn(Display) -> void
+          println :fn(string) -> void
         arg0:
-          call :string
-            callee:
-              to_string :string
-            arg0:
-              index :string
-                on:
-                  parts :string[]
-                ix:
-                  i :usize
+          index :string
+            on:
+              parts :string[]
+            ix:
+              i :usize
       assign
         target:
           i :usize

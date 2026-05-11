@@ -5,15 +5,13 @@ string 2 "\ndone\n"
 string 3 "tab:\there\n"
 string 4 "start"
 string 5 " middle\nend"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 print std_io$print (string) -> void
-import 2 println std_io$println (string) -> void
+import 0 print std_io$print (string) -> void
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_multiline_string__main_vader$main () -> i32
-  local "__sb_0#21" any
+  local "__sb_0#16" any
   string.const 0   ; _main.vader:5:10
-  call.import 0   ; _main.vader:9:11
-  call.import 1   ; _main.vader:9:5
+  call.import 0   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:13:12
   local.set 0   ; _main.vader:13:12
   local.get 0   ; _main.vader:14:1
@@ -27,16 +25,13 @@ fn 0 tests_snippets_multiline_string__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:14:12
   local.get 0   ; _main.vader:13:12
   intrinsic builder.finish   ; _main.vader:13:12
-  call.import 0   ; _main.vader:17:11
-  call.import 1   ; _main.vader:17:5
+  call.import 0   ; _main.vader:17:5
   string.const 3   ; _main.vader:20:16
-  call.import 0   ; _main.vader:23:11
-  call.import 1   ; _main.vader:23:5
+  call.import 0   ; _main.vader:23:5
   string.const 4   ; _main.vader:27:17
   string.const 5   ; _main.vader:27:17
   string.concat   ; _main.vader:27:17
-  call.import 0   ; _main.vader:30:13
-  call.import 2   ; _main.vader:30:5
+  call.import 1   ; _main.vader:30:5
   i32.const 0   ; _main.vader:32:12
   return   ; _main.vader:32:5
 end

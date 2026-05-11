@@ -5,8 +5,7 @@ string 0 "n="
 string 1 "  v=("
 string 2 ","
 string 3 ")"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_op_overload_compound__main_vader$Vec$Add$add (ref,ref) -> ref
   local "$field_2#9" i32
@@ -75,19 +74,19 @@ fn 1 tests_snippets_op_overload_compound__main_vader$Vec$Sub$sub (ref,ref) -> re
 end
 
 fn 2 tests_snippets_op_overload_compound__main_vader$main () -> i32
-  local "n#30" i32
-  local "n#32" i32
-  local "n#34" i32
-  local "n#36" i32
-  local "n#38" i32
-  local "v#41" ref
-  local "$struct_18#44" ref
-  local "v#46" ref
-  local "$struct_22#49" ref
-  local "v#51" ref
-  local "__sb_0#53" any
-  local "$field_28#56" i32
-  local "$field_30#58" i32
+  local "n#29" i32
+  local "n#31" i32
+  local "n#33" i32
+  local "n#35" i32
+  local "n#37" i32
+  local "v#40" ref
+  local "$struct_18#43" ref
+  local "v#45" ref
+  local "$struct_22#48" ref
+  local "v#50" ref
+  local "__sb_0#52" any
+  local "$field_28#55" i32
+  local "$field_30#57" i32
   i32.const 5   ; _main.vader:15:5
   i32.const 3   ; _main.vader:15:5
   i32.add   ; _main.vader:15:5
@@ -159,8 +158,7 @@ fn 2 tests_snippets_op_overload_compound__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:26:38
   local.get 10   ; _main.vader:26:13
   intrinsic builder.finish   ; _main.vader:26:13
-  call.import 0   ; _main.vader:26:13
-  call.import 1   ; _main.vader:26:5
+  call.import 0   ; _main.vader:26:5
   i32.const 0   ; _main.vader:27:12
   return   ; _main.vader:27:5
 end

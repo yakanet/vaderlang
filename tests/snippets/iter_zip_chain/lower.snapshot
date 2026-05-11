@@ -9,28 +9,24 @@
         int(30) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "count=" :string
-              @builder.append_display <for usize> :void
-                __sb_0 :?
-                call :usize
-                  callee:
-                    count :usize
-                  arg0:
-                    nums :i32[]
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "count=" :string
+          @builder.append_display <for usize> :void
+            __sb_0 :?
+            call :usize
+              callee:
+                count :usize
+              arg0:
+                nums :i32[]
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     let cloned: i32[] =
       call :i32[]
         callee:
@@ -39,28 +35,24 @@
           nums :i32[]
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_1: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_1 :?
-                "clone[0]=" :string
-              @builder.append_display <for i32> :void
-                __sb_1 :?
-                index :i32
-                  on:
-                    cloned :i32[]
-                  ix:
-                    int(0) :i32
-              ~>
-                @builder.finish :string
-                  __sb_1 :?
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "clone[0]=" :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            index :i32
+              on:
+                cloned :i32[]
+              ix:
+                int(0) :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
     let keys: string[] =
       array :string[]
         "a" :string
@@ -115,27 +107,23 @@
                 __tup_4 :[string, i32]
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_5: ? =
-                        @builder.new :?
-                      @builder.append_display <for string> :void
-                        __sb_5 :?
-                        k :string
-                      @builder.append_str :void
-                        __sb_5 :?
-                        "=" :string
-                      @builder.append_display <for i32> :void
-                        __sb_5 :?
-                        v :i32
-                      ~>
-                        @builder.finish :string
-                          __sb_5 :?
+                block :string
+                  let __sb_5: ? =
+                    @builder.new :?
+                  @builder.append_display <for string> :void
+                    __sb_5 :?
+                    k :string
+                  @builder.append_str :void
+                    __sb_5 :?
+                    "=" :string
+                  @builder.append_display <for i32> :void
+                    __sb_5 :?
+                    v :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_5 :?
     let head: i32[] =
       array :i32[]
         int(1) :i32
@@ -181,24 +169,20 @@
                   __step_7 :Done | Yielded(i32)
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_8: ? =
-                        @builder.new :?
-                      @builder.append_str :void
-                        __sb_8 :?
-                        "j=" :string
-                      @builder.append_display <for i32> :void
-                        __sb_8 :?
-                        x :i32
-                      ~>
-                        @builder.finish :string
-                          __sb_8 :?
+                block :string
+                  let __sb_8: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_8 :?
+                    "j=" :string
+                  @builder.append_display <for i32> :void
+                    __sb_8 :?
+                    x :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_8 :?
     let fruits: string[] =
       array :string[]
         "apple" :string
@@ -247,27 +231,23 @@
                 __tup_12 :[usize, string]
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_13: ? =
-                        @builder.new :?
-                      @builder.append_display <for usize> :void
-                        __sb_13 :?
-                        i :usize
-                      @builder.append_str :void
-                        __sb_13 :?
-                        ": " :string
-                      @builder.append_display <for string> :void
-                        __sb_13 :?
-                        f :string
-                      ~>
-                        @builder.finish :string
-                          __sb_13 :?
+                block :string
+                  let __sb_13: ? =
+                    @builder.new :?
+                  @builder.append_display <for usize> :void
+                    __sb_13 :?
+                    i :usize
+                  @builder.append_str :void
+                    __sb_13 :?
+                    ": " :string
+                  @builder.append_display <for string> :void
+                    __sb_13 :?
+                    f :string
+                  ~>
+                    @builder.finish :string
+                      __sb_13 :?
     let bursts: i32[] =
       call :i32[]
         callee:
@@ -307,24 +287,20 @@
                   __step_16 :Done | Yielded(i32)
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_17: ? =
-                        @builder.new :?
-                      @builder.append_str :void
-                        __sb_17 :?
-                        "b=" :string
-                      @builder.append_display <for i32> :void
-                        __sb_17 :?
-                        n :i32
-                      ~>
-                        @builder.finish :string
-                          __sb_17 :?
+                block :string
+                  let __sb_17: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_17 :?
+                    "b=" :string
+                  @builder.append_display <for i32> :void
+                    __sb_17 :?
+                    n :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_17 :?
     return int(0) :i32
   struct __lambda_env_16 {  }
   fn __lambda_15(__env_14: __lambda_env_16, x: i32) -> i32[]

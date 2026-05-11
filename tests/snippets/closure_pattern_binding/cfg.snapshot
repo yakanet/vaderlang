@@ -5,31 +5,28 @@
 fn tests_snippets_closure_pattern_binding__main_vader$greet(%0: i32 | P) -> void
   locals:
     %0 v: i32 | P (param v)
-    %1 __scrut_0#26: i32 | P (synthetic __scrut_0)
-    %2 $type_check_2#27: bool
-    %3 $cast_3#28: P
-    %4 p#29: ? (binding p)
-    %5 $struct_6#30: __lambda_env_7
-    %6 shout#31: fn() -> string (local shout)
-    %7 $call_ind_9#32: string
-    %8 $call_10#33: string
-    %9 $intrinsic_11#34: ?
-    %10 __sb_4#35: ? (synthetic __sb_4)
-    %11 $k_13#36: string
-    %12 $call_ind_14#37: string
-    %13 $intrinsic_15#38: string
-    %14 $call_16#39: string
-    %15 $type_check_17#40: bool
-    %16 $cast_18#41: i32
-    %17 n#42: ? (binding n)
-    %18 $struct_21#43: __lambda_env_3
-    %19 doubled#44: fn() -> i32 (local doubled)
-    %20 $intrinsic_24#45: ?
-    %21 __sb_2#46: ? (synthetic __sb_2)
-    %22 $k_26#47: string
-    %23 $call_ind_27#48: i32
-    %24 $intrinsic_28#49: string
-    %25 $call_29#50: string
+    %1 __scrut_0#23: i32 | P (synthetic __scrut_0)
+    %2 $type_check_2#24: bool
+    %3 $cast_3#25: P
+    %4 p#26: ? (binding p)
+    %5 $struct_6#27: __lambda_env_7
+    %6 shout#28: fn() -> string (local shout)
+    %7 $call_ind_9#29: string
+    %8 $intrinsic_10#30: ?
+    %9 __sb_4#31: ? (synthetic __sb_4)
+    %10 $k_12#32: string
+    %11 $call_ind_13#33: string
+    %12 $intrinsic_14#34: string
+    %13 $type_check_15#35: bool
+    %14 $cast_16#36: i32
+    %15 n#37: ? (binding n)
+    %16 $struct_19#38: __lambda_env_3
+    %17 doubled#39: fn() -> i32 (local doubled)
+    %18 $intrinsic_22#40: ?
+    %19 __sb_2#41: ? (synthetic __sb_2)
+    %20 $k_24#42: string
+    %21 $call_ind_25#43: i32
+    %22 $intrinsic_26#44: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is P
@@ -40,37 +37,34 @@ fn tests_snippets_closure_pattern_binding__main_vader$greet(%0: i32 | P) -> void
     %5 = struct_new __lambda_env_7(%4)
     %6 = make_closure __lambda_6 env=%5 :fn() -> string
     %7 = call_indirect %6() :string
-    %8 = call to_string(%7) :string
-    call println(%8) :void
-    %9 = intrinsic builder.new()
-    %10 = move %9
-    %11 = const string(#0) :string
-    intrinsic builder.append_str(%10, %11)
-    %12 = call_indirect %6() :string
-    intrinsic builder.append_display(%10, %12)
-    %13 = intrinsic builder.finish(%10)
-    %14 = call to_string(%13) :string
-    call println(%14) :void
+    call println(%7) :void
+    %8 = intrinsic builder.new()
+    %9 = move %8
+    %10 = const string(#0) :string
+    intrinsic builder.append_str(%9, %10)
+    %11 = call_indirect %6() :string
+    intrinsic builder.append_display(%9, %11)
+    %12 = intrinsic builder.finish(%9)
+    call println(%12) :void
     branch -> bb3
   bb2:
-    %15 = type_check %1 is i32
-    cond_branch %15 ? bb4 : bb5
+    %13 = type_check %1 is i32
+    cond_branch %13 ? bb4 : bb5
   bb3:
     return
   bb4:
-    %16 = cast %1 :i32
-    %17 = cell_new %16 :i32
-    %18 = struct_new __lambda_env_3(%17)
-    %19 = make_closure __lambda_2 env=%18 :fn() -> i32
-    %20 = intrinsic builder.new()
-    %21 = move %20
-    %22 = const string(#1) :string
-    intrinsic builder.append_str(%21, %22)
-    %23 = call_indirect %19() :i32
-    intrinsic builder.append_display(%21, %23)
-    %24 = intrinsic builder.finish(%21)
-    %25 = call to_string(%24) :string
-    call println(%25) :void
+    %14 = cast %1 :i32
+    %15 = cell_new %14 :i32
+    %16 = struct_new __lambda_env_3(%15)
+    %17 = make_closure __lambda_2 env=%16 :fn() -> i32
+    %18 = intrinsic builder.new()
+    %19 = move %18
+    %20 = const string(#1) :string
+    intrinsic builder.append_str(%19, %20)
+    %21 = call_indirect %17() :i32
+    intrinsic builder.append_display(%19, %21)
+    %22 = intrinsic builder.finish(%19)
+    call println(%22) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)

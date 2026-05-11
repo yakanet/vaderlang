@@ -63,28 +63,22 @@ fn tests_snippets_enum_implements_trait__main_vader$Direction$Display$to_string(
 
 fn tests_snippets_enum_implements_trait__main_vader$main() -> i32
   locals:
-    %0 d#10: Direction (local d)
-    %1 $call_2#11: string
-    %2 $call_3#12: string
-    %3 $k_4#13: i32
-    %4 $call_5#14: string
-    %5 $call_6#15: string
-    %6 s#16: Direction (local s)
-    %7 $call_9#17: string
-    %8 $call_10#18: string
-    %9 $k_11#19: i32
+    %0 d#7: Direction (local d)
+    %1 $call_2#8: string
+    %2 $k_3#9: i32
+    %3 $call_4#10: string
+    %4 s#11: Direction (local s)
+    %5 $call_7#12: string
+    %6 $k_8#13: i32
   bb0:
     %0 = const int(0) :i32
     %1 = call to_string(%0) :string
-    %2 = call to_string(%1) :string
-    call println(%2) :void
-    %3 = const int(1) :i32
-    %4 = call to_string(%3) :string
+    call println(%1) :void
+    %2 = const int(1) :i32
+    %3 = call to_string(%2) :string
+    call println(%3) :void
+    %4 = const int(2) :i32
     %5 = call to_string(%4) :string
     call println(%5) :void
-    %6 = const int(2) :i32
-    %7 = call to_string(%6) :string
-    %8 = call to_string(%7) :string
-    call println(%8) :void
-    %9 = const int(0) :i32
-    return %9
+    %6 = const int(0) :i32
+    return %6

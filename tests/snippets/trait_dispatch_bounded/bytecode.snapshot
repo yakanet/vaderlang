@@ -15,17 +15,16 @@ type 12 array 4
 string 0 "foo"
 string 1 "bar"
 string 2 "baz"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 hash std_core$string$Hash$hash (string) -> u64
-import 2 println std_io$println (string) -> void
+import 0 hash std_core$string$Hash$hash (string) -> u64
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_trait_dispatch_bounded__main_vader$main () -> i32
-  local "nums#32" ref
-  local "__sb_0#34" any
-  local "$call_11#36" i32
-  local "words#44" ref
-  local "__sb_1#46" any
-  local "$call_24#48" i32
+  local "nums#30" ref
+  local "__sb_0#32" any
+  local "$call_11#34" i32
+  local "words#41" ref
+  local "__sb_1#43" any
+  local "$call_23#45" i32
   i32.const 1   ; _main.vader:18:13
   i32.const 2   ; _main.vader:18:13
   i32.const 3   ; _main.vader:18:13
@@ -45,8 +44,7 @@ fn 0 tests_snippets_trait_dispatch_bounded__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:19:14
   local.get 1   ; _main.vader:19:13
   intrinsic builder.finish   ; _main.vader:19:13
-  call.import 0   ; _main.vader:19:13
-  call.import 2   ; _main.vader:19:5
+  call.import 1   ; _main.vader:19:5
   string.const 0   ; _main.vader:21:14
   string.const 1   ; _main.vader:21:14
   string.const 0   ; _main.vader:21:14
@@ -65,8 +63,7 @@ fn 0 tests_snippets_trait_dispatch_bounded__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:22:14
   local.get 4   ; _main.vader:22:13
   intrinsic builder.finish   ; _main.vader:22:13
-  call.import 0   ; _main.vader:22:13
-  call.import 2   ; _main.vader:22:5
+  call.import 1   ; _main.vader:22:5
   i32.const 0   ; _main.vader:23:12
   return   ; _main.vader:23:5
 end
@@ -172,10 +169,10 @@ fn 2 tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_disp
         local.get 5   ; _main.vader:9:5
         struct.get 3 0   ; _main.vader:9:5
         local.tee 6   ; _main.vader:9:5
-        call.import 1   ; _main.vader:10:12
+        call.import 0   ; _main.vader:10:12
         local.set 7   ; _main.vader:10:12
         local.get 1   ; _main.vader:10:24
-        call.import 1   ; _main.vader:10:24
+        call.import 0   ; _main.vader:10:24
         local.set 8   ; _main.vader:10:24
         local.get 7   ; _main.vader:10:12
         local.get 8   ; _main.vader:10:12
@@ -210,9 +207,9 @@ fn 2 tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_disp
 end
 
 fn 3 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:324:26
-  i32.to_u64   ; core.vader:324:26
-  return   ; core.vader:324:23
+  local.get 0   ; core.vader:325:26
+  i32.to_u64   ; core.vader:325:26
+  return   ; core.vader:325:23
 end
 
 fn 4 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref

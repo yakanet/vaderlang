@@ -4,8 +4,7 @@ type 1 primitive null
 string 0 "got null"
 string 1 "got string"
 string 2 "nothing"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
   local "if_res#9" null
@@ -36,15 +35,14 @@ fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
 end
 
 fn 1 tests_snippets_null_blockres__main_vader$main () -> i32
-  local "__scrut_0#12" ref
+  local "__scrut_0#10" ref
   bool.const true   ; _main.vader:15:16
   call 0   ; _main.vader:15:11
   local.tee 0   ; _main.vader:15:11
   type_check 0   ; _main.vader:16:9
   if $L0 void   ; _main.vader:16:9
     string.const 1   ; _main.vader:16:30
-    call.import 0   ; _main.vader:16:30
-    call.import 1   ; _main.vader:16:22
+    call.import 0   ; _main.vader:16:22
     i32.const 0   ; _main.vader:19:12
     return   ; _main.vader:19:5
   else   ; _main.vader:16:9
@@ -52,8 +50,7 @@ fn 1 tests_snippets_null_blockres__main_vader$main () -> i32
     type_check 1   ; _main.vader:17:9
     if $L1 void   ; _main.vader:17:9
       string.const 2   ; _main.vader:17:28
-      call.import 0   ; _main.vader:17:28
-      call.import 1   ; _main.vader:17:20
+      call.import 0   ; _main.vader:17:20
       i32.const 0   ; _main.vader:19:12
       return   ; _main.vader:19:5
     else   ; _main.vader:17:9

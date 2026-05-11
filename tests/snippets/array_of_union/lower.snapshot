@@ -8,24 +8,20 @@
     LoweredArrayPush
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "len = " :string
-              @builder.append_display <for usize> :void
-                __sb_0 :?
-                LoweredArrayLen
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "len = " :string
+          @builder.append_display <for usize> :void
+            __sb_0 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     let cell: Node(i32) | null =
       index :Node(i32) | null
         on:
@@ -43,13 +39,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      "none" :string
+                  "none" :string
           else:
             ~>
               if :void
@@ -60,13 +52,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "got value" :string
+                        "got value" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

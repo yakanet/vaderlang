@@ -27,34 +27,30 @@
       ~>
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                block :string
-                  let __sb_1: ? =
-                    @builder.new :?
-                  @builder.append_str :void
-                    __sb_1 :?
-                    "id=" :string
-                  @builder.append_str :void
-                    __sb_1 :?
-                    id :?
-                  @builder.append_str :void
-                    __sb_1 :?
-                    " label=" :string
-                  @builder.append_str :void
-                    __sb_1 :?
-                    label :?
-                  @builder.append_str :void
-                    __sb_1 :?
-                    " active=" :string
-                  @builder.append_str :void
-                    __sb_1 :?
-                    active :?
-                  ~>
-                    @builder.finish :string
-                      __sb_1 :?
+            block :string
+              let __sb_1: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_1 :?
+                "id=" :string
+              @builder.append_str :void
+                __sb_1 :?
+                id :?
+              @builder.append_str :void
+                __sb_1 :?
+                " label=" :string
+              @builder.append_str :void
+                __sb_1 :?
+                label :?
+              @builder.append_str :void
+                __sb_1 :?
+                " active=" :string
+              @builder.append_str :void
+                __sb_1 :?
+                active :?
+              ~>
+                @builder.finish :string
+                  __sb_1 :?
     return int(0) :i32

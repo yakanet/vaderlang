@@ -3,8 +3,7 @@ string 0 "N"
 string 1 "E"
 string 2 "S"
 string 3 "W"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_enum_implements_trait__main_vader$Direction$Display$to_string (i32) -> string
   local "__scrut_0#14" i32
@@ -48,16 +47,13 @@ end
 fn 1 tests_snippets_enum_implements_trait__main_vader$main () -> i32
   i32.const 0   ; _main.vader:23:10
   call 0   ; _main.vader:24:13
-  call.import 0   ; _main.vader:24:13
-  call.import 1   ; _main.vader:24:5
+  call.import 0   ; _main.vader:24:5
   i32.const 1   ; _main.vader:26:13
   call 0   ; _main.vader:26:13
-  call.import 0   ; _main.vader:26:13
-  call.import 1   ; _main.vader:26:5
+  call.import 0   ; _main.vader:26:5
   i32.const 2   ; _main.vader:28:10
   call 0   ; _main.vader:29:13
-  call.import 0   ; _main.vader:29:13
-  call.import 1   ; _main.vader:29:5
+  call.import 0   ; _main.vader:29:5
   i32.const 0   ; _main.vader:30:12
   return   ; _main.vader:30:5
 end

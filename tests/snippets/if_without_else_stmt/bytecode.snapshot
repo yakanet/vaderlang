@@ -2,8 +2,7 @@ module _main
 string 0 "ok: "
 string 1 ")"
 string 2 "not matched"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_if_without_else_stmt__main_vader$expect_lparen (string) -> string
   local "__sb_0#6" any
@@ -21,7 +20,7 @@ fn 0 tests_snippets_if_without_else_stmt__main_vader$expect_lparen (string) -> s
 end
 
 fn 1 tests_snippets_if_without_else_stmt__main_vader$main () -> i32
-  local "matched#7" bool
+  local "matched#6" bool
   bool.const false   ; _main.vader:14:16
   local.tee 0   ; _main.vader:14:16
   if $L0 void   ; _main.vader:15:5
@@ -34,8 +33,7 @@ fn 1 tests_snippets_if_without_else_stmt__main_vader$main () -> i32
   bool.not   ; _main.vader:20:8
   if $L1 void   ; _main.vader:20:5
     string.const 2   ; _main.vader:21:17
-    call.import 0   ; _main.vader:21:17
-    call.import 1   ; _main.vader:21:9
+    call.import 0   ; _main.vader:21:9
   else   ; _main.vader:20:5
   end $L1   ; _main.vader:20:5
   i32.const 0   ; _main.vader:23:12

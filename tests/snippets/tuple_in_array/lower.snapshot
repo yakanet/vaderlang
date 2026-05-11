@@ -44,27 +44,23 @@
                   __step_1 :Done | Yielded([i32, string])
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_2: ? =
-                        @builder.new :?
-                      @builder.append_display <for i32> :void
-                        __sb_2 :?
-                        ._0 :i32
-                          row :[i32, string]
-                      @builder.append_str :void
-                        __sb_2 :?
-                        " -> " :string
-                      @builder.append_display <for string> :void
-                        __sb_2 :?
-                        ._1 :string
-                          row :[i32, string]
-                      ~>
-                        @builder.finish :string
-                          __sb_2 :?
+                block :string
+                  let __sb_2: ? =
+                    @builder.new :?
+                  @builder.append_display <for i32> :void
+                    __sb_2 :?
+                    ._0 :i32
+                      row :[i32, string]
+                  @builder.append_str :void
+                    __sb_2 :?
+                    " -> " :string
+                  @builder.append_display <for string> :void
+                    __sb_2 :?
+                    ._1 :string
+                      row :[i32, string]
+                  ~>
+                    @builder.finish :string
+                      __sb_2 :?
     return int(0) :i32

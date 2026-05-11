@@ -148,23 +148,11 @@ export function lowerFnEntry(
   const subst = entry.subst;
   const types = makeEntryTypes(typed, subst);
 
-  const isIntrinsic = fn.decorators.some((d) => d.name === "intrinsic");
-  const display = ctx.coreSymbols?.get("Display");
   const params: LoweredParam[] = [];
   for (const p of fn.params) {
     const sym = typed.resolved.params.get(p);
     if (sym === undefined) continue;
-    let pty = types.paramType(p);
-    // `@intrinsic … fn(msg: Display) -> void` is a Display sink : every call
-    // site is rewritten by `wrapAsDisplay` (see `lower/passes/display-coerce.ts`)
-    // to forward the value as a string. Match the import signature to what
-    // the host actually receives so the bytecode emitter, the C shim, and
-    // the VM's host hook all agree on `vader_string_t`.
-    if (isIntrinsic && pty.kind === "Trait"
-        && display !== undefined && pty.symbol.id === display.id) {
-      pty = TY.string;
-    }
-    params.push({ name: p.name, symbol: sym, type: pty });
+    params.push({ name: p.name, symbol: sym, type: types.paramType(p) });
   }
 
   const fnType = typed.declTypes.get(fn);

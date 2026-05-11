@@ -6,19 +6,15 @@ fn tests_snippets_u32_bitops__main_vader$check(%0: string, %1: bool) -> void
   locals:
     %0 name: string (param name)
     %1 ok: bool (param ok)
-    %2 $call_2#5: string
-    %3 $k_3#6: string
-    %4 $call_4#7: string
+    %2 $k_2#3: string
   bb0:
     cond_branch %1 ? bb1 : bb2
   bb1:
-    %2 = call to_string(%0) :string
-    call println(%2) :void
+    call println(%0) :void
     branch -> bb3
   bb2:
-    %3 = const string(#0) :string
-    %4 = call to_string(%3) :string
-    call println(%4) :void
+    %2 = const string(#0) :string
+    call println(%2) :void
     branch -> bb3
   bb3:
     return

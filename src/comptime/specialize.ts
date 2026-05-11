@@ -188,7 +188,43 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
     putImplEntry(fnInstanceEntries, fnDecl, inst.args, entry);
   }
 
+  // Pass 4 : blanket Into impl members. The typer recorded one site per
+  // coercion ; `collectIntoMembers` deduplicated them into one obs per
+  // (member, typeArgs). Materialise each — same machinery as the
+  // struct-indexed generic impl pass above, but the source isn't a
+  // struct instance so it can't flow through `genericImplsByStruct`.
+  for (const obs of evaluated.intoMembers) {
+    const member = obs.member;
+    const program = obs.program.resolved;
+    // The owning impl decl is the parent of the member ; recover it from
+    // the program's decls. (We could record it directly on the
+    // observation, but keeping the obs minimal lets the typer side
+    // expose only what's strictly needed.)
+    const implDecl = findOwningImpl(program, member);
+    if (implDecl === null) continue;
+    const subst = obs.typeArgs.length > 0
+      ? buildSubst(implDecl.typeParams, obs.typeArgs, program)
+      : EMPTY_SUBST;
+    const base = `${forTypeName(implDecl.forType)}$${implDecl.traitName}$${member.name}`;
+    const memberEntry = makeImplMemberEntry(
+      member, base, program, subst, obs.typeArgs, seenMangled, synthIds, entryIds,
+    );
+    entries.push(memberEntry);
+    putImplEntry(implMethodEntries, member, obs.typeArgs, memberEntry);
+  }
+
   return { entries, lookupByInstance: byInstance, implMethodEntries, fnInstanceEntries };
+}
+
+/** Find the `ImplDecl` whose `members` array contains `member`. Linear
+ *  scan ; called once per Into observation, so the cost is bounded by
+ *  the impl-decl count × member count of the project. */
+function findOwningImpl(program: ResolvedProgram, member: A.FnDecl): A.ImplDecl | null {
+  for (const decl of program.source.decls) {
+    if (decl.kind !== "ImplDecl") continue;
+    if (decl.members.includes(member)) return decl;
+  }
+  return null;
 }
 
 function putImplEntry(

@@ -10,8 +10,7 @@ string 0 "none"
 import 0 to_string std_core$i32$Display$to_string (i32) -> string
 import 1 to_string std_core$usize$Display$to_string (usize) -> string
 import 2 to_string std_core$bool$Display$to_string (bool) -> string
-import 3 to_string std_core$string$Display$to_string (string) -> string
-import 4 println std_io$println (string) -> void
+import 3 println std_io$println (string) -> void
 
 fn 0 tests_snippets_iter_defaults__main_vader$Countdown$Iterator$next (ref) -> ref
   local "$field_1#10" i32
@@ -104,23 +103,23 @@ fn 1 tests_snippets_iter_defaults__main_vader$Countdown$Iterator$count (ref) -> 
 end
 
 fn 2 tests_snippets_iter_defaults__main_vader$main () -> i32
-  local "__scrut_0#52" ref
-  local "$k_21#59" i32
-  local "$k_22#60" i32
-  local "$k_23#61" bool
-  local "$k_24#62" i32
-  local "$k_28#66" i32
-  local "$k_29#67" i32
-  local "$k_30#68" bool
-  local "$k_31#69" i32
+  local "__scrut_0#51" ref
+  local "$k_20#57" i32
+  local "$k_21#58" i32
+  local "$k_22#59" bool
+  local "$k_23#60" i32
+  local "$k_27#64" i32
+  local "$k_28#65" i32
+  local "$k_29#66" bool
+  local "$k_30#67" i32
   i32.const 0   ; _main.vader:20:14
   i32.const 5   ; _main.vader:20:14
   bool.const false   ; _main.vader:20:14
   i32.const 0   ; _main.vader:20:14
   struct.new 4   ; _main.vader:20:14
   call 9   ; _main.vader:20:14
-  call.import 1   ; _main.vader:20:14
-  call.import 4   ; _main.vader:20:5
+  call 11   ; _main.vader:20:14
+  call.import 3   ; _main.vader:20:5
   i32.const 10   ; _main.vader:23:12
   i32.const 15   ; _main.vader:23:12
   bool.const true   ; _main.vader:23:12
@@ -132,8 +131,8 @@ fn 2 tests_snippets_iter_defaults__main_vader$main () -> i32
   if $L0 void   ; _main.vader:24:9
     local.get 0   ; _main.vader:24:9
     ref.cast 1   ; _main.vader:24:9
-    call.import 0   ; _main.vader:24:32
-    call.import 4   ; _main.vader:24:24
+    call 12   ; _main.vader:24:32
+    call.import 3   ; _main.vader:24:24
     i32.const 0   ; _main.vader:29:14
     local.set 1   ; _main.vader:29:14
     i32.const 0   ; _main.vader:29:18
@@ -148,8 +147,8 @@ fn 2 tests_snippets_iter_defaults__main_vader$main () -> i32
     local.get 4   ; _main.vader:29:14
     struct.new 4   ; _main.vader:29:14
     call 8   ; _main.vader:29:14
-    call.import 2   ; _main.vader:29:14
-    call.import 4   ; _main.vader:29:5
+    call 13   ; _main.vader:29:14
+    call.import 3   ; _main.vader:29:5
     i32.const 0   ; _main.vader:30:14
     local.set 5   ; _main.vader:30:14
     i32.const 5   ; _main.vader:30:18
@@ -164,13 +163,13 @@ fn 2 tests_snippets_iter_defaults__main_vader$main () -> i32
     local.get 8   ; _main.vader:30:14
     struct.new 4   ; _main.vader:30:14
     call 8   ; _main.vader:30:14
-    call.import 2   ; _main.vader:30:14
-    call.import 4   ; _main.vader:30:5
+    call 13   ; _main.vader:30:14
+    call.import 3   ; _main.vader:30:5
     i32.const 3   ; _main.vader:33:38
     struct.new 0   ; _main.vader:33:13
     call 1   ; _main.vader:33:13
-    call.import 1   ; _main.vader:33:13
-    call.import 4   ; _main.vader:33:5
+    call 11   ; _main.vader:33:13
+    call.import 3   ; _main.vader:33:5
     i32.const 0   ; _main.vader:35:12
     return   ; _main.vader:35:5
   else   ; _main.vader:24:9
@@ -178,8 +177,7 @@ fn 2 tests_snippets_iter_defaults__main_vader$main () -> i32
     type_check 6   ; _main.vader:25:9
     if $L1 void   ; _main.vader:25:9
       string.const 0   ; _main.vader:25:32
-      call.import 3   ; _main.vader:25:32
-      call.import 4   ; _main.vader:25:24
+      call.import 3   ; _main.vader:25:24
       i32.const 0   ; _main.vader:29:14
       local.set 1   ; _main.vader:29:14
       i32.const 0   ; _main.vader:29:18
@@ -194,8 +192,8 @@ fn 2 tests_snippets_iter_defaults__main_vader$main () -> i32
       local.get 4   ; _main.vader:29:14
       struct.new 4   ; _main.vader:29:14
       call 8   ; _main.vader:29:14
-      call.import 2   ; _main.vader:29:14
-      call.import 4   ; _main.vader:29:5
+      call 13   ; _main.vader:29:14
+      call.import 3   ; _main.vader:29:5
       i32.const 0   ; _main.vader:30:14
       local.set 5   ; _main.vader:30:14
       i32.const 5   ; _main.vader:30:18
@@ -210,13 +208,13 @@ fn 2 tests_snippets_iter_defaults__main_vader$main () -> i32
       local.get 8   ; _main.vader:30:14
       struct.new 4   ; _main.vader:30:14
       call 8   ; _main.vader:30:14
-      call.import 2   ; _main.vader:30:14
-      call.import 4   ; _main.vader:30:5
+      call 13   ; _main.vader:30:14
+      call.import 3   ; _main.vader:30:5
       i32.const 3   ; _main.vader:33:38
       struct.new 0   ; _main.vader:33:13
       call 1   ; _main.vader:33:13
-      call.import 1   ; _main.vader:33:13
-      call.import 4   ; _main.vader:33:5
+      call 11   ; _main.vader:33:13
+      call.import 3   ; _main.vader:33:5
       i32.const 0   ; _main.vader:35:12
       return   ; _main.vader:35:5
     else   ; _main.vader:25:9
@@ -228,29 +226,29 @@ end
 fn 3 std_core$i32$Comparable$compare (i32,i32) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:346:35
-  local.get 1   ; core.vader:346:35
-  i32.lt   ; core.vader:346:35
-  if $L0 void   ; core.vader:346:32
-    i32.const 1   ; core.vader:346:51
-    i32.neg   ; core.vader:346:50
-    local.set 3   ; core.vader:346:50
-  else   ; core.vader:346:32
-    local.get 0   ; core.vader:346:63
-    local.get 1   ; core.vader:346:63
-    i32.gt   ; core.vader:346:63
-    if $L1 void   ; core.vader:346:60
-      i32.const 1   ; core.vader:346:78
-      local.set 2   ; core.vader:346:78
-    else   ; core.vader:346:60
-      i32.const 0   ; core.vader:346:89
-      local.set 2   ; core.vader:346:89
-    end $L1   ; core.vader:346:60
-    local.get 2   ; core.vader:346:60
-    local.set 3   ; core.vader:346:60
-  end $L0   ; core.vader:346:32
-  local.get 3   ; core.vader:346:29
-  return   ; core.vader:346:29
+  local.get 0   ; core.vader:347:35
+  local.get 1   ; core.vader:347:35
+  i32.lt   ; core.vader:347:35
+  if $L0 void   ; core.vader:347:32
+    i32.const 1   ; core.vader:347:51
+    i32.neg   ; core.vader:347:50
+    local.set 3   ; core.vader:347:50
+  else   ; core.vader:347:32
+    local.get 0   ; core.vader:347:63
+    local.get 1   ; core.vader:347:63
+    i32.gt   ; core.vader:347:63
+    if $L1 void   ; core.vader:347:60
+      i32.const 1   ; core.vader:347:78
+      local.set 2   ; core.vader:347:78
+    else   ; core.vader:347:60
+      i32.const 0   ; core.vader:347:89
+      local.set 2   ; core.vader:347:89
+    end $L1   ; core.vader:347:60
+    local.get 2   ; core.vader:347:60
+    local.set 3   ; core.vader:347:60
+  end $L0   ; core.vader:347:32
+  local.get 3   ; core.vader:347:29
+  return   ; core.vader:347:29
 end
 
 fn 4 std_core$i32$Comparable$gt (i32,i32) -> bool
@@ -278,10 +276,10 @@ fn 5 std_core$i32$Comparable$gte (i32,i32) -> bool
 end
 
 fn 6 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; core.vader:364:26
-  i32.const 1   ; core.vader:364:26
-  i32.add   ; core.vader:364:26
-  return   ; core.vader:364:23
+  local.get 0   ; core.vader:365:26
+  i32.const 1   ; core.vader:365:26
+  i32.add   ; core.vader:365:26
+  return   ; core.vader:365:23
 end
 
 fn 7 std_core$Range$Iterator$next__i32 (ref) -> ref
@@ -467,6 +465,24 @@ fn 10 std_core$Range$Iterator$last__i32 (ref) -> ref
   end $L0   ; core.vader:159:9
   local.get 1   ; core.vader:165:9
   return   ; core.vader:165:9
+end
+
+fn 11 std_core$T$Into$into__usize (usize) -> string
+  local.get 0   ; core.vader:262:16
+  call.import 1   ; core.vader:262:16
+  return   ; core.vader:262:9
+end
+
+fn 12 std_core$T$Into$into__i32 (i32) -> string
+  local.get 0   ; core.vader:262:16
+  call.import 0   ; core.vader:262:16
+  return   ; core.vader:262:9
+end
+
+fn 13 std_core$T$Into$into__bool (bool) -> string
+  local.get 0   ; core.vader:262:16
+  call.import 2   ; core.vader:262:16
+  return   ; core.vader:262:9
 end
 
 ; round-trip MISMATCH

@@ -1,0 +1,27 @@
+import "std/io" { println }
+
+// Explicit form of the `Into(Target)` coercion : `Target(value)`. For
+// non-numeric targets the call routes through the matching `into` impl
+// instead of emitting a primitive cast (those still go through the
+// dedicated `i32(x)` / `f64(x)` paths). Pairs with the implicit-form
+// snippet `coerce_into_basic/` — same machinery, different syntax.
+UserId :: struct { value: i32 }
+
+UserId implements Into(i32) {
+    into :: fn(self) -> i32 { return self.value }
+}
+
+UserId implements Into(string) {
+    into :: fn(self) -> string { return "user_${self.value}" }
+}
+
+main :: fn() -> i32 {
+    u :: UserId { .value = 7 }
+    // Explicit coercion to i32 — routes through `UserId.Into(i32).into`.
+    n :: i32(u)
+    println("n=${n}")  // n=7
+    // Explicit coercion to string — routes through `UserId.Into(string).into`.
+    s :: string(u)
+    println("s=${s}")  // s=user_7
+    return 0
+}

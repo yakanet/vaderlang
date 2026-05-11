@@ -36,17 +36,13 @@
         char(0x21)
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
             to_string :string
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                sb :StringBuilder
+            sb :StringBuilder
     let sb2: StringBuilder =
       call :StringBuilder
         callee:
@@ -74,48 +70,40 @@
         "baz" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
             to_string :string
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                sb2 :StringBuilder
+            sb2 :StringBuilder
     let sb3: StringBuilder =
       call :StringBuilder
         callee:
           new_builder :fn() -> StringBuilder
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "empty='" :string
-              @builder.append_display <for string> :void
-                __sb_0 :?
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    sb3 :StringBuilder
-              @builder.append_str :void
-                __sb_0 :?
-                "'" :string
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "empty='" :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                sb3 :StringBuilder
+          @builder.append_str :void
+            __sb_0 :?
+            "'" :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     let sb4: StringBuilder =
       call :StringBuilder
         callee:
@@ -136,17 +124,13 @@
         char(0x29)
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
             to_string :string
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                sb4 :StringBuilder
+            sb4 :StringBuilder
     let n: i32 = int(42) :i32
     let sb5: StringBuilder =
       call :StringBuilder
@@ -176,15 +160,11 @@
               __sb_1 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
             to_string :string
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                sb5 :StringBuilder
+            sb5 :StringBuilder
     return int(0) :i32

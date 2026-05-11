@@ -274,11 +274,12 @@ T implements[T: Display] Into(string) {
 
 // ---- Display --------------------------------------------------------------
 //
-// Every primitive type carries a host-provided `to_string` so trait-typed
-// receivers (e.g. `print(value: Display)`) dispatch uniformly. `${x}` string
-// interpolation still goes through the dedicated `builder.append_display`
-// intrinsic for performance — the trait route is for explicit method calls
-// and trait-bound parameters.
+// Every primitive type carries a host-provided `to_string` so any value
+// flowing into a `string` slot (e.g. `print(value)`, `let s: string =
+// value`) routes through the blanket `T implements[T: Display] Into(string)`
+// declared above. `${x}` string interpolation bypasses the trait and
+// goes through the dedicated `builder.append_display` intrinsic for
+// performance.
 
 @intrinsic i8     implements Display
 @intrinsic i16    implements Display

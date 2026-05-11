@@ -38,7 +38,7 @@
   expr 28:30    IdentExpr      :: fn($T[], usize, usize) -> $T[]
   expr 28:36    IdentExpr      :: i32[]
   expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(Display) -> void
+  expr 28:5     IdentExpr      :: fn(string) -> void
   expr 29:13    StringLitExpr  :: string
   expr 29:31    CallExpr       :: i32[]
   expr 29:31    CallExpr       :: usize
@@ -46,7 +46,7 @@
   expr 29:31    IdentExpr      :: fn($T[], usize, usize) -> $T[]
   expr 29:37    IdentExpr      :: i32[]
   expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(Display) -> void
+  expr 29:5     IdentExpr      :: fn(string) -> void
   expr 30:13    StringLitExpr  :: string
   expr 30:31    CallExpr       :: i32[]
   expr 30:31    CallExpr       :: usize
@@ -54,7 +54,7 @@
   expr 30:31    IdentExpr      :: fn($T[], usize, usize) -> $T[]
   expr 30:37    IdentExpr      :: i32[]
   expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(Display) -> void
+  expr 30:5     IdentExpr      :: fn(string) -> void
   expr 32:12    BinaryExpr     :: i32
   expr 32:12    BinaryExpr     :: i32
   expr 32:12    BinaryExpr     :: i32

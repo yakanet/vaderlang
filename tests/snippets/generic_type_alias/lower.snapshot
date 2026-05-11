@@ -15,13 +15,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      "x is null" :string
+                  "x is null" :string
           else:
             ~>
               if :void
@@ -32,25 +28,21 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            block :string
-                              let __sb_1: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_1 :?
-                                "x = " :string
-                              @builder.append_display <for i32> :void
-                                __sb_1 :?
-                                cast → i32
-                                  x :i32 | null
-                              ~>
-                                @builder.finish :string
-                                  __sb_1 :?
+                        block :string
+                          let __sb_1: ? =
+                            @builder.new :?
+                          @builder.append_str :void
+                            __sb_1 :?
+                            "x = " :string
+                          @builder.append_display <for i32> :void
+                            __sb_1 :?
+                            cast → i32
+                              x :i32 | null
+                          ~>
+                            @builder.finish :string
+                              __sb_1 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -65,13 +57,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      "y is null" :string
+                  "y is null" :string
           else:
             ~>
               if :void
@@ -82,25 +70,21 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            block :string
-                              let __sb_3: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_3 :?
-                                "y = " :string
-                              @builder.append_display <for i32> :void
-                                __sb_3 :?
-                                cast → i32
-                                  y :i32 | null
-                              ~>
-                                @builder.finish :string
-                                  __sb_3 :?
+                        block :string
+                          let __sb_3: ? =
+                            @builder.new :?
+                          @builder.append_str :void
+                            __sb_3 :?
+                            "y = " :string
+                          @builder.append_display <for i32> :void
+                            __sb_3 :?
+                            cast → i32
+                              y :i32 | null
+                          ~>
+                            @builder.finish :string
+                              __sb_3 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -116,25 +100,21 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      block :string
-                        let __sb_6: ? =
-                          @builder.new :?
-                        @builder.append_str :void
-                          __sb_6 :?
-                          "pair int   = " :string
-                        @builder.append_display <for i32> :void
-                          __sb_6 :?
-                          cast → i32
-                            p :i32 | string
-                        ~>
-                          @builder.finish :string
-                            __sb_6 :?
+                  block :string
+                    let __sb_6: ? =
+                      @builder.new :?
+                    @builder.append_str :void
+                      __sb_6 :?
+                      "pair int   = " :string
+                    @builder.append_display <for i32> :void
+                      __sb_6 :?
+                      cast → i32
+                        p :i32 | string
+                    ~>
+                      @builder.finish :string
+                        __sb_6 :?
           else:
             ~>
               if :void
@@ -145,25 +125,21 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            block :string
-                              let __sb_5: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_5 :?
-                                "pair str   = " :string
-                              @builder.append_display <for string> :void
-                                __sb_5 :?
-                                cast → string
-                                  p :i32 | string
-                              ~>
-                                @builder.finish :string
-                                  __sb_5 :?
+                        block :string
+                          let __sb_5: ? =
+                            @builder.new :?
+                          @builder.append_str :void
+                            __sb_5 :?
+                            "pair str   = " :string
+                          @builder.append_display <for string> :void
+                            __sb_5 :?
+                            cast → string
+                              p :i32 | string
+                          ~>
+                            @builder.finish :string
+                              __sb_5 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

@@ -41,50 +41,49 @@ string 9 "banana"
 string 10 "cherry"
 string 11 ": "
 string 12 "b="
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
-  local "nums#113" ref
-  local "__sb_0#115" any
-  local "$call_8#117" usize
-  local "cloned#121" ref
-  local "__sb_1#123" any
-  local "$idx_17#126" i32
-  local "keys#133" ref
-  local "vals#137" ref
-  local "pairs#139" ref
-  local "$len_34#141" usize
-  local "__iter_2#142" ref
-  local "__step_3#144" ref
-  local "head#149" ref
-  local "tail#152" ref
-  local "joined#154" ref
-  local "$len_65#156" usize
-  local "__iter_6#157" ref
-  local "__step_7#159" ref
-  local "__arr_9#166" ref
-  local "$len_87#168" usize
-  local "__iter_10#169" ref
-  local "__step_11#171" ref
-  local "$arr_109#176" ref
-  local "$closure_111#178" ref
-  local "bursts#180" ref
-  local "$len_115#182" usize
-  local "__iter_15#183" ref
-  local "__step_16#185" ref
-  local "n#189" i32
-  local "__sb_17#191" any
-  local "__tup_12#196" ref
-  local "i#197" usize
-  local "f#198" string
-  local "__sb_13#200" any
-  local "x#205" i32
-  local "__sb_8#207" any
-  local "__tup_4#212" ref
-  local "k#213" string
-  local "v#214" i32
-  local "__sb_5#216" any
+  local "nums#107" ref
+  local "__sb_0#109" any
+  local "$call_8#111" usize
+  local "cloned#114" ref
+  local "__sb_1#116" any
+  local "$idx_16#119" i32
+  local "keys#125" ref
+  local "vals#129" ref
+  local "pairs#131" ref
+  local "$len_32#133" usize
+  local "__iter_2#134" ref
+  local "__step_3#136" ref
+  local "head#141" ref
+  local "tail#144" ref
+  local "joined#146" ref
+  local "$len_62#148" usize
+  local "__iter_6#149" ref
+  local "__step_7#151" ref
+  local "__arr_9#158" ref
+  local "$len_83#160" usize
+  local "__iter_10#161" ref
+  local "__step_11#163" ref
+  local "$arr_104#168" ref
+  local "$closure_106#170" ref
+  local "bursts#172" ref
+  local "$len_110#174" usize
+  local "__iter_15#175" ref
+  local "__step_16#177" ref
+  local "n#181" i32
+  local "__sb_17#183" any
+  local "__tup_12#187" ref
+  local "i#188" usize
+  local "f#189" string
+  local "__sb_13#191" any
+  local "x#195" i32
+  local "__sb_8#197" any
+  local "__tup_4#201" ref
+  local "k#202" string
+  local "v#203" i32
+  local "__sb_5#205" any
   i32.const 10   ; _main.vader:6:13
   i32.const 20   ; _main.vader:6:13
   i32.const 30   ; _main.vader:6:13
@@ -103,8 +102,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:7:20
   local.get 1   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 0   ; _main.vader:7:13
-  call.import 1   ; _main.vader:7:5
+  call.import 0   ; _main.vader:7:5
   local.get 0   ; _main.vader:8:15
   call 12   ; _main.vader:8:15
   local.set 3   ; _main.vader:8:5
@@ -123,8 +121,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:9:23
   local.get 4   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
-  call.import 0   ; _main.vader:9:13
-  call.import 1   ; _main.vader:9:5
+  call.import 0   ; _main.vader:9:5
   string.const 2   ; _main.vader:12:13
   string.const 3   ; _main.vader:12:13
   string.const 4   ; _main.vader:12:13
@@ -177,8 +174,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:16:23
         local.get 39   ; _main.vader:16:17
         intrinsic builder.finish   ; _main.vader:16:17
-        call.import 0   ; _main.vader:16:17
-        call.import 1   ; _main.vader:16:9
+        call.import 0   ; _main.vader:16:9
         br $L1   ; _main.vader:15:5
       end $L2   ; _main.vader:15:5
     end $L1   ; _main.vader:15:5
@@ -226,8 +222,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:24:20
         local.get 35   ; _main.vader:24:17
         intrinsic builder.finish   ; _main.vader:24:17
-        call.import 0   ; _main.vader:24:17
-        call.import 1   ; _main.vader:24:9
+        call.import 0   ; _main.vader:24:9
         br $L4   ; _main.vader:23:5
       end $L5   ; _main.vader:23:5
     end $L4   ; _main.vader:23:5
@@ -275,8 +270,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:30:24
         local.get 33   ; _main.vader:30:17
         intrinsic builder.finish   ; _main.vader:30:17
-        call.import 0   ; _main.vader:30:17
-        call.import 1   ; _main.vader:30:9
+        call.import 0   ; _main.vader:30:9
         br $L7   ; _main.vader:29:5
       end $L8   ; _main.vader:29:5
     end $L7   ; _main.vader:29:5
@@ -323,8 +317,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:36:20
         local.get 29   ; _main.vader:36:17
         intrinsic builder.finish   ; _main.vader:36:17
-        call.import 0   ; _main.vader:36:17
-        call.import 1   ; _main.vader:36:9
+        call.import 0   ; _main.vader:36:9
         br $L10   ; _main.vader:35:5
       end $L11   ; _main.vader:35:5
     end $L10   ; _main.vader:35:5
@@ -348,29 +341,29 @@ end
 fn 2 std_core$usize$Comparable$compare (usize,usize) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:353:35
-  local.get 1   ; core.vader:353:35
-  usize.lt   ; core.vader:353:35
-  if $L0 void   ; core.vader:353:32
-    i32.const 1   ; core.vader:353:51
-    i32.neg   ; core.vader:353:50
-    local.set 3   ; core.vader:353:50
-  else   ; core.vader:353:32
-    local.get 0   ; core.vader:353:63
-    local.get 1   ; core.vader:353:63
-    usize.gt   ; core.vader:353:63
-    if $L1 void   ; core.vader:353:60
-      i32.const 1   ; core.vader:353:78
-      local.set 2   ; core.vader:353:78
-    else   ; core.vader:353:60
-      i32.const 0   ; core.vader:353:89
-      local.set 2   ; core.vader:353:89
-    end $L1   ; core.vader:353:60
-    local.get 2   ; core.vader:353:60
-    local.set 3   ; core.vader:353:60
-  end $L0   ; core.vader:353:32
-  local.get 3   ; core.vader:353:29
-  return   ; core.vader:353:29
+  local.get 0   ; core.vader:354:35
+  local.get 1   ; core.vader:354:35
+  usize.lt   ; core.vader:354:35
+  if $L0 void   ; core.vader:354:32
+    i32.const 1   ; core.vader:354:51
+    i32.neg   ; core.vader:354:50
+    local.set 3   ; core.vader:354:50
+  else   ; core.vader:354:32
+    local.get 0   ; core.vader:354:63
+    local.get 1   ; core.vader:354:63
+    usize.gt   ; core.vader:354:63
+    if $L1 void   ; core.vader:354:60
+      i32.const 1   ; core.vader:354:78
+      local.set 2   ; core.vader:354:78
+    else   ; core.vader:354:60
+      i32.const 0   ; core.vader:354:89
+      local.set 2   ; core.vader:354:89
+    end $L1   ; core.vader:354:60
+    local.get 2   ; core.vader:354:60
+    local.set 3   ; core.vader:354:60
+  end $L0   ; core.vader:354:32
+  local.get 3   ; core.vader:354:29
+  return   ; core.vader:354:29
 end
 
 fn 3 std_core$usize$Comparable$gt (usize,usize) -> bool
@@ -398,11 +391,11 @@ fn 4 std_core$usize$Comparable$gte (usize,usize) -> bool
 end
 
 fn 5 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; core.vader:371:26
-  i64.const 1   ; core.vader:371:26
-  i64.to_usize   ; core.vader:371:26
-  usize.add   ; core.vader:371:26
-  return   ; core.vader:371:23
+  local.get 0   ; core.vader:372:26
+  i64.const 1   ; core.vader:372:26
+  i64.to_usize   ; core.vader:372:26
+  usize.add   ; core.vader:372:26
+  return   ; core.vader:372:23
 end
 
 fn 6 std_core$Range$Iterator$next__usize (ref) -> ref

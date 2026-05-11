@@ -28,30 +28,22 @@
       }
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
             to_string :string
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                a :Wrap(Cat)
+            a :Wrap(Cat)
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
             to_string :string
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                b :Wrap(Dog)
+            b :Wrap(Dog)
     return int(0) :i32
   struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Cat { value: Cat }
   fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat(self: Wrap(Cat)) -> string

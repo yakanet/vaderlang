@@ -31,7 +31,7 @@
   expr 26:17    StringLitExpr  :: string
   expr 26:48    IdentExpr      :: i32
   expr 26:9     CallExpr       :: void
-  expr 26:9     IdentExpr      :: fn(Display) -> void
+  expr 26:9     IdentExpr      :: fn(string) -> void
   expr 31:12    IdentExpr      :: null | Pair
   expr 33:10    IdentExpr      :: bool
   expr 33:9     UnaryExpr      :: bool
@@ -56,8 +56,8 @@
   expr 45:54    IdentExpr      :: i32
   expr 45:64    IdentExpr      :: i32
   expr 45:9     CallExpr       :: void
-  expr 45:9     IdentExpr      :: fn(Display) -> void
+  expr 45:9     IdentExpr      :: fn(string) -> void
   expr 49:13    StringLitExpr  :: string
   expr 49:5     CallExpr       :: void
-  expr 49:5     IdentExpr      :: fn(Display) -> void
+  expr 49:5     IdentExpr      :: fn(string) -> void
   expr 49:57    IdentExpr      :: i32

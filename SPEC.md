@@ -452,18 +452,18 @@ The compiler probes `S implements Into(T)` whenever a value of type `S` is about
 - A struct-literal field whose declared type differs from the argument's.
 
 **Explicit form**
-The existing `Target(value)` syntax — used today for primitive numeric casts (`u32(x)`, `i64(x)`) — is the explicit coercion surface for non-numeric targets. (Routing the call-form through `Into` when `Target` is not a primitive numeric type is staged for a follow-up ; the syntax is reserved but currently only the numeric path is wired.)
+The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and `char` targets keep their primitive cast semantics (`u32(x)`, `i64(c)`) ; non-numeric targets and numeric targets fed a non-numeric source route through `tryInto` and emit the matching `value.into()` call. The two paths share the same impl registry, so the implicit and explicit forms always agree on which method runs.
 
 **Rules**
-- **Target must be concrete.** Only `Struct`, `Enum`, and `Primitive` targets trigger the probe ; `Union`, `TypeParam`, and `Trait` slots are excluded. A union target leaves the typer unable to pick a variant ; a `TypeParam` slot resolves after mono ; a `Trait` slot goes through virtual dispatch instead.
+- **Target must be concrete or a trait.** `Struct`, `Enum`, `Primitive`, and `Trait` targets trigger the probe ; `Union` and `TypeParam` slots are excluded. A union target leaves the typer unable to pick a variant ; a `TypeParam` slot resolves after mono. Direct trait widening (when `S` already implements `T`) runs first via `isAssignable`, so `tryInto` only fires for `Trait` targets when the source needs an actual conversion (the canonical case being `T[] → Iterator(T)` via the blanket `T[] implements[T] Into(Iterator(T))`).
 - **No identity.** `T implements Into(T)` is forbidden (diagnostic **T3039** at the impl site) — it would shadow simple assignment and clutter the registry.
 - **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes ; if both impls exist, the user must declare `S implements Into(T)` explicitly to bridge them. (Mirrors Rust's `Into` strictness ; prevents the "where did this allocation come from?" debugging trap.)
 - **One impl per `(Source, Target)`.** Duplicate impls are caught by the standard resolver duplicate-impl diagnostic.
 - **Overload resolution is decided first.** When a call has overloaded candidates, the typer ranks them *without* `Into` ; the second-pass with `Into` only fires if no exact-match overload was found.
 
-**Built-in coercions (compiler-driven, not via `Into`)**
-- `T[] → Iterator(T)` — raw arrays auto-wrap into `ArrayIterator(T)` on entry to an `Iterator(T)` slot. (Phase 2 of the `Into` rollout will fold this into a user-visible `[T] implements Into(Iterator(T))` blanket impl.)
-- `T → string` when `T: Display` — string-interpolation `${value}` and `Display`-typed slots dispatch through `to_string`. (Same migration target as the array case.)
+**Built-in coercions**
+- `T[] → Iterator(T)` — raw arrays auto-wrap into `ArrayIterator(T)` on entry to an `Iterator(T)` slot, materialised by the blanket impl `T[] implements[T] Into(Iterator(T))` in `std/core`. Driven through the `Into` probe, not a special-cased typer rule.
+- `T → string` when `T: Display` — anything implementing `Display` flowing into a `string`-typed slot is rewritten as a call to the impl's `to_string` member, via the blanket `T implements[T: Display] Into(string)` in `std/core`. The string-interpolation path (`"${value}"`) bypasses `Into` and routes through the builder intrinsics directly.
 - `FreeInt → i32` / `FreeFloat → f64` and friends — unsuffixed literals defaulting to their canonical width at the typer level. Unrelated to `Into` ; happens before any coercion lookup.
 - Concrete `S → Trait` when `S` impl `Trait` — virtual dispatch boxing. Distinct from `Into` ; the value flows in unchanged and runtime dispatch resolves the method by tag.
 

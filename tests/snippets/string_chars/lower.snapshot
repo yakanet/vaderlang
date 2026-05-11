@@ -4,13 +4,9 @@
   fn tests_snippets_string_chars__main_vader$main() -> i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            "-- ascii --" :string
+        "-- ascii --" :string
     block :void
       let __iter_0: StringChars =
         call :StringChars
@@ -38,30 +34,22 @@
                   __step_1 :Done | Yielded(char)
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_2: ? =
-                        @builder.new :?
-                      @builder.append_display <for char> :void
-                        __sb_2 :?
-                        c :char
-                      ~>
-                        @builder.finish :string
-                          __sb_2 :?
+                block :string
+                  let __sb_2: ? =
+                    @builder.new :?
+                  @builder.append_display <for char> :void
+                    __sb_2 :?
+                    c :char
+                  ~>
+                    @builder.finish :string
+                      __sb_2 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            "-- multibyte --" :string
+        "-- multibyte --" :string
     block :void
       let __iter_3: StringChars =
         call :StringChars
@@ -89,21 +77,17 @@
                   __step_4 :Done | Yielded(char)
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_5: ? =
-                        @builder.new :?
-                      @builder.append_display <for char> :void
-                        __sb_5 :?
-                        c :char
-                      ~>
-                        @builder.finish :string
-                          __sb_5 :?
+                block :string
+                  let __sb_5: ? =
+                    @builder.new :?
+                  @builder.append_display <for char> :void
+                    __sb_5 :?
+                    c :char
+                  ~>
+                    @builder.finish :string
+                      __sb_5 :?
     let n: i32 = int(0) :i32
     block :void
       let __iter_6: StringChars =
@@ -141,43 +125,35 @@
                     int(1) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_8: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_8 :?
-                "codepoints=" :string
-              @builder.append_display <for i32> :void
-                __sb_8 :?
-                n :i32
-              @builder.append_str :void
-                __sb_8 :?
-                " bytes=" :string
-              @builder.append_display <for usize> :void
-                __sb_8 :?
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "héllo" :string
-              ~>
-                @builder.finish :string
-                  __sb_8 :?
+        block :string
+          let __sb_8: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_8 :?
+            "codepoints=" :string
+          @builder.append_display <for i32> :void
+            __sb_8 :?
+            n :i32
+          @builder.append_str :void
+            __sb_8 :?
+            " bytes=" :string
+          @builder.append_display <for usize> :void
+            __sb_8 :?
+            call :usize
+              callee:
+                byte_len :fn(string) -> usize
+              arg0:
+                "héllo" :string
+          ~>
+            @builder.finish :string
+              __sb_8 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            "-- empty --" :string
+        "-- empty --" :string
     block :void
       let __iter_9: StringChars =
         call :StringChars
@@ -205,20 +181,12 @@
                   __step_10 :Done | Yielded(char)
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    "never" :string
+                "never" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            "done" :string
+        "done" :string
     return int(0) :i32

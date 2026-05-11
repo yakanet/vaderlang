@@ -2,13 +2,12 @@ module _main
 string 0 "size i32     = "
 string 1 "size i64     = "
 string 2 "size string  = "
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_comptime_type_alias__main_vader$main () -> i32
-  local "__sb_0#20" any
-  local "__sb_1#26" any
-  local "__sb_2#32" any
+  local "__sb_0#17" any
+  local "__sb_1#22" any
+  local "__sb_2#27" any
   intrinsic builder.new   ; _main.vader:13:13
   local.set 0   ; _main.vader:13:13
   local.get 0   ; _main.vader:13:14
@@ -20,8 +19,7 @@ fn 0 tests_snippets_comptime_type_alias__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:13:29
   local.get 0   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
-  call.import 0   ; _main.vader:13:13
-  call.import 1   ; _main.vader:13:5
+  call.import 0   ; _main.vader:13:5
   intrinsic builder.new   ; _main.vader:14:13
   local.set 1   ; _main.vader:14:13
   local.get 1   ; _main.vader:14:14
@@ -33,8 +31,7 @@ fn 0 tests_snippets_comptime_type_alias__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:14:29
   local.get 1   ; _main.vader:14:13
   intrinsic builder.finish   ; _main.vader:14:13
-  call.import 0   ; _main.vader:14:13
-  call.import 1   ; _main.vader:14:5
+  call.import 0   ; _main.vader:14:5
   intrinsic builder.new   ; _main.vader:15:13
   local.set 2   ; _main.vader:15:13
   local.get 2   ; _main.vader:15:14
@@ -46,8 +43,7 @@ fn 0 tests_snippets_comptime_type_alias__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:15:29
   local.get 2   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
-  call.import 0   ; _main.vader:15:13
-  call.import 1   ; _main.vader:15:5
+  call.import 0   ; _main.vader:15:5
   i32.const 0   ; _main.vader:16:12
   return   ; _main.vader:16:5
 end

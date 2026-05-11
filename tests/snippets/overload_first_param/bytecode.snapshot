@@ -13,8 +13,7 @@ string 6 "abs(-7)       = "
 string 7 "abs(-7.5)     = "
 string 8 "clamp(15, 0, 10)      = "
 string 9 "clamp(1.5, 0.0, 1.0)  = "
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_overload_first_param__main_vader$describe (ref) -> string
   local "__sb_0#7" any
@@ -55,23 +54,23 @@ fn 1 tests_snippets_overload_first_param__main_vader$describe_1 (ref) -> string
 end
 
 fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
-  local "a#73" ref
-  local "b#75" ref
-  local "__sb_0#85" any
-  local "$call_19#89" i32
-  local "__sb_1#93" any
-  local "$call_27#97" f64
-  local "__sb_2#101" any
-  local "$neg_34#104" i32
-  local "$call_36#106" i32
-  local "__sb_3#110" any
-  local "$call_44#114" i32
-  local "__sb_4#118" any
-  local "$call_52#122" f64
-  local "__sb_5#126" any
-  local "$call_61#131" i32
-  local "__sb_6#135" any
-  local "$call_70#140" f64
+  local "a#62" ref
+  local "b#64" ref
+  local "__sb_0#70" any
+  local "$call_15#74" i32
+  local "__sb_1#77" any
+  local "$call_22#81" f64
+  local "__sb_2#84" any
+  local "$neg_28#87" i32
+  local "$call_30#89" i32
+  local "__sb_3#92" any
+  local "$call_37#96" i32
+  local "__sb_4#99" any
+  local "$call_44#103" f64
+  local "__sb_5#106" any
+  local "$call_52#111" i32
+  local "__sb_6#114" any
+  local "$call_60#119" f64
   i32.const 42   ; _main.vader:17:21
   struct.new 0   ; _main.vader:17:10
   local.set 0   ; _main.vader:17:10
@@ -80,20 +79,16 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   local.set 1   ; _main.vader:18:10
   local.get 0   ; _main.vader:20:13
   call 0   ; _main.vader:20:13
-  call.import 0   ; _main.vader:20:13
-  call.import 1   ; _main.vader:20:5
+  call.import 0   ; _main.vader:20:5
   local.get 1   ; _main.vader:21:13
   call 1   ; _main.vader:21:13
-  call.import 0   ; _main.vader:21:13
-  call.import 1   ; _main.vader:21:5
+  call.import 0   ; _main.vader:21:5
   local.get 0   ; _main.vader:23:13
   call 0   ; _main.vader:23:13
-  call.import 0   ; _main.vader:23:13
-  call.import 1   ; _main.vader:23:5
+  call.import 0   ; _main.vader:23:5
   local.get 1   ; _main.vader:24:13
   call 1   ; _main.vader:24:13
-  call.import 0   ; _main.vader:24:13
-  call.import 1   ; _main.vader:24:5
+  call.import 0   ; _main.vader:24:5
   intrinsic builder.new   ; _main.vader:28:13
   local.set 2   ; _main.vader:28:13
   local.get 2   ; _main.vader:28:14
@@ -108,8 +103,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:28:30
   local.get 2   ; _main.vader:28:13
   intrinsic builder.finish   ; _main.vader:28:13
-  call.import 0   ; _main.vader:28:13
-  call.import 1   ; _main.vader:28:5
+  call.import 0   ; _main.vader:28:5
   intrinsic builder.new   ; _main.vader:29:13
   local.set 4   ; _main.vader:29:13
   local.get 4   ; _main.vader:29:14
@@ -124,8 +118,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:29:30
   local.get 4   ; _main.vader:29:13
   intrinsic builder.finish   ; _main.vader:29:13
-  call.import 0   ; _main.vader:29:13
-  call.import 1   ; _main.vader:29:5
+  call.import 0   ; _main.vader:29:5
   intrinsic builder.new   ; _main.vader:30:13
   local.set 6   ; _main.vader:30:13
   local.get 6   ; _main.vader:30:14
@@ -143,8 +136,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:30:30
   local.get 6   ; _main.vader:30:13
   intrinsic builder.finish   ; _main.vader:30:13
-  call.import 0   ; _main.vader:30:13
-  call.import 1   ; _main.vader:30:5
+  call.import 0   ; _main.vader:30:5
   intrinsic builder.new   ; _main.vader:31:13
   local.set 9   ; _main.vader:31:13
   local.get 9   ; _main.vader:31:14
@@ -159,8 +151,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:31:30
   local.get 9   ; _main.vader:31:13
   intrinsic builder.finish   ; _main.vader:31:13
-  call.import 0   ; _main.vader:31:13
-  call.import 1   ; _main.vader:31:5
+  call.import 0   ; _main.vader:31:5
   intrinsic builder.new   ; _main.vader:32:13
   local.set 11   ; _main.vader:32:13
   local.get 11   ; _main.vader:32:14
@@ -175,8 +166,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:32:30
   local.get 11   ; _main.vader:32:13
   intrinsic builder.finish   ; _main.vader:32:13
-  call.import 0   ; _main.vader:32:13
-  call.import 1   ; _main.vader:32:5
+  call.import 0   ; _main.vader:32:5
   intrinsic builder.new   ; _main.vader:33:13
   local.set 13   ; _main.vader:33:13
   local.get 13   ; _main.vader:33:14
@@ -192,8 +182,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:33:38
   local.get 13   ; _main.vader:33:13
   intrinsic builder.finish   ; _main.vader:33:13
-  call.import 0   ; _main.vader:33:13
-  call.import 1   ; _main.vader:33:5
+  call.import 0   ; _main.vader:33:5
   intrinsic builder.new   ; _main.vader:34:13
   local.set 15   ; _main.vader:34:13
   local.get 15   ; _main.vader:34:14
@@ -209,8 +198,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:34:38
   local.get 15   ; _main.vader:34:13
   intrinsic builder.finish   ; _main.vader:34:13
-  call.import 0   ; _main.vader:34:13
-  call.import 1   ; _main.vader:34:5
+  call.import 0   ; _main.vader:34:5
   i32.const 0   ; _main.vader:35:12
   return   ; _main.vader:35:5
 end

@@ -43,13 +43,18 @@ import type { MutableTyped } from "../ctx.ts";
 import { unifyTypeParam } from "./call.ts";
 
 /** True iff `target` is the kind of type we'll attempt an `Into` lookup
- *  against. Union / TypeParam / Trait / Unresolved are excluded — see the
- *  rules at the top of this file. */
+ *  against. Union / TypeParam / Unresolved are excluded — see the rules
+ *  at the top of this file. `Trait` is allowed so that blanket impls
+ *  into core traits work (e.g. `T[] implements[T] Into(Iterator(T))`) ;
+ *  the direct trait-widening path in `isAssignable` runs first, so a
+ *  type that already implements the trait flows through without ever
+ *  reaching `tryInto`. */
 function isCoercionTarget(target: Type): boolean {
   switch (target.kind) {
     case "Struct":
     case "Enum":
     case "Primitive":
+    case "Trait":
       return true;
     default:
       return false;

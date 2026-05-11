@@ -6,31 +6,27 @@
     let age: i32 = int(1) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "Hello, " :string
-              @builder.append_display <for string> :void
-                __sb_0 :?
-                name :string
-              @builder.append_str :void
-                __sb_0 :?
-                "! You are " :string
-              @builder.append_display <for i32> :void
-                __sb_0 :?
-                age :i32
-              @builder.append_str :void
-                __sb_0 :?
-                " year(s) old." :string
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "Hello, " :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            name :string
+          @builder.append_str :void
+            __sb_0 :?
+            "! You are " :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            age :i32
+          @builder.append_str :void
+            __sb_0 :?
+            " year(s) old." :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     return int(0) :i32

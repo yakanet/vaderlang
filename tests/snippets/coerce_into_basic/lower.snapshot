@@ -43,32 +43,28 @@
       }
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "call " :string
-              @builder.append_display <for i32> :void
-                __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "call " :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            call :i32
+              callee:
+                take_i32 :fn(i32) -> i32
+              arg0:
                 call :i32
                   callee:
-                    take_i32 :fn(i32) -> i32
+                    into :i32
                   arg0:
-                    call :i32
-                      callee:
-                        into :i32
-                      arg0:
-                        u :UserId
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+                    u :UserId
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     let n: i32 =
       call :i32
         callee:
@@ -77,48 +73,40 @@
           u :UserId
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_1: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_1 :?
-                "let " :string
-              @builder.append_display <for i32> :void
-                __sb_1 :?
-                n :i32
-              ~>
-                @builder.finish :string
-                  __sb_1 :?
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "let " :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            n :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_2: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_2 :?
-                "ret " :string
-              @builder.append_display <for i32> :void
-                __sb_2 :?
-                call :i32
-                  callee:
-                    get_id :fn(UserId) -> i32
-                  arg0:
-                    u :UserId
-              ~>
-                @builder.finish :string
-                  __sb_2 :?
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "ret " :string
+          @builder.append_display <for i32> :void
+            __sb_2 :?
+            call :i32
+              callee:
+                get_id :fn(UserId) -> i32
+              arg0:
+                u :UserId
+          ~>
+            @builder.finish :string
+              __sb_2 :?
     let p: Pair =
       Pair {
         tag:
@@ -136,30 +124,26 @@
       }
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_3: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_3 :?
-                "field tag=" :string
-              @builder.append_display <for string> :void
-                __sb_3 :?
-                .tag :string
-                  p :Pair
-              @builder.append_str :void
-                __sb_3 :?
-                " n=" :string
-              @builder.append_display <for i32> :void
-                __sb_3 :?
-                .n :i32
-                  p :Pair
-              ~>
-                @builder.finish :string
-                  __sb_3 :?
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "field tag=" :string
+          @builder.append_display <for string> :void
+            __sb_3 :?
+            .tag :string
+              p :Pair
+          @builder.append_str :void
+            __sb_3 :?
+            " n=" :string
+          @builder.append_display <for i32> :void
+            __sb_3 :?
+            .n :i32
+              p :Pair
+          ~>
+            @builder.finish :string
+              __sb_3 :?
     return int(0) :i32

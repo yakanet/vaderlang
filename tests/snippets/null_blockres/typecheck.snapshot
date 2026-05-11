@@ -7,10 +7,10 @@
   expr 15:11    IdentExpr      :: fn(bool) -> null | string
   expr 15:5     MatchExpr      :: void
   expr 16:22    CallExpr       :: void
-  expr 16:22    IdentExpr      :: fn(Display) -> void
+  expr 16:22    IdentExpr      :: fn(string) -> void
   expr 16:30    StringLitExpr  :: string
   expr 17:20    CallExpr       :: void
-  expr 17:20    IdentExpr      :: fn(Display) -> void
+  expr 17:20    IdentExpr      :: fn(string) -> void
   expr 17:28    StringLitExpr  :: string
   expr 7:10     IfExpr         :: null
   expr 7:13     IdentExpr      :: bool

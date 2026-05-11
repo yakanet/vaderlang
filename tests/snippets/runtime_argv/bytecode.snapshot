@@ -6,19 +6,18 @@ type 3 struct std_core$ArrayIterator__string { arr:4,cursor:5,length:5 }
 type 4 array 2
 type 5 primitive usize
 string 0 "argc="
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
-  local "__sb_0#21" any
-  local "$len_4#23" usize
-  local "$sub_6#25" usize
-  local "$len_12#30" usize
-  local "__iter_1#31" ref
-  local "first#32" bool
-  local "__step_2#34" ref
-  local "s#38" string
-  local "first#41" bool
+  local "__sb_0#19" any
+  local "$len_4#21" usize
+  local "$sub_6#23" usize
+  local "$len_11#27" usize
+  local "__iter_1#28" ref
+  local "first#29" bool
+  local "__step_2#31" ref
+  local "s#35" string
+  local "first#37" bool
   intrinsic builder.new   ; _main.vader:7:13
   local.set 1   ; _main.vader:7:13
   local.get 1   ; _main.vader:7:14
@@ -37,8 +36,7 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   intrinsic builder.append_display   ; _main.vader:7:19
   local.get 1   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 0   ; _main.vader:7:13
-  call.import 1   ; _main.vader:7:5
+  call.import 0   ; _main.vader:7:5
   bool.const true   ; _main.vader:8:14
   local.set 6   ; _main.vader:8:14
   local.get 0   ; _main.vader:9:5
@@ -66,9 +64,8 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
           bool.const false   ; _main.vader:11:21
           local.set 9   ; _main.vader:11:21
         else   ; _main.vader:10:9
-          local.get 8   ; _main.vader:13:21
-          call.import 0   ; _main.vader:13:21
-          call.import 1   ; _main.vader:13:13
+          local.get 8   ; _main.vader:13:13
+          call.import 0   ; _main.vader:13:13
           local.get 6   ; _main.vader:10:9
           local.set 9   ; _main.vader:10:9
         end $L3   ; _main.vader:10:9

@@ -56,24 +56,20 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      block :string
-                        let __sb_1: ? =
-                          @builder.new :?
-                        @builder.append_str :void
-                          __sb_1 :?
-                          "a=" :string
-                        @builder.append_display <for i32> :void
-                          __sb_1 :?
-                          v :i32
-                        ~>
-                          @builder.finish :string
-                            __sb_1 :?
+                  block :string
+                    let __sb_1: ? =
+                      @builder.new :?
+                    @builder.append_str :void
+                      __sb_1 :?
+                      "a=" :string
+                    @builder.append_display <for i32> :void
+                      __sb_1 :?
+                      v :i32
+                    ~>
+                      @builder.finish :string
+                        __sb_1 :?
           else:
             ~>
               if :void
@@ -84,13 +80,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "a missing" :string
+                        "a missing" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -112,13 +104,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      "c found?!" :string
+                  "c found?!" :string
           else:
             ~>
               if :void
@@ -129,13 +117,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "c missing" :string
+                        "c missing" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -151,13 +135,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "a in m" :string
+            "a in m" :string
     if :void
       cond:
         not :bool
@@ -171,13 +151,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "z not in m" :string
+            "z not in m" :string
     let s: MutableSet(i32) =
       MutableSet(i32) {
         inner:
@@ -213,13 +189,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "1 in s" :string
+            "1 in s" :string
     if :void
       cond:
         not :bool
@@ -233,11 +205,7 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "3 not in s" :string
+            "3 not in s" :string
     return int(0) :i32

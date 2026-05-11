@@ -20,19 +20,15 @@
           int(32) :usize
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_display <for usize> :void
-                __sb_0 :?
-                m :usize
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_display <for usize> :void
+            __sb_0 :?
+            m :usize
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     return int(0) :i32

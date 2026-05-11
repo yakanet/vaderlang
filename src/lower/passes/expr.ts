@@ -14,8 +14,8 @@ import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
-import { wrapAsDisplay, wrapAsInto } from "./display-coerce.ts";
-import { lookupImplEntry, lookupImplFor, lowerRangeExpr, wrapArrayAsIter } from "./for-in.ts";
+import { wrapAsInto } from "./display-coerce.ts";
+import { lookupImplEntry, lookupImplFor, lowerRangeExpr } from "./for-in.ts";
 import { blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
 import { lowerMatch } from "./match.ts";
@@ -24,16 +24,6 @@ import { lowerTry } from "./try.ts";
 
 export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
   const lowered = lowerExprInner(ctx, expr);
-  const coerceElement = ctx.typed.arrayIterCoercions.get(expr);
-  if (coerceElement !== undefined) {
-    const wrapped = wrapArrayAsIter(ctx, lowered, ctx.types.apply(coerceElement), expr.span);
-    if (wrapped !== null) return wrapped;
-  }
-  const displaySource = ctx.typed.displayCoercions.get(expr);
-  if (displaySource !== undefined) {
-    const wrapped = wrapAsDisplay(ctx, lowered, ctx.types.apply(displaySource), expr.span);
-    if (wrapped !== null) return wrapped;
-  }
   const intoCoercion = ctx.typed.intoCoercions.get(expr);
   if (intoCoercion !== undefined) {
     const wrapped = wrapAsInto(ctx, lowered, intoCoercion, expr.span);
@@ -68,14 +58,19 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         const calleeSym = ctx.typed.directCallOverloads.get(expr) ?? resolverSym;
         // Cast call `Type(value)` — lower to a `LoweredCast` so the bytecode
         // emitter inserts a convert op (otherwise it'd treat the type symbol
-        // as a callable and emit `unreachable`).
+        // as a callable and emit `unreachable`). For non-numeric targets
+        // (`UserId(value)`, `MyEnum(value)`), the typer already routed the
+        // arg through `tryInto` so `lowerExpr(arg)` returns the wrapped
+        // value at the target type — emit it directly without a cast op.
         if (calleeSym !== undefined
             && (calleeSym.kind === "builtin-type" || calleeSym.kind === "struct" || calleeSym.kind === "type-alias")
             && expr.args.length === 1) {
-          return {
-            kind: "LoweredCast", span: expr.span, type: exprType,
-            value: lowerExpr(ctx, expr.args[0]!.value),
-          };
+          const loweredArg = lowerExpr(ctx, expr.args[0]!.value);
+          const isNumericCast = exprType.kind === "Primitive"
+            && (exprType.name !== "string" && exprType.name !== "bool"
+                && exprType.name !== "void" && exprType.name !== "null");
+          if (!isNumericCast) return loweredArg;
+          return { kind: "LoweredCast", span: expr.span, type: exprType, value: loweredArg };
         }
         const typeArgs = ctx.typed.genericFnCalls.get(expr);
         if (typeArgs !== undefined && calleeSym !== undefined) {

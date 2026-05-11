@@ -109,48 +109,47 @@ fn tests_snippets_op_overload_arith__main_vader$Vec$Rem$rem(%0: Vec, %1: Vec) ->
 
 fn tests_snippets_op_overload_arith__main_vader$main() -> i32
   locals:
-    %0 $k_0#42: i32
-    %1 $k_1#43: i32
-    %2 a#44: Vec (local a)
-    %3 $k_4#45: i32
-    %4 $k_5#46: i32
-    %5 b#47: Vec (local b)
-    %6 $call_8#48: Vec
-    %7 s#49: Vec (local s)
-    %8 $call_10#50: Vec
-    %9 d#51: Vec (local d)
-    %10 $call_12#52: Vec
-    %11 m#53: Vec (local m)
-    %12 $call_14#54: Vec
-    %13 q#55: Vec (local q)
-    %14 $call_16#56: Vec
-    %15 r#57: Vec (local r)
-    %16 $intrinsic_18#58: ?
-    %17 __sb_0#59: ? (synthetic __sb_0)
-    %18 $k_20#60: string
-    %19 $field_21#61: i32
-    %20 $k_22#62: string
-    %21 $field_23#63: i32
-    %22 $k_24#64: string
-    %23 $field_25#65: i32
-    %24 $k_26#66: string
-    %25 $field_27#67: i32
-    %26 $k_28#68: string
-    %27 $field_29#69: i32
-    %28 $k_30#70: string
-    %29 $field_31#71: i32
-    %30 $k_32#72: string
-    %31 $field_33#73: i32
-    %32 $k_34#74: string
-    %33 $field_35#75: i32
-    %34 $k_36#76: string
-    %35 $field_37#77: i32
-    %36 $k_38#78: string
-    %37 $field_39#79: i32
-    %38 $k_40#80: string
-    %39 $intrinsic_41#81: string
-    %40 $call_42#82: string
-    %41 $k_43#83: i32
+    %0 $k_0#41: i32
+    %1 $k_1#42: i32
+    %2 a#43: Vec (local a)
+    %3 $k_4#44: i32
+    %4 $k_5#45: i32
+    %5 b#46: Vec (local b)
+    %6 $call_8#47: Vec
+    %7 s#48: Vec (local s)
+    %8 $call_10#49: Vec
+    %9 d#50: Vec (local d)
+    %10 $call_12#51: Vec
+    %11 m#52: Vec (local m)
+    %12 $call_14#53: Vec
+    %13 q#54: Vec (local q)
+    %14 $call_16#55: Vec
+    %15 r#56: Vec (local r)
+    %16 $intrinsic_18#57: ?
+    %17 __sb_0#58: ? (synthetic __sb_0)
+    %18 $k_20#59: string
+    %19 $field_21#60: i32
+    %20 $k_22#61: string
+    %21 $field_23#62: i32
+    %22 $k_24#63: string
+    %23 $field_25#64: i32
+    %24 $k_26#65: string
+    %25 $field_27#66: i32
+    %26 $k_28#67: string
+    %27 $field_29#68: i32
+    %28 $k_30#69: string
+    %29 $field_31#70: i32
+    %30 $k_32#71: string
+    %31 $field_33#72: i32
+    %32 $k_34#73: string
+    %33 $field_35#74: i32
+    %34 $k_36#75: string
+    %35 $field_37#76: i32
+    %36 $k_38#77: string
+    %37 $field_39#78: i32
+    %38 $k_40#79: string
+    %39 $intrinsic_41#80: string
+    %40 $k_42#81: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
@@ -213,7 +212,6 @@ fn tests_snippets_op_overload_arith__main_vader$main() -> i32
     %38 = const string(#6) :string
     intrinsic builder.append_str(%17, %38)
     %39 = intrinsic builder.finish(%17)
-    %40 = call to_string(%39) :string
-    call println(%40) :void
-    %41 = const int(0) :i32
-    return %41
+    call println(%39) :void
+    %40 = const int(0) :i32
+    return %40

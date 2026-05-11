@@ -7,8 +7,7 @@ type 4 struct std_core$Done {  }
 type 5 struct std_core$Yielded__i32 { value:1 }
 string 0 "repeat="
 string 1 "once="
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
   local "sum#11" i32
@@ -69,12 +68,12 @@ fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
 end
 
 fn 1 tests_snippets_trait_dispatch_generic_iter__main_vader$main () -> i32
-  local "r#21" ref
-  local "o#24" ref
-  local "__sb_0#26" any
-  local "$call_11#28" i32
-  local "__sb_1#32" any
-  local "$call_17#34" i32
+  local "r#19" ref
+  local "o#22" ref
+  local "__sb_0#24" any
+  local "$call_11#26" i32
+  local "__sb_1#29" any
+  local "$call_16#31" i32
   i32.const 7   ; _main.vader:55:10
   i32.const 3   ; _main.vader:55:10
   struct.new 0   ; _main.vader:55:10
@@ -96,8 +95,7 @@ fn 1 tests_snippets_trait_dispatch_generic_iter__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:57:21
   local.get 2   ; _main.vader:57:13
   intrinsic builder.finish   ; _main.vader:57:13
-  call.import 0   ; _main.vader:57:13
-  call.import 1   ; _main.vader:57:5
+  call.import 0   ; _main.vader:57:5
   intrinsic builder.new   ; _main.vader:58:13
   local.set 4   ; _main.vader:58:13
   local.get 4   ; _main.vader:58:14
@@ -111,8 +109,7 @@ fn 1 tests_snippets_trait_dispatch_generic_iter__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:58:19
   local.get 4   ; _main.vader:58:13
   intrinsic builder.finish   ; _main.vader:58:13
-  call.import 0   ; _main.vader:58:13
-  call.import 1   ; _main.vader:58:5
+  call.import 0   ; _main.vader:58:5
   i32.const 0   ; _main.vader:59:12
   return   ; _main.vader:59:5
 end

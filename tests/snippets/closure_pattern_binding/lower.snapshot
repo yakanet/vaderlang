@@ -20,38 +20,30 @@
                     LoweredMakeClosure
                   call :void
                     callee:
-                      println :fn(Display) -> void
+                      println :fn(string) -> void
                     arg0:
                       call :string
                         callee:
-                          to_string :string
-                        arg0:
-                          call :string
-                            callee:
-                              shout :fn() -> string
+                          shout :fn() -> string
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            block :string
-                              let __sb_4: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_4 :?
-                                "again " :string
-                              @builder.append_display <for string> :void
-                                __sb_4 :?
-                                call :string
-                                  callee:
-                                    shout :fn() -> string
-                              ~>
-                                @builder.finish :string
-                                  __sb_4 :?
+                        block :string
+                          let __sb_4: ? =
+                            @builder.new :?
+                          @builder.append_str :void
+                            __sb_4 :?
+                            "again " :string
+                          @builder.append_display <for string> :void
+                            __sb_4 :?
+                            call :string
+                              callee:
+                                shout :fn() -> string
+                          ~>
+                            @builder.finish :string
+                              __sb_4 :?
             else:
               ~>
                 if :void
@@ -68,26 +60,22 @@
                         ~>
                           call :void
                             callee:
-                              println :fn(Display) -> void
+                              println :fn(string) -> void
                             arg0:
-                              call :string
-                                callee:
-                                  to_string :string
-                                arg0:
-                                  block :string
-                                    let __sb_2: ? =
-                                      @builder.new :?
-                                    @builder.append_str :void
-                                      __sb_2 :?
-                                      "twice = " :string
-                                    @builder.append_display <for i32> :void
-                                      __sb_2 :?
-                                      call :i32
-                                        callee:
-                                          doubled :fn() -> i32
-                                    ~>
-                                      @builder.finish :string
-                                        __sb_2 :?
+                              block :string
+                                let __sb_2: ? =
+                                  @builder.new :?
+                                @builder.append_str :void
+                                  __sb_2 :?
+                                  "twice = " :string
+                                @builder.append_display <for i32> :void
+                                  __sb_2 :?
+                                  call :i32
+                                    callee:
+                                      doubled :fn() -> i32
+                                ~>
+                                  @builder.finish :string
+                                    __sb_2 :?
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void

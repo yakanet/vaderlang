@@ -43,7 +43,7 @@
   expr 22:17    StringLitExpr  :: string
   expr 22:20    IdentExpr      :: i32
   expr 22:9     CallExpr       :: void
-  expr 22:9     IdentExpr      :: fn(Display) -> void
+  expr 22:9     IdentExpr      :: fn(string) -> void
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded(i32)
   expr undefined:undefined IdentExpr      :: Countdown
   expr undefined:undefined IdentExpr      :: bool

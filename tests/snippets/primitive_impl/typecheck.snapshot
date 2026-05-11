@@ -6,6 +6,6 @@
   expr 11:13    FieldExpr      :: fn() -> string
   expr 11:13    IdentExpr      :: i32
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(Display) -> void
+  expr 11:5     IdentExpr      :: fn(string) -> void
   expr 5:16     StringLitExpr  :: string
   expr 5:33     IdentExpr      :: i32

@@ -10,12 +10,12 @@
   expr 17:23    FieldExpr      :: i32
   expr 17:23    IdentExpr      :: Box
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(Display) -> void
+  expr 17:5     IdentExpr      :: fn(string) -> void
   expr 18:13    StringLitExpr  :: string
   expr 18:26    FieldExpr      :: string
   expr 18:26    IdentExpr      :: Box
   expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(Display) -> void
+  expr 18:5     IdentExpr      :: fn(string) -> void
 
 ## tests/snippets/struct_name_collision/mod_a
   StructDecl     Box                  :: Box

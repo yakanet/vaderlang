@@ -85,7 +85,7 @@
   expr 25:44    FieldExpr      :: i32
   expr 25:44    IdentExpr      :: Vec
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(Display) -> void
+  expr 25:5     IdentExpr      :: fn(string) -> void
   expr 25:55    FieldExpr      :: i32
   expr 25:55    IdentExpr      :: Vec
   expr 25:62    FieldExpr      :: i32

@@ -6,24 +6,24 @@
   expr 5:16     CallExpr       :: f64
   expr 5:16     IdentExpr      :: fn(f64) -> f64
   expr 5:5      CallExpr       :: void
-  expr 5:5      IdentExpr      :: fn(Display) -> void
+  expr 5:5      IdentExpr      :: fn(string) -> void
   expr 6:13     StringLitExpr  :: string
   expr 6:16     CallExpr       :: f64
   expr 6:16     IdentExpr      :: fn(f64, f64) -> f64
   expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn(Display) -> void
+  expr 6:5      IdentExpr      :: fn(string) -> void
   expr 7:13     StringLitExpr  :: string
   expr 7:16     CallExpr       :: f64
   expr 7:16     IdentExpr      :: fn(f64) -> f64
   expr 7:5      CallExpr       :: void
-  expr 7:5      IdentExpr      :: fn(Display) -> void
+  expr 7:5      IdentExpr      :: fn(string) -> void
   expr 8:13     StringLitExpr  :: string
   expr 8:16     CallExpr       :: f64
   expr 8:16     IdentExpr      :: fn(f64) -> f64
   expr 8:5      CallExpr       :: void
-  expr 8:5      IdentExpr      :: fn(Display) -> void
+  expr 8:5      IdentExpr      :: fn(string) -> void
   expr 9:13     StringLitExpr  :: string
   expr 9:16     CallExpr       :: f64
   expr 9:16     IdentExpr      :: fn(f64) -> f64
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(Display) -> void
+  expr 9:5      IdentExpr      :: fn(string) -> void

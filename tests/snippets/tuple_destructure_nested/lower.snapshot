@@ -29,62 +29,50 @@
         __tup_0 :[[i32, string], bool]
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_1: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_1 :?
-                "id=" :string
-              @builder.append_display <for i32> :void
-                __sb_1 :?
-                id :i32
-              ~>
-                @builder.finish :string
-                  __sb_1 :?
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "id=" :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            id :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_2: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_2 :?
-                "label=" :string
-              @builder.append_display <for string> :void
-                __sb_2 :?
-                label :string
-              ~>
-                @builder.finish :string
-                  __sb_2 :?
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "label=" :string
+          @builder.append_display <for string> :void
+            __sb_2 :?
+            label :string
+          ~>
+            @builder.finish :string
+              __sb_2 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_3: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_3 :?
-                "active=" :string
-              @builder.append_display <for bool> :void
-                __sb_3 :?
-                active :bool
-              ~>
-                @builder.finish :string
-                  __sb_3 :?
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "active=" :string
+          @builder.append_display <for bool> :void
+            __sb_3 :?
+            active :bool
+          ~>
+            @builder.finish :string
+              __sb_3 :?
     return int(0) :i32

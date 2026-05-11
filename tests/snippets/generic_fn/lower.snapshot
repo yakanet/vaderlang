@@ -10,24 +10,20 @@
           int(42) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "n = " :string
-              @builder.append_display <for i32> :void
-                __sb_0 :?
-                n :i32
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "n = " :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            n :i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     let arr: i32[] =
       array :i32[]
         int(10) :i32
@@ -43,24 +39,20 @@
           int(0) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_1: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_1 :?
-                "v = " :string
-              @builder.append_display <for i32> :void
-                __sb_1 :?
-                v :i32
-              ~>
-                @builder.finish :string
-                  __sb_1 :?
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "v = " :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            v :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
     return int(0) :i32
   fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$identity__i32(x: i32) -> i32
     return x :i32

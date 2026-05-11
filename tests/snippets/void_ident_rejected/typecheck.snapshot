@@ -8,7 +8,7 @@
   expr 6:13     StringLitExpr  :: string
   expr 6:16     IdentExpr      :: i32
   expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn(Display) -> void
+  expr 6:5      IdentExpr      :: fn(string) -> void
 
 # Diagnostics
 [5:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`

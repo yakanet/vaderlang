@@ -4,19 +4,17 @@
 
 fn tests_snippets_void_ident_rejected__main_vader$mk() -> void
   locals:
-    %0 void#5: i32 (local void)
-    %1 $intrinsic_2#6: ?
-    %2 __sb_0#7: ? (synthetic __sb_0)
-    %3 $intrinsic_4#8: string
-    %4 $call_5#9: string
+    %0 void#4: i32 (local void)
+    %1 $intrinsic_2#5: ?
+    %2 __sb_0#6: ? (synthetic __sb_0)
+    %3 $intrinsic_4#7: string
   bb0:
     %0 = const int(42) :i32
     %1 = intrinsic builder.new()
     %2 = move %1
     intrinsic builder.append_display(%2, %0)
     %3 = intrinsic builder.finish(%2)
-    %4 = call to_string(%3) :string
-    call println(%4) :void
+    call println(%3) :void
     return
 
 fn tests_snippets_void_ident_rejected__main_vader$main() -> i32

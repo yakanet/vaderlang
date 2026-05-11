@@ -9,19 +9,16 @@ string 6 "or"
 string 7 "xor"
 string 8 "not_zero"
 string 9 "not_top"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_u32_bitops__main_vader$check (string,bool) -> void
   local.get 1   ; _main.vader:10:5
   if $L0 void   ; _main.vader:10:5
-    local.get 0   ; _main.vader:10:21
-    call.import 0   ; _main.vader:10:21
-    call.import 1   ; _main.vader:10:13
+    local.get 0   ; _main.vader:10:13
+    call.import 0   ; _main.vader:10:13
   else   ; _main.vader:10:5
     string.const 0   ; _main.vader:10:44
-    call.import 0   ; _main.vader:10:44
-    call.import 1   ; _main.vader:10:36
+    call.import 0   ; _main.vader:10:36
   end $L0   ; _main.vader:10:5
   return   ; _main.vader:9:45
 end

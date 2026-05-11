@@ -37,28 +37,24 @@
         int(42) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "size = " :string
-              @builder.append_display <for usize> :void
-                __sb_0 :?
-                call :usize
-                  callee:
-                    len :usize
-                  arg0:
-                    m :MutableMap(string, i32)
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "size = " :string
+          @builder.append_display <for usize> :void
+            __sb_0 :?
+            call :usize
+              callee:
+                len :usize
+              arg0:
+                m :MutableMap(string, i32)
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     let v1: i32 | null =
       call :i32 | null
         callee:
@@ -80,13 +76,9 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(Display) -> void
+                      println :fn(string) -> void
                     arg0:
-                      call :string
-                        callee:
-                          to_string :string
-                        arg0:
-                          "hello: missing" :string
+                      "hello: missing" :string
           else:
             ~>
               if :void
@@ -99,25 +91,21 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(Display) -> void
+                            println :fn(string) -> void
                           arg0:
-                            call :string
-                              callee:
-                                to_string :string
-                              arg0:
-                                block :string
-                                  let __sb_2: ? =
-                                    @builder.new :?
-                                  @builder.append_str :void
-                                    __sb_2 :?
-                                    "hello = " :string
-                                  @builder.append_display <for i32> :void
-                                    __sb_2 :?
-                                    cast → i32
-                                      v1 :i32 | null
-                                  ~>
-                                    @builder.finish :string
-                                      __sb_2 :?
+                            block :string
+                              let __sb_2: ? =
+                                @builder.new :?
+                              @builder.append_str :void
+                                __sb_2 :?
+                                "hello = " :string
+                              @builder.append_display <for i32> :void
+                                __sb_2 :?
+                                cast → i32
+                                  v1 :i32 | null
+                              ~>
+                                @builder.finish :string
+                                  __sb_2 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -142,13 +130,9 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(Display) -> void
+                      println :fn(string) -> void
                     arg0:
-                      call :string
-                        callee:
-                          to_string :string
-                        arg0:
-                          "world: missing" :string
+                      "world: missing" :string
           else:
             ~>
               if :void
@@ -161,25 +145,21 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(Display) -> void
+                            println :fn(string) -> void
                           arg0:
-                            call :string
-                              callee:
-                                to_string :string
-                              arg0:
-                                block :string
-                                  let __sb_4: ? =
-                                    @builder.new :?
-                                  @builder.append_str :void
-                                    __sb_4 :?
-                                    "world = " :string
-                                  @builder.append_display <for i32> :void
-                                    __sb_4 :?
-                                    cast → i32
-                                      v2 :i32 | null
-                                  ~>
-                                    @builder.finish :string
-                                      __sb_4 :?
+                            block :string
+                              let __sb_4: ? =
+                                @builder.new :?
+                              @builder.append_str :void
+                                __sb_4 :?
+                                "world = " :string
+                              @builder.append_display <for i32> :void
+                                __sb_4 :?
+                                cast → i32
+                                  v2 :i32 | null
+                              ~>
+                                @builder.finish :string
+                                  __sb_4 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -204,13 +184,9 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(Display) -> void
+                      println :fn(string) -> void
                     arg0:
-                      call :string
-                        callee:
-                          to_string :string
-                        arg0:
-                          "vader: missing" :string
+                      "vader: missing" :string
           else:
             ~>
               if :void
@@ -223,80 +199,68 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(Display) -> void
+                            println :fn(string) -> void
                           arg0:
-                            call :string
-                              callee:
-                                to_string :string
-                              arg0:
-                                block :string
-                                  let __sb_6: ? =
-                                    @builder.new :?
-                                  @builder.append_str :void
-                                    __sb_6 :?
-                                    "vader = " :string
-                                  @builder.append_display <for i32> :void
-                                    __sb_6 :?
-                                    cast → i32
-                                      v3 :i32 | null
-                                  ~>
-                                    @builder.finish :string
-                                      __sb_6 :?
+                            block :string
+                              let __sb_6: ? =
+                                @builder.new :?
+                              @builder.append_str :void
+                                __sb_6 :?
+                                "vader = " :string
+                              @builder.append_display <for i32> :void
+                                __sb_6 :?
+                                cast → i32
+                                  v3 :i32 | null
+                              ~>
+                                @builder.finish :string
+                                  __sb_6 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_7: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_7 :?
-                "has hello? " :string
-              @builder.append_display <for bool> :void
-                __sb_7 :?
-                call :bool
-                  callee:
-                    contains :bool
-                  arg0:
-                    m :MutableMap(string, i32)
-                  arg1:
-                    "hello" :string
-              ~>
-                @builder.finish :string
-                  __sb_7 :?
+        block :string
+          let __sb_7: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_7 :?
+            "has hello? " :string
+          @builder.append_display <for bool> :void
+            __sb_7 :?
+            call :bool
+              callee:
+                contains :bool
+              arg0:
+                m :MutableMap(string, i32)
+              arg1:
+                "hello" :string
+          ~>
+            @builder.finish :string
+              __sb_7 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_8: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_8 :?
-                "has missing? " :string
-              @builder.append_display <for bool> :void
-                __sb_8 :?
-                call :bool
-                  callee:
-                    contains :bool
-                  arg0:
-                    m :MutableMap(string, i32)
-                  arg1:
-                    "missing" :string
-              ~>
-                @builder.finish :string
-                  __sb_8 :?
+        block :string
+          let __sb_8: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_8 :?
+            "has missing? " :string
+          @builder.append_display <for bool> :void
+            __sb_8 :?
+            call :bool
+              callee:
+                contains :bool
+              arg0:
+                m :MutableMap(string, i32)
+              arg1:
+                "missing" :string
+          ~>
+            @builder.finish :string
+              __sb_8 :?
     call :void
       callee:
         set_at :void
@@ -327,13 +291,9 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(Display) -> void
+                      println :fn(string) -> void
                     arg0:
-                      call :string
-                        callee:
-                          to_string :string
-                        arg0:
-                          "hello: missing" :string
+                      "hello: missing" :string
           else:
             ~>
               if :void
@@ -346,25 +306,21 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(Display) -> void
+                            println :fn(string) -> void
                           arg0:
-                            call :string
-                              callee:
-                                to_string :string
-                              arg0:
-                                block :string
-                                  let __sb_10: ? =
-                                    @builder.new :?
-                                  @builder.append_str :void
-                                    __sb_10 :?
-                                    "hello updated = " :string
-                                  @builder.append_display <for i32> :void
-                                    __sb_10 :?
-                                    cast → i32
-                                      v1b :i32 | null
-                                  ~>
-                                    @builder.finish :string
-                                      __sb_10 :?
+                            block :string
+                              let __sb_10: ? =
+                                @builder.new :?
+                              @builder.append_str :void
+                                __sb_10 :?
+                                "hello updated = " :string
+                              @builder.append_display <for i32> :void
+                                __sb_10 :?
+                                cast → i32
+                                  v1b :i32 | null
+                              ~>
+                                @builder.finish :string
+                                  __sb_10 :?
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

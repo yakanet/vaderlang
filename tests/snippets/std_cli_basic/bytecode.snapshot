@@ -63,43 +63,42 @@ string 25 ": bool flag accepts true or false, got \""
 string 26 "\""
 string 27 ": missing value, expected --"
 string 28 "=<value>"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 hash std_core$string$Hash$hash (string) -> u64
-import 2 println std_io$println (string) -> void
-import 3 byte_len std_string$byte_len (string) -> usize
-import 4 slice std_string$slice (string,usize,usize) -> string
-import 5 starts_with std_string$starts_with (string,string) -> bool
-import 6 split std_string$split (string,string) -> ref
+import 0 hash std_core$string$Hash$hash (string) -> u64
+import 1 println std_io$println (string) -> void
+import 2 byte_len std_string$byte_len (string) -> usize
+import 3 slice std_string$slice (string,usize,usize) -> string
+import 4 starts_with std_string$starts_with (string,string) -> bool
+import 5 split std_string$split (string,string) -> ref
 
 fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
-  local "$struct_2#95" ref
-  local "$struct_5#98" ref
-  local "specs#99" ref
-  local "r#105" ref
-  local "__sb_0#107" any
-  local "$len_19#110" usize
-  local "__sb_1#114" any
-  local "$len_26#117" usize
-  local "__sb_2#121" any
-  local "$field_32#123" ref
-  local "$idx_34#125" string
-  local "__sb_3#129" any
-  local "$call_41#132" bool
-  local "__sb_4#136" any
-  local "$call_48#139" bool
-  local "__sb_5#143" any
-  local "$call_56#147" string
-  local "__sb_6#151" any
-  local "$call_64#155" string
-  local "bad#162" ref
-  local "__sb_7#164" any
-  local "$len_76#167" usize
-  local "$field_79#170" ref
-  local "$len_82#173" usize
-  local "__iter_8#174" ref
-  local "__step_9#176" ref
-  local "e#180" string
-  local "__sb_10#182" any
+  local "$struct_2#86" ref
+  local "$struct_5#89" ref
+  local "specs#90" ref
+  local "r#96" ref
+  local "__sb_0#98" any
+  local "$len_19#101" usize
+  local "__sb_1#104" any
+  local "$len_25#107" usize
+  local "__sb_2#110" any
+  local "$field_30#112" ref
+  local "$idx_32#114" string
+  local "__sb_3#117" any
+  local "$call_38#120" bool
+  local "__sb_4#123" any
+  local "$call_44#126" bool
+  local "__sb_5#129" any
+  local "$call_51#133" string
+  local "__sb_6#136" any
+  local "$call_58#140" string
+  local "bad#146" ref
+  local "__sb_7#148" any
+  local "$len_69#151" usize
+  local "$field_71#153" ref
+  local "$len_74#156" usize
+  local "__iter_8#157" ref
+  local "__step_9#159" ref
+  local "e#163" string
+  local "__sb_10#165" any
   string.const 0   ; _main.vader:6:9
   i32.const 0   ; _main.vader:6:9
   struct.new 26   ; _main.vader:6:9
@@ -133,8 +132,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:12:21
   local.get 4   ; _main.vader:12:13
   intrinsic builder.finish   ; _main.vader:12:13
-  call.import 0   ; _main.vader:12:13
-  call.import 2   ; _main.vader:12:5
+  call.import 1   ; _main.vader:12:5
   intrinsic builder.new   ; _main.vader:13:13
   local.set 6   ; _main.vader:13:13
   local.get 6   ; _main.vader:13:14
@@ -149,8 +147,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:13:26
   local.get 6   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
-  call.import 0   ; _main.vader:13:13
-  call.import 2   ; _main.vader:13:5
+  call.import 1   ; _main.vader:13:5
   intrinsic builder.new   ; _main.vader:14:13
   local.set 8   ; _main.vader:14:13
   local.get 8   ; _main.vader:14:14
@@ -169,8 +166,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:14:20
   local.get 8   ; _main.vader:14:13
   intrinsic builder.finish   ; _main.vader:14:13
-  call.import 0   ; _main.vader:14:13
-  call.import 2   ; _main.vader:14:5
+  call.import 1   ; _main.vader:14:5
   intrinsic builder.new   ; _main.vader:15:13
   local.set 11   ; _main.vader:15:13
   local.get 11   ; _main.vader:15:14
@@ -185,8 +181,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:15:22
   local.get 11   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
-  call.import 0   ; _main.vader:15:13
-  call.import 2   ; _main.vader:15:5
+  call.import 1   ; _main.vader:15:5
   intrinsic builder.new   ; _main.vader:16:13
   local.set 13   ; _main.vader:16:13
   local.get 13   ; _main.vader:16:14
@@ -201,8 +196,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:16:22
   local.get 13   ; _main.vader:16:13
   intrinsic builder.finish   ; _main.vader:16:13
-  call.import 0   ; _main.vader:16:13
-  call.import 2   ; _main.vader:16:5
+  call.import 1   ; _main.vader:16:5
   intrinsic builder.new   ; _main.vader:17:13
   local.set 15   ; _main.vader:17:13
   local.get 15   ; _main.vader:17:14
@@ -218,8 +212,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:17:18
   local.get 15   ; _main.vader:17:13
   intrinsic builder.finish   ; _main.vader:17:13
-  call.import 0   ; _main.vader:17:13
-  call.import 2   ; _main.vader:17:5
+  call.import 1   ; _main.vader:17:5
   intrinsic builder.new   ; _main.vader:18:13
   local.set 17   ; _main.vader:18:13
   local.get 17   ; _main.vader:18:14
@@ -235,8 +228,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:18:22
   local.get 17   ; _main.vader:18:13
   intrinsic builder.finish   ; _main.vader:18:13
-  call.import 0   ; _main.vader:18:13
-  call.import 2   ; _main.vader:18:5
+  call.import 1   ; _main.vader:18:5
   string.const 16   ; _main.vader:21:18
   string.const 17   ; _main.vader:21:18
   array.new 18 2   ; _main.vader:21:18
@@ -257,8 +249,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:22:24
   local.get 20   ; _main.vader:22:13
   intrinsic builder.finish   ; _main.vader:22:13
-  call.import 0   ; _main.vader:22:13
-  call.import 2   ; _main.vader:22:5
+  call.import 1   ; _main.vader:22:5
   local.get 19   ; _main.vader:23:14
   struct.get 28 2   ; _main.vader:23:14
   local.set 22   ; _main.vader:23:14
@@ -293,8 +284,7 @@ fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:24:22
         local.get 27   ; _main.vader:24:17
         intrinsic builder.finish   ; _main.vader:24:17
-        call.import 0   ; _main.vader:24:17
-        call.import 2   ; _main.vader:24:9
+        call.import 1   ; _main.vader:24:9
         br $L1   ; _main.vader:23:5
       end $L2   ; _main.vader:23:5
     end $L1   ; _main.vader:23:5
@@ -306,29 +296,29 @@ end
 fn 1 std_core$usize$Comparable$compare (usize,usize) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:353:35
-  local.get 1   ; core.vader:353:35
-  usize.lt   ; core.vader:353:35
-  if $L0 void   ; core.vader:353:32
-    i32.const 1   ; core.vader:353:51
-    i32.neg   ; core.vader:353:50
-    local.set 3   ; core.vader:353:50
-  else   ; core.vader:353:32
-    local.get 0   ; core.vader:353:63
-    local.get 1   ; core.vader:353:63
-    usize.gt   ; core.vader:353:63
-    if $L1 void   ; core.vader:353:60
-      i32.const 1   ; core.vader:353:78
-      local.set 2   ; core.vader:353:78
-    else   ; core.vader:353:60
-      i32.const 0   ; core.vader:353:89
-      local.set 2   ; core.vader:353:89
-    end $L1   ; core.vader:353:60
-    local.get 2   ; core.vader:353:60
-    local.set 3   ; core.vader:353:60
-  end $L0   ; core.vader:353:32
-  local.get 3   ; core.vader:353:29
-  return   ; core.vader:353:29
+  local.get 0   ; core.vader:354:35
+  local.get 1   ; core.vader:354:35
+  usize.lt   ; core.vader:354:35
+  if $L0 void   ; core.vader:354:32
+    i32.const 1   ; core.vader:354:51
+    i32.neg   ; core.vader:354:50
+    local.set 3   ; core.vader:354:50
+  else   ; core.vader:354:32
+    local.get 0   ; core.vader:354:63
+    local.get 1   ; core.vader:354:63
+    usize.gt   ; core.vader:354:63
+    if $L1 void   ; core.vader:354:60
+      i32.const 1   ; core.vader:354:78
+      local.set 2   ; core.vader:354:78
+    else   ; core.vader:354:60
+      i32.const 0   ; core.vader:354:89
+      local.set 2   ; core.vader:354:89
+    end $L1   ; core.vader:354:60
+    local.get 2   ; core.vader:354:60
+    local.set 3   ; core.vader:354:60
+  end $L0   ; core.vader:354:32
+  local.get 3   ; core.vader:354:29
+  return   ; core.vader:354:29
 end
 
 fn 2 std_core$usize$Comparable$gt (usize,usize) -> bool
@@ -356,11 +346,11 @@ fn 3 std_core$usize$Comparable$gte (usize,usize) -> bool
 end
 
 fn 4 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; core.vader:371:26
-  i64.const 1   ; core.vader:371:26
-  i64.to_usize   ; core.vader:371:26
-  usize.add   ; core.vader:371:26
-  return   ; core.vader:371:23
+  local.get 0   ; core.vader:372:26
+  i64.const 1   ; core.vader:372:26
+  i64.to_usize   ; core.vader:372:26
+  usize.add   ; core.vader:372:26
+  return   ; core.vader:372:23
 end
 
 fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
@@ -593,7 +583,7 @@ fn 8 std_cli$parse (ref,ref) -> ref
           else   ; cli.vader:58:9
             local.get 10   ; cli.vader:62:13
             string.const 20   ; cli.vader:62:13
-            call.import 5   ; cli.vader:62:13
+            call.import 4   ; cli.vader:62:13
             bool.not   ; cli.vader:62:12
             if $L5 void   ; cli.vader:62:9
               local.get 4   ; cli.vader:63:13
@@ -605,16 +595,16 @@ fn 8 std_cli$parse (ref,ref) -> ref
               i32.to_usize   ; cli.vader:72:25
               local.set 11   ; cli.vader:72:25
               local.get 10   ; cli.vader:72:35
-              call.import 3   ; cli.vader:72:35
+              call.import 2   ; cli.vader:72:35
               local.set 12   ; cli.vader:72:35
               local.get 10   ; cli.vader:72:17
               local.get 11   ; cli.vader:72:17
               local.get 12   ; cli.vader:72:17
-              call.import 4   ; cli.vader:72:17
+              call.import 3   ; cli.vader:72:17
               local.set 13   ; cli.vader:72:9
               local.get 13   ; cli.vader:73:18
               string.const 21   ; cli.vader:73:18
-              call.import 6   ; cli.vader:73:18
+              call.import 5   ; cli.vader:73:18
               local.set 14   ; cli.vader:73:9
               local.get 14   ; cli.vader:74:17
               i32.const 0   ; cli.vader:74:17
@@ -973,7 +963,7 @@ fn 15 std_collections$std_collections$put__string__string (ref,string,string) ->
   else   ; collections.vader:72:5
   end $L0   ; collections.vader:72:5
   local.get 1   ; collections.vader:77:10
-  call.import 1   ; collections.vader:77:10
+  call.import 0   ; collections.vader:77:10
   call 12   ; collections.vader:78:12
   local.set 8   ; collections.vader:78:5
   local.get 0   ; collections.vader:81:31
@@ -1115,7 +1105,7 @@ fn 16 std_collections$std_collections$get__string__string (ref,string) -> ref
     return   ; collections.vader:114:9
   else   ; collections.vader:113:5
     local.get 1   ; collections.vader:116:10
-    call.import 1   ; collections.vader:116:10
+    call.import 0   ; collections.vader:116:10
     call 12   ; collections.vader:117:12
     local.set 3   ; collections.vader:117:5
     local.get 0   ; collections.vader:118:31

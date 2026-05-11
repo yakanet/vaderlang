@@ -4,60 +4,57 @@
 
 fn tests_snippets_gc_chain_survive__main_vader$main() -> i32
   locals:
-    %0 $k_0#49: i32
-    %1 $k_1#50: null
-    %2 head#53: Node | null (local head)
-    %3 i#54: i32 (local i)
-    %4 $k_6#55: i32
-    %5 $lt_7#56: bool
-    %6 $k_9#58: i32
-    %7 $call_11#60: i32
-    %8 before#61: i32 (local before)
-    %9 $call_13#62: i32
-    %10 after#63: i32 (local after)
-    %11 diff#64: i32 (local diff)
-    %12 $k_17#65: i32
-    %13 $neq_18#66: bool
-    %14 $intrinsic_19#67: ?
-    %15 __sb_0#68: ? (synthetic __sb_0)
-    %16 $k_21#69: string
-    %17 $intrinsic_22#70: string
-    %18 $call_23#71: string
-    %19 $k_24#72: i32
-    %20 sum#76: i32 (local sum)
-    %21 cur#77: Node | null (local cur)
-    %22 done#78: bool (local done)
-    %23 $not_30#79: bool
-    %24 __scrut_1#80: Node | null (synthetic __scrut_1)
-    %25 $type_check_32#81: bool
-    %26 $type_check_34#83: bool
-    %27 $cast_35#84: Node
-    %28 $field_36#85: i32
-    %29 sum#86: i32 (local sum)
-    %30 $cast_38#87: Node
-    %31 cur#88: Node | null (local cur)
-    %32 sum#89: i32 (local sum)
-    %33 cur#90: Node | null (local cur)
-    %34 done#91: bool (local done)
-    %35 $k_40#92: i32
-    %36 $k_41#93: i32
-    %37 $mul_42#94: {integer}
-    %38 $k_43#95: i32
-    %39 expected#96: i32 (local expected)
-    %40 $neq_46#97: bool
-    %41 $intrinsic_47#98: ?
-    %42 __sb_2#99: ? (synthetic __sb_2)
-    %43 $k_49#100: string
-    %44 $k_50#101: string
-    %45 $intrinsic_51#102: string
-    %46 $call_52#103: string
-    %47 $k_53#104: i32
-    %48 $intrinsic_54#105: ?
-    %49 __sb_3#106: ? (synthetic __sb_3)
-    %50 $k_56#107: string
-    %51 $intrinsic_57#108: string
-    %52 $call_58#109: string
-    %53 $k_59#110: i32
+    %0 $k_0#46: i32
+    %1 $k_1#47: null
+    %2 head#50: Node | null (local head)
+    %3 i#51: i32 (local i)
+    %4 $k_6#52: i32
+    %5 $lt_7#53: bool
+    %6 $k_9#55: i32
+    %7 $call_11#57: i32
+    %8 before#58: i32 (local before)
+    %9 $call_13#59: i32
+    %10 after#60: i32 (local after)
+    %11 diff#61: i32 (local diff)
+    %12 $k_17#62: i32
+    %13 $neq_18#63: bool
+    %14 $intrinsic_19#64: ?
+    %15 __sb_0#65: ? (synthetic __sb_0)
+    %16 $k_21#66: string
+    %17 $intrinsic_22#67: string
+    %18 $k_23#68: i32
+    %19 sum#72: i32 (local sum)
+    %20 cur#73: Node | null (local cur)
+    %21 done#74: bool (local done)
+    %22 $not_29#75: bool
+    %23 __scrut_1#76: Node | null (synthetic __scrut_1)
+    %24 $type_check_31#77: bool
+    %25 $type_check_33#79: bool
+    %26 $cast_34#80: Node
+    %27 $field_35#81: i32
+    %28 sum#82: i32 (local sum)
+    %29 $cast_37#83: Node
+    %30 cur#84: Node | null (local cur)
+    %31 sum#85: i32 (local sum)
+    %32 cur#86: Node | null (local cur)
+    %33 done#87: bool (local done)
+    %34 $k_39#88: i32
+    %35 $k_40#89: i32
+    %36 $mul_41#90: {integer}
+    %37 $k_42#91: i32
+    %38 expected#92: i32 (local expected)
+    %39 $neq_45#93: bool
+    %40 $intrinsic_46#94: ?
+    %41 __sb_2#95: ? (synthetic __sb_2)
+    %42 $k_48#96: string
+    %43 $k_49#97: string
+    %44 $intrinsic_50#98: string
+    %45 $k_51#99: i32
+    %46 $intrinsic_52#100: ?
+    %47 __sb_3#101: ? (synthetic __sb_3)
+    %48 $k_54#102: string
+    %49 $intrinsic_55#103: string
+    %50 $k_56#104: i32
   bb0:
     %0 = const int(0) :i32
     %1 = const null :null
@@ -90,79 +87,76 @@ fn tests_snippets_gc_chain_survive__main_vader$main() -> i32
     intrinsic builder.append_str(%15, %16)
     intrinsic builder.append_display(%15, %11)
     %17 = intrinsic builder.finish(%15)
-    %18 = call to_string(%17) :string
-    call println(%18) :void
-    %19 = const int(1) :i32
-    return %19
+    call println(%17) :void
+    %18 = const int(1) :i32
+    return %18
   bb5:
-    %20 = const int(0) :i32
-    %21 = move %2
-    %22 = const bool(false) :bool
+    %19 = const int(0) :i32
+    %20 = move %2
+    %21 = const bool(false) :bool
     branch -> bb6
   bb6:
-    %23 = unop not %22 :bool
-    cond_branch %23 ? bb7 : bb8
+    %22 = unop not %21 :bool
+    cond_branch %22 ? bb7 : bb8
   bb7:
-    %24 = move %21
-    %25 = type_check %24 is null
-    cond_branch %25 ? bb9 : bb10
+    %23 = move %20
+    %24 = type_check %23 is null
+    cond_branch %24 ? bb9 : bb10
   bb8:
-    %35 = const int(200) :i32
-    %36 = const int(199) :i32
-    %37 = binop mul %35 %36 :{integer}
-    %38 = const int(2) :i32
-    %39 = binop div %37 %38 :{integer}
-    %40 = binop neq %20 %39 :bool
-    cond_branch %40 ? bb15 : bb16
+    %34 = const int(200) :i32
+    %35 = const int(199) :i32
+    %36 = binop mul %34 %35 :{integer}
+    %37 = const int(2) :i32
+    %38 = binop div %36 %37 :{integer}
+    %39 = binop neq %19 %38 :bool
+    cond_branch %39 ? bb15 : bb16
   bb9:
-    %34 = const bool(true) :bool
+    %33 = const bool(true) :bool
+    %31 = move %19
     %32 = move %20
-    %33 = move %21
     branch -> bb11
   bb10:
-    %26 = type_check %24 is Node
-    cond_branch %26 ? bb12 : bb13
+    %25 = type_check %23 is Node
+    cond_branch %25 ? bb12 : bb13
   bb11:
+    %19 = move %31
     %20 = move %32
     %21 = move %33
-    %22 = move %34
     branch -> bb6
   bb12:
-    %27 = cast %21 :Node
-    %28 = field_get %27.value :i32
-    %29 = binop add %20 %28 :i32
-    %30 = cast %21 :Node
-    %31 = field_get %30.next :Node | null
+    %26 = cast %20 :Node
+    %27 = field_get %26.value :i32
+    %28 = binop add %19 %27 :i32
+    %29 = cast %20 :Node
+    %30 = field_get %29.next :Node | null
     branch -> bb14
   bb13:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb14:
-    %32 = move %29
-    %33 = move %31
-    %34 = move %22
+    %31 = move %28
+    %32 = move %30
+    %33 = move %21
     branch -> bb11
   bb15:
-    %41 = intrinsic builder.new()
-    %42 = move %41
-    %43 = const string(#1) :string
-    intrinsic builder.append_str(%42, %43)
-    intrinsic builder.append_display(%42, %20)
-    %44 = const string(#2) :string
-    intrinsic builder.append_str(%42, %44)
-    intrinsic builder.append_display(%42, %39)
-    %45 = intrinsic builder.finish(%42)
-    %46 = call to_string(%45) :string
-    call println(%46) :void
-    %47 = const int(2) :i32
-    return %47
+    %40 = intrinsic builder.new()
+    %41 = move %40
+    %42 = const string(#1) :string
+    intrinsic builder.append_str(%41, %42)
+    intrinsic builder.append_display(%41, %19)
+    %43 = const string(#2) :string
+    intrinsic builder.append_str(%41, %43)
+    intrinsic builder.append_display(%41, %38)
+    %44 = intrinsic builder.finish(%41)
+    call println(%44) :void
+    %45 = const int(2) :i32
+    return %45
   bb16:
-    %48 = intrinsic builder.new()
-    %49 = move %48
-    %50 = const string(#3) :string
-    intrinsic builder.append_str(%49, %50)
-    intrinsic builder.append_display(%49, %20)
-    %51 = intrinsic builder.finish(%49)
-    %52 = call to_string(%51) :string
-    call println(%52) :void
-    %53 = const int(0) :i32
-    return %53
+    %46 = intrinsic builder.new()
+    %47 = move %46
+    %48 = const string(#3) :string
+    intrinsic builder.append_str(%47, %48)
+    intrinsic builder.append_display(%47, %19)
+    %49 = intrinsic builder.finish(%47)
+    call println(%49) :void
+    %50 = const int(0) :i32
+    return %50

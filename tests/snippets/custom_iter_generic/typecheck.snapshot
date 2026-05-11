@@ -47,7 +47,7 @@
   expr 28:13    StringLitExpr  :: string
   expr 28:16    IdentExpr      :: i32
   expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(Display) -> void
+  expr 28:5     IdentExpr      :: fn(string) -> void
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded($T)
   expr undefined:undefined IdentExpr      :: Repeat($T)
   expr undefined:undefined IdentExpr      :: bool

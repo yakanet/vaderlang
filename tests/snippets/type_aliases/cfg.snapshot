@@ -13,24 +13,21 @@ fn tests_snippets_type_aliases__main_vader$add(%0: i32, %1: i32) -> i32
 
 fn tests_snippets_type_aliases__main_vader$main() -> i32
   locals:
-    %0 x#18: i32 (local x)
-    %1 y#19: i64 (local y)
-    %2 b#20: u8 (local b)
-    %3 $intrinsic_10#21: ?
-    %4 __sb_0#22: ? (synthetic __sb_0)
-    %5 $k_12#23: i32
-    %6 $call_13#24: i32
-    %7 $intrinsic_14#25: string
-    %8 $call_15#26: string
-    %9 $intrinsic_16#27: ?
-    %10 __sb_1#28: ? (synthetic __sb_1)
-    %11 $intrinsic_18#29: string
-    %12 $call_19#30: string
-    %13 $intrinsic_20#31: ?
-    %14 __sb_2#32: ? (synthetic __sb_2)
-    %15 $intrinsic_22#33: string
-    %16 $call_23#34: string
-    %17 $k_24#35: i32
+    %0 x#15: i32 (local x)
+    %1 y#16: i64 (local y)
+    %2 b#17: u8 (local b)
+    %3 $intrinsic_10#18: ?
+    %4 __sb_0#19: ? (synthetic __sb_0)
+    %5 $k_12#20: i32
+    %6 $call_13#21: i32
+    %7 $intrinsic_14#22: string
+    %8 $intrinsic_15#23: ?
+    %9 __sb_1#24: ? (synthetic __sb_1)
+    %10 $intrinsic_17#25: string
+    %11 $intrinsic_18#26: ?
+    %12 __sb_2#27: ? (synthetic __sb_2)
+    %13 $intrinsic_20#28: string
+    %14 $k_21#29: i32
   bb0:
     %0 = const int(42) :i32
     %1 = const int(1000000000000) :i64
@@ -41,19 +38,16 @@ fn tests_snippets_type_aliases__main_vader$main() -> i32
     %6 = call add(%0, %5) :i32
     intrinsic builder.append_display(%4, %6)
     %7 = intrinsic builder.finish(%4)
-    %8 = call to_string(%7) :string
-    call println(%8) :void
-    %9 = intrinsic builder.new()
-    %10 = move %9
-    intrinsic builder.append_display(%10, %1)
-    %11 = intrinsic builder.finish(%10)
-    %12 = call to_string(%11) :string
-    call println(%12) :void
-    %13 = intrinsic builder.new()
-    %14 = move %13
-    intrinsic builder.append_display(%14, %2)
-    %15 = intrinsic builder.finish(%14)
-    %16 = call to_string(%15) :string
-    call println(%16) :void
-    %17 = const int(0) :i32
-    return %17
+    call println(%7) :void
+    %8 = intrinsic builder.new()
+    %9 = move %8
+    intrinsic builder.append_display(%9, %1)
+    %10 = intrinsic builder.finish(%9)
+    call println(%10) :void
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    intrinsic builder.append_display(%12, %2)
+    %13 = intrinsic builder.finish(%12)
+    call println(%13) :void
+    %14 = const int(0) :i32
+    return %14

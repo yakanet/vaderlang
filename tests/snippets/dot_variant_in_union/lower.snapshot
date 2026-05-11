@@ -116,17 +116,13 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string :string
+                      dir_label :fn(Direction) -> string
                     arg0:
-                      call :string
-                        callee:
-                          dir_label :fn(Direction) -> string
-                        arg0:
-                          d :Direction
+                      d :Direction
           else:
             ~>
               if :void
@@ -137,13 +133,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "err" :string
+                        "err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -166,17 +158,13 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
                   call :string
                     callee:
-                      to_string :string
+                      dir_label :fn(Direction) -> string
                     arg0:
-                      call :string
-                        callee:
-                          dir_label :fn(Direction) -> string
-                        arg0:
-                          d :Direction
+                      d :Direction
           else:
             ~>
               if :void
@@ -187,13 +175,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "err" :string
+                        "err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

@@ -33,18 +33,17 @@ fn tests_snippets_custom_iter__main_vader$Countdown$Iterator$next(%0: Countdown)
 
 fn tests_snippets_custom_iter__main_vader$main() -> i32
   locals:
-    %0 $k_0#12: i32
-    %1 __iter_0#13: Countdown (synthetic __iter_0)
-    %2 $call_4#14: Done | Yielded(i32)
-    %3 __step_1#15: Done | Yielded(i32) (synthetic __step_1)
-    %4 $type_check_6#16: bool
-    %5 $k_14#17: i32
-    %6 $cast_7#18: Yielded(i32)
-    %7 x#19: i32 (binding x)
-    %8 $intrinsic_10#20: ?
-    %9 __sb_2#21: ? (synthetic __sb_2)
-    %10 $intrinsic_12#22: string
-    %11 $call_13#23: string
+    %0 $k_0#11: i32
+    %1 __iter_0#12: Countdown (synthetic __iter_0)
+    %2 $call_4#13: Done | Yielded(i32)
+    %3 __step_1#14: Done | Yielded(i32) (synthetic __step_1)
+    %4 $type_check_6#15: bool
+    %5 $k_13#16: i32
+    %6 $cast_7#17: Yielded(i32)
+    %7 x#18: i32 (binding x)
+    %8 $intrinsic_10#19: ?
+    %9 __sb_2#20: ? (synthetic __sb_2)
+    %10 $intrinsic_12#21: string
   bb0:
     %0 = const int(5) :i32
     %1 = struct_new Countdown(%0)
@@ -68,8 +67,7 @@ fn tests_snippets_custom_iter__main_vader$main() -> i32
     %9 = move %8
     intrinsic builder.append_display(%9, %7)
     %10 = intrinsic builder.finish(%9)
-    %11 = call to_string(%10) :string
-    call println(%11) :void
+    call println(%10) :void
     branch -> bb6
   bb6:
     branch -> bb1

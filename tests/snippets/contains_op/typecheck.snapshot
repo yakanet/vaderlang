@@ -18,19 +18,19 @@
   expr 14:29    IdentExpr      :: i32
   expr 19:13    RangeExpr      :: Range(i32)
   expr 19:22    CallExpr       :: void
-  expr 19:22    IdentExpr      :: fn(Display) -> void
+  expr 19:22    IdentExpr      :: fn(string) -> void
   expr 19:30    StringLitExpr  :: string
   expr 19:5     IfExpr         :: void
   expr 19:8     BinaryExpr     :: bool
   expr 20:15    RangeExpr      :: Range(i32)
   expr 20:24    CallExpr       :: void
-  expr 20:24    IdentExpr      :: fn(Display) -> void
+  expr 20:24    IdentExpr      :: fn(string) -> void
   expr 20:32    StringLitExpr  :: string
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
   expr 21:14    RangeExpr      :: Range(i32)
   expr 21:23    CallExpr       :: void
-  expr 21:23    IdentExpr      :: fn(Display) -> void
+  expr 21:23    IdentExpr      :: fn(string) -> void
   expr 21:31    StringLitExpr  :: string
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
@@ -42,19 +42,19 @@
   expr 23:52    BinaryExpr     :: {integer}
   expr 24:13    IdentExpr      :: DigitSet
   expr 24:17    CallExpr       :: void
-  expr 24:17    IdentExpr      :: fn(Display) -> void
+  expr 24:17    IdentExpr      :: fn(string) -> void
   expr 24:25    StringLitExpr  :: string
   expr 24:5     IfExpr         :: void
   expr 24:8     BinaryExpr     :: bool
   expr 25:14    IdentExpr      :: DigitSet
   expr 25:18    CallExpr       :: void
-  expr 25:18    IdentExpr      :: fn(Display) -> void
+  expr 25:18    IdentExpr      :: fn(string) -> void
   expr 25:26    StringLitExpr  :: string
   expr 25:5     IfExpr         :: void
   expr 25:8     BinaryExpr     :: bool
   expr 26:13    IdentExpr      :: DigitSet
   expr 26:17    CallExpr       :: void
-  expr 26:17    IdentExpr      :: fn(Display) -> void
+  expr 26:17    IdentExpr      :: fn(string) -> void
   expr 26:25    StringLitExpr  :: string
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool

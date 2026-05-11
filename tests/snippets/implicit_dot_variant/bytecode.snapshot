@@ -13,8 +13,7 @@ string 1 "Tue"
 string 2 "Wed"
 string 3 "got="
 string 4 "nothing"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_implicit_dot_variant__main_vader$show_day (i32) -> string
   local "__scrut_0#11" i32
@@ -48,23 +47,22 @@ fn 0 tests_snippets_implicit_dot_variant__main_vader$show_day (i32) -> string
 end
 
 fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
-  local "days#49" ref
-  local "$len_9#51" usize
-  local "__iter_0#52" ref
-  local "__step_1#54" ref
-  local "m#57" ref
-  local "__scrut_2#58" ref
-  local "__sb_3#61" any
-  local "$field_29#64" i32
-  local "n#70" ref
-  local "__scrut_4#71" ref
-  local "__sb_5#74" any
-  local "$k_41#75" string
-  local "$field_43#77" i32
+  local "days#42" ref
+  local "$len_8#44" usize
+  local "__iter_0#45" ref
+  local "__step_1#47" ref
+  local "m#50" ref
+  local "__scrut_2#51" ref
+  local "__sb_3#54" any
+  local "$field_27#57" i32
+  local "n#61" ref
+  local "__scrut_4#62" ref
+  local "__sb_5#65" any
+  local "$k_37#66" string
+  local "$field_39#68" i32
   i32.const 0   ; _main.vader:26:14
   call 0   ; _main.vader:27:13
-  call.import 0   ; _main.vader:27:13
-  call.import 1   ; _main.vader:27:5
+  call.import 0   ; _main.vader:27:5
   i32.const 0   ; _main.vader:30:19
   i32.const 2   ; _main.vader:30:19
   array.new 7 2   ; _main.vader:30:19
@@ -89,8 +87,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
         local.get 3   ; _main.vader:31:5
         struct.get 4 0   ; _main.vader:31:5
         call 0   ; _main.vader:31:29
-        call.import 0   ; _main.vader:31:29
-        call.import 1   ; _main.vader:31:21
+        call.import 0   ; _main.vader:31:21
         br $L1   ; _main.vader:31:5
       end $L2   ; _main.vader:31:5
     end $L1   ; _main.vader:31:5
@@ -114,8 +111,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
     intrinsic builder.append_display   ; _main.vader:36:34
     local.get 6   ; _main.vader:36:29
     intrinsic builder.finish   ; _main.vader:36:29
-    call.import 0   ; _main.vader:36:29
-    call.import 1   ; _main.vader:36:21
+    call.import 0   ; _main.vader:36:21
     struct.new_stack 2   ; _main.vader:39:16
     local.tee 8   ; _main.vader:39:16
     local.tee 9   ; _main.vader:40:11
@@ -136,8 +132,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
       intrinsic builder.append_display   ; _main.vader:41:34
       local.get 10   ; _main.vader:41:29
       intrinsic builder.finish   ; _main.vader:41:29
-      call.import 0   ; _main.vader:41:29
-      call.import 1   ; _main.vader:41:21
+      call.import 0   ; _main.vader:41:21
       i32.const 0   ; _main.vader:44:12
       return   ; _main.vader:44:5
     else   ; _main.vader:41:9
@@ -145,8 +140,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
       type_check 2   ; _main.vader:42:9
       if $L5 void   ; _main.vader:42:9
         string.const 4   ; _main.vader:42:29
-        call.import 0   ; _main.vader:42:29
-        call.import 1   ; _main.vader:42:21
+        call.import 0   ; _main.vader:42:21
         i32.const 0   ; _main.vader:44:12
         return   ; _main.vader:44:5
       else   ; _main.vader:42:9
@@ -158,8 +152,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
     type_check 2   ; _main.vader:37:9
     if $L6 void   ; _main.vader:37:9
       string.const 4   ; _main.vader:37:29
-      call.import 0   ; _main.vader:37:29
-      call.import 1   ; _main.vader:37:21
+      call.import 0   ; _main.vader:37:21
       struct.new_stack 2   ; _main.vader:39:16
       local.tee 8   ; _main.vader:39:16
       local.tee 9   ; _main.vader:40:11
@@ -180,8 +173,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:41:34
         local.get 10   ; _main.vader:41:29
         intrinsic builder.finish   ; _main.vader:41:29
-        call.import 0   ; _main.vader:41:29
-        call.import 1   ; _main.vader:41:21
+        call.import 0   ; _main.vader:41:21
         i32.const 0   ; _main.vader:44:12
         return   ; _main.vader:44:5
       else   ; _main.vader:41:9
@@ -189,8 +181,7 @@ fn 1 tests_snippets_implicit_dot_variant__main_vader$main () -> i32
         type_check 2   ; _main.vader:42:9
         if $L8 void   ; _main.vader:42:9
           string.const 4   ; _main.vader:42:29
-          call.import 0   ; _main.vader:42:29
-          call.import 1   ; _main.vader:42:21
+          call.import 0   ; _main.vader:42:21
           i32.const 0   ; _main.vader:44:12
           return   ; _main.vader:44:5
         else   ; _main.vader:42:9

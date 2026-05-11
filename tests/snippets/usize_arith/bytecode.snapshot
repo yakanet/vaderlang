@@ -1,10 +1,9 @@
 module _main
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_usize_arith__main_vader$main () -> i32
-  local "m#10" usize
-  local "__sb_0#12" any
+  local "m#9" usize
+  local "__sb_0#11" any
   i64.const 10   ; _main.vader:5:16
   i64.to_usize   ; _main.vader:5:16
   i64.const 1   ; _main.vader:5:16
@@ -17,8 +16,7 @@ fn 0 tests_snippets_usize_arith__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:6:14
   local.get 1   ; _main.vader:6:13
   intrinsic builder.finish   ; _main.vader:6:13
-  call.import 0   ; _main.vader:6:13
-  call.import 1   ; _main.vader:6:5
+  call.import 0   ; _main.vader:6:5
   i32.const 0   ; _main.vader:7:12
   return   ; _main.vader:7:5
 end

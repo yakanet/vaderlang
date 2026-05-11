@@ -1,7 +1,6 @@
 module _main
 string 0 "hello"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_expr_bodied_fn__main_vader$square (i32) -> i32
   local.get 0   ; _main.vader:7:31
@@ -45,18 +44,18 @@ fn 3 tests_snippets_expr_bodied_fn__main_vader$a (i32) -> i32
 end
 
 fn 4 tests_snippets_expr_bodied_fn__main_vader$main () -> i32
-  local "__sb_0#43" any
-  local "$call_3#45" i32
-  local "__sb_1#49" any
-  local "$call_10#52" f64
-  local "__sb_2#56" any
-  local "$call_17#59" f64
-  local "__sb_3#63" any
-  local "$call_23#65" i32
-  local "__sb_4#69" any
-  local "$call_29#71" i32
-  local "__sb_5#75" any
-  local "$call_35#77" f64
+  local "__sb_0#36" any
+  local "$call_3#38" i32
+  local "__sb_1#41" any
+  local "$call_9#44" f64
+  local "__sb_2#47" any
+  local "$call_15#50" f64
+  local "__sb_3#53" any
+  local "$call_20#55" i32
+  local "__sb_4#58" any
+  local "$call_25#60" i32
+  local "__sb_5#63" any
+  local "$call_30#65" f64
   intrinsic builder.new   ; _main.vader:20:13
   local.set 0   ; _main.vader:20:13
   i32.const 7   ; _main.vader:20:23
@@ -67,8 +66,7 @@ fn 4 tests_snippets_expr_bodied_fn__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:20:14
   local.get 0   ; _main.vader:20:13
   intrinsic builder.finish   ; _main.vader:20:13
-  call.import 0   ; _main.vader:20:13
-  call.import 1   ; _main.vader:20:5
+  call.import 0   ; _main.vader:20:5
   intrinsic builder.new   ; _main.vader:21:13
   local.set 2   ; _main.vader:21:13
   f64.const 3.5   ; _main.vader:21:16
@@ -80,8 +78,7 @@ fn 4 tests_snippets_expr_bodied_fn__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:21:14
   local.get 2   ; _main.vader:21:13
   intrinsic builder.finish   ; _main.vader:21:13
-  call.import 0   ; _main.vader:21:13
-  call.import 1   ; _main.vader:21:5
+  call.import 0   ; _main.vader:21:5
   intrinsic builder.new   ; _main.vader:22:13
   local.set 4   ; _main.vader:22:13
   f64.const 10.0   ; _main.vader:22:16
@@ -93,8 +90,7 @@ fn 4 tests_snippets_expr_bodied_fn__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:22:14
   local.get 4   ; _main.vader:22:13
   intrinsic builder.finish   ; _main.vader:22:13
-  call.import 0   ; _main.vader:22:13
-  call.import 1   ; _main.vader:22:5
+  call.import 0   ; _main.vader:22:5
   intrinsic builder.new   ; _main.vader:23:13
   local.set 6   ; _main.vader:23:13
   i32.const 5   ; _main.vader:23:18
@@ -105,8 +101,7 @@ fn 4 tests_snippets_expr_bodied_fn__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:23:14
   local.get 6   ; _main.vader:23:13
   intrinsic builder.finish   ; _main.vader:23:13
-  call.import 0   ; _main.vader:23:13
-  call.import 1   ; _main.vader:23:5
+  call.import 0   ; _main.vader:23:5
   intrinsic builder.new   ; _main.vader:24:13
   local.set 8   ; _main.vader:24:13
   i32.const 42   ; _main.vader:24:19
@@ -117,8 +112,7 @@ fn 4 tests_snippets_expr_bodied_fn__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:24:14
   local.get 8   ; _main.vader:24:13
   intrinsic builder.finish   ; _main.vader:24:13
-  call.import 0   ; _main.vader:24:13
-  call.import 1   ; _main.vader:24:5
+  call.import 0   ; _main.vader:24:5
   intrinsic builder.new   ; _main.vader:25:13
   local.set 10   ; _main.vader:25:13
   f64.const 7.5   ; _main.vader:25:19
@@ -129,12 +123,10 @@ fn 4 tests_snippets_expr_bodied_fn__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:25:14
   local.get 10   ; _main.vader:25:13
   intrinsic builder.finish   ; _main.vader:25:13
-  call.import 0   ; _main.vader:25:13
-  call.import 1   ; _main.vader:25:5
+  call.import 0   ; _main.vader:25:5
   string.const 0   ; _main.vader:26:16
   call 7   ; _main.vader:26:13
-  call.import 0   ; _main.vader:26:13
-  call.import 1   ; _main.vader:26:5
+  call.import 0   ; _main.vader:26:5
   i32.const 0   ; _main.vader:27:12
   return   ; _main.vader:27:5
 end

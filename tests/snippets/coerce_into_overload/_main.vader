@@ -1,0 +1,32 @@
+import "std/io" { println }
+
+// Overload resolution second-pass : when no exact-match candidate fits the
+// receiver's type, the typer probes `Into(firstParam)` and accepts a
+// candidate whose first param is reachable via the coercion. Direct
+// candidates still beat Into-fallback ones (no shadowing of native fits).
+
+UserId :: struct { value: i32 }
+UserId implements Into(i32) {
+    into :: fn(self) -> i32 { return self.value }
+}
+
+// Two overloads ; neither's first param matches UserId directly.
+double :: fn(n: i32) -> i32 { return n + n }
+double :: fn(n: f64) -> f64 { return n + n }
+
+// A direct UserId overload — must win over the Into fallback when present.
+preferred :: fn(u: UserId) -> i32 { return 100 }
+preferred :: fn(n: i32) -> i32 { return n + 1 }
+
+main :: fn() -> i32 {
+    u :: UserId { .value = 42 }
+    // No `double(UserId)` overload ; ranks `double(i32)` via Into.
+    a :: double(u)
+    println("a=${a}")  // a=84
+
+    // Direct `preferred(UserId)` wins over `preferred(i32) via Into`.
+    b :: preferred(u)
+    println("b=${b}")  // b=100
+
+    return 0
+}

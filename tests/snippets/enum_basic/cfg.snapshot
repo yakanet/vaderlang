@@ -63,81 +63,69 @@ fn tests_snippets_enum_basic__main_vader$describe(%0: Direction) -> string
 
 fn tests_snippets_enum_basic__main_vader$main() -> void
   locals:
-    %0 d#28: Direction (local d)
-    %1 $call_2#29: string
-    %2 $call_3#30: string
-    %3 $k_4#31: i32
-    %4 $call_5#32: string
-    %5 $call_6#33: string
-    %6 $k_7#34: i32
-    %7 $eq_8#35: bool
-    %8 $k_9#36: string
-    %9 $call_10#37: string
-    %10 $k_11#38: i32
-    %11 $eq_12#39: bool
-    %12 $k_13#40: string
-    %13 $call_14#41: string
-    %14 $intrinsic_15#42: ?
-    %15 __sb_0#43: ? (synthetic __sb_0)
-    %16 $k_17#44: string
-    %17 $k_18#45: i32
-    %18 $eq_19#46: bool
-    %19 $intrinsic_20#47: string
-    %20 $call_21#48: string
-    %21 $intrinsic_22#49: ?
-    %22 __sb_1#50: ? (synthetic __sb_1)
-    %23 $k_24#51: string
-    %24 $k_25#52: i32
-    %25 $eq_26#53: bool
-    %26 $intrinsic_27#54: string
-    %27 $call_28#55: string
+    %0 d#22: Direction (local d)
+    %1 $call_2#23: string
+    %2 $k_3#24: i32
+    %3 $call_4#25: string
+    %4 $k_5#26: i32
+    %5 $eq_6#27: bool
+    %6 $k_7#28: string
+    %7 $k_8#29: i32
+    %8 $eq_9#30: bool
+    %9 $k_10#31: string
+    %10 $intrinsic_11#32: ?
+    %11 __sb_0#33: ? (synthetic __sb_0)
+    %12 $k_13#34: string
+    %13 $k_14#35: i32
+    %14 $eq_15#36: bool
+    %15 $intrinsic_16#37: string
+    %16 $intrinsic_17#38: ?
+    %17 __sb_1#39: ? (synthetic __sb_1)
+    %18 $k_19#40: string
+    %19 $k_20#41: i32
+    %20 $eq_21#42: bool
+    %21 $intrinsic_22#43: string
   bb0:
     %0 = const int(2) :i32
     %1 = call describe(%0) :string
-    %2 = call to_string(%1) :string
-    call println(%2) :void
-    %3 = const int(0) :i32
-    %4 = call describe(%3) :string
-    %5 = call to_string(%4) :string
-    call println(%5) :void
-    %6 = const int(2) :i32
-    %7 = binop eq %0 %6 :bool
-    cond_branch %7 ? bb1 : bb2
+    call println(%1) :void
+    %2 = const int(0) :i32
+    %3 = call describe(%2) :string
+    call println(%3) :void
+    %4 = const int(2) :i32
+    %5 = binop eq %0 %4 :bool
+    cond_branch %5 ? bb1 : bb2
   bb1:
-    %8 = const string(#4) :string
-    %9 = call to_string(%8) :string
-    call println(%9) :void
+    %6 = const string(#4) :string
+    call println(%6) :void
     branch -> bb2
   bb2:
-    %10 = const int(3) :i32
-    %11 = binop eq %0 %10 :bool
-    cond_branch %11 ? bb3 : bb4
+    %7 = const int(3) :i32
+    %8 = binop eq %0 %7 :bool
+    cond_branch %8 ? bb3 : bb4
   bb3:
-    %12 = const string(#5) :string
-    %13 = call to_string(%12) :string
-    call println(%13) :void
+    %9 = const string(#5) :string
+    call println(%9) :void
     branch -> bb4
   bb4:
-    %14 = intrinsic builder.new()
-    %15 = move %14
-    %16 = const string(#6) :string
-    intrinsic builder.append_str(%15, %16)
-    %17 = const int(2) :i32
-    %18 = binop eq %0 %17 :bool
-    intrinsic builder.append_display(%15, %18)
-    %19 = intrinsic builder.finish(%15)
-    %20 = call to_string(%19) :string
-    call println(%20) :void
-    %21 = intrinsic builder.new()
-    %22 = move %21
-    %23 = const string(#7) :string
-    intrinsic builder.append_str(%22, %23)
-    %24 = const int(3) :i32
-    %25 = binop eq %0 %24 :bool
-    intrinsic builder.append_display(%22, %25)
-    %26 = intrinsic builder.finish(%22)
-    %27 = call to_string(%26) :string
-    call println(%27) :void
+    %10 = intrinsic builder.new()
+    %11 = move %10
+    %12 = const string(#6) :string
+    intrinsic builder.append_str(%11, %12)
+    %13 = const int(2) :i32
+    %14 = binop eq %0 %13 :bool
+    intrinsic builder.append_display(%11, %14)
+    %15 = intrinsic builder.finish(%11)
+    call println(%15) :void
+    %16 = intrinsic builder.new()
+    %17 = move %16
+    %18 = const string(#7) :string
+    intrinsic builder.append_str(%17, %18)
+    %19 = const int(3) :i32
+    %20 = binop eq %0 %19 :bool
+    intrinsic builder.append_display(%17, %20)
+    %21 = intrinsic builder.finish(%17)
+    call println(%21) :void
     return
 
 # Diagnostics

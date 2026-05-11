@@ -16,8 +16,7 @@ string 8 "Z is alpha"
 string 9 "5 is not alpha"
 string 10 "a..=e count = "
 string 11 "0..<5 count = "
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_char_range_contains__main_vader$is_digit (char) -> bool
   char.const 48   ; _main.vader:11:17
@@ -68,18 +67,17 @@ fn 2 tests_snippets_char_range_contains__main_vader$is_alpha (char) -> bool
 end
 
 fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
-  local "__iter_0#124" ref
-  local "n#125" i32
-  local "__sb_2#130" any
-  local "__iter_3#139" ref
-  local "m#140" i32
-  local "__sb_5#145" any
+  local "__iter_0#102" ref
+  local "n#103" i32
+  local "__sb_2#108" any
+  local "__iter_3#116" ref
+  local "m#117" i32
+  local "__sb_5#122" any
   char.const 53   ; _main.vader:23:17
   call 0   ; _main.vader:23:8
   if $L0 void   ; _main.vader:23:5
     string.const 0   ; _main.vader:23:34
-    call.import 0   ; _main.vader:23:34
-    call.import 1   ; _main.vader:23:26
+    call.import 0   ; _main.vader:23:26
   else   ; _main.vader:23:5
   end $L0   ; _main.vader:23:5
   char.const 97   ; _main.vader:24:18
@@ -87,24 +85,21 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   bool.not   ; _main.vader:24:8
   if $L1 void   ; _main.vader:24:5
     string.const 1   ; _main.vader:24:34
-    call.import 0   ; _main.vader:24:34
-    call.import 1   ; _main.vader:24:26
+    call.import 0   ; _main.vader:24:26
   else   ; _main.vader:24:5
   end $L1   ; _main.vader:24:5
   char.const 48   ; _main.vader:25:17
   call 0   ; _main.vader:25:8
   if $L2 void   ; _main.vader:25:5
     string.const 2   ; _main.vader:25:34
-    call.import 0   ; _main.vader:25:34
-    call.import 1   ; _main.vader:25:26
+    call.import 0   ; _main.vader:25:26
   else   ; _main.vader:25:5
   end $L2   ; _main.vader:25:5
   char.const 57   ; _main.vader:26:17
   call 0   ; _main.vader:26:8
   if $L3 void   ; _main.vader:26:5
     string.const 3   ; _main.vader:26:34
-    call.import 0   ; _main.vader:26:34
-    call.import 1   ; _main.vader:26:26
+    call.import 0   ; _main.vader:26:26
   else   ; _main.vader:26:5
   end $L3   ; _main.vader:26:5
   char.const 58   ; _main.vader:27:18
@@ -112,16 +107,14 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   bool.not   ; _main.vader:27:8
   if $L4 void   ; _main.vader:27:5
     string.const 4   ; _main.vader:27:34
-    call.import 0   ; _main.vader:27:34
-    call.import 1   ; _main.vader:27:26
+    call.import 0   ; _main.vader:27:26
   else   ; _main.vader:27:5
   end $L4   ; _main.vader:27:5
   char.const 109   ; _main.vader:29:17
   call 1   ; _main.vader:29:8
   if $L5 void   ; _main.vader:29:5
     string.const 5   ; _main.vader:29:34
-    call.import 0   ; _main.vader:29:34
-    call.import 1   ; _main.vader:29:26
+    call.import 0   ; _main.vader:29:26
   else   ; _main.vader:29:5
   end $L5   ; _main.vader:29:5
   char.const 77   ; _main.vader:30:18
@@ -129,24 +122,21 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   bool.not   ; _main.vader:30:8
   if $L6 void   ; _main.vader:30:5
     string.const 6   ; _main.vader:30:34
-    call.import 0   ; _main.vader:30:34
-    call.import 1   ; _main.vader:30:26
+    call.import 0   ; _main.vader:30:26
   else   ; _main.vader:30:5
   end $L6   ; _main.vader:30:5
   char.const 122   ; _main.vader:32:17
   call 2   ; _main.vader:32:8
   if $L7 void   ; _main.vader:32:5
     string.const 7   ; _main.vader:32:34
-    call.import 0   ; _main.vader:32:34
-    call.import 1   ; _main.vader:32:26
+    call.import 0   ; _main.vader:32:26
   else   ; _main.vader:32:5
   end $L7   ; _main.vader:32:5
   char.const 90   ; _main.vader:33:17
   call 2   ; _main.vader:33:8
   if $L8 void   ; _main.vader:33:5
     string.const 8   ; _main.vader:33:34
-    call.import 0   ; _main.vader:33:34
-    call.import 1   ; _main.vader:33:26
+    call.import 0   ; _main.vader:33:26
   else   ; _main.vader:33:5
   end $L8   ; _main.vader:33:5
   char.const 53   ; _main.vader:34:18
@@ -154,8 +144,7 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   bool.not   ; _main.vader:34:8
   if $L9 void   ; _main.vader:34:5
     string.const 9   ; _main.vader:34:34
-    call.import 0   ; _main.vader:34:34
-    call.import 1   ; _main.vader:34:26
+    call.import 0   ; _main.vader:34:26
   else   ; _main.vader:34:5
   end $L9   ; _main.vader:34:5
   i32.const 0   ; _main.vader:37:10
@@ -191,8 +180,7 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:41:28
   local.get 2   ; _main.vader:41:13
   intrinsic builder.finish   ; _main.vader:41:13
-  call.import 0   ; _main.vader:41:13
-  call.import 1   ; _main.vader:41:5
+  call.import 0   ; _main.vader:41:5
   i32.const 0   ; _main.vader:44:10
   local.set 4   ; _main.vader:44:10
   char.const 48   ; _main.vader:45:14
@@ -226,8 +214,7 @@ fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:48:28
   local.get 5   ; _main.vader:48:13
   intrinsic builder.finish   ; _main.vader:48:13
-  call.import 0   ; _main.vader:48:13
-  call.import 1   ; _main.vader:48:5
+  call.import 0   ; _main.vader:48:5
   i32.const 0   ; _main.vader:50:12
   return   ; _main.vader:50:5
 end
@@ -235,29 +222,29 @@ end
 fn 4 std_core$char$Comparable$compare (char,char) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:354:35
-  local.get 1   ; core.vader:354:35
-  char.lt   ; core.vader:354:35
-  if $L0 void   ; core.vader:354:32
-    i32.const 1   ; core.vader:354:51
-    i32.neg   ; core.vader:354:50
-    local.set 3   ; core.vader:354:50
-  else   ; core.vader:354:32
-    local.get 0   ; core.vader:354:63
-    local.get 1   ; core.vader:354:63
-    char.gt   ; core.vader:354:63
-    if $L1 void   ; core.vader:354:60
-      i32.const 1   ; core.vader:354:78
-      local.set 2   ; core.vader:354:78
-    else   ; core.vader:354:60
-      i32.const 0   ; core.vader:354:89
-      local.set 2   ; core.vader:354:89
-    end $L1   ; core.vader:354:60
-    local.get 2   ; core.vader:354:60
-    local.set 3   ; core.vader:354:60
-  end $L0   ; core.vader:354:32
-  local.get 3   ; core.vader:354:29
-  return   ; core.vader:354:29
+  local.get 0   ; core.vader:355:35
+  local.get 1   ; core.vader:355:35
+  char.lt   ; core.vader:355:35
+  if $L0 void   ; core.vader:355:32
+    i32.const 1   ; core.vader:355:51
+    i32.neg   ; core.vader:355:50
+    local.set 3   ; core.vader:355:50
+  else   ; core.vader:355:32
+    local.get 0   ; core.vader:355:63
+    local.get 1   ; core.vader:355:63
+    char.gt   ; core.vader:355:63
+    if $L1 void   ; core.vader:355:60
+      i32.const 1   ; core.vader:355:78
+      local.set 2   ; core.vader:355:78
+    else   ; core.vader:355:60
+      i32.const 0   ; core.vader:355:89
+      local.set 2   ; core.vader:355:89
+    end $L1   ; core.vader:355:60
+    local.get 2   ; core.vader:355:60
+    local.set 3   ; core.vader:355:60
+  end $L0   ; core.vader:355:32
+  local.get 3   ; core.vader:355:29
+  return   ; core.vader:355:29
 end
 
 fn 5 std_core$char$Comparable$lt (char,char) -> bool
@@ -311,17 +298,17 @@ end
 fn 9 std_core$char$Step$step (char) -> char
   local "$cast_1#6" u32
   local "$cast_3#8" u32
-  local.get 0   ; core.vader:372:31
-  char.to_u32   ; core.vader:372:31
-  local.set 1   ; core.vader:372:31
-  i32.const 1   ; core.vader:372:47
-  i32.to_u32   ; core.vader:372:43
-  local.set 2   ; core.vader:372:43
-  local.get 1   ; core.vader:372:31
-  local.get 2   ; core.vader:372:31
-  u32.add   ; core.vader:372:31
-  u32.to_char   ; core.vader:372:26
-  return   ; core.vader:372:23
+  local.get 0   ; core.vader:373:31
+  char.to_u32   ; core.vader:373:31
+  local.set 1   ; core.vader:373:31
+  i32.const 1   ; core.vader:373:47
+  i32.to_u32   ; core.vader:373:43
+  local.set 2   ; core.vader:373:43
+  local.get 1   ; core.vader:373:31
+  local.get 2   ; core.vader:373:31
+  u32.add   ; core.vader:373:31
+  u32.to_char   ; core.vader:373:26
+  return   ; core.vader:373:23
 end
 
 fn 10 std_core$Range$Contains$contains__char (ref,char) -> bool

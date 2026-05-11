@@ -1,17 +1,15 @@
 module _main
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_void_ident_rejected__main_vader$mk () -> void
-  local "__sb_0#7" any
+  local "__sb_0#6" any
   intrinsic builder.new   ; _main.vader:6:13
   local.tee 0   ; _main.vader:6:13
   i32.const 42   ; _main.vader:6:14
   intrinsic builder.append_display   ; _main.vader:6:14
   local.get 0   ; _main.vader:6:13
   intrinsic builder.finish   ; _main.vader:6:13
-  call.import 0   ; _main.vader:6:13
-  call.import 1   ; _main.vader:6:5
+  call.import 0   ; _main.vader:6:5
   return   ; _main.vader:4:12
 end
 

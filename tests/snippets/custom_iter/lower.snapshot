@@ -183,19 +183,15 @@
                   __step_1 :Done | Yielded(i32)
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    block :string
-                      let __sb_2: ? =
-                        @builder.new :?
-                      @builder.append_display <for i32> :void
-                        __sb_2 :?
-                        x :i32
-                      ~>
-                        @builder.finish :string
-                          __sb_2 :?
+                block :string
+                  let __sb_2: ? =
+                    @builder.new :?
+                  @builder.append_display <for i32> :void
+                    __sb_2 :?
+                    x :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_2 :?
     return int(0) :i32

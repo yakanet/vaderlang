@@ -13,24 +13,25 @@ IOError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-/// Write `msg` to stdout without a trailing newline. Accepts anything
-/// implementing `Display` — the lowerer routes through the matching
-/// `to_string` impl before reaching the host (no virtual dispatch).
-/// @param msg  the value to render. Any type implementing `Display`.
-@intrinsic export print :: fn(msg: Display) -> void
+/// Write `msg` to stdout without a trailing newline. Any value whose
+/// type implements `Display` flows in through the blanket
+/// `T implements[T: Display] Into(string)` coercion declared in
+/// `std/core`, so the host sees a flat UTF-8 string.
+/// @param msg  the string to write (or any `Display` value).
+@intrinsic export print :: fn(msg: string) -> void
 
-/// Write `msg` to stdout followed by a `\n`. Same `Display` coercion as
-/// `print`.
-/// @param msg  the value to render. Any type implementing `Display`.
-@intrinsic export println :: fn(msg: Display) -> void
+/// Write `msg` to stdout followed by a `\n`. Same `Into(string)`
+/// coercion as `print`.
+/// @param msg  the string to write (or any `Display` value).
+@intrinsic export println :: fn(msg: string) -> void
 
 /// Write `msg` to stderr without a trailing newline.
-/// @param msg  the value to render. Any type implementing `Display`.
-@intrinsic export eprint :: fn(msg: Display) -> void
+/// @param msg  the string to write (or any `Display` value).
+@intrinsic export eprint :: fn(msg: string) -> void
 
 /// Write `msg` to stderr followed by a `\n`.
-/// @param msg  the value to render. Any type implementing `Display`.
-@intrinsic export eprintln :: fn(msg: Display) -> void
+/// @param msg  the string to write (or any `Display` value).
+@intrinsic export eprintln :: fn(msg: string) -> void
 
 /// Read one line from stdin, blocking until a newline arrives. The
 /// returned string does NOT include the trailing `\n`.

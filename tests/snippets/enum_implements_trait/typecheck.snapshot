@@ -15,17 +15,17 @@
   expr 24:13    FieldExpr      :: fn() -> string
   expr 24:13    IdentExpr      :: Direction
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(Display) -> void
+  expr 24:5     IdentExpr      :: fn(string) -> void
   expr 26:13    CallExpr       :: string
   expr 26:13    FieldExpr      :: Direction
   expr 26:13    FieldExpr      :: fn() -> string
   expr 26:13    IdentExpr      :: Direction
   expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn(Display) -> void
+  expr 26:5     IdentExpr      :: fn(string) -> void
   expr 28:10    FieldExpr      :: Direction
   expr 28:10    IdentExpr      :: Direction
   expr 29:13    CallExpr       :: string
   expr 29:13    FieldExpr      :: fn() -> string
   expr 29:13    IdentExpr      :: Direction
   expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(Display) -> void
+  expr 29:5     IdentExpr      :: fn(string) -> void

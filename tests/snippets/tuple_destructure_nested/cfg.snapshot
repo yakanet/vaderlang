@@ -19,29 +19,26 @@ fn tests_snippets_tuple_destructure_nested__main_vader$make_record() -> [[i32, s
 
 fn tests_snippets_tuple_destructure_nested__main_vader$main() -> i32
   locals:
-    %0 $call_0#23: [[i32, string], bool]
-    %1 __tup_0#24: [[i32, string], bool] (synthetic __tup_0)
-    %2 $field_2#25: [i32, string]
-    %3 id#26: i32 (local id)
-    %4 $field_5#27: [i32, string]
-    %5 label#28: string (local label)
-    %6 active#29: bool (local active)
-    %7 $intrinsic_10#30: ?
-    %8 __sb_1#31: ? (synthetic __sb_1)
-    %9 $k_12#32: string
-    %10 $intrinsic_13#33: string
-    %11 $call_14#34: string
-    %12 $intrinsic_15#35: ?
-    %13 __sb_2#36: ? (synthetic __sb_2)
-    %14 $k_17#37: string
-    %15 $intrinsic_18#38: string
-    %16 $call_19#39: string
-    %17 $intrinsic_20#40: ?
-    %18 __sb_3#41: ? (synthetic __sb_3)
-    %19 $k_22#42: string
-    %20 $intrinsic_23#43: string
-    %21 $call_24#44: string
-    %22 $k_25#45: i32
+    %0 $call_0#20: [[i32, string], bool]
+    %1 __tup_0#21: [[i32, string], bool] (synthetic __tup_0)
+    %2 $field_2#22: [i32, string]
+    %3 id#23: i32 (local id)
+    %4 $field_5#24: [i32, string]
+    %5 label#25: string (local label)
+    %6 active#26: bool (local active)
+    %7 $intrinsic_10#27: ?
+    %8 __sb_1#28: ? (synthetic __sb_1)
+    %9 $k_12#29: string
+    %10 $intrinsic_13#30: string
+    %11 $intrinsic_14#31: ?
+    %12 __sb_2#32: ? (synthetic __sb_2)
+    %13 $k_16#33: string
+    %14 $intrinsic_17#34: string
+    %15 $intrinsic_18#35: ?
+    %16 __sb_3#36: ? (synthetic __sb_3)
+    %17 $k_20#37: string
+    %18 $intrinsic_21#38: string
+    %19 $k_22#39: i32
   bb0:
     %0 = call make_record() :[[i32, string], bool]
     %1 = move %0
@@ -56,23 +53,20 @@ fn tests_snippets_tuple_destructure_nested__main_vader$main() -> i32
     intrinsic builder.append_str(%8, %9)
     intrinsic builder.append_display(%8, %3)
     %10 = intrinsic builder.finish(%8)
-    %11 = call to_string(%10) :string
-    call println(%11) :void
-    %12 = intrinsic builder.new()
-    %13 = move %12
-    %14 = const string(#2) :string
-    intrinsic builder.append_str(%13, %14)
-    intrinsic builder.append_display(%13, %5)
-    %15 = intrinsic builder.finish(%13)
-    %16 = call to_string(%15) :string
-    call println(%16) :void
-    %17 = intrinsic builder.new()
-    %18 = move %17
-    %19 = const string(#3) :string
-    intrinsic builder.append_str(%18, %19)
-    intrinsic builder.append_display(%18, %6)
-    %20 = intrinsic builder.finish(%18)
-    %21 = call to_string(%20) :string
-    call println(%21) :void
-    %22 = const int(0) :i32
-    return %22
+    call println(%10) :void
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = const string(#2) :string
+    intrinsic builder.append_str(%12, %13)
+    intrinsic builder.append_display(%12, %5)
+    %14 = intrinsic builder.finish(%12)
+    call println(%14) :void
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    %17 = const string(#3) :string
+    intrinsic builder.append_str(%16, %17)
+    intrinsic builder.append_display(%16, %6)
+    %18 = intrinsic builder.finish(%16)
+    call println(%18) :void
+    %19 = const int(0) :i32
+    return %19

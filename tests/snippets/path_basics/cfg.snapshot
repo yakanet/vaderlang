@@ -6,12 +6,11 @@ fn tests_snippets_path_basics__main_vader$show_path(%0: string, %1: Path) -> voi
   locals:
     %0 label: string (param label)
     %1 p: Path (param p)
-    %2 $intrinsic_2#8: ?
-    %3 __sb_0#9: ? (synthetic __sb_0)
-    %4 $k_4#10: string
-    %5 $call_5#11: string
-    %6 $intrinsic_6#12: string
-    %7 $call_7#13: string
+    %2 $intrinsic_2#7: ?
+    %3 __sb_0#8: ? (synthetic __sb_0)
+    %4 $k_4#9: string
+    %5 $call_5#10: string
+    %6 $intrinsic_6#11: string
   bb0:
     %2 = intrinsic builder.new()
     %3 = move %2
@@ -21,149 +20,138 @@ fn tests_snippets_path_basics__main_vader$show_path(%0: string, %1: Path) -> voi
     %5 = call as_string(%1) :string
     intrinsic builder.append_display(%3, %5)
     %6 = intrinsic builder.finish(%3)
-    %7 = call to_string(%6) :string
-    call println(%7) :void
+    call println(%6) :void
     return
 
 fn tests_snippets_path_basics__main_vader$main() -> i32
   locals:
-    %0 $k_0#137: string
-    %1 $call_1#138: Path
-    %2 p#139: Path (local p)
-    %3 $k_3#140: string
-    %4 $intrinsic_4#141: ?
-    %5 __sb_0#142: ? (synthetic __sb_0)
-    %6 $k_6#143: string
-    %7 $call_7#144: string
-    %8 $intrinsic_8#145: string
-    %9 $call_9#146: string
-    %10 $intrinsic_10#147: ?
-    %11 __sb_1#148: ? (synthetic __sb_1)
-    %12 $k_12#149: string
-    %13 $call_13#150: string
-    %14 $intrinsic_14#151: string
-    %15 $call_15#152: string
-    %16 $intrinsic_16#153: ?
-    %17 __sb_2#154: ? (synthetic __sb_2)
-    %18 $k_18#155: string
-    %19 $call_19#156: string
-    %20 $intrinsic_20#157: string
-    %21 $call_21#158: string
-    %22 $k_22#159: string
-    %23 $call_23#160: Path
-    %24 $k_24#161: string
-    %25 $call_25#162: Path
-    %26 $call_26#163: Path
-    %27 $k_27#164: string
-    %28 $call_28#165: Path
-    %29 abs#166: Path (local abs)
-    %30 $intrinsic_30#167: ?
-    %31 __sb_3#168: ? (synthetic __sb_3)
-    %32 $k_32#169: string
-    %33 $call_33#170: bool
-    %34 $intrinsic_34#171: string
-    %35 $call_35#172: string
-    %36 $k_36#173: string
-    %37 $call_37#174: Path
-    %38 $k_38#175: string
-    %39 $call_39#176: string
-    %40 $call_40#177: Path
-    %41 $k_41#178: string
-    %42 $call_42#179: Path
-    %43 $call_43#180: Path
-    %44 $intrinsic_44#181: ?
-    %45 __sb_4#182: ? (synthetic __sb_4)
-    %46 $k_46#183: string
-    %47 $call_47#184: Path
-    %48 $call_48#185: bool
-    %49 $intrinsic_49#186: string
-    %50 $call_50#187: string
-    %51 $intrinsic_51#188: ?
-    %52 __sb_5#189: ? (synthetic __sb_5)
-    %53 $k_53#190: string
-    %54 $call_54#191: bool
-    %55 $intrinsic_55#192: string
-    %56 $call_56#193: string
-    %57 $k_57#194: string
-    %58 $k_58#195: string
-    %59 $call_59#196: Path
-    %60 $k_60#197: string
-    %61 $call_61#198: Path
-    %62 $k_62#199: string
-    %63 $k_63#200: string
-    %64 $call_64#201: Path
-    %65 $k_65#202: string
-    %66 $call_66#203: Path
-    %67 $k_67#204: string
-    %68 $k_68#205: string
-    %69 $call_69#206: Path
-    %70 $k_70#207: string
-    %71 $call_71#208: Path
-    %72 $k_72#209: string
-    %73 $call_73#210: Path
-    %74 $k_74#211: string
-    %75 $call_75#212: Path
-    %76 $intrinsic_76#213: ?
-    %77 __sb_6#214: ? (synthetic __sb_6)
-    %78 $k_78#215: string
-    %79 $k_79#216: string
-    %80 $call_80#217: Path
-    %81 $k_81#218: string
-    %82 $call_82#219: Path
-    %83 $call_83#220: bool
-    %84 $intrinsic_84#221: string
-    %85 $call_85#222: string
-    %86 $intrinsic_86#223: ?
-    %87 __sb_7#224: ? (synthetic __sb_7)
-    %88 $k_88#225: string
-    %89 $k_89#226: string
-    %90 $call_90#227: Path
-    %91 $k_91#228: string
-    %92 $call_92#229: Path
-    %93 $call_93#230: bool
-    %94 $intrinsic_94#231: string
-    %95 $call_95#232: string
-    %96 $intrinsic_96#233: ?
-    %97 __sb_8#234: ? (synthetic __sb_8)
-    %98 $k_98#235: string
-    %99 $k_99#236: string
-    %100 $call_100#237: Path
-    %101 $k_101#238: string
-    %102 $call_102#239: Path
-    %103 $call_103#240: bool
-    %104 $intrinsic_104#241: string
-    %105 $call_105#242: string
-    %106 $intrinsic_106#243: ?
-    %107 __sb_9#244: ? (synthetic __sb_9)
-    %108 $k_108#245: string
-    %109 $k_109#246: string
-    %110 $call_110#247: Path
-    %111 $k_111#248: string
-    %112 $call_112#249: Path
-    %113 $call_113#250: bool
-    %114 $intrinsic_114#251: string
-    %115 $call_115#252: string
-    %116 $k_116#253: string
-    %117 $k_117#254: string
-    %118 $call_118#255: Path
-    %119 $call_119#256: Path
-    %120 $k_120#257: string
-    %121 $k_121#258: string
-    %122 $call_122#259: Path
-    %123 $call_123#260: Path
-    %124 $k_124#261: string
-    %125 $k_125#262: string
-    %126 $call_126#263: Path
-    %127 $call_127#264: Path
-    %128 $k_128#265: string
-    %129 $k_129#266: string
-    %130 $call_130#267: Path
-    %131 $call_131#268: Path
-    %132 $k_132#269: string
-    %133 $k_133#270: string
-    %134 $call_134#271: Path
-    %135 $call_135#272: Path
-    %136 $k_136#273: i32
+    %0 $k_0#127: string
+    %1 $call_1#128: Path
+    %2 p#129: Path (local p)
+    %3 $k_3#130: string
+    %4 $intrinsic_4#131: ?
+    %5 __sb_0#132: ? (synthetic __sb_0)
+    %6 $k_6#133: string
+    %7 $call_7#134: string
+    %8 $intrinsic_8#135: string
+    %9 $intrinsic_9#136: ?
+    %10 __sb_1#137: ? (synthetic __sb_1)
+    %11 $k_11#138: string
+    %12 $call_12#139: string
+    %13 $intrinsic_13#140: string
+    %14 $intrinsic_14#141: ?
+    %15 __sb_2#142: ? (synthetic __sb_2)
+    %16 $k_16#143: string
+    %17 $call_17#144: string
+    %18 $intrinsic_18#145: string
+    %19 $k_19#146: string
+    %20 $call_20#147: Path
+    %21 $k_21#148: string
+    %22 $call_22#149: Path
+    %23 $call_23#150: Path
+    %24 $k_24#151: string
+    %25 $call_25#152: Path
+    %26 abs#153: Path (local abs)
+    %27 $intrinsic_27#154: ?
+    %28 __sb_3#155: ? (synthetic __sb_3)
+    %29 $k_29#156: string
+    %30 $call_30#157: bool
+    %31 $intrinsic_31#158: string
+    %32 $k_32#159: string
+    %33 $call_33#160: Path
+    %34 $k_34#161: string
+    %35 $call_35#162: string
+    %36 $call_36#163: Path
+    %37 $k_37#164: string
+    %38 $call_38#165: Path
+    %39 $call_39#166: Path
+    %40 $intrinsic_40#167: ?
+    %41 __sb_4#168: ? (synthetic __sb_4)
+    %42 $k_42#169: string
+    %43 $call_43#170: Path
+    %44 $call_44#171: bool
+    %45 $intrinsic_45#172: string
+    %46 $intrinsic_46#173: ?
+    %47 __sb_5#174: ? (synthetic __sb_5)
+    %48 $k_48#175: string
+    %49 $call_49#176: bool
+    %50 $intrinsic_50#177: string
+    %51 $k_51#178: string
+    %52 $k_52#179: string
+    %53 $call_53#180: Path
+    %54 $k_54#181: string
+    %55 $call_55#182: Path
+    %56 $k_56#183: string
+    %57 $k_57#184: string
+    %58 $call_58#185: Path
+    %59 $k_59#186: string
+    %60 $call_60#187: Path
+    %61 $k_61#188: string
+    %62 $k_62#189: string
+    %63 $call_63#190: Path
+    %64 $k_64#191: string
+    %65 $call_65#192: Path
+    %66 $k_66#193: string
+    %67 $call_67#194: Path
+    %68 $k_68#195: string
+    %69 $call_69#196: Path
+    %70 $intrinsic_70#197: ?
+    %71 __sb_6#198: ? (synthetic __sb_6)
+    %72 $k_72#199: string
+    %73 $k_73#200: string
+    %74 $call_74#201: Path
+    %75 $k_75#202: string
+    %76 $call_76#203: Path
+    %77 $call_77#204: bool
+    %78 $intrinsic_78#205: string
+    %79 $intrinsic_79#206: ?
+    %80 __sb_7#207: ? (synthetic __sb_7)
+    %81 $k_81#208: string
+    %82 $k_82#209: string
+    %83 $call_83#210: Path
+    %84 $k_84#211: string
+    %85 $call_85#212: Path
+    %86 $call_86#213: bool
+    %87 $intrinsic_87#214: string
+    %88 $intrinsic_88#215: ?
+    %89 __sb_8#216: ? (synthetic __sb_8)
+    %90 $k_90#217: string
+    %91 $k_91#218: string
+    %92 $call_92#219: Path
+    %93 $k_93#220: string
+    %94 $call_94#221: Path
+    %95 $call_95#222: bool
+    %96 $intrinsic_96#223: string
+    %97 $intrinsic_97#224: ?
+    %98 __sb_9#225: ? (synthetic __sb_9)
+    %99 $k_99#226: string
+    %100 $k_100#227: string
+    %101 $call_101#228: Path
+    %102 $k_102#229: string
+    %103 $call_103#230: Path
+    %104 $call_104#231: bool
+    %105 $intrinsic_105#232: string
+    %106 $k_106#233: string
+    %107 $k_107#234: string
+    %108 $call_108#235: Path
+    %109 $call_109#236: Path
+    %110 $k_110#237: string
+    %111 $k_111#238: string
+    %112 $call_112#239: Path
+    %113 $call_113#240: Path
+    %114 $k_114#241: string
+    %115 $k_115#242: string
+    %116 $call_116#243: Path
+    %117 $call_117#244: Path
+    %118 $k_118#245: string
+    %119 $k_119#246: string
+    %120 $call_120#247: Path
+    %121 $call_121#248: Path
+    %122 $k_122#249: string
+    %123 $k_123#250: string
+    %124 $call_124#251: Path
+    %125 $call_125#252: Path
+    %126 $k_126#253: i32
   bb0:
     %0 = const string(#1) :string
     %1 = call to_path(%0) :Path
@@ -177,174 +165,164 @@ fn tests_snippets_path_basics__main_vader$main() -> i32
     %7 = call filename(%2) :string
     intrinsic builder.append_display(%5, %7)
     %8 = intrinsic builder.finish(%5)
-    %9 = call to_string(%8) :string
-    call println(%9) :void
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = const string(#4) :string
-    intrinsic builder.append_str(%11, %12)
-    %13 = call stem(%2) :string
-    intrinsic builder.append_display(%11, %13)
-    %14 = intrinsic builder.finish(%11)
-    %15 = call to_string(%14) :string
-    call println(%15) :void
-    %16 = intrinsic builder.new()
-    %17 = move %16
-    %18 = const string(#5) :string
-    intrinsic builder.append_str(%17, %18)
-    %19 = call extension(%2) :string
-    intrinsic builder.append_display(%17, %19)
-    %20 = intrinsic builder.finish(%17)
-    %21 = call to_string(%20) :string
-    call println(%21) :void
-    %22 = const string(#6) :string
-    %23 = call parent(%2) :Path
-    call show_path(%22, %23) :void
-    %24 = const string(#7) :string
-    %25 = call parent(%2) :Path
-    %26 = call parent(%25) :Path
-    call show_path(%24, %26) :void
-    %27 = const string(#8) :string
-    %28 = call to_path(%27) :Path
-    %29 = move %28
-    %30 = intrinsic builder.new()
-    %31 = move %30
-    %32 = const string(#9) :string
-    intrinsic builder.append_str(%31, %32)
-    %33 = call is_absolute(%29) :bool
-    intrinsic builder.append_display(%31, %33)
-    %34 = intrinsic builder.finish(%31)
-    %35 = call to_string(%34) :string
-    call println(%35) :void
-    %36 = const string(#10) :string
-    %37 = call parent(%29) :Path
-    call show_path(%36, %37) :void
-    %38 = const string(#11) :string
-    %39 = call filename(%29) :string
-    %40 = call to_path(%39) :Path
-    call show_path(%38, %40) :void
-    %41 = const string(#12) :string
-    %42 = call parent(%29) :Path
-    %43 = call parent(%42) :Path
-    call show_path(%41, %43) :void
-    %44 = intrinsic builder.new()
-    %45 = move %44
-    %46 = const string(#13) :string
-    intrinsic builder.append_str(%45, %46)
-    %47 = call empty_path() :Path
-    %48 = call is_empty(%47) :bool
-    intrinsic builder.append_display(%45, %48)
-    %49 = intrinsic builder.finish(%45)
-    %50 = call to_string(%49) :string
+    call println(%8) :void
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    %11 = const string(#4) :string
+    intrinsic builder.append_str(%10, %11)
+    %12 = call stem(%2) :string
+    intrinsic builder.append_display(%10, %12)
+    %13 = intrinsic builder.finish(%10)
+    call println(%13) :void
+    %14 = intrinsic builder.new()
+    %15 = move %14
+    %16 = const string(#5) :string
+    intrinsic builder.append_str(%15, %16)
+    %17 = call extension(%2) :string
+    intrinsic builder.append_display(%15, %17)
+    %18 = intrinsic builder.finish(%15)
+    call println(%18) :void
+    %19 = const string(#6) :string
+    %20 = call parent(%2) :Path
+    call show_path(%19, %20) :void
+    %21 = const string(#7) :string
+    %22 = call parent(%2) :Path
+    %23 = call parent(%22) :Path
+    call show_path(%21, %23) :void
+    %24 = const string(#8) :string
+    %25 = call to_path(%24) :Path
+    %26 = move %25
+    %27 = intrinsic builder.new()
+    %28 = move %27
+    %29 = const string(#9) :string
+    intrinsic builder.append_str(%28, %29)
+    %30 = call is_absolute(%26) :bool
+    intrinsic builder.append_display(%28, %30)
+    %31 = intrinsic builder.finish(%28)
+    call println(%31) :void
+    %32 = const string(#10) :string
+    %33 = call parent(%26) :Path
+    call show_path(%32, %33) :void
+    %34 = const string(#11) :string
+    %35 = call filename(%26) :string
+    %36 = call to_path(%35) :Path
+    call show_path(%34, %36) :void
+    %37 = const string(#12) :string
+    %38 = call parent(%26) :Path
+    %39 = call parent(%38) :Path
+    call show_path(%37, %39) :void
+    %40 = intrinsic builder.new()
+    %41 = move %40
+    %42 = const string(#13) :string
+    intrinsic builder.append_str(%41, %42)
+    %43 = call empty_path() :Path
+    %44 = call is_empty(%43) :bool
+    intrinsic builder.append_display(%41, %44)
+    %45 = intrinsic builder.finish(%41)
+    call println(%45) :void
+    %46 = intrinsic builder.new()
+    %47 = move %46
+    %48 = const string(#14) :string
+    intrinsic builder.append_str(%47, %48)
+    %49 = call is_empty(%2) :bool
+    intrinsic builder.append_display(%47, %49)
+    %50 = intrinsic builder.finish(%47)
     call println(%50) :void
-    %51 = intrinsic builder.new()
-    %52 = move %51
-    %53 = const string(#14) :string
-    intrinsic builder.append_str(%52, %53)
-    %54 = call is_empty(%2) :bool
-    intrinsic builder.append_display(%52, %54)
-    %55 = intrinsic builder.finish(%52)
-    %56 = call to_string(%55) :string
-    call println(%56) :void
-    %57 = const string(#15) :string
-    %58 = const string(#16) :string
-    %59 = call to_path(%58) :Path
-    %60 = const string(#17) :string
-    %61 = call join(%59, %60) :Path
-    call show_path(%57, %61) :void
-    %62 = const string(#18) :string
-    %63 = const string(#19) :string
-    %64 = call to_path(%63) :Path
-    %65 = const string(#17) :string
-    %66 = call join(%64, %65) :Path
-    call show_path(%62, %66) :void
-    %67 = const string(#20) :string
-    %68 = const string(#16) :string
-    %69 = call to_path(%68) :Path
-    %70 = const string(#21) :string
-    %71 = call join(%69, %70) :Path
-    call show_path(%67, %71) :void
-    %72 = const string(#22) :string
-    %73 = call empty_path() :Path
-    %74 = const string(#23) :string
-    %75 = call join(%73, %74) :Path
-    call show_path(%72, %75) :void
-    %76 = intrinsic builder.new()
-    %77 = move %76
-    %78 = const string(#24) :string
-    intrinsic builder.append_str(%77, %78)
-    %79 = const string(#25) :string
-    %80 = call to_path(%79) :Path
-    %81 = const string(#26) :string
-    %82 = call to_path(%81) :Path
-    %83 = call starts_with(%80, %82) :bool
-    intrinsic builder.append_display(%77, %83)
-    %84 = intrinsic builder.finish(%77)
-    %85 = call to_string(%84) :string
-    call println(%85) :void
-    %86 = intrinsic builder.new()
-    %87 = move %86
-    %88 = const string(#27) :string
-    intrinsic builder.append_str(%87, %88)
-    %89 = const string(#28) :string
-    %90 = call to_path(%89) :Path
-    %91 = const string(#26) :string
+    %51 = const string(#15) :string
+    %52 = const string(#16) :string
+    %53 = call to_path(%52) :Path
+    %54 = const string(#17) :string
+    %55 = call join(%53, %54) :Path
+    call show_path(%51, %55) :void
+    %56 = const string(#18) :string
+    %57 = const string(#19) :string
+    %58 = call to_path(%57) :Path
+    %59 = const string(#17) :string
+    %60 = call join(%58, %59) :Path
+    call show_path(%56, %60) :void
+    %61 = const string(#20) :string
+    %62 = const string(#16) :string
+    %63 = call to_path(%62) :Path
+    %64 = const string(#21) :string
+    %65 = call join(%63, %64) :Path
+    call show_path(%61, %65) :void
+    %66 = const string(#22) :string
+    %67 = call empty_path() :Path
+    %68 = const string(#23) :string
+    %69 = call join(%67, %68) :Path
+    call show_path(%66, %69) :void
+    %70 = intrinsic builder.new()
+    %71 = move %70
+    %72 = const string(#24) :string
+    intrinsic builder.append_str(%71, %72)
+    %73 = const string(#25) :string
+    %74 = call to_path(%73) :Path
+    %75 = const string(#26) :string
+    %76 = call to_path(%75) :Path
+    %77 = call starts_with(%74, %76) :bool
+    intrinsic builder.append_display(%71, %77)
+    %78 = intrinsic builder.finish(%71)
+    call println(%78) :void
+    %79 = intrinsic builder.new()
+    %80 = move %79
+    %81 = const string(#27) :string
+    intrinsic builder.append_str(%80, %81)
+    %82 = const string(#28) :string
+    %83 = call to_path(%82) :Path
+    %84 = const string(#26) :string
+    %85 = call to_path(%84) :Path
+    %86 = call starts_with(%83, %85) :bool
+    intrinsic builder.append_display(%80, %86)
+    %87 = intrinsic builder.finish(%80)
+    call println(%87) :void
+    %88 = intrinsic builder.new()
+    %89 = move %88
+    %90 = const string(#29) :string
+    intrinsic builder.append_str(%89, %90)
+    %91 = const string(#25) :string
     %92 = call to_path(%91) :Path
-    %93 = call starts_with(%90, %92) :bool
-    intrinsic builder.append_display(%87, %93)
-    %94 = intrinsic builder.finish(%87)
-    %95 = call to_string(%94) :string
-    call println(%95) :void
-    %96 = intrinsic builder.new()
-    %97 = move %96
-    %98 = const string(#29) :string
-    intrinsic builder.append_str(%97, %98)
-    %99 = const string(#25) :string
-    %100 = call to_path(%99) :Path
-    %101 = const string(#30) :string
-    %102 = call to_path(%101) :Path
-    %103 = call ends_with(%100, %102) :bool
-    intrinsic builder.append_display(%97, %103)
-    %104 = intrinsic builder.finish(%97)
-    %105 = call to_string(%104) :string
+    %93 = const string(#30) :string
+    %94 = call to_path(%93) :Path
+    %95 = call ends_with(%92, %94) :bool
+    intrinsic builder.append_display(%89, %95)
+    %96 = intrinsic builder.finish(%89)
+    call println(%96) :void
+    %97 = intrinsic builder.new()
+    %98 = move %97
+    %99 = const string(#31) :string
+    intrinsic builder.append_str(%98, %99)
+    %100 = const string(#25) :string
+    %101 = call to_path(%100) :Path
+    %102 = const string(#32) :string
+    %103 = call to_path(%102) :Path
+    %104 = call ends_with(%101, %103) :bool
+    intrinsic builder.append_display(%98, %104)
+    %105 = intrinsic builder.finish(%98)
     call println(%105) :void
-    %106 = intrinsic builder.new()
-    %107 = move %106
-    %108 = const string(#31) :string
-    intrinsic builder.append_str(%107, %108)
-    %109 = const string(#25) :string
-    %110 = call to_path(%109) :Path
-    %111 = const string(#32) :string
+    %106 = const string(#33) :string
+    %107 = const string(#34) :string
+    %108 = call to_path(%107) :Path
+    %109 = call normalize(%108) :Path
+    call show_path(%106, %109) :void
+    %110 = const string(#35) :string
+    %111 = const string(#36) :string
     %112 = call to_path(%111) :Path
-    %113 = call ends_with(%110, %112) :bool
-    intrinsic builder.append_display(%107, %113)
-    %114 = intrinsic builder.finish(%107)
-    %115 = call to_string(%114) :string
-    call println(%115) :void
-    %116 = const string(#33) :string
-    %117 = const string(#34) :string
-    %118 = call to_path(%117) :Path
-    %119 = call normalize(%118) :Path
-    call show_path(%116, %119) :void
-    %120 = const string(#35) :string
-    %121 = const string(#36) :string
-    %122 = call to_path(%121) :Path
-    %123 = call normalize(%122) :Path
-    call show_path(%120, %123) :void
-    %124 = const string(#37) :string
-    %125 = const string(#38) :string
-    %126 = call to_path(%125) :Path
-    %127 = call normalize(%126) :Path
-    call show_path(%124, %127) :void
-    %128 = const string(#39) :string
-    %129 = const string(#40) :string
-    %130 = call to_path(%129) :Path
-    %131 = call normalize(%130) :Path
-    call show_path(%128, %131) :void
-    %132 = const string(#41) :string
-    %133 = const string(#42) :string
-    %134 = call to_path(%133) :Path
-    %135 = call normalize(%134) :Path
-    call show_path(%132, %135) :void
-    %136 = const int(0) :i32
-    return %136
+    %113 = call normalize(%112) :Path
+    call show_path(%110, %113) :void
+    %114 = const string(#37) :string
+    %115 = const string(#38) :string
+    %116 = call to_path(%115) :Path
+    %117 = call normalize(%116) :Path
+    call show_path(%114, %117) :void
+    %118 = const string(#39) :string
+    %119 = const string(#40) :string
+    %120 = call to_path(%119) :Path
+    %121 = call normalize(%120) :Path
+    call show_path(%118, %121) :void
+    %122 = const string(#41) :string
+    %123 = const string(#42) :string
+    %124 = call to_path(%123) :Path
+    %125 = call normalize(%124) :Path
+    call show_path(%122, %125) :void
+    %126 = const int(0) :i32
+    return %126

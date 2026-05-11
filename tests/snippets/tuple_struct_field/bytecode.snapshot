@@ -6,16 +6,15 @@ type 3 primitive f64
 string 0 "id="
 string 1 " x="
 string 2 " y="
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_tuple_struct_field__main_vader$main () -> i32
-  local "$struct_3#21" ref
-  local "e#22" ref
-  local "__sb_0#24" any
-  local "$field_9#26" i32
-  local "$field_12#29" f64
-  local "$field_15#32" f64
+  local "$struct_3#20" ref
+  local "e#21" ref
+  local "__sb_0#23" any
+  local "$field_9#25" i32
+  local "$field_12#28" f64
+  local "$field_15#31" f64
   f64.const 3.5   ; _main.vader:12:36
   f64.const 7.25   ; _main.vader:12:36
   struct.new_stack 2   ; _main.vader:12:36
@@ -57,8 +56,7 @@ fn 0 tests_snippets_tuple_struct_field__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:13:42
   local.get 2   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
-  call.import 0   ; _main.vader:13:13
-  call.import 1   ; _main.vader:13:5
+  call.import 0   ; _main.vader:13:5
   i32.const 0   ; _main.vader:14:12
   return   ; _main.vader:14:5
 end

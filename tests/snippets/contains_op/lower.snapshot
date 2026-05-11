@@ -55,13 +55,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "range yes" :string
+            "range yes" :string
     if :void
       cond:
         not :bool
@@ -80,13 +76,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "range !in yes" :string
+            "range !in yes" :string
     if :void
       cond:
         call :bool
@@ -104,13 +96,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "range incl yes" :string
+            "range incl yes" :string
     let s: DigitSet =
       DigitSet {
         bits:
@@ -148,13 +136,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "set has 4" :string
+            "set has 4" :string
     if :void
       cond:
         not :bool
@@ -168,13 +152,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "set lacks 5" :string
+            "set lacks 5" :string
     if :void
       cond:
         call :bool
@@ -187,11 +167,7 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "set has 7" :string
+            "set has 7" :string
     return int(0) :i32

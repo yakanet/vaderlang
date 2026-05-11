@@ -19,15 +19,11 @@
     let x: i32 = int(42) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
             to_string :string
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                x :i32
+            x :i32
     return int(0) :i32

@@ -26,25 +26,24 @@ string 1 "b"
 string 2 "c"
 string 3 "map_sum="
 string 4 "set_sum="
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 hash std_core$string$Hash$hash (string) -> u64
-import 2 println std_io$println (string) -> void
+import 0 hash std_core$string$Hash$hash (string) -> u64
+import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_map_set_iter__main_vader$main () -> i32
-  local "$arr_0#47" ref
-  local "m#49" ref
-  local "__iter_0#58" ref
-  local "total#59" i32
-  local "__step_1#61" ref
-  local "__sb_2#64" any
-  local "$arr_27#68" ref
-  local "s#71" ref
-  local "__iter_3#80" ref
-  local "sum#81" i32
-  local "__step_4#83" ref
-  local "__sb_5#86" any
-  local "v#92" i32
-  local "$field_20#96" i32
+  local "$arr_0#45" ref
+  local "m#47" ref
+  local "__iter_0#56" ref
+  local "total#57" i32
+  local "__step_1#59" ref
+  local "__sb_2#62" any
+  local "$arr_26#65" ref
+  local "s#68" ref
+  local "__iter_3#77" ref
+  local "sum#78" i32
+  local "__step_4#80" ref
+  local "__sb_5#83" any
+  local "v#88" i32
+  local "$field_20#92" i32
   array.new 18 0   ; _main.vader:6:47
   local.set 0   ; _main.vader:6:47
   local.get 0   ; _main.vader:6:10
@@ -99,8 +98,7 @@ fn 0 tests_snippets_map_set_iter__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:14:22
   local.get 5   ; _main.vader:14:13
   intrinsic builder.finish   ; _main.vader:14:13
-  call.import 0   ; _main.vader:14:13
-  call.import 2   ; _main.vader:14:5
+  call.import 1   ; _main.vader:14:5
   array.new 16 0   ; _main.vader:17:72
   local.set 6   ; _main.vader:17:72
   local.get 6   ; _main.vader:17:37
@@ -155,44 +153,43 @@ fn 0 tests_snippets_map_set_iter__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:25:22
   local.get 11   ; _main.vader:25:13
   intrinsic builder.finish   ; _main.vader:25:13
-  call.import 0   ; _main.vader:25:13
-  call.import 2   ; _main.vader:25:5
+  call.import 1   ; _main.vader:25:5
   i32.const 0   ; _main.vader:26:12
   return   ; _main.vader:26:5
 end
 
 fn 1 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:324:26
-  i32.to_u64   ; core.vader:324:26
-  return   ; core.vader:324:23
+  local.get 0   ; core.vader:325:26
+  i32.to_u64   ; core.vader:325:26
+  return   ; core.vader:325:23
 end
 
 fn 2 std_core$usize$Comparable$compare (usize,usize) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:353:35
-  local.get 1   ; core.vader:353:35
-  usize.lt   ; core.vader:353:35
-  if $L0 void   ; core.vader:353:32
-    i32.const 1   ; core.vader:353:51
-    i32.neg   ; core.vader:353:50
-    local.set 3   ; core.vader:353:50
-  else   ; core.vader:353:32
-    local.get 0   ; core.vader:353:63
-    local.get 1   ; core.vader:353:63
-    usize.gt   ; core.vader:353:63
-    if $L1 void   ; core.vader:353:60
-      i32.const 1   ; core.vader:353:78
-      local.set 2   ; core.vader:353:78
-    else   ; core.vader:353:60
-      i32.const 0   ; core.vader:353:89
-      local.set 2   ; core.vader:353:89
-    end $L1   ; core.vader:353:60
-    local.get 2   ; core.vader:353:60
-    local.set 3   ; core.vader:353:60
-  end $L0   ; core.vader:353:32
-  local.get 3   ; core.vader:353:29
-  return   ; core.vader:353:29
+  local.get 0   ; core.vader:354:35
+  local.get 1   ; core.vader:354:35
+  usize.lt   ; core.vader:354:35
+  if $L0 void   ; core.vader:354:32
+    i32.const 1   ; core.vader:354:51
+    i32.neg   ; core.vader:354:50
+    local.set 3   ; core.vader:354:50
+  else   ; core.vader:354:32
+    local.get 0   ; core.vader:354:63
+    local.get 1   ; core.vader:354:63
+    usize.gt   ; core.vader:354:63
+    if $L1 void   ; core.vader:354:60
+      i32.const 1   ; core.vader:354:78
+      local.set 2   ; core.vader:354:78
+    else   ; core.vader:354:60
+      i32.const 0   ; core.vader:354:89
+      local.set 2   ; core.vader:354:89
+    end $L1   ; core.vader:354:60
+    local.get 2   ; core.vader:354:60
+    local.set 3   ; core.vader:354:60
+  end $L0   ; core.vader:354:32
+  local.get 3   ; core.vader:354:29
+  return   ; core.vader:354:29
 end
 
 fn 3 std_core$usize$Comparable$gt (usize,usize) -> bool
@@ -220,11 +217,11 @@ fn 4 std_core$usize$Comparable$gte (usize,usize) -> bool
 end
 
 fn 5 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; core.vader:371:26
-  i64.const 1   ; core.vader:371:26
-  i64.to_usize   ; core.vader:371:26
-  usize.add   ; core.vader:371:26
-  return   ; core.vader:371:23
+  local.get 0   ; core.vader:372:26
+  i64.const 1   ; core.vader:372:26
+  i64.to_usize   ; core.vader:372:26
+  usize.add   ; core.vader:372:26
+  return   ; core.vader:372:23
 end
 
 fn 6 std_core$Range$Iterator$next__usize (ref) -> ref
@@ -756,7 +753,7 @@ fn 14 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   else   ; collections.vader:72:5
   end $L0   ; collections.vader:72:5
   local.get 1   ; collections.vader:77:10
-  call.import 1   ; collections.vader:77:10
+  call.import 0   ; collections.vader:77:10
   call 7   ; collections.vader:78:12
   local.set 8   ; collections.vader:78:5
   local.get 0   ; collections.vader:81:31

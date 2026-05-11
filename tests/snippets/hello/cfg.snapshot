@@ -4,12 +4,10 @@
 
 fn tests_snippets_hello__main_vader$main() -> i32
   locals:
-    %0 $k_0#3: string
-    %1 $call_1#4: string
-    %2 $k_2#5: i32
+    %0 $k_0#2: string
+    %1 $k_1#3: i32
   bb0:
     %0 = const string(#0) :string
-    %1 = call to_string(%0) :string
-    call println(%1) :void
-    %2 = const int(0) :i32
-    return %2
+    call println(%0) :void
+    %1 = const int(0) :i32
+    return %1

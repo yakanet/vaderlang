@@ -48,40 +48,36 @@ fn tests_snippets_coerce_into_basic__main_vader$get_id(%0: UserId) -> i32
 
 fn tests_snippets_coerce_into_basic__main_vader$main() -> i32
   locals:
-    %0 $k_0#34: i32
-    %1 u#35: UserId (local u)
-    %2 $intrinsic_3#36: ?
-    %3 __sb_0#37: ? (synthetic __sb_0)
-    %4 $k_5#38: string
-    %5 $call_6#39: i32
-    %6 $call_7#40: i32
-    %7 $intrinsic_8#41: string
-    %8 $call_9#42: string
-    %9 $call_10#43: i32
-    %10 n#44: i32 (local n)
-    %11 $intrinsic_12#45: ?
-    %12 __sb_1#46: ? (synthetic __sb_1)
-    %13 $k_14#47: string
-    %14 $intrinsic_15#48: string
-    %15 $call_16#49: string
-    %16 $intrinsic_17#50: ?
-    %17 __sb_2#51: ? (synthetic __sb_2)
-    %18 $k_19#52: string
-    %19 $call_20#53: i32
-    %20 $intrinsic_21#54: string
-    %21 $call_22#55: string
-    %22 $call_23#56: string
-    %23 $call_24#57: i32
-    %24 p#58: Pair (local p)
-    %25 $intrinsic_27#59: ?
-    %26 __sb_3#60: ? (synthetic __sb_3)
-    %27 $k_29#61: string
-    %28 $field_30#62: string
-    %29 $k_31#63: string
-    %30 $field_32#64: i32
-    %31 $intrinsic_33#65: string
-    %32 $call_34#66: string
-    %33 $k_35#67: i32
+    %0 $k_0#30: i32
+    %1 u#31: UserId (local u)
+    %2 $intrinsic_3#32: ?
+    %3 __sb_0#33: ? (synthetic __sb_0)
+    %4 $k_5#34: string
+    %5 $call_6#35: i32
+    %6 $call_7#36: i32
+    %7 $intrinsic_8#37: string
+    %8 $call_9#38: i32
+    %9 n#39: i32 (local n)
+    %10 $intrinsic_11#40: ?
+    %11 __sb_1#41: ? (synthetic __sb_1)
+    %12 $k_13#42: string
+    %13 $intrinsic_14#43: string
+    %14 $intrinsic_15#44: ?
+    %15 __sb_2#45: ? (synthetic __sb_2)
+    %16 $k_17#46: string
+    %17 $call_18#47: i32
+    %18 $intrinsic_19#48: string
+    %19 $call_20#49: string
+    %20 $call_21#50: i32
+    %21 p#51: Pair (local p)
+    %22 $intrinsic_24#52: ?
+    %23 __sb_3#53: ? (synthetic __sb_3)
+    %24 $k_26#54: string
+    %25 $field_27#55: string
+    %26 $k_28#56: string
+    %27 $field_29#57: i32
+    %28 $intrinsic_30#58: string
+    %29 $k_31#59: i32
   bb0:
     %0 = const int(42) :i32
     %1 = struct_new UserId(%0)
@@ -93,42 +89,38 @@ fn tests_snippets_coerce_into_basic__main_vader$main() -> i32
     %6 = call take_i32(%5) :i32
     intrinsic builder.append_display(%3, %6)
     %7 = intrinsic builder.finish(%3)
-    %8 = call to_string(%7) :string
-    call println(%8) :void
-    %9 = call into(%1) :i32
-    %10 = move %9
-    %11 = intrinsic builder.new()
-    %12 = move %11
-    %13 = const string(#2) :string
-    intrinsic builder.append_str(%12, %13)
-    intrinsic builder.append_display(%12, %10)
-    %14 = intrinsic builder.finish(%12)
-    %15 = call to_string(%14) :string
-    call println(%15) :void
-    %16 = intrinsic builder.new()
-    %17 = move %16
-    %18 = const string(#3) :string
-    intrinsic builder.append_str(%17, %18)
-    %19 = call get_id(%1) :i32
-    intrinsic builder.append_display(%17, %19)
-    %20 = intrinsic builder.finish(%17)
-    %21 = call to_string(%20) :string
-    call println(%21) :void
-    %22 = call into(%1) :string
-    %23 = call into(%1) :i32
-    %24 = struct_new[stack] Pair(%22, %23)
-    %25 = intrinsic builder.new()
-    %26 = move %25
-    %27 = const string(#4) :string
-    intrinsic builder.append_str(%26, %27)
-    %28 = field_get %24.tag :string
-    intrinsic builder.append_display(%26, %28)
-    %29 = const string(#5) :string
-    intrinsic builder.append_str(%26, %29)
-    %30 = field_get %24.n :i32
-    intrinsic builder.append_display(%26, %30)
-    %31 = intrinsic builder.finish(%26)
-    %32 = call to_string(%31) :string
-    call println(%32) :void
-    %33 = const int(0) :i32
-    return %33
+    call println(%7) :void
+    %8 = call into(%1) :i32
+    %9 = move %8
+    %10 = intrinsic builder.new()
+    %11 = move %10
+    %12 = const string(#2) :string
+    intrinsic builder.append_str(%11, %12)
+    intrinsic builder.append_display(%11, %9)
+    %13 = intrinsic builder.finish(%11)
+    call println(%13) :void
+    %14 = intrinsic builder.new()
+    %15 = move %14
+    %16 = const string(#3) :string
+    intrinsic builder.append_str(%15, %16)
+    %17 = call get_id(%1) :i32
+    intrinsic builder.append_display(%15, %17)
+    %18 = intrinsic builder.finish(%15)
+    call println(%18) :void
+    %19 = call into(%1) :string
+    %20 = call into(%1) :i32
+    %21 = struct_new[stack] Pair(%19, %20)
+    %22 = intrinsic builder.new()
+    %23 = move %22
+    %24 = const string(#4) :string
+    intrinsic builder.append_str(%23, %24)
+    %25 = field_get %21.tag :string
+    intrinsic builder.append_display(%23, %25)
+    %26 = const string(#5) :string
+    intrinsic builder.append_str(%23, %26)
+    %27 = field_get %21.n :i32
+    intrinsic builder.append_display(%23, %27)
+    %28 = intrinsic builder.finish(%23)
+    call println(%28) :void
+    %29 = const int(0) :i32
+    return %29

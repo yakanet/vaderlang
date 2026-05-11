@@ -18,13 +18,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      "int ok" :string
+                  "int ok" :string
           else:
             ~>
               if :void
@@ -35,13 +31,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "int err" :string
+                        "int err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -61,13 +53,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      "int ok" :string
+                  "int ok" :string
           else:
             ~>
               if :void
@@ -78,13 +66,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "int err" :string
+                        "int err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -104,13 +88,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      "float ok" :string
+                  "float ok" :string
           else:
             ~>
               if :void
@@ -121,13 +101,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "float err" :string
+                        "float err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -147,13 +123,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      "float ok" :string
+                  "float ok" :string
           else:
             ~>
               if :void
@@ -164,13 +136,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "float err" :string
+                        "float err" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

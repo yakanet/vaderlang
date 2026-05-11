@@ -92,64 +92,52 @@
           rest :i32[]
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_3: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_3 :?
-                "slice mid len=" :string
-              @builder.append_display <for usize> :void
-                __sb_3 :?
-                LoweredArrayLen
-              ~>
-                @builder.finish :string
-                  __sb_3 :?
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "slice mid len=" :string
+          @builder.append_display <for usize> :void
+            __sb_3 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_3 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_4: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_4 :?
-                "slice over len=" :string
-              @builder.append_display <for usize> :void
-                __sb_4 :?
-                LoweredArrayLen
-              ~>
-                @builder.finish :string
-                  __sb_4 :?
+        block :string
+          let __sb_4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_4 :?
+            "slice over len=" :string
+          @builder.append_display <for usize> :void
+            __sb_4 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_4 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_5: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_5 :?
-                "slice tail len=" :string
-              @builder.append_display <for usize> :void
-                __sb_5 :?
-                LoweredArrayLen
-              ~>
-                @builder.finish :string
-                  __sb_5 :?
+        block :string
+          let __sb_5: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_5 :?
+            "slice tail len=" :string
+          @builder.append_display <for usize> :void
+            __sb_5 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_5 :?
     return
       add :i32
         l:

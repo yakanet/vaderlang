@@ -12,28 +12,24 @@
         "hello from vader" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "exists: " :string
-              @builder.append_display <for bool> :void
-                __sb_0 :?
-                call :bool
-                  callee:
-                    exists :fn(string) -> bool
-                  arg0:
-                    path :string
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "exists: " :string
+          @builder.append_display <for bool> :void
+            __sb_0 :?
+            call :bool
+              callee:
+                exists :fn(string) -> bool
+              arg0:
+                path :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     let contents: Error | string =
       call :Error | string
         callee:
@@ -51,25 +47,21 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      block :string
-                        let __sb_2: ? =
-                          @builder.new :?
-                        @builder.append_str :void
-                          __sb_2 :?
-                          "read: " :string
-                        @builder.append_display <for string> :void
-                          __sb_2 :?
-                          cast → string
-                            contents :Error | string
-                        ~>
-                          @builder.finish :string
-                            __sb_2 :?
+                  block :string
+                    let __sb_2: ? =
+                      @builder.new :?
+                    @builder.append_str :void
+                      __sb_2 :?
+                      "read: " :string
+                    @builder.append_display <for string> :void
+                      __sb_2 :?
+                      cast → string
+                        contents :Error | string
+                    ~>
+                      @builder.finish :string
+                        __sb_2 :?
           else:
             ~>
               if :void
@@ -80,13 +72,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "read failed" :string
+                        "read failed" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

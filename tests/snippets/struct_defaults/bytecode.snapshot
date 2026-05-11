@@ -8,25 +8,24 @@ string 1 "loud"
 string 2 "tight"
 string 3 ": timeout="
 string 4 " debug="
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 println std_io$println (string) -> void
+import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_struct_defaults__main_vader$main () -> i32
-  local "s1#43" ref
-  local "s2#47" ref
-  local "s3#51" ref
-  local "__sb_0#53" any
-  local "$field_17#54" string
-  local "$field_19#56" i32
-  local "$field_21#58" bool
-  local "__sb_1#62" any
-  local "$field_26#63" string
-  local "$field_28#65" i32
-  local "$field_30#67" bool
-  local "__sb_2#71" any
-  local "$field_35#72" string
-  local "$field_37#74" i32
-  local "$field_39#76" bool
+  local "s1#40" ref
+  local "s2#44" ref
+  local "s3#48" ref
+  local "__sb_0#50" any
+  local "$field_17#51" string
+  local "$field_19#53" i32
+  local "$field_21#55" bool
+  local "__sb_1#58" any
+  local "$field_25#59" string
+  local "$field_27#61" i32
+  local "$field_29#63" bool
+  local "__sb_2#66" any
+  local "$field_33#67" string
+  local "$field_35#69" i32
+  local "$field_37#71" bool
   string.const 0   ; _main.vader:10:11
   i32.const 30   ; _main.vader:10:11
   bool.const false   ; _main.vader:10:11
@@ -70,8 +69,7 @@ fn 0 tests_snippets_struct_defaults__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:13:54
   local.get 3   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
-  call.import 0   ; _main.vader:13:13
-  call.import 1   ; _main.vader:13:5
+  call.import 0   ; _main.vader:13:5
   intrinsic builder.new   ; _main.vader:14:13
   local.set 7   ; _main.vader:14:13
   local.get 1   ; _main.vader:14:16
@@ -100,8 +98,7 @@ fn 0 tests_snippets_struct_defaults__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:14:54
   local.get 7   ; _main.vader:14:13
   intrinsic builder.finish   ; _main.vader:14:13
-  call.import 0   ; _main.vader:14:13
-  call.import 1   ; _main.vader:14:5
+  call.import 0   ; _main.vader:14:5
   intrinsic builder.new   ; _main.vader:15:13
   local.set 11   ; _main.vader:15:13
   local.get 2   ; _main.vader:15:16
@@ -130,8 +127,7 @@ fn 0 tests_snippets_struct_defaults__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:15:54
   local.get 11   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
-  call.import 0   ; _main.vader:15:13
-  call.import 1   ; _main.vader:15:5
+  call.import 0   ; _main.vader:15:5
   i32.const 0   ; _main.vader:16:12
   return   ; _main.vader:16:5
 end

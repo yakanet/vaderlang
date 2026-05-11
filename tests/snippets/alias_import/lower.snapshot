@@ -6,9 +6,5 @@
       callee:
         println :void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            "aliased" :string
+        "aliased" :string
     return int(0) :i32

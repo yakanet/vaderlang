@@ -34,14 +34,10 @@
               ~>
                 call :void
                   callee:
-                    println :fn(Display) -> void
+                    println :fn(string) -> void
                   arg0:
-                    call :string
-                      callee:
-                        to_string :string
-                      arg0:
-                        cast → string
-                          res :Error | string
+                    cast → string
+                      res :Error | string
             else:
               ~>
                 if :void
@@ -52,13 +48,9 @@
                     ~>
                       call :void
                         callee:
-                          println :fn(Display) -> void
+                          println :fn(string) -> void
                         arg0:
-                          call :string
-                            callee:
-                              to_string :string
-                            arg0:
-                              "err: this file does not exists" :string
+                          "err: this file does not exists" :string
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void

@@ -133,20 +133,6 @@ export interface TypedProgram {
   /** Direct `f(args)` calls where overload resolution picked a non-primary
    *  fn symbol. Lowerer consults this before falling back to `resolved.idents`. */
   readonly directCallOverloads: ReadonlyMap<A.CallExpr, Symbol>;
-  /** Implicit `[T]` → `Iterator(T)` coercion sites. Key: the source-position
-   *  expression (raw array) ; value: the array's element type `T`. The
-   *  lowerer auto-wraps the lowered expression into an `ArrayIter(T)` struct
-   *  literal so the receiving slot sees a proper iterator. Populated by
-   *  `inferCall` / `checkLet` / `checkReturn` whenever the typecheck observes
-   *  an array flowing into an `Iterator(T)` slot. */
-  readonly arrayIterCoercions: ReadonlyMap<A.Expr, Type>;
-  /** Implicit `T` → `Display` coercion sites. Key: the argument expression ;
-   *  value: the source type the lowerer needs to dispatch
-   *  `<T>.Display.to_string` on before the value is consumed by the call. The
-   *  lowerer rewrites these sites into a static call to the impl member that
-   *  produces the string the host hook receives. Populated when a value with
-   *  a concrete Display-implementing type flows into a `Display`-typed slot. */
-  readonly displayCoercions: ReadonlyMap<A.Expr, Type>;
   /** User-defined `Into(Target)` coercion sites. Key: the source-position
    *  expression ; value: the impl entry whose `into` method must be inserted
    *  by the lowerer + the source type so the lowerer can route through the

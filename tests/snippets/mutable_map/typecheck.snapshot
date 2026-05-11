@@ -7,16 +7,16 @@
   expr 10:23    FieldExpr      :: fn() -> usize
   expr 10:23    IdentExpr      :: MutableMap(i32, i32)
   expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn(Display) -> void
+  expr 10:5     IdentExpr      :: fn(string) -> void
   expr 12:11    IdentExpr      :: MutableMap(i32, i32)
   expr 12:11    IndexExpr      :: i32 | null
   expr 13:11    IdentExpr      :: i32 | null
   expr 13:5     MatchExpr      :: void
   expr 14:22    CallExpr       :: void
-  expr 14:22    IdentExpr      :: fn(Display) -> void
+  expr 14:22    IdentExpr      :: fn(string) -> void
   expr 14:30    StringLitExpr  :: string
   expr 15:22    CallExpr       :: void
-  expr 15:22    IdentExpr      :: fn(Display) -> void
+  expr 15:22    IdentExpr      :: fn(string) -> void
   expr 15:30    StringLitExpr  :: string
   expr 15:38    IdentExpr      :: i32
   expr 18:12    IdentExpr      :: MutableMap(i32, i32)
@@ -24,32 +24,32 @@
   expr 19:11    IdentExpr      :: i32 | null
   expr 19:5     MatchExpr      :: void
   expr 20:22    CallExpr       :: void
-  expr 20:22    IdentExpr      :: fn(Display) -> void
+  expr 20:22    IdentExpr      :: fn(string) -> void
   expr 20:30    StringLitExpr  :: string
   expr 21:22    CallExpr       :: void
-  expr 21:22    IdentExpr      :: fn(Display) -> void
+  expr 21:22    IdentExpr      :: fn(string) -> void
   expr 21:30    StringLitExpr  :: string
   expr 21:39    IdentExpr      :: i32
   expr 24:13    StringLitExpr  :: string
   expr 24:23    BinaryExpr     :: bool
   expr 24:28    IdentExpr      :: MutableMap(i32, i32)
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(Display) -> void
+  expr 24:5     IdentExpr      :: fn(string) -> void
   expr 25:13    StringLitExpr  :: string
   expr 25:24    BinaryExpr     :: bool
   expr 25:30    IdentExpr      :: MutableMap(i32, i32)
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(Display) -> void
+  expr 25:5     IdentExpr      :: fn(string) -> void
   expr 28:5     IdentExpr      :: MutableMap(i32, i32)
   expr 29:12    IdentExpr      :: MutableMap(i32, i32)
   expr 29:12    IndexExpr      :: i32 | null
   expr 30:11    IdentExpr      :: i32 | null
   expr 30:5     MatchExpr      :: void
   expr 31:22    CallExpr       :: void
-  expr 31:22    IdentExpr      :: fn(Display) -> void
+  expr 31:22    IdentExpr      :: fn(string) -> void
   expr 31:30    StringLitExpr  :: string
   expr 32:22    CallExpr       :: void
-  expr 32:22    IdentExpr      :: fn(Display) -> void
+  expr 32:22    IdentExpr      :: fn(string) -> void
   expr 32:30    StringLitExpr  :: string
   expr 32:39    IdentExpr      :: i32
   expr 5:10     StructLitExpr  :: MutableMap(i32, i32)

@@ -33,10 +33,9 @@ string 2 "banana"
 string 3 "apple"
 string 4 "cherry"
 string 5 "date"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 at std_core$string$Index$at (string,usize) -> char
-import 2 println std_io$println (string) -> void
-import 3 byte_len std_string$byte_len (string) -> usize
+import 0 at std_core$string$Index$at (string,usize) -> char
+import 1 println std_io$println (string) -> void
+import 2 byte_len std_string$byte_len (string) -> usize
 
 fn 0 tests_snippets_std_sort__main_vader$i32_lt (i32,i32) -> bool
   local.get 0   ; _main.vader:5:47
@@ -53,18 +52,18 @@ fn 1 tests_snippets_std_sort__main_vader$i32_gt (i32,i32) -> bool
 end
 
 fn 2 tests_snippets_std_sort__main_vader$print_ints (ref) -> void
-  local "$len_6#25" usize
-  local "__iter_0#26" ref
-  local "sb#27" string
-  local "i#28" i32
-  local "__step_1#30" ref
-  local "x#34" i32
-  local "$gt_16#36" bool
-  local "__sb_2#38" any
-  local "sb#42" string
-  local "__sb_3#44" any
-  local "sb#46" string
-  local "i#48" i32
+  local "$len_6#24" usize
+  local "__iter_0#25" ref
+  local "sb#26" string
+  local "i#27" i32
+  local "__step_1#29" ref
+  local "x#32" i32
+  local "$gt_16#34" bool
+  local "__sb_2#36" any
+  local "sb#40" string
+  local "__sb_3#42" any
+  local "sb#44" string
+  local "i#46" i32
   string.const 0   ; _main.vader:9:11
   local.set 3   ; _main.vader:9:11
   i32.const 0   ; _main.vader:10:10
@@ -131,25 +130,24 @@ fn 2 tests_snippets_std_sort__main_vader$print_ints (ref) -> void
       end $L2   ; _main.vader:11:5
     end $L1   ; _main.vader:11:5
   end $L0   ; _main.vader:11:5
-  local.get 3   ; _main.vader:16:13
-  call.import 0   ; _main.vader:16:13
-  call.import 2   ; _main.vader:16:5
+  local.get 3   ; _main.vader:16:5
+  call.import 1   ; _main.vader:16:5
   return   ; _main.vader:8:38
 end
 
 fn 3 tests_snippets_std_sort__main_vader$print_strings (ref) -> void
-  local "$len_6#25" usize
-  local "__iter_0#26" ref
-  local "sb#27" string
-  local "i#28" i32
-  local "__step_1#30" ref
-  local "s#34" string
-  local "$gt_16#36" bool
-  local "__sb_2#38" any
-  local "sb#42" string
-  local "__sb_3#44" any
-  local "sb#46" string
-  local "i#48" i32
+  local "$len_6#24" usize
+  local "__iter_0#25" ref
+  local "sb#26" string
+  local "i#27" i32
+  local "__step_1#29" ref
+  local "s#32" string
+  local "$gt_16#34" bool
+  local "__sb_2#36" any
+  local "sb#40" string
+  local "__sb_3#42" any
+  local "sb#44" string
+  local "i#46" i32
   string.const 0   ; _main.vader:20:11
   local.set 3   ; _main.vader:20:11
   i32.const 0   ; _main.vader:21:10
@@ -216,9 +214,8 @@ fn 3 tests_snippets_std_sort__main_vader$print_strings (ref) -> void
       end $L2   ; _main.vader:22:5
     end $L1   ; _main.vader:22:5
   end $L0   ; _main.vader:22:5
-  local.get 3   ; _main.vader:27:13
-  call.import 0   ; _main.vader:27:13
-  call.import 2   ; _main.vader:27:5
+  local.get 3   ; _main.vader:27:5
+  call.import 1   ; _main.vader:27:5
   return   ; _main.vader:19:44
 end
 
@@ -379,29 +376,29 @@ end
 fn 5 std_core$usize$Comparable$compare (usize,usize) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:353:35
-  local.get 1   ; core.vader:353:35
-  usize.lt   ; core.vader:353:35
-  if $L0 void   ; core.vader:353:32
-    i32.const 1   ; core.vader:353:51
-    i32.neg   ; core.vader:353:50
-    local.set 3   ; core.vader:353:50
-  else   ; core.vader:353:32
-    local.get 0   ; core.vader:353:63
-    local.get 1   ; core.vader:353:63
-    usize.gt   ; core.vader:353:63
-    if $L1 void   ; core.vader:353:60
-      i32.const 1   ; core.vader:353:78
-      local.set 2   ; core.vader:353:78
-    else   ; core.vader:353:60
-      i32.const 0   ; core.vader:353:89
-      local.set 2   ; core.vader:353:89
-    end $L1   ; core.vader:353:60
-    local.get 2   ; core.vader:353:60
-    local.set 3   ; core.vader:353:60
-  end $L0   ; core.vader:353:32
-  local.get 3   ; core.vader:353:29
-  return   ; core.vader:353:29
+  local.get 0   ; core.vader:354:35
+  local.get 1   ; core.vader:354:35
+  usize.lt   ; core.vader:354:35
+  if $L0 void   ; core.vader:354:32
+    i32.const 1   ; core.vader:354:51
+    i32.neg   ; core.vader:354:50
+    local.set 3   ; core.vader:354:50
+  else   ; core.vader:354:32
+    local.get 0   ; core.vader:354:63
+    local.get 1   ; core.vader:354:63
+    usize.gt   ; core.vader:354:63
+    if $L1 void   ; core.vader:354:60
+      i32.const 1   ; core.vader:354:78
+      local.set 2   ; core.vader:354:78
+    else   ; core.vader:354:60
+      i32.const 0   ; core.vader:354:89
+      local.set 2   ; core.vader:354:89
+    end $L1   ; core.vader:354:60
+    local.get 2   ; core.vader:354:60
+    local.set 3   ; core.vader:354:60
+  end $L0   ; core.vader:354:32
+  local.get 3   ; core.vader:354:29
+  return   ; core.vader:354:29
 end
 
 fn 6 std_core$usize$Comparable$gt (usize,usize) -> bool
@@ -429,11 +426,11 @@ fn 7 std_core$usize$Comparable$gte (usize,usize) -> bool
 end
 
 fn 8 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; core.vader:371:26
-  i64.const 1   ; core.vader:371:26
-  i64.to_usize   ; core.vader:371:26
-  usize.add   ; core.vader:371:26
-  return   ; core.vader:371:23
+  local.get 0   ; core.vader:372:26
+  i64.const 1   ; core.vader:372:26
+  i64.to_usize   ; core.vader:372:26
+  usize.add   ; core.vader:372:26
+  return   ; core.vader:372:23
 end
 
 fn 9 std_core$Range$Iterator$next__usize (ref) -> ref
@@ -1320,10 +1317,10 @@ fn 18 std_string$compare_ascending (string,string) -> bool
   local "ca#43" char
   local "cb#45" char
   local.get 0   ; string.vader:158:11
-  call.import 3   ; string.vader:158:11
+  call.import 2   ; string.vader:158:11
   local.set 2   ; string.vader:158:5
   local.get 1   ; string.vader:159:11
-  call.import 3   ; string.vader:159:11
+  call.import 2   ; string.vader:159:11
   local.set 3   ; string.vader:159:5
   local.get 2   ; string.vader:160:10
   local.get 3   ; string.vader:160:10
@@ -1354,11 +1351,11 @@ fn 18 std_string$compare_ascending (string,string) -> bool
         local.set 7   ; string.vader:161:5
         local.get 0   ; string.vader:162:15
         local.get 7   ; string.vader:162:15
-        call.import 1   ; string.vader:162:15
+        call.import 0   ; string.vader:162:15
         local.set 8   ; string.vader:162:9
         local.get 1   ; string.vader:163:15
         local.get 7   ; string.vader:163:15
-        call.import 1   ; string.vader:163:15
+        call.import 0   ; string.vader:163:15
         local.set 9   ; string.vader:163:9
         local.get 8   ; string.vader:164:12
         local.get 9   ; string.vader:164:12

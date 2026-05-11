@@ -1,0 +1,70 @@
+# CFG
+
+## tests/snippets/coerce_into_explicit/_main.vader
+
+fn tests_snippets_coerce_into_explicit__main_vader$UserId$Into$into(%0: UserId) -> i32
+  locals:
+    %0 self: UserId (param self)
+    %1 $field_1#2: i32
+  bb0:
+    %1 = field_get %0.value :i32
+    return %1
+
+fn tests_snippets_coerce_into_explicit__main_vader$UserId$Into$into_1(%0: UserId) -> string
+  locals:
+    %0 self: UserId (param self)
+    %1 $intrinsic_1#6: ?
+    %2 __sb_0#7: ? (synthetic __sb_0)
+    %3 $k_3#8: string
+    %4 $field_4#9: i32
+    %5 $intrinsic_5#10: string
+  bb0:
+    %1 = intrinsic builder.new()
+    %2 = move %1
+    %3 = const string(#0) :string
+    intrinsic builder.append_str(%2, %3)
+    %4 = field_get %0.value :i32
+    intrinsic builder.append_display(%2, %4)
+    %5 = intrinsic builder.finish(%2)
+    return %5
+
+fn tests_snippets_coerce_into_explicit__main_vader$main() -> i32
+  locals:
+    %0 $k_0#15: i32
+    %1 u#16: UserId (local u)
+    %2 $call_3#17: i32
+    %3 n#18: i32 (local n)
+    %4 $intrinsic_6#19: ?
+    %5 __sb_0#20: ? (synthetic __sb_0)
+    %6 $k_8#21: string
+    %7 $intrinsic_9#22: string
+    %8 $call_10#23: string
+    %9 s#24: string (local s)
+    %10 $intrinsic_12#25: ?
+    %11 __sb_1#26: ? (synthetic __sb_1)
+    %12 $k_14#27: string
+    %13 $intrinsic_15#28: string
+    %14 $k_16#29: i32
+  bb0:
+    %0 = const int(7) :i32
+    %1 = struct_new UserId(%0)
+    %2 = call into(%1) :i32
+    %3 = cast %2 :i32
+    %4 = intrinsic builder.new()
+    %5 = move %4
+    %6 = const string(#1) :string
+    intrinsic builder.append_str(%5, %6)
+    intrinsic builder.append_display(%5, %3)
+    %7 = intrinsic builder.finish(%5)
+    call println(%7) :void
+    %8 = call into(%1) :string
+    %9 = move %8
+    %10 = intrinsic builder.new()
+    %11 = move %10
+    %12 = const string(#2) :string
+    intrinsic builder.append_str(%11, %12)
+    intrinsic builder.append_display(%11, %9)
+    %13 = intrinsic builder.finish(%11)
+    call println(%13) :void
+    %14 = const int(0) :i32
+    return %14

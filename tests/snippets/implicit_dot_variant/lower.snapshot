@@ -49,17 +49,13 @@
     let a: Day = int(0) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
         call :string
           callee:
-            to_string :string
+            show_day :fn(Day) -> string
           arg0:
-            call :string
-              callee:
-                show_day :fn(Day) -> string
-              arg0:
-                a :Day
+            a :Day
     let days: Day[] =
       array :Day[]
         int(0) :i32
@@ -92,17 +88,13 @@
                   __step_1 :Done | Yielded(Day)
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
                 call :string
                   callee:
-                    to_string :string
+                    show_day :fn(Day) -> string
                   arg0:
-                    call :string
-                      callee:
-                        show_day :fn(Day) -> string
-                      arg0:
-                        d :Day
+                    d :Day
     let m: None | Some =
       Some {
         value: int(42) :i32
@@ -118,26 +110,22 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      block :string
-                        let __sb_3: ? =
-                          @builder.new :?
-                        @builder.append_str :void
-                          __sb_3 :?
-                          "got=" :string
-                        @builder.append_display <for i32> :void
-                          __sb_3 :?
-                          .value :i32
-                            cast → Some
-                              m :None | Some
-                        ~>
-                          @builder.finish :string
-                            __sb_3 :?
+                  block :string
+                    let __sb_3: ? =
+                      @builder.new :?
+                    @builder.append_str :void
+                      __sb_3 :?
+                      "got=" :string
+                    @builder.append_display <for i32> :void
+                      __sb_3 :?
+                      .value :i32
+                        cast → Some
+                          m :None | Some
+                    ~>
+                      @builder.finish :string
+                        __sb_3 :?
           else:
             ~>
               if :void
@@ -148,13 +136,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "nothing" :string
+                        "nothing" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -172,26 +156,22 @@
             ~>
               call :void
                 callee:
-                  println :fn(Display) -> void
+                  println :fn(string) -> void
                 arg0:
-                  call :string
-                    callee:
-                      to_string :string
-                    arg0:
-                      block :string
-                        let __sb_5: ? =
-                          @builder.new :?
-                        @builder.append_str :void
-                          __sb_5 :?
-                          "got=" :string
-                        @builder.append_display <for i32> :void
-                          __sb_5 :?
-                          .value :i32
-                            cast → Some
-                              n :None | Some
-                        ~>
-                          @builder.finish :string
-                            __sb_5 :?
+                  block :string
+                    let __sb_5: ? =
+                      @builder.new :?
+                    @builder.append_str :void
+                      __sb_5 :?
+                      "got=" :string
+                    @builder.append_display <for i32> :void
+                      __sb_5 :?
+                      .value :i32
+                        cast → Some
+                          n :None | Some
+                    ~>
+                      @builder.finish :string
+                        __sb_5 :?
           else:
             ~>
               if :void
@@ -202,13 +182,9 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(Display) -> void
+                        println :fn(string) -> void
                       arg0:
-                        call :string
-                          callee:
-                            to_string :string
-                          arg0:
-                            "nothing" :string
+                        "nothing" :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

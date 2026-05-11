@@ -7,20 +7,20 @@
   expr 10:16    CallExpr       :: i32
   expr 10:16    IdentExpr      :: fn(i32) -> i32
   expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn(Display) -> void
+  expr 10:5     IdentExpr      :: fn(string) -> void
   expr 11:13    StringLitExpr  :: string
   expr 11:16    CallExpr       :: i32
   expr 11:16    IdentExpr      :: fn(i32) -> i32
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(Display) -> void
+  expr 11:5     IdentExpr      :: fn(string) -> void
   expr 4:12     BinaryExpr     :: i32
   expr 4:12     IdentExpr      :: i32
   expr 4:16     IdentExpr      :: i32
   expr 8:13     StringLitExpr  :: string
   expr 8:5      CallExpr       :: void
-  expr 8:5      IdentExpr      :: fn(Display) -> void
+  expr 8:5      IdentExpr      :: fn(string) -> void
   expr 9:13     StringLitExpr  :: string
   expr 9:16     CallExpr       :: i32
   expr 9:16     IdentExpr      :: fn(i32) -> i32
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(Display) -> void
+  expr 9:5      IdentExpr      :: fn(string) -> void

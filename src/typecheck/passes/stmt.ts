@@ -13,7 +13,6 @@ import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute }
 
 import { buildStructSubst, tryStructSubst, type FnContext, type MutableTyped } from "../ctx.ts";
 import { sourceStructDecl } from "../../resolver/symbol.ts";
-import { recordIterCoercion } from "./call.ts";
 import { tryInto } from "./coerce.ts";
 import { looksLikeTypeExpression } from "./decl.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
@@ -63,7 +62,6 @@ export function checkFnBody(
         `expected ${displayType(ctx.returnType)}, got ${displayType(got)}`);
     }
   }
-  if (body.trailing !== null) recordIterCoercion(body.trailing, got, ctx.returnType, t);
 }
 
 export function checkBlock(
@@ -127,7 +125,6 @@ function checkStmt(
           + "use the immutable form `name :: <type-expr>` for an in-fn type alias, "
           + "or a top-level alias `Name :: type[T] ...`");
       }
-      if (expectedAnn !== null) recordIterCoercion(stmt.value, got, expectedAnn, t);
       assignBindingTypes(stmt.binding, declared, t, diags);
       return;
     }
@@ -177,7 +174,6 @@ function checkStmt(
             `expected ${displayType(fn.returnType)}, got ${displayType(got)}`);
         }
       }
-      recordIterCoercion(stmt.value, got, fn.returnType, t);
       return;
     }
     case "ForStmt":

@@ -69,13 +69,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "5 is digit" :string
+            "5 is digit" :string
     if :void
       cond:
         not :bool
@@ -87,13 +83,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "a is not digit" :string
+            "a is not digit" :string
     if :void
       cond:
         call :bool
@@ -104,13 +96,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "0 is digit" :string
+            "0 is digit" :string
     if :void
       cond:
         call :bool
@@ -121,13 +109,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "9 is digit" :string
+            "9 is digit" :string
     if :void
       cond:
         not :bool
@@ -139,13 +123,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                ": is not digit" :string
+            ": is not digit" :string
     if :void
       cond:
         call :bool
@@ -156,13 +136,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "m is lower" :string
+            "m is lower" :string
     if :void
       cond:
         not :bool
@@ -174,13 +150,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "M is not lower" :string
+            "M is not lower" :string
     if :void
       cond:
         call :bool
@@ -191,13 +163,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "z is alpha" :string
+            "z is alpha" :string
     if :void
       cond:
         call :bool
@@ -208,13 +176,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "Z is alpha" :string
+            "Z is alpha" :string
     if :void
       cond:
         not :bool
@@ -226,13 +190,9 @@
       then:
         call :void
           callee:
-            println :fn(Display) -> void
+            println :fn(string) -> void
           arg0:
-            call :string
-              callee:
-                to_string :string
-              arg0:
-                "5 is not alpha" :string
+            "5 is not alpha" :string
     let n: i32 = int(0) :i32
     block :void
       let __iter_0: Range(char) =
@@ -271,24 +231,20 @@
                     int(1) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_2: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_2 :?
-                "a..=e count = " :string
-              @builder.append_display <for i32> :void
-                __sb_2 :?
-                n :i32
-              ~>
-                @builder.finish :string
-                  __sb_2 :?
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "a..=e count = " :string
+          @builder.append_display <for i32> :void
+            __sb_2 :?
+            n :i32
+          ~>
+            @builder.finish :string
+              __sb_2 :?
     let m: i32 = int(0) :i32
     block :void
       let __iter_3: Range(char) =
@@ -327,22 +283,18 @@
                     int(1) :i32
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_5: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_5 :?
-                "0..<5 count = " :string
-              @builder.append_display <for i32> :void
-                __sb_5 :?
-                m :i32
-              ~>
-                @builder.finish :string
-                  __sb_5 :?
+        block :string
+          let __sb_5: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_5 :?
+            "0..<5 count = " :string
+          @builder.append_display <for i32> :void
+            __sb_5 :?
+            m :i32
+          ~>
+            @builder.finish :string
+              __sb_5 :?
     return int(0) :i32

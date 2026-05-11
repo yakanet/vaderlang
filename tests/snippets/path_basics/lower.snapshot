@@ -5,31 +5,27 @@
     ~>
       call :void
         callee:
-          println :fn(Display) -> void
+          println :fn(string) -> void
         arg0:
-          call :string
-            callee:
-              to_string :string
-            arg0:
-              block :string
-                let __sb_0: ? =
-                  @builder.new :?
-                @builder.append_display <for string> :void
-                  __sb_0 :?
-                  label :string
-                @builder.append_str :void
-                  __sb_0 :?
-                  "=" :string
-                @builder.append_display <for string> :void
-                  __sb_0 :?
-                  call :string
-                    callee:
-                      as_string :string
-                    arg0:
-                      p :Path
-                ~>
-                  @builder.finish :string
-                    __sb_0 :?
+          block :string
+            let __sb_0: ? =
+              @builder.new :?
+            @builder.append_display <for string> :void
+              __sb_0 :?
+              label :string
+            @builder.append_str :void
+              __sb_0 :?
+              "=" :string
+            @builder.append_display <for string> :void
+              __sb_0 :?
+              call :string
+                callee:
+                  as_string :string
+                arg0:
+                  p :Path
+            ~>
+              @builder.finish :string
+                __sb_0 :?
   fn tests_snippets_path_basics__main_vader$main() -> i32
     let p: Path =
       call :Path
@@ -46,76 +42,64 @@
         p :Path
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "filename=" :string
-              @builder.append_display <for string> :void
-                __sb_0 :?
-                call :string
-                  callee:
-                    filename :string
-                  arg0:
-                    p :Path
-              ~>
-                @builder.finish :string
-                  __sb_0 :?
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "filename=" :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            call :string
+              callee:
+                filename :string
+              arg0:
+                p :Path
+          ~>
+            @builder.finish :string
+              __sb_0 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_1: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_1 :?
-                "stem=" :string
-              @builder.append_display <for string> :void
-                __sb_1 :?
-                call :string
-                  callee:
-                    stem :string
-                  arg0:
-                    p :Path
-              ~>
-                @builder.finish :string
-                  __sb_1 :?
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "stem=" :string
+          @builder.append_display <for string> :void
+            __sb_1 :?
+            call :string
+              callee:
+                stem :string
+              arg0:
+                p :Path
+          ~>
+            @builder.finish :string
+              __sb_1 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_2: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_2 :?
-                "extension=" :string
-              @builder.append_display <for string> :void
-                __sb_2 :?
-                call :string
-                  callee:
-                    extension :string
-                  arg0:
-                    p :Path
-              ~>
-                @builder.finish :string
-                  __sb_2 :?
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "extension=" :string
+          @builder.append_display <for string> :void
+            __sb_2 :?
+            call :string
+              callee:
+                extension :string
+              arg0:
+                p :Path
+          ~>
+            @builder.finish :string
+              __sb_2 :?
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -150,28 +134,24 @@
           "/usr/local/bin/vader" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_3: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_3 :?
-                "abs is_absolute=" :string
-              @builder.append_display <for bool> :void
-                __sb_3 :?
-                call :bool
-                  callee:
-                    is_absolute :bool
-                  arg0:
-                    abs :Path
-              ~>
-                @builder.finish :string
-                  __sb_3 :?
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "abs is_absolute=" :string
+          @builder.append_display <for bool> :void
+            __sb_3 :?
+            call :bool
+              callee:
+                is_absolute :bool
+              arg0:
+                abs :Path
+          ~>
+            @builder.finish :string
+              __sb_3 :?
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -215,54 +195,46 @@
                 abs :Path
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_4: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_4 :?
-                "empty.is_empty=" :string
-              @builder.append_display <for bool> :void
-                __sb_4 :?
-                call :bool
+        block :string
+          let __sb_4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_4 :?
+            "empty.is_empty=" :string
+          @builder.append_display <for bool> :void
+            __sb_4 :?
+            call :bool
+              callee:
+                is_empty :bool
+              arg0:
+                call :Path
                   callee:
-                    is_empty :bool
-                  arg0:
-                    call :Path
-                      callee:
-                        empty_path :fn() -> Path
-              ~>
-                @builder.finish :string
-                  __sb_4 :?
+                    empty_path :fn() -> Path
+          ~>
+            @builder.finish :string
+              __sb_4 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_5: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_5 :?
-                "p.is_empty=" :string
-              @builder.append_display <for bool> :void
-                __sb_5 :?
-                call :bool
-                  callee:
-                    is_empty :bool
-                  arg0:
-                    p :Path
-              ~>
-                @builder.finish :string
-                  __sb_5 :?
+        block :string
+          let __sb_5: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_5 :?
+            "p.is_empty=" :string
+          @builder.append_display <for bool> :void
+            __sb_5 :?
+            call :bool
+              callee:
+                is_empty :bool
+              arg0:
+                p :Path
+          ~>
+            @builder.finish :string
+              __sb_5 :?
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -331,140 +303,124 @@
             "foo" :string
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_6: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_6 :?
-                "a/b/c starts_with a/b: " :string
-              @builder.append_display <for bool> :void
-                __sb_6 :?
-                call :bool
+        block :string
+          let __sb_6: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_6 :?
+            "a/b/c starts_with a/b: " :string
+          @builder.append_display <for bool> :void
+            __sb_6 :?
+            call :bool
+              callee:
+                starts_with :bool
+              arg0:
+                call :Path
                   callee:
-                    starts_with :bool
+                    to_path :Path
                   arg0:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b/c" :string
-                  arg1:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b" :string
-              ~>
-                @builder.finish :string
-                  __sb_6 :?
+                    "a/b/c" :string
+              arg1:
+                call :Path
+                  callee:
+                    to_path :Path
+                  arg0:
+                    "a/b" :string
+          ~>
+            @builder.finish :string
+              __sb_6 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_7: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_7 :?
-                "a/bc starts_with a/b: " :string
-              @builder.append_display <for bool> :void
-                __sb_7 :?
-                call :bool
+        block :string
+          let __sb_7: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_7 :?
+            "a/bc starts_with a/b: " :string
+          @builder.append_display <for bool> :void
+            __sb_7 :?
+            call :bool
+              callee:
+                starts_with :bool
+              arg0:
+                call :Path
                   callee:
-                    starts_with :bool
+                    to_path :Path
                   arg0:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/bc" :string
-                  arg1:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b" :string
-              ~>
-                @builder.finish :string
-                  __sb_7 :?
+                    "a/bc" :string
+              arg1:
+                call :Path
+                  callee:
+                    to_path :Path
+                  arg0:
+                    "a/b" :string
+          ~>
+            @builder.finish :string
+              __sb_7 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_8: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_8 :?
-                "a/b/c ends_with b/c: " :string
-              @builder.append_display <for bool> :void
-                __sb_8 :?
-                call :bool
+        block :string
+          let __sb_8: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_8 :?
+            "a/b/c ends_with b/c: " :string
+          @builder.append_display <for bool> :void
+            __sb_8 :?
+            call :bool
+              callee:
+                ends_with :bool
+              arg0:
+                call :Path
                   callee:
-                    ends_with :bool
+                    to_path :Path
                   arg0:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b/c" :string
-                  arg1:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "b/c" :string
-              ~>
-                @builder.finish :string
-                  __sb_8 :?
+                    "a/b/c" :string
+              arg1:
+                call :Path
+                  callee:
+                    to_path :Path
+                  arg0:
+                    "b/c" :string
+          ~>
+            @builder.finish :string
+              __sb_8 :?
     call :void
       callee:
-        println :fn(Display) -> void
+        println :fn(string) -> void
       arg0:
-        call :string
-          callee:
-            to_string :string
-          arg0:
-            block :string
-              let __sb_9: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_9 :?
-                "a/b/c ends_with /c: " :string
-              @builder.append_display <for bool> :void
-                __sb_9 :?
-                call :bool
+        block :string
+          let __sb_9: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_9 :?
+            "a/b/c ends_with /c: " :string
+          @builder.append_display <for bool> :void
+            __sb_9 :?
+            call :bool
+              callee:
+                ends_with :bool
+              arg0:
+                call :Path
                   callee:
-                    ends_with :bool
+                    to_path :Path
                   arg0:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b/c" :string
-                  arg1:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "/c" :string
-              ~>
-                @builder.finish :string
-                  __sb_9 :?
+                    "a/b/c" :string
+              arg1:
+                call :Path
+                  callee:
+                    to_path :Path
+                  arg0:
+                    "/c" :string
+          ~>
+            @builder.finish :string
+              __sb_9 :?
     call :void
       callee:
         show_path :fn(string, Path) -> void

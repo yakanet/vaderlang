@@ -9,7 +9,7 @@
   expr 11:13    FieldExpr      :: fn() -> string
   expr 11:13    IdentExpr      :: StringBuilder
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(Display) -> void
+  expr 11:5     IdentExpr      :: fn(string) -> void
   expr 14:12    CallExpr       :: StringBuilder
   expr 14:12    IdentExpr      :: fn() -> StringBuilder
   expr 15:16    StringLitExpr  :: string
@@ -28,7 +28,7 @@
   expr 18:13    FieldExpr      :: fn() -> string
   expr 18:13    IdentExpr      :: StringBuilder
   expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(Display) -> void
+  expr 18:5     IdentExpr      :: fn(string) -> void
   expr 21:12    CallExpr       :: StringBuilder
   expr 21:12    IdentExpr      :: fn() -> StringBuilder
   expr 22:13    StringLitExpr  :: string
@@ -36,7 +36,7 @@
   expr 22:23    FieldExpr      :: fn() -> string
   expr 22:23    IdentExpr      :: StringBuilder
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(Display) -> void
+  expr 22:5     IdentExpr      :: fn(string) -> void
   expr 25:12    CallExpr       :: StringBuilder
   expr 25:12    IdentExpr      :: fn() -> StringBuilder
   expr 26:5     CallExpr       :: void
@@ -49,7 +49,7 @@
   expr 28:13    FieldExpr      :: fn() -> string
   expr 28:13    IdentExpr      :: StringBuilder
   expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(Display) -> void
+  expr 28:5     IdentExpr      :: fn(string) -> void
   expr 32:12    CallExpr       :: StringBuilder
   expr 32:12    IdentExpr      :: fn() -> StringBuilder
   expr 33:16    StringLitExpr  :: string
@@ -65,7 +65,7 @@
   expr 35:13    FieldExpr      :: fn() -> string
   expr 35:13    IdentExpr      :: StringBuilder
   expr 35:5     CallExpr       :: void
-  expr 35:5     IdentExpr      :: fn(Display) -> void
+  expr 35:5     IdentExpr      :: fn(string) -> void
   expr 6:11     CallExpr       :: StringBuilder
   expr 6:11     IdentExpr      :: fn() -> StringBuilder
   expr 7:15     StringLitExpr  :: string

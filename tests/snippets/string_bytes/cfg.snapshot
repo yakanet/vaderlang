@@ -4,223 +4,203 @@
 
 fn tests_snippets_string_bytes__main_vader$main() -> i32
   locals:
-    %0 $k_0#77: string
-    %1 $call_1#78: string
-    %2 $k_2#79: i32
-    %3 $k_5#81: string
-    %4 $call_6#82: StringBytes
-    %5 __iter_0#83: StringBytes (synthetic __iter_0)
-    %6 sum#84: u32 (local sum)
-    %7 $call_8#85: Done | Yielded(u8)
-    %8 __step_1#86: Done | Yielded(u8) (synthetic __step_1)
-    %9 $type_check_10#87: bool
-    %10 $intrinsic_16#88: ?
-    %11 __sb_2#89: ? (synthetic __sb_2)
-    %12 $k_18#90: string
-    %13 $intrinsic_19#91: string
-    %14 $call_20#92: string
-    %15 $k_21#93: string
-    %16 $call_22#94: string
-    %17 $k_23#95: string
-    %18 $call_24#96: StringBytes
-    %19 __iter_3#97: StringBytes (synthetic __iter_3)
-    %20 $call_26#98: Done | Yielded(u8)
-    %21 __step_4#99: Done | Yielded(u8) (synthetic __step_4)
-    %22 $type_check_28#100: bool
-    %23 bom#101: string (local bom)
-    %24 $k_38#102: string
-    %25 $call_39#103: string
-    %26 $intrinsic_40#104: ?
-    %27 __sb_6#105: ? (synthetic __sb_6)
-    %28 $k_42#106: string
-    %29 $k_43#107: usize
-    %30 $call_44#108: u8
-    %31 $k_45#109: string
-    %32 $k_46#110: usize
-    %33 $call_47#111: u8
-    %34 $k_48#112: string
-    %35 $k_49#113: usize
-    %36 $call_50#114: u8
-    %37 $intrinsic_51#115: string
-    %38 $call_52#116: string
-    %39 $intrinsic_53#117: ?
-    %40 __sb_7#118: ? (synthetic __sb_7)
-    %41 $k_55#119: string
-    %42 $k_56#120: usize
-    %43 $call_57#121: u8
-    %44 $k_58#122: string
-    %45 $k_59#123: string
-    %46 $k_60#124: usize
-    %47 $call_61#125: u8
-    %48 $intrinsic_62#126: string
-    %49 $call_63#127: string
-    %50 $k_64#128: string
-    %51 $call_65#129: string
-    %52 $k_66#130: string
-    %53 $call_67#131: StringBytes
-    %54 __iter_8#132: StringBytes (synthetic __iter_8)
-    %55 $call_69#133: Done | Yielded(u8)
-    %56 __step_9#134: Done | Yielded(u8) (synthetic __step_9)
-    %57 $type_check_71#135: bool
-    %58 $intrinsic_77#136: ?
-    %59 __sb_10#137: ? (synthetic __sb_10)
-    %60 $k_79#138: string
-    %61 $k_80#139: string
-    %62 $call_81#140: usize
-    %63 $intrinsic_82#141: string
-    %64 $call_83#142: string
-    %65 $k_84#143: i32
-    %66 $k_75#144: string
-    %67 $call_76#145: string
-    %68 $cast_29#146: Yielded(u8)
-    %69 b#147: u8 (binding b)
-    %70 $intrinsic_32#148: ?
-    %71 __sb_5#149: ? (synthetic __sb_5)
-    %72 $intrinsic_34#150: string
-    %73 $call_35#151: string
-    %74 $cast_11#152: Yielded(u8)
-    %75 b#153: u8 (binding b)
-    %76 $cast_14#154: u32
-    %77 sum#155: u32 (local sum)
+    %0 $k_0#67: string
+    %1 $k_1#68: i32
+    %2 $k_4#70: string
+    %3 $call_5#71: StringBytes
+    %4 __iter_0#72: StringBytes (synthetic __iter_0)
+    %5 sum#73: u32 (local sum)
+    %6 $call_7#74: Done | Yielded(u8)
+    %7 __step_1#75: Done | Yielded(u8) (synthetic __step_1)
+    %8 $type_check_9#76: bool
+    %9 $intrinsic_15#77: ?
+    %10 __sb_2#78: ? (synthetic __sb_2)
+    %11 $k_17#79: string
+    %12 $intrinsic_18#80: string
+    %13 $k_19#81: string
+    %14 $k_20#82: string
+    %15 $call_21#83: StringBytes
+    %16 __iter_3#84: StringBytes (synthetic __iter_3)
+    %17 $call_23#85: Done | Yielded(u8)
+    %18 __step_4#86: Done | Yielded(u8) (synthetic __step_4)
+    %19 $type_check_25#87: bool
+    %20 bom#88: string (local bom)
+    %21 $k_34#89: string
+    %22 $intrinsic_35#90: ?
+    %23 __sb_6#91: ? (synthetic __sb_6)
+    %24 $k_37#92: string
+    %25 $k_38#93: usize
+    %26 $call_39#94: u8
+    %27 $k_40#95: string
+    %28 $k_41#96: usize
+    %29 $call_42#97: u8
+    %30 $k_43#98: string
+    %31 $k_44#99: usize
+    %32 $call_45#100: u8
+    %33 $intrinsic_46#101: string
+    %34 $intrinsic_47#102: ?
+    %35 __sb_7#103: ? (synthetic __sb_7)
+    %36 $k_49#104: string
+    %37 $k_50#105: usize
+    %38 $call_51#106: u8
+    %39 $k_52#107: string
+    %40 $k_53#108: string
+    %41 $k_54#109: usize
+    %42 $call_55#110: u8
+    %43 $intrinsic_56#111: string
+    %44 $k_57#112: string
+    %45 $k_58#113: string
+    %46 $call_59#114: StringBytes
+    %47 __iter_8#115: StringBytes (synthetic __iter_8)
+    %48 $call_61#116: Done | Yielded(u8)
+    %49 __step_9#117: Done | Yielded(u8) (synthetic __step_9)
+    %50 $type_check_63#118: bool
+    %51 $intrinsic_68#119: ?
+    %52 __sb_10#120: ? (synthetic __sb_10)
+    %53 $k_70#121: string
+    %54 $k_71#122: string
+    %55 $call_72#123: usize
+    %56 $intrinsic_73#124: string
+    %57 $k_74#125: i32
+    %58 $k_67#126: string
+    %59 $cast_26#127: Yielded(u8)
+    %60 b#128: u8 (binding b)
+    %61 $intrinsic_29#129: ?
+    %62 __sb_5#130: ? (synthetic __sb_5)
+    %63 $intrinsic_31#131: string
+    %64 $cast_10#132: Yielded(u8)
+    %65 b#133: u8 (binding b)
+    %66 $cast_13#134: u32
+    %67 sum#135: u32 (local sum)
   bb0:
     %0 = const string(#0) :string
-    %1 = call to_string(%0) :string
-    call println(%1) :void
-    %2 = const int(0) :i32
-    %6 = cast %2 :u32
-    %3 = const string(#1) :string
-    %4 = call bytes(%3) :StringBytes
-    %5 = move %4
+    call println(%0) :void
+    %1 = const int(0) :i32
+    %5 = cast %1 :u32
+    %2 = const string(#1) :string
+    %3 = call bytes(%2) :StringBytes
+    %4 = move %3
     branch -> bb1
   bb1:
     branch -> bb2
   bb2:
-    %7 = call next(%5) :Done | Yielded(u8)
-    %8 = move %7
-    %9 = type_check %8 is Done
-    cond_branch %9 ? bb4 : bb5
+    %6 = call next(%4) :Done | Yielded(u8)
+    %7 = move %6
+    %8 = type_check %7 is Done
+    cond_branch %8 ? bb4 : bb5
   bb3:
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = const string(#2) :string
-    intrinsic builder.append_str(%11, %12)
-    intrinsic builder.append_display(%11, %6)
-    %13 = intrinsic builder.finish(%11)
-    %14 = call to_string(%13) :string
-    call println(%14) :void
-    %15 = const string(#3) :string
-    %16 = call to_string(%15) :string
-    call println(%16) :void
-    %17 = const string(#4) :string
-    %18 = call bytes(%17) :StringBytes
-    %19 = move %18
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    %11 = const string(#2) :string
+    intrinsic builder.append_str(%10, %11)
+    intrinsic builder.append_display(%10, %5)
+    %12 = intrinsic builder.finish(%10)
+    call println(%12) :void
+    %13 = const string(#3) :string
+    call println(%13) :void
+    %14 = const string(#4) :string
+    %15 = call bytes(%14) :StringBytes
+    %16 = move %15
     branch -> bb7
   bb4:
     branch -> bb3
   bb5:
-    %74 = cast %8 :Yielded(u8)
-    %75 = field_get %74.value :u8
-    %76 = cast %75 :u32
-    %77 = binop add %6 %76 :u32
+    %64 = cast %7 :Yielded(u8)
+    %65 = field_get %64.value :u8
+    %66 = cast %65 :u32
+    %67 = binop add %5 %66 :u32
     branch -> bb6
   bb6:
-    %6 = move %77
+    %5 = move %67
     branch -> bb1
   bb7:
     branch -> bb8
   bb8:
-    %20 = call next(%19) :Done | Yielded(u8)
-    %21 = move %20
-    %22 = type_check %21 is Done
-    cond_branch %22 ? bb10 : bb11
+    %17 = call next(%16) :Done | Yielded(u8)
+    %18 = move %17
+    %19 = type_check %18 is Done
+    cond_branch %19 ? bb10 : bb11
   bb9:
-    %23 = const string(#5) :string
-    %24 = const string(#6) :string
-    %25 = call to_string(%24) :string
-    call println(%25) :void
-    %26 = intrinsic builder.new()
-    %27 = move %26
-    %28 = const string(#7) :string
-    intrinsic builder.append_str(%27, %28)
-    %29 = const int(0) :usize
-    %30 = call byte_at(%23, %29) :u8
-    intrinsic builder.append_display(%27, %30)
-    %31 = const string(#8) :string
-    intrinsic builder.append_str(%27, %31)
-    %32 = const int(1) :usize
-    %33 = call byte_at(%23, %32) :u8
-    intrinsic builder.append_display(%27, %33)
-    %34 = const string(#9) :string
-    intrinsic builder.append_str(%27, %34)
-    %35 = const int(2) :usize
-    %36 = call byte_at(%23, %35) :u8
-    intrinsic builder.append_display(%27, %36)
-    %37 = intrinsic builder.finish(%27)
-    %38 = call to_string(%37) :string
-    call println(%38) :void
-    %39 = intrinsic builder.new()
-    %40 = move %39
-    %41 = const string(#10) :string
-    intrinsic builder.append_str(%40, %41)
-    %42 = const int(3) :usize
-    %43 = call byte_at(%23, %42) :u8
-    intrinsic builder.append_display(%40, %43)
-    %44 = const string(#11) :string
-    intrinsic builder.append_str(%40, %44)
-    %45 = const string(#12) :string
-    %46 = const int(0) :usize
-    %47 = call byte_at(%45, %46) :u8
-    intrinsic builder.append_display(%40, %47)
-    %48 = intrinsic builder.finish(%40)
-    %49 = call to_string(%48) :string
-    call println(%49) :void
-    %50 = const string(#13) :string
-    %51 = call to_string(%50) :string
-    call println(%51) :void
-    %52 = const string(#14) :string
-    %53 = call bytes(%52) :StringBytes
-    %54 = move %53
+    %20 = const string(#5) :string
+    %21 = const string(#6) :string
+    call println(%21) :void
+    %22 = intrinsic builder.new()
+    %23 = move %22
+    %24 = const string(#7) :string
+    intrinsic builder.append_str(%23, %24)
+    %25 = const int(0) :usize
+    %26 = call byte_at(%20, %25) :u8
+    intrinsic builder.append_display(%23, %26)
+    %27 = const string(#8) :string
+    intrinsic builder.append_str(%23, %27)
+    %28 = const int(1) :usize
+    %29 = call byte_at(%20, %28) :u8
+    intrinsic builder.append_display(%23, %29)
+    %30 = const string(#9) :string
+    intrinsic builder.append_str(%23, %30)
+    %31 = const int(2) :usize
+    %32 = call byte_at(%20, %31) :u8
+    intrinsic builder.append_display(%23, %32)
+    %33 = intrinsic builder.finish(%23)
+    call println(%33) :void
+    %34 = intrinsic builder.new()
+    %35 = move %34
+    %36 = const string(#10) :string
+    intrinsic builder.append_str(%35, %36)
+    %37 = const int(3) :usize
+    %38 = call byte_at(%20, %37) :u8
+    intrinsic builder.append_display(%35, %38)
+    %39 = const string(#11) :string
+    intrinsic builder.append_str(%35, %39)
+    %40 = const string(#12) :string
+    %41 = const int(0) :usize
+    %42 = call byte_at(%40, %41) :u8
+    intrinsic builder.append_display(%35, %42)
+    %43 = intrinsic builder.finish(%35)
+    call println(%43) :void
+    %44 = const string(#13) :string
+    call println(%44) :void
+    %45 = const string(#14) :string
+    %46 = call bytes(%45) :StringBytes
+    %47 = move %46
     branch -> bb13
   bb10:
     branch -> bb9
   bb11:
-    %68 = cast %21 :Yielded(u8)
-    %69 = field_get %68.value :u8
-    %70 = intrinsic builder.new()
-    %71 = move %70
-    intrinsic builder.append_display(%71, %69)
-    %72 = intrinsic builder.finish(%71)
-    %73 = call to_string(%72) :string
-    call println(%73) :void
+    %59 = cast %18 :Yielded(u8)
+    %60 = field_get %59.value :u8
+    %61 = intrinsic builder.new()
+    %62 = move %61
+    intrinsic builder.append_display(%62, %60)
+    %63 = intrinsic builder.finish(%62)
+    call println(%63) :void
     branch -> bb12
   bb12:
     branch -> bb7
   bb13:
     branch -> bb14
   bb14:
-    %55 = call next(%54) :Done | Yielded(u8)
-    %56 = move %55
-    %57 = type_check %56 is Done
-    cond_branch %57 ? bb16 : bb17
+    %48 = call next(%47) :Done | Yielded(u8)
+    %49 = move %48
+    %50 = type_check %49 is Done
+    cond_branch %50 ? bb16 : bb17
   bb15:
-    %58 = intrinsic builder.new()
-    %59 = move %58
-    %60 = const string(#16) :string
-    intrinsic builder.append_str(%59, %60)
-    %61 = const string(#14) :string
-    %62 = call byte_len(%61) :usize
-    intrinsic builder.append_display(%59, %62)
-    %63 = intrinsic builder.finish(%59)
-    %64 = call to_string(%63) :string
-    call println(%64) :void
-    %65 = const int(0) :i32
-    return %65
+    %51 = intrinsic builder.new()
+    %52 = move %51
+    %53 = const string(#16) :string
+    intrinsic builder.append_str(%52, %53)
+    %54 = const string(#14) :string
+    %55 = call byte_len(%54) :usize
+    intrinsic builder.append_display(%52, %55)
+    %56 = intrinsic builder.finish(%52)
+    call println(%56) :void
+    %57 = const int(0) :i32
+    return %57
   bb16:
     branch -> bb15
   bb17:
-    %66 = const string(#15) :string
-    %67 = call to_string(%66) :string
-    call println(%67) :void
+    %58 = const string(#15) :string
+    call println(%58) :void
     branch -> bb18
   bb18:
     branch -> bb13

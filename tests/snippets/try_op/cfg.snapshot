@@ -25,31 +25,27 @@ fn tests_snippets_try_op__main_vader$read_or_default(%0: string) -> Error | stri
 fn tests_snippets_try_op__main_vader$show(%0: Error | string) -> void
   locals:
     %0 res: Error | string (param res)
-    %1 __scrut_0#8: Error | string (synthetic __scrut_0)
-    %2 $type_check_2#9: bool
-    %3 $cast_3#10: string
-    %4 $call_4#11: string
-    %5 $type_check_5#12: bool
-    %6 $k_6#13: string
-    %7 $call_7#14: string
+    %1 __scrut_0#6: Error | string (synthetic __scrut_0)
+    %2 $type_check_2#7: bool
+    %3 $cast_3#8: string
+    %4 $type_check_4#9: bool
+    %5 $k_5#10: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is string
     cond_branch %2 ? bb1 : bb2
   bb1:
     %3 = cast %0 :string
-    %4 = call to_string(%3) :string
-    call println(%4) :void
+    call println(%3) :void
     branch -> bb3
   bb2:
-    %5 = type_check %1 is Error
-    cond_branch %5 ? bb4 : bb5
+    %4 = type_check %1 is Error
+    cond_branch %4 ? bb4 : bb5
   bb3:
     return
   bb4:
-    %6 = const string(#0) :string
-    %7 = call to_string(%6) :string
-    call println(%7) :void
+    %5 = const string(#0) :string
+    call println(%5) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)

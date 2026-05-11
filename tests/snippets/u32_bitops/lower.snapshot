@@ -10,24 +10,16 @@
           ~>
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    name :string
+                name :string
         else:
           ~>
             call :void
               callee:
-                println :fn(Display) -> void
+                println :fn(string) -> void
               arg0:
-                call :string
-                  callee:
-                    to_string :string
-                  arg0:
-                    "BAD" :string
+                "BAD" :string
   fn tests_snippets_u32_bitops__main_vader$main() -> i32
     let a: u32 = int(4294967295) :u32
     let b: u32 = int(2147483648) :u32

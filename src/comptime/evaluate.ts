@@ -8,7 +8,7 @@ import type * as A from "../parser/ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
 import type { Substitution, Type } from "../typecheck/types.ts";
-import { CORE_STRUCTS, substitute } from "../typecheck/types.ts";
+import { CORE_STRUCTS, canonicalArgsKey, substitute } from "../typecheck/types.ts";
 import { buildStructSubst } from "../typecheck/ctx.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
@@ -17,7 +17,7 @@ import { staticStringValue } from "../parser/ast.ts";
 import { DEC } from "../parser/decorators.ts";
 
 import { err } from "./diag.ts";
-import type { EvaluatedProgram, EvaluatedProject } from "./evaluated-ast.ts";
+import type { EvaluatedProgram, EvaluatedProject, IntoMemberObservation } from "./evaluated-ast.ts";
 import { InstanceRegistry } from "./instances.ts";
 import { planComptimeOrder } from "./deps.ts";
 import { runComptimeDecl } from "./run.ts";
@@ -128,12 +128,54 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
   // above is the single source of generic instances, and `monomorphizeProject`
   // flattens it into the mono entry table consumed by the lowerer. Layer 2
   // of the type-first redesign relocates this call out of `lowerProject`.
+  const intoMembers = collectIntoMembers(project);
   const evaluatedCore = {
     typed: project, modules, instances: instances.entries(),
-    mono: EMPTY_MONO, fileExprs,
+    mono: EMPTY_MONO, fileExprs, intoMembers,
   };
   const mono = monomorphizeProject(evaluatedCore);
   return { ...evaluatedCore, mono };
+}
+
+/** Walk every `intoCoercions` site recorded by the typer and emit one
+ *  `IntoMemberObservation` per (impl member, concrete typeArgs) pair.
+ *  Deduplicates structurally-identical observations so the mono pass
+ *  doesn't materialise the same specialisation twice. The typeArgs are
+ *  derived from `coercion.implSubst` in `decl.typeParams` order, which
+ *  is also what `lookupImplEntry` queries with. */
+function collectIntoMembers(project: TypedProject): IntoMemberObservation[] {
+  const out: IntoMemberObservation[] = [];
+  const seen = new Set<string>();
+  const typeParamSymbols = project.resolved.typeParamSymbols;
+  for (const typed of project.modules.values()) {
+    for (const coercion of typed.intoCoercions.values()) {
+      // Only blanket impls need a dedicated observation : their members
+      // aren't anchored to a registered struct instance, so the regular
+      // mono pass can't reach them. Concrete-source impls (e.g.
+      // `UserId implements Into(i32)`) are already materialised by the
+      // standard non-generic impl path.
+      if (coercion.entry.decl.typeParams.length === 0) continue;
+      const member = coercion.entry.decl.members.find((m) => m.name === "into");
+      if (member === undefined) continue;
+      const typeArgs: Type[] = [];
+      let ok = true;
+      for (const tp of coercion.entry.decl.typeParams) {
+        const sym = typeParamSymbols.get(tp);
+        if (sym === undefined) { ok = false; break; }
+        const ty = coercion.implSubst.typeParams?.get(sym.id);
+        if (ty === undefined) { ok = false; break; }
+        typeArgs.push(ty);
+      }
+      if (!ok) continue;
+      const ownerProgram = project.modules.get(coercion.entry.module.id);
+      if (ownerProgram === undefined) continue;
+      const key = `${coercion.entry.decl.span.start.offset}:${canonicalArgsKey(typeArgs)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ member, program: ownerProgram, typeArgs });
+    }
+  }
+  return out;
 }
 
 const EMPTY_MONO: MonoProject = {
@@ -156,7 +198,7 @@ function makeLiveEvaluatedProject(
   for (const [id, typed] of project.modules) {
     modules.set(id, { typed, comptimeDecls });
   }
-  return { typed: project, modules, instances: [], mono: EMPTY_MONO, fileExprs: new Map() };
+  return { typed: project, modules, instances: [], mono: EMPTY_MONO, fileExprs: new Map(), intoMembers: [] };
 }
 
 /** Bake an expression-position `@file("path")` call. The arg is comptime-
@@ -362,13 +404,21 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry, dia
         }
       }
     }
-    // Each `[T]` → `Iterator(T)` coercion site needs an `ArrayIter(T)`
-    // instance materialised by mono so the specialised step impl exists
-    // when the lower-time wrap unfolds. Registry deduplicates by displayKey.
-    if (arrayIterSymbol !== null) {
-      for (const elementTy of typed.arrayIterCoercions.values()) {
-        registry.add(arrayIterSymbol, [elementTy]);
-      }
+    // Each `Into` coercion site needs the corresponding impl member body
+    // observed so transitive types (e.g. `ArrayIterator(T)` inside the
+    // `T[] implements[T] Into(Iterator(T))` blanket) get registered.
+    // Mirrors `observeImplMembers` but uses the impl's typeParam binding
+    // from `coercion.implSubst` rather than a struct instance. The walk
+    // uses the impl's *owning* module's TypedProgram — the coercion may
+    // be recorded at a use site in module A while the impl lives in B
+    // (e.g. std/core's blanket impls).
+    for (const coercion of typed.intoCoercions.values()) {
+      if (coercion.entry.decl.typeParams.length === 0) continue;
+      const member = coercion.entry.decl.members.find((m) => m.name === "into");
+      if (member === undefined || member.body === null) continue;
+      const ownerTyped = project.modules.get(coercion.entry.module.id);
+      if (ownerTyped === undefined) continue;
+      walkImplBodyForCalls(member.body, ownerTyped, registry, coercion.implSubst);
     }
     // Inferred generic-fn call sites: the typechecker records (CallExpr → typeArgs)
     // for each call site where it successfully unified the fn's type params.

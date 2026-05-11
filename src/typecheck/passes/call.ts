@@ -17,7 +17,7 @@ import type { Substitution, Type } from "../types.ts";
 import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isNumeric, isPrimitive, substitute, unionOf } from "../types.ts";
 
 import { buildStructSubst, tryStructSubst } from "../ctx.ts";
-import { tryInto } from "./coerce.ts";
+import { findIntoImpl, tryInto } from "./coerce.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr, typeOfSymbol } from "./expr.ts";
@@ -45,7 +45,7 @@ export function inferCall(
         // before ranking — otherwise `abs(-7)` matches both `abs(i32)` and
         // `abs(f64)` and silently picks the first declared overload.
         const firstArgTy = defaultIfFree(checkExpr(expr.args[0]!.value, null, t, impls, diags, fn));
-        const chosen = pickDirectCallOverload(overloads, firstArgTy, t);
+        const chosen = pickDirectCallOverload(overloads, firstArgTy, t, impls);
         if (chosen !== null && chosen !== sym) {
           t.directCallOverloads.set(expr, chosen);
         } else if (chosen === null) {
@@ -103,10 +103,6 @@ export function inferCall(
           `expected ${displayType(expectedTy)}, got ${displayType(got)}`);
       }
     }
-    if (expectedTy !== null) {
-      recordIterCoercion(arg.value, got, expectedTy, t);
-      recordDisplayCoercion(arg.value, got, expectedTy, t);
-    }
   }
   return calleeType.returnType;
 }
@@ -137,8 +133,10 @@ function inferGenericFnCall(
   for (let i = 0; i < calleeType.params.length && i < argTypes.length; i++) {
     const expectedTy = substitute(calleeType.params[i]!, subst);
     if (!typeContainsTypeParam(expectedTy) && !isAssignable(argTypes[i]!, expectedTy, impls)) {
-      err(diags, "T3001", expr.args[i]!.value.span,
-        `expected ${displayType(expectedTy)}, got ${displayType(argTypes[i]!)}`);
+      if (!tryInto(argTypes[i]!, expectedTy, expr.args[i]!.value, t, impls)) {
+        err(diags, "T3001", expr.args[i]!.value.span,
+          `expected ${displayType(expectedTy)}, got ${displayType(argTypes[i]!)}`);
+      }
     }
     if (!typeContainsTypeParam(expectedTy)) {
       // Pin FreeInt/FreeFloat arg literals to the substituted expected type so
@@ -151,8 +149,6 @@ function inferGenericFnCall(
        || (got.kind === "FreeFloat" && isAssignable(got, expectedTy, impls))) {
         t.exprTypes.set(expr.args[i]!.value, expectedTy);
       }
-      recordIterCoercion(expr.args[i]!.value, argTypes[i]!, expectedTy, t);
-      recordDisplayCoercion(expr.args[i]!.value, argTypes[i]!, expectedTy, t);
     }
   }
 
@@ -195,8 +191,11 @@ function inferTypeConstructorCall(
   const argType = checkExpr(arg, null, t, impls, diags, fn);
   const targetOk = isNumeric(target) || isPrimitive(target, "char");
   if (!targetOk) {
+    // Non-numeric target : route through `Into(target)`. `Target(value)`
+    // for a user struct/enum lowers to the matching `into` member call.
+    if (tryInto(argType, target, arg, t, impls)) return target;
     err(diags, "T3010", expr.callee.span,
-      `cast target must be a primitive numeric type or char, got ${displayType(target)}`);
+      `cast target must be a primitive numeric type, char, or have an \`Into(${displayType(target)})\` impl, got ${displayType(target)}`);
     return target;
   }
   const sourceOk = isNumeric(argType)
@@ -205,8 +204,12 @@ function inferTypeConstructorCall(
     || argType.kind === "FreeInt"
     || argType.kind === "FreeFloat";
   if (!sourceOk) {
+    // Non-numeric source with a numeric/char target : try `Into(target)`.
+    // The explicit form (`i32(my_user_id)`) shares the implicit Into path
+    // — same impl, same routing.
+    if (tryInto(argType, target, arg, t, impls)) return target;
     err(diags, "T3010", arg.span,
-      `cast source must be numeric or char, got ${displayType(argType)}`);
+      `cast source must be numeric, char, or have an \`Into(${displayType(target)})\` impl, got ${displayType(argType)}`);
   }
   // Casting char → float or float → char is rejected — chars are integral.
   if (isPrimitive(target, "char") && argType.kind === "Primitive"
@@ -376,7 +379,7 @@ export function inferField(
   // UFCS for free functions: resolver recorded a candidate if the name was in scope.
   const freeSym = t.resolved.ufcsFreeResolutions.get(expr);
   if (freeSym !== undefined) {
-    const boundType = inferUfcsFreeBound(expr, freeSym, targetType, t, diags);
+    const boundType = inferUfcsFreeBound(expr, freeSym, targetType, t, impls, diags);
     if (boundType !== null) return boundType;
   }
 
@@ -465,11 +468,13 @@ function traitMethodBoundFnType(
  */
 function rankOverloadsByFirstParam(
   overloads: readonly Symbol[], recvType: Type, t: MutableTyped,
-): { concrete: Symbol | null; concreteOther: Symbol | null; symMatch: Symbol | null; wildcard: Symbol | null } {
+  impls?: ImplRegistry,
+): { concrete: Symbol | null; concreteOther: Symbol | null; symMatch: Symbol | null; wildcard: Symbol | null; intoMatch: Symbol | null } {
   let concrete: Symbol | null = null;
   let concreteOther: Symbol | null = null;
   let symMatch: Symbol | null = null;
   let wildcard: Symbol | null = null;
+  let intoMatch: Symbol | null = null;
   for (const cand of overloads) {
     const decl = declOf(cand);
     const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
@@ -485,11 +490,22 @@ function rankOverloadsByFirstParam(
       continue;
     }
     if (typeContainsTypeParam(firstParam)) continue;
-    if (!isAssignable(recvType, firstParam)) continue;
+    if (!isAssignable(recvType, firstParam)) {
+      // No direct flow ; probe `Into(firstParam)` as a last-resort fallback.
+      // Strictly weaker than every other rank — only fires when neither
+      // concrete/symMatch/wildcard has a candidate. `findIntoImpl` is the
+      // pure-read variant of `tryInto` (no state mutation here ; the
+      // chosen overload will run `tryInto` per-arg later).
+      if (intoMatch === null && impls !== undefined
+          && findIntoImpl(recvType, firstParam, t, impls) !== null) {
+        intoMatch = cand;
+      }
+      continue;
+    }
     if (concrete === null) concrete = cand;
     else if (concreteOther === null) concreteOther = cand;
   }
-  return { concrete, concreteOther, symMatch, wildcard };
+  return { concrete, concreteOther, symMatch, wildcard, intoMatch };
 }
 
 /** Validate that `freeSym` (or one of its sibling overloads) is a fn whose
@@ -498,14 +514,14 @@ function rankOverloadsByFirstParam(
  *  candidate matches — caller emits T3009. */
 function inferUfcsFreeBound(
   expr: A.FieldExpr, freeSym: Symbol, targetType: Type, t: MutableTyped,
-  diags: DiagnosticCollector,
+  impls: ImplRegistry, diags: DiagnosticCollector,
 ): Type | null {
-  const ranked = rankOverloadsByFirstParam(fnOverloadsForSymbol(freeSym, t), targetType, t);
+  const ranked = rankOverloadsByFirstParam(fnOverloadsForSymbol(freeSym, t), targetType, t, impls);
   if (ranked.concrete !== null && ranked.concreteOther !== null) {
     err(diags, "T3032", expr.fieldSpan,
       `multiple concrete candidates for \`${expr.field}\` on ${displayType(targetType)}`);
   }
-  const chosen = ranked.concrete ?? ranked.symMatch ?? ranked.wildcard;
+  const chosen = ranked.concrete ?? ranked.symMatch ?? ranked.wildcard ?? ranked.intoMatch;
   if (chosen === null) return null;
   const decl = declOf(chosen);
   const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
@@ -545,9 +561,10 @@ function fnOverloadsForSymbol(sym: Symbol, t: MutableTyped): readonly Symbol[] {
  *  candidate matches. */
 function pickDirectCallOverload(
   overloads: readonly Symbol[], firstArgTy: Type, t: MutableTyped,
+  impls?: ImplRegistry,
 ): Symbol | null {
-  const ranked = rankOverloadsByFirstParam(overloads, firstArgTy, t);
-  return ranked.concrete ?? ranked.symMatch ?? ranked.wildcard;
+  const ranked = rankOverloadsByFirstParam(overloads, firstArgTy, t, impls);
+  return ranked.concrete ?? ranked.symMatch ?? ranked.wildcard ?? ranked.intoMatch;
 }
 
 /** Build the fn-typed `calleeType` for an inferCall, honoring the chosen
@@ -603,51 +620,11 @@ function inferGenericUfcsCall(
       err(diags, "T3001", expr.args[i]!.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(explicitArgTypes[i]!)}`);
     }
-    if (!typeContainsTypeParam(expectedTy)) {
-      recordIterCoercion(expr.args[i]!.value, explicitArgTypes[i]!, expectedTy, t);
-      recordDisplayCoercion(expr.args[i]!.value, explicitArgTypes[i]!, expectedTy, t);
-    }
   }
 
   recordGenericCallSite(expr, declOf(freeSym), bindings, t, impls, diags);
 
   return substitute(fullFnType.returnType, subst);
-}
-
-/** Record an `[T]` → `Iterator(T)` coercion when the assignability check
- *  matched the trait-typed slot but the source expression is a raw array.
- *  The lowerer reads `arrayIterCoercions` to wrap the lowered expression
- *  in an `ArrayIter(T)` struct literal at the use site. */
-export function recordIterCoercion(
-  src: A.Expr, got: Type, expected: Type, t: MutableTyped,
-): void {
-  if (got.kind !== "Array") return;
-  if (expected.kind !== "Trait" || expected.args.length !== 1) return;
-  const iter = findGlobalTrait(t, CORE_TRAITS.Iterator);
-  if (iter === null || iter.id !== expected.symbol.id) return;
-  t.arrayIterCoercions.set(src, got.element);
-}
-
-/** Record a `T` → `Display` coercion at a use site where the parameter slot
- *  is `Display`-typed and the source has a concrete type implementing it.
- *  The lowerer reads `displayCoercions` to rewrite the argument into a
- *  static call to the `<T>.Display.to_string` impl member, so the host hook
- *  receives a flat string. Free-numeric sources are defaulted to their
- *  canonical type (`i32` / `f64`) before recording. */
-export function recordDisplayCoercion(
-  src: A.Expr, got: Type, expected: Type, t: MutableTyped,
-): void {
-  if (expected.kind !== "Trait") return;
-  const display = findGlobalTrait(t, CORE_TRAITS.Display);
-  if (display === null || display.id !== expected.symbol.id) return;
-  // Already a Display value (or the param itself is Display) — nothing to do,
-  // the existing virtual dispatch path handles trait-typed sources.
-  if (got.kind === "Trait" && got.symbol.id === display.id) return;
-  const concrete = defaultIfFree(got);
-  // The lowerer needs a concrete impl member to dispatch to ; trait-typed
-  // sources we can't statically resolve are left to the virtual path.
-  if (concrete.kind !== "Primitive" && concrete.kind !== "Struct") return;
-  t.displayCoercions.set(src, concrete);
 }
 
 function recordGenericCallSite(

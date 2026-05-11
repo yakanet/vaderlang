@@ -42,32 +42,32 @@
   expr 20:14    FieldExpr      :: fn() -> usize
   expr 20:14    RangeExpr      :: Range(i32)
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(Display) -> void
+  expr 20:5     IdentExpr      :: fn(string) -> void
   expr 23:12    CallExpr       :: i32 | null
   expr 23:12    FieldExpr      :: fn() -> i32 | null
   expr 23:12    RangeExpr      :: Range(i32)
   expr 23:5     MatchExpr      :: void
   expr 24:24    CallExpr       :: void
-  expr 24:24    IdentExpr      :: fn(Display) -> void
+  expr 24:24    IdentExpr      :: fn(string) -> void
   expr 24:32    IdentExpr      :: i32
   expr 25:24    CallExpr       :: void
-  expr 25:24    IdentExpr      :: fn(Display) -> void
+  expr 25:24    IdentExpr      :: fn(string) -> void
   expr 25:32    StringLitExpr  :: string
   expr 29:14    CallExpr       :: bool
   expr 29:14    FieldExpr      :: fn() -> bool
   expr 29:14    RangeExpr      :: Range(i32)
   expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(Display) -> void
+  expr 29:5     IdentExpr      :: fn(string) -> void
   expr 30:14    CallExpr       :: bool
   expr 30:14    FieldExpr      :: fn() -> bool
   expr 30:14    RangeExpr      :: Range(i32)
   expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(Display) -> void
+  expr 30:5     IdentExpr      :: fn(string) -> void
   expr 33:13    CallExpr       :: usize
   expr 33:13    FieldExpr      :: fn() -> usize
   expr 33:13    StructLitExpr  :: Countdown
   expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn(Display) -> void
+  expr 33:5     IdentExpr      :: fn(string) -> void
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded(i32)
   expr undefined:undefined IdentExpr      :: Countdown
   expr undefined:undefined IdentExpr      :: bool
