@@ -39,8 +39,6 @@ export function lowerExpr(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
     const wrapped = wrapAsInto(ctx, lowered, intoCoercion, expr.span);
     if (wrapped !== null) return wrapped;
   }
-  // (`wrapAsInto` imported below from display-coerce.ts — same file already
-  // hosts wrapAsDisplay so they share the impl-entry lookup machinery.)
   return lowered;
 }
 

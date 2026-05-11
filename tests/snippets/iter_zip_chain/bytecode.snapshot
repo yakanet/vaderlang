@@ -348,29 +348,29 @@ end
 fn 2 std_core$usize$Comparable$compare (usize,usize) -> i32
   local "if_res#13" i32
   local "if_res#15" i32
-  local.get 0   ; core.vader:358:35
-  local.get 1   ; core.vader:358:35
-  usize.lt   ; core.vader:358:35
-  if $L0 void   ; core.vader:358:32
-    i32.const 1   ; core.vader:358:51
-    i32.neg   ; core.vader:358:50
-    local.set 3   ; core.vader:358:50
-  else   ; core.vader:358:32
-    local.get 0   ; core.vader:358:63
-    local.get 1   ; core.vader:358:63
-    usize.gt   ; core.vader:358:63
-    if $L1 void   ; core.vader:358:60
-      i32.const 1   ; core.vader:358:78
-      local.set 2   ; core.vader:358:78
-    else   ; core.vader:358:60
-      i32.const 0   ; core.vader:358:89
-      local.set 2   ; core.vader:358:89
-    end $L1   ; core.vader:358:60
-    local.get 2   ; core.vader:358:60
-    local.set 3   ; core.vader:358:60
-  end $L0   ; core.vader:358:32
-  local.get 3   ; core.vader:358:29
-  return   ; core.vader:358:29
+  local.get 0   ; core.vader:353:35
+  local.get 1   ; core.vader:353:35
+  usize.lt   ; core.vader:353:35
+  if $L0 void   ; core.vader:353:32
+    i32.const 1   ; core.vader:353:51
+    i32.neg   ; core.vader:353:50
+    local.set 3   ; core.vader:353:50
+  else   ; core.vader:353:32
+    local.get 0   ; core.vader:353:63
+    local.get 1   ; core.vader:353:63
+    usize.gt   ; core.vader:353:63
+    if $L1 void   ; core.vader:353:60
+      i32.const 1   ; core.vader:353:78
+      local.set 2   ; core.vader:353:78
+    else   ; core.vader:353:60
+      i32.const 0   ; core.vader:353:89
+      local.set 2   ; core.vader:353:89
+    end $L1   ; core.vader:353:60
+    local.get 2   ; core.vader:353:60
+    local.set 3   ; core.vader:353:60
+  end $L0   ; core.vader:353:32
+  local.get 3   ; core.vader:353:29
+  return   ; core.vader:353:29
 end
 
 fn 3 std_core$usize$Comparable$gt (usize,usize) -> bool
@@ -398,11 +398,11 @@ fn 4 std_core$usize$Comparable$gte (usize,usize) -> bool
 end
 
 fn 5 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; core.vader:376:26
-  i64.const 1   ; core.vader:376:26
-  i64.to_usize   ; core.vader:376:26
-  usize.add   ; core.vader:376:26
-  return   ; core.vader:376:23
+  local.get 0   ; core.vader:371:26
+  i64.const 1   ; core.vader:371:26
+  i64.to_usize   ; core.vader:371:26
+  usize.add   ; core.vader:371:26
+  return   ; core.vader:371:23
 end
 
 fn 6 std_core$Range$Iterator$next__usize (ref) -> ref

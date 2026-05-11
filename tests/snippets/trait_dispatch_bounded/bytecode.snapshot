@@ -210,9 +210,9 @@ fn 2 tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_disp
 end
 
 fn 3 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; core.vader:329:26
-  i32.to_u64   ; core.vader:329:26
-  return   ; core.vader:329:23
+  local.get 0   ; core.vader:324:26
+  i32.to_u64   ; core.vader:324:26
+  return   ; core.vader:324:23
 end
 
 fn 4 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref

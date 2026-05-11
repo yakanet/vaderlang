@@ -199,11 +199,9 @@ function declareImpl(decl: A.ImplDecl, t: MutableTyped, diags: DiagnosticCollect
   for (const ta of decl.traitArgs) lowerExprAsType(ta, t, diags);
   for (const member of decl.members) declareFn(member, t, diags);
 
-  // R2020 — reject `T implements Into(T)`. Identity coercions are
-  // forbidden by SPEC §X *Type coercion* (would shadow simple assignment
-  // and add registry noise without semantic value). Caught here rather
-  // than at `findIntoImpl` time so the user sees the diagnostic at the
-  // impl site, not at the first call that fails to find a coercion.
+  // Reject `T implements Into(T)` at the impl site — surfaces the
+  // diagnostic where the user wrote the bad impl, not at the first call
+  // that fails to find a coercion.
   if (decl.traitName === CORE_TRAITS.Into && decl.traitArgs.length === 1) {
     const forType = t.globals.typeExprTypes.get(decl.forType);
     const targetType = t.globals.typeExprTypes.get(decl.traitArgs[0]!);
