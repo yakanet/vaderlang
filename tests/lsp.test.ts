@@ -1,0 +1,280 @@
+// LSP end-to-end tests : spawn `vader lsp`, drive the JSON-RPC stream over
+// stdin/stdout, verify `textDocument/definition` and `textDocument/hover`
+// land on the right declaration and produce the expected Markdown.
+//
+// The server is a Vader program executed through the bytecode VM (cf.
+// `src/cli/commands/lsp.ts` shim), so each `Bun.spawn` invocation pays a
+// ~2-3 s VM-bootstrap cost. To keep `bun test` snappy this suite is
+// gated behind `RUN_LSP_TESTS=1` ; the gate skips every test rather than
+// declaring them failed when not set. We bundle every query for a given
+// source into a single server session to amortise the bootstrap.
+
+import { test, expect } from "bun:test";
+
+const ENABLED = process.env.RUN_LSP_TESTS === "1";
+
+type Json = unknown;
+
+interface Position {
+  line: number;
+  character: number;
+}
+
+interface Query {
+  method: "textDocument/definition" | "textDocument/hover";
+  position: Position;
+}
+
+interface QueryResult {
+  query: Query;
+  result: Json;
+}
+
+// Encode `obj` as a JSON-RPC frame : Content-Length header + body.
+function frame(obj: object): Uint8Array {
+  const body = new TextEncoder().encode(JSON.stringify(obj));
+  const header = new TextEncoder().encode(
+    `Content-Length: ${body.byteLength}\r\n\r\n`,
+  );
+  const out = new Uint8Array(header.byteLength + body.byteLength);
+  out.set(header, 0);
+  out.set(body, header.byteLength);
+  return out;
+}
+
+// Read one JSON-RPC frame from `chunks` starting at `cursor`. Returns the
+// parsed JSON and the new cursor, or `null` if `chunks` doesn't yet hold
+// a complete frame.
+function readFrame(
+  chunks: Uint8Array, cursor: number,
+): { body: Json; cursor: number } | null {
+  const view = chunks.subarray(cursor);
+  const sep = findSeparator(view);
+  if (sep < 0) return null;
+  const headerText = new TextDecoder().decode(view.subarray(0, sep));
+  let length = -1;
+  for (const line of headerText.split("\r\n")) {
+    const m = /^content-length:\s*(\d+)$/i.exec(line);
+    if (m) length = Number(m[1]);
+  }
+  if (length < 0) throw new Error(`no Content-Length in header: ${headerText}`);
+  const bodyStart = cursor + sep + 4;
+  const bodyEnd = bodyStart + length;
+  if (chunks.byteLength < bodyEnd) return null;
+  const bodyText = new TextDecoder().decode(chunks.subarray(bodyStart, bodyEnd));
+  return { body: JSON.parse(bodyText), cursor: bodyEnd };
+}
+
+function findSeparator(buf: Uint8Array): number {
+  for (let i = 0; i + 3 < buf.byteLength; i++) {
+    if (buf[i] === 0x0d && buf[i + 1] === 0x0a
+     && buf[i + 2] === 0x0d && buf[i + 3] === 0x0a) return i;
+  }
+  return -1;
+}
+
+// Run one LSP session : open `source` as a virtual document, fire every
+// query in order, return one result per query (in the same order).
+async function driveLsp(source: string, queries: Query[]): Promise<QueryResult[]> {
+  const uri = "file:///lsp-test.vader";
+  const requests: object[] = [
+    { jsonrpc: "2.0", id: 1, method: "initialize",
+      params: { rootUri: null, capabilities: {} } },
+    { jsonrpc: "2.0", method: "initialized", params: {} },
+    { jsonrpc: "2.0", method: "textDocument/didOpen",
+      params: { textDocument: { uri, languageId: "vader", version: 1, text: source } } },
+  ];
+  for (let i = 0; i < queries.length; i++) {
+    const q = queries[i]!;
+    requests.push({
+      jsonrpc: "2.0",
+      id: 100 + i,
+      method: q.method,
+      params: { textDocument: { uri }, position: q.position },
+    });
+  }
+  requests.push({ jsonrpc: "2.0", id: 999, method: "shutdown", params: null });
+  requests.push({ jsonrpc: "2.0", method: "exit", params: null });
+
+  const stdin = new Uint8Array(
+    requests.reduce<number>((n, r) => n + frame(r).byteLength, 0),
+  );
+  let offset = 0;
+  for (const r of requests) {
+    const f = frame(r);
+    stdin.set(f, offset);
+    offset += f.byteLength;
+  }
+
+  const proc = Bun.spawn({
+    cmd: ["bun", "src/index.ts", "lsp"],
+    cwd: process.cwd(),
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  proc.stdin.write(stdin);
+  await proc.stdin.end();
+  const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
+  await proc.exited;
+
+  // Parse every frame, index by request id.
+  const responses = new Map<number, Json>();
+  let cursor = 0;
+  while (cursor < stdout.byteLength) {
+    const r = readFrame(stdout, cursor);
+    if (r === null) break;
+    cursor = r.cursor;
+    const msg = r.body as { id?: number; result?: Json };
+    if (typeof msg.id === "number" && "result" in msg) {
+      responses.set(msg.id, msg.result);
+    }
+  }
+  return queries.map((q, i) => ({
+    query: q,
+    result: responses.get(100 + i) ?? null,
+  }));
+}
+
+interface LocationRange {
+  start: Position;
+  end: Position;
+}
+interface Location {
+  uri: string;
+  range: LocationRange;
+}
+interface Hover {
+  contents: { kind: string; value: string };
+}
+
+const SOURCE = `import "std/io" { println }
+
+/// Doubles its argument.
+double :: fn(x: i32) -> i32 {
+    return x * 2
+}
+
+/// A 2D point.
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    y :: double(21)
+    return y
+}
+`;
+
+test("lsp: goto-def + hover end-to-end", async () => {
+  if (!ENABLED) return;
+
+  const queries: Query[] = [
+    // 0: click on `double` call site → jumps to its decl
+    { method: "textDocument/definition", position: { line: 15, character: 9 } },
+    // 1: hover on `double` call → signature + vaderdoc
+    { method: "textDocument/hover", position: { line: 15, character: 9 } },
+    // 2: click on `Point` struct literal → jumps to struct decl
+    { method: "textDocument/definition", position: { line: 14, character: 9 } },
+    // 3: hover on `Point` literal → struct head signature + vaderdoc
+    { method: "textDocument/hover", position: { line: 14, character: 9 } },
+    // 4: goto-def on imported `println` (no local decl) → null
+    { method: "textDocument/definition", position: { line: 16, character: 4 } },
+    // 5: hover on whitespace → null
+    { method: "textDocument/hover", position: { line: 0, character: 0 } },
+  ];
+
+  const results = await driveLsp(SOURCE, queries);
+  expect(results).toHaveLength(queries.length);
+
+  // 0: goto-def double → line 3 (the `double :: fn(...)` line), char 0..6
+  const def_double = results[0]!.result as Location;
+  expect(def_double.uri).toMatch(/lsp-test\.vader$/);
+  expect(def_double.range.start).toEqual({ line: 3, character: 0 });
+  expect(def_double.range.end).toEqual({ line: 3, character: 6 });
+
+  // 1: hover double → markdown with signature + doc
+  const hov_double = results[1]!.result as Hover;
+  expect(hov_double.contents.kind).toBe("markdown");
+  expect(hov_double.contents.value).toContain("```vader\ndouble :: fn(x: i32) -> i32\n```");
+  expect(hov_double.contents.value).toContain("Doubles its argument.");
+
+  // 2: goto-def Point → line 8 (the `Point :: struct {` line), char 0..5
+  const def_point = results[2]!.result as Location;
+  expect(def_point.range.start).toEqual({ line: 8, character: 0 });
+  expect(def_point.range.end).toEqual({ line: 8, character: 5 });
+
+  // 3: hover Point → markdown with struct signature + doc
+  const hov_point = results[3]!.result as Hover;
+  expect(hov_point.contents.kind).toBe("markdown");
+  expect(hov_point.contents.value).toContain("```vader\nPoint :: struct\n```");
+  expect(hov_point.contents.value).toContain("A 2D point.");
+
+  // 4 + 5: unknown / whitespace → null
+  expect(results[4]!.result).toBeNull();
+  expect(results[5]!.result).toBeNull();
+}, { timeout: 60_000 });
+
+test("lsp: empty document doesn't crash, returns null on lookups", async () => {
+  if (!ENABLED) return;
+
+  const queries: Query[] = [
+    { method: "textDocument/definition", position: { line: 0, character: 0 } },
+    { method: "textDocument/hover", position: { line: 0, character: 0 } },
+  ];
+
+  const results = await driveLsp("", queries);
+  expect(results[0]!.result).toBeNull();
+  expect(results[1]!.result).toBeNull();
+}, { timeout: 60_000 });
+
+test("lsp: initialize advertises definition + hover providers", async () => {
+  if (!ENABLED) return;
+
+  // Drive a session with zero queries — we only care about the
+  // `initialize` response.
+  const requests: object[] = [
+    { jsonrpc: "2.0", id: 1, method: "initialize",
+      params: { rootUri: null, capabilities: {} } },
+    { jsonrpc: "2.0", id: 999, method: "shutdown", params: null },
+    { jsonrpc: "2.0", method: "exit", params: null },
+  ];
+  const stdin = new Uint8Array(
+    requests.reduce<number>((n, r) => n + frame(r).byteLength, 0),
+  );
+  let offset = 0;
+  for (const r of requests) {
+    const f = frame(r);
+    stdin.set(f, offset);
+    offset += f.byteLength;
+  }
+
+  const proc = Bun.spawn({
+    cmd: ["bun", "src/index.ts", "lsp"],
+    cwd: process.cwd(),
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  proc.stdin.write(stdin);
+  await proc.stdin.end();
+  const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
+  await proc.exited;
+
+  let initResult: Json = null;
+  let cursor = 0;
+  while (cursor < stdout.byteLength) {
+    const r = readFrame(stdout, cursor);
+    if (r === null) break;
+    cursor = r.cursor;
+    const msg = r.body as { id?: number; result?: Json };
+    if (msg.id === 1) initResult = msg.result ?? null;
+  }
+
+  const caps = (initResult as { capabilities?: Record<string, unknown> })?.capabilities;
+  expect(caps).toBeDefined();
+  expect(caps!.definitionProvider).toBe(true);
+  expect(caps!.hoverProvider).toBe(true);
+}, { timeout: 60_000 });
