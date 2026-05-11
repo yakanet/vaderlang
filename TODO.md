@@ -881,12 +881,58 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 - [~] **Trait-object boxing + dynamic dispatch for `Iterator(T)` (and other traits)** (initial work 2026-05-08, partial regression observed 2026-05-11). Generic fns whose params are trait-typed (`count(it: Iterator($T))`, `invoke(g: Greeter($T))`, …) were supposed to work end-to-end. The vtable IR from `d076263` is wired through bytecode/VM/C-emit ; type inference tweaks landed in `unifyTypeParam` / `isAssignable` / `lowerVirtualDispatch` / `collectVtableEntries` (Trait param ← concrete arg unification, `FreeInt/Float` → trait defaulting, primitive impls registered in vtables). **However :** the `tests/snippets/trait_box_range_iter/vm.snapshot` currently documents a compile error `T3009 step on Iterator($T)` (now `next` post-rename), and a fresh run still traps at `count(0..<5)` with `vm: reached unreachable`. So the inference path that worked at the time of the original entry has regressed (or never fully covered the call site). Storing a trait-typed value in a struct field works (verified via `Box(i32) { .it = 0..<3 }`), which is why `std/iter`'s lazy combinators ship with the *struct-literal-direct* construction pattern instead of fn helpers. Reopen and investigate before relying on `fn[T](it: Iterator(T))` shapes. Snippet `tests/snippets/iter_lazy/` shows what works today (struct-literal route) ; `trait_box_range_iter` is the historical reference for what should work once inference is repaired.
 - [x] **Operator overloading via trait dispatch** (already in place ; verified 2026-05-10). All routes work end-to-end on user types : `+ - * / %` via `Add/Sub/Mul/Div/Rem` (snippet `op_overload_arith`), `== !=` via `Eq` with negation (snippet `op_overload_eq_ord`), `< <= > >=` via `Ord` rewritten to `compare(a, b) <op> 0` (same snippet), `a[i]` via `Index(I, T)` (snippet `op_overload_index`), `a[i] = v` via `IndexSet(I, T)`, `v in a` / `v !in a` via `Contains(T)` (snippet `contains_op`). Compound assignments (`+= -= *= /= %=`) desugar at parse time to `lhs = lhs <op> rhs` so they reuse the same dispatch (snippet `op_overload_compound`). Typecheck records the resolution in `binaryOpResolutions` ; `lowerOverloadedBinary` consumes it and emits a direct call against the impl member. `Rem`, `Index`, `IndexSet`, `Contains` already in `std/core`. The whole system is live for primitive numerics (built-in path), strings (`+` → `string.concat` op), and any user struct that declares the matching impl.
 - [ ] **Function overloading by full signature** (post-MVP elevation of the pre-MVP receiver-type-only overloading) : pick the candidate whose all parameter types match the call site, not just the first. Subsumes pre-MVP behaviour ; requires generalising the resolver's overload table and the typechecker's call resolution.
-- [~] **Generalise the auto-coerce mechanism — `Into[Target]` trait** (Phase 1 + 1.1 landed 2026-05-11). Trait + 4 implicit sites (call arg, return, let typed, struct field) + T3039 identity diagnostic + SPEC §4 *Type coercion* documenting the rules ship via commits `2fbe9ec` + `72510d5`. **Phase 2 remaining** : migrate the two hardcoded coercions on top of the new mechanism.
-    - **`T[] → Iterator(T)`** : blanket impl `[T] T[] implements Into(Iterator(T))` declared in `std/core` (currently dead code — `findIntoImpl` only matches concrete Source types). Wiring needs (a) `implMatchesSource` to recognise `Array` source against an `ArrayTypeExpr` forType, (b) impl-typeParam substitution binding `T → source.element`, (c) mono pass2 path for array-source generic impls (today only structs flow through `genericImplsByStruct`). Then `arrayIterCoercions` + `wrapArrayAsIter` in `src/lower/passes/for-in.ts` can be deleted.
-    - **`T → string` when `T: Display`** : blanket impl `[T: Display] T implements Into(string)` declared. Same wiring need plus bounded-TypeParam-source matching (verify `source` impl Display before binding). Once live, `src/lower/passes/display-coerce.ts:wrapAsDisplay` + `displayCoercions` collapse into the Into path.
-    - **`Target(value)` explicit cast for non-numeric targets** : the existing primitive-numeric cast in `inferTypeConstructorCall` (`src/typecheck/passes/call.ts:164`) should fall through to Into when the target isn't a numeric / char primitive. Surface needed by `i32(my_user_id)` style explicit coercions.
-    - **Surface decisions kept open** : whether to expose `@cheap_coercion` / `@allocating_coercion` markers so users see allocation classes ; LSP "find coercion usages" for debugging silent insertions ; opt-out via `@explicit_coerce` decorator on a trait for strict-mode libraries.
-    - **Interaction with overload resolution** : SPEC §4 documents Into as a second-pass (rank overloads without Into first ; only retry with Into if no exact match). Not yet implemented — overload-with-Into requires routing through `tryInto` in `pickDirectCallOverload` / `rankOverloadsByFirstParam`.
+- [~] **Generalise the auto-coerce mechanism — `Into[Target]` trait** (Phase 1 + 1.1 + 2a landed 2026-05-11). Trait + 4 implicit sites (call arg, return, let typed, struct field) + T3039 identity diagnostic + SPEC §4 *Type coercion* + `[T: Bound] X implements Y` syntax migrated to `X implements[T: Bound] Y` (`implements` now follows the same `[T]`-after-keyword shape as `fn[T]` / `struct[T]` / `trait[T]`) + `findIntoImpl` extended to recognise blanket impls (typer-side unification with `unifyTypeParam`, bound check via `isAssignable`, substitution stored in `IntoCoercion.implSubst`). Commits `2fbe9ec`, `72510d5`, `0f4b790`, `53e0776`, `1a02450`.
+
+    **Phase 2b remaining — mono wiring.** The typer now accepts blanket
+    impls, but the mono engine doesn't materialise their members so
+    `wrapAsInto` returns null and the consumer would trap at runtime. No
+    user-visible regression today since the hardcoded `arrayIterCoercions`
+    + `displayCoercions` paths intercept every blanket-target case before
+    `tryInto` runs. To activate user-defined blanket impls (and eventually
+    fold the two hardcoded paths) :
+
+    1. **Observation pass** in `src/comptime/evaluate.ts` : after
+       processing `arrayIterCoercions`, walk `typed.intoCoercions`. For
+       each entry, compute the impl typeParam → source-piece map (already
+       on `coercion.implSubst`) and register the impl's `into` member as
+       an instance to materialise. The registry needs a new "impl-member
+       direct" API since `observeImplMembers` today only triggers off
+       struct instances.
+    2. **Specialisation pass** in `src/comptime/specialize.ts` : new pass
+       (after pass2 generic-impl materialisation) reads the recorded
+       impl-member observations and emits one `MonoEntry` per `(member,
+       subst)`. Each entry mangles a unique name and indexes into
+       `implMethodEntries[member][argsKey]` so the lowerer's
+       `lookupImplEntry` query lands on it.
+    3. **Lowerer routing** in `src/lower/passes/display-coerce.ts:
+       wrapAsInto` : compute the argsKey from `coercion.implSubst` and
+       pass it to `lookupImplEntry` (today it passes `source.args` for
+       struct sources, empty for everything else — wrong for blanket
+       impls).
+    4. **Delete the hardcoded paths** once the above runs end-to-end :
+       `arrayIterCoercions` table + `wrapArrayAsIter` helper +
+       `displayCoercions` table + `wrapAsDisplay` helper, plus the
+       trait-widening branch in `isAssignable` (`src/typecheck/types.ts:
+       490-495`) that lets `T[]` flow into `Iterator(T)` without a
+       coercion record. Replace with `tryInto` at each former site.
+    5. **`Target(value)` explicit cast for non-numeric targets** :
+       `inferTypeConstructorCall` (`src/typecheck/passes/call.ts:164`)
+       falls through to `tryInto` when the target isn't a primitive
+       numeric type. Same wiring as 4 ; opens `i32(my_user_id)` style
+       user coercions.
+    6. **Overload-resolution second pass** : SPEC §4 documents Into as a
+       second-pass (rank without Into first, retry with Into if no exact
+       match). Plumb `tryInto` into `pickDirectCallOverload` /
+       `rankOverloadsByFirstParam`.
+
+    Estimated effort post-typer : 2-3 sessions. Bulk in the mono +
+    lowerer plumbing ; the typer surface is stable.
+
+    **Surface decisions still open** : `@cheap_coercion` /
+    `@allocating_coercion` markers so allocation classes surface in
+    review ; LSP "find coercion usages" for silent-insertion debugging ;
+    opt-out via `@explicit_coerce` decorator on a trait for strict-mode
+    libraries.
 - [x] **Expression-bodied functions with explicit return type** (2026-05-08). The earlier P1020 restriction (`fn(...) -> T = expr` was rejected) is lifted on both the TS parser and the Vader self-host parser ; `declareFn` honours the annotation and `inferExprBodiedReturns` skips already-typed expression bodies. The double-`->` SAM-style alternative (`fn double(x: i32) -> i32 -> x * 2`) is not introduced — visual overload outweighs the savings. Snippet : `tests/snippets/expr_bodied_recursive_typed/`.
 - [x] **Struct spread / functional update** (2026-05-10). `MyStruct { ...other, .field = v }` — copy every field of `other`, override per-field. Source bound once to a synthetic local so it's evaluated exactly once even when multiple fields inherit from it. Multi-spread supported (last spread wins per field). Snippet : `tests/snippets/struct_spread`. Touched : parser (new `dotdotdot` token + `StructLitItem = StructLitField | StructLitSpread`), typecheck (validate `other` is assignable to the struct ; T3038 on duplicate-field-name), lowerer (per-field cascade keyed off the spread temp). Two pre-existing bugs surfaced and fixed alongside : (a) field ordering — `{ .c=3, .a=1, .b=2 }` was passed positionally to `struct.new`, producing wrong layout ; lowerer now emits in declaration order regardless of source order (regression : `tests/snippets/struct_lit_field_order`) ; (b) missing-field check — omitting a non-defaulted field crashed at runtime with "Invalid array length" ; now T3037 at typecheck.
 - [x] **Struct field default values** (2026-05-10). `field: T = expr`. Defaults are typechecked once at the decl site (`check.ts:StructDecl` arm) against the field's declared type ; re-lowered at every literal site (comptime-folding is an optimisation opportunity, not a correctness requirement — tracked as a follow-up). Composes with struct spread above. Snippet : `tests/snippets/struct_defaults`.
