@@ -8,20 +8,15 @@ import type { Span } from "../diagnostics/diagnostic.ts";
 // hook: in Vader this becomes a required `id: usize` field on the AST
 // struct base. Inline node-shaped objects (a few discriminated-union parts
 // like `StringLitPart`) carry `span` directly without extending `AstNode`.
-export interface AstNode {
-  readonly id?: number;
-  readonly span: Span;
-}
+export interface AstNode { readonly id?: number; readonly span: Span; }
 
 // ============================================================================
 // Top-level
 // ============================================================================
 
-export interface Program {
+export interface Program extends AstNode {
   readonly kind: "Program";
   readonly file: string;
-  readonly id?: number;
-  readonly span: Span;
   readonly decls: readonly Decl[];
 }
 
@@ -40,10 +35,8 @@ export type Decl =
   | ConstDecl
   | AssertDecl;
 
-export interface ImportDecl {
+export interface ImportDecl extends AstNode {
   readonly kind: "ImportDecl";
-  readonly id?: number;
-  readonly span: Span;
   readonly path: string;
   readonly binding: ImportBinding;
   readonly decorators: readonly Decorator[];
@@ -54,17 +47,13 @@ export type ImportBinding =
   | { readonly kind: "alias"; readonly alias: string }
   | { readonly kind: "destructure"; readonly names: readonly ImportName[] };
 
-export interface ImportName {
+export interface ImportName extends AstNode {
   readonly name: string;
   readonly alias: string | null;
-  readonly id?: number;
-  readonly span: Span;
 }
 
-export interface FnDecl {
+export interface FnDecl extends AstNode {
   readonly kind: "FnDecl";
-  readonly id?: number;
-  readonly span: Span;
   /** Filled by the parser, but the resolver overwrites it for `samSynthetic`
    *  FnDecls (it copies the unique trait method's name). After resolver, all
    *  FnDecls have their final name. */
@@ -92,10 +81,8 @@ export interface FnDecl {
   readonly isExpressionBodied?: true;
 }
 
-export interface StructDecl {
+export interface StructDecl extends AstNode {
   readonly kind: "StructDecl";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
   readonly visibility: Visibility;
@@ -104,9 +91,7 @@ export interface StructDecl {
   readonly decorators: readonly Decorator[];
 }
 
-export interface StructField {
-  readonly id?: number;
-  readonly span: Span;
+export interface StructField extends AstNode {
   readonly name: string;
   readonly type: TypeExpr;
   readonly visibility: Visibility;
@@ -116,10 +101,8 @@ export interface StructField {
   readonly default: Expr | null;
 }
 
-export interface EnumDecl {
+export interface EnumDecl extends AstNode {
   readonly kind: "EnumDecl";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
   readonly visibility: Visibility;
@@ -130,9 +113,7 @@ export interface EnumDecl {
   readonly decorators: readonly Decorator[];
 }
 
-export interface EnumVariant {
-  readonly id?: number;
-  readonly span: Span;
+export interface EnumVariant extends AstNode {
   readonly name: string;
   /** Optional explicit value (`Up = 10`). `null` means "previous + 1" (or 0
    *  for the first variant). Resolved to a concrete index by the typechecker. */
@@ -140,10 +121,8 @@ export interface EnumVariant {
   readonly valueSpan: Span | null;
 }
 
-export interface TraitDecl {
+export interface TraitDecl extends AstNode {
   readonly kind: "TraitDecl";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
   readonly visibility: Visibility;
@@ -165,10 +144,8 @@ export interface TraitDecl {
   readonly decorators: readonly Decorator[];
 }
 
-export interface ImplDecl {
+export interface ImplDecl extends AstNode {
   readonly kind: "ImplDecl";
-  readonly id?: number;
-  readonly span: Span;
   /** Optional bracketed type-param prefix for bounded generic impls —
    *  e.g. `[T: Add & Comparable] Range[T] implements Iterator[T] { ... }`.
    *  These are *the impl's own* type-params, with bounds local to this block.
@@ -186,10 +163,8 @@ export interface ImplDecl {
   readonly decorators: readonly Decorator[];
 }
 
-export interface TypeAliasDecl {
+export interface TypeAliasDecl extends AstNode {
   readonly kind: "TypeAliasDecl";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
   readonly visibility: Visibility;
@@ -198,10 +173,8 @@ export interface TypeAliasDecl {
   readonly decorators: readonly Decorator[];
 }
 
-export interface ConstDecl {
+export interface ConstDecl extends AstNode {
   readonly kind: "ConstDecl";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
   readonly visibility: Visibility;
@@ -220,10 +193,8 @@ export interface ConstDecl {
  *  `decorators` is always empty (the `@assert` itself is not stored as a
  *  decorator on the resulting decl) but the field is present for uniform
  *  iteration with the rest of the `Decl` variants. */
-export interface AssertDecl {
+export interface AssertDecl extends AstNode {
   readonly kind: "AssertDecl";
-  readonly id?: number;
-  readonly span: Span;
   readonly condition: Expr;
   readonly message: string | null;
   readonly decorators: readonly Decorator[];
@@ -231,9 +202,7 @@ export interface AssertDecl {
 
 export type Visibility = "public" | "private";
 
-export interface FnParam {
-  readonly id?: number;
-  readonly span: Span;
+export interface FnParam extends AstNode {
   readonly name: string;
   readonly type: TypeExpr | null;     // optional in lambdas
   readonly defaultValue: Expr | null;
@@ -244,9 +213,7 @@ export interface FnParam {
 // Generics
 // ============================================================================
 
-export interface TypeParam {
-  readonly id?: number;
-  readonly span: Span;
+export interface TypeParam extends AstNode {
   readonly name: string;
   // For struct heads: `(T: type)` ; for comptime values: `($N: i32)`.
   readonly bound: TypeExpr | null;
@@ -257,9 +224,7 @@ export interface TypeParam {
 // Decorators
 // ============================================================================
 
-export interface Decorator {
-  readonly id?: number;
-  readonly span: Span;
+export interface Decorator extends AstNode {
   readonly name: string;
   readonly args: readonly Expr[];
 }
@@ -278,10 +243,8 @@ export type Stmt =
   | ContinueStmt
   | DeferStmt;
 
-export interface LetStmt {
+export interface LetStmt extends AstNode {
   readonly kind: "LetStmt";
-  readonly id?: number;
-  readonly span: Span;
   readonly mutable: boolean;
   /** Binding pattern. For the simple case (`x := expr`) this is a single
    *  `SimpleBinding`; for tuple destructuring (`[a, b] := expr`) this is a
@@ -296,33 +259,25 @@ export interface LetStmt {
  *  values element-wise. */
 export type LetBinding = SimpleBinding | TupleBinding | WildcardBinding | RestBinding;
 
-export interface SimpleBinding {
+export interface SimpleBinding extends AstNode {
   readonly kind: "SimpleBinding";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
 }
 
-export interface TupleBinding {
+export interface TupleBinding extends AstNode {
   readonly kind: "TupleBinding";
-  readonly id?: number;
-  readonly span: Span;
   readonly elements: readonly LetBinding[];
 }
 
-export interface WildcardBinding {
+export interface WildcardBinding extends AstNode {
   readonly kind: "WildcardBinding";
-  readonly id?: number;
-  readonly span: Span;
 }
 
 /** `...name` rest-element of a bracketed binding — collects the tail into
  *  a fresh array. Only valid as the last element of an array-typed source. */
-export interface RestBinding {
+export interface RestBinding extends AstNode {
   readonly kind: "RestBinding";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
 }
@@ -347,32 +302,24 @@ export function forEachLetBindingLeaf(
   }
 }
 
-export interface AssignStmt {
+export interface AssignStmt extends AstNode {
   readonly kind: "AssignStmt";
-  readonly id?: number;
-  readonly span: Span;
   readonly target: Expr;
   readonly value: Expr;
 }
 
-export interface ExprStmt {
+export interface ExprStmt extends AstNode {
   readonly kind: "ExprStmt";
-  readonly id?: number;
-  readonly span: Span;
   readonly expr: Expr;
 }
 
-export interface ReturnStmt {
+export interface ReturnStmt extends AstNode {
   readonly kind: "ReturnStmt";
-  readonly id?: number;
-  readonly span: Span;
   readonly value: Expr | null;
 }
 
-export interface ForStmt {
+export interface ForStmt extends AstNode {
   readonly kind: "ForStmt";
-  readonly id?: number;
-  readonly span: Span;
   readonly label: string | null;
   readonly form: ForForm;
   readonly body: BlockExpr;
@@ -383,24 +330,18 @@ export type ForForm =
   | { readonly kind: "while"; readonly cond: Expr }
   | { readonly kind: "in"; readonly binding: string; readonly bindingSpan: Span; readonly iter: Expr };
 
-export interface BreakStmt {
+export interface BreakStmt extends AstNode {
   readonly kind: "BreakStmt";
-  readonly id?: number;
-  readonly span: Span;
   readonly label: string | null;
 }
 
-export interface ContinueStmt {
+export interface ContinueStmt extends AstNode {
   readonly kind: "ContinueStmt";
-  readonly id?: number;
-  readonly span: Span;
   readonly label: string | null;
 }
 
-export interface DeferStmt {
+export interface DeferStmt extends AstNode {
   readonly kind: "DeferStmt";
-  readonly id?: number;
-  readonly span: Span;
   readonly body: Stmt | BlockExpr;
 }
 
@@ -456,46 +397,34 @@ export function unreachableTypeExprInValuePosition(
   );
 }
 
-export interface IntLitExpr {
+export interface IntLitExpr extends AstNode {
   readonly kind: "IntLitExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly value: bigint;
   readonly suffix: string | null;
 }
 
-export interface FloatLitExpr {
+export interface FloatLitExpr extends AstNode {
   readonly kind: "FloatLitExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly value: number;
   readonly suffix: string | null;
 }
 
-export interface BoolLitExpr {
+export interface BoolLitExpr extends AstNode {
   readonly kind: "BoolLitExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly value: boolean;
 }
 
-export interface NullLitExpr {
+export interface NullLitExpr extends AstNode {
   readonly kind: "NullLitExpr";
-  readonly id?: number;
-  readonly span: Span;
 }
 
-export interface CharLitExpr {
+export interface CharLitExpr extends AstNode {
   readonly kind: "CharLitExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly value: number;
 }
 
-export interface StringLitExpr {
+export interface StringLitExpr extends AstNode {
   readonly kind: "StringLitExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly parts: readonly StringLitPart[];
 }
 
@@ -513,10 +442,8 @@ export function staticStringValue(expr: StringLitExpr): string | null {
   return out;
 }
 
-export interface IdentExpr {
+export interface IdentExpr extends AstNode {
   readonly kind: "IdentExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   /** Set when the source spelling was a leading-dot reference (`.Foo`)
    *  rather than a fully-qualified name. Resolution of such names defers
@@ -540,26 +467,20 @@ export interface IdentExpr {
   readonly isTypeParamIntro?: boolean;
 }
 
-export interface CallExpr {
+export interface CallExpr extends AstNode {
   readonly kind: "CallExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly callee: Expr;
   readonly args: readonly CallArg[];
 }
 
-export interface CallArg {
-  readonly id?: number;
-  readonly span: Span;
+export interface CallArg extends AstNode {
   readonly name: string | null;       // null = positional, otherwise named (`name = expr`)
   readonly value: Expr;
   readonly spread: boolean;            // true for `...rest`
 }
 
-export interface FieldExpr {
+export interface FieldExpr extends AstNode {
   readonly kind: "FieldExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly target: Expr;
   readonly field: string;
   readonly fieldSpan: Span;
@@ -568,20 +489,16 @@ export interface FieldExpr {
   readonly isNumeric?: boolean;
 }
 
-export interface IndexExpr {
+export interface IndexExpr extends AstNode {
   readonly kind: "IndexExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly target: Expr;
   readonly index: Expr;
 }
 
 export type UnaryOp = "neg" | "not" | "bitnot";
 
-export interface UnaryExpr {
+export interface UnaryExpr extends AstNode {
   readonly kind: "UnaryExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly op: UnaryOp;
   readonly operand: Expr;
 }
@@ -593,28 +510,22 @@ export type BinaryOp =
   | "eq" | "neq" | "lt" | "lte" | "gt" | "gte"
   | "is" | "in" | "not_in";
 
-export interface BinaryExpr {
+export interface BinaryExpr extends AstNode {
   readonly kind: "BinaryExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly op: BinaryOp;
   readonly left: Expr;
   readonly right: Expr;
 }
 
-export interface IfExpr {
+export interface IfExpr extends AstNode {
   readonly kind: "IfExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly cond: Expr;
   readonly then: BlockExpr;
   readonly else: IfExpr | BlockExpr | null;
 }
 
-export interface MatchExpr {
+export interface MatchExpr extends AstNode {
   readonly kind: "MatchExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly scrutinee: Expr;
   readonly arms: readonly MatchArm[];
   /** `@partial match x { … }` opts out of exhaustiveness checking — no
@@ -623,45 +534,35 @@ export interface MatchExpr {
   readonly partial?: true;
 }
 
-export interface MatchArm {
-  readonly id?: number;
-  readonly span: Span;
+export interface MatchArm extends AstNode {
   readonly pattern: Pattern;
   readonly guard: Expr | null;
   readonly body: Expr;
 }
 
-export interface BlockExpr {
+export interface BlockExpr extends AstNode {
   readonly kind: "BlockExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly stmts: readonly Stmt[];
   readonly trailing: Expr | null;       // implicit return value (Rust-style)
 }
 
-export interface LambdaExpr {
+export interface LambdaExpr extends AstNode {
   readonly kind: "LambdaExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly params: readonly FnParam[];
   readonly returnType: TypeExpr | null;
   readonly body: BlockExpr;
 }
 
-export interface StructLitExpr {
+export interface StructLitExpr extends AstNode {
   readonly kind: "StructLitExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly typeName: TypeExpr;
   readonly items: readonly StructLitItem[];
 }
 
 export type StructLitItem = StructLitField | StructLitSpread;
 
-export interface StructLitField {
+export interface StructLitField extends AstNode {
   readonly kind: "field";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
   readonly value: Expr;
@@ -669,10 +570,8 @@ export interface StructLitField {
 
 /** `...expr` clause in a struct literal — copies every field of `expr` into
  *  the literal, with subsequent named fields overriding the spread. */
-export interface StructLitSpread {
+export interface StructLitSpread extends AstNode {
   readonly kind: "spread";
-  readonly id?: number;
-  readonly span: Span;
   readonly expr: Expr;
 }
 
@@ -685,41 +584,31 @@ export interface StructLitSpread {
  *  `[T1, T2, ...]` too (formerly the dedicated `TupleTypeExpr` variant).
  *  The dispatch is positional — `SeqLitExpr` in a value slot is a tuple
  *  literal ; in a type slot it lowers to a tuple type. */
-export interface SeqLitExpr {
+export interface SeqLitExpr extends AstNode {
   readonly kind: "SeqLitExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly elements: readonly Expr[];
 }
 
-export interface RangeExpr {
+export interface RangeExpr extends AstNode {
   readonly kind: "RangeExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly inclusive: boolean;
   readonly lower: Expr;
   readonly upper: Expr;
 }
 
-export interface TryExpr {
+export interface TryExpr extends AstNode {
   readonly kind: "TryExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly inner: Expr;
 }
 
-export interface CastExpr {
+export interface CastExpr extends AstNode {
   readonly kind: "CastExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly target: TypeExpr;
   readonly value: Expr;
 }
 
-export interface GenericInstExpr {
+export interface GenericInstExpr extends AstNode {
   readonly kind: "GenericInstExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly callee: Expr;
   readonly typeArgs: readonly TypeExpr[];
 }
@@ -733,20 +622,16 @@ export interface GenericInstExpr {
  *  position still raises P1014. Each intrinsic carries its own typing rules
  *  (input arity, type vs value position of args, return type) and folds to
  *  a constant in the lowering pass. */
-export interface IntrinsicCallExpr {
+export interface IntrinsicCallExpr extends AstNode {
   readonly kind: "IntrinsicCallExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
   readonly nameSpan: Span;
   readonly args: readonly Expr[];
 }
 
 /** `.Variant` dot-shorthand — target enum type inferred from context by the type-checker. */
-export interface DotVariantExpr {
+export interface DotVariantExpr extends AstNode {
   readonly kind: "DotVariantExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly variant: string;
   readonly variantSpan: Span;
 }
@@ -763,33 +648,25 @@ export type Pattern =
   | BindingPattern
   | EnumVariantPattern;
 
-export interface IsPattern {
+export interface IsPattern extends AstNode {
   readonly kind: "IsPattern";
-  readonly id?: number;
-  readonly span: Span;
   readonly type: TypeExpr;
   readonly inner: Pattern | null;       // optional: `is Point { ... }`
   readonly bindAs: string | null;       // optional: `is i32 as n`
 }
 
-export interface StructPattern {
+export interface StructPattern extends AstNode {
   readonly kind: "StructPattern";
-  readonly id?: number;
-  readonly span: Span;
   readonly fields: readonly StructPatternField[];
 }
 
 /** Tuple destructure pattern `[p1, p2, ...]`. Element-wise sub-patterns. */
-export interface TuplePattern {
+export interface TuplePattern extends AstNode {
   readonly kind: "TuplePattern";
-  readonly id?: number;
-  readonly span: Span;
   readonly elements: readonly Pattern[];
 }
 
-export interface StructPatternField {
-  readonly id?: number;
-  readonly span: Span;
+export interface StructPatternField extends AstNode {
   readonly name: string;
   readonly nameSpan: Span;
   readonly value: PatternFieldValue;
@@ -799,24 +676,18 @@ export type PatternFieldValue =
   | { readonly kind: "binding"; readonly name: string; readonly span: Span }
   | { readonly kind: "literal"; readonly value: Expr };
 
-export interface WildcardPattern {
+export interface WildcardPattern extends AstNode {
   readonly kind: "WildcardPattern";
-  readonly id?: number;
-  readonly span: Span;
 }
 
-export interface BindingPattern {
+export interface BindingPattern extends AstNode {
   readonly kind: "BindingPattern";
-  readonly id?: number;
-  readonly span: Span;
   readonly name: string;
 }
 
 /** `.Variant` arm in a match on an enum scrutinee. */
-export interface EnumVariantPattern {
+export interface EnumVariantPattern extends AstNode {
   readonly kind: "EnumVariantPattern";
-  readonly id?: number;
-  readonly span: Span;
   readonly variant: string;
 }
 
@@ -881,18 +752,14 @@ export function collectUnionVariants(e: Expr): readonly Expr[] {
   return [e];
 }
 
-export interface FnTypeExpr {
+export interface FnTypeExpr extends AstNode {
   readonly kind: "FnTypeExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly params: readonly TypeExpr[];
   readonly returnType: TypeExpr | null;
 }
 
-export interface ArrayTypeExpr {
+export interface ArrayTypeExpr extends AstNode {
   readonly kind: "ArrayTypeExpr";
-  readonly id?: number;
-  readonly span: Span;
   readonly element: TypeExpr;
 }
 
