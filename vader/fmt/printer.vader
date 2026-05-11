@@ -7,7 +7,7 @@
 // dispatcher itself enumerates every variant in one place.
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
-import "std/string" { byte_len, slice as str_slice }
+import "std/string" { byte_len, byte_at, slice as str_slice }
 import "std/io" { eprintln }
 import "vader/diagnostics/diagnostic" { Span, Position }
 import "vader/parser" {
@@ -38,7 +38,7 @@ import "vader/parser" {
     WildcardPattern, BindingPattern, EnumVariantPattern,
 }
 import "vader/fmt/style" { INDENT, MAX_LINE, NL, binary_op_symbol, unary_op_symbol }
-import "vader/fmt/comments" { CommentMap, Comment, CommentKind, has_before, take_before, take_trailing, drain_remaining }
+import "vader/fmt/comments" { CommentMap, Comment, CommentKind, has_before, peek_before, take_before, take_trailing, drain_remaining }
 
 // ============================================================================
 // Printer
@@ -101,13 +101,27 @@ source_slice :: fn(self: Printer, span: Span) -> string {
 // ----- comment interleaving -----
 
 // Emit every queued leading comment as one full line each, terminated by
-// a newline. The caller positions the cursor on a fresh line before calling
-// (either at the top of the file or after the inter-decl blank-line pair).
-flush_leading_comments :: fn(self: Printer, before: usize) -> void {
+// a newline. Preserves source blank lines between consecutive comments
+// AND between the last comment and the node that follows (caller passes
+// `node_line` — the source line where the AST node starts ; if there's a
+// gap > 1 line, emit one extra newline as the visual separator).
+flush_leading_comments :: fn(self: Printer, before: usize, node_line: i32) -> void {
     cs :: self.comments.take_before(before)
+    prev_line: i32 = 0
+    has_prev := false
     for c in cs {
+        if has_prev && c.line > prev_line + 1 {
+            self.newline()
+        }
         self.indent()
         self.write(c.text)
+        self.newline()
+        prev_line = c.line
+        has_prev = true
+    }
+    // Trailing gap before the node body. Only kicks in when the last
+    // comment was at least 2 lines before `node_line`.
+    if has_prev && node_line > prev_line + 1 {
         self.newline()
     }
 }
@@ -132,18 +146,27 @@ export emit_program :: fn(self: Printer, p: Program) -> string {
     i: usize = 0
     for i < decls.len() {
         d :: decls[i]
-        before :: decl_span(d).start.offset
-        // Layout :
-        //   [prev decl]
-        //   \n              <- terminate decl line
-        //   \n              <- blank between decls (skip for first decl)
-        //   <leading comments — each `indent + text + \n`>
-        //   <indent> <decl content>
+        span :: decl_span(d)
+        before :: span.start.offset
+        // Layout between decls : preserve the source's blank-line decision.
+        //   prev_end_line + 1 == this_decl_start_line  → contiguous, single \n
+        //   gap >= 2                                    → one blank line, \n\n
+        // The first decl starts at the file head, no separator.
         if i > usize(0) {
             self.newline()
-            self.newline()
+            prev_end_line :: decl_span(decls[i - usize(1)]).end.line
+            // Where this decl logically starts : the first queued leading
+            // comment's line if any, else the first decorator's line (since
+            // decorators sit outside the decl's own span), else the decl's
+            // own start line.
+            first_line := decl_first_line(d)
+            if self.comments.has_before(before) {
+                cs :: self.comments.peek_before(before)
+                if cs.len() > usize(0) { first_line = cs[0].line }
+            }
+            if first_line > prev_end_line + 1 { self.newline() }
         }
-        self.flush_leading_comments(before)
+        self.flush_leading_comments(before, decl_first_line(d))
         self.indent()
         self.emit_decl(d)
         i = i + usize(1)
@@ -172,6 +195,53 @@ emit_decl :: fn(self: Printer, d: Decl) -> void {
     }
 }
 
+stmt_span :: fn(s: Stmt) -> Span {
+    match s {
+        is LetStmt      as x -> x.span
+        is AssignStmt   as x -> x.span
+        is ExprStmt     as x -> x.span
+        is ReturnStmt   as x -> x.span
+        is ForStmt      as x -> x.span
+        is BreakStmt    as x -> x.span
+        is ContinueStmt as x -> x.span
+        is DeferStmt    as x -> x.span
+    }
+}
+
+// Accepts `Expr | null` so callers with optional-trailing slots don't need a
+// separate match-dispatch. The `null` arm returns a sentinel "empty" Span ;
+// callers check `is_some` separately or pre-gate on null.
+expr_span :: fn(e: Expr | null) -> Span {
+    match e {
+        is null                  -> Span { .start = Position { .file = "", .offset = usize(0), .line = 0, .column = 0 }, .end = Position { .file = "", .offset = usize(0), .line = 0, .column = 0 } }
+        is IntLitExpr      as x -> x.span
+        is FloatLitExpr    as x -> x.span
+        is BoolLitExpr     as x -> x.span
+        is NullLitExpr     as x -> x.span
+        is CharLitExpr     as x -> x.span
+        is StringLitExpr   as x -> x.span
+        is IdentExpr       as x -> x.span
+        is CallExpr        as x -> x.span
+        is FieldExpr       as x -> x.span
+        is IndexExpr       as x -> x.span
+        is UnaryExpr       as x -> x.span
+        is BinaryExpr      as x -> x.span
+        is IfExpr          as x -> x.span
+        is MatchExpr       as x -> x.span
+        is BlockExpr       as x -> x.span
+        is LambdaExpr      as x -> x.span
+        is StructLitExpr   as x -> x.span
+        is SeqLitExpr      as x -> x.span
+        is RangeExpr       as x -> x.span
+        is TryExpr         as x -> x.span
+        is CastExpr        as x -> x.span
+        is GenericInstExpr as x -> x.span
+        is DotVariantExpr  as x -> x.span
+        is FnTypeExpr      as x -> x.span
+        is ArrayTypeExpr   as x -> x.span
+    }
+}
+
 decl_span :: fn(d: Decl) -> Span {
     match d {
         is ImportDecl    as x -> x.span
@@ -186,21 +256,60 @@ decl_span :: fn(d: Decl) -> Span {
     }
 }
 
-emit_decorators :: fn(self: Printer, decos: Decorator[]) -> void {
-    for deco in decos {
+// Decorators sit OUTSIDE the decl's own span — they're collected separately
+// by the parser. For "what line does this decl visually start on" we want
+// the first decorator's line if any, else the decl's own span start.
+decl_first_line :: fn(d: Decl) -> i32 {
+    decos: Decorator[] = match d {
+        is ImportDecl    as x -> x.decorators
+        is FnDecl        as x -> x.decorators
+        is StructDecl    as x -> x.decorators
+        is EnumDecl      as x -> x.decorators
+        is TraitDecl     as x -> x.decorators
+        is ImplDecl      as x -> x.decorators
+        is TypeAliasDecl as x -> x.decorators
+        is ConstDecl     as x -> x.decorators
+        is AssertDecl    as x -> x.decorators
+    }
+    if decos.len() > usize(0) { return decos[0].span.start.line }
+    return decl_span(d).start.line
+}
+
+// Decorators followed by either a newline (the common case ; matches the
+// canonical multi-line form) or a single space (when the source placed the
+// decorator on the same line as the decl). `decl_start_line` is the line
+// of the decl's first non-decorator token — the printer's call site picks
+// it (`name_span.start.line` for named decls, fallback to `span.start.line`).
+emit_decorators :: fn(self: Printer, decos: Decorator[], decl_start_line: i32) -> void {
+    i: usize = 0
+    for i < decos.len() {
+        deco :: decos[i]
         self.write("@")
         self.write(deco.name)
         if deco.args.len() > usize(0) {
             self.write("(")
-            i: usize = 0
-            for i < deco.args.len() {
-                if i > usize(0) { self.write(", ") }
-                self.emit_expr(deco.args[i])
-                i = i + usize(1)
+            j: usize = 0
+            for j < deco.args.len() {
+                if j > usize(0) { self.write(", ") }
+                self.emit_expr(deco.args[j])
+                j = j + usize(1)
             }
             self.write(")")
         }
-        self.nl_indent()
+        // Next-thing's line : the following decorator's line if any, else
+        // the decl's start line.
+        next_line :: if i + usize(1) < decos.len() {
+            decos[i + usize(1)].span.start.line
+        } else {
+            decl_start_line
+        }
+        if deco.span.end.line == next_line {
+            self.write(" ")
+        } else {
+            self.newline()
+            self.indent()
+        }
+        i = i + usize(1)
     }
 }
 
@@ -214,7 +323,7 @@ emit_visibility :: fn(self: Printer, v: Visibility) -> void {
 // ---- Import ----
 
 emit_import :: fn(self: Printer, d: ImportDecl) -> void {
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.span.start.line)
     self.write("import \"")
     self.write(d.path)
     self.write("\"")
@@ -225,22 +334,43 @@ emit_import :: fn(self: Printer, d: ImportDecl) -> void {
             self.write(a.alias)
         }
         is DestructureImport as dst -> {
-            self.write(" { ")
-            i: usize = 0
-            for i < dst.names.len() {
-                if i > usize(0) { self.write(", ") }
-                n :: dst.names[i]
-                self.write(n.name)
-                match n.alias {
-                    is null -> {}
-                    is string as a -> {
-                        self.write(" as ")
-                        self.write(a)
-                    }
+            // Preserve the source's choice : if the destructure spanned
+            // multiple lines, keep it multi-line ; else single-line.
+            multi := d.span.start.line != d.span.end.line
+            if multi {
+                self.write(" {")
+                self.depth = self.depth + 1
+                i: usize = 0
+                for i < dst.names.len() {
+                    self.nl_indent()
+                    self.emit_import_name(dst.names[i])
+                    self.write(",")
+                    i = i + usize(1)
                 }
-                i = i + usize(1)
+                self.depth = self.depth - 1
+                self.nl_indent()
+                self.write("}")
+            } else {
+                self.write(" { ")
+                i: usize = 0
+                for i < dst.names.len() {
+                    if i > usize(0) { self.write(", ") }
+                    self.emit_import_name(dst.names[i])
+                    i = i + usize(1)
+                }
+                self.write(" }")
             }
-            self.write(" }")
+        }
+    }
+}
+
+emit_import_name :: fn(self: Printer, n: ImportName) -> void {
+    self.write(n.name)
+    match n.alias {
+        is null -> {}
+        is string as a -> {
+            self.write(" as ")
+            self.write(a)
         }
     }
 }
@@ -250,7 +380,7 @@ emit_import :: fn(self: Printer, d: ImportDecl) -> void {
 emit_fn_decl :: fn(self: Printer, d: FnDecl) -> void {
     if d.sam_synthetic { return }   // parser-fabricated, not source
 
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
     self.write(" :: fn")
@@ -308,13 +438,27 @@ emit_fn_params :: fn(self: Printer, params: FnParam[]) -> void {
 // ---- Struct ----
 
 emit_struct_decl :: fn(self: Printer, d: StructDecl) -> void {
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
     self.write(" :: struct")
     self.emit_type_params(d.type_params)
     if d.fields.len() == usize(0) {
         self.write(" {}")
+        return
+    }
+    // Inline rendering when the source was single-line — matches the
+    // stdlib idiom `export Foo :: struct { value: string }` for small
+    // newtype-style declarations.
+    if d.span.start.line == d.span.end.line {
+        self.write(" { ")
+        i: usize = 0
+        for i < d.fields.len() {
+            if i > usize(0) { self.write(", ") }
+            self.emit_struct_field(d.fields[i])
+            i = i + usize(1)
+        }
+        self.write(" }")
         return
     }
     self.write(" {")
@@ -339,7 +483,7 @@ emit_struct_field :: fn(self: Printer, f: StructField) -> void {
 // ---- Enum ----
 
 emit_enum_decl :: fn(self: Printer, d: EnumDecl) -> void {
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
     self.write(" :: enum")
@@ -381,7 +525,7 @@ emit_enum_variant :: fn(self: Printer, v: EnumVariant) -> void {
 // ---- Trait / Impl ----
 
 emit_trait_decl :: fn(self: Printer, d: TraitDecl) -> void {
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
     self.write(" :: trait")
@@ -403,7 +547,7 @@ emit_trait_decl :: fn(self: Printer, d: TraitDecl) -> void {
 }
 
 emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.for_type.span.start.line)
     self.emit_type_expr(d.for_type)
     self.write(" implements ")
     self.write(d.trait_name)
@@ -435,7 +579,7 @@ emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
 // ---- TypeAlias / Const / Assert ----
 
 emit_type_alias :: fn(self: Printer, d: TypeAliasDecl) -> void {
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
     self.write(" :: type")
@@ -445,7 +589,7 @@ emit_type_alias :: fn(self: Printer, d: TypeAliasDecl) -> void {
 }
 
 emit_const_decl :: fn(self: Printer, d: ConstDecl) -> void {
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
     match d.ty {
@@ -460,7 +604,7 @@ emit_const_decl :: fn(self: Printer, d: ConstDecl) -> void {
 }
 
 emit_assert_decl :: fn(self: Printer, d: AssertDecl) -> void {
-    self.emit_decorators(d.decorators)
+    self.emit_decorators(d.decorators, d.span.start.line)
     self.write("@assert(")
     self.emit_expr(d.condition)
     self.write(")")
@@ -505,19 +649,28 @@ emit_let_binding :: fn(self: Printer, b: LetBinding) -> void {
 }
 
 emit_let_stmt :: fn(self: Printer, s: LetStmt) -> void {
-    if s.mutable {
-        self.emit_let_binding(s.binding)
-        self.emit_type_expr_with_prefix(": ", s.ty)
-        self.write(" := ")
-    } else {
-        self.emit_let_binding(s.binding)
-        match s.ty {
-            is null -> self.write(" :: ")
-            _ -> {
-                self.write(": ")
-                self.emit_type_expr(s.ty)
-                self.write(" = ")
+    // Surface forms (mirrors the parser) :
+    //   immutable                 name :: value
+    //   immutable typed           name: T = value      (parsed-as immutable)
+    //   mutable    untyped        name := value
+    //   mutable    typed          name: T = value      ← same shape, but the
+    //                                                    `:=` would also parse
+    // The AST `mutable` flag is true for both `:=` and `: T =` forms (the
+    // typed variant is always mutable per the parser).  We pick `::` for
+    // untyped immutable, `: T = v` for typed, `:=` for untyped mutable.
+    self.emit_let_binding(s.binding)
+    match s.ty {
+        is null -> {
+            if s.mutable {
+                self.write(" := ")
+            } else {
+                self.write(" :: ")
             }
+        }
+        _ -> {
+            self.write(": ")
+            self.emit_type_expr(s.ty)
+            self.write(" = ")
         }
     }
     self.emit_expr(s.value)
@@ -667,19 +820,17 @@ emit_type_expr_with_prefix :: fn(self: Printer, prefix: string, t: TypeExpr | nu
 // ---- literals ----
 
 emit_int_lit :: fn(self: Printer, x: IntLitExpr) -> void {
-    self.write("${x.value}")
-    match x.suffix {
-        is null -> {}
-        is string as s -> self.write(s)
-    }
+    // The AST stores the decoded `i64` value but discards the source radix
+    // (`0x` / `0b` / `0o` / decimal) plus any underscore separators. To
+    // round-trip the spelling, emit the verbatim source slice. The slice
+    // already includes the optional suffix (`42_i32`, `0xFF_u8`).
+    self.write(self.source_slice(x.span))
 }
 
 emit_float_lit :: fn(self: Printer, x: FloatLitExpr) -> void {
-    self.write("${x.value}")
-    match x.suffix {
-        is null -> {}
-        is string as s -> self.write(s)
-    }
+    // Same rationale as `emit_int_lit` — preserve underscores and the
+    // exact mantissa / exponent formatting from the source.
+    self.write(self.source_slice(x.span))
 }
 
 // Char + string literals : verbatim-from-source to preserve escape spelling,
@@ -744,11 +895,79 @@ emit_unary :: fn(self: Printer, x: UnaryExpr) -> void {
 }
 
 emit_binary :: fn(self: Printer, x: BinaryExpr) -> void {
-    self.emit_expr(x.left)
+    // Recover the `T!` Error-union shorthand. The parser desugars `T!` to a
+    // `BinaryExpr(.BitOr, T, Error)` whose right span is zero-width and sits
+    // exactly on the `!` byte ; the source slice of the BinaryExpr's span
+    // therefore ends with `!`. (Special case `void!` → `null | Error` is
+    // handled by the same source-slice path, recovering `void!` verbatim.)
+    if x.op == .BitOr {
+        slice :: self.source_slice(x.span)
+        n :: slice.byte_len()
+        if n > usize(0) && slice.byte_at(n - usize(1)) == 33u8 {
+            self.write(slice)
+            return
+        }
+    }
+    self.emit_binary_operand(x.left, x.op, true)
     self.write(" ")
     self.write(binary_op_symbol(x.op))
     self.write(" ")
-    self.emit_expr(x.right)
+    self.emit_binary_operand(x.right, x.op, false)
+}
+
+// Emit an operand wrapped in parentheses iff the child is a `BinaryExpr`
+// whose precedence rank is strictly lower than the parent's (so that the
+// rendered source would otherwise re-parse with a different grouping).
+// `is_left` controls the equal-rank case : with the same precedence the
+// parser is left-associative, so a right-hand BinaryExpr of the same rank
+// must be parenthesised to preserve evaluation order, but a left-hand one
+// doesn't.
+emit_binary_operand :: fn(self: Printer, operand: Expr, parent_op: BinaryOp, is_left: bool) -> void {
+    match operand {
+        is BinaryExpr as inner -> {
+            parent_rank :: binary_precedence(parent_op)
+            child_rank  :: binary_precedence(inner.op)
+            need_parens :: child_rank < parent_rank || (child_rank == parent_rank && !is_left)
+            if need_parens {
+                self.write("(")
+                self.emit_expr(inner)
+                self.write(")")
+            } else {
+                self.emit_expr(inner)
+            }
+        }
+        _ -> self.emit_expr(operand)
+    }
+}
+
+// Precedence ranking : higher = tighter binding. Matches the Pratt table
+// in `vader/parser/parser.vader::infix_bp` (the only authority on what
+// the parser actually accepts). Vader has no or-patterns so each variant
+// gets its own arm.
+binary_precedence :: fn(op: BinaryOp) -> i32 {
+    match op {
+        .Or     -> 1
+        .And    -> 2
+        .Eq     -> 3
+        .Neq    -> 3
+        .Lt     -> 3
+        .Lte    -> 3
+        .Gt     -> 3
+        .Gte    -> 3
+        .Is     -> 4
+        .In     -> 4
+        .NotIn  -> 4
+        .BitOr  -> 5
+        .BitXor -> 6
+        .BitAnd -> 7
+        .Shl    -> 8
+        .Shr    -> 8
+        .Add    -> 9
+        .Sub    -> 9
+        .Mul    -> 10
+        .Div    -> 10
+        .Mod    -> 10
+    }
 }
 
 // ---- control-flow expressions ----
@@ -761,11 +980,26 @@ emit_if :: fn(self: Printer, x: IfExpr) -> void {
     match x.else_branch {
         is null -> {}
         is IfElseIf as ei -> {
-            self.write(" else ")
+            // Preserve source : if the `else if` branch started on a new
+            // line, keep the break ; else inline. The discriminant is the
+            // then_block's end line vs the else-branch's first line.
+            if ei.branch.span.start.line > x.then_block.span.end.line {
+                self.newline()
+                self.indent()
+            } else {
+                self.write(" ")
+            }
+            self.write("else ")
             self.emit_if(ei.branch)
         }
         is IfElseBlock as eb -> {
-            self.write(" else ")
+            if eb.block.span.start.line > x.then_block.span.end.line {
+                self.newline()
+                self.indent()
+            } else {
+                self.write(" ")
+            }
+            self.write("else ")
             self.emit_block_expr(eb.block)
         }
     }
@@ -790,36 +1024,118 @@ emit_match :: fn(self: Printer, x: MatchExpr) -> void {
 }
 
 emit_block_expr :: fn(self: Printer, b: BlockExpr) -> void {
+    // Empty block.
     if b.stmts.len() == usize(0) {
         match b.trailing {
             is null -> {
+                // If the source carried an inner comment (e.g. `{ // skip
+                // }`), render it as a multi-line block so the comment
+                // survives. `flush_leading_comments_inline` ends each
+                // comment with `\n`, so the closing `}` only needs indent
+                // (no leading newline).
+                if self.comments.has_before(b.span.end.offset) && b.span.start.line != b.span.end.line {
+                    self.write("{")
+                    self.depth = self.depth + 1
+                    self.newline()
+                    self.flush_leading_comments_inline(b.span.end.offset, b.span.end.line)
+                    self.depth = self.depth - 1
+                    self.indent()
+                    self.write("}")
+                    return
+                }
                 self.write("{}")
                 return
             }
             _ -> {
-                self.write("{ ")
+                // Single trailing expression — inline iff the source was
+                // single-line.
+                if b.span.start.line == b.span.end.line {
+                    self.write("{ ")
+                    self.emit_expr(b.trailing)
+                    self.write(" }")
+                    return
+                }
+                self.write("{")
+                self.depth = self.depth + 1
+                self.nl_indent()
                 self.emit_expr(b.trailing)
+                self.depth = self.depth - 1
+                self.nl_indent()
+                self.write("}")
+                return
+            }
+        }
+    }
+    // Single-stmt no-trailing block — render inline iff the source was
+    // single-line. Matches stdlib idiom `{ return self.foo }`.
+    if b.stmts.len() == usize(1) && b.span.start.line == b.span.end.line {
+        match b.trailing {
+            is null -> {
+                self.write("{ ")
+                self.emit_stmt(b.stmts[0])
                 self.write(" }")
                 return
             }
+            _ -> {}
         }
     }
     self.write("{")
     self.depth = self.depth + 1
     for s in b.stmts {
-        self.nl_indent()
+        sp :: stmt_span(s)
+        self.newline()
+        self.flush_leading_comments_inline(sp.start.offset, sp.start.line)
+        self.indent()
         self.emit_stmt(s)
     }
     match b.trailing {
         is null -> {}
         _ -> {
-            self.nl_indent()
+            sp :: expr_span(b.trailing)
+            self.newline()
+            self.flush_leading_comments_inline(sp.start.offset, sp.start.line)
+            self.indent()
             self.emit_expr(b.trailing)
         }
     }
+    // Trailing inner comments (after every stmt / trailing) belong to the
+    // closing brace's interior. `b.span.end.line` is the line of `}`.
+    inner_trailing :: self.comments.has_before(b.span.end.offset)
+    self.flush_leading_comments_inline(b.span.end.offset, b.span.end.line)
     self.depth = self.depth - 1
-    self.nl_indent()
+    if inner_trailing {
+        // `flush_leading_comments_inline` already terminated every comment
+        // with `\n`, so we're at line start ; just indent.
+        self.indent()
+    } else {
+        self.nl_indent()
+    }
     self.write("}")
+}
+
+// Newline + indent only — caller emits the content after. Used by the
+// per-stmt loop in `emit_block_expr`.
+nl_indent_before :: fn(self: Printer, _next_offset: usize) -> void {
+    self.newline()
+}
+
+// Same shape as `flush_leading_comments` but for in-block use. `node_line`
+// is the line of the stmt / trailing expr the comments precede.
+flush_leading_comments_inline :: fn(self: Printer, before: usize, node_line: i32) -> void {
+    cs :: self.comments.take_before(before)
+    prev_line: i32 = 0
+    has_prev := false
+    for c in cs {
+        if has_prev && c.line > prev_line + 1 { self.newline() }
+        self.indent()
+        self.write(c.text)
+        self.newline()
+        prev_line = c.line
+        has_prev = true
+    }
+    if has_prev && node_line > prev_line + 1 {
+        self.newline()
+    }
 }
 
 emit_lambda :: fn(self: Printer, x: LambdaExpr) -> void {

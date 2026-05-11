@@ -6,7 +6,7 @@
 //   vader fmt --check ...  read-only ; exit 1 if any drift
 //   vader fmt --stdout ... single-file, write to stdout, don't touch disk
 
-import "std/io" { read_file, write_file, exists, is_dir, read_dir, println, eprintln }
+import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprintln }
 import "std/string" { byte_len, ends_with, starts_with }
 import "std/path" { Path, join, to_path, as_string }
 import "vader/fmt/format" { format_source, FormatResult, ParseFailure, Formatted }
@@ -187,7 +187,10 @@ run_one_stdout :: fn(path: string) -> FileResult {
             return FileResult.ParseSkip
         }
         is Formatted as f -> {
-            println(f.output)
+            // The formatter already ends `f.output` with one trailing `\n`,
+            // so use `print` (no extra newline) to keep stdout byte-identical
+            // to the in-place output.
+            print(f.output)
             return FileResult.Ok
         }
     }

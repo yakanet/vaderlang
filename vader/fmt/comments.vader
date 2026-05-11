@@ -202,6 +202,22 @@ export has_before :: fn(self: CommentMap, before: usize) -> bool {
     return c.offset < before
 }
 
+// Like `take_before`, but does NOT advance the cursor. The printer uses
+// this to peek at the first leading-comment's line for blank-line preservation
+// decisions before committing to the emit.
+export peek_before :: fn(self: CommentMap, before: usize) -> Comment[] {
+    out: Comment[] = []
+    j :: self.cursor
+    k := j
+    for k < self.comments.len() {
+        c :: self.comments[k]
+        if c.offset >= before { break }
+        out.push(c)
+        k = k + usize(1)
+    }
+    return out
+}
+
 // Return every un-emitted comment whose `offset < before` and advance the
 // cursor past them. The printer calls this just before emitting each
 // AST node so leading comments land at the right position.
