@@ -8,6 +8,7 @@ import {
   accessSync,
   readdirSync as fsReadDir,
   readFileSync as fsReadFile,
+  readSync as fsReadSync,
   statSync as fsStat,
   writeFileSync as fsWriteFile,
 } from "node:fs";
@@ -53,48 +54,65 @@ export interface HostBindings {
 }
 
 export function defaultHostIO(): HostIO {
-  // Lazily slurped stdin contents. Bun has no sync partial-read API, so
-  // we materialise the whole stream on first access and serve subsequent
-  // reads from the buffer. `stdinBytes` carries the raw byte view used
-  // by `readStdin(n)` ; `stdinLines` keeps the line-split for `readLine`.
-  let stdinBytes: Uint8Array | null = null;
-  let stdinCursor = 0;
-  let stdinLines: string[] | null = null;
+  // Incremental stdin buffer. The previous implementation slurped fd 0
+  // up-front via `readFileSync(0)` — convenient for short-lived CLI
+  // commands but fatal for long-running protocols like LSP, where the
+  // peer keeps the pipe open and slurping blocks until process death.
+  // We now refill on demand via `readSync` chunks, draining `pending`
+  // before returning to the caller. Consumed bytes are sliced off (copy)
+  // so the backing ArrayBuffer doesn't grow unbounded across a session.
+  let pending = new Uint8Array(0);
+  let stdinEof = false;
+  const READ_CHUNK = 8192;
 
-  function ensureStdinBytes(): Uint8Array {
-    if (stdinBytes !== null) return stdinBytes;
-    try {
-      const raw = fsReadFile(0);   // returns a Buffer
-      stdinBytes = new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength);
-    } catch {
-      stdinBytes = new Uint8Array(0);
+  function fillStdin(minBytes: number): void {
+    while (!stdinEof && pending.length < minBytes) {
+      const chunk = new Uint8Array(READ_CHUNK);
+      let got = 0;
+      try {
+        got = fsReadSync(0, chunk, 0, chunk.length, null);
+      } catch {
+        stdinEof = true;
+        return;
+      }
+      if (got === 0) { stdinEof = true; return; }
+      const merged = new Uint8Array(pending.length + got);
+      merged.set(pending, 0);
+      merged.set(chunk.subarray(0, got), pending.length);
+      pending = merged;
     }
-    return stdinBytes;
-  }
-
-  function ensureStdinLines(): string[] {
-    if (stdinLines !== null) return stdinLines;
-    const bytes = ensureStdinBytes();
-    const raw = UTF8_DEC.decode(bytes);
-    stdinLines = raw.length === 0 ? [] : raw.split("\n");
-    if (stdinLines.length > 0 && stdinLines[stdinLines.length - 1] === "") {
-      stdinLines.pop();
-    }
-    return stdinLines;
   }
 
   return {
     write(s)            { process.stdout.write(s); },
     writeError(s)       { process.stderr.write(s); },
-    readLine()          { return ensureStdinLines().shift() ?? null; },
-    readStdin(n) {
-      const bytes = ensureStdinBytes();
-      if (stdinCursor + n > bytes.length) {
-        throw new Error("EOF");
+    readLine() {
+      // Scan for the next \n, refilling as needed. Returns null on EOF
+      // with no buffered data ; returns the buffered tail (without
+      // trailing \r) when EOF arrives mid-line.
+      while (true) {
+        const idx = pending.indexOf(0x0A);
+        if (idx >= 0) {
+          const line = UTF8_DEC.decode(pending.subarray(0, idx));
+          pending = pending.slice(idx + 1);
+          return line.endsWith("\r") ? line.slice(0, -1) : line;
+        }
+        if (stdinEof) {
+          if (pending.length === 0) return null;
+          const line = UTF8_DEC.decode(pending);
+          pending = new Uint8Array(0);
+          return line.endsWith("\r") ? line.slice(0, -1) : line;
+        }
+        fillStdin(pending.length + 1);
       }
-      const slice = bytes.subarray(stdinCursor, stdinCursor + n);
-      stdinCursor += n;
-      return UTF8_DEC.decode(slice);
+    },
+    readStdin(n) {
+      fillStdin(n);
+      if (pending.length < n) throw new Error("EOF");
+      const slice = pending.subarray(0, n);
+      const out = UTF8_DEC.decode(slice);
+      pending = pending.slice(n);
+      return out;
     },
     readFile(path)      { return fsReadFile(path, "utf8"); },
     writeFile(p, c)     { fsWriteFile(p, c, "utf8"); },
