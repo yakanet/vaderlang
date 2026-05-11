@@ -62,6 +62,23 @@
         "path": "./syntaxes/vader.tmLanguage.json"
       }
     ],
+    "semanticTokenScopes": [
+      {
+        "language": "vader",
+        "scopes": {
+          "decorator.documentation": ["keyword.control.documentation.vader"],
+          "parameter.documentation":  ["variable.parameter.documentation.vader"],
+          "comment.documentation":    ["comment.line.documentation.vader"],
+          "variable":                 ["variable.other.vader"],
+          "parameter":                ["variable.parameter.vader"],
+          "type":                     ["entity.name.type.vader"],
+          "function":                 ["entity.name.function.vader"],
+          "namespace":                ["entity.name.namespace.vader"],
+          "enumMember":               ["variable.other.enummember.vader"],
+          "decorator":                ["entity.name.decorator.vader"]
+        }
+      }
+    ],
     "configuration": {
       "title": "Vader",
       "properties": {
