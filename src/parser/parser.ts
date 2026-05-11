@@ -19,6 +19,7 @@ import type { Token, TokenKind } from "../lexer/token.ts";
 import type * as A from "./ast.ts";
 
 import { parseProgram } from "./passes/program.ts";
+import { assignNodeIds } from "./assign-ids.ts";
 
 export interface ParseResult {
   readonly program: A.Program;
@@ -29,7 +30,9 @@ export function parse(
   file: string,
   diagnostics: DiagnosticCollector,
 ): ParseResult {
-  return { program: parseProgram(new Parser(tokens, file, diagnostics)) };
+  const program = parseProgram(new Parser(tokens, file, diagnostics));
+  assignNodeIds(program);
+  return { program };
 }
 
 // ============================================================================

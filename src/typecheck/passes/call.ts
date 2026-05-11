@@ -68,7 +68,8 @@ export function inferCall(
   // generic free function. The bound calleeType has the receiver param dropped,
   // so we must use the full fn type (with receiver as params[0]) to infer T.
   if (expr.callee.kind === "FieldExpr") {
-    const freeSym = t.ufcsFreeResolutions.get(expr.callee);
+    const fr = t.fieldResolutions.get(expr.callee);
+    const freeSym = fr?.kind === "ufcs-free" ? fr.symbol : undefined;
     if (freeSym !== undefined) {
       const ufcsDecl = declOf(freeSym);
       const fullFnType = ufcsDecl !== null ? t.globals.declTypes.get(ufcsDecl) : undefined;
@@ -248,11 +249,11 @@ export function inferField(
   const targetType = checkExpr(expr.target, null, t, impls, diags, fn);
   if (targetType.kind === "Array") {
     if (expr.field === "len") {
-      t.arrayOps.set(expr, "len");
+      t.fieldResolutions.set(expr, { kind: "array-op", op: "len" });
       return { kind: "Fn", params: [], returnType: TY.usize };
     }
     if (expr.field === "push") {
-      t.arrayOps.set(expr, "push");
+      t.fieldResolutions.set(expr, { kind: "array-op", op: "push" });
       return { kind: "Fn", params: [targetType.element], returnType: TY.void };
     }
   }
@@ -311,8 +312,11 @@ export function inferField(
       // The lowerer reads this resolution from `unionFieldResolutions` to
       // synthesise the variant-dispatch cascade ; record per-variant
       // types so the cast in each arm has the right narrowing.
-      t.unionFieldResolutions.set(expr, {
-        variants: targetType.variants.map((v, i) => ({ type: v, fieldType: fieldTypes[i]! })),
+      t.fieldResolutions.set(expr, {
+        kind: "union-field",
+        resolution: {
+          variants: targetType.variants.map((v, i) => ({ type: v, fieldType: fieldTypes[i]! })),
+        },
       });
       return unionOf(fieldTypes);
     }
@@ -329,7 +333,7 @@ export function inferField(
   // distinct traits' impls each provide the requested method on this type.
   const method = findImplMethod(impls, targetType, expr.field, t, expr.fieldSpan, diags);
   if (method !== null) {
-    t.methodResolutions.set(expr, method);
+    t.fieldResolutions.set(expr, { kind: "method", resolution: method });
     return methodBoundFnType(method, t);
   }
 
@@ -344,7 +348,10 @@ export function inferField(
       if (member !== undefined) {
         const fnType = t.globals.declTypes.get(member);
         if (fnType !== undefined && fnType.kind === "Fn") {
-          t.traitVirtualResolutions.set(expr, { trait: targetType.symbol, member });
+          t.fieldResolutions.set(expr, {
+            kind: "trait-virtual",
+            resolution: { trait: targetType.symbol, member },
+          });
           // Drop the receiver param (params[0] is `self`); substitute Self with
           // the trait type and the trait's own type-params with the receiver's
           // concrete args so e.g. `it: Iterator(i32); it.step()` returns
@@ -371,7 +378,7 @@ export function inferField(
   if (targetType.kind === "TypeParam") {
     const traitMethod = findTraitMethodOnParam(targetType, expr.field, t);
     if (traitMethod !== null) {
-      t.traitMethodResolutions.set(expr, traitMethod);
+      t.fieldResolutions.set(expr, { kind: "trait-method", resolution: traitMethod });
       return traitMethodBoundFnType(traitMethod, targetType, t);
     }
   }
@@ -526,7 +533,7 @@ function inferUfcsFreeBound(
   const decl = declOf(chosen);
   const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
   if (fnType === undefined || fnType.kind !== "Fn") return null;
-  t.ufcsFreeResolutions.set(expr, chosen);
+  t.fieldResolutions.set(expr, { kind: "ufcs-free", symbol: chosen });
   return { kind: "Fn", params: fnType.params.slice(1), returnType: fnType.returnType };
 }
 

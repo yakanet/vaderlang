@@ -146,74 +146,77 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
             args: expr.args.map((a) => lowerExpr(ctx, a.value)),
           };
         }
-        const arrayOp = ctx.typed.arrayOps.get(expr.callee);
-        if (arrayOp === "len") {
-          return {
-            kind: "LoweredArrayLen", span: expr.span, type: TY.usize,
-            target: lowerExpr(ctx, expr.callee.target),
-          };
-        }
-        if (arrayOp === "push") {
-          return {
-            kind: "LoweredArrayPush", span: expr.span, type: TY.void,
-            target: lowerExpr(ctx, expr.callee.target),
-            value: lowerExpr(ctx, expr.args[0]!.value),
-          };
-        }
-        const method = ctx.typed.methodResolutions.get(expr.callee);
-        if (method !== undefined) {
-          // Apply the current entry's substitution to the receiver so that
-          // when this call lives inside a generic impl member (e.g. a default
-          // `count` cloned into `Range[T]`), the lookup sees concrete args
-          // like `[i32]` rather than `[TypeParam($T)]`. Without this, the
-          // mono entry indexed by `i32` was never reached and the call fell
-          // into the empty virtual-dispatch fallback.
-          const recv = ctx.types.apply(method.receiverType);
-          const args = recv.kind === "Struct" ? recv.args : [];
-          const entry = lookupImplEntry(ctx, method.member, args);
-          if (entry !== null && entry.symbol !== null) {
-            return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol);
+        // Single lookup into the discriminated FieldResolution; the six
+        // call-shaped cases are mutually exclusive by construction
+        // (typechecker invariant).
+        const fr = ctx.typed.fieldResolutions.get(expr.callee);
+        switch (fr?.kind) {
+          case "array-op":
+            if (fr.op === "len") {
+              return {
+                kind: "LoweredArrayLen", span: expr.span, type: TY.usize,
+                target: lowerExpr(ctx, expr.callee.target),
+              };
+            }
+            return {
+              kind: "LoweredArrayPush", span: expr.span, type: TY.void,
+              target: lowerExpr(ctx, expr.callee.target),
+              value: lowerExpr(ctx, expr.args[0]!.value),
+            };
+          case "method": {
+            // Apply the current entry's substitution to the receiver so that
+            // when this call lives inside a generic impl member (e.g. a default
+            // `count` cloned into `Range[T]`), the lookup sees concrete args
+            // like `[i32]` rather than `[TypeParam($T)]`.
+            const recv = ctx.types.apply(fr.resolution.receiverType);
+            const args = recv.kind === "Struct" ? recv.args : [];
+            const entry = lookupImplEntry(ctx, fr.resolution.member, args);
+            if (entry !== null && entry.symbol !== null) {
+              return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol);
+            }
+            break;
           }
-        }
-        // Trait-method dispatch on a generic TypeParam — the typechecker
-        // recorded `(trait, method)` ; we apply the call-site substitution
-        // to the receiver type-param to get the concrete receiver, then
-        // resolve the impl member just like a regular method call.
-        const traitMethod = ctx.typed.traitMethodResolutions.get(expr.callee);
-        if (traitMethod !== undefined) {
-          const concreteRecv = ctx.types.apply(traitMethod.receiverParam);
-          const impl = lookupImplFor(ctx.project, concreteRecv, traitMethod.trait);
-          if (impl !== null) {
-            const member = impl.decl.members.find((m) => m.name === traitMethod.member.name);
-            if (member !== undefined) {
-              const structArgs = concreteRecv.kind === "Struct" ? concreteRecv.args : [];
-              const entry = lookupImplEntry(ctx, member, structArgs);
-              if (entry !== null && entry.symbol !== null) {
-                return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol);
+          case "trait-method": {
+            // Apply call-site substitution to the receiver TypeParam, then
+            // look up the impl member just like a regular method call.
+            const concreteRecv = ctx.types.apply(fr.resolution.receiverParam);
+            const impl = lookupImplFor(ctx.project, concreteRecv, fr.resolution.trait);
+            if (impl !== null) {
+              const member = impl.decl.members.find((m) => m.name === fr.resolution.member.name);
+              if (member !== undefined) {
+                const structArgs = concreteRecv.kind === "Struct" ? concreteRecv.args : [];
+                const entry = lookupImplEntry(ctx, member, structArgs);
+                if (entry !== null && entry.symbol !== null) {
+                  return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol);
+                }
               }
             }
+            break;
           }
-        }
-        // Virtual dispatch on a Trait-typed receiver — chain `is X -> impl_X`
-        // checks over every impl of the trait. Lets `err.message()` work when
-        // `err: Error` without forcing the user to match on each concrete
-        // error type at every call site.
-        const virtual = ctx.typed.traitVirtualResolutions.get(expr.callee);
-        if (virtual !== undefined) {
-          const dispatched = lowerVirtualDispatch(ctx, expr, expr.callee, exprType, virtual.trait, virtual.member.name);
-          if (dispatched !== null) return dispatched;
-        }
-        const freeSym = ctx.typed.ufcsFreeResolutions.get(expr.callee);
-        if (freeSym !== undefined) {
-          const ufcsTypeArgs = ctx.typed.genericFnCalls.get(expr);
-          if (ufcsTypeArgs !== undefined) {
-            const fnDecl = declOf(freeSym);
-            if (fnDecl !== null && fnDecl.kind === "FnDecl") {
-              const entry = lookupFnInstance(ctx, fnDecl, ufcsTypeArgs);
-              if (entry !== null) return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol!);
+          case "trait-virtual": {
+            const dispatched = lowerVirtualDispatch(
+              ctx, expr, expr.callee, exprType, fr.resolution.trait, fr.resolution.member.name,
+            );
+            if (dispatched !== null) return dispatched;
+            break;
+          }
+          case "ufcs-free": {
+            const ufcsTypeArgs = ctx.typed.genericFnCalls.get(expr);
+            if (ufcsTypeArgs !== undefined) {
+              const fnDecl = declOf(fr.symbol);
+              if (fnDecl !== null && fnDecl.kind === "FnDecl") {
+                const entry = lookupFnInstance(ctx, fnDecl, ufcsTypeArgs);
+                if (entry !== null) return lowerUfcsCall(ctx, expr, expr.callee, exprType, entry.symbol!);
+              }
             }
+            return lowerUfcsCall(ctx, expr, expr.callee, exprType, fr.symbol);
           }
-          return lowerUfcsCall(ctx, expr, expr.callee, exprType, freeSym);
+          case "union-field":
+          case undefined:
+            // union-field never appears in a call callee position; undefined
+            // means no resolution was recorded — fall through to the generic
+            // CallExpr emit below.
+            break;
         }
       }
       return {
@@ -233,8 +236,8 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       // Common-field access on a union receiver (§1.18d) — typecheck
       // recorded the per-variant `(type, fieldType)` pairs ; emit the
       // variant-dispatch cascade.
-      const unionRes = ctx.typed.unionFieldResolutions.get(expr);
-      if (unionRes !== undefined) return lowerUnionFieldAccess(ctx, expr, exprType, unionRes);
+      const fr = ctx.typed.fieldResolutions.get(expr);
+      if (fr?.kind === "union-field") return lowerUnionFieldAccess(ctx, expr, exprType, fr.resolution);
       // Both `Enum.Variant` and `e.method` leave targetType as the enum ;
       // only the variant form has a name that's actually in `indices`.
       const targetType = ctx.types.exprType(expr.target);

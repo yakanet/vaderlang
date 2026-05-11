@@ -70,14 +70,29 @@ export type BinaryOpResolution =
   | { readonly kind: "eq"; readonly negate: boolean;     readonly trait: Symbol; readonly member: A.FnDecl; readonly receiverType: Type }
   | { readonly kind: "ord"; readonly cmp: "lt" | "lte" | "gt" | "gte"; readonly trait: Symbol; readonly member: A.FnDecl; readonly receiverType: Type };
 
-/** Index dispatch on `a[i]` (read) and `a[i] = v` (write) when `a` is not a
- *  built-in array. Recorded by the typechecker so the lowerer can rewrite to
- *  `at(self, i)` / `set_at(self, i, v)` of the matched impl. */
+/** Index dispatch on `a[i]` (read via `Index`) and `a[i] = v` (write via
+ *  `IndexSet`) when `a` is not a built-in array. Recorded by the typechecker
+ *  so the lowerer can rewrite to `at(self, i)` / `set_at(self, i, v)` of the
+ *  matched impl. `mode` distinguishes the two contexts; a given IndexExpr
+ *  node appears in exactly one of them (read or write), never both. */
 export interface IndexResolution {
+  readonly mode: "read" | "write";
   readonly trait: Symbol;
   readonly member: A.FnDecl;
   readonly receiverType: Type;
 }
+
+/** Resolution of a `FieldExpr` (`obj.field` or `obj.method`). The typechecker
+ *  records exactly one of these per node; the variants are mutually exclusive
+ *  by construction (see `inferField` in `passes/call.ts`). The lowerer
+ *  switches on `kind` once instead of cascading through six separate Maps. */
+export type FieldResolution =
+  | { readonly kind: "method";        readonly resolution: MethodResolution }
+  | { readonly kind: "trait-method";  readonly resolution: TraitMethodResolution }
+  | { readonly kind: "trait-virtual"; readonly resolution: TraitVirtualResolution }
+  | { readonly kind: "union-field";   readonly resolution: UnionFieldResolution }
+  | { readonly kind: "ufcs-free";     readonly symbol: Symbol }
+  | { readonly kind: "array-op";      readonly op: "len" | "push" };
 
 export interface TypedProgram {
   readonly resolved: ResolvedProgram;
@@ -104,29 +119,12 @@ export interface TypedProgram {
    *  binding's local symbol since let-stmts have no decl AST node. */
   readonly letTypeAliases: ReadonlyMap<Symbol, Type>;
 
-  /** `obj.method` field accesses that resolved to a trait-impl method via
-   *  UFCS. The lowerer reads this to rewrite `obj.method(args)` into a
-   *  direct call of the impl's specialised fn with `obj` as the first arg. */
-  readonly methodResolutions: ReadonlyMap<A.FieldExpr, MethodResolution>;
-  /** `obj.method` field accesses where `obj` has a TypeParam type and the
-   *  surrounding fn / struct's `where` clause binds the parameter to a
-   *  trait that owns `method`. Resolved at mono time once the substitution
-   *  pins the receiver to a concrete type. */
-  readonly traitMethodResolutions: ReadonlyMap<A.FieldExpr, TraitMethodResolution>;
-  /** `obj.method` where `obj` itself has a Trait type (existential). The
-   *  lowerer emits a chain of `is X -> X_method(box)` dispatches over every
-   *  registered impl of the trait. */
-  readonly traitVirtualResolutions: ReadonlyMap<A.FieldExpr, TraitVirtualResolution>;
-  /** Common-field access on union receivers (§1.18d). Populated by
-   *  `inferField` when every variant of the union carries the field ;
-   *  consumed by the lowerer to synthesise the variant-dispatch cascade. */
-  readonly unionFieldResolutions: ReadonlyMap<A.FieldExpr, UnionFieldResolution>;
-  /** `obj.fn(args)` UFCS on free imported functions — rewritten to `fn(obj, args)`.
-   *  Populated by the typechecker after validating first-param compatibility. */
-  readonly ufcsFreeResolutions: ReadonlyMap<A.FieldExpr, Symbol>;
-  /** Built-in array methods (`len`, `push`). The lowerer emits
-   *  `LoweredArrayLen`/`LoweredArrayPush` for these call sites. */
-  readonly arrayOps: ReadonlyMap<A.FieldExpr, "len" | "push">;
+  /** Resolution of every `FieldExpr` node — the six cases (UFCS method,
+   *  trait method on a TypeParam receiver, trait-virtual dispatch, common
+   *  union-field access, free-fn UFCS, built-in array op) are mutually
+   *  exclusive per node and live in this discriminated union. Replaces the
+   *  former six parallel Maps. */
+  readonly fieldResolutions: ReadonlyMap<A.FieldExpr, FieldResolution>;
   /** Generic fn call sites whose type params were successfully inferred.
    *  Ordered by the fn's `typeParams` list. Consumed by the lowerer. */
   readonly genericFnCalls: ReadonlyMap<A.CallExpr, readonly Type[]>;
@@ -142,12 +140,10 @@ export interface TypedProgram {
   readonly intoCoercions: ReadonlyMap<A.Expr, IntoCoercion>;
   /** Operator overload resolutions. See `BinaryOpResolution`. */
   readonly binaryOpResolutions: ReadonlyMap<A.BinaryExpr, BinaryOpResolution>;
-  /** `a[i]` read dispatch through `Index($I, $T)::at` when `a` isn't a
-   *  built-in array. */
+  /** Per-`IndexExpr` dispatch — `mode: "read"` for `a[i]` and `mode: "write"`
+   *  for `a[i] = v`. A node appears in exactly one context, so the previous
+   *  twin Maps (`indexResolutions` + `indexSetResolutions`) collapse here. */
   readonly indexResolutions: ReadonlyMap<A.IndexExpr, IndexResolution>;
-  /** `a[i] = v` write dispatch through `IndexSet($I, $T)::set_at`. Keyed by
-   *  the LHS `IndexExpr` (which lives inside an `AssignStmt.target`). */
-  readonly indexSetResolutions: ReadonlyMap<A.IndexExpr, IndexResolution>;
   /** `for <iter> { body }` — same shape as `for _ in <iter> { body }` but
    *  spelled without the binding. Populated by `checkForStmt` when the
    *  while-form's condition resolves to an iterable type ; the lowerer

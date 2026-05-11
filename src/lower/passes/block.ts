@@ -118,8 +118,8 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredS
       // `a[i] = v` on a non-array target — typecheck recorded an IndexSet
       // dispatch ; rewrite into a `set_at(self, i, v)` call.
       if (stmt.target.kind === "IndexExpr") {
-        const indexSet = ctx.typed.indexSetResolutions.get(stmt.target);
-        if (indexSet !== undefined) {
+        const indexSet = ctx.typed.indexResolutions.get(stmt.target);
+        if (indexSet !== undefined && indexSet.mode === "write") {
           const value = lowerExpr(ctx, stmt.value);
           const call = lowerIndexTraitCall(ctx, stmt.target, TY.void, indexSet, [value]);
           return { kind: "LoweredExprStmt", span: stmt.span, expr: call };

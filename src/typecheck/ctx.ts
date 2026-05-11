@@ -13,11 +13,8 @@ import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.
 import type { ModuleId, Symbol } from "../resolver/symbol.ts";
 import type {
   BinaryOpResolution,
+  FieldResolution,
   IndexResolution,
-  MethodResolution,
-  TraitMethodResolution,
-  TraitVirtualResolution,
-  UnionFieldResolution,
 } from "./typed-ast.ts";
 import type { Substitution, Type } from "./types.ts";
 
@@ -82,30 +79,11 @@ export interface MutableTyped {
    *  so that references to a scrutinee symbol inside an `is T -> body` arm
    *  see `T` instead of the full union. Nested matches stack naturally. */
   readonly narrowed: Map<number, Type>;
-  /** UFCS-resolved trait method calls. Populated by `inferField`, consumed
-   *  by `inferCall` and the lowerer. */
-  readonly methodResolutions: Map<A.FieldExpr, MethodResolution>;
-  /** Trait-method dispatch on a generic TypeParam receiver. Populated by
-   *  `inferField`, consumed by the monomorphizer (which resolves to a
-   *  concrete impl member once the call-site substitution is known) and the
-   *  lowerer. */
-  readonly traitMethodResolutions: Map<A.FieldExpr, TraitMethodResolution>;
-  /** Virtual trait-method dispatch on a trait-typed receiver. Populated by
-   *  `inferField`, consumed by the lowerer to emit a tag-keyed dispatch. */
-  readonly traitVirtualResolutions: Map<A.FieldExpr, TraitVirtualResolution>;
-  /** Common-field access on union receivers (§1.18d) — `e.f` over a union
-   *  whose every variant carries a field named `f`. Populated by
-   *  `inferField`, consumed by the lowerer to synthesise the variant-
-   *  dispatch cascade. The variants are recorded in source order so the
-   *  cascade is stable. */
-  readonly unionFieldResolutions: Map<A.FieldExpr, UnionFieldResolution>;
-  /** UFCS-resolved free function calls (`a.f(b)` → `f(a, b)`). Populated by
-   *  `inferField` after type-validating the resolver's candidate, consumed by
-   *  the lowerer to prepend the receiver as the first argument. */
-  readonly ufcsFreeResolutions: Map<A.FieldExpr, Symbol>;
-  /** Built-in array method calls (`len`, `push`). Populated by `inferField`,
-   *  consumed by the lowerer to emit `LoweredArrayLen`/`LoweredArrayPush`. */
-  readonly arrayOps: Map<A.FieldExpr, "len" | "push">;
+  /** Per-`FieldExpr` resolution — discriminated union over the six mutually-
+   *  exclusive cases (UFCS method, trait-method on TypeParam, trait-virtual,
+   *  union common-field, free-fn UFCS, array op). Populated by `inferField`,
+   *  consumed by the lowerer via a single `switch (kind)`. */
+  readonly fieldResolutions: Map<A.FieldExpr, FieldResolution>;
   /** Generic fn call sites whose type params were successfully inferred.
    *  Key: the CallExpr; value: ordered concrete type-args matching the fn's
    *  `typeParams` list. Populated by `inferCall`, consumed by the lowerer to
@@ -120,10 +98,9 @@ export interface MutableTyped {
   readonly intoCoercions: Map<A.Expr, IntoCoercion>;
   /** Operator-overload dispatch sites. See `TypedProgram.binaryOpResolutions`. */
   readonly binaryOpResolutions: Map<A.BinaryExpr, BinaryOpResolution>;
-  /** Index trait dispatch sites for `a[i]` reads. */
+  /** Index / IndexSet trait dispatch sites — `mode` field distinguishes
+   *  read (`a[i]`) from write (`a[i] = v`). */
   readonly indexResolutions: Map<A.IndexExpr, IndexResolution>;
-  /** IndexSet trait dispatch sites for `a[i] = v` writes. */
-  readonly indexSetResolutions: Map<A.IndexExpr, IndexResolution>;
   /** `for <iter> { body }` (no binding) sites where the cond resolves to an
    *  iterable. The synthesised symbol stands in for the discarded binding
    *  the lowerer would otherwise read from `resolved.forIns`. */

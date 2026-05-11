@@ -139,10 +139,10 @@ function checkStmt(
         const indexTy = checkExpr(indexed.index, null, t, impls, diags, fn);
         if (target.kind === "Struct") {
           const result = resolveIndexTrait(
-            indexed, target, indexTy, CORE_TRAITS.IndexSet, "set_at", t, impls, diags,
+            indexed, target, indexTy, CORE_TRAITS.IndexSet, "set_at", "write", t, impls, diags,
           );
           if (result !== null) {
-            t.indexSetResolutions.set(indexed, result.resolution);
+            t.indexResolutions.set(indexed, result.resolution);
             checkExpr(stmt.value, result.elementType, t, impls, diags, fn);
             return;
           }

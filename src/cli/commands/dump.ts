@@ -66,7 +66,11 @@ async function runStage(opts: GlobalOpts, file: string, run: StageRunner): Promi
   return sorted.some((d) => d.severity === "error") ? 1 : 0;
 }
 
-function bigintReplacer(_k: string, v: unknown): unknown {
+function bigintReplacer(k: string, v: unknown): unknown {
+  // `id` is the post-parse-assigned node id used as a side-table key. It's
+  // an internal detail of typecheck/resolve maps; excluding it from dumps
+  // keeps snapshots stable and the Vader self-host parity test honest.
+  if (k === "id") return undefined;
   return typeof v === "bigint" ? `${v.toString()}n` : v;
 }
 

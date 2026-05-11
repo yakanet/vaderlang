@@ -42,15 +42,12 @@ export function declareModule(
   const t: MutableTyped = {
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
-    methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
-    genericFnCalls: new Map(), traitMethodResolutions: new Map(),
-    traitVirtualResolutions: new Map(),
-    unionFieldResolutions: new Map(),
+    fieldResolutions: new Map(),
+    genericFnCalls: new Map(),
     directCallOverloads: new Map(),
     intoCoercions: new Map(),
     binaryOpResolutions: new Map(),
     indexResolutions: new Map(),
-    indexSetResolutions: new Map(),
     whileAsForIn: new Map(),
   };
   for (const decl of program.source.decls) {
@@ -69,15 +66,12 @@ export function checkProgram(
   const t: MutableTyped = {
     resolved: program, globals,
     exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
-    methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
-    genericFnCalls: new Map(), traitMethodResolutions: new Map(),
-    traitVirtualResolutions: new Map(),
-    unionFieldResolutions: new Map(),
+    fieldResolutions: new Map(),
+    genericFnCalls: new Map(),
     directCallOverloads: new Map(),
     intoCoercions: new Map(),
     binaryOpResolutions: new Map(),
     indexResolutions: new Map(),
-    indexSetResolutions: new Map(),
     whileAsForIn: new Map(),
   };
 
@@ -162,18 +156,12 @@ export function checkProgram(
     typeExprTypes: globals.typeExprTypes,
     constTypeAliases: globals.constTypeAliases,
     letTypeAliases: globals.letTypeAliases,
-    methodResolutions: t.methodResolutions,
-    ufcsFreeResolutions: t.ufcsFreeResolutions,
-    arrayOps: t.arrayOps,
+    fieldResolutions: t.fieldResolutions,
     genericFnCalls: t.genericFnCalls,
-    traitMethodResolutions: t.traitMethodResolutions,
-    traitVirtualResolutions: t.traitVirtualResolutions,
-    unionFieldResolutions: t.unionFieldResolutions,
     directCallOverloads: t.directCallOverloads,
     intoCoercions: t.intoCoercions,
     binaryOpResolutions: t.binaryOpResolutions,
     indexResolutions: t.indexResolutions,
-    indexSetResolutions: t.indexSetResolutions,
     whileAsForIn: t.whileAsForIn,
   };
 }
@@ -223,16 +211,13 @@ export function inferExprBodiedReturns(
       const t: MutableTyped = {
         resolved: item.program, globals,
         exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
-        methodResolutions: new Map(), ufcsFreeResolutions: new Map(), arrayOps: new Map(),
-        genericFnCalls: new Map(), traitMethodResolutions: new Map(),
-        traitVirtualResolutions: new Map(),
-        unionFieldResolutions: new Map(),
+        fieldResolutions: new Map(),
+        genericFnCalls: new Map(),
         directCallOverloads: new Map(),
         intoCoercions: new Map(),
         binaryOpResolutions: new Map(),
         indexResolutions: new Map(),
-        indexSetResolutions: new Map(),
-    whileAsForIn: new Map(),
+        whileAsForIn: new Map(),
       };
       const inferred = checkBlock(item.decl.body!, null, t, impls, scratch,
         { returnType: TY.unresolved, selfType: null, loopDepth: 0 });

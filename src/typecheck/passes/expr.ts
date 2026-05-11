@@ -298,7 +298,7 @@ function inferIndex(
   // Index(i32, char)`) flow through the same path ; `resolveIndexTrait`
   // handles both shapes.
   if (target.kind === "Struct" || target.kind === "Primitive") {
-    const result = resolveIndexTrait(expr, target, indexTy, CORE_TRAITS.Index, "at", t, impls, diags);
+    const result = resolveIndexTrait(expr, target, indexTy, CORE_TRAITS.Index, "at", "read", t, impls, diags);
     if (result !== null) {
       t.indexResolutions.set(expr, result.resolution);
       return result.elementType;
@@ -318,7 +318,7 @@ function inferIndex(
  *  is no struct-typeParam substitution to apply. */
 export function resolveIndexTrait(
   expr: A.Expr, target: Type, indexTy: Type,
-  traitName: string, methodName: string,
+  traitName: string, methodName: string, mode: "read" | "write",
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector,
 ): { resolution: IndexResolution; elementType: Type } | null {
   const trait = findGlobalTrait(t, traitName);
@@ -345,7 +345,7 @@ export function resolveIndexTrait(
       `${traitName} on ${displayType(target)} expects index ${displayType(expectedIndex)}, got ${displayType(indexTy)}`);
   }
   return {
-    resolution: { trait, member, receiverType: target },
+    resolution: { mode, trait, member, receiverType: target },
     elementType,
   };
 }

@@ -430,8 +430,10 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry, dia
                  ?? typed.resolved.idents.get(callExpr.callee);
         if (sym !== undefined) registry.observeFnCall(sym, typeArgs);
       } else if (callExpr.callee.kind === "FieldExpr") {
-        // UFCS generic call: sym is in ufcsFreeResolutions
-        const sym = typed.ufcsFreeResolutions.get(callExpr.callee);
+        // UFCS generic call — pull the chosen free-fn symbol from the
+        // discriminated FieldResolution.
+        const fr = typed.fieldResolutions.get(callExpr.callee);
+        const sym = fr?.kind === "ufcs-free" ? fr.symbol : undefined;
         if (sym !== undefined) registry.observeFnCall(sym, typeArgs);
       }
     }
@@ -602,7 +604,8 @@ function walkImplBodyForCalls(
         calleeSym = typed.directCallOverloads.get(callExpr)
                  ?? typed.resolved.idents.get(callExpr.callee);
       } else if (callExpr.callee.kind === "FieldExpr") {
-        calleeSym = typed.ufcsFreeResolutions.get(callExpr.callee);
+        const fr = typed.fieldResolutions.get(callExpr.callee);
+        calleeSym = fr?.kind === "ufcs-free" ? fr.symbol : undefined;
       }
       if (calleeSym !== undefined) registry.observeFnCall(calleeSym, sub);
     },
@@ -639,7 +642,8 @@ function observeFnBody(
         calleeSym = typed.directCallOverloads.get(callExpr)
                  ?? typed.resolved.idents.get(callExpr.callee);
       } else if (callExpr.callee.kind === "FieldExpr") {
-        calleeSym = typed.ufcsFreeResolutions.get(callExpr.callee);
+        const fr = typed.fieldResolutions.get(callExpr.callee);
+        calleeSym = fr?.kind === "ufcs-free" ? fr.symbol : undefined;
       }
       if (calleeSym !== undefined) registry.observeFnCall(calleeSym, sub);
     },

@@ -491,6 +491,7 @@ const SPAN_KEYS = new Set<string>([
 function formatProgram(program: unknown): string {
   const json = JSON.stringify(program, (key, value) => {
     if (SPAN_KEYS.has(key)) return undefined;
+    if (key === "id") return undefined;       // internal node id; hidden from snapshots
     if (typeof value === "bigint") return `${value.toString()}n`;
     return value;
   }, 2);
