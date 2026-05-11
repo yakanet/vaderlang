@@ -35,8 +35,14 @@ internal class VaderConfigurable : Configurable {
         )
         hint.foreground = UIUtil.getContextHelpForeground()
 
+        // `FormBuilder.addLabeledComponent` renders the label as plain
+        // text — the `<html>` prefix is what flips it into Swing's
+        // HTML mode so the `<code>` styling matches the hint below.
         val built = FormBuilder.createFormBuilder()
-            .addLabeledComponent("Path to <code>vader</code> executable:", field, 1, false)
+            .addLabeledComponent(
+                "<html>Path to <code>vader</code> executable:</html>",
+                field, 1, false,
+            )
             .addComponentToRightColumn(hint, 1)
             .addComponentFillVertically(JPanel(), 0)
             .panel
