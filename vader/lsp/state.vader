@@ -15,17 +15,27 @@ import "vader/lsp/indexer" { DocIndex, build_index }
 /// passed to every handler ; no globals.
 export ServerState :: struct {
     /// uri → current document text. Empty string for closed documents.
-    docs:    MutableMap(string, string)
+    docs:         MutableMap(string, string)
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
-    indices: MutableMap(string, DocIndex)
+    indices:      MutableMap(string, DocIndex)
+    /// Absolute path to the standard-library root (the dir that
+    /// contains `std/io.vader` etc.). Empty when the host didn't
+    /// supply `--stdlib-root` — cross-file goto-def on `std/*`
+    /// imports degrades to `null` then.
+    stdlib_root:  string
+    /// Absolute path to the self-host Vader source root (the dir that
+    /// contains `lsp/`, `parser/`, `fmt/`, …). Empty when missing.
+    vader_root:   string
 }
 
-export new_state :: fn() -> ServerState {
+export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
     return ServerState {
-        .docs    = MutableMap(string, string) { .buckets = [], .size = 0 },
-        .indices = MutableMap(string, DocIndex) { .buckets = [], .size = 0 },
+        .docs        = MutableMap(string, string) { .buckets = [], .size = 0 },
+        .indices     = MutableMap(string, DocIndex) { .buckets = [], .size = 0 },
+        .stdlib_root = stdlib_root,
+        .vader_root  = vader_root,
     }
 }
 

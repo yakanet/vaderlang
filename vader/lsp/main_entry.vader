@@ -9,8 +9,17 @@
 import "vader/lsp/main" { run_server }
 
 main :: fn(argv: string[]) -> i32 {
-    // argv[0] is the binary path ; pass nothing useful through to
-    // `run_server` for now (flags are parsed there once we add any).
+    // argv[0] is the binary path ; everything else flows into the
+    // server (`--stdlib-root=...`, `--vader-root=...`, plus any future
+    // flags). The host shim seeds the two root flags so cross-file
+    // goto-def can resolve `std/*` / `vader/*` imports to absolute
+    // paths.
     args: string[] = []
+    i: usize = 1
+    n :: argv.len()
+    for i < n {
+        args.push(argv[i])
+        i = i + usize(1)
+    }
     return run_server(args)
 }

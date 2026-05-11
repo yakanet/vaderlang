@@ -19,14 +19,24 @@ export async function cmdLsp(opts: GlobalOpts, args: string[]): Promise<number> 
   // LSP server runs through it. Editors invoke this directly via the
   // compiled `vader` binary's `lsp` subcommand ; the TS shim mirrors the
   // same shape for `bun src/index.ts lsp …`.
-  const entry = resolve(runtimeRoots().vaderRoot, "lsp", "main_entry.vader");
+  const roots = runtimeRoots();
+  const entry = resolve(roots.vaderRoot, "lsp", "main_entry.vader");
   if (!existsSync(entry)) {
     console.error(`vader lsp: cannot locate LSP entry at ${entry}`);
     console.error("  (re-extract the dist archive or run from a checkout)");
     return 1;
   }
 
-  const argv = [entry, ...args];
+  // Resolve cross-file goto-def hits: the LSP server needs to know where
+  // `std/*` and `vader/*` imports physically live so it can open them
+  // and surface the right `file://` URI back to the editor. Threaded
+  // through argv so the server stays free of any host-side probing.
+  const argv = [
+    entry,
+    `--stdlib-root=${roots.stdlibRoot}`,
+    `--vader-root=${roots.vaderRoot}`,
+    ...args,
+  ];
 
   try {
     const r = await pipelineBytecode(entry, {

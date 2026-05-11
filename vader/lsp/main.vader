@@ -17,7 +17,7 @@
 // client gracefully degrades.
 
 import "std/io" { eprintln }
-import "std/string" { byte_len }
+import "std/string" { byte_len, starts_with, slice }
 import "std/json" { parse, JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonError, JsonBool, JsonArray }
 import "vader/lsp/transport" { read_frame, write_frame }
 import "vader/lsp/lifecycle" { handle_initialize, server_capabilities }
@@ -29,9 +29,25 @@ import "vader/lsp/rpc" { request_id, method_name, params_value, encode_response,
 import "vader/lsp/log" { log_info, log_warn }
 
 /// LSP server entry. Blocks reading frames until EOF or `exit`
-/// notification. `args` is currently ignored — reserved for `--log` etc.
+/// notification. `args` is parsed for `--stdlib-root=…` and
+/// `--vader-root=…` (seeded by the host shim) ; everything else is
+/// ignored for now.
 export run_server :: fn(args: string[]) -> i32 {
-    state :: new_state()
+    stdlib_root := ""
+    vader_root := ""
+    stdlib_prefix :: "--stdlib-root="
+    vader_prefix :: "--vader-root="
+    for a in args {
+        if a.starts_with(stdlib_prefix) {
+            stdlib_root = a.slice(stdlib_prefix.byte_len(), a.byte_len())
+            continue
+        }
+        if a.starts_with(vader_prefix) {
+            vader_root = a.slice(vader_prefix.byte_len(), a.byte_len())
+            continue
+        }
+    }
+    state :: new_state(stdlib_root, vader_root)
     shutdown_received := false
     for true {
         frame :: read_frame()

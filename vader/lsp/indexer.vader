@@ -59,12 +59,24 @@ export DeclEntry :: struct {
     scope_span: Span | null
 }
 
+/// One imported name : `import "<module>" { name [as alias], ... }`
+/// records each (local-name, module-path, original-name) triple so a
+/// goto-def click on the local name can land in the source file the
+/// name was exported from.
+export ImportEntry :: struct {
+    local_name:    string   // what the importing file calls it (alias or name)
+    original_name: string   // the export's name in the source module
+    module_path:   string   // raw path as written in `import "..."`
+    name_span:     Span     // span of `local_name` in the importing file
+}
+
 /// Per-document index, rebuilt on every didOpen / didChange.
 export DocIndex :: struct {
-    uri:    string
-    source: string
-    tokens: Token[]
-    decls:  DeclEntry[]
+    uri:     string
+    source:  string
+    tokens:  Token[]
+    decls:   DeclEntry[]
+    imports: ImportEntry[]
 }
 
 /// Build the index for a freshly-opened or modified document.
@@ -72,11 +84,13 @@ export build_index :: fn(uri: string, source: string) -> DocIndex {
     l :: tokenize(source, uri)
     cmap :: scan_comments(source)
     entries :: collect_decls(l.tokens, source, cmap)
+    imports :: collect_imports(l.tokens)
     return DocIndex {
-        .uri    = uri,
-        .source = source,
-        .tokens = l.tokens,
-        .decls  = entries,
+        .uri     = uri,
+        .source  = source,
+        .tokens  = l.tokens,
+        .decls   = entries,
+        .imports = imports,
     }
 }
 
@@ -90,6 +104,84 @@ export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | nu
     name :: token_name_at(idx.tokens, offset)
     if name.byte_len() == usize(0) { return null }
     return lookup_innermost(idx.decls, name, offset)
+}
+
+// ---- import collection ----------------------------------------------------
+
+// Walk the tokens for every top-level `import "<path>" { name [as alias], ... }`
+// or `import "<path>" as <alias>` form and surface every imported
+// name. Namespace imports (`import "<path>"`) are skipped — there's no
+// local name to map back to a source decl ; the surface is meant for
+// `m.foo` access which is out of MVP scope.
+collect_imports :: fn(tokens: Token[]) -> ImportEntry[] {
+    out: ImportEntry[] = []
+    n :: tokens.len()
+    brace_depth: i32 = 0
+    i: usize = 0
+    for i < n {
+        t :: tokens[i]
+        if t.kind == .LBrace { brace_depth = brace_depth + 1 }
+        if t.kind == .RBrace { brace_depth = brace_depth - 1 }
+        if brace_depth == 0 && t.kind == .KwImport {
+            // Expect : KwImport <StringBegin StringPart StringEnd> [KwAs IDENT] | [LBrace ... RBrace]
+            j :: i + usize(1)
+            // Skip the module path's string-literal tokens. Module-string
+            // shape is StringBegin (StringPart)* StringEnd ; the path
+            // value lives in the StringPart's text.
+            mod_path := ""
+            k: usize = j
+            for k < n {
+                kt :: tokens[k].kind
+                if kt == .StringPart { mod_path = tokens[k].text }
+                if kt == .StringEnd {
+                    k = k + usize(1)
+                    break
+                }
+                if kt == .Newline && k > j { break }
+                k = k + usize(1)
+            }
+            // Now `k` points just past `StringEnd`. Look for `{` (destructure)
+            // or `as` (alias) or newline (namespace import).
+            // Skip a possible newline between `"path"` and `{`.
+            for k < n && tokens[k].kind == .Newline {
+                k = k + usize(1)
+            }
+            if k < n && tokens[k].kind == .LBrace {
+                // Destructure form : iterate idents up to RBrace.
+                m: usize = k + usize(1)
+                for m < n {
+                    mt :: tokens[m].kind
+                    if mt == .RBrace { break }
+                    if mt == .Ident {
+                        orig_name :: tokens[m].text
+                        local_name := orig_name
+                        local_span := tokens[m].span
+                        // Optional `as` alias renames the binding.
+                        if m + usize(2) < n &&
+                                tokens[m + usize(1)].kind == .KwAs &&
+                                tokens[m + usize(2)].kind == .Ident {
+                            local_name = tokens[m + usize(2)].text
+                            local_span = tokens[m + usize(2)].span
+                            m = m + usize(2)
+                        }
+                        out.push(ImportEntry {
+                            .local_name    = local_name,
+                            .original_name = orig_name,
+                            .module_path   = mod_path,
+                            .name_span     = local_span,
+                        })
+                    }
+                    m = m + usize(1)
+                }
+                i = m + usize(1)
+                continue
+            }
+            i = k
+            continue
+        }
+        i = i + usize(1)
+    }
+    return out
 }
 
 // ---- decl collection (token-stream scan) ---------------------------------
