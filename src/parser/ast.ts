@@ -1,14 +1,21 @@
 import type { Span } from "../diagnostics/diagnostic.ts";
 
+// Sentinel id used at parser construction time, before `assignNodeIds`
+// (`src/parser/assign-ids.ts`) walks the tree and replaces each node's id
+// with a fresh unique value (starting from 1). After `parse()` returns,
+// no node carries this value. Matched on the Vader self-host side as
+// `UNASSIGNED_NODE_ID :: usize(0)` so the construct/walk pattern ports
+// 1:1.
+export const UNASSIGNED_NODE_ID = 0;
+
 // Base shape shared by every named AST interface. `id` is the stable key
 // for `Map<number, X>` side-tables in the resolver, typechecker, and later
-// phases; it's optional only for the brief window between node construction
-// and the post-parse `assignNodeIds` walk (`src/parser/assign-ids.ts`).
-// Every node has an id by the time `parse()` returns. Self-host portability
-// hook: in Vader this becomes a required `id: usize` field on the AST
-// struct base. Inline node-shaped objects (a few discriminated-union parts
-// like `StringLitPart`) carry `span` directly without extending `AstNode`.
-export interface AstNode { readonly id?: number; readonly span: Span; }
+// phases. Construction sites pass `id: UNASSIGNED_NODE_ID`; the post-parse
+// walker overwrites with a real id (≥ 1) before any consumer reads it.
+// Inline node-shaped objects (a few discriminated-union parts like
+// `StringLitPart`) declare `id` directly on each variant since they don't
+// extend `AstNode`.
+export interface AstNode { readonly id: number; readonly span: Span; }
 
 // ============================================================================
 // Top-level
@@ -429,8 +436,8 @@ export interface StringLitExpr extends AstNode {
 }
 
 export type StringLitPart =
-  | { readonly kind: "text"; readonly value: string; readonly span: Span }
-  | { readonly kind: "interp"; readonly expr: Expr; readonly span: Span };
+  | { readonly kind: "text"; readonly value: string; readonly span: Span; readonly id: number }
+  | { readonly kind: "interp"; readonly expr: Expr; readonly span: Span; readonly id: number };
 
 /** Returns the static text of a StringLitExpr, or null if it contains interpolation. */
 export function staticStringValue(expr: StringLitExpr): string | null {
@@ -673,7 +680,7 @@ export interface StructPatternField extends AstNode {
 }
 
 export type PatternFieldValue =
-  | { readonly kind: "binding"; readonly name: string; readonly span: Span }
+  | { readonly kind: "binding"; readonly name: string; readonly span: Span; readonly id: number }
   | { readonly kind: "literal"; readonly value: Expr };
 
 export interface WildcardPattern extends AstNode {

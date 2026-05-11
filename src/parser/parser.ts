@@ -17,6 +17,7 @@ import type { Span } from "../diagnostics/diagnostic.ts";
 import { PARSER, type ParserCode } from "../diagnostics/codes.ts";
 import type { Token, TokenKind } from "../lexer/token.ts";
 import type * as A from "./ast.ts";
+import { UNASSIGNED_NODE_ID } from "./ast.ts";
 
 import { parseProgram } from "./passes/program.ts";
 import { assignNodeIds } from "./assign-ids.ts";
@@ -150,7 +151,7 @@ export function collectTypeParams(t: A.TypeExpr, out: A.TypeParam[]): void {
       // Plain references (`T` after introduction, or unrelated names like `Foo`)
       // are skipped here ; the resolver looks them up in scope.
       if (t.isTypeParamIntro === true && !out.some((p) => p.name === t.name)) {
-        out.push({ span: t.span, name: t.name, bound: null, isComptimeValue: false });
+        out.push({ id: UNASSIGNED_NODE_ID, span: t.span, name: t.name, bound: null, isComptimeValue: false });
       }
       return;
     case "BinaryExpr":

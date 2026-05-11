@@ -5,7 +5,7 @@
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as A from "../parser/ast.ts";
-import { unreachableTypeExprInValuePosition } from "../parser/ast.ts";
+import { unreachableTypeExprInValuePosition, UNASSIGNED_NODE_ID } from "../parser/ast.ts";
 
 import type { BuiltinScope } from "./builtins.ts";
 import { isKnownDecorator } from "../parser/decorators.ts";
@@ -272,12 +272,13 @@ function materializeIntrinsicMembers(decl: A.ImplDecl, trait: A.TraitDecl): void
   for (const method of trait.members) {
     slot.push({
       kind: "FnDecl",
-      span: decl.span,
+      id: UNASSIGNED_NODE_ID, span: decl.span,
       name: method.name,
       nameSpan: decl.traitNameSpan,
       visibility: "public",
       typeParams: [],
       params: method.params.map((mp) => ({
+        id: UNASSIGNED_NODE_ID,
         span: decl.span,
         name: mp.name,
         type: mp.type !== null ? substituteTypeExpr(mp.type, subst) : null,
@@ -287,7 +288,7 @@ function materializeIntrinsicMembers(decl: A.ImplDecl, trait: A.TraitDecl): void
       returnType: method.returnType !== null
         ? substituteTypeExpr(method.returnType, subst) : null,
       body: null,
-      decorators: [{ span: decl.span, name: "intrinsic", args: [] }],
+      decorators: [{ id: UNASSIGNED_NODE_ID, span: decl.span, name: "intrinsic", args: [] }],
     });
   }
 }
@@ -324,12 +325,13 @@ function materializeDefaultMembers(decl: A.ImplDecl, trait: A.TraitDecl): void {
     if (provided.has(method.name)) continue;
     slot.push({
       kind: "FnDecl",
-      span: decl.span,
+      id: UNASSIGNED_NODE_ID, span: decl.span,
       name: method.name,
       nameSpan: decl.traitNameSpan,
       visibility: "public",
       typeParams: [],
       params: method.params.map((mp) => ({
+        id: UNASSIGNED_NODE_ID,
         span: decl.span,
         name: mp.name,
         type: mp.type !== null ? substituteTypeExpr(mp.type, subst) : null,
@@ -579,6 +581,7 @@ function materializeSamMembers(
   for (const fn of synthetics) {
     fn.name = method.name;
     fn.params = method.params.map((mp) => ({
+      id: UNASSIGNED_NODE_ID,
       span: fn.span,
       name: mp.name,
       type: mp.type !== null ? substituteTypeExpr(mp.type, subst) : null,
@@ -599,35 +602,35 @@ function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, A.TypeE
     case "IdentExpr": {
       const replacement = subst.get(expr.name);
       if (replacement !== undefined) return cloneTypeExpr(replacement);
-      return { kind: "IdentExpr", span: expr.span, name: expr.name };
+      return { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: expr.span, name: expr.name };
     }
     case "BinaryExpr":
       // Type-position `bitor` chain (1.B.5 union form). Recursively
       // substitute both operands, preserving the chain structure.
-      return { kind: "BinaryExpr", span: expr.span, op: expr.op,
+      return { kind: "BinaryExpr", id: UNASSIGNED_NODE_ID, span: expr.span, op: expr.op,
         left: substituteTypeExpr(expr.left as A.TypeExpr, subst),
         right: substituteTypeExpr(expr.right as A.TypeExpr, subst) };
     case "FnTypeExpr":
-      return { kind: "FnTypeExpr", span: expr.span,
+      return { kind: "FnTypeExpr", id: UNASSIGNED_NODE_ID, span: expr.span,
         params: expr.params.map((par) => substituteTypeExpr(par, subst)),
         returnType: expr.returnType !== null ? substituteTypeExpr(expr.returnType, subst) : null };
     case "ArrayTypeExpr":
-      return { kind: "ArrayTypeExpr", span: expr.span,
+      return { kind: "ArrayTypeExpr", id: UNASSIGNED_NODE_ID, span: expr.span,
         element: substituteTypeExpr(expr.element, subst) };
     case "SeqLitExpr":
       // Bracketed type tuple `[T1, T2, ...]` — same shape as the value-level
       // sequence literal since 1.B.3. In type position the elements are
       // guaranteed to be TypeExprs by the parser ; cast is safe.
-      return { kind: "SeqLitExpr", span: expr.span,
+      return { kind: "SeqLitExpr", id: UNASSIGNED_NODE_ID, span: expr.span,
         elements: expr.elements.map((e) => substituteTypeExpr(e as A.TypeExpr, subst)) };
     case "GenericInstExpr": {
       // In type position, the callee is always an IdentExpr (parser invariant).
       // The shape is widened to `Expr` because of the merge with the value-level
       // `GenericInstExpr`, but here it's safe to assume IdentExpr.
       const baseIdent = expr.callee.kind === "IdentExpr" ? expr.callee : null;
-      return { kind: "GenericInstExpr", span: expr.span,
+      return { kind: "GenericInstExpr", id: UNASSIGNED_NODE_ID, span: expr.span,
         callee: baseIdent !== null
-          ? { kind: "IdentExpr", span: baseIdent.span, name: baseIdent.name }
+          ? { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: baseIdent.span, name: baseIdent.name }
           : expr.callee,
         typeArgs: expr.typeArgs.map((a) => substituteTypeExpr(a, subst)) };
     }

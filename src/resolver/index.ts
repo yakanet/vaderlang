@@ -1,5 +1,6 @@
 import type {DiagnosticCollector} from "../diagnostics/collector.ts";
 import type * as A from "../parser/ast.ts";
+import { UNASSIGNED_NODE_ID } from "../parser/ast.ts";
 import {BUILTIN_MODULE_ID, BUILTIN_TYPE_NAMES, isBuiltinTypeName, makeBuiltinScope} from "./builtins.ts";
 import {discoverLayout, loadProject} from "./loader.ts";
 import {resolveModule} from "./resolve.ts";
@@ -124,7 +125,7 @@ function mergeFilePrograms(programs: readonly ResolvedProgram[]): ResolvedProgra
   for (const p of programs) allDecls.push(...p.source.decls);
   const source: A.Program = {
     kind: "Program",
-    file: first.module.rootDir,
+    id: UNASSIGNED_NODE_ID, file: first.module.rootDir,
     span: first.source.span,
     decls: allDecls,
   };

@@ -6,7 +6,7 @@
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Token } from "../../lexer/token.ts";
 import type * as A from "../ast.ts";
-import { staticStringValue } from "../ast.ts";
+import { staticStringValue, UNASSIGNED_NODE_ID } from "../ast.ts";
 import type { Parser } from "../parser.ts";
 import { collectTypeParams, describeToken } from "../parser.ts";
 
@@ -43,7 +43,7 @@ export function parseDecl(p: Parser): A.Decl | null {
     }
     return {
       kind: "AssertDecl",
-      span: dec.span,
+      id: UNASSIGNED_NODE_ID, span: dec.span,
       condition: dec.args[0]!,
       message,
       decorators: [],
@@ -101,7 +101,7 @@ function parseDecorators(p: Parser): A.Decorator[] {
       p.expect("rparen", "`)` after decorator arguments");
     }
     out.push({
-      span: p.spanOf(at, p.peek(-1)),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(at, p.peek(-1)),
       name: nameTok.text,
       args,
     });
@@ -132,6 +132,7 @@ function parseImportDecl(p: Parser, decorators: readonly A.Decorator[]): A.Impor
           alias = p.expect("ident", "alias after `as`").text;
         }
         names.push({
+          id: UNASSIGNED_NODE_ID,
           name: name.text,
           alias,
           span: p.spanOf(name, p.peek(-1)),
@@ -146,7 +147,7 @@ function parseImportDecl(p: Parser, decorators: readonly A.Decorator[]): A.Impor
 
   return {
     kind: "ImportDecl",
-    span: p.spanOf(start, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
     path,
     binding,
     decorators,
@@ -210,7 +211,7 @@ function parseLhsGenericAliasDecl(
   const aliased = parseExpr(p, 0);
   return {
     kind: "TypeAliasDecl",
-    span: p.spanOf(nameTok, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, p.peek(-1)),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,
@@ -298,7 +299,7 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
   }
   return {
     kind: "ImplDecl",
-    span: p.spanOf(startTok, endTok),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(startTok, endTok),
     typeParams,
     forType,
     traitName: traitTok.text,
@@ -357,10 +358,10 @@ function parseSamArrowMember(p: Parser): A.FnDecl {
   const expr = parseExpr(p, 0);
   const span = p.spanOf(arrowTok, p.peek(-1));
   const body: A.BlockExpr = {
-    kind: "BlockExpr", span, stmts: [], trailing: expr,
+    kind: "BlockExpr", id: UNASSIGNED_NODE_ID, span, stmts: [], trailing: expr,
   };
   return {
-    kind: "FnDecl", span,
+    kind: "FnDecl", id: UNASSIGNED_NODE_ID, span,
     name: "",                          // filled by resolver
     nameSpan: arrowTok.span,
     visibility: "public",
@@ -379,7 +380,7 @@ function parseSamArrowMember(p: Parser): A.FnDecl {
 function parseSamBlockMember(p: Parser): A.FnDecl {
   const block = parseBlock(p);
   return {
-    kind: "FnDecl", span: block.span,
+    kind: "FnDecl", id: UNASSIGNED_NODE_ID, span: block.span,
     name: "",
     nameSpan: block.span,
     visibility: "public",
@@ -424,7 +425,7 @@ function parseFnDecl(
 
   return {
     kind: "FnDecl",
-    span: p.spanOf(nameTok, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, p.peek(-1)),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,
@@ -452,7 +453,7 @@ function parseFnBodyTail(
     p.advance(); // `=`
     const expr = parseExpr(p, 0);
     const body: A.BlockExpr = {
-      kind: "BlockExpr", span: expr.span, stmts: [], trailing: expr,
+      kind: "BlockExpr", id: UNASSIGNED_NODE_ID, span: expr.span, stmts: [], trailing: expr,
     };
     return { body, isExpressionBodied: true };
   }
@@ -497,7 +498,7 @@ function parseFnDeclInsideTrait(p: Parser): A.FnDecl | null {
   const { body, isExpressionBodied } = parseFnBodyTail(p, returnType !== null);
   return {
     kind: "FnDecl",
-    span: p.spanOf(nameTok, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, p.peek(-1)),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,
@@ -560,7 +561,7 @@ export function parseFnSignatureParams(p: Parser): { params: A.FnParam[]; typePa
       if (type !== null) collectTypeParams(type, typeParams);
 
       params.push({
-        span: p.spanOf(startTok, p.peek(-1)),
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(startTok, p.peek(-1)),
         name: paramNameTok.text,
         type,
         defaultValue,
@@ -596,7 +597,7 @@ function parseStructDecl(
       fdefault = parseExpr(p, 0);
     }
     fields.push({
-      span: p.spanOf(start, p.peek(-1)),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
       name: fname.text,
       type: ftype,
       visibility: fieldVisibility,
@@ -611,7 +612,7 @@ function parseStructDecl(
   const endTok = p.expect("rbrace", "`}` to close struct body");
   return {
     kind: "StructDecl",
-    span: p.spanOf(nameTok, endTok),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, endTok),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,
@@ -671,7 +672,7 @@ function parseBracketedTypeParams(p: Parser): A.TypeParam[] {
         bound = parseType(p);
       }
       out.push({
-        span: p.spanOf(start, p.peek(-1)),
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
         name: nameTok.text,
         bound,
         // Bracketed type-params are always type-params, never comptime
@@ -718,7 +719,7 @@ function parseStructTypeParamList(p: Parser): A.TypeParam[] {
       }
       const isComptimeValue = bound !== null;
       out.push({
-        span: p.spanOf(start, p.peek(-1)),
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
         name: name.text,
         bound,
         isComptimeValue,
@@ -749,7 +750,7 @@ function parseTraitDecl(
     endTok = p.peek(-1);
     return {
       kind: "TraitDecl",
-      span: p.spanOf(nameTok, endTok),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, endTok),
       name: nameTok.text,
       nameSpan: nameTok.span,
       visibility,
@@ -772,7 +773,7 @@ function parseTraitDecl(
   endTok = p.expect("rbrace", "`}` to close trait body");
   return {
     kind: "TraitDecl",
-    span: p.spanOf(nameTok, endTok),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, endTok),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,
@@ -807,14 +808,14 @@ function parseEnumDecl(
       value = litTok.intValue ?? 0n;
       valueSpan = litTok.span;
     }
-    variants.push({ span: vTok.span, name: vTok.text, value, valueSpan });
+    variants.push({ id: UNASSIGNED_NODE_ID, span: vTok.span, name: vTok.text, value, valueSpan });
     p.match("comma");
     p.skipNewlines();
   }
   const endTok = p.expect("rbrace", "`}` to close enum body");
   return {
     kind: "EnumDecl",
-    span: p.spanOf(nameTok, endTok),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, endTok),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,
@@ -837,7 +838,7 @@ function parseConstDecl(
   const value = parseExpr(p, 0);
   return {
     kind: "ConstDecl",
-    span: p.spanOf(nameTok, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, p.peek(-1)),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,
@@ -862,7 +863,7 @@ function parseTypedConstDecl(
   const value = parseExpr(p, 0);
   return {
     kind: "ConstDecl",
-    span: p.spanOf(nameTok, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, p.peek(-1)),
     name: nameTok.text,
     nameSpan: nameTok.span,
     visibility,

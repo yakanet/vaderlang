@@ -178,7 +178,6 @@ parse_program :: fn(p: Parser) -> Program {
     }
     end_tok :: p.peek()
     return Program {
-        .id = usize(0),
         .file  = p.file,
         .span  = Span { .start = start_tok.span.start, .end = end_tok.span.end },
         .decls = decls,
@@ -208,7 +207,6 @@ parse_decl :: fn(p: Parser) -> Decl | null {
             return null
         }
         return AssertDecl {
-            .id = usize(0),
             .span       = dec.span,
             .condition  = dec.args[0],
             .decorators = [],
@@ -260,7 +258,6 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
             p.expect(.RParen, "`)` after decorator arguments")
         }
         out.push(Decorator {
-            .id = usize(0),
             .span = p.span_of(at, p.peek_at(-1)),
             .name = name_tok.text,
             .args = args,
@@ -296,7 +293,6 @@ parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
                     alias_str = p.expect(.Ident, "alias after `as`").text
                 }
                 names.push(ImportName {
-                    .id = usize(0),
                     .name  = name.text,
                     .alias = alias_str,
                     .span  = p.span_of(name, p.peek_at(-1)),
@@ -309,7 +305,6 @@ parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
         binding = DestructureImport { .names = names }
     }
     return ImportDecl {
-        .id = usize(0),
         .span       = p.span_of(start, p.peek_at(-1)),
         .path       = path_info.text,
         .binding    = binding,
@@ -404,7 +399,6 @@ parse_lhs_generic_alias_decl :: fn(p: Parser, decorators: Decorator[], visibilit
     p.advance()  // `::`
     aliased :: p.parse_expr(0)
     return TypeAliasDecl {
-        .id = usize(0),
         .span        = p.span_of(name_tok, p.peek_at(-1)),
         .name        = name_tok.text,
         .name_span   = name_tok.span,
@@ -474,7 +468,6 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
         end_tok = t
     }
     return ImplDecl {
-        .id = usize(0),
         .span            = p.span_of(start_tok, end_tok),
         .type_params     = type_params,
         .for_type        = for_type,
@@ -525,13 +518,11 @@ parse_sam_arrow_member :: fn(p: Parser) -> FnDecl {
     expr :: p.parse_expr(0)
     span :: p.span_of(arrow_tok, p.peek_at(-1))
     body :: BlockExpr {
-        .id = usize(0),
         .span     = span,
         .stmts    = [],
         .trailing = expr,
     }
     return FnDecl {
-        .id = usize(0),
         .span                 = span,
         .name                 = "",
         .name_span            = arrow_tok.span,
@@ -549,7 +540,6 @@ parse_sam_arrow_member :: fn(p: Parser) -> FnDecl {
 parse_sam_block_member :: fn(p: Parser) -> FnDecl {
     block :: p.parse_block()
     return FnDecl {
-        .id = usize(0),
         .span                 = block.span,
         .name                 = "",
         .name_span            = block.span,
@@ -586,7 +576,6 @@ parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, 
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail(return_type)
     return FnDecl {
-        .id = usize(0),
         .span                 = p.span_of(name_tok, p.peek_at(-1)),
         .name                 = name_tok.text,
         .name_span            = name_tok.span,
@@ -611,7 +600,6 @@ parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnBodyTail 
         p.advance()  // `=`
         expr :: p.parse_expr(0)
         body :: BlockExpr {
-            .id = usize(0),
             .span     = expr.span,
             .stmts    = [],
             .trailing = expr,
@@ -653,7 +641,6 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail(return_type)
     return FnDecl {
-        .id = usize(0),
         .span                 = p.span_of(name_tok, p.peek_at(-1)),
         .name                 = name_tok.text,
         .name_span            = name_tok.span,
@@ -726,7 +713,6 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
             collect_type_params(ty, type_params)
 
             params.push(FnParam {
-                .id = usize(0),
                 .span          = p.span_of(start_tok, p.peek_at(-1)),
                 .name          = param_name_tok.text,
                 .ty            = ty,
@@ -760,7 +746,6 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
             fdefault = p.parse_expr(0)
         }
         fields.push(StructField {
-            .id = usize(0),
             .span       = p.span_of(start, p.peek_at(-1)),
             .name       = fname.text,
             .ty         = ftype,
@@ -774,7 +759,6 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
     }
     end_tok :: p.expect(.RBrace, "`}` to close struct body")
     return StructDecl {
-        .id = usize(0),
         .span          = p.span_of(name_tok, end_tok),
         .name          = name_tok.text,
         .name_span     = name_tok.span,
@@ -837,7 +821,6 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
                 _       -> true
             }
         out.push(TypeParam {
-            .id = usize(0),
             .span              = p.span_of(start, p.peek_at(-1)),
             .name              = name.text,
             .bound             = bound,
@@ -871,7 +854,6 @@ parse_bracketed_type_params :: fn(p: Parser) -> TypeParam[] {
             bound = p.parse_type()
         }
         out.push(TypeParam {
-            .id = usize(0),
             .span              = p.span_of(start, p.peek_at(-1)),
             .name              = name.text,
             .bound             = bound,
@@ -915,7 +897,6 @@ parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     if p.match_kind(.Assign).matched {
         requires = p.parse_type()
         return TraitDecl {
-            .id = usize(0),
             .span        = p.span_of(name_tok, p.peek_at(-1)),
             .name        = name_tok.text,
             .name_span   = name_tok.span,
@@ -941,7 +922,6 @@ parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     }
     end_tok :: p.expect(.RBrace, "`}` to close trait body")
     return TraitDecl {
-        .id = usize(0),
         .span        = p.span_of(name_tok, end_tok),
         .name        = name_tok.text,
         .name_span   = name_tok.span,
@@ -978,7 +958,6 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
             value_span = lit_tok.span
         }
         variants.push(EnumVariant {
-            .id = usize(0),
             .span       = v_tok.span,
             .name       = v_tok.text,
             .value      = value,
@@ -989,7 +968,6 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
     }
     end_tok :: p.expect(.RBrace, "`}` to close enum body")
     return EnumDecl {
-        .id = usize(0),
         .span       = p.span_of(name_tok, end_tok),
         .name       = name_tok.text,
         .name_span  = name_tok.span,
@@ -1005,7 +983,6 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
 parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
     value :: p.parse_expr(0)
     return ConstDecl {
-        .id = usize(0),
         .span       = p.span_of(name_tok, p.peek_at(-1)),
         .name       = name_tok.text,
         .name_span  = name_tok.span,
@@ -1025,7 +1002,6 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     p.expect(.Colon, "`:` between type annotation and value")
     value :: p.parse_expr(0)
     return ConstDecl {
-        .id = usize(0),
         .span       = p.span_of(name_tok, p.peek_at(-1)),
         .name       = name_tok.text,
         .name_span  = name_tok.span,
@@ -1044,7 +1020,6 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
 // don't need the implicit-dot or type-param-intro variants.
 ident_expr :: fn(span: Span, name: string) -> IdentExpr {
     return IdentExpr {
-        .id = usize(0),
         .span                = span,
         .name                = name,
         .implicit_dot        = false,
@@ -1063,7 +1038,6 @@ parse_type :: fn(p: Parser) -> TypeExpr {
             next :: p.parse_type_intersection()
             next_span :: next.span
             head = BinaryExpr {
-                .id = usize(0),
                 .span  = Span { .start = head_span.start, .end = next_span.end },
                 .op    = .BitOr,
                 .left  = head,
@@ -1085,7 +1059,6 @@ parse_type_intersection :: fn(p: Parser) -> TypeExpr {
             next :: p.parse_type_postfix()
             next_span :: next.span
             head = BinaryExpr {
-                .id = usize(0),
                 .span  = Span { .start = head_span.start, .end = next_span.end },
                 .op    = .BitAnd,
                 .left  = head,
@@ -1106,7 +1079,6 @@ parse_type_postfix :: fn(p: Parser) -> TypeExpr {
         rb :: p.advance()        // ]
         head_span :: head.span
         head = ArrayTypeExpr {
-            .id = usize(0),
             .span    = Span { .start = head_span.start, .end = rb.span.end },
             .element = head,
         }
@@ -1123,14 +1095,12 @@ parse_type_postfix :: fn(p: Parser) -> TypeExpr {
             _ -> head
         }
         error_ident :: IdentExpr {
-            .id = usize(0),
             .span = Span { .start = bang_end, .end = bang_end },
             .name = "Error",
             .implicit_dot = false,
             .is_type_param_intro = false,
         }
         head = BinaryExpr {
-            .id = usize(0),
             .span  = Span { .start = head_span.start, .end = bang_end },
             .op    = .BitOr,
             .left  = success,
@@ -1146,7 +1116,6 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
         p.advance()
         name :: p.expect(.Ident, "type parameter name after `\$`")
         return IdentExpr {
-            .id = usize(0),
             .span                = p.span_of(t, name),
             .name                = name.text,
             .implicit_dot        = false,
@@ -1179,7 +1148,6 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
             p.error(.ExpectedType, t.span, "empty `[]` is not a valid type")
             end :: p.advance()
             return SeqLitExpr {
-                .id = usize(0),
                 .span     = p.span_of(start, end),
                 .elements = elements,
             }
@@ -1197,13 +1165,11 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
             p.error(.OneTupleNotAllowed, p.span_of(start, end),
                 "use postfix `T[]` for an array, or a plain value if you meant the element")
             return ArrayTypeExpr {
-                .id = usize(0),
                 .span    = p.span_of(start, end),
                 .element = elements[0],
             }
         }
         return SeqLitExpr {
-            .id = usize(0),
             .span     = p.span_of(start, end),
             .elements = elements,
         }
@@ -1223,7 +1189,6 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
             args :: p.parse_type_list_until(.RBracket)
             end :: p.expect(.RBracket, "`]` to close generic argument list")
             return GenericInstExpr {
-                .id = usize(0),
                 .span      = p.span_of(name, end),
                 .callee    = named,
                 .type_args = args,
@@ -1233,7 +1198,6 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
             args :: p.parse_type_list_until(.RParen)
             end :: p.expect(.RParen, "`)` to close generic argument list")
             return GenericInstExpr {
-                .id = usize(0),
                 .span      = p.span_of(name, end),
                 .callee    = named,
                 .type_args = args,
@@ -1254,7 +1218,6 @@ parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
     return FnTypeExpr {
-        .id = usize(0),
         .span        = p.span_of(start, p.peek_at(-1)),
         .params      = params,
         .return_type = return_type,
@@ -1298,7 +1261,6 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
             }
             if !seen {
                 out.push(TypeParam {
-                    .id = usize(0),
                     .span              = t.span,
                     .name              = t.name,
                     .bound             = null,
@@ -1385,7 +1347,6 @@ parse_block :: fn(p: Parser) -> BlockExpr {
     }
     rb :: p.expect(.RBrace, "`}` to close block")
     return BlockExpr {
-        .id = usize(0),
         .span     = p.span_of(lb, rb),
         .stmts    = stmts,
         .trailing = trailing,
@@ -1424,7 +1385,6 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
     if p.match_kind(.Assign).matched {
         value :: p.parse_expr(0)
         return AssignStmt {
-            .id = usize(0),
             .span   = p.span_of(start, p.peek_at(-1)),
             .target = expr,
             .value  = value,
@@ -1437,13 +1397,12 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
         rhs :: p.parse_expr(0)
         sp  :: p.span_of(start, p.peek_at(-1))
         return AssignStmt {
-            .id = usize(0),
             .span   = sp,
             .target = expr,
-            .value  = BinaryExpr { .id = usize(0), .span = sp, .op = compound.op, .left = expr, .right = rhs },
+            .value  = BinaryExpr { .span = sp, .op = compound.op, .left = expr, .right = rhs },
         }
     }
-    return ExprStmt { .id = usize(0), .span = expr.span, .expr = expr }
+    return ExprStmt { .span = expr.span, .expr = expr }
 }
 
 /** Maps a `*Assign` token kind to the underlying `BinaryOp` ; returns
@@ -1475,13 +1434,11 @@ parse_typed_let :: fn(p: Parser) -> LetStmt {
     }
     value :: p.parse_expr(0)
     binding :: SimpleBinding {
-        .id = usize(0),
         .span      = name_tok.span,
         .name      = name_tok.text,
         .name_span = name_tok.span,
     }
     return LetStmt {
-        .id = usize(0),
         .span    = p.span_of(name_tok, p.peek_at(-1)),
         .mutable = mutable,
         .binding = binding,
@@ -1496,13 +1453,11 @@ parse_let :: fn(p: Parser) -> LetStmt {
     mutable :: decl_tok.kind == .DeclVar
     value :: p.parse_expr(0)
     binding :: SimpleBinding {
-        .id = usize(0),
         .span      = name_tok.span,
         .name      = name_tok.text,
         .name_span = name_tok.span,
     }
     return LetStmt {
-        .id = usize(0),
         .span    = p.span_of(name_tok, p.peek_at(-1)),
         .mutable = mutable,
         .binding = binding,
@@ -1562,7 +1517,6 @@ parse_tuple_let :: fn(p: Parser) -> LetStmt {
     }
     value :: p.parse_expr(0)
     return LetStmt {
-        .id = usize(0),
         .span    = p.span_of(start, p.peek_at(-1)),
         .mutable = mutable,
         .binding = binding,
@@ -1584,7 +1538,6 @@ parse_let_binding :: fn(p: Parser) -> LetBinding {
                 if p.match_kind(.DotDotDot).matched {
                     name_tok :: p.expect(.Ident, "name after `...` in destructure pattern")
                     elements.push(RestBinding {
-                        .id = usize(0),
                         .span      = p.span_of(sub_start, name_tok),
                         .name      = name_tok.text,
                         .name_span = name_tok.span,
@@ -1602,18 +1555,16 @@ parse_let_binding :: fn(p: Parser) -> LetBinding {
             p.error(.LetDestructureRequiresTwoElements, p.span_of(start, end), "")
         }
         return TupleBinding {
-            .id = usize(0),
             .span     = p.span_of(start, end),
             .elements = elements,
         }
     }
     if p.check(.Ident) && p.peek().text == "_" {
         tok :: p.advance()
-        return WildcardBinding { .id = usize(0), .span = tok.span }
+        return WildcardBinding { .span = tok.span }
     }
     tok :: p.expect(.Ident, "binding name in destructure pattern")
     return SimpleBinding {
-        .id = usize(0),
         .span      = tok.span,
         .name      = tok.text,
         .name_span = tok.span,
@@ -1627,7 +1578,6 @@ parse_return :: fn(p: Parser) -> ReturnStmt {
         value = p.parse_expr(0)
     }
     return ReturnStmt {
-        .id = usize(0),
         .span  = p.span_of(start, p.peek_at(-1)),
         .value = value,
     }
@@ -1639,7 +1589,6 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
     if p.check(.LBrace) {
         body :: p.parse_block()
         return ForStmt {
-            .id = usize(0),
             .span  = Span { .start = start.span.start, .end = body.span.end },
             .label = label,
             .form  = InfiniteFor {},
@@ -1657,7 +1606,6 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         p.allow_struct_lit = saved_allow
         body :: p.parse_block()
         return ForStmt {
-            .id = usize(0),
             .span  = Span { .start = start.span.start, .end = body.span.end },
             .label = label,
             .form  = InFor { .binding = bind_tok.text, .binding_span = bind_tok.span, .iter = iter },
@@ -1683,7 +1631,6 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         synth :: "__for_${start.span.start.line}_${start.span.start.column}"
         synth_ident :: ident_expr(binding_span, synth)
         desugared :: LetStmt {
-            .id = usize(0),
             .span    = binding_span,
             .mutable = false,
             .binding = binding,
@@ -1694,13 +1641,11 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         new_stmts.push(desugared)
         for s in body.stmts { new_stmts.push(s) }
         wrapped_body :: BlockExpr {
-            .id = usize(0),
             .span     = body.span,
             .stmts    = new_stmts,
             .trailing = body.trailing,
         }
         return ForStmt {
-            .id = usize(0),
             .span  = Span { .start = start.span.start, .end = body.span.end },
             .label = label,
             .form  = InFor { .binding = synth, .binding_span = binding_span, .iter = iter },
@@ -1712,7 +1657,6 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
     p.allow_struct_lit = saved_allow
     body :: p.parse_block()
     return ForStmt {
-        .id = usize(0),
         .span  = Span { .start = start.span.start, .end = body.span.end },
         .label = label,
         .form  = WhileFor { .cond = cond },
@@ -1750,7 +1694,6 @@ parse_break :: fn(p: Parser) -> BreakStmt {
         label = p.advance().text
     }
     return BreakStmt {
-        .id = usize(0),
         .span  = p.span_of(start, p.peek_at(-1)),
         .label = label,
     }
@@ -1763,7 +1706,6 @@ parse_continue :: fn(p: Parser) -> ContinueStmt {
         label = p.advance().text
     }
     return ContinueStmt {
-        .id = usize(0),
         .span  = p.span_of(start, p.peek_at(-1)),
         .label = label,
     }
@@ -1771,7 +1713,7 @@ parse_continue :: fn(p: Parser) -> ContinueStmt {
 
 parse_defer :: fn(p: Parser) -> DeferStmt {
     start :: p.advance()
-    body: DeferBody = DeferStmtBody { .stmt = ExprStmt { .id = usize(0), .span = start.span, .expr = NullLitExpr { .id = usize(0), .span = start.span } } }
+    body: DeferBody = DeferStmtBody { .stmt = ExprStmt { .span = start.span, .expr = NullLitExpr { .span = start.span } } }
     if p.check(.LBrace) {
         body = DeferBlockBody { .block = p.parse_block() }
     } else {
@@ -1793,7 +1735,6 @@ parse_defer :: fn(p: Parser) -> DeferStmt {
         is DeferBlockBody -> body.block.span
     }
     return DeferStmt {
-        .id = usize(0),
         .span = Span { .start = start.span.start, .end = body_span.end },
         .body = body,
     }
@@ -2013,7 +1954,6 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             p.advance()
             right :: p.parse_expr(21)
             left = BinaryExpr {
-                .id = usize(0),
                 .span  = Span { .start = left.span.start, .end = right.span.end },
                 .op    = .NotIn,
                 .left  = left,
@@ -2034,7 +1974,6 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             right :: p.parse_expr(right_bp)
             if t.kind == .RangeExcl || t.kind == .RangeIncl {
                 left = RangeExpr {
-                    .id = usize(0),
                     .span      = Span { .start = left.span.start, .end = right.span.end },
                     .inclusive = t.kind == .RangeIncl,
                     .lower     = left,
@@ -2042,7 +1981,6 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
                 }
             } else {
                 left = BinaryExpr {
-                    .id = usize(0),
                     .span  = Span { .start = left.span.start, .end = right.span.end },
                     .op    = infix.op,
                     .left  = left,
@@ -2070,7 +2008,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
             _      -> {}
         }
         suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }
-        return IntLitExpr { .id = usize(0), .span = t.span, .value = v, .suffix = suffix }
+        return IntLitExpr { .span = t.span, .value = v, .suffix = suffix }
     }
     if t.kind == .FloatLit {
         p.advance()
@@ -2081,7 +2019,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
             _      -> {}
         }
         suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }
-        return FloatLitExpr { .id = usize(0), .span = t.span, .value = v, .suffix = suffix }
+        return FloatLitExpr { .span = t.span, .value = v, .suffix = suffix }
     }
     if t.kind == .CharLit {
         p.advance()
@@ -2091,19 +2029,19 @@ parse_prefix :: fn(p: Parser) -> Expr {
             is u32 -> { v = val }
             _      -> {}
         }
-        return CharLitExpr { .id = usize(0), .span = t.span, .value = v }
+        return CharLitExpr { .span = t.span, .value = v }
     }
     if t.kind == .KwTrue {
         p.advance()
-        return BoolLitExpr { .id = usize(0), .span = t.span, .value = true }
+        return BoolLitExpr { .span = t.span, .value = true }
     }
     if t.kind == .KwFalse {
         p.advance()
-        return BoolLitExpr { .id = usize(0), .span = t.span, .value = false }
+        return BoolLitExpr { .span = t.span, .value = false }
     }
     if t.kind == .KwNull {
         p.advance()
-        return NullLitExpr { .id = usize(0), .span = t.span }
+        return NullLitExpr { .span = t.span }
     }
     if t.kind == .StringBegin { return p.parse_string_lit() }
     if t.kind == .Ident       { return p.parse_ident_or_struct_lit() }
@@ -2117,7 +2055,6 @@ parse_prefix :: fn(p: Parser) -> Expr {
         if t.kind == .Tilde { op = .BitNot }
         operand :: p.parse_expr(95)
         return UnaryExpr {
-            .id = usize(0),
             .span    = Span { .start = t.span.start, .end = operand.span.end },
             .op      = op,
             .operand = operand,
@@ -2190,7 +2127,6 @@ parse_prefix :: fn(p: Parser) -> Expr {
                 }
                 end :: p.expect(.RParen, "`)` to close `@${sp.name}(...)`")
                 return IntrinsicCallExpr {
-                    .id = usize(0),
                     .span      = p.span_of(at_tok, end),
                     .name      = sp.name,
                     .name_span = name_tok.span,
@@ -2203,7 +2139,6 @@ parse_prefix :: fn(p: Parser) -> Expr {
         p.advance()
         v_tok :: p.expect(.Ident, "variant name after `.`")
         return DotVariantExpr {
-            .id = usize(0),
             .span         = Span { .start = t.span.start, .end = v_tok.span.end },
             .variant      = v_tok.text,
             .variant_span = v_tok.span,
@@ -2211,14 +2146,13 @@ parse_prefix :: fn(p: Parser) -> Expr {
     }
     p.error(.ExpectedExpression, t.span, "got ${describe_token(t)}")
     p.advance()
-    return NullLitExpr { .id = usize(0), .span = t.span }
+    return NullLitExpr { .span = t.span }
 }
 
 parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     if t.kind == .Question {
         p.advance()
         return TryExpr {
-            .id = usize(0),
             .span  = Span { .start = left.span.start, .end = t.span.end },
             .inner = left,
         }
@@ -2230,7 +2164,6 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         if p.check(.IntLit) {
             num_tok :: p.advance()
             return FieldExpr {
-                .id = usize(0),
                 .span       = Span { .start = left.span.start, .end = num_tok.span.end },
                 .target     = left,
                 .field      = num_tok.text,
@@ -2240,7 +2173,6 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         }
         name :: p.expect(.Ident, "field name after `.`")
         return FieldExpr {
-            .id = usize(0),
             .span       = Span { .start = left.span.start, .end = name.span.end },
             .target     = left,
             .field      = name.text,
@@ -2253,7 +2185,6 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         args :: p.parse_call_args()
         p.expect(.RParen, "`)` to close argument list")
         return CallExpr {
-            .id = usize(0),
             .span   = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
             .callee = left,
             .args   = args,
@@ -2264,7 +2195,6 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     index :: p.parse_expr(0)
     p.expect(.RBracket, "`]` to close index")
     return IndexExpr {
-        .id = usize(0),
         .span   = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
         .target = left,
         .index  = index,
@@ -2284,7 +2214,6 @@ parse_call_args :: fn(p: Parser) -> CallArg[] {
             p.advance()  // `=`
             value :: p.parse_expr(0)
             out.push(CallArg {
-                .id = usize(0),
                 .span   = p.span_of(start, p.peek_at(-1)),
                 .name   = name_tok.text,
                 .value  = value,
@@ -2293,7 +2222,6 @@ parse_call_args :: fn(p: Parser) -> CallArg[] {
         } else {
             value :: p.parse_expr(0)
             out.push(CallArg {
-                .id = usize(0),
                 .span   = value.span,
                 .name   = null,
                 .value  = value,
@@ -2327,10 +2255,8 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         items :: p.parse_struct_lit_fields()
         rb :: p.expect(.RBrace, "`}` to close struct literal")
         return StructLitExpr {
-            .id = usize(0),
             .span      = p.span_of(t, rb),
             .type_name = GenericInstExpr {
-                .id = usize(0),
                 .span      = p.span_of(t, rp),
                 .callee    = ident_expr(t.span, t.text),
                 .type_args = args,
@@ -2344,7 +2270,6 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         items :: p.parse_struct_lit_fields()
         rb :: p.expect(.RBrace, "`}` to close struct literal")
         return StructLitExpr {
-            .id = usize(0),
             .span      = p.span_of(t, rb),
             .type_name = ident_expr(t.span, t.text),
             .items     = items,
@@ -2403,7 +2328,6 @@ parse_struct_lit_fields :: fn(p: Parser) -> (StructLitField | StructLitSpread)[]
         if p.match_kind(.DotDotDot).matched {
             spread_expr :: p.parse_expr(0)
             out.push(StructLitSpread {
-                .id = usize(0),
                 .span = p.span_of(start, p.peek_at(-1)),
                 .expr = spread_expr,
             })
@@ -2413,7 +2337,6 @@ parse_struct_lit_fields :: fn(p: Parser) -> (StructLitField | StructLitSpread)[]
             p.expect(.Assign, "`=` after struct literal field name")
             value :: p.parse_expr(0)
             out.push(StructLitField {
-                .id = usize(0),
                 .span      = p.span_of(start, p.peek_at(-1)),
                 .name      = name.text,
                 .name_span = name.span,
@@ -2456,7 +2379,6 @@ parse_seq_lit :: fn(p: Parser) -> SeqLitExpr {
     }
     rb :: p.expect(.RBracket, "`]` to close seq literal")
     return SeqLitExpr {
-        .id = usize(0),
         .span     = p.span_of(lb, rb),
         .elements = elements,
     }
@@ -2475,7 +2397,7 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
                 is string -> { text = val }
                 _         -> {}
             }
-            parts.push(StringLitText { .id = usize(0), .value = text, .span = t.span })
+            parts.push(StringLitText { .value = text, .span = t.span })
             continue
         }
         if t.kind == .InterpOpen {
@@ -2484,7 +2406,6 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
             close_match :: p.match_kind(.InterpClose)
             close_span :: if close_match.matched { close_match.token.span } else { expr.span }
             parts.push(StringLitInterp {
-                .id = usize(0),
                 .expr = expr,
                 .span = Span { .start = interp_start.span.start, .end = close_span.end },
             })
@@ -2496,7 +2417,6 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
     end_match :: p.match_kind(.StringEnd)
     end_tok :: if end_match.matched { end_match.token } else { p.peek() }
     return StringLitExpr {
-        .id = usize(0),
         .span  = p.span_of(begin, end_tok),
         .parts = parts,
     }
@@ -2507,7 +2427,7 @@ parse_if_expr :: fn(p: Parser) -> IfExpr {
     saved_allow :: p.allow_struct_lit
     p.allow_struct_lit = false
 
-    cond: Expr = NullLitExpr { .id = usize(0), .span = start.span }
+    cond: Expr = NullLitExpr { .span = start.span }
     if p.match_kind(.LParen).matched {
         p.allow_struct_lit = true
         cond = p.parse_expr(0)
@@ -2534,7 +2454,6 @@ parse_if_expr :: fn(p: Parser) -> IfExpr {
         is null        -> then_block.span
     }
     return IfExpr {
-        .id = usize(0),
         .span        = Span { .start = start.span.start, .end = end_span.end },
         .cond        = cond,
         .then_block  = then_block,
@@ -2559,7 +2478,6 @@ parse_match_expr :: fn(p: Parser, partial: bool) -> MatchExpr {
     }
     end :: p.expect(.RBrace, "`}` to close match")
     return MatchExpr {
-        .id = usize(0),
         .span      = Span { .start = start.span.start, .end = end.span.end },
         .scrutinee = scrutinee,
         .arms      = arms,
@@ -2580,7 +2498,6 @@ parse_match_arm :: fn(p: Parser) -> MatchArm {
     p.expect(.Arrow, "`->` between pattern and arm body")
     body :: p.parse_expr(0)
     return MatchArm {
-        .id = usize(0),
         .span    = Span { .start = start.span.start, .end = body.span.end },
         .pattern = pattern,
         .guard   = guard,
@@ -2595,7 +2512,6 @@ parse_lambda :: fn(p: Parser) -> LambdaExpr {
     if p.match_kind(.Arrow).matched { return_type = p.parse_type() }
     body :: p.parse_block()
     return LambdaExpr {
-        .id = usize(0),
         .span        = Span { .start = start.span.start, .end = body.span.end },
         .params      = sig.params,
         .return_type = return_type,
@@ -2613,7 +2529,6 @@ parse_pattern :: fn(p: Parser) -> Pattern {
         p.advance()
         v_tok :: p.expect(.Ident, "variant name after `.`")
         return EnumVariantPattern {
-            .id = usize(0),
             .span    = Span { .start = t.span.start, .end = v_tok.span.end },
             .variant = v_tok.text,
         }
@@ -2628,7 +2543,6 @@ parse_pattern :: fn(p: Parser) -> Pattern {
             dot_tok :: p.advance()
             v_tok :: p.expect(.Ident, "variant name after `.`")
             IdentExpr {
-                .id = usize(0),
                 .span                = p.span_of(dot_tok, v_tok),
                 .name                = v_tok.text,
                 .implicit_dot        = true,
@@ -2646,7 +2560,6 @@ parse_pattern :: fn(p: Parser) -> Pattern {
             bind_as = p.expect(.Ident, "binding name after `as`").text
         }
         return IsPattern {
-            .id = usize(0),
             .span    = p.span_of(t, p.peek_at(-1)),
             .ty      = ty,
             .inner   = inner,
@@ -2655,18 +2568,18 @@ parse_pattern :: fn(p: Parser) -> Pattern {
     }
     if t.kind == .Ident && t.text == "_" {
         p.advance()
-        return WildcardPattern { .id = usize(0), .span = t.span }
+        return WildcardPattern { .span = t.span }
     }
     if t.kind == .Ident {
         p.advance()
-        return BindingPattern { .id = usize(0), .span = t.span, .name = t.text }
+        return BindingPattern { .span = t.span, .name = t.text }
     }
     if t.kind == .LBracket {
         return p.parse_tuple_pattern()
     }
     p.error(.ExpectedPattern, t.span, "got ${describe_token(t)}")
     p.advance()
-    return WildcardPattern { .id = usize(0), .span = t.span }
+    return WildcardPattern { .span = t.span }
 }
 
 parse_tuple_pattern :: fn(p: Parser) -> TuplePattern {
@@ -2688,7 +2601,6 @@ parse_tuple_pattern :: fn(p: Parser) -> TuplePattern {
         p.error(.TuplePatternRequiresTwoElements, p.span_of(start, end), "")
     }
     return TuplePattern {
-        .id = usize(0),
         .span     = p.span_of(start, end),
         .elements = elements,
     }
@@ -2701,18 +2613,17 @@ parse_struct_pattern :: fn(p: Parser) -> StructPattern {
     for !p.check(.RBrace) && !p.check(.Eof) {
         f_start :: p.peek()
         name :: p.expect(.Ident, "field name in struct pattern")
-        value: PatternFieldValue = PatternBinding { .id = usize(0), .name = name.text, .span = name.span }
+        value: PatternFieldValue = PatternBinding { .name = name.text, .span = name.span }
         if p.match_kind(.Colon).matched {
             // either rebinding `field: name` or literal `field: <expr>`
             if p.check(.Ident) && !is_literal_start(p.peek_at(1)) {
                 bind_tok :: p.advance()
-                value = PatternBinding { .id = usize(0), .name = bind_tok.text, .span = bind_tok.span }
+                value = PatternBinding { .name = bind_tok.text, .span = bind_tok.span }
             } else {
                 value = PatternLiteral { .value = p.parse_expr(0) }
             }
         }
         fields.push(StructPatternField {
-            .id = usize(0),
             .span      = p.span_of(f_start, p.peek_at(-1)),
             .name      = name.text,
             .name_span = name.span,
@@ -2724,7 +2635,6 @@ parse_struct_pattern :: fn(p: Parser) -> StructPattern {
     }
     end :: p.expect(.RBrace, "`}` to close struct pattern")
     return StructPattern {
-        .id = usize(0),
         .span   = Span { .start = start.span.start, .end = end.span.end },
         .fields = fields,
     }

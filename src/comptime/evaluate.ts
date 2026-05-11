@@ -13,7 +13,7 @@ import { buildStructSubst } from "../typecheck/ctx.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
 
-import { staticStringValue } from "../parser/ast.ts";
+import { staticStringValue, UNASSIGNED_NODE_ID } from "../parser/ast.ts";
 import { DEC } from "../parser/decorators.ts";
 
 import { err } from "./diag.ts";
@@ -93,7 +93,7 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
       if (decl.kind !== "AssertDecl") continue;
       const fake: A.ConstDecl = {
         kind: "ConstDecl",
-        span: decl.span,
+        id: UNASSIGNED_NODE_ID, span: decl.span,
         name: `__assert_${assertSeq++}`,
         nameSpan: decl.span,
         visibility: "private",
@@ -216,7 +216,7 @@ function evalFileExpr(
   let path = staticStringFromExpr(arg, typed.resolved);
   if (path === null) {
     const fake: A.ConstDecl = {
-      kind: "ConstDecl", span: expr.span, name: `__file_arg`, nameSpan: expr.span,
+      kind: "ConstDecl", id: UNASSIGNED_NODE_ID, span: expr.span, name: `__file_arg`, nameSpan: expr.span,
       visibility: "private", type: null, value: arg, decorators: [],
     };
     const value = runComptimeDecl({

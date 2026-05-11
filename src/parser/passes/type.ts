@@ -9,6 +9,7 @@
 // `fn() -> int[]` → return type is `int[]` (postfix on the return primary).
 
 import type * as A from "../ast.ts";
+import { UNASSIGNED_NODE_ID } from "../ast.ts";
 import type { Parser } from "../parser.ts";
 import { describeToken } from "../parser.ts";
 
@@ -27,7 +28,7 @@ export function parseType(p: Parser): A.TypeExpr {
       const next = parseTypeIntersection(p);
       head = {
         kind: "BinaryExpr",
-        span: { start, end: next.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start, end: next.span.end },
         op: "bitor",
         left: head,
         right: next,
@@ -49,7 +50,7 @@ function parseTypeIntersection(p: Parser): A.TypeExpr {
       const next = parseTypePostfix(p);
       head = {
         kind: "BinaryExpr",
-        span: { start, end: next.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start, end: next.span.end },
         op: "bitand",
         left: head,
         right: next,
@@ -72,7 +73,7 @@ function parseTypePostfix(p: Parser): A.TypeExpr {
     const rb = p.advance(); // ]
     head = {
       kind: "ArrayTypeExpr",
-      span: { start: head.span.start, end: rb.span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: head.span.start, end: rb.span.end },
       element: head,
     };
   }
@@ -80,14 +81,14 @@ function parseTypePostfix(p: Parser): A.TypeExpr {
   if (p.match("bang") !== null) {
     const bangEnd = p.peek(-1).span.end;
     const successVariant: A.TypeExpr = head.kind === "IdentExpr" && head.name === "void"
-      ? { kind: "IdentExpr", span: head.span, name: "null" }
+      ? { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: head.span, name: "null" }
       : head;
     const errorVariant: A.IdentExpr = {
-      kind: "IdentExpr", span: { start: bangEnd, end: bangEnd }, name: "Error",
+      kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: { start: bangEnd, end: bangEnd }, name: "Error",
     };
     head = {
       kind: "BinaryExpr",
-      span: { start: head.span.start, end: bangEnd },
+      id: UNASSIGNED_NODE_ID, span: { start: head.span.start, end: bangEnd },
       op: "bitor",
       left: successVariant,
       right: errorVariant,
@@ -103,7 +104,7 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
     const name = p.expect("ident", "type parameter name after `$`");
     return {
       kind: "IdentExpr",
-      span: p.spanOf(t, name),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(t, name),
       name: name.text,
       isTypeParamIntro: true,
     };
@@ -137,7 +138,7 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
       const end = p.advance();
       return {
         kind: "SeqLitExpr",
-        span: p.spanOf(start, end),
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(start, end),
         elements: [],
       };
     }
@@ -160,23 +161,23 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
         "use postfix `T[]` for an array, or a plain value if you meant the element");
       return {
         kind: "ArrayTypeExpr",
-        span: p.spanOf(start, end),
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(start, end),
         element: elements[0]!,
       };
     }
     return {
       kind: "SeqLitExpr",
-      span: p.spanOf(start, end),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(start, end),
       elements,
     };
   }
   if (t.kind === "kw_null") {
     p.advance();
-    return { kind: "IdentExpr", span: t.span, name: "null" };
+    return { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: "null" };
   }
   if (t.kind === "ident") {
     const name = p.advance();
-    const named: A.IdentExpr = { kind: "IdentExpr", span: name.span, name: name.text };
+    const named: A.IdentExpr = { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: name.span, name: name.text };
     // Generic instantiation : two forms during the Layer 4-sugar migration —
     //   `Foo(i32, U)`   (legacy paren form, still accepted)
     //   `Foo[i32, U]`   (Layer 4-sugar bracketed form, canonical)
@@ -189,14 +190,14 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
     if (args === null) return named;
     return {
       kind: "GenericInstExpr",
-      span: p.spanOf(name, p.peek(-1)),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(name, p.peek(-1)),
       callee: named,
       typeArgs: args.items,
     };
   }
   p.error("P1005", t.span, `got ${describeToken(t)}`);
   p.advance();
-  return { kind: "IdentExpr", span: t.span, name: "?" };
+  return { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: "?" };
 }
 
 /** Parse a comma-separated `(...)` or `[...]` list of type expressions, used
@@ -246,7 +247,7 @@ function parseFnType(p: Parser): A.FnTypeExpr {
   if (p.match("arrow") !== null) returnType = parseType(p);
   return {
     kind: "FnTypeExpr",
-    span: p.spanOf(start, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
     params,
     returnType,
   };

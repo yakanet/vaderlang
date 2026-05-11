@@ -8,6 +8,7 @@ import { basename } from "node:path";
 import { DiagnosticCollector } from "./diagnostics/collector.ts";
 import { parseSource } from "./parser/pipeline.ts";
 import type { Program } from "./parser/ast.ts";
+import { UNASSIGNED_NODE_ID } from "./parser/ast.ts";
 import { defaultProjectRoot } from "./resolver/module.ts";
 import { resolveProject } from "./resolver/index.ts";
 import type { ResolvedProject } from "./resolver/resolved-ast.ts";
@@ -158,7 +159,7 @@ function moduleNameFromFile(file: string): string {
 function p404(file: string): Program {
   return {
     kind: "Program",
-    file,
+    id: UNASSIGNED_NODE_ID, file,
     span: { start: { file, offset: 0, line: 1, column: 1 }, end: { file, offset: 0, line: 1, column: 1 } },
     decls: [],
   };

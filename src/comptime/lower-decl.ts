@@ -10,6 +10,7 @@
 // them into a synthetic `LoweredProject` for `emitBytecode`.
 
 import type * as A from "../parser/ast.ts";
+import { UNASSIGNED_NODE_ID } from "../parser/ast.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { Symbol } from "../resolver/symbol.ts";
@@ -230,7 +231,7 @@ function nextSynthId(): number { return _synthIdCounter--; }
 
 function synthMainFnDecl(decl: A.ConstDecl): A.FnDecl {
   return {
-    kind: "FnDecl", span: decl.span, name: SYNTH_MAIN_NAME,
+    kind: "FnDecl", id: UNASSIGNED_NODE_ID, span: decl.span, name: SYNTH_MAIN_NAME,
     nameSpan: decl.span, visibility: "public",
     typeParams: [], params: [], returnType: null,
     body: null, decorators: [],

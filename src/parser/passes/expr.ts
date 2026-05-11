@@ -6,6 +6,7 @@
 
 import type { Token, TokenKind } from "../../lexer/token.ts";
 import type * as A from "../ast.ts";
+import { UNASSIGNED_NODE_ID } from "../ast.ts";
 import type { Parser } from "../parser.ts";
 import { describeToken, looksLikeStructLitBody } from "../parser.ts";
 
@@ -87,7 +88,7 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
       const right = parseExpr(p, 21);
       left = {
         kind: "BinaryExpr",
-        span: { start: left.span.start, end: right.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: right.span.end },
         op: "not_in",
         left,
         right,
@@ -107,16 +108,16 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
     if (t.kind === "bang" && p.peek(1).kind !== "kw_in" && 100 >= minBP) {
       const bangTok = p.advance();
       const successVariant: A.Expr = left.kind === "IdentExpr" && left.name === "void"
-        ? { kind: "IdentExpr", span: left.span, name: "null" }
+        ? { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: left.span, name: "null" }
         : left;
       const errorVariant: A.IdentExpr = {
         kind: "IdentExpr",
-        span: { start: bangTok.span.end, end: bangTok.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start: bangTok.span.end, end: bangTok.span.end },
         name: "Error",
       };
       left = {
         kind: "BinaryExpr",
-        span: { start: left.span.start, end: bangTok.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: bangTok.span.end },
         op: "bitor",
         left: successVariant,
         right: errorVariant,
@@ -136,7 +137,7 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
       if (t.kind === "range_excl" || t.kind === "range_incl") {
         left = {
           kind: "RangeExpr",
-          span: { start: left.span.start, end: right.span.end },
+          id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: right.span.end },
           inclusive: t.kind === "range_incl",
           lower: left,
           upper: right,
@@ -144,7 +145,7 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
       } else {
         left = {
           kind: "BinaryExpr",
-          span: { start: left.span.start, end: right.span.end },
+          id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: right.span.end },
           // `infix.op` is defined for every non-range InfixOp (range tokens
           // are handled in the branch above) — assert and use.
           op: infix.op!,
@@ -170,7 +171,7 @@ function parsePrefix(p: Parser): A.Expr {
       p.advance();
       return {
         kind: "IntLitExpr",
-        span: t.span,
+        id: UNASSIGNED_NODE_ID, span: t.span,
         value: t.intValue ?? 0n,
         suffix: t.numericSuffix ?? null,
       };
@@ -178,22 +179,22 @@ function parsePrefix(p: Parser): A.Expr {
       p.advance();
       return {
         kind: "FloatLitExpr",
-        span: t.span,
+        id: UNASSIGNED_NODE_ID, span: t.span,
         value: t.floatValue ?? 0,
         suffix: t.numericSuffix ?? null,
       };
     case "char_literal":
       p.advance();
-      return { kind: "CharLitExpr", span: t.span, value: t.charValue ?? 0 };
+      return { kind: "CharLitExpr", id: UNASSIGNED_NODE_ID, span: t.span, value: t.charValue ?? 0 };
     case "kw_true":
       p.advance();
-      return { kind: "BoolLitExpr", span: t.span, value: true };
+      return { kind: "BoolLitExpr", id: UNASSIGNED_NODE_ID, span: t.span, value: true };
     case "kw_false":
       p.advance();
-      return { kind: "BoolLitExpr", span: t.span, value: false };
+      return { kind: "BoolLitExpr", id: UNASSIGNED_NODE_ID, span: t.span, value: false };
     case "kw_null":
       p.advance();
-      return { kind: "NullLitExpr", span: t.span };
+      return { kind: "NullLitExpr", id: UNASSIGNED_NODE_ID, span: t.span };
     case "string_begin":
       return parseStringLit(p);
     case "ident":
@@ -210,7 +211,7 @@ function parsePrefix(p: Parser): A.Expr {
       p.advance();
       const op: A.UnaryOp = t.kind === "minus" ? "neg" : t.kind === "bang" ? "not" : "bitnot";
       const operand = parseExpr(p, 95); // tighter than * / %, looser than postfix
-      return { kind: "UnaryExpr", span: { start: t.span.start, end: operand.span.end }, op, operand };
+      return { kind: "UnaryExpr", id: UNASSIGNED_NODE_ID, span: { start: t.span.start, end: operand.span.end }, op, operand };
     }
     case "kw_if":
       return parseIfExpr(p);
@@ -252,7 +253,7 @@ function parsePrefix(p: Parser): A.Expr {
         const end = p.expect("rparen", `\`)\` to close \`@${spec.name}(...)\``);
         return {
           kind: "IntrinsicCallExpr",
-          span: { start: atTok.span.start, end: end.span.end },
+          id: UNASSIGNED_NODE_ID, span: { start: atTok.span.start, end: end.span.end },
           name: spec.name,
           nameSpan: nameTok.span,
           args,
@@ -266,7 +267,7 @@ function parsePrefix(p: Parser): A.Expr {
       return parseLambda(p);
     case "kw_self":
       p.advance();
-      return { kind: "IdentExpr", span: t.span, name: "self" };
+      return { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: "self" };
     case "dollar": {
       // `$T` — type-param introduction prefix absorbed into the main Pratt
       // parser since 1.C. Produces an `IdentExpr` carrying `isTypeParamIntro`,
@@ -276,7 +277,7 @@ function parsePrefix(p: Parser): A.Expr {
       const name = p.expect("ident", "type parameter name after `$`");
       return {
         kind: "IdentExpr",
-        span: { start: dollarTok.span.start, end: name.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start: dollarTok.span.start, end: name.span.end },
         name: name.text,
         isTypeParamIntro: true,
       };
@@ -286,7 +287,7 @@ function parsePrefix(p: Parser): A.Expr {
       const variantTok = p.expect("ident", "variant name after `.`");
       return {
         kind: "DotVariantExpr",
-        span: { start: t.span.start, end: variantTok.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start: t.span.start, end: variantTok.span.end },
         variant: variantTok.text,
         variantSpan: variantTok.span,
       };
@@ -299,7 +300,7 @@ function parsePrefix(p: Parser): A.Expr {
 }
 
 export function placeholderExpr(t: Token): A.Expr {
-  return { kind: "NullLitExpr", span: t.span };
+  return { kind: "NullLitExpr", id: UNASSIGNED_NODE_ID, span: t.span };
 }
 
 function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
@@ -307,7 +308,7 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
     p.advance();
     return {
       kind: "TryExpr",
-      span: { start: left.span.start, end: t.span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: t.span.end },
       inner: left,
     };
   }
@@ -319,7 +320,7 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
       const numTok = p.advance();
       return {
         kind: "FieldExpr",
-        span: { start: left.span.start, end: numTok.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: numTok.span.end },
         target: left,
         field: numTok.text,
         fieldSpan: numTok.span,
@@ -329,7 +330,7 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
     const name = p.expect("ident", "field name after `.`");
     return {
       kind: "FieldExpr",
-      span: { start: left.span.start, end: name.span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: name.span.end },
       target: left,
       field: name.text,
       fieldSpan: name.span,
@@ -344,7 +345,7 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
     p.expect("rparen", "`)` to close argument list");
     const callExpr: A.CallExpr = {
       kind: "CallExpr",
-      span: { start: left.span.start, end: p.peek(-1).span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: p.peek(-1).span.end },
       callee: left,
       args,
     };
@@ -363,7 +364,7 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
       const rb = p.advance(); // ]
       return {
         kind: "ArrayTypeExpr",
-        span: { start: left.span.start, end: rb.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: rb.span.end },
         element: left,
       };
     }
@@ -372,7 +373,7 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
     p.expect("rbracket", "`]` to close index");
     return {
       kind: "IndexExpr",
-      span: { start: left.span.start, end: p.peek(-1).span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: p.peek(-1).span.end },
       target: left,
       index,
     };
@@ -396,7 +397,7 @@ function parseCallArgs(p: Parser): A.CallArg[] {
       p.advance(); // =
       const value = parseExpr(p, 0);
       out.push({
-        span: p.spanOf(start, p.peek(-1)),
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
         name: nameTok.text,
         value,
         spread: false,
@@ -404,7 +405,7 @@ function parseCallArgs(p: Parser): A.CallArg[] {
     } else {
       const value = parseExpr(p, 0);
       out.push({
-        span: value.span,
+        id: UNASSIGNED_NODE_ID, span: value.span,
         name: null,
         value,
         spread: false,
@@ -442,11 +443,11 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
     const rb = p.expect("rbrace", "`}` to close struct literal");
     return {
       kind: "StructLitExpr",
-      span: p.spanOf(t, rb),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(t, rb),
       typeName: {
         kind: "GenericInstExpr",
-        span: p.spanOf(t, rp),
-        callee: { kind: "IdentExpr", span: t.span, name: t.text },
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(t, rp),
+        callee: { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: t.text },
         typeArgs: args,
       },
       items,
@@ -459,12 +460,12 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
     const rb = p.expect("rbrace", "`}` to close struct literal");
     return {
       kind: "StructLitExpr",
-      span: p.spanOf(t, rb),
-      typeName: { kind: "IdentExpr", span: t.span, name: t.text },
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(t, rb),
+      typeName: { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: t.text },
       items,
     };
   }
-  return { kind: "IdentExpr", span: t.span, name: t.text };
+  return { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: t.text };
 }
 
 /** Lookahead: are the upcoming tokens shaped like a generic struct lit
@@ -501,7 +502,7 @@ function parseStructLitFields(p: Parser): A.StructLitItem[] {
       const expr = parseExpr(p, 0);
       out.push({
         kind: "spread",
-        span: p.spanOf(start, p.peek(-1)),
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
         expr,
       });
     } else {
@@ -511,7 +512,7 @@ function parseStructLitFields(p: Parser): A.StructLitItem[] {
       const value = parseExpr(p, 0);
       out.push({
         kind: "field",
-        span: p.spanOf(start, p.peek(-1)),
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
         name: name.text,
         nameSpan: name.span,
         value,
@@ -554,7 +555,7 @@ function parseSeqLit(p: Parser): A.SeqLitExpr {
   const rb = p.expect("rbracket", "`]` to close seq literal");
   return {
     kind: "SeqLitExpr",
-    span: p.spanOf(lb, rb),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(lb, rb),
     elements,
   };
 }
@@ -566,7 +567,7 @@ function parseStringLit(p: Parser): A.StringLitExpr {
     const t = p.peek();
     if (t.kind === "string_part") {
       p.advance();
-      parts.push({ kind: "text", value: t.stringValue ?? t.text, span: t.span });
+      parts.push({ kind: "text", id: UNASSIGNED_NODE_ID, value: t.stringValue ?? t.text, span: t.span });
       continue;
     }
     if (t.kind === "interp_open") {
@@ -576,7 +577,7 @@ function parseStringLit(p: Parser): A.StringLitExpr {
       const closeSpan = closeTok !== null ? closeTok.span : expr.span;
       parts.push({
         kind: "interp",
-        expr,
+        id: UNASSIGNED_NODE_ID, expr,
         span: { start: interpStart.span.start, end: closeSpan.end },
       });
       continue;
@@ -588,7 +589,7 @@ function parseStringLit(p: Parser): A.StringLitExpr {
   const end = p.match("string_end") ?? p.peek();
   return {
     kind: "StringLitExpr",
-    span: p.spanOf(begin, end),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(begin, end),
     parts,
   };
 }
@@ -620,7 +621,7 @@ function parseIfExpr(p: Parser): A.IfExpr {
 
   return {
     kind: "IfExpr",
-    span: { start: start.span.start, end: (elseBranch ?? thenBlock).span.end },
+    id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: (elseBranch ?? thenBlock).span.end },
     cond,
     then: thenBlock,
     else: elseBranch,
@@ -645,7 +646,7 @@ function parseMatchExpr(p: Parser, partial: boolean): A.MatchExpr {
   const end = p.expect("rbrace", "`}` to close match");
   return {
     kind: "MatchExpr",
-    span: { start: start.span.start, end: end.span.end },
+    id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: end.span.end },
     scrutinee,
     arms,
     partial: partial ? true : undefined,
@@ -665,7 +666,7 @@ function parseMatchArm(p: Parser): A.MatchArm {
   p.expect("arrow", "`->` between pattern and arm body");
   const body = parseExpr(p, 0);
   return {
-    span: { start: start.span.start, end: body.span.end },
+    id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
     pattern,
     guard,
     body,
@@ -683,15 +684,15 @@ function parseLambda(p: Parser): A.LambdaExpr | A.FnTypeExpr {
   if (!p.check("lbrace")) {
     return {
       kind: "FnTypeExpr",
-      span: { start: start.span.start, end: p.peek(-1).span.end },
-      params: params.map((par) => par.type ?? { kind: "IdentExpr", span: par.span, name: "?" }),
+      id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: p.peek(-1).span.end },
+      params: params.map((par) => par.type ?? { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: par.span, name: "?" }),
       returnType,
     };
   }
   const body = parseBlock(p);
   return {
     kind: "LambdaExpr",
-    span: { start: start.span.start, end: body.span.end },
+    id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
     params,
     returnType,
     body,
@@ -705,7 +706,7 @@ function parsePattern(p: Parser): A.Pattern {
     const variantTok = p.expect("ident", "variant name after `.`");
     return {
       kind: "EnumVariantPattern",
-      span: { start: t.span.start, end: variantTok.span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: t.span.start, end: variantTok.span.end },
       variant: variantTok.text,
     };
   }
@@ -720,7 +721,7 @@ function parsePattern(p: Parser): A.Pattern {
       const variantTok = p.expect("ident", "variant name after `.`");
       type = {
         kind: "IdentExpr",
-        span: { start: dotTok.span.start, end: variantTok.span.end },
+        id: UNASSIGNED_NODE_ID, span: { start: dotTok.span.start, end: variantTok.span.end },
         name: variantTok.text,
         implicitDot: true,
       };
@@ -737,7 +738,7 @@ function parsePattern(p: Parser): A.Pattern {
     }
     return {
       kind: "IsPattern",
-      span: p.spanOf(t, p.peek(-1)),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(t, p.peek(-1)),
       type,
       inner,
       bindAs,
@@ -745,18 +746,18 @@ function parsePattern(p: Parser): A.Pattern {
   }
   if (t.kind === "ident" && t.text === "_") {
     p.advance();
-    return { kind: "WildcardPattern", span: t.span };
+    return { kind: "WildcardPattern", id: UNASSIGNED_NODE_ID, span: t.span };
   }
   if (t.kind === "ident") {
     p.advance();
-    return { kind: "BindingPattern", span: t.span, name: t.text };
+    return { kind: "BindingPattern", id: UNASSIGNED_NODE_ID, span: t.span, name: t.text };
   }
   if (t.kind === "lbracket") {
     return parseTuplePattern(p);
   }
   p.error("P1007", t.span, `got ${describeToken(t)}`);
   p.advance();
-  return { kind: "WildcardPattern", span: t.span };
+  return { kind: "WildcardPattern", id: UNASSIGNED_NODE_ID, span: t.span };
 }
 
 function parseTuplePattern(p: Parser): A.TuplePattern {
@@ -779,7 +780,7 @@ function parseTuplePattern(p: Parser): A.TuplePattern {
   }
   return {
     kind: "TuplePattern",
-    span: p.spanOf(start, end),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(start, end),
     elements,
   };
 }
@@ -796,17 +797,17 @@ function parseStructPattern(p: Parser): A.StructPattern {
       // either literal value match or rebinding
       if (p.check("ident") && !isLiteralStart(p.peek(1))) {
         const bindTok = p.advance();
-        value = { kind: "binding", name: bindTok.text, span: bindTok.span };
+        value = { kind: "binding", id: UNASSIGNED_NODE_ID, name: bindTok.text, span: bindTok.span };
       } else {
         const v = parseExpr(p, 0);
         value = { kind: "literal", value: v };
       }
     } else {
       // shorthand: `{ x, y }` ⇒ binding to fields with same name
-      value = { kind: "binding", name: name.text, span: name.span };
+      value = { kind: "binding", id: UNASSIGNED_NODE_ID, name: name.text, span: name.span };
     }
     fields.push({
-      span: p.spanOf(fStart, p.peek(-1)),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(fStart, p.peek(-1)),
       name: name.text,
       nameSpan: name.span,
       value,
@@ -818,7 +819,7 @@ function parseStructPattern(p: Parser): A.StructPattern {
   const end = p.expect("rbrace", "`}` to close struct pattern");
   return {
     kind: "StructPattern",
-    span: { start: start.span.start, end: end.span.end },
+    id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: end.span.end },
     fields,
   };
 }

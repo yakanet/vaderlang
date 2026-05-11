@@ -3,6 +3,7 @@
 // past the failure and resumes at the next top-level start.
 
 import type * as A from "../ast.ts";
+import { UNASSIGNED_NODE_ID } from "../ast.ts";
 import type { Parser } from "../parser.ts";
 import { parseDecl } from "./decl.ts";
 
@@ -21,7 +22,7 @@ export function parseProgram(p: Parser): A.Program {
   const endTok = p.peek();
   return {
     kind: "Program",
-    file: p.file,
+    id: UNASSIGNED_NODE_ID, file: p.file,
     span: { start: startTok.span.start, end: endTok.span.end },
     decls,
   };

@@ -3,6 +3,7 @@
 // in reverse order.
 
 import type * as A from "../../parser/ast.ts";
+import { UNASSIGNED_NODE_ID } from "../../parser/ast.ts";
 import {TY, defaultIfFree, type Type} from "../../typecheck/types.ts";
 
 import type { BlockCtx, FnLowerCtx } from "../ctx.ts";
@@ -25,7 +26,7 @@ export function lowerBlock(
   for (const s of block.stmts) {
     if (s.kind === "DeferStmt") {
       blockCtx.defers.push(s.body.kind === "BlockExpr"
-        ? { kind: "ExprStmt", span: s.body.span, expr: s.body }
+        ? { kind: "ExprStmt", id: UNASSIGNED_NODE_ID, span: s.body.span, expr: s.body }
         : s.body);
       continue;
     }

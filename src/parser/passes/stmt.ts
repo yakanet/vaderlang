@@ -6,6 +6,7 @@
 
 import type { TokenKind } from "../../lexer/token.ts";
 import type * as A from "../ast.ts";
+import { UNASSIGNED_NODE_ID } from "../ast.ts";
 import type { Parser } from "../parser.ts";
 
 import { parseExpr, placeholderExpr } from "./expr.ts";
@@ -49,7 +50,7 @@ export function parseStmt(p: Parser): A.Stmt | null {
     const value = parseExpr(p, 0);
     return {
       kind: "AssignStmt",
-      span: p.spanOf(start, p.peek(-1)),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
       target: expr,
       value,
     };
@@ -66,13 +67,13 @@ export function parseStmt(p: Parser): A.Stmt | null {
     const rhs = parseExpr(p, 0);
     const span = p.spanOf(start, p.peek(-1));
     const desugared: A.BinaryExpr = {
-      kind: "BinaryExpr", span, op: compoundOp, left: expr, right: rhs,
+      kind: "BinaryExpr", id: UNASSIGNED_NODE_ID, span, op: compoundOp, left: expr, right: rhs,
     };
-    return { kind: "AssignStmt", span, target: expr, value: desugared };
+    return { kind: "AssignStmt", id: UNASSIGNED_NODE_ID, span, target: expr, value: desugared };
   }
   return {
     kind: "ExprStmt",
-    span: expr.span,
+    id: UNASSIGNED_NODE_ID, span: expr.span,
     expr,
   };
 }
@@ -100,13 +101,13 @@ function parseTypedLet(p: Parser): A.LetStmt {
   const value = parseExpr(p, 0);
   const binding: A.SimpleBinding = {
     kind: "SimpleBinding",
-    span: nameTok.span,
+    id: UNASSIGNED_NODE_ID, span: nameTok.span,
     name: nameTok.text,
     nameSpan: nameTok.span,
   };
   return {
     kind: "LetStmt",
-    span: p.spanOf(nameTok, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, p.peek(-1)),
     mutable,
     binding,
     type,
@@ -126,13 +127,13 @@ function parseLet(p: Parser): A.LetStmt {
   const value = parseExpr(p, 0);
   const binding: A.SimpleBinding = {
     kind: "SimpleBinding",
-    span: nameTok.span,
+    id: UNASSIGNED_NODE_ID, span: nameTok.span,
     name: nameTok.text,
     nameSpan: nameTok.span,
   };
   return {
     kind: "LetStmt",
-    span: p.spanOf(nameTok, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, p.peek(-1)),
     mutable,
     binding,
     type,
@@ -190,7 +191,7 @@ function parseTupleLet(p: Parser): A.LetStmt {
   const value = parseExpr(p, 0);
   return {
     kind: "LetStmt",
-    span: p.spanOf(start, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
     mutable,
     binding,
     type,
@@ -212,7 +213,7 @@ function parseLetBinding(p: Parser): A.LetBinding {
           const nameTok = p.expect("ident", "name after `...` in destructure pattern");
           elements.push({
             kind: "RestBinding",
-            span: p.spanOf(subStart, nameTok),
+            id: UNASSIGNED_NODE_ID, span: p.spanOf(subStart, nameTok),
             name: nameTok.text,
             nameSpan: nameTok.span,
           });
@@ -230,18 +231,18 @@ function parseLetBinding(p: Parser): A.LetBinding {
     }
     return {
       kind: "TupleBinding",
-      span: p.spanOf(start, end),
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(start, end),
       elements,
     };
   }
   if (p.check("ident") && p.peek().text === "_") {
     const tok = p.advance();
-    return { kind: "WildcardBinding", span: tok.span };
+    return { kind: "WildcardBinding", id: UNASSIGNED_NODE_ID, span: tok.span };
   }
   const tok = p.expect("ident", "binding name in destructure pattern");
   return {
     kind: "SimpleBinding",
-    span: tok.span,
+    id: UNASSIGNED_NODE_ID, span: tok.span,
     name: tok.text,
     nameSpan: tok.span,
   };
@@ -255,7 +256,7 @@ function parseReturn(p: Parser): A.ReturnStmt {
   }
   return {
     kind: "ReturnStmt",
-    span: p.spanOf(start, p.peek(-1)),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
     value,
   };
 }
@@ -272,7 +273,7 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
     const body = parseBlock(p);
     return {
       kind: "ForStmt",
-      span: { start: start.span.start, end: body.span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
       label,
       form: { kind: "infinite" },
       body,
@@ -291,7 +292,7 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
     const body = parseBlock(p);
     return {
       kind: "ForStmt",
-      span: { start: start.span.start, end: body.span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
       label,
       form: { kind: "in", binding: bindTok.text, bindingSpan: bindTok.span, iter },
       body,
@@ -317,9 +318,9 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
     // with multi-byte source.
     const synth = `__for_${start.span.start.line}_${start.span.start.column}`;
     const synthSpan = binding.span;
-    const synthIdent: A.IdentExpr = { kind: "IdentExpr", span: synthSpan, name: synth };
+    const synthIdent: A.IdentExpr = { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: synthSpan, name: synth };
     const desugared: A.LetStmt = {
-      kind: "LetStmt", span: synthSpan, mutable: false,
+      kind: "LetStmt", id: UNASSIGNED_NODE_ID, span: synthSpan, mutable: false,
       binding, type: null, value: synthIdent,
     };
     const wrappedBody: A.BlockExpr = {
@@ -328,7 +329,7 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
     };
     return {
       kind: "ForStmt",
-      span: { start: start.span.start, end: body.span.end },
+      id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
       label,
       form: { kind: "in", binding: synth, bindingSpan: synthSpan, iter },
       body: wrappedBody,
@@ -340,7 +341,7 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
   const body = parseBlock(p);
   return {
     kind: "ForStmt",
-    span: { start: start.span.start, end: body.span.end },
+    id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
     label,
     form: { kind: "while", cond },
     body,
@@ -374,18 +375,18 @@ function parseBreakContinue(p: Parser, which: "break" | "continue"): A.BreakStmt
     label = p.advance().text;
   }
   return which === "break"
-    ? { kind: "BreakStmt", span: p.spanOf(start, p.peek(-1)), label }
-    : { kind: "ContinueStmt", span: p.spanOf(start, p.peek(-1)), label };
+    ? { kind: "BreakStmt", id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)), label }
+    : { kind: "ContinueStmt", id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)), label };
 }
 
 function parseDefer(p: Parser): A.DeferStmt {
   const start = p.advance();
   const body: A.Stmt | A.BlockExpr = p.check("lbrace")
     ? parseBlock(p)
-    : (parseStmt(p) ?? { kind: "ExprStmt", span: start.span, expr: placeholderExpr(start) });
+    : (parseStmt(p) ?? { kind: "ExprStmt", id: UNASSIGNED_NODE_ID, span: start.span, expr: placeholderExpr(start) });
   return {
     kind: "DeferStmt",
-    span: { start: start.span.start, end: body.span.end },
+    id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
     body,
   };
 }
@@ -411,7 +412,7 @@ export function parseBlock(p: Parser): A.BlockExpr {
   const rb = p.expect("rbrace", "`}` to close block");
   return {
     kind: "BlockExpr",
-    span: p.spanOf(lb, rb),
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(lb, rb),
     stmts,
     trailing,
   };

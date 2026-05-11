@@ -11,6 +11,7 @@
 // of resolving to a (non-existent) local.
 
 import type * as A from "../../parser/ast.ts";
+import { UNASSIGNED_NODE_ID } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Capture } from "./closures.ts";
 import type { FnLowerCtx } from "../ctx.ts";
@@ -220,7 +221,7 @@ function makeStubFnDecl(sym: Symbol): A.FnDecl {
   const span = nullSpan();
   return {
     kind: "FnDecl",
-    span,
+    id: UNASSIGNED_NODE_ID, span,
     name: sym.name,
     nameSpan: span,
     visibility: "private",
@@ -236,7 +237,7 @@ function makeStubStructDecl(sym: Symbol): A.StructDecl {
   const span = nullSpan();
   return {
     kind: "StructDecl",
-    span,
+    id: UNASSIGNED_NODE_ID, span,
     name: sym.name,
     nameSpan: span,
     visibility: "private",
