@@ -9,16 +9,19 @@
 
 import "std/string" { byte_len, byte_at, char_at, slice as slice_text }
 
+/// Classification of a scanned comment. VaderDoc is `///` only ; `/**` is
+/// recognised as a plain `Block` since SPEC §3 dropped the block-form
+/// doc-comment.
 export CommentKind :: enum(u8) {
     Line,     // `// …`
-    DocLine,  // `/// …` — vaderdoc form. Recognised at scan time so a
-              //   future `vader doc` extractor can pick them out without
+    DocLine,  // `/// …` — VaderDoc form. Tagged at scan time so a future
+              //   `vader doc` extractor can pick them out without
               //   re-walking the source. The formatter still treats them
               //   like `Line` for round-trip equality (text is verbatim).
     Block,    // `/* … */` (may contain nested `/* … */`)
-    DocBlock, // `/** … */` — vaderdoc block form, mirrors JSdoc style.
 }
 
+/// One scanned comment, ready for replay by the printer.
 export Comment :: struct {
     // Byte offset (inclusive) of the leading `/` in the source.
     offset:      usize
@@ -36,8 +39,10 @@ export Comment :: struct {
     text:        string
 }
 
-// Sorted by `offset` ascending. `cursor` is the index of the next un-emitted
-// comment ; the printer's `take_*` methods advance it.
+/// Sorted-and-cursor view of every comment in a source file. `comments`
+/// is ordered by byte offset ; `cursor` points at the next un-emitted
+/// comment so the printer's `take_*` methods can advance through them in
+/// document order.
 export CommentMap :: struct {
     comments: Comment[]
     cursor:   usize
@@ -86,14 +91,12 @@ export scan_comments :: fn(source: string) -> CommentMap {
             continue
         }
 
-        // `/* … */` block comment (or `/** … */` vaderdoc block), nesting-aware.
+        // `/* … */` block comment, nesting-aware. SPEC §3 dropped the
+        // `/** … */` doc-comment form ; `/**` is treated as a plain block
+        // comment to keep round-trip semantics for any legacy source.
         if b == 47u8 && i + usize(1) < n && source.byte_at(i + usize(1)) == 42u8 {
             start :: i
             start_line :: line
-            // `/**` (but not `/***` which is still a single-star block per
-            // JSdoc convention) → DocBlock. The third `*` is enough to mark
-            // it ; further stars are part of the body.
-            is_doc :: i + usize(2) < n && source.byte_at(i + usize(2)) == 42u8 && (i + usize(3) >= n || source.byte_at(i + usize(3)) != 47u8)
             j: usize = i + usize(2)
             depth: i32 = 1
             for j < n && depth > 0 {
@@ -116,7 +119,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
                 j = j + usize(1)
             }
             text :: source.slice_text(start, j)
-            kind: CommentKind = if is_doc { .DocBlock } else { .Block }
+            kind: CommentKind = .Block
             out.push(Comment {
                 .offset = start,
                 .end_offset = j,

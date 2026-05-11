@@ -20,6 +20,7 @@ export StringBuilder :: struct {
 
 /// Create an empty builder. Callers typically chain through UFCS :
 /// `sb := new_builder() ; sb.append("…")`.
+/// @return  a fresh `StringBuilder` with no parts.
 export new_builder :: fn() -> StringBuilder {
     return StringBuilder { .parts = [] }
 }
@@ -39,18 +40,19 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
     self.parts.push("${c}")
 }
 
-/**
- * Append `count` copies of `c` to the builder. Generalises pretty-printer
- * indentation, table padding, divider lines, and any other "write N copies"
- * pattern — symmetric with `std/string.pad_end(s, width, fill)` but writes
- * directly into the builder without an intermediate string allocation.
- *
- * Negative counts are a no-op.
- *
- * Examples :
- *   sb.append_repeated(' ', level * 2)   // indentation
- *   sb.append_repeated('-', 40)           // divider line
- */
+/// Append `count` copies of `c` to the builder. Generalises pretty-printer
+/// indentation, table padding, divider lines, and any other "write N
+/// copies" pattern — symmetric with `std/string.pad_end(s, width, fill)`
+/// but writes directly into the builder without an intermediate string
+/// allocation. Negative or zero counts are a no-op.
+///
+/// Examples :
+///   `sb.append_repeated(' ', level * 2)   // indentation`
+///   `sb.append_repeated('-', 40)           // divider line`
+///
+/// @param self   builder receiver.
+/// @param c      codepoint to repeat.
+/// @param count  number of copies to append (≤ 0 → no-op).
 export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
     for 0..<count {
         self.append_char(c)

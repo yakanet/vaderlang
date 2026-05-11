@@ -47,11 +47,9 @@ export char_at :: fn(s: string, i: usize) -> char
 /// `chars()`.
 export byte_at :: fn(s: string, i: usize) -> u8
 
-/**
- * Iterator yielding raw bytes — the UTF-8 byte sequence as-is. Use for
- * ASCII data, binary protocols carried in strings, or when computing a
- * byte-level digest. For codepoint iteration use `chars()` instead.
- */
+/// Iterator yielding raw bytes — the UTF-8 byte sequence as-is. Use for
+/// ASCII data, binary protocols carried in strings, or when computing a
+/// byte-level digest. For codepoint iteration use `chars()` instead.
 export StringBytes :: struct {
     s:      string
     cursor: usize
@@ -69,26 +67,23 @@ StringBytes implements Iterator(u8) {
     }
 }
 
-/**
- * Iterate `s` byte-by-byte. Pair with `for b in s.bytes()` for raw byte
- * processing.
- *
- * Example :
- *   sum: u32 = u32(0)
- *   for b in "vader".bytes() {
- *       sum = sum + u32(b)
- *   }
- */
+/// Iterate `s` byte-by-byte. Pair with `for b in s.bytes()` for raw byte
+/// processing.
+///
+/// Example :
+///   `sum: u32 = u32(0)`
+///   `for b in "vader".bytes() { sum = sum + u32(b) }`
+///
+/// @param s  source string.
+/// @return   a `StringBytes` iterator over its UTF-8 bytes.
 export bytes :: fn(s: string) -> StringBytes {
     return StringBytes { .s = s, .cursor = usize(0), .length = s.byte_len() }
 }
 
-/**
- * Iterator yielding Unicode codepoints — one per UTF-8 sequence, regardless
- * of whether the codepoint is encoded in 1, 2, 3, or 4 bytes. Cursor moves
- * in bytes ; `length` is the byte length of the source string, captured at
- * construction so `step` doesn't recompute it.
- */
+/// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
+/// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
+/// bytes. The cursor moves in bytes ; `length` is the byte length of the
+/// source string, captured at construction so `step` doesn't recompute it.
 export StringChars :: struct {
     s:      string
     cursor: usize
@@ -106,52 +101,54 @@ StringChars implements Iterator(char) {
     }
 }
 
-/**
- * Iterate `s` codepoint-by-codepoint. Pair with `for c in s.chars()` to
- * get a true Unicode loop ; using `s[i]` in a byte-indexed loop returns
- * U+FFFD on continuation bytes for non-ASCII content.
- *
- * Example :
- *   for c in "héllo".chars() {
- *       println("${c}")
- *   }
- */
+/// Iterate `s` codepoint-by-codepoint. Pair with `for c in s.chars()` to
+/// get a true Unicode loop ; using `s[i]` in a byte-indexed loop returns
+/// U+FFFD on continuation bytes for non-ASCII content.
+///
+/// Example :
+///   `for c in "héllo".chars() { println("${c}") }`
+///
+/// @param s  source string.
+/// @return   a `StringChars` iterator over its codepoints.
 export chars :: fn(s: string) -> StringChars {
     return StringChars { .s = s, .cursor = usize(0), .length = s.byte_len() }
 }
 
-/**
- * Decode the UTF-8 sequence at byte offset `i` into a codepoint and its
- * encoded byte length. Returns `[c, n]` where `c` is the codepoint and `n`
- * is the number of bytes consumed (1 to 4) — advance the caller's cursor
- * by `n` to land on the next leading byte.
- *
- * Caller is expected to ensure `i` points at a leading byte (cursor invariant
- * preserved by always advancing in `n`-byte steps from 0). For an offset
- * landing on a continuation byte, `s[i]` returns U+FFFD and `n = 3` —
- * incorrect for resync, so callers must not feed arbitrary offsets.
- *
- * Bounds aren't checked : `i` must satisfy `0 <= i < s.byte_len()`.
- *
- * Example :
- *   [c, n] := decode_codepoint("héllo", 1)   // c = 'é', n = 2
- */
+/// Decode the UTF-8 sequence at byte offset `i` into a codepoint and its
+/// encoded byte length. Returns `[c, n]` where `c` is the codepoint and
+/// `n` is the number of bytes consumed (1 to 4) — advance the caller's
+/// cursor by `n` to land on the next leading byte.
+///
+/// Caller must ensure `i` points at a leading byte (cursor invariant
+/// preserved by always advancing in `n`-byte steps from 0). For an offset
+/// landing on a continuation byte, `s[i]` returns `U+FFFD` and `n = 3` —
+/// incorrect for resync, so callers must not feed arbitrary offsets.
+///
+/// Bounds aren't checked : `i` must satisfy `0 <= i < s.byte_len()`.
+///
+/// Example :
+///   `[c, n] := decode_codepoint("héllo", 1)   // c = 'é', n = 2`
+///
+/// @param s  source string.
+/// @param i  byte offset of a UTF-8 leading byte.
+/// @return   `[codepoint, byte_length]`.
 export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] {
     c :: s[i]
     return [c, codepoint_byte_len(c)]
 }
 
-/**
- * Count the Unicode codepoints in `s` — what `byte_len()` would return in
- * a codepoint-indexed language. Walks the UTF-8 byte sequence directly via
- * leading-byte widths ; cheaper than `s.chars().count()` because it avoids
- * the per-step `Yielded(char)` heap allocation the iterator does.
- *
- * Example :
- *   count_chars("héllo")    // 5    (byte_len() would return 6)
- *   count_chars("你好")     // 2    (byte_len() would return 6)
- *   count_chars("")         // 0
- */
+/// Count the Unicode codepoints in `s` — what `byte_len()` would return
+/// in a codepoint-indexed language. Walks the UTF-8 byte sequence
+/// directly via leading-byte widths ; cheaper than `s.chars().count()`
+/// because it avoids the per-step `Yielded(char)` heap allocation.
+///
+/// Example :
+///   `count_chars("héllo")    // 5  (byte_len() would return 6)`
+///   `count_chars("你好")     // 2  (byte_len() would return 6)`
+///   `count_chars("")         // 0`
+///
+/// @param s  source string.
+/// @return   number of codepoints in `s`.
 export count_chars :: fn(s: string) = s.chars().count()
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`
@@ -286,16 +283,16 @@ export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c ==
 /// (`is_hex_digit`, `is_digit_in_base`) live in `std/numbers`.
 export is_digit :: fn(c: char) = c in '0'..='9'
 
-/**
- * True for an ASCII letter — `a..z` or `A..Z`. Locale-independent ; Unicode
- * letters are not recognised in MVP.
- */
+/// True for an ASCII letter — `a..z` or `A..Z`. Locale-independent ;
+/// Unicode letters are not recognised in MVP.
+/// @param c  codepoint to classify.
+/// @return   `true` iff `c` is an ASCII letter.
 export is_alpha :: fn(c: char) = c in 'a'..='z' || c in 'A'..='Z'
 
-/**
- * True for an ASCII letter or decimal digit — `a..z`, `A..Z`, or `0..9`.
- * Composes `is_alpha` and `is_digit`.
- */
+/// True for an ASCII letter or decimal digit — `a..z`, `A..Z`, or `0..9`.
+/// Composes `is_alpha` and `is_digit`.
+/// @param c  codepoint to classify.
+/// @return   `true` iff `c` is alphanumeric.
 export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
 
 /// Strip `suffix` if `s` ends with it ; otherwise return `s` unchanged.
@@ -334,18 +331,18 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
     return sb.to_string()
 }
 
-/**
- * Split `s` on runs of characters matching `pred`, dropping empty segments.
- *
- * Mirrors `replace_chars_where(s, pred, ...)` — same predicate convention,
- * same pair-with-`is_*` ergonomics. For whitespace splitting, pass
- * `is_white_char` ; for word-boundary splitting (alphanumeric runs),
- * pass `c => !c.is_alnum()`. Empty inputs return an empty array.
- *
- * Examples :
- *   "  hello\tworld  ".split_where(is_white_char)   // ["hello", "world"]
- *   "a,b,,c".split_where(c => c == ',')              // ["a", "b", "c"]
- */
+/// Split `s` on runs of characters matching `pred`, dropping empty
+/// segments. Mirrors `replace_chars_where(s, pred, ...)` — same predicate
+/// convention, same pair-with-`is_*` ergonomics. For whitespace
+/// splitting, pass `is_white_char` ; for word-boundary splitting
+/// (alphanumeric runs), pass `c => !c.is_alnum()`. Empty inputs return
+/// an empty array.
+/// @param s     source string.
+/// @param pred  predicate over each codepoint ; truthy → separator.
+/// @return      non-empty segments (in source order).
+/// @example
+///    `"  hello\tworld  ".split_where(is_white_char) → ["hello", "world"]`
+///    `"a,b,,c".split_where(c => c == ',') → ["a", "b", "c"]`
 export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
     out: string[] = []
     sb := new_builder()

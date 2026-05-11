@@ -5,20 +5,39 @@ import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/comments" { scan_comments }
 import "vader/fmt/printer" { new_printer, emit_program }
 
-// FormatResult carries either the formatted output or the diagnostic list
-// the parser emitted. Callers decide whether to write back, print, or skip.
+/// Outcome of a `format_source` call : either the formatted output or the
+/// list of parser diagnostics that prevented formatting. Callers
+/// pattern-match on the union to decide whether to write back / print to
+/// stdout / forward errors.
 export FormatResult :: ParseFailure | Formatted
 
+/// The parser emitted at least one error ; formatting was skipped because
+/// round-trip parity can't hold on a partial AST.
 export ParseFailure :: struct {
     diagnostics: Diagnostic[]
 }
 
+/// Successful format — `output` is the canonical text of the input source.
 export Formatted :: struct {
     output: string
 }
 
-// `path` is purely informational — used as the `file` field of `Program` for
-// diagnostic provenance. The actual source bytes come from `source`.
+/// Parse `source`, build a `CommentMap`, run the printer, and return the
+/// formatted source string. The result is idempotent
+/// (`format_source(format_source(s).output, p) == s` for any clean
+/// `format_source(s, p)` result) and parse-equivalent to the input.
+///
+/// @param source  the raw `.vader` source bytes.
+/// @param path    informational — used as the `Program.file` field for
+///                diagnostic provenance ; reading is done from `source`.
+/// @return        `Formatted` on success, `ParseFailure` carrying every
+///                parser diagnostic otherwise.
+/// @example
+///   `r :: format_source("export x :: 42", "demo.vader")`
+///   `match r {`
+///   `    is Formatted    as f -> println(f.output)`
+///   `    is ParseFailure as e -> for d in e.diagnostics { eprintln(d.render()) }`
+///   `}`
 export format_source :: fn(source: string, path: string) -> FormatResult {
     pr :: parse_source(source, path)
     if pr.errors.len() > usize(0) {

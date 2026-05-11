@@ -155,6 +155,34 @@ main :: fn() -> i32 { return 0 }
 
 Nested block comments follow the Rust convention. The lexer tracks nesting depth and only closes the outer comment when depth returns to zero.
 
+### VaderDoc
+
+Doc-comments start with `///` (line form). Each successive `///` line is part of the same doc-block attached to the declaration that immediately follows. The lexer drops every comment before the parser sees it ; tooling consumes them by re-scanning the source (`vader/fmt/comments.scan_comments` and the future `vader doc` extractor). The `///` form is the only supported VaderDoc shape — `/**` block-style doc-comments are NOT recognised.
+
+Doc-comments may use the following tags. Tags appear one per line, after a blank-line-separated body :
+
+| Tag        | Meaning                                                                          |
+|------------|----------------------------------------------------------------------------------|
+| `@param`   | Describe one named parameter. Format : `@param <name>  <description>`.           |
+| `@return`  | Describe the return value. Omit for `void` returns.                              |
+| `@error`   | Describe which `Error` variant(s) can be raised and under what cause.            |
+| `@example` | A usage snippet block. Lines after the bare `@example` line are the body — the convention is to indent them with backtick-wrapped code, one example per line. |
+
+```vader
+/// Parse `s` as a base-10 `i32`. No prefix, no underscores, no leading
+/// `+` sign ; a leading `-` is accepted.
+///
+/// @param s  the digits-only input.
+/// @return   the parsed integer.
+/// @error    `ParseError` on empty input, malformed digit, or overflow.
+/// @example
+///   `parse_int("42")     → 42`
+///   `parse_int("hello")  → ParseError`
+export parse_int :: fn(s: string) -> i32!
+```
+
+Every public method in the standard library carries a VaderDoc block following this convention.
+
 ### Identifiers
 
 `[a-zA-Z_][a-zA-Z0-9_]*`. Case-sensitive. No Unicode in identifiers in MVP.

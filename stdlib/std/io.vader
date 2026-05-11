@@ -16,16 +16,20 @@ IOError implements Error {
 /// Write `msg` to stdout without a trailing newline. Accepts anything
 /// implementing `Display` — the lowerer routes through the matching
 /// `to_string` impl before reaching the host (no virtual dispatch).
+/// @param msg  the value to render. Any type implementing `Display`.
 @intrinsic export print :: fn(msg: Display) -> void
 
 /// Write `msg` to stdout followed by a `\n`. Same `Display` coercion as
 /// `print`.
+/// @param msg  the value to render. Any type implementing `Display`.
 @intrinsic export println :: fn(msg: Display) -> void
 
 /// Write `msg` to stderr without a trailing newline.
+/// @param msg  the value to render. Any type implementing `Display`.
 @intrinsic export eprint :: fn(msg: Display) -> void
 
 /// Write `msg` to stderr followed by a `\n`.
+/// @param msg  the value to render. Any type implementing `Display`.
 @intrinsic export eprintln :: fn(msg: Display) -> void
 
 /// Read one line from stdin, blocking until a newline arrives. The
@@ -48,9 +52,14 @@ IOError implements Error {
 
 /// True iff `path` resolves to an existing filesystem entry (file or
 /// directory). Errors (e.g. permission denied) collapse to `false`.
+/// @param path  filesystem path to probe.
+/// @return      `true` if the entry exists, `false` otherwise (including
+///              on access errors).
 @intrinsic export exists :: fn(path: string) -> bool
 
 /// True iff `path` exists AND is a directory. Errors collapse to `false`.
+/// @param path  filesystem path to probe.
+/// @return      `true` iff `path` is an accessible directory.
 @intrinsic export is_dir :: fn(path: string) -> bool
 
 /// List the immediate entries of `path` in OS-provided order. Excludes

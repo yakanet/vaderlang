@@ -94,8 +94,21 @@ collect_files :: fn(root: string, out: string[]) -> void {
     }
 }
 
-// Drive the formatter over the resolved file set. Aggregates per-file
-// FileResults and collapses to a single OS exit code at the end.
+/// Drive the formatter over the resolved file set. Aggregates per-file
+/// `FileResult`s and collapses to a single OS exit code at the end.
+/// Entry point invoked from `vader/cli/main.vader::cmd_fmt` ; the TS-side
+/// shim (`src/cli/commands/fmt.ts`) routes through the same path.
+///
+/// @param args  argv tail (everything after `vader fmt`). Recognised
+///              flags : `--check`, `--stdout`. Remaining tokens are file
+///              or directory paths ; directories are walked recursively
+///              for `.vader` files.
+/// @return      OS exit code : 0 on success, 1 on `--check` drift, 2 on
+///              parse-error skips, 3 on IO error.
+/// @example
+///   `run_fmt(["src/main.vader"])             → format in place, return 0`
+///   `run_fmt(["--check", "stdlib/"])         → exit 1 if any file would change`
+///   `run_fmt(["--stdout", "foo.vader"])      → write formatted output to stdout`
 export run_fmt :: fn(args: string[]) -> i32 {
     opts :: parse_args(args)
 

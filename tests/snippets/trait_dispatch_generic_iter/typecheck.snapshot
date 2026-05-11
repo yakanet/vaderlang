@@ -5,30 +5,48 @@
   StructDecl     Once                 :: Once($T)
   StructDecl     Repeat               :: Repeat($T)
   FnDecl         walk                 :: fn(Iterator(i32)) -> i32
-  expr 102:16   IdentExpr      :: usize
-  expr 102:16   IdentExpr      :: usize
-  expr 110:13   UnaryExpr      :: bool
-  expr 110:13   UnaryExpr      :: bool
-  expr 110:14   IdentExpr      :: bool
-  expr 110:14   IdentExpr      :: bool
-  expr 111:13   MatchExpr      :: void
-  expr 111:13   MatchExpr      :: void
-  expr 111:19   CallExpr       :: Done | Yielded($T)
-  expr 111:19   CallExpr       :: Done | Yielded($T)
-  expr 111:19   FieldExpr      :: fn() -> Done | Yielded($T)
-  expr 111:19   FieldExpr      :: fn() -> Done | Yielded($T)
-  expr 111:19   IdentExpr      :: Once($T)
-  expr 111:19   IdentExpr      :: Repeat($T)
-  expr 112:41   IdentExpr      :: bool
-  expr 112:41   IdentExpr      :: bool
-  expr 113:41   IdentExpr      :: $T | null
-  expr 113:41   IdentExpr      :: $T | null
-  expr 113:50   FieldExpr      :: $T
-  expr 113:50   FieldExpr      :: $T
-  expr 113:50   IdentExpr      :: Yielded($T)
-  expr 113:50   IdentExpr      :: Yielded($T)
-  expr 116:16   IdentExpr      :: $T | null
-  expr 116:16   IdentExpr      :: $T | null
+  expr 106:36   MatchExpr      :: bool
+  expr 106:36   MatchExpr      :: bool
+  expr 106:42   CallExpr       :: Done | Yielded($T)
+  expr 106:42   CallExpr       :: Done | Yielded($T)
+  expr 106:42   FieldExpr      :: fn() -> Done | Yielded($T)
+  expr 106:42   FieldExpr      :: fn() -> Done | Yielded($T)
+  expr 106:42   IdentExpr      :: Once($T)
+  expr 106:42   IdentExpr      :: Repeat($T)
+  expr 116:13   UnaryExpr      :: bool
+  expr 116:13   UnaryExpr      :: bool
+  expr 116:14   IdentExpr      :: bool
+  expr 116:14   IdentExpr      :: bool
+  expr 117:13   MatchExpr      :: void
+  expr 117:13   MatchExpr      :: void
+  expr 117:19   CallExpr       :: Done | Yielded($T)
+  expr 117:19   CallExpr       :: Done | Yielded($T)
+  expr 119:44   BinaryExpr     :: usize
+  expr 119:44   BinaryExpr     :: usize
+  expr 122:16   IdentExpr      :: usize
+  expr 122:16   IdentExpr      :: usize
+  expr 130:13   UnaryExpr      :: bool
+  expr 130:13   UnaryExpr      :: bool
+  expr 130:14   IdentExpr      :: bool
+  expr 130:14   IdentExpr      :: bool
+  expr 131:13   MatchExpr      :: void
+  expr 131:13   MatchExpr      :: void
+  expr 131:19   CallExpr       :: Done | Yielded($T)
+  expr 131:19   CallExpr       :: Done | Yielded($T)
+  expr 131:19   FieldExpr      :: fn() -> Done | Yielded($T)
+  expr 131:19   FieldExpr      :: fn() -> Done | Yielded($T)
+  expr 131:19   IdentExpr      :: Once($T)
+  expr 131:19   IdentExpr      :: Repeat($T)
+  expr 132:41   IdentExpr      :: bool
+  expr 132:41   IdentExpr      :: bool
+  expr 133:41   IdentExpr      :: $T | null
+  expr 133:41   IdentExpr      :: $T | null
+  expr 133:50   FieldExpr      :: $T
+  expr 133:50   FieldExpr      :: $T
+  expr 133:50   IdentExpr      :: Yielded($T)
+  expr 133:50   IdentExpr      :: Yielded($T)
+  expr 136:16   IdentExpr      :: $T | null
+  expr 136:16   IdentExpr      :: $T | null
   expr 22:12    BinaryExpr     :: bool
   expr 22:12    FieldExpr      :: i32
   expr 22:12    IdentExpr      :: Repeat($T)
@@ -78,24 +96,6 @@
   expr 58:26    IdentExpr      :: Once(i32)
   expr 58:5     CallExpr       :: void
   expr 58:5     IdentExpr      :: fn(Display) -> void
-  expr 86:36    MatchExpr      :: bool
-  expr 86:36    MatchExpr      :: bool
-  expr 86:42    CallExpr       :: Done | Yielded($T)
-  expr 86:42    CallExpr       :: Done | Yielded($T)
-  expr 86:42    FieldExpr      :: fn() -> Done | Yielded($T)
-  expr 86:42    FieldExpr      :: fn() -> Done | Yielded($T)
-  expr 86:42    IdentExpr      :: Once($T)
-  expr 86:42    IdentExpr      :: Repeat($T)
-  expr 96:13    UnaryExpr      :: bool
-  expr 96:13    UnaryExpr      :: bool
-  expr 96:14    IdentExpr      :: bool
-  expr 96:14    IdentExpr      :: bool
-  expr 97:13    MatchExpr      :: void
-  expr 97:13    MatchExpr      :: void
-  expr 97:19    CallExpr       :: Done | Yielded($T)
-  expr 97:19    CallExpr       :: Done | Yielded($T)
-  expr 99:44    BinaryExpr     :: usize
-  expr 99:44    BinaryExpr     :: usize
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded($T)
   expr undefined:undefined FieldExpr      :: fn() -> Done | Yielded($T)
   expr undefined:undefined IdentExpr      :: Once($T)

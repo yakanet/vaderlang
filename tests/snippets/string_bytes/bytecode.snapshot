@@ -258,58 +258,58 @@ fn 1 std_string$StringBytes$Iterator$step (ref) -> ref
   local "b#20" u8
   local "$field_9#21" usize
   local "$add_11#23" usize
-  local.get 0   ; string.vader:54:13
-  struct.get 23 1   ; string.vader:54:13
-  local.set 1   ; string.vader:54:13
-  local.get 0   ; string.vader:54:28
-  struct.get 23 2   ; string.vader:54:28
-  local.set 2   ; string.vader:54:28
-  local.get 1   ; string.vader:54:13
-  local.get 2   ; string.vader:54:13
-  usize.ge   ; string.vader:54:13
-  if $L0 void   ; string.vader:54:9
-    struct.new 0   ; string.vader:55:20
-    return   ; string.vader:55:13
-  else   ; string.vader:54:9
-    local.get 0   ; string.vader:57:14
-    struct.get 23 0   ; string.vader:57:14
-    local.set 3   ; string.vader:57:14
-    local.get 0   ; string.vader:57:29
-    struct.get 23 1   ; string.vader:57:29
-    local.set 4   ; string.vader:57:29
-    local.get 3   ; string.vader:57:14
-    local.get 4   ; string.vader:57:14
-    call.import 3   ; string.vader:57:14
-    local.set 5   ; string.vader:57:9
-    local.get 0   ; string.vader:58:23
-    struct.get 23 1   ; string.vader:58:23
-    local.set 6   ; string.vader:58:23
-    local.get 6   ; string.vader:58:23
-    i64.const 1   ; string.vader:58:23
-    i64.to_usize   ; string.vader:58:23
-    usize.add   ; string.vader:58:23
-    local.set 7   ; string.vader:58:23
-    local.get 0   ; string.vader:58:9
-    local.get 7   ; string.vader:58:9
-    struct.set 23 1   ; string.vader:58:9
-    local.get 5   ; string.vader:59:16
-    struct.new 19   ; string.vader:59:16
-    return   ; string.vader:59:9
-  end $L0   ; string.vader:54:9
+  local.get 0   ; string.vader:61:13
+  struct.get 23 1   ; string.vader:61:13
+  local.set 1   ; string.vader:61:13
+  local.get 0   ; string.vader:61:28
+  struct.get 23 2   ; string.vader:61:28
+  local.set 2   ; string.vader:61:28
+  local.get 1   ; string.vader:61:13
+  local.get 2   ; string.vader:61:13
+  usize.ge   ; string.vader:61:13
+  if $L0 void   ; string.vader:61:9
+    struct.new 0   ; string.vader:62:20
+    return   ; string.vader:62:13
+  else   ; string.vader:61:9
+    local.get 0   ; string.vader:64:14
+    struct.get 23 0   ; string.vader:64:14
+    local.set 3   ; string.vader:64:14
+    local.get 0   ; string.vader:64:29
+    struct.get 23 1   ; string.vader:64:29
+    local.set 4   ; string.vader:64:29
+    local.get 3   ; string.vader:64:14
+    local.get 4   ; string.vader:64:14
+    call.import 3   ; string.vader:64:14
+    local.set 5   ; string.vader:64:9
+    local.get 0   ; string.vader:65:23
+    struct.get 23 1   ; string.vader:65:23
+    local.set 6   ; string.vader:65:23
+    local.get 6   ; string.vader:65:23
+    i64.const 1   ; string.vader:65:23
+    i64.to_usize   ; string.vader:65:23
+    usize.add   ; string.vader:65:23
+    local.set 7   ; string.vader:65:23
+    local.get 0   ; string.vader:65:9
+    local.get 7   ; string.vader:65:9
+    struct.set 23 1   ; string.vader:65:9
+    local.get 5   ; string.vader:66:16
+    struct.new 19   ; string.vader:66:16
+    return   ; string.vader:66:9
+  end $L0   ; string.vader:61:9
 end
 
 fn 2 std_string$bytes (string) -> ref
   local "$cast_2#6" usize
   local "$call_3#7" usize
-  i32.const 0   ; string.vader:74:50
-  i32.to_usize   ; string.vader:74:44
-  local.set 1   ; string.vader:74:44
-  local.get 0   ; string.vader:74:64
-  call.import 2   ; string.vader:74:64
-  local.set 2   ; string.vader:74:64
-  local.get 0   ; string.vader:74:12
-  local.get 1   ; string.vader:74:12
-  local.get 2   ; string.vader:74:12
-  struct.new 23   ; string.vader:74:12
-  return   ; string.vader:74:5
+  i32.const 0   ; string.vader:80:50
+  i32.to_usize   ; string.vader:80:44
+  local.set 1   ; string.vader:80:44
+  local.get 0   ; string.vader:80:64
+  call.import 2   ; string.vader:80:64
+  local.set 2   ; string.vader:80:64
+  local.get 0   ; string.vader:80:12
+  local.get 1   ; string.vader:80:12
+  local.get 2   ; string.vader:80:12
+  struct.new 23   ; string.vader:80:12
+  return   ; string.vader:80:5
 end

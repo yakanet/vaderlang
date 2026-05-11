@@ -217,116 +217,116 @@ end
 
 fn 3 std_math$min (f64,f64) -> f64
   local "if_res#7" f64
-  local.get 0   ; math.vader:22:39
-  local.get 1   ; math.vader:22:39
-  f64.lt   ; math.vader:22:39
-  if $L0 void   ; math.vader:22:36
-    local.get 0   ; math.vader:22:45
-    local.set 2   ; math.vader:22:45
-  else   ; math.vader:22:36
-    local.get 1   ; math.vader:22:56
-    local.set 2   ; math.vader:22:56
-  end $L0   ; math.vader:22:36
-  local.get 2   ; math.vader:22:36
-  return   ; math.vader:22:36
+  local.get 0   ; math.vader:47:39
+  local.get 1   ; math.vader:47:39
+  f64.lt   ; math.vader:47:39
+  if $L0 void   ; math.vader:47:36
+    local.get 0   ; math.vader:47:45
+    local.set 2   ; math.vader:47:45
+  else   ; math.vader:47:36
+    local.get 1   ; math.vader:47:56
+    local.set 2   ; math.vader:47:56
+  end $L0   ; math.vader:47:36
+  local.get 2   ; math.vader:47:36
+  return   ; math.vader:47:36
 end
 
 fn 4 std_math$min_1 (i32,i32) -> i32
   local "if_res#7" i32
-  local.get 0   ; math.vader:23:39
-  local.get 1   ; math.vader:23:39
-  i32.lt   ; math.vader:23:39
-  if $L0 void   ; math.vader:23:36
-    local.get 0   ; math.vader:23:45
-    local.set 2   ; math.vader:23:45
-  else   ; math.vader:23:36
-    local.get 1   ; math.vader:23:56
-    local.set 2   ; math.vader:23:56
-  end $L0   ; math.vader:23:36
-  local.get 2   ; math.vader:23:36
-  return   ; math.vader:23:36
+  local.get 0   ; math.vader:49:39
+  local.get 1   ; math.vader:49:39
+  i32.lt   ; math.vader:49:39
+  if $L0 void   ; math.vader:49:36
+    local.get 0   ; math.vader:49:45
+    local.set 2   ; math.vader:49:45
+  else   ; math.vader:49:36
+    local.get 1   ; math.vader:49:56
+    local.set 2   ; math.vader:49:56
+  end $L0   ; math.vader:49:36
+  local.get 2   ; math.vader:49:36
+  return   ; math.vader:49:36
 end
 
 fn 5 std_math$max (f64,f64) -> f64
   local "if_res#7" f64
-  local.get 0   ; math.vader:25:39
-  local.get 1   ; math.vader:25:39
-  f64.gt   ; math.vader:25:39
-  if $L0 void   ; math.vader:25:36
-    local.get 0   ; math.vader:25:45
-    local.set 2   ; math.vader:25:45
-  else   ; math.vader:25:36
-    local.get 1   ; math.vader:25:56
-    local.set 2   ; math.vader:25:56
-  end $L0   ; math.vader:25:36
-  local.get 2   ; math.vader:25:36
-  return   ; math.vader:25:36
+  local.get 0   ; math.vader:54:39
+  local.get 1   ; math.vader:54:39
+  f64.gt   ; math.vader:54:39
+  if $L0 void   ; math.vader:54:36
+    local.get 0   ; math.vader:54:45
+    local.set 2   ; math.vader:54:45
+  else   ; math.vader:54:36
+    local.get 1   ; math.vader:54:56
+    local.set 2   ; math.vader:54:56
+  end $L0   ; math.vader:54:36
+  local.get 2   ; math.vader:54:36
+  return   ; math.vader:54:36
 end
 
 fn 6 std_math$max_1 (i32,i32) -> i32
   local "if_res#7" i32
-  local.get 0   ; math.vader:26:39
-  local.get 1   ; math.vader:26:39
-  i32.gt   ; math.vader:26:39
-  if $L0 void   ; math.vader:26:36
-    local.get 0   ; math.vader:26:45
-    local.set 2   ; math.vader:26:45
-  else   ; math.vader:26:36
-    local.get 1   ; math.vader:26:56
-    local.set 2   ; math.vader:26:56
-  end $L0   ; math.vader:26:36
-  local.get 2   ; math.vader:26:36
-  return   ; math.vader:26:36
+  local.get 0   ; math.vader:56:39
+  local.get 1   ; math.vader:56:39
+  i32.gt   ; math.vader:56:39
+  if $L0 void   ; math.vader:56:36
+    local.get 0   ; math.vader:56:45
+    local.set 2   ; math.vader:56:45
+  else   ; math.vader:56:36
+    local.get 1   ; math.vader:56:56
+    local.set 2   ; math.vader:56:56
+  end $L0   ; math.vader:56:36
+  local.get 2   ; math.vader:56:36
+  return   ; math.vader:56:36
 end
 
 fn 7 std_math$abs (f64) -> f64
   local "if_res#8" f64
-  local.get 0   ; math.vader:28:31
-  f64.const 0.0   ; math.vader:28:31
-  f64.lt   ; math.vader:28:31
-  if $L0 void   ; math.vader:28:28
-    local.get 0   ; math.vader:28:41
-    f64.neg   ; math.vader:28:41
-    local.set 1   ; math.vader:28:41
-  else   ; math.vader:28:28
-    local.get 0   ; math.vader:28:51
-    local.set 1   ; math.vader:28:51
-  end $L0   ; math.vader:28:28
-  local.get 1   ; math.vader:28:28
-  return   ; math.vader:28:28
+  local.get 0   ; math.vader:62:31
+  f64.const 0.0   ; math.vader:62:31
+  f64.lt   ; math.vader:62:31
+  if $L0 void   ; math.vader:62:28
+    local.get 0   ; math.vader:62:41
+    f64.neg   ; math.vader:62:41
+    local.set 1   ; math.vader:62:41
+  else   ; math.vader:62:28
+    local.get 0   ; math.vader:62:51
+    local.set 1   ; math.vader:62:51
+  end $L0   ; math.vader:62:28
+  local.get 1   ; math.vader:62:28
+  return   ; math.vader:62:28
 end
 
 fn 8 std_math$abs_1 (i32) -> i32
   local "if_res#8" i32
-  local.get 0   ; math.vader:29:31
-  i32.const 0   ; math.vader:29:31
-  i32.lt   ; math.vader:29:31
-  if $L0 void   ; math.vader:29:28
-    local.get 0   ; math.vader:29:39
-    i32.neg   ; math.vader:29:39
-    local.set 1   ; math.vader:29:39
-  else   ; math.vader:29:28
-    local.get 0   ; math.vader:29:49
-    local.set 1   ; math.vader:29:49
-  end $L0   ; math.vader:29:28
-  local.get 1   ; math.vader:29:28
-  return   ; math.vader:29:28
+  local.get 0   ; math.vader:65:31
+  i32.const 0   ; math.vader:65:31
+  i32.lt   ; math.vader:65:31
+  if $L0 void   ; math.vader:65:28
+    local.get 0   ; math.vader:65:39
+    i32.neg   ; math.vader:65:39
+    local.set 1   ; math.vader:65:39
+  else   ; math.vader:65:28
+    local.get 0   ; math.vader:65:49
+    local.set 1   ; math.vader:65:49
+  end $L0   ; math.vader:65:28
+  local.get 1   ; math.vader:65:28
+  return   ; math.vader:65:28
 end
 
 fn 9 std_math$clamp (f64,f64,f64) -> f64
-  local.get 0   ; math.vader:30:52
-  local.get 1   ; math.vader:30:52
-  call 5   ; math.vader:30:52
-  local.get 2   ; math.vader:30:48
-  call 3   ; math.vader:30:48
-  return   ; math.vader:30:48
+  local.get 0   ; math.vader:69:52
+  local.get 1   ; math.vader:69:52
+  call 5   ; math.vader:69:52
+  local.get 2   ; math.vader:69:48
+  call 3   ; math.vader:69:48
+  return   ; math.vader:69:48
 end
 
 fn 10 std_math$clamp_1 (i32,i32,i32) -> i32
-  local.get 0   ; math.vader:31:52
-  local.get 1   ; math.vader:31:52
-  call 6   ; math.vader:31:52
-  local.get 2   ; math.vader:31:48
-  call 4   ; math.vader:31:48
-  return   ; math.vader:31:48
+  local.get 0   ; math.vader:71:52
+  local.get 1   ; math.vader:71:52
+  call 6   ; math.vader:71:52
+  local.get 2   ; math.vader:71:48
+  call 4   ; math.vader:71:48
+  return   ; math.vader:71:48
 end

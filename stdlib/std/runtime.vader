@@ -13,17 +13,20 @@ export collect :: fn() -> void
 /// Total number of GC cycles run since process start. Monotonically
 /// increasing ; useful for asserting in stress tests that a forced
 /// `collect()` actually ran.
+/// @return  total cycle count since process start.
 @intrinsic
 export collections :: fn() -> i32
 
 /// Bytes currently allocated in the from-space arena. Post-collection
 /// this is the live-object footprint ; mid-mutation it counts every
 /// surviving allocation plus uncollected garbage.
+/// @return  live bytes in the from-space arena.
 @intrinsic
 export bytes_used :: fn() -> i32
 
 /// Cumulative bytes copied across all collections. A coarse measure of
 /// total GC work — divide by `collections()` for the average per-cycle
 /// payload.
+/// @return  total bytes copied since process start.
 @intrinsic
 export bytes_copied :: fn() -> i32
