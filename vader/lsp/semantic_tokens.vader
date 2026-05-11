@@ -320,13 +320,15 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
 
 // `c.text` is the full source slice including the `///` prefix. Tokenise
 // recognised vaderdoc tags (`@param <name>`, `@return`, `@error`,
-// `@example`) and emit one RawToken per match ; everything else falls
-// under the base comment token.
+// `@example`) and emit one RawToken per match. The comment body itself
+// is intentionally NOT covered by a base token : LSP semantic tokens
+// forbid overlap, and a base-comment token spanning the whole line
+// would either swallow the tag tokens (when the client favours the
+// earlier token at each character) or break the spec contract. The
+// `///` prefix and narrative therefore keep their TextMate coloring
+// from `comment.line.documentation.vader` ; only the tag fragments
+// receive semantic-token treatment.
 collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> void {
-    // Always emit the base comment token first so unrecognised text
-    // (e.g. the `///` prefix, narrative) is still highlighted as comment.
-    out.push(make_comment_token(c, modifier_bit(.Documentation)))
-
     text :: c.text
     n :: text.byte_len()
     i: usize = 0
