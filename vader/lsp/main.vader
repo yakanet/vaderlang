@@ -1,0 +1,121 @@
+// vader/lsp/main — LSP event loop.
+//
+// Reads JSON-RPC frames from stdin in a loop, dispatches on `method`,
+// writes responses to stdout. Lifecycle :
+//
+//   1. `initialize` (request)        → capabilities + server info
+//   2. `initialized` (notification)  → no-op
+//   3. `textDocument/didOpen` (notification)   → store document source
+//   4. `textDocument/didChange` (notification) → replace document source
+//   5. `textDocument/didClose` (notification)  → drop document source
+//   6. `textDocument/semanticTokens/full` (request) → produce tokens
+//   7. `shutdown` (request)          → respond null, prepare for exit
+//   8. `exit` (notification)         → terminate (exit 0 if shutdown was
+//                                      received, exit 1 otherwise)
+//
+// Anything else is answered with a JSON-RPC `MethodNotFound` error so the
+// client gracefully degrades.
+
+import "std/io" { eprintln }
+import "std/string" { byte_len }
+import "std/json" { parse, JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonError, JsonBool, JsonArray }
+import "vader/lsp/transport" { read_frame, write_frame }
+import "vader/lsp/lifecycle" { handle_initialize, server_capabilities }
+import "vader/lsp/state" { ServerState, new_state, handle_did_open, handle_did_change, handle_did_close }
+import "vader/lsp/semantic_tokens" { handle_semantic_tokens_full }
+import "vader/lsp/rpc" { request_id, method_name, params_value, encode_response, encode_method_not_found, encode_error, is_json_null }
+
+/// LSP server entry. Blocks reading frames until EOF or `exit`
+/// notification. `args` is currently ignored — reserved for `--log` etc.
+export run_server :: fn(args: string[]) -> i32 {
+    state :: new_state()
+    shutdown_received := false
+    for true {
+        frame :: read_frame()
+        match frame {
+            is Error -> {
+                eprintln("lsp: transport error, exiting")
+                return 1
+            }
+            is string as body -> {
+                msg :: parse(body)
+                // JSON-RPC frames are always top-level objects ; non-object
+                // payloads are protocol violations — drop with a warning.
+                match msg {
+                    is JsonObject as obj -> {
+                        rc :: dispatch(state, obj, shutdown_received)
+                        if rc == DispatchResult.Exit         { return 0 }
+                        if rc == DispatchResult.ExitAbnormal { return 1 }
+                        if rc == DispatchResult.ShutdownRequested {
+                            shutdown_received = true
+                        }
+                    }
+                    is JsonError -> { eprintln("lsp: malformed JSON, dropping frame") }
+                    is JsonString  -> { eprintln("lsp: top-level non-object payload, dropping") }
+                    is JsonNumber  -> { eprintln("lsp: top-level non-object payload, dropping") }
+                    is JsonBool    -> { eprintln("lsp: top-level non-object payload, dropping") }
+                    is JsonNull    -> { eprintln("lsp: top-level non-object payload, dropping") }
+                    is JsonArray   -> { eprintln("lsp: top-level non-object payload, dropping") }
+                }
+            }
+        }
+    }
+    return 0   // unreachable, see fmt.vader pattern
+}
+
+DispatchResult :: enum(u8) {
+    Continue,
+    ShutdownRequested,
+    Exit,
+    ExitAbnormal,
+}
+
+dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> DispatchResult {
+    method :: method_name(msg)
+    id :: request_id(msg)
+    params :: params_value(msg)
+
+    if method == "initialize" {
+        result :: handle_initialize(params)
+        write_frame(encode_response(id, result))
+        return DispatchResult.Continue
+    }
+    if method == "initialized" {
+        // Notification — no response.
+        return DispatchResult.Continue
+    }
+    if method == "shutdown" {
+        write_frame(encode_response(id, JsonNull {}))
+        return DispatchResult.ShutdownRequested
+    }
+    if method == "exit" {
+        if shutdown_received {
+            return DispatchResult.Exit
+        }
+        return DispatchResult.ExitAbnormal
+    }
+    if method == "textDocument/didOpen" {
+        handle_did_open(state, params)
+        return DispatchResult.Continue
+    }
+    if method == "textDocument/didChange" {
+        handle_did_change(state, params)
+        return DispatchResult.Continue
+    }
+    if method == "textDocument/didClose" {
+        handle_did_close(state, params)
+        return DispatchResult.Continue
+    }
+    if method == "textDocument/semanticTokens/full" {
+        result :: handle_semantic_tokens_full(state, params)
+        write_frame(encode_response(id, result))
+        return DispatchResult.Continue
+    }
+    // Unknown method. Respond with MethodNotFound for requests (have an
+    // id) ; ignore notifications (id is JsonNull{} per `request_id`'s
+    // convention).
+    if !is_json_null(id) {
+        write_frame(encode_method_not_found(id, method))
+    }
+    return DispatchResult.Continue
+}

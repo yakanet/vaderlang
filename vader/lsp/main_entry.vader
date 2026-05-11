@@ -1,0 +1,16 @@
+// vader/lsp/main_entry — standalone `main` for the LSP binary.
+//
+// The unified `vader` CLI (`vader/cli/main.vader`) bundles run / build /
+// fmt / dump / lsp into one binary. For the LSP subcommand we ship a
+// SEPARATE binary (`vader-lsp`) that loads only the LSP modules — keeps
+// startup latency tiny and dodges generic-mono conflicts the bigger CLI
+// surfaces. Editors spawn this binary directly.
+
+import "vader/lsp/main" { run_server }
+
+main :: fn(argv: string[]) -> i32 {
+    // argv[0] is the binary path ; pass nothing useful through to
+    // `run_server` for now (flags are parsed there once we add any).
+    args: string[] = []
+    return run_server(args)
+}

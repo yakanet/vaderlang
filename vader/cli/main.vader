@@ -45,6 +45,9 @@ COMMANDS:
                                      --stdout         Write formatted output to stdout (single file)
                                    Default rewrites every `*.vader` under <path> in place ; <path> defaults to `.`.
   test [path]                      Run @test functions
+  lsp                              Run the Language Server (JSON-RPC over stdin/stdout)
+                                   Spawned by VSCode and IntelliJ via their LSP clients ;
+                                   provides semantic-tokens highlighting for `.vader` files.
   dump --stage=<stage> <file>      Dump an IR stage as JSON/text
                                      ast            Parser AST (JSON, spans elided)
                                      resolved-ast   Per-module symbol table + import wiring
@@ -153,6 +156,7 @@ main :: fn(argv: string[]) -> i32 {
     if cmd == "fmt"   { return cmd_fmt(cmd_args) }
     if cmd == "test"  { return cmd_test(cmd_args) }
     if cmd == "dump"  { return cmd_dump(cmd_args) }
+    if cmd == "lsp"   { return cmd_lsp(cmd_args) }
 
     eprintln("vader: unknown command \"${cmd}\"")
     eprintln("run \"vader --help\" for usage")
@@ -178,6 +182,15 @@ cmd_run :: fn(args: string[]) -> i32 {
 
 cmd_fmt :: fn(args: string[]) -> i32 {
     return run_fmt(args)
+}
+
+cmd_lsp :: fn(args: string[]) -> i32 {
+    // Unified CLI doesn't bundle the LSP server — keeps the binary small
+    // and dodges a C-emit issue when LSP + every other tool's structs
+    // land in the same translation unit. Editors spawn `vader-lsp`
+    // (compiled separately from `vader/lsp/main_entry.vader`) directly.
+    eprintln("vader lsp: spawn `vader-lsp` directly (see editors/{vscode,intellij}/)")
+    return 2
 }
 
 cmd_test :: fn(args: string[]) -> i32 {

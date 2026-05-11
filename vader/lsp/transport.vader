@@ -1,0 +1,122 @@
+// vader/lsp/transport — JSON-RPC framing over stdin/stdout.
+//
+// LSP wraps every JSON message in :
+//
+//   Content-Length: <bytes>\r\n
+//   \r\n
+//   {…JSON body…}
+//
+// Other headers may appear before `\r\n\r\n` (notably `Content-Type`) ;
+// we read until the blank line, capture `Content-Length`, then read
+// exactly that many bytes for the body. Both directions use the same
+// framing.
+
+import "std/io" { read_stdin, print, eprintln }
+import "std/string" { byte_len, byte_at, starts_with, slice, parse_int }
+import "std/string_builder" { new_builder, append }
+
+export TransportError :: struct {
+    msg: string
+}
+
+TransportError implements Error {
+    message :: fn(self) -> string { return self.msg }
+}
+
+/// Read one JSON-RPC frame from stdin. Returns the raw JSON body as a
+/// UTF-8 string ; the caller parses it. Blocks until a complete frame
+/// arrives. Returns `TransportError` on malformed headers, missing
+/// `Content-Length`, or EOF.
+/// @return  the JSON body (UTF-8, exactly `Content-Length` bytes).
+/// @error   `TransportError` on malformed frame or EOF.
+export read_frame :: fn() -> string! {
+    content_length: isize = -1
+    // Read header lines until the blank `\r\n`. Each line ends with
+    // `\r\n` so we read 1 byte at a time looking for the terminator —
+    // header lines are short (typically < 100 bytes) so the per-byte
+    // overhead is negligible compared to the body payload.
+    line_buf := new_builder()
+    finished := false
+    for !finished {
+        b :: read_stdin(usize(1))
+        match b {
+            is Error -> { return TransportError { .msg = "EOF in header" } }
+            is string as s -> {
+                if s == "\r" {
+                    nl :: read_stdin(usize(1))
+                    match nl {
+                        is Error -> { return TransportError { .msg = "EOF after CR" } }
+                        is string as t -> {
+                            if t != "\n" {
+                                return TransportError { .msg = "expected LF after CR in header" }
+                            }
+                            line :: line_buf.to_string()
+                            if line.byte_len() == usize(0) {
+                                // Blank line = end of headers.
+                                finished = true
+                            } else {
+                                if line.starts_with("Content-Length:") {
+                                    raw :: line.slice(usize(15), line.byte_len())
+                                    trimmed :: trim_ascii(raw)
+                                    parsed :: trimmed.parse_int()
+                                    match parsed {
+                                        is Error -> { return TransportError { .msg = "malformed Content-Length: ${trimmed}" } }
+                                        is i32 as n -> { content_length = isize(n) }
+                                    }
+                                }
+                                // Other headers (`Content-Type`, etc.) are
+                                // silently ignored — LSP allows them but
+                                // doesn't require them.
+                                line_buf = new_builder()
+                            }
+                        }
+                    }
+                } else {
+                    line_buf.append(s)
+                }
+            }
+        }
+    }
+    if content_length < 0 {
+        return TransportError { .msg = "missing Content-Length header" }
+    }
+    body :: read_stdin(usize(content_length))
+    match body {
+        is Error -> { return TransportError { .msg = "EOF in body" } }
+        is string as s -> { return s }
+    }
+    return TransportError { .msg = "unreachable" }
+}
+
+/// Trim leading + trailing ASCII whitespace (space, tab). Inlined here
+/// rather than imported from `std/string` because `std/string.trim`
+/// recognises additional codepoints we don't care about for HTTP-style
+/// header values.
+trim_ascii :: fn(s: string) -> string {
+    n :: s.byte_len()
+    start: usize = 0
+    end := n
+    for start < end {
+        b :: s.byte_at(start)
+        if b == 32u8 || b == 9u8 { start = start + usize(1) } else { break }
+    }
+    for end > start {
+        b :: s.byte_at(end - usize(1))
+        if b == 32u8 || b == 9u8 { end = end - usize(1) } else { break }
+    }
+    return s.slice(start, end)
+}
+
+/// Write one JSON-RPC frame to stdout. Encodes the `Content-Length`
+/// header from the body's byte length, emits the `\r\n\r\n` separator,
+/// then the body. Flushes via `print` (which calls `fflush(stdout)`).
+/// @param body  the JSON-encoded message to send.
+export write_frame :: fn(body: string) -> void {
+    n :: body.byte_len()
+    sb := new_builder()
+    sb.append("Content-Length: ")
+    sb.append("${n}")
+    sb.append("\r\n\r\n")
+    sb.append(body)
+    print(sb.to_string())
+}

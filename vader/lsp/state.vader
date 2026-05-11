@@ -1,0 +1,99 @@
+// vader/lsp/state — open-document tracking.
+//
+// The client pushes the file content via `didOpen` / `didChange` /
+// `didClose` notifications. Semantic tokens read from this map ;
+// nothing else queries it yet (hover / goto-def will).
+
+import "std/string" { byte_len }
+import "std/json" {
+    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
+}
+import "std/collections" { MutableMap }
+
+/// One LSP server instance's document table. The single shared state is
+/// passed to every handler ; no globals.
+export ServerState :: struct {
+    /// uri → current document text. Empty string for closed documents.
+    docs: MutableMap(string, string)
+}
+
+export new_state :: fn() -> ServerState {
+    return ServerState {
+        .docs = MutableMap(string, string) { .buckets = [], .size = 0 },
+    }
+}
+
+/// Look up the current text of `uri`, or `null` if the client never
+/// opened it (or closed it since).
+export source_for :: fn(self: ServerState, uri: string) -> string | null {
+    return self.docs[uri]
+}
+
+/// `textDocument/didOpen` handler. Params shape :
+///   { textDocument: { uri, languageId, version, text } }
+export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
+    td :: get_field(params, "textDocument")
+    uri :: get_string(td, "uri")
+    if uri.byte_len() == usize(0) { return }
+    text :: get_string(td, "text")
+    self.docs[uri] = text
+}
+
+/// `textDocument/didChange` handler. With full-document sync the params
+/// look like :
+///   { textDocument: { uri, version }, contentChanges: [ { text } ] }
+/// — we take the first contentChange's `text` as the new source.
+export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
+    td :: get_field(params, "textDocument")
+    uri :: get_string(td, "uri")
+    if uri.byte_len() == usize(0) { return }
+    changes :: get_field(params, "contentChanges")
+    match changes {
+        is JsonArray as a -> {
+            if a.items.len() > usize(0) {
+                first :: a.items[0]
+                self.docs[uri] = get_string(first, "text")
+            }
+        }
+        _ -> {}
+    }
+}
+
+/// `textDocument/didClose` handler. MutableMap has no remove ; overwrite
+/// with empty and treat empty as "closed" downstream.
+export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
+    td :: get_field(params, "textDocument")
+    uri :: get_string(td, "uri")
+    if uri.byte_len() == usize(0) { return }
+    self.docs[uri] = ""
+}
+
+// ---- internal helpers (returning JsonNull{} for absent fields) ------------
+
+get_field :: fn(v: JsonValue, key: string) -> JsonValue {
+    match v {
+        is JsonObject as o -> {
+            f :: o.entries[key]
+            match f {
+                is null                 -> { return JsonNull {} }
+                is JsonString  as x -> { return x }
+                is JsonNumber  as x -> { return x }
+                is JsonBool    as x -> { return x }
+                is JsonNull    as x -> { return x }
+                is JsonArray   as x -> { return x }
+                is JsonObject  as x -> { return x }
+            }
+        }
+        _ -> { return JsonNull {} }
+    }
+    return JsonNull {}   // unreachable
+}
+
+get_string :: fn(v: JsonValue, key: string) -> string {
+    f :: get_field(v, key)
+    match f {
+        is JsonString as s -> { return s.value }
+        _ -> { return "" }
+    }
+    return ""   // unreachable
+}

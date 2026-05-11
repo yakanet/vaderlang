@@ -2,6 +2,7 @@ import { parseGlobalOpts, type GlobalOpts } from "./cli/options.ts";
 import { cmdRun } from "./cli/commands/run.ts";
 import { cmdBuild } from "./cli/commands/build.ts";
 import { cmdFmt } from "./cli/commands/fmt.ts";
+import { cmdLsp } from "./cli/commands/lsp.ts";
 import { cmdTest } from "./cli/commands/test.ts";
 import { cmdDump } from "./cli/commands/dump.ts";
 import { cmdRepl } from "./cli/commands/repl.ts";
@@ -29,6 +30,9 @@ COMMANDS:
                                      --stdout         Write formatted output to stdout (single file)
                                    Default rewrites every .vader under <path> in place ; <path> defaults to the cwd.
   test [path]                      Run @test functions
+  lsp                              Run the Language Server (JSON-RPC over stdin/stdout)
+                                   Spawned by VSCode and IntelliJ via their LSP clients ;
+                                   provides semantic-tokens highlighting for .vader files.
   dump --stage=<stage> <file>      Dump an IR stage as JSON/text
                                      ast            Parser AST (JSON, spans elided)
                                      resolved-ast   Per-module symbol table + import wiring
@@ -84,6 +88,9 @@ export async function runCli(argv: string[]): Promise<number> {
 
     case "fmt":
       return cmdFmt(opts, commandArgs);
+
+    case "lsp":
+      return cmdLsp(opts, commandArgs);
 
     case "test":
       return cmdTest(opts, commandArgs);

@@ -1,0 +1,121 @@
+// vader/lsp/rpc — JSON-RPC field accessors + response encoders.
+//
+// LSP messages are JSON-RPC 2.0 wrappers :
+//   request      : { jsonrpc, id, method, params }
+//   notification : { jsonrpc,     method, params }      (no id)
+//   response     : { jsonrpc, id, result }              (success)
+//                | { jsonrpc, id, error: { code, message, data? } }
+//
+// Accessor helpers return `JsonNull{}` for absent fields rather than
+// `JsonValue | null` — sidesteps the matching-on-alias-union friction
+// that Vader's pattern checker hits when a `| null` is added to an
+// already-aliased union.
+
+import "std/string" { byte_len }
+import "std/string_builder" { new_builder, append }
+import "std/json" {
+    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray,
+    stringify
+}
+import "std/collections" { MutableMap }
+
+// ---- field accessors ------------------------------------------------------
+
+/// Pluck the `method` field. Returns `""` when absent or non-string.
+export method_name :: fn(msg: JsonValue) -> string {
+    match msg {
+        is JsonObject as o -> { return get_string(o, "method") }
+        _ -> { return "" }
+    }
+    return ""   // unreachable
+}
+
+/// Pluck the `id` field. Returns `JsonNull{}` for notifications. The
+/// response encoder echoes the same shape regardless.
+export request_id :: fn(msg: JsonValue) -> JsonValue {
+    match msg {
+        is JsonObject as o -> { return get_field_or_null(o, "id") }
+        _ -> { return JsonNull {} }
+    }
+    return JsonNull {}   // unreachable
+}
+
+/// Pluck the `params` field. Returns `JsonNull{}` when absent.
+export params_value :: fn(msg: JsonValue) -> JsonValue {
+    match msg {
+        is JsonObject as o -> { return get_field_or_null(o, "params") }
+        _ -> { return JsonNull {} }
+    }
+    return JsonNull {}   // unreachable
+}
+
+/// True iff `v` represents JSON null (or is the absent sentinel `JsonNull`).
+export is_json_null :: fn(v: JsonValue) -> bool {
+    match v {
+        is JsonNull -> { return true }
+        _ -> { return false }
+    }
+    return false   // unreachable
+}
+
+// ---- response encoders ----------------------------------------------------
+
+/// Encode a successful response : `{ jsonrpc, id, result }`. `id` echoes
+/// the request's id verbatim (use `JsonNull{}` for notifications, but
+/// notifications shouldn't get responses).
+export encode_response :: fn(id: JsonValue, result: JsonValue) -> string {
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["jsonrpc"] = JsonString { .value = "2.0" }
+    obj["id"]      = id
+    obj["result"]  = result
+    return stringify(JsonObject { .entries = obj })
+}
+
+/// Encode an error response : `{ jsonrpc, id, error: { code, message } }`.
+/// `code` is the JSON-RPC standard code (cf. SPEC §JSON-RPC error codes).
+export encode_error :: fn(id: JsonValue, code: i32, message: string) -> string {
+    err_obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    err_obj["code"]    = JsonNumber { .value = f64(code) }
+    err_obj["message"] = JsonString { .value = message }
+
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["jsonrpc"] = JsonString { .value = "2.0" }
+    obj["id"]      = id
+    obj["error"]   = JsonObject { .entries = err_obj }
+    return stringify(JsonObject { .entries = obj })
+}
+
+/// Shortcut for `MethodNotFound` — code -32601 per the JSON-RPC spec.
+export encode_method_not_found :: fn(id: JsonValue, method: string) -> string {
+    return encode_error(id, -32601, "Method not found: ${method}")
+}
+
+// ---- internal helpers -----------------------------------------------------
+
+get_field_or_null :: fn(o: JsonObject, key: string) -> JsonValue {
+    v :: o.entries[key]
+    match v {
+        is null -> { return JsonNull {} }
+        is JsonString  as x -> { return x }
+        is JsonNumber  as x -> { return x }
+        is JsonBool    as x -> { return x }
+        is JsonNull    as x -> { return x }
+        is JsonArray   as x -> { return x }
+        is JsonObject  as x -> { return x }
+    }
+    return JsonNull {}   // unreachable
+}
+
+get_string :: fn(o: JsonObject, key: string) -> string {
+    v :: o.entries[key]
+    match v {
+        is null -> { return "" }
+        is JsonString as s -> { return s.value }
+        is JsonNumber  -> { return "" }
+        is JsonBool    -> { return "" }
+        is JsonNull    -> { return "" }
+        is JsonArray   -> { return "" }
+        is JsonObject  -> { return "" }
+    }
+    return ""   // unreachable
+}

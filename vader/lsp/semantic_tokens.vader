@@ -1,0 +1,390 @@
+// vader/lsp/semantic_tokens — `textDocument/semanticTokens/full` handler.
+//
+// LSP encodes semantic tokens as a flat `i32[]` array of 5-tuples :
+//
+//   [ deltaLine, deltaStartChar, length, tokenType, tokenModifiers, ...]
+//
+// `deltaLine` is line distance from the previous token. `deltaStartChar`
+// is the column distance — relative to the previous token's start when
+// `deltaLine == 0`, absolute (0-based) when starting a new line. We
+// produce tokens in document order so this encoding is straightforward.
+//
+// Positions are 0-based ; we expose UTF-16 code units (LSP spec). For
+// ASCII content (the practical majority of compiler-stdlib code) this
+// equals the codepoint count, which Vader's `Position.column` already
+// gives us — adjusted from 1-based to 0-based.
+
+import "std/string" { byte_len, byte_at, slice }
+import "std/json" {
+    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
+}
+import "std/collections" { MutableMap }
+import "vader/lexer" { tokenize, Token, TokenKind }
+import "vader/fmt/comments" { scan_comments, Comment, CommentKind }
+import "vader/lsp/state" { ServerState, source_for }
+
+// ---- legend ---------------------------------------------------------------
+//
+// Indices into these arrays are what the wire format actually carries ;
+// the legend is sent to the client on `initialize`.
+
+export TOKEN_TYPES :: [
+    "namespace",     // 0  — import path
+    "type",          // 1  — UpperCase ident (struct/trait/enum)
+    "function",      // 2  — fn name in `name :: fn(...)` and call sites
+    "parameter",     // 3  — fn params + vaderdoc `@param name`
+    "variable",      // 4  — locals, fields, generic catch-all idents
+    "keyword",       // 5  — language keywords + fn/struct/trait/enum/etc.
+    "string",        // 6  — string literals
+    "number",        // 7  — int / float literals
+    "comment",       // 8  — `//` and `/* */`
+    "operator",      // 9  — arithmetic / comparison / logical / etc.
+    "decorator",     // 10 — `@intrinsic`, `@partial`, `@deprecated`, vaderdoc tags
+    "enumMember",    // 11 — `.Variant` dot-shorthand
+]
+
+export TOKEN_MODIFIERS :: [
+    "documentation", // 0 — vaderdoc-derived tokens get this modifier set
+]
+
+// Indices — declared as i32 consts so the rest of the file reads cleanly.
+TT_NAMESPACE  :: i32(0)
+TT_TYPE       :: i32(1)
+TT_FUNCTION   :: i32(2)
+TT_PARAMETER  :: i32(3)
+TT_VARIABLE   :: i32(4)
+TT_KEYWORD    :: i32(5)
+TT_STRING     :: i32(6)
+TT_NUMBER     :: i32(7)
+TT_COMMENT    :: i32(8)
+TT_OPERATOR   :: i32(9)
+TT_DECORATOR  :: i32(10)
+TT_ENUMMEMBER :: i32(11)
+
+// Bit 0 of the modifier mask = `documentation`.
+MOD_DOCUMENTATION :: i32(1)
+
+// ---- handler --------------------------------------------------------------
+
+/// Handle `textDocument/semanticTokens/full`. Returns the JSON value to
+/// ship as the `result` field — either `{ data: [...] }` or `null` when
+/// the document is unknown / closed.
+/// @param state   shared server state.
+/// @param params  request params : `{ textDocument: { uri } }`.
+/// @return        `{ data: [...] }` or `null`.
+export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: extract_uri(params)
+    if uri.byte_len() == usize(0) {
+        return JsonNull {}
+    }
+    source :: state.source_for(uri)
+    match source {
+        is null -> { return JsonNull {} }
+        is string as src -> {
+            if src.byte_len() == usize(0) { return JsonNull {} }
+            data :: produce_tokens(src, uri)
+            result :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+            result["data"] = data
+            return JsonObject { .entries = result }
+        }
+    }
+    return JsonNull {}   // unreachable
+}
+
+extract_uri :: fn(params: JsonValue) -> string {
+    match params {
+        is JsonObject as o -> {
+            td :: o.entries["textDocument"]
+            match td {
+                is JsonObject as inner -> {
+                    uri :: inner.entries["uri"]
+                    match uri {
+                        is JsonString as s -> { return s.value }
+                        _ -> { return "" }
+                    }
+                }
+                _ -> { return "" }
+            }
+        }
+        _ -> { return "" }
+    }
+    return ""   // unreachable
+}
+
+// ---- producer -------------------------------------------------------------
+
+/// One raw token before delta-encoding. Lines + columns are 0-based ;
+/// converted from the lexer's 1-based positions inside `produce_tokens`.
+RawToken :: struct {
+    line:      i32
+    col:       i32
+    length:    i32
+    tok_type:  i32
+    modifiers: i32
+}
+
+produce_tokens :: fn(source: string, uri: string) -> JsonValue {
+    raws: RawToken[] = []
+    collect_token_kinds(source, uri, raws)
+    collect_comment_kinds(source, raws)
+    sort_raws(raws)
+    return encode_delta(raws)
+}
+
+// ---- lexer tokens → semantic tokens --------------------------------------
+
+collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]) -> void {
+    lex :: tokenize(source, uri)
+    for t in lex.tokens {
+        rt :: token_to_raw(t)
+        match rt {
+            is null -> {}
+            is RawToken as r -> { out.push(r) }
+        }
+    }
+}
+
+token_to_raw :: fn(t: Token) -> RawToken | null {
+    tt :: classify_token(t)
+    if tt < 0 { return null }
+    sp :: t.span
+    return RawToken {
+        .line      = sp.start.line - 1,
+        .col       = sp.start.column - 1,
+        .length    = i32(sp.end.offset - sp.start.offset),
+        .tok_type  = tt,
+        .modifiers = i32(0),
+    }
+}
+
+classify_token :: fn(t: Token) -> i32 {
+    k :: t.kind
+    // Keywords — every `Kw*` enum variant. Vader doesn't have or-patterns
+    // so the listing is explicit.
+    if k == .KwFn         { return TT_KEYWORD }
+    if k == .KwStruct     { return TT_KEYWORD }
+    if k == .KwTrait      { return TT_KEYWORD }
+    if k == .KwImplements { return TT_KEYWORD }
+    if k == .KwImpl       { return TT_KEYWORD }
+    if k == .KwEnum       { return TT_KEYWORD }
+    if k == .KwIf         { return TT_KEYWORD }
+    if k == .KwElse       { return TT_KEYWORD }
+    if k == .KwMatch      { return TT_KEYWORD }
+    if k == .KwIs         { return TT_KEYWORD }
+    if k == .KwFor        { return TT_KEYWORD }
+    if k == .KwIn         { return TT_KEYWORD }
+    if k == .KwReturn     { return TT_KEYWORD }
+    if k == .KwDefer      { return TT_KEYWORD }
+    if k == .KwBreak      { return TT_KEYWORD }
+    if k == .KwContinue   { return TT_KEYWORD }
+    if k == .KwImport     { return TT_KEYWORD }
+    if k == .KwAs         { return TT_KEYWORD }
+    if k == .KwExport     { return TT_KEYWORD }
+    if k == .KwTrue       { return TT_KEYWORD }
+    if k == .KwFalse      { return TT_KEYWORD }
+    if k == .KwNull       { return TT_KEYWORD }
+    if k == .KwSelf       { return TT_KEYWORD }
+
+    if k == .IntLit       { return TT_NUMBER }
+    if k == .FloatLit     { return TT_NUMBER }
+    if k == .CharLit      { return TT_STRING }
+    if k == .StringBegin  { return TT_STRING }
+    if k == .StringPart   { return TT_STRING }
+    if k == .StringEnd    { return TT_STRING }
+    if k == .InterpOpen   { return TT_OPERATOR }
+    if k == .InterpClose  { return TT_OPERATOR }
+
+    // Identifiers — heuristic dispatch based on the spelling (no
+    // resolver run yet ; we'd need a full semantic pass for true class /
+    // function / parameter / variable distinction). UpperCase → type ;
+    // otherwise variable.
+    if k == .Ident {
+        if t.text.byte_len() == usize(0) { return TT_VARIABLE }
+        first :: t.text.byte_at(usize(0))
+        if first >= 65u8 && first <= 90u8 { return TT_TYPE }
+        return TT_VARIABLE
+    }
+
+    // Operators.
+    if k == .Plus || k == .Minus || k == .Star || k == .Slash || k == .Percent { return TT_OPERATOR }
+    if k == .Amp || k == .Pipe || k == .Caret || k == .Tilde || k == .Shl || k == .Shr { return TT_OPERATOR }
+    if k == .Eq || k == .Neq || k == .Lt || k == .Lte || k == .Gt || k == .Gte { return TT_OPERATOR }
+    if k == .AndAnd || k == .OrOr || k == .Bang { return TT_OPERATOR }
+    if k == .Assign || k == .PlusAssign || k == .MinusAssign || k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return TT_OPERATOR }
+    if k == .DeclConst || k == .DeclVar { return TT_OPERATOR }
+    if k == .RangeExcl || k == .RangeIncl { return TT_OPERATOR }
+    if k == .Arrow || k == .FatArrow { return TT_OPERATOR }
+    if k == .Question { return TT_OPERATOR }
+
+    // Punctuation, brackets, newline, EOF, etc. — no semantic token.
+    return -1
+}
+
+// ---- comments → semantic tokens ------------------------------------------
+
+collect_comment_kinds :: fn(source: string, out: RawToken[]) -> void {
+    cm :: scan_comments(source)
+    for c in cm.comments {
+        rt :: comment_to_raw(c, source)
+        for r in rt { out.push(r) }
+    }
+}
+
+// Returns one or more RawTokens for a comment :
+//   - regular `Line` / `Block` : one TT_COMMENT covering the full span.
+//   - `DocLine` (`///`) : multiple tokens — the leading `///` + body as
+//     comment (documentation modifier), `@param`/`@return`/etc. as
+//     decorator (documentation modifier), `@param`'s name as parameter
+//     (documentation modifier).
+comment_to_raw :: fn(c: Comment, source: string) -> RawToken[] {
+    out: RawToken[] = []
+    // Base case : non-doc comments emit a single comment-typed token.
+    match c.kind {
+        .Line -> {
+            out.push(make_comment_token(c, i32(0)))
+            return out
+        }
+        .Block -> {
+            // Multi-line block comments need one token per line so the
+            // delta-encoding works cleanly ; emit the whole span as a
+            // single token and let the client re-wrap.
+            out.push(make_comment_token(c, i32(0)))
+            return out
+        }
+        .DocLine -> {
+            collect_doc_line_tokens(c, source, out)
+            return out
+        }
+    }
+    return out
+}
+
+make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
+    return RawToken {
+        .line      = c.line - 1,
+        .col       = i32(0),     // approximation : doc comments span whole lines
+        .length    = i32(c.end_offset - c.offset),
+        .tok_type  = TT_COMMENT,
+        .modifiers = modifiers,
+    }
+}
+
+// `c.text` is the full source slice including the `///` prefix. Tokenise
+// recognised vaderdoc tags (`@param <name>`, `@return`, `@error`,
+// `@example`) and emit one RawToken per match ; everything else falls
+// under the base comment token.
+collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> void {
+    // Always emit the base comment token first so unrecognised text
+    // (e.g. the `///` prefix, narrative) is still highlighted as comment.
+    out.push(make_comment_token(c, MOD_DOCUMENTATION))
+
+    text :: c.text
+    n :: text.byte_len()
+    i: usize = 0
+    line := c.line - 1   // 0-based
+    // We track byte-offset inside the comment to compute column ; column
+    // 0 = start of the comment which begins with `///` (3 bytes). For
+    // simplicity we use byte offset as column — ASCII-safe.
+    for i < n {
+        b :: text.byte_at(i)
+        if b != 64u8 {   // `@`
+            i = i + usize(1)
+            continue
+        }
+        // Try to match `@param name`, `@return`, `@error`, `@example`.
+        tag_end :: scan_ident_end(text, i + usize(1))
+        if tag_end == i + usize(1) {
+            i = i + usize(1)
+            continue
+        }
+        tag_name :: text.slice(i + usize(1), tag_end)
+        is_known :: tag_name == "param" || tag_name == "return" || tag_name == "error" || tag_name == "example"
+        if !is_known {
+            i = tag_end
+            continue
+        }
+        // Tag itself (including `@`).
+        out.push(RawToken {
+            .line      = line,
+            .col       = i32(i),
+            .length    = i32(tag_end - i),
+            .tok_type  = TT_DECORATOR,
+            .modifiers = MOD_DOCUMENTATION,
+        })
+        i = tag_end
+        if tag_name == "param" {
+            // Skip whitespace then capture an identifier.
+            j: usize = i
+            for j < n {
+                bb :: text.byte_at(j)
+                if bb == 32u8 || bb == 9u8 { j = j + usize(1) } else { break }
+            }
+            name_end :: scan_ident_end(text, j)
+            if name_end > j {
+                out.push(RawToken {
+                    .line      = line,
+                    .col       = i32(j),
+                    .length    = i32(name_end - j),
+                    .tok_type  = TT_PARAMETER,
+                    .modifiers = MOD_DOCUMENTATION,
+                })
+                i = name_end
+            }
+        }
+    }
+}
+
+scan_ident_end :: fn(s: string, start: usize) -> usize {
+    n :: s.byte_len()
+    j := start
+    for j < n {
+        b :: s.byte_at(j)
+        // [A-Za-z0-9_]
+        ok :: (b >= 65u8 && b <= 90u8) || (b >= 97u8 && b <= 122u8) || (b >= 48u8 && b <= 57u8) || b == 95u8
+        if !ok { break }
+        j = j + usize(1)
+    }
+    return j
+}
+
+// ---- sorting + delta encoding ---------------------------------------------
+
+// Sort by (line, col) ascending. The lexer emits tokens in source order
+// already, but comment tokens are produced separately and need merging.
+// Insertion sort suffices — token count per file is small (≤ a few k).
+sort_raws :: fn(arr: RawToken[]) -> void {
+    n :: arr.len()
+    i: usize = 1
+    for i < n {
+        x :: arr[i]
+        j := i
+        for j > usize(0) {
+            prev :: arr[j - usize(1)]
+            if prev.line < x.line { break }
+            if prev.line == x.line && prev.col <= x.col { break }
+            arr[j] = arr[j - usize(1)]
+            j = j - usize(1)
+        }
+        arr[j] = x
+        i = i + usize(1)
+    }
+}
+
+encode_delta :: fn(arr: RawToken[]) -> JsonValue {
+    out: JsonValue[] = []
+    prev_line: i32 = 0
+    prev_col:  i32 = 0
+    for r in arr {
+        d_line :: r.line - prev_line
+        d_col := r.col
+        if d_line == 0 { d_col = r.col - prev_col }
+        out.push(JsonNumber { .value = f64(d_line) })
+        out.push(JsonNumber { .value = f64(d_col) })
+        out.push(JsonNumber { .value = f64(r.length) })
+        out.push(JsonNumber { .value = f64(r.tok_type) })
+        out.push(JsonNumber { .value = f64(r.modifiers) })
+        prev_line = r.line
+        prev_col  = r.col
+    }
+    return JsonArray { .items = out }
+}
