@@ -829,7 +829,7 @@ function typeContainsTypeParam(t: Type): boolean {
  *  concrete arg by walking the impl's declared trait args : e.g. paramType =
  *  `Iterator($T)`, argType = `Range`, and `Range implements Iterator(i32)` →
  *  bind `T → i32`. This mirrors the trait-widening branch of `isAssignable`. */
-function unifyTypeParam(
+export function unifyTypeParam(
   paramType: Type, argType: Type, out: Map<number, Type>,
   impls?: ImplRegistry, t?: MutableTyped,
 ): void {

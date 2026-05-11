@@ -2,7 +2,7 @@ import type * as A from "../parser/ast.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { ImplEntry } from "./impls.ts";
-import type { Type } from "./types.ts";
+import type { Substitution, Type } from "./types.ts";
 
 export interface MethodResolution {
   /** The impl block that owns this method. */
@@ -179,4 +179,11 @@ export interface TypedProject {
 export interface IntoCoercion {
   readonly entry: ImplEntry;
   readonly sourceType: Type;
+  /** Substitution mapping the impl's own typeParam ids to concrete
+   *  pieces of `sourceType`. Empty for concrete-source impls (`UserId
+   *  implements Into(i32)`) ; populated for blanket impls (`T[]
+   *  implements[T] Into(Iterator(T))` binds T → element). The lowerer
+   *  feeds this into `lookupImplEntry` to land on the right
+   *  monomorphised member. */
+  readonly implSubst: Substitution;
 }
