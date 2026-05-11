@@ -14,7 +14,7 @@
 // equals the codepoint count, which Vader's `Position.column` already
 // gives us — adjusted from 1-based to 0-based.
 
-import "std/string" { byte_len, byte_at, slice }
+import "std/string" { byte_len, byte_at, char_at, slice }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
@@ -28,41 +28,90 @@ import "vader/lsp/state" { ServerState, source_for }
 // Indices into these arrays are what the wire format actually carries ;
 // the legend is sent to the client on `initialize`.
 
+/// LSP semantic-token types. Indices into `TOKEN_TYPES` are what travels
+/// on the wire ; the legend (sent on `initialize`) maps each index to
+/// the canonical type name. Order MUST stay in sync with `TOKEN_TYPES`.
+TokenType :: enum(u8) {
+    Namespace,    // import path
+    Type,         // UpperCase ident (struct / trait / enum)
+    Function,     // fn name in `name :: fn(...)` and call sites
+    Parameter,    // fn params + vaderdoc `@param name`
+    Variable,     // locals, fields, generic catch-all idents
+    Keyword,      // language keywords + fn/struct/trait/enum/etc.
+    String,       // string literals
+    Number,       // int / float literals
+    Comment,      // `//` and `/* */`
+    Operator,     // arithmetic / comparison / logical / etc.
+    Decorator,    // `@intrinsic`, `@partial`, vaderdoc tags
+    EnumMember,   // `.Variant` dot-shorthand
+}
+
+// Indices into the on-the-wire token-type array. Vader's
+// `enum(u8)` values match their declaration position 0..N, so the
+// integer view of each variant is exactly the legend index.
+token_type_int :: fn(t: TokenType) -> i32 {
+    match t {
+        .Namespace  -> { return i32(0) }
+        .Type       -> { return i32(1) }
+        .Function   -> { return i32(2) }
+        .Parameter  -> { return i32(3) }
+        .Variable   -> { return i32(4) }
+        .Keyword    -> { return i32(5) }
+        .String     -> { return i32(6) }
+        .Number     -> { return i32(7) }
+        .Comment    -> { return i32(8) }
+        .Operator   -> { return i32(9) }
+        .Decorator  -> { return i32(10) }
+        .EnumMember -> { return i32(11) }
+    }
+    return i32(-1)   // unreachable
+}
+
+/// Modifier bits for a token. The wire format encodes them as a bitmask ;
+/// `Documentation` lives at bit 0 (`1 << 0`).
+TokenModifier :: enum(u8) {
+    Documentation,   // vaderdoc-derived tokens carry this
+}
+
+modifier_bit :: fn(m: TokenModifier) -> i32 {
+    match m {
+        .Documentation -> { return i32(1) }
+    }
+    return i32(0)   // unreachable
+}
+
 export TOKEN_TYPES :: [
-    "namespace",     // 0  — import path
-    "type",          // 1  — UpperCase ident (struct/trait/enum)
-    "function",      // 2  — fn name in `name :: fn(...)` and call sites
-    "parameter",     // 3  — fn params + vaderdoc `@param name`
-    "variable",      // 4  — locals, fields, generic catch-all idents
-    "keyword",       // 5  — language keywords + fn/struct/trait/enum/etc.
-    "string",        // 6  — string literals
-    "number",        // 7  — int / float literals
-    "comment",       // 8  — `//` and `/* */`
-    "operator",      // 9  — arithmetic / comparison / logical / etc.
-    "decorator",     // 10 — `@intrinsic`, `@partial`, `@deprecated`, vaderdoc tags
-    "enumMember",    // 11 — `.Variant` dot-shorthand
+    "namespace",
+    "type",
+    "function",
+    "parameter",
+    "variable",
+    "keyword",
+    "string",
+    "number",
+    "comment",
+    "operator",
+    "decorator",
+    "enumMember",
 ]
 
 export TOKEN_MODIFIERS :: [
-    "documentation", // 0 — vaderdoc-derived tokens get this modifier set
+    "documentation",
 ]
 
-// Indices — declared as i32 consts so the rest of the file reads cleanly.
-TT_NAMESPACE  :: i32(0)
-TT_TYPE       :: i32(1)
-TT_FUNCTION   :: i32(2)
-TT_PARAMETER  :: i32(3)
-TT_VARIABLE   :: i32(4)
-TT_KEYWORD    :: i32(5)
-TT_STRING     :: i32(6)
-TT_NUMBER     :: i32(7)
-TT_COMMENT    :: i32(8)
-TT_OPERATOR   :: i32(9)
-TT_DECORATOR  :: i32(10)
-TT_ENUMMEMBER :: i32(11)
+// ASCII-aware predicates used by the inner scanners. They operate on
+// `char` rather than `u8` so the source reads with the character itself
+// (`c == '@'`, `c in 'A'..='Z'`) — the comment text is short so the
+// per-step UTF-8 decode cost is irrelevant. For the full-source scanner
+// in `vader/fmt/comments` the byte-level path is kept for throughput.
 
-// Bit 0 of the modifier mask = `documentation`.
-MOD_DOCUMENTATION :: i32(1)
+is_ident_char :: fn(c: char) -> bool {
+    return c in 'A'..='Z' || c in 'a'..='z' || c in '0'..='9' || c == '_'
+}
+
+is_ascii_space :: fn(c: char) -> bool {
+    return c == ' ' || c == '\t'
+}
 
 // ---- handler --------------------------------------------------------------
 
@@ -161,60 +210,60 @@ classify_token :: fn(t: Token) -> i32 {
     k :: t.kind
     // Keywords — every `Kw*` enum variant. Vader doesn't have or-patterns
     // so the listing is explicit.
-    if k == .KwFn         { return TT_KEYWORD }
-    if k == .KwStruct     { return TT_KEYWORD }
-    if k == .KwTrait      { return TT_KEYWORD }
-    if k == .KwImplements { return TT_KEYWORD }
-    if k == .KwImpl       { return TT_KEYWORD }
-    if k == .KwEnum       { return TT_KEYWORD }
-    if k == .KwIf         { return TT_KEYWORD }
-    if k == .KwElse       { return TT_KEYWORD }
-    if k == .KwMatch      { return TT_KEYWORD }
-    if k == .KwIs         { return TT_KEYWORD }
-    if k == .KwFor        { return TT_KEYWORD }
-    if k == .KwIn         { return TT_KEYWORD }
-    if k == .KwReturn     { return TT_KEYWORD }
-    if k == .KwDefer      { return TT_KEYWORD }
-    if k == .KwBreak      { return TT_KEYWORD }
-    if k == .KwContinue   { return TT_KEYWORD }
-    if k == .KwImport     { return TT_KEYWORD }
-    if k == .KwAs         { return TT_KEYWORD }
-    if k == .KwExport     { return TT_KEYWORD }
-    if k == .KwTrue       { return TT_KEYWORD }
-    if k == .KwFalse      { return TT_KEYWORD }
-    if k == .KwNull       { return TT_KEYWORD }
-    if k == .KwSelf       { return TT_KEYWORD }
+    if k == .KwFn         { return token_type_int(.Keyword) }
+    if k == .KwStruct     { return token_type_int(.Keyword) }
+    if k == .KwTrait      { return token_type_int(.Keyword) }
+    if k == .KwImplements { return token_type_int(.Keyword) }
+    if k == .KwImpl       { return token_type_int(.Keyword) }
+    if k == .KwEnum       { return token_type_int(.Keyword) }
+    if k == .KwIf         { return token_type_int(.Keyword) }
+    if k == .KwElse       { return token_type_int(.Keyword) }
+    if k == .KwMatch      { return token_type_int(.Keyword) }
+    if k == .KwIs         { return token_type_int(.Keyword) }
+    if k == .KwFor        { return token_type_int(.Keyword) }
+    if k == .KwIn         { return token_type_int(.Keyword) }
+    if k == .KwReturn     { return token_type_int(.Keyword) }
+    if k == .KwDefer      { return token_type_int(.Keyword) }
+    if k == .KwBreak      { return token_type_int(.Keyword) }
+    if k == .KwContinue   { return token_type_int(.Keyword) }
+    if k == .KwImport     { return token_type_int(.Keyword) }
+    if k == .KwAs         { return token_type_int(.Keyword) }
+    if k == .KwExport     { return token_type_int(.Keyword) }
+    if k == .KwTrue       { return token_type_int(.Keyword) }
+    if k == .KwFalse      { return token_type_int(.Keyword) }
+    if k == .KwNull       { return token_type_int(.Keyword) }
+    if k == .KwSelf       { return token_type_int(.Keyword) }
 
-    if k == .IntLit       { return TT_NUMBER }
-    if k == .FloatLit     { return TT_NUMBER }
-    if k == .CharLit      { return TT_STRING }
-    if k == .StringBegin  { return TT_STRING }
-    if k == .StringPart   { return TT_STRING }
-    if k == .StringEnd    { return TT_STRING }
-    if k == .InterpOpen   { return TT_OPERATOR }
-    if k == .InterpClose  { return TT_OPERATOR }
+    if k == .IntLit       { return token_type_int(.Number) }
+    if k == .FloatLit     { return token_type_int(.Number) }
+    if k == .CharLit      { return token_type_int(.String) }
+    if k == .StringBegin  { return token_type_int(.String) }
+    if k == .StringPart   { return token_type_int(.String) }
+    if k == .StringEnd    { return token_type_int(.String) }
+    if k == .InterpOpen   { return token_type_int(.Operator) }
+    if k == .InterpClose  { return token_type_int(.Operator) }
 
     // Identifiers — heuristic dispatch based on the spelling (no
     // resolver run yet ; we'd need a full semantic pass for true class /
     // function / parameter / variable distinction). UpperCase → type ;
     // otherwise variable.
     if k == .Ident {
-        if t.text.byte_len() == usize(0) { return TT_VARIABLE }
-        first :: t.text.byte_at(usize(0))
-        if first >= 65u8 && first <= 90u8 { return TT_TYPE }
-        return TT_VARIABLE
+        if t.text.byte_len() == usize(0) { return token_type_int(.Variable) }
+        first :: t.text.char_at(usize(0))
+        if first in 'A'..='Z' { return token_type_int(.Type) }
+        return token_type_int(.Variable)
     }
 
     // Operators.
-    if k == .Plus || k == .Minus || k == .Star || k == .Slash || k == .Percent { return TT_OPERATOR }
-    if k == .Amp || k == .Pipe || k == .Caret || k == .Tilde || k == .Shl || k == .Shr { return TT_OPERATOR }
-    if k == .Eq || k == .Neq || k == .Lt || k == .Lte || k == .Gt || k == .Gte { return TT_OPERATOR }
-    if k == .AndAnd || k == .OrOr || k == .Bang { return TT_OPERATOR }
-    if k == .Assign || k == .PlusAssign || k == .MinusAssign || k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return TT_OPERATOR }
-    if k == .DeclConst || k == .DeclVar { return TT_OPERATOR }
-    if k == .RangeExcl || k == .RangeIncl { return TT_OPERATOR }
-    if k == .Arrow || k == .FatArrow { return TT_OPERATOR }
-    if k == .Question { return TT_OPERATOR }
+    if k == .Plus || k == .Minus || k == .Star || k == .Slash || k == .Percent { return token_type_int(.Operator) }
+    if k == .Amp || k == .Pipe || k == .Caret || k == .Tilde || k == .Shl || k == .Shr { return token_type_int(.Operator) }
+    if k == .Eq || k == .Neq || k == .Lt || k == .Lte || k == .Gt || k == .Gte { return token_type_int(.Operator) }
+    if k == .AndAnd || k == .OrOr || k == .Bang { return token_type_int(.Operator) }
+    if k == .Assign || k == .PlusAssign || k == .MinusAssign || k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return token_type_int(.Operator) }
+    if k == .DeclConst || k == .DeclVar { return token_type_int(.Operator) }
+    if k == .RangeExcl || k == .RangeIncl { return token_type_int(.Operator) }
+    if k == .Arrow || k == .FatArrow { return token_type_int(.Operator) }
+    if k == .Question { return token_type_int(.Operator) }
 
     // Punctuation, brackets, newline, EOF, etc. — no semantic token.
     return -1
@@ -231,7 +280,7 @@ collect_comment_kinds :: fn(source: string, out: RawToken[]) -> void {
 }
 
 // Returns one or more RawTokens for a comment :
-//   - regular `Line` / `Block` : one TT_COMMENT covering the full span.
+//   - regular `Line` / `Block` : one token_type_int(.Comment) covering the full span.
 //   - `DocLine` (`///`) : multiple tokens — the leading `///` + body as
 //     comment (documentation modifier), `@param`/`@return`/etc. as
 //     decorator (documentation modifier), `@param`'s name as parameter
@@ -264,7 +313,7 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
         .line      = c.line - 1,
         .col       = i32(0),     // approximation : doc comments span whole lines
         .length    = i32(c.end_offset - c.offset),
-        .tok_type  = TT_COMMENT,
+        .tok_type  = token_type_int(.Comment),
         .modifiers = modifiers,
     }
 }
@@ -276,7 +325,7 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
 collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> void {
     // Always emit the base comment token first so unrecognised text
     // (e.g. the `///` prefix, narrative) is still highlighted as comment.
-    out.push(make_comment_token(c, MOD_DOCUMENTATION))
+    out.push(make_comment_token(c, modifier_bit(.Documentation)))
 
     text :: c.text
     n :: text.byte_len()
@@ -286,8 +335,8 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
     // 0 = start of the comment which begins with `///` (3 bytes). For
     // simplicity we use byte offset as column — ASCII-safe.
     for i < n {
-        b :: text.byte_at(i)
-        if b != 64u8 {   // `@`
+        c :: text.char_at(i)
+        if c != '@' {
             i = i + usize(1)
             continue
         }
@@ -308,16 +357,16 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             .line      = line,
             .col       = i32(i),
             .length    = i32(tag_end - i),
-            .tok_type  = TT_DECORATOR,
-            .modifiers = MOD_DOCUMENTATION,
+            .tok_type  = token_type_int(.Decorator),
+            .modifiers = modifier_bit(.Documentation),
         })
         i = tag_end
         if tag_name == "param" {
             // Skip whitespace then capture an identifier.
             j: usize = i
             for j < n {
-                bb :: text.byte_at(j)
-                if bb == 32u8 || bb == 9u8 { j = j + usize(1) } else { break }
+                bb :: text.char_at(j)
+                if is_ascii_space(bb) { j = j + usize(1) } else { break }
             }
             name_end :: scan_ident_end(text, j)
             if name_end > j {
@@ -325,8 +374,8 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
                     .line      = line,
                     .col       = i32(j),
                     .length    = i32(name_end - j),
-                    .tok_type  = TT_PARAMETER,
-                    .modifiers = MOD_DOCUMENTATION,
+                    .tok_type  = token_type_int(.Parameter),
+                    .modifiers = modifier_bit(.Documentation),
                 })
                 i = name_end
             }
@@ -338,10 +387,7 @@ scan_ident_end :: fn(s: string, start: usize) -> usize {
     n :: s.byte_len()
     j := start
     for j < n {
-        b :: s.byte_at(j)
-        // [A-Za-z0-9_]
-        ok :: (b >= 65u8 && b <= 90u8) || (b >= 97u8 && b <= 122u8) || (b >= 48u8 && b <= 57u8) || b == 95u8
-        if !ok { break }
+        if !is_ident_char(s.char_at(j)) { break }
         j = j + usize(1)
     }
     return j

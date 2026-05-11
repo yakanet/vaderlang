@@ -21,6 +21,17 @@ export CommentKind :: enum(u8) {
     Block,    // `/* … */` (may contain nested `/* … */`)
 }
 
+// ASCII byte constants. Spelled out as `u8(u32('x'))` so the source
+// reads as a character rather than as a magic decimal — Vader has no
+// `b'x'` byte-literal syntax today.
+BYTE_LF     :: u8(u32('\n'))
+BYTE_SLASH  :: u8(u32('/'))
+BYTE_STAR   :: u8(u32('*'))
+BYTE_DQUOTE :: u8(u32('"'))
+BYTE_SQUOTE :: u8(u32('\''))
+BYTE_BSLASH :: u8(u32('\\'))
+BYTE_R      :: u8(u32('r'))
+
 /// One scanned comment, ready for replay by the printer.
 export Comment :: struct {
     // Byte offset (inclusive) of the leading `/` in the source.
@@ -62,19 +73,19 @@ export scan_comments :: fn(source: string) -> CommentMap {
         b :: source.byte_at(i)
 
         // Newline tracking. `\n` only — CR is normalised elsewhere.
-        if b == 10u8 {
+        if b == BYTE_LF {
             line = line + 1
             i = i + usize(1)
             continue
         }
 
         // `//` line comment (or `///` vaderdoc line).
-        if b == 47u8 && i + usize(1) < n && source.byte_at(i + usize(1)) == 47u8 {
+        if b == BYTE_SLASH && i + usize(1) < n && source.byte_at(i + usize(1)) == BYTE_SLASH {
             start :: i
             start_line :: line
-            is_doc :: i + usize(2) < n && source.byte_at(i + usize(2)) == 47u8
+            is_doc :: i + usize(2) < n && source.byte_at(i + usize(2)) == BYTE_SLASH
             j: usize = i + usize(2)
-            for j < n && source.byte_at(j) != 10u8 {
+            for j < n && source.byte_at(j) != BYTE_LF {
                 j = j + usize(1)
             }
             text :: source.slice_text(start, j)
@@ -94,24 +105,24 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // `/* … */` block comment, nesting-aware. SPEC §3 dropped the
         // `/** … */` doc-comment form ; `/**` is treated as a plain block
         // comment to keep round-trip semantics for any legacy source.
-        if b == 47u8 && i + usize(1) < n && source.byte_at(i + usize(1)) == 42u8 {
+        if b == BYTE_SLASH && i + usize(1) < n && source.byte_at(i + usize(1)) == BYTE_STAR {
             start :: i
             start_line :: line
             j: usize = i + usize(2)
             depth: i32 = 1
             for j < n && depth > 0 {
                 cur :: source.byte_at(j)
-                if cur == 10u8 {
+                if cur == BYTE_LF {
                     line = line + 1
                     j = j + usize(1)
                     continue
                 }
-                if cur == 47u8 && j + usize(1) < n && source.byte_at(j + usize(1)) == 42u8 {
+                if cur == BYTE_SLASH && j + usize(1) < n && source.byte_at(j + usize(1)) == BYTE_STAR {
                     depth = depth + 1
                     j = j + usize(2)
                     continue
                 }
-                if cur == 42u8 && j + usize(1) < n && source.byte_at(j + usize(1)) == 47u8 {
+                if cur == BYTE_STAR && j + usize(1) < n && source.byte_at(j + usize(1)) == BYTE_SLASH {
                     depth = depth - 1
                     j = j + usize(2)
                     continue
@@ -135,16 +146,16 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // String literals — skip the entire span so embedded `//` / `/*` don't
         // confuse the scanner. We don't handle interpolation specially since
         // we don't care what's *inside* the literal, only the closing quote.
-        if b == 34u8 {
+        if b == BYTE_DQUOTE {
             // Triple-quoted ?
-            if i + usize(2) < n && source.byte_at(i + usize(1)) == 34u8 && source.byte_at(i + usize(2)) == 34u8 {
+            if i + usize(2) < n && source.byte_at(i + usize(1)) == BYTE_DQUOTE && source.byte_at(i + usize(2)) == BYTE_DQUOTE {
                 j: usize = i + usize(3)
                 for j + usize(2) < n {
-                    if source.byte_at(j) == 34u8 && source.byte_at(j + usize(1)) == 34u8 && source.byte_at(j + usize(2)) == 34u8 {
+                    if source.byte_at(j) == BYTE_DQUOTE && source.byte_at(j + usize(1)) == BYTE_DQUOTE && source.byte_at(j + usize(2)) == BYTE_DQUOTE {
                         j = j + usize(3)
                         break
                     }
-                    if source.byte_at(j) == 10u8 { line = line + 1 }
+                    if source.byte_at(j) == BYTE_LF { line = line + 1 }
                     j = j + usize(1)
                 }
                 i = j
@@ -157,15 +168,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
             j: usize = i + usize(1)
             for j < n {
                 c :: source.byte_at(j)
-                if c == 92u8 && j + usize(1) < n {
+                if c == BYTE_BSLASH && j + usize(1) < n {
                     j = j + usize(2)
                     continue
                 }
-                if c == 34u8 {
+                if c == BYTE_DQUOTE {
                     j = j + usize(1)
                     break
                 }
-                if c == 10u8 { line = line + 1 }
+                if c == BYTE_LF { line = line + 1 }
                 j = j + usize(1)
             }
             i = j
@@ -173,15 +184,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
         }
 
         // Raw string `r"…"`.
-        if b == 114u8 && i + usize(1) < n && source.byte_at(i + usize(1)) == 34u8 {
+        if b == BYTE_R && i + usize(1) < n && source.byte_at(i + usize(1)) == BYTE_DQUOTE {
             j: usize = i + usize(2)
             for j < n {
                 c :: source.byte_at(j)
-                if c == 34u8 {
+                if c == BYTE_DQUOTE {
                     j = j + usize(1)
                     break
                 }
-                if c == 10u8 { line = line + 1 }
+                if c == BYTE_LF { line = line + 1 }
                 j = j + usize(1)
             }
             i = j
@@ -189,15 +200,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
         }
 
         // Char literal `'…'`. Same escape rules as strings.
-        if b == 39u8 {
+        if b == BYTE_SQUOTE {
             j: usize = i + usize(1)
             for j < n {
                 c :: source.byte_at(j)
-                if c == 92u8 && j + usize(1) < n {
+                if c == BYTE_BSLASH && j + usize(1) < n {
                     j = j + usize(2)
                     continue
                 }
-                if c == 39u8 {
+                if c == BYTE_SQUOTE {
                     j = j + usize(1)
                     break
                 }
