@@ -1,5 +1,9 @@
-/syntaxes/vader.tmLanguage.json
-/language-configuration.json
-/icons/vader.svg
-/icons/vir.svg
+node_modules/
+out/
 *.vsix
+package-lock.json
+
+# Synced from editors/common/ by `node sync.js` — regenerated on every build.
+icons/
+syntaxes/
+language-configuration.json

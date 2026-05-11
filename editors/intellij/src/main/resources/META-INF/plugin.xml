@@ -4,12 +4,19 @@
     <vendor email="mbroutin@sedona.fr" url="https://github.com/vaderlang">vaderlang</vendor>
 
     <description><![CDATA[
-        Syntax highlighting for the <a href="https://github.com/vaderlang">Vader</a> programming language.<br>
-        Powered by the bundled TextMate plugin — the grammar is shared with the official VS Code extension.
+        Syntax highlighting plus semantic-tokens LSP integration for the
+        <a href="https://github.com/vaderlang">Vader</a> programming language.<br>
+        TextMate grammar is shared with the official VS Code extension. Semantic
+        highlighting (richer VaderDoc tags, parameters, decorators) is delivered
+        by the Vader Language Server, spawned via the <code>vader lsp</code>
+        subcommand — requires an IDE that bundles the platform LSP module
+        (IntelliJ IDEA Ultimate, RustRover, GoLand, …). On Community editions
+        the plugin still loads and provides TextMate highlighting only.
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.plugins.textmate</depends>
+    <depends optional="true" config-file="vader-lsp.xml">com.intellij.modules.lsp</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <textmate.bundleProvider implementation="dev.vaderlang.intellij.VaderBundleProvider"/>

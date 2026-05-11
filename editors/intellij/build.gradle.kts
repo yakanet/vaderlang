@@ -8,7 +8,13 @@ version = "0.1.0"
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity("2024.2")
+        // Ultimate (free for plugin development) ships the LSP API
+        // (`com.intellij.platform.lsp`), which the Community edition
+        // doesn't bundle. Compiling against Ultimate gives us access to
+        // `LspServerSupportProvider` ; at runtime the plugin gracefully
+        // skips its LSP extension on IDEs that lack the module thanks
+        // to the `<depends optional="true">` declaration in plugin.xml.
+        intellijIdeaUltimate("2024.2")
         bundledPlugin("org.jetbrains.plugins.textmate")
     }
 }

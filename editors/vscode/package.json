@@ -1,7 +1,7 @@
 {
   "name": "vader",
   "displayName": "Vader",
-  "description": "Syntax highlighting for the Vader programming language",
+  "description": "Syntax highlighting + LSP semantic tokens for the Vader programming language",
   "version": "0.1.0",
   "publisher": "vaderlang",
   "engines": {
@@ -10,9 +10,21 @@
   "categories": [
     "Programming Languages"
   ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onLanguage:vader"
+  ],
   "scripts": {
     "sync": "node sync.js",
-    "vscode:prepublish": "npm run sync"
+    "build": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --target=node18",
+    "vscode:prepublish": "npm run sync && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.75.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.0.0",
+    "vscode-languageclient": "^9.0.1"
   },
   "contributes": {
     "languages": [
@@ -52,6 +64,28 @@
         "scopeName": "source.vader",
         "path": "./syntaxes/vader.tmLanguage.json"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Vader",
+      "properties": {
+        "vader.lsp.path": {
+          "type": "string",
+          "default": "vader",
+          "description": "Path to the Vader CLI binary. Resolved against the PATH if not absolute. Supports ${workspaceFolder} interpolation (e.g. ${workspaceFolder}/build/vader). The extension invokes it with `lsp` as the first argument."
+        },
+        "vader.lsp.args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["lsp"],
+          "description": "Arguments to pass to the Vader binary. Defaults to [\"lsp\"] which selects the Language Server subcommand. Supports ${workspaceFolder} interpolation."
+        },
+        "vader.lsp.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Verbosity of the LSP communication trace, shown in the `Vader Language Server` output channel."
+        }
+      }
+    }
   }
 }
