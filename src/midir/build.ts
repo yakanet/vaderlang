@@ -1,4 +1,4 @@
-// LoweredAST → CFG converter (Phase 2 of the Mid-IR refactor).
+// LoweredAST → CFG converter.
 //
 // Walks each `LoweredFnDecl` in the project and produces a `CFGFunction` :
 // expressions become three-address `Instruction` sequences with named tmp
@@ -10,17 +10,24 @@
 // Strings are interned into a project-level pool reused verbatim by the
 // CFG → bytecode emitter ; const decls are inlined at every read site,
 // matching the existing bytecode emitter's policy.
+//
+// This file is the canonical seam between the Lowered and CFG IRs. See the
+// header comment in `cfg.ts` for the full seam contract — what crosses,
+// what's CFG-private, what's Lowered-private — and the conditions under
+// which the two-IR split would be revisited.
 
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as L from "../lower/lowered-ast.ts";
 import type { MonoEntry } from "../comptime/specialize.ts";
+import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Type } from "../typecheck/types.ts";
 import { equalsType, isPrimitive } from "../typecheck/types.ts";
 
 import type {
-  BasicBlock, BlockId, CFGFunction, CFGLocal, CFGModule, CFGParam,
-  CFGProject, ConstValue, Instruction, LocalId, Terminator,
+  BasicBlock, BlockId, CFGExternDecl, CFGFunction, CFGLocal, CFGModule,
+  CFGParam, CFGProject, CFGStructDecl, ConstValue, Instruction, LocalId,
+  Terminator,
 } from "./cfg.ts";
 
 // ============================================================================
@@ -30,45 +37,48 @@ import type {
 interface ProjectCtx {
   readonly strings: string[];
   readonly stringIndex: Map<string, number>;
-  /** Const decls indexed by symbol id — inlined at every read site. */
-  readonly constDecls: Map<number, L.LoweredConstDecl>;
 }
 
 export function buildCFGProject(lp: L.LoweredProject): CFGProject {
   const ctx: ProjectCtx = {
     strings: [],
     stringIndex: new Map(),
-    constDecls: new Map(),
   };
 
-  // Pass 1 : index const decls so `LoweredIdent` of a const can inline.
-  for (const m of lp.modules.values()) {
-    for (const d of m.decls) {
-      if (d.kind !== "LoweredConstDecl") continue;
-      if (d.origin.symbol === null) continue;
-      ctx.constDecls.set(d.origin.symbol.id, d);
-    }
-  }
-
-  // Pass 2 : convert each module's decls. Fn decls become CFGFunctions ;
-  // struct + const decls pass through unchanged.
+  // Convert each module's decls. Fn decls with a body become CFGFunctions ;
+  // bodyless (extern) fns surface as CFGExternDecls ; struct decls become
+  // CFGStructDecls. Const decls are dropped — references to them in fn
+  // bodies were already inlined by the `inline-consts` lowering pass, and
+  // the bytecode emit has no use for the bare decl.
   const modules = new Map<string, CFGModule>();
   for (const m of lp.modules.values()) {
     const functions: CFGFunction[] = [];
-    const otherDecls: (L.LoweredStructDecl | L.LoweredConstDecl)[] = [];
+    const externs: CFGExternDecl[] = [];
+    const structDecls: CFGStructDecl[] = [];
     for (const d of m.decls) {
-      if (d.kind === "LoweredFnDecl") {
-        const cfg = convertFunction(d, ctx);
-        if (cfg !== null) functions.push(cfg);
-      } else {
-        otherDecls.push(d);
+      switch (d.kind) {
+        case "LoweredFnDecl":
+          if (d.body === null) {
+            externs.push(makeExternDecl(d));
+          } else {
+            const cfg = convertFunction(d, ctx);
+            if (cfg !== null) functions.push(cfg);
+          }
+          break;
+        case "LoweredStructDecl":
+          structDecls.push(makeStructDecl(d));
+          break;
+        case "LoweredConstDecl":
+          // Inlined-out at lowering time; nothing to carry forward.
+          break;
       }
     }
     modules.set(m.moduleId, {
       moduleId: m.moduleId,
       displayPath: m.displayPath,
       functions,
-      otherDecls,
+      externs,
+      structDecls,
     });
   }
 
@@ -128,8 +138,47 @@ interface LoopFrame {
 // Function conversion
 // ============================================================================
 
+/** Extract the source-level metadata bytecode-emit needs to route a fn to
+ *  imports/exports. Centralised so both `convertFunction` (body-having) and
+ *  `makeExternDecl` (bodyless) compute identical values from the origin. */
+function fnMetadata(d: L.LoweredFnDecl): {
+  externName: string;
+  isExtern: boolean;
+  isExported: boolean;
+} {
+  const decoratorList = d.origin.decl.kind === "FnDecl" ? d.origin.decl.decorators : [];
+  return {
+    externName: d.origin.decl.kind === "FnDecl" ? d.origin.decl.name : d.mangled,
+    isExtern: hasDecorator(decoratorList, DEC.extern),
+    isExported: hasDecorator(decoratorList, DEC.export),
+  };
+}
+
+function makeStructDecl(d: L.LoweredStructDecl): CFGStructDecl {
+  return {
+    mangled: d.mangled,
+    fields: d.fields.map((f) => ({ name: f.name, type: f.type })),
+    origin: d.origin,
+  };
+}
+
+function makeExternDecl(d: L.LoweredFnDecl): CFGExternDecl {
+  const meta = fnMetadata(d);
+  const params: CFGParam[] = d.params.map((p, i) => ({
+    name: p.name, symbol: p.symbol, type: p.type, local: i,
+  }));
+  return {
+    mangled: d.mangled,
+    params,
+    returnType: d.returnType,
+    origin: d.origin,
+    externName: meta.externName,
+    isExported: meta.isExported,
+  };
+}
+
 function convertFunction(d: L.LoweredFnDecl, project: ProjectCtx): CFGFunction | null {
-  if (d.body === null) return null;       // @extern stubs surface in the import table only
+  if (d.body === null) return null;       // bodyless fns go through makeExternDecl
 
   const params: CFGParam[] = [];
   const locals: CFGLocal[] = [];
@@ -170,6 +219,7 @@ function convertFunction(d: L.LoweredFnDecl, project: ProjectCtx): CFGFunction |
     }
   }
 
+  const meta = fnMetadata(d);
   return {
     mangled: d.mangled,
     params,
@@ -178,6 +228,9 @@ function convertFunction(d: L.LoweredFnDecl, project: ProjectCtx): CFGFunction |
     blocks: fn.blocks.map(freezeBlock),
     entry,
     origin: d.origin,
+    externName: meta.externName,
+    isExtern: meta.isExtern,
+    isExported: meta.isExported,
   };
 }
 
@@ -412,11 +465,6 @@ function buildIdent(fn: FnCtx, e: L.LoweredIdent): LocalId | null {
     }
     return slot;
   }
-
-  // Const decl — inline the const's value at the read site, matching the
-  // bytecode emit's policy.
-  const constDecl = fn.project.constDecls.get(e.symbol.id);
-  if (constDecl !== undefined) return buildExpr(fn, constDecl.value);
 
   // Fn name in a non-call position — materialise a fn ref into a fresh local.
   if (e.symbol.kind === "fn") {

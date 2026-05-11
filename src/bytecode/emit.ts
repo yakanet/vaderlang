@@ -1,10 +1,10 @@
-// Bytecode emitter — LoweredProject → BytecodeModule. See SPEC §2 ("Lowered
-// AST" → bytecode) and §17 (canonical IR).
+// Bytecode emitter — shared helpers (interning, reservation, per-fn emit
+// context) used by `midir/emit.ts` (the project-level entry point) and the
+// per-instruction emitters in `midir/emit.ts`. See SPEC §17 (canonical IR).
 
 import type { Span } from "../diagnostics/diagnostic.ts";
-import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type * as L from "../lower/lowered-ast.ts";
-import type { LoweredProject } from "../lower/index.ts";
+import type { CFGExternDecl, CFGFunction, CFGStructDecl } from "../midir/cfg.ts";
 import type { PrimitiveName, Type } from "../typecheck/types.ts";
 import { displayType } from "../typecheck/types.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
@@ -112,8 +112,6 @@ export interface EmitterCtx {
   readonly imports: BcImport[];
   readonly importIndexBySymId: Map<number, number>;
   readonly exports: { externName: string; fnIndex: number }[];
-  /** Const decls inlined at every use site by `emitIdent`. */
-  readonly constDecls: Map<number, L.LoweredConstDecl>;
   readonly optimize: boolean;
   /** Impl table being built: structTypeIndex → set of trait names. */
   readonly implTable: Map<number, string[]>;
@@ -149,7 +147,6 @@ export function newEmitterCtx(optimize: boolean, implRegistry: ImplRegistry | nu
     functions: [], fnIndexBySymId: new Map(),
     imports: [], importIndexBySymId: new Map(),
     exports: [],
-    constDecls: new Map(),
     optimize,
     implTable: new Map(),
     traitsBySymbolId,
@@ -158,36 +155,49 @@ export function newEmitterCtx(optimize: boolean, implRegistry: ImplRegistry | nu
 
 // ----------------------------------------------------------- pass 1: reserve
 
-export function reserveDecl(d: L.LoweredDecl, ctx: EmitterCtx): void {
-  switch (d.kind) {
-    case "LoweredFnDecl":   reserveFn(d, ctx); return;
-    case "LoweredStructDecl": internStructDecl(d, ctx); return;
-    case "LoweredConstDecl":
-      if (d.origin.symbol !== null) ctx.constDecls.set(d.origin.symbol.id, d);
-      return;
-  }
+/** Reserve a struct decl: intern its layout into the type table. */
+export function reserveCFGStruct(s: CFGStructDecl, ctx: EmitterCtx): void {
+  internStructDecl(s, ctx);
 }
 
-function reserveFn(d: L.LoweredFnDecl, ctx: EmitterCtx): void {
-  const sig = signatureOf(d);
-  const decoratorList = d.origin.decl.kind === "FnDecl" ? d.origin.decl.decorators : [];
-  const externName = d.origin.decl.kind === "FnDecl" ? d.origin.decl.name : d.mangled;
-  const isExtern = d.body === null || hasDecorator(decoratorList, DEC.extern);
+/** Reserve a CFGFunction (with body). Allocates a fn-table slot — to be
+ *  filled in by pass 2 — and registers `@export` entries. When the fn is
+ *  flagged `isExtern` (an `@extern`-decorated fn that still has a body),
+ *  routes to the import table instead. */
+export function reserveCFGFunction(fn: CFGFunction, ctx: EmitterCtx): void {
+  const sig = paramsToSignature(fn.params, fn.returnType);
 
-  if (isExtern) {
-    if (d.origin.symbol !== null) ctx.importIndexBySymId.set(d.origin.symbol.id, ctx.imports.length);
-    ctx.imports.push({ externName, mangledName: d.mangled, signature: sig });
+  if (fn.isExtern) {
+    if (fn.origin.symbol !== null) ctx.importIndexBySymId.set(fn.origin.symbol.id, ctx.imports.length);
+    ctx.imports.push({ externName: fn.externName, mangledName: fn.mangled, signature: sig });
     return;
   }
 
   const fnIndex = ctx.functions.length;
-  if (d.origin.symbol !== null) ctx.fnIndexBySymId.set(d.origin.symbol.id, fnIndex);
+  if (fn.origin.symbol !== null) ctx.fnIndexBySymId.set(fn.origin.symbol.id, fnIndex);
   ctx.functions.push({
-    name: d.mangled, isMain: d.origin.isMain, signature: sig, locals: [], body: [], debug: [],
+    name: fn.mangled, isMain: fn.origin.isMain, signature: sig, locals: [], body: [], debug: [],
   });
-  if (hasDecorator(decoratorList, DEC.export)) {
-    ctx.exports.push({ externName, fnIndex });
+  if (fn.isExported) {
+    ctx.exports.push({ externName: fn.externName, fnIndex });
   }
+}
+
+/** Reserve a bodyless extern fn. Always routes to the import table. */
+export function reserveCFGExtern(ext: CFGExternDecl, ctx: EmitterCtx): void {
+  const sig = paramsToSignature(ext.params, ext.returnType);
+  if (ext.origin.symbol !== null) ctx.importIndexBySymId.set(ext.origin.symbol.id, ctx.imports.length);
+  ctx.imports.push({ externName: ext.externName, mangledName: ext.mangled, signature: sig });
+  // Extern decls may still be `@export`-decorated (re-exporting an import is
+  // unusual but legal); but since we never have a fn-table slot for them,
+  // there's no export entry to add.
+}
+
+function paramsToSignature(params: readonly { type: Type }[], returnType: Type): BcSignature {
+  return {
+    params: params.map((p) => valTypeOf(p.type)),
+    result: valTypeOf(returnType),
+  };
 }
 
 // ------------------------------------------------------- pass 2: emit bodies
@@ -307,7 +317,7 @@ export function internCellType(ctx: EmitterCtx, slotType: Type): number {
   return idx;
 }
 
-function internStructDecl(d: L.LoweredStructDecl, ctx: EmitterCtx): number {
+function internStructDecl(d: CFGStructDecl, ctx: EmitterCtx): number {
   // Key on `(symbol.id, args…)` via `typeInternKey` — same key
   // `internType` uses for Struct types, so a generic instantiation
   // `List(i32)` doesn't collide with `List(i64)` AND two same-named
@@ -434,10 +444,4 @@ export function emitFloatConst(fn: FnEmitCtx, value: number, t: ValType, span: S
   pushOp(fn, { kind: t === "f32" ? "f32.const" : "f64.const", value }, span);
 }
 
-function signatureOf(d: L.LoweredFnDecl): BcSignature {
-  return {
-    params: d.params.map((p) => valTypeOf(p.type)),
-    result: valTypeOf(d.returnType),
-  };
-}
 

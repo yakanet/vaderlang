@@ -25,6 +25,7 @@ import type {
 import type { FnLowerCtx, LowerProjectCtx } from "../lower/ctx.ts";
 import { makeEntryTypes } from "../lower/entry-types.ts";
 import { lowerExpr } from "../lower/passes/expr.ts";
+import { inlineConsts } from "../lower/passes/inline-consts.ts";
 import { lowerConstEntry, lowerFnEntry } from "../lower/lower.ts";
 
 import type { MonoEntry, MonoProject } from "./specialize.ts";
@@ -94,10 +95,12 @@ export function lowerComptimeDecl(input: CompileInput): CompileOutput | null {
   const reachable = lowerReachableDecls(mainFnDecl, projectCtx, input);
   if (reachable === null) return null;
 
-  const project = bundleProject(input, callerProgram.resolved.module.id, mainFnDecl, reachable);
+  const project = inlineConsts(
+    bundleProject(input, callerProgram.resolved.module.id, mainFnDecl, reachable),
+  );
   const ssa = toSSA(eliminateDeadCFG(buildCFGProject(project)));
   const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
-  const bytecodeModule = emitBytecodeFromCFG(project, cfg, "__comptime__", {
+  const bytecodeModule = emitBytecodeFromCFG(cfg, "__comptime__", {
     optimize: true, implRegistry: projectCtx.impls,
   });
   const mainFnIndex = bytecodeModule.functions.findIndex((f) => f.name === SYNTH_MAIN_NAME);

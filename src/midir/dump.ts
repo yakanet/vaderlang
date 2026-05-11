@@ -30,7 +30,7 @@ export function dumpCFGProject(p: CFGProject, opts: DumpCFGOptions = {}): string
   lines.push("# CFG");
   for (const m of p.modules.values()) {
     if (!includeModule(m.displayPath)) continue;
-    if (m.functions.length === 0 && m.otherDecls.length === 0) continue;
+    if (m.functions.length === 0 && m.externs.length === 0 && m.structDecls.length === 0) continue;
     lines.push("");
     lines.push(`## ${m.displayPath}`);
     for (const fn of m.functions) {

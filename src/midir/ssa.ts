@@ -33,7 +33,8 @@ export function toSSA(p: CFGProject): CFGProject {
       moduleId: m.moduleId,
       displayPath: m.displayPath,
       functions: m.functions.map(toSSAFn),
-      otherDecls: m.otherDecls,
+      externs: m.externs,
+      structDecls: m.structDecls,
     });
   }
   return { modules, vtableEntries: p.vtableEntries, strings: p.strings };
@@ -181,6 +182,9 @@ function toSSAFn(fn: CFGFunction): CFGFunction {
     blocks: newBlocks,
     entry: fn.entry,
     origin: fn.origin,
+    externName: fn.externName,
+    isExtern: fn.isExtern,
+    isExported: fn.isExported,
   };
 }
 
@@ -274,7 +278,8 @@ export function fromSSA(p: CFGProject): CFGProject {
       moduleId: m.moduleId,
       displayPath: m.displayPath,
       functions: m.functions.map(fromSSAFn),
-      otherDecls: m.otherDecls,
+      externs: m.externs,
+      structDecls: m.structDecls,
     });
   }
   return { modules, vtableEntries: p.vtableEntries, strings: p.strings };
@@ -319,6 +324,9 @@ function fromSSAFn(fn: CFGFunction): CFGFunction {
     blocks: newBlocks,
     entry: fn.entry,
     origin: fn.origin,
+    externName: fn.externName,
+    isExtern: fn.isExtern,
+    isExported: fn.isExported,
   };
 }
 

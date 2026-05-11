@@ -1,2 +1,2 @@
-# pipeline error
-Maximum call stack size exceeded.
+# compile errors
+[C4009] comptime evaluation depends on itself: A → B → A

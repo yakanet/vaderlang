@@ -147,7 +147,7 @@ export async function pipelineBytecode(
   const r = await pipelineCfg(file, opts);
   const implRegistry = buildImplRegistry(r.evaluated.typed.resolved);
   const emitOpts = { optimize: opts?.bytecodeOpt ?? true, implRegistry };
-  const bytecode = emitBytecodeFromCFG(r.dced, r.cfg, moduleNameFromFile(file), emitOpts);
+  const bytecode = emitBytecodeFromCFG(r.cfg, moduleNameFromFile(file), emitOpts);
   return { ...r, bytecode };
 }
 

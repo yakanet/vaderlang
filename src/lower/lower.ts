@@ -26,6 +26,7 @@ import type {
 
 import { lowerBlock } from "./passes/block.ts";
 import { lowerExpr } from "./passes/expr.ts";
+import { inlineConsts } from "./passes/inline-consts.ts";
 
 const STD_CORE_PATH = "std/core";
 
@@ -81,7 +82,8 @@ export function lowerProject(
       decls,
     });
   }
-  return { modules, vtableEntries: collectVtableEntries(impls, mono) };
+  const project: LoweredProject = { modules, vtableEntries: collectVtableEntries(impls, mono) };
+  return inlineConsts(project);
 }
 
 /** Flatten the impl registry × mono entries into one entry per

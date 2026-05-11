@@ -26,14 +26,20 @@
           @builder.append_display <for i32> :void
             __sb_0 :?
             ._0 :i32
-              DIM :[i32, i32]
+              [i32, i32] {
+                _0: int(10) :?
+                _1: int(20) :?
+              }
           @builder.append_str :void
             __sb_0 :?
             "x" :string
           @builder.append_display <for i32> :void
             __sb_0 :?
             ._1 :i32
-              DIM :[i32, i32]
+              [i32, i32] {
+                _0: int(10) :?
+                _1: int(20) :?
+              }
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -50,24 +56,39 @@
           @builder.append_display <for f64> :void
             __sb_1 :?
             ._0 :f64
-              ORIGIN :[f64, f64, string]
+              [f64, f64, string] {
+                _0: float(0) :?
+                _1: float(0) :?
+                _2: "origin" :string
+              }
           @builder.append_str :void
             __sb_1 :?
             ", " :string
           @builder.append_display <for f64> :void
             __sb_1 :?
             ._1 :f64
-              ORIGIN :[f64, f64, string]
+              [f64, f64, string] {
+                _0: float(0) :?
+                _1: float(0) :?
+                _2: "origin" :string
+              }
           @builder.append_str :void
             __sb_1 :?
             ") = " :string
           @builder.append_display <for string> :void
             __sb_1 :?
             ._2 :string
-              ORIGIN :[f64, f64, string]
+              [f64, f64, string] {
+                _0: float(0) :?
+                _1: float(0) :?
+                _2: "origin" :string
+              }
           ~>
             @builder.finish :string
               __sb_1 :?
     return
       ._0 :i32
-        DIM :[i32, i32]
+        [i32, i32] {
+          _0: int(10) :?
+          _1: int(20) :?
+        }

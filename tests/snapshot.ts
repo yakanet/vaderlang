@@ -212,7 +212,7 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   const moduleName = (entryPath.split("/").pop() ?? entryPath).replace(/\.vader$/, "");
   const ssa = toSSA(eliminateDeadCFG(buildCFGProject(dced)));
   const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
-  const bc = emitBytecodeFromCFG(dced, cfg, moduleName);
+  const bc = emitBytecodeFromCFG(cfg, moduleName);
 
   const text1 = writeVir(bc);
   let roundTripBanner = "";

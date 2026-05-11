@@ -23,7 +23,7 @@
         callee:
           old_helper :fn(i32) -> i32
         arg0:
-          KING :i32
+          int(42) :i32
     let b: i32 =
       call :i32
         callee:

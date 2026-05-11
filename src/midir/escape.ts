@@ -47,7 +47,8 @@ export function annotateEscape(p: CFGProject): { project: CFGProject; stats: Esc
       moduleId: m.moduleId,
       displayPath: m.displayPath,
       functions,
-      otherDecls: m.otherDecls,
+      externs: m.externs,
+      structDecls: m.structDecls,
     });
   }
   return {

@@ -10,5 +10,5 @@
       callee:
         println :fn(string) -> void
       arg0:
-        GREETING :string
+        "Hello from file!" :string
     return int(0) :i32

@@ -145,7 +145,8 @@ export function eliminateDeadCFG(p: CFGProject): CFGProject {
       moduleId: m.moduleId,
       displayPath: m.displayPath,
       functions: m.functions.map(optimiseFunction),
-      otherDecls: m.otherDecls,
+      externs: m.externs,
+      structDecls: m.structDecls,
     });
   }
   return { modules, vtableEntries: p.vtableEntries, strings: p.strings };
@@ -353,6 +354,9 @@ function compactLocals(fn: CFGFunction): CFGFunction {
     blocks: newBlocks,
     entry: fn.entry,
     origin: fn.origin,
+    externName: fn.externName,
+    isExtern: fn.isExtern,
+    isExported: fn.isExported,
   };
 }
 

@@ -336,6 +336,22 @@ Bias before discussion : (a) is a fast win that keeps options open ; (c) is
 the right long-term destination. (b) is an awkward intermediate. **Do not
 implement until we've discussed the trade-offs at the architecture level.**
 
+**Related verdict — LoweredAST ↔ CFG seam (decided)**
+
+Companion question : should `LoweredAST` remain a distinct IR, or should
+lowering emit `BasicBlock`/`Instruction`/`Terminator` directly ? Decision
+captured in `plans/polymorphic-purring-spark.md` — **keep LoweredAST
+distinct**. Rationale : tree rewrites (match/try/for-in/range desugar) are
+cleaner over expression trees ; `midir/build.ts` is a thin, cheap-to-maintain
+seam ; realistic line savings from a merge are ~250-400 (not the 1500
+headline). The cheap seam-tightenings *were* done in May 2026 :
+hoisted reserveDecl metadata onto `CFGFunction`, dropped const decls at
+lowering time via `inline-consts` pass, replaced `LoweredStructDecl`
+pass-through with `CFGStructDecl` so the CFG is self-contained on its
+decl side. Reopen the merge question only when : §1.7c (above) ships, a
+second CFG consumer appears without a corresponding Lowered consumer, or
+a new desugar pass naturally wants CFG shape (e.g. async/yield).
+
 ### 1.8 VM (interpreter mode for `vader run`) — done
 
 Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives under `src/vm/`. The TODO line "reuse the comptime VM" is superseded by the §1.5a decision (the comptime engine stays AST-walking until self-host; the bytecode VM is the new shared moteur, and migrating comptime onto it is tracked separately under 1.5b).

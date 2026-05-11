@@ -15,14 +15,14 @@
 import type { Span } from "../diagnostics/diagnostic.ts";
 import { CompilerBugError } from "../diagnostics/errors.ts";
 import type * as L from "../lower/lowered-ast.ts";
-import type { LoweredProject } from "../lower/index.ts";
 import type { Type } from "../typecheck/types.ts";
 import { TY } from "../typecheck/types.ts";
 
 import {
   binaryOpFor, buildVtables, declareLocal, emitFloatConst, emitIntConst,
   internCellType, internString, internType, newEmitterCtx,
-  OP_INTRINSIC_BY_MANGLED, pushOp, reserveDecl, valTypeOf,
+  OP_INTRINSIC_BY_MANGLED, pushOp, reserveCFGExtern, reserveCFGFunction,
+  reserveCFGStruct, valTypeOf,
   type EmitOptions, type EmitterCtx, type FnEmitCtx,
 } from "../bytecode/emit.ts";
 import type {
@@ -49,36 +49,29 @@ import { pruneUnusedImports } from "./dce.ts";
 // ============================================================================
 
 export function emitBytecodeFromCFG(
-  lp: LoweredProject, cfg: CFGProject, name: string, options: EmitOptions = {},
+  cfg: CFGProject, name: string, options: EmitOptions = {},
 ): BytecodeModule {
   const ctx = newEmitterCtx(options.optimize ?? true, options.implRegistry ?? null);
 
-  // Pass 1 : reserve via the lowered decls so signatures, struct types,
-  // const decls, fn indices, and @export entries match the canonical path.
-  for (const m of lp.modules.values()) {
-    for (const d of m.decls) reserveDecl(d, ctx);
-  }
-
-  // Index CFG functions by mangled name for lookup during pass 2.
-  const cfgByMangled = new Map<string, CFGFunction>();
+  // Pass 1 : reserve CFG fns/externs/structs. Allocates fn-table slots,
+  // import entries, struct type indices, and @export entries.
   for (const m of cfg.modules.values()) {
-    for (const f of m.functions) cfgByMangled.set(f.mangled, f);
+    for (const fn of m.functions) reserveCFGFunction(fn, ctx);
+    for (const ext of m.externs) reserveCFGExtern(ext, ctx);
+    for (const s of m.structDecls) reserveCFGStruct(s, ctx);
   }
 
   // Pre-translate the CFG's string indices into the bytecode pool's indices
   // so per-instr emit is a plain array lookup instead of a hash re-intern.
   const stringIndexMap: number[] = cfg.strings.map((s) => internString(ctx, s));
 
-  // Pass 2 : emit fn bodies from the CFG. Imports and bodyless decls are
-  // skipped here — they got their import-table entry in pass 1.
-  for (const m of lp.modules.values()) {
-    for (const d of m.decls) {
-      if (d.kind !== "LoweredFnDecl" || d.body === null) continue;
-      if (d.origin.symbol === null) continue;
-      const fnIndex = ctx.fnIndexBySymId.get(d.origin.symbol.id);
-      if (fnIndex === undefined) continue;       // routed to imports
-      const cfgFn = cfgByMangled.get(d.mangled);
-      if (cfgFn === undefined) continue;
+  // Pass 2 : emit fn bodies from the CFG.
+  for (const m of cfg.modules.values()) {
+    for (const cfgFn of m.functions) {
+      if (cfgFn.isExtern) continue;             // routed to imports in pass 1
+      if (cfgFn.origin.symbol === null) continue;
+      const fnIndex = ctx.fnIndexBySymId.get(cfgFn.origin.symbol.id);
+      if (fnIndex === undefined) continue;
 
       const slot = ctx.functions[fnIndex]!;
       const fn: FnEmitCtx = {

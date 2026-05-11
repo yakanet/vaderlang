@@ -1,13 +1,37 @@
 // Mid-IR (CFG) — data types only. See `docs/MID_IR_DESIGN.md` for the
-// design rationale and the multi-phase plan.
+// design rationale.
 //
-// Phase 1 (this file) defines the shape; no converter, no emitter, no
-// pipeline integration. Subsequent phases:
-//   - Phase 2: LoweredAST → CFG converter + CFG → bytecode (structuring).
-//   - Phase 3: DCE on the CFG (per-store liveness, dead local elimination).
-//   - Phase 4: SSA conversion (rename to value names, insert phis).
-//   - Phase 5: Escape analysis on SSA (stack-allocate non-escaping).
-//   - Phase 6: Drop the legacy LoweredAST → bytecode path.
+// =========================================================================
+// Seam contract — Lowered ↔ CFG ↔ bytecode
+// =========================================================================
+// The pipeline maintains two distinct IRs side by side. The architectural
+// verdict (see `plans/polymorphic-purring-spark.md`) is to KEEP them
+// distinct: tree rewrites (match/try/for-in/range desugar) are cleaner
+// over expression trees, and `build.ts` is a thin cheap-to-maintain seam.
+// Reopen the merge question only when:
+//   - midir↔bytecode merge ships (TODO §1.7c), or
+//   - a second CFG consumer appears without a corresponding Lowered consumer,
+//   - a new desugar pass naturally wants CFG shape (e.g. async yield points).
+//
+// What crosses the seam (Lowered → CFG, via `build.ts`):
+//   - `MonoEntry` origin metadata (decorators, source decl, isMain) — flows
+//     into `CFGFunction.origin` and is consumed by bytecode emit.
+//   - `Type` instances and `Symbol` references — shared across IRs.
+//   - `LoweredBinaryOp` / `LoweredUnaryOp` enums — reused as instruction ops.
+//   - `IntrinsicName` enum — reused on `InstrIntrinsic`.
+//   - `VtableEntry[]` — carried verbatim into `CFGProject.vtableEntries`.
+// Struct decls are reshaped into the CFG-native `CFGStructDecl` (no Lowered
+// import). Const decls disappear at lowering time (the `inline-consts` pass
+// substitutes every read with the const's value), so the CFG never carries
+// them.
+//
+// What is CFG-private (this file):
+//   - `BasicBlock`, `BlockId`, `Instruction`, `Terminator`, `CFGLocal`,
+//     `LocalId`, `ConstValue`. Lowered code never references these.
+//
+// What is Lowered-private (`src/lower/lowered-ast.ts`):
+//   - `LoweredBlock`, `LoweredStmt`, `LoweredExpr` and their variants.
+//     `build.ts` consumes these; downstream CFG passes never see them.
 
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as L from "../lower/lowered-ast.ts";
@@ -25,7 +49,9 @@ export type BlockId = number;
  *  every instruction reads from / writes to a local. */
 export type LocalId = number;
 
-/** A function's CFG: the entry block, all blocks, all locals/params. */
+/** A function's CFG: the entry block, all blocks, all locals/params.
+ *  Carries enough metadata for bytecode reservation (export/extern routing)
+ *  so the emitter never has to walk back into the LoweredAST. */
 export interface CFGFunction {
   readonly mangled: string;
   readonly params: readonly CFGParam[];
@@ -34,6 +60,40 @@ export interface CFGFunction {
   readonly blocks: readonly BasicBlock[];
   readonly entry: BlockId;            // canonically 0
   readonly origin: MonoEntry;         // mirrored from LoweredFnDecl.origin
+  /** Source-level name used when registering an @export entry or when this
+   *  fn carries `@extern` (with a body). Falls back to `mangled` when the
+   *  origin decl is synthetic (no source-level FnDecl). */
+  readonly externName: string;
+  /** True when `@extern`-decorated. Bodyless extern stubs live in
+   *  `CFGModule.externs` instead, so this flag only fires for the unusual
+   *  case of an `@extern`-decorated fn that still happens to have a body. */
+  readonly isExtern: boolean;
+  /** True when `@export`-decorated. Drives the bytecode export table. */
+  readonly isExported: boolean;
+}
+
+/** Declaration of a bodyless fn (typically `@extern`). Bytecode emit
+ *  registers these in the import table and never tries to emit a body. */
+export interface CFGExternDecl {
+  readonly mangled: string;
+  readonly params: readonly CFGParam[];
+  readonly returnType: Type;
+  readonly origin: MonoEntry;
+  readonly externName: string;
+  readonly isExported: boolean;
+}
+
+/** A struct declaration carrying only what the bytecode emitter needs to
+ *  intern its layout into the type table. CFG-native (no Lowered import). */
+export interface CFGStructDecl {
+  readonly mangled: string;
+  readonly fields: readonly CFGStructField[];
+  readonly origin: MonoEntry;
+}
+
+export interface CFGStructField {
+  readonly name: string;
+  readonly type: Type;
 }
 
 export interface CFGParam {
@@ -386,7 +446,11 @@ export interface CFGModule {
   readonly moduleId: string;
   readonly displayPath: string;
   readonly functions: readonly CFGFunction[];
-  /** Struct + const decls pass through unchanged from the LoweredProject —
-   *  the CFG is fn-only. */
-  readonly otherDecls: readonly (L.LoweredStructDecl | L.LoweredConstDecl)[];
+  /** Bodyless fn declarations (`@extern` stubs). Bytecode emit routes these
+   *  to the import table; no CFG body exists for them. */
+  readonly externs: readonly CFGExternDecl[];
+  /** Struct declarations the bytecode emit needs to intern into the type
+   *  table. Const decls don't appear here — they're inlined into every read
+   *  site by the `inline-consts` lowering pass. */
+  readonly structDecls: readonly CFGStructDecl[];
 }
