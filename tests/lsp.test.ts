@@ -396,6 +396,88 @@ test("lsp: cross-file resolution doesn't bleed for non-imported names", async ()
   expect(results[0]!.result).toBeNull();
 }, { timeout: 60_000 });
 
+test("lsp: definition returns LocationLink when client supports it", async () => {
+  if (!ENABLED) return;
+
+  // Manual run (the `driveLsp` helper sends `capabilities: {}` which
+  // falls into the legacy `Location` branch — here we send the
+  // `linkSupport` flag VSCode/IntelliJ actually send so the server
+  // emits a `LocationLink[]` payload).
+  const src = `double :: fn(x: i32) -> i32 {
+    return x * 2
+}
+
+main :: fn() -> i32 {
+    return double(21)
+}
+`;
+  const URI = "file:///link-support.vader";
+  const requests: object[] = [
+    { jsonrpc: "2.0", id: 1, method: "initialize", params: {
+      rootUri: null,
+      capabilities: { textDocument: { definition: { linkSupport: true } } },
+    } },
+    { jsonrpc: "2.0", method: "initialized", params: {} },
+    { jsonrpc: "2.0", method: "textDocument/didOpen", params: {
+      textDocument: { uri: URI, languageId: "vader", version: 1, text: src },
+    } },
+    // Click on the `double` call site at line 5 char 11.
+    { jsonrpc: "2.0", id: 2, method: "textDocument/definition", params: {
+      textDocument: { uri: URI }, position: { line: 5, character: 11 },
+    } },
+    { jsonrpc: "2.0", id: 999, method: "shutdown", params: null },
+    { jsonrpc: "2.0", method: "exit", params: null },
+  ];
+  const stdin = new Uint8Array(
+    requests.reduce<number>((n, r) => n + frame(r).byteLength, 0),
+  );
+  let offset = 0;
+  for (const r of requests) {
+    const f = frame(r);
+    stdin.set(f, offset);
+    offset += f.byteLength;
+  }
+  const proc = Bun.spawn({
+    cmd: ["bun", "src/index.ts", "lsp"],
+    cwd: process.cwd(),
+    stdin: "pipe", stdout: "pipe", stderr: "pipe",
+  });
+  proc.stdin.write(stdin);
+  await proc.stdin.end();
+  const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
+  await proc.exited;
+
+  let defResult: Json = null;
+  let cursor = 0;
+  while (cursor < stdout.byteLength) {
+    const r = readFrame(stdout, cursor);
+    if (r === null) break;
+    cursor = r.cursor;
+    const msg = r.body as { id?: number; result?: Json };
+    if (msg.id === 2) defResult = msg.result ?? null;
+  }
+
+  // LocationLink[] : array with one LocationLink (originSelectionRange
+  // + targetUri + targetRange + targetSelectionRange).
+  expect(Array.isArray(defResult)).toBe(true);
+  const link = (defResult as object[])[0] as Record<string, unknown>;
+  expect(link.originSelectionRange).toBeDefined();
+  expect(link.targetUri).toMatch(/link-support\.vader$/);
+  expect(link.targetSelectionRange).toBeDefined();
+  expect(link.targetRange).toBeDefined();
+
+  // Origin range covers the clicked `double` identifier (6 chars
+  // starting at the call site).
+  const origin = link.originSelectionRange as { start: Position; end: Position };
+  expect(origin.start.line).toBe(5);
+  expect(origin.end.character - origin.start.character).toBe(6); // "double"
+
+  // Target name lands on the decl's name at line 0 char 0..6.
+  const sel = link.targetSelectionRange as { start: Position; end: Position };
+  expect(sel.start).toEqual({ line: 0, character: 0 });
+  expect(sel.end).toEqual({ line: 0, character: 6 });
+}, { timeout: 60_000 });
+
 test("lsp: initialize advertises definition + hover providers", async () => {
   if (!ENABLED) return;
 

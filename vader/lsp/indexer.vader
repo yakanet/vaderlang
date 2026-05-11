@@ -138,6 +138,16 @@ export name_at :: fn(idx: DocIndex, line: i32, character: i32) -> string {
     return token_name_at(idx.tokens, offset)
 }
 
+/// Return the source span of the identifier token under the click
+/// position, or `null` when no Ident covers it. The handler uses
+/// this as the `originSelectionRange` of an LSP `LocationLink` so
+/// the editor underlines exactly the clicked identifier on Ctrl/Cmd-
+/// hover. ASCII / column-precise — same caveat as `lsp_to_offset`.
+export span_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | null {
+    offset :: lsp_to_offset(idx.source, line, character)
+    return token_span_at(idx.tokens, offset)
+}
+
 /// Look up a top-level decl by name (ignores scope). Used by the
 /// cross-file resolver to find the target decl inside the imported
 /// module's freshly-built index.
@@ -722,6 +732,16 @@ token_name_at :: fn(tokens: Token[], offset: usize) -> string {
         }
     }
     return ""
+}
+
+token_span_at :: fn(tokens: Token[], offset: usize) -> Span | null {
+    for t in tokens {
+        if t.kind != .Ident { continue }
+        if t.span.start.offset <= offset && offset < t.span.end.offset {
+            return t.span
+        }
+    }
+    return null
 }
 
 // Find the entry matching `name` whose scope most tightly contains

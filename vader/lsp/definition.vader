@@ -5,22 +5,30 @@
 // `vader/lsp/state` and ask the indexer for the decl whose name matches
 // the identifier under the cursor.
 //
-// Response shape : a single `Location { uri, range }` for a hit, or
-// `JsonNull` when the cursor isn't on a known top-level decl name.
-// Returning `null` lets the client gracefully degrade ; returning an
-// empty array (`[]`) is also valid per the LSP spec, but `null` is
-// cheaper to encode and what most servers do for an absence.
+// Response shape depends on `client.capabilities.textDocument.definition.linkSupport`
+// (captured at `initialize`) :
+//   - true → `LocationLink[]` with `originSelectionRange` set to the
+//            clicked token's span. Lets the editor draw a precise
+//            Ctrl/Cmd-hover underline on the exact identifier.
+//   - false → bare `Location { uri, range }`, the older shape every
+//             client understands.
+// `JsonNull` for "no result" in both cases.
 
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }
 import "std/collections" { MutableMap }
 import "vader/lsp/state" { ServerState, index_for }
-import "vader/lsp/indexer" { DocIndex, DeclEntry, find_at, name_at, span_to_range_json, SpanRange }
+import "vader/lsp/indexer" {
+    DocIndex, DeclEntry, find_at, name_at, span_at,
+    span_to_range_json, SpanRange,
+}
 import "vader/lsp/resolver" { ExternalHit, resolve }
+import "vader/diagnostics/diagnostic" { Span }
 
-/// Resolve goto-def for the position carried in `params`. Returns a
-/// JSON-encoded `Location` or `JsonNull` for "no result".
+/// Resolve goto-def for the position carried in `params`. Returns
+/// `LocationLink[]` (when `linkSupport`) or a bare `Location`, or
+/// `JsonNull` on miss.
 export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
@@ -33,8 +41,11 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
         is DocIndex as index -> {
             entry :: index.find_at(line, character)
             match entry {
-                is DeclEntry as found  -> { return location_json(uri, found.name_span.span_to_range_json()) }
-                is null                -> {
+                is DeclEntry as found  -> {
+                    origin :: index.span_at(line, character)
+                    return def_response(state, origin, uri, found.name_span, found.full_span)
+                }
+                is null -> {
                     // Local miss : the name might be imported from
                     // another file. Walk the import table, parse the
                     // target module, and surface its decl's location.
@@ -43,7 +54,8 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
                     match ext {
                         is null -> { return JsonNull {} }
                         is ExternalHit as hit -> {
-                            return location_json(hit.uri, hit.target.name_span.span_to_range_json())
+                            origin :: index.span_at(line, character)
+                            return def_response(state, origin, hit.uri, hit.target.name_span, hit.target.full_span)
                         }
                     }
                 }
@@ -51,6 +63,40 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
         }
     }
     return JsonNull {}
+}
+
+// Pick the response shape based on what the client said it could
+// consume at `initialize` time. The `target_range` widens to the
+// decl's full span — `LocationLink` separates "where to jump"
+// (`targetSelectionRange`, the name) from "what to highlight"
+// (`targetRange`, the whole decl).
+def_response :: fn(
+    state: ServerState, origin: Span | null, uri: string,
+    name_span: Span, full_span: Span,
+) -> JsonValue {
+    if state.definition_link_support {
+        return JsonArray { .items = [location_link_json(origin, uri, name_span, full_span)] }
+    }
+    return location_json(uri, name_span.span_to_range_json())
+}
+
+// ---- JSON encoding helpers -----------------------------------------------
+
+location_link_json :: fn(
+    origin: Span | null, uri: string,
+    name_span: Span, full_span: Span,
+) -> JsonValue {
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    match origin {
+        is null -> {}
+        is Span as sp -> {
+            obj["originSelectionRange"] = range_json(sp.span_to_range_json())
+        }
+    }
+    obj["targetUri"]            = JsonString { .value = uri }
+    obj["targetRange"]          = range_json(full_span.span_to_range_json())
+    obj["targetSelectionRange"] = range_json(name_span.span_to_range_json())
+    return JsonObject { .entries = obj }
 }
 
 // ---- JSON encoding helpers -----------------------------------------------

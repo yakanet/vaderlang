@@ -95,7 +95,7 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
     params :: params_value(msg)
 
     if method == "initialize" {
-        result :: handle_initialize(params)
+        result :: handle_initialize(state, params)
         write_frame(encode_response(id, result))
         // First log emitted *after* the response so the client has already
         // installed its trace listener — earlier log lines are sometimes
