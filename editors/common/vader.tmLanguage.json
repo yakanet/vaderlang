@@ -27,20 +27,38 @@
     "comments": {
       "patterns": [
         {
-          "name": "comment.line.double-slash.vader",
-          "match": "//.*$"
+          "comment": "VaderDoc — `///` line form. Pattern must come before the regular `//` rule.",
+          "name": "comment.line.documentation.vader",
+          "begin": "///",
+          "end": "$",
+          "patterns": [{ "include": "#vaderdoc-tags" }]
         },
         {
-          "name": "comment.block.documentation.vader",
-          "begin": "/\\*\\*",
-          "end": "\\*/",
-          "patterns": [{ "include": "#comments" }]
+          "name": "comment.line.double-slash.vader",
+          "match": "//.*$"
         },
         {
           "name": "comment.block.vader",
           "begin": "/\\*",
           "end": "\\*/",
           "patterns": [{ "include": "#comments" }]
+        }
+      ]
+    },
+    "vaderdoc-tags": {
+      "patterns": [
+        {
+          "comment": "Tag with following name (e.g. `@param msg`)",
+          "match": "@(param)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.type.documentation.vader" },
+            "2": { "name": "variable.parameter.documentation.vader" }
+          }
+        },
+        {
+          "comment": "Bare tag (`@return`, `@error`, `@example`)",
+          "name": "storage.type.documentation.vader",
+          "match": "@(return|error|example)\\b"
         }
       ]
     },
