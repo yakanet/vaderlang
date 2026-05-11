@@ -1,0 +1,179 @@
+# Lower
+
+## tests/snippets/map_set_iter/_main.vader
+  fn tests_snippets_map_set_iter__main_vader$main() -> i32
+    let m: MutableMap(string, i32) =
+      MutableMap(string, i32) {
+        buckets:
+          array :Entry(string, i32) | null[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        set_at :void
+      arg0:
+        m :MutableMap(string, i32)
+      arg1:
+        "a" :string
+      arg2:
+        int(1) :i32
+    call :void
+      callee:
+        set_at :void
+      arg0:
+        m :MutableMap(string, i32)
+      arg1:
+        "b" :string
+      arg2:
+        int(2) :i32
+    call :void
+      callee:
+        set_at :void
+      arg0:
+        m :MutableMap(string, i32)
+      arg1:
+        "c" :string
+      arg2:
+        int(3) :i32
+    let total: i32 = int(0) :i32
+    block :void
+      let __iter_0: MapIter(string, i32) =
+        call :MapIter(string, i32)
+          callee:
+            iter :MapIter(string, i32)
+          arg0:
+            m :MutableMap(string, i32)
+      loop
+        let __step_1: Done | Yielded(Entry(string, i32)) =
+          call :Done | Yielded(Entry(string, i32))
+            callee:
+              step :?
+            arg0:
+              __iter_0 :MapIter(string, i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_1 :Done | Yielded(Entry(string, i32))
+          then:
+            break
+          else:
+            let entry: Entry(string, i32) =
+              .value :Entry(string, i32)
+                cast → Yielded(Entry(string, i32))
+                  __step_1 :Done | Yielded(Entry(string, i32))
+            assign
+              target:
+                total :i32
+              value:
+                add :?
+                  l:
+                    total :i32
+                  r:
+                    .value :?
+                      entry :?
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_2: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_2 :?
+                "map_sum=" :string
+              @builder.append_display <for i32> :void
+                __sb_2 :?
+                total :i32
+              ~>
+                @builder.finish :string
+                  __sb_2 :?
+    let s: MutableSet(i32) =
+      MutableSet(i32) {
+        inner:
+          MutableMap(i32, bool) {
+            buckets:
+              array :Entry(i32, bool) | null[]
+            size: int(0) :usize
+          }
+      }
+    call :bool
+      callee:
+        add :bool
+      arg0:
+        s :MutableSet(i32)
+      arg1:
+        int(10) :i32
+    call :bool
+      callee:
+        add :bool
+      arg0:
+        s :MutableSet(i32)
+      arg1:
+        int(20) :i32
+    call :bool
+      callee:
+        add :bool
+      arg0:
+        s :MutableSet(i32)
+      arg1:
+        int(30) :i32
+    let sum: i32 = int(0) :i32
+    block :void
+      let __iter_3: SetIter(i32) =
+        call :SetIter(i32)
+          callee:
+            iter :SetIter(i32)
+          arg0:
+            s :MutableSet(i32)
+      loop
+        let __step_4: Done | Yielded(i32) =
+          call :Done | Yielded(i32)
+            callee:
+              step :?
+            arg0:
+              __iter_3 :SetIter(i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_4 :Done | Yielded(i32)
+          then:
+            break
+          else:
+            let v: i32 =
+              .value :i32
+                cast → Yielded(i32)
+                  __step_4 :Done | Yielded(i32)
+            assign
+              target:
+                sum :i32
+              value:
+                add :?
+                  l:
+                    sum :i32
+                  r:
+                    v :?
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_5: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_5 :?
+                "set_sum=" :string
+              @builder.append_display <for i32> :void
+                __sb_5 :?
+                sum :i32
+              ~>
+                @builder.finish :string
+                  __sb_5 :?
+    return int(0) :i32

@@ -1,0 +1,88 @@
+# Typecheck
+
+## tests/snippets/std_cli_basic/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 10:10    CallExpr       :: ParsedArgs
+  expr 10:10    IdentExpr      :: fn(string[], FlagSpec[]) -> ParsedArgs
+  expr 10:16    IdentExpr      :: string[]
+  expr 10:22    IdentExpr      :: FlagSpec[]
+  expr 12:13    StringLitExpr  :: string
+  expr 12:23    CallExpr       :: usize
+  expr 12:23    FieldExpr      :: fn() -> usize
+  expr 12:23    FieldExpr      :: string[]
+  expr 12:23    IdentExpr      :: ParsedArgs
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(Display) -> void
+  expr 13:13    StringLitExpr  :: string
+  expr 13:28    CallExpr       :: usize
+  expr 13:28    FieldExpr      :: fn() -> usize
+  expr 13:28    FieldExpr      :: string[]
+  expr 13:28    IdentExpr      :: ParsedArgs
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(Display) -> void
+  expr 14:13    StringLitExpr  :: string
+  expr 14:22    FieldExpr      :: string[]
+  expr 14:22    IdentExpr      :: ParsedArgs
+  expr 14:22    IndexExpr      :: string
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(Display) -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:24    CallExpr       :: bool
+  expr 15:24    FieldExpr      :: fn(string) -> bool
+  expr 15:24    IdentExpr      :: ParsedArgs
+  expr 15:36    StringLitExpr  :: string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(Display) -> void
+  expr 16:13    StringLitExpr  :: string
+  expr 16:24    CallExpr       :: bool
+  expr 16:24    FieldExpr      :: fn(string) -> bool
+  expr 16:24    IdentExpr      :: ParsedArgs
+  expr 16:36    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(Display) -> void
+  expr 17:13    StringLitExpr  :: string
+  expr 17:20    CallExpr       :: string
+  expr 17:20    FieldExpr      :: fn(string, string) -> string
+  expr 17:20    IdentExpr      :: ParsedArgs
+  expr 17:34    StringLitExpr  :: string
+  expr 17:41    StringLitExpr  :: string
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(Display) -> void
+  expr 18:13    StringLitExpr  :: string
+  expr 18:24    CallExpr       :: string
+  expr 18:24    FieldExpr      :: fn(string, string) -> string
+  expr 18:24    IdentExpr      :: ParsedArgs
+  expr 18:38    StringLitExpr  :: string
+  expr 18:48    StringLitExpr  :: string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(Display) -> void
+  expr 21:12    CallExpr       :: ParsedArgs
+  expr 21:12    IdentExpr      :: fn(string[], FlagSpec[]) -> ParsedArgs
+  expr 21:18    SeqLitExpr     :: string[]
+  expr 21:19    StringLitExpr  :: string
+  expr 21:28    StringLitExpr  :: string
+  expr 21:42    IdentExpr      :: FlagSpec[]
+  expr 22:13    StringLitExpr  :: string
+  expr 22:26    CallExpr       :: usize
+  expr 22:26    FieldExpr      :: fn() -> usize
+  expr 22:26    FieldExpr      :: string[]
+  expr 22:26    IdentExpr      :: ParsedArgs
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(Display) -> void
+  expr 23:14    FieldExpr      :: string[]
+  expr 23:14    IdentExpr      :: ParsedArgs
+  expr 24:17    StringLitExpr  :: string
+  expr 24:24    IdentExpr      :: string
+  expr 24:9     CallExpr       :: void
+  expr 24:9     IdentExpr      :: fn(Display) -> void
+  expr 5:25     SeqLitExpr     :: FlagSpec[]
+  expr 6:28     StringLitExpr  :: string
+  expr 6:47     DotVariantExpr :: FlagKind
+  expr 6:9      StructLitExpr  :: FlagSpec
+  expr 7:28     StringLitExpr  :: string
+  expr 7:47     DotVariantExpr :: FlagKind
+  expr 7:9      StructLitExpr  :: FlagSpec
+  expr 9:13     SeqLitExpr     :: string[]
+  expr 9:14     StringLitExpr  :: string
+  expr 9:27     StringLitExpr  :: string
+  expr 9:43     StringLitExpr  :: string

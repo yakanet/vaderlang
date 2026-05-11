@@ -1,0 +1,28 @@
+import "std/io" { println }
+import "std/cli" { FlagSpec, FlagKind, parse, bool_flag, string_flag }
+
+main :: fn() -> i32 {
+    specs: FlagSpec[] = [
+        FlagSpec { .name = "verbose", .kind = .Bool },
+        FlagSpec { .name = "out",     .kind = .Str },
+    ]
+    argv :: ["--verbose", "--out=/tmp/x", "extra"]
+    r :: parse(argv, specs)
+
+    println("errors=${r.errors.len()}")
+    println("positionals=${r.positionals.len()}")
+    println("first=${r.positionals[0]}")
+    println("verbose=${r.bool_flag("verbose")}")
+    println("missing=${r.bool_flag("missing")}")
+    println("out=${r.string_flag("out", "")}")
+    println("default=${r.string_flag("absent", "fallback")}")
+
+    // Error path
+    bad :: parse(["--out", "--unknown"], specs)
+    println("err_count=${bad.errors.len()}")
+    for e in bad.errors {
+        println("err=${e}")
+    }
+
+    return 0
+}

@@ -1,0 +1,279 @@
+# Lower
+
+## tests/snippets/std_cli_basic/_main.vader
+  fn tests_snippets_std_cli_basic__main_vader$main() -> i32
+    let specs: FlagSpec[] =
+      array :FlagSpec[]
+        FlagSpec {
+          name: "verbose" :string
+          kind: int(0) :i32
+        }
+        FlagSpec {
+          name: "out" :string
+          kind: int(1) :i32
+        }
+    let argv: string[] =
+      array :string[]
+        "--verbose" :string
+        "--out=/tmp/x" :string
+        "extra" :string
+    let r: ParsedArgs =
+      call :ParsedArgs
+        callee:
+          parse :fn(string[], FlagSpec[]) -> ParsedArgs
+        arg0:
+          argv :string[]
+        arg1:
+          specs :FlagSpec[]
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_0: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0 :?
+                "errors=" :string
+              @builder.append_display <for usize> :void
+                __sb_0 :?
+                LoweredArrayLen
+              ~>
+                @builder.finish :string
+                  __sb_0 :?
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_1: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_1 :?
+                "positionals=" :string
+              @builder.append_display <for usize> :void
+                __sb_1 :?
+                LoweredArrayLen
+              ~>
+                @builder.finish :string
+                  __sb_1 :?
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_2: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_2 :?
+                "first=" :string
+              @builder.append_display <for string> :void
+                __sb_2 :?
+                index :string
+                  on:
+                    .positionals :string[]
+                      r :ParsedArgs
+                  ix:
+                    int(0) :i32
+              ~>
+                @builder.finish :string
+                  __sb_2 :?
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_3: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_3 :?
+                "verbose=" :string
+              @builder.append_display <for bool> :void
+                __sb_3 :?
+                call :bool
+                  callee:
+                    bool_flag :bool
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "verbose" :string
+              ~>
+                @builder.finish :string
+                  __sb_3 :?
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_4: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_4 :?
+                "missing=" :string
+              @builder.append_display <for bool> :void
+                __sb_4 :?
+                call :bool
+                  callee:
+                    bool_flag :bool
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "missing" :string
+              ~>
+                @builder.finish :string
+                  __sb_4 :?
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_5: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_5 :?
+                "out=" :string
+              @builder.append_display <for string> :void
+                __sb_5 :?
+                call :string
+                  callee:
+                    string_flag :string
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "out" :string
+                  arg2:
+                    "" :string
+              ~>
+                @builder.finish :string
+                  __sb_5 :?
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_6: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_6 :?
+                "default=" :string
+              @builder.append_display <for string> :void
+                __sb_6 :?
+                call :string
+                  callee:
+                    string_flag :string
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "absent" :string
+                  arg2:
+                    "fallback" :string
+              ~>
+                @builder.finish :string
+                  __sb_6 :?
+    let bad: ParsedArgs =
+      call :ParsedArgs
+        callee:
+          parse :fn(string[], FlagSpec[]) -> ParsedArgs
+        arg0:
+          array :string[]
+            "--out" :string
+            "--unknown" :string
+        arg1:
+          specs :FlagSpec[]
+    call :void
+      callee:
+        println :fn(Display) -> void
+      arg0:
+        call :string
+          callee:
+            to_string :string
+          arg0:
+            block :string
+              let __sb_7: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_7 :?
+                "err_count=" :string
+              @builder.append_display <for usize> :void
+                __sb_7 :?
+                LoweredArrayLen
+              ~>
+                @builder.finish :string
+                  __sb_7 :?
+    block :void
+      let __iter_8: ArrayIter(string) =
+        ArrayIter(string) {
+          arr:
+            .errors :string[]
+              bad :ParsedArgs
+          cursor: int(0) :usize
+          length:
+            LoweredArrayLen
+        }
+      loop
+        let __step_9: Done | Yielded(string) =
+          call :Done | Yielded(string)
+            callee:
+              step :?
+            arg0:
+              __iter_8 :ArrayIter(string)
+        if :void
+          cond:
+            is Done :bool
+              __step_9 :Done | Yielded(string)
+          then:
+            break
+          else:
+            let e: string =
+              .value :string
+                cast → Yielded(string)
+                  __step_9 :Done | Yielded(string)
+            call :void
+              callee:
+                println :fn(Display) -> void
+              arg0:
+                call :string
+                  callee:
+                    to_string :string
+                  arg0:
+                    block :string
+                      let __sb_10: ? =
+                        @builder.new :?
+                      @builder.append_str :void
+                        __sb_10 :?
+                        "err=" :string
+                      @builder.append_display <for string> :void
+                        __sb_10 :?
+                        e :string
+                      ~>
+                        @builder.finish :string
+                          __sb_10 :?
+    return int(0) :i32

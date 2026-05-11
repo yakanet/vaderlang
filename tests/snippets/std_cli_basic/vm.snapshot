@@ -1,0 +1,13 @@
+# stdout
+errors=0
+positionals=1
+first=extra
+verbose=true
+missing=false
+out=/tmp/x
+default=fallback
+err_count=2
+err=--out: missing value, expected --out=<value>
+err=unknown flag --unknown
+# exit
+0

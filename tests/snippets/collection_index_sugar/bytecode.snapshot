@@ -567,11 +567,11 @@ fn 8 std_collections$MutableMap$Contains$contains__string__i32 (ref,string) -> b
 end
 
 fn 9 std_collections$MutableSet$Contains$contains__i32 (ref,i32) -> bool
-  local.get 0   ; collections.vader:273:62
-  struct.get 45 0   ; collections.vader:273:62
-  local.get 1   ; collections.vader:273:53
-  call 5   ; collections.vader:273:53
-  return   ; collections.vader:273:46
+  local.get 0   ; collections.vader:318:62
+  struct.get 45 0   ; collections.vader:318:62
+  local.get 1   ; collections.vader:318:53
+  call 5   ; collections.vader:318:53
+  return   ; collections.vader:318:46
 end
 
 fn 10 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
@@ -1265,22 +1265,22 @@ end
 
 fn 15 std_collections$std_collections$add__i32 (ref,i32) -> bool
   local "$field_5#11" ref
-  local.get 0   ; collections.vader:252:17
-  struct.get 45 0   ; collections.vader:252:17
-  local.get 1   ; collections.vader:252:8
-  call 5   ; collections.vader:252:8
-  if $L0 void   ; collections.vader:252:5
-    bool.const false   ; collections.vader:252:37
-    return   ; collections.vader:252:30
-  else   ; collections.vader:252:5
-    local.get 0   ; collections.vader:253:5
-    struct.get 45 0   ; collections.vader:253:5
-    local.set 2   ; collections.vader:253:5
-    local.get 2   ; collections.vader:253:5
-    local.get 1   ; collections.vader:253:5
-    bool.const true   ; collections.vader:253:5
-    call 4   ; collections.vader:253:5
-    bool.const true   ; collections.vader:254:12
-    return   ; collections.vader:254:5
-  end $L0   ; collections.vader:252:5
+  local.get 0   ; collections.vader:297:17
+  struct.get 45 0   ; collections.vader:297:17
+  local.get 1   ; collections.vader:297:8
+  call 5   ; collections.vader:297:8
+  if $L0 void   ; collections.vader:297:5
+    bool.const false   ; collections.vader:297:37
+    return   ; collections.vader:297:30
+  else   ; collections.vader:297:5
+    local.get 0   ; collections.vader:298:5
+    struct.get 45 0   ; collections.vader:298:5
+    local.set 2   ; collections.vader:298:5
+    local.get 2   ; collections.vader:298:5
+    local.get 1   ; collections.vader:298:5
+    bool.const true   ; collections.vader:298:5
+    call 4   ; collections.vader:298:5
+    bool.const true   ; collections.vader:299:12
+    return   ; collections.vader:299:5
+  end $L0   ; collections.vader:297:5
 end

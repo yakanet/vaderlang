@@ -1,0 +1,146 @@
+// std/cli — minimal declarative argv parser (MVP).
+//
+// Designed around the shape of the Vader CLI itself : a fixed set of named
+// flags + a positional argument list. No subcommand machinery yet — callers
+// dispatch on the first positional themselves (see `vader/cli/main.vader`).
+//
+// Flag forms recognised :
+//   --name              bool flag, sets `name → "true"`.
+//   --name=value        string flag.
+//   --                  stops flag parsing ; everything after is positional.
+//   <anything-else>     positional.
+//
+// Combined short flags (`-abc`), space-separated values (`--name value`) and
+// `=` inside values (`--out=a=b`) are out of scope for MVP. Add when a real
+// caller needs them.
+
+import "std/collections" { MutableMap }
+import "std/string" { starts_with, slice, byte_len, split }
+
+/// Kind of a flag — controls how a value (if any) is interpreted.
+/// `Bool` flags don't require a `=value` suffix (presence sets `"true"`).
+/// `Str` flags do — `--name` without a value surfaces an error.
+export FlagKind :: enum { Bool, Str }
+
+/// Specification of a single recognised flag. `name` is the canonical
+/// identifier *without* the leading `--`. Pass an array of these to `parse`.
+export FlagSpec :: struct {
+    name: string
+    kind: FlagKind
+}
+
+/// Parser output. `flags` carries every recognised flag's literal string
+/// value (bool flags resolve to `"true"`). `positionals` keeps the
+/// non-flag tokens in source order. `errors` lists unknown flags / missing
+/// values — non-fatal ; the caller decides whether to bail out.
+export ParsedArgs :: struct {
+    flags:       MutableMap(string, string)
+    positionals: string[]
+    errors:      string[]
+}
+
+/// Parse `args` against `specs`. Stateless one-pass scan ; tolerates
+/// unknown flags by reporting them in `errors` and continuing.
+/// @param args   tokens to parse — typically `argv[1..]` from main.
+/// @param specs  the flag set this caller accepts.
+/// @return       a populated `ParsedArgs`.
+export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
+    flags := MutableMap(string, string) { .buckets = [], .size = 0 }
+    positionals: string[] = []
+    errors: string[] = []
+    stop_flags := false
+
+    for a in args {
+        if stop_flags {
+            positionals.push(a)
+            continue
+        }
+        if a == "--" {
+            stop_flags = true
+            continue
+        }
+        if !a.starts_with("--") {
+            positionals.push(a)
+            continue
+        }
+
+        // Strip the leading `--` and split on the first `=`. Anything
+        // beyond the first `=` is treated as part of the value when the
+        // flag accepts one ; today `split("=")` keeps every separator so
+        // a `--name=a=b` value would surface as `parts.len() > 2`, which
+        // we collapse by rejoining at MVP scope-out.
+        rest :: a.slice(usize(2), a.byte_len())
+        parts :: rest.split("=")
+        name :: parts[0]
+        has_value :: parts.len() >= 2
+        value :: if has_value { parts[1] } else { "" }
+
+        spec :: find_spec(specs, name)
+        match spec {
+            is null -> {
+                errors.push("unknown flag --${name}")
+            }
+            is FlagSpec -> {
+                match spec.kind {
+                    .Bool -> {
+                        if has_value {
+                            if value == "true" || value == "false" {
+                                flags[name] = value
+                            } else {
+                                errors.push("--${name}: bool flag accepts true or false, got \"${value}\"")
+                            }
+                        } else {
+                            flags[name] = "true"
+                        }
+                    }
+                    .Str -> {
+                        if has_value {
+                            flags[name] = value
+                        } else {
+                            errors.push("--${name}: missing value, expected --${name}=<value>")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return ParsedArgs { .flags = flags, .positionals = positionals, .errors = errors }
+}
+
+// Linear scan of `specs` — caller-controlled small N (every CLI has a
+// handful of flags), so a hashmap would be overkill.
+find_spec :: fn(specs: FlagSpec[], name: string) -> FlagSpec | null {
+    for s in specs {
+        if s.name == name {
+            return s
+        }
+    }
+    return null
+}
+
+/// True iff `name` was seen as a bool flag (or set explicitly to `"true"`).
+/// Missing flag → `false`, no error.
+/// @param self  parser output.
+/// @param name  canonical flag name.
+export bool_flag :: fn(self: ParsedArgs, name: string) -> bool {
+    v :: self.flags[name]
+    match v {
+        is null   -> { return false }
+        is string -> { return v == "true" }
+    }
+    return false
+}
+
+/// Read a string flag, falling back to `default` when absent.
+/// @param self     parser output.
+/// @param name     canonical flag name.
+/// @param default  value returned when `name` wasn't on the command line.
+export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> string {
+    v :: self.flags[name]
+    match v {
+        is null   -> { return default }
+        is string -> { return v }
+    }
+    return default
+}
