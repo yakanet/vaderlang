@@ -20,9 +20,9 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
-type Target = "darwin-arm64" | "darwin-x64" | "linux-x64" | "windows-x64";
+type Target = "darwin-arm64" | "linux-x64" | "windows-x64";
 
-const TARGETS: readonly Target[] = ["darwin-arm64", "darwin-x64", "linux-x64", "windows-x64"];
+const TARGETS: readonly Target[] = ["darwin-arm64", "linux-x64", "windows-x64"];
 
 function isTarget(s: string): s is Target {
   return (TARGETS as readonly string[]).includes(s);
@@ -110,7 +110,7 @@ async function buildOne(target: Target, repoRoot: string): Promise<void> {
 async function main(): Promise<void> {
   const arg = process.argv[2];
   if (arg === undefined) {
-    console.error("usage: bun scripts/dist.ts <current|darwin-arm64|darwin-x64|linux-x64|windows-x64|all>");
+    console.error("usage: bun scripts/dist.ts <current|darwin-arm64|linux-x64|windows-x64|all>");
     process.exit(1);
   }
   const repoRoot = resolve(dirname(import.meta.dir));

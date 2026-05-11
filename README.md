@@ -24,13 +24,9 @@ A self-host port of the compiler in Vader itself is underway: the lexer (102/104
 Prebuilt archives ship the `vader` binary alongside its stdlib and C runtime. Extract anywhere, then run `vader` directly (or add the folder to your `PATH`, or symlink `vader-<os>-<arch>/vader` into `~/.local/bin/vader`).
 
 ```sh
-# macOS arm64
+# macOS arm64 (Apple Silicon — Intel Macs are not supported)
 tar -xzf vader-darwin-arm64.tar.gz
 ./vader-darwin-arm64/vader --version
-
-# macOS x64
-tar -xzf vader-darwin-x64.tar.gz
-./vader-darwin-x64/vader --version
 
 # Linux x64
 tar -xzf vader-linux-x64.tar.gz
@@ -86,7 +82,6 @@ bun run dist:current
 # Or cross-compile a specific target / all of them:
 bun run dist:linux-x64
 bun run dist:darwin-arm64
-bun run dist:darwin-x64
 bun run dist:windows-x64
 bun run dist:all
 ```
