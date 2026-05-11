@@ -59,11 +59,12 @@ export CommentMap :: struct {
     cursor:   usize
 }
 
-// Walk the source and collect every comment span. Mirrors the lexer's
-// classification : single-line `//` consumes to end-of-line ; block `/* */`
-// supports nesting (depth counter), like the lexer's `consume_block_comment`.
-// String literals are skipped so a `"contains // pseudo-comment"` literal
-// doesn't fool the scanner.
+/// Walk the source and collect every comment span. Mirrors the lexer's
+/// classification : single-line `//` consumes to end-of-line ; block `/* */`
+/// supports nesting (depth counter), like the lexer's `consume_block_comment`.
+/// String literals are skipped so a `"contains // pseudo-comment"` literal
+/// doesn't fool the scanner.
+/// @param source source code
 export scan_comments :: fn(source: string) -> CommentMap {
     out: Comment[] = []
     n :: source.byte_len()
