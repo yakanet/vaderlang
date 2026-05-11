@@ -242,9 +242,12 @@ bun test                                   # run all tests (lexer + parser + res
 bun run test:update                        # refresh snapshots after intentional output changes
 bun run typecheck                          # TypeScript check (no emit)
 bun vader dump --stage=ast file.vader      # convenience wrapper around `bun src/index.ts`
+RUN_FMT_TESTS=1 bun test                   # also exercise the Vader-implemented formatter end-to-end (slow, ~2 min)
 ```
 
 Snapshot tests live under `tests/snapshots/<phase>/<scenario>/` — each scenario is a folder with an `input.vader` and a `*.snap`. Setting `UPDATE_SNAPSHOTS=1` regenerates the snap files. Spotted a mismatch? Re-run with that env var, then `git diff` to review the change before committing.
+
+The formatter tests (`tests/formatter*.test.ts`) invoke `vader fmt` through the bytecode VM ; each invocation pays a ~2-3 s VM-bootstrap cost. They're gated behind `RUN_FMT_TESTS=1` so the default `bun test` stays fast. The stdlib suite includes a byte-for-byte no-op probe on the subset already converged on the canonical style.
 
 ---
 
