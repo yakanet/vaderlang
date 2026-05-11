@@ -1,0 +1,115 @@
+// vader/lsp/hover — `textDocument/hover` handler.
+//
+// The client sends `{ textDocument: { uri }, position: { line, character } }`
+// (both 0-based). We resolve the identifier under the cursor via the
+// per-document index ; on a hit we ship back a Markdown payload
+// combining the decl signature (rendered as a `vader` code block) and
+// the contiguous `///` vaderdoc lines that precede the decl.
+//
+// Response shape per LSP §3.17.16 : `{ contents: { kind, value }, range? }`.
+// We omit `range` for now — the client falls back to highlighting the
+// word under the cursor on its own.
+
+import "std/string" { byte_len }
+import "std/json" {
+    JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
+}
+import "std/collections" { MutableMap }
+import "vader/lsp/state" { ServerState, index_for }
+import "vader/lsp/indexer" { DocIndex, DeclEntry, find_at }
+
+/// Build the hover response payload for the position carried in `params`.
+/// Returns a `Hover` object on hit, `JsonNull` on miss.
+export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri == "" { return JsonNull {} }
+    line :: position_line(params)
+    character :: position_character(params)
+
+    idx :: state.index_for(uri)
+    match idx {
+        is null              -> { return JsonNull {} }
+        is DocIndex as index -> {
+            entry :: index.find_at(line, character)
+            match entry {
+                is null               -> { return JsonNull {} }
+                is DeclEntry as found -> { return hover_json(found) }
+            }
+        }
+    }
+    return JsonNull {}
+}
+
+// ---- payload encoding ----------------------------------------------------
+
+// Compose the Markdown body : a `vader` code-fenced signature, then a
+// blank line, then the (already-stripped) vaderdoc text. The blank
+// line keeps the two blocks visually separated in the client's
+// renderer ; clients that show plain text join them with a space.
+hover_json :: fn(d: DeclEntry) -> JsonValue {
+    body := "```vader\n" + d.signature + "\n```"
+    if d.doc.byte_len() > usize(0) {
+        body = body + "\n\n" + d.doc
+    }
+    contents :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    contents["kind"]  = JsonString { .value = "markdown" }
+    contents["value"] = JsonString { .value = body }
+
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["contents"] = JsonObject { .entries = contents }
+    return JsonObject { .entries = obj }
+}
+
+// ---- params extraction (mirrors definition.vader) ------------------------
+
+position_uri :: fn(params: JsonValue) -> string {
+    td :: get_field(params, "textDocument")
+    return get_string(td, "uri")
+}
+
+position_line :: fn(params: JsonValue) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, "line")
+}
+
+position_character :: fn(params: JsonValue) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, "character")
+}
+
+get_field :: fn(v: JsonValue, key: string) -> JsonValue {
+    match v {
+        is JsonObject as o -> {
+            f :: o.entries[key]
+            match f {
+                is null             -> { return JsonNull {} }
+                is JsonString as x  -> { return x }
+                is JsonNumber as x  -> { return x }
+                is JsonBool   as x  -> { return x }
+                is JsonNull   as x  -> { return x }
+                is JsonArray  as x  -> { return x }
+                is JsonObject as x  -> { return x }
+            }
+        }
+        _ -> { return JsonNull {} }
+    }
+    return JsonNull {}
+}
+
+get_string :: fn(v: JsonValue, key: string) -> string {
+    f :: get_field(v, key)
+    match f {
+        is JsonString as s -> { return s.value }
+        _ -> { return "" }
+    }
+    return ""
+}
+
+get_number :: fn(v: JsonValue, key: string) -> i32 {
+    f :: get_field(v, key)
+    match f {
+        is JsonNumber as n -> { return i32(n.value) }
+        _ -> { return 0 }
+    }
+    return 0
+}

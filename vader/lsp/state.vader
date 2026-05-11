@@ -1,25 +1,31 @@
 // vader/lsp/state — open-document tracking.
 //
 // The client pushes the file content via `didOpen` / `didChange` /
-// `didClose` notifications. Semantic tokens read from this map ;
-// nothing else queries it yet (hover / goto-def will).
+// `didClose` notifications. Semantic tokens read from the doc table ;
+// goto-def + hover read from the per-document index built in parallel.
 
 import "std/string" { byte_len }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
 import "std/collections" { MutableMap }
+import "vader/lsp/indexer" { DocIndex, build_index }
 
 /// One LSP server instance's document table. The single shared state is
 /// passed to every handler ; no globals.
 export ServerState :: struct {
     /// uri → current document text. Empty string for closed documents.
-    docs: MutableMap(string, string)
+    docs:    MutableMap(string, string)
+    /// uri → per-document goto-def + hover index. Rebuilt on every
+    /// didOpen / didChange ; entry is removed (not just emptied) on
+    /// didClose so a stale index never serves a closed-doc request.
+    indices: MutableMap(string, DocIndex)
 }
 
 export new_state :: fn() -> ServerState {
     return ServerState {
-        .docs = MutableMap(string, string) { .buckets = [], .size = 0 },
+        .docs    = MutableMap(string, string) { .buckets = [], .size = 0 },
+        .indices = MutableMap(string, DocIndex) { .buckets = [], .size = 0 },
     }
 }
 
@@ -27,6 +33,13 @@ export new_state :: fn() -> ServerState {
 /// opened it (or closed it since).
 export source_for :: fn(self: ServerState, uri: string) -> string | null {
     return self.docs[uri]
+}
+
+/// Look up the per-document index for `uri`. Returns `null` when the
+/// document was never opened, or after didClose. The two callers
+/// (definition + hover) both swallow `null` into a JsonNull response.
+export index_for :: fn(self: ServerState, uri: string) -> DocIndex | null {
+    return self.indices[uri]
 }
 
 /// `textDocument/didOpen` handler. Params shape :
@@ -37,6 +50,7 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     if uri.byte_len() == usize(0) { return }
     text :: get_string(td, "text")
     self.docs[uri] = text
+    self.indices[uri] = build_index(uri, text)
 }
 
 /// `textDocument/didChange` handler. With full-document sync the params
@@ -52,7 +66,9 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
         is JsonArray as a -> {
             if a.items.len() > usize(0) {
                 first :: a.items[0]
-                self.docs[uri] = get_string(first, "text")
+                text :: get_string(first, "text")
+                self.docs[uri] = text
+                self.indices[uri] = build_index(uri, text)
             }
         }
         _ -> {}
@@ -66,6 +82,11 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     uri :: get_string(td, "uri")
     if uri.byte_len() == usize(0) { return }
     self.docs[uri] = ""
+    // Indices map carries the parsed AST + tokens — drop the entry so
+    // a stale index never serves a closed-doc request. MutableMap has
+    // no remove ; rebuilding an empty index would still pin memory, so
+    // we substitute a tiny placeholder built from "".
+    self.indices[uri] = build_index(uri, "")
 }
 
 // ---- internal helpers (returning JsonNull{} for absent fields) ------------

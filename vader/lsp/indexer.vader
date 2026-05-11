@@ -1,0 +1,335 @@
+// vader/lsp/indexer — per-document index for goto-def + hover.
+//
+// The LSP server lives behind a deliberately narrow module surface
+// (`vader/lsp/main_entry.vader`) to dodge a generic-mono conflict that
+// the unified CLI triggers — that excludes `vader/parser` from the
+// reachable graph. So this indexer runs on the lexer's token stream
+// alone, scanning for top-level `IDENT :: <kw>` patterns to populate
+// a flat declaration table.
+//
+// MVP scope :
+//   - top-level decls (fn / struct / enum / trait / type-alias /
+//     constant), detected on a brace-depth = 0 boundary.
+//   - lookup is by name within the SAME document only ; cross-module
+//     imports are not resolved.
+//   - param / local / match-binding lookups are not supported.
+//   - signature is the verbatim source slice from the name up to the
+//     first `{` or `=` ; doc is the contiguous run of `///` comments
+//     immediately preceding the decl.
+
+import "std/string" { byte_len, byte_at, slice, trim }
+import "vader/lexer" { Token, TokenKind, tokenize }
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/fmt/comments" { Comment, CommentKind, CommentMap, scan_comments }
+
+// ASCII byte constants used while slicing the source for signatures
+// and stripping vaderdoc prefixes.
+BYTE_LF      :: u8(u32('\n'))
+BYTE_SPACE   :: u8(u32(' '))
+BYTE_TAB     :: u8(u32('\t'))
+BYTE_CR      :: u8(u32('\r'))
+
+/// What kind of declaration a DeclEntry points at. Drives the hover
+/// signature template + helps clients decide on icon / styling.
+export DeclKind :: enum(u8) {
+    Fn,
+    Struct,
+    Enum,
+    Trait,
+    TypeAlias,
+    Const,
+}
+
+/// One indexed declaration. `name_span` is what goto-def jumps to ;
+/// `signature` + `doc` feed the hover.
+export DeclEntry :: struct {
+    name:       string
+    kind:       DeclKind
+    name_span:  Span
+    full_span:  Span
+    signature:  string
+    doc:        string
+}
+
+/// Per-document index, rebuilt on every didOpen / didChange.
+export DocIndex :: struct {
+    uri:    string
+    source: string
+    tokens: Token[]
+    decls:  DeclEntry[]
+}
+
+/// Build the index for a freshly-opened or modified document.
+export build_index :: fn(uri: string, source: string) -> DocIndex {
+    l :: tokenize(source, uri)
+    cmap :: scan_comments(source)
+    entries :: collect_decls(l.tokens, source, cmap)
+    return DocIndex {
+        .uri    = uri,
+        .source = source,
+        .tokens = l.tokens,
+        .decls  = entries,
+    }
+}
+
+/// Find the decl whose name matches the identifier under (line, character).
+/// Both are 0-based per LSP. Returns null when no Ident token covers
+/// the position, or when the name is not a top-level decl.
+export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | null {
+    offset :: lsp_to_offset(idx.source, line, character)
+    name :: token_name_at(idx.tokens, offset)
+    if name.byte_len() == usize(0) { return null }
+    return lookup_by_name(idx.decls, name)
+}
+
+// ---- decl collection (token-stream scan) ---------------------------------
+
+// Walk the token stream looking for top-level `IDENT :: <kw|expr>` decls.
+// `brace_depth == 0` gates the match so we don't mistake a fn body's
+// inner `name :: ...` for a top-level decl. Bracketed groups (`[...]`)
+// don't gate ; they appear in generic params and stay shallow.
+collect_decls :: fn(tokens: Token[], source: string, cmap: CommentMap) -> DeclEntry[] {
+    out: DeclEntry[] = []
+    n :: tokens.len()
+    brace_depth: i32 = 0
+    i: usize = 0
+    for i < n {
+        t :: tokens[i]
+        if t.kind == .LBrace { brace_depth = brace_depth + 1 }
+        if t.kind == .RBrace { brace_depth = brace_depth - 1 }
+        if brace_depth == 0 && t.kind == .Ident && is_decl_after(tokens, i) {
+            kind_tok_idx :: skip_export(tokens, i + usize(2))
+            kind :: classify_decl(tokens, kind_tok_idx)
+            full_end :: find_decl_end(tokens, kind_tok_idx, n)
+            full_span :: Span { .start = t.span.start, .end = tokens[full_end].span.end }
+            sig :: signature_slice(source, t.span.start.offset, full_span.end.offset)
+            doc :: leading_doc(cmap, t.span.start.offset, source)
+            out.push(DeclEntry {
+                .name      = t.text,
+                .kind      = kind,
+                .name_span = t.span,
+                .full_span = full_span,
+                .signature = sig,
+                .doc       = doc,
+            })
+            // Jump past the decl head to avoid re-matching inner names.
+            i = kind_tok_idx
+            continue
+        }
+        i = i + usize(1)
+    }
+    return out
+}
+
+// True when `tokens[i]` is followed by `::` (with an optional preceding
+// `export` keyword absorbed by `skip_export`). Top-level form :
+//   [export] IDENT ::
+is_decl_after :: fn(tokens: Token[], i: usize) -> bool {
+    if i + usize(1) >= tokens.len() { return false }
+    return tokens[i + usize(1)].kind == .DeclConst
+}
+
+// Move past the `IDENT ::` pair and an optional leading `export`
+// keyword that may sit BEFORE the IDENT in the surface syntax.
+skip_export :: fn(tokens: Token[], i: usize) -> usize {
+    n :: tokens.len()
+    j: usize = i
+    for j < n && (tokens[j].kind == .Newline) {
+        j = j + usize(1)
+    }
+    return j
+}
+
+// Decide a decl's kind by peeking at the token that follows `::`.
+//   fn     → Fn
+//   struct → Struct
+//   enum   → Enum
+//   trait  → Trait
+// Otherwise default to Const ; TypeAliasDecl shares the surface
+// `name :: <type-expr>` so it can't be distinguished without parsing.
+classify_decl :: fn(tokens: Token[], i: usize) -> DeclKind {
+    if i >= tokens.len() { return .Const }
+    k :: tokens[i].kind
+    if k == .KwFn     { return .Fn }
+    if k == .KwStruct { return .Struct }
+    if k == .KwEnum   { return .Enum }
+    if k == .KwTrait  { return .Trait }
+    return .Const
+}
+
+// Find the last token of the decl that started at `kind_tok_idx`.
+// Strategy : walk until brace depth returns to its pre-decl level AND
+// we hit a newline OR EOF. For decls without braces (consts, type
+// aliases) the first newline at depth-0 ends the decl.
+find_decl_end :: fn(tokens: Token[], start: usize, n: usize) -> usize {
+    depth: i32 = 0
+    last: usize = start
+    i: usize = start
+    for i < n {
+        t :: tokens[i]
+        if t.kind == .LBrace { depth = depth + 1 }
+        if t.kind == .RBrace {
+            depth = depth - 1
+            if depth == 0 {
+                last = i
+                return last
+            }
+        }
+        if depth == 0 && t.kind == .Newline && i > start {
+            return last
+        }
+        if t.kind != .Newline {
+            last = i
+        }
+        i = i + usize(1)
+    }
+    if last < n { return last }
+    if n == usize(0) { return 0 }
+    return n - usize(1)
+}
+
+// Hover signature : the source slice from the decl's start up to the
+// first `{` or `=` byte found, trimmed. Keeps it readable (no body).
+signature_slice :: fn(source: string, start: usize, end: usize) -> string {
+    cap :: source.byte_len()
+    upper :: if end > cap { cap } else { end }
+    cursor: usize = start
+    for cursor < upper {
+        b :: source.byte_at(cursor)
+        if b == u8(u32('{')) { break }
+        if b == u8(u32('=')) { break }
+        if b == BYTE_LF { break }
+        cursor = cursor + usize(1)
+    }
+    return source.slice(start, cursor).trim()
+}
+
+// ---- vaderdoc extraction --------------------------------------------------
+
+// Collect every `///` comment whose end is contiguous (only whitespace
+// between) with the decl's start. Strips the leading `/// ` (or `///`)
+// prefix from each line and joins with `\n`.
+leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string {
+    n :: cmap.comments.len()
+    if n == usize(0) { return "" }
+    next_boundary := decl_start
+    first_idx: i32 = -1
+    i: i32 = i32(n) - 1
+    for i >= 0 {
+        c :: cmap.comments[usize(i)]
+        if c.end_offset > next_boundary {
+            i = i - 1
+            continue
+        }
+        if !whitespace_between(source, c.end_offset, next_boundary) { break }
+        if c.kind != .DocLine { break }
+        first_idx = i
+        next_boundary = c.offset
+        i = i - 1
+    }
+    if first_idx < 0 { return "" }
+    out := ""
+    j: usize = usize(first_idx)
+    for j < n {
+        c :: cmap.comments[j]
+        if c.kind != .DocLine { break }
+        if c.offset >= decl_start { break }
+        line :: strip_doc_prefix(c.text)
+        if out.byte_len() == usize(0) {
+            out = line
+        } else {
+            out = out + "\n" + line
+        }
+        j = j + usize(1)
+    }
+    return out
+}
+
+// True when [start, end) in `source` contains only whitespace bytes.
+whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
+    cursor: usize = start
+    for cursor < end {
+        b :: source.byte_at(cursor)
+        if b != BYTE_SPACE && b != BYTE_TAB && b != BYTE_LF && b != BYTE_CR {
+            return false
+        }
+        cursor = cursor + usize(1)
+    }
+    return true
+}
+
+// Drop the `///` (or `/// `) prefix from a single comment line.
+strip_doc_prefix :: fn(text: string) -> string {
+    n :: text.byte_len()
+    if n < usize(3) { return text }
+    cursor: usize = 3
+    if cursor < n && text.byte_at(cursor) == BYTE_SPACE {
+        cursor = cursor + usize(1)
+    }
+    return text.slice(cursor, n)
+}
+
+// ---- token-based identifier lookup at a source offset --------------------
+
+// Linear scan ; per-file token counts stay well below 10k so binary
+// search isn't worth the complexity for the MVP.
+token_name_at :: fn(tokens: Token[], offset: usize) -> string {
+    for t in tokens {
+        if t.kind != .Ident { continue }
+        if t.span.start.offset <= offset && offset < t.span.end.offset {
+            return t.text
+        }
+    }
+    return ""
+}
+
+// Linear scan of the decl table. The first match wins (Vader doesn't
+// allow overload at the top level for two same-named non-fn decls).
+lookup_by_name :: fn(decls: DeclEntry[], name: string) -> DeclEntry | null {
+    for d in decls {
+        if d.name == name { return d }
+    }
+    return null
+}
+
+// ---- LSP position conversion ---------------------------------------------
+
+// LSP positions are 0-based (line + character). `character` is supposed
+// to be UTF-16 code units, but the MVP treats it as a UTF-8 byte offset
+// within the line. ASCII names round-trip cleanly ; non-ASCII identifiers
+// (rare in Vader code) may misalign by a few bytes — acceptable for the
+// MVP.
+lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
+    n :: source.byte_len()
+    cur_line: i32 = 0
+    cursor: usize = 0
+    for cursor < n {
+        if cur_line == line { break }
+        b :: source.byte_at(cursor)
+        cursor = cursor + usize(1)
+        if b == BYTE_LF { cur_line = cur_line + 1 }
+    }
+    if character <= 0 { return cursor }
+    return cursor + usize(character)
+}
+
+/// Convert a Span to an LSP-style range (0-based line + character).
+/// Exposed because both `definition` and `hover` need it to ship the
+/// jump target / hover bounds back to the client.
+export span_to_range_json :: fn(s: Span) -> SpanRange {
+    return SpanRange {
+        .start_line      = s.start.line - 1,
+        .start_character = s.start.column - 1,
+        .end_line        = s.end.line - 1,
+        .end_character   = s.end.column - 1,
+    }
+}
+
+/// LSP-encoded range : 0-based line + character pairs. The handler
+/// modules wrap this into JSON before sending it back over the wire.
+export SpanRange :: struct {
+    start_line:      i32
+    start_character: i32
+    end_line:        i32
+    end_character:   i32
+}

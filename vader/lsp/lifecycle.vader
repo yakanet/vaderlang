@@ -57,6 +57,8 @@ export server_capabilities :: fn() -> JsonValue {
     caps :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
     caps["textDocumentSync"]        = text_document_sync
     caps["semanticTokensProvider"]  = JsonObject { .entries = semantic_provider }
+    caps["definitionProvider"]      = JsonBool { .value = true }
+    caps["hoverProvider"]           = JsonBool { .value = true }
     return JsonObject { .entries = caps }
 }
 

@@ -1,0 +1,124 @@
+// vader/lsp/definition — `textDocument/definition` handler.
+//
+// The client sends `{ textDocument: { uri }, position: { line, character } }`
+// (both 0-based). We look up the per-document index built in
+// `vader/lsp/state` and ask the indexer for the decl whose name matches
+// the identifier under the cursor.
+//
+// Response shape : a single `Location { uri, range }` for a hit, or
+// `JsonNull` when the cursor isn't on a known top-level decl name.
+// Returning `null` lets the client gracefully degrade ; returning an
+// empty array (`[]`) is also valid per the LSP spec, but `null` is
+// cheaper to encode and what most servers do for an absence.
+
+import "std/json" {
+    JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
+}
+import "std/collections" { MutableMap }
+import "vader/lsp/state" { ServerState, index_for }
+import "vader/lsp/indexer" { DocIndex, DeclEntry, find_at, span_to_range_json, SpanRange }
+
+/// Resolve goto-def for the position carried in `params`. Returns a
+/// JSON-encoded `Location` or `JsonNull` for "no result".
+export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri == "" { return JsonNull {} }
+    line :: position_line(params)
+    character :: position_character(params)
+
+    idx :: state.index_for(uri)
+    match idx {
+        is null              -> { return JsonNull {} }
+        is DocIndex as index -> {
+            entry :: index.find_at(line, character)
+            match entry {
+                is null                -> { return JsonNull {} }
+                is DeclEntry as found  -> { return location_json(uri, found.name_span.span_to_range_json()) }
+            }
+        }
+    }
+    return JsonNull {}
+}
+
+// ---- JSON encoding helpers -----------------------------------------------
+
+location_json :: fn(uri: string, range: SpanRange) -> JsonValue {
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["uri"]   = JsonString { .value = uri }
+    obj["range"] = range_json(range)
+    return JsonObject { .entries = obj }
+}
+
+range_json :: fn(r: SpanRange) -> JsonValue {
+    start :: position_json(r.start_line, r.start_character)
+    endp  :: position_json(r.end_line,   r.end_character)
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["start"] = start
+    obj["end"]   = endp
+    return JsonObject { .entries = obj }
+}
+
+position_json :: fn(line: i32, character: i32) -> JsonValue {
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["line"]      = JsonNumber { .value = f64(line) }
+    obj["character"] = JsonNumber { .value = f64(character) }
+    return JsonObject { .entries = obj }
+}
+
+// ---- params extraction ---------------------------------------------------
+
+position_uri :: fn(params: JsonValue) -> string {
+    td :: get_field(params, "textDocument")
+    return get_string(td, "uri")
+}
+
+position_line :: fn(params: JsonValue) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, "line")
+}
+
+position_character :: fn(params: JsonValue) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, "character")
+}
+
+// JSON object-field accessors. Mirror the helpers in `state.vader` ;
+// duplicated here so this module doesn't pull a circular dependency on
+// state's private surface.
+
+get_field :: fn(v: JsonValue, key: string) -> JsonValue {
+    match v {
+        is JsonObject as o -> {
+            f :: o.entries[key]
+            match f {
+                is null             -> { return JsonNull {} }
+                is JsonString as x  -> { return x }
+                is JsonNumber as x  -> { return x }
+                is JsonBool   as x  -> { return x }
+                is JsonNull   as x  -> { return x }
+                is JsonArray  as x  -> { return x }
+                is JsonObject as x  -> { return x }
+            }
+        }
+        _ -> { return JsonNull {} }
+    }
+    return JsonNull {}
+}
+
+get_string :: fn(v: JsonValue, key: string) -> string {
+    f :: get_field(v, key)
+    match f {
+        is JsonString as s -> { return s.value }
+        _ -> { return "" }
+    }
+    return ""
+}
+
+get_number :: fn(v: JsonValue, key: string) -> i32 {
+    f :: get_field(v, key)
+    match f {
+        is JsonNumber as n -> { return i32(n.value) }
+        _ -> { return 0 }
+    }
+    return 0
+}

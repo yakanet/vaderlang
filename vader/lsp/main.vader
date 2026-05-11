@@ -23,6 +23,8 @@ import "vader/lsp/transport" { read_frame, write_frame }
 import "vader/lsp/lifecycle" { handle_initialize, server_capabilities }
 import "vader/lsp/state" { ServerState, new_state, handle_did_open, handle_did_change, handle_did_close }
 import "vader/lsp/semantic_tokens" { handle_semantic_tokens_full }
+import "vader/lsp/definition" { handle_definition }
+import "vader/lsp/hover" { handle_hover }
 import "vader/lsp/rpc" { request_id, method_name, params_value, encode_response, encode_method_not_found, encode_error, is_json_null }
 import "vader/lsp/log" { log_info, log_warn }
 
@@ -117,6 +119,18 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
         result :: handle_semantic_tokens_full(state, params)
         write_frame(encode_response(id, result))
         log_info("semanticTokens/full ${doc_uri(params)}")
+        return DispatchResult.Continue
+    }
+    if method == "textDocument/definition" {
+        result :: handle_definition(state, params)
+        write_frame(encode_response(id, result))
+        log_info("definition ${doc_uri(params)}")
+        return DispatchResult.Continue
+    }
+    if method == "textDocument/hover" {
+        result :: handle_hover(state, params)
+        write_frame(encode_response(id, result))
+        log_info("hover ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     // Unknown method. Respond with MethodNotFound for requests (have an
