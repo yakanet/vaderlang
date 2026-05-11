@@ -21,5 +21,10 @@
     <extensions defaultExtensionNs="com.intellij">
         <textmate.bundleProvider implementation="dev.vaderlang.intellij.VaderBundleProvider"/>
         <fileIconProvider implementation="dev.vaderlang.intellij.VaderFileIconProvider"/>
+        <applicationConfigurable
+            instance="dev.vaderlang.intellij.VaderConfigurable"
+            id="dev.vaderlang.intellij.config"
+            displayName="Vader"
+            parentId="tools"/>
     </extensions>
 </idea-plugin>

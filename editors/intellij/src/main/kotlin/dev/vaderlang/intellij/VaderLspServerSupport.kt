@@ -32,10 +32,14 @@ private class VaderLspServerDescriptor(project: Project) :
 
     override fun isSupportedFile(file: VirtualFile): Boolean = file.extension == "vader"
 
-    // The descriptor mirrors the VSCode extension's default: spawn `vader lsp`
-    // from PATH. Users who installed the binary outside their PATH need to
-    // either symlink it or arrange their IDE launcher to inherit the right
-    // environment — same constraint as the VSCode side.
-    override fun createCommandLine(): GeneralCommandLine =
-        GeneralCommandLine("vader", "lsp")
+    // Resolve the binary from `Settings → Tools → Vader` when set,
+    // otherwise fall back to `vader` from PATH (matches the VSCode
+    // extension's `vader.lsp.path` default). The override avoids the
+    // "the IDE launcher doesn't inherit my shell PATH" foot-gun that
+    // hits macOS users opening IntelliJ from Spotlight.
+    override fun createCommandLine(): GeneralCommandLine {
+        val configured = VaderSettings.getInstance().lspPath.trim()
+        val binary = if (configured.isNotEmpty()) configured else "vader"
+        return GeneralCommandLine(binary, "lsp")
+    }
 }
