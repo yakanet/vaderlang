@@ -16,8 +16,8 @@ IOError implements Error {
 // `Display` ; the lowerer coerces the argument through the matching
 // `to_string` impl before reaching the host hook (no per-type wrapper
 // monomorphisation, no virtual dispatch — see `lower/passes/display-coerce.ts`).
-@intrinsic export print    :: fn(msg: Display) -> void
-@intrinsic export println  :: fn(msg: Display) -> void
+@intrinsic export print   :: fn(msg: Display) -> void
+@intrinsic export println :: fn(msg: Display) -> void
 
 // eprint / eprintln — same for stderr.
 @intrinsic export eprint   :: fn(msg: Display) -> void
@@ -33,4 +33,4 @@ IOError implements Error {
 @intrinsic export is_dir     :: fn(path: string) -> bool
 // `read_dir` lists immediate entries (relative names, no `.` / `..`) in
 // OS-provided order. Caller joins against `path` if absolute paths are wanted.
-@intrinsic export read_dir   :: fn(path: string) -> string[]!
+@intrinsic export read_dir :: fn(path: string) -> string[]!
