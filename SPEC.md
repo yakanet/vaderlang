@@ -2075,17 +2075,20 @@ semantics, and `s.add(v)` reads more clearly than `s[v] = true` ever could.
 ### `std/math`
 
 ```vader
-// Comparison + helpers — overloaded on `i32` and `f64`. A generic
+// Comparison + helpers — overloaded on `i32`, `usize`, and `f64`. A generic
 // `Comparable`-driven variant (one fn body for any `T: Comparable`) is post-MVP : the
 // body needs to default-init a slot of type `T` before threading it through
 // `compare`, which is gated on `Default[T]` / a `zero[T]()` intrinsic.
 min   :: fn(a: i32, b: i32) -> i32
+min   :: fn(a: usize, b: usize) -> usize
 min   :: fn(a: f64, b: f64) -> f64
 max   :: fn(a: i32, b: i32) -> i32
+max   :: fn(a: usize, b: usize) -> usize
 max   :: fn(a: f64, b: f64) -> f64
 abs   :: fn(x: i32) -> i32
 abs   :: fn(x: f64) -> f64
 clamp :: fn(x: i32, lo: i32, hi: i32) -> i32
+clamp :: fn(x: usize, lo: usize, hi: usize) -> usize
 clamp :: fn(x: f64, lo: f64, hi: f64) -> f64
 lerp  :: fn(a: f64, b: f64, t: f64) -> f64        // a + (b - a) * clamp(t, 0.0, 1.0)
 
@@ -2099,8 +2102,8 @@ sin   :: fn(x: f64) -> f64
 cos   :: fn(x: f64) -> f64
 tan   :: fn(x: f64) -> f64
 
-const pi: f64
-const e:  f64
+pi :: 3.141592653589793
+e  :: 2.718281828459045
 ```
 
 ### `std/iter`
@@ -2622,13 +2625,16 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - Async / await
 - Kotlin-style coroutines
 - Native threads (`std/thread`)
-- Networking, regex, json, time, random
-- LSP
+- Networking, regex, time, random
 - Programmable build API (`build.vader`)
 - External packages
 - Pure WASM compilation without WASI
 - Full array slicing
 - `vader init [name]`: project scaffolder (creates the dir, an `examples/hello.vader`, and a default `vader.json`)
+
+Already landed (cross-reference for B's reader) :
+- `std/json` (in MVP — §15 `std/json`)
+- LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
 
 ### C. Glossary
 
