@@ -1,0 +1,559 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "Day",
+      "visibility": "private",
+      "repr": null,
+      "variants": [
+        {
+          "name": "Monday",
+          "value": null
+        },
+        {
+          "name": "Tuesday",
+          "value": null
+        },
+        {
+          "name": "Wednesday",
+          "value": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Some",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "value",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "None",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [],
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "Maybe",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "BinaryExpr",
+        "op": "bitor",
+        "left": {
+          "kind": "IdentExpr",
+          "name": "Some"
+        },
+        "right": {
+          "kind": "IdentExpr",
+          "name": "None"
+        }
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "show_day",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "d",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "Day"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "string"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "d"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "Monday"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "Mon"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "Tuesday"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "Tue"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "Wednesday"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "Wed"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a"
+            },
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Day"
+            },
+            "value": {
+              "kind": "DotVariantExpr",
+              "variant": "Monday"
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "show_day"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "IdentExpr",
+                          "name": "a"
+                        },
+                        "spread": false
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "days"
+            },
+            "type": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "Day"
+              }
+            },
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "DotVariantExpr",
+                  "variant": "Monday"
+                },
+                {
+                  "kind": "DotVariantExpr",
+                  "variant": "Wednesday"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "d",
+              "iter": {
+                "kind": "IdentExpr",
+                "name": "days"
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "show_day"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "IdentExpr",
+                            "name": "d"
+                          },
+                          "spread": false
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "m"
+            },
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Maybe"
+            },
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Some"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "value",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "42n",
+                    "suffix": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "m"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "IsPattern",
+                    "type": {
+                      "kind": "IdentExpr",
+                      "name": "Some",
+                      "implicitDot": true
+                    },
+                    "inner": null,
+                    "bindAs": null
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "got="
+                            },
+                            {
+                              "kind": "interp",
+                              "expr": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "m"
+                                },
+                                "field": "value"
+                              }
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "IsPattern",
+                    "type": {
+                      "kind": "IdentExpr",
+                      "name": "None",
+                      "implicitDot": true
+                    },
+                    "inner": null,
+                    "bindAs": null
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "nothing"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Maybe"
+            },
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "None"
+              },
+              "items": []
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "n"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "IsPattern",
+                    "type": {
+                      "kind": "IdentExpr",
+                      "name": "Some",
+                      "implicitDot": true
+                    },
+                    "inner": null,
+                    "bindAs": null
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "got="
+                            },
+                            {
+                              "kind": "interp",
+                              "expr": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "n"
+                                },
+                                "field": "value"
+                              }
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "IsPattern",
+                    "type": {
+                      "kind": "IdentExpr",
+                      "name": "None",
+                      "implicitDot": true
+                    },
+                    "inner": null,
+                    "bindAs": null
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "nothing"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

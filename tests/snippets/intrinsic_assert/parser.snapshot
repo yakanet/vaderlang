@@ -1,0 +1,362 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": [
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "size_of",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i8"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "1n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "size_of",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "4n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "size_of",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i64"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "8n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "size_of",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "string"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "16n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "align_of",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "4n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "align_of",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i64"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "8n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "type_kind",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "primitive"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "type_kind",
+                "args": [
+                  {
+                    "kind": "ArrayTypeExpr",
+                    "element": {
+                      "kind": "IdentExpr",
+                      "name": "i32"
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "array"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "type_kind",
+                "args": [
+                  {
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "IdentExpr",
+                        "name": "i32"
+                      },
+                      {
+                        "kind": "IdentExpr",
+                        "name": "i32"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "right": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "tuple"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "type_name",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "i32"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "type_name",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "string"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "string"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "size_of",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "4n",
+                "suffix": null
+              }
+            },
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "i32 must be 4 bytes on this target"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

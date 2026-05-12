@@ -1,0 +1,111 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "FILENAME",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "StringLitExpr",
+        "parts": [
+          {
+            "kind": "text",
+            "value": "data"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "GREETING",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "IntrinsicCallExpr",
+        "name": "file",
+        "args": [
+          {
+            "kind": "StringLitExpr",
+            "parts": [
+              {
+                "kind": "interp",
+                "expr": {
+                  "kind": "IdentExpr",
+                  "name": "FILENAME"
+                }
+              },
+              {
+                "kind": "text",
+                "value": ".txt"
+              }
+            ]
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "GREETING"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

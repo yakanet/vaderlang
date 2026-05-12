@@ -1,0 +1,217 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s8"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntrinsicCallExpr",
+              "name": "size_of",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i8"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s32"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntrinsicCallExpr",
+              "name": "size_of",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s64"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntrinsicCallExpr",
+              "name": "size_of",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i64"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sstr"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntrinsicCallExpr",
+              "name": "size_of",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a32"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntrinsicCallExpr",
+              "name": "align_of",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a64"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntrinsicCallExpr",
+              "name": "align_of",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i64"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "name"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntrinsicCallExpr",
+              "name": "type_name",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "BinaryExpr",
+                    "op": "add",
+                    "left": {
+                      "kind": "BinaryExpr",
+                      "op": "add",
+                      "left": {
+                        "kind": "BinaryExpr",
+                        "op": "add",
+                        "left": {
+                          "kind": "BinaryExpr",
+                          "op": "add",
+                          "left": {
+                            "kind": "BinaryExpr",
+                            "op": "add",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "s8"
+                            },
+                            "right": {
+                              "kind": "IdentExpr",
+                              "name": "s32"
+                            }
+                          },
+                          "right": {
+                            "kind": "IdentExpr",
+                            "name": "s64"
+                          }
+                        },
+                        "right": {
+                          "kind": "IdentExpr",
+                          "name": "sstr"
+                        }
+                      },
+                      "right": {
+                        "kind": "IdentExpr",
+                        "name": "a32"
+                      }
+                    },
+                    "right": {
+                      "kind": "IdentExpr",
+                      "name": "a64"
+                    }
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

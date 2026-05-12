@@ -201,14 +201,45 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     // promotes — mixing `@comptime @assert(...)` would be ambiguous.
     if decorators.len() == 1 && decorators[0].name == "assert" {
         dec :: decorators[0]
-        if dec.args.len() != 1 {
+        if dec.args.len() < 1 || dec.args.len() > 2 {
             p.error(.UnknownDecoratorPlacement, dec.span,
-                "`@assert` expects exactly one expression argument")
+                "`@assert` expects 1 or 2 arguments : `@assert(cond)` or `@assert(cond, \"message\")`")
             return null
+        }
+        message: string | null = null
+        if dec.args.len() == 2 {
+            msg_arg :: dec.args[1]
+            // Optional second arg : a *static* string literal (no
+            // interpolation). Extract its decoded text from the single
+            // `StringLitText` part, otherwise surface P1014.
+            match msg_arg {
+                is StringLitExpr as s -> {
+                    if s.parts.len() == 1 {
+                        match s.parts[0] {
+                            is StringLitText as t -> { message = t.value }
+                            _ -> {
+                                p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                                    "`@assert` message must be a static string literal (no interpolation)")
+                                return null
+                            }
+                        }
+                    } else {
+                        p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                            "`@assert` message must be a static string literal (no interpolation)")
+                        return null
+                    }
+                }
+                _ -> {
+                    p.error(.UnknownDecoratorPlacement, msg_arg.span,
+                        "`@assert` message must be a static string literal (no interpolation)")
+                    return null
+                }
+            }
         }
         return AssertDecl {
             .span       = dec.span,
             .condition  = dec.args[0],
+            .message    = message,
             .decorators = [],
         }
     }

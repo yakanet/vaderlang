@@ -1,0 +1,98 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ConstDecl",
+      "name": "GREETING",
+      "visibility": "public",
+      "type": null,
+      "value": {
+        "kind": "StringLitExpr",
+        "parts": [
+          {
+            "kind": "text",
+            "value": "Hello, "
+          },
+          {
+            "kind": "interp",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "name"
+              },
+              "args": []
+            }
+          },
+          {
+            "kind": "text",
+            "value": "!"
+          }
+        ]
+      },
+      "decorators": [
+        {
+          "name": "comptime",
+          "args": []
+        }
+      ]
+    },
+    {
+      "kind": "FnDecl",
+      "name": "name",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "string"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "Vader"
+                }
+              ]
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

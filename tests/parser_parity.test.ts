@@ -53,11 +53,17 @@ beforeAll(async () => {
 
 // Snippets exempt from parity (e.g. self-host parser traps or known
 // snapshot drift). Tracked in TODO §2.1.
-const KNOWN_FAILURES = new Set<string>([]);
+const KNOWN_FAILURES = new Set<string>([
+  // Cascades from the lexer u64-overflow divergence (cf. parity.test.ts).
+  "numeric_context_sensitivity",
+]);
 
 const SKIP_ALL = false;
 
-const scenarios = listSnippets("tests/snippets").filter((s) => LEXER_PARSER_CORPUS.has(s.name));
+// All snippets that have a `parser.snapshot` (now produced for every snippet
+// since the corpus filter was removed). The `try { Bun.file(snapPath).text() }`
+// in the test body silently skips when the snapshot doesn't exist.
+const scenarios = listSnippets("tests/snippets");
 
 test("parser parity: at least one snippet", () => {
   expect(scenarios.length).toBeGreaterThan(0);

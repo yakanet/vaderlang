@@ -1,0 +1,134 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "TraitDecl",
+      "name": "Numeric",
+      "visibility": "private",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "requires": {
+        "kind": "BinaryExpr",
+        "op": "bitand",
+        "left": {
+          "kind": "BinaryExpr",
+          "op": "bitand",
+          "left": {
+            "kind": "IdentExpr",
+            "name": "Add"
+          },
+          "right": {
+            "kind": "IdentExpr",
+            "name": "Sub"
+          }
+        },
+        "right": {
+          "kind": "IdentExpr",
+          "name": "Mul"
+        }
+      },
+      "members": [],
+      "decorators": []
+    },
+    {
+      "kind": "TraitDecl",
+      "name": "Hashable",
+      "visibility": "private",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "requires": {
+        "kind": "BinaryExpr",
+        "op": "bitand",
+        "left": {
+          "kind": "IdentExpr",
+          "name": "Hash"
+        },
+        "right": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        }
+      },
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "fingerprint",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": {
+                "kind": "IdentExpr",
+                "name": "T"
+              },
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "u64"
+          },
+          "body": null,
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "TraitDecl",
+      "name": "Aliased",
+      "visibility": "private",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "requires": {
+        "kind": "IdentExpr",
+        "name": "Numeric"
+      },
+      "members": [],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

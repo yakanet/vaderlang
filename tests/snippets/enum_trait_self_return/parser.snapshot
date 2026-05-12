@@ -1,0 +1,506 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "Direction",
+      "visibility": "private",
+      "repr": null,
+      "variants": [
+        {
+          "name": "North",
+          "value": null
+        },
+        {
+          "name": "East",
+          "value": null
+        },
+        {
+          "name": "South",
+          "value": null
+        },
+        {
+          "name": "West",
+          "value": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "TraitDecl",
+      "name": "Turnable",
+      "visibility": "private",
+      "typeParams": [],
+      "requires": null,
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "turn_left",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "Self"
+          },
+          "body": null,
+          "decorators": []
+        },
+        {
+          "kind": "FnDecl",
+          "name": "turn_right",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "Self"
+          },
+          "body": null,
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "typeParams": [],
+      "forType": {
+        "kind": "IdentExpr",
+        "name": "Direction"
+      },
+      "traitName": "Turnable",
+      "traitArgs": [],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "turn_left",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": null,
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [],
+            "trailing": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "self"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "North"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "DotVariantExpr",
+                    "variant": "West"
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "West"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "DotVariantExpr",
+                    "variant": "South"
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "South"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "DotVariantExpr",
+                    "variant": "East"
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "East"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "DotVariantExpr",
+                    "variant": "North"
+                  }
+                }
+              ]
+            }
+          },
+          "decorators": [],
+          "isExpressionBodied": true
+        },
+        {
+          "kind": "FnDecl",
+          "name": "turn_right",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": null,
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [],
+            "trailing": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "self"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "North"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "DotVariantExpr",
+                    "variant": "East"
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "East"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "DotVariantExpr",
+                    "variant": "South"
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "South"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "DotVariantExpr",
+                    "variant": "West"
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "West"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "DotVariantExpr",
+                    "variant": "North"
+                  }
+                }
+              ]
+            }
+          },
+          "decorators": [],
+          "isExpressionBodied": true
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "typeParams": [],
+      "forType": {
+        "kind": "IdentExpr",
+        "name": "Direction"
+      },
+      "traitName": "Display",
+      "traitArgs": [],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "to_string",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": null,
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [],
+            "trailing": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "self"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "North"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "N"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "East"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "E"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "South"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "S"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "EnumVariantPattern",
+                    "variant": "West"
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "W"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "decorators": [],
+          "isExpressionBodied": true
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "d"
+            },
+            "type": null,
+            "value": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "Direction"
+              },
+              "field": "North"
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "d"
+                      },
+                      "field": "to_string"
+                    },
+                    "args": []
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "d"
+                          },
+                          "field": "turn_left"
+                        },
+                        "args": []
+                      },
+                      "field": "to_string"
+                    },
+                    "args": []
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "d"
+                          },
+                          "field": "turn_right"
+                        },
+                        "args": []
+                      },
+                      "field": "to_string"
+                    },
+                    "args": []
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

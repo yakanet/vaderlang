@@ -1,0 +1,208 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "IntrinsicCallExpr",
+                "name": "satisfies",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  },
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Add"
+                  }
+                ]
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "ReturnStmt",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "99n",
+                      "suffix": null
+                    }
+                  }
+                ],
+                "trailing": null
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": [
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "IntrinsicCallExpr",
+              "name": "satisfies",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "Add"
+                }
+              ]
+            },
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "string implements Add (concat)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "IntrinsicCallExpr",
+              "name": "satisfies",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "Hash"
+                }
+              ]
+            },
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "string implements Hash"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "IntrinsicCallExpr",
+              "name": "satisfies",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "Hash"
+                }
+              ]
+            },
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "i32 implements Hash"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "IntrinsicCallExpr",
+              "name": "satisfies",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "u32"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "Hash"
+                }
+              ]
+            },
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "u32 implements Hash"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "IntrinsicCallExpr",
+              "name": "satisfies",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "usize"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "Hash"
+                }
+              ]
+            },
+            {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "usize implements Hash"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

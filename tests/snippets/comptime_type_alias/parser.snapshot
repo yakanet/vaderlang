@@ -1,0 +1,208 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "byte_int",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "decorators": [
+        {
+          "name": "comptime",
+          "args": []
+        }
+      ]
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "byte_long",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "IdentExpr",
+        "name": "i64"
+      },
+      "decorators": [
+        {
+          "name": "comptime",
+          "args": []
+        }
+      ]
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "byte_string",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "IdentExpr",
+        "name": "string"
+      },
+      "decorators": [
+        {
+          "name": "comptime",
+          "args": []
+        }
+      ]
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "size i32     = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IntrinsicCallExpr",
+                          "name": "size_of",
+                          "args": [
+                            {
+                              "kind": "IdentExpr",
+                              "name": "byte_int"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "size i64     = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IntrinsicCallExpr",
+                          "name": "size_of",
+                          "args": [
+                            {
+                              "kind": "IdentExpr",
+                              "name": "byte_long"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "size string  = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IntrinsicCallExpr",
+                          "name": "size_of",
+                          "args": [
+                            {
+                              "kind": "IdentExpr",
+                              "name": "byte_string"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

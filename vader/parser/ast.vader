@@ -257,6 +257,7 @@ export AssertDecl :: struct {
     span:       Span
     id:       usize = UNASSIGNED_NODE_ID
     condition:  Expr
+    message:    string | null
     decorators: Decorator[]
 }
 

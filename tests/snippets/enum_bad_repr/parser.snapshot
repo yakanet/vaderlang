@@ -1,0 +1,63 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "EnumDecl",
+      "name": "TooBig",
+      "visibility": "public",
+      "repr": {
+        "kind": "IdentExpr",
+        "name": "u8"
+      },
+      "variants": [
+        {
+          "name": "A",
+          "value": null
+        },
+        {
+          "name": "B",
+          "value": "300n"
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "DupVal",
+      "visibility": "public",
+      "repr": null,
+      "variants": [
+        {
+          "name": "X",
+          "value": "1n"
+        },
+        {
+          "name": "Y",
+          "value": "2n"
+        },
+        {
+          "name": "Z",
+          "value": "1n"
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "NotInt",
+      "visibility": "public",
+      "repr": {
+        "kind": "IdentExpr",
+        "name": "string"
+      },
+      "variants": [
+        {
+          "name": "A",
+          "value": null
+        }
+      ],
+      "decorators": []
+    }
+  ]
+}

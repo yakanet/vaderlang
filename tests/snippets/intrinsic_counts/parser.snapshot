@@ -1,0 +1,274 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "StructDecl",
+      "name": "Pair",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "first",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "private",
+          "default": null
+        },
+        {
+          "name": "second",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Triple",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "a",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i8"
+          },
+          "visibility": "private",
+          "default": null
+        },
+        {
+          "name": "b",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i8"
+          },
+          "visibility": "private",
+          "default": null
+        },
+        {
+          "name": "c",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i8"
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "Side",
+      "visibility": "private",
+      "repr": null,
+      "variants": [
+        {
+          "name": "Left",
+          "value": null
+        },
+        {
+          "name": "Right",
+          "value": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": [
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "field_count",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Pair"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "2n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "field_count",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Triple"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "3n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "field_count",
+                "args": [
+                  {
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "IdentExpr",
+                        "name": "i32"
+                      },
+                      {
+                        "kind": "IdentExpr",
+                        "name": "i32"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "2n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "field_count",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "0n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "variant_count",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Side"
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "2n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "variant_count",
+                "args": [
+                  {
+                    "kind": "BinaryExpr",
+                    "op": "bitor",
+                    "left": {
+                      "kind": "IdentExpr",
+                      "name": "i32"
+                    },
+                    "right": {
+                      "kind": "IdentExpr",
+                      "name": "string"
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "2n",
+                "suffix": null
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

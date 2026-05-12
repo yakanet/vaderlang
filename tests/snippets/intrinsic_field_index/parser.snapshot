@@ -1,0 +1,168 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "StructDecl",
+      "name": "Vec3",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "x",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "f32"
+          },
+          "visibility": "private",
+          "default": null
+        },
+        {
+          "name": "y",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "f32"
+          },
+          "visibility": "private",
+          "default": null
+        },
+        {
+          "name": "z",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "f32"
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": [
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "field_index",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Vec3"
+                  },
+                  {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "x"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "0n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "field_index",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Vec3"
+                  },
+                  {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "y"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "1n",
+                "suffix": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "assert",
+          "args": [
+            {
+              "kind": "BinaryExpr",
+              "op": "eq",
+              "left": {
+                "kind": "IntrinsicCallExpr",
+                "name": "field_index",
+                "args": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Vec3"
+                  },
+                  {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "z"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "2n",
+                "suffix": null
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

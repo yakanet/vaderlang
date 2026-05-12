@@ -31,11 +31,7 @@ test("snippets: at least one discovered", () => {
 
 for (const s of scenarios) {
   const config = loadConfig(s.dir);
-  const inCorpus = LEXER_PARSER_CORPUS.has(s.name);
-  const activePhases = (config.phases ? PHASES.filter((p) => config.phases!.includes(p.name)) : PHASES)
-    // Lexer + parser snapshots only on the curated corpus — every snippet
-    // would just duplicate coverage that downstream phases already provide.
-    .filter((p) => (p.name !== "lexer" && p.name !== "parser") || inCorpus);
+  const activePhases = config.phases ? PHASES.filter((p) => config.phases!.includes(p.name)) : PHASES;
   for (const p of activePhases) {
     test(`${p.name}: ${s.name}`, () => {
       const file = p.usePath ? s.mainPath : MAIN_FILE;
