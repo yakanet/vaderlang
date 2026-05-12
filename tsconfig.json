@@ -25,5 +25,11 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+
+  // VSCode extension carries its own tsconfig + dev deps (`vscode`,
+  // `vscode-languageclient/node`) under `editors/vscode/`. CI's
+  // `bun install --frozen-lockfile` only installs root deps, so a root
+  // `tsc --noEmit` walking into the extension fails with missing modules.
+  "exclude": ["editors", "node_modules"]
 }
