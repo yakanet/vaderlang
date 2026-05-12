@@ -222,54 +222,6 @@ emit_decl :: fn(self: Printer, d: Decl) -> void {
     }
 }
 
-stmt_span :: fn(s: Stmt) -> Span {
-    match s {
-        is LetStmt      as x -> x.span
-        is AssignStmt   as x -> x.span
-        is ExprStmt     as x -> x.span
-        is ReturnStmt   as x -> x.span
-        is ForStmt      as x -> x.span
-        is BreakStmt    as x -> x.span
-        is ContinueStmt as x -> x.span
-        is DeferStmt    as x -> x.span
-    }
-}
-
-// Accepts `Expr | null` so callers with optional-trailing slots don't need a
-// separate match-dispatch. The `null` arm returns a sentinel "empty" Span ;
-// callers check `is_some` separately or pre-gate on null.
-expr_span :: fn(e: Expr | null) -> Span {
-    match e {
-        is null                  -> Span { .start = Position { .file = "", .offset = 0, .line = 0, .column = 0 }, .end = Position { .file = "", .offset = 0, .line = 0, .column = 0 } }
-        is IntLitExpr      as x -> x.span
-        is FloatLitExpr    as x -> x.span
-        is BoolLitExpr     as x -> x.span
-        is NullLitExpr     as x -> x.span
-        is CharLitExpr     as x -> x.span
-        is StringLitExpr   as x -> x.span
-        is IdentExpr       as x -> x.span
-        is CallExpr        as x -> x.span
-        is FieldExpr       as x -> x.span
-        is IndexExpr       as x -> x.span
-        is UnaryExpr       as x -> x.span
-        is BinaryExpr      as x -> x.span
-        is IfExpr          as x -> x.span
-        is MatchExpr       as x -> x.span
-        is BlockExpr       as x -> x.span
-        is LambdaExpr      as x -> x.span
-        is StructLitExpr   as x -> x.span
-        is SeqLitExpr      as x -> x.span
-        is RangeExpr       as x -> x.span
-        is TryExpr         as x -> x.span
-        is CastExpr        as x -> x.span
-        is GenericInstExpr as x -> x.span
-        is IntrinsicCallExpr as x -> x.span
-        is DotVariantExpr  as x -> x.span
-        is FnTypeExpr      as x -> x.span
-        is ArrayTypeExpr   as x -> x.span
-    }
-}
-
 // True when the decl's name is in a `name :: …` slot eligible for column
 // alignment within a group. Signature-only fns and consts both fit ;
 // fns with a body (block or expression) don't — the existing stdlib
@@ -760,7 +712,7 @@ compute_fn_alignment_widths :: fn(members: FnDecl[]) -> usize[] {
 }
 
 emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
-    self.emit_decorators(d.decorators, expr_span(d.for_type).start.line)
+    self.emit_decorators(d.decorators, d.for_type.span.start.line)
     self.emit_type_expr(d.for_type)
     self.write(" implements")
     // Bounded-generic typeParam list — `Foo[T] implements[T: Bound] Trait`.
@@ -1402,21 +1354,19 @@ emit_block_expr :: fn(self: Printer, b: BlockExpr) -> void {
     self.write("{")
     self.depth = self.depth + 1
     for s in b.stmts {
-        sp :: stmt_span(s)
+        sp :: s.span
         self.newline()
         self.flush_leading_comments_inline(sp.start.offset, sp.start.line)
         self.indent()
         self.emit_stmt(s)
     }
-    match b.trailing {
-        is null -> {}
-        _ -> {
-            sp :: expr_span(b.trailing)
-            self.newline()
-            self.flush_leading_comments_inline(sp.start.offset, sp.start.line)
-            self.indent()
-            self.emit_expr(b.trailing)
-        }
+    trailing :: b.trailing
+    if trailing != null {
+        sp :: trailing.span
+        self.newline()
+        self.flush_leading_comments_inline(sp.start.offset, sp.start.line)
+        self.indent()
+        self.emit_expr(trailing)
     }
     // Trailing inner comments (after every stmt / trailing) belong to the
     // closing brace's interior. `b.span.end.line` is the line of `}`.
