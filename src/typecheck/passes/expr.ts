@@ -24,6 +24,7 @@ import { inferBinary } from "./binary.ts";
 import { inferCall, inferField } from "./call.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { inferMatch } from "./match.ts";
+import { detectNullCheck, popNarrowing, pushNarrowing } from "./narrow.ts";
 import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
@@ -65,7 +66,7 @@ function inferExpr(
     case "CallExpr":      return inferCall(expr, t, impls, diags, fn);
     case "FieldExpr":     return inferField(expr, t, impls, diags, fn);
     case "IndexExpr":     return inferIndex(expr, t, impls, diags, fn);
-    case "UnaryExpr":     return inferUnary(expr, t, impls, diags, fn);
+    case "UnaryExpr":     return inferUnary(expr, expected, t, impls, diags, fn);
     case "BinaryExpr":    return inferBinary(expr, t, impls, diags, fn);
     case "IfExpr":        return inferIf(expr, expected, t, impls, diags, fn);
     case "MatchExpr":     return inferMatch(expr, expected, t, impls, diags, fn);
@@ -351,10 +352,16 @@ export function resolveIndexTrait(
 }
 
 function inferUnary(
-  expr: A.UnaryExpr, t: MutableTyped, impls: ImplRegistry,
+  expr: A.UnaryExpr, expected: Type | null, t: MutableTyped, impls: ImplRegistry,
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
-  const operand = checkExpr(expr.operand, null, t, impls, diags, fn);
+  // `neg` / `bitnot` preserve the operand type, so an integer `expected`
+  // forwarded down repins a FreeInt operand to that width (`g: i64 = -50`
+  // → the `50` must lower as `i64.const`, not `i32.const`).
+  const operandCtx = (expr.op === "neg" && expected !== null && (isNumeric(expected) || expected.kind === "Unresolved")) ? expected
+                   : (expr.op === "bitnot" && expected !== null && (isInteger(expected) || expected.kind === "Unresolved")) ? expected
+                   : null;
+  const operand = checkExpr(expr.operand, operandCtx, t, impls, diags, fn);
   switch (expr.op) {
     case "neg":
       if (operand.kind === "FreeInt" || operand.kind === "FreeFloat") return operand;
@@ -378,11 +385,41 @@ function inferIf(
 ): Type {
   const cond = checkExpr(expr.cond, TY.bool, t, impls, diags, fn);
   if (!isAssignable(cond, TY.bool)) err(diags, "T3019", expr.cond.span);
+
+  const nullCheck = detectNullCheck(expr.cond, t);
+  const thenNarrow = nullCheck === null ? null
+                   : nullCheck.op === "neq" ? nullCheck.nonNull : TY.null;
+  const elseNarrow = nullCheck === null ? null
+                   : nullCheck.op === "eq"  ? nullCheck.nonNull : TY.null;
+
+  let prevThen: Type | undefined;
+  if (nullCheck !== null && thenNarrow !== null) prevThen = pushNarrowing(t, nullCheck.symId, thenNarrow);
   const thenT = checkBlock(expr.then, expected, t, impls, diags, fn);
+  if (nullCheck !== null && thenNarrow !== null) popNarrowing(t, nullCheck.symId, prevThen);
+
   if (expr.else === null) return thenT.kind === "Never" ? TY.void : unionOf([thenT, TY.void]);
+
+  // If one branch types concrete numeric and the other is FreeInt/FreeFloat,
+  // hint the else with the then's type so trailing literals adopt it (and
+  // vice-versa after both branches, via the trailing repin below).
+  const elseExpected = expected ?? (isNumeric(thenT) ? thenT : null);
+
+  let prevElse: Type | undefined;
+  if (nullCheck !== null && elseNarrow !== null) prevElse = pushNarrowing(t, nullCheck.symId, elseNarrow);
   const elseT = expr.else.kind === "IfExpr"
-    ? checkExpr(expr.else, expected, t, impls, diags, fn)
-    : checkBlock(expr.else, expected, t, impls, diags, fn);
+    ? checkExpr(expr.else, elseExpected, t, impls, diags, fn)
+    : checkBlock(expr.else, elseExpected, t, impls, diags, fn);
+  if (nullCheck !== null && elseNarrow !== null) popNarrowing(t, nullCheck.symId, prevElse);
+
+  if (expected === null && (thenT.kind === "FreeInt" || thenT.kind === "FreeFloat") && isNumeric(elseT)) {
+    const trailing = expr.then.trailing;
+    if (trailing !== null) {
+      t.exprTypes.set(trailing, elseT);
+      t.exprTypes.set(expr.then, elseT);
+      return elseT;
+    }
+  }
+
   return unionOf([thenT, elseT]);
 }
 

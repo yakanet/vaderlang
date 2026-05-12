@@ -384,11 +384,27 @@ export function inferGenericUfcsCall(
       err(diags, "T3001", expr.args[i]!.value.span,
         `expected ${displayType(expectedTy)}, got ${displayType(explicitArgTypes[i]!)}`);
     }
+    if (!typeContainsTypeParam(expectedTy)) {
+      pinFreeNumericArg(explicitArgTypes[i]!, expectedTy, expr.args[i]!.value, t, impls);
+    }
   }
 
   recordGenericCallSite(expr, declOf(freeSym), bindings, t, impls, diags);
 
   return substitute(fullFnType.returnType, subst);
+}
+
+/** Repin a Free* arg literal to the substituted expected type so the lowerer
+ *  emits the right width — `take(nums, 3)` with `n: usize` ⇒ `3` lowers as
+ *  `i64.const`. Mirrors `checkExpr`'s bidirectional defaulting, deferred
+ *  here because generic call sites need the substitution before pinning. */
+export function pinFreeNumericArg(
+  got: Type, expectedTy: Type, argExpr: A.Expr,
+  t: MutableTyped, impls: ImplRegistry,
+): void {
+  if (got.kind !== "FreeInt" && got.kind !== "FreeFloat") return;
+  if (!isAssignable(got, expectedTy, impls)) return;
+  t.exprTypes.set(argExpr, expectedTy);
 }
 
 export function recordGenericCallSite(

@@ -1,0 +1,296 @@
+# Lower
+
+## tests/snippets/numeric_context_sensitivity/_main.vader
+  struct tests_snippets_numeric_context_sensitivity__main_vader$Counter { n: usize, delta: isize }
+  fn tests_snippets_numeric_context_sensitivity__main_vader$main() -> i32
+    let a8: i8 = int(5) :i8
+    let b16: i16 = int(100) :i16
+    let c32: i32 = int(1000) :i32
+    let d64: i64 = int(9000000000) :i64
+    let e8: u8 = int(200) :u8
+    let f16: u16 = int(65000) :u16
+    let g32: u32 = int(4000000000) :u32
+    let h64: u64 = int(18446744073700000000) :u64
+    let isz: isize =
+      neg :isize
+        int(50) :isize
+    let usz: usize = int(42) :usize
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "widths: " :string
+          @builder.append_display <for i8> :void
+            __sb_0 :?
+            a8 :i8
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for i16> :void
+            __sb_0 :?
+            b16 :i16
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            c32 :i32
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for i64> :void
+            __sb_0 :?
+            d64 :i64
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for u8> :void
+            __sb_0 :?
+            e8 :u8
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for u16> :void
+            __sb_0 :?
+            f16 :u16
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for u32> :void
+            __sb_0 :?
+            g32 :u32
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for u64> :void
+            __sb_0 :?
+            h64 :u64
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for isize> :void
+            __sb_0 :?
+            isz :isize
+          @builder.append_str :void
+            __sb_0 :?
+            " " :string
+          @builder.append_display <for usize> :void
+            __sb_0 :?
+            usz :usize
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    let isz2: isize =
+      add :isize
+        l:
+          isz :isize
+        r:
+          int(1) :isize
+    let usz2: usize =
+      add :usize
+        l:
+          usz :usize
+        r:
+          int(1) :usize
+    let d64_2: i64 =
+      add :i64
+        l:
+          d64 :i64
+        r:
+          int(1) :i64
+    let h64_2: u64 =
+      add :u64
+        l:
+          h64 :u64
+        r:
+          int(1) :u64
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "arith: " :string
+          @builder.append_display <for isize> :void
+            __sb_1 :?
+            isz2 :isize
+          @builder.append_str :void
+            __sb_1 :?
+            " " :string
+          @builder.append_display <for usize> :void
+            __sb_1 :?
+            usz2 :usize
+          @builder.append_str :void
+            __sb_1 :?
+            " " :string
+          @builder.append_display <for i64> :void
+            __sb_1 :?
+            d64_2 :i64
+          @builder.append_str :void
+            __sb_1 :?
+            " " :string
+          @builder.append_display <for u64> :void
+            __sb_1 :?
+            h64_2 :u64
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    let neg: isize =
+      neg :isize
+        int(100) :isize
+    let neg2: isize =
+      sub :isize
+        l:
+          neg :isize
+        r:
+          int(1) :isize
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "neg: " :string
+          @builder.append_display <for isize> :void
+            __sb_2 :?
+            neg :isize
+          @builder.append_str :void
+            __sb_2 :?
+            " " :string
+          @builder.append_display <for isize> :void
+            __sb_2 :?
+            neg2 :isize
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    let c: Counter =
+      Counter {
+        n: int(0) :usize
+        delta:
+          neg :isize
+            int(1) :isize
+      }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "counter: n=" :string
+          @builder.append_display <for usize> :void
+            __sb_3 :?
+            .n :usize
+              c :Counter
+          @builder.append_str :void
+            __sb_3 :?
+            " delta=" :string
+          @builder.append_display <for isize> :void
+            __sb_3 :?
+            .delta :isize
+              c :Counter
+          ~>
+            @builder.finish :string
+              __sb_3 :?
+    if :void
+      cond:
+        eq :bool
+          l:
+            usz :usize
+          r:
+            int(42) :usize
+      then:
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            "eq ok" :string
+    if :void
+      cond:
+        lte :bool
+          l:
+            isz :isize
+          r:
+            int(0) :isize
+      then:
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            "isz_neg ok" :string
+    let arr: i32[] =
+      array :i32[]
+        int(10) :i32
+        int(20) :i32
+        int(30) :i32
+        int(40) :i32
+        int(50) :i32
+    let n: usize =
+      LoweredArrayLen
+    let sub: i32[] =
+      call :i32[]
+        callee:
+          slice :i32[]
+        arg0:
+          arr :i32[]
+        arg1:
+          int(0) :usize
+        arg2:
+          sub :usize
+            l:
+              n :usize
+            r:
+              int(1) :usize
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_4 :?
+            "slice_array: " :string
+          @builder.append_display <for usize> :void
+            __sb_4 :?
+            LoweredArrayLen
+          ~>
+            @builder.finish :string
+              __sb_4 :?
+    let forty_two: fn() -> usize =
+      LoweredMakeClosure
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_6: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_6 :?
+            "returned: " :string
+          @builder.append_display <for usize> :void
+            __sb_6 :?
+            call :usize
+              callee:
+                forty_two :fn() -> usize
+          ~>
+            @builder.finish :string
+              __sb_6 :?
+    return int(0) :i32
+  struct __lambda_env_7 {  }
+  fn __lambda_6(__env_5: __lambda_env_7) -> usize
+    return int(42) :usize

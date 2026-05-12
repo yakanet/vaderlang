@@ -1,0 +1,234 @@
+# CFG
+
+## tests/snippets/if_null_narrow/_main.vader
+
+fn tests_snippets_if_null_narrow__main_vader$greet(%0: Cat | Dog | null) -> string
+  locals:
+    %0 a: Cat | Dog | null (param a)
+    %1 $type_check_1#11: bool
+    %2 $not_2#12: bool
+    %3 $intrinsic_3#13: ?
+    %4 __sb_0#14: ? (synthetic __sb_0)
+    %5 $k_5#15: string
+    %6 $cast_6#16: Cat | Dog
+    %7 $cast_7#17: Cat
+    %8 $field_8#18: string
+    %9 $intrinsic_9#19: string
+    %10 $k_10#20: string
+  bb0:
+    %1 = type_check %0 is null
+    %2 = unop not %1 :bool
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %3 = intrinsic builder.new()
+    %4 = move %3
+    %5 = const string(#0) :string
+    intrinsic builder.append_str(%4, %5)
+    %6 = cast %0 :Cat | Dog
+    %7 = cast %6 :Cat
+    %8 = field_get %7.name :string
+    intrinsic builder.append_display(%4, %8)
+    %9 = intrinsic builder.finish(%4)
+    return %9
+  bb2:
+    %10 = const string(#1) :string
+    return %10
+
+fn tests_snippets_if_null_narrow__main_vader$greet_v2(%0: Cat | Dog | null) -> string
+  locals:
+    %0 a: Cat | Dog | null (param a)
+    %1 $type_check_1#10: bool
+    %2 $k_2#11: string
+    %3 $intrinsic_3#12: ?
+    %4 __sb_0#13: ? (synthetic __sb_0)
+    %5 $k_5#14: string
+    %6 $cast_6#15: Cat | Dog
+    %7 $cast_7#16: Cat
+    %8 $field_8#17: string
+    %9 $intrinsic_9#18: string
+  bb0:
+    %1 = type_check %0 is null
+    cond_branch %1 ? bb1 : bb2
+  bb1:
+    %2 = const string(#1) :string
+    return %2
+  bb2:
+    %3 = intrinsic builder.new()
+    %4 = move %3
+    %5 = const string(#2) :string
+    intrinsic builder.append_str(%4, %5)
+    %6 = cast %0 :Cat | Dog
+    %7 = cast %6 :Cat
+    %8 = field_get %7.name :string
+    intrinsic builder.append_display(%4, %8)
+    %9 = intrinsic builder.finish(%4)
+    return %9
+
+fn tests_snippets_if_null_narrow__main_vader$greet_v3(%0: Cat | Dog | null) -> string
+  locals:
+    %0 a: Cat | Dog | null (param a)
+    %1 $type_check_1#11: bool
+    %2 $not_2#12: bool
+    %3 $intrinsic_3#13: ?
+    %4 __sb_0#14: ? (synthetic __sb_0)
+    %5 $k_5#15: string
+    %6 $cast_6#16: Cat | Dog
+    %7 $cast_7#17: Cat
+    %8 $field_8#18: string
+    %9 $intrinsic_9#19: string
+    %10 $k_10#20: string
+  bb0:
+    %1 = type_check %0 is null
+    %2 = unop not %1 :bool
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %3 = intrinsic builder.new()
+    %4 = move %3
+    %5 = const string(#3) :string
+    intrinsic builder.append_str(%4, %5)
+    %6 = cast %0 :Cat | Dog
+    %7 = cast %6 :Cat
+    %8 = field_get %7.name :string
+    intrinsic builder.append_display(%4, %8)
+    %9 = intrinsic builder.finish(%4)
+    return %9
+  bb2:
+    %10 = const string(#4) :string
+    return %10
+
+fn tests_snippets_if_null_narrow__main_vader$greet_v4(%0: Cat | Dog | null) -> string
+  locals:
+    %0 a: Cat | Dog | null (param a)
+    %1 out: string (local out)
+    %2 $type_check_3#13: bool
+    %3 $not_4#14: bool
+    %4 $intrinsic_5#15: ?
+    %5 __sb_0#16: ? (synthetic __sb_0)
+    %6 $k_7#17: string
+    %7 $cast_8#18: Cat | Dog
+    %8 $cast_9#19: Cat
+    %9 $field_10#20: string
+    %10 $intrinsic_11#21: string
+    %11 out2#22: string (local out2)
+    %12 $k_13#23: string
+  bb0:
+    %2 = type_check %0 is null
+    %3 = unop not %2 :bool
+    cond_branch %3 ? bb1 : bb2
+  bb1:
+    %4 = intrinsic builder.new()
+    %5 = move %4
+    %6 = const string(#6) :string
+    intrinsic builder.append_str(%5, %6)
+    %7 = cast %0 :Cat | Dog
+    %8 = cast %7 :Cat
+    %9 = field_get %8.name :string
+    intrinsic builder.append_display(%5, %9)
+    %10 = intrinsic builder.finish(%5)
+    %11 = move %10
+    return %11
+  bb2:
+    %12 = const string(#7) :string
+    return %12
+  bb3:
+    return %1
+
+fn tests_snippets_if_null_narrow__main_vader$combine(%0: Cat | Dog | null, %1: Cat | Dog | null) -> string
+  locals:
+    %0 a: Cat | Dog | null (param a)
+    %1 b: Cat | Dog | null (param b)
+    %2 $type_check_2#16: bool
+    %3 $k_3#17: string
+    %4 $type_check_4#18: bool
+    %5 $k_5#19: string
+    %6 $intrinsic_6#20: ?
+    %7 __sb_0#21: ? (synthetic __sb_0)
+    %8 $cast_8#22: Cat | Dog
+    %9 $cast_9#23: Cat
+    %10 $field_10#24: string
+    %11 $k_11#25: string
+    %12 $cast_12#26: Cat | Dog
+    %13 $cast_13#27: Cat
+    %14 $field_14#28: string
+    %15 $intrinsic_15#29: string
+  bb0:
+    %2 = type_check %0 is null
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %3 = const string(#8) :string
+    return %3
+  bb2:
+    %4 = type_check %1 is null
+    cond_branch %4 ? bb3 : bb4
+  bb3:
+    %5 = const string(#9) :string
+    return %5
+  bb4:
+    %6 = intrinsic builder.new()
+    %7 = move %6
+    %8 = cast %0 :Cat | Dog
+    %9 = cast %8 :Cat
+    %10 = field_get %9.name :string
+    intrinsic builder.append_display(%7, %10)
+    %11 = const string(#10) :string
+    intrinsic builder.append_str(%7, %11)
+    %12 = cast %1 :Cat | Dog
+    %13 = cast %12 :Cat
+    %14 = field_get %13.name :string
+    intrinsic builder.append_display(%7, %14)
+    %15 = intrinsic builder.finish(%7)
+    return %15
+
+fn tests_snippets_if_null_narrow__main_vader$main() -> i32
+  locals:
+    %0 $k_0#19: string
+    %1 $k_1#20: i32
+    %2 cat#21: Cat | Dog | null (local cat)
+    %3 $k_4#22: string
+    %4 $k_5#23: i32
+    %5 dog#24: Cat | Dog | null (local dog)
+    %6 nothing#25: Cat | Dog | null (local nothing)
+    %7 $call_10#26: string
+    %8 $call_11#27: string
+    %9 $call_12#28: string
+    %10 $call_13#29: string
+    %11 $call_14#30: string
+    %12 $call_15#31: string
+    %13 $call_16#32: string
+    %14 $call_17#33: string
+    %15 $call_18#34: string
+    %16 $call_19#35: string
+    %17 $call_20#36: string
+    %18 $k_21#37: i32
+  bb0:
+    %0 = const string(#11) :string
+    %1 = const int(3) :i32
+    %2 = struct_new Cat(%0, %1)
+    %3 = const string(#12) :string
+    %4 = const int(7) :i32
+    %5 = struct_new Dog(%3, %4)
+    %6 = const null :null
+    %7 = call greet(%2) :string
+    call println(%7) :void
+    %8 = call greet(%6) :string
+    call println(%8) :void
+    %9 = call greet_v2(%2) :string
+    call println(%9) :void
+    %10 = call greet_v2(%6) :string
+    call println(%10) :void
+    %11 = call greet_v3(%2) :string
+    call println(%11) :void
+    %12 = call greet_v3(%6) :string
+    call println(%12) :void
+    %13 = call greet_v4(%2) :string
+    call println(%13) :void
+    %14 = call greet_v4(%6) :string
+    call println(%14) :void
+    %15 = call combine(%2, %5) :string
+    call println(%15) :void
+    %16 = call combine(%6, %5) :string
+    call println(%16) :void
+    %17 = call combine(%2, %6) :string
+    call println(%17) :void
+    %18 = const int(0) :i32
+    return %18

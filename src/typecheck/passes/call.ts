@@ -28,6 +28,7 @@ import { inferTypeConstructorCall } from "./cast.ts";
 import {
   fnOverloadsForSymbol,
   inferGenericUfcsCall,
+  pinFreeNumericArg,
   rankOverloadsByFirstParam,
   recordGenericCallSite,
 } from "./field.ts";
@@ -149,16 +150,7 @@ function inferGenericFnCall(
       }
     }
     if (!typeContainsTypeParam(expectedTy)) {
-      // Pin FreeInt/FreeFloat arg literals to the substituted expected type so
-      // the lowerer emits the right width (`take(nums, 3)` with `n: usize`
-      // → 3 must lower as `i64.const`, not `i32.const`). Mirrors the
-      // bidirectional defaulting in `checkExpr` ; step 1's `checkExpr(.., null)`
-      // couldn't apply it yet because the substitution wasn't built.
-      const got = argTypes[i]!;
-      if ((got.kind === "FreeInt" && isAssignable(got, expectedTy, impls))
-       || (got.kind === "FreeFloat" && isAssignable(got, expectedTy, impls))) {
-        t.exprTypes.set(expr.args[i]!.value, expectedTy);
-      }
+      pinFreeNumericArg(argTypes[i]!, expectedTy, expr.args[i]!.value, t, impls);
     }
   }
 

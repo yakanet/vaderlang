@@ -148,6 +148,12 @@ function binaryEquality(
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector,
 ): Type {
   if (left.kind === "Unresolved" || right.kind === "Unresolved") return TY.bool;
+  // Union ↔ variant: `(T | U) == T` / `(T | null) != null` etc. Accepted as
+  // long as one side is a union and the other is structurally one of its
+  // variants. Lets flow narrowing on null-checks (and discriminated-union
+  // equality) type-check without spurious T3017s.
+  if (left.kind === "Union" && left.variants.some((v) => equalsType(v, right))) return TY.bool;
+  if (right.kind === "Union" && right.variants.some((v) => equalsType(v, left))) return TY.bool;
   if (equalsType(defaultIfFree(left), defaultIfFree(right))) {
     // Same-type equality. Primitives + strings get the built-in path ;
     // user structs with an `Equals` impl route through trait dispatch ;

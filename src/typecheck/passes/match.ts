@@ -14,6 +14,7 @@ import type { Type } from "../types.ts";
 import { TY, displayType, isAssignable, unionOf } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
+import { popNarrowing, pushNarrowing } from "./narrow.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr } from "./expr.ts";
 import { lowerExprAsType } from "./type-expr.ts";
@@ -140,16 +141,6 @@ function scrutineeSymbol(scrut: A.Expr, t: MutableTyped): Symbol | null {
   return sym;
 }
 
-function pushNarrowing(t: MutableTyped, symId: number, narrow: Type): Type | undefined {
-  const prev = t.narrowed.get(symId);
-  t.narrowed.set(symId, narrow);
-  return prev;
-}
-
-function popNarrowing(t: MutableTyped, symId: number, prev: Type | undefined): void {
-  if (prev === undefined) t.narrowed.delete(symId);
-  else t.narrowed.set(symId, prev);
-}
 
 /** Narrowing target for a single arm's binding (`is T as p` ⇒ `T`,
  *  `BindingPattern x` ⇒ scrut). Struct-pattern field bindings stay untyped

@@ -1248,8 +1248,8 @@ fn 16 std_string$last_index_of (string,char,isize) -> isize
   i64.to_usize   ; string.vader:181:8
   usize.eq   ; string.vader:181:8
   if $L0 void   ; string.vader:181:5
-    i32.const 1   ; string.vader:181:25
-    i32.neg   ; string.vader:181:24
+    i64.const 1   ; string.vader:181:25
+    isize.neg   ; string.vader:181:24
     return   ; string.vader:181:17
   else   ; string.vader:181:5
     local.get 3   ; string.vader:182:16
@@ -1289,8 +1289,8 @@ fn 16 std_string$last_index_of (string,char,isize) -> isize
         end $L3   ; string.vader:183:9
       end $L2   ; string.vader:183:5
     end $L1   ; string.vader:183:5
-    i32.const 1   ; string.vader:189:13
-    i32.neg   ; string.vader:189:12
+    i64.const 1   ; string.vader:189:13
+    isize.neg   ; string.vader:189:12
     return   ; string.vader:189:5
   end $L0   ; string.vader:181:5
 end

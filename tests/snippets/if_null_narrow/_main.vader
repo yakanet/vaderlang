@@ -1,0 +1,74 @@
+// Flow-narrowing on `if x != null` / `if x == null { return }`.
+//
+// When the checker sees a condition of the form `ident == null` or
+// `ident != null` and the ident's static type is a union with a `null`
+// variant, it narrows the variable in the matching branch (no more `null`).
+// A divergent then-branch (early return / break / continue) also propagates
+// the complement narrowing to the subsequent statements of the enclosing
+// block, so `if x == null { return } x.f` works without an outer match.
+
+import "std/io" { println }
+
+Cat :: struct { name: string, age: i32 }
+Dog :: struct { name: string, age: i32 }
+
+Animal :: Cat | Dog
+
+// Case A: narrowing in the truthy branch of `if x != null`.
+greet :: fn(a: Animal | null) -> string {
+    if a != null {
+        return "hello ${a.name}"
+    }
+    return "no animal"
+}
+
+// Case B: divergent `if x == null { return }` flows narrowing past.
+greet_v2 :: fn(a: Animal | null) -> string {
+    if a == null { return "no animal" }
+    return "hi ${a.name}"
+}
+
+// Case C: symmetric form `null != x`.
+greet_v3 :: fn(a: Animal | null) -> string {
+    if null != a {
+        return "yo ${a.name}"
+    }
+    return "nada"
+}
+
+// Case D: divergent else branch.
+greet_v4 :: fn(a: Animal | null) -> string {
+    out :: ""
+    if a != null {
+        out2 :: "ok ${a.name}"
+        return out2
+    } else {
+        return "missing"
+    }
+    return out
+}
+
+// Case E: multi-step — chain of guards.
+combine :: fn(a: Animal | null, b: Animal | null) -> string {
+    if a == null { return "first missing" }
+    if b == null { return "second missing" }
+    return "${a.name} & ${b.name}"
+}
+
+main :: fn() -> i32 {
+    cat: Animal | null = Cat { .name = "Whiskers", .age = 3 }
+    dog: Animal | null = Dog { .name = "Rex", .age = 7 }
+    nothing: Animal | null = null
+    println(greet(cat))
+    println(greet(nothing))
+    println(greet_v2(cat))
+    println(greet_v2(nothing))
+    println(greet_v3(cat))
+    println(greet_v3(nothing))
+    println(greet_v4(cat))
+    println(greet_v4(nothing))
+    println(combine(cat, dog))
+    println(combine(nothing, dog))
+    println(combine(cat, nothing))
+    return 0
+}

@@ -1,0 +1,20 @@
+# Comptime
+
+## tests/snippets/numeric_context_sensitivity/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Yielded(usize)
+  Range(usize)
+  ArrayIterator($T)
+  ArrayIterator($T)
+  ArrayIterator($T)
+  ArrayIterator($T)
+  ArrayIterator($T)
+  ArrayIterator($T)
+  ArrayIterator($T)
+  ArrayIterator($T)
+  ArrayIterator($T)
+  ArrayIterator($U)
+  ArrayIterator(i32)
+  slice(i32)

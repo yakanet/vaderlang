@@ -16,6 +16,7 @@ import { sourceStructDecl } from "../../resolver/symbol.ts";
 import { tryInto } from "./coerce.ts";
 import { looksLikeTypeExpression } from "./decl.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
+import { popNarrowing, postStmtNullNarrowing, pushNarrowing } from "./narrow.ts";
 import { lowerExprAsType } from "./type-expr.ts";
 
 /** Substitute `Self` in this fn's param/return types now that we know the
@@ -68,10 +69,26 @@ export function checkBlock(
   block: A.BlockExpr, expected: Type | null,
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
-  for (const stmt of block.stmts) checkStmt(stmt, t, impls, diags, fn);
+  // Narrowings that should persist across the rest of this block, applied
+  // after a divergent if-guard (`if x == null { return }` ⇒ subsequent
+  // statements see x narrowed). Popped in reverse at block exit so they
+  // don't leak into the parent scope.
+  const persistedNarrowings: { symId: number; prev: Type | undefined }[] = [];
+  for (const stmt of block.stmts) {
+    checkStmt(stmt, t, impls, diags, fn);
+    const post = postStmtNullNarrowing(stmt, t);
+    if (post !== null) {
+      const prev = pushNarrowing(t, post.symId, post.type);
+      persistedNarrowings.push({ symId: post.symId, prev });
+    }
+  }
   let result: Type = TY.void;
   if (block.trailing !== null) {
     result = checkExpr(block.trailing, expected, t, impls, diags, fn);
+  }
+  for (let i = persistedNarrowings.length - 1; i >= 0; i--) {
+    const p = persistedNarrowings[i]!;
+    popNarrowing(t, p.symId, p.prev);
   }
   t.exprTypes.set(block, result);
   return result;

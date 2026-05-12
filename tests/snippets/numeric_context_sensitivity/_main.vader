@@ -1,0 +1,68 @@
+// Numeric-literal context-sensitivity (Zig comptime-int style).
+//
+// A `FreeInt` literal flowing into a slot of any integer width adopts that
+// width. Covers : typed let, struct field defaults, arithmetic with a
+// non-default width on the other side, comparisons, return values,
+// generic UFCS arguments (via an import alias), and negated literals
+// flowing into signed slots.
+
+import "std/io" { println }
+import "std/iter" { slice as slice_array }
+
+Counter :: struct {
+    n: usize = 0
+    delta: isize = -1
+}
+
+main :: fn() -> i32 {
+    // (1) typed let → all integer widths
+    a8: i8 = 5
+    b16: i16 = 100
+    c32: i32 = 1000
+    d64: i64 = 9000000000
+    e8: u8 = 200
+    f16: u16 = 65000
+    g32: u32 = 4000000000
+    h64: u64 = 18446744073700000000
+    isz: isize = -50
+    usz: usize = 42
+    println("widths: ${a8} ${b16} ${c32} ${d64} ${e8} ${f16} ${g32} ${h64} ${isz} ${usz}")
+
+    // (2) arithmetic with a literal — the literal adopts the operand width
+    isz2 := isz + 1
+    usz2 := usz + 1
+    d64_2 := d64 + 1
+    h64_2 := h64 + 1
+    println("arith: ${isz2} ${usz2} ${d64_2} ${h64_2}")
+
+    // (3) negated literal into a signed slot — `-1` lowers as `isize.neg`
+    neg: isize = -100
+    neg2 := neg - 1
+    println("neg: ${neg} ${neg2}")
+
+    // (4) struct field default of `usize` / `isize` adopts the type
+    c := Counter {}
+    println("counter: n=${c.n} delta=${c.delta}")
+
+    // (5) comparison with a literal on either side
+    if usz == 42 {
+        println("eq ok")
+    }
+    if isz <= 0 {
+        println("isz_neg ok")
+    }
+
+    // (6) generic UFCS through an import alias — the `0` and `n - 1` args
+    // adopt `usize` from `slice`'s declared param types (`start: usize,
+    // end: usize`) even when the fn is re-imported under a new name.
+    arr: i32[] = [10, 20, 30, 40, 50]
+    n: usize = arr.len()
+    sub := arr.slice_array(0, n - 1)
+    println("slice_array: ${sub.len()}")
+
+    // (7) return value with annotation
+    forty_two :: fn() -> usize { return 42 }
+    println("returned: ${forty_two()}")
+
+    return 0
+}

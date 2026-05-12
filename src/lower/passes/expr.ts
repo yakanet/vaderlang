@@ -444,6 +444,24 @@ function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): Lower
       value: lowerExpr(ctx, expr.left), checkType,
     };
   }
+  // `(Union) == null` / `(Union) != null` : reduce to a `type_check null`.
+  // C-emit can't compare two `vader_box_t` directly — the tag-only check is
+  // what we want anyway. Symmetric for `null == X` / `null != X`.
+  if (expr.op === "eq" || expr.op === "neq") {
+    const left = expr.left;
+    const right = expr.right;
+    const nullSide = isNullLit(left) && isUnionWithNull(ctx.types.exprType(right)) ? right
+                   : isNullLit(right) && isUnionWithNull(ctx.types.exprType(left)) ? left
+                   : null;
+    if (nullSide !== null) {
+      const check: LoweredExpr = {
+        kind: "LoweredTypeCheck", span: expr.span, type: TY.bool,
+        value: lowerExpr(ctx, nullSide), checkType: TY.null,
+      };
+      if (expr.op === "eq") return check;
+      return { kind: "LoweredUnary", span: expr.span, type: TY.bool, op: "not", operand: check };
+    }
+  }
   if (expr.op === "in" || expr.op === "not_in") {
     return lowerInOp(ctx, expr);
   }
@@ -457,6 +475,14 @@ function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): Lower
     left: lowerExpr(ctx, expr.left),
     right: lowerExpr(ctx, expr.right),
   };
+}
+
+function isNullLit(e: A.Expr): boolean {
+  return e.kind === "NullLitExpr";
+}
+
+function isUnionWithNull(t: Type): boolean {
+  return t.kind === "Union" && t.variants.some((v) => equalsType(v, TY.null));
 }
 
 /** Rewrite `a[i]` (or `a[i] = v`) into a direct call against the matched
