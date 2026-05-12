@@ -74,7 +74,7 @@ The pipeline is therefore **incremental**: to evaluate a `@comptime`, its depend
 
 ### Monomorphization
 
-Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List[i32]`, `Map[string, User]`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct(args)` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
+Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List[i32]`, `Map[string, User]`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct[args]` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
 
 Registry collection is **transitive**: when `outer[i32]` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn[i32]`), every `for x in arr` over `T[]` (registers `ArrayIterator[i32]`), and every substituted struct/trait reference inside the body (so e.g. `Yielded[string]` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
 
@@ -637,7 +637,7 @@ Result :: string | i32 | null
 show :: fn(r: Result) -> string {
     match r {
         is string -> r
-        is i32    -> Display.to_string(r)
+        is i32    -> r.to_string()
         is null   -> "(none)"
     }
 }
@@ -1454,7 +1454,7 @@ Without a label, `break`/`continue` act on the innermost loop.
 Block-scoped, executed when leaving the block where it was written (Zig/Swift-style):
 
 ```vader
-fn process(path: string) -> string! {
+process :: fn(path: string) -> string! {
     file := open(path)?
     defer close(file)
 
@@ -1817,15 +1817,16 @@ console.log(instance.exports.addNumbers(2, 3));
 Forces evaluation at compile time:
 
 ```vader
-TABLE :: @comptime build_lookup_table()
-
-build_lookup_table :: fn() -> [u32] {
-    result: [u32] = []
+build_lookup_table :: fn() -> u32[] {
+    result: u32[] = []
     for i in 0..<256 {
         result.push(u32(i * i))
     }
     return result
 }
+
+@comptime
+TABLE :: build_lookup_table()
 ```
 
 `build_lookup_table()` runs during compilation. `TABLE` is a constant whose value is placed in the binary's data section.
@@ -2209,10 +2210,10 @@ JsonString :: struct { value: string }
 JsonNumber :: struct { value: f64 }
 JsonBool   :: struct { value: bool }
 JsonNull   :: struct {}
-JsonArray  :: struct { items: [JsonValue] }
+JsonArray  :: struct { items: JsonValue[] }
 JsonObject :: struct { entries: MutableMap[string, JsonValue] }
 
-JsonError  :: struct { msg: string, pos: i32 }   // implements Error
+JsonError  :: struct { msg: string, pos: usize }   // implements Error
 
 parse            :: fn(input: string)                -> JsonValue | JsonError
 stringify        :: fn(v: JsonValue)                  -> string
