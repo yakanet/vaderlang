@@ -16,6 +16,7 @@ import {
 import type { BytecodeModule } from "../bytecode/module.ts";
 import type { Value } from "./value.ts";
 import { NULL, VOID, bool, ch, displayValue, err, num, str, asNum, asIndex, i64 } from "./value.ts";
+import { VmError } from "./exec.ts";
 
 const UTF8_ENC = new TextEncoder();
 const UTF8_DEC = new TextDecoder();
@@ -330,8 +331,16 @@ export function stdProcessBindings(): Record<string, HostFn> {
   };
 }
 
+export function stdTestingBindings(): Record<string, HostFn> {
+  return {
+    std_testing$panic: (args) => {
+      throw new VmError(`vader: panic — ${stringArg(args, 0)}`);
+    },
+  };
+}
+
 export function makeBindings(io: HostIO): HostBindings {
-  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdMathBindings(), ...stdRuntimeBindings(), ...stdProcessBindings() };
+  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdMathBindings(), ...stdRuntimeBindings(), ...stdProcessBindings(), ...stdTestingBindings() };
   return {
     get(mangledName, externName) {
       return all[mangledName] ?? all[externName] ?? null;

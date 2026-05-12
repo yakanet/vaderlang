@@ -1598,3 +1598,8 @@ void vader_trap(const char* msg) {
     fprintf(stderr, "vader: trap — %s\n", msg);
     abort();
 }
+
+void vader_panic(vader_string_t msg) {
+    fprintf(stderr, "vader: panic — %.*s\n", (int) msg.len, msg.ptr);
+    abort();
+}

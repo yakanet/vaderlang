@@ -23,6 +23,12 @@ export function implementsDisplay(ty: Type, t: MutableTyped, impls: ImplRegistry
   // names alone don't carry a textual form — the trait gives the user one).
   if (ty.kind === "Enum") return impls.hasUser(ty.symbol, display);
   if (ty.kind === "Union") return ty.variants.every((v) => implementsDisplay(v, t, impls));
+  // Bounded type-params satisfy Display when Display is in their bound set —
+  // lets generic helpers like `assert_eq[T: Display]` interpolate `${val}`.
+  if (ty.kind === "TypeParam") {
+    const bounds = t.globals.typeParamBounds.get(ty.symbol.id) ?? [];
+    return bounds.some((b) => b.id === display.id);
+  }
   return false;
 }
 

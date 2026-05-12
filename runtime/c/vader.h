@@ -383,4 +383,9 @@ __attribute__((noreturn))
 #endif
 void vader_trap(const char* msg);
 
+#ifdef __GNUC__
+__attribute__((noreturn))
+#endif
+void vader_panic(vader_string_t msg);
+
 #endif /* VADER_H */

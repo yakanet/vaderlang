@@ -395,6 +395,8 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { vader_print(a0); }`;
     case "std_io$println":
       return `${head} { vader_println(a0); }`;
+    case "std_testing$panic":
+      return `${head} { vader_panic(a0); }`;
     case "std_io$eprint":
       return `${head} { vader_eprint(a0); }`;
     case "std_io$eprintln":

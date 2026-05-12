@@ -1,0 +1,79 @@
+// std/testing — runtime assertions for `@test` functions.
+//
+// Each helper panics via the (private) host intrinsic `panic` on failure,
+// with a self-explanatory message that names the expected/actual values.
+// The `vader test` runner intercepts those panics and reports the offending
+// arm as a failed test.
+//
+// Composition: every helper builds on `panic` (the only primitive that
+// actually traps). `@assert` is a comptime-only top-level decorator and is
+// *not* what these run-time assertions hook into.
+
+import "std/math" { abs }
+
+/// Trap the current execution with `msg`. Surface for the VM is a thrown
+/// `VmError`; on native, the process aborts after printing to stderr.
+/// Kept private — external callers should reach for `fail(msg)` instead.
+@intrinsic panic :: fn(msg: string) -> void
+
+/// Plain boolean assertion. `assert(false, "...")` traps with `msg`.
+export assert :: fn(cond: bool, msg: string) -> void {
+    if !cond {
+        panic(msg)
+    }
+}
+
+/// Fail unconditionally with `msg`. Useful for unreachable-arm guards
+/// inside tests (`match x { is Foo -> ok() _ -> fail("x was not Foo") }`).
+export fail :: fn(msg: string) -> void {
+    panic(msg)
+}
+
+/// Assert `actual == expected`. Failure message includes both values.
+export assert_eq :: fn[T: Display & Equals](actual: T, expected: T) -> void {
+    if actual != expected {
+        panic("assert_eq failed: expected ${expected}, got ${actual}")
+    }
+}
+
+/// Assert `actual != unexpected`. Failure message names the value.
+export assert_ne :: fn[T: Display & Equals](actual: T, unexpected: T) -> void {
+    if actual == unexpected {
+        panic("assert_ne failed: did not expect ${unexpected}")
+    }
+}
+
+/// Assert `actual < bound`. Uses the `Comparable.lt` default method.
+export assert_lt :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
+    if !actual.lt(bound) {
+        panic("assert_lt failed: expected ${actual} < ${bound}")
+    }
+}
+
+/// Assert `actual <= bound`.
+export assert_lte :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
+    if !actual.lte(bound) {
+        panic("assert_lte failed: expected ${actual} <= ${bound}")
+    }
+}
+
+/// Assert `actual > bound`.
+export assert_gt :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
+    if !actual.gt(bound) {
+        panic("assert_gt failed: expected ${actual} > ${bound}")
+    }
+}
+
+/// Assert `actual >= bound`.
+export assert_gte :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
+    if !actual.gte(bound) {
+        panic("assert_gte failed: expected ${actual} >= ${bound}")
+    }
+}
+
+/// Assert `|actual - expected| <= eps`. Float-friendly equality.
+export assert_close :: fn(actual: f64, expected: f64, eps: f64) -> void {
+    if abs(actual - expected) > eps {
+        panic("assert_close failed: ${actual} not within ${eps} of ${expected}")
+    }
+}
