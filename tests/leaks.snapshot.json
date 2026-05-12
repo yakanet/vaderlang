@@ -115,6 +115,10 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
+  "enum_to_repr_cast": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
   "enum_trait_self_return": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -480,6 +484,10 @@
     "leakedBytes": 0
   },
   "struct_spread": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "trait_box_range_iter": {
     "leakedNodes": 0,
     "leakedBytes": 0
   },

@@ -15,7 +15,7 @@
     let a: i32 =
       call :i32
         callee:
-          count :fn(Iterator($T)) -> i32
+          count :i32
         arg0:
           Range(i32) {
             start: int(0) :i32

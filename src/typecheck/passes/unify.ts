@@ -7,7 +7,6 @@ import type { ImplRegistry } from "../impls.ts";
 import type { MutableTyped } from "../ctx.ts";
 import type { Substitution, Type } from "../types.ts";
 import { CORE_TRAITS, TY, substitute } from "../types.ts";
-import { buildStructSubst } from "../ctx.ts";
 
 /** Merge two substitutions ; right wins on `self` if both supply one. */
 export function mergeSubst(a: Substitution | null, b: Substitution | null): Substitution | null {
@@ -93,13 +92,18 @@ function unifyTraitParamWithConcrete(
     const implTraitArgs: Type[] = entry.decl.traitArgs.map(
       (ta) => t.globals.typeExprTypes.get(ta) ?? TY.unresolved,
     );
-    // Generic struct receiver (`Foo($T) implements Iterator(T)`) : substitute
-    // the struct's typeParams with the receiver's concrete args before unifying.
-    const subst: Substitution = argType.kind === "Struct" && argType.symbol.source.kind === "struct"
-      ? buildStructSubst(argType.symbol.source.decl.typeParams, argType.args, t.globals.typeParamSymbols)
-      : { typeParams: new Map() };
+    // Resolve the impl's own typeParams (e.g. `Range[T] implements Iterator(T)`
+    // — the `T` in `Iterator(T)` references the impl block's typeParam, NOT
+    // the struct's). Match the impl's `forType` against the concrete argType
+    // to bind each impl typeParam, then substitute the trait args before
+    // unifying with the caller's param.
+    const implSubst: Substitution = { typeParams: new Map() };
+    const implForType = t.globals.typeExprTypes.get(entry.decl.forType);
+    if (implForType !== undefined) {
+      unifyTypeParam(implForType, argType, implSubst.typeParams!, impls, t);
+    }
     for (let i = 0; i < paramType.args.length && i < implTraitArgs.length; i++) {
-      unifyTypeParam(paramType.args[i]!, substitute(implTraitArgs[i]!, subst), out, impls, t);
+      unifyTypeParam(paramType.args[i]!, substitute(implTraitArgs[i]!, implSubst), out, impls, t);
     }
     return;
   }

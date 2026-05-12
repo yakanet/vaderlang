@@ -1,2 +1,2 @@
-# runtime error
-vm: reached unreachable (at tests_snippets_trait_box_range_iter__main_vader$main+6 @ tests/snippets/trait_box_range_iter/_main.vader:47:10)
+# exit
+122
