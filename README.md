@@ -11,8 +11,9 @@ analysis → stack-allocation → scheduler → fromSSA) — which then emits th
 (powering `vader build --target=native`, backed by a precise Cheney semi-space GC) both run the
 example programs end-to-end, but they are not battle-tested and should not be relied on for anything
 beyond experimentation. The legacy `LoweredAST → bytecode` walker was retired on 2026-05-09; midir is
-now the single backend backbone. WASM emitter is next. See [`TODO.md`](./TODO.md) for the live roadmap
-and [`SPEC.md`](./SPEC.md) for the language reference.
+now the single backend backbone. A WASM emitter is on the post-MVP roadmap (Phase 3) — the C
+backend already covers native deployment and isn't load-bearing for the upcoming self-host. See
+[`TODO.md`](./TODO.md) for the live roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
 
 A self-host port of the compiler in Vader itself is underway: the lexer and parser reach 191/191
 byte-for-byte parity with the TS reference across the full snippet corpus, plus a top-level-decl
@@ -187,7 +188,7 @@ bun src/index.ts build --target=ir examples/hello.vader
 | `--target=native` | A native executable **plus** the intermediate C source (`<out>.c`)                 | Default. Invokes `cc` (auto-detected POSIX). Runtime lives at `runtime/c/`. The `.c` is kept on disk so it can be inspected, profiled, or compiled with custom flags.  |
 | `--target=c`      | Just the generated C source                                                        | Useful when you want to drive the C compiler yourself, or to stash the C as a snapshot. Symmetric with `--target=ir`.                                                  |
 | `--target=ir`     | Textual `.vir` bytecode                                                            | Round-trippable: `vader run program.vir` re-executes it without re-parsing the source.                                                                                 |
-| `--target=wasm`   | (not yet implemented)                                                              | Direct WebAssembly emission with the WASM GC proposal. Coming next.                                                                                                    |
+| `--target=wasm`   | (not yet implemented)                                                              | Direct WebAssembly emission with the WASM GC proposal. Deferred to post-MVP (Phase 3).                                                                                 |
 
 ```sh
 # Native binary (writes ./hello and ./hello.c)
@@ -286,11 +287,10 @@ The full roadmap lives in [`TODO.md`](./TODO.md). The high-level milestones are:
 | Phase | Goal | Status |
 |-------|------|--------|
 | **0 — Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
-| **1 — MVP (TypeScript compiler)** | Lexer → parser → resolver → type-checker → comptime engine → monomorphizer → lowerer → midir CFG/SSA (DCE + escape + stack-alloc + scheduler) → bytecode emitter → VM (`vader run`) → C emitter with precise Cheney GC (`vader build --target=native`). Trait-object boxing, tuples, `@assert`/`@deprecated`/`@partial`, implicit selector exprs all landed (May 2026). WASM emitter still pending. | in progress |
-| **1.10 — WASM emitter** | Bytecode → binary WASM with GC types, importable in the browser or via wasmtime. | next |
+| **1 — MVP (TypeScript compiler)** | Lexer → parser → resolver → type-checker → comptime engine → monomorphizer → lowerer → midir CFG/SSA (DCE + escape + stack-alloc + scheduler) → bytecode emitter → VM (`vader run`) → C emitter with precise Cheney GC (`vader build --target=native`). Trait-object boxing, tuples, `@assert`/`@deprecated`/`@partial`, implicit selector exprs, typed enums all landed (May 2026). | in progress |
 | **1.11–1.15 — Runtime, stdlib, CLI, formatter** | Full `std/` in Vader, `vader test`, manifest-mode build. `vader fmt` MVP landed (written in Vader, idempotent + parse round-trip on the stdlib). | in progress |
 | **2 — Self-hosting** | Port the compiler to Vader; bootstrap check (`compiler_v2 == compiler_v3`). Lexer + parser + diagnostics + CLI + resolver MVP + formatter + LSP already ported (191/191 lex + parse parity); LSP semantic classification is currently lexer-based and being upgraded to an AST-based pipeline. | in progress |
-| **3 — Post-MVP** | Concurrency, networking, generational GC, VS Code extension, CI pipeline for linux/macOS/Windows. | pending |
+| **3 — Post-MVP** | WASM emitter (bytecode → binary WASM with GC types, importable in the browser / wasmtime), concurrency, networking, generational GC, VS Code extension, CI pipeline for linux/macOS/Windows. | pending |
 
 ---
 

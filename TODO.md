@@ -381,13 +381,9 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [x] **`--cc=<path>` flag** (2026-05-10). `vader build --target=native --cc=<path>` overrides the C compiler ; `CC` env var is a lower-priority fallback ; `"cc"` remains the default. Output picks up `.exe` automatically when the compiler triple ends in `mingw32-(gcc|cc|g++)`. Post-link `strip` follows the same toolchain (e.g. `x86_64-w64-mingw32-strip`). Manifest-side option (`vader.json` `build.cc`) deferred — surface need first.
 - [x] **Windows cross-compile via mingw-w64 + Wine** (2026-05-10). `runtime/c/vader_runtime.c` now compiles cleanly under `x86_64-w64-mingw32-gcc` — POSIX-only spawn block (`<spawn.h>`, `<sys/wait.h>`, `<unistd.h>`, `posix_spawnp`, `waitpid`) bracketed by `#ifdef _WIN32` ; the Windows branch implements `vader_spawn_run` via `CreateProcess` + `CreatePipe` + two `CreateThread` drainers + `WaitForSingleObject` + `GetExitCodeProcess`. Argv quoted per `CommandLineToArgvW` round-trip rules (backslash-doubling before quotes). NTSTATUS abnormal-termination codes (`0xC0000000+`) map to `VADER_SPAWN_SIGNALED`. Verified end-to-end : `hello.vader`, `fizzbuzz.vader`, `primes.vader`, and a `std/process.spawn(["cmd", "/c", "echo", ...])` snippet all run correctly under Wine. Still deferred : (a) `tests/native.test.ts` `WINE=1` mode for automated parity ; (b) Unicode (`CreateProcessW` + UTF-16 conversion) — ASCII paths only today ; (c) `clang`/`cl` autodetection on native Windows hosts.
 
-### 1.10 WASM emitter
+### 1.10 WASM emitter — moved to Phase 3 (§3.10)
 
-- [ ] Bytecode → WASM binary (use a minimal wasm encoder, or vendor binaryen-js)
-- [ ] WASM GC types for structs and arrays
-- [ ] Imports/exports from `@extern` / `@export` decorators
-- [ ] DWARF emission for source-mapped debugging
-- [ ] Tests: emit, run with wasmtime `--wasm=gc`, compare stdout
+WASM emission is no longer part of the MVP cut. See §3.10 for the deferred plan.
 
 ### 1.11 C runtime
 
@@ -405,11 +401,11 @@ Stack-based bytecode VM consuming the `BytecodeModule` produced by §1.7. Lives 
 - [ ] `vader run <file>` (and bare `vader` for REPL)
 - [ ] `vader build <file>` (single-file mode if `main` is present)
 - [ ] `vader build` (manifest-driven mode, reads `vader.json`)
-- [ ] `vader build --target=wasm`
+- [ ] `vader build --target=wasm` — moved to Phase 3 (§3.10).
 - [ ] `vader build --target=ir` — emits `.vir`
 - [ ] `vader test [path]` — discovers and executes `@test` functions
 - [~] `vader fmt [path]` — opinionated formatter, no config. See top "Priority — next up" entry for status ; first pass landed 2026-05-11.
-- [ ] `vader dump --stage=<ast|typed-ast|bytecode|c|wasm> <file>`
+- [ ] `vader dump --stage=<ast|typed-ast|bytecode|c> <file>` (the `wasm` stage moves to Phase 3 alongside §3.10).
 - [ ] `--allow-env` flag for comptime sandbox
 
 ### 1.13 Stdlib (in Vader)
@@ -536,7 +532,7 @@ Patterns counted on the existing Vader code (`vader/` ≈ 11.7k lines) that pay 
 - [x] `examples/rule110.vader` — Rule 110 cellular automaton (Turing-complete CA)
 - [x] `examples/primes.vader` — Sieve of Eratosthenes
 - [ ] `examples/aoc_2024_day1.vader` — solve an AOC problem end-to-end (validates I/O + parsing + collections)
-- [ ] `examples/wasm_browser/` — minimal HTML + Vader code calling JS via `@extern`
+- [ ] `examples/wasm_browser/` — moved to Phase 3 alongside the WASM emitter (§3.10).
 
 ### 1.17 Enums (required before self-hosting)
 
@@ -573,7 +569,7 @@ Sub-tasks discovered while implementing collections:
 - [x] **Generic `Range`** — `Range :: struct[T] { start: T, end: T, inclusive: bool, cursor: T }`. Every integer width (`i8`/`i16`/`i32`/`i64`/`isize`/`u8`/`u16`/`u32`/`u64`/`usize`) plus `char` ships `Contains` + `Iterator` impls in std/core. `inferRange` (`src/typecheck/passes/expr.ts:474`) picks the bound type from the first concrete operand (probes the upper bound when the lower is a free literal) and repins FreeInt bounds via `t.exprTypes.set` so the lowerer emits the right width ; `pickRangeBound` accepts any `ALL_INTS` member or `char`. `forInElementType` (`src/typecheck/passes/stmt.ts:247`) reads the resolved `Range[T]` struct args instead of hardcoding `i32`, so `for i in 0..<arr.len()` binds `i: usize` correctly. char arithmetic for the iterator advance uses an explicit `char(u32(self.cursor) + u32(1))` round-trip since `char` has no native `+ i32`. Stdlib char-class predicates (`is_digit`, `is_alpha`, …) migrated to `c in '0'..='9'`. Snippets : `tests/snippets/char_range_contains/`, `tests/snippets/range_widths/` (covers u64/i64/isize/u8/i16 end-to-end), `examples/rule110.vader` (drives Range[usize]).
 - [ ] **Static methods / associated functions** (`List.ofSize(10)` style) — parser + resolver + typechecker support for `Type.method(args)` where `method` is a free function declared alongside `Type` in the same module. Required for Java-like factory APIs.
 - [x] **First-class function values** — `fn(K) -> u64` as a struct field / local variable / argument. Done. See §1.7 "First-class function values" for the full implementation note.
-- [ ] **Decide `usize` width on the WASM target** — WASM64 only (always 64-bit) vs supporting WASM32 (`usize` becomes `i32`). Affects the C-emit side too if we want one binary to share logic.
+- [ ] **Decide `usize` width on the WASM target** — moved to Phase 3 (§3.10) alongside the WASM emitter.
 - [x] **`void!` runtime/type mismatch** — fixed 2026-05-07 in the parser (`src/parser/passes/type.ts`) : when the postfix `!` desugar sees `void` as the success type, it rewrites to `null | Error` instead of `void | Error` so the union variant matches what the runtime actually emits (`vader_box_null()`). `match { is null -> ... is Error -> ... }` now matches cleanly on success ; `?` propagation continues to work since both forms keep the `Error` variant.
 - [x] **Enforce struct-level bounds at instantiation site** (2026-05-10). New typecheck pass `validateStructBounds` (`src/typecheck/passes/struct-bounds.ts`) walks `globals.typeExprTypes` after `checkProgram` and emits T3006 for any concrete type-arg that doesn't satisfy its formal type-param's bound. Mirrors the per-call enforcement in `call.ts` ; the diagnostic points at the offending type-expr. Adopted in stdlib : `MutableMap :: struct[K: Hash & Eq, V]` and `MutableSet :: struct[T: Hash & Eq]` now declare their bounds at the struct level (was previously only on each method). `MutableMap(NoHash, i32)` now errors at the construction site instead of crashing downstream with `loweredEnumVariant: expected Enum type, got Unresolved`.
 - [x] **Auto-inherit struct bounds onto methods** (2026-05-10). New typecheck pass `inheritStructBounds` (`src/typecheck/passes/inherit-bounds.ts`) runs between `inferExprBodiedReturns` and `checkProgram` — for every fn (free or impl member) whose first param's resolved type is a `Struct` instance with at least one `TypeParam`-typed arg matching one of the fn's own type-params positionally, it copies the struct's typeParam bounds onto the fn's matching typeParam. The fn body's `key.hash()` then sees the inherited bound and trait-method dispatch resolves statically. Adopted in `std/collections.vader` : `put`/`get`/`contains_key` on `MutableMap(K, V)` and `add`/`contains` on `MutableSet(T)` declare just `[K, V]` / `[T]` ; the `Hash & Equals` bounds on the struct decls flow through automatically. Walks both `FnDecl` and `ImplDecl` members so future generic struct + impl combinations also benefit.
@@ -826,10 +822,10 @@ Stand up a `vader` binary written in Vader so each ported phase can compare its 
 - [ ] Port to Vader
 - [ ] Verify it runs `examples/` against the TS VM
 
-### 2.5 Port the WASM emitter
+### 2.5 Port the WASM emitter — gated on Phase 3 (§3.10)
 
-- [ ] Port to Vader
-- [ ] Snapshot-test parity
+The TS WASM emitter doesn't exist yet (moved to §3.10). When it lands,
+port it to Vader at that point. Until then this slot is empty.
 
 ### 2.6 Port the type-checker (last)
 
@@ -984,6 +980,23 @@ Items not gated by the MVP. Pull in roughly the order shown, but feel free to re
 ### 3.9 Companion projects
 
 - [ ] **Brainfuck compiler in Vader, targeting the Vader VM.** Once the Vader compilation API is stable enough to be consumed from user code, write a Brainfuck → Vader-bytecode compiler **in Vader**. Goals : (a) lean as hard as possible on Vader's own building blocks (lexer/parser conventions, `MutableMap`, error-as-value, `match`, …) instead of reinventing them, (b) emit native Vader VM bytecode rather than going through a textual Vader source pass, (c) double as a worked example of "host language using its own compiler infrastructure" — useful pressure on the public compilation API design. Lives in a separate repo, not under `examples/`.
+
+### 3.10 WASM target
+
+Moved out of MVP (was §1.10). The C backend already covers native deployment ;
+WASM is for browser / wasmtime hosting and isn't load-bearing for the
+self-hosted compiler. Re-attack once Phase 2 is well underway and there's a
+concrete use case driving the design (e.g. an interactive playground).
+
+- [ ] Bytecode → WASM binary (use a minimal wasm encoder, or vendor binaryen-js).
+- [ ] WASM GC types for structs and arrays.
+- [ ] Imports/exports wired through `@extern` / `@export` decorators.
+- [ ] DWARF emission for source-mapped debugging.
+- [ ] Tests : emit, run with wasmtime `--wasm=gc`, compare stdout to the VM snapshot.
+- [ ] CLI : `vader build --target=wasm` + `vader dump --stage=wasm`.
+- [ ] **Decide `usize` width** : WASM64 only (always 64-bit) vs supporting WASM32 (`usize` becomes `i32`). Affects the C-emit side too if we want one binary to share logic.
+- [ ] **`examples/wasm_browser/`** — minimal HTML + Vader code calling JS via `@extern`. Doubles as the end-to-end smoke test.
+- [ ] **Slot-typed numeric promotion verifier** — `local.tee` then read through a different-width typed op currently relies on the slot tag carrying the canonical type ; the WASM target needs a debug-only verifier to enforce op/slot agreement before emission (cf. §1.8 note).
 
 ---
 
