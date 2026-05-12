@@ -14,8 +14,8 @@
   expr 18:19    CallExpr       :: void
   expr 18:19    IdentExpr      :: fn(string) -> void
   expr 18:27    StringLitExpr  :: string
-  expr 18:32    IdentExpr      :: ?
-  expr 18:39    IdentExpr      :: ?
+  expr 18:32    IdentExpr      :: i32
+  expr 18:39    IdentExpr      :: string
   expr 20:10    CallExpr       :: [i32, string] | null
   expr 20:10    IdentExpr      :: fn(string) -> [i32, string] | null
   expr 20:17    StringLitExpr  :: string
@@ -27,8 +27,8 @@
   expr 23:19    CallExpr       :: void
   expr 23:19    IdentExpr      :: fn(string) -> void
   expr 23:27    StringLitExpr  :: string
-  expr 23:32    IdentExpr      :: ?
-  expr 23:39    IdentExpr      :: ?
+  expr 23:32    IdentExpr      :: i32
+  expr 23:39    IdentExpr      :: string
   expr 8:15     StringLitExpr  :: string
   expr 8:5      IfExpr         :: void
   expr 8:8      BinaryExpr     :: bool

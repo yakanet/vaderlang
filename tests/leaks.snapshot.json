@@ -531,6 +531,18 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
+  "tuple_match_nested": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "tuple_match_pattern": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
+  "tuple_match_union": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
   "tuple_pair_return": {
     "leakedNodes": 0,
     "leakedBytes": 0

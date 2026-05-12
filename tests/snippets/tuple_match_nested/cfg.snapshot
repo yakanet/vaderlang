@@ -36,13 +36,13 @@ fn tests_snippets_tuple_match_nested__main_vader$main() -> i32
     %11 = move %10
     %12 = const string(#1) :string
     intrinsic builder.append_str(%11, %12)
-    intrinsic builder.append_str(%11, %6)
+    intrinsic builder.append_display(%11, %6)
     %13 = const string(#2) :string
     intrinsic builder.append_str(%11, %13)
-    intrinsic builder.append_str(%11, %8)
+    intrinsic builder.append_display(%11, %8)
     %14 = const string(#3) :string
     intrinsic builder.append_str(%11, %14)
-    intrinsic builder.append_str(%11, %9)
+    intrinsic builder.append_display(%11, %9)
     %15 = intrinsic builder.finish(%11)
     call println(%15) :void
     %16 = const int(0) :i32

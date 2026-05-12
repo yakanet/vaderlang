@@ -10,6 +10,6 @@
   expr 6:34     CallExpr       :: void
   expr 6:34     IdentExpr      :: fn(string) -> void
   expr 6:42     StringLitExpr  :: string
-  expr 6:48     IdentExpr      :: ?
-  expr 6:60     IdentExpr      :: ?
-  expr 6:76     IdentExpr      :: ?
+  expr 6:48     IdentExpr      :: i32
+  expr 6:60     IdentExpr      :: string
+  expr 6:76     IdentExpr      :: bool

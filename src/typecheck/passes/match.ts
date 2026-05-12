@@ -146,8 +146,10 @@ function scrutineeSymbol(scrut: A.Expr, t: MutableTyped): Symbol | null {
 /** Narrowing targets for an arm's bindings :
  *   `is T as p`       ⇒ `p: T`
  *   `is T { f, g }`   ⇒ one entry per field-binding, typed from T's layout
+ *   `[n, s]`          ⇒ one entry per tuple-element binding, typed from the
+ *                       (possibly union-narrowed) tuple variant
  *   `BindingPattern x` ⇒ `x: scrut`
- *  Returns multiple entries because struct destructuring binds several
+ *  Returns multiple entries because struct/tuple destructuring binds several
  *  identifiers simultaneously. (Bare `T { … }` at the arm top-level is not
  *  in the grammar — `parsePattern` only produces `StructPattern` via
  *  `IsPattern.inner`.) */
@@ -168,6 +170,30 @@ function bindingNarrowings(
   if (pattern.kind === "BindingPattern") {
     const sym = t.resolved.patternBindings.get(pattern);
     if (sym !== undefined) out.push({ sym, type: scrut });
+    return out;
+  }
+  if (pattern.kind === "TuplePattern") {
+    // Find the matching-arity tuple variant in the scrutinee. Without this
+    // narrowing the inner bindings ride with the scrutinee's static type
+    // (often `Unresolved` after Union widening), and downstream interp like
+    // `"${n}"` falls back to `builder.append_str(int32_t)` instead of
+    // `append_display_i32`.
+    const tupleTy: Type =
+      scrut.kind === "Tuple" && scrut.elements.length === pattern.elements.length
+        ? scrut
+        : scrut.kind === "Union"
+          ? (scrut.variants.find(
+              (v) => v.kind === "Tuple" && v.elements.length === pattern.elements.length,
+            ) ?? TY.unresolved)
+          : TY.unresolved;
+    if (tupleTy.kind === "Tuple") {
+      for (let i = 0; i < pattern.elements.length; i++) {
+        const elem = pattern.elements[i]!;
+        const elemTy = tupleTy.elements[i] ?? TY.unresolved;
+        out.push(...bindingNarrowings(t, elem, elemTy, null));
+      }
+    }
+    return out;
   }
   return out;
 }

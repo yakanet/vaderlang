@@ -63,15 +63,15 @@
                           @builder.append_str :void
                             __sb_1 :?
                             "n=" :string
-                          @builder.append_str :void
+                          @builder.append_display <for i32> :void
                             __sb_1 :?
-                            n :?
+                            n :i32
                           @builder.append_str :void
                             __sb_1 :?
                             " s=" :string
-                          @builder.append_str :void
+                          @builder.append_display <for string> :void
                             __sb_1 :?
-                            s :?
+                            s :string
                           ~>
                             @builder.finish :string
                               __sb_1 :?
@@ -124,15 +124,15 @@
                           @builder.append_str :void
                             __sb_3 :?
                             "n=" :string
-                          @builder.append_str :void
+                          @builder.append_display <for i32> :void
                             __sb_3 :?
-                            n :?
+                            n :i32
                           @builder.append_str :void
                             __sb_3 :?
                             " s=" :string
-                          @builder.append_str :void
+                          @builder.append_display <for string> :void
                             __sb_3 :?
-                            s :?
+                            s :string
                           ~>
                             @builder.finish :string
                               __sb_3 :?

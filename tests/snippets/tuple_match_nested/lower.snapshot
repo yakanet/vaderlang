@@ -35,21 +35,21 @@
               @builder.append_str :void
                 __sb_1 :?
                 "id=" :string
-              @builder.append_str :void
+              @builder.append_display <for i32> :void
                 __sb_1 :?
-                id :?
+                id :i32
               @builder.append_str :void
                 __sb_1 :?
                 " label=" :string
-              @builder.append_str :void
+              @builder.append_display <for string> :void
                 __sb_1 :?
-                label :?
+                label :string
               @builder.append_str :void
                 __sb_1 :?
                 " active=" :string
-              @builder.append_str :void
+              @builder.append_display <for bool> :void
                 __sb_1 :?
-                active :?
+                active :bool
               ~>
                 @builder.finish :string
                   __sb_1 :?
