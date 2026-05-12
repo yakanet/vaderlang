@@ -72,7 +72,7 @@ export Token :: struct {
     kind: TokenKind
     text: string
     span: Span
-    value: i64 | f64 | u32 | string | null
+    value: i64 | u64 | f64 | u32 | string | null
     numeric_suffix: string
 }
 

@@ -980,7 +980,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
             lit_tok :: p.expect(.IntLit, "integer literal after `=`")
             val :: lit_tok.value
             match val {
-                is i64 -> { value = val }
+                is u64 -> { value = i64(val) }
                 _      -> { value = 0i64 }
             }
             value_span = lit_tok.span
@@ -2043,10 +2043,10 @@ parse_prefix :: fn(p: Parser) -> Expr {
     t :: p.peek()
     if t.kind == .IntLit {
         p.advance()
-        v: i64 = 0i64
+        v: u64 = u64(0)
         val :: t.value
         match val {
-            is i64 -> { v = val }
+            is u64 -> { v = val }
             _      -> {}
         }
         suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }

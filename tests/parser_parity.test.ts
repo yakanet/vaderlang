@@ -53,10 +53,7 @@ beforeAll(async () => {
 
 // Snippets exempt from parity (e.g. self-host parser traps or known
 // snapshot drift). Tracked in TODO §2.1.
-const KNOWN_FAILURES = new Set<string>([
-  // Cascades from the lexer u64-overflow divergence (cf. parity.test.ts).
-  "numeric_context_sensitivity",
-]);
+const KNOWN_FAILURES = new Set<string>([]);
 
 const SKIP_ALL = false;
 

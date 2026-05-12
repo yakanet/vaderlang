@@ -18,7 +18,7 @@ import "std/utf8" { codepoint_byte_len }
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/iter" { slice as slice_array }
-import "std/numbers" { hex_digit_value, is_hex_digit, is_digit_in_base, parse_int_in_base, is_int_suffix, is_float_suffix }
+import "std/numbers" { hex_digit_value, is_hex_digit, is_digit_in_base, parse_uint_in_base, is_int_suffix, is_float_suffix }
 import "vader/diagnostics/diagnostic" { Diagnostic, error }
 import "vader/diagnostics/codes" { LexerCode }
 // Position/Span are re-imported transparently via token.vader (same module);
@@ -406,13 +406,16 @@ strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> string {
     return sb.to_string()
 }
 
-// Decode an integer literal's text → `i64`. Defers digit parsing to
-// `std/numbers.parse_int_in_base` after stripping prefix/suffix/underscores.
-decode_int_literal :: fn(text: string, base: i32, suffix: string) -> i64 {
-    parsed :: parse_int_in_base(strip_numeric_text(text, base, suffix), base)
+// Decode an integer literal's text → `u64`. The unsigned carrier lets
+// literals beyond `i64.MAX` (up to `u64.MAX`) round-trip without losing
+// top bits. Negative literals are wrapped in a `UnaryExpr.neg` over the
+// unsigned magnitude by the parser. Defers digit parsing to
+// `std/numbers.parse_uint_in_base` after stripping prefix/suffix/underscores.
+decode_int_literal :: fn(text: string, base: i32, suffix: string) -> u64 {
+    parsed :: parse_uint_in_base(strip_numeric_text(text, base, suffix), base)
     return match parsed {
-        is i64 -> parsed
-        is Error -> i64(0)
+        is u64 -> parsed
+        is Error -> u64(0)
     }
 }
 

@@ -70,7 +70,7 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
             sb.append(" =")
             v :: t.value
             match v {
-                is i64 -> { sb.append("${v}") }
+                is u64 -> { sb.append("${v}") }
                 _      -> { sb.append("?") }
             }
             sb.append_char('n')

@@ -60,13 +60,7 @@ beforeAll(async () => {
 // surrogates in `advance()`, Vader's lexer skips UTF-8 continuation bytes.
 // Re-add an entry here only if a fixture re-introduces a non-codepoint
 // counting divergence.
-const UTF8_KNOWN_DIVERGENT = new Set<string>([
-  // The self-host lexer decodes integer literals into an `i64` slot, so any
-  // unsigned literal in the range (i64.MAX, u64.MAX] wraps to negative. The
-  // TS lexer keeps a BigInt during decoding. Fix : promote the self-host
-  // value carrier to u64 / BigInt-equivalent. Tracked in TODO.
-  "numeric_context_sensitivity",
-]);
+const UTF8_KNOWN_DIVERGENT = new Set<string>([]);
 
 // All snippets that have a `lexer.snapshot` (now produced for every snippet
 // since the corpus filter was removed). The `try { Bun.file(snapPath).text() }`

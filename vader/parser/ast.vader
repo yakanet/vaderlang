@@ -370,10 +370,11 @@ export DeferBlockBody :: struct { block: BlockExpr }
 export IntLitExpr :: struct {
     span:   Span
     id:   usize = UNASSIGNED_NODE_ID
-    // i64 carries every parsed literal up to 9.2e18 ; u64 literals beyond
-    // that lose top bits (matches the TS BigInt mapping inside the snapshot
-    // format which renders bigints as decimal strings).
-    value:  i64
+    // Unsigned magnitude, full u64 range (matches TS-side `bigint` ; the
+    // snapshot format renders the value as a decimal string with the
+    // trailing `n` so 0..u64.MAX all round-trip losslessly). Negative
+    // literals are wrapped by the parser in `UnaryExpr.neg`.
+    value:  u64
     suffix: string | null
 }
 

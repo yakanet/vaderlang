@@ -3593,44 +3593,44 @@ fn 59 std_numbers$hex_digit (u64) -> char
   local "$cast_11#27" u32
   local "$add_12#28" u32
   local "$cast_14#30" u32
-  i32.const 9   ; numbers.vader:67:17
-  i32.to_u64   ; numbers.vader:67:13
-  local.set 1   ; numbers.vader:67:13
-  local.get 0   ; numbers.vader:67:8
-  local.get 1   ; numbers.vader:67:8
-  u64.le   ; numbers.vader:67:8
-  if $L0 void   ; numbers.vader:67:5
-    char.const 48   ; numbers.vader:68:25
-    char.to_u32   ; numbers.vader:68:21
-    local.set 2   ; numbers.vader:68:21
-    local.get 0   ; numbers.vader:68:32
-    u64.to_u32   ; numbers.vader:68:32
-    local.set 3   ; numbers.vader:68:32
-    local.get 2   ; numbers.vader:68:21
-    local.get 3   ; numbers.vader:68:21
-    u32.add   ; numbers.vader:68:21
-    u32.to_char   ; numbers.vader:68:16
-    return   ; numbers.vader:68:9
-  else   ; numbers.vader:67:5
-    char.const 65   ; numbers.vader:70:21
-    char.to_u32   ; numbers.vader:70:17
-    local.set 4   ; numbers.vader:70:17
-    local.get 0   ; numbers.vader:70:28
-    u64.to_u32   ; numbers.vader:70:28
-    local.set 5   ; numbers.vader:70:28
-    local.get 4   ; numbers.vader:70:17
-    local.get 5   ; numbers.vader:70:17
-    u32.add   ; numbers.vader:70:17
-    local.set 6   ; numbers.vader:70:17
-    i32.const 10   ; numbers.vader:70:41
-    i32.to_u32   ; numbers.vader:70:37
-    local.set 7   ; numbers.vader:70:37
-    local.get 6   ; numbers.vader:70:17
-    local.get 7   ; numbers.vader:70:17
-    u32.sub   ; numbers.vader:70:17
-    u32.to_char   ; numbers.vader:70:12
-    return   ; numbers.vader:70:5
-  end $L0   ; numbers.vader:67:5
+  i32.const 9   ; numbers.vader:92:17
+  i32.to_u64   ; numbers.vader:92:13
+  local.set 1   ; numbers.vader:92:13
+  local.get 0   ; numbers.vader:92:8
+  local.get 1   ; numbers.vader:92:8
+  u64.le   ; numbers.vader:92:8
+  if $L0 void   ; numbers.vader:92:5
+    char.const 48   ; numbers.vader:93:25
+    char.to_u32   ; numbers.vader:93:21
+    local.set 2   ; numbers.vader:93:21
+    local.get 0   ; numbers.vader:93:32
+    u64.to_u32   ; numbers.vader:93:32
+    local.set 3   ; numbers.vader:93:32
+    local.get 2   ; numbers.vader:93:21
+    local.get 3   ; numbers.vader:93:21
+    u32.add   ; numbers.vader:93:21
+    u32.to_char   ; numbers.vader:93:16
+    return   ; numbers.vader:93:9
+  else   ; numbers.vader:92:5
+    char.const 65   ; numbers.vader:95:21
+    char.to_u32   ; numbers.vader:95:17
+    local.set 4   ; numbers.vader:95:17
+    local.get 0   ; numbers.vader:95:28
+    u64.to_u32   ; numbers.vader:95:28
+    local.set 5   ; numbers.vader:95:28
+    local.get 4   ; numbers.vader:95:17
+    local.get 5   ; numbers.vader:95:17
+    u32.add   ; numbers.vader:95:17
+    local.set 6   ; numbers.vader:95:17
+    i32.const 10   ; numbers.vader:95:41
+    i32.to_u32   ; numbers.vader:95:37
+    local.set 7   ; numbers.vader:95:37
+    local.get 6   ; numbers.vader:95:17
+    local.get 7   ; numbers.vader:95:17
+    u32.sub   ; numbers.vader:95:17
+    u32.to_char   ; numbers.vader:95:12
+    return   ; numbers.vader:95:5
+  end $L0   ; numbers.vader:92:5
 end
 
 fn 60 std_numbers$to_hex (u64) -> string
@@ -3643,86 +3643,86 @@ fn 60 std_numbers$to_hex (u64) -> string
   local "k#38" usize
   local "$sub_23#42" usize
   local "$idx_24#43" char
-  local.get 0   ; numbers.vader:81:8
-  i64.const 0   ; numbers.vader:81:8
-  i64.to_u64   ; numbers.vader:81:8
-  u64.eq   ; numbers.vader:81:8
-  if $L0 void   ; numbers.vader:81:5
-    string.const 57   ; numbers.vader:82:16
-    return   ; numbers.vader:82:9
-  else   ; numbers.vader:81:5
-    array.new 62 0   ; numbers.vader:86:19
-    local.set 1   ; numbers.vader:86:19
-    i64.const 16   ; numbers.vader:87:17
-    local.set 2   ; numbers.vader:87:17
-    local.get 0   ; numbers.vader:88:5
-    local.set 3   ; numbers.vader:88:5
-    block $L1 void   ; numbers.vader:89:5
-      loop $L2 void   ; numbers.vader:89:5
-        local.get 3   ; numbers.vader:89:9
-        i64.const 0   ; numbers.vader:89:9
-        i64.to_u64   ; numbers.vader:89:9
-        u64.gt   ; numbers.vader:89:9
-        if $L3 void   ; numbers.vader:89:9
-          local.get 3   ; numbers.vader:90:28
-          local.get 2   ; numbers.vader:90:28
-          u64.rem   ; numbers.vader:90:28
-          call 59   ; numbers.vader:90:18
-          local.set 4   ; numbers.vader:90:18
-          local.get 1   ; numbers.vader:90:9
-          local.get 4   ; numbers.vader:90:9
-          array.push 2   ; numbers.vader:90:9
-          local.get 3   ; numbers.vader:91:13
-          local.get 2   ; numbers.vader:91:13
-          u64.div   ; numbers.vader:91:13
-          local.set 3   ; numbers.vader:91:13
-          br $L2   ; numbers.vader:89:5
-        else   ; numbers.vader:89:9
-        end $L3   ; numbers.vader:89:9
-      end $L2   ; numbers.vader:89:5
-    end $L1   ; numbers.vader:89:5
-    call 48   ; numbers.vader:93:11
-    local.set 5   ; numbers.vader:93:5
-    local.get 1   ; numbers.vader:94:10
-    array.len   ; numbers.vader:94:10
-    local.set 6   ; numbers.vader:94:10
-    i64.const 0   ; numbers.vader:95:16
-    local.set 7   ; numbers.vader:95:16
-    block $L4 void   ; numbers.vader:96:5
-      loop $L5 void   ; numbers.vader:96:5
-        local.get 7   ; numbers.vader:96:9
-        local.get 6   ; numbers.vader:96:9
-        usize.lt   ; numbers.vader:96:9
-        if $L6 void   ; numbers.vader:96:9
-          local.get 6   ; numbers.vader:97:28
-          i64.const 1   ; numbers.vader:97:28
-          i64.to_usize   ; numbers.vader:97:28
-          usize.sub   ; numbers.vader:97:28
-          local.get 7   ; numbers.vader:97:28
-          usize.sub   ; numbers.vader:97:28
-          local.set 8   ; numbers.vader:97:28
-          local.get 1   ; numbers.vader:97:24
-          local.get 8   ; numbers.vader:97:24
-          array.get 62   ; numbers.vader:97:24
-          ref.cast 2   ; numbers.vader:97:24
-          local.set 9   ; numbers.vader:97:24
-          local.get 5   ; numbers.vader:97:9
-          local.get 9   ; numbers.vader:97:9
-          call 50   ; numbers.vader:97:9
-          local.get 7   ; numbers.vader:98:13
-          i64.const 1   ; numbers.vader:98:13
-          i64.to_usize   ; numbers.vader:98:13
-          usize.add   ; numbers.vader:98:13
-          local.set 7   ; numbers.vader:98:13
-          br $L5   ; numbers.vader:96:5
-        else   ; numbers.vader:96:9
-        end $L6   ; numbers.vader:96:9
-      end $L5   ; numbers.vader:96:5
-    end $L4   ; numbers.vader:96:5
-    local.get 5   ; numbers.vader:100:12
-    call.import 7   ; numbers.vader:100:12
-    return   ; numbers.vader:100:5
-  end $L0   ; numbers.vader:81:5
+  local.get 0   ; numbers.vader:106:8
+  i64.const 0   ; numbers.vader:106:8
+  i64.to_u64   ; numbers.vader:106:8
+  u64.eq   ; numbers.vader:106:8
+  if $L0 void   ; numbers.vader:106:5
+    string.const 57   ; numbers.vader:107:16
+    return   ; numbers.vader:107:9
+  else   ; numbers.vader:106:5
+    array.new 62 0   ; numbers.vader:111:19
+    local.set 1   ; numbers.vader:111:19
+    i64.const 16   ; numbers.vader:112:17
+    local.set 2   ; numbers.vader:112:17
+    local.get 0   ; numbers.vader:113:5
+    local.set 3   ; numbers.vader:113:5
+    block $L1 void   ; numbers.vader:114:5
+      loop $L2 void   ; numbers.vader:114:5
+        local.get 3   ; numbers.vader:114:9
+        i64.const 0   ; numbers.vader:114:9
+        i64.to_u64   ; numbers.vader:114:9
+        u64.gt   ; numbers.vader:114:9
+        if $L3 void   ; numbers.vader:114:9
+          local.get 3   ; numbers.vader:115:28
+          local.get 2   ; numbers.vader:115:28
+          u64.rem   ; numbers.vader:115:28
+          call 59   ; numbers.vader:115:18
+          local.set 4   ; numbers.vader:115:18
+          local.get 1   ; numbers.vader:115:9
+          local.get 4   ; numbers.vader:115:9
+          array.push 2   ; numbers.vader:115:9
+          local.get 3   ; numbers.vader:116:13
+          local.get 2   ; numbers.vader:116:13
+          u64.div   ; numbers.vader:116:13
+          local.set 3   ; numbers.vader:116:13
+          br $L2   ; numbers.vader:114:5
+        else   ; numbers.vader:114:9
+        end $L3   ; numbers.vader:114:9
+      end $L2   ; numbers.vader:114:5
+    end $L1   ; numbers.vader:114:5
+    call 48   ; numbers.vader:118:11
+    local.set 5   ; numbers.vader:118:5
+    local.get 1   ; numbers.vader:119:10
+    array.len   ; numbers.vader:119:10
+    local.set 6   ; numbers.vader:119:10
+    i64.const 0   ; numbers.vader:120:16
+    local.set 7   ; numbers.vader:120:16
+    block $L4 void   ; numbers.vader:121:5
+      loop $L5 void   ; numbers.vader:121:5
+        local.get 7   ; numbers.vader:121:9
+        local.get 6   ; numbers.vader:121:9
+        usize.lt   ; numbers.vader:121:9
+        if $L6 void   ; numbers.vader:121:9
+          local.get 6   ; numbers.vader:122:28
+          i64.const 1   ; numbers.vader:122:28
+          i64.to_usize   ; numbers.vader:122:28
+          usize.sub   ; numbers.vader:122:28
+          local.get 7   ; numbers.vader:122:28
+          usize.sub   ; numbers.vader:122:28
+          local.set 8   ; numbers.vader:122:28
+          local.get 1   ; numbers.vader:122:24
+          local.get 8   ; numbers.vader:122:24
+          array.get 62   ; numbers.vader:122:24
+          ref.cast 2   ; numbers.vader:122:24
+          local.set 9   ; numbers.vader:122:24
+          local.get 5   ; numbers.vader:122:9
+          local.get 9   ; numbers.vader:122:9
+          call 50   ; numbers.vader:122:9
+          local.get 7   ; numbers.vader:123:13
+          i64.const 1   ; numbers.vader:123:13
+          i64.to_usize   ; numbers.vader:123:13
+          usize.add   ; numbers.vader:123:13
+          local.set 7   ; numbers.vader:123:13
+          br $L5   ; numbers.vader:121:5
+        else   ; numbers.vader:121:9
+        end $L6   ; numbers.vader:121:9
+      end $L5   ; numbers.vader:121:5
+    end $L4   ; numbers.vader:121:5
+    local.get 5   ; numbers.vader:125:12
+    call.import 7   ; numbers.vader:125:12
+    return   ; numbers.vader:125:5
+  end $L0   ; numbers.vader:106:5
 end
 
 fn 61 std_numbers$to_compact_str (f64) -> string
@@ -3730,35 +3730,35 @@ fn 61 std_numbers$to_compact_str (f64) -> string
   local "s#15" string
   local "$call_8#19" usize
   local "$sub_10#21" usize
-  intrinsic builder.new   ; numbers.vader:146:10
-  local.tee 1   ; numbers.vader:146:10
-  local.get 0   ; numbers.vader:146:11
-  intrinsic builder.append_display   ; numbers.vader:146:11
-  local.get 1   ; numbers.vader:146:10
-  intrinsic builder.finish   ; numbers.vader:146:10
-  local.set 2   ; numbers.vader:146:5
-  local.get 2   ; numbers.vader:147:8
-  string.const 58   ; numbers.vader:147:8
-  call.import 5   ; numbers.vader:147:8
-  if $L0 void   ; numbers.vader:147:5
-    local.get 2   ; numbers.vader:147:46
-    call.import 3   ; numbers.vader:147:46
-    local.set 3   ; numbers.vader:147:46
-    local.get 3   ; numbers.vader:147:46
-    i64.const 2   ; numbers.vader:147:46
-    i64.to_usize   ; numbers.vader:147:46
-    usize.sub   ; numbers.vader:147:46
-    local.set 4   ; numbers.vader:147:46
-    local.get 2   ; numbers.vader:147:35
-    i64.const 0   ; numbers.vader:147:35
-    i64.to_usize   ; numbers.vader:147:35
-    local.get 4   ; numbers.vader:147:35
-    call.import 4   ; numbers.vader:147:35
-    return   ; numbers.vader:147:28
-  else   ; numbers.vader:147:5
-    local.get 2   ; numbers.vader:148:5
-    return   ; numbers.vader:148:5
-  end $L0   ; numbers.vader:147:5
+  intrinsic builder.new   ; numbers.vader:171:10
+  local.tee 1   ; numbers.vader:171:10
+  local.get 0   ; numbers.vader:171:11
+  intrinsic builder.append_display   ; numbers.vader:171:11
+  local.get 1   ; numbers.vader:171:10
+  intrinsic builder.finish   ; numbers.vader:171:10
+  local.set 2   ; numbers.vader:171:5
+  local.get 2   ; numbers.vader:172:8
+  string.const 58   ; numbers.vader:172:8
+  call.import 5   ; numbers.vader:172:8
+  if $L0 void   ; numbers.vader:172:5
+    local.get 2   ; numbers.vader:172:46
+    call.import 3   ; numbers.vader:172:46
+    local.set 3   ; numbers.vader:172:46
+    local.get 3   ; numbers.vader:172:46
+    i64.const 2   ; numbers.vader:172:46
+    i64.to_usize   ; numbers.vader:172:46
+    usize.sub   ; numbers.vader:172:46
+    local.set 4   ; numbers.vader:172:46
+    local.get 2   ; numbers.vader:172:35
+    i64.const 0   ; numbers.vader:172:35
+    i64.to_usize   ; numbers.vader:172:35
+    local.get 4   ; numbers.vader:172:35
+    call.import 4   ; numbers.vader:172:35
+    return   ; numbers.vader:172:28
+  else   ; numbers.vader:172:5
+    local.get 2   ; numbers.vader:173:5
+    return   ; numbers.vader:173:5
+  end $L0   ; numbers.vader:172:5
 end
 
 fn 62 std_utf8$codepoint_byte_len (char) -> usize
