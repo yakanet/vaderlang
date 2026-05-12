@@ -52,4 +52,24 @@ describe("cli", () => {
     // run exits 1 because the file doesn't exist; the flag is parsed silently
     expect(code).toBe(1);
   });
+
+  test("test: all passing tests exit 0", async () => {
+    const code = await runCli(["test", "tests/fixtures/test_cmd/passing"]);
+    expect(code).toBe(0);
+  });
+
+  test("test: any failure exits 1", async () => {
+    const code = await runCli(["test", "tests/fixtures/test_cmd/failing"]);
+    expect(code).toBe(1);
+  });
+
+  test("test: empty / no-@test directory exits 2", async () => {
+    const code = await runCli(["test", "tests/fixtures/test_cmd/empty"]);
+    expect(code).toBe(2);
+  });
+
+  test("test: nonexistent path exits 2", async () => {
+    const code = await runCli(["test", "tests/fixtures/test_cmd/__not_a_dir__"]);
+    expect(code).toBe(2);
+  });
 });

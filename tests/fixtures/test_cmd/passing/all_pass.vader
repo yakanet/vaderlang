@@ -1,0 +1,9 @@
+import "std/testing" { assert_eq, assert_lt }
+
+@test test_arith :: fn() -> void {
+    assert_eq(2 + 3, 5)
+}
+
+@test("named: lt holds") test_lt :: fn() -> void {
+    assert_lt(2, 5)
+}

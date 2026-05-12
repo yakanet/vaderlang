@@ -403,7 +403,7 @@ WASM emission is no longer part of the MVP cut. See §3.10 for the deferred plan
 - [ ] `vader build` (manifest-driven mode, reads `vader.json`)
 - [ ] `vader build --target=wasm` — moved to Phase 3 (§3.10).
 - [ ] `vader build --target=ir` — emits `.vir`
-- [ ] `vader test [path]` — discovers and executes `@test` functions
+- [x] `vader test [path]` — discovers and executes `@test` functions (2026-05-12). Walks `[path]` (default cwd) recursively, skipping `node_modules` / `dist` / `build` / `.git` / `target`. Builds each `.vader` through `pipelineBytecode`, then walks the lowered project for `LoweredFnDecl`s whose `origin.decl.decorators` contains `test` ; each such fn is launched as a VM entry via `runFn(bc, mangled, [], { host })`. Any `VmError` (panic from `std/testing`, division-by-zero, unreachable, etc.) → test fails with the raw message. Output groups per-file with `ok`/`FAIL` per test + ms timing ; summary line `N tests | P pass | F fail`. Exit 0 on all-pass, 1 on any fail, 2 on no tests / no files / bad path. Optional name override : `@test("readable name") fn_name :: fn() -> void { ... }` — extracts `args[0]` if it's a static `StringLitExpr`. Tests : `tests/cli.test.ts` exercises passing / failing / empty / nonexistent-path cases against `tests/fixtures/test_cmd/`.
 - [~] `vader fmt [path]` — opinionated formatter, no config. See top "Priority — next up" entry for status ; first pass landed 2026-05-11.
 - [ ] `vader dump --stage=<ast|typed-ast|bytecode|c> <file>` (the `wasm` stage moves to Phase 3 alongside §3.10).
 - [ ] `--allow-env` flag for comptime sandbox
