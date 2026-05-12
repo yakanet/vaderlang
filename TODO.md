@@ -565,11 +565,11 @@ The self-hosting compiler will use enums to represent token kinds, opcode tags, 
 - [x] C emitter: enum variants lower to `i32` before emit; C output uses `int32_t` constants transparently. Verified via `tests/snippets/enum_basic/` and `enum_match/` native tests.
 - [x] Snapshot tests: `tests/snippets/enum_basic/` covers lexer → bytecode → vm; `tests/snippets/enum_match/` covers ==, !=, return type, dot-shorthand, multi-enum programs.
 
-#### Deferred — Typed enums (post-MVP)
+#### Typed enums — done
 
-- [ ] **Typed representation** (`SPEC §Enums / Representation`): `Direction :: enum(u8) { ... }` — an optional `(type)` suffix selects the backing integer type (`i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`; default `i32`). Requires: parser update (optional type arg on `EnumDecl`), `EnumType.repr` field in `types.ts`, lowerer emits the correct integer type instead of hard-coded `i32`, bytecode/C emitter updated accordingly.
-- [ ] **Explicit variant indices**: variants may carry an explicit integer value (`Up = 10`); unspecified variants auto-increment from the previous (`Up = 10, Down` → Down = 11, `Left = 20, Right` → Right = 21). Requires: `EnumVariant.value?: bigint` in `ast.ts`, index-resolution pass in the type-checker or lowerer.
-- [ ] **Bounds checking**: after resolving all variant indices, verify every value fits in the declared backing type. Example: `enum(u8)` max = 255 — emit an error if any variant index exceeds the range. Must also check that no two variants share the same resolved index.
+- [x] **Typed representation** (`SPEC §Enums / Representation`): `Direction :: enum(u8) { ... }` — optional `(type)` suffix selects the backing integer type (`i8`/`i16`/`i32`/`i64`/`isize`/`u8`/`u16`/`u32`/`u64`/`usize`; default `i32`). Parser : optional `(repr)` after `enum` (`EnumDecl.repr: TypeExpr | null`). Typecheck : `resolveEnumRepr` validates the type is a primitive integer (`T3029` otherwise) and stores it on `EnumType.repr`. Lowerer : `loweredEnumVariant` reads `enumType.repr` to type each `LoweredIntLit`. Snippet : `tests/snippets/enum_typed/` covers `enum(u8)` + `enum(u16)` end-to-end (lex → bytecode → VM → native).
+- [x] **Explicit variant indices**: `Up = 10`, with auto-increment for unspecified variants. AST : `EnumVariant.value: bigint | null` + `valueSpan`. Typecheck : `resolveEnumIndices` runs a cursor (starts at 0, `value + 1` after each variant) ; explicit values reset the cursor. Result stored on `EnumType.indices: ReadonlyMap<string, bigint>` and consumed by the lowerer.
+- [x] **Bounds checking**: `REPR_RANGES` table per primitive ; out-of-range values emit `T3030` ("enum variant value out of range for backing type"). Duplicate values across the same enum emit `T3031` ("duplicate enum variant value"). Snippet : `tests/snippets/enum_bad_repr/` exercises all three diagnostics (`T3029` non-int repr, `T3030` u8 overflow, `T3031` dup).
 
 ### 1.18b Generics & primitive type ergonomics
 
