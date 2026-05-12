@@ -1,0 +1,9 @@
+# stdout
+inc(5) = 6
+dbl(5) = 10
+sqr(5) = 25
+add(3, 4) = 7
+forty_two() = 42
+block(3) = 10
+# exit
+0

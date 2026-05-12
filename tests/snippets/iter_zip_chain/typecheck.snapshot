@@ -47,10 +47,10 @@
   expr 34:15    IdentExpr      :: fn($T[], fn($T) -> $U[]) -> $U[]
   expr 34:24    SeqLitExpr     :: i32[]
   expr 34:35    LambdaExpr     :: fn(i32) -> i32[]
-  expr 34:64    SeqLitExpr     :: i32[]
-  expr 34:65    IdentExpr      :: i32
-  expr 34:68    BinaryExpr     :: i32
-  expr 34:68    IdentExpr      :: i32
+  expr 34:47    SeqLitExpr     :: i32[]
+  expr 34:48    IdentExpr      :: i32
+  expr 34:51    BinaryExpr     :: i32
+  expr 34:51    IdentExpr      :: i32
   expr 35:14    IdentExpr      :: i32[]
   expr 36:17    StringLitExpr  :: string
   expr 36:22    IdentExpr      :: i32

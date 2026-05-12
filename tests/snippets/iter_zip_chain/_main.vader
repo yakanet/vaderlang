@@ -31,7 +31,7 @@ main :: fn() -> i32 {
     }
 
     // flat_map — each input expands to a sub-array.
-    bursts :: flat_map([1, 2, 3], fn(x: i32) -> i32[] { return [x, x * 10] })
+    bursts :: flat_map([1, 2, 3], (x: i32) -> [x, x * 10])
     for n in bursts {
         println("b=${n}")
     }

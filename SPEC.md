@@ -1254,35 +1254,62 @@ sum(1, 2, 3, 4)
 
 ### Closures / lambdas
 
-Full form, identical to functions:
+Lambdas use the form `params -> body`. The `->` is the mandatory separator between parameters and body ; the `fn` keyword is **not used** on lambdas (it remains for declarations and function types — see *Function values* below).
+
+```vader
+// Single param — parens optional, expression body
+items.map(x -> x * 2)
+items.map((x) -> x * 2)
+
+// Single param typed (parens required for the `:` annotation)
+items.map((x: i32) -> x * 2)
+
+// Multi-param (parens required)
+arr.fold(0, (acc, x) -> acc + x)
+
+// No-arg (empty parens required)
+btn.on_click(() -> count = count + 1)
+
+// Multi-statement via block-expr
+items.map(x -> {
+    tmp :: x * x
+    tmp + 1
+})
+```
+
+**No explicit return-type slot on lambdas.** The return type is always inferred — from the call-site signature, an enclosing struct field's fn-type, a typed `let`, or from the body itself. If you need to annotate the return type explicitly, declare a named function instead :
 
 ```vader
 inc :: fn(x: i32) -> i32 { x + 1 }
-items.map(fn(x: i32) -> i32 { x * 2 })
+items.map(inc)
 ```
 
-**Type annotations on lambda parameters and return are optional** when the surrounding context provides them via bidirectional inference:
-
-```vader
-items.map(fn(x) { x * 2 })            // x and return inferred from map's signature
-items.map(fn(x: i32) -> i32 { x * 2 }) // explicit, also valid
-```
-
-Top-level function declarations (`name :: fn(...)`) still require full annotations — see §4 inference rules.
+The `name :: fn(...) -> R { ... }` form is a regular function declaration (top-level **or** local to a fn body), not a value-position lambda. Parameter and return-type annotations are required for top-level fns (see §4 inference rules).
 
 Closures capture their environment **by reference** (consistent with the Java-style model). Captured locals are heap-promoted into single-slot cells at the lowering pass: the cell lives on the GC heap, the binding becomes a pointer to it, and every closure that mentions the variable shares the same cell. This is what makes mutation visible across closures (a counter built via `n := 0; inc :: fn() { n = n + 1 }; get :: fn() -> i32 { n }` works as expected). Lifting itself is transparent: the closure value is a `(code, env)` fat pointer where `code` points to a synthesised top-level fn taking the env as its first parameter, and `env` is a heap-allocated struct holding refs to the captured cells.
 
 ### Function values
 
-The function-type form `fn(T1, T2, ...) -> R` (or `fn(T1, T2, ...)` for void return) is a **first-class type**: it can appear anywhere a type is allowed — fn parameters, struct fields, array elements, locals, return types. A function name used outside of an immediate call yields a function value:
+The function-type form `fn(T1, T2, ...) -> R` (or `fn(T1, T2, ...)` for void return) is a **first-class type**: it can appear anywhere a type is allowed — fn parameters, struct fields, array elements, locals, return types. **The `fn` keyword is retained on function types** (it's the visual sentinel that says "this is a callable type"). A function name used outside of an immediate call yields a function value:
 
 ```vader
 add :: fn(a: i32, b: i32) -> i32 { return a + b }
 
 main :: fn() -> i32 {
-    f := add               // f: fn(i32, i32) -> i32
+    f := add               // f: fn(i32, i32) -> i32 (inferred from `add`)
     return f(2, 3)         // indirect call — same syntax as direct
 }
+```
+
+A lambda flows into a fn-type slot without any wrapping :
+
+```vader
+cb: fn(i32) -> i32 = x -> x + 1
+println(cb(41))                                       // 42
+
+Handler :: struct { cb: fn(i32) -> i32 }
+h :: Handler { .cb = (x) -> x * 2 }
+println(h.cb(21))                                     // 42
 ```
 
 Runtime representation: a fat pointer `{ code, env }`. Non-capturing globals carry `env = NULL` and route through a small generated trampoline so the same indirect-call path handles both global function refs and closures.

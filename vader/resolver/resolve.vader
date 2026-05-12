@@ -80,7 +80,5 @@ destructure_first :: fn(b: DestructureImport, module_path: string, factory: Symb
 }
 
 sort_by_name :: fn(syms: Symbol[]) -> Symbol[] {
-    return sort(syms, fn(a: Symbol, b: Symbol) -> bool {
-        return compare_ascending(a.name, b.name)
-    })
+    return sort(syms, (a: Symbol, b: Symbol) -> compare_ascending(a.name, b.name))
 }

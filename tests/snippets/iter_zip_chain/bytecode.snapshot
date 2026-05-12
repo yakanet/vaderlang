@@ -328,14 +328,14 @@ end
 
 fn 1 __lambda_15 (ref,i32) -> ref
   local "$mul_3#6" i32
-  local.get 1   ; _main.vader:34:68
-  i32.const 10   ; _main.vader:34:68
-  i32.mul   ; _main.vader:34:68
-  local.set 2   ; _main.vader:34:68
-  local.get 1   ; _main.vader:34:64
-  local.get 2   ; _main.vader:34:64
-  array.new 21 2   ; _main.vader:34:64
-  return   ; _main.vader:34:57
+  local.get 1   ; _main.vader:34:51
+  i32.const 10   ; _main.vader:34:51
+  i32.mul   ; _main.vader:34:51
+  local.set 2   ; _main.vader:34:51
+  local.get 1   ; _main.vader:34:47
+  local.get 2   ; _main.vader:34:47
+  array.new 21 2   ; _main.vader:34:47
+  return   ; _main.vader:34:47
 end
 
 fn 2 std_core$usize$Comparable$compare (usize,usize) -> i32

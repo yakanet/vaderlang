@@ -9,6 +9,7 @@ import type * as A from "../ast.ts";
 import { UNASSIGNED_NODE_ID } from "../ast.ts";
 import type { Parser } from "../parser.ts";
 
+import { parseLambdaAsLetValue } from "./control.ts";
 import { parseExpr, placeholderExpr } from "./expr.ts";
 import { parseType } from "./type.ts";
 
@@ -124,7 +125,11 @@ function parseLet(p: Parser): A.LetStmt {
   // `x := T(value)` plays the role of an explicit cast at let-binding sites.
   const type: A.TypeExpr | null = null;
 
-  const value = parseExpr(p, 0);
+  // `name :: fn(...) { body }` is the Vader idiom for a local fn-decl,
+  // not a value-position lambda — parse the legacy `fn(...) { … }` shape
+  // without emitting P1024. Lambdas in real value position go through
+  // the new `(params) -> body` syntax.
+  const value = p.check("kw_fn") ? parseLambdaAsLetValue(p) : parseExpr(p, 0);
   const binding: A.SimpleBinding = {
     kind: "SimpleBinding",
     id: UNASSIGNED_NODE_ID, span: nameTok.span,

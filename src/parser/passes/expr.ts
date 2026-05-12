@@ -12,6 +12,7 @@ import { describeToken, looksLikeStructLitBody } from "../parser.ts";
 
 import { parseBlock } from "./stmt.ts";
 import { parseIfExpr, parseLambda, parseMatchExpr } from "./control.ts";
+import { parseFnSignatureParams } from "./decl.ts";
 import { parseType } from "./type.ts";
 import { intrinsicSpec } from "../intrinsics.ts";
 
@@ -66,6 +67,15 @@ const POSTFIX_BP: ReadonlyMap<TokenKind, number> = new Map([
 
 export function parseExpr(p: Parser, minBP: number): A.Expr {
   let left = parsePrefix(p);
+
+  // Single-param lambda sugar: `x -> expr`. Only fires when the prefix
+  // parse returned a bare IdentExpr (no postfix / struct-lit consumed) and
+  // an `arrow` follows immediately. Higher-arity / typed-params lambdas
+  // go through the `(params) -> body` path in parsePrefix.
+  if (left.kind === "IdentExpr" && p.check("arrow")) {
+    left = parseSingleParamLambdaTail(p, left);
+  }
+
   let lastNonAssocLevel = -1;
 
   while (true) {
@@ -200,6 +210,7 @@ function parsePrefix(p: Parser): A.Expr {
     case "ident":
       return parseIdentOrStructLit(p);
     case "lparen":
+      if (peekLambdaWithoutFn(p)) return parseLambdaWithoutFn(p);
       return parseParenOrTuple(p);
     case "lbracket":
       return parseSeqLit(p);
@@ -473,24 +484,58 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
  *  disambiguate `Foo(T) { … }` (struct lit) from `Foo(T)` (call expr).  */
 function peekGenericStructLit(p: Parser): boolean {
   if (p.tokens[p.pos]?.kind !== "lparen") return false;
+  const k = peekTokenIdxAfterBalanced(p, "lparen", "rparen");
+  if (k < 0 || p.tokens[k]?.kind !== "lbrace") return false;
+  return looksLikeStructLitBody(p.tokens, k);
+}
+
+/** Scan past a balanced `open ... close` group starting at the current
+ *  token position, then skip newlines, and return the index of the next
+ *  significant token (or -1 if the group isn't balanced before EOF).
+ *  Used by lambda lookahead (`(params) ->`) and the generic-struct-lit
+ *  heuristic above. */
+function peekTokenIdxAfterBalanced(p: Parser, open: TokenKind, close: TokenKind): number {
+  if (p.tokens[p.pos]?.kind !== open) return -1;
   let depth = 1, j = p.pos + 1;
   while (j < p.tokens.length && depth > 0) {
     const t = p.tokens[j]!;
-    if (t.kind === "eof") return false;
-    if (t.kind === "lparen") depth++;
-    else if (t.kind === "rparen") {
+    if (t.kind === "eof") return -1;
+    if (t.kind === open) depth++;
+    else if (t.kind === close) {
       depth--;
       if (depth === 0) break;
     }
     j++;
   }
-  if (depth !== 0) return false;
-  const closing = j;     // index of the matching `)`
-  // Skip newlines after `)` since the formatter may break the line.
-  let k = closing + 1;
+  if (depth !== 0) return -1;
+  // Skip newlines after the matching close.
+  let k = j + 1;
   while (k < p.tokens.length && p.tokens[k]!.kind === "newline") k++;
-  if (p.tokens[k]?.kind !== "lbrace") return false;
-  return looksLikeStructLitBody(p.tokens, k);
+  return k;
+}
+
+/** True when the upcoming `( <stuff> )` is followed by `->`, i.e. the
+ *  shape opens a lambda without the `fn` keyword. Same balanced-scan as
+ *  `peekGenericStructLit`, different sentinel. */
+function peekLambdaWithoutFn(p: Parser): boolean {
+  const k = peekTokenIdxAfterBalanced(p, "lparen", "rparen");
+  return k >= 0 && p.tokens[k]?.kind === "arrow";
+}
+
+/** Wrap a body expression in a synthetic BlockExpr if it is not already
+ *  one. Used by the new lambda forms (`x -> expr`, `(x) -> expr`) so the
+ *  AST shape `LambdaExpr.body: BlockExpr` stays stable for downstream
+ *  consumers (typecheck `checkBlock`, lowerer `lowerBlock`). A block-expr
+ *  with empty `stmts` and `trailing = expr` is semantically identical to
+ *  an expression-bodied lambda. */
+function wrapAsBlock(body: A.Expr): A.BlockExpr {
+  if (body.kind === "BlockExpr") return body;
+  return {
+    kind: "BlockExpr",
+    id: UNASSIGNED_NODE_ID, span: body.span,
+    stmts: [],
+    trailing: body,
+  };
 }
 
 function parseStructLitFields(p: Parser): A.StructLitItem[] {
@@ -536,6 +581,47 @@ function parseParenOrTuple(p: Parser): A.Expr {
   p.skipNewlines();
   p.expect("rparen", "`)` to close parenthesised expression");
   return expr;
+}
+
+/** Parse `(params) -> body` as a lambda (no `fn` keyword). The opening
+ *  `(` is still on the parser ; `parseFnSignatureParams` consumes the
+ *  full param list. No explicit return-type slot — always inferred. */
+function parseLambdaWithoutFn(p: Parser): A.LambdaExpr {
+  const start = p.peek();
+  const { params } = parseFnSignatureParams(p);
+  p.expect("arrow", "`->` between lambda params and body");
+  const bodyExpr = parseExpr(p, 0);
+  const body = wrapAsBlock(bodyExpr);
+  return {
+    kind: "LambdaExpr",
+    id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
+    params,
+    returnType: null,
+    body,
+  };
+}
+
+/** Tail-parse `-> body` after a bare `IdentExpr` consumed by parsePrefix.
+ *  Builds the single-param lambda with the ident as a typeless `FnParam`.
+ *  Called from `parseExpr` immediately after `parsePrefix` returns. */
+function parseSingleParamLambdaTail(p: Parser, paramIdent: A.IdentExpr): A.LambdaExpr {
+  p.advance(); // ->
+  const param: A.FnParam = {
+    id: UNASSIGNED_NODE_ID, span: paramIdent.span,
+    name: paramIdent.name,
+    type: null,
+    defaultValue: null,
+    variadic: false,
+  };
+  const bodyExpr = parseExpr(p, 0);
+  const body = wrapAsBlock(bodyExpr);
+  return {
+    kind: "LambdaExpr",
+    id: UNASSIGNED_NODE_ID, span: { start: paramIdent.span.start, end: body.span.end },
+    params: [param],
+    returnType: null,
+    body,
+  };
 }
 
 function parseSeqLit(p: Parser): A.SeqLitExpr {

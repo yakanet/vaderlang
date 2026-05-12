@@ -304,7 +304,7 @@
     return int(0) :i32
   struct __lambda_env_16 {  }
   fn __lambda_15(__env_14: __lambda_env_16, x: i32) -> i32[]
-    return
+    ~>
       array :i32[]
         x :i32
         mul :i32

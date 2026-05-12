@@ -5,15 +5,15 @@ main :: fn() -> i32 {
     nums := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     // map: square 1..=5 → [1, 4, 9, 16, 25] → sum 55
-    squares := map([1, 2, 3, 4, 5], fn(x: i32) -> i32 { return x * x })
+    squares := map([1, 2, 3, 4, 5], (x: i32) -> x * x)
     s1 := sum(squares)
 
     // filter: keep evens of 1..=10 → [2, 4, 6, 8, 10] → sum 30
-    evens := filter(nums, fn(x: i32) -> bool { return x % 2 == 0 })
+    evens := filter(nums, (x: i32) -> x % 2 == 0)
     s2 := sum(evens)
 
     // fold: product of 1..=5 → 120
-    p := fold([1, 2, 3, 4, 5], 1, fn(acc: i32, x: i32) -> i32 { return acc * x })
+    p := fold([1, 2, 3, 4, 5], 1, (acc: i32, x: i32) -> acc * x)
 
     // take first 3 of 1..=10 → [1, 2, 3] → sum 6
     first := take(nums, 3)

@@ -175,29 +175,29 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
 end
 
 fn 1 __lambda_1 (ref,i32) -> i32
-  local.get 1   ; _main.vader:8:64
-  local.get 1   ; _main.vader:8:64
-  i32.mul   ; _main.vader:8:64
-  return   ; _main.vader:8:57
+  local.get 1   ; _main.vader:8:49
+  local.get 1   ; _main.vader:8:49
+  i32.mul   ; _main.vader:8:49
+  return   ; _main.vader:8:49
 end
 
 fn 2 __lambda_4 (ref,i32) -> bool
   local "$mod_3#7" i32
-  local.get 1   ; _main.vader:12:55
-  i32.const 2   ; _main.vader:12:55
-  i32.rem   ; _main.vader:12:55
-  local.set 2   ; _main.vader:12:55
-  local.get 2   ; _main.vader:12:55
-  i32.const 0   ; _main.vader:12:55
-  i32.eq   ; _main.vader:12:55
-  return   ; _main.vader:12:48
+  local.get 1   ; _main.vader:12:39
+  i32.const 2   ; _main.vader:12:39
+  i32.rem   ; _main.vader:12:39
+  local.set 2   ; _main.vader:12:39
+  local.get 2   ; _main.vader:12:39
+  i32.const 0   ; _main.vader:12:39
+  i32.eq   ; _main.vader:12:39
+  return   ; _main.vader:12:39
 end
 
 fn 3 __lambda_7 (ref,i32,i32) -> i32
-  local.get 1   ; _main.vader:16:72
-  local.get 2   ; _main.vader:16:72
-  i32.mul   ; _main.vader:16:72
-  return   ; _main.vader:16:65
+  local.get 1   ; _main.vader:16:57
+  local.get 2   ; _main.vader:16:57
+  i32.mul   ; _main.vader:16:57
+  return   ; _main.vader:16:57
 end
 
 fn 4 std_core$usize$Comparable$compare (usize,usize) -> i32

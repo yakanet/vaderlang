@@ -1,0 +1,47 @@
+// Lambda syntax without the `fn` keyword. The `fn` sentinel is retained
+// only for declarations (`name :: fn(...) -> R { ... }`) and function
+// types (`cb: fn(i32) -> i32`). Lambda expressions are introduced by
+// `params -> body` ; `->` is the mandatory separator that distinguishes
+// a lambda from a parenthesised expression. Single-param lambdas can
+// omit the parens (`x -> x + 1`).
+
+import "std/io" { println }
+
+call_it :: fn(f: fn(i32) -> i32, x: i32) -> i32 {
+    return f(x)
+}
+
+call_two :: fn(f: fn(i32, i32) -> i32, a: i32, b: i32) -> i32 {
+    return f(a, b)
+}
+
+call_none :: fn(f: fn() -> i32) -> i32 {
+    return f()
+}
+
+main :: fn() -> i32 {
+    // Single param — no parens, expression body
+    println("inc(5) = ${call_it(x -> x + 1, 5)}")
+
+    // Single param — parens, expression body
+    println("dbl(5) = ${call_it((x) -> x * 2, 5)}")
+
+    // Single param — typed (parens required for the `:`), expression body
+    println("sqr(5) = ${call_it((x: i32) -> x * x, 5)}")
+
+    // Multi param (parens mandatory)
+    println("add(3, 4) = ${call_two((a, b) -> a + b, 3, 4)}")
+
+    // No-arg (empty parens mandatory)
+    println("forty_two() = ${call_none(() -> 42)}")
+
+    // Block body (multi-statement via block-expr) — inferred via call_it's
+    // signature.
+    r :: call_it(x -> {
+        tmp :: x * x
+        tmp + 1
+    }, 3)
+    println("block(3) = ${r}")
+
+    return 0
+}

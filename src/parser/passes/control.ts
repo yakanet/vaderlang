@@ -93,15 +93,39 @@ function parseMatchArm(p: Parser): A.MatchArm {
   };
 }
 
+/** Parse `fn(...) -> R` as a function *type* (value-position type-meta,
+ *  e.g. `Handler :: fn(i32) -> i32`). The legacy lambda form
+ *  `fn(params) { body }` has been removed in favor of `(params) -> body`;
+ *  see `parseParenOrTuple` + `parseLambdaWithoutFn` for the new path. */
 export function parseLambda(p: Parser): A.LambdaExpr | A.FnTypeExpr {
+  return parseLambdaOrFnType(p, /*allowFnLambda*/ false);
+}
+
+/** Same as `parseLambda` but accepts the `fn(...) { body }` legacy shape
+ *  silently — used by `parseLet` for the `name :: fn(...) { body }` Vader
+ *  idiom (a local fn-decl-as-let, not a value-position lambda). */
+export function parseLambdaAsLetValue(p: Parser): A.LambdaExpr | A.FnTypeExpr {
+  return parseLambdaOrFnType(p, /*allowFnLambda*/ true);
+}
+
+function parseLambdaOrFnType(p: Parser, allowFnLambda: boolean): A.LambdaExpr | A.FnTypeExpr {
   const start = p.advance(); // fn
   const { params } = parseFnSignatureParams(p);
   let returnType: A.TypeExpr | null = null;
   if (p.match("arrow") !== null) returnType = parseType(p);
-  // Layer 1.C — when no body block follows, this is a function *type*
-  // (`fn(T) -> U`), not a lambda. The two share the `fn` keyword and
-  // signature ; the parser disambiguates by looking ahead for `{`.
   if (!p.check("lbrace")) {
+    return {
+      kind: "FnTypeExpr",
+      id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: p.peek(-1).span.end },
+      params: params.map((par) => par.type ?? { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: par.span, name: "?" }),
+      returnType,
+    };
+  }
+  if (!allowFnLambda) {
+    // `fn(...) { body }` outside a `name ::` binding is no longer a lambda.
+    // Let the generic parser surface its own diagnostic — the caller flow
+    // (typecheck on a FnTypeExpr followed by an orphan block) reports a
+    // clearer downstream error than a dedicated P1024.
     return {
       kind: "FnTypeExpr",
       id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: p.peek(-1).span.end },
