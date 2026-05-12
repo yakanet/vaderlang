@@ -1930,6 +1930,20 @@ postfix_bp :: fn(k: TokenKind) = match k {
 
 parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
     left := p.parse_prefix()
+
+    // Single-param lambda sugar: `x -> expr`. Only fires when prefix
+    // parse returned a bare IdentExpr (no postfix consumed) and an
+    // `arrow` follows immediately. Multi-param / typed-param lambdas
+    // go through the `(params) -> body` path in parse_prefix.
+    match left {
+        is IdentExpr as id -> {
+            if p.check(.Arrow) {
+                left = p.parse_single_param_lambda_tail(id)
+            }
+        }
+        _ -> {}
+    }
+
     last_non_assoc_level := -1
 
     for {
@@ -2042,7 +2056,10 @@ parse_prefix :: fn(p: Parser) -> Expr {
     }
     if t.kind == .StringBegin { return p.parse_string_lit() }
     if t.kind == .Ident       { return p.parse_ident_or_struct_lit() }
-    if t.kind == .LParen      { return p.parse_paren() }
+    if t.kind == .LParen {
+        if p.peek_lambda_without_fn() { return p.parse_lambda_without_fn() }
+        return p.parse_paren()
+    }
     if t.kind == .LBracket    { return p.parse_seq_lit() }
     if t.kind == .LBrace      { return p.parse_block() }
     if t.kind == .Minus || t.kind == .Bang || t.kind == .Tilde {
@@ -2358,6 +2375,80 @@ parse_paren :: fn(p: Parser) -> Expr {
     p.skip_newlines()
     p.expect(.RParen, "`)` to close parenthesised expression")
     return expr
+}
+
+// True when the upcoming `( … )` is followed by `->`, i.e. the shape opens
+// a lambda without the `fn` keyword. Balanced-paren scan, then skip newlines.
+peek_lambda_without_fn :: fn(p: Parser) -> bool {
+    if p.peek().kind != .LParen { return false }
+    depth: i32 = 1
+    i: i32 = 1
+    for depth > 0 {
+        k :: p.peek_at(i).kind
+        if k == .Eof { return false }
+        if k == .LParen { depth = depth + 1 }
+        else if k == .RParen {
+            depth = depth - 1
+            if depth == 0 { break }
+        }
+        i = i + 1
+    }
+    // skip newlines after the matching `)`
+    i = i + 1
+    for p.peek_at(i).kind == .Newline { i = i + 1 }
+    return p.peek_at(i).kind == .Arrow
+}
+
+// Parse `(params) -> body` as a lambda (no `fn` keyword). The opening `(`
+// is still on the parser ; `parse_fn_signature_params` consumes it.
+parse_lambda_without_fn :: fn(p: Parser) -> LambdaExpr {
+    start :: p.peek()
+    sig :: p.parse_fn_signature_params()
+    p.expect(.Arrow, "`->` between lambda params and body")
+    body_expr :: p.parse_expr(0)
+    body :: wrap_as_block(body_expr)
+    return LambdaExpr {
+        .span        = Span { .start = start.span.start, .end = body.span.end },
+        .params      = sig.params,
+        .return_type = null,
+        .body        = body,
+    }
+}
+
+// Tail-parse `-> body` after a bare IdentExpr consumed by parse_prefix.
+// Builds the single-param lambda with the ident as a typeless FnParam.
+parse_single_param_lambda_tail :: fn(p: Parser, param_ident: IdentExpr) -> LambdaExpr {
+    p.advance()  // ->
+    param :: FnParam {
+        .span          = param_ident.span,
+        .name          = param_ident.name,
+        .ty            = null,
+        .default_value = null,
+        .variadic      = false,
+    }
+    body_expr :: p.parse_expr(0)
+    body :: wrap_as_block(body_expr)
+    return LambdaExpr {
+        .span        = Span { .start = param_ident.span.start, .end = body.span.end },
+        .params      = [param],
+        .return_type = null,
+        .body        = body,
+    }
+}
+
+// Wrap a body expression in a synthetic BlockExpr if it is not already
+// one. Keeps the AST shape `LambdaExpr.body: BlockExpr` stable for
+// downstream consumers.
+wrap_as_block :: fn(body: Expr) -> BlockExpr {
+    match body {
+        is BlockExpr as b -> { return b }
+        _ -> {}
+    }
+    return BlockExpr {
+        .span     = body.span,
+        .stmts    = [],
+        .trailing = body,
+    }
 }
 
 parse_seq_lit :: fn(p: Parser) -> SeqLitExpr {
