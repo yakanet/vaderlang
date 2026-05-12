@@ -1,0 +1,23 @@
+import "std/io" { println }
+
+// Regression: `is Point { x, y }` (struct destructure) on a union scrutinee
+// trapped at runtime (`vm: reached unreachable`) because the lowerer passed
+// the union-typed target through to the inner StructPattern, so the field
+// reads landed on the union slot instead of the narrowed Point variant.
+// Fix mirrors the `is T as p` flow: insert a LoweredCast to the inner type
+// before recursing into the nested pattern.
+Point :: struct { x: i32, y: i32 }
+
+describe :: fn(value: Point | null) -> string {
+    out :: match value {
+        is null -> "null"
+        is Point { x, y } -> "(${x}, ${y})"
+    }
+    return out
+}
+
+main :: fn() -> i32 {
+    println(describe(Point { .x = 3, .y = 4 }))
+    println(describe(null))
+    return 0
+}

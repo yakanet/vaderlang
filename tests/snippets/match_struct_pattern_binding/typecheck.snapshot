@@ -10,7 +10,7 @@
   expr 12:33    CallExpr       :: void
   expr 12:33    IdentExpr      :: fn(string) -> void
   expr 12:41    StringLitExpr  :: string
-  expr 12:54    IdentExpr      :: ?
+  expr 12:54    IdentExpr      :: string
   expr 13:14    CallExpr       :: void
   expr 13:14    IdentExpr      :: fn(string) -> void
   expr 13:22    StringLitExpr  :: string

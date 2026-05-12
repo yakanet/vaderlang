@@ -17,6 +17,7 @@ import type { FnContext, MutableTyped } from "../ctx.ts";
 import { popNarrowing, pushNarrowing } from "./narrow.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr } from "./expr.ts";
+import { fieldTypeOnType } from "./field.ts";
 import { lowerExprAsType } from "./type-expr.ts";
 
 export function inferMatch(
@@ -51,14 +52,14 @@ export function inferMatch(
       : undefined;
     // Pattern-binding narrowing: without it, references to `p` in the arm
     // body see `Unresolved` and the lowerer can't resolve fields on it.
-    const bind = bindingNarrowing(t, arm.pattern, scrut, narrowed);
-    const bindPrev = bind !== null ? pushNarrowing(t, bind.sym.id, bind.type) : undefined;
+    const binds = bindingNarrowings(t, arm.pattern, scrut, narrowed);
+    const bindPrev: (Type | undefined)[] = binds.map((b) => pushNarrowing(t, b.sym.id, b.type));
     if (arm.guard !== null) {
       const g = checkExpr(arm.guard, TY.bool, t, impls, diags, fn);
       if (!isAssignable(g, TY.bool)) err(diags, "T3019", arm.guard.span);
     }
     armTypes.push(checkExpr(arm.body, expected, t, impls, diags, fn));
-    if (bind !== null) popNarrowing(t, bind.sym.id, bindPrev);
+    for (let i = 0; i < binds.length; i++) popNarrowing(t, binds[i]!.sym.id, bindPrev[i]);
     if (scrutSym !== null && narrowed !== null) popNarrowing(t, scrutSym.id, prev);
   }
 
@@ -142,19 +143,44 @@ function scrutineeSymbol(scrut: A.Expr, t: MutableTyped): Symbol | null {
 }
 
 
-/** Narrowing target for a single arm's binding (`is T as p` ⇒ `T`,
- *  `BindingPattern x` ⇒ scrut). Struct-pattern field bindings stay untyped
- *  pending per-field substitution (see TODO §1.4 deferred). */
-function bindingNarrowing(
+/** Narrowing targets for an arm's bindings :
+ *   `is T as p`       ⇒ `p: T`
+ *   `is T { f, g }`   ⇒ one entry per field-binding, typed from T's layout
+ *   `BindingPattern x` ⇒ `x: scrut`
+ *  Returns multiple entries because struct destructuring binds several
+ *  identifiers simultaneously. (Bare `T { … }` at the arm top-level is not
+ *  in the grammar — `parsePattern` only produces `StructPattern` via
+ *  `IsPattern.inner`.) */
+function bindingNarrowings(
   t: MutableTyped, pattern: A.Pattern, scrut: Type, isNarrowed: Type | null,
-): { sym: Symbol; type: Type } | null {
-  if (pattern.kind === "IsPattern" && pattern.bindAs !== null && isNarrowed !== null) {
-    const sym = t.resolved.patternBindings.get(pattern);
-    return sym !== undefined ? { sym, type: isNarrowed } : null;
+): { sym: Symbol; type: Type }[] {
+  const out: { sym: Symbol; type: Type }[] = [];
+  if (pattern.kind === "IsPattern") {
+    if (pattern.bindAs !== null && isNarrowed !== null) {
+      const sym = t.resolved.patternBindings.get(pattern);
+      if (sym !== undefined) out.push({ sym, type: isNarrowed });
+    }
+    if (pattern.inner !== null && pattern.inner.kind === "StructPattern" && isNarrowed !== null) {
+      collectStructFieldBindings(t, pattern.inner, isNarrowed, out);
+    }
+    return out;
   }
   if (pattern.kind === "BindingPattern") {
     const sym = t.resolved.patternBindings.get(pattern);
-    return sym !== undefined ? { sym, type: scrut } : null;
+    if (sym !== undefined) out.push({ sym, type: scrut });
   }
-  return null;
+  return out;
+}
+
+function collectStructFieldBindings(
+  t: MutableTyped, pattern: A.StructPattern, sourceType: Type,
+  out: { sym: Symbol; type: Type }[],
+): void {
+  for (const f of pattern.fields) {
+    if (f.value.kind !== "binding") continue;
+    const sym = t.resolved.patternBindings.get(f);
+    if (sym === undefined) continue;
+    const ft = fieldTypeOnType(sourceType, f.name, t) ?? TY.unresolved;
+    out.push({ sym, type: ft });
+  }
 }

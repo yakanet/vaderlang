@@ -197,22 +197,24 @@ function walkPatternBindings(
       return;
     }
     case "IsPattern": {
+      const innerType = ctx.types.typeExprType(pattern.type);
+      // Cast the target to the narrowed type so nested reads land on the
+      // variant layout, not the union slot. Skip the cast on a non-union
+      // scrutinee where the slot already has the right layout.
+      const narrowedTarget: LoweredExpr = targetType.kind === "Union"
+        ? { kind: "LoweredCast", span, type: innerType, value: target }
+        : target;
       if (pattern.bindAs !== null) {
-        const cast: LoweredExpr = {
-          kind: "LoweredCast", span,
-          type: ctx.types.typeExprType(pattern.type), value: target,
-        };
         const sym = ctx.typed.resolved.patternBindings.get(pattern)
           ?? freshSyntheticSymbol(ctx, pattern.bindAs);
-        const init = lowerCellInit(ctx, sym, cast, cast.type, span);
+        const init = lowerCellInit(ctx, sym, narrowedTarget, innerType, span);
         out.push({
           kind: "LoweredLet", span, name: pattern.bindAs, symbol: sym,
           type: init.slotType, value: init.value,
         });
       }
       if (pattern.inner !== null) {
-        const innerType = ctx.types.typeExprType(pattern.type);
-        walkPatternBindings(ctx, pattern.inner, target, innerType, out, span);
+        walkPatternBindings(ctx, pattern.inner, narrowedTarget, innerType, out, span);
       }
       return;
     }

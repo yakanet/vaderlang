@@ -194,7 +194,7 @@ export function inferField(
  *  (Enum, Trait, Primitive, Array, Fn, …) fall through to null since
  *  none of them carry a named-field surface that's meaningful inside
  *  a union mix. */
-function fieldTypeOnType(target: Type, fieldName: string, t: MutableTyped): Type | null {
+export function fieldTypeOnType(target: Type, fieldName: string, t: MutableTyped): Type | null {
   if (target.kind === "Struct") {
     const decl = sourceStructDecl(target.symbol);
     if (decl === null) return null;

@@ -1,0 +1,304 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Point",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "x",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "private",
+          "default": null
+        },
+        {
+          "name": "y",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "describe",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "value",
+          "type": {
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "Point"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "null"
+            }
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "string"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "out"
+            },
+            "type": null,
+            "value": {
+              "kind": "MatchExpr",
+              "scrutinee": {
+                "kind": "IdentExpr",
+                "name": "value"
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "kind": "IsPattern",
+                    "type": {
+                      "kind": "IdentExpr",
+                      "name": "null"
+                    },
+                    "inner": null,
+                    "bindAs": null
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "null"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "kind": "IsPattern",
+                    "type": {
+                      "kind": "IdentExpr",
+                      "name": "Point"
+                    },
+                    "inner": {
+                      "kind": "StructPattern",
+                      "fields": [
+                        {
+                          "name": "x",
+                          "value": {
+                            "kind": "binding",
+                            "name": "x"
+                          }
+                        },
+                        {
+                          "name": "y",
+                          "value": {
+                            "kind": "binding",
+                            "name": "y"
+                          }
+                        }
+                      ]
+                    },
+                    "bindAs": null
+                  },
+                  "guard": null,
+                  "body": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "("
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "x"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": ", "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "y"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": ")"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "out"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "describe"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StructLitExpr",
+                          "typeName": {
+                            "kind": "IdentExpr",
+                            "name": "Point"
+                          },
+                          "items": [
+                            {
+                              "kind": "field",
+                              "name": "x",
+                              "value": {
+                                "kind": "IntLitExpr",
+                                "value": "3n",
+                                "suffix": null
+                              }
+                            },
+                            {
+                              "kind": "field",
+                              "name": "y",
+                              "value": {
+                                "kind": "IntLitExpr",
+                                "value": "4n",
+                                "suffix": null
+                              }
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "describe"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "NullLitExpr"
+                        },
+                        "spread": false
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

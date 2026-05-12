@@ -1,0 +1,22 @@
+# Typecheck
+
+## tests/snippets/match_struct_pattern_in_union/_main.vader
+  FnDecl         describe             :: fn(null | Point) -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 12:12    MatchExpr      :: string
+  expr 12:18    IdentExpr      :: null | Point
+  expr 13:20    StringLitExpr  :: string
+  expr 14:30    StringLitExpr  :: string
+  expr 14:34    IdentExpr      :: i32
+  expr 14:40    IdentExpr      :: i32
+  expr 16:12    IdentExpr      :: string
+  expr 20:13    CallExpr       :: string
+  expr 20:13    IdentExpr      :: fn(null | Point) -> string
+  expr 20:22    StructLitExpr  :: Point
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 21:13    CallExpr       :: string
+  expr 21:13    IdentExpr      :: fn(null | Point) -> string
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(string) -> void

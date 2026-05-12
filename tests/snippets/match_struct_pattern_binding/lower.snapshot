@@ -30,9 +30,9 @@
                     @builder.append_str :void
                       __sb_1 :?
                       "ten alice=" :string
-                    @builder.append_str :void
+                    @builder.append_display <for string> :void
                       __sb_1 :?
-                      name :?
+                      name :string
                     ~>
                       @builder.finish :string
                         __sb_1 :?
